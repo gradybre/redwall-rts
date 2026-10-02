@@ -664,6 +664,28 @@ func test_hungry_with_no_portion_eats_raw_roots_never_grain() -> void:
 	@warning_ignore("integer_division") assert_equal(Rules.RAW_NP_CAP * 1000 / Rules.raw_np_per_u(CARROT), 3750, "a full raw meal is 3.75 U of roots")
 
 
+func test_hungry_with_no_portion_eats_raw_fruit_never_from_a_basket_stand() -> void:
+	"""§5.7's raw rows (decision 0671's proposal 9): fruit 900 NP a unit, berries 700, both eaten raw; a lot waiting at a
+	gathering place (an orchard basket stand, KEY_STAGING) is never taken, though its berries spoil first."""
+	var v := _village(1, tick_at(1, 9))
+	v.pantry.storage.add_provider(func() -> Array:
+		return [{StorageScript.KEY_ID: &"test_stand", StorageScript.KEY_POSITION: Vector2(7.0, 0.5),
+			StorageScript.KEY_CAPACITY_U: 50, StorageScript.KEY_PERMILLE: 1000, StorageScript.KEY_STAGING: true}])
+	var read := IntMath.IntResult.new()
+	assert_true(v.pantry.add_into(Catalog.ITEM_BERRIES, 3000, 1, read), "berries at the stand")
+	_stock(v, Catalog.ITEM_APPLE, 2000)
+	v.kitchen.keep_water = false
+	_open(v)
+	v.kitchen.fed.hunger[0] = 2400
+	_run(v, 11 * FRAMES_PER_HOUR)
+	assert_equal(v.kitchen.fed.last_outcome[0], FedScript.OUTCOME_RAW, "ate raw")
+	assert_equal(v.pantry.milli_of(Catalog.ITEM_APPLE), 0, "the stored apples")
+	assert_equal(v.pantry.milli_at(Catalog.ITEM_BERRIES, 1), 3000, "never the stand's berries")
+	assert_equal(Rules.raw_np_per_u(Catalog.ITEM_APPLE), 900, "fruit")
+	assert_equal(Rules.raw_np_per_u(Catalog.ITEM_PEAR), 900, "fruit")
+	assert_equal(Rules.raw_np_per_u(Catalog.ITEM_BERRIES), 700, "berries")
+
+
 func test_a_raw_meal_at_supper_s_end_is_eaten_before_bed() -> void:
 	"""With the night running: supper's serving ends at 19:00, an hour before dusk, and the hungry with no portion go
 	to eat raw food then; dusk does not take them off it (should they still be eating after dark, they finish, then go

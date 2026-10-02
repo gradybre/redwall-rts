@@ -10,10 +10,18 @@ extends VBoxContainer
 ## pin, and its NOTABLE MOMENTS, newest first: each its words, wrapped whole ("Spring 4 · Built the neck bridge"), over
 ## "Go to" (its place) and a button for the other person in it ("Tobit Highbough") that goes to them. Rows are pooled
 ## and re-worded in place (a focus or a tooltip survives a refresh). Text is at least 14 px, buttons at least 32 px.
+##
+## ITS PORTRAIT (art pass 2, decision 0951; docs/art-reference/art_pass2_mapping.md "Resident portraits"). With the
+## residents' portrait medallions staged (`set_portraits`: the shared props table and how a resident maps to its cast
+## key), the section opens with a header -- the resident's 64 px medallion beside its first name and role line -- the
+## one-resident inspector's natural portrait slot. It is a slot of its own: the species emblems stay species marks
+## (ART-UI-06). With none staged (CI, a fresh clone), or for a resident without one, the header hides and the section
+## is exactly as before.
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 ## A moment's place or person was pressed: go to it (demo_news_jump.gd `jump`).
 signal go_to(kind: int, id: int)
@@ -23,6 +31,10 @@ signal notable_pressed(who: int, on: bool)
 const BODY_PX: int = 15
 const SMALL_PX: int = 14
 const METER_H: float = 6.0
+## The portrait medallion's staged (and drawn) size, and the gap to the words beside it.
+const PORTRAIT_PX: int = 64
+const PORTRAIT_GAP: int = 10
+const NAME_PX: int = 17
 const SKILL: String = "%s · Level %d"
 const SKILL_TOP: String = "%s · Level %d (the top)"
 const SKILLS: String = "Skills"
@@ -63,6 +75,16 @@ var _moment_place: PackedInt32Array = PackedInt32Array()
 var _moment_other: PackedInt32Array = PackedInt32Array()
 var _shown_moments: int = 0
 var _first: String = ""
+## The portraits' source (null: none) and `key_of(who) -> StringName` (its cast key); the header, and whose portrait it
+## holds (-1: not looked up yet), so a refresh looks one up only when the resident changes.
+var _props: PropsScript = null
+var _key_of: Callable = Callable()
+var _portrait_row: HBoxContainer = null
+var _portrait: TextureRect = null
+var _portrait_name: Label = null
+var _portrait_role: Label = null
+var _portrait_who: int = -1
+var _role: String = ""
 
 
 func build(width: float) -> void:
@@ -72,6 +94,7 @@ func build(width: float) -> void:
 	name = "Person"
 	_width = width
 	add_theme_constant_override(&"separation", 4)
+	_build_portrait()
 	_skills_head = _label(SKILLS, SMALL_PX, Palette.UMBER)
 	add_child(_skills_head)
 	_skill_box = VBoxContainer.new()
@@ -84,6 +107,66 @@ func build(width: float) -> void:
 	add_child(_about)
 	_build_about()
 	visible = false
+
+
+func _build_portrait() -> void:
+	"""The header (hidden until a portrait is shown): the medallion, and beside it the first name over the role line."""
+	_portrait_row = HBoxContainer.new()
+	_portrait_row.name = "PortraitRow"
+	_portrait_row.add_theme_constant_override(&"separation", PORTRAIT_GAP)
+	_portrait_row.visible = false
+	add_child(_portrait_row)
+	_portrait = TextureRect.new()
+	_portrait.name = "Portrait"
+	_portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_portrait.custom_minimum_size = Vector2(PORTRAIT_PX, PORTRAIT_PX)
+	_portrait_row.add_child(_portrait)
+	var words := VBoxContainer.new()
+	words.alignment = BoxContainer.ALIGNMENT_CENTER
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.add_theme_constant_override(&"separation", 0)
+	_portrait_row.add_child(words)
+	_portrait_name = FarmUi.label("", NAME_PX, Palette.INK, true)
+	_portrait_role = FarmUi.label("", SMALL_PX, Palette.UMBER)
+	for line: Label in [_portrait_name, _portrait_role]:
+		line.custom_minimum_size.x = _width - float(PORTRAIT_PX + PORTRAIT_GAP)
+		words.add_child(line)
+
+
+func set_portraits(props: PropsScript, key_of: Callable) -> void:
+	"""Head the section with the resident's portrait from `props` (null: none), `key_of(who)` giving its cast key; the
+	person shown, if any, is redrawn at once."""
+	_props = props
+	_key_of = key_of
+	_portrait_who = -1
+	if _who >= 0 and _portrait_row != null:
+		_show_portrait()
+
+
+func portrait_of(who: int) -> Texture2D:
+	"""Resident `who`'s staged PORTRAIT_PX medallion, or null (none staged, or no cast key)."""
+	if _props == null or not _key_of.is_valid() or who < 0:
+		return null
+	var key: StringName = _key_of.call(who)
+	return _props.portrait(key, PORTRAIT_PX) if key != &"" else null
+
+
+func _show_portrait() -> void:
+	"""The header for the person shown: its portrait looked up when the resident changed; hidden without one."""
+	if _who != _portrait_who:
+		_portrait_who = _who
+		_portrait.texture = portrait_of(_who)
+	_portrait_row.visible = _portrait.texture != null
+	if _portrait_row.visible:
+		_set_line(_portrait_name, _first)
+		_set_line(_portrait_role, _role)
+
+
+func portrait_shown() -> Texture2D:
+	"""The portrait the header shows (null while it is hidden; checks)."""
+	return _portrait.texture if _portrait_row != null and _portrait_row.visible else null
 
 
 func _build_about() -> void:
@@ -124,6 +207,8 @@ func show_person(info: Dictionary) -> void:
 	_who = int(info["who"])
 	_first = String(info.get("first", ""))
 	_notable = bool(info.get("notable", false))
+	_role = String(info.get("role", ""))
+	_show_portrait()
 	_show_skills(info.get("skills", []))
 	_about.text = (ABOUT_OPEN if about_open else ABOUT_CLOSED) % (_first if not _first.is_empty() else "them")
 	_about_box.visible = about_open

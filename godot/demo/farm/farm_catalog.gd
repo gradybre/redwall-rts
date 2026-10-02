@@ -68,6 +68,7 @@ const ITEM_KEYS: Array[StringName] = [
 	&"dried_fish", &"flour",
 	&"potato", &"honey",
 	&"nuts", &"mushrooms", &"herb", &"berries",
+	&"apple", &"pear",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -78,6 +79,7 @@ const ITEM_LABELS: Array[String] = [
 	"Dried fish", "Flour",
 	"Potato", "Honey",
 	"Nuts", "Mushrooms", "Herbs", "Berries",
+	"Apple", "Pear",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -122,7 +124,13 @@ const ITEM_COUNT: int = 16
 ## §5.5's fifth patch, are not gathered (the farm grows its roots). The dishes lane's hazelnut, mushroom and raspberry
 ## are these nuts, mushrooms and berries (dish_book.gd; batch 7 integration, decision 0902), the items after potato and
 ## honey.
-const PANTRY_ITEM_COUNT: int = 30
+## THE ORCHARD'S FRUIT (decision 0671; demo/orchard/): the orchard trees' `apple` and `pear`, each the content library's
+## own LEAF key (LEAF_apple, LEAF_pear -- "a radish is a radish") and §5.7's `fruit` row ("Fruit | 900 | Yes | 144",
+## CAT_FRUIT -- §5.6's two orchard species, scripts/core/orchard_hive.gd SPECIES_KEYS), the items after the forage. The
+## hedge's raspberries, blackberries and strawberries are the ONE generic `berries` item above, the foraging lane's
+## (Brendan's ruling of 2026-10-01, decision 0676; batch 8 integration, decision 0903). A recipe that names `fruit` or
+## `berries` takes them by category, as `fish` takes the species.
+const PANTRY_ITEM_COUNT: int = 32
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
@@ -135,6 +143,13 @@ const ITEM_HERB: int = 28
 const ITEM_BERRIES: int = 29
 const FIRST_FORAGE: int = 26
 const FORAGE_COUNT: int = 4
+const ITEM_APPLE: int = 30
+const ITEM_PEAR: int = 31
+const FIRST_FRUIT: int = 30
+const FRUIT_COUNT: int = 2
+## Every item the orchard and the hedge yield (a list, not a range: the hedge's `berries` is the forage item, numbered
+## away from the fruit).
+const ORCHARD_ITEMS: PackedInt32Array = [ITEM_APPLE, ITEM_PEAR, ITEM_BERRIES]
 const CAT_FISH: int = 5
 const CAT_DRIED_FISH: int = 6
 const CAT_FLOUR: int = 7
@@ -143,12 +158,15 @@ const CAT_NUTS: int = 9
 const CAT_MUSHROOMS: int = 10
 const CAT_HERB: int = 11
 const CAT_BERRIES: int = 12
+const CAT_FRUIT: int = 13
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
 const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
-	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES]
-const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48]
+	FarmingScript.CROP_ROOTS, CAT_HONEY, CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES, CAT_FRUIT, CAT_FRUIT]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440, 720, 72, 480, 48, 144, 144]
 ## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
 const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
+## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.
+const ORCHARD_SPECIES_ITEM: Array[int] = [ITEM_APPLE, ITEM_PEAR]
 ## scripts/core/fishing.gd SPECIES_KEYS row -> pantry item (NO_ITEM: the coast's three, which the demo cannot catch).
 const SPECIES_ITEM: Array[int] = [16, 17, 18, 19, 20, 21, NO_ITEM, NO_ITEM, NO_ITEM]
 
@@ -233,7 +251,8 @@ const ITEM_PROP: Array[StringName] = [
 	&"item_trout", &"", &"", &"item_perch", &"", &"",
 	&"", &"",
 	&"", &"",
-	&"", &"", &"", &"",
+	&"", &"", &"", &"item_strawberry",
+	&"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -248,6 +267,7 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
 	Color(0.72, 0.6, 0.4), Color(0.9, 0.66, 0.22),
 	Color(0.62, 0.42, 0.22), Color(0.8, 0.7, 0.56), Color(0.44, 0.6, 0.34), Color(0.72, 0.16, 0.3),
+	Color(0.74, 0.22, 0.18), Color(0.74, 0.74, 0.34),
 ]
 
 ## The beds: the six first FIELD beds are world crop ids (BED_IDS); then the SOUTH FIELD's six (see THE SOUTH FIELD); then
@@ -331,6 +351,16 @@ static func category_of(item: int) -> int:
 static func item_of_patch(patch_kind: int) -> int:
 	"""The pantry item a forage.gd patch kind is gathered as (NO_ITEM: one the demo does not gather)."""
 	return PATCH_ITEM[patch_kind] if patch_kind >= 0 and patch_kind < PATCH_ITEM.size() else NO_ITEM
+
+
+static func is_orchard_item(item: int) -> bool:
+	"""Whether `item` is the orchard's fruit or the hedge's berries (decision 0671)."""
+	return ORCHARD_ITEMS.has(item)
+
+
+static func item_of_orchard_species(species_id: int) -> int:
+	"""The pantry item an orchard_hive.gd species row is picked as (NO_ITEM for none)."""
+	return ORCHARD_SPECIES_ITEM[species_id] if species_id >= 0 and species_id < ORCHARD_SPECIES_ITEM.size() else NO_ITEM
 
 
 static func item_of_species(species_row: int) -> int:

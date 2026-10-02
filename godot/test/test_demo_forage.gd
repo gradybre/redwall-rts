@@ -155,7 +155,8 @@ func test_the_four_items_are_the_catalogues_keys_and_their_rows() -> void:
 	"""nuts, mushrooms, herb, berries: data/item_definitions.json's ids and shelf hours, each its own category; nuts and
 	berries raw edible at §5.7's 1600 and 700 NP, mushrooms and herb never; the forage store's patch rows map to them,
 	roots to none."""
-	assert_equal(Catalog.PANTRY_ITEM_COUNT, 30, "24 before, the dishes' potato and honey, and four (decision 0902)")
+	assert_equal(Catalog.FIRST_FORAGE + Catalog.FORAGE_COUNT, 30, "24 before, the dishes' potato and honey, and four (decision 0902)")
+	assert_equal(Catalog.FIRST_FRUIT, Catalog.FIRST_FORAGE + Catalog.FORAGE_COUNT, "the orchard's fruit after (decision 0903)")
 	assert_equal(Catalog.FIRST_FORAGE, Catalog.ITEM_HONEY + 1, "the forage after the dishes' two")
 	var keys: Array[StringName] = [Catalog.ITEM_KEYS[Catalog.ITEM_NUTS], Catalog.ITEM_KEYS[Catalog.ITEM_MUSHROOMS],
 		Catalog.ITEM_KEYS[Catalog.ITEM_HERB], Catalog.ITEM_KEYS[Catalog.ITEM_BERRIES]]

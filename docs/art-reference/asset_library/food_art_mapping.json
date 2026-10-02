@@ -1,0 +1,859 @@
+{
+ "decision": "0941",
+ "pass": "food, plants and props, 2026-10-01",
+ "note": "Nothing here is wired into gameplay. Each entry names the staged asset and the stand-in it replaces on the branch that draws it, for the wiring step after integration. Models are PRESCALED (height_m at game scale, origin at the ground centre, facing +Z as authored); icons are 128 px RGBA like make_demo_props.py's. Staged by tools/make_demo_food_art.py (stage_demo_assets.py runs it).",
+ "item_key_aliases": {
+  "hazelnut": "item_nuts",
+  "mushroom": "item_mushrooms",
+  "raspberry": "item_berries"
+ },
+ "index_collisions": "the three branches number new items differently (orchards apple 24, pear 25, berries 26; forage nuts 24, mushrooms 25, herb 26, berries 27; dishes potato 24, honey 25): wire icons by key, never by index",
+ "assets": {
+  "apple_tree": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/apple_tree.glb",
+   "height_m": 4.7,
+   "aabb_min": [
+    -2.3634,
+    0,
+    -2.1522
+   ],
+   "aabb_max": [
+    2.3634,
+    4.7,
+    2.1522
+   ],
+   "triangles": 5800,
+   "family": "tree_large_vegetation",
+   "texture_px": 2048,
+   "sink_m": 0.0,
+   "bytes": 4789860,
+   "sha256": "7b8ad5121437da4ecdc675a969866c2d2eeaf76b1889f057373e83563d942698",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "godot/demo/orchard/orchard_view.gd TREE_KEY = &\"oak_mature\" (L43-56), for the apple trees",
+     "now": "the woods' oak at ORCHARD_TREE_SIZE 0.36 of 13 m (~4.7 m), sunk SINK_M[oak_mature] 1.2 x size",
+     "wire": "draw apple trees from this key at size 1.0 for a full-grown orchard tree (it is already 4.7 m); YOUNG_TREE_SIZE and OLD_TREE_SIZE become 0.5 and 1.11 of it; NO sink (it has no root mound; its trunk stands on a thin disc of ground). Register it with season_view add_trees as KIND_FRUIT as now: one surface, albedo texture, fruit and blossom are the shader's speckles (no fruit is modelled)."
+    }
+   ]
+  },
+  "pear_tree": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/pear_tree.glb",
+   "height_m": 5.2,
+   "aabb_min": [
+    -2.3718,
+    0,
+    -2.0956
+   ],
+   "aabb_max": [
+    2.3718,
+    5.2,
+    2.0956
+   ],
+   "triangles": 5800,
+   "family": "tree_large_vegetation",
+   "texture_px": 2048,
+   "sink_m": 0.15,
+   "bytes": 4810728,
+   "sha256": "352cbc1d73f01e6931d60e3937c49474fde7c0cacb48fb635752cc6e14e60c4c",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "orchard_view.gd TREE_KEY, for the pear trees",
+     "now": "the oak, as the apple",
+     "wire": "as apple_tree; it is 5.2 m, so a pear stands a little taller than an apple at the same growth share. It stands on a flat square plate (the concept's) up to 0.12 m thick: let it down its row's sink_m, 0.15 m."
+    }
+   ]
+  },
+  "raspberry_canes": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/raspberry_canes.glb",
+   "height_m": 1.4,
+   "aabb_min": [
+    -0.7854,
+    0,
+    -0.642
+   ],
+   "aabb_max": [
+    0.7854,
+    1.4,
+    0.642
+   ],
+   "triangles": 2998,
+   "family": "tree_large_vegetation",
+   "texture_px": 1024,
+   "sink_m": 0.0,
+   "bytes": 2800024,
+   "sha256": "0a26bf0b33c1045d06d5e7e1c1ef7944e3a4d6b77b021893e102b211452f5d1e",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "orchard_view.gd hedge (L188-205), the raspberry canes",
+     "now": "oak_mature at BUSH_SIZE 0.15, sunk BUSH_SINK_M 0.95",
+     "wire": "this key at size 1.0, no sink. Ripe berries are modelled (red, outside the shader's leaf mask), so they show all year: set its BERRY speckle share to 0 or accept them."
+    }
+   ]
+  },
+  "bramble_blackberry": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/bramble_blackberry.glb",
+   "height_m": 1.2,
+   "aabb_min": [
+    -0.78,
+    0,
+    -0.5459
+   ],
+   "aabb_max": [
+    0.78,
+    1.2,
+    0.5459
+   ],
+   "triangles": 2999,
+   "family": "tree_large_vegetation",
+   "texture_px": 1024,
+   "sink_m": 0.0,
+   "bytes": 2655060,
+   "sha256": "ed1bc984d3195ba316ee2bc76739ee861e7f24b2fa39b774754074d71a7f8130",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "orchard_view.gd hedge, the blackberry bramble",
+     "now": "oak_mature at 0.15, sunk 0.95",
+     "wire": "this key at size 1.0, no sink; blackberries are modelled, as above"
+    },
+    {
+     "branch": "feat/demo-foraging",
+     "where": "godot/demo/forage/forage_rules.gd SPOT_NAMES 'the bramble edge' (PATCH_BERRIES)",
+     "now": "nothing drawn at the spot",
+     "wire": "place at SPOT_AT for the berries patch"
+    }
+   ]
+  },
+  "strawberry_patch": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/strawberry_patch.glb",
+   "height_m": 0.35,
+   "aabb_min": [
+    -0.6633,
+    0,
+    -0.6611
+   ],
+   "aabb_max": [
+    0.6633,
+    0.35,
+    0.6611
+   ],
+   "triangles": 523,
+   "family": "ground_cover_cluster",
+   "texture_px": 512,
+   "sink_m": 0.0,
+   "bytes": 1237692,
+   "sha256": "7df509e185bc847d94ee7355ab0addcdbd9961b6ad5e4ff85fae407281d6d510",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "orchard_view.gd strawberry bed: 5 x plant_strawberry.glb at STRAWBERRY_SCALE 0.5",
+     "now": "five single plants",
+     "wire": "one patch at size 1.0 (1.3 m across)"
+    }
+   ]
+  },
+  "hazel_bush": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/hazel_bush.glb",
+   "height_m": 3.0,
+   "aabb_min": [
+    -1.4783,
+    0,
+    -0.7809
+   ],
+   "aabb_max": [
+    1.4783,
+    3,
+    0.7809
+   ],
+   "triangles": 3000,
+   "family": "tree_large_vegetation",
+   "texture_px": 1024,
+   "sink_m": 0.0,
+   "bytes": 2768088,
+   "sha256": "64e3e8495ab9df0504b1d14528b43cf05f19f2c099ed6f7548287e88bd0a6aaf",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "forage_rules.gd 'the hazel brake' (PATCH_NUTS)",
+     "now": "nothing drawn",
+     "wire": "place one to three at SPOT_AT, size 0.8-1.1"
+    }
+   ]
+  },
+  "mushroom_forage": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/mushroom_forage.glb",
+   "height_m": 0.45,
+   "aabb_min": [
+    -0.5212,
+    0,
+    -0.511
+   ],
+   "aabb_max": [
+    0.5212,
+    0.45,
+    0.511
+   ],
+   "triangles": 552,
+   "family": "ground_cover_cluster",
+   "texture_px": 512,
+   "sink_m": 0.0,
+   "bytes": 1211252,
+   "sha256": "699668b4a7d88ecc71c51ab06b2de1210b6c8c05cc0357535c3ff33cc1c40957",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "forage_rules.gd 'the beech hollow' (PATCH_MUSHROOMS)",
+     "now": "nothing drawn (the woods scatter the unrelated mushroom_cluster)",
+     "wire": "place at SPOT_AT; keep the woods' mushroom_cluster as dressing, so the forage patch reads differently (ceps and chanterelles)"
+    }
+   ]
+  },
+  "herb_patch": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/herb_patch.glb",
+   "height_m": 0.5,
+   "aabb_min": [
+    -0.9807,
+    0,
+    -0.9912
+   ],
+   "aabb_max": [
+    0.9807,
+    0.5,
+    0.9912
+   ],
+   "triangles": 546,
+   "family": "ground_cover_cluster",
+   "texture_px": 512,
+   "sink_m": 0.0,
+   "bytes": 1175660,
+   "sha256": "dd65c062d8cd98a3154141f322a5373fd1379e1c00e990fd1ea1cfc7cf165da6",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "forage_rules.gd 'the herb bank' (PATCH_HERB)",
+     "now": "nothing drawn",
+     "wire": "place at SPOT_AT"
+    },
+    {
+     "branch": "feat/demo-infirmary",
+     "where": "godot/demo/infirmary/herb_patch_view.gd (12 procedural clumps, RADIUS_M 1.1)",
+     "now": "procedural clumps",
+     "wire": "one herb_patch, about 1.9 m across, in place of the clumps"
+    }
+   ]
+  },
+  "apple_basket": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/props/apple_basket.glb",
+   "height_m": 0.4,
+   "aabb_min": [
+    -0.3133,
+    0,
+    -0.3017
+   ],
+   "aabb_max": [
+    0.3133,
+    0.4,
+    0.3017
+   ],
+   "triangles": 1141,
+   "family": "small_prop",
+   "texture_px": 512,
+   "sink_m": 0.0,
+   "bytes": 1267960,
+   "sha256": "66d01d99b5fce59a6ba4a28a1c24a232d1629e78541cb94e261f989b5f285d31",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "orchard_view.gd basket stand (L213-267): 3 x prop basket + a 30-sphere fruit MultiMesh",
+     "now": "empty baskets and procedural spheres",
+     "wire": "the apple stand's full baskets; keep the MultiMesh heap for counts, or show this per started third of stock. Add it to demo_props.gd SIZES as [RULE_HEIGHT, 0.4] (already 0.4 m). The pear stand keeps basket + heap (no pear basket was made)."
+    }
+   ]
+  },
+  "infirmary_ward": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/world/infirmary_ward.glb",
+   "height_m": 5.5,
+   "aabb_min": [
+    -5.9253,
+    0,
+    -5.8951
+   ],
+   "aabb_max": [
+    5.9253,
+    5.5,
+    5.8951
+   ],
+   "triangles": 29341,
+   "family": "building_assembly",
+   "texture_px": 2048,
+   "sink_m": 0.33,
+   "bytes": 19188440,
+   "sha256": "558373373bf9c09b8a59d1f7395cbe96834d33653c6c6aec7d0c295b0a39bcb0",
+   "replaces": [
+    {
+     "branch": "feat/demo-infirmary",
+     "where": "godot/demo/infirmary/infirmary_view.gd BODY_KEY = \"residence\" (L18-19)",
+     "now": "the residence, scaled to the 5.5 m envelope (about 5 x 4.5 m in plan) on a 16 x 16 m (8 x 8 tile) footprint",
+     "wire": "BODY_KEY = \"infirmary_ward\". It is prescaled to the 5.5 m envelope, so _load_body's scale is 1.0; its plan is about 11.8 m square inside the 16 m footprint. Its earth base is 0.25-0.32 m at the rim: let it down its row's sink_m, 0.33 m, in place of SINK_SHARE 0.07 (0.385 m). Its front (porch and door) faces +Z."
+    }
+   ]
+  },
+  "bee_skep": {
+   "kind": "model",
+   "manifest_section": "world",
+   "path": "res://demo/assets/props/bee_skep.glb",
+   "height_m": 0.75,
+   "aabb_min": [
+    -0.2819,
+    0,
+    -0.2764
+   ],
+   "aabb_max": [
+    0.2819,
+    0.75,
+    0.2764
+   ],
+   "triangles": 1886,
+   "family": "furniture_instance",
+   "texture_px": 1024,
+   "sink_m": 0.0,
+   "bytes": 3448720,
+   "sha256": "b6f67b94ab45e85c9f54ed6e7682a53c5e8b4e55b707d3aa5eb77ac8b3b69930",
+   "replaces": [
+    {
+     "branch": "origin/feat/orchard-hive-pollination, origin/feat/rotation-hive-producers",
+     "where": "no demo drawing yet (orchard_hive.gd is core only; farm_sim.gd L535 'the demo has no hives')",
+     "now": "nothing",
+     "wire": "one skep per hive on the apiary footprint; 0.75 m on its stool. Add to demo_props.gd SIZES as [RULE_HEIGHT, 0.75]."
+    }
+   ]
+  },
+  "item_apple": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_apple.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    0,
+    0
+   ],
+   "bytes": 19946,
+   "sha256": "fd135782fa371471bad6acd3a41f5fc9ade630725133ddd30929418db67d8513",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "godot/demo/farm/farm_catalog.gd farm_catalog.gd ITEM_APPLE (24); ITEM_PROP is &\"\" (roundel)",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_pear": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_pear.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    1,
+    0
+   ],
+   "bytes": 20297,
+   "sha256": "6749ce1e4af938c69b79341583d83d7f2447469af2ae5d882ed31d8224ff817c",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_PEAR (25); roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_berries": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_berries.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    2,
+    0
+   ],
+   "bytes": 20131,
+   "sha256": "d08021d1375fc5ca97a8ca09520c4e585ef0f6c14fbe4f160773671f11d91933",
+   "replaces": [
+    {
+     "branch": "feat/demo-orchards, feat/demo-foraging",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_BERRIES (orchards 26, forage 27); orchards' ITEM_PROP borrows item_strawberry, forage's is a roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_nuts": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_nuts.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    0,
+    1
+   ],
+   "bytes": 22774,
+   "sha256": "ba9c2a4e44ceec9ff6351cb22a6b84072d436d7b2263fb021552fdd353ff056a",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_NUTS (24); roundel. dish_book NEEDS names it &\"hazelnut\"",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_mushrooms": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_mushrooms.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    1,
+    1
+   ],
+   "bytes": 21133,
+   "sha256": "6b966e9f84e00b35ee58be674a3b2e5ad6833394d3a770f1edd25a2e1cc18b20",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_MUSHROOMS (25); roundel. dish_book NEEDS names it &\"mushroom\"",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_herb": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_herb.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    2,
+    1
+   ],
+   "bytes": 25792,
+   "sha256": "adda13791ecff7ad3abe2783e190ca55d8fe5df2f313921874f7baf664311ddb",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_HERB (26); roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_potato": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_potato.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    0,
+    2
+   ],
+   "bytes": 20465,
+   "sha256": "3a2ab9974609822430e2723c1bf4b3f5869a25fe90b967cd1182e7d63435e09a",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_POTATO (24); roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_flour": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_flour.png",
+   "px": 128,
+   "sheet": "icon/sheet_foods_a/sheet.png",
+   "cell": [
+    2,
+    2
+   ],
+   "bytes": 28641,
+   "sha256": "f5c195fd0caa70bad33d04c12e402e6c967ce4028de3bade041ca97ddc0ffa1c",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_FLOUR (23); roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "item_dried_fish": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_dried_fish.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    0,
+    0
+   ],
+   "bytes": 26656,
+   "sha256": "1f63a382cdd1ecba5b67f188496c236e9c75689307e616e45e03829424b6fbfd",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_DRIED_FISH (22); roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  },
+  "dish_oatcake": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_oatcake.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    1,
+    0
+   ],
+   "bytes": 32185,
+   "sha256": "72528f9433479533f66a9691d7895223869c4bdeafbe189abe4a4edf6a2b68b9",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"oatcake\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_farl": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_farl.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    2,
+    0
+   ],
+   "bytes": 26288,
+   "sha256": "70ddf11440c0a94aa86d33978d41d2b3ff29dd991ba0d809075220988307872d",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"farl\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_hardtack": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_hardtack.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    0,
+    1
+   ],
+   "bytes": 26647,
+   "sha256": "f7ff3a8a161bf7e8707f475da4ce75ba7bdc62b1dbacffe8f7778cd3a61d5adf",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"hardtack\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_salad": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_salad.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    1,
+    1
+   ],
+   "bytes": 28673,
+   "sha256": "7fb0dbf67c9e0bcec0e86876b763326434d0c7a3df4417eac654f3d72f81ab4a",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"salad\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_baked_fish": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_baked_fish.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    2,
+    1
+   ],
+   "bytes": 21001,
+   "sha256": "e28b033009a535d985766811613a51b5ff783f010b6432b59ebd82d9af64943e",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"baked_fish\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_biscuit_soup": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_biscuit_soup.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    0,
+    2
+   ],
+   "bytes": 25875,
+   "sha256": "bce3267c4b51d38e571e756bcfd881780a976d58ef983e5def55a6eb1c97c876",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"biscuit_soup\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_pasty": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_pasty.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    1,
+    2
+   ],
+   "bytes": 21528,
+   "sha256": "8278dd3a3d19b22bab87821f049de3d2151257c4162c44e9b2f4d1d2a3856302",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"pasty\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_root_pie": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_root_pie.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_b/sheet.png",
+   "cell": [
+    2,
+    2
+   ],
+   "bytes": 27583,
+   "sha256": "2c5c7e622790de86f56ec9d6ea144aa1490cdf8e7767199a7d9108b682151f3b",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"root_pie\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_scones": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_scones.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    0,
+    0
+   ],
+   "bytes": 22840,
+   "sha256": "b1f7dbe956f664ca2237231936888bae4e3c337d9a974f63bf6356cce4214234",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"scones\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_cordial": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_cordial.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    1,
+    0
+   ],
+   "bytes": 17156,
+   "sha256": "b6feccca915373b1bfd647f4890d92d0b3dd16bb377ed895ba5a8fcb90885304",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"cordial\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_woodland_pie": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_woodland_pie.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    2,
+    0
+   ],
+   "bytes": 25009,
+   "sha256": "bef5320b55facc9edd137b5b5dc369e5c536b9584aadaddd471e4bc25f82cc03",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"woodland_pie\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "dish_nut_loaf": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_nut_loaf.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    0,
+    1
+   ],
+   "bytes": 21558,
+   "sha256": "3ea206ad9b364a6d4e86a1fd97c9990cb1be7f90f6f45336f3fce3e3ed7d0fe7",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "godot/demo/kitchen/meal_rules.gd DISH_NUT_LOAF (4), GDD row nut_loaf, guide id dish_nut_loaf",
+     "now": "text only",
+     "wire": "as the dish_book dishes"
+    }
+   ]
+  },
+  "dish_herb_infusion": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_herb_infusion.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    1,
+    1
+   ],
+   "bytes": 24239,
+   "sha256": "b903a2a6693a5f0c5368b14424f196cb1b19146289e539a4b533a04929749af0",
+   "replaces": [
+    {
+     "branch": "feat/demo-foraging",
+     "where": "godot/demo/regatta/regatta_rules.gd the infusion (INFUSION_HERB_MILLI, INFUSION_WATER_PER; L55-57, L103-109) -- a feast component, not a dish_book key",
+     "now": "text only",
+     "wire": "the regatta feast's infusion line"
+    }
+   ]
+  },
+  "dish_bean_hotpot": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/dish_bean_hotpot.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    2,
+    1
+   ],
+   "bytes": 26926,
+   "sha256": "b9c7008cc13fed62bcc48e0adfb1627658720dd7d72bdbe26e8801b07cc15fd3",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/kitchen/dish_book.gd DISHES key &\"bean_hotpot\"",
+     "now": "text only: the Recipes tab and kitchen rows have no dish icon (farm_pantry_panel.gd L445-448)",
+     "wire": "a 28 px icon (FarmUi.ICON_PX) beside the dish name; kitchen_tab.gd rows are 32 px"
+    }
+   ]
+  },
+  "item_honey": {
+   "kind": "icon",
+   "manifest_section": "icons",
+   "path": "res://demo/assets/icons/item_honey.png",
+   "px": 128,
+   "sheet": "icon/sheet_dishes_c/sheet.png",
+   "cell": [
+    0,
+    2
+   ],
+   "bytes": 19977,
+   "sha256": "9a077f79259b226a1c883b90562bdf2f2b89c0876a4480eeb516b63b68eb8db6",
+   "replaces": [
+    {
+     "branch": "feat/demo-dishes",
+     "where": "godot/demo/farm/farm_catalog.gd ITEM_HONEY (25); roundel",
+     "now": "the 64 px brass roundel in ITEM_SWATCH (demo_props.gd roundel)",
+     "wire": "show this in the Pantry and the Recipes tab (FarmUi.set_icon, 28 px). demo_props.gd icon_of reads only rows it sizes, so read the manifest's \"icons\" section too (an icon-only row has no model)."
+    }
+   ]
+  }
+ }
+}

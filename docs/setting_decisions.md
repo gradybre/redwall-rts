@@ -1191,6 +1191,63 @@ Scope: the live demo's farm (`godot/demo/farm/`). Engineering record: decision 0
 harvest plans, kitchen garden, tunnel outlets and tending policies, approved with it). Recorded at the batch 7
 integration (decision 0902).
 
+### DEC-047 — Sizes for the art pass 2 wildlife, plants and props
+
+2026-10-02 · State: `USER_CONFIRMED` for the sizes below.
+
+Brendan approved the sizes that art pass 2 proposed, relayed through the coordinator on 2026-10-02. They are judged
+against the 1.00 m mouse anchor (DEC-039) at the demo's storybook scale:
+
+| Asset | Key | Size | m |
+| --- | --- | --- | ---: |
+| Robin, perched and on the wing | `wild_songbird`, `wild_songbird_flight` | length | 0.45 |
+| Peacock butterfly | `wild_butterfly` | wingspan | 0.36 |
+| Common frog | `wild_frog` | length | 0.40 |
+| Leaping brown trout | `wild_trout_leaping` | length | 0.80 |
+| Scots pine | `pine_scots` | height | 16.0 |
+| Yew | `yew_ancient` | height | 10.0 |
+| Flax | `plant_flax` | height | 0.80 |
+| Hall banner | `hall_banner` | drawn height | 1.6 |
+
+- **The wildlife sizes are each animal's approved scale.** They are ambient wildlife, not residents: no resident
+  species is added, and DEC-039's five heights are unchanged.
+- **The pine, yew, flax and banner sizes are presentation sizes for the demo.** They are the values its
+  `DEMO_HEIGHT_M`, `PLANT_HEIGHT_M` and banner scale take.
+- **Ruled since (Brendan, 2026-10-02, on decision 0903's question 3):** the trees' ground sink (`SINK_M`) is 0.6 m
+  each, and their trunk radius (`TRUNK_RADIUS_M`) pine 0.45 m and yew 0.9 m, as proposed; fifteen of them stand in the
+  demo's woods (`godot/demo/world/evergreens.gd`). These were left as proposals when DEC-047 was first recorded.
+- **Not visual acceptance.** Brendan's acceptance of the art itself still goes through `tools/art_gate.py`.
+
+Assets, spend and reasoning: [decision 0951](decisions/0951-art-pass-2-evergreens-portraits-stone-hall-flax-hall-art-and-wildlife.md).
+
+### DEC-048 — Sizes for the art pass 3 preserving, brewing and digging props, and the bee
+
+2026-10-02 · State: `USER_CONFIRMED` for the sizes below.
+
+Brendan approved the sizes that art pass 3 proposed, relayed through the coordinator on 2026-10-02. They are judged
+against the 1.00 m mouse anchor (DEC-039) at the demo's storybook scale:
+
+| Asset | Key | Size | m |
+| --- | --- | --- | ---: |
+| Stoneware crock | `crock_stoneware` | height | 0.50 |
+| Preserves shelf | `jar_shelf` | height | 0.95 |
+| Ale cask on its cradle | `ale_cask` | height | 0.80 |
+| Brew vat (mash tun) | `brew_vat` | height (rim at 0.80) | 0.95 |
+| Tunnel prop post | `tunnel_post` | height | 0.668 |
+| Tunnel lintel | `tunnel_lintel` | length (0.13 section) | 1.10 |
+| Timber set, standard bore | `tunnel_set` | height (1.10 wide) | 0.72 |
+| Rock face | `rock_face` | width (0.765 tall) | 1.00 |
+| Bee | `bee_swarm.gd` `BEE_LENGTH_M` | length | 0.09 |
+
+- **These are presentation sizes for the demo.** The models are staged prescaled at them (decision 0941's convention),
+  so a `demo_props.gd` size row draws each at scale 1.0.
+- **The timber kit follows the bore.** Its 0.72 m set is the existing frame height (0.72 of the standard 1.0 m crown),
+  and its 1.10 m lintel spans the springline. A wider bore takes more posts and lintels, not a stretched set.
+- **The bee is ambient presentation, not a species.** DEC-039's five heights are unchanged.
+- **Not visual acceptance.** Brendan's acceptance of the art itself still goes through `tools/art_gate.py`.
+
+Assets, spend and reasoning: [decision 0971](decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md).
+
 ### DEC-049 — Goods are shown in natural measures, in the demo and in the game
 
 2026-10-02 · State: `USER_CONFIRMED`: the measures table, P1–P8, and later the same day P9 (b) and P10 (b).

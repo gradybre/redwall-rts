@@ -21,6 +21,7 @@ const SpoilWork := preload("res://demo/work/spoil_work.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
 const ForageWork := preload("res://demo/work/forage_work.gd")
+const OrchardWork := preload("res://demo/work/orchard_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const StoresWork := preload("res://demo/work/stores_work.gd")
 const CareWork := preload("res://demo/work/care_work.gd")
@@ -111,6 +112,12 @@ func add_forage(trips: RefCounted) -> void:
 	"""THE FORAGING TRIPS ON THE BOARD (decision 0681): each forager's seat (work/forage_work.gd) -- the Woods crew's work,
 	claimed like the farm's."""
 	board.add_source(ForageWork.new(trips))
+
+
+func add_orchard(jobs: RefCounted) -> void:
+	"""THE ORCHARD ON THE BOARD (decision 0671): tending, picking, hauling the baskets on, planting, propagating and the
+	grove's observation (work/orchard_work.gd), claimed like the farm's."""
+	board.add_source(OrchardWork.new(jobs))
 
 
 func add_kitchen(kitchen: KitchenScript) -> void:

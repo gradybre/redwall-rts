@@ -46,6 +46,19 @@ const DEMO_HEIGHT_M: Dictionary = {
 	&"sack_pile": 1.0,          # sacks on a pallet about a mouse tall
 	&"wheelbarrow": 0.75,       # barrow handles at a mouse's waist
 	&"cauldron_tripod": 1.6,    # tripod above a badger's elbow; the pot hangs at mouse-chest
+	# The art passes' world models (decision 0903). The food art's are PRESCALED to these heights (decision 0941's
+	# table: the orchard's 0.36 of a 13 m oak for the trees, the hedge knee- to shoulder-high, the forage spots'
+	# ground cover), so each draws at scale 1.0; the evergreens are Brendan's sizes (DEC-047).
+	&"apple_tree": 4.7,         # a full-grown orchard apple (decision 0941; 0.36 of the woods oak)
+	&"pear_tree": 5.2,          # a pear a little taller than an apple at the same growth
+	&"raspberry_canes": 1.4,    # canes to a squirrel's shoulder
+	&"bramble_blackberry": 1.2, # a bramble mound a mouse can just see over
+	&"strawberry_patch": 0.35,  # a patch about 1.3 m across, knee-high to a mouse
+	&"hazel_bush": 3.0,         # a coppiced hazel, three mice tall
+	&"mushroom_forage": 0.45,   # ceps and chanterelles at a mouse's hip, as the woods' fungi
+	&"herb_patch": 0.5,         # a herb bed about 1.9 m across
+	&"pine_scots": 16.0,        # Brendan, 2026-10-02 (DEC-047): taller and narrower than the 13 m oak
+	&"yew_ancient": 10.0,       # Brendan, 2026-10-02 (DEC-047): low and broad, a 16.5 m spread
 	# table_stools: not here -- its top is the 0.625 m work-surface candidate, read below.
 }
 
@@ -81,8 +94,14 @@ const TABLE_KEY: StringName = &"table_stools"
 ##   the well (its paved apron, 0.04-0.08 m, is the well's own), the open stockpile (a raised deck),
 ##   the fence, the stumps (their root flare runs out at the ground by 0.75-1.0 m), the sapling, and
 ##   every prop. A placeholder (no staged model) has no base and is never sunk.
+##   pear_tree 0.15 (decision 0941): the pear stands on a square plate 0-0.12 m thick, measured; let down past it.
+##   pine_scots and yew_ancient 0.6: art pass 2's proposal (decision 0951), ruled by Brendan on 2026-10-02 (DEC-047;
+##     decision 0903's question 3).
 const SINK_M: Dictionary = {
 	&"oak_mature": 1.2,
+	&"pear_tree": 0.15,
+	&"pine_scots": 0.6,
+	&"yew_ancient": 0.6,
 	&"beech_mature": 0.5,
 	&"residence": 0.42,
 	&"covered_store": 0.12,
@@ -123,6 +142,16 @@ const NATIVE_AABB: Dictionary = {
 	&"table_stools": [Vector3(-0.9478, 0.0, -0.6748), Vector3(0.9479, 0.6808, 0.6784)],
 	&"wheelbarrow": [Vector3(-0.9508, 0.0, -0.3619), Vector3(0.9508, 0.7507, 0.3611)],
 	&"cauldron_tripod": [Vector3(-0.9328, 0.0, -0.9333), Vector3(0.9507, 1.892, 0.9421)],
+	&"apple_tree": [Vector3(-2.3634, 0.0, -2.1522), Vector3(2.3634, 4.7, 2.1522)],
+	&"pear_tree": [Vector3(-2.3718, 0.0, -2.0956), Vector3(2.3718, 5.2, 2.0956)],
+	&"raspberry_canes": [Vector3(-0.7854, 0.0, -0.642), Vector3(0.7854, 1.4, 0.642)],
+	&"bramble_blackberry": [Vector3(-0.78, 0.0, -0.5459), Vector3(0.78, 1.2, 0.5459)],
+	&"strawberry_patch": [Vector3(-0.6633, 0.0, -0.6611), Vector3(0.6633, 0.35, 0.6611)],
+	&"hazel_bush": [Vector3(-1.4783, 0.0, -0.7809), Vector3(1.4783, 3.0, 0.7809)],
+	&"mushroom_forage": [Vector3(-0.5212, 0.0, -0.511), Vector3(0.5212, 0.45, 0.511)],
+	&"herb_patch": [Vector3(-0.9807, 0.0, -0.9912), Vector3(0.9807, 0.5, 0.9912)],
+	&"pine_scots": [Vector3(-0.5311, 0.0, -0.5122), Vector3(0.5311, 1.8998, 0.5122)],
+	&"yew_ancient": [Vector3(-0.8286, 0.0, -0.9403), Vector3(0.8286, 1.5047, 0.9403)],
 }
 
 

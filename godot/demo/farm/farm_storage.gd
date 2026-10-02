@@ -11,7 +11,10 @@ extends RefCounted
 ##      "spoilage_permille": int 1..10000, its store factor: 1000 ages food at the base rate
 ##      "label": String,                   optional; what the pantry calls it
 ##      "storage_class": int,              optional; StockAge STORAGE_* (decision 0611, below)
-##      "why": String}                     optional; why it keeps food as it does, in words
+##      "why": String,                     optional; why it keeps food as it does, in words
+##      "staging": bool}                   optional; true: a gathering place food is set down at on its way to a
+##                                         store (the orchard's basket stands, decision 0674) -- never chosen as a
+##                                         harvest's or a delivery's destination (farm_pantry.gd `_best_location_into`)
 ##
 ## `spoilage_permille` IS GDD §5.8's store factor -- "open pile 1500, covered store 1000, pantry 750,
 ## cellar 350" -- so a root cellar that follows the GDD reports 350 (scripts/core/stock_age.gd
@@ -43,6 +46,8 @@ const KEY_PERMILLE: String = "spoilage_permille"
 const KEY_LABEL: String = "label"
 const KEY_CLASS: String = "storage_class"
 const KEY_WHY: String = "why"
+## A gathering place, never a destination (see the header; decision 0674).
+const KEY_STAGING: String = "staging"
 const MILLI_PER_U: int = 1000
 const MAX_PERMILLE: int = 10000
 ## The covered store (location 0): §5.8's covered-store factor, and a demo capacity.
@@ -66,6 +71,8 @@ var _capacity_milli: PackedInt64Array = PackedInt64Array()
 var _permille: PackedInt32Array = PackedInt32Array()
 var _class: PackedInt32Array = PackedInt32Array()
 var _why: PackedStringArray = PackedStringArray()
+## Per location: 1 when it is a gathering place (KEY_STAGING), never a destination.
+var _staging: PackedByteArray = PackedByteArray()
 var _refused: int = 0
 var _store_at: Vector2 = Vector2.ZERO
 
@@ -92,6 +99,7 @@ func refresh() -> void:
 	_permille = PackedInt32Array([STORE_PERMILLE])
 	_class = PackedInt32Array([STORE_CLASS])
 	_why = PackedStringArray([CLASS_WHY[STORE_CLASS]])
+	_staging = PackedByteArray([0])
 	_refused = 0
 	for provider: Callable in _providers:
 		if not provider.is_valid():
@@ -128,6 +136,7 @@ func _take(entry: Variant) -> void:
 	_class.append(kept.x)
 	var why: Variant = row.get(KEY_WHY)
 	_why.append(String(why) if why is String and not String(why).is_empty() else CLASS_WHY[kept.x])
+	_staging.append(1 if row.get(KEY_STAGING, false) == true else 0)
 
 
 static func class_and_permille_of(row: Dictionary) -> Vector2i:
@@ -201,6 +210,12 @@ func class_of(location: int) -> int:
 func why_of(location: int) -> String:
 	"""Why a location keeps food as it does, in words (see STORAGE CLASS)."""
 	return _why[location]
+
+
+func is_staging(location: int) -> bool:
+	"""Whether a location is a gathering place food waits at on its way to a store (KEY_STAGING), never a
+	destination."""
+	return location >= 0 and location < _staging.size() and _staging[location] == 1
 
 
 func refused_entries() -> int:

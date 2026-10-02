@@ -4055,6 +4055,428 @@
      "use": "direct"
     }
    ]
+  },
+  {
+   "item_key": "apple",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_apple"
+   ],
+   "direct_count": 210,
+   "component_count": 78,
+   "dishes": [
+    {
+     "label": "Abbey Trifle",
+     "id": "long_patrol::LP-RECIPE-abbey-trifle",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry crumble with arrowroot sauce",
+     "id": "outcast::OUT_recipe_apple_and_blackberry_crumble_with_arrowroot_sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry pie",
+     "id": "outcast::OUT_recipe_apple_and_blackberry_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry pudding",
+     "id": "martin_warrior::MW_RECIPE_apple_and_blackberry_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and carrot chews",
+     "id": "redwall::RW-RECIPE-apple-and-carrot-chews",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and carrot meal",
+     "id": "martin_warrior::MW_RECIPE_apple_and_carrot_meal",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and cheese",
+     "id": "outcast::OUT_recipe_apple_and_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and damson pie",
+     "id": "pearls_lutra::PL_RECIPE_apple_and_damson_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and greengage crumble with honey",
+     "id": "outcast::OUT_recipe_apple_and_greengage_crumble_with_honey",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and mint oat ice",
+     "id": "redwall::RW-RECIPE-apple-and-mint-ice-cream",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and redcurrant pie",
+     "id": "long_patrol::LP-RECIPE-apple-and-redcurrant-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple blackberry and plum crumble with greensap maple sauce",
+     "id": "long_patrol::LP-RECIPE-apple-blackberry-and-plum-crumble-with-greensap-maple-sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Apple cream flan — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_apple_cream_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple cream pudding",
+     "id": "outcast::OUT_recipe_apple_cream_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apple flan",
+     "id": "taggerung::TAG_recipe_apple_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple jelly",
+     "id": "salamandastron::SAL_recipe_apple_jelly",
+     "use": "direct"
+    },
+    {
+     "label": "Apple oat-cream pudding",
+     "id": "long_patrol::LP-RECIPE-apple-and-cream-pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apple pie",
+     "id": "lord_brocktree::LB-RECIPE-apple-pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple pie of Burdilo's poem",
+     "id": "triss::TRI_recipe_apple_pie_of_burdilo_s_poem",
+     "use": "direct"
+    },
+    {
+     "label": "Apple pie with meadowcream",
+     "id": "outcast::OUT_recipe_apple_pie_with_meadowcream",
+     "use": "direct"
+    },
+    {
+     "label": "Apple ration",
+     "id": "pearls_lutra::PL_RECIPE_apple_ration",
+     "use": "direct"
+    },
+    {
+     "label": "Apple slices",
+     "id": "long_patrol::LP-RECIPE-apple-slices",
+     "use": "direct"
+    },
+    {
+     "label": "Apple turnover",
+     "id": "salamandastron::SAL_recipe_apple_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Apple turnover with maple syrup",
+     "id": "marlfox::MF_RECIPE_apple_turnover_with_maple_syrup",
+     "use": "direct"
+    },
+    {
+     "label": "Apple turnovers",
+     "id": "martin_warrior::MW_RECIPE_apple_turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-blackberry crumble",
+     "id": "marlfox::MF_RECIPE_apple_and_blackberry_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-blackcurrant flan",
+     "id": "marlfox::MF_RECIPE_apple_and_blackcurrant_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-strawberry crumble",
+     "id": "marlfox::MF_RECIPE_apple_and_strawberry_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-blackcurrant flan",
+     "id": "triss::TRI_recipe_apple_blackcurrant_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-mint cordial (proposed pennycloud alternative)",
+     "id": "marlfox::MF_RECIPE_apple_mint_cordial_proposed_pennycloud_alternative",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-pear turnover",
+     "id": "triss::TRI_recipe_apple_pear_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-rhubarb crumble",
+     "id": "rakkety_tam::RAK_recipe_apple_rhubarb_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-whortleberry pudding",
+     "id": "triss::TRI_recipe_apple_whortleberry_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apples",
+     "id": "triss::TRI_recipe_apples",
+     "use": "direct"
+    },
+    {
+     "label": "Apples and scones",
+     "id": "marlfox::MF_RECIPE_apples_and_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Applescones",
+     "id": "martin_warrior::MW_RECIPE_applescones",
+     "use": "direct"
+    },
+    {
+     "label": "Autumn fruits crystallized in honey",
+     "id": "mossflower::MF_recipe_autumn_fruits_crystallized_in_honey",
+     "use": "direct"
+    },
+    {
+     "label": "Baked fruit loaf",
+     "id": "triss::TRI_recipe_baked_fruit_loaf",
+     "use": "direct"
+    },
+    {
+     "label": "Banquet crumbles",
+     "id": "rakkety_tam::RAK_recipe_banquet_crumbles",
+     "use": "direct"
+    },
+    {
+     "label": "Banquet turnovers",
+     "id": "rakkety_tam::RAK_recipe_banquet_turnovers",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "pear",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_pear"
+   ],
+   "direct_count": 49,
+   "component_count": 2,
+   "dishes": [
+    {
+     "label": "Apple-pear turnover",
+     "id": "triss::TRI_recipe_apple_pear_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Autumn fruits crystallized in honey",
+     "id": "mossflower::MF_recipe_autumn_fruits_crystallized_in_honey",
+     "use": "direct"
+    },
+    {
+     "label": "Bankbrew",
+     "id": "taggerung::TAG_recipe_bankbrew",
+     "use": "direct"
+    },
+    {
+     "label": "Barrack-ball flan",
+     "id": "rakkety_tam::RAK_recipe_barrack_ball_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Berry and pear cellar wine",
+     "id": "lord_brocktree::LB-RECIPE-berry-and-pear-wine-with-herbal-essences",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry and pear lattice tart",
+     "id": "outcast::OUT_recipe_blackberry_and_pear_lattice_tart",
+     "use": "direct"
+    },
+    {
+     "label": "Blueberry-pear pudding",
+     "id": "triss::TRI_recipe_blueberry_pear_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Cave orchard fruits",
+     "id": "outcast::OUT_recipe_cave_orchard_fruits",
+     "use": "direct"
+    },
+    {
+     "label": "Crystallized fruit and nuts",
+     "id": "mossflower::MF_recipe_crystallized_fruit_and_nuts",
+     "use": "direct"
+    },
+    {
+     "label": "Dried fruit and nuts",
+     "id": "mossflower::MF_recipe_dried_fruit_and_nuts",
+     "use": "direct"
+    },
+    {
+     "label": "Feast turnovers",
+     "id": "triss::TRI_recipe_feast_turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh pear",
+     "id": "marlfox::MF_RECIPE_fresh_pear",
+     "use": "direct"
+    },
+    {
+     "label": "Fruit salad with oat cream",
+     "id": "triss::TRI_recipe_fruit_salad_with_meadowcream",
+     "use": "direct"
+    },
+    {
+     "label": "Fruit slices",
+     "id": "marlfox::MF_RECIPE_fruit_slices",
+     "use": "direct"
+    },
+    {
+     "label": "Fruitcake",
+     "id": "mossflower::MF_recipe_fruitcake",
+     "use": "direct"
+    },
+    {
+     "label": "Game cake: arrowroot, raspberry, plum, pear",
+     "id": "salamandastron::SAL_recipe_diamond_arrowroot_shortcake_with_summer_fruits",
+     "use": "direct"
+    },
+    {
+     "label": "Game meal: candied chestnut, oat cake, cultured oat cheese, blackberry",
+     "id": "salamandastron::SAL_recipe_rocangus_travel_meal",
+     "use": "direct"
+    },
+    {
+     "label": "Game trifle: pear, damson, oat cream, hazelnut truffle",
+     "id": "salamandastron::SAL_recipe_redwall_jubilee_trifle",
+     "use": "direct"
+    },
+    {
+     "label": "Grandmother-style orchard and lemon-balm pudding",
+     "id": "lord_brocktree::LB-RECIPE-grandmother-s-comic-pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim pear flans",
+     "id": "lord_brocktree::LB-RECIPE-guosim-pear-flans",
+     "use": "direct"
+    },
+    {
+     "label": "Half-ripe pear",
+     "id": "triss::TRI_recipe_half_ripe_pear",
+     "use": "direct"
+    },
+    {
+     "label": "Half-ripe pears and berries",
+     "id": "rakkety_tam::RAK_recipe_half_ripe_pears_and_berries",
+     "use": "direct"
+    },
+    {
+     "label": "Hard pears",
+     "id": "salamandastron::SAL_recipe_hard_pears",
+     "use": "direct"
+    },
+    {
+     "label": "Hazelnut and pear flan",
+     "id": "salamandastron::SAL_recipe_hazelnut_and_pear_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Honey pancakes with pear and raspberry",
+     "id": "martin_warrior::MW_RECIPE_honey_pancakes_with_pear_and_raspberry",
+     "use": "direct"
+    },
+    {
+     "label": "Honeyed pears",
+     "id": "martin_warrior::MW_RECIPE_honeyed_pears",
+     "use": "direct"
+    },
+    {
+     "label": "Honeyed toffee pears",
+     "id": "mossflower::MF_recipe_honeyed_toffee_pears",
+     "use": "direct"
+    },
+    {
+     "label": "Hot fruit pie",
+     "id": "mossflower::MF_recipe_hot_fruit_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Jurkin's allfruit duff — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_jurkin_s_allfruit_duff",
+     "use": "direct"
+    },
+    {
+     "label": "Latticed pear tart",
+     "id": "lord_brocktree::LB-RECIPE-latticed-pear-tart",
+     "use": "direct"
+    },
+    {
+     "label": "Leaf-wrapped steamed fruit",
+     "id": "triss::TRI_recipe_leaf_wrapped_steamed_fruit",
+     "use": "direct"
+    },
+    {
+     "label": "Mountain-pear cordial",
+     "id": "salamandastron::SAL_recipe_mountain_pear_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Mussel and woodland-plant version of Shrimberry pie / shrimpberry pie",
+     "id": "marlfox::MF_RECIPE_shrimberry_pie_shrimpberry_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Pear and chestnut turnovers",
+     "id": "long_patrol::LP-RECIPE-pear-and-chestnut-turnovers",
+     "use": "direct"
+    },
+    {
+     "label": "Pear and redcurrant deep-dish tart",
+     "id": "outcast::OUT_recipe_pear_and_redcurrant_deep_dish_tart",
+     "use": "direct"
+    },
+    {
+     "label": "Pear cordial",
+     "id": "mossflower::MF_recipe_pear_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Pear crumble",
+     "id": "outcast::OUT_recipe_pear_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Pear flan",
+     "id": "pearls_lutra::PL_RECIPE_pear_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Pear flan with damson glaze",
+     "id": "rakkety_tam::RAK_recipe_pear_flan_with_damson_glaze",
+     "use": "direct"
+    },
+    {
+     "label": "Pear pudding proverb",
+     "id": "pearls_lutra::PL_RECIPE_pear_pudding_proverb",
+     "use": "direct"
+    }
+   ]
   }
  ]
 }

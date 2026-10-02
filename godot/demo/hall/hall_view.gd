@@ -8,11 +8,20 @@ extends Node3D
 ##                                   each sized by its share delivered;
 ##   while it is BUILT               a work rail of fence lengths (`fence`) stands before the front, timber stacked
 ##                                   (`plank_stack`) by it;
-##   at tier 2 (the great hall)      a second chimney on the east roof (the library's clay `chimney_pot`, darkened:
-##                                   REQ-SET-136's stone and its fuel x0.75) and two woven roundels hung in the outer
-##                                   bays (`rag_rug`: its cloth);
-##   each banner hung                a cloth banner (`relic_banner`, stood upright and scaled to the facade) in a bay,
-##                                   dyed in the woodland palette by a multiply on its own material (no new texture).
+##   at tier 2 (the great hall)      THE STONE HALL (art pass 2, decision 0951): the world's staged `hall_stage2` --
+##                                   the same hall rebuilt in sandstone, with its own second chimney and mullioned
+##                                   windows -- shown in place of the timber `hall`, with the timber hall's own
+##                                   transform and scale (demo_world.gd STAGES, `stage_node`); its windows glow with
+##                                   the hall's lamp (night_lights.gd THE WINDOWS). Two woven roundels hang in its outer
+##                                   bays (`rag_rug`: its cloth; Brendan's ruling of 2026-10-02 on decision 0903 -- the
+##                                   model brings its own chimney, not the roundels). Not staged (CI, a fresh clone): the
+##                                   COMPOSED stand-in -- the same roundels on the timber hall and a second chimney on
+##                                   its east roof (the library's clay `chimney_pot`, darkened: REQ-SET-136's stone and
+##                                   its fuel x0.75);
+##   each banner hung                a linen banner (`hall_banner`, hanging upright at its 1.6 m, demo_props.gd) in a
+##                                   bay, its cloth (surface 0, never the wood of surface 1) dyed in the woodland
+##                                   palette by a multiply on its own material (no new texture). Not staged: the older
+##                                   `relic_banner` (or its placeholder) stood upright and scaled to the facade.
 ## Redrawn only when the projects change (`sync`); nothing per frame. Every placement is in the hall's own frame
 ## (x along its front, +z out of its front), so it follows the hall wherever the layout stands it.
 
@@ -51,6 +60,9 @@ const ROUNDEL_OUT_M: float = 0.11
 const BANNER_X: PackedFloat32Array = [-1.15, 1.15, -5.0, 5.0]
 const BANNER_OUT_M: float = 0.15
 const BANNER_SCALE: float = 3.0
+## The linen banner: its key (drawn at its own 1.6 m by demo_props.gd) and its stand-in's.
+const BANNER_KEY: StringName = &"hall_banner"
+const STAND_IN_BANNER_KEY: StringName = &"relic_banner"
 const BANNER_DYES: Array[Color] = [Palette.CLAY, Palette.LEAF, Palette.BRASS, Palette.SAGE]
 ## Where each builder works (hall frame x along the front), standing this far out of it.
 const UPGRADE_WORK_X: PackedFloat32Array = [-4.2, -1.4, 1.4, 4.2]
@@ -67,6 +79,11 @@ var _scaffold: Array[Node3D] = []
 var _great: Array[Node3D] = []
 var _banners: Array[Node3D] = []
 var _seen: int = -1
+## The world's timber hall and its stone stage 2 (null: not staged, or no world).
+var _timber: Node3D = null
+var _stone_hall: Node3D = null
+## The model the banners are drawn with (BANNER_KEY, or the stand-in's).
+var _banner_model: StringName = &""
 
 
 func _init() -> void:
@@ -150,15 +167,37 @@ func build(world: Node3D, props: PropsScript) -> void:
 	for x: float in RAIL_X:
 		_scaffold.append(_rail(world, Vector2(x, front_z() + RAIL_OUT_M)))
 	_scaffold.append(_prop_at(props, &"plank_stack", Transform3D(Basis(Vector3.UP, _yaw), _flat3(TIMBER_LOCAL))))
-	var chimney := Transform3D(Basis(Vector3.UP, _yaw).scaled(Vector3.ONE * CHIMNEY_SCALE), to_world_3d(CHIMNEY_LOCAL))
-	_great.append(_prop_at(props, &"chimney_pot", chimney))
-	_dye(_great[0] as MeshInstance3D, CHIMNEY_DYE)
-	for x: float in ROUNDEL_X:
-		_great.append(_prop_at(props, &"rag_rug", _hanging(x, ROUNDEL_OUT_M, 1.0)))
+	if world != null and world.has_method(&"stage_node"):
+		_timber = world.call(&"placed_node", HALL_ID) as Node3D
+		_stone_hall = world.call(&"stage_node", HALL_ID) as Node3D
+	_build_composed(props, _stone_hall == null)
+	_banner_model = BANNER_KEY if props != null and props.is_staged(BANNER_KEY) else STAND_IN_BANNER_KEY
 	for k: int in BANNER_X.size():
-		var banner: Node3D = _prop_at(props, &"relic_banner", _hanging(BANNER_X[k], BANNER_OUT_M, BANNER_SCALE))
+		var banner: Node3D = _banner(props, BANNER_X[k])
 		_dye(banner as MeshInstance3D, BANNER_DYES[k])
 		_banners.append(banner)
+
+
+func _build_composed(props: PropsScript, chimney: bool) -> void:
+	"""The great hall's composed pieces: the two roundels always, and -- with no stone hall staged (`chimney`) -- the
+	darkened second chimney (the stone hall has its own)."""
+	for x: float in ROUNDEL_X:
+		_great.append(_prop_at(props, &"rag_rug", _hanging(x, ROUNDEL_OUT_M, 1.0)))
+	if not chimney:
+		return
+	var at := Transform3D(Basis(Vector3.UP, _yaw).scaled(Vector3.ONE * CHIMNEY_SCALE), to_world_3d(CHIMNEY_LOCAL))
+	_great.append(_prop_at(props, &"chimney_pot", at))
+	_dye(_great[_great.size() - 1] as MeshInstance3D, CHIMNEY_DYE)
+
+
+func _banner(props: PropsScript, x: float) -> Node3D:
+	"""One banner at bay `x`: the linen `hall_banner` hanging upright, centred HANGING_Y up the facade, when staged;
+	else the stand-in stood upright and scaled to the facade."""
+	if _banner_model != BANNER_KEY:
+		return _prop_at(props, STAND_IN_BANNER_KEY, _hanging(x, BANNER_OUT_M, BANNER_SCALE))
+	var drop: float = PropsScript.drawn_size_m(BANNER_KEY) * 0.5
+	var hung := Transform3D(Basis(Vector3.UP, _yaw), to_world_3d(Vector3(x, HANGING_Y - drop, front_z() + BANNER_OUT_M)))
+	return _prop_at(props, BANNER_KEY, hung)
 
 
 func _flat3(local: Vector2) -> Vector3:
@@ -205,8 +244,9 @@ func _prop_at(props: PropsScript, key: StringName, placed: Transform3D) -> Node3
 
 
 func _dye(node: MeshInstance3D, dye: Color) -> void:
-	"""Draw `node` in a duplicate of its model's own material multiplied by `dye` (the shared model untouched). These
-	props are single-material models, so the one override covers the whole mesh."""
+	"""Draw `node`'s surface 0 in a duplicate of its model's own material multiplied by `dye` (the shared model
+	untouched): the whole of a single-material prop, the cloth of the linen banner (its surface 1, the wood, is never
+	dyed)."""
 	if node == null or node.mesh == null or node.mesh.get_surface_count() == 0:
 		return
 	var source := node.mesh.surface_get_material(0) as BaseMaterial3D
@@ -214,7 +254,10 @@ func _dye(node: MeshInstance3D, dye: Color) -> void:
 		return
 	var dyed := source.duplicate() as BaseMaterial3D
 	dyed.albedo_color = source.albedo_color * dye
-	node.material_override = dyed
+	if node.mesh.get_surface_count() == 1:
+		node.material_override = dyed
+	else:
+		node.set_surface_override_material(0, dyed)
 
 
 # --- showing the state ----------------------------------------------------------------------------------------------
@@ -232,11 +275,20 @@ func sync(projects: ProjectsScript) -> bool:
 	var building: bool = projects.phase[upgrade] == ProjectsScript.PHASE_BUILDING
 	for post: Node3D in _scaffold:
 		post.visible = building
-	for piece: Node3D in _great:
-		piece.visible = projects.tier >= Rules.TIER_GREAT
+	_show_great(projects.tier >= Rules.TIER_GREAT)
 	for k: int in _banners.size():
 		_banners[k].visible = projects.phase[Rules.PROJECT_BANNER_FIRST + k] == ProjectsScript.PHASE_DONE
 	return true
+
+
+func _show_great(great: bool) -> void:
+	"""The great hall: the stone hall in the timber one's place when staged, else the composed additions."""
+	if _stone_hall != null and is_instance_valid(_stone_hall):
+		_stone_hall.visible = great
+		if _timber != null and is_instance_valid(_timber):
+			_timber.visible = not great
+	for piece: Node3D in _great:
+		piece.visible = great
 
 
 func _show_pile(pile: Node3D, projects: ProjectsScript, mat: int, active: bool) -> void:
@@ -259,8 +311,36 @@ func shown_banners() -> int:
 
 
 func great_shown() -> bool:
-	"""Whether the great hall's additions are drawn."""
-	return not _great.is_empty() and _great[0].visible
+	"""Whether the great hall is drawn: the stone hall, or the composed additions."""
+	return stone_shown() or (not _great.is_empty() and _great[0].visible)
+
+
+func stone_shown() -> bool:
+	"""Whether the staged stone hall stands in the timber one's place."""
+	return _stone_hall != null and _stone_hall.visible
+
+
+func composed_pieces() -> int:
+	"""How many composed great-hall pieces were made (the roundels, and the chimney when no stone hall is staged)."""
+	return _great.size()
+
+
+func composed_shown() -> int:
+	"""How many composed pieces are drawn (checks: the roundels, and the chimney without the stone hall)."""
+	var n: int = 0
+	for piece: Node3D in _great:
+		n += 1 if piece.visible else 0
+	return n
+
+
+func banner_model() -> StringName:
+	"""The model the banners are drawn with: the linen `hall_banner`, or the stand-in `relic_banner`."""
+	return _banner_model
+
+
+func banner_node(k: int) -> MeshInstance3D:
+	"""Banner `k`'s node (checks)."""
+	return _banners[k] as MeshInstance3D
 
 
 func scaffold_shown() -> bool:

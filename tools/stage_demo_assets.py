@@ -13,6 +13,14 @@ which the demo scene reads. Without it the demo still runs, on placeholder shape
   props/, plants/, icons/  the 2026-09-29 passes' props and plants, which have no L0: made by
                            make_demo_props.py from their high-poly sources (budget meshes, plant
                            cards, item icons)
+  world|props/<key>.glb,   the food, plants and props pass (decision 0941): fruit trees, bushes, forage
+  icons/item_|dish_<key>   patches, the apple basket, the bee skep, the infirmary, PRESCALED to game height;
+                           and 24 icons cut from their sheets, in the manifest's "icons" section --
+                           make_demo_food_art.py; wired by the batch 8 integration (decision 0903)
+  world|props/, icons/, ui/ art passes 2 and 3 (decisions 0951, 0971): the evergreens, the stone Great Hall, the
+                           homes' window-glow models, the bare winter oak, the hall's banner, the tunnel's timber
+                           set and rock face, nine icons, and the UI art (portraits, the tapestry, the chronicle
+                           page) in the manifest's "ui" section -- stage_art_passes.py (decision 0903)
   props/<key>__<part>.glb  the underground pass's props with their defects fixed (the burrow door's leaf split
                            from its frame, the arch's slab cut out, ...): make_demo_derived_props.py,
                            decision 0371
@@ -65,6 +73,8 @@ import make_demo_crop_cards  # noqa: E402
 import make_demo_props  # noqa: E402
 import make_demo_weir  # noqa: E402
 import make_demo_derived_props  # noqa: E402
+import make_demo_food_art  # noqa: E402
+import stage_art_passes  # noqa: E402
 import demo_texture_imports  # noqa: E402
 import stage_demo_audio  # noqa: E402
 
@@ -346,6 +356,26 @@ def stage_derived(library: pathlib.Path, out: pathlib.Path) -> dict:
 		return {}
 
 
+def stage_food_art(library: pathlib.Path, out: pathlib.Path) -> dict:
+	"""The food, plants and props pass's rows (make_demo_food_art.py, decision 0941): {"world": ..., "icons": ...}.
+	A model that failed, or everything without Blender, is left out and reported; nothing reads these yet."""
+	try:
+		made = make_demo_food_art.stage(library, out)
+		return {"world": made["world"], "icons": made["icons"]}
+	except RuntimeError as error:
+		print(f"stage_demo_assets: food art skipped: {error}")
+		return {"world": {}, "icons": {}}
+
+
+def stage_passes(out: pathlib.Path) -> dict:
+	"""Art passes 2 and 3's rows (stage_art_passes.py, decision 0903): {"world", "icons", "ui"}. What could not be made
+	(no Blender, no library) is left out and reported; the demo draws its stand-ins for it."""
+	made = stage_art_passes.stage(out)
+	for failed in made["failed"]:
+		print(f"stage_demo_assets: {failed} not made; its stand-ins stay")
+	return made
+
+
 def cast_keys(library: pathlib.Path) -> list[str]:
 	"""The creatures to stage: the CAST, and each OPTIONAL_CAST creature whose grounded clips exist."""
 	return [*CAST, *(key for key in OPTIONAL_CAST if (library / "creature" / key / "grounded").is_dir())]
@@ -391,8 +421,9 @@ def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument("--library", type=pathlib.Path, default=LIBRARY)
 	parser.add_argument("--out", type=pathlib.Path, default=OUT)
-	parser.add_argument("--only", choices=("world", "props", "cast", "sound"),
-		help="stage one part: world (with the crop cards and the props), props alone, cast, or sound")
+	parser.add_argument("--only", choices=("world", "props", "art", "cast", "sound"),
+		help="stage one part: world (with the crop cards and the props), props alone, the art passes alone (the food "
+		"art and passes 2 and 3), cast, or sound")
 	args = parser.parse_args()
 	if args.only == "sound":
 		return stage_sound(args.library, args.out)
@@ -402,6 +433,8 @@ def main() -> int:
 		kept = json.loads(existing.read_text())
 		manifest["world"] = kept.get("world", {})
 		manifest["cast"] = kept.get("cast", {})
+		manifest["icons"] = kept.get("icons", {})
+		manifest["ui"] = kept.get("ui", {})
 	if args.only in (None, "world"):
 		manifest["world"] = stage_world(args.library, args.out)
 		manifest["world"].update(stage_crop_cards(args.library, args.out))
@@ -409,6 +442,14 @@ def main() -> int:
 	if args.only in (None, "world", "props"):
 		manifest["world"].update(stage_props(args.library, args.out))
 		manifest["world"].update(stage_derived(args.library, args.out))
+	if args.only in (None, "world", "props", "art"):
+		food = stage_food_art(args.library, args.out)
+		manifest["world"].update(food["world"])
+		manifest.setdefault("icons", {}).update(food["icons"])
+		passes = stage_passes(args.out)
+		manifest["world"].update(passes["world"])
+		manifest["icons"].update(passes["icons"])
+		manifest["ui"] = passes["ui"]
 	if args.only in (None, "cast"):
 		manifest["cast"] = stage_cast(args.library, args.out)
 	args.out.mkdir(parents=True, exist_ok=True)

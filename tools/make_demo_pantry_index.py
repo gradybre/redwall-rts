@@ -22,6 +22,7 @@ WHAT IS RESOLVED, exactly as the handoff's section 3 specifies:
   * potato and honey (decision 0603: ingredients with no source yet) by their LEAF;
   * the woods' forage (decision 0681: nuts, mushrooms, herb, berries) by the woodland leaves each stands for
     (FORAGE_LEAVES: the batch 7 integration's demo selection, decision 0902 -- never nutmeg, a spice);
+  * the orchard's apple and pear (decision 0671) by their LEAF (batch 8 integration, decision 0903);
   * Salmon and carp have no pantry leaf (the library's fish leaves are dace, herring, mackerel,
     mussel, perch, trout and whitefish): they are listed with no targets and no dishes.
 
@@ -59,6 +60,7 @@ ITEM_KEYS = [
     "dried_fish", "flour",
     "potato", "honey",
     "nuts", "mushrooms", "herb", "berries",
+    "apple", "pear",
 ]
 ## The woods' forage (farm_catalog.gd THE WOODS' FORAGE): each item's pantry leaves, the demo's own selection of the
 ## woodland's nuts, fungi, pot herbs and wild berries (decision 0902).

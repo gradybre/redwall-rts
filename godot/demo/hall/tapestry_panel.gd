@@ -9,6 +9,14 @@ extends CanvasLayer
 ## tapestry is woven. The weave is drawn only when the cloth is resized or an entry is added -- never per frame.
 ## An ORIGINAL community tapestry (LORE-R07): its words are the village's own (tapestry.gd).
 ##
+## THE WOVEN ART (art pass 2, decision 0951; docs/art-reference/art_pass2_mapping.md "Tapestry panel art"). With the
+## art staged (`set_art`: the shared props table), the cloth is the woven ground -- `tapestry_half` (448x600, for this
+## 560x640 panel), a nine-patch on the manifest's `patch_margins_ltrb`, its border tiled as the cloth grows and its plain
+## field stretched under the rows (drawn with the weave: a tiled field would repeat the ground's inner rule, which lies
+## just inside the bottom margin) -- and the drawn warp, weft and border bands give way to it; the rows sit inside its border, the thread runs down inside the
+## left border, and each entry's knot is its kind's embroidered emblem (EMBLEM_PX, the `emblems` by EMBLEM_KEYS). A kind
+## whose emblem is not staged keeps its diamond knot. With nothing staged (CI, a fresh clone) the panel is drawn as above.
+##
 ## WHERE: the same place as the hall's panel, which it stands in for while open ("Back to the hall" returns). Not modal;
 ## Esc or x closes it. Rows are pooled and only grow.
 
@@ -17,6 +25,7 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const DemoScroll := preload("res://demo/ui/demo_scroll.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const LAYER: int = 1
 const MAX_W: float = 560.0
@@ -38,6 +47,15 @@ const CLOTH_MARGINS: PackedFloat32Array = [0.0, 18.0, 12.0, 18.0]
 const GROUND: Color = Palette.OAT
 const WARP: Color = Color(0.35, 0.26, 0.2, 0.07)
 const WEFT: Color = Color(0.35, 0.26, 0.2, 0.05)
+## The woven art: its ground's manifest row, each KIND_*'s emblem key (tapestry.gd's order), the emblem's staged size,
+## and the room inside the ground's border: the thread's x past the left border, the rows' indent past it, and the gap
+## kept inside the top and bottom borders.
+const GROUND_ROW: String = "tapestry_half"
+const EMBLEM_KEYS: Array[String] = ["founding", "hall", "harvest", "winter", "dressing", "milestone", "chronicle", "event"]
+const EMBLEM_PX: int = 24
+const ART_THREAD_X: float = 16.0
+const ART_ROW_INDENT: float = 34.0
+const ART_EDGE_GAP: float = 8.0
 
 var _tapestry: TapestryScript = null
 var _back: Callable = Callable()
@@ -50,6 +68,10 @@ var _drawn: int = -1
 var _refresh_in: float = 0.0
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
+## The woven ground (null: drawn as before), its border (l, t, r, b) and each kind's emblem (null: its diamond).
+var _ground: StyleBoxTexture = null
+var _border: PackedFloat32Array = PackedFloat32Array([0.0, 0.0, 0.0, 0.0])
+var _emblems: Array[Texture2D] = []
 
 
 func configure(tapestry: TapestryScript, on_back: Callable) -> void:
@@ -92,7 +114,7 @@ func _build_cloth(column: VBoxContainer) -> void:
 	_cloth.name = "Cloth"
 	_cloth.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_cloth.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_cloth.add_theme_stylebox_override(&"panel", _ground_box())
+	_cloth.add_theme_stylebox_override(&"panel", _cloth_box())
 	_cloth.draw.connect(_draw_weave)
 	_cloth.resized.connect(_cloth.queue_redraw)
 	scroll.add_child(_cloth)
@@ -122,6 +144,13 @@ func _build_header(column: VBoxContainer) -> void:
 	row.add_child(close)
 
 
+func _cloth_box() -> StyleBox:
+	"""The cloth's box: the woven ground where staged, else the drawn oat ground."""
+	if _ground != null:
+		return _ground
+	return _ground_box()
+
+
 func _ground_box() -> StyleBoxFlat:
 	"""The cloth's ground: oat, the rows inset past the thread and inside the border bands."""
 	var box := StyleBoxFlat.new()
@@ -133,6 +162,53 @@ func _ground_box() -> StyleBoxFlat:
 	box.content_margin_right = CLOTH_MARGINS[2]
 	box.content_margin_bottom = CLOTH_MARGINS[3]
 	return box
+
+
+func set_art(props: PropsScript) -> void:
+	"""Weave on the staged art from `props` (see THE WOVEN ART): the ground and the kinds' emblems, each kept as drawn
+	where it is not staged. Read once; the cloth is redrawn."""
+	_ground = woven_ground(props)
+	if _ground != null:
+		_border = PackedFloat32Array([_ground.texture_margin_left, _ground.texture_margin_top,
+			_ground.texture_margin_right, _ground.texture_margin_bottom])
+	_emblems.clear()
+	for key: String in EMBLEM_KEYS:
+		_emblems.append(props.emblem(key, EMBLEM_PX) if props != null else null)
+	if _cloth != null:
+		_cloth.add_theme_stylebox_override(&"panel", _cloth_box())
+		_cloth.queue_redraw()
+
+
+static func woven_ground(props: PropsScript) -> StyleBoxTexture:
+	"""The woven ground as a nine-patch on the manifest's margins, the rows inside its border; null when not staged."""
+	var row: Variant = props.ui_row(GROUND_ROW) if props != null else null
+	if not row is Dictionary:
+		return null
+	var texture: Texture2D = props.ui_texture(String((row as Dictionary).get("path", "")))
+	var margins: Array = (row as Dictionary).get("patch_margins_ltrb", [])
+	if texture == null or margins.size() != 4:
+		return null
+	var box := StyleBoxTexture.new()
+	box.texture = texture
+	for side: int in 4:
+		box.set_texture_margin(side as Side, float(margins[side]))
+	box.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+	box.draw_center = false
+	box.content_margin_left = float(margins[SIDE_LEFT]) + ART_ROW_INDENT
+	box.content_margin_top = float(margins[SIDE_TOP]) + ART_EDGE_GAP
+	box.content_margin_right = float(margins[SIDE_RIGHT]) + ART_EDGE_GAP
+	box.content_margin_bottom = float(margins[SIDE_BOTTOM]) + ART_EDGE_GAP
+	return box
+
+
+func is_woven() -> bool:
+	"""Whether the cloth is the staged woven ground (checks)."""
+	return _ground != null
+
+
+func emblem_of(kind: int) -> Texture2D:
+	"""Kind `kind`'s staged emblem, or null (its knot is a diamond)."""
+	return _emblems[kind] if kind >= 0 and kind < _emblems.size() else null
 
 
 # --- opening ----------------------------------------------------------------------------------------------------
@@ -231,13 +307,33 @@ func _new_entry() -> VBoxContainer:
 func _draw_weave() -> void:
 	"""The cloth's threads, its border bands, the timeline thread and a knot at each shown entry (see THE WEAVE)."""
 	var size: Vector2 = _cloth.size
-	_draw_threads(size)
-	_draw_band(BAND_H * 0.5 + 2.0, size.x)
-	_draw_band(size.y - BAND_H * 0.5 - 2.0, size.x)
-	_cloth.draw_line(Vector2(THREAD_X, BAND_H + 4.0), Vector2(THREAD_X, size.y - BAND_H - 4.0), Palette.UMBER, THREAD_W)
+	if _ground != null:
+		_draw_field(size)
+		_cloth.draw_line(Vector2(_thread_x(), _border[1]), Vector2(_thread_x(), size.y - _border[3]), Palette.UMBER,
+			THREAD_W)
+	else:
+		_draw_threads(size)
+		_draw_band(BAND_H * 0.5 + 2.0, size.x)
+		_draw_band(size.y - BAND_H * 0.5 - 2.0, size.x)
+		_cloth.draw_line(Vector2(THREAD_X, BAND_H + 4.0), Vector2(THREAD_X, size.y - BAND_H - 4.0), Palette.UMBER,
+			THREAD_W)
 	for i: int in _entries.size():
 		if _entries[i].visible:
 			_draw_knot(i)
+
+
+func _draw_field(size: Vector2) -> void:
+	"""The woven ground's plain field, stretched once inside its border (the border is the box's, tiled)."""
+	var rects: Array[Rect2] = field_rects(_ground.texture.get_size(), _border, size)
+	if rects[1].size.x > 0.0 and rects[1].size.y > 0.0:
+		_cloth.draw_texture_rect_region(_ground.texture, rects[1], rects[0])
+
+
+static func field_rects(ground: Vector2, border: PackedFloat32Array, cloth: Vector2) -> Array[Rect2]:
+	"""The plain field inside a `ground`-sized picture's `border` (l, t, r, b), and where it is drawn on a `cloth`-sized
+	cloth: [source, destination], each the area inside the border."""
+	return [Rect2(border[0], border[1], ground.x - border[0] - border[2], ground.y - border[1] - border[3]),
+		Rect2(border[0], border[1], cloth.x - border[0] - border[2], cloth.y - border[1] - border[3])]
 
 
 func _draw_threads(size: Vector2) -> void:
@@ -269,11 +365,22 @@ func _draw_band(y: float, width: float) -> void:
 		k += 1
 
 
+func _thread_x() -> float:
+	"""The timeline thread's x on the cloth: inside the woven ground's left border, else THREAD_X."""
+	return _border[0] + ART_THREAD_X if _ground != null else THREAD_X
+
+
 func _draw_knot(i: int) -> void:
-	"""Entry `i`'s knot on the thread, level with its date: a diamond in its kind's colour, ringed in umber."""
+	"""Entry `i`'s knot on the thread, level with its date: its kind's emblem where staged, else a diamond in its kind's
+	colour, ringed in umber."""
 	var row: VBoxContainer = _entries[i]
 	var y: float = _rows.position.y + row.position.y + (row.get_child(0) as Control).size.y * 0.5
-	var c := Vector2(THREAD_X, y)
+	var c := Vector2(_thread_x(), y)
+	var emblem: Texture2D = emblem_of(_tapestry.kind_of(i))
+	if emblem != null:
+		var half: float = float(EMBLEM_PX) * 0.5
+		_cloth.draw_texture_rect(emblem, Rect2(c.x - half, c.y - half, float(EMBLEM_PX), float(EMBLEM_PX)), false)
+		return
 	var diamond := PackedVector2Array([c + Vector2(0.0, -KNOT_R), c + Vector2(KNOT_R, 0.0), c + Vector2(0.0, KNOT_R),
 		c + Vector2(-KNOT_R, 0.0)])
 	_cloth.draw_colored_polygon(diamond, TapestryScript.KIND_COLOURS[_tapestry.kind_of(i)])

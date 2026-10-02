@@ -25,6 +25,7 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
 const ResidentRowScript := preload("res://demo/work/work_resident_row.gd")
 const ActionCard := preload("res://demo/ui/action_card.gd")
+const UiArt := preload("res://test/fixtures/ui_art_fixture.gd")
 const RescueScript := preload("res://demo/waterplay/rescue.gd")
 const BridgeCrewScript := preload("res://demo/waterplay/bridge_crew.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
@@ -658,3 +659,77 @@ func test_a_group_carries_no_person_and_the_panel_shows_none() -> void:
 		"person": rig.people.inspector_info(KEEPER)}, {"index": 1, "name": "B", "species": "Mouse", "state": "holding"}]
 	panel.show_party(entries)
 	assert_false(_section(rig).visible, "a group: no person shown")
+
+
+# --- the inspector's portrait (art pass 2, decision 0951) ----------------------------------------------------------
+
+static func _portrait_key(who: int) -> StringName:
+	"""The fixture's cast keys: resident 3 is the forester, every other has none."""
+	return &"squirrel_forester" if who == 3 else &""
+
+
+func _person(who: int) -> Dictionary:
+	"""A person as demo_people.gd `inspector_info` gives it (the fields the header reads)."""
+	return {"who": who, "first": "Tobit", "role": "Squirrel, forester", "skills": [], "moments": []}
+
+
+func test_with_no_portrait_staged_the_person_has_no_header() -> void:
+	"""CI's case: an empty manifest -- the header hidden, the section opening with its skills as before."""
+	var section := SectionScript.new()
+	section.build(260.0)
+	section.set_portraits(UiArt.empty(), _portrait_key)
+	section.show_person(_person(3))
+	assert_null(section.portrait_shown(), "no portrait")
+	assert_false((section.get_node(^"PortraitRow") as Control).visible, "no header")
+	section.free()
+
+
+func test_a_staged_portrait_heads_the_person_with_its_name_and_role() -> void:
+	"""Staged: the 64 px medallion first, beside the first name and the role line; a resident without one: no header;
+	a group (no person) hides the section."""
+	var section := SectionScript.new()
+	section.build(260.0)
+	section.set_portraits(UiArt.staged([&"squirrel_forester"]), _portrait_key)
+	section.show_person(_person(3))
+	var shown: Texture2D = section.portrait_shown()
+	assert_not_null(shown, "a portrait")
+	assert_equal(shown.get_width(), SectionScript.PORTRAIT_PX, "the 64")
+	var row := section.get_node(^"PortraitRow") as HBoxContainer
+	assert_equal(row.get_index(), 0, "first in the section")
+	var words: Array[Node] = row.find_children("*", "Label", true, false)
+	assert_equal((words[0] as Label).text, "Tobit", "the first name")
+	assert_equal((words[1] as Label).text, "Squirrel, forester", "the role")
+	for label: Node in words:
+		assert_true((label as Label).get_theme_font_size(&"font_size") >= 14, "14 px at least")
+	section.show_person(_person(4))
+	assert_null(section.portrait_shown(), "another without one: none")
+	section.show_person(_person(3))
+	assert_true(section.portrait_shown() == shown, "back: the same picture")
+	section.show_person({})
+	assert_false(section.visible, "nobody: hidden")
+	section.free()
+
+
+func test_the_portrait_is_looked_up_once_a_resident_and_drawn_when_given_late() -> void:
+	"""A refresh of the same person asks for no cast key; another asks once. Portraits given while a person shows draw
+	at once, and taking them away hides the header at once."""
+	var asked: Array[int] = []
+	var counting: Callable = func(who: int) -> StringName:
+		asked.append(who)
+		return _portrait_key(who)
+	var section := SectionScript.new()
+	section.build(260.0)
+	section.show_person(_person(3))
+	assert_null(section.portrait_shown(), "none given yet")
+	section.set_portraits(UiArt.staged([&"squirrel_forester"]), counting)
+	assert_not_null(section.portrait_shown(), "drawn at once")
+	assert_equal(asked, [3] as Array[int], "looked up once")
+	section.show_person(_person(3))
+	section.show_person(_person(3))
+	assert_equal(asked.size(), 1, "the same person: not again")
+	section.show_person(_person(4))
+	assert_equal(asked, [3, 4] as Array[int], "another: once")
+	section.show_person(_person(3))
+	section.set_portraits(UiArt.empty(), counting)
+	assert_null(section.portrait_shown(), "taken away: hidden at once")
+	section.free()

@@ -75,6 +75,7 @@ func configure(cast: DemoCastScript, pantry: PantryScript, services: ServicesScr
 		night.set_early_riser(kitchen.up_early)
 	add_child(view)
 	view.configure(kitchen, cast, cast.clock, goods)
+	tab.set_props(goods.props if goods != null else null)
 
 
 func _build_places(cast: DemoCastScript) -> void:

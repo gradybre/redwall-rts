@@ -177,6 +177,132 @@ The root bin was tried twice (its roots split from its bin; its roots cut out) a
 budget: the plain L0 is used, full. `tools/stage_demo_assets.py` also re-pins the mouse keeper's crouch walk as it stages
 it (support tolerance 2 cm, `REPIN`): its two contacts left unpinned above pin, the library's grounded clip untouched.
 
+## Food, plants and props pass — 2026-10-01
+
+Eleven models and 24 icons for the orchards, foraging, infirmary, dishes and hives work. **431 credits**
+against Brendan's "Full pass, ~480 credits" and a hard cap of 520 (1,213 before, 782 after). Decision
+[0941](../../decisions/0941-the-food-plants-and-props-art-pass.md) records the approval, the choices and what was redone.
+
+- **Models**: a `nano-banana-2` concept from the style reference (6), then a `meshy-7` high-poly (30). L0s made free in
+  Blender by `tools/make_demo_food_art.py` (the infirmary from a 5-credit Meshy remesh), **prescaled** to game height.
+- **Icons**: three 3 x 3 `nano-banana-2` sheets (6 each) in the style of the existing pantry icons, cut to 128 px.
+- **What each replaces**: [`food_art_mapping.json`](food_art_mapping.json). Nothing is wired into gameplay yet.
+
+| Family | Keys |
+|---|---|
+| environment | `apple_tree`, `pear_tree`, `raspberry_canes`, `bramble_blackberry`, `hazel_bush`, `strawberry_patch`, `mushroom_forage`, `herb_patch` |
+| prop | `apple_basket`, `bee_skep` |
+| building | `infirmary_ward` (the 2026-09-24 `infirmary` is a different, unstaged design) |
+| icon | `sheet_foods_a`, `sheet_dishes_b`, `sheet_dishes_c` (`assets/library/icon/<sheet>/sheet.png`) |
+
+**Known problems:** the 2026-09-24 `bramble` shatters at 2,410 and 5,230 triangles too (hence `bramble_blackberry`); the
+first pear and infirmary concepts were rejected (`concept_v1_rejected.png`); the baked-fish icon shows lemon slices.
+
+## Art pass 2 — 2026-10-02
+
+Evergreens, portraits, the stone Great Hall, flax, hall art and wildlife. **372 credits** were spent against the
+**450** Brendan approved for the itemised list: 782 before and 410 after, with no other spend on the account
+meanwhile. A subagent made the calls under decision 0961's delegated cap. Decision
+[0951](../../decisions/0951-art-pass-2-evergreens-portraits-stone-hall-flax-hall-art-and-wildlife.md) records the
+choices. The assets and the code each one serves are in [`../art_pass2_mapping.md`](../art_pass2_mapping.md).
+
+**3D models.** Each uses the library recipe: a concept from the style reference (6, or 9 for the hall), then a meshy-7
+high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model (39 for the hall).
+
+| Key | Concept task | High-poly task |
+|---|---|---|
+| `pine_scots` | `01a0fae2-f823-7390-93ef-cf65f0ff49dc` | `01a0fae3-a288-7580-b802-d41c587524d4` |
+| `yew_ancient` | `01a0fae3-02bb-713e-b40e-adcec3113339` | `01a0fae3-ab8f-7187-b286-318942cde084` |
+| `hall_stage2` | `01a0faef-6ba5-7079-8673-294516278f13` (from the timber hall's own concept) | `01a0faf0-c43b-77ec-85b8-04b314ec39b9` |
+| `plant_flax` | `01a0faef-7560-766d-b791-617e27b53c76` | `01a0faf0-cfb6-7294-9f7a-b474bb7d075e` |
+| `hall_banner` | `01a0faef-7e8e-7638-8362-7867e85a6e19` | `01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9` |
+| `wild_songbird` | `01a0fae3-0c5a-770e-8778-da8925a6b4e5` | `01a0fae3-b5ac-72f5-8faf-3a48488e103c` |
+| `wild_songbird_flight` (redo: a perched robin cannot flap) | `01a0fb0c-a7ed-7023-9ac0-631748c83711` | `01a0fb0d-4604-7632-8d2f-0dfea5fed214` |
+| `wild_butterfly` | `01a0fae3-15c3-73cf-a1c8-6b3fe0f9b2a1` | `01a0fae3-beb8-7025-8fa6-3c850fe29723` |
+| `wild_frog` | `01a0fae3-1f64-76cd-8c1e-a72214c918fe` | `01a0fae3-c7ae-74de-8272-4e4b7f03ae9b` |
+| `wild_trout_leaping` | reuses `prop/item_trout`'s high-poly: no spend | — |
+
+**UI art**, in the `ui/` family:
+
+| What | Task | Model |
+|---|---|---|
+| The nine residents' portraits, three per sheet (`ui/portraits/sheet_{a,b,c}.png`) | `01a0faef-409c-7616-ac77-e6f2ea3ff262`, `01a0faef-506f-71b5-a500-a3350d7d32dc`, `01a0faef-6137-7348-8b47-b59f4076eaba` | nano-banana-pro, 9 each |
+| The tapestry ground (`ui/tapestry/tapestry_ground.png`) | `01a0faef-8817-72ae-94d0-d4e0244600e4` | nano-banana-2 text-to-image, 3:4 |
+| The eight tapestry emblems (`ui/tapestry/tapestry_emblems_sheet.png`) | `01a0faef-8fcf-73be-9adf-b187237f026b` | nano-banana-2, 16:9 |
+| The chronicle page (`ui/chronicle/chronicle_page.png`) | `01a0faef-b3f1-73e0-9ef5-d3a43d48e120` | nano-banana-2, 3:4 |
+
+Each portrait sheet was conditioned on the three residents' own library concepts, IMG-25's woodland lineup (DEC-036)
+and the journal medallion of `05_woodland_art_concept.png`.
+
+**No Meshy remesh, rig or animation was bought.** All of the following were made free by
+`tools/make_art_pass2.py`, `tools/art_pass2_blender.py` and `tools/art_pass2_ui.py`, which are reproducible:
+- the L0s (decimate and bake, with a tightened unwrap for the trees and the hall);
+- the wildlife rigs and their 11 clips;
+- the stone hall's turn and fit;
+- the banner's cloth/wood split;
+- the pine's needle tint;
+- the window glow masks (`building/{hall,hall_stage2,residence,kitchen}/window_mask.png`, `l0_windows.glb`);
+- the bare oak (`environment/oak_mature/bare.glb`, `bare_albedo.png`);
+- the portrait medallions.
+
+Every task is in `meshy_tasks.jsonl` (its rows carry "art pass 2"), every prompt is in `concept_prompts.json`, and
+every file and hash is in `files.json`.
+
+## Art pass 3 — 2026-10-02
+
+Preserving and brewing props, the digging revamp's timber kit and rock face, and nine icons. **228 credits** were spent
+against the **270** Brendan approved for the itemised list:
+- the balance was 410 before and 104 after;
+- the style probe (decision 0981) spent from the same account at the same time, and its tasks are not this pass's.
+
+A subagent made the calls under decision 0961's delegated cap. Decision
+[0971](../../decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md) records the choices. The assets
+and the code each one serves are in [`../art_pass3_mapping.md`](../art_pass3_mapping.md). The nine icons were made
+after Brendan's ruling (item and dish icons stay in the 3D-render style), from one sheet:
+
+| Sheet | Task | Model |
+|---|---|---|
+| `icon/sheet_preserves_finds/sheet.png` (jam, pickles, dried fruit, cheese, ale, cider, coins, old map, spring) | `01a0fc94-6141-7684-be9b-4193024f9aab` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
+
+Their briefs and prompts are in [`../art_pass3_icon_prompts.md`](../art_pass3_icon_prompts.md).
+
+**Follow-up: flax, linen and beeswax icons** (decision [0972](../../decisions/0972-flax-linen-and-beeswax-icons.md),
+cap 12):
+
+| Sheet | Task | Model |
+|---|---|---|
+| `icon/sheet_flax_linen_wax/sheet.png` (flax, linen and beeswax, each with two alternates) | `01a0fce6-bbf4-75f2-92a6-c99baf0c1a38` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
+
+**3D models.** Each uses the library recipe: a concept from the style reference (nano-banana-2, 6), then a meshy-7
+high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model. All are in the `prop/` family.
+
+| Key | Concept task | High-poly task |
+|---|---|---|
+| `crock_stoneware` | `01a0fc6e-cc02-75fa-bae0-5797434db889` | `01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2` |
+| `jar_shelf` | `01a0fc6e-d7aa-74a2-a6b8-ea59e52ee929` | `01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee` |
+| `ale_cask` | `01a0fc6e-e1e1-74d5-b7cb-b4550f5747e0` | `01a0fc6f-df40-7274-bf9b-f5e0ea5af358` |
+| `brew_vat` | `01a0fc6e-ed19-711c-ba27-7780da747614` | `01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb` |
+| `tunnel_timber_kit` (post and lintel, one model) | `01a0fc6e-f739-75ce-b3db-00a3eaf715b4` | `01a0fc6f-f3d9-70f3-8213-a48fb9b1869d` |
+| `rock_face` | `01a0fc6f-b47b-77ae-b198-a2b02abace26` (redo; the first, `01a0fc6f-0100-71ca-841a-5add62707dfa`, drew a box round it: `concept_rejected_box.png`) | `01a0fc70-4b9f-7267-9823-f5e356159cd2` |
+
+**No Meshy remesh, rig or animation was bought.** The following were made free by `tools/make_art_pass3.py` and
+`tools/art_pass3_blender.py`:
+- the L0s;
+- the kit's `l0_post.glb` and `l0_lintel.glb`;
+- the staged `tunnel_post`, `tunnel_lintel` and `tunnel_set`.
+
+The bees, fire, lightning and ice are committed code in `godot/demo/fx/` and `godot/demo/water/`, not library files.
+
+## Style probe — 2026-10-02
+
+One icon-style house and one icon-style mouse, made so that Brendan could see the icon look at the game camera.
+They are `style_probe/icon_residence` and `style_probe/icon_mouse`.
+
+**78 credits** against a 95 cap: three `nano-banana-2` concepts, one of them rejected, and two meshy-7 textured
+high-polys. The L0s are free Blender bakes. They are not wired into the game and are not accepted art.
+[Decision 0981](../../decisions/0981-icon-style-probe-house-and-mouse.md) has the details, and the comparison is
+[`contact_sheets/style_probe_2026-10-02.png`](contact_sheets/style_probe_2026-10-02.png).
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

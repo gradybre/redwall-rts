@@ -1596,6 +1596,502 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "A round BRAIDED RAG RUG lying flat on the floor, coiled from braided strips of faded red, ochre, moss-green and oatmeal cloth. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and cloth materials as the reference."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_foods_a",
+      "task_id": "01a0fabb-231d-7535-a65a-7ac4c035a01d",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_mussels, item_oats, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by this pass"
+      ],
+      "prompt": "Game inventory icon sheet in exactly the style of the reference: painted stylized-realistic 3D look, soft light from upper left, three-quarter view from slightly above, matte materials. A 3x3 grid of nine separate items, each centred in its cell with wide empty margins, none touching: 1 two russet apples with a leaf; 2 two golden pears; 3 a heap of raspberries and blackberries; 4 hazelnuts in husks; 5 brown woodland mushrooms; 6 a tied bunch of green herbs; 7 three potatoes; 8 a clay honey pot with dipper; 9 an open cloth sack of flour. Flat plain light grey background, no shadows, no text."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_dishes_b",
+      "task_id": "01a0fabc-3220-704b-ae73-a535295b7efc",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Food icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells with wide margins: 1 three split dried fish tied on twine; 2 a stack of round oatcakes; 3 four quarter-round barley farls; 4 square hardtack biscuits pricked with holes; 5 wooden bowl of spring greens, radish, flowers; 6 whole baked fish on a board with herbs; 7 clay bowl of fish broth with broken biscuit; 8 a golden crimped pasty; 9 a deep pie of turnip and beetroot. Flat grey background, no shadows, no text."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_dishes_c",
+      "task_id": "01a0fabc-3b70-7544-9950-124dd77a56ab",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Food icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells with wide margins: 1 two hazelnut scones; 2 stoneware bottle of ruby raspberry cordial with a cup; 3 a golden woodland pie topped with mushrooms; 4 a sliced nut loaf on a board; 5 clay mug of green herb tea with a sprig; 6 clay pot of bean hotpot; 7 clay honey pot brimming with golden honey, dipper in it; 8 a wedge of yellow cheese; 9 a jug of milk. Flat light grey background, no shadows, no text."
+    },
+    {
+      "family": "environment",
+      "key": "apple_tree",
+      "task_id": "01a0fabe-6e08-702d-b2e2-c660c39fbd7f",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single young orchard APPLE tree: short straight trunk, low spreading boughs, rounded canopy of broad grouped leaf masses like the reference's tree, plain mid-green leaves only, NO fruit and NO blossom, plain brown bark with no moss, trunk standing on flat bare ground with no mound or roots. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "pear_tree",
+      "task_id": "01a0fabe-77ea-7433-9550-75e746f1efc4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single young orchard PEAR tree: straight trunk, upright branches, tall narrow oval canopy of broad grouped leaf masses like the reference's tree, plain mid-green glossy leaves only, NO fruit and NO blossom, plain grey-brown bark with no moss, trunk standing on flat bare ground with no mound or roots. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference.",
+      "superseded": true
+    },
+    {
+      "family": "environment",
+      "key": "raspberry_canes",
+      "task_id": "01a0fabe-8125-73fa-8ca2-9887a3043d7a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A clump of wild RASPBERRY canes: a dozen slender upright arching canes, serrated light-green leaves, a few small clusters of ripe red raspberries, growing from a small patch of earth. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "hazel_bush",
+      "task_id": "01a0fabe-8a8f-7549-8b1b-f7f4e4a89638",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A HAZEL bush: many slender straight grey-brown stems rising from one base and fanning out, broad round toothed green leaves, small clusters of hazelnuts in frilly green husks among the leaves, growing from a small patch of earth. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "strawberry_patch",
+      "task_id": "01a0fabe-9421-73aa-964d-9ec6fd4ecffe",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A low wild STRAWBERRY patch: a dense spreading mat of trifoliate strawberry leaves with runners, small white flowers and ripe red strawberries, on a flat roughly round patch of dark soil and straw. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "mushroom_forage",
+      "task_id": "01a0fabe-aaf3-756b-bd92-ea4538def38c",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A forage patch of edible woodland MUSHROOMS: plump brown penny-bun ceps and golden-orange chanterelles growing from moss and fallen oak leaves, low and spreading, on a flat roughly round patch of woodland floor. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "herb_patch",
+      "task_id": "01a0fabe-b469-755e-91fb-7e600eafcf37",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A low wild HERB patch: clumps of thyme, sage, mint and flowering chamomile, low and spreading, on a flat roughly round patch of soil. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "apple_basket",
+      "task_id": "01a0fabe-bdd9-7302-875b-f63829aee299",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wide shallow woven wicker harvest basket heaped with russet-red apples, two side handles, warm straw colour. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "building",
+      "key": "infirmary_ward",
+      "task_id": "01a0fabe-c70c-761c-8be8-6ada708430e3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An INFIRMARY for a woodland creature village, same building style as the reference cottage: broad low single-storey ward house of fieldstone and timber framing with pale plaster panels, slate roof, square plan, a long covered porch across the front, many shuttered windows, stone chimney, drying herb bundles by the door. Much wider than tall. Single isolated building on a thin flat square earth base, elevated three-quarter view from front-left, entire structure visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference.",
+      "superseded": true
+    },
+    {
+      "family": "prop",
+      "key": "bee_skep",
+      "task_id": "01a0fabe-d1af-76b2-b393-ee19b394e984",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single traditional BEE SKEP: a dome of coiled woven straw with a small arched entrance at the bottom, sitting on a flat round stone on a short sturdy timber stool. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and materials as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "pear_tree",
+      "task_id": "01a0fac0-c248-745c-bf70-e5e544106b17",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/environment/apple_tree/concept.png"
+      ],
+      "prompt": "A single young orchard PEAR tree: sturdy straight trunk, upright branches, broad pyramid-shaped canopy of big grouped leaf masses like the reference's tree, plain mid-green glossy leaves only, NO fruit and NO blossom, plain grey-brown bark with no moss, trunk standing on flat bare ground with no mound or roots. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "building",
+      "key": "infirmary_ward",
+      "task_id": "01a0fac0-e008-736c-90a4-ebce72aa7d57",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An INFIRMARY for a woodland creature village, same building style as the reference cottage: a long low ONE-storey ward house, no upper floor, low eaves, fieldstone walls with timber framing and pale plaster panels, slate roof, stone chimney, L-shaped plan around a small walled herb garden, covered porch, many small shuttered windows, herb bundles by the door. Three times as wide as tall. Isolated on a thin flat square earth base, elevated three-quarter view from front-left, whole building visible, plain light grey background, flat even light, no characters, no text."
+    },
+    {
+      "family": "environment",
+      "key": "bramble_blackberry",
+      "task_id": "01a0fad9-2198-75e9-8ae5-bbb590bf7bf3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png",
+        "assets/library/environment/apple_tree/concept.png"
+      ],
+      "prompt": "A dense rounded BRAMBLE mound: arching thorny canes mostly hidden under broad grouped masses of dark green leaves, like the tree in the second reference, with clusters of ripe blackberries and a few red unripe ones on the surface, growing from a small patch of earth. Wider than tall, solid compact shape. One isolated game asset, three-quarter view from slightly above, whole asset visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the first reference."
+    },
+    {
+      "family": "environment",
+      "key": "pine_scots",
+      "task_id": "01a0fae2-f823-7390-93ef-cf65f0ff49dc",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single mature Scots PINE tree: tall straight trunk, flaky orange-red bark high up and grey-brown furrowed bark at the base, visible roots, a high crown of dense dark blue-green needle clusters held in broad flat-topped layered tiers, a few short bare lower branch stubs. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no snow, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "yew_ancient",
+      "task_id": "01a0fae3-02bb-713e-b40e-adcec3113339",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ancient English YEW tree: short massive fluted reddish-brown trunk with peeling bark, visible roots, a broad dense rounded crown of very dark green needle foliage in heavy layered masses that spreads wide and reaches low, upper surfaces of each foliage layer clearly facing up. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no berries, no snow, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_songbird",
+      "task_id": "01a0fae3-0c5a-770e-8778-da8925a6b4e5",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small wild SONGBIRD, a European robin: round body, orange-red breast, olive-brown back, folded wings, short tail slightly raised, thin legs, standing on the ground in side three-quarter view. One isolated game asset, whole bird visible, plain light grey background, flat even light, no perch, no ground patch, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_butterfly",
+      "task_id": "01a0fae3-15c3-73cf-a1c8-6b3fe0f9b2a1",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single PEACOCK BUTTERFLY with all four wings fully open and flat, seen from above at a slight angle: rust-red wings with blue-and-ochre eyespots, dark edges, slim dark body and two thin antennae, wings symmetrical and clearly separate from the body. One isolated game asset, whole butterfly visible, plain light grey background, flat even light, no flower, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_frog",
+      "task_id": "01a0fae3-1f64-76cd-8c1e-a72214c918fe",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single common European FROG sitting crouched on the ground, ready to hop: olive-green and brown mottled skin, pale belly, dark mask behind the eye, folded hind legs, front legs straight, side three-quarter view. One isolated game asset, whole frog visible, plain light grey background, flat even light, no lily pad, no water, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "ui",
+      "key": "portrait_sheet_a",
+      "task_id": "01a0faef-409c-7616-ac77-e6f2ea3ff262",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/creature/mouse_keeper/concept_0.png",
+        "assets/library/creature/mouse_fieldworker/concept_0.png",
+        "assets/library/creature/mole_digger/concept_0.png",
+        "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png region [413,247,1304,565) (IMG-25 woodland lineup, DEC-036)",
+        "docs/design/ui_refinement/visuals/05_woodland_art_concept.png crop [1270,215,1445,390) (the journal medallion)"
+      ],
+      "prompt": "Storybook watercolour portrait sheet with dark green-black ink outlines and soft pigment washes, like image 5. Three equal cells in one row, wide gaps, each one head-and-shoulders bust on plain flat oat-cream paper; no frames, no text. Left: the mouse of image 1 (linen cap, moss-green dress, oatmeal apron). Middle: the mouse of image 2 (short hooded cape, linen tunic). Right: the mole of image 3 (mustard waistcoat, rust neckerchief, pink snout). Eye level, head turned 30 degrees toward screen-left, calm attentive, natural animal faces as image 4, light from upper left."
+    },
+    {
+      "family": "ui",
+      "key": "portrait_sheet_b",
+      "task_id": "01a0faef-506f-71b5-a500-a3350d7d32dc",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/creature/squirrel_gatherer/concept_0.png",
+        "assets/library/creature/squirrel_forester/concept_0.png",
+        "assets/library/creature/otter_boatwright/concept_0.png",
+        "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png region [413,247,1304,565) (IMG-25 woodland lineup, DEC-036)",
+        "docs/design/ui_refinement/visuals/05_woodland_art_concept.png crop [1270,215,1445,390) (the journal medallion)"
+      ],
+      "prompt": "Storybook watercolour portrait sheet with dark green-black ink outlines and soft pigment washes, like image 5. Three equal cells in one row, each one head-and-shoulders bust on plain flat oat-cream paper; no frames, no text. Left: the red squirrel of image 1 (ochre smock, satchel strap; tufted ears, tail arc behind shoulder). Middle: the squirrel of image 2 (green jerkin, brown hood down). Right: the otter of image 3 (leather vest, cream shirt, green neckerchief). Eye level, head turned 30 degrees toward screen-left, calm attentive, natural animal faces as image 4, light from upper left."
+    },
+    {
+      "family": "ui",
+      "key": "portrait_sheet_c",
+      "task_id": "01a0faef-6137-7348-8b47-b59f4076eaba",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/creature/otter_fisher/concept_0.png",
+        "assets/library/creature/badger_quarryman/concept_0.png",
+        "assets/library/creature/beaver_bridgewright/concept_0.png",
+        "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png region [413,247,1304,565) (IMG-25 woodland lineup, DEC-036)",
+        "docs/design/ui_refinement/visuals/05_woodland_art_concept.png crop [1270,215,1445,390) (the journal medallion)"
+      ],
+      "prompt": "Storybook watercolour portrait sheet with dark green-black ink outlines and soft pigment washes, like image 5. Three equal cells in one row, wide gaps, each one head-and-shoulders bust on plain flat oat-cream paper; no frames, no text. Left: the otter of image 1 (slate-blue canvas smock, rope belt). Middle: the badger of image 2 (striped face, leather jerkin over linen shirt). Right: the beaver of image 3 (leather apron, moss-green shirt, orange front teeth). Eye level, head turned 30 degrees toward screen-left, calm attentive, natural animal faces, light from upper left."
+    },
+    {
+      "family": "building",
+      "key": "hall_stage2",
+      "task_id": "01a0faef-6ba5-7079-8673-294516278f13",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/building/hall/concept.png",
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "The same great hall as image 1, same proportions, footprint, gable end with tall arched double doors, chimney and slate roof, now rebuilt in stone: walls of warm dressed red-grey sandstone blocks replacing the timber framing and plaster, stone buttresses replacing the timber props, carved stone arch round the doors, larger leaded windows with stone mullions, a second stone chimney at the far right end. Single building on a small dirt base, same elevated three-quarter view from front-left, whole structure visible, plain light grey background, flat even light, no characters, no text."
+    },
+    {
+      "family": "environment",
+      "key": "plant_flax",
+      "task_id": "01a0faef-7560-766d-b791-617e27b53c76",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small clump of FLAX growing from a small patch of dark tilled soil: many slender upright stems with narrow blue-green leaves, the lower stems turning straw-yellow, topped with a few delicate sky-blue five-petalled flowers and many small round seed bolls. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "hall_banner",
+      "task_id": "01a0faef-7e8e-7638-8362-7867e85a6e19",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A hanging cloth BANNER for a village hall: one long vertical banner of plain undyed pale cream linen with a swallowtail bottom edge and a simple stitched border, hung by cloth loops from a short turned wooden crossbar with a cord for hanging. Cloth gently draped with soft folds, flat and thick enough to read as solid. One isolated game prop, front three-quarter view, whole object visible, plain light grey background, flat even light, no emblem, no text, no characters. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "ui",
+      "key": "tapestry_ground",
+      "task_id": "01a0faef-8817-72ae-94d0-d4e0244600e4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [],
+      "prompt": "A woven wool village TAPESTRY ground, flat front view filling the whole frame, portrait format: plain undyed oat-coloured woven cloth centre with visible warp and weft, a woven border band of simple repeating oak leaves, acorns and wheat ears in umber, sage green, clay red and muted brass ochre, a row of small hanging loops along the top, short fringe along the bottom. Storybook watercolour illustration. Original design: no figures, no animals, no weapons, no text, no lettering.",
+      "aspect_ratio": "3:4"
+    },
+    {
+      "family": "ui",
+      "key": "tapestry_emblems",
+      "task_id": "01a0faef-8fcf-73be-9adf-b187237f026b",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [],
+      "prompt": "Sheet of eight separate embroidered wool emblems in a 4 by 2 grid with wide empty space between them, on plain flat pale oat cloth. Satin-stitch embroidery in muted umber, brass ochre, leaf green, sage, clay red and ember orange with dark green-black outline stitches. Each a simple round badge: a seedling on a mound; a gabled hall roof; a bound sheaf of grain; a snowflake; a hanging pennant; a small arched bridge; an open book with quill; a lantern. Original designs, no animals, no weapons, no text, no numbers.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "family": "ui",
+      "key": "chronicle_page",
+      "task_id": "01a0faef-b3f1-73e0-9ef5-d3a43d48e120",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [],
+      "prompt": "One blank parchment page for a village chronicle book, flat front view filling the frame: warm aged oat-cream paper with soft watercolour mottling and faint deckled edges, a hand-inked border of twining oak leaves, acorns, bramble and small wildflowers in dark green-black ink with muted sage, leaf green, brass and clay washes, small corner flourishes, a large plain empty centre for writing. Storybook watercolour illustration. No text, no letters, no animals, no figures.",
+      "aspect_ratio": "3:4"
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_songbird_flight",
+      "task_id": "01a0fb0c-a7ed-7023-9ac0-631748c83711",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/wildlife/wild_songbird/concept.png",
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "The same small wild SONGBIRD, a European robin, in flight seen from above at a slight angle: both wings fully spread out flat to the sides, round body, orange-red breast, olive-brown back and wings, short tail fanned, legs tucked. Wings symmetrical and clearly separate from the body. One isolated game asset, whole bird visible, plain light grey background, flat even light, no perch, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "crock_stoneware",
+      "task_id": "01a0fc6e-cc02-75fa-bae0-5797434db889",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A large salt-glazed STONEWARE CROCK for pickling and preserving: a wide straight-sided cylindrical belly, two small lug handles, a fitted lid with a round knob; a cream-grey glaze speckled brown, dipped dark brown at the rim and shoulder, one simple incised band. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no cloth, no characters, no text. Same painted stylized-realistic look and ceramic materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "jar_shelf",
+      "task_id": "01a0fc6e-d7aa-74a2-a6b8-ea59e52ee929",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wide low freestanding wooden PRESERVES SHELF: two thick plank shelves between solid plank end-boards, no thin legs, holding neat rows of small glass and stoneware preserve jars sealed with cloth covers tied with string, jars of red jam, golden honey, green pickles and amber fruit, each jar standing on the planks. One isolated game prop, three-quarter front view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "ale_cask",
+      "task_id": "01a0fc6e-e1e1-74d5-b7cb-b4550f5747e0",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An oak ALE CASK lying on its side on a low sturdy wooden cradle of two thick notched cross-beams, iron hoops, a wooden spigot tap in the front head, a wooden bung on top, the cask's staves dark with age. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "brew_vat",
+      "task_id": "01a0fc6e-ed19-711c-ba27-7780da747614",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wide open-topped wooden BREWING VAT, a mash tun: a round stave-built tub with three iron hoops, wider than tall, standing on a low ring of fieldstones, filled near the brim with pale golden-brown foamy mash, a thick wooden mash paddle resting in it and leaning on the rim, a small wooden tap low on its side. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "tunnel_timber_kit",
+      "task_id": "01a0fc6e-f739-75ce-b3db-00a3eaf715b4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A modular timber TUNNEL SUPPORT kit of two separate pieces standing apart with a wide clear gap, not touching: on the left one stout upright PROP post of rough adzed oak, squared top with a tenon, slightly flared foot; on the right one heavy squared LINTEL cap beam lying level on the ground, a notched housing cut near each end where the posts seat, axe marks and dark oak grain. Three-quarter view from slightly above, both pieces whole, plain light grey background, flat even light, no shadows, no earth, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "rock_face",
+      "task_id": "01a0fc6f-0100-71ca-841a-5add62707dfa",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A section of hard BEDROCK tunnel wall as one isolated game piece: a wide, shallow, slightly concave slab of blue-grey layered stone with sharp fractures, pale quartz veins and fresh pick marks, its ragged outer edges crumbling into dark brown packed earth and small rubble, flat back. Front three-quarter view, whole piece visible, plain light grey background, flat even light, no shadows, no wooden supports, no characters, no text. Same painted stylized-realistic look and stone materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "rock_face",
+      "task_id": "01a0fc6f-b47b-77ae-b198-a2b02abace26",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A thick irregular upright SLAB of hard bedrock as one game wall piece, wider than tall, gently curved: its front face blue-grey layered stone with sharp fractures, pale quartz veins and fresh pick marks; dark brown packed earth and small pebbles clinging along its ragged top and side edges; a flat back. Front three-quarter view from slightly above, whole piece visible, solid opaque object, plain light grey background, flat even light, no box, no glass, no frame, no shadows, no characters, no text. Same painted stylized-realistic look and stone materials as the reference."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_preserves_finds",
+      "task_id": "01a0fc94-6141-7684-be9b-4193024f9aab",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins: 1 squat jar of red jam, cloth cover tied with string; 2 stoneware jar of green pickles, dill; 3 dried apple rings and dark berries on cloth; 4 wedge of yellow cheese; 5 wooden tankard of ale, white head; 6 stoneware cider jug, red apple; 7 old bronze and silver coins in earth; 8 half-unrolled old parchment map; 9 clear water welling between wet stones. Flat light grey background, no shadows, no text."
+    },
+    {
+      "family": "style_probe",
+      "key": "icon_residence",
+      "task_id": "01a0fc72-79f5-7431-a65f-ba7b6a17fbf3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "outcome_note": "concept_0: rejected, off-style",
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_carrot, relic_bell, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by the style probe",
+        "assets/library/icon/sheet_foods_a/sheet.png",
+        "assets/library/building/residence/concept.png"
+      ],
+      "prompt": "Redraw the building in image 3 as one game asset in exactly the rendering style of images 1 and 2: polished stylized-realistic 3D render, like an inventory icon. Same two-storey cottage, same footprint and proportions: fieldstone ground floor, timber-framed upper floor, slate roof with two dormers, stone chimney, wide front door, shuttered windows, lantern by the door, small dirt base. Soft studio light from upper left, gentle rim light, smooth rounded forms, clean matte materials, warm natural saturation, no ink outlines. Three-quarter view from front-left above, plain light grey background."
+    },
+    {
+      "family": "style_probe",
+      "key": "icon_residence",
+      "task_id": "01a0fc74-0d8e-73aa-8daa-fd2c9e899259",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "outcome_note": "concept_1: used",
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_carrot, relic_bell, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by the style probe",
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "A 3D rendered game asset in exactly the style of these icon renders, not a painting: soft studio light from upper left, gentle rim light, smooth bevelled chunky forms, rounded stones, soft ambient occlusion, clean matte materials, warm natural saturation, no outlines. Subject: a two-storey woodland cottage, nearly square plan, as tall as wide: fieldstone ground floor, timber-framed upper floor, grey slate roof with two dormers, stone chimney, wide wooden door, shuttered windows, lantern by the door, small dirt base. Three-quarter view from front-left above, plain light grey background."
+    },
+    {
+      "family": "style_probe",
+      "key": "icon_mouse",
+      "task_id": "01a0fc72-86f3-71c6-adc8-48de1f46248a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "outcome_note": "concept_0: used",
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_carrot, relic_bell, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by the style probe",
+        "assets/library/icon/sheet_foods_a/sheet.png",
+        "assets/library/creature/mouse_fieldworker/concept_0.png"
+      ],
+      "prompt": "Redraw the mouse in image 3 as one game character in exactly the rendering style of images 1 and 2: polished stylized-realistic 3D render, like an inventory icon. Same mouse field worker: linen tunic, short hooded cape, wide leather belt with two pouches, brown trousers rolled at the ankle, large round ears, chestnut fur, pale muzzle, long thin tail. Standing relaxed, arms slightly away from the body, feet flat, facing the viewer. Soft studio light from upper left, gentle rim light, smooth forms, matte cloth, warm natural saturation, no outlines. Full body, plain light grey background."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_flax_linen_wax",
+      "task_id": "01a0fce6-bbf4-75f2-92a6-c99baf0c1a38",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins. Row 1 flax: a tied sheaf of ripe flax stalks with seed bolls; a bundle of combed pale flax fibre; a heap of brown flax seed. Row 2 linen: a folded stack of undyed linen cloth; a bolt of linen tied with cord; a wooden spool of linen thread. Row 3 beeswax: a golden block of beeswax; three beeswax candles; a piece of empty honeycomb wax. Flat light grey background, no shadows, no text."
     }
   ]
 }

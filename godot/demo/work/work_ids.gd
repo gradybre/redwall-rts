@@ -33,12 +33,16 @@ const SOURCE_CARE: int = 11
 ## 0681; demo/work/forage_work.gd): claimed like the farm's, the Woods crew's work. (9 on its own lane; 12 since the
 ## batch 7 integration, decision 0902.)
 const SOURCE_FORAGE: int = 12
-const SOURCE_COUNT: int = 13
+## The orchard: tending, picking, hauling the baskets on, planting, propagating and the grove's observation (decision
+## 0671; demo/work/orchard_work.gd): claimed like the farm's. (11 on its own lane; 13 since the batch 8 integration,
+## decision 0903.)
+const SOURCE_ORCHARD: int = 13
+const SOURCE_COUNT: int = 14
 ## What each source is called in the Projects view and the Cancel all scope.
 const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
-	"Kitchen", "Fishery and stations", "Ferry", "Food stores", "The hall", "Infirmary", "Foraging"]
+	"Kitchen", "Fishery and stations", "Ferry", "Food stores", "The hall", "Infirmary", "Foraging", "Orchard"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 13
+const SOURCE_WALK: int = 14
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1

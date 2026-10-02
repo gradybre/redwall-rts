@@ -297,5 +297,27 @@
       "pigments": "I08 fur; I10 warm fur accents; I03 muzzle; I09 tail shade; I06 tunic.",
       "reuse_art_from": ""
     }
-  ]
+  ],
+  "style_scope": {
+    "ruled_by": "Brendan, 2026-10-02 (decision 0971; after the icon-style probe, decision 0981)",
+    "world": "DEC-038 unchanged",
+    "item_food_dish_icons": {
+      "style": "3D render matching the world models and the existing pantry icons",
+      "render": "orthographic three-quarter (28 deg elevation, 32 deg azimuth); key light upper left, cool fill, thin rim; soft grey world, transparent film, no tonemap curve; matte materials, warm natural saturation, no ink contour",
+      "governed_by_this_lock": false,
+      "applies_to": "list item, food and dish icons (pantry, stores, inventory lists)"
+    },
+    "watercolour_ink_scope": [
+      "portraits",
+      "emblems",
+      "medallions",
+      "tapestry",
+      "ceremonial or illustrative UI"
+    ],
+    "top_bar_icons": {
+      "style": "watercolour family (this lock)",
+      "includes": "every resource and command row in assets, RES-FOOD's stew bowl included",
+      "ruled_by": "Brendan, 2026-10-02 follow-up ruling (decision 0971)"
+    }
+  }
 }

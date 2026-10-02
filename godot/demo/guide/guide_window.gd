@@ -8,6 +8,7 @@ extends CanvasLayer
 ##   * FIELD GUIDE the almanac of what the demo has (field_guide_page.gd);
 ##   * HELP        the searchable help (help_page.gd, as the game menu's);
 ##   * PRACTICE    the practice stories (practice_page.gd), kept apart from the village.
+## The header's "Chronicle" closes the guide and opens the village chronicle's book (decision 0631; hidden until set).
 ## A modal (demo_input_gate.gd): a scrim, focus trapped, Esc or O or × closes it. While open it holds the clock's MENU
 ## pause reason, as the game menu does, so the village waits (and a story's run cannot race it); closing releases only
 ## that. In the village the hold goes through the pause ledger (`hold_pause`: demo/session/pause_ledger.gd `hold_guide`,
@@ -55,6 +56,9 @@ var toggle_guide: Callable = Callable()
 
 ## `(held: bool) -> bool`: hold the MENU pause through the host's pause ledger (unset: on the clock directly).
 var hold_pause: Callable = Callable()
+## What the header's "Chronicle" opens once the guide has closed: the village chronicle (decision 0631; unset: hidden).
+var _open_chronicle: Callable = Callable()
+var _chronicle_button: Button = null
 
 var _manager: GameManagerScript = null
 var _holding: bool = false
@@ -86,6 +90,11 @@ func _init() -> void:
 	var title: Label = FarmUi.label(TITLE, FarmUi.TITLE_PX, Palette.INK, true)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
+	_chronicle_button = FarmUi.button("Chronicle", FarmUi.SMALL_PX)
+	_chronicle_button.tooltip_text = "The village chronicle: a page for each season, from what the village recorded"
+	_chronicle_button.visible = false
+	_chronicle_button.pressed.connect(_on_chronicle)
+	head.add_child(_chronicle_button)
 	_close = FarmUi.button(CLOSE_TEXT, FarmUi.SMALL_PX)
 	_close.pressed.connect(close)
 	head.add_child(_close)
@@ -143,6 +152,23 @@ func _build_objectives() -> VBoxContainer:
 	to_goals.pressed.connect(show_tab.bind(TAB_GOALS))
 	page.add_child(to_goals)
 	return page
+
+
+func set_chronicle(open_chronicle: Callable) -> void:
+	"""What the header's "Chronicle" opens (decision 0631): the guide closes first, then this is called. None: hidden."""
+	_open_chronicle = open_chronicle
+	_chronicle_button.visible = open_chronicle.is_valid()
+
+
+func _on_chronicle() -> void:
+	"""Close the guide (its pause let go) and open the chronicle -- unless the clock refused the close."""
+	if close() and _open_chronicle.is_valid():
+		_open_chronicle.call()
+
+
+func chronicle_button() -> Button:
+	"""The header's "Chronicle" (checks)."""
+	return _chronicle_button
 
 
 func bind(manager: GameManagerScript) -> void:

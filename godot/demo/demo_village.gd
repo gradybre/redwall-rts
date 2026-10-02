@@ -136,6 +136,12 @@ extends Node3D
 ## a spotlight after a distinctive deed and a reflection at a season's end (people_card.gd), and posts at most one
 ## light evening line a day. `_build_people()` wires it once the work board and the news are built.
 ##
+## THE VILLAGE CHRONICLE (decision 0631, demo/chronicle/): at each season's end a short page in a record-keeper's voice
+## -- the harvest and the table, weather and trouble, deeds, friendships, songs and gatherings -- written only from what
+## the village recorded (the news by entry id, the incidents' lines, the farm's record, the people's ledger, the songs),
+## and a book of the pages behind Village news' and the village guide's "Chronicle" (no key of its own). Its tapestry
+## hook (`chronicle().page_written`) is left for the great hall. `_build_chronicle()` wires it after the guide.
+##
 ## SOUND (decision 0351, demo/sound/): ONE SOUND OWNER (sound_director.gd), scene-scoped rather than an autoload,
 ## hears the village's committed events (its event map, sound_taps.gd) and plays them through six buses (the sixth,
 ## Songs, decision 0442) with a bounded voice pool; its volumes and mixes are the game menu's Settings. No sound files are staged yet, so it
@@ -260,6 +266,8 @@ const HelpTopics := preload("res://demo/guide/help_topics.gd")
 const PantryPanelScript := preload("res://demo/farm/farm_pantry_panel.gd")
 const PeopleScript := preload("res://demo/people/demo_people.gd")
 const PeopleCardScript := preload("res://demo/people/people_card.gd")
+const ChronicleScript := preload("res://demo/chronicle/demo_chronicle.gd")
+const ChronicleWindowScript := preload("res://demo/chronicle/chronicle_window.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
@@ -365,6 +373,9 @@ var _people_card: PeopleCardScript = null
 var _camera_modes: CameraModesScript = null
 ## The HUD's alert stack, found once (the pause card asks whether it shows every frame it is up; decision 0931).
 var _alert_stack: Control = null
+## The village chronicle and its book (decision 0631).
+var _chronicle: ChronicleScript = null
+var _chronicle_window: ChronicleWindowScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
 ## Water part B lane 3 (decision 0437): the ferry. (Decision 0438): the regatta.
@@ -418,6 +429,7 @@ func _ready() -> void:
 	_build_sound()
 	_build_guide()
 	_build_camera_modes()
+	_build_chronicle()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -917,6 +929,38 @@ func guide() -> GuideScript:
 	return _guide
 
 
+func _build_chronicle() -> void:
+	"""The village chronicle (see THE VILLAGE CHRONICLE) over the news, the calendar, the farm's record, the people and
+	the songs, and its book behind the "Chronicle" buttons of Village news and the village guide."""
+	_chronicle = ChronicleScript.new()
+	add_child(_chronicle)
+	var titles: PackedStringArray = _songs.book.titles if _songs != null else PackedStringArray()
+	_chronicle.configure(_services.notices, _services.calendar, _farm.record, _people.ledger, _people.names(),
+		_songs.circle if _songs != null else null, titles)
+	_chronicle_window = ChronicleWindowScript.new()
+	add_child(_chronicle_window)
+	_chronicle_window.configure(_chronicle)
+	_history.set_chronicle(_chronicle_window.open)
+	_guide.window.set_chronicle(_chronicle_window.open)
+
+
+func _attach_chronicle() -> void:
+	"""The book as a modal of the input gate (Esc and × close it) and a planning surface."""
+	_gate.watch_modal(_chronicle_window, _chronicle_window.frame(), _chronicle_window.close)
+	_gate.set_modal_close(_chronicle_window, _chronicle_window.close_button())
+	_time.add_planning("the chronicle", _chronicle_window.is_open)
+
+
+func chronicle() -> ChronicleScript:
+	"""The village chronicle (demo/chronicle/demo_chronicle.gd)."""
+	return _chronicle
+
+
+func chronicle_window() -> ChronicleWindowScript:
+	"""The chronicle's book (demo/chronicle/chronicle_window.gd)."""
+	return _chronicle_window
+
+
 func _build_people() -> void:
 	"""The village's people (see PEOPLE): the ledger's taps on every owner, its skills, the inspector, the roster's
 	notable mark, the dig lead's voice, and the offer card under the incident card."""
@@ -1389,6 +1433,7 @@ func _build_input() -> void:
 	_gate.add_region("left column", [(_command as DemoCommandScript).panel()] as Array[Node])
 	_gate.add_region("map layers", [_lens_picker] as Array[Node])
 	_guide.attach(_menu, _lab, _gate, _shell())
+	_attach_chronicle()
 	_gate.add_region("offer card", [_people_card] as Array[Node])
 	_sound.watch_buttons.call_deferred(get_tree().root)
 

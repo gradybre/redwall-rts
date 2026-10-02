@@ -117,7 +117,7 @@ func configure(world: DemoWorldScript, cast: DemoCastScript, command: DemoComman
 	view = ViewScript.new()
 	add_child(view)
 	view.configure(model, jobs, world.make_piece if world != null else Callable(), services.props, cast, pantry,
-		services.calendar)
+		services.calendar, world.is_staged if world != null else Callable())
 	_place_grove_stone(world)
 	panel = PanelScript.new()
 	panel.build()

@@ -490,6 +490,9 @@ func test_the_sun_takes_the_fitted_shadow_range() -> void:
 const EXPECTED_SINK_M: Dictionary = {
 	&"oak_mature": 1.2, &"beech_mature": 0.5, &"residence": 0.42, &"covered_store": 0.12,
 	&"kitchen": 0.11, &"workbench": 0.07,
+	# The art passes' (decision 0903): the pear's measured plate (decision 0941) and the evergreens' proposed sink
+	# (decision 0951, awaiting Brendan's ruling).
+	&"pear_tree": 0.15, &"pine_scots": 0.6, &"yew_ancient": 0.6,
 }
 ## Staged models with no baked base to bury: they stand on the ground.
 const UNSUNK_KEYS: Array[StringName] = [
@@ -515,7 +518,7 @@ func _stage_fake(key: StringName) -> void:
 
 func test_the_measured_sinks_are_pinned() -> void:
 	"""Every sunk key carries its measured sink, and the rest none."""
-	assert_equal(Sizes.SINK_M.size(), EXPECTED_SINK_M.size(), "six keys are sunk")
+	assert_equal(Sizes.SINK_M.size(), EXPECTED_SINK_M.size(), "nine keys are sunk")
 	for key: StringName in EXPECTED_SINK_M:
 		assert_almost_equal(Sizes.sink_m(key, 1.0), float(EXPECTED_SINK_M[key]), "%s sink" % key)
 	for key: StringName in UNSUNK_KEYS:

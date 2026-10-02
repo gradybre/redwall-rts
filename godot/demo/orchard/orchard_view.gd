@@ -19,7 +19,14 @@ extends Node3D
 ##   * THE NURSERY: a sapling basket for each sapling it holds or grows.
 ##   * THE GROVE: a sage ring on the ground round it while it is protected.
 ##   * A carrier holds a basket on its carry walk; a load set down shows as a basket where it lies.
-## The ART GAP (reported): no fruit-tree, berry-bush or fruit model is staged; these stand-ins are the oak's.
+## THE FOOD ART (decision 0941; wired by the batch 8 integration, decision 0903). Where it is staged, the orchard draws
+## its own models instead of those stand-ins, each PRESCALED (size 1.0 is its full height): the apple and pear trees
+## (4.7 m and 5.2 m full-grown; a sapling, a young and an old tree at FRUIT_SIZES' shares, the pear let down its
+## plate), the hedge's raspberry canes, blackberry bramble and strawberry patch (one patch for the five plants), and
+## the apple stand's full baskets. The trees carry no fruit (the speckle is still the fruit); the bushes carry their
+## berries modelled, so their speckle is off and the tree shader hides the modelled berries as the hedge's stock runs
+## down, and all of them out of season (season_leaves.gdshaderinc `berry_hide`). The strawberry patch is then a third
+## season slot. Without the food art -- CI, or a model that will not load -- the stand-ins above are drawn unchanged.
 ##
 ## Per frame it compares the model's and the jobs' revisions and the calendar's hour, and allocates nothing; on a change
 ## it writes each tree's size, its fruit and the stands, the nursery and the ring.
@@ -41,6 +48,21 @@ const SimClock := preload("res://scripts/core/sim_clock.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 
 const TREE_KEY: StringName = &"oak_mature"
+## The food art (see THE FOOD ART): the fruit trees by species (Rules.APPLE, Rules.PEAR), the hedge's two bushes, the
+## patch and the apple stand's basket.
+const FRUIT_TREE_KEYS: Array[StringName] = [&"apple_tree", &"pear_tree"]
+const BUSH_KEYS: Array[StringName] = [&"raspberry_canes", &"bramble_blackberry"]
+const PATCH_KEY: StringName = &"strawberry_patch"
+const APPLE_BASKET_KEY: StringName = &"apple_basket"
+## A fruit tree's share of its full-grown model (decision 0941's mapping): a sapling's first half-year (x to y), a
+## just-grown tree, and the inherited old trees (OLD 1.11 of the full-grown; YOUNG 0.5).
+const FRUIT_SAPLING_SIZES: Vector2 = Vector2(0.2, 0.45)
+const FRUIT_YOUNG_SIZE: float = 0.5
+const FRUIT_OLD_SIZE: float = 1.11
+## The leaf colour each modelled bush paints over its hidden berries (linear; the median of its own leaf texels,
+## measured): the canes, the bramble, the patch.
+const BUSH_LEAF: Array[Color] = [Color(0.266, 0.366, 0.089), Color(0.051, 0.105, 0.025), Color(0.084, 0.162, 0.028)]
+const PARAM_BERRY_HIDE: StringName = &"berry_hide"
 const SAPLING_KEY: StringName = &"oak_sapling"
 const STRAWBERRY_SCENE: String = "res://demo/assets/plants/plant_strawberry.glb"
 ## A mature fruit tree's drawn size (a share of the woods oak's 13 m), a just-grown one's, and the old trees'.
@@ -79,6 +101,10 @@ const LOAD_POOL: int = 4
 var _model: ModelScript = null
 var _jobs: JobsScript = null
 var _make: Callable = Callable()
+## Whether the world has a model staged (`demo_world.gd is_staged(key) -> bool`; invalid: never -- the stand-ins).
+var _staged: Callable = Callable()
+## Per bush (the hedge's slots): 1 when it is the food art's own model (its berries modelled).
+var _bush_art: PackedByteArray = PackedByteArray()
 var _props: PropsScript = null
 var _cast: DemoCastScript = null
 var _pantry: PantryScript = null
@@ -89,6 +115,10 @@ var _tree_base: PackedFloat32Array = PackedFloat32Array()
 var _bushes: Array[Node3D] = []
 var _pegs: Array[Node3D] = []
 var _stand_fruit: Array[MultiMeshInstance3D] = []
+## Each stand's three empty baskets (group-major), and the old orchard stand's full apple baskets (the food art; empty
+## without it).
+var _empty_baskets: Array[MeshInstance3D] = []
+var _full_baskets: Array[MeshInstance3D] = []
 var _nursery: Array[MeshInstance3D] = []
 var _loads: Array[MeshInstance3D] = []
 var _ring: MeshInstance3D = null
@@ -103,13 +133,15 @@ var _scratch: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(model: ModelScript, jobs: JobsScript, make: Callable, props: PropsScript, cast: DemoCastScript,
-		pantry: PantryScript, calendar: CalendarScript) -> void:
+		pantry: PantryScript, calendar: CalendarScript, staged: Callable = Callable()) -> void:
 	"""Draw `model` and `jobs` with the world's `make(key, at, yaw, size) -> Node3D`, the staged `props`, over `cast`'s
-	residents, `pantry`'s stands and `calendar`'s season (any but the model may be null in a check)."""
+	residents, `pantry`'s stands and `calendar`'s season (any but the model may be null in a check); `staged(key)`
+	says which of the food art's models the world has (see THE FOOD ART)."""
 	name = "OrchardView"
 	_model = model
 	_jobs = jobs
 	_make = make
+	_staged = staged
 	_props = props
 	_cast = cast
 	_pantry = pantry
@@ -185,15 +217,34 @@ static func _bar(mesh: ImmediateMesh, a: Vector2, b: Vector2) -> void:
 		mesh.surface_add_vertex(Vector3(quad[k].x, STRING_Y, quad[k].y))
 
 
+func has_art(key: StringName) -> bool:
+	"""Whether the world has the food art's model `key` staged (see THE FOOD ART)."""
+	return _staged.is_valid() and bool(_staged.call(key))
+
+
 func _build_hedge() -> void:
-	"""The canes and the bramble (knee-high oak saplings: seasonal, berries as their fruit speckle) and the strawberry
-	bed (the staged strawberry plant, a few together)."""
+	"""The canes and the bramble -- the food art's own, else knee-high oak crowns (seasonal, berries as their fruit
+	speckle) -- and the strawberry bed: the food art's patch (a third season slot), else the staged strawberry plant."""
 	for bush: int in 2:
-		var node: Node3D = _make_piece(TREE_KEY, Rules.BUSH_AT[bush], 0.6 + 1.7 * bush, BUSH_SIZE)
+		var art: bool = has_art(BUSH_KEYS[bush])
+		var node: Node3D = _make_piece(BUSH_KEYS[bush] if art else TREE_KEY, Rules.BUSH_AT[bush], 0.6 + 1.7 * bush,
+			1.0 if art else BUSH_SIZE)
 		if node != null:
-			node.position.y -= BUSH_SINK_M
+			node.position.y -= 0.0 if art else BUSH_SINK_M
 			add_child(node)
 		_bushes.append(node)
+		_bush_art.append(1 if art else 0)
+	if has_art(PATCH_KEY):
+		var patch: Node3D = _make_piece(PATCH_KEY, Rules.BUSH_AT[2], 1.3, 1.0)
+		add_child(patch)
+		_bushes.append(patch)
+		_bush_art.append(1)
+		return
+	_build_strawberry_plants()
+
+
+func _build_strawberry_plants() -> void:
+	"""The stand-in strawberry bed: the staged strawberry plant, five together (a peg each with nothing staged)."""
 	var scene: PackedScene = load(STRAWBERRY_SCENE) as PackedScene if ResourceLoader.exists(STRAWBERRY_SCENE) else null
 	for k: int in 5:
 		@warning_ignore("integer_division") var row: int = k / 3
@@ -215,8 +266,9 @@ func _build_places() -> void:
 	for group: int in Rules.GROUP_COUNT:
 		var at: Vector2 = Rules.STAND_AT[group]
 		for k: int in 3:
-			_place_prop(&"basket", at + Vector2(0.55 * float(k) - 0.55, 0.0), 0.4 * float(k))
+			_empty_baskets.append(_place_prop(&"basket", at + Vector2(0.55 * float(k) - 0.55, 0.0), 0.4 * float(k)))
 		_stand_fruit.append(_fruit_heap(at))
+	_build_apple_baskets()
 	for k: int in NURSERY_POOL:
 		var basket: MeshInstance3D = _place_prop(&"sapling_basket", Rules.NURSERY_AT + Vector2(0.5 * float(k) - 1.25, 0.0),
 			0.3 * float(k))
@@ -227,6 +279,18 @@ func _build_places() -> void:
 			basket.visible = false
 		_loads.append(basket)
 	_ring = _make_ring()
+
+
+func _build_apple_baskets() -> void:
+	"""The food art's full apple baskets on the old orchard's stand (group 0), one in each of its baskets' places,
+	shown per started third of its store while it holds apples most (`_heap`); none without the food art."""
+	if _props == null or not _props.is_staged(APPLE_BASKET_KEY):
+		return
+	for k: int in 3:
+		var full: MeshInstance3D = _place_prop(APPLE_BASKET_KEY, Rules.STAND_AT[0] + Vector2(0.55 * float(k) - 0.55, 0.0),
+			0.4 * float(k))
+		full.visible = false
+		_full_baskets.append(full)
 
 
 func _place_prop(key: StringName, at: Vector2, yaw: float) -> MeshInstance3D:
@@ -327,22 +391,34 @@ func _sync_trees() -> void:
 				_trees[site] = null
 				_season_revision += 1
 			continue
-		var age: int = _model.age_of(site)
-		var key: StringName = SAPLING_KEY if age < Rules.HALF_YEAR_DAYS and _model.inherited[site] == 0 else TREE_KEY
+		var key: StringName = tree_key(site)
 		if key != _tree_key[site] or _trees[site] == null:
 			_replace_tree(site, key)
 		_size_tree(site, key, tree_size(site))
 
 
+func tree_key(site: int) -> StringName:
+	"""The model tree `site` is drawn as: its species' food-art tree at every age, else the oak sapling for a planted
+	tree's first half-year and the oak after (see the header)."""
+	var species: int = _model.species_of(site)
+	if species >= 0 and species < FRUIT_TREE_KEYS.size() and has_art(FRUIT_TREE_KEYS[species]):
+		return FRUIT_TREE_KEYS[species]
+	var young: bool = _model.age_of(site) < Rules.HALF_YEAR_DAYS and _model.inherited[site] == 0
+	return SAPLING_KEY if young else TREE_KEY
+
+
 func tree_size(site: int) -> float:
-	"""The share of its model a tree is drawn at (see the header)."""
+	"""The share of its model a tree is drawn at (see the header; the food art's trees at FRUIT_SIZES' shares)."""
+	var art: bool = FRUIT_TREE_KEYS.has(tree_key(site))
 	if _model.inherited[site] == 1:
-		return OLD_TREE_SIZE
+		return FRUIT_OLD_SIZE if art else OLD_TREE_SIZE
 	var age: int = _model.age_of(site)
 	var species: int = _model.species_of(site)
 	if age < Rules.HALF_YEAR_DAYS:
-		return lerpf(SAPLING_SIZES.x, SAPLING_SIZES.y, float(age) / float(Rules.HALF_YEAR_DAYS))
-	return lerpf(YOUNG_TREE_SIZE, ORCHARD_TREE_SIZE, Rules.grown_share(age, species))
+		var sapling: Vector2 = FRUIT_SAPLING_SIZES if art else SAPLING_SIZES
+		return lerpf(sapling.x, sapling.y, float(age) / float(Rules.HALF_YEAR_DAYS))
+	return lerpf(FRUIT_YOUNG_SIZE if art else YOUNG_TREE_SIZE, 1.0 if art else ORCHARD_TREE_SIZE,
+		Rules.grown_share(age, species))
 
 
 func _replace_tree(site: int, key: StringName) -> void:
@@ -386,8 +462,14 @@ func _sync_fruit() -> void:
 		_write(_trees[site], PARAM_FRUIT, Color(colour.r, colour.g, colour.b, share))
 	var berries: float = berry_share(season)
 	for bush: int in _bushes.size():
-		if _bushes[bush] != null:
-			_write(_bushes[bush], PARAM_BLOSSOM_TINT, BUSH_BLOSSOM)
+		if _bushes[bush] == null:
+			continue
+		_write(_bushes[bush], PARAM_BLOSSOM_TINT, BUSH_BLOSSOM)
+		if _bush_art[bush] == 1:
+			_write(_bushes[bush], PARAM_FRUIT, Color(0.0, 0.0, 0.0, 0.0))
+			var leaf: Color = BUSH_LEAF[mini(bush, BUSH_LEAF.size() - 1)]
+			_write(_bushes[bush], PARAM_BERRY_HIDE, Color(leaf.r, leaf.g, leaf.b, 1.0 - berries))
+		else:
 			_write(_bushes[bush], PARAM_FRUIT, Color(BERRY[bush].r, BERRY[bush].g, BERRY[bush].b, berries))
 
 
@@ -442,19 +524,31 @@ func _heap(group: int) -> void:
 		return
 	var at: int = _scratch.value
 	var used: int = _pantry.used_milli_of(at)
-	multi.visible_instance_count = mini(FRUIT_POOL, ceili(float(FRUIT_POOL) * float(used) / float(Rules.STAND_CAPACITY_U * 1000)))
-	var colour: Color = _stand_colour(at)
+	var share: float = float(used) / float(Rules.STAND_CAPACITY_U * 1000)
+	var item: int = _stand_item(at)
+	var full: int = ceili(3.0 * share) if group == 0 and item == Catalog.ITEM_APPLE and not _full_baskets.is_empty() else 0
+	_show_full_baskets(full)
+	multi.visible_instance_count = 0 if full > 0 else mini(FRUIT_POOL, ceili(float(FRUIT_POOL) * share))
+	var colour: Color = Catalog.ITEM_SWATCH[item]
 	for k: int in multi.visible_instance_count:
 		multi.set_instance_color(k, colour.darkened(0.12 * float(k % 3)))
 
 
-func _stand_colour(at: int) -> Color:
-	"""The colour of what stand location `at` holds most of."""
+func _show_full_baskets(full: int) -> void:
+	"""The old orchard stand's first `full` baskets drawn as the food art's full apple baskets, the rest empty."""
+	for k: int in _full_baskets.size():
+		_full_baskets[k].visible = k < full
+		if _empty_baskets[k] != null:
+			_empty_baskets[k].visible = k >= full
+
+
+func _stand_item(at: int) -> int:
+	"""What stand location `at` holds most of (the apple on a tie or when empty)."""
 	var best: int = Catalog.ITEM_APPLE
 	for item: int in Catalog.ORCHARD_ITEMS:
 		if _pantry.milli_at(item, at) > _pantry.milli_at(best, at):
 			best = item
-	return Catalog.ITEM_SWATCH[best]
+	return best
 
 
 
@@ -547,6 +641,19 @@ func pegs_shown(site: int) -> bool:
 func heap_count(group: int) -> int:
 	"""How much fruit group `group`'s stand shows (checks)."""
 	return _stand_fruit[group].multimesh.visible_instance_count
+
+
+func full_baskets_shown() -> int:
+	"""How many of the old orchard stand's full apple baskets are drawn (checks)."""
+	var shown: int = 0
+	for basket: MeshInstance3D in _full_baskets:
+		shown += 1 if basket.visible else 0
+	return shown
+
+
+func bush_is_art(slot: int) -> bool:
+	"""Whether hedge slot `slot` is the food art's own model (checks)."""
+	return slot >= 0 and slot < _bush_art.size() and _bush_art[slot] == 1
 
 
 func ring_shown() -> bool:

@@ -45,6 +45,8 @@ var _command: DemoCommandScript = null
 var _panel: PanelScript = null
 var _card: CardScript = CardScript.new()
 var _refresh_in: float = 0.0
+## The calendar hour the bramble's berries were last shown for (the view's spots; -1: never).
+var _berries_hour: int = -1
 
 
 func configure(cast: DemoCastScript, command: DemoCommandScript, shared: ServicesScript, pantry: PantryScript,
@@ -106,11 +108,40 @@ func _process(delta: float) -> void:
 	var started: int = Time.get_ticks_usec()
 	trips.update(_cast.clock.frame_usec if _cast != null else 0)
 	view.refresh()
+	_show_berries()
 	last_usec = Time.get_ticks_usec() - started
 	_refresh_in -= delta
 	if _refresh_in <= 0.0 and section != null and _panel != null and _panel.is_shown():
 		_refresh_in = PANEL_REFRESH_S
 		refresh_section()
+
+
+func place_spots(make: Callable, staged: Callable) -> int:
+	"""Draw the spots' models (forage_view.gd THE SPOTS) with the world's `make` and `staged`; how many were drawn."""
+	if view == null:
+		return 0
+	var drawn: int = view.place_spots(make, staged, trips.spot_at)
+	_berries_hour = -1
+	return drawn
+
+
+func _show_berries() -> void:
+	"""Once an hour: the bramble's berries at the berry patch's stock above its floor (none while it is dormant)."""
+	var hour: int = services.calendar.hour_index()
+	if hour == _berries_hour or view.piece_count() == 0:
+		return
+	_berries_hour = hour
+	view.show_berries(berry_share())
+
+
+func berry_share() -> float:
+	"""The berry patch above its floor as a share of its room above it (0 while dormant or with no basin)."""
+	var d: DriverScript = trips.driver
+	var kind: int = Rules.KINDS[Rules.KIND_COUNT - 1]
+	if d == null or d.availability(kind) <= 0:
+		return 0.0
+	var room: int = d.capacity_milli(kind) - d.floor_milli(kind)
+	return clampf(float(d.stock_milli(kind) - d.floor_milli(kind)) / float(maxi(room, 1)), 0.0, 1.0)
 
 
 func _say(text: String, warning: bool) -> void:

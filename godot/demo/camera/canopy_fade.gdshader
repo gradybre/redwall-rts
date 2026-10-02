@@ -56,6 +56,7 @@ float bayer4(vec2 frag) {
 
 void fragment() {
 	vec4 albedo = texture(albedo_texture, UV) * albedo_color;
+	albedo.rgb = season_berries(albedo.rgb, UV);
 	float leaf = leafness(albedo.rgb, model_y);
 	if (season_drops(leaf, UV)) {
 		discard;

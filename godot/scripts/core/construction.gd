@@ -1059,20 +1059,35 @@ func add_work_mwu(project_ref: Vector2i, mwu: int) -> OpResult:
 	Refuses in every phase but PHASE_WORKING, which is what makes REQ-SET-125's "as progress
 	begins" a precondition rather than a comment. A contribution larger than the remainder is
 	capped at it rather than refused: §5.3's capped final contribution semantics.
+
+	Allocates one result; `add_work_mwu_into()` is the same door for the per-tick caller.
+	"""
+	var out: IntMath.IntResult = IntMath.IntResult.new()
+	if not add_work_mwu_into(project_ref, mwu, out):
+		return _refuse(StringName(out.error))
+	return OpResult.new(true, REFUSE_NONE, out.value, project_ref)
+
+
+func add_work_mwu_into(project_ref: Vector2i, mwu: int, out: IntMath.IntResult) -> bool:
+	"""`add_work_mwu()` without allocating: `out.value` is the milli-WU still outstanding.
+
+	Decision 0537 (D6): the demolition work bridge credits each productive tick's accepted
+	milli-WU here, on the tick path, so this form writes into a caller-owned result. The refusals
+	and their order are `add_work_mwu()`'s, because that door now delegates to this one.
 	"""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
-		return _refuse(REFUSE_STALE_PROJECT_REF)
+		return out.refuse(REFUSE_STALE_PROJECT_REF)
 	if _phase[row] != PHASE_WORKING:
-		return _refuse(REFUSE_WRONG_PHASE)
+		return out.refuse(REFUSE_WRONG_PHASE)
 	if _paused[row] == 1:
-		return _refuse(REFUSE_PAUSED)
+		return out.refuse(REFUSE_PAUSED)
 	if mwu <= 0:
-		return _refuse(REFUSE_INVALID_WORK)
+		return out.refuse(REFUSE_INVALID_WORK)
 	_remaining_mwu[row] = maxi(0, _remaining_mwu[row] - mwu)
 	if _remaining_mwu[row] == 0:
 		_phase[row] = PHASE_WORK_DONE
-	return OpResult.new(true, REFUSE_NONE, _remaining_mwu[row], project_ref)
+	return out.succeed(_remaining_mwu[row])
 
 
 func commit_completion(project_ref: Vector2i) -> OpResult:

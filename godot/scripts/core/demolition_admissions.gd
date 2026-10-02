@@ -178,6 +178,15 @@ func release_refusal(building_ref: Vector2i) -> StringName:
 	return REFUSE_NONE
 
 
+func is_recorded_at(row: int) -> bool:
+	"""Whether Building typed row `row` holds an admission record, live project or not.
+
+	Decision 0537 (D6): the coordinator's reconcile skips a row with no record, no order and no
+	work Job after three array reads, instead of validating a building ref per row.
+	"""
+	return row >= 0 and row < BUILDING_CAPACITY and _project_slot[row] != NULL_REF.x
+
+
 func unreleased_output_of(building_ref: Vector2i) -> Vector2i:
 	"""The container still holding a recorded claim, live project or not; null when none."""
 	var row: int = _row_of(building_ref)

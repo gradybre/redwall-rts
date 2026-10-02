@@ -93,7 +93,7 @@ Help's "Something went wrong? Report it" topic says the same, and its button ope
 - **Breadcrumbs**: a 64-entry ring of notable events, written in batches at most once a second:
   - the village built, opened and restarted;
   - the modal on top of the input gate opened and closed (the game menu, the Pantry, the Lab, Work and so on);
-  - the right column's panel, the underground view and the map layer;
+  - the right column's panel, the underground view, the map layer and the layer compared with it (decision 0581);
   - every order, accepted or refused, with how many residents were selected, plus Dig tunnel, Release and the room
     buttons;
   - the clock's speed and state;

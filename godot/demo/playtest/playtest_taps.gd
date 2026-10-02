@@ -6,7 +6,8 @@ extends RefCounted
 ## THE SOURCES, read through public state only:
 ##   panels    the modal on top of the input gate (`top_layer`): the game menu, the Pantry, the Lab, Work, the
 ##             news history ... opened and closed, by node name; and the right column's panel or its collapse
-##   views     the underground view on or off; the map layer shown (its index in the farm's lenses)
+##   views     the underground view on or off; the map layer shown (its index in the farm's lenses), and the layer
+##             compared with it (decision 0581; -1 when none)
 ##   orders    every order mark (`demo_command.gd mark`), accepted or refused, with how many were selected; and the
 ##             party panel's Dig tunnel, Release and room buttons
 ##   notices   each new village-news post: its source and level (the text stays in the game's own history)
@@ -40,6 +41,7 @@ static func wire(village: Node, gate: InputGateScript, zone: DetailZoneScript, l
 		func() -> int: return -1 if zone.is_collapsed() else zone.shown)
 	PlaytestLog.probe(Crumbs.KIND_VIEW, &"underground", func() -> int: return int(command.underground_view()))
 	PlaytestLog.probe(Crumbs.KIND_VIEW, &"map layer", func() -> int: return lenses.active)
+	PlaytestLog.probe(Crumbs.KIND_VIEW, &"compare layer", func() -> int: return lenses.compare)
 	_wire_orders(command)
 	PlaytestLog.probe(Crumbs.KIND_NOTICE, &"notice", func() -> int: return notices.revision,
 		func() -> int: return notices.source(0) * 2 + notices.level(0) if notices.count() > 0 else 0)

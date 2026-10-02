@@ -519,6 +519,7 @@ func _playtest_opens_the_menu() -> void:
 		return
 	_playtest_file = String(PlaytestLog.session().call(&"file_name"))
 	_check("its breadcrumbs are bound", int(_playtest_node.call(&"probe_count")) >= 5)
+	_check("the compared map layer is a breadcrumb", (_playtest_node.get("_probe_tags") as Array).has(&"compare layer"))
 	_menu().open()
 	_check("Settings has the playtest log", _menu().page_text(MenuScript.PAGE_SETTINGS).contains("Open log folder"))
 

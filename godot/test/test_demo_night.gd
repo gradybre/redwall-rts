@@ -708,7 +708,7 @@ func test_a_placeholder_lies_down_procedurally_and_hides_indoors() -> void:
 	assert_almost_equal(actor.position.x, 1.0 + DemoActorScript.PLACEHOLDER_HEIGHT_M * 0.5, "turned: its middle still on the spot")
 	assert_almost_equal(actor.position.z, 2.0, "on the spot's line")
 	actor.brain.task_rise(Vector2(1.0, 2.0))
-	actor.brain.task_go_indoors(true)
+	actor.brain.task_go_indoors(true, BrainScript.INTERIOR_HALL)
 	actor._apply_transform()
 	assert_false(actor.visible, "indoors: not drawn")
 	assert_almost_equal(actor.rotation.x, 0.0, "up again")

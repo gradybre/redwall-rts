@@ -273,6 +273,11 @@ func discharge(i: int) -> void:
 		revision += 1
 
 
+func has_patients() -> bool:
+	"""Whether anyone has a bed in it now (the winter's cold-infirmary warning: decision 0995)."""
+	return admitted.has(1)
+
+
 func is_admitted(i: int) -> bool:
 	"""Whether resident `i` has a bed in it."""
 	return i >= 0 and i < admitted.size() and admitted[i] == 1

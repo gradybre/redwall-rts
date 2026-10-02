@@ -459,7 +459,7 @@ func test_a_resident_outdoors_in_winter_is_chilled_and_goes_to_warm_up() -> void
 	assert_equal(v.winter.warm_place_for(0), HALL, "no home: the hall")
 	v.winter.send_warm_ups()
 	assert_true(v.cast.actor(0).brain.task is WarmUpScript, "sent to warm up")
-	v.cast.actor(0).brain.task_go_indoors(true)
+	v.cast.actor(0).brain.task_go_indoors(true, BrainScript.INTERIOR_HALL)
 	for k: int in 2 * 30:
 		v.services.calendar.tick += 25
 		v.winter.follow_exposure()
@@ -539,7 +539,7 @@ func test_a_frost_night_s_day_demands_heat_so_its_sleepers_warm() -> void:
 	var v: Village = _village(SkipScript.tick_of_hour(10 * 24))
 	v.services.stores.wood_milli_u = 100000
 	v.winter.catch_up()
-	v.cast.actor(0).brain.task_go_indoors(true)
+	v.cast.actor(0).brain.task_go_indoors(true, BrainScript.INTERIOR_HALL)
 	for k: int in 30 * 30:
 		v.services.calendar.tick += 25
 		v.winter.catch_up()
@@ -762,3 +762,116 @@ func test_the_guide_has_a_heating_topic_and_entry() -> void:
 	for k: int in guide.count():
 		hit = hit or guide.entry(k).id == &"station_hearths"
 	assert_true(hit, "the hearths entry")
+
+
+# --- the infirmary's own heat (decision 0995; Brendan's ruling on the review's R03) ----------------------------------
+
+class Infirmary extends RefCounted:
+	"""A stand-in for the infirmary building's two answers the winter binds (infirmary_project.gd `is_done`,
+	`has_patients`)."""
+	var built: bool = true
+	var patients: bool = true
+
+	func is_done() -> bool:
+		"""Whether it is built."""
+		return built
+
+	func has_patients() -> bool:
+		"""Whether anyone lies in it."""
+		return patients
+
+
+func _hours(v: Village, hours: int) -> void:
+	"""`hours` game hours, a frame every 25 ticks: the hearths' hours and everyone's exposure."""
+	for k: int in hours * 30:
+		v.services.calendar.tick += 25
+		v.winter.catch_up()
+		v.winter.follow_exposure()
+
+
+func _infirmary_village() -> Array:
+	"""A winter village with a built infirmary bound, wood to spare, residents 0 and 1 Chilled outdoors, then 0 lying in
+	the infirmary and 1 in the hall. [village, infirmary stand-in]."""
+	var v: Village = _village(_winter_tick())
+	var inf := Infirmary.new()
+	v.winter.bind_infirmary(inf.is_done, inf.has_patients)
+	v.services.stores.wood_milli_u = 200000
+	v.winter.catch_up()
+	_hours(v, 4)
+	v.cast.actor(0).brain.task_go_indoors(true, BrainScript.INTERIOR_INFIRMARY)
+	v.cast.actor(1).brain.task_go_indoors(true, BrainScript.INTERIOR_HALL)
+	return [v, inf]
+
+
+func test_a_patient_warms_at_the_infirmary_s_own_hearth_whatever_the_hall_s() -> void:
+	"""R03: the patient in the infirmary is in the infirmary's room (its own hearth, 18 °C) and the resident in the hall
+	in the hall's; letting the hall's hearth go out cools the hall's resident and leaves the patient's warming as it
+	was; lit again, the hall warms its own."""
+	var made: Array = _infirmary_village()
+	var v: Village = made[0]
+	assert_true(v.winter.fuel.hearth[FuelScript.INFIRMARY] == 1, "built: the infirmary has its hearth")
+	assert_equal(v.winter.cold.cold_milli[0], 4000, "Chilled outdoors: 4 exposure-hours")
+	v.winter.set_banked(HALL, true)
+	_hours(v, 1)
+	assert_true(v.winter.fuel.is_heated(FuelScript.INFIRMARY), "the infirmary heated")
+	assert_false(v.winter.fuel.is_heated(HALL), "the hall let go out (at the hour)")
+	assert_equal(v.winter.cold.place[0], FuelScript.INFIRMARY, "the patient is in the infirmary")
+	assert_equal(v.winter.cold.place[1], HALL, "the other in the hall")
+	assert_equal(v.winter.cold.place_tenths[0], Rules.HEATED_TENTHS, "at the infirmary's 18 °C")
+	assert_equal(v.winter.cold.cold_milli[0], 4000 - 2000, "the patient clears 2 an hour by its own fire")
+	var hall_cold: int = v.winter.cold.cold_milli[1]
+	_hours(v, 1)
+	assert_equal(v.winter.cold.cold_milli[0], 0, "warmed through in the infirmary, the hall's hearth out")
+	assert_equal(v.winter.cold.cold_milli[1], hall_cold, "the hall's resident clears nothing, its hearth out")
+	assert_true(v.winter.cold.cold_milli[1] > 0, "and is still cold")
+	assert_true(v.winter.cold.place_tenths[1] < Rules.HEATED_TENTHS, "the hall cooling toward the air")
+	v.winter.set_banked(HALL, false)
+	v.winter.set_banked(FuelScript.INFIRMARY, true)
+	_hours(v, 2)
+	assert_equal(v.winter.cold.cold_milli[1], 0, "the hall lit again: its resident warms through")
+	assert_true(v.winter.cold.place_tenths[0] < Rules.HEATED_TENTHS, "the infirmary let go out: the patient's room cools")
+	assert_equal(v.winter.cold.place[0], FuelScript.INFIRMARY, "and the patient is still read in the infirmary")
+
+
+func test_the_infirmary_s_hearth_burns_and_counts_in_the_fuel_days() -> void:
+	"""Its hearth burns a normal hearth's 4 U a winter day from the stores, counts in today's demand (the HUD's heating
+	demand), the fuel-days and the projection; not built, no hearth and nothing burned."""
+	var made: Array = _infirmary_village()
+	var v: Village = made[0]
+	var inf: Infirmary = made[1]
+	assert_equal(v.winter.fuel.burning_count(), 2, "the hall and the infirmary")
+	assert_equal(v.winter.fuel.heating_day_milli(), 2 * Rules.WINTER_DAY_MILLI, "two hearths' demand")
+	var burned: int = v.winter.fuel.burned_milli
+	_hours(v, 24)
+	assert_equal(v.winter.fuel.burned_milli - burned, 2 * Rules.WINTER_DAY_MILLI, "a day: 4 U each")
+	assert_equal(v.winter.fuel_days_hundredths(), Rules.fuel_days_hundredths(v.services.stores.wood_milli_u,
+		2 * Rules.WINTER_DAY_MILLI, v.winter.fuel.cook_mean_milli()), "the fuel-days count it")
+	assert_equal(v.winter.fuel.projection_milli(), Rules.projection_milli(2, v.winter.fuel.cook_mean_milli()),
+		"and the projection")
+	assert_true(Text.demand_line(v.winter.fuel).contains("2 hearths"), Text.demand_line(v.winter.fuel))
+	inf.built = false
+	_hours(v, 1)
+	assert_equal(v.winter.fuel.hearth[FuelScript.INFIRMARY], 0, "not built: no hearth")
+	assert_equal(v.winter.fuel.burning_count(), 1, "the hall alone")
+
+
+func test_a_cold_infirmary_with_patients_is_a_cold_home_and_its_words() -> void:
+	"""Out of fuel with a patient inside and below freezing, the infirmary is reported as a cold home, in its own name;
+	nobody resolves which building a resident is in by default."""
+	var made: Array = _infirmary_village()
+	var v: Village = made[0]
+	v.services.stores.wood_milli_u = 0
+	_hours(v, 3)
+	assert_true(v.winter.fuel.is_out(FuelScript.INFIRMARY), "out of fuel")
+	assert_true(v.winter.has_sleepers(FuelScript.INFIRMARY), "a patient inside")
+	var cold: int = v.services.incidents.serial_of(WinterScript.KEY_COLD % FuelScript.INFIRMARY)
+	assert_true(cold != -1, "a cold-infirmary warning")
+	assert_true(v.services.incidents.text_of(cold).begins_with("The infirmary has gone cold"), v.services.incidents.text_of(cold))
+	assert_equal(Text.source_name(FuelScript.INFIRMARY), "the infirmary", "its name")
+	var brain: BrainScript = v.cast.actor(2).brain
+	assert_equal(WinterScript.interior_source(brain), ColdScript.OUTDOORS, "outside: no building")
+	brain.task_go_indoors(true, BrainScript.INTERIOR_INFIRMARY)
+	assert_equal(WinterScript.interior_source(brain), FuelScript.INFIRMARY, "the infirmary's row")
+	brain.task_go_indoors(false, BrainScript.INTERIOR_HALL)
+	assert_equal([brain.interior, WinterScript.interior_source(brain)], [BrainScript.INTERIOR_NONE, ColdScript.OUTDOORS],
+		"out again: no building")

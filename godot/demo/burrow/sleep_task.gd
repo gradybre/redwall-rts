@@ -97,7 +97,7 @@ func arrived(brain: RefCounted) -> void:
 		walker.task_hold_below()
 		stage = STAGE_TO_BED
 		return
-	walker.task_go_indoors(true)
+	walker.task_go_indoors(true, BrainScript.INTERIOR_HALL)
 	walker.task_play(BrainScript.CLIP_IDLE)
 	stage = STAGE_ASLEEP
 
@@ -128,7 +128,7 @@ func _lie(walker: BrainScript) -> void:
 func _get_up(walker: BrainScript, delta: float) -> bool:
 	"""Morning: out of bed and back to the room's middle (false once there); out of the hall at once."""
 	if not has_bed():
-		walker.task_go_indoors(false)
+		walker.task_go_indoors(false, BrainScript.INTERIOR_NONE)
 		return false
 	if walker.lying:
 		walker.task_rise(bedside())
@@ -150,7 +150,7 @@ func _wake(walker: BrainScript) -> void:
 	"""Stand up (beside the bed) and come out of any building."""
 	if walker.lying:
 		walker.task_rise(bedside())
-	walker.task_go_indoors(false)
+	walker.task_go_indoors(false, BrainScript.INTERIOR_NONE)
 
 
 func holds_when_lost() -> bool:

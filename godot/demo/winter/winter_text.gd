@@ -18,6 +18,8 @@ const NO_DEMAND: String = "No current heat demand"
 const NO_DEMAND_SHORT: String = "No demand"
 const HALL_NAME: String = "the hall"
 const HALL_TITLE: String = "The hall"
+const INFIRMARY_NAME: String = "the infirmary"
+const INFIRMARY_TITLE: String = "The infirmary"
 const FIREWOOD: String = "Firewood"
 const CHILLED_WORD: String = "chilled"
 const WORKS_AT: String = "works at %d%% until warmed through at a heated hearth"
@@ -64,12 +66,16 @@ static func hour_text(hour_index: int) -> String:
 
 
 static func source_name(source: int) -> String:
-	"""A hearth's place: "Burrow home 2", or "the hall"."""
+	"""A hearth's place: "Burrow home 2", "the hall", or "the infirmary"."""
+	if source == FuelScript.INFIRMARY:
+		return INFIRMARY_NAME
 	return HALL_NAME if source == FuelScript.HALL else "Burrow home %d" % (source + 1)
 
 
 static func source_title(source: int) -> String:
-	"""A hearth's place, capitalised: "Burrow home 2", "The hall"."""
+	"""A hearth's place, capitalised: "Burrow home 2", "The hall", "The infirmary"."""
+	if source == FuelScript.INFIRMARY:
+		return INFIRMARY_TITLE
 	return HALL_TITLE if source == FuelScript.HALL else source_name(source)
 
 

@@ -795,6 +795,7 @@ func _build_care() -> void:
 	command.add_input_hook(_care.building.handle_input)
 	tool.ext.panel.add_section(_care.section)
 	_care.desk.pantry_herb = _pantry_herb
+	_winter.bind_infirmary(_care.building.project.is_done, _care.building.project.has_patients)
 
 
 func _pantry_herb(milli: int) -> int:

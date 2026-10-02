@@ -546,6 +546,7 @@ func test_built_the_hurt_go_into_the_infirmary_and_mend_twice_as_fast() -> void:
 	assert_equal(project.beds_free(), 7, "7 left")
 	_run(v, 4000, func() -> bool: return v.desk.state.in_infirmary(0))
 	assert_true(v.brains[0].indoors, "inside")
+	assert_equal(v.brains[0].interior, BrainScript.INTERIOR_INFIRMARY, "inside the infirmary, not the hall (decision 0995)")
 	assert_true(v.brains[0].task_label().begins_with("Resting in the infirmary"), v.brains[0].task_label())
 	_run(v, 6000, _treated.bind(v, 0))
 	assert_true(_treated(v, 0), "treated there")

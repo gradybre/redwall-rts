@@ -69,8 +69,10 @@ EMBLEM_SIZES = [24, 32, 64, 128]
 
 ## The tapestry ground (896 x 1200): the cloth's body (loops above it, fringe below are keyed, not cut).
 TAPESTRY_BODY = (66, 112, 830, 1062)
-## Its nine-patch margins at full size: the border band ends here (left, top, right, bottom).
-TAPESTRY_PATCH = (180, 226, 178, 232)
+## Its nine-patch margins at full size: the border band ends here (left, top, right, bottom). The bottom is 240 (half
+## size 120), past the inner rule's rows (481-483 at half size), so the rule stays in the border band and never repeats in
+## the centre (Brendan's ruling of 2026-10-02 on decision 0903; it was 232).
+TAPESTRY_PATCH = (180, 226, 178, 240)
 WALL_TOLERANCE = 16
 ## The chronicle page (896 x 1200): the paper inside its deckle edge.
 CHRONICLE_PAPER = (74, 82, 826, 1130)

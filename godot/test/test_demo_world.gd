@@ -491,7 +491,7 @@ const EXPECTED_SINK_M: Dictionary = {
 	&"oak_mature": 1.2, &"beech_mature": 0.5, &"residence": 0.42, &"covered_store": 0.12,
 	&"kitchen": 0.11, &"workbench": 0.07,
 	# The art passes' (decision 0903): the pear's measured plate (decision 0941) and the evergreens' proposed sink
-	# (decision 0951, awaiting Brendan's ruling).
+	# (decision 0951, ruled by Brendan on 2026-10-02: DEC-047).
 	&"pear_tree": 0.15, &"pine_scots": 0.6, &"yew_ancient": 0.6,
 }
 ## Staged models with no baked base to bury: they stand on the ground.

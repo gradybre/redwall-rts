@@ -1796,7 +1796,7 @@ replaced** when it is not staged (CI, a fresh clone): the same code runs either 
 | `oak_mature_bare` | every bare oak in winter (`season_view.gd` THE AUTHORED BARE OAK) | the leaf triangles cut from the leafed oak |
 | `tunnel_set` | every brace frame (and the rooms' ribs) | the old `tunnel_brace`, else a box frame |
 | `rock_face` | the bore's walls where the ground is rock (`bore_dressing.gd` ROCK FACES) | nothing |
-| `hall_stage2`, `hall_banner`, the `_windows` models | the great hall at tier 2, its four banners, the homes' window glow (see The hall, Night lights) | the composed pieces; dark windows |
+| `hall_stage2`, `hall_banner`, the `_windows` models | the great hall at tier 2 (its roundels kept, its own chimney), its four banners, the homes' window glow (see The hall, Night lights) | the composed chimney and roundels; dark windows |
 | portraits, the tapestry's ground and emblems, the chronicle's page | the group tiles (two across while shown) and the inspector's person header; the tapestry panel; the chronicle | the drawn panels |
 | pass 1's and 3's icons | by key: an item's `item_<pantry key>` (apple, pear, berries, nuts, mushrooms, herb, potato, honey, flour, dried fish; jam, cider, flax, wax and the rest wait for their items), a dish's `dish_<recipe key>` in the Kitchen tab and on the Stocks rows | the item's model icon, else its roundel; no dish icon |
 
@@ -2409,8 +2409,8 @@ grows by two and no more:
   >= ceil(E / 3), §5.7); floor sleep for anyone without a bed (REQ-SET-133); the comfort target; a hearth's fuel.
 - **Seen.** Clicking the hall opens its panel (no key). While the upgrade is carried in, a stone heap, a timber stack
   and the cloth grow by the hall's east end; while it is built, a work rail of fence lengths stands before it; the great
-  hall is the staged stone hall (`hall_stage2`, art pass 2) in the timber hall's place, at its own transform -- without
-  it, a second chimney pot and two woven roundels in its outer bays; each banner is the linen `hall_banner` (its cloth
+  hall is the staged stone hall (`hall_stage2`, art pass 2) in the timber hall's place, at its own transform, with two
+  woven roundels in its outer bays (Brendan, decision 0903) -- without it, the same roundels and a second chimney pot; each banner is the linen `hall_banner` (its cloth
   dyed in the woodland palette, its wood not), or a cloth stand-in. `hall_view.gd` never moves or scales the hall.
 - **The village tapestry** (`tapestry.gd`, `tapestry_panel.gd`; The tapestry, in the hall's panel): the village's
   history as a woven timeline -- oldest first, each entry a knot in its kind's colour on one thread -- with stage 1 at

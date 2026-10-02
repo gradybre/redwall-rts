@@ -33,7 +33,8 @@ const OUTER_TO_M: float = 50.0
 ## Kept this far from the foraging spots and the orchard's grove (their own trees and bushes stand there).
 const SPOT_CLEARANCE_M: float = 7.0
 ## (keep_clear(): forage_rules.gd SPOT_AT and orchard_rules.gd GROVE_AT, read, never copied.)
-## Each trunk's radius at size 1.0 (art pass 2's proposal, decision 0951: pine 0.45 m, yew 0.9 m; the cast walks round).
+## Each trunk's radius at size 1.0 (pine 0.45 m, yew 0.9 m: art pass 2's proposal, ruled by Brendan on 2026-10-02,
+## DEC-047; the cast walks round).
 const TRUNK_RADIUS_M: Dictionary = {PINE_KEY: 0.45, YEW_KEY: 0.9}
 ## Trunk-to-trunk spacing at size 1.0 (a crown's spread: pine about 9 m across, yew 11); from another tree, the mean of
 ## the two trees' spacings.

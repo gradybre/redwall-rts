@@ -11,7 +11,7 @@ const TapestryPanelScript := preload("res://demo/hall/tapestry_panel.gd")
 const DIR: String = "user://ui_art_fixture"
 const PORTRAIT_SIZES: Array[int] = [48, 64]
 const EMBLEM_SIZES: Array[int] = [24, 32]
-const TAPESTRY_HALF: Dictionary = {"size": [448, 600], "patch_margins_ltrb": [90, 113, 89, 116]}
+const TAPESTRY_HALF: Dictionary = {"size": [448, 600], "patch_margins_ltrb": [90, 113, 89, 120]}
 const CHRONICLE_PAGE: Dictionary = {"size": [752, 1048], "text_area_ltrb": [130, 150, 622, 898]}
 
 

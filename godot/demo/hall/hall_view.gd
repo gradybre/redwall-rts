@@ -12,10 +12,12 @@ extends Node3D
 ##                                   the same hall rebuilt in sandstone, with its own second chimney and mullioned
 ##                                   windows -- shown in place of the timber `hall`, with the timber hall's own
 ##                                   transform and scale (demo_world.gd STAGES, `stage_node`); its windows glow with
-##                                   the hall's lamp (night_lights.gd THE WINDOWS). Not staged (CI, a fresh clone): the
-##                                   COMPOSED stand-in -- a second chimney on the east roof (the library's clay
-##                                   `chimney_pot`, darkened: REQ-SET-136's stone and its fuel x0.75) and two woven
-##                                   roundels hung in the outer bays (`rag_rug`: its cloth) on the timber hall;
+##                                   the hall's lamp (night_lights.gd THE WINDOWS). Two woven roundels hang in its outer
+##                                   bays (`rag_rug`: its cloth; Brendan's ruling of 2026-10-02 on decision 0903 -- the
+##                                   model brings its own chimney, not the roundels). Not staged (CI, a fresh clone): the
+##                                   COMPOSED stand-in -- the same roundels on the timber hall and a second chimney on
+##                                   its east roof (the library's clay `chimney_pot`, darkened: REQ-SET-136's stone and
+##                                   its fuel x0.75);
 ##   each banner hung                a linen banner (`hall_banner`, hanging upright at its 1.6 m, demo_props.gd) in a
 ##                                   bay, its cloth (surface 0, never the wood of surface 1) dyed in the woodland
 ##                                   palette by a multiply on its own material (no new texture). Not staged: the older
@@ -168,8 +170,7 @@ func build(world: Node3D, props: PropsScript) -> void:
 	if world != null and world.has_method(&"stage_node"):
 		_timber = world.call(&"placed_node", HALL_ID) as Node3D
 		_stone_hall = world.call(&"stage_node", HALL_ID) as Node3D
-	if _stone_hall == null:
-		_build_composed(props)
+	_build_composed(props, _stone_hall == null)
 	_banner_model = BANNER_KEY if props != null and props.is_staged(BANNER_KEY) else STAND_IN_BANNER_KEY
 	for k: int in BANNER_X.size():
 		var banner: Node3D = _banner(props, BANNER_X[k])
@@ -177,13 +178,16 @@ func build(world: Node3D, props: PropsScript) -> void:
 		_banners.append(banner)
 
 
-func _build_composed(props: PropsScript) -> void:
-	"""The great hall's composed stand-in (no stone hall staged): the darkened second chimney and the two roundels."""
-	var chimney := Transform3D(Basis(Vector3.UP, _yaw).scaled(Vector3.ONE * CHIMNEY_SCALE), to_world_3d(CHIMNEY_LOCAL))
-	_great.append(_prop_at(props, &"chimney_pot", chimney))
-	_dye(_great[0] as MeshInstance3D, CHIMNEY_DYE)
+func _build_composed(props: PropsScript, chimney: bool) -> void:
+	"""The great hall's composed pieces: the two roundels always, and -- with no stone hall staged (`chimney`) -- the
+	darkened second chimney (the stone hall has its own)."""
 	for x: float in ROUNDEL_X:
 		_great.append(_prop_at(props, &"rag_rug", _hanging(x, ROUNDEL_OUT_M, 1.0)))
+	if not chimney:
+		return
+	var at := Transform3D(Basis(Vector3.UP, _yaw).scaled(Vector3.ONE * CHIMNEY_SCALE), to_world_3d(CHIMNEY_LOCAL))
+	_great.append(_prop_at(props, &"chimney_pot", at))
+	_dye(_great[_great.size() - 1] as MeshInstance3D, CHIMNEY_DYE)
 
 
 func _banner(props: PropsScript, x: float) -> Node3D:
@@ -317,8 +321,16 @@ func stone_shown() -> bool:
 
 
 func composed_pieces() -> int:
-	"""How many composed great-hall pieces were made (the chimney and the roundels; none with the stone hall)."""
+	"""How many composed great-hall pieces were made (the roundels, and the chimney when no stone hall is staged)."""
 	return _great.size()
+
+
+func composed_shown() -> int:
+	"""How many composed pieces are drawn (checks: the roundels, and the chimney without the stone hall)."""
+	var n: int = 0
+	for piece: Node3D in _great:
+		n += 1 if piece.visible else 0
+	return n
 
 
 func banner_model() -> StringName:

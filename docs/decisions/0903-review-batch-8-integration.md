@@ -95,7 +95,7 @@ way, and the suites check both paths without the assets.
 | item and dish icons | by key: `item_<pantry key>`, `dish_<recipe key>`; Pantry, Recipes, Kitchen tab, Stocks rows | model icon, roundel |
 | `pine_scots`, `yew_ancient` | fifteen in the woods (`world/evergreens.gd`), KIND_EVERGREEN, DEC-047 sizes | none |
 | portraits | the group tiles (two across while shown) and the inspector's person header | none |
-| `hall_stage2` | tier 2, the timber hall's transform; no composed chimney or roundels | the composed pieces |
+| `hall_stage2` | tier 2, the timber hall's transform; its own chimney, the composed roundels kept (ruling 1) | the composed chimney and roundels |
 | `hall_banner` | four tints, cloth only | the relic banner |
 | tapestry ground, 8 emblems | the panel's cloth; an emblem by entry kind in place of its knot | the drawn cloth |
 | chronicle page | the page's background, text inside `text_area_ltrb` | the plain page |
@@ -228,6 +228,28 @@ three) without any change. Every other CI step listed in `.github/workflows/test
 9. **Wired icons waiting for items.** Pass 3's jam, pickles, dried fruit, cheese, ale and cider and 0972's flax, linen
    and wax are keyed (`item_<key>`), so an item added with that key picks its icon up. Recommendation: the preserving,
    brewing, flax and hives lanes use those keys.
+
+## Brendan's rulings (2026-10-02)
+
+He approved all nine recommendations:
+
+1. **The stone hall keeps its roundels; only the composed chimney is dropped.** Built (`hall_view.gd _build_composed`:
+   the roundels always, the chimney only with no stone hall staged); `test_demo_hall_art.gd` checks both, and the frames
+   are in `scratchpad/batch8_check/rulings/` (`03_hall_tier2_day`, `05_hall_tier2_night`, both sizes).
+2. **The cream window glow** stays for now (emission 1.5), as built.
+3. **Fifteen evergreens; pine trunk 0.45 m, yew 0.9 m; sink 0.6 m**, as built. Recorded as ruled in DEC-047
+   (`setting_decisions.md`), `world_sizes.gd`, `evergreens.gd` and `test_demo_world.gd`.
+4. **The bramble edge stays at (-25, 27).**
+5. **The group tiles go two across while portraits show**, as built.
+6. **Portraits stay in the demo inspector's person header**; UI-IDENTITY-R01 is unchanged.
+7. **The tapestry ground is restaged with bottom margins of 120 (half) and 240 (full).** `tools/art_pass2_ui.py`
+   `TAPESTRY_PATCH` is (180, 226, 178, 240); `art_pass2_ui.py` then `stage_demo_assets.py --only art` restaged it, and the
+   manifest carries the new margins. The panel's stretched field stays (it draws the same with the new margins); the
+   fixture and `field_rects` test follow the new numbers. Frames: `rulings/tapestry*`, both sizes -- no seam, the
+   rule inside the border.
+8. **The hazel's nuts show all year** for now.
+9. **Future lanes use the waiting icon keys** (`item_jam`, `item_cider`, `item_flax`, `item_linen`, `item_wax` and the
+   rest): an item added with that key picks its icon up with no wiring.
 
 ## Source
 

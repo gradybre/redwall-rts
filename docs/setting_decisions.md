@@ -1213,8 +1213,9 @@ against the 1.00 m mouse anchor (DEC-039) at the demo's storybook scale:
   species is added, and DEC-039's five heights are unchanged.
 - **The pine, yew, flax and banner sizes are presentation sizes for the demo.** They are the values its
   `DEMO_HEIGHT_M`, `PLANT_HEIGHT_M` and banner scale take.
-- **Not approved here:** the trees' ground sink (`SINK_M`, proposed 0.6 m each) and trunk radius (`TRUNK_RADIUS_M`,
-  proposed pine 0.45 m, yew 0.9 m) stay proposals.
+- **Ruled since (Brendan, 2026-10-02, on decision 0903's question 3):** the trees' ground sink (`SINK_M`) is 0.6 m
+  each, and their trunk radius (`TRUNK_RADIUS_M`) pine 0.45 m and yew 0.9 m, as proposed; fifteen of them stand in the
+  demo's woods (`godot/demo/world/evergreens.gd`). These were left as proposals when DEC-047 was first recorded.
 - **Not visual acceptance.** Brendan's acceptance of the art itself still goes through `tools/art_gate.py`.
 
 Assets, spend and reasoning: [decision 0951](decisions/0951-art-pass-2-evergreens-portraits-stone-hall-flax-hall-art-and-wildlife.md).

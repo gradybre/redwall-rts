@@ -95,8 +95,8 @@ const TABLE_KEY: StringName = &"table_stools"
 ##   the fence, the stumps (their root flare runs out at the ground by 0.75-1.0 m), the sapling, and
 ##   every prop. A placeholder (no staged model) has no base and is never sunk.
 ##   pear_tree 0.15 (decision 0941): the pear stands on a square plate 0-0.12 m thick, measured; let down past it.
-##   pine_scots and yew_ancient 0.6: art pass 2's proposal (decision 0951), not yet ruled (DEC-047 leaves it open;
-##     decision 0903 asks Brendan).
+##   pine_scots and yew_ancient 0.6: art pass 2's proposal (decision 0951), ruled by Brendan on 2026-10-02 (DEC-047;
+##     decision 0903's question 3).
 const SINK_M: Dictionary = {
 	&"oak_mature": 1.2,
 	&"pear_tree": 0.15,

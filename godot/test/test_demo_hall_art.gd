@@ -315,7 +315,8 @@ func test_the_window_glow_allocates_nothing() -> void:
 # --- the hall view: the stone hall, the stand-in, the banner --------------------------------------------------------
 
 func test_the_stone_hall_replaces_the_timber_one_at_tier_2() -> void:
-	"""Staged: the timber hall until tier 2, then the stone hall in its place; no composed chimney or roundels made."""
+	"""Staged: the timber hall until tier 2, then the stone hall in its place, its own chimney (none composed) and the two
+	roundels in its outer bays (Brendan's ruling on decision 0903)."""
 	_stage(&"hall", &"hall", false)
 	_stage(&"hall_stage2", &"hall", false)
 	_build_staged()
@@ -323,12 +324,13 @@ func test_the_stone_hall_replaces_the_timber_one_at_tier_2() -> void:
 	view.build(_world, null)
 	var projects := _projects()
 	view.sync(projects)
-	assert_equal(view.composed_pieces(), 0, "no composed chimney or roundels")
+	assert_equal(view.composed_pieces(), ViewScript.ROUNDEL_X.size(), "the roundels, no composed chimney")
 	assert_false(view.stone_shown() or view.great_shown(), "tier 1: the timber hall")
 	assert_true(_world.placed_node(&"hall").visible, "standing")
 	_great(projects)
 	view.sync(projects)
 	assert_true(view.stone_shown() and view.great_shown(), "tier 2: the stone hall")
+	assert_true(view.composed_shown() == ViewScript.ROUNDEL_X.size(), "with its roundels")
 	assert_false(_world.placed_node(&"hall").visible, "the timber hall hidden")
 
 

@@ -835,7 +835,7 @@ func test_the_staged_ground_is_the_cloth_and_each_kind_wears_its_emblem() -> voi
 	assert_not_null(box, "a textured ground")
 	assert_equal(box.texture.get_size(), Vector2(448.0, 600.0), "the half ground")
 	assert_equal([box.texture_margin_left, box.texture_margin_top, box.texture_margin_right, box.texture_margin_bottom],
-		[90.0, 113.0, 89.0, 116.0], "the manifest's margins")
+		[90.0, 113.0, 89.0, 120.0], "the manifest's margins")
 	assert_true(box.content_margin_left > box.texture_margin_left, "rows inside the left border")
 	assert_true(box.content_margin_top >= box.texture_margin_top, "inside the top border")
 	assert_true(box.content_margin_bottom >= box.texture_margin_bottom, "inside the bottom border")
@@ -859,10 +859,10 @@ func test_the_staged_ground_is_the_cloth_and_each_kind_wears_its_emblem() -> voi
 
 func test_the_field_is_the_area_inside_the_border_on_the_picture_and_the_cloth() -> void:
 	"""field_rects: the source is the picture inside its border, the destination the cloth inside the same border."""
-	var border := PackedFloat32Array([90.0, 113.0, 89.0, 116.0])
+	var border := PackedFloat32Array([90.0, 113.0, 89.0, 120.0])
 	var rects: Array[Rect2] = TapestryPanelScript.field_rects(Vector2(448.0, 600.0), border, Vector2(520.0, 900.0))
-	assert_equal(rects[0], Rect2(90.0, 113.0, 269.0, 371.0), "the picture's field")
-	assert_equal(rects[1], Rect2(90.0, 113.0, 341.0, 671.0), "the cloth's field")
+	assert_equal(rects[0], Rect2(90.0, 113.0, 269.0, 367.0), "the picture's field")
+	assert_equal(rects[1], Rect2(90.0, 113.0, 341.0, 667.0), "the cloth's field")
 	var plain: TapestryPanelScript = TapestryPanelScript.new()
 	plain.configure(TapestryScript.new(null), Callable())
 	assert_equal(plain._thread_x(), TapestryPanelScript.THREAD_X, "unwoven: the drawn thread's place")

@@ -322,6 +322,9 @@ func _dock_keeps_focus(party: CanvasLayer) -> void:
 	_check("docking again keeps it", root.gui_get_focus_owner() == release)
 	release.release_focus()
 	party.call(&"fit", 4000.0 if was else 1.0)
+	# Back to the real column: fit(4000) left the inspector as tall as its content, past the window's foot (the
+	# rows checked next would be measured against that; decision 0801's Follow (End) made the actions one row taller).
+	party.call(&"_place")
 	await _frames(SETTLE_FRAMES)
 
 

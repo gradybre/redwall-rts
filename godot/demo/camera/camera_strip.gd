@@ -3,25 +3,27 @@ extends CanvasLayer
 ## "Following Wenna Tallowby · End or a pan stops", "Orbiting the hall · Esc stops", "Cutaway angle · Shift+U: your
 ## view back" -- and, for a moment, what a bookmark key did ("View 2 saved · Shift+2 returns here"). DEMO UI.
 ##
-## It is the U view's level indicator's twin (tunnel_view.gd THE LEVELS): the same dark strip and words, in the
-## top-centre column under the HUD's alert zone, pause label and error panel at the HUD's scale, on the same canvas
-## layer under the HUD's (so the open history or a grown error panel covers it, never the other way) -- and under
-## whatever else stands in that column now (`below`: the level indicator, the guide's or an incident's card, the pause
-## card), so it is never drawn behind them. It takes no pointer. A MODE line stays while its mode lasts; a
-## FLASH line shows for FLASH_SECONDS of real time, then the mode's line (or nothing) comes back; a mode starting
-## replaces a flash still up.
+## WHERE (decision 0801, Brendan's ruling on P5): the U view's level indicator's dark strip and words, at the HUD's
+## scale, in its OWN ROW at the bottom centre -- just above the command strip, centred on the village news' band
+## (demo_news_strip.gd `band_placement`, which follows the commands when the journal moves them) and held between the
+## minimap and the right column. The village news stands ON TOP of that row while the strip shows (`reserved_height`,
+## read by the news' `lift`), so the news never covers it in the surface view or the U view, at any size. The
+## top-centre column (the guide's and incident cards, the pause card, the level indicator, the Map layer picker at
+## 1280x720) is left alone. On canvas layer 0, under the HUD's panels; it takes no pointer. A MODE line stays while
+## its mode lasts; a FLASH line shows for FLASH_SECONDS of real time, then the mode's line (or nothing) comes back; a
+## mode starting replaces a flash still up.
 
 const TunnelView := preload("res://demo/tunnel/tunnel_view.gd")
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
+const NewsStrip := preload("res://demo/ui/demo_news_strip.gd")
 
 const FLASH_SECONDS: float = 2.5
-## The gap between the level indicator and this strip, logical px.
+## The gap between the strip and what is under it (the command strip) and over it (the news), logical px.
 const STACK_GAP: float = 6.0
 
-## `below() -> Rect2`: the lowest thing already shown in the column (the level indicator, a top card, the pause card),
-## in viewport pixels; empty when nothing is.
-var below: Callable = Callable()
+## `journal_open() -> bool`: whether the resident journal holds the right column (the commands move left then).
+var journal_open: Callable = Callable()
 
 var _box: PanelContainer = null
 var _label: Label = null
@@ -30,11 +32,10 @@ var _flash_text: String = ""
 var _flash_left: float = 0.0
 var _layout := UiLayout.new()
 var _geometry := UiLayout.Geometry.new()
-var _gap: float = TunnelView.indicator_gap_px()
 ## What the strip was last placed for: redone only when one of them changes.
 var _dirty: bool = true
 var _placed_size: Vector2 = Vector2.ZERO
-var _placed_above: float = -1.0
+var _placed_journal: bool = false
 var _placed_percent: int = -1
 
 
@@ -101,28 +102,37 @@ func _show() -> void:
 
 
 func place_for(size_px: Vector2) -> void:
-	"""Centre the strip under the alert zone (and under the level indicator while it shows), at the HUD's scale.
-	Only redone when the window, the scale or the strip above changed."""
-	var above: Rect2 = below.call() if below.is_valid() else Rect2()
-	var above_end: float = above.end.y if above.has_area() else 0.0
-	if not _dirty and size_px == _placed_size and above_end == _placed_above and DemoUiScale.percent == _placed_percent:
+	"""Stand the strip just above the command strip, centred on the news' band and held inside the gap between the
+	minimap and the right column, at the HUD's scale (see WHERE). Only redone when the window, the scale, the journal or
+	the words changed."""
+	var journal: bool = journal_open.is_valid() and bool(journal_open.call())
+	if not _dirty and size_px == _placed_size and journal == _placed_journal and DemoUiScale.percent == _placed_percent:
 		return
 	_dirty = false
 	_placed_size = size_px
-	_placed_above = above_end
+	_placed_journal = journal
 	_placed_percent = DemoUiScale.percent
-	if not _layout.compute_into(maxi(int(size_px.x), UiLayout.SUPPORTED_MIN_WIDTH),
-			maxi(int(size_px.y), UiLayout.SUPPORTED_MIN_HEIGHT), DemoUiScale.percent, false, _geometry):
-		_geometry.scale = 1.0
+	var band: Rect2 = NewsStrip.band_placement(int(size_px.x), int(size_px.y), _layout, _geometry, journal)
 	var s: float = _geometry.scale
 	var width: float = _box.get_combined_minimum_size().x
+	var height: float = _box.get_combined_minimum_size().y
 	_box.size = Vector2(width, 0.0)
 	_box.scale = Vector2(s, s)
-	var alerts: Rect2 = _geometry.alerts
-	var top: float = (alerts.end.y + _gap) * s
-	if above_end > 0.0:
-		top = maxf(top, above_end + STACK_GAP * s)
-	_box.position = Vector2((alerts.position.x + (alerts.size.x - width) / 2.0) * s, top)
+	var x: float = row_left(band.get_center().x, width, _geometry.minimap.end.x + STACK_GAP,
+		_geometry.detail.position.x - STACK_GAP)
+	_box.position = Vector2(x, _geometry.commands.position.y - STACK_GAP - height) * s
+
+
+static func row_left(centre: float, width: float, low: float, high: float) -> float:
+	"""The strip's left edge: centred on `centre`, moved in to stay between `low` and `high` where it fits (logical
+	px; a strip wider than the gap starts at `low`)."""
+	return maxf(low, minf(centre - width / 2.0, high - width))
+
+
+func reserved_height() -> float:
+	"""How much of the bottom-centre column the strip keeps for itself above the commands (logical px, its gap
+	included): its height while shown, 0 while hidden. The village news stands on top of it (`lift`)."""
+	return _box.get_combined_minimum_size().y + STACK_GAP if _box.visible else 0.0
 
 
 func text() -> String:

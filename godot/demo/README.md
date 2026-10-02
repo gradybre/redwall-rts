@@ -248,7 +248,8 @@ sets is in place -- and each setting as its own toggle, which a preset only ever
 | Reduced motion | the camera stops easing (a follow holds its resident, a bookmark or the cutaway angle lands at once; the orbit still turns, steadily); the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`). The demo has no camera shake |
 | Quiet focus | the sound's Quiet focus mix; fewer news toasts (warnings only, one at a time; everything stays in the village news) |
 
-Under **Time**: Pause while planning (off) and Pause on a critical incident (on). **Restore defaults** says everything it
+Under **Time**: Pause while planning (off) and Pause on a critical incident (on). Under **Camera**: Edge scroll (on;
+decision 0801). **Restore defaults** says everything it
 will change and asks first. The settings last for the session and through Restart, as the scale and sound do; nothing is
 saved to disk. Key rebinding is not offered: the demo has no rebinding system yet.
 | (typing) | In a pop-up's text field (the help or field-guide search, a project's name) every key but Esc, Tab and Enter types; Enter is swallowed, so it never reaches the Dig tool (decision 0481) |
@@ -592,7 +593,7 @@ centre under the alerts), each completed **only by what really happens in the vi
 The "Demo party" panel in the HUD's left column lists the selection, and **never hides** (decision 0391,
 review F20/F31). Its header says how many are selected; a summary line says who and what -- one resident's name
 and what it is doing, or a group's common activity ("Holding ×3 · Walking to the well ×2"), cut with an
-ellipsis and whole in its tooltip; then the actions, always in view: **Release (R)**, and Dig tunnel (B),
+ellipsis and whole in its tooltip; then the actions, always in view: **Release (R)**, **Follow (End)** (decision 0801), and Dig tunnel (B),
 Burrow home (H) and Root cellar (C) with a digger selected. Below them a scrolling **inspector**: the notice
 line, then for one resident its species, what it is doing, the progress or step of that on its own row, "Then
 back to:" with a row per unfinished job, its skills, and **what it can be ordered to do**
@@ -649,12 +650,13 @@ rig stays the player's, and none of it reaches the simulation.
 | Shift+O | **Orbit** the village building nearest the middle of the view (within 12 m; else the middle itself): 35 degrees down, from a distance fitted to its size, turning six degrees a second -- paused too. Zoom and tilt still work; Esc, Shift+O, a pan, a turn, a bookmark or End stop it. Esc keeps its ladder: an open pop-up or panel, then the Dig tool's piece and the tool, come first; the orbit's stop before clearing the selection |
 | Shift+U | **The cutaway angle**: the U view (turned on if it is off) from 65 degrees down, over the middle of the network on the level shown, far enough to see all of it (18 m at the least). Shift+U again, or leaving the U view, gives back the pitch and distance you had. The camera only; the U view's lights are the tunnels' |
 
-A dark **strip** in the top-centre column -- the level indicator's twin, under whatever else stands there (the level
-indicator, the guide's or an incident's card, the pause card) -- says which mode is on ("Following Wenna Tallowby · End
-or a pan stops", "Orbiting the hall · Esc stops", "Cutaway angle · Shift+U: your view back") and, for a moment, what a
-bookmark key did. None of the keys works behind a pop-up or the HUD's scrimmed workspace.
+A dark **strip** in its own row just above the command strip -- the village news stands on top of it while it shows, so
+neither covers the other -- says which mode is on ("Following Wenna Tallowby · End or a pan stops", "Orbiting the hall ·
+Esc stops", "Cutaway angle · Shift+U: your view back") and, for a moment, what a bookmark key did. **Follow (End)** in
+the party panel's actions does what End does, and reads "Stop following (End)" while the camera follows. None of the keys
+works behind a pop-up or the HUD's scrimmed workspace.
 
-**Edge pan** (UI §6): rest the pointer in the 12-logical-pixel band along any window edge (24 physical pixels at 4K) for
+**Edge pan** (UI §6; **Edge scroll** under Camera in the menu's Settings turns it off -- on by default, UI §8.1): rest the pointer in the 12-logical-pixel band along any window edge (24 physical pixels at 4K) for
 a quarter second and the view pans that way at the keys' speed; corners pan diagonally, no faster. It is off over any
 panel, behind a pop-up, in a text field, while a mouse button is held, and while the window does not have the focus or
 the pointer is outside it. A diagonal key pan is now normalised too (W+D is no faster than W).

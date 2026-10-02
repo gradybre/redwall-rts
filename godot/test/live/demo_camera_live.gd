@@ -63,6 +63,8 @@ func _run() -> void:
 	await _follow()
 	await _orbit()
 	await _cutaway()
+	await _follow_button()
+	await _strip_clear_of_the_news()
 	await _edge_pan()
 	await _drag_turn()
 	await _same_framing_at_4k()
@@ -312,6 +314,69 @@ func _cutaway() -> void:
 	_key(KEY_U)
 	await _frames(SETTLE_FRAMES)
 	_check("cutaway: U leaves the view", not bool(_tool().get("view").get("on")))
+
+
+func _follow_button() -> void:
+	"""The party panel's Follow (End): a real click follows the selected resident and the button says Stop following;
+	a second click stops it."""
+	_command().call(&"select", PackedInt32Array([0]))
+	_command().call(&"_refresh_panel")
+	await _frames(SETTLE_FRAMES)
+	var button: Button = _command().call(&"panel").call(&"follow_button")
+	_check("follow button: shown with a resident selected", button != null and button.is_visible_in_tree())
+	if button == null:
+		return
+	_click(button.get_global_rect().get_center())
+	await _frames(SETTLE_FRAMES)
+	_check("follow button: a click follows them", int(_modes().call(&"followed")) == 0)
+	_check("follow button: and says Stop following", button.text.begins_with("Stop following"), button.text)
+	_click(button.get_global_rect().get_center())
+	await _frames(SETTLE_FRAMES)
+	_check("follow button: a second click stops", int(_modes().call(&"followed")) == -1 and button.text.begins_with(
+		"Follow"), button.text)
+
+
+func _strip_clear_of_the_news() -> void:
+	"""Following, with three news lines up: the news stands on top of the strip's row, never over it -- on the surface
+	and in the U view."""
+	var notices: Object = _village.get("_services").get("notices")
+	var consts: Dictionary = (notices.get_script() as GDScript).get_script_constant_map()
+	for k: int in 3:
+		notices.call(&"post", consts["SOURCE_FARM"], consts["LEVEL_WARNING"], "A long warning line %d for the frame" % k)
+	_key(KEY_END)
+	await _seconds(0.8)
+	await _check_strip_clear("surface")
+	await _capture("camera_strip_and_news")
+	_key(KEY_U)
+	await _seconds(0.8)
+	await _check_strip_clear("U view")
+	await _capture("camera_strip_and_news_u")
+	_key(KEY_U)
+	_key(KEY_END)
+	await _frames(SETTLE_FRAMES)
+
+
+func _check_strip_clear(where: String) -> void:
+	"""The camera strip shows, the news shows, and the news ends above the strip's top."""
+	var strip: Rect2 = _modes().get("strip").call(&"rect")
+	var news: CanvasLayer = _village.get("_news")
+	var frame: Rect2 = news.call(&"frame_rect")
+	_check("strip and news (%s): both shown" % where, bool(_modes().get("strip").call(&"shown"))
+		and bool(news.call(&"is_shown")))
+	_check("strip and news (%s): the news stands above the strip" % where, frame.end.y <= strip.position.y + 0.5
+		and not frame.intersects(strip), "news %s, strip %s" % [frame, strip])
+
+
+func _click(at: Vector2) -> void:
+	"""A left click at `at` through the Viewport."""
+	_move(at)
+	for down: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.position = at
+		event.pressed = down
+		event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+		root.push_input(event)
 
 
 func _dig_for_the_frames() -> void:

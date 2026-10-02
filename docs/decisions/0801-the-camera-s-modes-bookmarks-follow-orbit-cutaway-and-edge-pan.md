@@ -1,8 +1,39 @@
 # 0801 — The camera's modes: bookmarks, follow, orbit, the cutaway angle and the edge pan
-Date: 2026-10-01 · Status: Accepted (adopted rules); the PROPOSALS below await Brendan's ruling
+Date: 2026-10-01 · Status: Accepted (adopted rules; Brendan ruled on every proposal, 2026-10-01)
 
 Numbered 0801: feature #60 (the camera revamp, approved by Brendan on 2026-10-01) was given 0801–0809; none was taken on
 this branch.
+
+## Brendan's rulings (2026-10-01)
+
+Brendan approved all eight recommendations below (P1–P8), each as option (a) / the recommendation:
+
+| | Ruling | Built |
+|---|---|---|
+| P1 | Bookmarks on Ctrl+Shift+1..4 (save) and Shift+1..4 (recall) | as first built |
+| P2 | Four slots, the camera pose only, for the session (through Restart), never on disk | as first built |
+| P3 | Orbit on Shift+O round the building nearest the view's centre; turns on, steadily, under reduced motion | as first built |
+| P4 | The cutaway angle on Shift+U, never automatic on U | as first built |
+| P5 | Keep the strip where the news cannot cover it | **moved** (below) |
+| P6 | An Edge scroll toggle in Settings, on by default | **added** (below) |
+| P7 | No gamepad bindings | as first built |
+| P8 | A "Follow (End)" button in the party panel | **added** (below) |
+
+- **P5, the strip's row.** The strip left the top-centre column (where, at 1280x720 in the U view, the Map layer
+  picker and a three-line village news crowd it) for its OWN ROW at the bottom centre: its bottom 6 logical px above the
+  command strip, centred on the news' band (`demo_news_strip.gd band_placement`, so it follows the commands when the
+  journal moves them) and moved in to stay between the minimap and the right column. The news gains one hook, `lift`:
+  while the strip shows, the news stands on top of the strip's row (`camera_strip.gd reserved_height`). The live harness
+  checks, at 1280x720 and 1920x1080, surface and U view, that a three-line news ends above the strip. Consequence: at
+  1280x720 a three-line news then reaches up over part of the collapsed Map layer picker (it already overlapped it by
+  30 px before; now by 74 px while the strip shows).
+- **P6, Edge scroll.** `demo_access.gd` SET_EDGE_SCROLL ("Edge scroll", default on: UI §8.1 `edge_scroll`, "On mouse";
+  the demo has no trackpad preset), under a new "Camera" heading in the menu's Settings; Restore defaults turns it back
+  on; no preset touches it. `edge_pan.gd` reads it live.
+- **P8, Follow (End).** The party panel's actions show "Follow (End)" beside Release (R) whenever anyone is selected; it
+  asks the modes to toggle the follow (`follow_requested` → `camera_modes.toggle_follow`) and reads "Stop following
+  (End)" while the camera follows (`camera_modes.follow_changed` → `demo_party_panel.set_following`).
+- The pause card is untouched (a separate fix).
 
 ## Decision
 
@@ -57,9 +88,9 @@ The rig keeps one 40° vertical field of view with `KEEP_HEIGHT`, so a view fram
 harness unprojects the hall at its size and at 3840x2160: the same screen fraction). Zoom limits are metres (7–70 m), the
 easing is `1 - exp(-rate·dt)` (frame-rate independent), and the edge band and the middle drag are in logical pixels.
 
-## PROPOSALS for Brendan
+## The proposals as put (all approved; see Brendan's rulings above)
 
-Each is the smallest sensible demo behaviour where the documents are silent.
+Each was the smallest sensible demo behaviour where the documents are silent.
 
 - **P1 — Bookmark keys: Ctrl+Shift+1..4 save, Shift+1..4 recall.** UI §5 names no camera bookmark. F1–F4 (the usual
   RTS choice) are UI §5's speeds and roof mode, and macOS keeps Ctrl+F1–F4 for its keyboard access (Ctrl+F1 turns it on,

@@ -6,7 +6,8 @@ extends Node
 ## THE BAND is 12 LOGICAL pixels -- 12 physical at 1280x720 and 1920x1080, 24 at 3840x2160 (UI §1.2's S, with the
 ## interface scale) -- so it is the same reach for the hand at every size the demo supports.
 ##
-## IT IS OFF (UI §6: "disabled while pointer is over any visible UI hit rectangle, during a modal, text editing,
+## IT IS OFF when the menu's Settings turn Edge scroll off (UI §8.1 `edge_scroll`, on by default; demo_access.gd), and
+## (UI §6: "disabled while pointer is over any visible UI hit rectangle, during a modal, text editing,
 ## placement drag, or when the application lacks focus"):
 ##   * over any HUD or demo control that takes the pointer (`gui_get_hovered_control`);
 ##   * while a modal is open (`modal_open`, the input gate's);
@@ -19,6 +20,7 @@ extends Node
 ## consumes one), so `_process` allocates nothing.
 
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
+const Access := preload("res://demo/access/demo_access.gd")
 
 const BAND_LOGICAL_PX: float = 12.0
 const DWELL_SECONDS: float = 0.25
@@ -27,8 +29,6 @@ const DWELL_SECONDS: float = 0.25
 var modal_open: Callable = Callable()
 ## `focused() -> bool`: whether the window has the focus (the window's own, unless a harness says otherwise).
 var focused: Callable = Callable()
-## Whether the edge pan works at all (the checks turn it off; the demo leaves it on, UI §8.1's default with a mouse).
-var enabled: bool = true
 
 var _rig: Node3D = null
 var _viewport: Viewport = null
@@ -101,7 +101,7 @@ func step(delta: float, size_px: Vector2) -> void:
 
 func allowed() -> bool:
 	"""Whether nothing turns the edge pan off now (see IT IS OFF)."""
-	if not enabled or not _inside or _buttons != 0:
+	if not Access.is_on(Access.SET_EDGE_SCROLL) or not _inside or _buttons != 0:
 		return false
 	if modal_open.is_valid() and bool(modal_open.call()):
 		return false

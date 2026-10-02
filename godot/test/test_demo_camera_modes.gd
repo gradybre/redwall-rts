@@ -14,6 +14,12 @@ const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 const DemoMotion := preload("res://demo/access/demo_motion.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
+const Access := preload("res://demo/access/demo_access.gd")
+const SettingsUi := preload("res://demo/access/access_settings_ui.gd")
+const PartyPanel := preload("res://demo/control/demo_party_panel.gd")
+const NewsStrip := preload("res://demo/ui/demo_news_strip.gd")
+const Services := preload("res://demo/demo_services.gd")
+const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
 
 const VILLAGE: AABB = AABB(Vector3(-30.0, 0.0, -30.0), Vector3(60.0, 0.0, 60.0))
@@ -36,6 +42,7 @@ var _extent: Rect2 = Rect2(0.0, 0.0, -1.0, -1.0)
 func before_each() -> void:
 	"""A rig over the village and the modes on it, with nobody selected, the surface shown and no modal."""
 	Bookmarks.clear()
+	Access.reset()
 	DemoMotion.reduced = false
 	DemoUiScale.percent = 100
 	_selected = -1
@@ -61,6 +68,7 @@ func after_each() -> void:
 	_modes.free()
 	_rig.free()
 	Bookmarks.clear()
+	Access.reset()
 	DemoMotion.reduced = false
 
 
@@ -639,9 +647,10 @@ func test_the_edge_pan_is_off_when_it_should_be() -> void:
 	edge.focused = func() -> bool: return false
 	assert_false(edge.allowed(), "no focus")
 	edge.focused = func() -> bool: return true
-	edge.enabled = false
-	assert_false(edge.allowed(), "disabled")
-	edge.enabled = true
+	Access.set_flag(Access.SET_EDGE_SCROLL, false)
+	assert_false(edge.allowed(), "Edge scroll off in Settings")
+	Access.set_flag(Access.SET_EDGE_SCROLL, true)
+	assert_true(edge.allowed(), "and on again")
 	edge.notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
 	assert_false(edge.allowed(), "the app lost focus")
 	edge.step(1.0, SIZE_1080)
@@ -732,21 +741,117 @@ func test_the_strip_shows_a_mode_and_flashes_over_it() -> void:
 	strip.free()
 
 
-func test_the_strip_stands_under_the_alerts_and_below_the_level_indicator() -> void:
-	"""Centred in the top-centre column at the HUD's scale; one row under the level indicator while it shows; twice
-	the size at 4K."""
+func test_the_strip_stands_in_its_own_row_above_the_commands() -> void:
+	"""Bottom centre, its bottom STACK_GAP above the command strip, centred on the news' band where it fits, inside the
+	gap between the minimap and the right column; twice the size at 4K; following the journal."""
 	var strip := Strip.new()
 	strip.set_mode_text("Cutaway angle")
+	for size: Vector2 in [SIZE_720, SIZE_1080, SIZE_4K]:
+		strip.place_for(size)
+		var layout := UiLayout.new()
+		var geometry := UiLayout.Geometry.new()
+		var band: Rect2 = NewsStrip.band_placement(int(size.x), int(size.y), layout, geometry, false)
+		var s: float = geometry.scale
+		var at: Rect2 = strip.rect()
+		assert_almost_equal(at.end.y, (geometry.commands.position.y - Strip.STACK_GAP) * s, "%s: above the commands" % size)
+		assert_almost_equal(at.get_center().x, band.get_center().x * s, "%s: centred on the news' band" % size)
+		assert_true(at.position.x >= geometry.minimap.end.x * s and at.end.x <= geometry.detail.position.x * s,
+			"%s: between the minimap and the right column" % size)
 	strip.place_for(SIZE_1080)
-	var alone: Rect2 = strip.rect()
-	assert_true(alone.position.y > 0.0, "under the alerts")
-	assert_almost_equal(alone.get_center().x, SIZE_1080.x / 2.0, "centred")
-	var indicator := Rect2(800.0, alone.position.y, 300.0, 30.0)
-	strip.below = func() -> Rect2: return indicator
-	strip.place_for(SIZE_1080)
-	assert_almost_equal(strip.rect().position.y, indicator.end.y + Strip.STACK_GAP, "under the indicator")
-	strip.below = Callable()
+	var small: Rect2 = strip.rect()
 	strip.place_for(SIZE_4K)
-	assert_almost_equal(strip.rect().size.y, alone.size.y * 2.0, "twice the size at 4K")
-	assert_almost_equal(strip.rect().get_center().x, SIZE_4K.x / 2.0, "centred at 4K")
+	assert_almost_equal(strip.rect().size.y, small.size.y * 2.0, "twice the size at 4K")
+	strip.journal_open = func() -> bool: return true
+	strip.place_for(SIZE_1080)
+	var layout := UiLayout.new()
+	var geometry := UiLayout.Geometry.new()
+	var band: Rect2 = NewsStrip.band_placement(1920, 1080, layout, geometry, true)
+	assert_almost_equal(strip.rect().get_center().x, band.get_center().x, "the journal open: follows the commands")
 	strip.free()
+
+
+func test_a_long_line_is_moved_in_to_stay_in_the_gap() -> void:
+	"""Centred where it fits; pushed in from the right column; from the minimap; wider than the gap: at its start."""
+	assert_almost_equal(Strip.row_left(500.0, 200.0, 100.0, 900.0), 400.0, "centred")
+	assert_almost_equal(Strip.row_left(850.0, 200.0, 100.0, 900.0), 700.0, "in from the right")
+	assert_almost_equal(Strip.row_left(150.0, 200.0, 100.0, 900.0), 100.0, "in from the left")
+	assert_almost_equal(Strip.row_left(500.0, 900.0, 100.0, 900.0), 100.0, "too wide: at the gap's start")
+	assert_almost_equal(Strip.row_left(800.0, 200.0, 100.0, 1000.0), 700.0, "exactly at the right edge")
+
+
+func test_the_strip_reserves_its_row_only_while_shown() -> void:
+	"""reserved_height is the strip's height and gap while it shows, 0 while hidden; the news stands on it."""
+	var strip := Strip.new()
+	assert_almost_equal(strip.reserved_height(), 0.0, "hidden: nothing kept")
+	strip.set_mode_text("Following Wenna Tallowby")
+	var kept: float = strip.reserved_height()
+	strip.place_for(SIZE_1080)
+	assert_almost_equal(kept, strip.rect().size.y + Strip.STACK_GAP, "shown: its height and its gap (at 1080p, S = 1)")
+	strip.set_mode_text("")
+	assert_almost_equal(strip.reserved_height(), 0.0, "hidden again")
+	var news := NewsStrip.new()
+	news.configure(Services.new().notices)
+	news.lift = func() -> float: return 41.0
+	news.refresh(0)
+	assert_almost_equal(news.lifted_by(), 41.0, "the news takes the row it is given")
+	news.lift = Callable()
+	news.refresh(0)
+	assert_almost_equal(news.lifted_by(), 0.0, "and none without one")
+	news.free()
+	strip.free()
+
+
+# --- the Settings toggle and the Follow button (Brendan's rulings P6, P8) -----------------------------------------
+
+func test_edge_scroll_is_a_setting_on_by_default_under_camera() -> void:
+	"""UI §8.1 `edge_scroll`: a setting, on by default; Settings show its toggle in words; Restore defaults turns it
+	back on."""
+	assert_true(Access.is_on(Access.SET_EDGE_SCROLL), "on by default")
+	assert_equal(Access.SET_NAMES[Access.SET_EDGE_SCROLL], "Edge scroll", "named")
+	assert_true(SettingsUi.CAMERA_SETTINGS.has(Access.SET_EDGE_SCROLL), "under Camera")
+	var section := SettingsUi.new()
+	assert_equal(section.toggle_button(Access.SET_EDGE_SCROLL).text, "Edge scroll: on", "in words")
+	section.toggle_button(Access.SET_EDGE_SCROLL).button_pressed = false
+	assert_false(Access.is_on(Access.SET_EDGE_SCROLL), "the toggle turns it off")
+	assert_equal(section.toggle_button(Access.SET_EDGE_SCROLL).text, "Edge scroll: off", "and says so")
+	section.restore_defaults()
+	assert_true(Access.is_on(Access.SET_EDGE_SCROLL), "Restore defaults: on again")
+	section.free()
+
+
+func test_the_party_panel_follow_button() -> void:
+	"""Shown with anyone selected; pressing it asks for the follow; worded for whether the camera follows."""
+	var panel := PartyPanel.new()
+	panel.build()
+	assert_false(panel.follow_button().visible, "nobody selected: hidden")
+	var one: Array[Dictionary] = [{"index": 3, "name": "Wenna Tallowby", "species": "Mouse", "state": "holding"}]
+	panel.show_party(one)
+	assert_true(panel.follow_button().visible, "shown")
+	assert_equal(panel.follow_button().text, PartyPanel.FOLLOW_BUTTON, "Follow (End)")
+	var asked: Array[int] = [0]
+	panel.follow_requested.connect(func() -> void: asked[0] += 1)
+	panel.follow_button().pressed.emit()
+	assert_equal(asked[0], 1, "asks for the follow")
+	panel.set_following(true)
+	assert_equal(panel.follow_button().text, PartyPanel.FOLLOW_STOP, "Stop following (End)")
+	panel.set_following(false)
+	assert_equal(panel.follow_button().text, PartyPanel.FOLLOW_BUTTON, "back")
+	panel.free()
+
+
+func test_the_modes_tell_whether_a_follow_is_on() -> void:
+	"""follow_changed hears on when End starts a follow, off when a pan, End or another mode ends it."""
+	var heard: Array[bool] = []
+	_modes.follow_changed = func(on: bool) -> void: heard.append(on)
+	_selected = 3
+	_modes.toggle_follow()
+	assert_equal(heard.back(), true, "on")
+	_modes.toggle_follow()
+	assert_equal(heard.back(), false, "End: off")
+	_modes.toggle_follow()
+	_modes.toggle_orbit()
+	assert_equal(heard.back(), false, "the orbit took over: off")
+	_modes.toggle_follow()
+	_rig.centre_on(Vector3(-9.0, 0.0, 9.0))
+	_frames(FRAME)
+	assert_equal(heard.back(), false, "a pan: off")

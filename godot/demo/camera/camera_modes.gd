@@ -89,6 +89,8 @@ var underground: Callable = Callable()
 var set_underground: Callable = Callable()
 ## `tunnel_extent() -> Rect2`: the network on the level shown, in metres (x, z); a negative size when there is none.
 var tunnel_extent: Callable = Callable()
+## `follow_changed(on: bool)`: told whenever the modes change, whether a follow is on (the party panel's Follow button).
+var follow_changed: Callable = Callable()
 
 var strip: StripScript = StripScript.new()
 ## The edge pan (edge_pan.gd), off while a modal holds the input.
@@ -373,7 +375,10 @@ func _end_orbit() -> void:
 
 
 func _refresh_strip() -> void:
-	"""The strip's lasting line: the follow's, else the orbit's, else the cutaway's, else none."""
+	"""The strip's lasting line: the follow's, else the orbit's, else the cutaway's, else none; and whether a follow is
+	on, to whoever asked (`follow_changed`)."""
+	if follow_changed.is_valid():
+		follow_changed.call(mode == MODE_FOLLOW)
 	if mode == MODE_FOLLOW:
 		strip.set_mode_text(FOLLOW_TEXT % _who_name)
 	elif mode == MODE_ORBIT:

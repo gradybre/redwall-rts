@@ -648,28 +648,12 @@ func _build_camera_modes() -> void:
 	_camera_modes.underground = func() -> bool: return tool.view.on
 	_camera_modes.set_underground = show_underground
 	_camera_modes.tunnel_extent = func() -> Rect2: return CameraModesScript.network_extent(tool.network, tool.view.level)
-	_camera_modes.strip.below = _camera_strip_floor.bind(tool)
+	_camera_modes.strip.journal_open = _zone.journal_open
+	_camera_modes.follow_changed = command.panel().set_following
 	_camera_modes.configure(_camera as DemoCameraScript)
 	command.add_input_hook(_camera_modes.escape_hook)
-
-
-func _camera_strip_floor(tool: TunnelControlScript) -> Rect2:
-	"""The lowest thing shown in the top half of the screen's middle column, which the camera strip stands under: the
-	U view's level indicator, the incident or guide card, the pause card (while it is up there, not over a pop-up) and
-	the Map layer picker where a short window puts it beside them (1280x720)."""
-	var middle: float = get_viewport().get_visible_rect().size.y * 0.5
-	var lowest: Rect2 = tool.view.indicator_rect() if tool.view.indicator_shown() else Rect2()
-	lowest = _lower_of(lowest, _top_card_rect(), middle)
-	if _card.visible and _card.is_shown() and _card.layer == PauseCardScript.LAYER:
-		lowest = _lower_of(lowest, _card.frame_rect(), middle)
-	if _lens_picker.visible:
-		lowest = _lower_of(lowest, _lens_picker.frame_rect(), middle)
-	return lowest
-
-
-static func _lower_of(lowest: Rect2, rect: Rect2, middle: float) -> Rect2:
-	"""`rect` if it starts in the top half (above `middle`) and reaches lower than `lowest`; else `lowest`."""
-	return rect if rect.has_area() and rect.position.y < middle and rect.end.y > lowest.end.y else lowest
+	command.panel().follow_requested.connect(_camera_modes.toggle_follow)
+	_news.lift = _camera_modes.strip.reserved_height
 
 
 func camera_modes() -> CameraModesScript:

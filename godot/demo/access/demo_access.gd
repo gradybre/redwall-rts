@@ -14,6 +14,8 @@ extends RefCounted
 ##   QUIET_TOASTS fewer news toasts: warnings only, one line (demo_news_strip.gd)
 ##   PAUSE_PLANNING pause while a planning surface is open (UI §8.1 `pause_management`, default OFF)
 ##   PAUSE_CRITICAL pause on a critical incident (UI §8.1 `critical_autopause`, default ON)
+##   EDGE_SCROLL  the camera's edge pan (UI §8.1 `edge_scroll`, default ON -- "On mouse"; the demo has no trackpad preset;
+##                demo/camera/edge_pan.gd; decision 0801)
 ## They live in STATIC vars, as the scale's and the mix's do: kept for the session and through Restart demo, never
 ## written to disk (the demo saves nothing yet).
 ##
@@ -39,9 +41,10 @@ const SET_MOTION: int = 4
 const SET_QUIET_TOASTS: int = 5
 const SET_PAUSE_PLANNING: int = 6
 const SET_PAUSE_CRITICAL: int = 7
-const SET_COUNT: int = 8
+const SET_EDGE_SCROLL: int = 8
+const SET_COUNT: int = 9
 const SET_NAMES: Array[String] = ["Bigger tooltips", "High-contrast panels", "Focus hints", "Show interactive targets",
-	"Reduced motion", "Fewer news toasts", "Pause while planning", "Pause on a critical incident"]
+	"Reduced motion", "Fewer news toasts", "Pause while planning", "Pause on a critical incident", "Edge scroll"]
 const SET_TIPS: Array[String] = [
 	"Tooltips drawn a quarter larger",
 	"A flat, opaque face under every panel's text, without the parchment's grain",
@@ -51,8 +54,9 @@ const SET_TIPS: Array[String] = [
 	"News toasts show warnings only, one at a time (everything stays in the village news)",
 	"Opening the Pantry, the Work screen, the village news, the Residents list, the object list or the Dig tool pauses",
 	"A resident in difficulty or a threat pauses the village and says why",
+	"Resting the pointer at a window edge pans the camera that way (never over a panel or behind a pop-up)",
 ]
-const DEFAULTS: PackedByteArray = [0, 0, 0, 0, 0, 0, 0, 1]
+const DEFAULTS: PackedByteArray = [0, 0, 0, 0, 0, 0, 0, 1, 1]
 
 const PRESET_LARGE: int = 0
 const PRESET_KEYBOARD: int = 1

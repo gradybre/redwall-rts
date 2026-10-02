@@ -17,7 +17,9 @@ extends CanvasLayer
 ## narrow profile, 125 % on 1280x720) it takes the whole gap instead (decision 0391). The command strip moves left when the
 ## resident journal takes the right column; the strip follows it (`follow_journal`). Geometry is the
 ## HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's scale.
-## It ignores the mouse, so a click through it still reaches the world; it draws below the HUD.
+## It ignores the mouse, so a click through it still reaches the world; it draws below the HUD. While the camera's
+## strip shows (demo/camera/camera_strip.gd, decision 0801) it keeps its own row just above the commands, and this strip
+## stands on top of it (`lift`), so neither covers the other.
 ##
 ## Refreshed a few times a second on real time (it must read while the village is paused); it
 ## rebuilds nothing, only rewrites LINES labels.
@@ -80,6 +82,9 @@ var _history_button: Button = null
 var _attention: int = 0
 ## Fewer toasts: warnings only, one line (see FEWER TOASTS).
 var quiet: bool = false
+## `() -> float`: logical px kept free just above the commands for the camera's strip (0 while it hides; see WHERE).
+var lift: Callable = Callable()
+var _lift_now: float = 0.0
 
 
 func configure(notices: NoticesScript) -> void:
@@ -203,9 +208,7 @@ func refresh(now_msec: int) -> int:
 	count of unresolved incidents; returns how many entries are shown."""
 	if _notices == null or _frame == null:
 		return 0
-	if _journal_is_open() != _journal_open:
-		_journal_open = not _journal_open
-		_place.call_deferred()
+	_follow_layout()
 	var shown: int = 0
 	var most: int = 1 if quiet else LINES
 	for k: int in _notices.count():
@@ -226,6 +229,22 @@ func refresh(now_msec: int) -> int:
 		_frame.visible = shown > 0 or attention > 0
 		_place.call_deferred()
 	return shown
+
+
+func _follow_layout() -> void:
+	"""Place again when the journal moved the commands or the camera strip's row changed."""
+	if _journal_is_open() != _journal_open:
+		_journal_open = not _journal_open
+		_place.call_deferred()
+	var lifted: float = float(lift.call()) if lift.is_valid() else 0.0
+	if lifted != _lift_now:
+		_lift_now = lifted
+		_place.call_deferred()
+
+
+func lifted_by() -> float:
+	"""The camera strip's row the news stands on now, logical px (checks)."""
+	return _lift_now
 
 
 func _show_attention(attention: int) -> void:
@@ -273,7 +292,7 @@ func _place() -> void:
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.custom_minimum_size = Vector2(band.size.x, 0.0)
 	_frame.size = Vector2(band.size.x, 0.0)
-	_frame.position = Vector2(band.position.x, band.end.y - height) * _geometry.scale
+	_frame.position = Vector2(band.position.x, band.end.y - height - _lift_now) * _geometry.scale
 
 
 func band_in(viewport_size: Vector2) -> Rect2:

@@ -791,6 +791,13 @@ func _build_care() -> void:
 	command.add_task_text(_care.building.builders.doing_text)
 	command.add_input_hook(_care.building.handle_input)
 	tool.ext.panel.add_section(_care.section)
+	_care.desk.pantry_herb = _pantry_herb
+
+
+func _pantry_herb(milli: int) -> int:
+	"""The care shelf's share of the pantry's herb (care_desk.gd ONE SHELF, TWO SOURCES; decision 0902): up to `milli` of
+	the free herb -- the foragers' -- taken out of its stores for the shelf."""
+	return _kitchen.kitchen.takes.withdraw_free(_farm.pantry, FarmCatalog.CAT_HERB, milli, _services.calendar.hour_index())
 
 
 func care() -> CareScript:

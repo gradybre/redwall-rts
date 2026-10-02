@@ -29,7 +29,10 @@ extends RefCounted
 ##
 ## THE HERBALIST GATHERS (P6). By day, at each look, while the shelf holds less than CareRules.HERB_TARGET_MILLI and
 ## the patch has herb above its floor, an idle herbalist goes to the patch, picks a trip's load at §5.5's work per U
-## (REQ-SET-068's roll every 60 WU) and carries it to the shelf at the hall's steps.
+## (REQ-SET-068's roll every 60 WU) and carries it to the shelf at the hall's steps. ONE SHELF, TWO SOURCES (batch 7
+## integration, decision 0902): the herb a treatment takes is the pantry's `herb` item, the one the foragers bring in
+## (decision 0681) -- at each look, day or night, while the shelf is short, the pantry's free herb is moved onto it
+## first (`pantry_herb`), and only what is still short sends the herbalist to the patch.
 ##
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const StateScript := preload("res://demo/infirmary/care_state.gd")
@@ -62,6 +65,9 @@ var pace: PaceScript = PaceScript.new()
 ## The infirmary building (decision 0623; null: none in this village).
 var infirmary: ProjectScript = null
 var herbalist: int = NOBODY
+## `(milli: int) -> int`: take up to `milli` of the pantry's free herb away for the shelf, answering how much (the
+## foragers' herbs: both feed one shelf -- see THE HERBALIST GATHERS; decision 0902). Unset: the patch alone.
+var pantry_herb: Callable = Callable()
 var revision: int = 0
 
 var _brains: Array[BrainScript] = []
@@ -174,6 +180,7 @@ func update(tick: int, day: int, season: int, hunger: PackedInt32Array, rest: Pa
 		_next_dispatch = tick + DISPATCH_TICKS
 		_dispatch_patients()
 		_dispatch_healers()
+		_shelve_foraged()
 		if not night:
 			_dispatch_gather()
 
@@ -565,6 +572,16 @@ func treat_words(h: int, p: int) -> String:
 
 
 # --- the herbalist ------------------------------------------------------------------------------------------------
+
+func _shelve_foraged() -> void:
+	"""The pantry's free herb onto the shelf while it is short (see ONE SHELF, TWO SOURCES), said once a move."""
+	if not pantry_herb.is_valid() or state.herb_milli >= Rules.HERB_TARGET_MILLI:
+		return
+	var moved: int = state.shelve_herbs(int(pantry_herb.call(Rules.HERB_TARGET_MILLI - state.herb_milli)))
+	if moved > 0 and _notices != null:
+		_notices.post(NoticesScript.SOURCE_WOODS, NoticesScript.LEVEL_NOTE, "%s U of the foragers' herbs went to the care shelf (%s U)"
+			% [Text.units(moved), Text.units(state.herb_milli)])
+
 
 func _dispatch_gather() -> void:
 	"""The idle herbalist to the patch while the shelf is short (see THE HERBALIST GATHERS)."""

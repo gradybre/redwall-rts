@@ -348,6 +348,8 @@ func _the_herb_patch() -> void:
 	var camera: Camera3D = root.get_camera_3d()
 	var at: Vector2 = camera.unproject_position(patch.global_position)
 	_check("the herb patch is in view", Rect2(Vector2.ZERO, Vector2(_size)).has_point(at), str(at))
+	var desk: Object = _care().get("desk")
+	_check("the foragers' herb feeds the same shelf", (desk.get("pantry_herb") as Callable).is_valid())
 	await _capture("care_herb_patch")
 
 

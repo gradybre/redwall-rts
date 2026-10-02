@@ -281,6 +281,26 @@ func test_the_herbalist_does_not_gather_at_night_or_with_the_shelf_full() -> voi
 	assert_null(v.desk.gatherer(), "not by night")
 
 
+func test_the_pantry_s_herb_fills_the_shelf_before_the_herbalist_goes() -> void:
+	"""One shelf, two sources (decision 0902): short of the target, the pantry's free herb is moved onto the shelf at the
+	next look, day or night; only what is still short sends the herbalist to the patch."""
+	var v := _village(2, 0)
+	var pantry_herb: Array[int] = [5000]
+	v.desk.pantry_herb = func(milli: int) -> int:
+		var got: int = mini(milli, pantry_herb[0])
+		pantry_herb[0] -= got
+		return got
+	v.desk.state.herb_milli = 2000
+	v.calendar.tick = 15 * SimClock.TICKS_PER_HOUR
+	_run(v, 5)
+	assert_equal([v.desk.state.herb_milli, pantry_herb[0]], [7000, 0], "by night: the pantry's 5 U on the shelf")
+	assert_null(v.desk.gatherer(), "and nobody to the patch by night")
+	pantry_herb[0] = 20000
+	_run(v, DeskScript.DISPATCH_TICKS + 1)
+	assert_equal([v.desk.state.herb_milli, pantry_herb[0]], [Rules.HERB_TARGET_MILLI, 15000], "up to the target, no more")
+	v.desk.pantry_herb = Callable()
+
+
 # --- the water ----------------------------------------------------------------------------------------------------
 
 func test_an_exhausted_swimmer_is_hurt_and_an_airless_one_exposed() -> void:

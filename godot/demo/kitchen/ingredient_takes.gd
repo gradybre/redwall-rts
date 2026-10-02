@@ -247,6 +247,20 @@ func consume_into(pantry: PantryScript, take: int, milli: int, where: int, hour_
 	return out.succeed(milli)
 
 
+func withdraw_free(pantry: PantryScript, crop: int, milli: int, hour_index: int) -> int:
+	"""Withdraw up to `milli` of selector `crop`'s UNRESERVED food from its stores at once, the lot that spoils first
+	first, for an owner outside the kitchen taking it away for good (the care shelf's herbs: decision 0902). Nothing any
+	take holds is touched; returns the milli-U withdrawn (0 for none or a bad quantity)."""
+	if milli <= 0:
+		return 0
+	var take: int = new_take()
+	reserve_into(pantry, take, crop, milli, hour_index, _read)
+	var got: int = live_milli(pantry, take, AT_STORE, crop)
+	var taken: int = got if got > 0 and consume_into(pantry, take, got, AT_STORE, hour_index, _read, crop) else 0
+	release(take)
+	return taken
+
+
 func trim_to_lots(pantry: PantryScript, take: int, where: int) -> void:
 	"""Cut `take`'s entries at `where` down to what their lots still hold (see `_trim_to_lots`): a caller withdrawing
 	several selectors from one take checks them all after this, before the first withdrawal (kitchen.gd)."""

@@ -387,6 +387,15 @@ func patch_available_milli() -> int:
 	return maxi(patch_milli - Rules.HERB_FLOOR_MILLI, 0)
 
 
+func shelve_herbs(milli: int) -> int:
+	"""Herb from the pantry (the foragers' `herb`: decision 0902) put on the shelf, all of `milli`; the milli-U shelved."""
+	if milli <= 0:
+		return 0
+	herb_milli += milli
+	revision += 1
+	return milli
+
+
 func deliver_herbs(milli: int) -> int:
 	"""A gathered load reaches the shelf: up to `milli` taken from the patch above its floor onto the shelf (the patch
 	is debited only now, so a trip called away takes nothing). The milli-U delivered."""

@@ -538,6 +538,22 @@ func test_an_unreachable_store_lets_go_only_what_is_still_there() -> void:
 	assert_equal(pantry.milli_of(OATS), 1000, "refused whole")
 
 
+func test_withdraw_free_takes_only_what_nobody_holds() -> void:
+	"""An owner outside the kitchen (the care shelf's herbs, decision 0902) takes away up to what it asks of a category's
+	UNRESERVED food: a take's reservation is untouched; nothing for none or a bad quantity."""
+	var pantry := PantryScript.new(StorageScript.new(STORE_AT))
+	var read := IntMath.IntResult.new()
+	var herb: int = Catalog.ITEM_HERB
+	pantry.add_into(herb, 3000, 0, read)
+	var takes := TakesScript.new()
+	var held := takes.new_take()
+	takes.reserve_into(pantry, held, Catalog.CAT_HERB, 1000, 0, read)
+	assert_equal(takes.withdraw_free(pantry, Catalog.CAT_HERB, 5000, 0), 2000, "the free 2 U, not the held one")
+	assert_equal([pantry.milli_of(herb), takes.live_milli(pantry, held)], [1000, 1000], "the held unit stays, still held")
+	assert_equal(takes.withdraw_free(pantry, Catalog.CAT_HERB, 1000, 0), 0, "none free")
+	assert_equal(takes.withdraw_free(pantry, Catalog.CAT_HERB, 0, 0), 0, "a bad quantity")
+
+
 func test_a_reserved_lot_that_spoils_is_no_longer_the_takes() -> void:
 	"""A lot that spoils frees its row; a new lot in that row has a new serial, so the take's entry counts for nothing
 	and is pruned -- the kitchen never cooks spoiled food or another lot's."""

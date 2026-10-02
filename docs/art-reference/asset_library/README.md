@@ -286,6 +286,16 @@ high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model. All are in th
 
 The bees, fire, lightning and ice are committed code in `godot/demo/fx/` and `godot/demo/water/`, not library files.
 
+## Style probe — 2026-10-02
+
+One icon-style house and one icon-style mouse, made so that Brendan could see the icon look at the game camera.
+They are `style_probe/icon_residence` and `style_probe/icon_mouse`.
+
+**78 credits** against a 95 cap: three `nano-banana-2` concepts, one of them rejected, and two meshy-7 textured
+high-polys. The L0s are free Blender bakes. They are not wired into the game and are not accepted art.
+[Decision 0981](../../decisions/0981-icon-style-probe-house-and-mouse.md) has the details, and the comparison is
+[`contact_sheets/style_probe_2026-10-02.png`](contact_sheets/style_probe_2026-10-02.png).
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

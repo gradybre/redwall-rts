@@ -67,7 +67,7 @@ const MENU_TIPS: Array[String] = [
 	"Start the demo again from its first morning (asks first)",
 	"How-tos and the demo's keys, searchable",
 	"Interface scale, full screen, accessibility, time and sound",
-	"Test triggers -- weather, a tunnel threat, a storm gust, a swimmer's cramp",
+	"Test triggers -- weather, a tunnel threat, a storm gust, a swimmer's cramp, a test injury",
 	"Leave the demo (asks first)",
 ]
 const CONFIRM_TITLES: Array[String] = ["Restart the demo?", "Quit the demo?"]

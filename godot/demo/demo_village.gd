@@ -224,6 +224,7 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const CareScript := preload("res://demo/infirmary/demo_care.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -306,6 +307,7 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+var _care: CareScript = null
 
 
 func _ready() -> void:
@@ -334,6 +336,7 @@ func _ready() -> void:
 	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_fishery()
+	_build_care()
 	_build_shared_ui()
 	_build_work()
 	_build_routes()
@@ -554,6 +557,25 @@ func _build_fishery() -> void:
 func fishery() -> FisheryNodeScript:
 	"""The village's fishery (demo/fishery/demo_fishery.gd)."""
 	return _fishery
+
+
+func _build_care() -> void:
+	"""THE INFIRMARY (demo/infirmary/, decisions 0621-0622), after the kitchen, the water and the fishery: injuries and
+	their care on the cast, the night's beds and the network's rooms, the kitchen's hunger and the water's stamina and
+	hazards; its lines on the resident card, its sickbay section in a selected home's box, its factor on the work pace."""
+	_care = CareScript.new()
+	add_child(_care)
+	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
+	_care.configure(_cast as DemoCastScript, _services, ext.night, _cast.space().tunnels, _kitchen.kitchen.fed,
+		_waterplay.state, _services.work_pace)
+	_command.add_skill_text(_care.card_text)
+	ext.panel.add_room_section(_care.section)
+	_care.watch_rooms(func() -> int: return ext.selected_room if ext.has_room_selected() else -1)
+
+
+func care() -> CareScript:
+	"""The village's infirmary (demo/infirmary/demo_care.gd)."""
+	return _care
 
 
 func _build_work() -> void:
@@ -1114,7 +1136,7 @@ func _build_menu() -> void:
 
 
 func _build_lab() -> void:
-	"""The Demo Lab's four test triggers, each the same `on_action` its panel's button used to call."""
+	"""The Demo Lab's test triggers: the four its panels' buttons used to call, and the infirmary's two test injuries."""
 	add_child(_lab)
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_lab.add_trigger("Next weather", "Run the one calendar on to the next change of weather", "Tunnels",
@@ -1125,6 +1147,10 @@ func _build_lab() -> void:
 		_forestry.on_action.bind(ForestPanelScript.ACTION_STORM))
 	_lab.add_trigger("Cramp", "Every selected resident swimming tires at once and needs rescue", "Water",
 		_waterplay.on_action.bind(WaterPanelScript.ACTION_CRAMP), _swimmer_selected, "Select a resident in the water first")
+	_lab.add_trigger("Injury", "Every selected resident takes the net hazard's bite (minor, −20 health; GDD §5.4)",
+		"Demo party", _lab_hurt.bind(false), _resident_selected, "Select a resident first")
+	_lab.add_trigger("Serious injury", "Every selected resident takes the boat hazard's exposure (serious, −35 health)",
+		"Demo party", _lab_hurt.bind(true), _resident_selected, "Select a resident first")
 
 
 func _build_session() -> void:
@@ -1293,6 +1319,16 @@ func target_marks() -> MarksScript:
 func focus_hint() -> HintScript:
 	"""The focus hint (checks)."""
 	return _hint
+
+
+func _resident_selected() -> bool:
+	"""Whether any resident is selected (the Lab's test injuries can act)."""
+	return not (_command as DemoCommandScript).selected().is_empty()
+
+
+func _lab_hurt(serious: bool) -> void:
+	"""The Lab's test injury on the selected residents (demo/infirmary/demo_care.gd `lab_hurt`)."""
+	_care.lab_hurt((_command as DemoCommandScript).selected(), serious)
 
 
 func _swimmer_selected() -> bool:

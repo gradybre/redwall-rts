@@ -177,6 +177,38 @@ The root bin was tried twice (its roots split from its bin; its roots cut out) a
 budget: the plain L0 is used, full. `tools/stage_demo_assets.py` also re-pins the mouse keeper's crouch walk as it stages
 it (support tolerance 2 cm, `REPIN`): its two contacts left unpinned above pin, the library's grounded clip untouched.
 
+## Art pass 3 — 2026-10-02
+
+Preserving and brewing props, the digging revamp's timber kit and rock face. **222 credits** were spent against the
+**270** Brendan approved for the itemised list:
+- the balance was 410 before and 176 after;
+- the other 12 credits were two "inventory icon" redraws by another task on the shared account, not this pass's.
+
+A subagent made the calls under decision 0961's delegated cap. Decision
+[0971](../../decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md) records the choices. The assets
+and the code each one serves are in [`../art_pass3_mapping.md`](../art_pass3_mapping.md). The nine approved icons are
+held for Brendan's style ruling, and their prompts are in [`../art_pass3_icon_prompts.md`](../art_pass3_icon_prompts.md).
+
+**3D models.** Each uses the library recipe: a concept from the style reference (nano-banana-2, 6), then a meshy-7
+high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model. All are in the `prop/` family.
+
+| Key | Concept task | High-poly task |
+|---|---|---|
+| `crock_stoneware` | `01a0fc6e-cc02-75fa-bae0-5797434db889` | `01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2` |
+| `jar_shelf` | `01a0fc6e-d7aa-74a2-a6b8-ea59e52ee929` | `01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee` |
+| `ale_cask` | `01a0fc6e-e1e1-74d5-b7cb-b4550f5747e0` | `01a0fc6f-df40-7274-bf9b-f5e0ea5af358` |
+| `brew_vat` | `01a0fc6e-ed19-711c-ba27-7780da747614` | `01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb` |
+| `tunnel_timber_kit` (post and lintel, one model) | `01a0fc6e-f739-75ce-b3db-00a3eaf715b4` | `01a0fc6f-f3d9-70f3-8213-a48fb9b1869d` |
+| `rock_face` | `01a0fc6f-b47b-77ae-b198-a2b02abace26` (redo; the first, `01a0fc6f-0100-71ca-841a-5add62707dfa`, drew a box round it: `concept_rejected_box.png`) | `01a0fc70-4b9f-7267-9823-f5e356159cd2` |
+
+**No Meshy remesh, rig or animation was bought.** The following were made free by `tools/make_art_pass3.py` and
+`tools/art_pass3_blender.py`:
+- the L0s;
+- the kit's `l0_post.glb` and `l0_lintel.glb`;
+- the staged `tunnel_post`, `tunnel_lintel` and `tunnel_set`.
+
+The bees, fire, lightning and ice are committed code in `godot/demo/fx/` and `godot/demo/water/`, not library files.
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

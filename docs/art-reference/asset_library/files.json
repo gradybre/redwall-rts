@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1522,
- "total_bytes": 18320911905,
+ "count": 1567,
+ "total_bytes": 18664719743,
  "files": [
   {
    "family": "building",
@@ -13636,6 +13636,411 @@
    "path": "assets/library/creature/badger_quarryman/anim_cautious_crouch_walk_forward.glb",
    "bytes": 7019692,
    "sha256": "b03c0525f0b8dba2a280ff71cbdb815474cacae61cb72ca726ea1f161c090099"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "concept",
+   "task_id": "01a0fc6e-cc02-75fa-bae0-5797434db889",
+   "path": "assets/library/prop/crock_stoneware/concept.png",
+   "bytes": 1106942,
+   "sha256": "c5651dcb8c5296f89ad03dbc179a87e26c25bfe2dcba14c17f9c06f90efe30af"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2",
+   "path": "assets/library/prop/crock_stoneware/highpoly.glb",
+   "bytes": 13136080,
+   "sha256": "8fe39dc693f9a8ff4144e0a6adf46d8235d58a38b46d7a6f37f9e4e078e69ab9"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2",
+   "path": "assets/library/prop/crock_stoneware/highpoly_textures/base_color.png",
+   "bytes": 6540727,
+   "sha256": "25c8c3062a05f55dc549c35ec754d79af55ccaa91548d937a7393ad9c27fc42b"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2",
+   "path": "assets/library/prop/crock_stoneware/highpoly_textures/metallic.png",
+   "bytes": 18377,
+   "sha256": "9a05f4ad0dc1046e3731bf19b9c883b9bc0bc514192d02747cb7f205566bb84f"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2",
+   "path": "assets/library/prop/crock_stoneware/highpoly_textures/normal.png",
+   "bytes": 5255796,
+   "sha256": "ecc7b6ef45fc3466f2d769d970d5eb6b00e509d8bfc90ed73c861f744781a7d6"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-cb6c-7140-b9cb-bd4cc5c335d2",
+   "path": "assets/library/prop/crock_stoneware/highpoly_textures/roughness.png",
+   "bytes": 1434233,
+   "sha256": "22f040a31a02c497dbef21a37bc90bf1ff6943cede851738d34c8ae3ed3e5a59"
+  },
+  {
+   "family": "prop",
+   "key": "crock_stoneware",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/crock_stoneware/l0.glb",
+   "bytes": 3214148,
+   "sha256": "3f3daeccc156a7e2314c6d517f8a874a5d5c94b39200cbcd39518ac59f62b388"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "concept",
+   "task_id": "01a0fc6e-d7aa-74a2-a6b8-ea59e52ee929",
+   "path": "assets/library/prop/jar_shelf/concept.png",
+   "bytes": 1125419,
+   "sha256": "1254a8b973b363894382d5adec2854fb7f7ec2329eb5c61c502410bf512deeb9"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee",
+   "path": "assets/library/prop/jar_shelf/highpoly.glb",
+   "bytes": 84862828,
+   "sha256": "58418344dc41bda24022a9c0b73c0c7e09dd553f5ea61d455123dda07d213ec3"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee",
+   "path": "assets/library/prop/jar_shelf/highpoly_textures/base_color.png",
+   "bytes": 6698014,
+   "sha256": "39da54d971caa366bc716ee9282e4788836eaa052273245e889dc41a11e8a5e5"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee",
+   "path": "assets/library/prop/jar_shelf/highpoly_textures/metallic.png",
+   "bytes": 33703,
+   "sha256": "a65b62b97c6691829ae4175635b6618b9ce55c7253098a92c1096300a10a1a5c"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee",
+   "path": "assets/library/prop/jar_shelf/highpoly_textures/normal.png",
+   "bytes": 5733989,
+   "sha256": "588830b189e83205cc466420827a529b82b86333cb1f32bcb32adcb24efc70f6"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-d4b3-7212-90e8-57c4e3e4bbee",
+   "path": "assets/library/prop/jar_shelf/highpoly_textures/roughness.png",
+   "bytes": 1766826,
+   "sha256": "974b2a3053ae3ad881b34240c5ec04271d20bea5829e1657e5b71d6e7fbb6048"
+  },
+  {
+   "family": "prop",
+   "key": "jar_shelf",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/jar_shelf/l0.glb",
+   "bytes": 3447132,
+   "sha256": "746c61bb820e90ce77fa58135b4bc09fe82a9a5f74fb4d3da940b59753f2bc66"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "concept",
+   "task_id": "01a0fc6e-e1e1-74d5-b7cb-b4550f5747e0",
+   "path": "assets/library/prop/ale_cask/concept.png",
+   "bytes": 1219655,
+   "sha256": "b9c24ea1ffd0d9d0c94e225587ded47577c5bdda834970ce35efee92bb2ae22c"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-df40-7274-bf9b-f5e0ea5af358",
+   "path": "assets/library/prop/ale_cask/highpoly.glb",
+   "bytes": 37537312,
+   "sha256": "dba7fc89e0f12daba34f5633a4e5da04d0d1731d51abf73aa3911dd63a0aca5c"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-df40-7274-bf9b-f5e0ea5af358",
+   "path": "assets/library/prop/ale_cask/highpoly_textures/base_color.png",
+   "bytes": 6610082,
+   "sha256": "cf0a29aceece3034130afa7fe7ab41e2a94498afe3615a3fec891f23e523dc8a"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-df40-7274-bf9b-f5e0ea5af358",
+   "path": "assets/library/prop/ale_cask/highpoly_textures/metallic.png",
+   "bytes": 508755,
+   "sha256": "5063fa2b624ee237fcd19c2fcbd12fb0d0cabdd97cb93dbc28575ab62116efd7"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-df40-7274-bf9b-f5e0ea5af358",
+   "path": "assets/library/prop/ale_cask/highpoly_textures/normal.png",
+   "bytes": 5583518,
+   "sha256": "f4f72d0400caa5fd9c04f954c2272127e9d7dd5edca381491e2638f08715a027"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-df40-7274-bf9b-f5e0ea5af358",
+   "path": "assets/library/prop/ale_cask/highpoly_textures/roughness.png",
+   "bytes": 1675793,
+   "sha256": "8ee7b000d839028ba8ffb8f520ab0a5a46054a10175eaeec4a767120d10b79c2"
+  },
+  {
+   "family": "prop",
+   "key": "ale_cask",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/ale_cask/l0.glb",
+   "bytes": 3247768,
+   "sha256": "582a1c9dab2b358b4a8e8084deaba05c8bda76104d209382a78325b71bcc00ac"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "concept",
+   "task_id": "01a0fc6e-ed19-711c-ba27-7780da747614",
+   "path": "assets/library/prop/brew_vat/concept.png",
+   "bytes": 1043149,
+   "sha256": "d9b35e9bc018d03e850a8002077450ceb5d474b1be009e58b291c66f9922f9f4"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb",
+   "path": "assets/library/prop/brew_vat/highpoly.glb",
+   "bytes": 50915340,
+   "sha256": "3776f63ed5eac13e5e8b213f6450cd9149d636601c7d6708e01ece9f38d56fab"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb",
+   "path": "assets/library/prop/brew_vat/highpoly_textures/base_color.png",
+   "bytes": 5974294,
+   "sha256": "f8f4c8fd31ccc090ebe6d891611258ba1792c65dfd3d94db0c2d93dbb77a8972"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb",
+   "path": "assets/library/prop/brew_vat/highpoly_textures/metallic.png",
+   "bytes": 459280,
+   "sha256": "33e4a7fdd268ef73aace521864bf61284560c6784e1c247296566be833f08473"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb",
+   "path": "assets/library/prop/brew_vat/highpoly_textures/normal.png",
+   "bytes": 4960330,
+   "sha256": "2445ed1031cef74fdf828419523b14a452c46586a3b11f3a21a39d94717f9e04"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-e8cb-72f6-b31e-ceec177bfcdb",
+   "path": "assets/library/prop/brew_vat/highpoly_textures/roughness.png",
+   "bytes": 1634789,
+   "sha256": "75aec76fe2e48148b50b623add2a48b33b86bc572924645ba171054009df47b9"
+  },
+  {
+   "family": "prop",
+   "key": "brew_vat",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/brew_vat/l0.glb",
+   "bytes": 3217372,
+   "sha256": "6d4091d12d0c65704bd44f9da9d15276a8fa81a31c3523dca5afb5c27620a357"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "concept",
+   "task_id": "01a0fc6e-f739-75ce-b3db-00a3eaf715b4",
+   "path": "assets/library/prop/tunnel_timber_kit/concept.png",
+   "bytes": 637017,
+   "sha256": "b08afae001cf7647d1f22ad19acdfb687d1f4c3a3e6cec61b82ddb2d4563186a"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-f3d9-70f3-8213-a48fb9b1869d",
+   "path": "assets/library/prop/tunnel_timber_kit/highpoly.glb",
+   "bytes": 14106304,
+   "sha256": "a0ed4ac11200f4e04038132c438945da25d213276daf2953a4607f4fb55474a9"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-f3d9-70f3-8213-a48fb9b1869d",
+   "path": "assets/library/prop/tunnel_timber_kit/highpoly_textures/base_color.png",
+   "bytes": 6180674,
+   "sha256": "67efc19cbd2625678bc195fb82afceabb7c00aa0bf6d745563aa099684a23ffb"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-f3d9-70f3-8213-a48fb9b1869d",
+   "path": "assets/library/prop/tunnel_timber_kit/highpoly_textures/metallic.png",
+   "bytes": 34394,
+   "sha256": "b26254d9a467f43cdf803f9c4c8aa14ed6ff973fb4e82b2e39cd39403e772976"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-f3d9-70f3-8213-a48fb9b1869d",
+   "path": "assets/library/prop/tunnel_timber_kit/highpoly_textures/normal.png",
+   "bytes": 4968035,
+   "sha256": "243bae04efcb7475fd1a123e1a872faafcfb7f1e9a7f9a5505c7455d89ec84e9"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "highpoly",
+   "task_id": "01a0fc6f-f3d9-70f3-8213-a48fb9b1869d",
+   "path": "assets/library/prop/tunnel_timber_kit/highpoly_textures/roughness.png",
+   "bytes": 1384300,
+   "sha256": "5c91ca62858ce9940e87654267999f19053e96f1984ff05ad98d8dbfb4d9bc52"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/tunnel_timber_kit/l0.glb",
+   "bytes": 3349116,
+   "sha256": "75e5d5e5a5b2728b6d6f815af197ba3f0eedc568ed9adcf03419902a4889cb16"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/tunnel_timber_kit/l0_lintel.glb",
+   "bytes": 3327188,
+   "sha256": "bc006837c972dce143f9e7dc39d8a1149fb40568af1923a80eff929d829cfe9e"
+  },
+  {
+   "family": "prop",
+   "key": "tunnel_timber_kit",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/tunnel_timber_kit/l0_post.glb",
+   "bytes": 3318892,
+   "sha256": "f3c376e786cd23c9226a71fc11955fc0fae7752495ce700c1ec44ae288d2f110"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "concept",
+   "task_id": "01a0fc6f-b47b-77ae-b198-a2b02abace26",
+   "path": "assets/library/prop/rock_face/concept.png",
+   "bytes": 1027456,
+   "sha256": "a09cb9ac34ea2d21c03f08f0bd944df3adaea5d0986053df757d1776c636a292"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "concept",
+   "task_id": "01a0fc6f-0100-71ca-841a-5add62707dfa",
+   "path": "assets/library/prop/rock_face/concept_rejected_box.png",
+   "bytes": 1292619,
+   "sha256": "1081c03cad9a1445ccd198c8a09a3f82347ee4880b6d0f2a54818f821603f306"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "highpoly",
+   "task_id": "01a0fc70-4b9f-7267-9823-f5e356159cd2",
+   "path": "assets/library/prop/rock_face/highpoly.glb",
+   "bytes": 29792668,
+   "sha256": "a2d88d47e7c042ca3d6609cea2e30bbbc69ac65a112709ffdb28c7389e00c0a6"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "highpoly",
+   "task_id": "01a0fc70-4b9f-7267-9823-f5e356159cd2",
+   "path": "assets/library/prop/rock_face/highpoly_textures/base_color.png",
+   "bytes": 5924367,
+   "sha256": "5643c641a37c46000c15995c5e1c34a6e06403fc3c4808f7e7a3477547e64aee"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "highpoly",
+   "task_id": "01a0fc70-4b9f-7267-9823-f5e356159cd2",
+   "path": "assets/library/prop/rock_face/highpoly_textures/metallic.png",
+   "bytes": 18626,
+   "sha256": "52a6f18ea7b1af61892979bf9afd6389e18b6a26470683754ffcbefbc62551e8"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "highpoly",
+   "task_id": "01a0fc70-4b9f-7267-9823-f5e356159cd2",
+   "path": "assets/library/prop/rock_face/highpoly_textures/normal.png",
+   "bytes": 4749857,
+   "sha256": "1365d20e5a4565206d729660aa62f649688069aa5dba95b75f86a1482fb17892"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "highpoly",
+   "task_id": "01a0fc70-4b9f-7267-9823-f5e356159cd2",
+   "path": "assets/library/prop/rock_face/highpoly_textures/roughness.png",
+   "bytes": 1455202,
+   "sha256": "1e5a17a0ecc8ab040265d3f742e92bb745009cf87b42f433e98dc8f21db43543"
+  },
+  {
+   "family": "prop",
+   "key": "rock_face",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass3.py",
+   "path": "assets/library/prop/rock_face/l0.glb",
+   "bytes": 3279472,
+   "sha256": "669c0c89ced5634cead4cb0a404a339735f33d2e2eae6521657e917030be5caa"
   }
  ]
 }

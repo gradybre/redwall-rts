@@ -28,6 +28,8 @@ const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
 const StandScript := preload("res://demo/forestry/forest_stand.gd")
 const ZonesScript := preload("res://demo/forestry/forest_zones.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
+const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
+const WoodlandPalette := preload("res://demo/ui/woodland_palette.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
 
@@ -458,6 +460,33 @@ func test_every_ramp_passes_the_colour_blind_check() -> void:
 			"service"], [water, LensPalette.OVER_WATER, "water"]]:
 		var failing: PackedStringArray = ColourCheck.failures(row[0], row[1], PackedStringArray())
 		assert_true(failing.is_empty(), "%s: %s" % [row[2], "; ".join(failing)])
+
+
+func test_the_woods_marks_pass_the_colour_blind_check() -> void:
+	"""The Woods layer's six marks -- two zones, four tree states -- clear decision 0581's floors over the grass, any
+	vision, in the legend, by day and by night (decision 1044), and each tree state draws its legend entry's colour."""
+	var failing: PackedStringArray = ColourCheck.failures(PackedColorArray(ForestMarks.LEGEND_COLOURS),
+		LensPalette.OVER_GRASS, PackedStringArray(ForestMarks.LEGEND_NAMES))
+	assert_true(failing.is_empty(), "; ".join(failing))
+	assert_equal(ForestMarks.STATE_COLOURS[StandScript.STATE_MATURE], ForestMarks.MATURE_COLOUR, "mature")
+	assert_equal(ForestMarks.STATE_COLOURS[StandScript.STATE_YOUNG], ForestMarks.YOUNG_COLOUR, "young")
+	assert_equal(ForestMarks.STATE_COLOURS[StandScript.STATE_STUMP], ForestMarks.STUMP_COLOUR, "stump")
+	assert_equal(ForestMarks.STATE_COLOURS[StandScript.STATE_CLEARED], ForestMarks.CLEARED_COLOUR, "cleared")
+	assert_equal(ForestMarks.LEGEND_COLOURS.size(), ForestMarks.LEGEND_NAMES.size(), "a name for each colour")
+
+
+func test_the_old_woods_marks_fail_where_decision_0581_measured() -> void:
+	"""The check is not vacuous for the woods: the marks before decision 1044 (brass zone and young tree alike, an umber
+	stump) fail it -- the two brasses everywhere, mature and stump with deuteranopia at 8.6 by day and 7.8 by night."""
+	var old: PackedColorArray = [WoodlandPalette.BRASS, WoodlandPalette.SAGE, WoodlandPalette.LEAF, WoodlandPalette.BRASS,
+		WoodlandPalette.UMBER, WoodlandPalette.CLAY]
+	var trees: PackedColorArray = old.slice(2)
+	assert_equal(ColourCheck.failures(old, LensPalette.OVER_GRASS, PackedStringArray()).size(),
+		ColourCheck.SEEN_COUNT * ColourCheck.VISION_COUNT, "the shared brass fails every viewing")
+	var day: Vector3 = ColourCheck.closest(trees, LensPalette.OVER_GRASS, ColourCheck.SEEN_DAY, ColourCheck.VISION_DEUTAN)
+	var night: Vector3 = ColourCheck.closest(trees, LensPalette.OVER_GRASS, ColourCheck.SEEN_NIGHT, ColourCheck.VISION_DEUTAN)
+	assert_true(int(day.y) == 0 and int(day.z) == 2 and absf(day.x - 8.6) < 0.05, "mature and stump by day: %.2f" % day.x)
+	assert_true(absf(night.x - 7.8) < 0.05, "and by night: %.2f" % night.x)
 
 
 func test_the_old_ramps_fail_the_check_that_the_new_ones_pass() -> void:

@@ -116,6 +116,11 @@ extends Node3D
 ## the selection's order lists. `_build_work()` wires it once every owner is built -- the kitchen's cook and water
 ## drawers listed too, and no work handed out to a resident at its meal (`add_kitchen`, decision 0381 with 0411).
 ##
+## GROUP SELECTION (decision 0791, demo/control/group_select.gd): control groups (Ctrl+0-9 keep, 0-9 select, twice: go
+## to), a double click's residents of a kind in view, the box's "Selecting residents: n", Select idle, and the party
+## panel's group section for two or more -- their status, a tile each, one crew for all, Send to... `group_select()` is
+## where an owner adds a status row the group section shows (group_status.gd: e.g. Chilled, Injured).
+##
 ## THE FIRST-VILLAGE GUIDE (decision 0481, demo/guide/; review F49, P7, UX-017 to UX-020): one objective card at a time,
 ## each completed only by its real outcome in the village (a resident inspected, a harvest shelved, a supper eaten, a
 ## bridge crossed / a tunnel walked / a bed readied before the frost), with a marker in the world; the village guide
@@ -229,6 +234,7 @@ const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
+const GroupSelectScript := preload("res://demo/control/group_select.gd")
 const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
 const SongsScript := preload("res://demo/songs/demo_songs.gd")
 const RoutesScript := preload("res://demo/routes/demo_routes.gd")
@@ -337,6 +343,7 @@ var _history: NewsHistoryScript = null
 var _cards: IncidentCardsScript = null
 var _jump: NewsJumpScript = NewsJumpScript.new()
 var _work: DemoWorkScript = null
+var _group_select: GroupSelectScript = null
 var _weir_view: WeirViewScript = null
 var _songs: SongsScript = null
 ## The route and infrastructure previews (decision 0461) and their map layer's row.
@@ -733,6 +740,23 @@ func _build_work() -> void:
 	command.set_queue_handler(_work.queue_at)
 	_work.unlock_jobs_command(_shell())
 	_work.screen.close_requested.connect(_work.screen.close)
+	_build_group_select()
+
+
+func _build_group_select() -> void:
+	"""GROUP SELECTION (decision 0791): over the command layer and the work board's crews, its needs read from the
+	kitchen and the night's beds."""
+	_group_select = GroupSelectScript.new()
+	add_child(_group_select)
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_group_select.configure(command, _cast as DemoCastScript, _work.board, (_camera as DemoCameraScript).centre_on)
+	_group_select.bind_needs(_kitchen.kitchen.fed_word, command.tunnels().ext.night)
+
+
+func group_select() -> GroupSelectScript:
+	"""The village's group selection (demo/control/group_select.gd): `group_select().statuses.add(...)` puts a status in
+	the group section (group_status.gd)."""
+	return _group_select
 
 
 func _build_standing() -> void:

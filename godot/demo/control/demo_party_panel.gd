@@ -326,6 +326,19 @@ func _build_detail() -> void:
 	_detail.add_child(_hint)
 
 
+func add_top_row(row: Control) -> void:
+	"""Another owner's row under the actions, in view with them (and docked into the inspector with them): the group
+	selection's "Select idle" (control/group_select.gd, decision 0791)."""
+	_top.add_child(row)
+
+
+func add_section(section: Control) -> void:
+	"""Another owner's section in the inspector, right after the notice line: the group panel (control/group_panel.gd,
+	decision 0791). It shows and hides itself."""
+	_detail.add_child(section)
+	_detail.move_child(section, _notice.get_index() + 1)
+
+
 func room_button(k: int) -> Button:
 	"""The room tool's button `k` (0 Burrow home, 1 Root cellar; null before build)."""
 	return _room_buttons[k] if k >= 0 and k < _room_buttons.size() else null

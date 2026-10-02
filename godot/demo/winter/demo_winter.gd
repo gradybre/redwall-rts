@@ -746,6 +746,15 @@ func status_word(i: int) -> String:
 	return Text.CHILLED_WORD if cold.is_chilled(i) else ""
 
 
+func fuel_winter_days_milli() -> int:
+	"""M4's "fuel >= 18 winter days" (GDD §5.11) in thousandths of a day: the stores' wood over a WINTER day's demand --
+	every hearth burning now at 4 U, plus the cooking mean -- whatever today's season (§5.8's fuel-days at winter
+	demand); 0 with no hearth to heat. Bound to the goals' M4 `fuel` part (decision 0902). Allocation-free."""
+	var hundredths: int = Rules.fuel_days_hundredths(fuel.wood_milli(), fuel.burning_count() * Rules.WINTER_DAY_MILLI,
+		fuel.cook_mean_milli())
+	return maxi(hundredths, 0) * 10
+
+
 func metrics_into(out: Dictionary) -> void:
 	"""THE METRICS for the balance sim, into `out`: wood burned (milli-U), source-hours heated and out of fuel, fuel-days
 	(hundredths; -1 no demand), today's heating demand and the cooking mean (milli-U a day), the projection (milli-U),

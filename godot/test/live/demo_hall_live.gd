@@ -16,6 +16,7 @@ const ProjectsScript := preload("res://demo/hall/hall_projects.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const TaskScript := preload("res://demo/work/work_task.gd")
+const TapestryScript := preload("res://demo/hall/tapestry.gd")
 
 const BOOT_FRAMES: int = 14
 const SETTLE_FRAMES: int = 4
@@ -213,18 +214,43 @@ static func _straight_in(projects: ProjectsScript, project: int) -> void:
 func _the_hall_opens() -> void:
 	"""A click on the hall's facade opens its panel, in the window, at stage 1, its upgrade locked."""
 	_check("the hall is built", _hall() != null)
-	_check("stage 1 is woven at the start", _hall().tapestry.count() == 1, "%d" % _hall().tapestry.count())
+	_check("stage 1 is woven at the start", _hall_entries() == 1 and _hall().tapestry.title_of(0) == "Stage 1: the community hall",
+		"%d" % _hall_entries())
 	await _look_at_hall(26.0)
 	_click_at(await _open_point_on_hall())
 	await _frames(SETTLE_FRAMES)
 	_check("a click on the hall opens its panel", _hall().panel.is_open())
 	_check("the panel is in the window", _within(_hall().panel.frame_rect()), str(_hall().panel.frame_rect()))
 	_check("it is the community hall", _hall().panel.title_text() == "Community hall", _hall().panel.title_text())
+	_weavers_bound()
 	var plan: Button = _hall().panel.button(&"plan_upgrade")
 	_check("Plan is dimmed while locked, saying why", plan.disabled and plan.tooltip_text.begins_with("The upgrade opens"),
 		plan.tooltip_text)
 	_floors("the hall's panel", _hall().panel)
 	await _capture("hall_panel_stage1")
+
+
+func _hall_entries() -> int:
+	"""The tapestry's entries the hall wove itself: not the goals' milestones nor the chronicle's pages, which the
+	village weaves in too (decision 0902)."""
+	var n: int = 0
+	for k: int in _hall().tapestry.count():
+		var kind: int = _hall().tapestry.kind_of(k)
+		n += 0 if kind == TapestryScript.KIND_MILESTONE or kind == TapestryScript.KIND_CHRONICLE else 1
+	return n
+
+
+func _weavers_bound() -> void:
+	"""The village wires the chronicle's pages and the goals reached into the tapestry, the winter's fuel into M4, and
+	the hall's Heat line says its hearth (decision 0902)."""
+	var chronicle: Object = _village.call(&"chronicle")
+	_check("the chronicle's pages are woven", (chronicle.get(&"page_written") as Callable).is_valid())
+	var goals: Object = _village.call(&"guide").get(&"goals")
+	_check("the goals reached are woven", (goals.get(&"also_reached") as Callable).is_valid())
+	var fuel: Object = goals.get(&"book").call(&"part_of", &"m4_hearth_charter", &"fuel")
+	_check("M4's fuel is measured by the winter", bool(fuel.call(&"is_measured")))
+	var gives: String = _hall().panel.gives_line()
+	_check("the Heat line says the hall's hearth", gives.contains("its hearth is"), gives)
 
 
 func _the_tapestry_opens() -> void:
@@ -233,7 +259,8 @@ func _the_tapestry_opens() -> void:
 	await _frames(SETTLE_FRAMES)
 	var tapestry: Node = _hall().tapestry_panel
 	_check("the tapestry opens from the hall", tapestry.call(&"is_open") and not _hall().panel.is_open())
-	_check("its one entry is drawn", int(tapestry.call(&"shown_entries")) == 1)
+	_check("its entries are drawn", int(tapestry.call(&"shown_entries")) == _hall().tapestry.count(),
+		"%d" % int(tapestry.call(&"shown_entries")))
 	_check("the tapestry is in the window", _within(tapestry.call(&"frame_rect")))
 	_floors("the tapestry", tapestry)
 	await _capture("tapestry_start")
@@ -353,7 +380,9 @@ func _the_full_tapestry() -> void:
 	_hall().open_tapestry()
 	await _frames(SETTLE_FRAMES)
 	var tapestry: Node = _hall().tapestry_panel
-	_check("seven entries drawn", int(tapestry.call(&"shown_entries")) == 7, "%d" % int(tapestry.call(&"shown_entries")))
+	_check("the hall's seven entries woven, every entry drawn", _hall_entries() == 7
+		and int(tapestry.call(&"shown_entries")) == _hall().tapestry.count(), "%d of %d" % [_hall_entries(),
+		int(tapestry.call(&"shown_entries"))])
 	_check("woven oldest first", String(tapestry.call(&"entry_title", 0)) == "Stage 1: the community hall")
 	_floors("the full tapestry", tapestry)
 	await _capture("tapestry_full")

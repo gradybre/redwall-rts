@@ -188,6 +188,21 @@ func test_fuel_days_and_the_last_heated_hour() -> void:
 	assert_equal(fuel.last_heated_hour(), 100 + 35, "35 more hours")
 
 
+func test_m4_fuel_counts_winter_days_whatever_the_season() -> void:
+	"""M4's "fuel >= 18 winter days" (decision 0902): the wood over every burning hearth at 4 U plus the cooking mean, in
+	thousandths of a day -- in summer too, when today's fuel-days are NO_DEMAND; 0 with no hearth to heat."""
+	var winter: WinterScript = _keep(WinterScript.new()) as WinterScript
+	winter.fuel = _fuel(72000)
+	winter.fuel.pass_hour(10, SUMMER, 180, 180)
+	assert_equal(winter.fuel.fuel_days_hundredths(), Rules.NO_DEMAND, "summer: no demand today")
+	assert_equal(winter.fuel_winter_days_milli(), 18000, "72 U over the hall's 4 U a winter day: 18 days")
+	winter.fuel.set_hearth(0, true)
+	assert_equal(winter.fuel_winter_days_milli(), 9000, "two hearths: 9 days")
+	winter.fuel.set_banked(0, true)
+	winter.fuel.set_banked(HALL, true)
+	assert_equal(winter.fuel_winter_days_milli(), 0, "none burning: nothing to measure")
+
+
 func test_the_cooking_mean_is_the_last_three_whole_days() -> void:
 	"""The kitchen's running total read hourly: each new day closes the last; the mean over at most three days."""
 	var fuel: FuelScript = _fuel(0)

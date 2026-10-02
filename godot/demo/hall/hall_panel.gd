@@ -42,6 +42,10 @@ var _stores: StoresScript = null
 var _tapestry: TapestryScript = null
 ## `() -> String`: who sleeps on the hall's floor tonight ("" nobody).
 var _bedless: Callable = Callable()
+## `() -> String`: the hall hearth's state in words ("" none bound), and `() -> int`, a stamp that changes when it may
+## have (the winter's: decision 0571; bound at the batch 7 integration, decision 0902).
+var _hearth: Callable = Callable()
+var _hearth_stamp: Callable = Callable()
 var _actions: Dictionary = {}
 var _frame: PanelContainer = null
 var _title: Label = null
@@ -52,7 +56,7 @@ var _banners: Label = null
 var _stock: Label = null
 var _message: Label = null
 var _buttons: Dictionary = {}
-var _drawn: PackedInt64Array = PackedInt64Array([-1, -1, -1, -1, -1])
+var _drawn: PackedInt64Array = PackedInt64Array([-1, -1, -1, -1, -1, -1])
 var _refresh_in: float = 0.0
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
@@ -76,6 +80,13 @@ func set_actions(actions: Dictionary) -> void:
 func set_bedless(names: Callable) -> void:
 	"""`names() -> String`: who sleeps on the hall's floor tonight ("" nobody)."""
 	_bedless = names
+
+
+func set_hearth(words: Callable, stamp: Callable) -> void:
+	"""`words() -> String`: the hall's hearth now, in the winter's words (fuelled and demanded, out of fuel, not needed
+	today...); `stamp() -> int` changes whenever it may have."""
+	_hearth = words
+	_hearth_stamp = stamp
 
 
 func _ready() -> void:
@@ -231,7 +242,8 @@ func refresh() -> bool:
 		return false
 	_title.text = Rules.STAGE_NAMES[_projects.tier]
 	_stage.text = "Stage %d of %d" % [_projects.tier, Rules.STAGE_COUNT]
-	_gives.text = gives_text(_projects, String(_bedless.call()) if _bedless.is_valid() else "")
+	_gives.text = gives_text(_projects, String(_bedless.call()) if _bedless.is_valid() else "",
+		String(_hearth.call()) if _hearth.is_valid() else "")
 	_upgrade.text = upgrade_text(_projects, _crew)
 	_banners.text = banner_text(_projects, _crew)
 	_stock.text = stock_text(_projects, _stores)
@@ -247,6 +259,7 @@ func _stamp_changed() -> bool:
 	changed = _restamp(1, _crew.revision) or changed
 	changed = _restamp(2, _stores.revision if _stores != null else 0) or changed
 	changed = _restamp(3, _tapestry.revision if _tapestry != null else 0) or changed
+	changed = _restamp(5, int(_hearth_stamp.call()) if _hearth_stamp.is_valid() else 0) or changed
 	return _restamp(4, _bedless_hash()) or changed
 
 
@@ -280,8 +293,14 @@ func _draw_buttons() -> void:
 
 # --- the words (static, for the checks) -----------------------------------------------------------------------------
 
-static func gives_text(projects: ProjectsScript, bedless: String) -> String:
-	"""What the hall gives at its stage, from the adopted rules (see hall_rules.gd WHAT THE HALL GIVES)."""
+func gives_line() -> String:
+	"""What the panel's "what it gives" section says now (checks)."""
+	return _gives.text if _gives != null else ""
+
+
+static func gives_text(projects: ProjectsScript, bedless: String, hearth: String = "") -> String:
+	"""What the hall gives at its stage, from the adopted rules (see hall_rules.gd WHAT THE HALL GIVES), and its hearth
+	now (`hearth`, the winter's words; "" none)."""
 	var seats: int = Rules.SEATS
 	var lines := PackedStringArray()
 	lines.append("Dining and gathering: %d seats for meals, songs and feasts; a feast seats up to %d residents (a seat "
@@ -289,7 +308,8 @@ static func gives_text(projects: ProjectsScript, bedless: String) -> String:
 	var tonight: String = " Without a bed now: %s." % bedless if not bedless.is_empty() else ""
 	lines.append("Sleeping: whoever has no bed sleeps on its floor.%s" % tonight)
 	lines.append("Comfort: the common room's target is %d" % projects.comfort_target())
-	lines.append("Heat: a hearth here burns fuel ×%s" % permille_text(projects.fuel_permille()))
+	var now: String = "its hearth is %s; " % hearth if not hearth.is_empty() else ""
+	lines.append("Heat: %sa hearth here burns fuel ×%s" % [now, permille_text(projects.fuel_permille())])
 	return "\n".join(lines)
 
 

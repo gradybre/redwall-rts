@@ -293,6 +293,7 @@ const WorldLayout := preload("res://demo/world/world_layout.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
+const TapestryScript := preload("res://demo/hall/tapestry.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -441,6 +442,7 @@ func _ready() -> void:
 	_build_regatta()
 	_build_sound()
 	_build_guide()
+	_bind_goal_measures()
 	_build_camera_modes()
 	_build_chronicle()
 	_build_hall()
@@ -874,6 +876,33 @@ func _build_hall() -> void:
 		_guide.card.hide_while(_hall.is_open)
 	if _people_card != null:
 		_people_card.hide_while(_hall.is_open)
+	_hall.set_hearth(_hall_hearth_words, _winter.stamp)
+	_weave_history()
+
+
+func _hall_hearth_words() -> String:
+	"""The hall's hearth now, in the winter's words (demo_winter.gd `hearth_words`: heated -- fuelled and demanded, the
+	`hearth_fuel.gd hearth_lit(HALL)` state -- out of fuel, not needed today...), for the hall's panel."""
+	return _winter.hearth_words(HearthFuelScript.HALL)
+
+
+func _weave_history() -> void:
+	"""THE TAPESTRY'S OTHER WEAVERS (decision 0902): each chronicle page written (decision 0631's hook) and each goal
+	reached (decision 0781) is also woven into the hall's tapestry, each once."""
+	if _chronicle != null:
+		_chronicle.page_written = _weave_page
+	if _guide != null:
+		_guide.goals.also_reached = _weave_goal
+
+
+func _weave_page(absolute_season: int, title: String, summary: String) -> void:
+	"""A chronicle page written: a chronicle knot, once a season."""
+	_hall.tapestry.add_entry(TapestryScript.KIND_CHRONICLE, title, summary, StringName("chronicle:%d" % absolute_season))
+
+
+func _weave_goal(goal_id: StringName, title: String, said: String) -> void:
+	"""A goal or milestone reached: a milestone knot, once a goal."""
+	_hall.tapestry.add_entry(TapestryScript.KIND_MILESTONE, title, said, StringName("goal:%s" % goal_id))
 
 
 func hall() -> HallScript:
@@ -912,6 +941,12 @@ func _show_routes(on: bool) -> void:
 	"""The Routes layer's switch (built before the previews it shows: the picker lists it beside the water's)."""
 	if _routes != null:
 		_routes.show_lens(on)
+
+
+func _bind_goal_measures() -> void:
+	"""The goals' parts a later feature measures (goal_book.gd `bind_measure`; decision 0781 left them declared): M4's
+	"fuel >= 18 winter days" from the winter's stores and hearths (decision 0902)."""
+	_guide.goals.book.bind_measure(&"m4_hearth_charter", &"fuel", _winter.fuel_winter_days_milli)
 
 
 func _build_guide() -> void:

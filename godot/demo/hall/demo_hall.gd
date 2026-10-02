@@ -129,6 +129,12 @@ func set_bedless(names: Callable) -> void:
 	panel.set_bedless(names)
 
 
+func set_hearth(words: Callable, stamp: Callable) -> void:
+	"""`words() -> String`: the hall's hearth now (the winter's, decision 0571); `stamp() -> int` changes when it may have.
+	The panel's Heat line says it."""
+	panel.set_hearth(words, stamp)
+
+
 # --- each frame ---------------------------------------------------------------------------------------------------
 
 func _process(_delta: float) -> void:

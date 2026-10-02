@@ -679,6 +679,9 @@ func test_the_panel_says_what_the_hall_gives_and_where_the_upgrade_stands() -> v
 	assert_true(gives.contains("Without a bed now: Wenna Tallowby."), gives)
 	assert_true(gives.contains("target is 7500") and gives.contains("×1.00"), gives)
 	assert_false(PanelScript.gives_text(projects, "").contains("Without a bed"), "nobody bedless")
+	assert_false(gives.contains("its hearth"), "no hearth bound: the line names none")
+	assert_true(PanelScript.gives_text(projects, "", "heated, 18.0 °C").contains(
+		"Heat: its hearth is heated, 18.0 °C; a hearth here burns fuel ×1.00"), "the winter's words for its hearth")
 	assert_true(PanelScript.upgrade_text(projects, null).begins_with("Opens once the first harvest"), "locked")
 	projects.unlocked = true
 	assert_true(PanelScript.upgrade_text(projects, null).begins_with("Ready to plan"), "ready")

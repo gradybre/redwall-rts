@@ -456,6 +456,26 @@ func test_the_owner_says_a_reached_goal_once_in_village_news() -> void:
 	assert_equal(notices.count(), 1, "said once")
 
 
+func test_also_reached_is_told_each_goal_once_after_its_news() -> void:
+	"""The tapestry's hook (decision 0902): told the goal's id, title and words once, after its news line."""
+	var world := _world(9)
+	var told: Array[String] = []
+	var goals := GoalsScript.new()
+	goals.post = func(_text: String) -> void: told.append("news")
+	goals.also_reached = func(goal_id: StringName, title: String, said: String) -> void:
+		told.append("%s|%s|%s" % [goal_id, title, said])
+	goals.configure(world, null)
+	goals.update()
+	world.stores.add_wood(60000 - world.stores.wood_milli_u)
+	world.calendar.tick += HOUR_TICKS
+	goals.update()
+	world.calendar.tick += HOUR_TICKS
+	goals.update()
+	assert_equal(told, ["news", "winter_wood|Wood for the cold|60 U of wood is stacked in store."], "once, after its news")
+	goals.post = Callable()
+	goals.also_reached = Callable()
+
+
 func test_a_milestone_is_said_as_conditions_met_never_as_an_award() -> void:
 	"""Twelve residents, day 4, 200 portions: at the hour M1 is said as its conditions met, with no unlocks."""
 	var world := _world(12)

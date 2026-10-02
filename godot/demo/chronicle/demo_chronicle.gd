@@ -20,9 +20,8 @@ extends Node
 ## does still has a page to read. A draft uses up no village first.
 ##
 ## THE TAPESTRY HOOK. `page_written: (absolute_season: int, title: String, summary: String) -> void`, called once for
-## each page written (never for a draft). The great hall's tapestry (feature branch feat/demo-great-hall, not merged)
-## is meant to set it to `village.tapestry().add_entry(KIND_CHRONICLE, ...)`; until it does it is unset and nothing is
-## called. The demo depends on nothing there.
+## each page written (never for a draft). The village sets it to weave the page into the great hall's tapestry
+## (`demo_village.gd _weave_page`: tapestry.gd `add_entry(KIND_CHRONICLE, ...)`, decision 0902); unset, nothing is called.
 
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")

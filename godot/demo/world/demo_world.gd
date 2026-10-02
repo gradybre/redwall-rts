@@ -23,6 +23,9 @@ extends Node3D
 ##   make_piece(...)       one more model of a world key, drawn exactly as the world draws it.
 ##   piece_transform(...)  where a placed model stands: scaled, turned, and a staged model let down
 ##                         into the ground by its baked base (world_sizes.gd SINK_M).
+##   placed_node(id)       the node drawing authored placement `id` (null before build()).
+##   stage_node(id)        placement `id`'s LATER STAGE, built hidden (null when not staged; see STAGES).
+##   window_glow(id)       lit home `id`'s window materials (see THE HOMES' WINDOWS): the night lights drive them.
 ## The three queries are pure functions of the authored layout: they answer identically before
 ## or after `build()`, and whether or not assets are staged.
 ##
@@ -37,8 +40,20 @@ const Scatter := preload("res://demo/world/world_scatter.gd")
 const Look := preload("res://demo/world/world_look.gd")
 const CropCards := preload("res://demo/world/crop_cards.gd")
 const WaterDressing := preload("res://demo/water/water_dressing.gd")
+const Curves := preload("res://demo/world/daylight_curves.gd")
 
 const GROUND_Y: float = 0.0
+
+## THE HOMES' WINDOWS (decision 0541; art pass 2, decision 0951). A lit home (daylight_curves.gd LIT_HOMES) whose
+## `<key>_windows` row is staged -- the same L0 with an emissive window mask, I11 Ember -- is drawn with that model
+## instead. Its emissive materials are duplicated per home and start dark (energy 0); night_lights.gd drives them from
+## the home's own lamp flag (`window_glow`). Not staged (CI, a fresh clone): the plain model, as before.
+const WINDOWS_SUFFIX: String = "_windows"
+## LATER STAGES (decision 0771): a placement's later model, drawn with the placement's own transform and scale (not by
+## its own DEMO_HEIGHT_M) and built hidden with the village -- so the weather's overlay finds it like any piece -- for
+## its view to show (hall_view.gd): the hall's stone stage 2. Built only when it and the placement's own model are
+## staged; its windows model in its place when that is staged, its glow listed under the placement's id.
+const STAGES: Dictionary = {&"hall": &"hall_stage2"}
 
 ## Ground cover is drawn as one MultiMesh per key rather than one node per tuft.
 const MULTIMESH_KEYS: Array[StringName] = [&"grass_tuft", &"mushroom_cluster"]
@@ -83,6 +98,12 @@ var _cover_nodes: Array[MultiMeshInstance3D] = []
 ## than read back from the MultiMesh, whose transforms only the renderer holds.
 var _cover_at: Array[PackedVector2Array] = []
 var _cover_hidden: Array[PackedByteArray] = []
+## Per authored placement id: the node drawing it, and its later stage (STAGES; built hidden).
+var _placed_nodes: Dictionary = {}
+var _stage_nodes: Dictionary = {}
+## Per lit home id: its window materials (Array[BaseMaterial3D]), each list kept across rebuilds (emptied, refilled) so
+## a holder of it reads the current ones.
+var _glow: Dictionary = {}
 
 
 func build(manifest: Dictionary) -> void:
@@ -96,18 +117,111 @@ func build(manifest: Dictionary) -> void:
 	_built = [Look.make_ground(), Look.make_sun(), Look.make_environment(), village]
 	for node: Node in _built:
 		add_child(node)
-	_tree_nodes.clear()
-	for p: Dictionary in _placed():
-		var piece: Node3D = _make_piece(world, p)
-		village.add_child(piece)
-		if PLACEHOLDER_TREES.has(p["key"]):
-			_tree_nodes.append(piece)
+	_build_pieces(world, village)
 	_cover_nodes.clear()
 	_cover_at.clear()
 	_cover_hidden.clear()
 	for key: StringName in MULTIMESH_KEYS:
 		_cover_nodes.append(_make_cover(world, key))
 		village.add_child(_cover_nodes[-1])
+
+
+func _build_pieces(world: Dictionary, village: Node3D) -> void:
+	"""Every placed model under `village`: the trees listed, each authored placement and its later stage kept by id, a
+	lit home's windows glow listed."""
+	_tree_nodes.clear()
+	_placed_nodes.clear()
+	_stage_nodes.clear()
+	for list: Array in _glow.values():
+		list.clear()
+	for p: Dictionary in _placed():
+		var model: StringName = _windows_key(world, p)
+		var piece: Node3D = _make_piece(world, p, model)
+		village.add_child(piece)
+		if PLACEHOLDER_TREES.has(p["key"]):
+			_tree_nodes.append(piece)
+		var id: StringName = p.get("id", &"")
+		if id != &"":
+			_placed_nodes[id] = piece
+			if model != p["key"]:
+				_collect_glow(id, piece)
+			_add_stage(world, p, piece, village)
+
+
+func _windows_key(world: Dictionary, p: Dictionary) -> StringName:
+	"""The model a placement is drawn with: a lit home's `<key>_windows` when it and its plain model are staged (THE
+	HOMES' WINDOWS), else its own key."""
+	var key: StringName = p["key"]
+	if not Curves.LIT_HOMES.has(p.get("id", &"")):
+		return key
+	return _staged_variant(world, key, StringName(String(key) + WINDOWS_SUFFIX))
+
+
+func _staged_variant(world: Dictionary, key: StringName, variant: StringName) -> StringName:
+	"""`variant` when both it and `key` are staged and load, else `key`."""
+	if _staged_scene(world, key) != null and _staged_scene(world, variant) != null:
+		return variant
+	return key
+
+
+func _add_stage(world: Dictionary, p: Dictionary, piece: Node3D, village: Node3D) -> void:
+	"""Placement `p`'s later stage (STAGES), hidden, with `piece`'s own transform: only when it and the placement's own
+	model are staged; its windows model when that is."""
+	var id: StringName = p["id"]
+	if not STAGES.has(id):
+		return
+	var key: StringName = STAGES[id]
+	if _staged_scene(world, p["key"]) == null or _staged_scene(world, key) == null:
+		return
+	var model: StringName = _staged_variant(world, key, StringName(String(key) + WINDOWS_SUFFIX))
+	var stage: Node3D = _staged_scene(world, model).instantiate() as Node3D
+	stage.name = "Stage_%s" % key
+	stage.transform = piece.transform
+	stage.visible = false
+	village.add_child(stage)
+	_stage_nodes[id] = stage
+	if model != key:
+		_collect_glow(id, stage)
+
+
+func _collect_glow(id: StringName, piece: Node3D) -> void:
+	"""List `piece`'s emissive materials under home `id`, each a dark duplicate of its own on that piece alone (the
+	shared model untouched): a staged windows model's mask. Called for windows models only."""
+	for node: Node in piece.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := node as MeshInstance3D
+		if mesh_instance.mesh == null:
+			continue
+		for surface: int in mesh_instance.mesh.get_surface_count():
+			var source := mesh_instance.mesh.surface_get_material(surface) as BaseMaterial3D
+			if source == null or not source.emission_enabled:
+				continue
+			var dark := source.duplicate() as BaseMaterial3D
+			dark.emission_energy_multiplier = 0.0
+			mesh_instance.set_surface_override_material(surface, dark)
+			_glow_list(id).append(dark)
+
+
+func _glow_list(id: StringName) -> Array:
+	"""Home `id`'s window materials list, made once."""
+	if not _glow.has(id):
+		_glow[id] = []
+	return _glow[id]
+
+
+func placed_node(id: StringName) -> Node3D:
+	"""The node drawing authored placement `id` (null before build(), or for no such placement)."""
+	return _placed_nodes.get(id, null) as Node3D
+
+
+func stage_node(id: StringName) -> Node3D:
+	"""Placement `id`'s later stage (STAGES), built hidden; null when it is not staged or before build()."""
+	return _stage_nodes.get(id, null) as Node3D
+
+
+func window_glow(id: StringName) -> Array:
+	"""Lit home `id`'s window materials (BaseMaterial3D; THE HOMES' WINDOWS): its windows model's and its later
+	stage's. The same list for the life of this world, refilled by each build(); empty with nothing staged."""
+	return _glow_list(id)
 
 
 func points_of_interest() -> Array[Dictionary]:
@@ -221,6 +335,12 @@ func make_piece(key: StringName, at: Vector2, yaw: float, size: float) -> Node3D
 	return _make_piece(_world_rows, {"key": key, "at": at, "yaw": yaw, "size": size})
 
 
+func is_staged(key: StringName) -> bool:
+	"""Whether `key`'s model is staged and loads (otherwise `make_piece` draws its placeholder): an owner that has an
+	older stand-in for a new model (the orchard's oak, decision 0903) draws the stand-in instead."""
+	return _staged_scene(_world_rows, key) != null
+
+
 func woods_obstacles(reach_m: float) -> Array[Vector3]:
 	"""The woods' and the authored nature's blocking circles (x, radius, z) that obstacles() leaves out
 	-- beyond its report margin -- but that come within `reach_m` of the square (Chebyshev)."""
@@ -304,12 +424,13 @@ func _staged_scale(world: Dictionary, key: StringName) -> float:
 	return Sizes.uniform_scale(key, Vector3(lo[0], lo[1], lo[2]), Vector3(hi[0], hi[1], hi[2]))
 
 
-func _make_piece(world: Dictionary, p: Dictionary) -> Node3D:
+func _make_piece(world: Dictionary, p: Dictionary, model: StringName = &"") -> Node3D:
 	"""One placed model: the staged asset let into the ground by its baked base (world_sizes.gd SINK_M),
 	or a placeholder of the same footprint standing on it. Every construction path comes through here
-	(build(), make_piece()), so a replanted tree sits as deep as the one it replaces."""
+	(build(), make_piece()), so a replanted tree sits as deep as the one it replaces. `model`: a staged
+	variant drawn in its place at its key's own scale (a home's windows model; none: the key's own)."""
 	var key: StringName = p["key"]
-	var scene: PackedScene = _staged_scene(world, key)
+	var scene: PackedScene = _staged_scene(world, key if model == &"" else model)
 	var piece: Node3D
 	var scale_factor: float
 	var sink: float = 0.0

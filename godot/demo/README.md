@@ -1796,6 +1796,8 @@ replaced** when it is not staged (CI, a fresh clone): the same code runs either 
 | `oak_mature_bare` | every bare oak in winter (`season_view.gd` THE AUTHORED BARE OAK) | the leaf triangles cut from the leafed oak |
 | `tunnel_set` | every brace frame (and the rooms' ribs) | the old `tunnel_brace`, else a box frame |
 | `rock_face` | the bore's walls where the ground is rock (`bore_dressing.gd` ROCK FACES) | nothing |
+| `hall_stage2`, `hall_banner`, the `_windows` models | the great hall at tier 2, its four banners, the homes' window glow (see The hall, Night lights) | the composed pieces; dark windows |
+| portraits, the tapestry's ground and emblems, the chronicle's page | the group tiles (two across while shown) and the inspector's person header; the tapestry panel; the chronicle | the drawn panels |
 | pass 1's and 3's icons | by key: an item's `item_<pantry key>` (apple, pear, berries, nuts, mushrooms, herb, potato, honey, flour, dried fish; jam, cider, flax, wax and the rest wait for their items), a dish's `dish_<recipe key>` in the Kitchen tab and on the Stocks rows | the item's model icon, else its roundel; no dish icon |
 
 **The modelled berries.** The bushes carry their berries in their texture, so the tree shader hides them
@@ -2275,8 +2277,10 @@ the curves, allocating nothing.
   and snow cover stay lit by the moon, pale blue at night.
 - **Night lights** (`world/night_lights.gd`): a pool of at most 8 shadowless omni lights on the surface layer, given to
   the spots nearest the camera's focus. The spots are the five homes' doors (the hall, three residences, the kitchen)
-  and every standing tunnel mouth's lantern. The building models carry one baked material and no window slot, so homes
-  read lit by lamplight spilling from their fronts. Their windows do not glow. Which homes are lit is one query
+  and every standing tunnel mouth's lantern. Homes read lit by lamplight spilling from their fronts, and where a home's
+  `<key>_windows` model is staged (art pass 2, decision 0951; wired by decision 0903) its window mask glows: emission 0
+  by day, up to 1.5 x the lamps' level at night, on the same flag as its door lamp (the hall's goes dark with
+  `hearth_cold`); the residences' shutters carry almost no glass, so their door lamps remain. Which homes are lit is one query
   (`set_home_lit`); without one, every home is lit at night. While the lamps are lit, the surface
   environment's glow is on, so the lanterns' emissive glass blooms. The lamps flicker gently in real time while the
   village runs, stand still while paused, and hold steady with reduced motion. The underground keeps its own pool of 32 (decision 0207).
@@ -2405,8 +2409,9 @@ grows by two and no more:
   >= ceil(E / 3), §5.7); floor sleep for anyone without a bed (REQ-SET-133); the comfort target; a hearth's fuel.
 - **Seen.** Clicking the hall opens its panel (no key). While the upgrade is carried in, a stone heap, a timber stack
   and the cloth grow by the hall's east end; while it is built, a work rail of fence lengths stands before it; the great
-  hall has a second chimney pot and two woven roundels in its outer bays; each banner is a cloth hung in a bay, dyed in
-  the woodland palette. All composed from library models (`hall_view.gd`): the hall itself is never moved or scaled.
+  hall is the staged stone hall (`hall_stage2`, art pass 2) in the timber hall's place, at its own transform -- without
+  it, a second chimney pot and two woven roundels in its outer bays; each banner is the linen `hall_banner` (its cloth
+  dyed in the woodland palette, its wood not), or a cloth stand-in. `hall_view.gd` never moves or scales the hall.
 - **The village tapestry** (`tapestry.gd`, `tapestry_panel.gd`; The tapestry, in the hall's panel): the village's
   history as a woven timeline -- oldest first, each entry a knot in its kind's colour on one thread -- with stage 1 at
   the start, the first harvest, the first winter, stage 2 and each banner, each woven once. An **original** community

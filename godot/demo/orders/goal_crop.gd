@@ -2,8 +2,10 @@ extends "res://demo/orders/order_goal.gd"
 ## KEEP N U OF A CROP HARVESTED (decision 0711): the pantry's stock of one crop item, raised by HARVESTING its ripe
 ## beds -- the farm's own harvest job (the farm's routine already opens one for every ripe bed, REQ-SET-073; the order
 ## adopts it, or opens it through farm_crew.gd `order` with nobody selected, as a bed's right-click does). Sowing is the
-## farm's (and its sowing policies'), never the order's. A crop a dish takes is food: its jobs are in the work board's
-## food bucket while food-days are under two (REQ-SET-113).
+## farm's (and its sowing policies'), never the order's. A crop an everyday dish takes is food: its jobs are in the work
+## board's food bucket while food-days are under two (REQ-SET-113). The feast's bean hotpot is not everyday (the kitchen
+## cooks it only for an occasion, as kitchen.gd's Recipes line treats it), so its peas and beans are not food-days'
+## food (batch 7 integration, decision 0902).
 
 const FarmCrewScript := preload("res://demo/farm/farm_crew.gd")
 const FarmJobs := preload("res://demo/farm/farm_jobs.gd")
@@ -37,11 +39,12 @@ func _init(crew: FarmCrewScript, sim: SimScript, pantry: PantryScript, food_days
 
 
 static func is_meal_crop(item: int) -> bool:
-	"""Whether a dish takes `item` (meal_rules.gd `is_input`): read from the dishes' own data."""
+	"""Whether an everyday dish takes `item` (meal_rules.gd `is_input`): read from the dishes' own data. The feast's
+	bean hotpot, cooked only for an occasion, does not count."""
 	if not Catalog.is_item(item):
 		return false
 	for dish: int in MealRules.DISH_COUNT:
-		if MealRules.is_input(dish, item):
+		if dish != MealRules.DISH_BEAN_HOTPOT and MealRules.is_input(dish, item):
 			return true
 	return false
 

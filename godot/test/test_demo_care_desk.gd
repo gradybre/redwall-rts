@@ -532,6 +532,12 @@ func _infirmary(v: Village, built: bool, residents: int = -1) -> ProjectScript:
 	return project
 
 
+func _healer_inside(v: Village, p: int) -> bool:
+	"""Whether patient `p` has a healer and it is inside a building."""
+	var h: int = v.desk.healer_of(p)
+	return h != DeskScript.NOBODY and v.brains[h].indoors
+
+
 func test_built_the_hurt_go_into_the_infirmary_and_mend_twice_as_fast() -> void:
 	"""Built: a hurt resident walks to its door and in, has a bed, is treated inside, mends at +4 an hour, and leaves its
 	bed when up again."""
@@ -548,6 +554,10 @@ func test_built_the_hurt_go_into_the_infirmary_and_mend_twice_as_fast() -> void:
 	assert_true(v.brains[0].indoors, "inside")
 	assert_equal(v.brains[0].interior, BrainScript.INTERIOR_INFIRMARY, "inside the infirmary, not the hall (decision 0995)")
 	assert_true(v.brains[0].task_label().begins_with("Resting in the infirmary"), v.brains[0].task_label())
+	_run(v, 6000, _healer_inside.bind(v, 0))
+	var healer: int = v.desk.healer_of(0)
+	assert_true(healer != DeskScript.NOBODY and v.brains[healer].interior == BrainScript.INTERIOR_INFIRMARY,
+		"its healer is inside the infirmary too (decision 0995)")
 	_run(v, 6000, _treated.bind(v, 0))
 	assert_true(_treated(v, 0), "treated there")
 	assert_equal(v.desk.state.rate_per_hour(0), 4, "+4 an hour inside")

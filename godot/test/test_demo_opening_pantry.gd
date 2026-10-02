@@ -190,6 +190,9 @@ func test_the_younger_warm_lot_spoiling_first_leaves_the_opening_lot_counted() -
 		hours += 1
 	assert_equal(OpeningScript.left_milli(pantry, 1), 0, "spoiled in turn: none left")
 	assert_equal(pantry.opening_milli_of(carrot), 0, "no opening share on a freed row")
+	var read := IntMath.IntResult.new()
+	assert_true(pantry.add_into(carrot, 3000, CELLAR, read), "a new harvest reuses a freed row")
+	assert_equal(pantry.opening_milli_of(carrot), 0, "and is not opening stock")
 
 
 func test_a_split_carry_and_a_withdrawal_move_the_opening_share_exactly() -> void:
@@ -227,5 +230,6 @@ func test_a_delivery_merged_into_an_opening_lot_shares_its_withdrawals_proportio
 	assert_true(pantry.withdraw_into(lot, pantry.lot_serial(lot), 1, read), "1 milli-U withdrawn")
 	assert_equal(pantry.lot_opening_milli(lot), 45000, "its share floors to nothing")
 	assert_equal(pantry.opening_share(lot, pantry.lot_milli(lot)), 45000, "the whole lot carries the whole share")
+	assert_equal(pantry.opening_share(lot, pantry.lot_milli(lot) + 5000), 45000, "more than the lot: no more than its share")
 	assert_equal(pantry.opening_share(lot, 0), 0, "nothing carries nothing")
 	assert_equal(pantry.opening_share(-1, 5), 0, "no such row")

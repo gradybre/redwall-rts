@@ -11,6 +11,7 @@ extends "res://test/framework/test_case.gd"
 ## kitchen over its brains at the hall's real tables -- no staged assets, no scene tree.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const WeatherCore := preload("res://scripts/core/weather.gd")
 const Rules := preload("res://demo/regatta/regatta_rules.gd")
@@ -280,7 +281,9 @@ func test_the_preview_refuses_what_is_invalid_and_names_what_is_missing() -> voi
 	assert_false(crew.has(2) or crew.has(0), "never the host or the cook")
 	var text: String = "\n".join(r.preview_lines(day, 2))
 	assert_true(text.contains("bean hotpot x%d" % Rules.main_batches(r.residents())), "the main course: %s" % text)
-	assert_true(text.contains("no nuts or herb"), "what can't be made, said")
+	assert_true(text.contains("short of nuts: %d.0 U needed, 0.0 U free" % (2 * Rules.second_batches(r.residents()))),
+		"what can't be made, said from the real stock: %s" % text.replace("\n", " | "))
+	assert_true(text.contains("short of herb: 0.2 U needed"), "the infusion's shortfall, said")
 	assert_true(text.contains("no Shared Warmth"), "no buff without every course")
 	_stock(rig, OATS, 40000)
 	_stock(rig, CARROT, 40000)
@@ -358,9 +361,11 @@ func test_the_tally_counts_only_those_who_ate_the_main_course() -> void:
 	assert_equal(r.hold(day, 2, true), "", "held")
 	var key: int = Rules.feast_key(day)
 	var hour: int = day * SimClock.HOURS_PER_DAY + 17
-	rig.kitchen.fed.ate_meal(1, key, MealRules.DISH_BEAN_HOTPOT, hour)
-	rig.kitchen.fed.ate_meal(3, key, MealRules.DISH_BEAN_HOTPOT, hour)
+	for who: int in [1, 3]:
+		rig.kitchen.fed.ate_meal(who, key, MealRules.DISH_BEAN_HOTPOT, hour)
+		rig.kitchen.note_course(who, key, MealRules.DISH_BEAN_HOTPOT)
 	rig.kitchen.fed.ate_meal(2, key, MealRules.DISH_SOUP, hour)
+	rig.kitchen.note_course(2, key, MealRules.DISH_SOUP)
 	rig.kitchen.fed.missed(4, key)
 	r._tally()
 	assert_equal(r.attendees, PackedInt32Array([1, 3]), "the two who ate the hotpot, no one else")
@@ -554,3 +559,137 @@ func test_the_regatta_deed_reads_in_the_people_words() -> void:
 	ledger.setup(3)
 	assert_true(ledger.add_feast(0, 1, 5), "a feast shared")
 	assert_equal(ledger.affinity_of(0, 1), Ledger.FEAST_GAIN, "+5")
+
+
+# --- the full menu (decision 0682: Brendan's "add nuts & herbs now") ------------------------------------------
+
+func _stock_menu(rig: Rig) -> void:
+	"""The second course's flour and nuts and the infusion's herb, enough for nine, with some to spare."""
+	_stock(rig, Catalog.ITEM_FLOUR, 8000)
+	_stock(rig, Catalog.ITEM_NUTS, 8000)
+	_stock(rig, Catalog.ITEM_HERB, 1000)
+
+
+func test_the_nut_loaf_is_the_gdds_row_and_an_occasion_dish() -> void:
+	"""§5.7's nut_loaf: flour 2 + nuts 2 + water 1 -> 3 x 2600 NP, 24 WU, 72 h; the library's nutbread; never in the
+	alternation; Shared Warmth is the Hearth row's -25% cold exposure and +400 mood for 48 h."""
+	var loaf: int = MealRules.DISH_NUT_LOAF
+	assert_equal(MealRules.GDD_ROWS[loaf], "nut_loaf", "the GDD's row")
+	assert_equal([MealRules.INPUT_CROP[loaf], MealRules.SIDE_CROP[loaf]], [Catalog.CAT_FLOUR, Catalog.CAT_NUTS], "flour and nuts")
+	assert_equal([MealRules.INPUT_MILLI[loaf], MealRules.SIDE_MILLI[loaf], MealRules.WATER_MILLI[loaf]], [2000, 2000, 1000], "2, 2, 1")
+	assert_equal(MealRules.PORTIONS_PER_BATCH[loaf] * MealRules.NP_PER_PORTION[loaf], 7800, "3 x 2600 NP")
+	assert_equal([MealRules.WORK_MWU[loaf], MealRules.SHELF_HOURS[loaf]], [24000, 72], "24 WU, 72 h")
+	assert_true(MealRules.is_occasion_dish(loaf) and MealRules.is_occasion_dish(MealRules.DISH_BEAN_HOTPOT), "occasion dishes")
+	assert_false(MealRules.is_occasion_dish(MealRules.DISH_SOUP), "the soup is everyday")
+	assert_equal([Rules.BUFF_HOURS, Rules.BUFF_COLD_PERMILLE, Rules.BUFF_MOOD], [48, 750, 400], "Shared Warmth")
+
+
+func test_the_preview_names_the_full_menu_when_the_pantry_holds_it() -> void:
+	"""With flour, nuts and herb free, the second course and the infusion read makeable and the buff's terms are said;
+	flour alone short names flour and the mill."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	_stock(rig, Catalog.ITEM_NUTS, 8000)
+	_stock(rig, Catalog.ITEM_HERB, 1000)
+	var e: int = r.residents()
+	assert_true(r.menu.second_short(e).contains("short of flour"), "flour short: %s" % r.menu.second_short(e))
+	_stock(rig, Catalog.ITEM_FLOUR, 8000)
+	var text: String = " | ".join(r.preview_lines(SUMMER_1 + 1, 2))
+	assert_false(text.contains("can't be made"), "every course makeable: %s" % text)
+	@warning_ignore("integer_division") var needed: int = (800 * e + 999) / 1000
+	assert_true(text.contains("Shared Warmth if %d of %d eat every course" % [needed, e]), "the buff's terms: %s" % text)
+
+
+func test_holding_reserves_every_course_and_skipping_gives_it_all_back() -> void:
+	"""Held with the whole menu in the pantry: the nut loaf's flour and nuts reserved, the infusion's herb and water set
+	aside, the kitchen's occasion has its second course; skipped: every unit back."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	_stock_menu(rig)
+	var water: int = _services.stores.water_milli_u
+	assert_equal(r.hold(SUMMER_1 + 1, 2, true), "", "held")
+	var e: int = r.residents()
+	var loaf: int = 2000 * Rules.second_batches(e)
+	assert_equal(r.menu.free_flour(), 8000 - loaf, "ceil(E/3) x 2 U of flour set aside")
+	assert_equal(r.menu.free_nuts(), 8000 - loaf, "and of nuts")
+	assert_equal(r.menu.free_herb(), 1000 - Rules.infusion_herb_milli(e), "the infusion's herb set aside")
+	assert_equal(_services.stores.water_milli_u, water - Rules.infusion_water_milli(e), "the infusion's water set aside")
+	assert_equal([rig.kitchen.occasion_second, rig.kitchen.occasion_second_batches],
+		[MealRules.DISH_NUT_LOAF, Rules.second_batches(e)], "the second course")
+	assert_equal(r.served_words(), "bean hotpot, nut loaf and the warm infusion", "the menu in words")
+	assert_equal(r.skip(), "", "skipped")
+	assert_equal([r.menu.free_flour(), r.menu.free_nuts(), r.menu.free_herb()], [8000, 8000, 1000], "everything back")
+	assert_equal(_services.stores.water_milli_u, water, "the water back")
+	assert_equal(rig.kitchen.occasion_second, MealRules.NO_DISH, "no occasion")
+
+
+func test_the_full_feast_is_cooked_eaten_and_warms_the_village() -> void:
+	"""The day's supper with the whole menu: 3 batches of hotpot then 3 of nut loaf from the reserved food (exactly 6 U of
+	flour and of nuts gone), each guest eats one portion of each, the infusion's herb poured for those who came, and --
+	80% at every course -- Shared Warmth for 48 h, said in the chronicle."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	_stock_menu(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	rig.calendar.tick = tick_at(day, Rules.CREW_CALL_HOUR) - 30
+	rig.kitchen.update()
+	assert_true(_run(rig, func() -> bool: return r.state == RegattaScript.ST_DONE, 30000), "the day is over (%s)" % r.status_line())
+	var loaves: int = 0
+	for dish: int in rig.kitchen.cooked_dishes:
+		loaves += 1 if dish == MealRules.DISH_NUT_LOAF else 0
+	var batches: int = Rules.second_batches(r.eligible)
+	assert_equal(loaves, batches, "ceil(E/3) batches of nut loaf")
+	assert_equal(rig.pantry.milli_of(Catalog.ITEM_FLOUR), 8000 - batches * 2000, "the loaves' flour, no more")
+	assert_equal(rig.pantry.milli_of(Catalog.ITEM_NUTS), 8000 - batches * 2000, "the loaves' nuts, no more")
+	@warning_ignore("integer_division") var herb: int = 250 * r.attendees.size() / r.eligible
+	assert_equal(rig.pantry.milli_of(Catalog.ITEM_HERB), 1000 - herb, "the infusion's herb, for those who came")
+	assert_true(r.every_course * 10 >= r.eligible * 8, "80%% ate every course (%d of %d)" % [r.every_course, r.eligible])
+	assert_true(r.menu.warmth_active(rig.calendar.tick), "Shared Warmth: %s" % r.warmth_line)
+	assert_equal(r.menu.cold_exposure_permille(rig.calendar.tick), 750, "cold exposure -25%")
+	assert_equal(r.menu.mood_bonus(rig.calendar.tick), 400, "mood +400")
+	assert_true(rig.posted[0].contains("nut loaf") and rig.posted[0].contains("Shared Warmth"), "the chronicle: %s" % rig.posted[0])
+
+
+func test_shared_warmth_is_granted_once_and_neither_stacks_nor_extends() -> void:
+	"""REQ-SET-105: a second Hearth feast while Shared Warmth lasts does not extend it; after it lapses it may be granted
+	again; under 80% at every course, or a course unserved, it is not granted."""
+	var menu := RegattaScript.MenuScript.new()
+	menu.second_planned = true
+	menu.infusion_planned = true
+	assert_true(menu.settle(9, 9, 8, 1000, 0).contains("48 h"), "granted at 8 of 9")
+	var until: int = menu.warmth_until
+	assert_equal(until, 1000 + 48 * SimClock.TICKS_PER_HOUR, "for 48 game hours")
+	assert_equal(menu.warmth_hours_left(1000), 48, "48 h left at once")
+	menu.second_planned = true
+	menu.infusion_planned = true
+	assert_true(menu.settle(9, 9, 9, 2000, 0).contains("not stacked"), "not stacked")
+	assert_equal(menu.warmth_until, until, "nor extended")
+	assert_equal(menu.warmth_hours_left(until - 1), 0, "a part hour is not a whole one")
+	assert_false(menu.warmth_active(until), "lapsed at its end")
+	menu.second_planned = true
+	menu.infusion_planned = true
+	assert_true(menu.settle(9, 9, 7, until, 0).contains("7 of 9"), "7 of 9 is under 80%")
+	assert_true(menu.settle(9, 9, 9, until, 0).contains("not every course"), "a course unserved: none")
+	assert_equal(menu.warmth_granted, 1, "granted once")
+
+
+func test_a_two_course_occasion_holds_each_courses_food_and_no_more() -> void:
+	"""The kitchen's AN OCCASION with a second course, set with nothing reserved on a supper the kitchen has planned: it
+	holds the main course's beans and cabbage for its batches and the second's flour and nuts for its own -- never the
+	main course's inputs for every batch."""
+	var rig: Rig = _rig()
+	var key: int = Rules.feast_key(SUMMER_1)
+	for item: int in [PEA, CABBAGE, Catalog.ITEM_FLOUR, Catalog.ITEM_NUTS]:
+		_stock(rig, item, 8000)
+	var take: int = rig.kitchen.takes.new_take()
+	rig.kitchen.set_occasion(key, MealRules.DISH_BEAN_HOTPOT, 2, take, MealRules.DISH_NUT_LOAF, 2)
+	rig.kitchen.update()
+	assert_true(rig.kitchen.occasion_adopted(), "adopted")
+	var takes: RefCounted = rig.kitchen.takes
+	for crop: int in [FarmingScript.CROP_BEANS, FarmingScript.CROP_CABBAGE, Catalog.CAT_FLOUR, Catalog.CAT_NUTS]:
+		assert_equal(takes.live_milli(rig.pantry, take, -1, crop), 4000, "two batches' worth of category %d" % crop)
+	assert_equal(rig.kitchen.plan_of(key)[1], 4, "four batches wanted: two of each")

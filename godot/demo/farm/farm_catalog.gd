@@ -65,6 +65,7 @@ const ITEM_KEYS: Array[StringName] = [
 	&"wheat", &"barley", &"oats",
 	&"trout", &"dace", &"salmon", &"perch", &"carp", &"whitefish",
 	&"dried_fish", &"flour",
+	&"nuts", &"mushrooms", &"herb", &"berries",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -73,6 +74,7 @@ const ITEM_LABELS: Array[String] = [
 	"Wheat", "Barley", "Oats",
 	"Trout", "Dace", "Salmon", "Perch", "Carp", "Whitefish",
 	"Dried fish", "Flour",
+	"Nuts", "Mushrooms", "Herbs", "Berries",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -101,17 +103,40 @@ const ITEM_COUNT: int = 16
 ##   * flour, §5.7's `flour` output: "Grain/flour | 1200 | No | 720/240" -- 240 h, not eaten raw.
 ## Their CATEGORY (what a recipe asks for) extends the §5.6 crop rows past FarmingScript's five: CAT_FISH is §5.7's
 ## `fish` selector over the species (BAL-CAT-004), CAT_DRIED_FISH and CAT_FLOUR their own items.
-const PANTRY_ITEM_COUNT: int = 24
+## THE WOODS' FORAGE (decision 0681, foraging trips): four of §5.5's five forage items, gathered by a foraging trip from
+## the woods' forage basin (demo/forage/) -- each the compiled catalogue's own key (`data/item_definitions.json`, the
+## keys scripts/core/forage.gd PATCH_KEYS names), never a generic "forage" item:
+##   * nuts       §5.7 "Nuts | 1600 | Yes | 720" -- raw edible, keeps 720 h;
+##   * mushrooms  §5.7 "Mushrooms | 600 | No | 72" -- not eaten raw, keeps 72 h;
+##   * herb       §5.7 "Herb | 0 | No | 480 | Care ingredient; no nutritional replacement" -- keeps 480 h;
+##   * berries    §5.7 "Berries | 700 | Yes | 48" -- raw edible, keeps 48 h (added at the dishes lane's request: its
+##                cordial's raspberries are forage; the catalogue's key is `berries`).
+## Each is its own category (CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES): §5.7's recipes name them as inputs. Roots,
+## §5.5's fifth patch, are not gathered (the farm grows its roots).
+const PANTRY_ITEM_COUNT: int = 28
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
 const ITEM_FLOUR: int = 23
+const ITEM_NUTS: int = 24
+const ITEM_MUSHROOMS: int = 25
+const ITEM_HERB: int = 26
+const ITEM_BERRIES: int = 27
+const FIRST_FORAGE: int = 24
+const FORAGE_COUNT: int = 4
 const CAT_FISH: int = 5
 const CAT_DRIED_FISH: int = 6
 const CAT_FLOUR: int = 7
+const CAT_NUTS: int = 8
+const CAT_MUSHROOMS: int = 9
+const CAT_HERB: int = 10
+const CAT_BERRIES: int = 11
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
-const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR]
-const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240]
+const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
+	CAT_NUTS, CAT_MUSHROOMS, CAT_HERB, CAT_BERRIES]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 720, 72, 480, 48]
+## scripts/core/forage.gd PATCH_KEYS row (berries, nuts, mushrooms, herb, roots) -> pantry item (NO_ITEM: not gathered).
+const PATCH_ITEM: Array[int] = [ITEM_BERRIES, ITEM_NUTS, ITEM_MUSHROOMS, ITEM_HERB, NO_ITEM]
 ## scripts/core/fishing.gd SPECIES_KEYS row -> pantry item (NO_ITEM: the coast's three, which the demo cannot catch).
 const SPECIES_ITEM: Array[int] = [16, 17, 18, 19, 20, 21, NO_ITEM, NO_ITEM, NO_ITEM]
 
@@ -195,6 +220,7 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"item_barley", &"item_oats",
 	&"item_trout", &"", &"", &"item_perch", &"", &"",
 	&"", &"",
+	&"", &"", &"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -207,6 +233,7 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.62, 0.6, 0.5), Color(0.66, 0.7, 0.72), Color(0.86, 0.5, 0.42), Color(0.5, 0.6, 0.36),
 	Color(0.7, 0.58, 0.32), Color(0.84, 0.84, 0.8),
 	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
+	Color(0.62, 0.42, 0.22), Color(0.8, 0.7, 0.56), Color(0.44, 0.6, 0.34), Color(0.72, 0.16, 0.3),
 ]
 
 ## The beds: world crop ids, one FarmPlot each, their demo soils.
@@ -257,6 +284,11 @@ static func category_of(item: int) -> int:
 	if is_pantry_item(item):
 		return GOODS_CATEGORY[item - ITEM_COUNT]
 	return -1
+
+
+static func item_of_patch(patch_kind: int) -> int:
+	"""The pantry item a forage.gd patch kind is gathered as (NO_ITEM: one the demo does not gather)."""
+	return PATCH_ITEM[patch_kind] if patch_kind >= 0 and patch_kind < PATCH_ITEM.size() else NO_ITEM
 
 
 static func item_of_species(species_row: int) -> int:

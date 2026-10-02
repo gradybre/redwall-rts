@@ -114,6 +114,21 @@ func build() -> void:
 		_column.add_child(_lines[key])
 
 
+func add_section(section: Control) -> void:
+	"""Another owner's section below the woods' own -- above the queue and the woods' news (decision 0681: the foraging
+	trips' Foraging section). The owner fills and answers it; the panel only places it."""
+	build()
+	_column.add_child(section)
+	_column.move_child(section, _column.get_child_count() - 3)
+	section.minimum_size_changed.connect(_place, CONNECT_DEFERRED)
+	_place.call_deferred()
+
+
+func content_width() -> float:
+	"""The width a line in the panel wraps at (logical px): another owner's section sizes its labels to it."""
+	return _width - CONTENT_MARGINS[0] - CONTENT_MARGINS[2]
+
+
 func _section(title_key: StringName, text_key: StringName, keys: Array[StringName]) -> VBoxContainer:
 	"""A titled block with a line of text and a grid of its buttons."""
 	var box := VBoxContainer.new()

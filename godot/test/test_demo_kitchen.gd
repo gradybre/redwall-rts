@@ -211,7 +211,8 @@ func test_the_dishes_are_the_gdd_rows() -> void:
 	assert_equal(Rules.WOOD_MILLI_PER_BATCH, 100, "0.1 U of wood a batch")
 	assert_equal([Rules.batch_ticks(0), Rules.batch_ticks(1)], [150, 200], "12 and 16 WU at 60 WU a game hour")
 	assert_equal(Rules.LIBRARY_IDS, ["salamandastron::SAL_recipe_wild_oat_porridge", "outcast::OUT_recipe_togget_s_vegetable_soup",
-		"taggerung::TAG_recipe_requested_perch_or_trout", ""], "the library's three recipes (the third: decision 0436); the feast's bean hotpot is the GDD's row alone (decision 0438)")
+		"taggerung::TAG_recipe_requested_perch_or_trout", "", "redwall::RW-RECIPE-nutbread"],
+		"the library's recipes (the third: decision 0436); the feast's bean hotpot is the GDD's row alone (decision 0438); its nut loaf the library's nutbread (decision 0682)")
 	assert_equal([Rules.GDD_ROWS[2], Rules.INPUT_MILLI[2], Rules.SIDE_MILLI[2], Rules.WATER_MILLI[2], Rules.PORTIONS_PER_BATCH[2],
 		Rules.NP_PER_PORTION[2], Rules.WORK_MWU[2], Rules.SHELF_HOURS[2]], ["fish_stew", 2000, 2000, 2000, 3, 2200, 20000, 24],
 		"§5.7 fish_stew: fish 2 + roots 2 + water 2 -> 3 x 2200 NP, 20 WU, 24 h")

@@ -22,22 +22,25 @@ const HALL: int = 5
 const FISHING: int = 6
 const FAR_FORD: int = 7
 const FAR_MILL: int = 8
-const PLACE_COUNT: int = 9
+## The foraging trips' grounds in the north woods (decision 0681; forage_rules.gd SPOT_AT's hazel brake).
+const FORAGE: int = 9
+const PLACE_COUNT: int = 10
 const NAMES: Array[String] = ["the square", "the store", "the farm", "the log stack", "the wood yard", "the hall",
-	"the fisher's landing", "the far bank at the ford", "the far bank by the mill"]
+	"the fisher's landing", "the far bank at the ford", "the far bank by the mill", "the forage grounds"]
 ## Where each place is: a point of interest's first slot (world_layout.gd POINTS), else a water landing's land point
 ## (water_layout.gd LANDING_NAMES), else the authored point (metres; the far bank by the mill has neither).
 const POIS: Array[StringName] = [&"well_drink", &"store_front", &"crops_cabbage", &"log_stack", &"stockpile",
-	&"hall_steps", &"", &"", &""]
-const LANDINGS: Array[StringName] = [&"", &"", &"", &"", &"", &"", &"fisher_shelter", &"ford_east", &""]
+	&"hall_steps", &"", &"", &"", &""]
+const LANDINGS: Array[StringName] = [&"", &"", &"", &"", &"", &"", &"fisher_shelter", &"ford_east", &"", &""]
 const AUTHORED: Array[Vector2] = [Vector2(0.0, 1.2), Vector2(14.0, 8.4), Vector2(-9.4, 8.0), Vector2(4.6, 15.6),
-	Vector2(12.6, -13.6), Vector2(0.0, -10.2), Vector2(19.6, 7.3), Vector2(30.4, -0.8), Vector2(28.0, -25.5)]
+	Vector2(12.6, -13.6), Vector2(0.0, -10.2), Vector2(19.6, 7.3), Vector2(30.4, -0.8), Vector2(28.0, -25.5),
+	Vector2(-7.5, -29.4)]
 ## The work trips, (from, to).
 const TRIPS: Array[Vector2i] = [Vector2i(STORE, FARM), Vector2i(LOG_STACK, STORE), Vector2i(HALL, FAR_MILL),
 	Vector2i(STORE, FAR_FORD), Vector2i(LOG_STACK, FAR_MILL), Vector2i(HALL, FISHING), Vector2i(YARD, FAR_MILL),
 	Vector2i(FARM, LOG_STACK)]
 ## The work districts whose public route from the square the Routes layer labels (ECO-039).
-const DISTRICTS: Array[int] = [STORE, FARM, LOG_STACK, YARD, HALL, FISHING, FAR_FORD, FAR_MILL]
+const DISTRICTS: Array[int] = [STORE, FARM, LOG_STACK, YARD, HALL, FISHING, FAR_FORD, FAR_MILL, FORAGE]
 
 var points: PackedVector2Array = PackedVector2Array(AUTHORED)
 

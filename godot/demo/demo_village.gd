@@ -145,6 +145,11 @@ extends Node3D
 ## kitchen's occasion), its day and host the player's, remembered in the chronicle. `_build_regatta()` wires it after the
 ## people (the winners' deed, the feast's company); its section is the Water panel's, and the HUD's Feast command opens it.
 ##
+## FORAGING TRIPS (decision 0681, demo/forage/; feature #22, review ECO-013/014): a small party sent into the woods for
+## nuts, mushrooms or herbs, back hours later with a haul for the pantry -- the real forage store's one basin (§5.5's
+## seasons, daily quota, sustainable floor and regrowth) on the demo calendar. `_build_forage()` wires it after the
+## ferry; its section is the Woods panel's, its seats the work board's, its spots a public way on the Routes layer.
+##
 ## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
 ## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
@@ -161,6 +166,7 @@ const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
 const FisheryNodeScript := preload("res://demo/fishery/demo_fishery.gd")
 const FerryNodeScript := preload("res://demo/ferry/demo_ferry.gd")
 const RegattaNodeScript := preload("res://demo/regatta/demo_regatta.gd")
+const ForageNodeScript := preload("res://demo/forage/demo_forage.gd")
 const CrossingsScript := preload("res://demo/waterplay/water_crossings.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
@@ -323,6 +329,8 @@ var _fishery: FisheryNodeScript = null
 ## Water part B lane 3 (decision 0437): the ferry. (Decision 0438): the regatta.
 var _ferry: FerryNodeScript = null
 var _regatta: RegattaNodeScript = null
+## Feature #22 (decision 0681): the foraging trips.
+var _forage: ForageNodeScript = null
 
 
 func _ready() -> void:
@@ -352,6 +360,7 @@ func _ready() -> void:
 	_build_waterplay()
 	_build_fishery()
 	_build_ferry()
+	_build_forage()
 	_build_shared_ui()
 	_build_work()
 	_build_routes()
@@ -589,6 +598,19 @@ func ferry() -> FerryNodeScript:
 	return _ferry
 
 
+func _build_forage() -> void:
+	"""FORAGING TRIPS (see the header), after the ferry: the woods' forage basin, the trips into the farm's pantry, the
+	Woods panel's Foraging section; its seats on the work board (`_build_work`)."""
+	_forage = ForageNodeScript.new()
+	add_child(_forage)
+	_forage.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _farm.pantry, _forestry.panel)
+
+
+func forage() -> ForageNodeScript:
+	"""The village's foraging trips (demo/forage/demo_forage.gd)."""
+	return _forage
+
+
 func _build_work() -> void:
 	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
 	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
@@ -599,6 +621,7 @@ func _build_work() -> void:
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
 	_work.add_ferry(_ferry.ferry)
+	_work.add_forage(_forage.trips)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)

@@ -93,11 +93,12 @@ func carry_out() -> int:
 	return moved
 
 
-func available(meal_key: int) -> int:
-	"""Portions at the table a diner of meal `meal_key` may take now (cooked for it or before, not reserved)."""
+func available(meal_key: int, dish: int = Rules.NO_DISH) -> int:
+	"""Portions at the table a diner of meal `meal_key` may take now (cooked for it or before, not reserved); with
+	`dish`, of that dish only."""
 	var total: int = 0
 	for lot: int in MAX_LOTS:
-		if _offered(lot, meal_key):
+		if _offered(lot, meal_key) and (dish == Rules.NO_DISH or _dish[lot] == dish):
 			total += _count[lot] - _reserved[lot]
 	return total
 
@@ -116,12 +117,13 @@ func _offered(lot: int, meal_key: int) -> bool:
 	return _dish[lot] != FREE and _out[lot] == 1 and _meal[lot] <= meal_key and _count[lot] > _reserved[lot]
 
 
-func reserve_one(meal_key: int, exact: bool = false) -> int:
+func reserve_one(meal_key: int, exact: bool = false, dish: int = Rules.NO_DISH) -> int:
 	"""Reserve the next portion by §5.7's order (see EATING ORDER) for a diner of meal `meal_key` -- with `exact`, only
-	one cooked for that meal itself (the cook eating supper early leaves breakfast's for breakfast); its row, or FREE."""
+	one cooked for that meal itself (the cook eating supper early leaves breakfast's for breakfast); with `dish`, only
+	that dish (a feast's other course: decision 0682); its row, or FREE."""
 	var best: int = FREE
 	for lot: int in MAX_LOTS:
-		if not _offered(lot, meal_key) or (exact and _meal[lot] != meal_key):
+		if not _offered(lot, meal_key) or (exact and _meal[lot] != meal_key) or (dish != Rules.NO_DISH and _dish[lot] != dish):
 			continue
 		if best == FREE or _before(lot, best):
 			best = lot

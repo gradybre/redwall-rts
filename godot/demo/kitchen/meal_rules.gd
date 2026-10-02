@@ -54,7 +54,7 @@ extends RefCounted
 ## RAW EMERGENCY FOOD (REQ-SET-013, WorldPolicy raw_emergency_food default true): with no portion, a resident at
 ## hunger 1500 or less may eat raw-edible food nobody has reserved, "enough quantity to add at most 3000 NP", in the
 ## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U) and dried fish (1800 NP/U, decision
-## 0431); grain, beans, flour and fresh fish are not (§5.7:
+## 0431), nuts (1600 NP/U) and berries (700 NP/U, decision 0681); grain, beans, flour, fresh fish, mushrooms and herb are not (§5.7:
 ## "Raw ingredients marked 'No' cannot be consumed even in emergency").
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -76,30 +76,39 @@ const DISH_FISH_STEW: int = 2
 ## (pea, broad bean), its cabbage the cabbage row (cabbage, lettuce, spinach, leek, celery). It is never in the
 ## alternation: the kitchen cooks it only for an OCCASION (kitchen.gd `set_occasion`), the feast's own batches.
 const DISH_BEAN_HOTPOT: int = 3
-const DISH_COUNT: int = 4
+## THE FEAST'S SECOND COURSE (decision 0682, Brendan's ruling of 2026-10-01 "add nuts & herbs now"): the Hearth feast's
+## second course, the library's "Nutbread" (redwall::RW-RECIPE-nutbread, its nuts and flour the pantry's AI completion)
+## COOKED AS §5.7's `nut_loaf` row exactly -- "flour 2, nuts 2, water 1 | meal_nut_loaf 3x2600 | 24 | Kitchen/COOK | 72 |
+## M1". Its flour is the mill's (decision 0434), its nuts a foraging trip's (decision 0681). Like the hotpot it is never
+## in the alternation: the kitchen cooks it only as an OCCASION's second course (kitchen.gd `set_occasion`).
+const DISH_NUT_LOAF: int = 4
+const DISH_COUNT: int = 5
 const NO_DISH: int = -1
-const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup", "Poached perch or trout", "Bean hotpot"]
-const DISH_SHORT: Array[String] = ["porridge", "soup", "fish stew", "bean hotpot"]
+const DISH_NAMES: Array[String] = ["Wild oat porridge", "Togget's vegetable soup", "Poached perch or trout", "Bean hotpot",
+	"Nutbread"]
+const DISH_SHORT: Array[String] = ["porridge", "soup", "fish stew", "bean hotpot", "nut loaf"]
 ## The content library's recipe each is cooked as ("" for the feast's GDD row, which has no library recipe).
 const LIBRARY_IDS: Array[String] = ["salamandastron::SAL_recipe_wild_oat_porridge",
-	"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout", ""]
+	"outcast::OUT_recipe_togget_s_vegetable_soup", "taggerung::TAG_recipe_requested_perch_or_trout", "",
+	"redwall::RW-RECIPE-nutbread"]
 ## The GDD §5.7 rows they are cooked as.
-const GDD_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot"]
+const GDD_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "nut_loaf"]
 ## Each dish's food input: its §5.6 crop row (or the pantry's fish category), and how much a batch takes.
-const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS, Catalog.CAT_FISH, FarmingScript.CROP_BEANS]
-const INPUT_WORDS: Array[String] = ["grain", "roots", "fresh fish", "beans"]
+const INPUT_CROP: Array[int] = [FarmingScript.CROP_GRAIN, FarmingScript.CROP_ROOTS, Catalog.CAT_FISH, FarmingScript.CROP_BEANS,
+	Catalog.CAT_FLOUR]
+const INPUT_WORDS: Array[String] = ["grain", "roots", "fresh fish", "beans", "flour"]
 const INPUT_CROPS_TEXT: Array[String] = ["oats, wheat or barley", "carrot, turnip, radish, beetroot, parsnip or onion",
-	"trout, dace, salmon, perch, carp or whitefish", "pea or broad bean"]
-const INPUT_MILLI: Array[int] = [2000, 3000, 2000, 2000]
+	"trout, dace, salmon, perch, carp or whitefish", "pea or broad bean", "flour from the mill"]
+const INPUT_MILLI: Array[int] = [2000, 3000, 2000, 2000, 2000]
 ## A dish's second food input (§5.7's fish_stew: "fish 2, roots 2"): its row and a batch's milli-U; -1: none.
-const SIDE_CROP: Array[int] = [-1, -1, FarmingScript.CROP_ROOTS, FarmingScript.CROP_CABBAGE]
-const SIDE_WORDS: Array[String] = ["", "", "roots", "cabbage"]
-const SIDE_MILLI: Array[int] = [0, 0, 2000, 2000]
-const WATER_MILLI: Array[int] = [2000, 1000, 2000, 2000]
-const PORTIONS_PER_BATCH: Array[int] = [2, 2, 3, 3]
-const NP_PER_PORTION: Array[int] = [1800, 1800, 2200, 2100]
-const WORK_MWU: Array[int] = [12000, 16000, 20000, 20000]
-const SHELF_HOURS: Array[int] = [24, 24, 24, 36]
+const SIDE_CROP: Array[int] = [-1, -1, FarmingScript.CROP_ROOTS, FarmingScript.CROP_CABBAGE, Catalog.CAT_NUTS]
+const SIDE_WORDS: Array[String] = ["", "", "roots", "cabbage", "nuts"]
+const SIDE_MILLI: Array[int] = [0, 0, 2000, 2000, 2000]
+const WATER_MILLI: Array[int] = [2000, 1000, 2000, 2000, 1000]
+const PORTIONS_PER_BATCH: Array[int] = [2, 2, 3, 3, 3]
+const NP_PER_PORTION: Array[int] = [1800, 1800, 2200, 2100, 2600]
+const WORK_MWU: Array[int] = [12000, 16000, 20000, 20000, 24000]
+const SHELF_HOURS: Array[int] = [24, 24, 24, 36, 72]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -152,8 +161,10 @@ const MONOTONY_HOURS: int = 6
 const RAW_NP_CAP: int = 3000
 ## Dried fish is §5.7's PRESERVED `dried_fish` (1800 NP/U, "Dried/salted fish ... are directly edible"; decision 0431):
 ## the village's reserve, eaten only this way -- §5.7's `fish` selector names the nine species, not their dried form.
+## Nuts and berries are §5.7's "Nuts | 1600 | Yes" and "Berries | 700 | Yes" (decision 0681): raw edible, so a hungry
+## resident may eat them when nobody has set them aside.
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
-	Catalog.CAT_DRIED_FISH: 1800}
+	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_NUTS: 1600, Catalog.CAT_BERRIES: 700}
 
 
 static func batch_ticks(dish: int) -> int:
@@ -165,6 +176,11 @@ static func is_input(dish: int, item: int) -> bool:
 	"""Whether pantry `item` is in one of `dish`'s food categories (see THE CROPS IN EACH CATEGORY)."""
 	var category: int = Catalog.category_of(item)
 	return category >= 0 and (category == INPUT_CROP[dish] or category == SIDE_CROP[dish])
+
+
+static func is_occasion_dish(dish: int) -> bool:
+	"""Whether `dish` is cooked only for an occasion (the feast's bean hotpot and nut loaf), never by the alternation."""
+	return dish == DISH_BEAN_HOTPOT or dish == DISH_NUT_LOAF
 
 
 static func batch_food_milli(dish: int) -> int:

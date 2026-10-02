@@ -198,6 +198,56 @@ against Brendan's "Full pass, ~480 credits" and a hard cap of 520 (1,213 before,
 **Known problems:** the 2026-09-24 `bramble` shatters at 2,410 and 5,230 triangles too (hence `bramble_blackberry`); the
 first pear and infirmary concepts were rejected (`concept_v1_rejected.png`); the baked-fish icon shows lemon slices.
 
+## Art pass 2 — 2026-10-02
+
+Evergreens, portraits, the stone Great Hall, flax, hall art and wildlife. **372 credits** were spent against the
+**450** Brendan approved for the itemised list: 782 before and 410 after, with no other spend on the account
+meanwhile. A subagent made the calls under decision 0961's delegated cap. Decision
+[0951](../../decisions/0951-art-pass-2-evergreens-portraits-stone-hall-flax-hall-art-and-wildlife.md) records the
+choices. The assets and the code each one serves are in [`../art_pass2_mapping.md`](../art_pass2_mapping.md).
+
+**3D models.** Each uses the library recipe: a concept from the style reference (6, or 9 for the hall), then a meshy-7
+high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model (39 for the hall).
+
+| Key | Concept task | High-poly task |
+|---|---|---|
+| `pine_scots` | `01a0fae2-f823-7390-93ef-cf65f0ff49dc` | `01a0fae3-a288-7580-b802-d41c587524d4` |
+| `yew_ancient` | `01a0fae3-02bb-713e-b40e-adcec3113339` | `01a0fae3-ab8f-7187-b286-318942cde084` |
+| `hall_stage2` | `01a0faef-6ba5-7079-8673-294516278f13` (from the timber hall's own concept) | `01a0faf0-c43b-77ec-85b8-04b314ec39b9` |
+| `plant_flax` | `01a0faef-7560-766d-b791-617e27b53c76` | `01a0faf0-cfb6-7294-9f7a-b474bb7d075e` |
+| `hall_banner` | `01a0faef-7e8e-7638-8362-7867e85a6e19` | `01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9` |
+| `wild_songbird` | `01a0fae3-0c5a-770e-8778-da8925a6b4e5` | `01a0fae3-b5ac-72f5-8faf-3a48488e103c` |
+| `wild_songbird_flight` (redo: a perched robin cannot flap) | `01a0fb0c-a7ed-7023-9ac0-631748c83711` | `01a0fb0d-4604-7632-8d2f-0dfea5fed214` |
+| `wild_butterfly` | `01a0fae3-15c3-73cf-a1c8-6b3fe0f9b2a1` | `01a0fae3-beb8-7025-8fa6-3c850fe29723` |
+| `wild_frog` | `01a0fae3-1f64-76cd-8c1e-a72214c918fe` | `01a0fae3-c7ae-74de-8272-4e4b7f03ae9b` |
+| `wild_trout_leaping` | reuses `prop/item_trout`'s high-poly: no spend | — |
+
+**UI art**, in the `ui/` family:
+
+| What | Task | Model |
+|---|---|---|
+| The nine residents' portraits, three per sheet (`ui/portraits/sheet_{a,b,c}.png`) | `01a0faef-409c-7616-ac77-e6f2ea3ff262`, `01a0faef-506f-71b5-a500-a3350d7d32dc`, `01a0faef-6137-7348-8b47-b59f4076eaba` | nano-banana-pro, 9 each |
+| The tapestry ground (`ui/tapestry/tapestry_ground.png`) | `01a0faef-8817-72ae-94d0-d4e0244600e4` | nano-banana-2 text-to-image, 3:4 |
+| The eight tapestry emblems (`ui/tapestry/tapestry_emblems_sheet.png`) | `01a0faef-8fcf-73be-9adf-b187237f026b` | nano-banana-2, 16:9 |
+| The chronicle page (`ui/chronicle/chronicle_page.png`) | `01a0faef-b3f1-73e0-9ef5-d3a43d48e120` | nano-banana-2, 3:4 |
+
+Each portrait sheet was conditioned on the three residents' own library concepts, IMG-25's woodland lineup (DEC-036)
+and the journal medallion of `05_woodland_art_concept.png`.
+
+**No Meshy remesh, rig or animation was bought.** All of the following were made free by
+`tools/make_art_pass2.py`, `tools/art_pass2_blender.py` and `tools/art_pass2_ui.py`, which are reproducible:
+- the L0s (decimate and bake, with a tightened unwrap for the trees and the hall);
+- the wildlife rigs and their 11 clips;
+- the stone hall's turn and fit;
+- the banner's cloth/wood split;
+- the pine's needle tint;
+- the window glow masks (`building/{hall,hall_stage2,residence,kitchen}/window_mask.png`, `l0_windows.glb`);
+- the bare oak (`environment/oak_mature/bare.glb`, `bare_albedo.png`);
+- the portrait medallions.
+
+Every task is in `meshy_tasks.jsonl` (its rows carry "art pass 2"), every prompt is in `concept_prompts.json`, and
+every file and hash is in `files.json`.
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

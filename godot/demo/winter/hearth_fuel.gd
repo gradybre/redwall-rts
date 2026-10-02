@@ -4,11 +4,15 @@ extends RefCounted
 ## columns -- no nodes -- so the suite drives it hour by hour; demo_winter.gd calls `pass_hour` once for every game
 ## hour the one calendar crosses, in order. Integer throughout; presentation only (the settlement is not written).
 ##
-## THE SOURCES. One row per burrow home (underground_rooms.gd row r, 0..MAX_ROOMS-1) and one more, HALL, for the
-## village hall -- GDD §5.8's "residence/hall hearth" and REQ-SET-133's "heated hall" the bedless sleep in. A home's
-## hearth is its INSTALLED fit-out hearth (room_fixtures.gd); the hall's is the hall's own (`set_hall_hearth`).
+## THE SOURCES. One row per burrow home (underground_rooms.gd row r, 0..MAX_ROOMS-1), one more, HALL, for the
+## village hall -- GDD §5.8's "residence/hall hearth" and REQ-SET-133's "heated hall" the bedless sleep in -- and one
+## more, INFIRMARY, for the infirmary building (decision 0995; Brendan's ruling on the review's R03, 2026-10-02: "the
+## infirmary is its own heated interior with its own hearth and fuel, under the same rules as homes"). A home's hearth
+## is its INSTALLED fit-out hearth (room_fixtures.gd); the hall's is the hall's own; the infirmary's stands once it is
+## built (GDD §5.9's room validity: an infirmary is "heated"; its 6×6 interior is within one hearth's 120 tiles, so it
+## burns as one normal hearth, §5.8).
 ##
-## EACH HOUR (`pass_hour`), for each source in row order -- the homes, then the hall -- its STATE:
+## EACH HOUR (`pass_hour`), for each source in row order -- the homes, then the hall, then the infirmary -- its STATE:
 ##   NONE     no hearth: nothing burns; the room drifts toward the outside air.
 ##   BANKED   the player let it go out (the fuel panel's emergency choice): no demand, no heat.
 ##   IDLE     a hearth, but no heat is demanded today (summer; a mild spring or autumn day): nothing burns.
@@ -42,9 +46,10 @@ const STATE_HEATED: int = 3
 const STATE_OUT: int = 4
 const STATE_WORDS: Array[String] = ["no hearth", "let go out", "not needed today", "heated", "out of fuel"]
 const ROOMS: int = RoomsScript.MAX_ROOMS
-## The hall's row, after the homes'.
+## The hall's row, after the homes', and the infirmary's after it (see THE SOURCES).
 const HALL: int = RoomsScript.MAX_ROOMS
-const SOURCES: int = RoomsScript.MAX_ROOMS + 1
+const INFIRMARY: int = RoomsScript.MAX_ROOMS + 1
+const SOURCES: int = RoomsScript.MAX_ROOMS + 2
 ## A room's temperature before its first hour: unknown, set from the air at the first pass.
 const UNSET_TENTHS: int = -100000
 
@@ -98,7 +103,7 @@ func bind_stores(stores: StoresScript) -> void:
 
 
 func set_hearth(source: int, on: bool) -> void:
-	"""Whether `source` has an installed hearth (a home's fit-out; the hall's own)."""
+	"""Whether `source` has an installed hearth (a home's fit-out; the hall's own; the infirmary's once built)."""
 	var value: int = 1 if on else 0
 	if hearth[source] != value:
 		hearth[source] = value

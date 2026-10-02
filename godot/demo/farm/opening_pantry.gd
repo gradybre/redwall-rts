@@ -5,8 +5,10 @@ extends RefCounted
 ## meal loop's acceptance runs (decisions 0381, 0421) topped the kitchen up with: four days of meals for nine
 ## (20 batches of porridge at 2 U and 16 of soup at 3 U, two portions a batch: 72 portions over 18 a day).
 ##
-## The stock goes into the covered store (location 0) as fresh lots, through the pantry's own `add_into`, so it ages
-## and spoils by the same rules as any harvest. It is OPENING stock, not a harvest: the farm's after-action record
+## The stock goes into the covered store (location 0) as fresh lots, through the pantry's own `add_opening_into`, so it
+## ages and spoils by the same rules as any harvest, and its lots carry their OPENING PROVENANCE (farm_pantry.gd; decision
+## 0994) through every split, move, merge, withdrawal and spoiling -- what "A full larder" leaves out is read off the
+## actual lots, never inferred from the item's withdrawals. It is OPENING stock, not a harvest: the farm's after-action record
 ## (decision 0451) is re-opened on its hour once the stock is in, so the day-0 record does not count it as harvested.
 ## Demo values, called once by the village at boot (demo_village.gd `_build_kitchen`).
 
@@ -34,14 +36,14 @@ static func total_milli() -> int:
 
 
 static func left_milli(pantry: PantryScript, k: int) -> int:
-	"""How much of opening item `k` is still in `pantry`: its stock less every milli-U of that item withdrawn or spoiled
-	since, and never more than the pantry holds of it (none when it was never stocked). The pantry spends the lot that
-	spoils first first, and the opening lots are the oldest, so they go first."""
+	"""How much of opening item `k` is still in `pantry`: the opening share its lots still hold (farm_pantry.gd OPENING
+	PROVENANCE), never more than the pantry holds of it (none when it was never stocked). Whichever lot the kitchen takes
+	or spoilage claims first -- a younger harvest in a warm store can go before an older opening lot in a cellar
+	(the review's R02) -- only the opening food actually gone leaves this count."""
 	var item: int = Catalog.ITEM_KEYS.find(ITEMS[k])
 	if item < 0:
 		return 0
-	var left: int = MILLI[k] - pantry.withdrawn_total_milli(item) - pantry.spoiled_total_milli(item)
-	return clampi(left, 0, pantry.milli_of(item))
+	return clampi(pantry.opening_milli_of(item), 0, pantry.milli_of(item))
 
 
 static func portions_left(pantry: PantryScript) -> int:
@@ -63,7 +65,7 @@ static func stock(pantry: PantryScript, record: RecordScript, hour_index: int) -
 	var read := IntMath.IntResult.new()
 	for k: int in ITEMS.size():
 		var item: int = Catalog.ITEM_KEYS.find(ITEMS[k])
-		if item >= 0 and pantry.add_into(item, MILLI[k], LOCATION, read):
+		if item >= 0 and pantry.add_opening_into(item, MILLI[k], LOCATION, read):
 			stored += MILLI[k]
 	if record != null:
 		record.start(hour_index)

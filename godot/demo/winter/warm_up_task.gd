@@ -81,7 +81,7 @@ func arrived(brain: RefCounted) -> void:
 		walker.task_hold_below()
 		stage = STAGE_TO_FIRE
 		return
-	walker.task_go_indoors(true)
+	walker.task_go_indoors(true, BrainScript.INTERIOR_HALL)
 	walker.task_play(BrainScript.CLIP_IDLE)
 	stage = STAGE_WARMING
 
@@ -102,19 +102,19 @@ func _come_out(walker: BrainScript, delta: float) -> bool:
 	"""Back to the room's middle (false once there); out of the hall at once."""
 	stage = STAGE_UP
 	if not in_home():
-		walker.task_go_indoors(false)
+		walker.task_go_indoors(false, BrainScript.INTERIOR_NONE)
 		return false
 	return not walker.task_stroll_to(_middle, delta)
 
 
 func finish(brain: RefCounted) -> void:
 	"""The break is over: out of doors."""
-	(brain as BrainScript).task_go_indoors(false)
+	(brain as BrainScript).task_go_indoors(false, BrainScript.INTERIOR_NONE)
 
 
 func cancel(brain: RefCounted) -> void:
 	"""Called away: out of doors."""
-	(brain as BrainScript).task_go_indoors(false)
+	(brain as BrainScript).task_go_indoors(false, BrainScript.INTERIOR_NONE)
 
 
 func holds_when_lost() -> bool:

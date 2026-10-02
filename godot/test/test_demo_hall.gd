@@ -463,7 +463,7 @@ func test_a_place_waits_only_while_there_is_something_to_do() -> void:
 	var crew := _crew(projects)
 	assert_false(crew.waiting(0), "nothing planned")
 	projects.plan_upgrade()
-	projects.cloth_milli = 0
+	projects._stores.cloth_milli_u = 0
 	assert_false(crew.waiting(0), "the stores hold none of it")
 	assert_false(crew.give(0, 0), "so it cannot be given")
 	stores.stone_milli_u = 5000
@@ -504,7 +504,7 @@ func test_a_carrier_that_finds_the_stores_empty_carries_nothing() -> void:
 	_new_cast()
 	var stores := _stores(0, 3)
 	var projects := _unlocked(stores)
-	projects.cloth_milli = 0
+	projects._stores.cloth_milli_u = 0
 	var crew := _crew(projects)
 	projects.plan_upgrade()
 	crew.give(0, 0)
@@ -653,7 +653,7 @@ func test_a_place_with_nothing_to_do_shows_why_on_the_board() -> void:
 	"""The stores out of stone: the first place is listed BLOCKED, the others not at all."""
 	_new_cast()
 	var projects := _unlocked(_stores(0, 0))
-	projects.cloth_milli = 0
+	projects._stores.cloth_milli_u = 0
 	var crew := _crew(projects)
 	var source := HallWork.new(crew, projects, Vector2.ZERO)
 	projects.plan_upgrade()

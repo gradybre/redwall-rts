@@ -21,8 +21,9 @@ or sibling worktree (checked 2026-10-02).
    (R-H6); and numbered HAUL_SOURCE / HAUL_DESTINATION purposes (R-H7).
 3. **The work queue gains HAUL-H0 … HAUL-H8.** H0–H2 are `review` on `feat/hauling-h0-h2`;
    H3–H8 are `blocked` on their predecessors. H3 also depends on Brendan's confirmation of
-   decision 1024 and on DEMOLITION-D6 (which merged to master as PR #219 while this branch was
-   open, so that half of the dependency is met once the queue records it).
+   decision 1024 and on DEMOLITION-D6, which merged to master as PR #219 while this branch was
+   open; master was merged into this branch, and the queue's stale `review` for D6 is now `done`
+   with its PR, merge commit and time, so that half of H3's dependency is met.
    `tools/dispatch_plan.py --validate` passes.
 4. **GROUND-CLEARANCE-ADMISSION was stale.** The queue held it `in_flight`; it merged as PR #176
    (`043c4da5`, 2026-09-20). It is now `done` with its PR, merge commit and time, and a note.

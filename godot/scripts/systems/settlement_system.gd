@@ -241,6 +241,8 @@ extends Node
 ##       planner is given ARCH-SYS-005's OWN hive store, asserted above, so the rows it services
 ##       are the rows `ecology.gd` advances. WINTER CREATES NO TENDING-LABOR JOB; it records a
 ##       feed-delivery demand as state, and no delivery job exists for it.
+##     * DEMO-CONTAIN-R01's demolition work (decision 0537): one BUILD Job per admitted demolition
+##       or piece removal, posted by `_reconcile_removal_work()` in this same planner slot.
 ##   WHAT STILL CREATES NONE: REQ-SET-073 ripe harvest and REQ-SET-085 withered clearing (both
 ##     keep their own route and are NOT rerouted through the planner); fishing cycles
 ##     (R06-JOB-003, no Expedition store); rotation advance (R06-JOB-005, `field_policy.gd`
@@ -351,9 +353,10 @@ extends Node
 ##
 ## `live_project_count()` is 0 after `create_generated_settlement()`: the starter colony is
 ## placed ACTIVE (decision 0533), not as blueprints, and nothing here opens a project.
-## ALSO ADDS NO TICK STAGE. `work.gd` owns the productive tick that would call `add_work_mwu()`
-## and `jobs.gd` owns REQ-SET-124's delivery and build jobs; neither file calls this store yet,
-## so `tick_stage_count()` is still 8 and every stage keeps its name.
+## ALSO ADDS NO TICK STAGE. REQ-SET-124's delivery and build jobs for NEW construction are still
+## absent. Only a removal's work reaches this store from a Job: D6 (decision 0537, below) credits
+## a demolition or piece-removal BUILD Job's accepted milli-WU through `add_work_mwu_into()` inside
+## ARCH-SYS-013's own slot, so `tick_stage_count()` is still 8 and every stage keeps its name.
 ##
 ## ---------------------------------------------------------------------------------------
 ## `request_demolition()` IS REQ-SET-128'S COMPOSED GATE PLUS BLOCKER 1's *ADMIT* (decision 0534).
@@ -407,6 +410,21 @@ extends Node
 ## `cancel_furniture_removal()` are the same admit and commit with the piece as subject, recorded
 ## against its building's admission row (one admission per building). A shelf in a pantry room
 ## takes its 50000 g out of the building's main store, refusing when that would overflow (#3b).
+##
+## D6: THE WORK IS A BUILD JOB, AND "EVACUATE, THEN DEMOLISH" IS A RECORDED ORDER (decision 0537).
+## Every admitted removal gets one BUILD Job (`demolition_work.gd`), posted by
+## `_reconcile_removal_work()` in ARCH-SYS-009's slot -- before selection -- whenever an admission
+## marks it dirty and on every hour crossing. ARCH-SYS-013 credits the Job's accepted milli-WU to
+## the project in the same tick, proved first so nothing is consumed that the project cannot
+## take; when the Job completes, the walk ends and the coordinator's own commit runs. A commit
+## that refuses stays commit-pending and is retried hourly. `order_evacuate_then_demolish()`
+## records the order when admission is refused for goods or a claim (stages 3 and 5) and the same
+## hourly reconcile retries *admit* once every container on the footprint reports empty. NO HAUL
+## JOB IS POSTED: physical hauling is task 06.4 and does not exist (no satchel, no movement, and
+## INV-GOODS-R01 forbids the gate teleporting goods), so the order waits for whatever empties the
+## stores. And nothing writes JOB_STATE_WORK yet (below), so in the running game a removal Job
+## is offered and reserved but never worked; the bridge is exercised by tests that stand in for
+## arrival exactly as the existing productive-work tests do.
 ##
 ## EVERY REFUSAL IS READ-ONLY, WHICH IS ASSERTED IN BYTES. Every path returns a
 ## `DemolitionReport` carrying exact counts and the exact stranded lot refs, and a refusal leaves
@@ -567,6 +585,7 @@ const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
+const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
 const StarterStructuresScript := preload("res://scripts/core/starter_structures.gd")
 const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
 const MilestonesScript := preload("res://scripts/core/milestones.gd")
@@ -801,6 +820,9 @@ class DemolitionReport:
 	var destroyed_container_count: int = 0
 	var removed_room_count: int = 0
 	var returned_lot_count: int = 0
+	## D6 (decision 0537): `order_evacuate_then_demolish()` recorded the building's intent. The
+	## refusal that made it necessary stays in `error`, with its stranded lots, for the notice.
+	var evacuation_ordered: bool = false
 	var _lot_slot: PackedInt32Array = PackedInt32Array()
 	var _lot_generation: PackedInt32Array = PackedInt32Array()
 
@@ -835,6 +857,7 @@ class DemolitionReport:
 		destroyed_container_count = 0
 		removed_room_count = 0
 		returned_lot_count = 0
+		evacuation_ordered = false
 
 	func record_lot(lot_ref: Vector2i) -> void:
 		"""Record one stranded lot ref. The count is the authority; the columns are the list."""
@@ -1015,6 +1038,16 @@ var _removal_pantry_g: int = 0
 var _return_charge_g: int = 0
 ## The coordinator's per-building admission record and destination revision (decision 0534).
 var _admissions: DemolitionAdmissionsScript = null
+## D6 (decision 0537): the evacuation intents and the removal work Jobs' links.
+var _demolition_work: DemolitionWorkScript = null
+## D6: an admission since the last reconcile, so its work Job is posted before the next selection.
+var _removal_work_dirty: bool = false
+## D6: removal work Jobs this tick's work stage completed, committed once the stage's walk ends.
+var _removal_jobs_finished: int = 0
+## D6 diagnostics: deferred admits the hourly reconcile attempted (sources empty) and commits it
+## retried (work done, commit pending). Counts, never authority.
+var _evacuation_retry_count: int = 0
+var _removal_commit_retry_count: int = 0
 
 
 func _init() -> void:
@@ -1046,6 +1079,7 @@ func _init() -> void:
 	_buildings = BuildingsScript.new(_directory)
 	_construction = ConstructionScript.new(_buildings)
 	_admissions = DemolitionAdmissionsScript.new(_directory)
+	_demolition_work = DemolitionWorkScript.new(_jobs, _construction)
 	_transforms = TransformsScript.new(_directory)
 	_compose_stock_layer()
 	_compose_ground_piles()
@@ -1789,6 +1823,11 @@ func _clear_stores() -> void:
 	_buildings.clear()
 	_construction.clear()
 	_admissions.clear()
+	_demolition_work.clear()
+	_removal_work_dirty = false
+	_removal_jobs_finished = 0
+	_evacuation_retry_count = 0
+	_removal_commit_retry_count = 0
 	_transforms.reset()
 	_rng.clear()
 
@@ -1921,6 +1960,7 @@ func _plan_jobs(tick_index: int) -> void:
 	hour. Named here rather than left for a reader to discover.
 	"""
 	_stage_timer.start()
+	_reconcile_removal_work(tick_index)
 	if not _planner.run_tick_into(tick_index, _planner_result):
 		_last_refusal = StringName(_planner_result.error)
 	_close_stage(TICK_STAGE_JOB_PLANNER)
@@ -2274,15 +2314,20 @@ func _run_productive_work() -> void:
 	"""ARCH-SYS-013 ProductiveWork: one productive tick for every live activity that can take one.
 
 	The walk is over live jobs rather than over workers, because a party must be ticked ONCE
-	through its coordinator and a per-worker walk would tick it once per member. Today the walk
-	is empty: nothing creates jobs (header).
+	through its coordinator and a per-worker walk would tick it once per member.
+
+	D6 (decision 0537): a removal work Job that completes here is committed only AFTER the walk,
+	because the commit retires the Job's row and the walk is over the live-row index.
 	"""
 	_stage_timer.start()
+	_removal_jobs_finished = 0
 	for index: int in _jobs.job_count():
 		var live: IntMath.IntResult = _jobs.live_job_at(index)
 		if not live.ok:
 			continue
 		_tick_one_activity(live.value)
+	if _removal_jobs_finished > 0:
+		_finish_removal_jobs()
 	_close_stage(TICK_STAGE_WORK)
 
 
@@ -2292,12 +2337,22 @@ func _tick_one_activity(job_slot: int) -> void:
 	A member row is skipped because decision 0017 keeps shared progress on the coordinator alone.
 	A refusal is ordinary -- a job in TRAVEL, a job with no worker, a finished job -- and is not
 	recorded as a fault; `work.gd` guarantees a refusal carries zero accepted work.
+
+	A BUILD Job is worked ONLY through D6's removal bridge (decision 0537): its milli-WU belong to
+	a construction project, and REQ-SET-124's build jobs for new construction do not exist, so a
+	BUILD Job the bridge cannot resolve to its linked project is not ticked at all -- worked as an
+	ordinary Job it would earn XP for work no project takes. The hourly reconcile retires it.
 	"""
 	if _jobs.is_member(job_slot):
 		return
 	if _jobs.is_coordinator(job_slot):
 		if _work.tick_party_into(job_slot, _tick_result):
 			_accepted_mwu_last_tick += _tick_result.accepted_mwu
+		return
+	if _jobs.kind_into(job_slot, _read) and _read.value == JobsScript.JOB_KIND_BUILD:
+		var project: Vector2i = _demolition_work.project_of_job(job_slot)
+		if project != EntityDirectoryScript.NULL_REF:
+			_tick_removal_work(job_slot, project)
 		return
 	if _work.tick_solo_into(job_slot, _tick_result):
 		_accepted_mwu_last_tick += _tick_result.accepted_mwu
@@ -2901,6 +2956,9 @@ func request_demolition(building_ref: Vector2i) -> DemolitionReport:
 	`report.ok` means a demolition project now exists and the building is DEMOLISHING. Every
 	refusal -- the preview's or admit's -- leaves Building, Construction, Inventory, the directory
 	and the admission record byte-identical. Removing the building is D5's composed completion.
+
+	D6 (decision 0537): an admission satisfies any "evacuate, then demolish" order on the
+	building, and its BUILD work Job is posted by the next reconcile, before the next selection.
 	"""
 	preview_demolition(building_ref)
 	if not _demolition.ok:
@@ -2908,6 +2966,9 @@ func request_demolition(building_ref: Vector2i) -> DemolitionReport:
 	var code: StringName = _admit_demolition(building_ref)
 	_demolition.error = code
 	_demolition.ok = code == REFUSE_NONE
+	if _demolition.ok:
+		_demolition_work.drop_intent(building_ref)
+		_removal_work_dirty = true
 	return _demolition
 
 
@@ -3452,7 +3513,9 @@ func cancel_demolition(building_ref: Vector2i) -> StringName:
 		ConstructionScript.PURPOSE_DEMOLISH)
 	if code != REFUSE_NONE:
 		return code
-	return _cancel_admitted(building_ref, project)
+	code = _cancel_admitted(building_ref, project)
+	_demolition_work.retire_job_of(building_ref)
+	return code
 
 
 func _cancel_admitted(building_ref: Vector2i, project: Vector2i) -> StringName:
@@ -3519,6 +3582,7 @@ func release_stranded_reservation(building_ref: Vector2i) -> StringName:
 		done = _retire_orphaned_removal(project) and done
 	if not done:
 		push_error("SettlementSystem: a proved stranded release refused (%s)" % building_ref)
+	_demolition_work.retire_job_of(building_ref)
 	return _admissions.release(building_ref)
 
 
@@ -3555,11 +3619,14 @@ func complete_demolition(building_ref: Vector2i) -> DemolitionReport:
 	"""
 	_demolition.reset()
 	var project: Vector2i = _construction.project_of_building(building_ref)
+	var row: int = _demolition_work.row_of(building_ref)
 	var code: StringName = _commit_refusal(building_ref, project)
 	if code == REFUSE_NONE:
 		code = _commit_demolition(building_ref, project)
 	_demolition.error = code
 	_demolition.ok = code == REFUSE_NONE
+	if _demolition.ok:
+		_demolition_work.retire_job_at(row)
 	return _demolition
 
 
@@ -3904,6 +3971,7 @@ func request_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
 	var code: StringName = _admit_furniture_removal(piece_ref, _building_of_piece(piece_ref))
 	_demolition.error = code
 	_demolition.ok = code == REFUSE_NONE
+	_removal_work_dirty = _removal_work_dirty or _demolition.ok
 	return _demolition
 
 
@@ -3923,6 +3991,8 @@ func complete_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
 		code = _commit_demolition(building, project, piece_ref)
 	_demolition.error = code
 	_demolition.ok = code == REFUSE_NONE
+	if _demolition.ok:
+		_demolition_work.retire_job_of(building)
 	return _demolition
 
 
@@ -3936,7 +4006,9 @@ func cancel_furniture_removal(piece_ref: Vector2i) -> StringName:
 		ConstructionScript.PURPOSE_REMOVE_FURNITURE)
 	if code != REFUSE_NONE:
 		return code
-	return _cancel_admitted(building, project)
+	code = _cancel_admitted(building, project)
+	_demolition_work.retire_job_of(building)
+	return code
 
 
 func _building_of_piece(piece_ref: Vector2i) -> Vector2i:
@@ -4088,6 +4160,230 @@ func _removal_commit_refusal(piece_ref: Vector2i, building_ref: Vector2i,
 	if code == REFUSE_NONE:
 		code = _commit_return_refusal(building_ref, project)
 	return code
+
+
+# --- D6: demolition work under BUILD and the evacuation intent (decision 0537) ------------------
+
+func order_evacuate_then_demolish(building_ref: Vector2i) -> DemolitionReport:
+	"""Blocker 4's "evacuate, then demolish": admit now, or record the order and retry later.
+
+	`request_demolition()` runs first. If it admits, the order is already satisfied and its report
+	is returned. If it refuses because the building's stores hold goods or carry a claim -- stage
+	3 or 5, `DEMOLITION_BLOCKED_STORED_GOODS` / `DEMOLITION_BLOCKED_CAPACITY_CLAIM` -- the intent
+	is recorded (`evacuation_ordered`) and the refusal, with its exact stranded lots, stays in the
+	report for the notice. Any other refusal is returned unchanged and records nothing.
+
+	THE ORDER POSTS NO HAUL JOB (decision 0537): physical hauling is task 06.4, which does not
+	exist. The hourly reconcile retries *admit* once the footprint's containers report empty,
+	however they were emptied.
+	"""
+	request_demolition(building_ref)
+	if _demolition.ok or not is_evacuable_refusal(_demolition.error):
+		return _demolition
+	_demolition.evacuation_ordered = _demolition_work.order_intent(building_ref) == REFUSE_NONE
+	return _demolition
+
+
+static func is_evacuable_refusal(code: StringName) -> bool:
+	"""The two goods-stage refusals (stages 3 and 5) an evacuation order may wait out."""
+	return code == REFUSE_DEMOLITION_STORED_GOODS or code == REFUSE_DEMOLITION_CAPACITY_CLAIM
+
+
+func cancel_evacuation(building_ref: Vector2i) -> StringName:
+	"""Withdraw a building's "evacuate, then demolish" order. Nothing else changes."""
+	return _demolition_work.cancel_intent(building_ref)
+
+
+func has_evacuation_intent(building_ref: Vector2i) -> bool:
+	"""Whether a live building carries an "evacuate, then demolish" order still waiting."""
+	return _demolition_work.has_intent(building_ref)
+
+
+func demolition_work() -> DemolitionWorkScript:
+	"""D6's store: the evacuation intents and the removal work Jobs' links (decision 0537)."""
+	return _demolition_work
+
+
+func evacuation_retry_count() -> int:
+	"""How many deferred admits the hourly reconcile has attempted since the last reset."""
+	return _evacuation_retry_count
+
+
+func removal_commit_retry_count() -> int:
+	"""How many commit-pending removals the hourly reconcile has retried since the last reset."""
+	return _removal_commit_retry_count
+
+
+func _tick_removal_work(job_slot: int, project: Vector2i) -> void:
+	"""One productive tick of a removal work Job, credited to its project in the same tick.
+
+	Validate, then consume (decision 0059): the project must take the credit and hold exactly
+	the Job's outstanding work BEFORE `work.gd` consumes any, so the credit after it cannot
+	refuse. The credit is what the Job's own remainder actually lost, not the tick result's
+	acceptance, so a tick `work.gd` refused after consuming still reaches the project. Outside
+	JOB_STATE_WORK this costs one read beyond `project_of_job()`; nothing moves a Job there yet but
+	movement, which is not composed (header).
+	"""
+	if not _jobs.state_into(job_slot, _read) or _read.value != JobsScript.JOB_STATE_WORK:
+		return
+	if _demolition_work.work_refusal(job_slot, project) != REFUSE_NONE:
+		return
+	_jobs.remaining_mwu_into(job_slot, _read)
+	var before: int = _read.value
+	_work.tick_solo_into(job_slot, _tick_result)
+	_jobs.remaining_mwu_into(job_slot, _read)
+	var consumed: int = before - _read.value
+	if consumed <= 0:
+		return
+	var left: int = _read.value
+	var code: StringName = _demolition_work.credit_work(project, consumed)
+	if code != REFUSE_NONE:
+		push_error("SettlementSystem: a proved demolition work credit refused (%s)" % code)
+	_accepted_mwu_last_tick += consumed
+	if left == 0:
+		_finish_spent_job(job_slot)
+
+
+func _finish_spent_job(job_slot: int) -> void:
+	"""A removal Job with no work left is COMPLETE, whatever `work.gd`'s tick did afterwards.
+
+	`work.gd` writes COMPLETE only on a tick it finishes cleanly; a refusal after its consume (an
+	XP overflow, say) would leave the Job in WORK at 0, and nothing would commit the project.
+	"""
+	if not _jobs.state_into(job_slot, _read) or _read.value != JobsScript.JOB_STATE_COMPLETE:
+		_jobs.set_state(job_slot, JobsScript.JOB_STATE_COMPLETE)
+	_removal_jobs_finished += 1
+
+
+func _finish_removal_jobs() -> void:
+	"""Retire every removal work Job the walk completed, then commit its removal.
+
+	The commit is the coordinator's own (`complete_demolition()` / `complete_furniture_removal()`),
+	never a store door. A refusal leaves the project PHASE_WORK_DONE, commit-pending, and the
+	hourly reconcile retries it (ECON-003: no cost).
+	"""
+	for row: int in BuildingsScript.BUILDING_CAPACITY:
+		var project: Vector2i = _demolition_work.finished_project_at(row)
+		if project == EntityDirectoryScript.NULL_REF:
+			continue
+		_demolition_work.retire_job_at(row)
+		_commit_removal(project)
+	_removal_jobs_finished = 0
+
+
+func _commit_removal(project: Vector2i) -> void:
+	"""Commit one finished removal through the door its purpose names."""
+	var subject: Vector2i = _construction.subject_ref_of(project)
+	if not _construction.purpose_into(project, _read):
+		return
+	if _read.value == ConstructionScript.PURPOSE_DEMOLISH:
+		complete_demolition(subject)
+	elif _read.value == ConstructionScript.PURPOSE_REMOVE_FURNITURE:
+		complete_furniture_removal(subject)
+
+
+func _reconcile_removal_work(tick_index: int) -> void:
+	"""Post missing work Jobs, then -- on an hour crossing -- retry commits and evacuations.
+
+	Runs in ARCH-SYS-009's slot, before selection, so a Job posted here can be offered this
+	tick. It returns at once unless an admission marked it dirty or the hour turned; the two
+	retries scan stores (the commit's proofs, the footprint's anchors), so they keep the hourly
+	cadence decision 0537 proposes (P1) rather than running every tick. It runs BEFORE the job
+	planner, so a deferred admit or commit lands where a player's command would have.
+	"""
+	var hourly: bool = StockAgeScript.is_hour_boundary(tick_index)
+	if not hourly and not _removal_work_dirty:
+		return
+	_removal_work_dirty = false
+	if hourly:
+		_retire_orphaned_removal_jobs()
+	for row: int in BuildingsScript.BUILDING_CAPACITY:
+		_reconcile_removal_row(row, tick_index, hourly)
+
+
+func _retire_orphaned_removal_jobs() -> void:
+	"""Hourly: retire every BUILD Job no row links and no live non-removal project requests.
+
+	Every linked Job is reached by the row walk; this catches the rest (a Job whose destroy was
+	refused, or one restored without its project), which `_tick_one_activity()` never ticks.
+	Walked from the end, because a retirement shifts only the live rows already visited. Once an
+	hour, O(live Jobs), allocation-free (`live_job_at_into()`).
+	"""
+	var index: int = _jobs.job_count() - 1
+	while index >= 0:
+		if _jobs.live_job_at_into(index, _read) \
+				and _demolition_work.is_orphaned_removal_job(_read.value):
+			_demolition_work.retire_job(_read.value)
+		index -= 1
+
+
+func _reconcile_removal_row(row: int, tick_index: int, hourly: bool) -> void:
+	"""One Building row: forget a gone building's state, keep an admission worked, retry an order.
+
+	A row with no order, no Job link and no admission record -- almost every row -- costs three
+	array reads and is skipped.
+	"""
+	if _demolition_work.is_quiet_row(row) and not _admissions.is_recorded_at(row):
+		return
+	var building: Vector2i = _buildings.building_ref_of_row(row)
+	var ordered: Vector2i = _demolition_work.intent_building_at(row)
+	if ordered != EntityDirectoryScript.NULL_REF and ordered != building:
+		_demolition_work.drop_intent_at(row)
+	if building == EntityDirectoryScript.NULL_REF:
+		_demolition_work.retire_job_at(row)
+		return
+	var project: Vector2i = _admissions.project_of(building)
+	if project != EntityDirectoryScript.NULL_REF:
+		_reconcile_admitted(row, project, tick_index, hourly)
+		return
+	_demolition_work.retire_job_at(row)
+	if hourly and _demolition_work.has_intent(building) and _evacuation_sources_empty(building):
+		_evacuation_retry_count += 1
+		request_demolition(building)
+
+
+func _reconcile_admitted(row: int, project: Vector2i, tick_index: int, hourly: bool) -> void:
+	"""Keep exactly one workable Job on an admitted removal; retry its commit once work is done.
+
+	A Job the player cancelled (CANCEL_JOB cancels the Job, not the demolition), a paused
+	project's Job (REQ-SET-137 releases its workers) and a Job out of step are retired; a
+	workable project with no Job gets a fresh one carrying the project's own remainder.
+	"""
+	if not _construction.phase_into(project, _read):
+		return
+	if _read.value == ConstructionScript.PHASE_WORK_DONE:
+		_demolition_work.retire_job_at(row)
+		if hourly:
+			_removal_commit_retry_count += 1
+			_commit_removal(project)
+		return
+	if _demolition_work.linked_job_is_stale(row, project):
+		_demolition_work.retire_job_at(row)
+	_demolition_work.post_job(project, tick_index)
+
+
+func _evacuation_sources_empty(building_ref: Vector2i) -> bool:
+	"""Whether every container anchored on the building's footprint holds no lot and no claim.
+
+	The sources' report the retry waits for. Stage 5 requires every container the gate's owner
+	scan reaches to be anchored on the footprint, so this one tile scan sees a superset of the
+	gate's sources, and only an empty answer is worth the full *admit*. Satchels are unplaced
+	and never seen (#3d). Cold: one bounded anchor scan per waiting order per hour.
+	"""
+	_demolition_footprint.fill(0)
+	if not _ground_piles.refund_seeds_into(building_ref, _demolition_footprint,
+			_demolition_seeds, _demolition_read):
+		return false
+	if not _inventory.containers_anchored_in_into(_demolition_footprint, _demolition_pairs,
+			_demolition_read):
+		return false
+	for index: int in _demolition_read.value:
+		var container: Vector2i = Vector2i(_demolition_pairs[index * 2],
+			_demolition_pairs[index * 2 + 1])
+		if _inventory.container_lot_count(container) > 0 \
+				or _inventory.container_reserved_mass_g(container) > 0:
+			return false
+	return true
 
 
 func demolition_admissions() -> DemolitionAdmissionsScript:

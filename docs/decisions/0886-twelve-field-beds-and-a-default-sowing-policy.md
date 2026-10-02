@@ -37,7 +37,8 @@ bounded, discrete zones); extending it is a proposal below.
 ### The sowing policy
 
 A fourth tending policy, **Sow empty beds in season** (`farm_tending.gd` POLICY_SOW, `farm_sowing.gd`): on an empty
-laid bed not resting, sow the player's chosen crop, else the bed's **rotation**'s next crop, when its window and soil
+laid bed not resting and not booked by the harvest plan (decision 0882: a booked bed is sown by its booking on its day,
+so Steady table and Custom dates still work with the policy on), sow the player's chosen crop, else the bed's **rotation**'s next crop, when its window and soil
 allow, within the group's budget (a sowing is 4 WU, §5.6).
 
 - **The rotation** is GDD §5.6's: "chosen manually per field or through an explicit three-entry cycle; default cycle
@@ -55,6 +56,11 @@ allow, within the group's budget (a sowing is 4 WU, §5.6).
   garden's sowing stays off (the garden has its own plan, 0883).
 - **The budget** default is now 16 WU a day (four sowings), up from 8, so a hands-off spring sows the nine empty field
   beds in about two days -- inside wheat's window (Spring 1–4).
+
+## Known gaps
+
+- The minimap still draws only the six world beds (`demo/ui/demo_minimap.gd` reads `world_layout.gd CROPS`); the south
+  field and the garden are not on it yet.
 
 ## Proposals for Brendan
 

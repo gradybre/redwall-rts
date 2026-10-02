@@ -68,6 +68,14 @@ Free placement needs general placement and field designation, which the demo doe
 bounded modules first. Four sites in a 2 × 2 give the player real choices -- a row along the path, a courtyard square,
 beds near the well or near the shelf -- whose only difference is the walking, said in metres.
 
+## Known gaps
+
+- A room may be dug under a garden site nobody has laid out (a bare site grows nothing: `tunnel_control.gd bed_laid`);
+  laying a bed out there afterwards is not refused, so a bed can stand over a room. Refusing lay-out over a room needs
+  the rooms' footprint test from the tunnel lane.
+- The shelf is free and permanent, and at the pantry's factor (750) it is preferred over the covered store (1000) for
+  any harvest when it has room (proposals 3 and 4).
+
 ## Proposals for Brendan
 
 1. **Free placement** on a tile grid instead of four authored sites. **Recommendation:** after the general building

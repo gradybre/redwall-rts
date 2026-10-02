@@ -24,7 +24,8 @@ extends RefCounted
 ##             board moved, no work: farm_sim.gd TUNNEL OUTLETS) -- the only things it changes. A STRUCTURAL answer -- a
 ##             ditch (Drain), Raise -- is the player's choice (the review: "structural changes still require a chosen
 ##             project"), and so is the weir's sluice, which serves three beds at once: those are said, not done;
-##   SOW       on an EMPTY laid bed, not resting: sow the player's chosen crop, else its rotation's next crop
+##   SOW       on an EMPTY laid bed, not resting and not booked by the harvest plan (its booking sows it on its day):
+##             sow the player's chosen crop, else its rotation's next crop
 ##             (farm_sowing.gd: GDD §5.6's three-entry cycle, R06-JOB-005's cursor), when its window and soil allow; one
 ##             waiting for its window is said once a bed and entry.
 ## EXCEPTIONS are posted to the village news once a day per group and policy (`notice`), naming the beds: a job the
@@ -84,6 +85,8 @@ var _day: int = -1
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _left: PackedInt32Array = PackedInt32Array()
 var _refused: PackedInt32Array = PackedInt32Array()
+## `(bed: int) -> bool`: the harvest plan's bookings (`bind_booked`).
+var _booked: Callable = Callable()
 var _none: PackedInt32Array = PackedInt32Array()
 
 
@@ -236,7 +239,8 @@ func wants(bed: int, policy: int) -> bool:
 	if _crew.jobs.job_on_bed_into(POLICY_KINDS[policy], bed, _read):
 		return false
 	if policy == POLICY_SOW:
-		return _sowable_bed(bed) and _sim.sow_refusal(bed, sowing.crop_to_sow(_sim, bed)) == SimScript.REFUSE_NONE
+		return _sowable_bed(bed) and not _is_booked(bed) \
+			and _sim.sow_refusal(bed, sowing.crop_to_sow(_sim, bed)) == SimScript.REFUSE_NONE
 	if not _sim.is_laid(bed) or not _growing(bed):
 		return false
 	if policy == POLICY_FROST:
@@ -288,6 +292,17 @@ func _except(group: int, policy: int, text: String) -> void:
 		revision += 1
 	if first and _notice.is_valid():
 		_notice.call("Tending: " + text)
+
+
+func bind_booked(booked: Callable) -> void:
+	"""`booked(bed) -> bool`: whether the harvest plan has booked the bed's sowing (farm_harvest_plan.gd); SOW leaves a
+	booked bed to its booking (decision 0886)."""
+	_booked = booked
+
+
+func _is_booked(bed: int) -> bool:
+	"""Whether the harvest plan has booked the bed's sowing (none bound: no)."""
+	return _booked.is_valid() and bool(_booked.call(bed))
 
 
 func _sowable_bed(bed: int) -> bool:

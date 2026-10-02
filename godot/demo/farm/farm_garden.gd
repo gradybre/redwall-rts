@@ -123,12 +123,22 @@ func lay_out(bed: int) -> String:
 
 
 func take_up(bed: int) -> String:
-	"""Take garden bed `bed` up again (refused while anything stands in it). Returns the answer."""
+	"""Take garden bed `bed` up again (refused while anything stands in it, or a job is on it). Returns the answer."""
+	if _crew != null and _has_job(bed):
+		return "Can't take the bed up: a job is on it — cancel its jobs first"
 	var done: FarmingScript.OpResult = _sim.take_up(bed)
 	if not done.ok:
 		return "Can't take the bed up: %s" % FarmCard.reason_words(done.error)
 	revision += 1
 	return "Bed %d taken up: the site is bare again (its soil keeps its history)" % (bed + 1)
+
+
+func _has_job(bed: int) -> bool:
+	"""Whether any job is on the bed's board."""
+	for row: int in JobsScript.MAX_JOBS:
+		if _crew.jobs.is_live(row) and _crew.jobs.bed[row] == bed:
+			return true
+	return false
 
 
 func laid_beds() -> PackedInt32Array:

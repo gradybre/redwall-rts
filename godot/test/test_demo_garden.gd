@@ -443,3 +443,26 @@ func test_a_bed_taken_up_draws_no_works() -> void:
 	farm.garden.lay_out(SITE_1)
 	farm.view.refresh()
 	assert_true(farm.view.beds[SITE_1].raised_frame.visible, "laid again: the frame is back")
+
+
+func test_a_load_in_hand_is_never_kept_for_the_cook() -> void:
+	"""Between meals a garden sowing is kept for the cook, but a harvest's delivery on a garden bed is anyone's: a load in
+	hand is carried home by whoever can (farm_crew.gd `kept_from`)."""
+	var sim := SimScript.new()
+	var garden := _garden(sim)
+	var row: int = _sow_job(garden, SITE_1)
+	sim.advance_usec(3 * HOUR_USEC)
+	assert_equal(garden._crew.kept_from(row, OTHER), GardenScript.KEPT_WORDS, "a sowing: kept")
+	garden._crew.jobs.kind[row] = JobsScript.KIND_HARVEST
+	garden._crew.jobs.become_delivery(row)
+	assert_equal(garden._crew.kept_from(row, OTHER), "", "a delivery: anyone's")
+
+
+func test_a_bed_with_a_job_is_not_taken_up() -> void:
+	"""A laid, empty garden bed with a sowing on its board is refused Take up until its jobs are cancelled."""
+	var sim := SimScript.new()
+	var garden := _garden(sim)
+	var row: int = _sow_job(garden, SITE_1)
+	assert_equal(garden.take_up(SITE_1), "Can't take the bed up: a job is on it — cancel its jobs first", "refused")
+	garden._crew.jobs.close(row)
+	assert_true(garden.take_up(SITE_1).begins_with("Bed 13 taken up"), "then taken up")

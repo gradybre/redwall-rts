@@ -209,6 +209,7 @@ func _configure_plans(cast: DemoCastScript) -> void:
 	var farm_news: Callable = services.notices.poster(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE)
 	tending.configure(sim, crew, farm_news)
 	harvest_plan.configure(sim, crew, pantry, cast.actor_count if cast != null else func() -> int: return 0, farm_news)
+	tending.bind_booked(harvest_plan.is_booked)
 
 
 func _bind_services(shared: ServicesScript) -> void:

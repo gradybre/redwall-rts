@@ -420,7 +420,7 @@ static func _station_cellar() -> Entry:
 static func _station_tunnels() -> Entry:
 	"""The station tunnels entry."""
 	return make(&"station_tunnels", KIND_STATION, "Tunnels", "Dug ways below", PackedStringArray([
-		"Routes in any weather (rain and snow do not slow walkers below); draining the beds above; reaching homes and cellars.",
+		"Routes in any weather (rain and snow do not slow walkers below); draining or watering a bed above through an outlet fitted to it; reaching homes and cellars.",
 		"A digger who fits the bore (mice, moles, squirrels); 8 m at least, mouth to mouth.",
 		"A bridge or the ford over the stream.", "Wherever you dig them (B); they cannot pass under water."]),
 		[&"skill_digging", &"material_earth", &"station_bridges"])

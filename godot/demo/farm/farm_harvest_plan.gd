@@ -525,6 +525,11 @@ func _say_once(bed: int, text: String) -> void:
 		_notice.call(text)
 
 
+func is_booked(bed: int) -> bool:
+	"""Whether a bed's sowing is booked (the tending policy leaves it to the booking)."""
+	return Catalog.is_bed(bed) and booked_day[bed] != NO_DAY
+
+
 func booking_text(bed: int) -> String:
 	"""'booked: lettuce on Summer 7' ('' for none)."""
 	if booked_day[bed] == NO_DAY:

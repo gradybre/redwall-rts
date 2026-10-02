@@ -199,3 +199,17 @@ func test_the_crew_reaches_every_south_field_tile_and_a_garden_bed() -> void:
 		farm.crew.order(JobsScript.KIND_SOW, bed, PackedInt32Array([OTHER]), JobsScript.ORIGIN_PLAYER)
 		assert_true(_run(farm, 60.0, func() -> bool: return farm.sim.stage_of(bed) != SimScript.STAGE_EMPTY),
 			"bed %d sown" % (bed + 1))
+
+
+func test_the_sowing_policy_leaves_a_booked_bed_to_its_booking() -> void:
+	"""With the field's sowing on, a bed booked for spring 2 is not sown on spring 1 by the policy; its booking sows it."""
+	var farm := _farm()
+	farm.tending.set_policy(TendingScript.GROUP_FIELD, TendingScript.POLICY_SOW, true)
+	farm.sim.choose(BED_LOAM, RADISH)
+	farm.harvest_plan.shift(BED_LOAM, 1)
+	assert_equal(farm.harvest_plan.book(), "Booked: Bed 1 on Spring 2", "booked")
+	farm.advance_calendar(HOUR_USEC)
+	assert_false(farm.crew.jobs.job_on_bed_into(JobsScript.KIND_SOW, BED_LOAM, _read), "spring 1: left to its booking")
+	assert_true(farm.crew.jobs.job_on_bed_into(JobsScript.KIND_SOW, 1, _read), "the policy sows the other empty beds")
+	farm.advance_calendar(17 * HOUR_USEC)
+	assert_true(farm.crew.jobs.job_on_bed_into(JobsScript.KIND_SOW, BED_LOAM, _read), "spring 2: the booking sows it")

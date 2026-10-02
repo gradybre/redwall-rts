@@ -557,7 +557,10 @@ func test_a_finished_demolition_removes_the_building() -> void:
 	assert_true(project.ok, "the demolition opens")
 	assert_true(_construction.begin_work(project.ref).ok, "demolition work begins")
 	@warning_ignore("integer_division") assert_true(_construction.add_work_mwu(project.ref, HALL_WORK / 4).ok, "and completes")
-	assert_true(_construction.commit_completion(project.ref).ok, "the demolition commits")
+	assert_equal(_construction.commit_completion(project.ref).error,
+		Construction.REFUSE_COORDINATOR_ONLY, "the store-level door refuses a demolition (0536)")
+	assert_true(_construction.remove_demolished_subject(project.ref).ok, "the subject step")
+	assert_true(_construction.retire_demolition(project.ref).ok, "and the retirement")
 	assert_false(_buildings.is_live_building(building), "the building is gone")
 	assert_equal(_buildings.building_at_tile(tile), EntityDirectory.NULL_REF,
 		"and its footprint is released")
@@ -580,8 +583,9 @@ func test_a_refused_completion_restores_the_buildings_back_reference() -> void:
 		int(CatalogScript.ROOM_TYPE["PANTRY"]), _interior_tiles(building, 4))
 	assert_true(room.ok, "a room now blocks the removal (%s)" % room.error)
 	var before: PackedByteArray = _snapshot()
-	var refused: Construction.OpResult = _construction.commit_completion(project.ref)
-	assert_false(refused.ok, "the removal refuses, so the completion refuses")
+	var refused: Construction.OpResult = _construction.remove_demolished_subject(project.ref)
+	assert_equal(refused.error, Buildings.REFUSE_BUILDING_HAS_ROOMS,
+		"the removal refuses, so the subject step refuses")
 	assert_equal(_snapshot(), before, "the refused commit leaves every store byte-identical")
 	assert_true(_construction.phase_into(project.ref, _out), "the phase reads")
 	assert_equal(_out.value, Construction.PHASE_WORK_DONE, "earned work and phase are retained")

@@ -75,6 +75,10 @@ IDs, which are never reissued.
 | Additional candidate mutable state | 64454263 | 64456311 |
 | Rejected two-world transactional peak | 143542331 | 143546427 (-43546427 headroom) |
 
+The ledger figures above are as of this branch's base (d75d9d89). Merged with master's decisions 0536 and 0537
+(2026-10-02), the same +2048 lands on their totals: Auxiliary 25394928, planned payload 70726292, live 79114900,
+headroom 20885100, candidate 64481095, transactional peak 143595995 (−43595995); the trail row follows 0537's.
+
 `docs/systems_architecture.md` carries the new §3 row text, the Auxiliary and metric rows and an
 ARCH-MEM-009 trail line. `docs/validation/ready07_arithmetic.py` adds
 `DECISION_0996_ADDED = 4*512` to its allocation identity and pins the new totals; it passes.

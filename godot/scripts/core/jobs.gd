@@ -1033,6 +1033,13 @@ func live_job_at(index: int) -> IntMath.IntResult:
 	return _read(REFUSE_NONE, _live_slots[index])
 
 
+func live_job_at_into(index: int, out: IntMath.IntResult) -> bool:
+	"""`live_job_at()` into a caller-owned result: the walk decision 0537's hourly sweep takes."""
+	if index < 0 or index >= _live_count:
+		return out.refuse(REFUSE_INVALID_JOB_SLOT)
+	return out.succeed(_live_slots[index])
+
+
 func ref_of(job_slot: int) -> Vector2i:
 	"""The directory reference owning a Job row, or the null reference when it is empty."""
 	if not is_job_present(job_slot):

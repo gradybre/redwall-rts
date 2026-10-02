@@ -1,0 +1,15 @@
+{
+  "counts": {
+    "assertions": 577344,
+    "expected": 268,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 7974,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "suite_count": 240,
+  "wall_seconds": 797.284
+}

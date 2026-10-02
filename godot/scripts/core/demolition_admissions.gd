@@ -18,6 +18,16 @@ extends RefCounted
 ##     never reused for a row, so a reused row's new building never inherits an equal revision
 ##     under the same identity. Movement consuming it is D8.
 ##
+##   * THE ADMITTED RETURN'S CHARGE (decision 0536). A demolition's return now includes 50% of
+##     every piece of furniture in the building, read from the pieces present; the grams that
+##     return charges at admission are recorded for EVERY admission, a ground-pile fallback
+##     included, so the commit can refuse a return that changed since (a piece placed or removed
+##     around the coordinator) instead of placing a return nobody reserved or priced the work for.
+##     A store-bound admission's reserved grams equal its charge.
+##   * ONE ADMISSION PER BUILDING ROW, a demolition OR one piece of its furniture's removal
+##     (decision 0536): the coordinator records a piece's removal against its building's row, so
+##     the two can never be admitted together and no per-piece record is allocated.
+##
 ## A RESERVATION OUTLIVES NOTHING SILENTLY. The record's project and binding readers answer only
 ## while the project is a live CONSTRUCTION row, but the reserved grams stay recorded until
 ## `release()` is called by whoever released them in Inventory (the coordinator's cancellation,
@@ -51,6 +61,7 @@ var _output_slot: PackedInt32Array = PackedInt32Array()
 var _output_generation: PackedInt32Array = PackedInt32Array()
 var _destination_revision: PackedInt32Array = PackedInt32Array()
 var _output_reserved_g: PackedInt64Array = PackedInt64Array()
+var _admitted_charge_g: PackedInt64Array = PackedInt64Array()
 
 
 func _init(directory: EntityDirectory) -> void:
@@ -62,6 +73,7 @@ func _init(directory: EntityDirectory) -> void:
 	_output_generation.resize(BUILDING_CAPACITY)
 	_destination_revision.resize(BUILDING_CAPACITY)
 	_output_reserved_g.resize(BUILDING_CAPACITY)
+	_admitted_charge_g.resize(BUILDING_CAPACITY)
 	clear()
 
 
@@ -73,6 +85,7 @@ func clear() -> void:
 	_output_generation.fill(NULL_REF.y)
 	_destination_revision.fill(FIRST_DESTINATION_REVISION)
 	_output_reserved_g.fill(0)
+	_admitted_charge_g.fill(0)
 
 
 func _row_of(building_ref: Vector2i) -> int:
@@ -104,12 +117,13 @@ func admit_refusal(building_ref: Vector2i) -> StringName:
 
 
 func record(building_ref: Vector2i, project_ref: Vector2i, output_ref: Vector2i,
-		reserved_g: int) -> StringName:
-	"""Record one admitted demolition and advance the building's destination revision.
+		reserved_g: int, charge_g: int) -> StringName:
+	"""Record one admitted removal and advance the building's destination revision.
 
 	`output_ref` is the INVENTORY container holding the reservation, or the null ref with
-	`reserved_g` 0 when the return falls back to ground piles; any other pairing refuses.
-	Refuses, writing nothing, everything `admit_refusal()` names and a project that is not live.
+	`reserved_g` 0 when the return falls back to ground piles; `charge_g` is the admitted return's
+	capacity charge, which a store-bound reservation must equal. Any other shape refuses, as does
+	everything `admit_refusal()` names and a project that is not live -- writing nothing.
 	"""
 	var code: StringName = admit_refusal(building_ref)
 	if code != REFUSE_NONE:
@@ -118,7 +132,10 @@ func record(building_ref: Vector2i, project_ref: Vector2i, output_ref: Vector2i,
 		return REFUSE_STALE_PROJECT
 	if reserved_g < 0 or (output_ref == NULL_REF) != (reserved_g == 0):
 		return REFUSE_OUTPUT_SHAPE
+	if charge_g < 0 or (reserved_g != 0 and reserved_g != charge_g):
+		return REFUSE_OUTPUT_SHAPE
 	var row: int = _row_of(building_ref)
+	_admitted_charge_g[row] = charge_g
 	_project_slot[row] = project_ref.x
 	_project_generation[row] = project_ref.y
 	_output_slot[row] = output_ref.x
@@ -144,6 +161,7 @@ func release(building_ref: Vector2i) -> StringName:
 	_output_slot[row] = NULL_REF.x
 	_output_generation[row] = NULL_REF.y
 	_output_reserved_g[row] = 0
+	_admitted_charge_g[row] = 0
 	_destination_revision[row] += 1
 	return REFUSE_NONE
 
@@ -158,6 +176,15 @@ func release_refusal(building_ref: Vector2i) -> StringName:
 	if _destination_revision[row] >= INT32_MAX:
 		return REFUSE_REVISION_EXHAUSTED
 	return REFUSE_NONE
+
+
+func is_recorded_at(row: int) -> bool:
+	"""Whether Building typed row `row` holds an admission record, live project or not.
+
+	Decision 0537 (D6): the coordinator's reconcile skips a row with no record, no order and no
+	work Job after three array reads, instead of validating a building ref per row.
+	"""
+	return row >= 0 and row < BUILDING_CAPACITY and _project_slot[row] != NULL_REF.x
 
 
 func unreleased_output_of(building_ref: Vector2i) -> Vector2i:
@@ -203,6 +230,13 @@ func output_reserved_g_of(building_ref: Vector2i) -> int:
 	return _output_reserved_g[_row_of(building_ref)]
 
 
+func admitted_charge_g_of(building_ref: Vector2i) -> int:
+	"""The admitted return's capacity charge (decision 0536); 0 with no live admission."""
+	if project_of(building_ref) == NULL_REF:
+		return 0
+	return _admitted_charge_g[_row_of(building_ref)]
+
+
 func state_bytes() -> PackedByteArray:
 	"""Every column, for byte-identical refusal checks. Test use; allocates."""
 	var out: PackedByteArray = PackedByteArray()
@@ -212,4 +246,5 @@ func state_bytes() -> PackedByteArray:
 	out.append_array(var_to_bytes(_output_generation))
 	out.append_array(var_to_bytes(_destination_revision))
 	out.append_array(var_to_bytes(_output_reserved_g))
+	out.append_array(var_to_bytes(_admitted_charge_g))
 	return out

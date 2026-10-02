@@ -123,7 +123,7 @@ U view):
 |---|---|---|---|
 | News over the Map layer picker | 74 px (decision 0801) | 2 px (the frames' borders) | fixed: the news fits its band less the camera row (`demo_news_strip.gd`), drawing fewer lines |
 | Party actions docked at 100 % | undocked (Follow + Select idle) | docked | fixed: Select idle flows in the actions (`demo_party_panel.gd add_top_row`) |
-| Pause card over the Map layer picker, U view | 254 × 32 px | unchanged | recorded: question 4 |
+| Pause card over the Map layer picker, U view | 254 × 32 px | clear | fixed after Brendan's ruling on question 4: it falls back to the top of the alert column (`demo_pause_card.gd keep_clear`) |
 | Pause card, guide card, camera strip, news (surface) | clear | clear | |
 
 At 1920x1080 nothing overlaps.
@@ -193,6 +193,41 @@ At 1920x1080 nothing overlaps.
    generalised.
 8. **The soak report's self-test** (`tools/test_soak_report.py`) passes but is not in CI; the balance lane added its
    own. Recommendation: add it.
+
+## Brendan's rulings (2026-10-02)
+
+He took the recommended option on all eight questions:
+
+1. **The hotpot** stays an everyday supper dish and the feast's main course, as built.
+2. **"A full larder" counts only food the village cooked or brought in.** Built:
+   - The part is now "Ready food of the village's own" (`village_goals.gd M_OWN_FOOD_DAYS`): the Ready food less what
+     the opening stock still in the pantry would cook. The opening stock left is read from the pantry's withdrawn and
+     spoiled ledger (`opening_pantry.gd portions_left`; its lots are the oldest, so they are spent first).
+   - `guide_world.gd opening_stock` says whether the village opened with that stock.
+   - The goal is no longer reached at the first hour; the hall harness checks it on the real scene.
+3. **The hall's lamp is dark only while its hearth is out of fuel or let go out** (`hearth_fuel.gd hearth_cold`), not
+   on a night that wants no heat. Built; the daylight harness lets the hearth go out and sees the lamp go dark. This
+   supersedes the strict reading in reconciliation 6.
+4. **The pause card falls back to the top of the alert column** (its UI-SET-086 place, over the HUD's alert cards)
+   where stepping below the top card would cover the Map layer picker. Built (`demo_pause_card.gd keep_clear`); the
+   session harness checks it in the U view at both sizes, and fails without it.
+5. **The hall's tier-2 fuel factor** goes to a follow-up: a per-source tier factor in `hearth_fuel.gd`. **Pending.**
+6. **The two herb patches** are merged during the Buildings-panel work (0623 P4). **Pending.**
+7. **The herb moves from pantry to shelf at once**, for now, as built.
+8. **`tools/test_soak_report.py` runs in CI**, with the validator self-tests. Done.
+
+## Master, merged after the batch
+
+`origin/master` (batch 6 #212, demolition D4 #214 and the art-lock request #213) is merged in after the rulings.
+
+- **D4's settlement changes.** D4 changed `settlement_system.gd`, `construction.gd`, `economy_system.gd`,
+  `ui_manager.gd` and `main.gd`; the boot now builds the starter colony, and its buildings own the opening stores.
+  None of these files is a demo file, and no lane in this batch changed them.
+- **How the demo touches them.** The demo reads the settlement only through `UIManager`'s opening pause and the HUD,
+  which it repaints with its own figures. The only demo files master changed are `gear_locker.gd` (a well-formed
+  owner, decision 0533) and a comment in `woodland_ornament.gd`, neither touched by a lane here.
+- **The check.** The full suite and every live harness ran on the merged tip in both modes (below).
+- **The capacity audit.** It is regenerated only if its `--check` fails.
 
 ## Gates
 

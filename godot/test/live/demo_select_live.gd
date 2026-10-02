@@ -430,6 +430,7 @@ func _the_group_section() -> void:
 	var focus: Vector3 = _camera().get("_target_focus")
 	_check("a tile centres on its resident", Vector2(focus.x - at.x, focus.z - at.y).length() < 0.05, "%s vs %s" % [focus, at])
 	_check("and keeps the group", _selected() == five, str(_selected()))
+	await _reveal(panel.call(&"tile", 0))
 	_click(panel.call(&"tile", 0), true)
 	await _frames(2)
 	_check("Shift on a tile drops it", _selected() == PackedInt32Array([1, 2, 3, 4]), str(_selected()))
@@ -443,12 +444,15 @@ func _built_in_statuses() -> void:
 	var night: Object = _command().call(&"tunnels").get("ext").get("night")
 	var brain: Object = (_cast().call(&"actor", 2) as Node).get("brain")
 	var hunger: PackedInt32Array = fed.get("hunger")
-	var kept: Array = [hunger[0], hunger[1], night.get("bed_of")[3], brain.get("state"), brain.get("trip_outcome")]
+	var kept: Array = [hunger[0], hunger[1], night.get("bed_of")[3], brain.get("state"), brain.get("trip_outcome"),
+		brain.get("order")]
 	_set_column(fed, "hunger", 0, 0)
 	_set_column(fed, "hunger", 1, int(rules["URGENT_AT"]) + 1)
 	_set_column(night, "bed_of", 3, 0)
 	brain.set("state", BrainScript.State.HOLD)
 	brain.set("trip_outcome", BrainScript.TRIP_FAILED)
+	# Holding under no order: a resident the orchard's opening work (decision 0903) has on a task reads as working.
+	brain.set("order", BrainScript.ORDER_NONE)
 	_command().call(&"select", PackedInt32Array([0, 1, 2, 3]))
 	await _settle()
 	_statuses_read()
@@ -457,6 +461,7 @@ func _built_in_statuses() -> void:
 	_set_column(night, "bed_of", 3, int(kept[2]))
 	brain.set("state", kept[3])
 	brain.set("trip_outcome", kept[4])
+	brain.set("order", kept[5])
 	_owners_rows()
 
 

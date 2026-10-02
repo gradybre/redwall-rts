@@ -11,6 +11,7 @@ const GroupPanel := preload("res://demo/control/group_panel.gd")
 const GroupSelect := preload("res://demo/control/group_select.gd")
 const PanelScript := preload("res://demo/control/demo_party_panel.gd")
 const CrewsScript := preload("res://demo/work/work_crews.gd")
+const UiArt := preload("res://test/fixtures/ui_art_fixture.gd")
 
 const WIDTH: float = 276.0
 
@@ -366,3 +367,90 @@ func test_the_box_count_sits_past_the_box_and_inside_the_view() -> void:
 		"kept inside at the corner")
 	assert_equal(GroupSelect.label_at(Rect2(0.0, 0.0, 10.0, 10.0), Vector2(2000.0, 900.0), view), Vector2.ZERO,
 		"a label bigger than the view starts at its corner")
+
+
+# --- portraits (art pass 2, decision 0951) -------------------------------------------------------------------------
+
+static func _key_of(who: int) -> StringName:
+	"""The fixture's cast keys: residents 10 and 11 have one, every other none."""
+	if who == 10:
+		return &"mouse_keeper"
+	return &"otter_fisher" if who == 11 else &""
+
+
+func test_with_no_portrait_staged_the_tiles_are_as_before() -> void:
+	"""CI's case: a props table from an empty manifest -- three across, 88 px tiles, no portrait, lines at the margin."""
+	var panel := _built()
+	panel.set_portraits(UiArt.empty(), _key_of)
+	panel.show_group(_view(3))
+	assert_false(panel.has_portraits(), "none staged")
+	assert_equal(panel.columns(), GroupPanel.TILE_COLUMNS, "three across")
+	var shown: Button = panel.tile(0)
+	assert_equal(shown.custom_minimum_size.x, 88.0, "88 px")
+	assert_false((shown.get_node(^"Portrait") as TextureRect).visible, "no portrait")
+	assert_equal((shown.get_node(^"Lines") as Control).offset_left, GroupPanel.TILE_MARGINS[0], "lines at the margin")
+	assert_null(panel.portrait_of(10), "nothing to draw")
+	_free(panel)
+
+
+func test_a_staged_portrait_sits_beside_the_colour_bar_and_the_tiles_run_two_across() -> void:
+	"""Staged: two across; a resident with a portrait draws its 48 at 40 px past the bar, its lines past that; one
+	without keeps the plain tile; the bar stays."""
+	var panel := _built()
+	panel.show_group(_view(3))
+	panel.set_portraits(UiArt.staged([&"mouse_keeper", &"otter_fisher"]), _key_of)
+	panel.show_group(_view(3))
+	assert_true(panel.has_portraits(), "staged")
+	assert_equal(panel.columns(), GroupPanel.PORTRAIT_COLUMNS, "two across")
+	assert_equal(panel.tile(0).custom_minimum_size.x, GroupPanel.tile_width(WIDTH, 2), "the made tiles widened")
+	assert_equal(GroupPanel.tile_width(WIDTH, 2), 135.0, "135 px each at 276")
+	var portrait := panel.tile(0).get_node(^"Portrait") as TextureRect
+	assert_true(portrait.visible, "a portrait")
+	assert_equal(portrait.texture.get_width(), GroupPanel.PORTRAIT_PX, "the 48")
+	assert_equal(portrait.size, Vector2(40.0, 40.0), "drawn at 40")
+	assert_true(portrait.position.x >= GroupPanel.CHIP_W + 2.0, "right of the bar")
+	assert_true(portrait.position.y >= 0.0 and portrait.position.y + 40.0 <= GroupPanel.TILE_H, "inside the tile")
+	var lines := panel.tile(0).get_node(^"Lines") as Control
+	assert_true(lines.offset_left >= portrait.position.x + 40.0, "the words past it")
+	assert_true(panel.tile(0).get_node(^"Chip") != null, "the bar kept")
+	var plain: Button = panel.tile(2)
+	assert_false((plain.get_node(^"Portrait") as TextureRect).visible, "no cast key: no portrait")
+	assert_equal((plain.get_node(^"Lines") as Control).offset_left, GroupPanel.TILE_MARGINS[0], "its words at the margin")
+	_free(panel)
+
+
+func test_a_tile_looks_its_portrait_up_again_only_when_its_resident_changes() -> void:
+	"""A refresh with the same members asks for no cast key; a tile given another resident asks once, for that one, and
+	takes its portrait."""
+	var asked: Array[int] = []
+	var counting: Callable = func(who: int) -> StringName:
+		asked.append(who)
+		return _key_of(who)
+	var panel := _built()
+	panel.set_portraits(UiArt.staged([&"mouse_keeper", &"otter_fisher"]), counting)
+	panel.show_group(_view(2))
+	assert_equal(asked, [10, 11] as Array[int], "one look-up a member")
+	asked.clear()
+	panel.show_group(_view(2))
+	assert_equal(asked.size(), 0, "the same members: none")
+	var swapped := _view(2)
+	swapped.index = PackedInt32Array([11, 10])
+	panel.show_group(swapped)
+	assert_equal(asked, [11, 10] as Array[int], "each tile's new resident, once")
+	assert_true((panel.tile(0).get_node(^"Portrait") as TextureRect).texture == panel.portrait_of(11), "the otter's now")
+	assert_true(panel.portrait_of(10) != panel.portrait_of(11), "each its own")
+	_free(panel)
+
+
+func test_portraits_given_after_a_group_shows_draw_at_once() -> void:
+	"""set_portraits on a shown group: the tiles re-laid two across and their portraits drawn without a refresh; given
+	none again, three across and plain."""
+	var panel := _built()
+	panel.show_group(_view(2))
+	panel.set_portraits(UiArt.staged([&"mouse_keeper", &"otter_fisher"]), _key_of)
+	assert_true((panel.tile(0).get_node(^"Portrait") as TextureRect).visible, "drawn at once")
+	assert_equal(panel.tile(1).custom_minimum_size.x, GroupPanel.tile_width(WIDTH, 2), "two across")
+	panel.set_portraits(UiArt.empty(), _key_of)
+	assert_false((panel.tile(0).get_node(^"Portrait") as TextureRect).visible, "none: plain at once")
+	assert_equal(panel.tile(1).custom_minimum_size.x, 88.0, "three across")
+	_free(panel)

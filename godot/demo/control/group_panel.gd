@@ -17,8 +17,15 @@ extends VBoxContainer
 ##   Kept as group 3 · Ctrl+0–9 keeps …              the control groups, and their keys
 ##
 ## Its TOP ROW (`top_row`, under the party panel's actions, always in view) holds "Select idle (n)", shown with any
-## selection or none. The tiles are not portraits: the demo has no portrait art (the resident journal's medallions are
-## species marks, ART-UI-06); each tile is the resident's colour -- the same as its party-panel chip and minimap dot.
+## selection or none. Each tile is the resident's colour -- the same as its party-panel chip and minimap dot.
+##
+## PORTRAITS (art pass 2, decision 0951; docs/art-reference/art_pass2_mapping.md "Resident portraits"). When the props
+## table stages any portrait (`set_portraits`: the shared props table and how a cast index maps to its cast key), the
+## tiles run PORTRAIT_COLUMNS across, so the name and tag keep their room beside a medallion (three 88 px tiles would
+## leave them ~30 px), and each tile whose resident has a portrait draws its 48 px medallion at PORTRAIT_DRAW px beside
+## the colour bar; a tile whose resident has none keeps its words at the margin. A portrait is its own slot: the species
+## emblems stay species marks (ART-UI-06). With no portrait staged at all (CI, a fresh clone) the tiles are exactly as
+## before: three across, no portrait.
 ## Text is at least 14 px and every button at least 32 px tall (UI §2.1, UX-T03); every button takes keyboard focus
 ## (decision 0261), so F7 and Tab reach them in the party panel's region. Pools are re-worded in place, never rebuilt, so a
 ## focus or a tooltip survives a refresh.
@@ -27,6 +34,7 @@ const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const CrewsScript := preload("res://demo/work/work_crews.gd")
+const PropsScript := preload("res://demo/props/demo_props.gd")
 
 ## A tile was pressed: centre on resident `actor_index` (`shift`: drop it from the selection instead).
 signal tile_pressed(actor_index: int, shift: bool)
@@ -47,6 +55,12 @@ const TILE_MARGINS: PackedFloat32Array = [12.0, 3.0, 4.0, 3.0]
 const HOVER_ALPHA: float = 0.10
 const PRESSED_ALPHA: float = 0.18
 const WARN_BORDER: int = 2
+## The portrait medallion's staged size, its drawn size in a tile, and the tiles across while portraits show.
+const PORTRAIT_PX: int = 48
+const PORTRAIT_DRAW: float = 40.0
+const PORTRAIT_COLUMNS: int = 2
+## The portrait's left edge in a tile: just right of the colour bar.
+const PORTRAIT_X: float = 2.0 + CHIP_W + 2.0
 const ATTENTION: String = "Needs attention:"
 const SEND: String = "Send to…"
 const SEND_TIP: String = "Send to… — then left-click a spot: the selected residents go there (a work spot: they work it), as a right-click would. Esc cancels"
@@ -92,6 +106,11 @@ var _send: Button = null
 var _group_line: Label = null
 ## The tiles' faces, made once: plain and warned, each at rest, hovered and pressed.
 var _faces: Array[StyleBoxFlat] = []
+## The portraits' source (null: none) and `key_of(actor_index) -> StringName` (its cast key); per tile, the resident
+## whose portrait it holds (-1: not looked up yet), so a refresh looks a portrait up only when its tile's resident changes.
+var _props: PropsScript = null
+var _key_of: Callable = Callable()
+var _tile_portrait_of: PackedInt32Array = PackedInt32Array()
 
 
 func build(width: float) -> void:
@@ -112,7 +131,7 @@ func build(width: float) -> void:
 	add_child(_lines)
 	_tiles = GridContainer.new()
 	_tiles.name = "Tiles"
-	_tiles.columns = TILE_COLUMNS
+	_tiles.columns = columns()
 	_tiles.add_theme_constant_override(&"h_separation", TILE_GAP)
 	_tiles.add_theme_constant_override(&"v_separation", TILE_GAP)
 	add_child(_tiles)
@@ -159,6 +178,36 @@ func _line(px: int, colour: Color) -> Label:
 	label.custom_minimum_size.x = _width
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	return label
+
+
+func set_portraits(props: PropsScript, key_of: Callable) -> void:
+	"""Draw the residents' portraits from `props` (null: none), `key_of(actor_index)` giving a resident's cast key. With
+	any portrait staged the tiles run PORTRAIT_COLUMNS across; the tiles already made are re-laid, and those shown are
+	looked up again at once."""
+	_props = props
+	_key_of = key_of
+	var across: int = columns()
+	var wide: float = tile_width(_width, across)
+	if _tiles != null:
+		_tiles.columns = across
+	for k: int in _tile_buttons.size():
+		_tile_buttons[k].custom_minimum_size.x = wide
+		_tile_portrait_of[k] = -1
+		if k < _tile_index.size():
+			_fit_portrait(k, _tile_index[k])
+
+
+func has_portraits() -> bool:
+	"""Whether portraits are staged (the props table names any): then the tiles carry them."""
+	if _props == null or not _key_of.is_valid():
+		return false
+	var portraits: Variant = _props.ui_row("portraits")
+	return portraits is Dictionary and not (portraits as Dictionary).is_empty()
+
+
+func columns() -> int:
+	"""Tiles across: PORTRAIT_COLUMNS while portraits are staged, else TILE_COLUMNS."""
+	return PORTRAIT_COLUMNS if has_portraits() else TILE_COLUMNS
 
 
 func top_row() -> HFlowContainer:
@@ -249,6 +298,7 @@ func _fill_tiles(view: GroupView) -> void:
 		_set_text(shown.get_node(^"Lines/Name") as Label, view.first_name[k])
 		_set_text(shown.get_node(^"Lines/Tag") as Label, view.tag[k])
 		(shown.get_node(^"Chip") as ColorRect).color = view.colour[k]
+		_fit_portrait(k, view.index[k])
 		if shown.tooltip_text != view.tip[k]:
 			shown.tooltip_text = view.tip[k]
 		_dress_tile(shown, view.warn[k] == 1)
@@ -262,6 +312,7 @@ func _tile_at(k: int) -> Button:
 		var made: Button = _make_tile(_tile_buttons.size())
 		_tile_buttons.append(made)
 		_tile_shift.append(0)
+		_tile_portrait_of.append(-1)
 		_tiles.add_child(made)
 	return _tile_buttons[k]
 
@@ -270,11 +321,12 @@ func _make_tile(k: int) -> Button:
 	"""One tile: a flat button with the resident's colour bar, its first name and its tag."""
 	var made := Button.new()
 	made.name = "Tile%d" % k
-	made.custom_minimum_size = Vector2(tile_width(_width), TILE_H)
+	made.custom_minimum_size = Vector2(tile_width(_width, columns()), TILE_H)
 	made.clip_contents = true
 	Styles.focusable(made, TILE_MARGINS)
 	_dress_tile(made, false)
 	made.add_child(_tile_chip())
+	made.add_child(_tile_portrait())
 	made.add_child(_tile_lines())
 	made.gui_input.connect(_on_tile_input.bind(k))
 	made.mouse_exited.connect(func() -> void: _tile_shift[k] = 0)
@@ -293,6 +345,41 @@ func _tile_chip() -> ColorRect:
 	chip.offset_right = 2.0 + CHIP_W
 	chip.offset_bottom = -4.0
 	return chip
+
+
+func _tile_portrait() -> TextureRect:
+	"""A tile's portrait slot beside its colour bar: PORTRAIT_DRAW px square, centred down the tile, hidden while empty."""
+	var portrait := TextureRect.new()
+	portrait.name = "Portrait"
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	portrait.position = Vector2(PORTRAIT_X, (TILE_H - PORTRAIT_DRAW) * 0.5)
+	portrait.size = Vector2(PORTRAIT_DRAW, PORTRAIT_DRAW)
+	portrait.visible = false
+	return portrait
+
+
+func _fit_portrait(k: int, who: int) -> void:
+	"""Tile `k` shows resident `who`: its portrait, and its lines past it -- looked up only when the resident changed."""
+	if _tile_portrait_of[k] == who:
+		return
+	_tile_portrait_of[k] = who
+	var tile_k: Button = _tile_buttons[k]
+	var portrait := tile_k.get_node(^"Portrait") as TextureRect
+	portrait.texture = portrait_of(who)
+	portrait.visible = portrait.texture != null
+	var lines := tile_k.get_node(^"Lines") as Control
+	lines.offset_left = PORTRAIT_X + PORTRAIT_DRAW + 4.0 if portrait.visible else TILE_MARGINS[0]
+
+
+func portrait_of(who: int) -> Texture2D:
+	"""Resident `who`'s staged PORTRAIT_PX medallion, or null (none staged, or no cast key)."""
+	if not has_portraits():
+		return null
+	var key: StringName = _key_of.call(who)
+	return _props.portrait(key, PORTRAIT_PX) if key != &"" else null
 
 
 func _tile_lines() -> VBoxContainer:
@@ -335,9 +422,9 @@ static func _tile_style(alpha: float, warned: bool) -> StyleBoxFlat:
 	return style
 
 
-static func tile_width(width: float) -> float:
-	"""A tile's width: TILE_COLUMNS across `width` with their gaps."""
-	return floorf((width - float(TILE_GAP * (TILE_COLUMNS - 1))) / float(TILE_COLUMNS))
+static func tile_width(width: float, across: int = TILE_COLUMNS) -> float:
+	"""A tile's width: `across` tiles (TILE_COLUMNS unless said) across `width` with their gaps."""
+	return floorf((width - float(TILE_GAP * (across - 1))) / float(across))
 
 
 func _on_tile_input(event: InputEvent, k: int) -> void:

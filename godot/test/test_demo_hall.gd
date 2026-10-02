@@ -25,6 +25,7 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
+const UiArt := preload("res://test/fixtures/ui_art_fixture.gd")
 
 const DT: float = 1.0 / 30.0
 const UPGRADE: int = Rules.PROJECT_UPGRADE
@@ -806,6 +807,66 @@ func test_the_tapestry_panel_draws_every_entry() -> void:
 	panel.back_to_hall()
 	assert_false(panel.is_open(), "closed going back")
 	panel.free()
+
+
+func test_with_no_art_staged_the_tapestry_keeps_its_drawn_cloth() -> void:
+	"""CI's case (an empty manifest): the oat ground, no emblems, every kind's knot a diamond."""
+	var panel := TapestryPanelScript.new()
+	panel.configure(TapestryScript.new(null), Callable())
+	panel.set_art(UiArt.empty())
+	assert_false(panel.is_woven(), "not woven")
+	assert_true(panel.find_child("Cloth", true, false).get_theme_stylebox(&"panel") is StyleBoxFlat, "the oat ground")
+	for kind: int in TapestryScript.KIND_COUNT:
+		assert_null(panel.emblem_of(kind), "kind %d: a diamond" % kind)
+	panel.set_art(null)
+	assert_false(panel.is_woven(), "no props: not woven")
+	panel.free()
+
+
+func test_the_staged_ground_is_the_cloth_and_each_kind_wears_its_emblem() -> void:
+	"""Staged: the half ground as a nine-patch on the manifest's margins, the rows inside its border; an emblem per kind
+	in tapestry.gd's order (the hall's for KIND_STAGE), a kind not staged keeping its diamond; entries still drawn."""
+	var tapestry := TapestryScript.new(null)
+	var panel := TapestryPanelScript.new()
+	panel.configure(tapestry, Callable())
+	panel.set_art(UiArt.staged([]))
+	assert_true(panel.is_woven(), "woven")
+	var box := panel.find_child("Cloth", true, false).get_theme_stylebox(&"panel") as StyleBoxTexture
+	assert_not_null(box, "a textured ground")
+	assert_equal(box.texture.get_size(), Vector2(448.0, 600.0), "the half ground")
+	assert_equal([box.texture_margin_left, box.texture_margin_top, box.texture_margin_right, box.texture_margin_bottom],
+		[90.0, 113.0, 89.0, 116.0], "the manifest's margins")
+	assert_true(box.content_margin_left > box.texture_margin_left, "rows inside the left border")
+	assert_true(box.content_margin_top >= box.texture_margin_top, "inside the top border")
+	assert_true(box.content_margin_bottom >= box.texture_margin_bottom, "inside the bottom border")
+	assert_true(box.content_margin_right >= box.texture_margin_right, "inside the right border")
+	assert_false(box.draw_center, "the field is drawn stretched, not tiled by the box")
+	assert_equal(box.axis_stretch_vertical, StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT, "the border tiled down")
+	assert_equal(panel._thread_x(), 90.0 + TapestryPanelScript.ART_THREAD_X, "the thread inside the left border")
+	assert_true(panel._thread_x() + TapestryPanelScript.EMBLEM_PX * 0.5 <= box.content_margin_left, "an emblem clears the rows")
+	assert_equal(TapestryPanelScript.EMBLEM_KEYS.size(), TapestryScript.KIND_COUNT, "a key per kind")
+	assert_equal(TapestryPanelScript.EMBLEM_KEYS[TapestryScript.KIND_STAGE], "hall", "the hall's stage")
+	for kind: int in TapestryScript.KIND_COUNT - 1:
+		assert_equal(panel.emblem_of(kind).get_width(), TapestryPanelScript.EMBLEM_PX, "kind %d: its 24 px emblem" % kind)
+	assert_null(panel.emblem_of(TapestryScript.KIND_EVENT), "not staged: a diamond")
+	assert_null(panel.emblem_of(-1), "no kind -1")
+	panel.open()
+	tapestry.add_entry(TapestryScript.KIND_HARVEST, "First harvest", "Bed 3")
+	assert_true(panel.refresh(), "redrawn")
+	assert_equal(panel.entry_title(0), "First harvest", "drawn on the woven cloth")
+	panel.free()
+
+
+func test_the_field_is_the_area_inside_the_border_on_the_picture_and_the_cloth() -> void:
+	"""field_rects: the source is the picture inside its border, the destination the cloth inside the same border."""
+	var border := PackedFloat32Array([90.0, 113.0, 89.0, 116.0])
+	var rects: Array[Rect2] = TapestryPanelScript.field_rects(Vector2(448.0, 600.0), border, Vector2(520.0, 900.0))
+	assert_equal(rects[0], Rect2(90.0, 113.0, 269.0, 371.0), "the picture's field")
+	assert_equal(rects[1], Rect2(90.0, 113.0, 341.0, 671.0), "the cloth's field")
+	var plain: TapestryPanelScript = TapestryPanelScript.new()
+	plain.configure(TapestryScript.new(null), Callable())
+	assert_equal(plain._thread_x(), TapestryPanelScript.THREAD_X, "unwoven: the drawn thread's place")
+	plain.free()
 
 
 # --- the hall node ------------------------------------------------------------------------------------------------

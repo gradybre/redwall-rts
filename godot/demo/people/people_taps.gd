@@ -22,6 +22,9 @@ extends RefCounted
 ## Shared work: every SHARE_POLL_TICKS of calendar time, two residents of the same crew both on a task of the work board
 ## within NEAR_M of each other, or both at work on the same dig, worked those ticks together (affinity per whole hour).
 ## A board row holds one worker, so "the same job" side by side is the same crew's work at the same place.
+## PAIRS BY BUCKET (decision 1004): the pairs looked at are those at the same dig and those on board tasks in the same
+## or a neighbouring NEAR_M cell (`_shared_pairs`) -- never every pair of the village, which at 256 residents was 32,640
+## a poll -- each tested by `together` as before and credited in the old pair order, so the ledger moves as it did.
 ##
 ## A source left unbound (null) is skipped, so a suite can watch one source alone. `new_deeds` lists the deeds the
 ## last poll recorded, for the spotlight (demo_people.gd).
@@ -61,6 +64,11 @@ const LINK_WORDS: Array[String] = ["tunnel %d", "the ramp down (tunnel %d)", "th
 const NEAR_M: float = 8.0
 ## Residents a contributor mask holds (one bit each).
 const MAX_MASK_RESIDENTS: int = 62
+## PAIRS BY BUCKET: a key packs a bucket (a dig, a cell) or a resident above PAIR_BITS bits, a resident below; a cell's
+## coordinates are offset by CELL_OFFSET so a key is never negative.
+const PAIR_BITS: int = 16
+const PAIR_MASK: int = (1 << PAIR_BITS) - 1
+const CELL_OFFSET: int = 4096
 
 var ledger: Ledger = null
 var calendar: CalendarScript = null
@@ -101,6 +109,9 @@ var _task_of: PackedInt32Array = PackedInt32Array()
 var _site_of: PackedInt32Array = PackedInt32Array()
 var _at: PackedVector2Array = PackedVector2Array()
 var _chain: PackedInt32Array = PackedInt32Array()
+## PAIRS BY BUCKET's scratch: the residents keyed by bucket, and the pairs (a above PAIR_BITS, b below, a < b).
+var _keys: PackedInt64Array = PackedInt64Array()
+var _pairs: PackedInt64Array = PackedInt64Array()
 var _when: SimClock.Calendar = SimClock.Calendar.new(0)
 
 
@@ -445,11 +456,73 @@ func _poll_shared_work() -> void:
 		return
 	_share_tick = _tick()
 	_read_contexts()
-	var n: int = residents()
-	for a: int in n:
-		for b: int in range(a + 1, n):
-			if together(a, b):
-				ledger.add_shared_work(a, b, ticks, _day)
+	var count: int = _shared_pairs()
+	for k: int in count:
+		var a: int = _pairs[k] >> PAIR_BITS
+		var b: int = _pairs[k] & PAIR_MASK
+		if together(a, b):
+			ledger.add_shared_work(a, b, ticks, _day)
+
+
+func _shared_pairs() -> int:
+	"""Into `_pairs`, ascending and each once: every pair that may be at work together (see PAIRS BY BUCKET) -- the same
+	dig, or both on board tasks a cell or less apart. The count (the array may hold stale pairs past it)."""
+	_pairs.clear()
+	_site_pairs()
+	_near_pairs()
+	_pairs.sort()
+	var kept: int = 0
+	for k: int in _pairs.size():
+		if kept == 0 or _pairs[k] != _pairs[kept - 1]:
+			_pairs[kept] = _pairs[k]
+			kept += 1
+	return kept
+
+
+func _site_pairs() -> void:
+	"""Every pair at the same dig."""
+	_keys.clear()
+	for who: int in _site_of.size():
+		if _site_of[who] >= 0:
+			_keys.append((_site_of[who] << PAIR_BITS) | who)
+	_keys.sort()
+	for i: int in _keys.size():
+		var j: int = i + 1
+		while j < _keys.size() and _keys[j] >> PAIR_BITS == _keys[i] >> PAIR_BITS:
+			_pairs.append(((_keys[i] & PAIR_MASK) << PAIR_BITS) | (_keys[j] & PAIR_MASK))
+			j += 1
+
+
+func _near_pairs() -> void:
+	"""Every pair on board tasks in the same or neighbouring NEAR_M cells."""
+	_keys.clear()
+	for who: int in _task_of.size():
+		if _task_of[who] >= 0:
+			_keys.append((_cell_of(_at[who]) << PAIR_BITS) | who)
+	_keys.sort()
+	for k: int in _keys.size():
+		var a: int = _keys[k] & PAIR_MASK
+		var cell: int = _keys[k] >> PAIR_BITS
+		for dz: int in range(-1, 2):
+			for dx: int in range(-1, 2):
+				_pairs_in_cell(a, cell + dx * 2 * CELL_OFFSET + dz)
+
+
+func _pairs_in_cell(a: int, cell: int) -> void:
+	"""Resident `a` paired with each later resident on a board task in `cell`."""
+	var i: int = _keys.bsearch(cell << PAIR_BITS)
+	while i < _keys.size() and _keys[i] >> PAIR_BITS == cell:
+		var b: int = _keys[i] & PAIR_MASK
+		if b > a:
+			_pairs.append((a << PAIR_BITS) | b)
+		i += 1
+
+
+static func _cell_of(at: Vector2) -> int:
+	"""The NEAR_M cell holding `at`, as one non-negative number (x major, z minor)."""
+	var cx: int = clampi(floori(at.x / NEAR_M) + CELL_OFFSET, 1, 2 * CELL_OFFSET - 2)
+	var cz: int = clampi(floori(at.y / NEAR_M) + CELL_OFFSET, 1, 2 * CELL_OFFSET - 2)
+	return cx * 2 * CELL_OFFSET + cz
 
 
 func together(a: int, b: int) -> bool:

@@ -24,6 +24,13 @@ extends RefCounted
 ## 0-1 -- rescue, a resident's own critical needs -- never reach the board: they are emergencies that take the resident
 ## off its work first). Safety and needs therefore always come before work: nothing is claimed for a resident the night
 ## routine has in bed (decision 0210), the rescue holds, an evacuation leads (a task), or its needs keep.
+##
+## THE INDEX DOES NOT GROW WITH THE VILLAGE (decision 1004). Its rebuild read every row of every source -- one, the
+## kitchen's, a row per resident -- and looked each waiting task's promise up in a list of every order-list entry: O(rows
+## x promises), the scale test's work-board spikes (decision 0561). Now a source that never holds a task to claim says so
+## (work_source.gd `may_wait`: the kitchen hands its parts out itself) and is not read, and the promises are kept by task
+## (`_promise_who`, built once a rebuild), so a rebuild is the claimable sources' rows and one pass over the order lists.
+## The index it builds is the one it built before, entry for entry.
 
 const WorkIds := preload("res://demo/work/work_ids.gd")
 const CrewsScript := preload("res://demo/work/work_crews.gd")
@@ -83,10 +90,9 @@ var _idx_source: PackedInt32Array = PackedInt32Array()
 var _idx_row: PackedInt32Array = PackedInt32Array()
 var _idx_promised: PackedInt32Array = PackedInt32Array()
 var _idx_taken: PackedByteArray = PackedByteArray()
-## The promises read at the last rebuild: (source, key, resident) a promise.
-var _promise_source: PackedInt32Array = PackedInt32Array()
-var _promise_key: PackedInt64Array = PackedInt64Array()
-var _promise_who: PackedInt32Array = PackedInt32Array()
+## The promises read at the last rebuild, by task (see THE INDEX DOES NOT GROW WITH THE VILLAGE): source + key x
+## SOURCE_COUNT -> the first resident whose order list names it.
+var _promise_who: Dictionary[int, int] = {}
 ## The player's per-task priority and urgency, per source per row, kept for the task whose key it was set for.
 var _priority: Array[PackedInt32Array] = []
 var _priority_key: Array[PackedInt64Array] = []
@@ -211,7 +217,7 @@ func rebuild_index() -> void:
 	_idx_promised.clear()
 	_idx_taken.clear()
 	for src: SourceScript in _sources:
-		if src == null:
+		if src == null or not src.may_wait():
 			continue
 		for row: int in src.capacity():
 			if src.waiting(row):
@@ -222,26 +228,22 @@ func rebuild_index() -> void:
 
 
 func _read_promises() -> void:
-	"""Every order-list entry that names a board task (see THE ORDER LIST)."""
-	_promise_source.clear()
-	_promise_key.clear()
+	"""Every order-list entry that names a board task (see THE ORDER LIST), by task: the first resident (in resident
+	order, then list order) to name it."""
 	_promise_who.clear()
 	for who: int in _brains.size():
 		var brain: BrainScript = _brains[who]
 		for k: int in brain.queue_size():
 			var entry: UnfinishedScript = brain.queue_entry(k)
 			if WorkIds.is_source(entry.source):
-				_promise_source.append(entry.source)
-				_promise_key.append(entry.key)
-				_promise_who.append(who)
+				var task: int = entry.source + entry.key * WorkIds.SOURCE_COUNT
+				if not _promise_who.has(task):
+					_promise_who[task] = who
 
 
 func _promised_to(task_source: int, task_key: int) -> int:
 	"""Who means to come back to that task (-1: nobody)."""
-	for k: int in _promise_source.size():
-		if _promise_source[k] == task_source and _promise_key[k] == task_key:
-			return _promise_who[k]
-	return -1
+	return int(_promise_who.get(task_source + task_key * WorkIds.SOURCE_COUNT, -1))
 
 
 func index_size() -> int:

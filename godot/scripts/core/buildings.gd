@@ -787,6 +787,17 @@ func origin_tile_of_building(building_ref: Vector2i) -> OpResult:
 	return _building_field(building_ref, _b_origin_tile)
 
 
+func origin_tile_or_none(building_ref: Vector2i) -> int:
+	"""`Building.origin_tile` for a live reference, or NO_LINK (-1) when the reference is stale.
+
+	The allocation-free twin of `origin_tile_of_building()`, for a predicate a selector may ask
+	repeatedly (`store_policy.gd`'s main-store test, decision 1031). -1 is never a tile index, so
+	absence needs no OpResult to be unambiguous.
+	"""
+	var row: int = _building_row_of(building_ref)
+	return NO_LINK if row == NO_ROW else _b_origin_tile[row]
+
+
 func rotation_of_building(building_ref: Vector2i) -> OpResult:
 	"""`Building.rotation`: 0-3, in 90 degree steps."""
 	return _building_field(building_ref, _b_rotation)

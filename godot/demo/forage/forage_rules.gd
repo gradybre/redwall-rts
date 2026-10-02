@@ -21,7 +21,6 @@ extends RefCounted
 ##   * The work rate is §5.2's base step (80 milli-WU a calendar tick: the fishery's arithmetic at level 0) -- FORAGE
 ##     skill enters through §5.5's work per U, not a work speed -- times §5.10's 80% on a heavy-rain day (the woods').
 
-const SimClock := preload("res://scripts/core/sim_clock.gd")
 const ForageScript := preload("res://scripts/core/forage.gd")
 const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const ForestRules := preload("res://demo/forestry/forest_rules.gd")
@@ -52,18 +51,15 @@ const MIN_SHARE_MILLI: int = 100
 ## Trips out at once (DEMO), and the job rows they take (a seat each).
 const MAX_TRIPS: int = 3
 const MAX_JOBS: int = MAX_TRIPS * PARTY_MAX
-## Arrival, retries and handling (the fishery's: decision 0431).
+## Arrival and retries (the fishery's: decision 0431).
 const ARRIVE_M: float = 0.45
 const RETRY_USEC: int = FisheryRules.RETRY_USEC
 const MAX_TRIES: int = FisheryRules.MAX_TRIES
-const HANDLE_MWU: int = FisheryRules.HANDLE_MWU
 ## §5.3's XP: 10 a completed productive WU.
 const XP_PER_WU: int = FisheryRules.XP_PER_WU
 const MILLI_PER_U: int = 1000
 ## `mwu_numerator`'s denominator (the fishery's).
 const MWU_DENOMINATOR: int = FisheryRules.MWU_DENOMINATOR
-## A forager's estimate for the walks out and back (DEMO, the fishery's allowance doubled for the woods' distance).
-const WALK_ALLOWANCE_TICKS: int = 2 * SimClock.TICKS_PER_HOUR
 
 
 static func is_kind(k: int) -> bool:

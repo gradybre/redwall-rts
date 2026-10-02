@@ -313,6 +313,7 @@ func test_a_trip_goes_out_gathers_and_brings_the_haul_home() -> void:
 	assert_equal(t.driver.stock_milli(ForageCore.PATCH_NUTS), stock - 8000, "the stock debited by the haul")
 	assert_equal(t.driver.harvested_today_milli(), 8000, "today's quota by the haul")
 	assert_equal(t.driver.open_claims(), 0, "no claim left")
+	assert_equal(t.driver.jobs.job_count(), 0, "no FORAGE Job row left")
 	assert_equal([t.skills.xp[1], t.skills.xp[2]], [200, 200], "§5.3: 10 XP a WU of the 20 WU each gathered (4 U at 5 WU)")
 	assert_true(said[said.size() - 1].contains("back from the hazel brake: 8.0 U of nuts"), said[said.size() - 1])
 	assert_equal(t.trips_done, 1, "one trip done")

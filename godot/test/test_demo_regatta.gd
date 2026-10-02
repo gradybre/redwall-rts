@@ -615,13 +615,14 @@ func test_holding_reserves_every_course_and_skipping_gives_it_all_back() -> void
 	assert_equal(r.menu.free_flour(), 8000 - loaf, "ceil(E/3) x 2 U of flour set aside")
 	assert_equal(r.menu.free_nuts(), 8000 - loaf, "and of nuts")
 	assert_equal(r.menu.free_herb(), 1000 - Rules.infusion_herb_milli(e), "the infusion's herb set aside")
-	assert_equal(_services.stores.water_milli_u, water - Rules.infusion_water_milli(e), "the infusion's water set aside")
+	assert_equal(r.menu.water_held_milli, Rules.infusion_water_milli(e), "the infusion's water owed")
+	assert_equal(_services.stores.water_milli_u, water, "the butt not drawn down ahead of the feast")
 	assert_equal([rig.kitchen.occasion_second, rig.kitchen.occasion_second_batches],
 		[MealRules.DISH_NUT_LOAF, Rules.second_batches(e)], "the second course")
 	assert_equal(r.served_words(), "bean hotpot, nut loaf and the warm infusion", "the menu in words")
 	assert_equal(r.skip(), "", "skipped")
 	assert_equal([r.menu.free_flour(), r.menu.free_nuts(), r.menu.free_herb()], [8000, 8000, 1000], "everything back")
-	assert_equal(_services.stores.water_milli_u, water, "the water back")
+	assert_equal([_services.stores.water_milli_u, r.menu.water_held_milli], [water, 0], "nothing owed, the butt untouched")
 	assert_equal(rig.kitchen.occasion_second, MealRules.NO_DISH, "no occasion")
 
 
@@ -633,6 +634,7 @@ func test_the_full_feast_is_cooked_eaten_and_warms_the_village() -> void:
 	var r: RegattaScript = rig.regatta
 	_stock_feast(rig)
 	_stock_menu(rig)
+	var water_start: int = _services.stores.water_milli_u
 	var day: int = SUMMER_1 + 1
 	assert_equal(r.hold(day, 2, true), "", "held")
 	rig.calendar.tick = tick_at(day, Rules.CREW_CALL_HOUR) - 30
@@ -647,6 +649,11 @@ func test_the_full_feast_is_cooked_eaten_and_warms_the_village() -> void:
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_NUTS), 8000 - batches * 2000, "the loaves' nuts, no more")
 	@warning_ignore("integer_division") var herb: int = 250 * r.attendees.size() / r.eligible
 	assert_equal(rig.pantry.milli_of(Catalog.ITEM_HERB), 1000 - herb, "the infusion's herb, for those who came")
+	@warning_ignore("integer_division") var water: int = Rules.infusion_water_milli(r.eligible) * r.attendees.size() / r.eligible
+	assert_equal(r.menu.water_used_milli, water, "its water, for those who came")
+	assert_equal(water_start + rig.kitchen.poured_water_milli - rig.kitchen.consumed_water_milli, _services.stores.water_milli_u,
+		"through the kitchen's water ledger")
+	assert_equal(rig.kitchen.portions_eaten, r.attendees.size() * 2, "one portion of each course a guest, no more")
 	assert_true(r.every_course * 10 >= r.eligible * 8, "80%% ate every course (%d of %d)" % [r.every_course, r.eligible])
 	assert_true(r.menu.warmth_active(rig.calendar.tick), "Shared Warmth: %s" % r.warmth_line)
 	assert_equal(r.menu.cold_exposure_permille(rig.calendar.tick), 750, "cold exposure -25%")
@@ -660,20 +667,20 @@ func test_shared_warmth_is_granted_once_and_neither_stacks_nor_extends() -> void
 	var menu := RegattaScript.MenuScript.new()
 	menu.second_planned = true
 	menu.infusion_planned = true
-	assert_true(menu.settle(9, 9, 8, 1000, 0).contains("48 h"), "granted at 8 of 9")
+	assert_true(menu.settle(9, 0, 8, 1000, 0).contains("48 h"), "granted at 8 of 9")
 	var until: int = menu.warmth_until
 	assert_equal(until, 1000 + 48 * SimClock.TICKS_PER_HOUR, "for 48 game hours")
 	assert_equal(menu.warmth_hours_left(1000), 48, "48 h left at once")
 	menu.second_planned = true
 	menu.infusion_planned = true
-	assert_true(menu.settle(9, 9, 9, 2000, 0).contains("not stacked"), "not stacked")
+	assert_true(menu.settle(9, 0, 9, 2000, 0).contains("not stacked"), "not stacked")
 	assert_equal(menu.warmth_until, until, "nor extended")
 	assert_equal(menu.warmth_hours_left(until - 1), 0, "a part hour is not a whole one")
 	assert_false(menu.warmth_active(until), "lapsed at its end")
 	menu.second_planned = true
 	menu.infusion_planned = true
-	assert_true(menu.settle(9, 9, 7, until, 0).contains("7 of 9"), "7 of 9 is under 80%")
-	assert_true(menu.settle(9, 9, 9, until, 0).contains("not every course"), "a course unserved: none")
+	assert_true(menu.settle(9, 0, 7, until, 0).contains("7 of 9"), "7 of 9 is under 80%")
+	assert_true(menu.settle(9, 0, 9, until, 0).contains("not every course"), "a course unserved: none")
 	assert_equal(menu.warmth_granted, 1, "granted once")
 
 
@@ -693,3 +700,26 @@ func test_a_two_course_occasion_holds_each_courses_food_and_no_more() -> void:
 	for crop: int in [FarmingScript.CROP_BEANS, FarmingScript.CROP_CABBAGE, Catalog.CAT_FLOUR, Catalog.CAT_NUTS]:
 		assert_equal(takes.live_milli(rig.pantry, take, -1, crop), 4000, "two batches' worth of category %d" % crop)
 	assert_equal(rig.kitchen.plan_of(key)[1], 4, "four batches wanted: two of each")
+
+
+func test_a_second_course_that_cannot_come_is_not_waited_for_nor_doubled() -> void:
+	"""Held with the whole menu, then the nuts taken from the pantry: no loaf can be cooked, so a guest who has eaten the
+	hotpot gets up and goes -- never taking a second hotpot portion -- and the feast grants no Shared Warmth."""
+	var rig: Rig = _rig()
+	var r: RegattaScript = rig.regatta
+	_stock_feast(rig)
+	_stock_menu(rig)
+	var day: int = SUMMER_1 + 1
+	assert_equal(r.hold(day, 2, true), "", "held")
+	r.menu.kitchen.takes.release(r.take)
+	for lot: int in PantryScript.MAX_LOTS:
+		if rig.pantry.lot_item(lot) == Catalog.ITEM_NUTS:
+			rig.pantry.withdraw_into(lot, rig.pantry.lot_serial(lot), rig.pantry.lot_milli(lot), _read)
+	rig.kitchen.takes.reserve_into(rig.pantry, r.take, FarmingScript.CROP_BEANS, r.main_food_milli(r.residents()), 0, _read)
+	rig.kitchen.takes.reserve_into(rig.pantry, r.take, FarmingScript.CROP_CABBAGE, r.main_food_milli(r.residents()), 0, _read)
+	rig.calendar.tick = tick_at(day, Rules.CREW_CALL_HOUR) - 30
+	rig.kitchen.update()
+	assert_true(_run(rig, func() -> bool: return r.state == RegattaScript.ST_DONE, 30000), "the day is over (%s)" % r.status_line())
+	assert_equal(rig.kitchen.portions_eaten, r.attendees.size(), "one hotpot portion a guest, never two")
+	assert_false(r.menu.warmth_active(rig.calendar.tick), "no Shared Warmth without the second course")
+	assert_true(r.warmth_line.begins_with("no Shared Warmth"), r.warmth_line)

@@ -57,8 +57,10 @@ func configure(cast: DemoCastScript, command: DemoCommandScript, shared: Service
 	_panel = panel
 	services = shared
 	var ids: DriverScript.IdsResult = DriverScript.resolve_item_ids()
-	assert(ids.ok, "the five forage items bind (%s)" % ids.error)
-	var driver: DriverScript = DriverScript.create(ids.ids, maxi(shared.calendar.tick, 0)) as DriverScript
+	var driver: DriverScript = DriverScript.create(ids.ids, maxi(shared.calendar.tick, 0)) as DriverScript if ids.ok else null
+	if driver == null:
+		push_error("foraging: the woods' forage store could not be made (%s); no foraging trips" % ids.error)
+		return
 	trips.configure(cast, driver, pantry, shared.calendar, shared.weather)
 	trips.say = _say
 	view = ViewScript.new()
@@ -72,6 +74,11 @@ func configure(cast: DemoCastScript, command: DemoCommandScript, shared: Service
 		section.build(panel.content_width())
 		panel.add_section(section)
 		section.action.connect(on_action)
+
+
+func is_ready() -> bool:
+	"""Whether the trips were wired (the catalogue bound and the forage store made): only then are they on the board."""
+	return trips.driver != null
 
 
 func task_text(who: int) -> String:

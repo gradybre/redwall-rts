@@ -590,7 +590,8 @@ func _top_up_courses(s: int, hour_index: int) -> void:
 	"""A two-course occasion's meal (see AN OCCASION): each course's food held for that course's batches still to cook,
 	never more -- the main course's inputs and the second's are different categories in the one take."""
 	_slot_wanted[s] = maxi(_slot_cooked[s] + _wip_on(s), _wanted(s))
-	for second: bool in [false, true]:
+	for course: int in 2:
+		var second: bool = course == 1
 		var dish: int = occasion_second if second else occasion_dish
 		var left: int = (occasion_second_batches if second else occasion_batches) - _course_done(s, second)
 		if left - _held_of(s, dish, -1) <= 0:
@@ -1376,6 +1377,16 @@ func _eat_portion(i: int) -> void:
 		_incidents.resolve(INCIDENT_KEY)
 
 
+func draw_service_water(milli: int) -> int:
+	"""Water an occasion's service draws from the butt (the feast's infusion: decision 0682), through the kitchen's own
+	ledger (`consumed_water_milli`), all or none. How much was drawn."""
+	if milli <= 0 or not stores.take_water(milli):
+		return 0
+	consumed_water_milli += milli
+	revision += 1
+	return milli
+
+
 func note_course(i: int, key: int, dish: int) -> void:
 	"""Resident `i` ate a portion of `dish` at meal `key`: at the occasion's meal, the course it is (see AN OCCASION)."""
 	if key != occasion_key or key == FREE:
@@ -1393,20 +1404,29 @@ func occasion_courses(i: int) -> int:
 
 func _wants_other_course(i: int, key: int) -> bool:
 	"""Whether resident `i`, having eaten one course of a two-course occasion's meal `key`, still has the other to eat
-	and it is there or on its way (at the table, in the pot, or batches still to cook)."""
+	and it is really coming: portions of it held, a batch of it at the cauldron, or its food reserved to cook (a course
+	whose food is gone is not waited for)."""
+	if not _one_course_eaten(i, key):
+		return false
+	var other: int = _other_course(i)
+	if store.portions_of(other) > 0 or (_wip_key == key and _wip_dish == other):
+		return true
+	var s: int = _slot_index_of(key)
+	return s >= 0 and _held_of(s, other, -1) > 0
+
+
+func _one_course_eaten(i: int, key: int) -> bool:
+	"""Whether resident `i` has eaten exactly one course of a two-course occasion's meal `key`."""
 	if key != occasion_key or key == FREE or occasion_second == Rules.NO_DISH:
 		return false
-	var had: int = _occasion_courses[i]
-	if had != COURSE_MAIN and had != COURSE_SECOND:
-		return false
-	var s: int = _slot_index_of(key)
-	return store.portions_of(_other_course(i)) > 0 or (s >= 0 and not _slot_done(s))
+	return _occasion_courses[i] == COURSE_MAIN or _occasion_courses[i] == COURSE_SECOND
 
 
 func _reserve_for(i: int, key: int, exact: bool) -> int:
 	"""Reserve resident `i`'s next portion of meal `key` (`exact`: cooked for it only): at a two-course occasion, the
-	course it has not eaten; else the next by §5.7's order (meal_store.gd)."""
-	if _wants_other_course(i, key):
+	course it has not eaten -- never a second portion of the course it has had (FREE when the other is not out); else
+	the next by §5.7's order (meal_store.gd)."""
+	if _one_course_eaten(i, key):
 		return store.reserve_one(key, exact, _other_course(i))
 	return store.reserve_one(key, exact)
 
@@ -1437,11 +1457,14 @@ func _watch_tables() -> void:
 	for i: int in _role.size():
 		if _step[i] != WORK_WAIT or _at_work[i] == 0 or _portion[i] != FREE:
 			continue
+		if fed.had(i, _meal[i]) and not _wants_other_course(i, _meal[i]):
+			_stop_waiting(i)
+			continue
 		var lot: int = _reserve_for(i, _meal[i], _serving == FREE or _meal[i] > _serving)
 		if lot != FREE:
 			_portion[i] = lot
 			_advance(i)
-		elif (not meal_coming(_meal[i]) and not _coming(_meal[i])) or (fed.had(i, _meal[i]) and _serving != _meal[i]):
+		elif not meal_coming(_meal[i]) and not _coming(_meal[i]):
 			_stop_waiting(i)
 
 
@@ -1758,7 +1781,7 @@ func _food_at_cauldron() -> bool:
 	fetched ahead for a later meal does not keep the cook on duty: between breakfast and supper's cooking (decision
 	0421's hours do not overlap) it is a diner like the rest."""
 	for s: int in _slot_order:
-		if _cook_time_come(s) and takes.live_milli(pantry, _slot_take[s], TakesScript.AT_KITCHEN) > 0:
+		if _cook_time_come(s) and _held_of(s, _dish_now(s), TakesScript.AT_KITCHEN) > 0:
 			return true
 	return false
 
@@ -1808,6 +1831,9 @@ func _fill_needs(d: Decision, s: int) -> void:
 	d.meal_key = _slot_key[s]
 	d.dish = _dish_now(s)
 	d.batches = maxi(0, _slot_wanted[s] - _slot_cooked[s] - _wip_on(s))
+	if _two_courses(s):
+		var second: bool = d.dish == occasion_second
+		d.batches = maxi(0, (occasion_second_batches if second else occasion_batches) - _course_done(s, second))
 	d.food_need = d.batches * Rules.INPUT_MILLI[d.dish]
 	d.food_have = takes.live_milli(pantry, _slot_take[s], -1, Rules.INPUT_CROP[d.dish]) + _free_food(d.dish)
 	d.side_need = d.batches * Rules.SIDE_MILLI[d.dish]

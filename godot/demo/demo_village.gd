@@ -621,7 +621,8 @@ func _build_work() -> void:
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
 	_work.add_ferry(_ferry.ferry)
-	_work.add_forage(_forage.trips)
+	if _forage.is_ready():
+		_work.add_forage(_forage.trips)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)

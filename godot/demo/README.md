@@ -1519,7 +1519,7 @@ first in summer:
   as they row. A storm or a crew not aboard by 16:00 calls the race off; the feast goes on.
 - **The feast** is the day's supper: the kitchen cooks the occasion's bean hotpot and then its nut loaves from the reserved
   food and serves them at the hall's tables at 17:00 -- each guest eats one portion of each course -- with the warm
-  infusion poured from the reserved herb and water (used for those who came, the rest given back); the supper song is
+  infusion poured from the reserved herb and water drawn from the butt then (used for those who came); the supper song is
   sung there; the service wood burns. At its end, **Shared Warmth** for 48 h when 80% ate every course (never stacked or
   extended; shown in the chronicle and the Regatta section). The demo models no mood or cold exposure, so the buff is a
   readout (`regatta_menu.gd`) nothing consumes yet.

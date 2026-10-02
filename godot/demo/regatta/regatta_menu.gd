@@ -9,9 +9,11 @@ extends RefCounted
 ## OCCASION's second course); each guest eats one portion of each course (§5.7).
 ## THE WARM INFUSION: water ceil(E/4) U + herb 0.25 x ceil(E/12) U, "prepared during service from its reserved
 ## water/herb; it has no stored output item or extra work". At confirmation, when both are there, the herb is reserved
-## in a take of its own and the water set aside from the butt (as the service wood is); at the supper's end they are
-## consumed "proportionally to attended/E with milli-unit rounding at the last attendee" -- floor(total x attended / E),
-## the rest given back.
+## in a take of its own and the water counted as owed (`water_held_milli`: the butt is not drawn down days ahead -- the
+## kitchen keeps it full); at the supper's end both are consumed "proportionally to attended/E with milli-unit rounding
+## at the last attendee" -- floor(total x attended / E) -- the herb from its take, the water drawn from the butt through
+## the kitchen's own ledger (kitchen.gd `draw_service_water`), the rest of the herb given back. An infusion whose herb or
+## water was not there to pour was not served: no buff.
 ## A COURSE THE PANTRY CANNOT MAKE is declared in the preview with its exact shortfall and the way to fix it (REQ-SET-099:
 ## "display that specific blocking reason and the missing quantity"); the feast is still held with what it can serve and
 ## then grants no buff (REQ-SET-104's "otherwise": decision 0438's reading, kept for that case).
@@ -149,7 +151,6 @@ func reserve(take: int, eligible: int, hour_index: int) -> void:
 		herb_take = kitchen.takes.new_take()
 		kitchen.takes.reserve_into(kitchen.pantry, herb_take, Catalog.CAT_HERB, Rules.infusion_herb_milli(eligible), hour_index, _read)
 		water_held_milli = Rules.infusion_water_milli(eligible)
-		stores.take_water(water_held_milli)
 		infusion_planned = true
 
 
@@ -159,12 +160,11 @@ func second_dish() -> int:
 
 
 func release() -> void:
-	"""Give back what the infusion set aside (the second course's food is in the regatta's take, released with it)."""
+	"""Give back what the infusion set aside -- its herb's reservation; its water was only owed, never drawn (the second
+	course's food is in the regatta's take, released with it)."""
 	if herb_take != 0:
 		kitchen.takes.release(herb_take)
 	herb_take = 0
-	if water_held_milli > 0 and stores != null:
-		stores.add_water(water_held_milli)
 	water_held_milli = 0
 	second_planned = false
 	infusion_planned = false
@@ -175,9 +175,8 @@ func release() -> void:
 func settle(eligible: int, attended: int, every_course: int, now_tick: int, hour_index: int) -> String:
 	"""The supper is over: the infusion's herb and water used for `attended` of `eligible` (the rest given back), and
 	Shared Warmth granted when every course was served and `every_course` reached 80% of E. The chronicle's words."""
-	var served_all: bool = second_planned and infusion_planned
-	if infusion_planned:
-		_pour(eligible, attended, hour_index)
+	var poured: bool = infusion_planned and _pour(eligible, attended, hour_index)
+	var served_all: bool = second_planned and poured
 	release()
 	if not served_all:
 		return "no %s (not every course was served)" % Rules.BUFF_NAME
@@ -190,16 +189,22 @@ func settle(eligible: int, attended: int, every_course: int, now_tick: int, hour
 	return "%s for %d h" % [Rules.BUFF_NAME, Rules.BUFF_HOURS]
 
 
-func _pour(eligible: int, attended: int, hour_index: int) -> void:
-	"""The infusion consumed proportionally to attended/E (floor: §5.7's rounding at the last attendee)."""
+func _pour(eligible: int, attended: int, hour_index: int) -> bool:
+	"""The infusion consumed proportionally to attended/E (floor: §5.7's rounding at the last attendee): its herb from
+	its take, its water drawn from the butt through the kitchen's ledger. False when either was not there to pour."""
 	var guests: int = clampi(attended, 0, eligible)
 	@warning_ignore("integer_division") var herb: int = Rules.infusion_herb_milli(eligible) * guests / maxi(eligible, 1)
 	@warning_ignore("integer_division") var water: int = water_held_milli * guests / maxi(eligible, 1)
-	if herb > 0 and kitchen != null and kitchen.takes.consume_into(kitchen.pantry, herb_take, herb, TakesScript.AT_STORE, hour_index, _read,
-			Catalog.CAT_HERB):
-		herb_used_milli += herb
-	water_used_milli += water
-	water_held_milli -= water
+	if herb == 0 and water == 0:
+		return true
+	if kitchen == null:
+		return false
+	var herb_ok: bool = herb == 0 or kitchen.takes.consume_into(kitchen.pantry, herb_take, herb, TakesScript.AT_STORE,
+		hour_index, _read, Catalog.CAT_HERB)
+	herb_used_milli += herb if herb_ok else 0
+	var drawn: int = kitchen.draw_service_water(water)
+	water_used_milli += drawn
+	return herb_ok and drawn == water
 
 
 func warmth_active(now_tick: int) -> bool:

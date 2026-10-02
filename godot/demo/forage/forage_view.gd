@@ -10,10 +10,9 @@ const Rules := preload("res://demo/forage/forage_rules.gd")
 
 var _trips: TripsScript = null
 var _props: PropsScript = null
-## What each resident holds for the trips (&"": nothing), and who held something last frame and this.
+## What each resident holds for the trips (&"": nothing), and which carry a haul this frame.
 var _held: Array[StringName] = []
-var _holding: PackedInt32Array = PackedInt32Array()
-var _next: PackedInt32Array = PackedInt32Array()
+var _carrying: PackedByteArray = PackedByteArray()
 
 
 func configure(trips: TripsScript, props: PropsScript, residents: int) -> void:
@@ -23,27 +22,21 @@ func configure(trips: TripsScript, props: PropsScript, residents: int) -> void:
 	_props = props
 	_held.resize(residents)
 	_held.fill(&"")
+	_carrying.resize(residents)
 
 
 func refresh() -> void:
-	"""Each seat's forager holds what the trips say it carries; one who held a basket and no longer carries drops it."""
+	"""Each seat's forager holds what the trips say it carries; one who held a basket and no longer carries drops it.
+	One pass over the seat rows and one over the residents, flags in a column sized once (no allocation a frame)."""
 	if _trips == null or _props == null:
 		return
-	_next.resize(0)
+	_carrying.fill(0)
 	for j: int in Rules.MAX_JOBS:
 		var who: int = _trips.j_worker[j]
-		if _trips.j_live[j] == 0 or who < 0 or who >= _held.size():
-			continue
-		var key: StringName = _trips.held_key_of_job(j)
-		if key != &"":
-			_show_held(who, key)
-			_next.append(who)
-	for who: int in _holding:
-		if not _next.has(who):
-			_show_held(who, &"")
-	var swap: PackedInt32Array = _holding
-	_holding = _next
-	_next = swap
+		if _trips.j_live[j] == 1 and who >= 0 and who < _held.size() and _trips.held_key_of_job(j) != &"":
+			_carrying[who] = 1
+	for who: int in _held.size():
+		_show_held(who, TripsScript.BASKET_KEY if _carrying[who] == 1 else &"")
 
 
 func _show_held(who: int, key: StringName) -> void:

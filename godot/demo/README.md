@@ -806,17 +806,18 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
   pause ledger, "The village guide is open" (the village waits) with six tabs -- **Objectives** (done, current with its cause, ahead), **Goals** (decision 0781, below), **Projects**, **Field guide**, **Help**
   and **Practice**.
-- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 24 how-to topics (the ferry and the
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 25 how-to topics (the ferry and the
   regatta among them: decisions 0437, 0438; decision 0571 added "Keep the village warm in winter", with its Open
   Heating fuel button) and the 28 keys,
   searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
   with that command as a button.
-- **Field guide**: 58 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the four dishes
-  (the fish stew at supper and the feast's bean hotpot among them), 7 materials (fishing gear among them), 13 buildings,
-  stations and occasions (fishing and the boats, the drying rack and mill, the ferry and the regatta, and the hearths
-  and heating fuel of decision 0571 among them), 5 skills, 4 water-safety entries, and 8 fish and preserved foods (the
-  six fish, dried fish, flour) -- each with Uses, Requires, Alternatives and
-  Available here, linked, a crop's pantry stock live; nothing the demo lacks.
+- **Field guide**: 80 entries built from the demo's own tables (counted at the batch 7 integration, decision 0902) --
+  the 16 crops (which dishes each feeds), the recipe book's 20 dishes (decisions 0601, 0603; the feast's nut loaf among
+  them), 7 materials (fishing gear among them), 14 buildings, stations and occasions (fishing and the boats, the drying
+  rack and mill, the ferry and the regatta, the hearths and heating fuel of decision 0571, and foraging trips among
+  them), 5 skills, 4 water-safety entries, and 14 goods (the six fish, dried fish, flour, the potato and honey still
+  waiting for a source, and the woods' nuts, mushrooms, herbs and berries) -- each with Uses, Requires, Alternatives
+  and Available here, linked, a crop's pantry stock live; nothing the demo lacks.
 - **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
   what happened, a debrief comparing all three, Restart. Built from fresh copies of the village's own models (a pantry,
   a farm with its own calendar, a bridge surveyor over the stream's shape), never the village: it is untouched (the
@@ -2379,10 +2380,14 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   to the infirmary".
 - **Herbs** (§5.5's herb row): the shelf starts with the GDD's 12 U of herb and 24 U of cloth. One herb patch grows by
   the south road (160 U, 128 at the start, regrowing each midnight, gathered down to 32 U); by day, while the shelf
-  holds under 12 U, the idle herbalist gathers 4 U and carries it to the shelf. Cloth is not made in the demo (0622 P8,
-  ruled): building the infirmary takes 12 U of it (0623 P1).
+  holds under 12 U, the idle herbalist gathers 4 U and carries it to the shelf. **One shelf, two sources** (decision
+  0902): a treatment's herb is the pantry's `herb` item, the one foraging trips bring in, so while the shelf is short
+  the pantry's free herb is moved onto it first and only what is still short sends the herbalist out. Cloth is not made
+  in the demo (0622 P8, ruled): building the infirmary takes 12 U of it (0623 P1).
 - **The work pace** (`work/work_pace.gd`, `demo_services.gd` `work_pace`): each owner's per-resident work factor,
-  multiplied; the infirmary adds the health factor (600 under 40, 850 under 70). HEAL work reads it.
+  multiplied; the infirmary adds the health factor (600 under 40, 850 under 70) and the winter its Chilled factor (800),
+  so a hurt, Chilled resident works at 68% (decision 0902). HEAL work reads it, and the winter writes it into each
+  resident's `work_permille`, which the outdoor crews credit their work by -- once, never twice.
 
 ## Layout
 

@@ -721,3 +721,74 @@ func test_bound_as_placement_authority_the_composer_stops_a_building_over_a_pile
 	assert_false(_buildings.has_placement_authority(), "and leaves no authority")
 	assert_true(_buildings.place_building(well, _tile(39, 39), 0, START_MASK).ok,
 		"an unguarded store places over the pile, which is why the settlement binds it")
+
+
+# --- decision 0535: the in-transaction variant for DEMO-CONTAIN-R01 #6's single commit ----------
+
+func _seed_at(tile: int) -> PackedInt32Array:
+	"""A one-tile seed buffer."""
+	return PackedInt32Array([tile])
+
+
+func test_the_in_transaction_variant_refuses_without_a_callers_transaction() -> void:
+	"""It never opens its own: no transaction is TRANSACTION_NOT_OPEN, writing nothing."""
+	var before: PackedByteArray = _inv.state_bytes()
+	assert_false(_piles.place_lots_from_seeds_in_transaction(_seed_at(_tile(40, 40)), 1,
+		PackedByteArray(), _spec(ITEM_STONE, 1000), _out), "refused")
+	assert_equal(_out.error, GroundPilesScript.REFUSE_TRANSACTION_CLOSED, "by name")
+	assert_true(_inv.state_bytes() == before, "nothing written")
+	assert_false(_inv.is_transaction_open(), "and none was opened")
+
+
+func test_the_in_transaction_variant_refuses_a_bad_seed_count_inside_the_transaction() -> void:
+	"""The seed shape is checked before any write, as in the standalone helper."""
+	_inv.begin()
+	assert_false(_piles.place_lots_from_seeds_in_transaction(_seed_at(_tile(40, 40)), 2,
+		PackedByteArray(), _spec(ITEM_STONE, 1000), _out), "two seeds from a one-tile buffer")
+	assert_equal(_out.error, GroundPilesScript.REFUSE_SEED_SHAPE, "seed shape")
+	assert_true(_inv.is_transaction_open(), "the caller's transaction is left to the caller")
+	_inv.abort()
+
+
+func test_the_in_transaction_variant_places_inside_and_the_caller_commits() -> void:
+	"""Placed inside the caller's transaction, kept open; declared only after its commit."""
+	_inv.begin()
+	assert_true(_piles.place_lots_from_seeds_in_transaction(_seed_at(_tile(40, 40)), 1,
+		PackedByteArray(), _spec(ITEM_STONE, PILE_OF_STONE + 1000), _out), _out.error)
+	assert_equal(_out.piles_created, 2, "it spills into a second pile")
+	assert_true(_inv.is_transaction_open(), "the caller's transaction stays open")
+	var pile: Vector2i = _inv.ground_pile_at_tile(_tile(40, 40))
+	assert_equal(_age.storage_class_of(pile), StockAgeScript.STORAGE_UNDECLARED,
+		"nothing is declared before the commit")
+	assert_true(_inv.commit().ok, "the caller commits")
+	assert_true(_piles.declare_placed_piles(), "then declares")
+	assert_equal(_age.storage_class_of(pile), StockAgeScript.STORAGE_OPEN_PILE, "storage 1500")
+	assert_equal(_age.storage_class_of(_inv.ground_pile_at_tile(_tile(40, 39))),
+		StockAgeScript.STORAGE_OPEN_PILE, "both piles, the spill went north")
+	assert_true(_inv.audit().ok, "audits")
+
+
+func test_the_in_transaction_variant_is_rolled_back_by_the_callers_abort() -> void:
+	"""On the caller's abort nothing the variant placed survives; the mask is honoured too."""
+	var before: PackedByteArray = _inv.state_bytes()
+	var mask: PackedByteArray = _empty_mask()
+	mask[_tile(40, 40)] = 1
+	_inv.begin()
+	assert_true(_piles.place_lots_from_seeds_in_transaction(PackedInt32Array([_tile(40, 40),
+		_tile(41, 40)]), 2, mask, _spec(ITEM_STONE, 1000), _out), _out.error)
+	assert_equal(_used(40, 40), -1, "the masked seed was skipped")
+	assert_equal(_used(41, 40), 1000, "the next seed took it")
+	_inv.abort()
+	assert_true(_inv.state_bytes() == before, "the abort undid it all")
+
+
+func test_an_in_transaction_refusal_leaves_the_abort_to_the_caller() -> void:
+	"""A refusal mid-walk names itself; the caller's abort then restores every pile."""
+	var before: PackedByteArray = _inv.state_bytes()
+	_inv.begin()
+	assert_false(_piles.place_lots_from_seeds_in_transaction(_seed_at(_tile(77, 30)), 1,
+		PackedByteArray(), _spec(ITEM_STONE, 1000), _out), "a water start")
+	assert_equal(_out.error, GroundPilesScript.REFUSE_IMPASSABLE, "the start tile's refusal")
+	assert_true(_inv.is_transaction_open(), "still the caller's to close")
+	_inv.abort()
+	assert_true(_inv.state_bytes() == before, "byte-identical")

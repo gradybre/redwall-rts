@@ -895,8 +895,13 @@ func test_demolition_completion_retains_demolition_policy() -> void:
 	if not _require(_finish_work(target.project, DEMOLISH_WORK), "DEMOLISH-C earns its work"):
 		return
 	_assert_demolition_return_manifest(target.project)
-	var retirement: Construction.OpResult = _construction.commit_completion(target.project)
-	if not _require(retirement.ok, "DEMOLISH-C commits (%s)" % retirement.error):
+	assert_equal(_construction.commit_completion(target.project).error,
+		Construction.REFUSE_COORDINATOR_ONLY, "the store-level door refuses a demolition (0536)")
+	if not _require(_construction.remove_demolished_subject(target.project).ok,
+			"DEMOLISH-C removes its building"):
+		return
+	var retirement: Construction.OpResult = _construction.retire_demolition(target.project)
+	if not _require(retirement.ok, "DEMOLISH-C retires (%s)" % retirement.error):
 		return
 	_assert_building_removed(target.subject, target.origin_tile)
 	_verify_retirement(target, retirement, _expected_retired_row(Construction.PURPOSE_DEMOLISH,
@@ -912,7 +917,9 @@ func test_demolition_cancellation_before_work_restores_active() -> void:
 	if not _require(_begin_cancel_before_work(target, DEMOLISH_WORK), "DEMOLISH-B freezes"):
 		return
 	_assert_demolition_cancellation_refuses(target.project)
-	var retirement: Construction.OpResult = _construction.close_refund(target.project)
+	assert_equal(_construction.close_refund(target.project).error,
+		Construction.REFUSE_COORDINATOR_ONLY, "the store-level door refuses a demolition (0536)")
+	var retirement: Construction.OpResult = _construction.close_demolition_refund(target.project)
 	if not _require(retirement.ok, "DEMOLISH-B closes (%s)" % retirement.error):
 		return
 	_assert_building_survives(target.subject, target.origin_tile, STATE_ACTIVE, target.base_tier)
@@ -929,7 +936,9 @@ func test_demolition_cancellation_after_work_restores_active() -> void:
 	if not _require(_begin_cancel_after_work(target, DEMOLISH_WORK), "DEMOLISH-A freezes"):
 		return
 	_assert_demolition_cancellation_refuses(target.project)
-	var retirement: Construction.OpResult = _construction.close_refund(target.project)
+	assert_equal(_construction.close_refund(target.project).error,
+		Construction.REFUSE_COORDINATOR_ONLY, "the store-level door refuses a demolition (0536)")
+	var retirement: Construction.OpResult = _construction.close_demolition_refund(target.project)
 	if not _require(retirement.ok, "DEMOLISH-A closes (%s)" % retirement.error):
 		return
 	_assert_building_survives(target.subject, target.origin_tile, STATE_ACTIVE, target.base_tier)

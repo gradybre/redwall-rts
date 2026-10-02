@@ -236,8 +236,8 @@ func test_an_upgrade_in_progress_blocks_the_demolition() -> void:
 func test_the_preview_matches_the_snapshot_the_transition_takes() -> void:
 	"""What admit reserves for must equal what the published project will return."""
 	var hall: Vector2i = _tier_two_hall()
-	var keys: PackedInt32Array = PackedInt32Array([0, 0, 0, 0])
-	var milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
+	var keys: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+	var milli: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0])
 	assert_true(_construction.demolition_return_preview_into(hall, keys, milli, _out),
 		"the preview reads (%s)" % _out.error)
 	var count: int = _out.value

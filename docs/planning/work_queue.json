@@ -2521,35 +2521,72 @@
     {
       "id": "DEMOLITION-D5",
       "title": "Composed demolition completion, furniture 50% return and pantry capacity recompute",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "DEMOLITION-D4"
       ],
       "owns": [
         "godot/scripts/systems/settlement_system.gd",
-        "godot/scripts/core/buildings.gd",
-        "godot/test/test_settlement_system.gd"
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/ground_piles.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/demolition_admissions.gd",
+        "godot/test/test_settlement_demolition_complete.gd",
+        "godot/test/test_construction_demolition_completion.gd",
+        "godot/test/test_ground_piles.gd",
+        "godot/test/test_settlement_starter_colony.gd",
+        "godot/test/test_settlement_system.gd",
+        "godot/test/test_settlement_furniture_removal.gd",
+        "godot/test/test_inventory_capacity_reduction.gd",
+        "godot/test/test_construction.gd",
+        "godot/test/test_construction_retired_histories.gd",
+        "godot/test/test_construction_paid_ledger.gd",
+        "godot/test/test_settlement_demolition_admit.gd",
+        "godot/test/test_demolition_admissions.gd",
+        "docs/decisions/0535-demolition-completion-is-one-commit-and-furniture-refuses.md",
+        "docs/decisions/0536-furniture-returns-half-by-type-and-pieces-are-removed-alone.md",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d5-furniture-rulings.md",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d5-completion.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores."
+      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores.",
+      "note": "Done with decisions 0535 and 0536. complete_demolition() is #6's one no-yield commit (proofs first; containers, furniture, rooms, building, combined 50% return, retire; the record released before the row goes; refusals byte-identical and commit-pending). Brendan ruled on 0535's P1-P3 (2026-10-02, decision 0536): each piece's package is derived from its type and returns 50% of its bill floored per item, its removal adds a quarter of its WU, admit reserves the combined return and the admission records its charge so a changed return refuses DEMOLITION_RESERVATION_MISMATCH; preview_/request_/complete_/cancel_furniture_removal() take one piece out of a standing building (one admission per building row), with #3b's pantry-shelf capacity reduction (inventory.reduce_container_capacity()); commit_completion()/close_refund() refuse a demolition or removal by name (DEMOLITION_COMPLETES_THROUGH_COORDINATOR). Only a piece with a live project of its own refuses (DEMOLITION_FURNITURE_UNDER_CONSTRUCTION). PURPOSE_REMOVE_FURNITURE sits outside ADR 0186's frozen enum; CONSTRUCTION-SAVED-BINDINGS must revisit that contract. D6/D7 complete and cancel only through the coordinator."
     },
     {
       "id": "DEMOLITION-D6",
       "title": "Evacuation hauling, demolition work under BUILD, and the admit retry coordinator",
-      "status": "blocked",
+      "status": "review",
       "depends_on": [
         "DEMOLITION-D5"
       ],
       "owns": [
+        "godot/scripts/core/demolition_work.gd",
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/demolition_admissions.gd",
         "godot/scripts/core/jobs.gd",
-        "godot/scripts/core/work.gd"
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_demolition_work.gd",
+        "godot/test/test_settlement_demolition_work.gd",
+        "docs/decisions/0537-demolition-work-is-a-build-job-and-evacuation-waits-for-hauling.md",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d6-work-and-evacuation-intent.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Blocker 4: persisted evacuate-then-demolish intent, real HAUL jobs, no teleports, retry admit once sources are empty. Depends on task 06.4 physical hauling."
+      "acceptance": "Blocker 4: persisted evacuate-then-demolish intent, real HAUL jobs, no teleports, retry admit once sources are empty. Depends on task 06.4 physical hauling.",
+      "note": "Branch feat/demolition-d6, decision 0537. Built: one BUILD Job per admitted removal (demolition_work.gd), posted in the planner slot, its ticks credited to the project with add_work_mwu_into() after a validate-then-consume proof, completion committed through complete_demolition()/complete_furniture_removal(), commit-pending refusals retried hourly, the Job retired on every way out; order_evacuate_then_demolish() records the intent on a stage 3/5 goods refusal (UNRESOLVED-classified like the admission record) and the hourly reconcile retries admit once every container on the footprint is empty. REFUSED by name: the evacuation HAUL jobs -- task 06.4 physical hauling does not exist (no satchel, no settlement movement, no teleports); Brendan ruled 2026-10-02: P1, P2, P4, P5, P6 approved as recommended; no tool wear for now; P3 \"Build hauling (06.4) next\" -- a separate lane builds 06.4, and D6 stays as built with hauling waiting on it, so this entry is not done and CONSTRUCTION-EVACUATION-INTEGRATION cannot close on it. Memory +16384 B."
     },
     {
       "id": "DEMOLITION-D7",

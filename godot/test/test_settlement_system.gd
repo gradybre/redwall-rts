@@ -3775,8 +3775,10 @@ func test_a_delivered_project_with_no_container_binding_refuses_as_a_missing_con
 	assert_equal(_settlement.construction().material_container_ref_of(project.ref),
 		EntityDirectoryScript.NULL_REF, "and it names no material container")
 	var undelivered: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
-	assert_true(undelivered.ok,
-		"a project that took nothing is no endpoint, so the preview passes (%s)" % undelivered.error)
+	assert_equal(undelivered.error,
+		SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNDER_CONSTRUCTION,
+		"a project that took nothing is no endpoint, so stages 2-5 pass and only the bed's own "
+		+ "live project (decision 0536) stops the preview")
 	assert_equal(undelivered.endpoint_owner_count, 4, "hall, room, bed and the bed's project")
 	_grain_lot(_store_owned_by(room), 1200)
 	assert_true(_settlement.construction().deliver_material(project.ref, 0, 1000).ok,

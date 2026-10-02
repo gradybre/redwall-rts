@@ -428,7 +428,10 @@ func test_a_project_retired_without_releasing_its_claim_blocks_readmission() -> 
 	var store: Vector2i = _store(_depot(), DEPOT_TILE)
 	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
 	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refund begins")
-	assert_true(_settlement.construction().close_refund(report.project_ref).ok, "and retires")
+	assert_equal(_settlement.construction().close_refund(report.project_ref).error,
+		ConstructionScript.REFUSE_COORDINATOR_ONLY, "the plain store door refuses (0536)")
+	assert_true(_settlement.construction().close_demolition_refund(report.project_ref).ok,
+		"but the coordinator's own door, called around it, retires")
 	assert_equal(_settlement.demolition_admissions().unreleased_reserved_g_of(hall), HALL_RETURN_G,
 		"the stranded claim is still named")
 	var before: PackedByteArray = _snapshot()
@@ -504,7 +507,8 @@ func test_a_stranded_claim_is_released_through_its_own_door() -> void:
 	assert_equal(_settlement.release_stranded_reservation(hall),
 		SettlementSystemScript.REFUSE_DEMOLITION_NOT_STRANDED, "a live project is cancelled instead")
 	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refund begins")
-	assert_true(_settlement.construction().close_refund(report.project_ref).ok, "store-level retire")
+	assert_true(_settlement.construction().close_demolition_refund(report.project_ref).ok,
+		"store-level retire around the coordinator")
 	assert_equal(_settlement.cancel_demolition(hall),
 		SettlementSystemScript.REFUSE_DEMOLITION_NOT_ADMITTED, "cancel has no project to cancel")
 	assert_equal(_settlement.release_stranded_reservation(hall), SettlementSystemScript.REFUSE_NONE,
@@ -520,7 +524,8 @@ func test_a_stranded_release_refuses_when_the_store_no_longer_holds_the_claim() 
 	var store: Vector2i = _store(_depot(), DEPOT_TILE)
 	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
 	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refund begins")
-	assert_true(_settlement.construction().close_refund(report.project_ref).ok, "store-level retire")
+	assert_true(_settlement.construction().close_demolition_refund(report.project_ref).ok,
+		"store-level retire around the coordinator")
 	assert_true(_settlement.inventory().release_container_mass(store, 1).ok, "a gram goes astray")
 	var before: PackedByteArray = _snapshot()
 	assert_equal(_settlement.release_stranded_reservation(hall),

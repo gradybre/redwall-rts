@@ -1,0 +1,44 @@
+{
+  "source_commit": "d07dabb7629be8a7721b87fdd5b9532e3568a963",
+  "suite_files": 240,
+  "test_methods": 7974,
+  "per_suite_method_lists_identical": true,
+  "per_suite_method_lists_sha256": "1eca3a4cf5dfaf9aeb2f6acf1d969f833959ee0744f77bc10e162d443818218a",
+  "required_test_and_diagnostic_counters_equal": true,
+  "equal_counter_names": [
+    "tests",
+    "failures",
+    "unexpected_errors",
+    "unexpected_warnings",
+    "expected",
+    "tolerated",
+    "leaked_objects",
+    "leaked_resources"
+  ],
+  "single_counts": {
+    "tests": 7974,
+    "assertions": 577345,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 268,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "weighted_counts": {
+    "tests": 7974,
+    "assertions": 577346,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 268,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "assertion_difference": 1,
+  "strict_all_counter_baseline_comparison": "fails on the assertion delta; no tolerance or bypass added",
+  "independent_method_list_sha256": "2ceb1be606ccbfd53545350cb1f260cd379f72ad96ecdf8b8c01811f5788c66c",
+  "independent_method_list_encoding": "UTF-8 newline-joined sorted suite::''method, no final newline"
+}

@@ -17,13 +17,15 @@ permissions:
   contents: read
 
 jobs:
-  godot:
-    name: Godot headless suite
+  godot-shards:
+    name: Godot suite shard ${{ matrix.shard }} / 8
     runs-on: ubuntu-latest
-    # The suite grew past 6,500 tests with the live demo: the last green run
-    # took 28.6 minutes and the next two were cut off at 30. A timeout is a
-    # hang guard, not a speed target, so it sits well above the real run time.
-    timeout-minutes: 60
+    # 15 minutes is the wall-clock target; 30 remains a separate hang guard.
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     env:
       # docs/ENVIRONMENT.md: 4.7 is the only version anything has been run
       # against. Pin it rather than tracking latest, so an engine release
@@ -66,77 +68,161 @@ jobs:
         # the fly, which is slower and mixes import errors into test output.
         run: godot --headless --path godot --editor --quit
 
-      - name: Run the suite
-        # Also fails on an ERROR/WARNING line no test declared and on objects or
-        # resources the worker leaked at exit (decision 0501).
-        run: ./tools/run_tests.sh
+      - name: Run the suite shard
+        # Same registry, assertion, unexpected-diagnostic and zero-leak gates as a full run.
+        # Each complete manifest is audited before execution; the aggregate audits observed files.
+        run: ./tools/run_tests.sh --shard ${{ matrix.shard }}/8 --output-dir artifacts/test-shards
+
+      - name: Save shard evidence even on failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: godot-shard-${{ matrix.shard }}
+          path: artifacts/test-shards/
+          if-no-files-found: error
+          retention-days: 14
+
+  godot-gates:
+    name: Godot gates (${{ matrix.group }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    # Run 37001196751 spent another 29m54s AFTER its 27m58s suite.
+    # The original gate commands execute once each, balanced into independent groups.
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [analyzer, metadata-a, metadata-b, metadata-c]
+    env:
+      # docs/ENVIRONMENT.md: 4.7 is the only version anything has been run
+      # against. Pin it rather than tracking latest, so an engine release
+      # cannot turn a green branch red without a commit.
+      GODOT_VERSION: "4.7.2"
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Cache the Godot binary
+        id: cache-godot
+        uses: actions/cache@v4
+        with:
+          path: ~/godot-bin
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Download Godot ${{ env.GODOT_VERSION }}
+        if: steps.cache-godot.outputs.cache-hit != 'true'
+        run: |
+          set -euo pipefail
+          release="Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          url="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/${release}.zip"
+          mkdir -p "$HOME/godot-bin"
+          curl -fsSL --retry 3 -o /tmp/godot.zip "$url"
+          unzip -q /tmp/godot.zip -d "$HOME/godot-bin"
+          mv "$HOME/godot-bin/${release}" "$HOME/godot-bin/godot"
+          chmod +x "$HOME/godot-bin/godot"
+
+      - name: Put Godot on PATH
+        run: echo "$HOME/godot-bin" >> "$GITHUB_PATH"
+
+      - name: Report the engine version
+        run: godot --version
+
+      - name: Import the project
+        # Generates godot/.godot. Without it the first --script run imports on
+        # the fly, which is slower and mixes import errors into test output.
+        run: godot --headless --path godot --editor --quit
 
       - name: Runner diagnostics self-test
+        if: matrix.group == 'analyzer'
         # The classification above (expected, tolerated, unexpected, leaked)
         # checked on fixture suites that provoke each kind.
         run: python3 tools/test_run_tests_diagnostics.py
 
       - name: GDScript analyzer warnings
+        if: matrix.group == 'analyzer'
         # A headless run never prints these (integer division, shadowing...);
         # only the editor's language server reports them, so this drives one.
         # Zero allowed: annotate an intended one where it stands (decision 0501).
         run: python3 tools/gdscript_warnings.py --max 0
 
       - name: Component stream preflight fault injection
+        if: matrix.group == 'metadata-c'
         run: python3 tools/test_component_stream_preflights.py
 
       - name: Needs metadata preflight fault injection
+        if: matrix.group == 'metadata-a'
         run: python3 tools/test_needs_metadata_preflights.py
 
       - name: Priorities metadata preflight fault injection
+        if: matrix.group == 'metadata-c'
         run: python3 tools/test_priorities_metadata_preflights.py
 
       - name: Schedule metadata preflight fault injection
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_schedule_metadata_preflights.py
 
       - name: Transforms metadata preflight fault injection
+        if: matrix.group == 'metadata-c'
         run: python3 tools/test_transforms_metadata_preflights.py
 
       - name: Fauna metadata preflight fault injection
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_fauna_metadata_preflights.py
 
       - name: Work metadata preflight fault injection
+        if: matrix.group == 'metadata-c'
         run: python3 tools/test_work_metadata_preflights.py
       - name: ResourceNodes metadata preflight fault injection
+        if: matrix.group == 'metadata-a'
         run: python3 tools/test_resource_nodes_metadata_preflights.py
       - name: Injury metadata preflight fault injection
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_injury_metadata_preflights.py
       - name: Residents metadata preflight fault injection
+        if: matrix.group == 'metadata-a'
         run: python3 tools/test_residents_metadata_preflights.py
       - name: FieldPolicy metadata preflight fault injection
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_field_policy_metadata_preflights.py
       - name: Farming metadata preflight fault injection
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_farming_metadata_preflights.py
       - name: Fishing metadata preflight fault injection
+        if: matrix.group == 'metadata-a'
         run: python3 tools/test_fishing_metadata_preflights.py
       - name: Movement metadata preflight fault injection
+        if: matrix.group == 'metadata-c'
         run: python3 tools/test_movement_metadata_preflights.py
       - name: Buildings metadata preflight fault injection
+        if: matrix.group == 'metadata-c'
         run: python3 tools/test_buildings_metadata_preflights.py
       - name: Buildings borrowed-buffer allocation discriminator
+        if: matrix.group == 'metadata-a'
         run: python3 tools/test_buildings_allocation.py
 
       - name: Construction source and schema fault injection
+        if: matrix.group == 'metadata-a'
         run: python3 tools/test_construction_metadata_preflights.py
 
       - name: Construction borrowed-buffer allocation discriminator
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_construction_allocation.py
 
       - name: Starter structures metadata fault injection
+        if: matrix.group == 'metadata-b'
         run: python3 tools/test_starter_structures_metadata.py
 
       - name: Demo audio staging self-test
+        if: matrix.group == 'metadata-c'
         # Needs neither the audio library nor afconvert: it checks the tool on
         # small WAVs it writes, and the committed ledger and sound table
         # against the tool's choices (decision 0351).
         run: python3 tools/test_stage_demo_audio.py
 
       - name: UI refinement contract
+        if: matrix.group == 'metadata-c'
         # This one hashes PNGs and asserts their magic bytes. *.png is LFS, so
         # it runs in this job, whose checkout already sets lfs: true, rather
         # than in `contracts`. Putting it there passed locally and failed on
@@ -145,11 +231,52 @@ jobs:
         run: python3 docs/validation/ui_refinement_contract.py
 
       - name: Check the copied hash kernel against the engine
+        if: matrix.group == 'metadata-c'
         # ready07_addendum_checks is pure arithmetic without --godot; the flag
         # is what makes it compile the copied production kernel and compare
         # digests, which is the half that needs a binary. It runs here rather
         # than in `contracts` so it does not pay for a second Godot download.
         run: python3 docs/validation/ready07_addendum_checks.py --godot
+
+
+      - name: Shard allocation and runner fault injection
+        if: matrix.group == 'analyzer'
+        run: python3 tools/test_ci_test_shards.py --godot
+
+  godot:
+    # Keep the existing required-check name. A skipped or failed matrix must never go green here.
+    name: Godot headless suite
+    if: ${{ always() }}
+    needs: [godot-shards, godot-gates, contracts]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require every shard and existing gate to succeed
+        env:
+          SHARDS_RESULT: ${{ needs.godot-shards.result }}
+          GATES_RESULT: ${{ needs.godot-gates.result }}
+          CONTRACTS_RESULT: ${{ needs.contracts.result }}
+        run: |
+          set -euo pipefail
+          for result in "$SHARDS_RESULT" "$GATES_RESULT" "$CONTRACTS_RESULT"; do
+            if [[ "$result" != success ]]; then
+              echo "error: a required shard or gate was failed, cancelled, or skipped ($result)." >&2
+              exit 1
+            fi
+          done
+
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Download every shard report and log
+        uses: actions/download-artifact@v4
+        with:
+          pattern: godot-shard-*
+          path: artifacts/test-shards
+          merge-multiple: true
+
+      - name: Every discovered test file executed exactly once
+        run: python3 tools/ci_test_shards.py verify --reports artifacts/test-shards --count 8
 
   contracts:
     name: Specification contracts

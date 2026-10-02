@@ -14,8 +14,9 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const PROBE: String = "res://test/live/opening_pantry_probe.gd"
 const WHEAT_MILLI: int = 40000
 const CARROT_MILLI: int = 50000
-## Four days of meals for nine: 20 porridge batches (2 U) and 16 soup batches (3 U), 2 portions each, 18 portions a day.
-const READY_DAYS_MILLI: int = 4000
+## The opening stock cooks 72 portions: 20 porridge batches (2 U) and 16 soup batches (3 U), 2 portions each -- four days
+## of meals for the staged nine (18 portions a day), six for the six placeholders where the assets are not staged (CI).
+const OPENING_PORTIONS: int = 72
 
 
 func _item(key: StringName) -> int:
@@ -77,5 +78,9 @@ func test_the_real_village_opens_with_the_stock() -> void:
 		elif row.contains("SCRIPT ERROR"):
 			fail("the probe: %s" % row)
 	assert_equal(code, 0, "the probe exited cleanly")
-	assert_equal(line, "OPENING wheat=%d carrot=%d ready_days_milli=%d harvested=0" % [WHEAT_MILLI, CARROT_MILLI,
-		READY_DAYS_MILLI], "what the village opened with: %s" % text.right(400))
+	var residents: int = int(line.get_slice("residents=", 1))
+	assert_true(residents > 0, "the probe counted the cast: %s" % line)
+	@warning_ignore("integer_division")
+	var ready_days: int = OPENING_PORTIONS * 1000 / (2 * maxi(residents, 1))
+	assert_equal(line, "OPENING wheat=%d carrot=%d ready_days_milli=%d harvested=0 residents=%d" % [WHEAT_MILLI,
+		CARROT_MILLI, ready_days, residents], "what the village opened with: %s" % line)

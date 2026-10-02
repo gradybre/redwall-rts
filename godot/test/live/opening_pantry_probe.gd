@@ -4,7 +4,8 @@ extends SceneTree
 ##
 ##     godot --headless --path godot --script res://test/live/opening_pantry_probe.gd
 ##
-## Prints `OPENING wheat=<milli> carrot=<milli> ready_days_milli=<milli-days> harvested=<milli>` on the first frame (the
+## Prints `OPENING wheat=<milli> carrot=<milli> ready_days_milli=<milli-days> harvested=<milli> residents=<n>` on the
+## first frame (the
 ## village's `_ready` has run; its clock has not moved), then quits. `harvested` is what the record's open day would
 ## count as harvested if it closed now: the pantry's stored ledger less the record's snapshot (its private columns,
 ## read here only). Exits 1 (and says why) when a part it reads is not where it looks.
@@ -36,8 +37,9 @@ func _process(_delta: float) -> bool:
 	var harvested: int = 0
 	for item: int in int(catalog.get(&"PANTRY_ITEM_COUNT")):
 		harvested += int(pantry.call(&"stored_total_milli", item)) - int((snap as PackedInt64Array)[item])
-	print("OPENING wheat=%d carrot=%d ready_days_milli=%d harvested=%d" % [
+	@warning_ignore("integer_division") var residents: int = int(kitchen.call(&"daily_portions")) / 2
+	print("OPENING wheat=%d carrot=%d ready_days_milli=%d harvested=%d residents=%d" % [
 		int(pantry.call(&"milli_of", keys.find(&"wheat"))), int(pantry.call(&"milli_of", keys.find(&"carrot"))),
-		int(kitchen.call(&"days_of_meals_milli")), harvested])
+		int(kitchen.call(&"days_of_meals_milli")), harvested, residents])
 	quit(0)
 	return true

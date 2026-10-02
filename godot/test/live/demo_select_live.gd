@@ -13,6 +13,7 @@ extends SceneTree
 
 const CrewsScript := preload("res://demo/work/work_crews.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const GroupSelectScript := preload("res://demo/control/group_select.gd")
 
 const BOOT_FRAMES: int = 14
 const SETTLE_FRAMES: int = 4
@@ -344,13 +345,17 @@ func _not_a_double_click(at: Vector2) -> void:
 	var alone: PackedInt32Array = _selected()
 	_check("two clicks 7 px apart (past the 6 px threshold) are not a double click", alone.size() <= 1, str(alone))
 	var who: int = int(_command().call(&"pick", at))
-	var before: PackedInt32Array = PackedInt32Array([who, _not_kin_of(who)])
+	var other: int = _not_kin_of(who)
+	if other < 0:
+		# The unstaged cast (CI) is one placeholder species: any other resident will do (batch 7 integration).
+		other = (who + 1) % int(_cast().call(&"actor_count"))
+	var before: PackedInt32Array = PackedInt32Array([who, other])
 	before.sort()
 	_command().call(&"select", before)
 	_click_at(at, true)
 	_click_at(at, true)
 	await _frames(2)
-	_check("a Shift double click toggles twice", _selected() == before, str(_selected()))
+	_check("a Shift double click toggles twice", _selected() == before, "%s, before %s, at %s" % [_selected(), before, at])
 
 
 func _not_kin_of(who: int) -> int:
@@ -482,8 +487,8 @@ func _statuses_read() -> void:
 	_check("Peckish is a note", peckish > 0)
 	var beds: String = text.substr(text.find("No bed"))
 	beds = beds.left(beds.find("\n"))
-	_check("No bed names the bedless, not the one given a bed", beds.contains(_first_name(0))
-		and not beds.contains(_first_name(3)), beds)
+	_check("No bed names the bedless, not the one given a bed", beds.contains(_line_name(0))
+		and not beds.contains(_line_name(3)), beds)
 	var tags := PackedStringArray()
 	for k: int in 3:
 		tags.append(((panel.call(&"tile", k) as Node).get_node(^"Lines/Tag") as Label).text)
@@ -514,8 +519,18 @@ func _a_status_by_data(panel: Control) -> void:
 
 
 func _first_name(who: int) -> String:
-	"""Resident `who`'s first name as the group section prints it."""
+	"""Resident `who`'s first name, as a line naming it alone prints it."""
 	return String((_cast().call(&"actor", who) as Node).get("display_name")).get_slice(" ", 0)
+
+
+func _line_name(who: int) -> String:
+	"""Resident `who`'s name as a line naming several prints it: its first word, or its whole name where another of the
+	cast shares that word (group_select.gd `short_names`: the unstaged cast's "Placeholder 0", "Placeholder 1"... in
+	CI; batch 7 integration)."""
+	var full := PackedStringArray()
+	for k: int in int(_cast().call(&"actor_count")):
+		full.append(String((_cast().call(&"actor", k) as Node).get("display_name")))
+	return GroupSelectScript.short_names(full)[who]
 
 
 func _floors(panel: Control) -> void:
@@ -547,7 +562,7 @@ func _a_crew_for_all() -> void:
 	var on: PackedInt32Array = crews.get("crew_of")
 	_check("one press puts both on the Woods crew", on[0] == target and on[1] == target, "%d %d" % [on[0], on[1]])
 	_check("the notice names the crew and who was on it", _notice().begins_with("Woods crew")
-		and _notice().contains("Wenna joins; Jory already on it"), _notice())
+		and _notice().contains("%s joins; %s already on it" % [_line_name(0), _line_name(1)]), _notice())
 	_check("then the Woods button is disabled", button.disabled, button.tooltip_text)
 	await _capture("group_crew")
 

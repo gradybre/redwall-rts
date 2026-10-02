@@ -176,9 +176,34 @@ func _the_season_s_facts() -> void:
 	var services: Object = _village.get("_services")
 	(services.get("notices") as NoticesScript).post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE, GATHERING)
 	var ledger: Ledger = _village.call(&"people").get("ledger")
-	ledger.record(Ledger.KIND_BRIDGE, 8, 100, 0, Ledger.NOBODY, 0, -1, "neck bridge")
-	ledger.record(Ledger.KIND_RESCUE, 5, 200, 0, 6)
+	ledger.record(Ledger.KIND_BRIDGE, _builder(), 100, 0, Ledger.NOBODY, 0, -1, "neck bridge")
+	ledger.record(Ledger.KIND_RESCUE, _rescuer(), 200, 0, _rescued())
 	_check("the chronicle is built", _chronicle() != null and _book() != null)
+
+
+func _cast_size() -> int:
+	"""How many residents the cast has: nine staged, six placeholders where the assets are not staged (CI)."""
+	return int(_village.call(&"people").call(&"names").size())
+
+
+func _builder() -> int:
+	"""The bridge's builder: the staged cast's ninth (Elstan Weirholt), else the last placeholder (batch 7 integration)."""
+	return mini(8, _cast_size() - 1)
+
+
+func _rescuer() -> int:
+	"""The rescuer: the staged sixth (Corra Netley), else the fourth from last placeholder."""
+	return mini(5, _cast_size() - 3)
+
+
+func _rescued() -> int:
+	"""The one rescued: the staged seventh (Tuppen Clayholm), else the third from last placeholder."""
+	return mini(6, _cast_size() - 2)
+
+
+func _name(who: int) -> String:
+	"""Resident `who`'s name as the people know it (what the chronicle writes)."""
+	return String((_village.call(&"people").call(&"names") as PackedStringArray)[who])
 
 
 func _no_page_yet() -> void:
@@ -227,8 +252,9 @@ func _the_book_reads() -> void:
 	var text: String = _book().call(&"shown_text")
 	_check("the page's title", text.begins_with(Text.page_title(0, false)), text.left(60))
 	_check("the gathering", text.contains("The village gathered at the run to race two boats."))
-	_check("the rescue before the bridge", text.find("Corra Netley brought Tuppen Clayholm ashore") >= 0
-		and text.find("Corra Netley brought") < text.find("Elstan Weirholt built the neck bridge"), text)
+	var rescue: String = "%s brought %s ashore" % [_name(_rescuer()), _name(_rescued())]
+	_check("the rescue before the bridge", text.find(rescue) >= 0
+		and text.find(rescue) < text.find("%s built the neck bridge" % _name(_builder())), text)
 	_check("spring's weather from the record", text.contains("fine growing weather"), text)
 	_capture("chronicle_page")
 

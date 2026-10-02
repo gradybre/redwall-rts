@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1522,
- "total_bytes": 18320911905,
+ "count": 1537,
+ "total_bytes": 18474769356,
  "files": [
   {
    "family": "building",
@@ -13636,6 +13636,141 @@
    "path": "assets/library/creature/badger_quarryman/anim_cautious_crouch_walk_forward.glb",
    "bytes": 7019692,
    "sha256": "b03c0525f0b8dba2a280ff71cbdb815474cacae61cb72ca726ea1f161c090099"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "concept",
+   "task_id": "01a0fc72-79f5-7431-a65f-ba7b6a17fbf3",
+   "path": "assets/library/style_probe/icon_residence/concept_0.png",
+   "bytes": 1181398,
+   "sha256": "f9a2f63c9b795ef5a749c963072f3b9c5c0f709a193f9f95e7fa6f8603a0f177"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "concept",
+   "task_id": "01a0fc74-0d8e-73aa-8daa-fd2c9e899259",
+   "path": "assets/library/style_probe/icon_residence/concept_1.png",
+   "bytes": 1045763,
+   "sha256": "17e57c7327cab7c382e16c4f9b47ace26f7ed55ee2f9a9898fece1c877debb68"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "highpoly",
+   "task_id": "01a0fc74-d34c-7796-9683-35111a5b1214",
+   "path": "assets/library/style_probe/icon_residence/highpoly.glb",
+   "bytes": 85530432,
+   "sha256": "113a3b73128e92d1a48236666bfa0eb89963430c7f0608697fdf775294ee121c"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "texture",
+   "task_id": "01a0fc74-d34c-7796-9683-35111a5b1214",
+   "path": "assets/library/style_probe/icon_residence/highpoly_textures/base_color.png",
+   "bytes": 6146099,
+   "sha256": "c39361104be9530761ee76b52a1ed2afb30cc0df85225cb812cd5f0dbe637156"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "texture",
+   "task_id": "01a0fc74-d34c-7796-9683-35111a5b1214",
+   "path": "assets/library/style_probe/icon_residence/highpoly_textures/metallic.png",
+   "bytes": 18693,
+   "sha256": "f466ef3d2428b5194bfd12acab63370d85ff60b316166e6cd255db3ea6e1d9f7"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "texture",
+   "task_id": "01a0fc74-d34c-7796-9683-35111a5b1214",
+   "path": "assets/library/style_probe/icon_residence/highpoly_textures/normal.png",
+   "bytes": 5125143,
+   "sha256": "add59047be18b054fd1d10e6349f3a33adc2c727f6f8d160c764433ddca0e5bc"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "texture",
+   "task_id": "01a0fc74-d34c-7796-9683-35111a5b1214",
+   "path": "assets/library/style_probe/icon_residence/highpoly_textures/roughness.png",
+   "bytes": 1749778,
+   "sha256": "85e8550bbcd2ed6b772b117e56f130b23d807ba63276367a740a8713c0888495"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_residence",
+   "stage": "l0_bake",
+   "task_id": "01a0fc74-d34c-7796-9683-35111a5b1214",
+   "path": "assets/library/style_probe/icon_residence/l0.glb",
+   "bytes": 4694592,
+   "sha256": "59227162ad8c4b6e719c9a85e48b5a6f8c96cb5ca264cf82c907d258e55f0302"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "concept",
+   "task_id": "01a0fc72-86f3-71c6-adc8-48de1f46248a",
+   "path": "assets/library/style_probe/icon_mouse/concept_0.png",
+   "bytes": 1004499,
+   "sha256": "5723a0f6c46a5fd199de78d9f4b1ffe03111b2ca04409594f8da2a9b347cfc29"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "highpoly",
+   "task_id": "01a0fc74-26fa-709e-86ee-a82af9b58430",
+   "path": "assets/library/style_probe/icon_mouse/highpoly.glb",
+   "bytes": 29405568,
+   "sha256": "d6bc0bd6b2e9270a08828d3253c33b7ee5225c1a021da108eefdb3d7bafc9b3e"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "texture",
+   "task_id": "01a0fc74-26fa-709e-86ee-a82af9b58430",
+   "path": "assets/library/style_probe/icon_mouse/highpoly_textures/base_color.png",
+   "bytes": 6253919,
+   "sha256": "c6caa46a22bb45b3fe50f420b0f9b5c30175dbed549f90745a1bd742efc5c5fb"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "texture",
+   "task_id": "01a0fc74-26fa-709e-86ee-a82af9b58430",
+   "path": "assets/library/style_probe/icon_mouse/highpoly_textures/metallic.png",
+   "bytes": 77266,
+   "sha256": "165039c87b0c332a0167637164b8dada027209405207b37618622c068e98c06e"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "texture",
+   "task_id": "01a0fc74-26fa-709e-86ee-a82af9b58430",
+   "path": "assets/library/style_probe/icon_mouse/highpoly_textures/normal.png",
+   "bytes": 4723611,
+   "sha256": "c03d4fc4d0e86b6942ed24dccd9caefd657e1233cf135243006c3cf3be076a4b"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "texture",
+   "task_id": "01a0fc74-26fa-709e-86ee-a82af9b58430",
+   "path": "assets/library/style_probe/icon_mouse/highpoly_textures/roughness.png",
+   "bytes": 1188346,
+   "sha256": "c8e765c0c55548a2cf2122f7a79cbc8347bc5ffd00026827b7c11a7ab8ab88c0"
+  },
+  {
+   "family": "style_probe",
+   "key": "icon_mouse",
+   "stage": "l0_bake",
+   "task_id": "01a0fc74-26fa-709e-86ee-a82af9b58430",
+   "path": "assets/library/style_probe/icon_mouse/l0.glb",
+   "bytes": 5712344,
+   "sha256": "8cbf989213fd4bef8f0cf8444dea21e335853205876b90bfd707601cffe03cbe"
   }
  ]
 }

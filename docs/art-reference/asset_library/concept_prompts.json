@@ -1596,6 +1596,47 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "A round BRAIDED RAG RUG lying flat on the floor, coiled from braided strips of faded red, ochre, moss-green and oatmeal cloth. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and cloth materials as the reference."
+    },
+    {
+      "family": "style_probe",
+      "key": "icon_residence",
+      "task_id": "01a0fc72-79f5-7431-a65f-ba7b6a17fbf3",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "outcome_note": "concept_0: rejected, off-style",
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_carrot, relic_bell, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by the style probe",
+        "assets/library/icon/sheet_foods_a/sheet.png",
+        "assets/library/building/residence/concept.png"
+      ],
+      "prompt": "Redraw the building in image 3 as one game asset in exactly the rendering style of images 1 and 2: polished stylized-realistic 3D render, like an inventory icon. Same two-storey cottage, same footprint and proportions: fieldstone ground floor, timber-framed upper floor, slate roof with two dormers, stone chimney, wide front door, shuttered windows, lantern by the door, small dirt base. Soft studio light from upper left, gentle rim light, smooth rounded forms, clean matte materials, warm natural saturation, no ink outlines. Three-quarter view from front-left above, plain light grey background."
+    },
+    {
+      "family": "style_probe",
+      "key": "icon_residence",
+      "task_id": "01a0fc74-0d8e-73aa-8daa-fd2c9e899259",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "outcome_note": "concept_1: used",
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_carrot, relic_bell, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by the style probe",
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "A 3D rendered game asset in exactly the style of these icon renders, not a painting: soft studio light from upper left, gentle rim light, smooth bevelled chunky forms, rounded stones, soft ambient occlusion, clean matte materials, warm natural saturation, no outlines. Subject: a two-storey woodland cottage, nearly square plan, as tall as wide: fieldstone ground floor, timber-framed upper floor, grey slate roof with two dormers, stone chimney, wide wooden door, shuttered windows, lantern by the door, small dirt base. Three-quarter view from front-left above, plain light grey background."
+    },
+    {
+      "family": "style_probe",
+      "key": "icon_mouse",
+      "task_id": "01a0fc72-86f3-71c6-adc8-48de1f46248a",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "outcome_note": "concept_0: used",
+      "reference_images": [
+        "scratchpad: 3x3 of nine staged pantry icons (item_strawberry, item_onion, item_turnip, item_peas, item_trout, item_beetroot, item_carrot, relic_bell, item_lettuce) on #E0E0E0, made from godot/demo/assets/icons/ by the style probe",
+        "assets/library/icon/sheet_foods_a/sheet.png",
+        "assets/library/creature/mouse_fieldworker/concept_0.png"
+      ],
+      "prompt": "Redraw the mouse in image 3 as one game character in exactly the rendering style of images 1 and 2: polished stylized-realistic 3D render, like an inventory icon. Same mouse field worker: linen tunic, short hooded cape, wide leather belt with two pouches, brown trousers rolled at the ankle, large round ears, chestnut fur, pale muzzle, long thin tail. Standing relaxed, arms slightly away from the body, feet flat, facing the viewer. Soft studio light from upper left, gentle rim light, smooth forms, matte cloth, warm natural saturation, no outlines. Full body, plain light grey background."
     }
   ]
 }

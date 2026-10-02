@@ -177,6 +177,16 @@ The root bin was tried twice (its roots split from its bin; its roots cut out) a
 budget: the plain L0 is used, full. `tools/stage_demo_assets.py` also re-pins the mouse keeper's crouch walk as it stages
 it (support tolerance 2 cm, `REPIN`): its two contacts left unpinned above pin, the library's grounded clip untouched.
 
+## Style probe — 2026-10-02
+
+One icon-style house and one icon-style mouse, made so that Brendan could see the icon look at the game camera.
+They are `style_probe/icon_residence` and `style_probe/icon_mouse`.
+
+**78 credits** against a 95 cap: three `nano-banana-2` concepts, one of them rejected, and two meshy-7 textured
+high-polys. The L0s are free Blender bakes. They are not wired into the game and are not accepted art.
+[Decision 0981](../../decisions/0981-icon-style-probe-house-and-mouse.md) has the details, and the comparison is
+[`contact_sheets/style_probe_2026-10-02.png`](contact_sheets/style_probe_2026-10-02.png).
+
 ## What is in it
 
 Measured from the files, not from Meshy's reports. No L0 exceeds its GAP-04 ceiling.

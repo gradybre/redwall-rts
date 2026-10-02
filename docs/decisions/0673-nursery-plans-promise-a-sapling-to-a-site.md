@@ -1,5 +1,6 @@
 # 0673 — Nursery plans: each propagated sapling is promised to a site, and shows its first fruiting season
-Date: 2026-10-01 · Status: Accepted (review ECO-009, group Y)
+Date: 2026-10-01 · Status: Accepted (review ECO-009, group Y); built as Brendan approved on 2026-10-01 (decision 0671:
+all proposals as built)
 
 ## Decision
 

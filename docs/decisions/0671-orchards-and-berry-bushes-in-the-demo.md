@@ -1,5 +1,6 @@
 # 0671 — Orchards and berry bushes in the demo: real orchard rows, two groups, a hedge, a nursery and a grove
-Date: 2026-10-01 · Status: Accepted (the PROPOSALS below wait for Brendan's ruling)
+Date: 2026-10-01 · Status: Accepted; **all nine PROPOSALS approved as built by Brendan on 2026-10-01, with one change**
+(the hedge's berries are the one generic `berries` item; see "The rulings")
 
 **Numbering.** Other agents write decisions in parallel; this work was given the block 0671–0679 and takes 0671–0677
 (checked free on this branch and in the sibling worktrees). 0672–0677 record its parts; this record is the whole
@@ -12,7 +13,22 @@ timing change" group Y asked to be recorded), **ECO-009** (nursery plans; 0673),
 **ECO-015** (protected groves; 0675). Hives, honey and wax (ECO-011, ECO-012) and gathering outings (ECO-014) are other
 lanes and are not built. Presentation only throughout: nothing here is the settlement's simulation.
 
-## Decision
+## The rulings (Brendan, 2026-10-01)
+
+Brendan approved proposals 1–9 below **as built**, with one change:
+
+- **The hedge yields the generic `berries` item**, the same pantry item (key `berries`) the foraging lane defines under
+  his ruling on foraging's general items -- not three items of its own. Raspberries, blackberries and strawberries
+  are all `berries` in the pantry; the three bushes stay three bushes (decision 0676). `apple` and `pear` stay their
+  own items. On this branch `berries` is **item 26** (apple 24, pear 25; `PANTRY_ITEM_COUNT` 27) and **CAT_BERRIES 11**
+  -- the foraging branch's own category number for it -- with **CAT_FRUIT 12**. The foraging branch has `berries` at
+  item 27 (after nuts 24, mushrooms 25, herb 26): the key and the category agree, and the integration renumbers the
+  items (the orchard reads them through `ORCHARD_ITEMS`, a list, so it follows wherever `berries` lands).
+- **Proposal 2** means the GDD's §5.6 sentence and §5.10's M3 row are to be reworded to match: decision 0672 carries
+  the drafted text for the docs owner. The GDD itself is not edited here.
+- **Proposal 9** is built on this branch: the kitchen's raw table (`meal_rules.gd RAW_NP_PER_U`) has §5.7's fruit
+  (900 NP a unit) and berries (700) rows, so a hungry resident with no portion eats them raw. A raw meal never takes
+  a lot waiting at a basket stand (`kitchen.gd _raw_candidate`), as the kitchen's recipes never do (decision 0674).
 
 ### The rules used, as written
 
@@ -35,9 +51,9 @@ lanes and are not built. Presentation only throughout: nothing here is the settl
 - **Four sites**, tile-aligned 8 m blocks: the **old orchard** south of the field beds (an old apple and an old pear)
   and the **east orchard**'s two empty planting sites by the south road. Pegs mark an empty block; a planting there is
   the player's (the panel or a right click) or a nursery plan's.
-- **The pantry items** (`farm_catalog.gd`): `apple`, `pear` (§5.7 `fruit`, 144 h, CAT_FRUIT) and `raspberry`,
-  `blackberry`, `strawberry` (§5.7 `berries`, 48 h, CAT_BERRIES) -- each the content library's own LEAF key ("a radish
-  is a radish"), so the dishes lane's recipes that name `raspberry` (its cordial) resolve to them.
+- **The pantry items** (`farm_catalog.gd`): `apple` and `pear` (§5.7 `fruit`, 144 h, CAT_FRUIT), the content library's
+  own LEAF keys, and the generic `berries` (§5.7 `berries`, 48 h, CAT_BERRIES; the compiled catalogue's
+  `data/item_definitions.json` row, the foraging lane's key) for everything the hedge gives (the ruling above).
 - **The work** (`orchard_jobs.gd`, `orchard_task.gd`): tend, harvest, pick, haul, plant, propagate and observe, each a
   short program of walk-work-carry steps worked by real residents. **On the work board as source 11**
   (`work_ids.gd SOURCE_ORCHARD`, `work/orchard_work.gd`): sources 8 and 9 are taken on other lanes' branches (the ferry,
@@ -52,7 +68,7 @@ lanes and are not built. Presentation only throughout: nothing here is the settl
   let into the ground; the strawberry bed is the staged strawberry plant; baskets, sapling baskets and a mossy boulder
   are staged props. Blossom and fruit are the tree shader's speckles (decision 0677).
 
-### PROPOSALS (demo values no document states; each needs Brendan's ruling)
+### PROPOSALS (demo values no document states; all approved as built by Brendan on 2026-10-01)
 
 1. **The early yield's numbers** (decision 0672): 20% (the middle of ECO-008's 15–25%), from a tree's first full year
    (48 days), once a year in its window, until §5.6's maturity. An early picking's work is the same share of 80 WU
@@ -76,7 +92,7 @@ lanes and are not built. Presentation only throughout: nothing here is the settl
    *Recommendation: confirm, or ask for a fruit-tree model (see the art gap).*
 9. **Raw fruit is not yet an emergency meal**: the kitchen's raw-food table (`meal_rules.gd RAW_NP_PER_U`) has no
    fruit or berry row, so a hungry resident does not eat them raw though §5.7 says they may be. *Recommendation: the
-   kitchen lane adds §5.7's 900 and 700 NP rows.*
+   kitchen lane adds §5.7's 900 and 700 NP rows.* **Approved; built here** (the rulings above).
 
 ### Not built, and why
 
@@ -93,18 +109,22 @@ lanes and are not built. Presentation only throughout: nothing here is the settl
 
 No fruit tree, berry bush or loose fruit is staged. The stand-ins above read as an orchard at the RTS camera; a proper
 apple/pear tree (with a blossom and fruit texture), a bramble and a raspberry-cane model, and a basket of apples would
-replace them without code changes (the view takes models by key).
+replace them without code changes (the view takes models by key). That art is being made separately (2026-10-01); nothing
+here changes the visuals.
 
 ## Consequences
 
-- Other lanes name the fruit and berries by key (`apple`, `pear`, `raspberry`, `blackberry`, `strawberry`); the
-  dishes lane deletes `raspberry` from its PENDING_SOURCES (its cordial's honey still waits for the hives).
-- Category numbers CAT_FRUIT 11 and CAT_BERRIES 12 sit past the other lanes' 8–10, so a merge cannot fold two
-  categories together silently; the item indices 24–28 will be renumbered by whichever lane merges second.
+- Other lanes name the fruit and berries by key (`apple`, `pear`, `berries`); the dishes lane's cordial takes its
+  raspberries as `berries` (from the hedge or a foraging trip), so it deletes `raspberry` from its PENDING_SOURCES
+  (its honey still waits for the hives).
+- CAT_BERRIES 11 is the foraging lane's number for the same item, so the two branches' `berries` reconcile as one
+  item and one category; CAT_FRUIT 12 sits past every other lane's categories (8–11). The item indices (apple 24,
+  pear 25, berries 26 here; berries 27 on the foraging branch) are renumbered by whichever lane merges second.
 - The pantry has two new hooks for any gathering place (0674): a store marked `staging` is never chosen as a
   destination, `reserve_at_into` holds room at a named store, `move_upto_into` moves food keeping its age.
 - The kitchen never reserves a lot at a gathering place (`ingredient_takes.gd _staged`): food waiting at a stand is not
-  yet stored. The dishes lane, whose cordial takes raspberries, inherits this when it merges.
+  yet stored, and neither does a raw meal (`kitchen.gd _raw_candidate`). The dishes lane, whose cordial takes
+  berries, inherits this when it merges.
 - The independent review (code-reviewer) found three HIGH issues, all fixed before commit: a haul cached its store's
   index (stale once a cellar is dug) -- it now reads the store from its held room; the kitchen's reservations could land
   on a stand's lots -- they no longer can, and the nursery takes its fruit from the stands only; the tests could not see

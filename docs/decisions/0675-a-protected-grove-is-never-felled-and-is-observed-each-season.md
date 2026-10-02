@@ -1,5 +1,6 @@
 # 0675 — A protected grove: never felled, a stone to rest and watch from, a season's line in its record
-Date: 2026-10-01 · Status: Accepted (review ECO-015, group Y); its specifics are 0671's proposal 7
+Date: 2026-10-01 · Status: Accepted (review ECO-015, group Y); its specifics (0671's proposal 7) **approved as built by
+Brendan on 2026-10-01**
 
 ## Decision
 

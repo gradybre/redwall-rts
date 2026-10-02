@@ -1,5 +1,6 @@
 # 0674 — Orchard harvest groups: a basket stand each, a destination, a nursery share and a timing
-Date: 2026-10-01 · Status: Accepted (review ECO-010, group Y); the stand's numbers are 0671's proposal 4
+Date: 2026-10-01 · Status: Accepted (review ECO-010, group Y); the stand's numbers (0671's proposal 4) **approved as
+built by Brendan on 2026-10-01**
 
 ## Decision
 
@@ -15,8 +16,9 @@ Date: 2026-10-01 · Status: Accepted (review ECO-010, group Y); the stand's numb
   (merged lots keep the older), and the ledger counts it once (stored at the stand, never again). It unloads where its
   room is **held**, read when it unloads (a store's index moves when a cellar is dug; the hold follows its store by
   id), and a move never lands at a gathering place.
-- **Food at a stand is not yet stored**: the kitchen never reserves a stand's lots (`ingredient_takes.gd _staged`), so a
-  haul or the nursery can never take food out from under a planned meal.
+- **Food at a stand is not yet stored**: the kitchen never reserves a stand's lots (`ingredient_takes.gd _staged`) and
+  a hungry resident never eats one raw (`kitchen.gd _raw_candidate`, since §5.7's fruit and berries rows are raw-edible:
+  0671's proposal 9), so a haul or the nursery can never take food out from under a planned meal.
 - **The nursery's share**: a group keeps 0, 4 or 8 U of each fruit at its stand for propagation (the old orchard 4 U by
   default: one sapling's fruit).
 - **Timing**: *as each ripens* (each tree picked when its window opens: apples Autumn 1, pears Autumn 3) or *all

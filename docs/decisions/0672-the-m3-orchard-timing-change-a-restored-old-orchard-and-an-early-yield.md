@@ -1,5 +1,6 @@
 # 0672 — The M3 orchard timing change: a restored old orchard at the start, and a fifth of a crop from a tree's first year
-Date: 2026-10-01 · Status: Accepted (the direction: Brendan, group Y, 2026-09-30); the numbers are PROPOSALS (0671's 1–2)
+Date: 2026-10-01 · Status: Accepted (the direction: Brendan, group Y, 2026-09-30); the numbers (0671's proposals 1–2)
+**approved as built by Brendan on 2026-10-01**
 
 Group Y's approval (decision 0493) reads: *"Approved; the M3 orchard timing change to be recorded as a decision."* This
 is that record.
@@ -42,14 +43,35 @@ maturity by ten; give "a staged orchard (sapling → blossom → small first yie
 
 ## Consequences
 
-- **The GDD's text is to be amended** once Brendan confirms the numbers (0671's proposals 1–2): §5.6's sentence
-  "Immature trees yield 0" gains "except decision 0672's early yield: from one year old, 20% once a year in the window",
-  and §5.10's M3 row gains "(in a scenario that opens with an inherited orchard, the saplings and the nursery are held
-  from the start)". Until then this record is the authority for the demo; the settlement's code
-  (`scripts/core/orchard_hive.gd`) is unchanged and still yields 0 before maturity -- the early yield lives in the
-  demo's model.
+- **The GDD's text is to be amended** (Brendan confirmed the numbers, 0671's proposals 1–2, on 2026-10-01): the drafted
+  rewording is below, for the GDD's owner to apply. It is not applied here. Until it is, this record is the authority
+  for the demo. The settlement's code (`scripts/core/orchard_hive.gd`) is unchanged and still yields 0 before
+  maturity: the early yield lives in the demo's model.
 - Milestones are not evaluated in the demo (as decision 0603 notes for recipe unlocks), so nothing here gates on M3.
 - SOC-031–034 (progression and difficulty) stay deferred (group AF); this decision does not re-plan the milestone ladder.
+
+## The GDD rewording (draft for the docs owner; not applied)
+
+**§5.6, the orchard paragraph** (`docs/game_gdd.md`, "Each orchard block contains one modeled large fruit tree."):
+
+- *Now:* "Immature trees yield 0; age is retained across winter."
+- *To read:* "Immature trees yield 0, except that a tree at least 48 days old (one full year) and not yet mature may be
+  harvested once a year in its species' window for 20% of its mature yield (at its health, pollination and chill),
+  the harvest work scaled by the same share (decision 0672); age is retained across winter."
+- *Now:* "...the first two saplings of each type arrive with milestone M3, preventing a fruit/sapling bootstrap loop."
+- *To read:* "...the first two saplings of each type arrive with milestone M3, preventing a fruit/sapling bootstrap
+  loop. A scenario that opens with an inherited orchard (the first scenario: an old apple aged 480 days and an old
+  pear aged 624 days, mature, health 3500, the last winter cold enough) holds the nursery, orchard planting and the
+  M3 saplings from the start instead (decision 0672)."
+
+**§5.10, the milestone table's M3 Deep Roots row**, its unlock cell:
+
+- *Now:* "Boats, boathouse, nursery, orchards;2 apple+2 pear saplings once; fruit recipes; Orchard feast"
+- *To read:* "Boats, boathouse, nursery, orchards;2 apple+2 pear saplings once (held from the start in a scenario that
+  opens with an inherited orchard, decision 0672); fruit recipes; Orchard feast"
+
+`scripts/core/orchard_hive.gd` would then gain the early yield (its `SPECIES_*` tables, a one-year age and the 200 per
+mille share) when the settlement takes orchards up; the demo's `orchard_rules.gd early_yield_milli` is the reference.
 
 ## Source
 

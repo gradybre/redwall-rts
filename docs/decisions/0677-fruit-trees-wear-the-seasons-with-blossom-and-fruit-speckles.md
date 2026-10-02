@@ -1,5 +1,6 @@
 # 0677 — Fruit trees wear the seasons: a fruit kind, their own blossom and a fruit speckle
-Date: 2026-10-01 · Status: Accepted; the drawn size is 0671's proposal 8
+Date: 2026-10-01 · Status: Accepted; the drawn size (0671's proposal 8) **approved as built by Brendan on
+2026-10-01**; the fruit-tree, bush and fruit art is being made separately and replaces the stand-ins by key
 
 ## Decision
 

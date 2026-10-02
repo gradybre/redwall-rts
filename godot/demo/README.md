@@ -1776,13 +1776,38 @@ What changed on screen:
   or wading, more in a lit bore. A carrier walks at 65% of its walk, its carry clip sped to match (was
   about 37%: the playtest's mole was "way too slow with a log").
 
-## The food, plants and props pass (2026-10-01, staged only)
+## The art passes, wired (decision 0903)
 
-`tools/make_demo_food_art.py` (run by staging) stages eleven models -- apple and pear trees, raspberry canes, a
-blackberry bramble, a hazel bush, strawberry, mushroom and herb patches, an apple basket, a bee skep and an infirmary --
-**prescaled to game height** (each manifest row has `prescaled`, `height_m` and `sink_m`), and 24 food and dish icons in
-the manifest's new top-level `"icons"` section. **Nothing draws them yet**: the orchards, foraging, infirmary and dishes
-branches wire them after integration, following `docs/art-reference/asset_library/food_art_mapping.json` (decision 0941).
+Three paid art passes -- the food, plants and props pass (decision 0941), art pass 2 (0951, DEC-047) and art pass 3
+(0971, DEC-048), with 0972's flax, linen and wax icons -- are staged by `tools/stage_demo_assets.py`
+(`--only art` restages them alone: `make_demo_food_art.py` and `stage_art_passes.py`, which runs `make_art_pass2.py` or
+`make_art_pass3.py` only when a pass's record is missing) and drawn by the demo. **Every one degrades to the stand-in it
+replaced** when it is not staged (CI, a fresh clone): the same code runs either way.
+
+| Art | Where it is drawn | Without it |
+|---|---|---|
+| `apple_tree`, `pear_tree` | the orchard's trees, at every age (a sapling 0.2-0.45, young 0.5, full-grown 1.0, the old trees 1.11 of the prescaled model; the pear let down its plate) | the oak and its sapling, drawn small |
+| `raspberry_canes`, `bramble_blackberry`, `strawberry_patch` | the orchard's berry hedge; the patch is a third season slot | the oak's crown knee-high; five strawberry plants |
+| `apple_basket` | the old orchard stand: one full basket per started third of its store while it holds apples most | baskets and the fruit heap |
+| `hazel_bush` (3), `mushroom_forage` (2), `herb_patch`, `bramble_blackberry` (2) | beside the four foraging spots (`forage_view.gd` THE SPOTS); the hazels and brambles are season slots | nothing drawn at the spots |
+| `infirmary_ward` | the infirmary (prescaled to its 5.5 m envelope, sunk its 0.33 m earth base; the door's herbs and shelf before its front) | the borrowed `residence` |
+| `herb_patch` | the infirmary's herb patch, smaller as its stock runs down | twelve procedural clumps |
+| `pine_scots`, `yew_ancient` | fifteen evergreens (ten pines, five yews) in the woods past the clearing (`world/evergreens.gd`: never felled; their trunks are obstacles either way) | none drawn |
+| `oak_mature_bare` | every bare oak in winter (`season_view.gd` THE AUTHORED BARE OAK) | the leaf triangles cut from the leafed oak |
+| `tunnel_set` | every brace frame (and the rooms' ribs) | the old `tunnel_brace`, else a box frame |
+| `rock_face` | the bore's walls where the ground is rock (`bore_dressing.gd` ROCK FACES) | nothing |
+| pass 1's and 3's icons | by key: an item's `item_<pantry key>` (apple, pear, berries, nuts, mushrooms, herb, potato, honey, flour, dried fish; jam, cider, flax, wax and the rest wait for their items), a dish's `dish_<recipe key>` in the Kitchen tab and on the Stocks rows | the item's model icon, else its roundel; no dish icon |
+
+**The modelled berries.** The bushes carry their berries in their texture, so the tree shader hides them
+(`season_leaves.gdshaderinc` `berry_hide`): a ripe red or dark purple texel is painted its bush's leaf colour as the
+hedge's (or the berry patch's) stock above its floor runs down, and every one while it is dormant; a hidden berry is
+leaf from then on, so it tints and falls with the leaves. The hazel's nuts are brown as its bark and stay drawn.
+
+**Mapped, not drawn yet** (their features are not built): the wildlife, the bee skep and the bees, flax's plant row,
+the preserving and brewing props, fire, lightning and the winter ice, the find icons for coins, an old map and a spring,
+and the herb infusion's icon. Each mapping file names the code that will draw them
+(`docs/art-reference/asset_library/food_art_mapping.json`, `docs/art-reference/art_pass2_mapping.md`,
+`docs/art-reference/art_pass3_mapping.md`).
 
 ## The woods
 
@@ -1905,6 +1930,10 @@ haul" (berries too, at the dishes lane's request). `forage/`:
   48 h) -- the catalogue's keys, items 26–29 of the pantry (after the dishes' potato and honey). Nuts and herb are the
   regatta feast's (below); nuts and mushrooms also cook the pasty, the scones and the woodland pie, and the berries
   the cordial once there is honey (decision 0902). The herb is the infirmary's too: see The herbalist and the infirmary.
+- **The spots are drawn** where the food art is staged: three hazels round the hazel brake, ceps in the beech hollow,
+  the herb bank's patch and two brambles at the bramble edge. **The bramble edge** is at the south-west woods' edge,
+  west of the old orchard, (-25.0, 27.0) since the batch 8 integration (decision 0903): its lane's (8.0, 25.5) lay inside
+  the orchard's east planting block.
 - The party panel says what each forager is doing and its "Foraging N"; the Routes layer's public ways include **the
   forage grounds**; the field guide has the four goods and "Foraging trips".
 - Checked by `test_demo_forage.gd` (the placeholder cast on the real layout; no staged assets).
@@ -1941,7 +1970,8 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
   record and the news.
 - **The seasons** (decision 0677): the fruit trees and bushes are season trees -- blossom (pink-white apples, white
   pears) in spring, green fruit swelling in late summer, red apples and yellow pears in autumn until picked, bare
-  boughs in winter. No new art: the trees are the staged oak drawn small (0671's art gap).
+  boughs in winter. The trees are the food art's apple and pear where staged (see The art passes, wired), else the
+  staged oak drawn small (0671's art gap).
 - **The work** is on the work board as source 13 since the batch 8 integration (decision 0903), **Orchard** (`work/orchard_work.gd`): tend, harvest, pick berries, haul
   baskets, plant, propagate, observe -- each conserving its load (a delivery always finishes).
 
@@ -2412,8 +2442,9 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
   tool away. Residents then build it through the work board ("Infirmary" source, REQ-SET-124/125/126 as the cellar
   building does): wood and stone fetched from the stores at the open stockpile, cloth from the care shelf at the hall's
   steps, the books always adding up; **Cancel the infirmary** returns all before the work begins, 80% after. It is drawn
-  with the library's residence model at the infirmary's 5.5 m envelope, with herb strings and a shelf of remedies at its
-  door (no infirmary model exists: an art gap), flat while fetched for, rising as it is built.
+  with the food art's infirmary ward (decision 0941; wired by decision 0903; else the library's residence) at the
+  infirmary's 5.5 m envelope, with herb strings and a shelf of remedies before its door, flat while fetched for, rising as
+  it is built. Its herb patch is the food art's herb patch where staged, else procedural clumps.
 - **A hurt resident rests** (`care_tasks.gd` BedRest): in the infirmary when it is built and has a bed -- in at its
   door, admitted to a bed, treated there, mending at +4 an hour, at most 2 healers inside at once; before it is built,
   or when it is full, in its own bed, else lying at its **field-care spot** before the hall's steps (decision 0623 P2).

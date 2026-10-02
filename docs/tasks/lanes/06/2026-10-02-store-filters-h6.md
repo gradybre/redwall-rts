@@ -20,6 +20,6 @@ Decision: [1031](../../../decisions/1031-store-filters-and-minimums-are-a-buildi
 - **Not composed yet.** `settlement_system.gd` was outside this lane, so live play refuses both
   kinds with COMMAND_STORE_NOT_BOUND until it builds and binds the store.
 
-Decision 1031 records eight proposals (P1–P8). Every reset or load path must also call the store's `clear()`, because the stamp's persistent IDs restart with the directory.
+Decision 1031 records eight proposals (P1–P8). Brendan approved all eight as recommended on 2026-10-02. Every reset or load path must also call the store's `clear()`, because the stamp's persistent IDs restart with the directory.
 
 No checklist box closes: 06.4's hauling, reservations, recovery, gear swaps and EQUIP remain.

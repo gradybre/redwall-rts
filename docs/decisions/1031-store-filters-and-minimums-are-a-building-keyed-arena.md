@@ -1,5 +1,29 @@
 # 1031 — Store filters and minimums are a building-keyed arena
-Date: 2026-10-02 · Status: Accepted (P1–P8 below are proposals awaiting Brendan)
+Date: 2026-10-02 · Status: Accepted. Brendan ruled on P1–P8 on 2026-10-02, all as recommended (below)
+
+## Brendan's rulings, 2026-10-02 (relayed by the coordinator)
+
+**P1–P8 are approved as recommended.** P1, P3, P5 and P6 confirm what was built, so no behaviour
+changed. P2, P4, P7 and P8 set the direction for later work:
+
+- **P1.** No command edits the category mask. SET_STORE_FILTER edits per-item bytes only.
+- **P2.** Disallowed stock stays where it is for now. Once physical hauling (H0–H2) lands,
+  disallowing an item raises haul-out demand.
+- **P3.** The inventory does not refuse placement on the per-item byte. Destination selection
+  asks `store_admits()`.
+- **P4.** The save owner will be a separate `store_policy` owner in §5 CHILD_ARENAS, whose codec
+  writes stale rows as the defaults. The registry rows stay UNRESOLVED until that owner and its
+  ordinals are written into `canonical_state_registry.json`. The store must not be bound into a
+  saving game before then.
+- **P5.** A minimum is only a withdrawal floor for ordinary production, never a fill target.
+- **P6.** An empty group is refused, both arguments must be 0, and a building with no store may
+  still hold a policy.
+- **P7.** No store-policy UI is built until `ui_ux_controls.md` gains UI-SET rows for it.
+- **P8.** `store_policy.gd` keeps applying the policy to every store a building owns at its
+  origin. The composer will ask `store_policy` instead of keeping its own #3a test, and the
+  two-store case should be refused where stores are created.
+
+The **Proposals** section below is kept as the reasoning the rulings answered.
 
 ## Decision
 
@@ -75,7 +99,7 @@ real choices concerned identity and semantics:
 `origin_tile_of_building()`, so that the main-store test allocates no OpResult on a selector's
 path. `test_store_policy.gd` asserts that the published queries allocate zero objects.
 
-## Proposals for Brendan
+## Proposals for Brendan (ruled 2026-10-02, above)
 
 The documents are silent on each of these. The smallest behaviour was built and is listed first
 in each.

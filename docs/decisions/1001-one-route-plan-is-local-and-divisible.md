@@ -101,6 +101,37 @@ Brendan approved this work after the scale test (decision 0561; `docs/performanc
   are retried. That is the kitchen's and the night's capacity, the scale test's "Limits that are not CPU", and is left
   to those design calls.
 
+## Mutation testing (decisions 1001–1004)
+
+51 single-line mutants, one per run, on a copy of the branch, each restored and sha256-checked. The failure count was
+read as an integer from the runner's summary line. They covered:
+- the planner: ring reach, near lists, prefilters, the plan's own grid, pruning, the shut-in look's reaches and
+  exhaustion, step budget, the field's estimate and slots, world sharing, the request copy, the disk grid;
+- the desk: may_plan, the job's drop and its matching, served counts, the standing a carried plan takes;
+- the cells: pads, sorting, unlinking, the step's drift hand-back;
+- the brain's carried departure, the kitchen's and dusk's counts, the hall's rank, the people's pairs, and the board's
+  skip and first promiser.
+
+**47 killed.** One of them was killed by a timeout: a corrupt bucket list loops. Four survive:
+- **The "no route" branch of `finish_plan` removed.** This is equivalent: with no route, `_emit_route` walks back from
+  a goal that has no parent and writes the goal alone, which is the straight-line fallback.
+- **The two fixes for the review's C1, each removed alone.** `wait` dropping a job whose resident now goes elsewhere,
+  and `_serve_job` keeping a job its owner's turn has just begun, each prevent the stranded resident on their own.
+  `test_a_job_whose_resident_is_sent_elsewhere_meanwhile_is_dropped_and_the_new_trip_planned` fails only with both
+  removed. Both are kept: the first also spares the desk windows on a request nobody wants.
+- **`constrain`'s fall-back to everyone when a step strays past its span, removed.** It cannot be reached with
+  STEP_PUSH_SPAN 8 and real strides. The hand-back it relies on (`_pushed` giving INF) is tested directly.
+
+The first pass left twelve survivors. Eight were closed by new tests:
+- the near list's reach;
+- the shut-in look's reaches, start and exhaustion, and a stepped look;
+- a step of none;
+- the field's estimate and its graph;
+- the request copy while a field is searched;
+- the world followed unasked;
+- a job's matching;
+- the carried plan's standing.
+
 ## Source
 
 Brendan's approval of 2026-10-02; the scale test (decision 0561) and its hot spot 1; the review's R07; decision 0361

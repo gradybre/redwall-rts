@@ -79,7 +79,10 @@ lets an eater finish its bowl, then calls the rest away), so a feast's tally com
 - **M1 -- nothing guaranteed the event fires.** THE DEADLINE: when a later meal's serving ends, any earlier meal still
   waiting on a holder is overdue (no diner holds a bowl through the next serving); each holder's part ends
   (`_give_up_part`: its food back, it went without, its brain's kitchen task let go) and the meal is published at that
-  update's end. Test: a held meal settled and published when the next one ends, once.
+  update's end. The settling runs **before** the closing meal's own tally (a second review's HIGH: run after it, the
+  freed resident was in neither meal's count, so the closing meal could read "nobody went without" over a hungry
+  resident). Test: a held meal settled and published when the next one ends, once, and the closing meal and its event
+  count every resident.
 - **M2, M3** -- two assertions that could not fail now can (the cook's round under way holds nothing; two later events
   at one look do not re-read the supper before them).
 - **LOW** -- `feast_settled()` renamed `_settle_feast()` (the regatta's own); `_building` typed

@@ -1549,3 +1549,10 @@ func test_an_earlier_meal_still_held_when_the_next_ends_is_settled_and_published
 	assert_equal(final.diners.size() + final.raw.size() + final.without, 3, "every resident counted once")
 	assert_equal(_finals_of(v, key), 1, "once")
 	assert_true(v.kitchen.final_of(next) != null, "the next meal, held by nobody, published too")
+	var n: int = v.kitchen.meal_keys.find(next)
+	assert_equal(v.kitchen.meal_ate[n] + v.kitchen.meal_raw[n] + v.kitchen.meal_without[n], 3,
+		"the closing meal counts every resident, the one freed from the overdue meal too")
+	var later: KitchenScript.MealFinal = v.kitchen.final_of(next)
+	if later != null:
+		assert_equal(later.diners.size() + later.raw.size() + later.without, 3, "and so does its event")
+	assert_true(v.kitchen.fed.had_exact(1, next), "resident 1's own record holds the closing meal (eaten, raw or missed)")

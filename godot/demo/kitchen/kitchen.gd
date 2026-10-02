@@ -1633,6 +1633,7 @@ func _close_meal(key: int) -> void:
 	if _serving != key:
 		return
 	_serving = FREE
+	_settle_overdue(key)
 	var without: int = 0
 	for i: int in _role.size():
 		if fed.had_exact(i, key) or _portion[i] != FREE:
@@ -1646,7 +1647,6 @@ func _close_meal(key: int) -> void:
 			without += 1
 	_closed_key = key
 	_record_meal(key, without)
-	_settle_overdue(key)
 	_final_pending.append(key)
 	_forget_unfinalizable(key)
 
@@ -1709,11 +1709,11 @@ func _holds(i: int, key: int) -> bool:
 
 
 func _settle_overdue(key: int) -> void:
-	"""Meal `key` has ended: every earlier meal still waiting on a holder is overdue (see THE DEADLINE) -- each holder's
-	part ends, what it holds goes back and it went without; the meal is published at this update's end."""
+	"""Meal `key` is ending: every earlier meal still waiting on a holder (all pending meals are earlier: `key` joins them
+	only once its tally is taken) is overdue (see THE DEADLINE) -- each holder's part ends, what it holds goes back and it
+	went without; the meal is published at this update's end. Run BEFORE meal `key`'s own tally, so a resident freed
+	here is counted at `key` too (fed, raw or gone without)."""
 	for earlier: int in _final_pending:
-		if earlier >= key:
-			continue
 		for i: int in _role.size():
 			if _holds(i, earlier):
 				_give_up_part(i)

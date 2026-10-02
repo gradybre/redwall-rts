@@ -87,6 +87,9 @@ extends RefCounted
 ##     REQ-SET-128 in full must go through the coordinator. `occupant_count_of_building()` and
 ##     `furniture_user_count_of_building()` are public so that coordinator rechecks THESE counts
 ##     immediately before any state change, rather than keeping a second copy of the rule.
+##     Likewise `commit_completion()` is the STORE-LEVEL completion. DEMO-CONTAIN-R01 #6's is the
+##     coordinator's `complete_demolition()` (decision 0535): it removes the rooms, then calls
+##     `remove_demolished_building()`, places the 50% return, and only then `retire_demolition()`.
 ##   * A TIER-2 BUILDING'S DEMOLITION BASIS IS BUILD-C4-R01's (decision 0534). Every row records
 ##     its paid package KEYS in the ConstructionPaidLedger columns `_paid_base_type` and
 ##     `_paid_upgrade_mask`; `open_demolition()` snapshots the building's base package and, at
@@ -288,6 +291,9 @@ const REFUSE_FURNITURE_IN_USE: StringName = &"DEMOLITION_BLOCKED_FURNITURE_USER"
 const REFUSE_OVERFLOW: StringName = &"INT64_OVERFLOW"
 const REFUSE_POLICY_MISMATCH: StringName = &"REFUND_POLICY_MISMATCH"
 const REFUSE_MANIFEST_BUFFER: StringName = &"DEMOLITION_MANIFEST_BUFFER_TOO_SMALL"
+## `retire_demolition()` (decision 0535): the building a finished demolition acts on still stands,
+## so retiring the project would leave a DEMOLISHING building with no project behind it.
+const REFUSE_SUBJECT_STANDING: StringName = &"DEMOLITION_SUBJECT_STILL_STANDING"
 
 ## BUILD-C4-R01's ConstructionPaidLedger (ARCH §3: `base_type, upgrade_mask`, I32 x 82944): the
 ## exact paid package KEYS each project row was admitted with. Costs are never stored; they are
@@ -1012,12 +1018,78 @@ func _apply_completion(row: int, subject: Vector2i) -> StringName:
 			return REFUSE_NONE if _buildings.set_building_tier(
 				subject, BuildingDefinitions.TIER_TWO).ok else REFUSE_NO_UPGRADE_PACKAGE
 		PURPOSE_DEMOLISH:
-			_buildings.set_building_construction(subject, NULL_REF)
-			var result: Buildings.OpResult = _buildings.demolish_building(subject)
-			if not result.ok:
-				_buildings.set_building_construction(subject, _ref_of_row(row))
-				return result.error
+			return _demolish_subject(row, subject)
 	return REFUSE_NONE
+
+
+func _demolish_subject(row: int, subject: Vector2i) -> StringName:
+	"""Unlink and remove a demolition's building; on a refusal relink it, leaving it untouched."""
+	_buildings.set_building_construction(subject, NULL_REF)
+	var result: Buildings.OpResult = _buildings.demolish_building(subject)
+	if not result.ok:
+		_buildings.set_building_construction(subject, _ref_of_row(row))
+		return result.error
+	return REFUSE_NONE
+
+
+# --- the coordinator's split completion (DEMO-CONTAIN-R01 #6, decision 0535) ---------------------
+
+func demolition_commit_refusal(project_ref: Vector2i) -> StringName:
+	"""Why a finished demolition could not be committed right now, or REFUSE_NONE. Writes nothing.
+
+	The coordinator's composed completion runs this in its prove-everything phase: a live
+	DEMOLITION row whose work is done (PHASE_WORK_DONE: earned, not yet published) and whose
+	building still stands. Every other condition of #6's commit is the coordinator's to prove.
+	"""
+	var row: int = _row_of(project_ref)
+	if row == NO_ROW:
+		return REFUSE_STALE_PROJECT_REF
+	if _purpose[row] != PURPOSE_DEMOLISH:
+		return REFUSE_NOT_A_DEMOLITION
+	if _phase[row] != PHASE_WORK_DONE:
+		return REFUSE_WRONG_PHASE
+	if not _buildings.is_live_building(Vector2i(_subject_slot[row], _subject_generation[row])):
+		return REFUSE_SUBJECT_LOST
+	return REFUSE_NONE
+
+
+func remove_demolished_building(project_ref: Vector2i) -> OpResult:
+	"""Step (4) of #6 alone: remove a finished demolition's building and keep the project row.
+
+	`commit_completion()` removes the building and retires the row in one call; #6 places the 50%
+	return BETWEEN those two, so the coordinator calls this, then places the return, then
+	`retire_demolition()`. Refuses everything `demolition_commit_refusal()` names and
+	`demolish_building()`'s own BUILDING_HAS_ROOMS, writing nothing on any refusal.
+	"""
+	var code: StringName = demolition_commit_refusal(project_ref)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var row: int = _row_of(project_ref)
+	code = _demolish_subject(row, Vector2i(_subject_slot[row], _subject_generation[row]))
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return OpResult.new(true, REFUSE_NONE, row, project_ref)
+
+
+func retire_demolition(project_ref: Vector2i) -> OpResult:
+	"""Step (6) of #6: retire a finished demolition whose building `remove_demolished_building()` took.
+
+	Refuses a stale ref, anything but a demolition, a project whose work is not done, and -- by
+	name, SUBJECT_STILL_STANDING -- one whose building still stands, so no DEMOLISHING building is
+	ever left with no project behind it. The row and its paid-ledger snapshot are freed.
+	"""
+	var row: int = _row_of(project_ref)
+	if row == NO_ROW:
+		return _refuse(REFUSE_STALE_PROJECT_REF)
+	if _purpose[row] != PURPOSE_DEMOLISH:
+		return _refuse(REFUSE_NOT_A_DEMOLITION)
+	if _phase[row] != PHASE_WORK_DONE:
+		return _refuse(REFUSE_WRONG_PHASE)
+	var subject: Vector2i = Vector2i(_subject_slot[row], _subject_generation[row])
+	if _buildings.is_live_building(subject):
+		return _refuse(REFUSE_SUBJECT_STANDING)
+	_retire(row, project_ref, subject)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
 
 func _retire(row: int, project_ref: Vector2i, subject: Vector2i) -> void:
@@ -1134,6 +1206,28 @@ func demolition_return_preview_into(building_ref: Vector2i, out_keys: PackedInt3
 		return out.refuse(REFUSE_MANIFEST_BUFFER)
 	var count: int = _manifest_into(type_result.value, type_result.value,
 		demolition_upgrade_mask_of(building_ref))
+	return _halved_manifest_into(count, out_keys, out_milli, out)
+
+
+func demolition_return_into(project_ref: Vector2i, out_keys: PackedInt32Array,
+		out_milli: PackedInt64Array, out: IntMath.IntResult) -> bool:
+	"""An admitted demolition's whole return manifest, from its paid-ledger SNAPSHOT, halved.
+
+	The same lines `demolition_return_*_into()` read one at a time, in one call, for the
+	coordinator's commit (decision 0535); `out.value` is the line count. Refuses anything but a
+	live demolition and buffers under MATERIAL_SLOTS_PER_PROJECT cells. Writes nothing else.
+	"""
+	var row: int = _demolition_manifest_row(project_ref, out)
+	if row == NO_ROW:
+		return false
+	if out_keys.size() < MATERIAL_SLOTS_PER_PROJECT or out_milli.size() < MATERIAL_SLOTS_PER_PROJECT:
+		return out.refuse(REFUSE_MANIFEST_BUFFER)
+	return _halved_manifest_into(_manifest_of_row(row), out_keys, out_milli, out)
+
+
+func _halved_manifest_into(count: int, out_keys: PackedInt32Array, out_milli: PackedInt64Array,
+		out: IntMath.IntResult) -> bool:
+	"""Copy the manifest scratch's first `count` lines out, each 50% floored once."""
 	for index: int in count:
 		if not _half_of_into(_manifest_milli[index], out):
 			return false

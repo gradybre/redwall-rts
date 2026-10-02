@@ -19,6 +19,7 @@ const ItemDefinitions := preload("res://scripts/core/item_definitions.gd")
 const StarterColony := preload("res://scripts/core/starter_colony.gd")
 const Section7 := preload("res://scripts/core/save_section_inventories.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 const TUTORIAL_SEED: int = 20260905
 const OTHER_SEED: int = 20260910
@@ -524,11 +525,83 @@ func test_the_workbench_then_falls_back_to_ground_piles() -> void:
 	economy.free()
 
 
+# --- the composed completion over the real colony (D5, decision 0535) ---------------------------
+
+func _finish_demolition_work(project: Vector2i) -> void:
+	"""Begin and complete an admitted demolition's work, leaving it commit-pending."""
+	var remaining: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_settlement.construction().begin_work(project).ok, "work begins")
+	assert_true(_settlement.construction().remaining_mwu_into(project, remaining), "remainder")
+	assert_true(_settlement.construction().add_work_mwu(project, remaining.value).ok, "work done")
+
+
+func test_the_starter_well_completes_into_the_fourth_stockpile() -> void:
+	"""#6 over the real colony: the well goes and its 75000 g lands in the reserved stockpile."""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var well: Vector2i = _settlement.buildings().building_at_tile(_tile(64, 54))
+	var stockpile: Vector2i = economy.stockpile(3)
+	var used: int = _settlement.inventory().container_used_mass_g(stockpile)
+	var admitted: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(well)
+	assert_true(admitted.ok, "admitted (%s)" % admitted.error)
+	_finish_demolition_work(admitted.project_ref)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.complete_demolition(well)
+	assert_true(report.ok, "the well completes (%s)" % report.error)
+	assert_false(_settlement.buildings().is_live_building(well), "the well is gone")
+	assert_equal(_settlement.inventory().container_used_mass_g(stockpile), used + 75000,
+		"the fourth stockpile holds the return")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(stockpile), 0, "claim released")
+	assert_equal(economy.stock_milli(&"wood"), 180000 + 5000, "the HUD's wood rose by 5 U")
+	assert_true(_settlement.inventory().audit().ok, "audits")
+	economy.free()
+
+
+func test_the_starter_workbench_completes_onto_ground_piles() -> void:
+	"""With no store left, the workbench's return is placed on piles from its front ring."""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var buildings: Buildings = _settlement.buildings()
+	assert_true(_settlement.request_demolition(buildings.building_at_tile(_tile(64, 54))).ok,
+		"the well takes the last headroom")
+	var bench: Vector2i = buildings.building_at_tile(_tile(58, 54))
+	var admitted: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(bench)
+	assert_true(admitted.output_to_ground_piles, "admitted onto piles (%s)" % admitted.error)
+	_finish_demolition_work(admitted.project_ref)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.complete_demolition(bench)
+	assert_true(report.ok, "the workbench completes (%s)" % report.error)
+	assert_true(report.returned_lot_count >= 2, "its wood and stone are on the ground")
+	var wood: int = _settlement.item_definitions().compiled_id(&"wood")
+	assert_equal(_settlement.inventory().total_live_milli(wood), 180000 + 6000,
+		"half the workbench's 12 U of wood joins the colony's 180 U")
+	assert_true(_settlement.inventory().audit().ok, "audits")
+	economy.free()
+
+
+func test_the_emptied_starter_hall_still_refuses_for_its_31_pieces() -> void:
+	"""The furniture rule over the real colony: with the pantry emptied, the 31 pieces refuse."""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var hall: Vector2i = _settlement.buildings().building_at_tile(HALL_TILE)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_STORED_GOODS, "goods first")
+	for index: int in report.stranded_lot_count:
+		var lot: Vector2i = report.stranded_lot_at(index)
+		assert_true(_settlement.inventory().sink_lot_quantity(lot,
+			_settlement.inventory().lot_quantity_milli(lot)).ok, "the pantry is emptied")
+	report = _settlement.request_demolition(hall)
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID,
+		"then every piece refuses")
+	assert_equal(report.unpaid_furniture_count, 31, "all 31 of them")
+	assert_true(_settlement.buildings().is_live_furniture(report.blocking_furniture), "one named")
+	assert_equal(_settlement.construction().live_project_count(), 0, "nothing was admitted")
+	economy.free()
+
+
 func test_without_the_adoption_the_hall_would_read_as_empty() -> void:
 	"""Why decision 0534 adopts the inventory: stores in a second inventory are invisible.
 
 	An economy left on its PRIVATE store opens the same five owned, anchored stores, and the gate
-	scanning the settlement's inventory finds none of them -- the hall passes the preview.
+	scanning the settlement's inventory finds none of them: the hall's goods scan reads empty.
 	"""
 	assert_true(_generate(_settlement), "the settlement generates")
 	var binding: StarterColony.StoreBinding = StarterColony.StoreBinding.new()
@@ -536,8 +609,10 @@ func test_without_the_adoption_the_hall_would_read_as_empty() -> void:
 	var detached: EconomySystemScript = EconomySystemScript.new()
 	assert_true(detached.open_and_seed_starter_stores(binding), "the private stores open")
 	var hall: Vector2i = _settlement.buildings().building_at_tile(HALL_TILE)
-	assert_true(_settlement.preview_demolition(hall).ok,
-		"the gate cannot see a pantry in another inventory")
+	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
+	assert_equal(report.stranded_lot_count, 0, "the gate cannot see a pantry in another inventory")
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID,
+		"so it gets as far as the furniture rule (decision 0535) instead of refusing on goods")
 	detached.free()
 
 

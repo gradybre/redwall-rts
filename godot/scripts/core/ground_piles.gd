@@ -28,7 +28,10 @@ extends RefCounted
 ## that pass the site rule. Each visited tile tops up its existing pile, or creates one, until it
 ## is full, then the goods spill to the next tile. At most SPILL_TILE_CAP tiles are visited. The
 ## whole call is ONE inventory transaction: a refusal anywhere rolls every pile and lot back, and
-## running out of reachable capacity is the explicit GROUND_PILE_NO_CAPACITY.
+## running out of reachable capacity is the explicit GROUND_PILE_NO_CAPACITY. The one exception is
+## `place_lots_from_seeds_in_transaction()` (decision 0535), the same walk inside the CALLER's
+## open transaction, for DEMO-CONTAIN-R01 #6's single commit; its caller aborts on a refusal and
+## calls `declare_placed_piles()` after its own commit.
 ##
 ## REFUND ORIGIN (`refund_seeds_into`). #9 places refunds "by breadth-first search from the
 ## door's outside access tile, excluding the footprint", and Brendan's follow-up ruling of
@@ -99,6 +102,9 @@ const REFUSE_MASK_SHAPE: StringName = &"GROUND_PILE_EXCLUSION_MASK_SHAPE"
 const REFUSE_SPEC_SHAPE: StringName = &"GROUND_PILE_LOT_SPEC_SHAPE"
 const REFUSE_SPEC_VALUE: StringName = &"GROUND_PILE_LOT_SPEC_VALUE"
 const REFUSE_TRANSACTION_OPEN: StringName = &"GROUND_PILE_TRANSACTION_OPEN"
+## The in-transaction variant (decision 0535) places inside the CALLER's transaction, so it
+## refuses when none is open rather than opening, committing or aborting one itself.
+const REFUSE_TRANSACTION_CLOSED: StringName = &"GROUND_PILE_TRANSACTION_NOT_OPEN"
 const REFUSE_STALE_BUILDING: StringName = &"GROUND_PILE_STALE_BUILDING"
 const REFUSE_DOOR_OFF_GRID: StringName = &"GROUND_PILE_DOOR_OFF_GRID"
 const REFUSE_SEED_SHAPE: StringName = &"GROUND_PILE_START_TILES_SHAPE"
@@ -418,13 +424,45 @@ func preflight_lots_from_seeds(seeds: PackedInt32Array, seed_count: int,
 	return _run_placement(seeds, seed_count, excluded_mask, specs, out, false)
 
 
+func place_lots_from_seeds_in_transaction(seeds: PackedInt32Array, seed_count: int,
+		excluded_mask: PackedByteArray, specs: PackedInt64Array, out: PlaceResult) -> bool:
+	"""`place_lots_from_seeds()` inside the CALLER's open transaction (decision 0532's M2 variant).
+
+	DEMO-CONTAIN-R01 #6 puts the destroyed stores and the 50% return in ONE inventory
+	transaction, so this neither opens, commits nor aborts one: it refuses
+	GROUND_PILE_TRANSACTION_NOT_OPEN without one. On any refusal the caller MUST abort, because
+	piles and lots placed before the refusal are inside its transaction. Storage class 1500 is
+	declared only after the caller's commit, through `declare_placed_piles()`.
+	"""
+	out.clear()
+	var ready: StringName = _placement_refusal(seeds, seed_count, excluded_mask, specs, true)
+	if ready != REFUSE_NONE:
+		return out.refuse(ready)
+	_excluded = excluded_mask
+	var code: StringName = _place_breadth_first(seeds, seed_count, specs, out)
+	_excluded = PackedByteArray()
+	if code != REFUSE_NONE:
+		return out.refuse(code)
+	out.ok = true
+	return true
+
+
+func declare_placed_piles() -> bool:
+	"""Declare storage class 1500 on the piles the last in-transaction placement visited.
+
+	Call it once, after the caller's transaction COMMITTED and before any other placement call:
+	a rolled-back pile's slot returns with the same generation and would inherit a declaration
+	made earlier. False when a declaration refused, which is unreachable while every visited pile
+	holds a lot; the goods are placed either way, so a caller flags it and never re-places.
+	"""
+	return _declare_visited_piles()
+
+
 func _run_placement(seeds: PackedInt32Array, seed_count: int, excluded_mask: PackedByteArray,
 		specs: PackedInt64Array, out: PlaceResult, keep: bool) -> bool:
 	"""Validate, place inside one transaction, then commit or roll back."""
 	out.clear()
-	var ready: StringName = _placement_input_refusal(excluded_mask, specs)
-	if ready == REFUSE_NONE and (seed_count < 1 or seed_count > seeds.size()):
-		ready = REFUSE_SEED_SHAPE
+	var ready: StringName = _placement_refusal(seeds, seed_count, excluded_mask, specs, false)
 	if ready != REFUSE_NONE:
 		return out.refuse(ready)
 	_excluded = excluded_mask
@@ -450,13 +488,22 @@ func _run_placement(seeds: PackedInt32Array, seed_count: int, excluded_mask: Pac
 	return true
 
 
+func _placement_refusal(seeds: PackedInt32Array, seed_count: int,
+		excluded_mask: PackedByteArray, specs: PackedInt64Array, in_transaction: bool) -> StringName:
+	"""Everything checkable before any placement write, the seed shape included."""
+	var ready: StringName = _placement_input_refusal(excluded_mask, specs, in_transaction)
+	if ready == REFUSE_NONE and (seed_count < 1 or seed_count > seeds.size()):
+		return REFUSE_SEED_SHAPE
+	return ready
+
+
 func _placement_input_refusal(excluded_mask: PackedByteArray,
-		specs: PackedInt64Array) -> StringName:
-	"""Everything checkable before the transaction opens."""
+		specs: PackedInt64Array, in_transaction: bool) -> StringName:
+	"""Everything checkable before the transaction opens, or before writing into the caller's."""
 	if _inventory == null or _buildings == null or _stock_age == null:
 		return REFUSE_NOT_BOUND
-	if _inventory.is_transaction_open():
-		return REFUSE_TRANSACTION_OPEN
+	if _inventory.is_transaction_open() != in_transaction:
+		return REFUSE_TRANSACTION_CLOSED if in_transaction else REFUSE_TRANSACTION_OPEN
 	if excluded_mask.size() != 0 and excluded_mask.size() != TILE_COUNT:
 		return REFUSE_MASK_SHAPE
 	if specs.size() == 0 or specs.size() % SPEC_STRIDE != 0:

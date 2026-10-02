@@ -2521,19 +2521,30 @@
     {
       "id": "DEMOLITION-D5",
       "title": "Composed demolition completion, furniture 50% return and pantry capacity recompute",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "DEMOLITION-D4"
       ],
       "owns": [
         "godot/scripts/systems/settlement_system.gd",
-        "godot/scripts/core/buildings.gd",
-        "godot/test/test_settlement_system.gd"
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/ground_piles.gd",
+        "godot/test/test_settlement_demolition_complete.gd",
+        "godot/test/test_construction_demolition_completion.gd",
+        "godot/test/test_ground_piles.gd",
+        "godot/test/test_settlement_starter_colony.gd",
+        "godot/test/test_settlement_system.gd",
+        "docs/decisions/0535-demolition-completion-is-one-commit-and-furniture-refuses.md",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d5-completion.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores."
+      "acceptance": "Answer #6's one no-yield commit (containers, furniture, rooms, building, 50% return, retire project); furniture returns 50% of its own materials, not the intact item (DEC-043); #3b shelf capacity removal refusal; refusals byte-identical across stores.",
+      "note": "Done with decision 0535. complete_demolition() is #6's one no-yield commit: proves the coordinator's admitted project (WORK_DONE, claim held), stages 2-5 again, the furniture rule and the return's placement (rolled back), then destroys every affected container, releases the claim and the admission record (revision +1) before the row goes, removes rooms and the building, places the 50% return in the released store or on ground piles inside the same inventory transaction (ground_piles.place_lots_from_seeds_in_transaction), commits, declares the piles and retires the project. Refusals are byte-identical and commit-pending. The furniture rule is unimplementable as written: no store records a piece's paid package, so any furniture refuses DEMOLITION_FURNITURE_PAID_PACKAGE_UNREADABLE in the preview (before admit) and at the commit; #3b reduces to stage 3's emptiness proof in a whole-building demolition. Proposals P1 (furniture paid package source; recommended: derive from type like R4), P2 (a single-piece removal door) and P3 (make commit_completion/close_refund refuse a coordinator-admitted demolition; they orphan its containers and claim) await Brendan. D6/D7 must call complete_demolition(), never commit_completion()/close_refund(), for a demolition."
     },
     {
       "id": "DEMOLITION-D6",

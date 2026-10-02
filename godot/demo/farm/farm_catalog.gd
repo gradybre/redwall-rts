@@ -65,7 +65,7 @@ const ITEM_KEYS: Array[StringName] = [
 	&"wheat", &"barley", &"oats",
 	&"trout", &"dace", &"salmon", &"perch", &"carp", &"whitefish",
 	&"dried_fish", &"flour",
-	&"apple", &"pear", &"raspberry", &"blackberry", &"strawberry",
+	&"apple", &"pear", &"berries",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -74,7 +74,7 @@ const ITEM_LABELS: Array[String] = [
 	"Wheat", "Barley", "Oats",
 	"Trout", "Dace", "Salmon", "Perch", "Carp", "Whitefish",
 	"Dried fish", "Flour",
-	"Apple", "Pear", "Raspberry", "Blackberry", "Strawberry",
+	"Apple", "Pear", "Berries",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -103,37 +103,37 @@ const ITEM_COUNT: int = 16
 ##   * flour, §5.7's `flour` output: "Grain/flour | 1200 | No | 720/240" -- 240 h, not eaten raw.
 ## Their CATEGORY (what a recipe asks for) extends the §5.6 crop rows past FarmingScript's five: CAT_FISH is §5.7's
 ## `fish` selector over the species (BAL-CAT-004), CAT_DRIED_FISH and CAT_FLOUR their own items.
-## THE ORCHARD'S FRUIT AND THE HEDGE'S BERRIES (decision 0671; demo/orchard/): each the content library's own pantry LEAF
-## key (LEAF_apple, LEAF_pear, LEAF_raspberry, LEAF_blackberry, LEAF_strawberry -- "a radish is a radish": never a generic
-## `fruit` or `berries` item), each of the §5.7 row it is: the orchard trees' apple and pear are §5.7's `fruit`
-## ("Fruit | 900 | Yes | 144", CAT_FRUIT -- §5.6's two orchard species, scripts/core/orchard_hive.gd SPECIES_KEYS), the
-## hedge's berries §5.7's `berries` ("Berries | 700 | Yes | 48", CAT_BERRIES -- §5.5's Berries forage row). A recipe that
-## names `fruit` or `berries` takes them by category, as `fish` takes the species.
-const PANTRY_ITEM_COUNT: int = 29
+## THE ORCHARD'S FRUIT AND THE HEDGE'S BERRIES (decision 0671; demo/orchard/): the orchard trees' `apple` and `pear`,
+## each the content library's own LEAF key (LEAF_apple, LEAF_pear -- "a radish is a radish") and §5.7's `fruit` row
+## ("Fruit | 900 | Yes | 144", CAT_FRUIT -- §5.6's two orchard species, scripts/core/orchard_hive.gd SPECIES_KEYS); and
+## the hedge's `berries`, the ONE generic §5.7 `berries` item ("Berries | 700 | Yes | 48", CAT_BERRIES -- §5.5's Berries
+## forage row) that the foraging lane also defines under the same key (Brendan's ruling of 2026-10-01, decision 0676):
+## raspberries, blackberries and strawberries are all `berries` in the pantry. A recipe that names `fruit` or `berries`
+## takes them by category, as `fish` takes the species.
+const PANTRY_ITEM_COUNT: int = 27
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
 const ITEM_FLOUR: int = 23
 const ITEM_APPLE: int = 24
 const ITEM_PEAR: int = 25
-const ITEM_RASPBERRY: int = 26
-const ITEM_BLACKBERRY: int = 27
-const ITEM_STRAWBERRY: int = 28
+const ITEM_BERRIES: int = 26
 const FIRST_FRUIT: int = 24
 const FRUIT_COUNT: int = 2
-const FIRST_BERRY: int = 26
-const BERRY_COUNT: int = 3
+## Every item the orchard and the hedge yield (a list, not a range: the foraging lane's `berries` is the same item, and
+## an integration may number it away from the fruit).
+const ORCHARD_ITEMS: PackedInt32Array = [ITEM_APPLE, ITEM_PEAR, ITEM_BERRIES]
 const CAT_FISH: int = 5
 const CAT_DRIED_FISH: int = 6
 const CAT_FLOUR: int = 7
-## Numbered past the other lanes' goods (8-10 are taken on their branches: honey, nuts, mushrooms, herb) so a merge
-## never folds two categories into one silently (decision 0671).
-const CAT_FRUIT: int = 11
-const CAT_BERRIES: int = 12
+## CAT_BERRIES is the foraging lane's own number for the same `berries` item (its branch: CAT_NUTS 8, CAT_MUSHROOMS 9,
+## CAT_HERB 10, CAT_BERRIES 11), so the two reconcile as one category; CAT_FRUIT is numbered past them (decision 0671).
+const CAT_BERRIES: int = 11
+const CAT_FRUIT: int = 12
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
 const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
-	CAT_FRUIT, CAT_FRUIT, CAT_BERRIES, CAT_BERRIES, CAT_BERRIES]
-const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 144, 144, 48, 48, 48]
+	CAT_FRUIT, CAT_FRUIT, CAT_BERRIES]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 144, 144, 48]
 ## scripts/core/orchard_hive.gd SPECIES_KEYS row (apple, pear) -> pantry item.
 const ORCHARD_SPECIES_ITEM: Array[int] = [ITEM_APPLE, ITEM_PEAR]
 ## scripts/core/fishing.gd SPECIES_KEYS row -> pantry item (NO_ITEM: the coast's three, which the demo cannot catch).
@@ -219,7 +219,7 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"item_barley", &"item_oats",
 	&"item_trout", &"", &"", &"item_perch", &"", &"",
 	&"", &"",
-	&"", &"", &"", &"", &"item_strawberry",
+	&"", &"", &"item_strawberry",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -232,8 +232,7 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.62, 0.6, 0.5), Color(0.66, 0.7, 0.72), Color(0.86, 0.5, 0.42), Color(0.5, 0.6, 0.36),
 	Color(0.7, 0.58, 0.32), Color(0.84, 0.84, 0.8),
 	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
-	Color(0.74, 0.22, 0.18), Color(0.74, 0.74, 0.34), Color(0.8, 0.2, 0.32), Color(0.24, 0.14, 0.26),
-	Color(0.86, 0.18, 0.2),
+	Color(0.74, 0.22, 0.18), Color(0.74, 0.74, 0.34), Color(0.72, 0.16, 0.3),
 ]
 
 ## The beds: world crop ids, one FarmPlot each, their demo soils.
@@ -288,7 +287,7 @@ static func category_of(item: int) -> int:
 
 static func is_orchard_item(item: int) -> bool:
 	"""Whether `item` is the orchard's fruit or the hedge's berries (decision 0671)."""
-	return item >= FIRST_FRUIT and item < FIRST_BERRY + BERRY_COUNT
+	return ORCHARD_ITEMS.has(item)
 
 
 static func item_of_orchard_species(species_id: int) -> int:

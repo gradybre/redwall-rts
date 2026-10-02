@@ -53,8 +53,9 @@ extends RefCounted
 ##
 ## RAW EMERGENCY FOOD (REQ-SET-013, WorldPolicy raw_emergency_food default true): with no portion, a resident at
 ## hunger 1500 or less may eat raw-edible food nobody has reserved, "enough quantity to add at most 3000 NP", in the
-## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U) and dried fish (1800 NP/U, decision
-## 0431); grain, beans, flour and fresh fish are not (§5.7:
+## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U), dried fish (1800 NP/U, decision
+## 0431), and the orchard's fruit (§5.7 "Fruit | 900 | Yes", 900 NP/U) and berries (§5.7 "Berries | 700 | Yes", 700 NP/U;
+## decision 0671's proposal 9, approved 2026-10-01); grain, beans, flour and fresh fish are not (§5.7:
 ## "Raw ingredients marked 'No' cannot be consumed even in emergency").
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -147,7 +148,7 @@ const RAW_NP_CAP: int = 3000
 ## Dried fish is §5.7's PRESERVED `dried_fish` (1800 NP/U, "Dried/salted fish ... are directly edible"; decision 0431):
 ## the village's reserve, eaten only this way -- §5.7's `fish` selector names the nine species, not their dried form.
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
-	Catalog.CAT_DRIED_FISH: 1800}
+	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_FRUIT: 900, Catalog.CAT_BERRIES: 700}
 
 
 static func batch_ticks(dish: int) -> int:

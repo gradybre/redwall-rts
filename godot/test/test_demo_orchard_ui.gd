@@ -15,6 +15,7 @@ const PanelScript := preload("res://demo/orchard/orchard_panel.gd")
 const ViewScript := preload("res://demo/orchard/orchard_view.gd")
 const OrchardNode := preload("res://demo/orchard/demo_orchard.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
@@ -84,18 +85,22 @@ func _jobs(model: ModelScript, pantry: PantryScript, day: int) -> JobsScript:
 
 # --- the pantry's new goods ------------------------------------------------------------------------------------------------
 
-func test_the_fruit_and_berries_are_library_leaves_of_their_gdd_rows() -> void:
-	"""Five goods with the library's LEAF keys ("a radish is a radish"); apple and pear §5.7 `fruit` (144 h), the berries
-	§5.7 `berries` (48 h); every per-item table runs to PANTRY_ITEM_COUNT; the species map is orchard_hive.gd's."""
-	var keys: Array[StringName] = [&"apple", &"pear", &"raspberry", &"blackberry", &"strawberry"]
+func test_the_fruit_and_the_berries_are_their_gdd_rows() -> void:
+	"""Apple and pear, the library's LEAF keys and §5.7 `fruit` (144 h); the hedge's one generic `berries` item, §5.7
+	`berries` (48 h), under the foraging lane's key and category; every per-item table runs to PANTRY_ITEM_COUNT."""
+	var keys: Array[StringName] = [&"apple", &"pear", &"berries"]
 	for k: int in keys.size():
-		var item: int = Catalog.FIRST_FRUIT + k
+		var item: int = Catalog.ORCHARD_ITEMS[k]
 		assert_equal(Catalog.ITEM_KEYS[item], keys[k], "key %d" % k)
 		assert_true(Catalog.is_orchard_item(item), "an orchard item")
 		assert_equal(Catalog.category_of(item), Catalog.CAT_FRUIT if k < 2 else Catalog.CAT_BERRIES, "its §5.7 row")
 		assert_equal(Catalog.shelf_hours_of(item), 144 if k < 2 else 48, "§5.7 shelf hours")
+	assert_equal(Catalog.ITEM_KEYS.count(&"berries"), 1, "one berries item, whichever bush")
+	for gone: StringName in [&"raspberry", &"blackberry", &"strawberry"]:
+		assert_false(Catalog.ITEM_KEYS.has(gone), "%s is not its own item" % gone)
 	assert_false(Catalog.is_orchard_item(Catalog.ITEM_FLOUR), "flour is not")
 	assert_false(Catalog.is_orchard_item(Catalog.PANTRY_ITEM_COUNT), "past the end")
+	assert_false(Catalog.is_orchard_item(-1), "no item")
 	for table: Array in [Catalog.ITEM_KEYS, Catalog.ITEM_LABELS, Catalog.ITEM_PROP, Catalog.ITEM_SWATCH]:
 		assert_equal(table.size(), Catalog.PANTRY_ITEM_COUNT, "a table per item")
 	assert_equal(Catalog.GOODS_CATEGORY.size(), Catalog.PANTRY_ITEM_COUNT - Catalog.ITEM_COUNT, "goods' categories")
@@ -103,26 +108,42 @@ func test_the_fruit_and_berries_are_library_leaves_of_their_gdd_rows() -> void:
 	assert_equal(Catalog.item_of_orchard_species(Hive.SPECIES_PEAR), Catalog.ITEM_PEAR, "pear")
 	assert_equal(Catalog.item_of_orchard_species(5), Catalog.NO_ITEM, "no species")
 	assert_equal(Hive.SPECIES_KEYS, [&"apple", &"pear"] as Array[StringName], "the store's species keys are the items'")
-	assert_true(Catalog.CAT_FRUIT > 10 and Catalog.CAT_BERRIES > 10, "past the other lanes' categories")
+	assert_equal(Catalog.CAT_BERRIES, 11, "the foraging lane's number for the same item")
+	assert_true(Catalog.CAT_FRUIT > 11, "fruit past the other lanes' categories")
+
+
+func test_the_berries_and_fruit_rows_agree_with_the_compiled_catalogue() -> void:
+	"""data/item_definitions.json's `berries` and `fruit` rows: their shelf hours, and the kitchen's raw NP a unit."""
+	var rows: Dictionary = {}
+	var data: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/item_definitions.json"))
+	for row: Variant in data.get("items", []):
+		rows[String((row as Dictionary).get("id", ""))] = row
+	assert_true(rows.has("berries") and rows.has("fruit"), "both rows")
+	assert_equal(int(rows["berries"]["shelf_hours"]), Catalog.shelf_hours_of(Catalog.ITEM_BERRIES), "berries keep 48 h")
+	assert_equal(int(rows["fruit"]["shelf_hours"]), Catalog.shelf_hours_of(Catalog.ITEM_APPLE), "fruit keeps 144 h")
+	assert_equal(int(rows["berries"]["nutrition_per_u"]), MealRules.raw_np_per_u(Catalog.ITEM_BERRIES), "700 NP raw")
+	assert_equal(int(rows["fruit"]["nutrition_per_u"]), MealRules.raw_np_per_u(Catalog.ITEM_PEAR), "900 NP raw")
 
 
 func test_the_leaves_exist_in_the_library_pantry() -> void:
-	"""Each new key names a game_leaf_inputs LEAF of docs/redwall-content-library/shared/pantry.json."""
+	"""Apple and pear name game_leaf_inputs LEAFs of docs/redwall-content-library/shared/pantry.json."""
 	var text: String = FileAccess.get_file_as_string(ProjectSettings.globalize_path("res://") + "../docs/redwall-content-library/shared/pantry.json")
 	assert_false(text.is_empty(), "the library pantry read")
-	for key: StringName in [&"apple", &"pear", &"raspberry", &"blackberry", &"strawberry"]:
+	for key: StringName in [&"apple", &"pear"]:
 		assert_true(text.contains("\"LEAF_%s\"" % key), "LEAF_%s" % key)
 
 
 func test_the_field_guide_has_an_entry_for_each_orchard_good() -> void:
-	"""The guide's goods (field_guide.gd `_goods`): fruit from the trees, berries from the hedge, each its shelf life."""
+	"""The guide's goods (field_guide.gd `_goods`): fruit from the trees, berries from the hedge, each its shelf life and
+	its raw NP."""
 	var guide := FieldGuideScript.new()
-	for item: int in range(Catalog.FIRST_FRUIT, Catalog.FIRST_BERRY + Catalog.BERRY_COUNT):
+	for item: int in Catalog.ORCHARD_ITEMS:
 		var entry: FieldGuideScript.Entry = guide.entry(guide.index_of(FieldGuideScript.item_id(item)))
+		var all: String = entry.uses + entry.requires + entry.alternatives + entry.here
 		assert_equal(entry.title, Catalog.ITEM_LABELS[item], "titled")
-		assert_true((entry.uses + entry.requires + entry.alternatives + entry.here).contains(
-			"%d game hours" % Catalog.shelf_hours_of(item)), "%s keeps its hours" % entry.title)
-		assert_true(entry.summary.contains("orchard" if item < Catalog.FIRST_BERRY else "hedge"), entry.summary)
+		assert_true(all.contains("%d game hours" % Catalog.shelf_hours_of(item)), "%s keeps its hours" % entry.title)
+		assert_true(all.contains("%d NP a unit" % MealRules.raw_np_per_u(item)), "%s: its raw NP" % entry.title)
+		assert_true(entry.summary.contains("hedge" if item == Catalog.ITEM_BERRIES else "orchard"), entry.summary)
 
 
 # --- the work board --------------------------------------------------------------------------------------------------------

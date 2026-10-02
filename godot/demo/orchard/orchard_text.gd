@@ -152,6 +152,8 @@ static func target_words(jobs: RefCounted, j: int) -> String:
 
 
 const BUSH_WORDS: Array[String] = ["raspberry canes", "blackberry bramble", "strawberry bed"]
+## What each bush bears (all of it stored as the pantry's one `berries` item, decision 0676).
+const BUSH_FRUIT: Array[String] = ["raspberries", "blackberries", "strawberries"]
 
 
 static func doing(jobs: RefCounted, j: int) -> String:
@@ -231,12 +233,13 @@ static func guide_fields(item: int) -> Array:
 	if Catalog.category_of(item) == Catalog.CAT_FRUIT:
 		var species: int = Catalog.ORCHARD_SPECIES_ITEM.find(item)
 		return ["Picked from the orchard's trees", PackedStringArray([
-			"Fruit (§5.7: 900 NP a unit, edible raw); the nursery takes 4 U for a sapling; no demo dish cooks it yet.",
+			"Fruit (§5.7): eaten raw by a hungry resident when a meal is missed (900 NP a unit); no demo dish cooks it yet.",
 			cap(fruit_words(species)) + "; a young tree gives a fifth of that from its first full year.",
 			"The nursery turns 4 U into a sapling (with compost 2 and water 2).",
 			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]
 	return ["Picked from the berry hedge", PackedStringArray([
-		"Berries (§5.7: 700 NP a unit, edible raw); kept for the cordials, tarts and preserves still to come.",
+		"Berries (§5.7): raspberries, blackberries and strawberries alike; eaten raw by a hungry resident when a meal is " \
+			+ "missed (700 NP a unit); kept for the cordials, tarts and preserves still to come.",
 		"The hedge fruits in summer and less in autumn (§5.5); none in spring or winter.",
 		"Picked by the basket at 4 WU a unit, never below a fifth of the hedge.",
 		"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])]

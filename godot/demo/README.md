@@ -1323,7 +1323,10 @@ seasons (`orchard/`). Presentation only; every number not the GDD's is named in 
   pear saplings) waits in the nursery from the start.
 - **The east orchard**: two empty 8 m blocks (brass pegs) by the south road, and the **berry hedge** -- raspberry
   canes, a blackberry bramble and a strawberry bed sharing one §5.5 Berries patch (decision 0676): fruit in summer and
-  less in autumn, none in spring or winter, never picked below a fifth.
+  less in autumn, none in spring or winter, never picked below a fifth. Whichever bush is picked, the pantry gets the
+  one generic **Berries** item (the foraging lane's `berries`); apples and pears are their own items.
+- **Eaten raw** (decision 0671, proposal 9): a hungry resident with no portion may eat fruit (900 NP a unit) or berries
+  (700) raw, as GDD §5.7 allows -- from a store, never from a basket stand.
 - **Groups** (decision 0674): each orchard gathers its picking at its **basket stand** (a pantry store 120 U, never a
   destination for other harvests), and the Haulers carry the baskets on, 10 U a trip, to the **kitchen pantry** or the
   **best keeping store**, the food keeping its age. Timing: *as each ripens* or *all together* (the apple waits for the

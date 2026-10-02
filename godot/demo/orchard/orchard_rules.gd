@@ -32,7 +32,7 @@ extends RefCounted
 ##   * THE BASKET STANDS (ECO-010's gathering points): one a group, a store of STAND_CAPACITY_U at the covered store's
 ##     factor, where picked fruit waits to be hauled on; HAUL_LOAD_MILLI a trip.
 ##   * THE HEDGE: three bushes of the east group -- raspberry, blackberry, strawberry -- sharing ONE §5.5 Berries patch
-##     (300 U); PICK_LOAD_MILLI a picking.
+##     (300 U), every picking the pantry's one `berries` item (decision 0676); PICK_LOAD_MILLI a picking.
 ##   * THE NURSERY's place and the M3 grant (2 apple + 2 pear saplings) held there from the start.
 ##   * THE GROVE (ECO-015): one protected grove in the North stand, never felled while protected, observed once a
 ##     season (OBSERVE_MWU).
@@ -102,7 +102,8 @@ const KEEP_STEPS: PackedInt32Array = [0, 4000, 8000]
 # --- the hedge (§5.5 Berries) -------------------------------------------------------------------------------------------
 
 const BUSH_AT: Array[Vector2] = [Vector2(17.0, 25.0), Vector2(17.0, 27.4), Vector2(16.8, 29.6)]
-const BUSH_ITEM: PackedInt32Array = [Catalog.ITEM_RASPBERRY, Catalog.ITEM_BLACKBERRY, Catalog.ITEM_STRAWBERRY]
+## What every bush is picked as: the generic §5.7 `berries` item (Brendan's ruling of 2026-10-01, decision 0676).
+const BERRY_ITEM: int = Catalog.ITEM_BERRIES
 const BUSH_GROUP: int = 1
 const BUSH_COUNT: int = 3
 const BERRY_KIND: int = ForageScript.PATCH_BERRIES

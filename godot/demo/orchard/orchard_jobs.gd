@@ -835,7 +835,7 @@ func _reserve(j: int) -> String:
 			return _hold_at_stand(j, item, model.expected_yield_milli(target[j]), Rules.SITE_GROUP[target[j]])
 		K_PICK:
 			var berries: int = mini(Rules.PICK_LOAD_MILLI, _berries_free())
-			return _hold_at_stand(j, Rules.BUSH_ITEM[target[j]], berries, Rules.BUSH_GROUP)
+			return _hold_at_stand(j, Rules.BERRY_ITEM, berries, Rules.BUSH_GROUP)
 		K_HAUL:
 			return _hold_destination(j)
 	return ""
@@ -935,7 +935,7 @@ func _complete(j: int) -> String:
 			_take_load(j, Catalog.item_of_orchard_species(model.species_of(t)), model.pick_tree(t, today()))
 			return Text.picked(model, t, load_milli[j])
 		K_PICK:
-			_take_load(j, Rules.BUSH_ITEM[t], model.pick_berries(hold_size(j), season_now()))
+			_take_load(j, Rules.BERRY_ITEM, model.pick_berries(hold_size(j), season_now()))
 		K_HAUL:
 			_load_basket(j)
 		K_PLANT:

@@ -151,7 +151,7 @@ func stand_text(group: int) -> String:
 	var at: int = _jobs.stand_location(group)
 	if at < 0:
 		return "No baskets here."
-	for item: int in range(Catalog.FIRST_FRUIT, Catalog.FIRST_BERRY + Catalog.BERRY_COUNT):
+	for item: int in Catalog.ORCHARD_ITEMS:
 		var milli: int = _jobs.pantry.milli_at(item, at)
 		if milli > 0:
 			parts.append("%s %s" % [Catalog.ITEM_LABELS[item], Text.units(milli)])
@@ -263,8 +263,7 @@ func _result_of(action: StringName, kind: int, id: int) -> String:
 		&"harvest":
 			return "About %s picked into the group's baskets" % Text.units(_model.expected_yield_milli(id))
 		&"pick":
-			return "A basket of up to %s %s" % [Text.units(Rules.PICK_LOAD_MILLI),
-				Catalog.ITEM_LABELS[Rules.BUSH_ITEM[id]].to_lower()]
+			return "A basket of up to %s of %s, as berries" % [Text.units(Rules.PICK_LOAD_MILLI), Text.BUSH_FRUIT[id]]
 		&"haul":
 			return "Up to %s carried on to %s" % [Text.units(Rules.HAUL_LOAD_MILLI), Rules.DEST_NAMES[
 				_model.group_dest[id]].to_lower()]

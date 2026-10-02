@@ -649,14 +649,15 @@ func test_room_first_a_full_stand_waits() -> void:
 	assert_true(rig.jobs.words[j].contains("Pantry (K)"), "it says where to make room")
 
 
-func test_a_picking_fills_a_basket_of_raspberries() -> void:
-	"""Summer: the canes picked (4 WU a U), the berries carried to the east orchard's baskets, the hedge debited."""
+func test_a_picking_fills_a_basket_of_berries() -> void:
+	"""Summer: the canes picked (4 WU a U), the pantry's one `berries` item carried to the east orchard's baskets, the
+	hedge debited."""
 	var rig := _rig(14)
 	var before: int = rig.model.hedge_milli
 	assert_equal(rig.jobs.order(JobsScript.K_PICK, 0, -1, PackedInt32Array([2])), "", "ordered")
 	var stand: int = _stand(rig, 1)
-	assert_true(_run(rig, func() -> bool: return rig.pantry.milli_at(Catalog.ITEM_RASPBERRY, stand) > 0), "picked")
-	assert_equal(rig.pantry.milli_at(Catalog.ITEM_RASPBERRY, stand), Rules.PICK_LOAD_MILLI, "a basket")
+	assert_true(_run(rig, func() -> bool: return rig.pantry.milli_at(Catalog.ITEM_BERRIES, stand) > 0), "picked")
+	assert_equal(rig.pantry.milli_at(Catalog.ITEM_BERRIES, stand), Rules.PICK_LOAD_MILLI, "a basket")
 	assert_equal(rig.model.berries_picked_milli, Rules.PICK_LOAD_MILLI, "tallied")
 	assert_true(rig.model.hedge_milli <= before - Rules.PICK_LOAD_MILLI + Rules.berry_growth_milli(0, 1),
 		"the hedge gave them (less a day's regrowth at most)")
@@ -874,7 +875,7 @@ func test_a_held_picking_leaves_less_for_the_next() -> void:
 	var rig := _rig(14)
 	rig.model.hedge_milli = Rules.berry_floor_milli() + Rules.PICK_LOAD_MILLI
 	assert_true(rig.jobs.open_into(JobsScript.K_PICK, 0, JobsScript.ORIGIN_ROUTINE, _read), "a picking")
-	assert_true(rig.pantry.reserve_at_into(Catalog.ITEM_RASPBERRY, Rules.PICK_LOAD_MILLI, _stand(rig, 1), _read), "held")
+	assert_true(rig.pantry.reserve_at_into(Catalog.ITEM_BERRIES, Rules.PICK_LOAD_MILLI, _stand(rig, 1), _read), "held")
 	rig.jobs.hold[rig.jobs.find(JobsScript.K_PICK, 0)] = _read.value
 	assert_equal(rig.jobs.order_refusal(JobsScript.K_PICK, 1, -1), Text.NO_BERRIES, "nothing left for another bush")
 

@@ -451,7 +451,7 @@ func _heap(group: int) -> void:
 func _stand_colour(at: int) -> Color:
 	"""The colour of what stand location `at` holds most of."""
 	var best: int = Catalog.ITEM_APPLE
-	for item: int in range(Catalog.FIRST_FRUIT, Catalog.FIRST_BERRY + Catalog.BERRY_COUNT):
+	for item: int in Catalog.ORCHARD_ITEMS:
 		if _pantry.milli_at(item, at) > _pantry.milli_at(best, at):
 			best = item
 	return Catalog.ITEM_SWATCH[best]

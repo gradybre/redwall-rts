@@ -112,8 +112,9 @@ are in `docs/art-reference/asset_library/meshy_tasks.jsonl`.
     - The tree, flax and banner sizes are the draw sizes the integrator sets: `DEMO_HEIGHT_M`, `PLANT_HEIGHT_M` and
       the banner's scale (0.84 of its native 1.903).
     - The tree, flax and banner figures stay demo-only presentation values, like every `DEMO_HEIGHT_M`.
-    - The asset-pipeline skill puts a new species' approved height in `setting_decisions.md`. This record is where
-      the coordinator asked for the ruling to be kept; no DEC entry was written for the wildlife.
+    - Following the asset-pipeline convention, Brendan's ruling is also recorded as
+      [DEC-047](../setting_decisions.md) in `setting_decisions.md`. The trees' `SINK_M` and `TRUNK_RADIUS_M` stay
+      proposals.
 
 ## What this does not do
 

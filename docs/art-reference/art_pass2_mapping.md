@@ -184,7 +184,7 @@ looping.
 | `wild_trout_leaping` | 0.80 m long | body centre (**y = 0 is the water surface**) | `swim` 1.0 s (in place), `leap` 1.4 s (**travels 1.2 m forward**, rising 0.5 m above the water and starting and ending 0.25 m under it) |
 
 The sizes are judged against the 1.00 m mouse at the demo's storybook scale, where grass tufts are 0.45 m. **Brendan
-approved them on 2026-10-02** (decision 0951). The bodies are exported at these sizes, in metres.
+approved them on 2026-10-02** (DEC-047; decision 0951). The bodies are exported at these sizes, in metres.
 
 Every clip moves in place except the trout's `leap`, which carries its own travel. The hop has no forward step: move
 the node about 0.15 m (bird) or 0.3 m (frog) during the air frames.

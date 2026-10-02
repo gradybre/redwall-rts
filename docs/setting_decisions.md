@@ -1145,6 +1145,34 @@ elder rule while children are inactive; the GDD amendments to mood, relationship
 REQ-SET-036 that the package proposes take effect only when children are active.
 Implementation and gate state: [decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md).
 
+### DEC-047 — Sizes for the art pass 2 wildlife, plants and props
+
+2026-10-02 · State: `USER_CONFIRMED` for the sizes below.
+
+Brendan approved the sizes that art pass 2 proposed, relayed through the coordinator on 2026-10-02. They are judged
+against the 1.00 m mouse anchor (DEC-039) at the demo's storybook scale:
+
+| Asset | Key | Size | m |
+| --- | --- | --- | ---: |
+| Robin, perched and on the wing | `wild_songbird`, `wild_songbird_flight` | length | 0.45 |
+| Peacock butterfly | `wild_butterfly` | wingspan | 0.36 |
+| Common frog | `wild_frog` | length | 0.40 |
+| Leaping brown trout | `wild_trout_leaping` | length | 0.80 |
+| Scots pine | `pine_scots` | height | 16.0 |
+| Yew | `yew_ancient` | height | 10.0 |
+| Flax | `plant_flax` | height | 0.80 |
+| Hall banner | `hall_banner` | drawn height | 1.6 |
+
+- **The wildlife sizes are each animal's approved scale.** They are ambient wildlife, not residents: no resident
+  species is added, and DEC-039's five heights are unchanged.
+- **The pine, yew, flax and banner sizes are presentation sizes for the demo.** They are the values its
+  `DEMO_HEIGHT_M`, `PLANT_HEIGHT_M` and banner scale take.
+- **Not approved here:** the trees' ground sink (`SINK_M`, proposed 0.6 m each) and trunk radius (`TRUNK_RADIUS_M`,
+  proposed pine 0.45 m, yew 0.9 m) stay proposals.
+- **Not visual acceptance.** Brendan's acceptance of the art itself still goes through `tools/art_gate.py`.
+
+Assets, spend and reasoning: [decision 0951](decisions/0951-art-pass-2-evergreens-portraits-stone-hall-flax-hall-art-and-wildlife.md).
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

@@ -444,6 +444,13 @@ func _built_in_statuses() -> void:
 	_set_column(night, "bed_of", 3, int(kept[2]))
 	brain.set("state", kept[3])
 	brain.set("trip_outcome", kept[4])
+	_owners_rows()
+
+
+func _owners_rows() -> void:
+	"""The rows the village's owners add where they are wired (demo_village.gd, decision 0902): the winter's Chilled."""
+	var statuses: Object = _group().get("statuses")
+	_check("the winter's Chilled is a row", int(statuses.call(&"find", &"chilled")) >= 0)
 
 
 func _set_column(owner: Object, column: String, k: int, value: int) -> void:

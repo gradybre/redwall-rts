@@ -235,6 +235,7 @@ const NoticesScript := preload("res://demo/demo_notices.gd")
 const SoundScript := preload("res://demo/sound/sound_director.gd")
 const DemoWorkScript := preload("res://demo/work/demo_work.gd")
 const GroupSelectScript := preload("res://demo/control/group_select.gd")
+const GroupStatusScript := preload("res://demo/control/group_status.gd")
 const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
 const SongsScript := preload("res://demo/songs/demo_songs.gd")
 const RoutesScript := preload("res://demo/routes/demo_routes.gd")
@@ -745,12 +746,13 @@ func _build_work() -> void:
 
 func _build_group_select() -> void:
 	"""GROUP SELECTION (decision 0791): over the command layer and the work board's crews, its needs read from the
-	kitchen and the night's beds."""
+	kitchen and the night's beds; the winter's Chilled (decision 0571) one status row more."""
 	_group_select = GroupSelectScript.new()
 	add_child(_group_select)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_group_select.configure(command, _cast as DemoCastScript, _work.board, (_camera as DemoCameraScript).centre_on)
 	_group_select.bind_needs(_kitchen.kitchen.fed_word, command.tunnels().ext.night)
+	_group_select.statuses.add(&"chilled", "Chilled", GroupStatusScript.SEVERITY_WARN, _winter.cold.is_chilled)
 
 
 func group_select() -> GroupSelectScript:

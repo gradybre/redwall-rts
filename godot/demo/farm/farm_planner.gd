@@ -40,6 +40,7 @@ const RecordText := preload("res://demo/farm/farm_record_text.gd")
 const TableScript := preload("res://demo/farm/farm_planner_table.gd")
 const TimelineScript := preload("res://demo/farm/farm_timeline.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
+const FuelScript := preload("res://demo/winter/hearth_fuel.gd")
 
 signal close_requested
 ## A bed's row (or a plan's "Open bed") was pressed: show that bed and centre the camera on it.
@@ -99,8 +100,8 @@ var _calendar_table: TableScript = null
 var _notes: Label = null
 var _season: SeasonScript = SeasonScript.new()
 ## What the calendar was last built for: the hour, the record's, the farm's and the kitchen's revisions, the season.
-var _season_key: PackedInt64Array = PackedInt64Array([-1, 0, 0, 0, 0])
-var _season_now: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0])
+var _season_key: PackedInt64Array = PackedInt64Array([-1, 0, 0, 0, 0, 0])
+var _season_now: PackedInt64Array = PackedInt64Array([0, 0, 0, 0, 0, 0])
 ## What the soil plans were last drawn for (the farm's revision and hour, the bed, the compost store).
 var _plans_key: PackedInt64Array = PackedInt64Array([-1, 0, 0, 0])
 var _plans_now: PackedInt64Array = PackedInt64Array([0, 0, 0, 0])
@@ -134,6 +135,12 @@ func configure(sim: SimScript, crew: CrewScript, record: RecordScript) -> void:
 func set_kitchen(kitchen: KitchenScript) -> void:
 	"""The kitchen whose planned meals and food in store the calendar shows (none: said so)."""
 	_kitchen = kitchen
+	_season_key[0] = -1
+
+
+func set_fuel(fuel: FuelScript) -> void:
+	"""The hearths' fuel the calendar's Fuel lane shows (decision 0571; farm_season.gd THE FUEL LANE)."""
+	_season.fuel = fuel
 	_season_key[0] = -1
 
 
@@ -422,6 +429,7 @@ func _fill_calendar() -> void:
 	_season_now[2] = _sim.revision
 	_season_now[3] = _kitchen.revision if _kitchen != null else 0
 	_season_now[4] = 1 if next_season else 0
+	_season_now[5] = _season.fuel.revision if _season.fuel != null else 0
 	if _season_now != _season_key:
 		_season_key = _season_now.duplicate()
 		_season.build(_sim, _record, _kitchen, now_season + (1 if next_season else 0))

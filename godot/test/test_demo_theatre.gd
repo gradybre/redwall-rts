@@ -175,7 +175,7 @@ func test_the_cap_holds_with_eight_homes_smoking_three_faces_a_seep_and_a_strain
 	lights.configure()
 	var view: FixtureViewScript = _keep(FixtureViewScript.new())
 	view.configure(graph, PropsScript.new(), lights, DemoClockScript.new())
-	view.set_lit(func() -> bool: return true)
+	view.set_lit(func(_r: int) -> bool: return true)
 	view.refresh(0.1)
 	var smoking := 0
 	for r in RoomsScript.MAX_ROOMS:

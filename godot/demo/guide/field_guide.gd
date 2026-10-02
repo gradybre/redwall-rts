@@ -33,6 +33,7 @@ const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const GearLocker := preload("res://demo/fishery/gear_locker.gd")
 const FerryRules := preload("res://demo/ferry/ferry_rules.gd")
 const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
+const WinterRules := preload("res://demo/winter/winter_rules.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -283,7 +284,8 @@ func _add_materials() -> void:
 static func _material_wood() -> Entry:
 	"""The material wood entry."""
 	return make(&"material_wood", KIND_MATERIAL, "Wood", "Logs from the woods", PackedStringArray([
-		"Sawn into planks (%s of wood makes %s of planks); a log bridge's log (%s); a pier (%s each); the kitchen's fire (%s a batch); a lantern, a rag rug or hanging stores (%s each); bracing tunnels." % [
+		"Heating: every lit hearth burns %s a day in winter; sawn into planks (%s of wood makes %s of planks); a log bridge's log (%s); a pier (%s each); the kitchen's fire (%s a batch); a lantern, a rag rug or hanging stores (%s each); bracing tunnels." % [
+			FarmText.units_text(WinterRules.WINTER_DAY_MILLI),
 			FarmText.units_text(ForestRules.SAW_BATCH_MILLI), FarmText.units_text(ForestRules.SAW_BATCH_MILLI),
 			FarmText.units_text(SwimRules.LOG_WOOD_MILLI), FarmText.units_text(SwimRules.PIER_WOOD_MILLI),
 			FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH), FarmText.units_text(Fixtures.COST_WOOD_MILLI[RoomsScript.FIX_RUG])],
@@ -292,7 +294,7 @@ static func _material_wood() -> Entry:
 			FarmText.units_text(ForestRules.DEADFALL_MAX_MILLI)],
 		"Deadfall in protected woods; planks where a bridge or furniture needs them.",
 		"The village stores open with %s; the top bar's Wood." % FarmText.units_text(StoresScript.START_WOOD_MILLI_U)]),
-		[&"material_planks", &"skill_felling", &"station_sawhorse", &"station_bridges", &"dish_porridge"])
+		[&"material_planks", &"skill_felling", &"station_sawhorse", &"station_bridges", &"dish_porridge", &"station_hearths"])
 
 
 static func _material_planks() -> Entry:
@@ -302,7 +304,7 @@ static func _material_planks() -> Entry:
 			FarmText.units_text(SwimRules.PLANK_MILLI_PER_M), FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BED]),
 			FarmText.units_text(Fixtures.COST_PLANKS_MILLI[RoomsScript.FIX_BIG_BED])],
 		"Sawing logs at the sawhorse (%d WU a batch)." % ForestRules.SAW_WU,
-		"A log bridge needs a log, not planks.", "The plank stack by the workbench; the top bar's Planks (in Fuel's slot)."]),
+		"A log bridge needs a log, not planks.", "The plank stack by the workbench; the top bar's ledger and the Wood cell's tooltip."]),
 		[&"material_wood", &"station_sawhorse", &"station_bridges", &"station_burrow"])
 
 
@@ -375,6 +377,23 @@ func _add_stations() -> void:
 	_add(_station_rack_mill())
 	_add(_station_ferry())
 	_add(_occasion_regatta())
+	_add(_station_hearths())
+
+
+static func _station_hearths() -> Entry:
+	"""The hearths and their fuel (decision 0571), from winter_rules.gd's own figures."""
+	return make(&"station_hearths", KIND_STATION, "Hearths and heating fuel", "Warmth for the homes and the hall",
+		PackedStringArray([
+		"A lit hearth holds its room at %s: anyone inside warms up (%d exposure-hours an hour), and a home's hearth adds to its comfort while it burns." % [
+			FarmText.degrees_text(WinterRules.HEATED_TENTHS) + " °C", WinterRules.div(WinterRules.CLEAR_MILLI_PER_HOUR, 1000)],
+		"Wood from the stores: %s a day in winter, %s on a spring or autumn day under %s °C, none in summer (1 U heats a hearth %d hours). A burrow home's hearth costs %s of stone." % [
+			FarmText.units_text(WinterRules.WINTER_DAY_MILLI), FarmText.units_text(WinterRules.SHOULDER_DAY_MILLI),
+			FarmText.degrees_text(WinterRules.SHOULDER_BELOW_TENTHS), WinterRules.HEARTH_HOURS_PER_U,
+			FarmText.units_text(Fixtures.COST_STONE_MILLI[RoomsScript.FIX_HEARTH])],
+		"Without wood a hearth goes out and its room cools halfway to the outside air each hour; below 0 °C residents build up exposure and after %d hours are Chilled (working at %d%%) until warmed through." % [
+			WinterRules.div(WinterRules.CHILLED_AT_MILLI, 1000), WinterRules.div(WinterRules.CHILLED_WORK_PERMILLE, 10)],
+		"The hall's hearth, and one in each burrow home fitted with one; the top bar's Heating fuel."]),
+		[&"material_wood", &"station_burrow", &"skill_felling"])
 
 
 static func _station_beds() -> Entry:

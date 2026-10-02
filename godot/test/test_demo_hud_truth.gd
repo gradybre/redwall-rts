@@ -5,6 +5,8 @@ extends "res://test/framework/test_case.gd"
 ##
 ## No scene tree and no staged assets: the shell is the real HUD shell built off-tree, the cast the placeholder
 ## cast, the stores, pantry and farm the real ones. Expected values are literals from the cited constants.
+## Decision 0571 gave Fuel's slot back to UI-SET-003's Heating fuel (the winter's fuel-days); Planks are a ledger line
+## and in the Wood cell's tooltip now.
 
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const UiRegistry := preload("res://scripts/ui/ui_registry.gd")
@@ -31,8 +33,11 @@ const FarmingScript := preload("res://scripts/core/farming.gd")
 const JobsScript := preload("res://demo/farm/farm_jobs.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
+const Palette := preload("res://demo/ui/woodland_palette.gd")
 
 const HOUR_USEC: int = preload("res://demo/demo_calendar.gd").HOUR_USEC
+## The fuel-days the counters' fixture reads (hundredths): 2.5 days.
+const FUEL_DAYS: int = 250
 const BED_LOAM: int = 0
 const BED_CARROTS: int = 2
 const CARROT: int = 2
@@ -71,6 +76,7 @@ func _counters(shell: UiShell, stores: StoresScript, food: Array, residents: int
 	counters.model.residents = func() -> int: return residents
 	counters.model.beds = func() -> int: return beds
 	counters.model.homes = func() -> int: return 1
+	counters.model.fuel = func() -> int: return FUEL_DAYS
 	counters.bind(shell)
 	return counters
 
@@ -83,24 +89,24 @@ func _value(shell: UiShell, id: int) -> String:
 # --- F10: the top bar reads the village's own stores ----------------------------------------------------
 
 func test_the_top_bar_reads_the_village_stores_pantry_cast_and_homes() -> void:
-	"""Each cell its owner's figure, in its panel's words; Fuel's slot is Planks; the unwired Planks and Beds cells
-	are painted with their captions and enabled; tooltips say where each figure is."""
+	"""Each cell its owner's figure, in its panel's words; Fuel's slot is Heating fuel; the unwired Heating fuel and Beds
+	cells are painted with their captions and enabled; tooltips say where each figure is."""
 	var shell := _shell()
 	var stores := StoresScript.new()
 	var counters := _counters(shell, stores, [12000], 9, 3)
 	assert_true(counters.sync(), "painted")
 	assert_equal(_value(shell, UiShell.ID_FOOD), "12.0 U", "the pantry's total")
-	assert_equal(_value(shell, UiShell.ID_FUEL), "0.0 U", "planks")
-	assert_equal(shell.counter_caption_label(UiShell.ID_FUEL).text, "Planks", "Fuel's slot holds planks")
+	assert_equal(_value(shell, UiShell.ID_FUEL), "2.5 days", "the winter's fuel-days")
+	assert_equal(shell.counter_caption_label(UiShell.ID_FUEL).text, "Heating fuel", "UI-SET-003's caption")
 	assert_equal(_value(shell, UiShell.ID_WOOD), "40.0 U", "the stores' wood")
 	assert_equal(_value(shell, UiShell.ID_STONE), "20.0 U", "the stores' stone")
 	assert_equal(_value(shell, UiShell.ID_POPULATION), "9", "the cast")
 	assert_equal(_value(shell, UiShell.ID_BEDS), "3", "the homes' beds")
 	assert_equal(shell.counter_caption_label(UiShell.ID_BEDS).text, "Beds", "no longer 'Sim beds'")
 	assert_false((shell.control_for(UiShell.ID_BEDS) as Button).disabled, "Beds opens the ledger like the others")
-	assert_false((shell.control_for(UiShell.ID_FUEL) as Button).disabled, "and so does Planks")
+	assert_false((shell.control_for(UiShell.ID_FUEL) as Button).disabled, "and so does Heating fuel")
 	assert_equal(shell.control_for(UiShell.ID_WOOD).tooltip_text,
-		"Wood: 40.0 U in the village stores. Click for the ledger.", "says where the figure is")
+		"Wood: 40.0 U in the village stores (planks: 0.0 U). Click for the ledger.", "says where the figure is")
 	assert_equal(shell.control_for(UiShell.ID_WOOD).accessibility_description,
 		shell.control_for(UiShell.ID_WOOD).tooltip_text, "and says it to a screen reader")
 	assert_false(counters.sync(), "nothing changed: nothing painted")
@@ -127,14 +133,15 @@ func test_the_top_bar_equals_the_stores_after_spending_and_hauling() -> void:
 	for k: int in steps.size():
 		assert_true(bool(steps[k].call()), "step %d happened" % k)
 		counters.sync()
-		for pair: Array in [[UiShell.ID_WOOD, stores.wood_milli_u], [UiShell.ID_STONE, stores.stone_milli_u],
-				[UiShell.ID_FUEL, stores.plank_milli_u]]:
+		for pair: Array in [[UiShell.ID_WOOD, stores.wood_milli_u], [UiShell.ID_STONE, stores.stone_milli_u]]:
 			assert_equal(_value(shell, pair[0]), StoresScript.units_text(pair[1]), "step %d: cell %d" % [k, pair[0]])
 		assert_true(stores.stock_line().contains("wood " + _value(shell, UiShell.ID_WOOD)), "step %d: the Tunnels line" % k)
 		assert_true(stores.stock_line().contains("stone " + _value(shell, UiShell.ID_STONE)), "step %d: stone" % k)
-		assert_true(woods.stores_line().contains("planks " + _value(shell, UiShell.ID_FUEL)), "step %d: the Woods line" % k)
+		var planks: String = StoresScript.units_text(stores.plank_milli_u)
+		assert_true(woods.stores_line().contains("planks " + planks), "step %d: the Woods line" % k)
+		assert_true(counters.ledger_label().text.contains("· planks %s in store" % planks), "step %d: the ledger" % k)
 	assert_equal(_value(shell, UiShell.ID_WOOD), "38.5 U", "40 - 3.7 + 4.25 - 2.0, floored to a tenth")
-	assert_equal(_value(shell, UiShell.ID_FUEL), "0.6 U", "1.5 sawn - 0.9 for the bridge")
+	assert_true(counters.ledger_label().text.contains("· planks 0.6 U in store"), "1.5 sawn - 0.9 for the bridge")
 
 
 func test_the_food_cell_follows_the_pantry_total() -> void:
@@ -190,7 +197,7 @@ func test_the_counters_paint_back_over_the_settlement_figures() -> void:
 	shell.control_for(UiShell.ID_WOOD).accessibility_description = "Wood 40.0 U"
 	assert_true(counters.sync(), "a relayout's accessible description noticed")
 	assert_equal(shell.control_for(UiShell.ID_WOOD).accessibility_description,
-		"Wood: 40.0 U in the village stores. Click for the ledger.", "ours again")
+		"Wood: 40.0 U in the village stores (planks: 0.0 U). Click for the ledger.", "ours again")
 
 
 func test_the_ledger_says_the_same_figures_and_whose_they_are() -> void:
@@ -201,7 +208,7 @@ func test_the_ledger_says_the_same_figures_and_whose_they_are() -> void:
 	var counters := _counters(shell, stores, [12000], 9, 3)
 	counters.sync()
 	assert_equal(counters.ledger_label().text, "Village stores and residents\nReady food: 12.0 U in the Pantry (K)\n"
-		+ "Planks: 2.5 U in the village stores\nWood: 40.0 U in the village stores\nStone: 20.0 U in the village stores\n"
+		+ "Heating fuel: 2.5 days\nWood: 40.0 U · planks 2.5 U in store\nStone: 20.0 U in the village stores\n"
 		+ "Residents: 9 living in the village\nBeds: 3 in 1 burrow home", "the ledger")
 	counters.model.homes = func() -> int: return 2
 	assert_equal(counters.model.ledger_line(ModelScript.CELL_BEDS, 3), "Beds: 3 in 2 burrow homes", "plural")
@@ -226,6 +233,29 @@ func test_a_value_that_does_not_fit_discloses_the_ledger() -> void:
 	assert_equal(shell.counter_value_label(UiShell.ID_BEDS).get_theme_font_size(&"font_size"),
 		counters.role_px(UiShell.DISCLOSURE_VARIATION), "in the disclosure role, as the shell draws it")
 	assert_true(counters.ledger_label().text.contains("Beds: 123456789012345 "), "where the exact figure is")
+
+
+func test_the_heating_fuel_cell_warns_under_two_days_and_says_no_demand() -> void:
+	"""Decision 0571 (ruling 5): under 2 days the value is clay and the glyph the warning one; at 3 days plain again;
+	with no heat demand the cell says so (its tooltip in UI-SET-003's full words)."""
+	var shell := _shell()
+	var counters := _counters(shell, StoresScript.new(), [0], 9, 3)
+	var days: Array[int] = [150]
+	counters.model.fuel = func() -> int: return days[0]
+	counters.sync()
+	var value: Label = shell.counter_value_label(UiShell.ID_FUEL)
+	assert_equal(value.text, "1.5 days", "under 2 days")
+	assert_equal(value.get_theme_color(&"font_color"), Palette.CLAY, "in clay")
+	assert_equal(shell.counter_icon(UiShell.ID_FUEL).texture, CountersScript.WARNING_ICON, "the warning glyph")
+	days[0] = 300
+	counters.sync()
+	assert_false(value.has_theme_color_override(&"font_color"), "3 days: plain")
+	assert_equal(shell.counter_icon(UiShell.ID_FUEL).texture, CountersScript.FUEL_ICON, "the fuel glyph")
+	days[0] = -1
+	counters.sync()
+	assert_equal(value.text, "No demand", "the cell's short words fit")
+	assert_true(shell.control_for(UiShell.ID_FUEL).tooltip_text.begins_with("Heating fuel: No current heat demand"),
+		shell.control_for(UiShell.ID_FUEL).tooltip_text)
 
 
 # --- F14: the Residents roster --------------------------------------------------------------------------
@@ -662,4 +692,6 @@ func test_the_model_reads_the_village_owners_it_is_bound_to() -> void:
 	var figures := PackedInt64Array()
 	figures.resize(ModelScript.CELL_COUNT)
 	model.read_into(figures)
-	assert_equal(figures, PackedInt64Array([3000, 1200, 40000, 20000, cast.actor_count(), 0]), "every figure its owner's")
+	assert_equal(figures, PackedInt64Array([3000, 0, 40000, 20000, cast.actor_count(), 0]), "every figure its owner's")
+	assert_false(model.known(ModelScript.CELL_FUEL), "no winter bound: Heating fuel unknown, never the planks")
+	assert_true(model.ledger_text(figures).contains("Wood: 40.0 U · planks 1.2 U in store"), "the planks in the ledger")

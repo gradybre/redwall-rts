@@ -645,7 +645,7 @@ func _step_work(row: int, work: int, usec: int) -> void:
 		return
 	if jobs.issued[row] == 0 and not _start_work(row, work, brain):
 		return
-	jobs.elapsed_usec[row] += usec
+	jobs.elapsed_usec[row] += brain.work_credit(usec)
 	if jobs.elapsed_usec[row] < jobs.work_usec(work):
 		return
 	brain.play_in_place(BrainScript.CLIP_IDLE)

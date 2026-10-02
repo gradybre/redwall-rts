@@ -460,7 +460,7 @@ func _view(graph: GraphScript, lit: Array[bool]) -> FixtureViewScript:
 	lights.configure()
 	var view := FixtureViewScript.new()
 	view.configure(graph, PropsScript.new(), lights, null)
-	view.set_lit(func() -> bool: return lit[0])
+	view.set_lit(func(_r: int) -> bool: return lit[0])
 	_nodes.append_array([lights, view])
 	return view
 

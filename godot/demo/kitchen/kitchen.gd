@@ -398,6 +398,25 @@ func update() -> void:
 		_hand_out()
 
 
+func skip_to_hour(to_hour: int) -> int:
+	"""THE SEASON SKIP (decision 0571, demo/winter/season_skip.gd): the calendar has jumped to `to_hour` without the
+	village living the hours. The portions on the table age through them, reserved food that spoiled is let go, and any
+	meal being served ends quietly; NO meal is called, cooked or eaten in them and nobody's hunger falls -- the skipped days'
+	meals are not simulated. Then the next meals are planned from the new hour (`to_hour`). Returns the hours skipped."""
+	var skipped: int = 0
+	while _hour_seen < to_hour:
+		_hour_seen += 1
+		store.age_hour(PantryScript.season_of_hour(_hour_seen))
+		pantry.spoiled_milli += store.take_spoiled()
+		takes.prune(pantry)
+		skipped += 1
+	_serving = FREE
+	_called.fill(FREE)
+	_plan(_hour_seen)
+	revision += 1
+	return skipped
+
+
 func _on_hour(at_hour: int) -> void:
 	"""An hour crossed: the portions age, everyone's hunger falls, reserved food that spoiled is let go; a meal is
 	called or closed; the next meals are planned."""

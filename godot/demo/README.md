@@ -324,8 +324,10 @@ services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_INFO, &"ch
 
 **One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks,
 finds and water (the kitchen's butt by the well, 40 U at most; decision 0381). The woods put their wood in and saw
-their planks from it; the tunnels' bracing and lanterns are paid from it; the kitchen burns 0.1 U of its wood a batch. The top bar's Wood, Stone and Planks are these figures (below); the settlement
-simulation's own stock is never written.
+their planks from it; the tunnels' bracing and lanterns are paid from it; the kitchen burns 0.1 U of its wood a batch;
+the hearths burn it for heat (see Winter, decision 0571). The top bar's Wood and Stone are these figures, its Heating fuel
+the days the wood lasts, and the ledger and Wood's tooltip carry the planks (below); the settlement simulation's own
+stock is never written.
 
 **The right column holds one demo panel at a time** (`ui/demo_detail_zone.gd`): a tab strip, *Farm*,
 *Tunnels* (& burrows), *Woods* and *Water*, and a "×" that folds the column away (a panel's own "×"
@@ -367,8 +369,9 @@ decision 0391), full screen, and the sound's volumes, mutes and mixes
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
 next seeded threat now), Storm gust (through the woods) and Cramp (every selected resident swimming tires at
-once; disabled with no swimmer selected) -- and Practice stories (the village guide's practice tab; decision 0481). They are the same actions the panels' "(demo)" buttons were; the
-Tunnels, Woods and Water panels now hold only the village's own choices.
+once; disabled with no swimmer selected) -- and Practice stories (the village guide's practice tab; decision 0481), and
+**Skip to next season** (decision 0571: the one calendar to 06:00 on day 1 of the next season; see Winter). They are the
+same actions the panels' "(demo)" buttons were; the Tunnels, Woods and Water panels now hold only the village's own choices.
 
 **Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
 Pantry, Tunnels (rooms and fit-out too), Woods and Water panels, and the party panel's Dig and room buttons --
@@ -409,12 +412,14 @@ same object its panel reads, and writes nothing into the settlement simulation:
 | Cell | Figure | Owner (and where else it shows) |
 |---|---|---|
 | Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain, roots and fresh fish would cook (each dish at its own portions: decision 0436), over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain, roots and any fish (the Pantry's Kitchen tab, K) |
-| Planks (Fuel's slot) | U, one decimal | the village stores (Tunnels, Woods, Water panels) |
-| Wood / Stone | U, one decimal | the village stores (the same panels) |
+| Heating fuel (Fuel's slot) | days of fuel, one decimal, floored (`2.5 days`), or "No demand" -- UI-SET-003's "No current heat demand" in its tooltip and the ledger; clay with the warning glyph under 2 days | the winter: the wood over today's heating demand plus the three-day cooking mean (decision 0571; its click opens the Heating fuel breakdown) |
+| Wood / Stone | U, one decimal | the village stores (Tunnels, Woods, Water panels); Wood's tooltip and ledger line add the planks |
 | Residents | count | the cast (the Residents roster) |
 | Beds | count | beds installed in dug burrow homes (the Tunnels panel's housing line) |
 
-The village keeps no fuel, so Fuel's slot shows Planks. Clicking any cell opens the ledger, which lists
+Fuel's slot showed Planks while the village burned no fuel (decision 0251); the hearths burn wood now, so it is
+UI-SET-003's Heating fuel again and the planks are on the ledger's Wood line ("Wood: 40.0 U · planks 2.5 U in store",
+short enough that the ledger keeps its eight lines) and in Wood's tooltip (decision 0571). Clicking any cell opens the ledger, which lists
 the same six figures and where each is. A figure whose owner is missing reads **Unavailable**, never 0.
 UIManager still repaints the cells with the settlement's figures when the simulation's stock changes;
 the demo paints its own back the next frame.
@@ -724,14 +729,15 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
   pause ledger, "The village guide is open" (the village waits) with six tabs -- **Objectives** (done, current with its cause, ahead), **Goals** (decision 0781, below), **Projects**, **Field guide**, **Help**
   and **Practice**.
-- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 23 how-to topics (the ferry and the
-  regatta among them: decisions 0437, 0438) and the 28 keys,
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 24 how-to topics (the ferry and the
+  regatta among them: decisions 0437, 0438; decision 0571 added "Keep the village warm in winter", with its Open
+  Heating fuel button) and the 28 keys,
   searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
   with that command as a button.
-- **Field guide**: 56 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the four dishes
-  (the fish stew at supper and the feast's bean hotpot among them), 7 materials (fishing gear among them), 12 buildings,
-  stations and occasions (fishing and the boats, the drying rack and mill, the ferry and the regatta among them), 5
-  skills, 4 water-safety entries, and 8 fish and preserved foods (the
+- **Field guide**: 58 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the four dishes
+  (the fish stew at supper and the feast's bean hotpot among them), 7 materials (fishing gear among them), 13 buildings,
+  stations and occasions (fishing and the boats, the drying rack and mill, the ferry and the regatta, and the hearths
+  and heating fuel of decision 0571 among them), 5 skills, 4 water-safety entries, and 8 fish and preserved foods (the
   six fish, dried fish, flour) -- each with Uses, Requires, Alternatives and
   Available here, linked, a crop's pantry stock live; nothing the demo lacks.
 - **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
@@ -1072,7 +1078,7 @@ words: "the demo stores are short: the bed needs 2 planks (they hold ...)"); tak
 |---|---|---|---|---|
 | Bed | 2 planks | 20 WU | home (three alcoves) | a small resident sleeps in it (up to 1.3 m: the moles, mice and squirrels) |
 | Large bed | 4 planks | 40 WU | home (the back alcove, else the one by the door) | a big resident sleeps in it (the otters, the beaver, the badger; decision 0211) -- its alcove is dug on into a nook |
-| Hearth | 6 stone | 60 WU | home | comfort; glows and smokes from 17:00 to 07:00; warms cellars near it |
+| Hearth | 6 stone | 60 WU | home | heats the home while it has wood (see Winter); comfort while fuelled; glows and smokes while it burns; warms cellars near it |
 | Table and stools | 2 planks | 8 WU | home | decoration |
 | Rag rug | 1 wood | 4 WU | home | decoration |
 | Lantern | 1 wood | 4 WU | home | decoration; one of the pooled lights |
@@ -1088,7 +1094,8 @@ to it (`burrow/fixture_crew.gd`). Since P7 the root bin, the hanging stores, the
 bed are the library's (below); each keeps its procedural stand-in for a demo with nothing staged.
 
 **Comfort** (a home's panel and the resident panel): 2000 bare, 4000 with a bed, 6000 with a hearth too (the
-GDD's dormitory target), and 250 a decoration up to 1000 -- the suggested layout reads 7000, "cozy". A readout
+GDD's dormitory target) -- the hearth counts only while it is fuelled (out of fuel or let go out, it adds nothing;
+decision 0571) -- and 250 a decoration up to 1000 -- the suggested layout reads 7000, "cozy". A readout
 only (`burrow/room_fixtures.gd` COMFORT).
 
 **The night** (`burrow/night_routine.gd`, on the demo calendar): at dusk, 20:00, everybeast not in an emergency or
@@ -1096,14 +1103,17 @@ the water goes home to bed -- through the round front door or the tunnels, which
 hand (it takes it up in the morning), crosses the floor to its bed and lies down in it (the staged
 `sleep_normally` clip, seated on the mattress by its body's lowest point). Beds go by REQ-SET-132 (its own bed,
 else the nearest free one of its size -- a large bed for a big resident, a burrow bed for a small one; ties to the
-lower room, then place). At 06:00 they get up and go back to work; whoever
+lower room, then place) -- WARM beds first (decision 0571: a bed in a heated home, or any bed when no heat is
+demanded, before a cold one). At 06:00 they get up and go back to work; whoever
 is still on the way home turns back. The kitchen's cook is the **early riser** (`set_early_riser`): it gets up at 05:00
 while it has the day's meals to cook (see The kitchen). **No bed** (or none of its size) -- it sleeps on the hall's floor
 (REQ-SET-133; it goes in at the hall's steps and is not drawn), the panel says "No bed", and dusk's news names who.
 A direct order wakes a sleeper; free again, it goes back to bed. Nothing parked is taken up before morning. A threat gets sleepers up by their beds until it
 clears; one in the water or held by its rescue is left be. Paused, nobody moves; at 2x and 4x the night runs faster.
 A walk home across the village takes under a game hour, so everyone is in bed by about 21:00 (the GDD's schedule
-sleeps from 22:00). A home's hearth glows from 19:00 to 07:00 and its chimney smokes (at most 16 puffs a home).
+sleeps from 22:00). A home's hearth glows and its chimney smokes (at most 16 puffs a home) while it burns -- fuelled
+and heat demanded (`night_routine.gd hearth_lit`, the winter's; decision 0571). Without a winter bound (a suite's
+village) it keeps the old hours, 19:00 to 07:00.
 
 **Cellars**: a cellar's capacity is its racks' (a bare cellar is no store); it is **cool** (the GDD's cellar,
 350 per mille) while it is 1 m or more down, racked, and no hearth is within 3 m of it or in a room its passages
@@ -1273,7 +1283,9 @@ went to "Run until…".) Open, it is a planning surface: with "Pause while plann
   rules' (full yield until 48 h after it ripened, withers at 120). A row (click or Enter) closes the planner, opens that
   bed and centres the camera on it -- the news' "Go to".
 - **Season calendar** (`farm/farm_season.gd`, `farm/farm_timeline.gd`): this season or the next, as a timeline of lanes
-  (the four crop rows, weather, frost, blight, beds, meals) or as a **Table** of the same entries in words. Each entry is
+  (the four crop rows, weather, frost, blight, beds, meals, and the **Fuel** lane -- the hearths' rule for the season,
+  autumn's twelve-day winter target, today's "No current heat demand" or how long the wood heats the village, to the last
+  heated hour; decision 0571) or as a **Table** of the same entries in words. Each entry is
   **Scheduled** (solid bar: §5.6 planting windows, the season's §5.10 baseline, the demo's frost and blight schedule,
   the season event once announced -- three days ahead, never before -- a ripe bed's grace and withering, the kitchen's
   planned meals), **Recorded** (small square: each past day's weather), **Now** (ringed diamond: today's) or **Estimate**
@@ -1336,6 +1348,62 @@ regatta reserved, never by the everyday alternation.
 Interrupted work loses nothing and makes nothing fresher: a cook called away leaves the batch at the cauldron for
 whoever cooks next; a load in hand is delivered before bed. Details and every number's source: `kitchen/*.gd`
 headers and decision 0381.
+
+## Winter: heating fuel, the cold and firewood (decision 0571)
+
+Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement simulation is never written.
+
+- **The hearths** (`winter/hearth_fuel.gd`): the hall's, and every burrow home's fitted hearth, burn the village stores'
+  wood by GDD §5.8's continuous demand -- **4 U a day in winter, 2 U on a spring or autumn day whose mean is under 10 °C,
+  nothing in summer** (1 U heats a hearth 6 hours) -- taken each game hour through a milli-U accumulator (166 or 167 milli
+  an hour in winter; exactly 4 U a day, never a milli-U adrift). The homes take theirs first, in row order, then the
+  hall; each hour all or nothing. A heated room holds **18 °C**; a hearth **out of fuel** lets its room move halfway to
+  the outside air each hour (REQ-SET-131) until wood comes in -- then it burns again the next hour. A hearth glows and
+  smokes while it burns (fuelled and demanded: `night_routine.gd hearth_lit(r)`, which the glow reads), and counts for
+  its home's comfort while it is fuelled.
+- **The day's mean** is the mean of its 24 hours' air, so a demo frost night's spring or autumn day (9.5 °C, 7.8 °C)
+  demands heat and the hearths burn through the frost.
+- **Fuel-days** = the wood over today's heating demand plus the last three days' mean cooking wood; with no heating
+  demand the top bar says so. Recomputed every game hour. Under 2 days with frost forecast (today and the next two days'
+  §5.10 temperatures -- an event only once announced -- and the demo's frost nights), the village news warns with the
+  **last heated hour** and the hearths (REQ-SET-147).
+- **The cold** (`winter/cold_exposure.gd`): clothing tier 1 for everyone. Outdoors (or in the water), or in a hearth's
+  room below 0 °C that is not heated, a resident gains 1 exposure-hour an hour (2 in a hard freeze); in a heated room it
+  clears 2 an hour (`scripts/core/needs.gd`'s own constants); in the tunnels or a cellar, neither. Integrated over the
+  calendar's ticks each frame, exact; a jump of more than a game hour in one frame (a skip) is not lived.
+- **Chilled** at 4 exposure-hours (capped at 8): the resident **works at 80%** (§5.10's storm factor) -- the farm's, the
+  woods', the bridges' and the spoil heaps' work -- and is sent for a **warm-up break** (`winter/warm_up_task.gd`) to the
+  nearest lit hearth -- its own bed's home, else the nearest heated home, else the hall -- parking its job, back to it
+  when **warmed through** (exposure 0), or as soon as that fire goes out. It is Chilled until warmed through. **No
+  health is lost and nobody dies of cold.** The party panel says it ("Chilled — 4.6 exposure-hours, last outdoors at
+  -5 °C; works at 80% until warmed through at a heated hearth"; "Why: Chilled — warming up at a lit hearth"), the
+  Residents list adds "chilled", the news warns, and says when they are warmed through.
+- **Beds** go to warm homes first (above). **The Firewood order**: while the stores hold less wood than the twelve-day
+  winter projection -- in autumn and winter, or on any day heat is demanded -- one "Firewood" order stands on the woods'
+  board (deadfall first, else the nearest fellable tree in a forestry zone; never a conservation zone), listed under
+  Woods on the Work screen, and **Urgent** (the work board's bucket 2) under 2 fuel-days or while a hearth is out.
+- **Heating fuel** (the top bar's Fuel slot, UI-SET-003): "2.5 days", or "No demand" ("No current heat demand" in its
+  tooltip and the ledger), in clay with the warning glyph under 2 days. **Its click opens the breakdown**
+  (`winter/fuel_panel.gd`, a modal; Esc closes it): the wood, today's demand, the last heated hour, in autumn and winter
+  the **twelve-day winter projection** (every hearth at 4 U a day plus the cooking mean, REQ-SET-114) with its progress,
+  the Firewood order, each hearth's state and room temperature, who is Chilled, and the **emergency choices**, never
+  taken by themselves: **Consolidate sleepers into heated homes** (the sleepers packed into the fewest homes with a hearth
+  that hold them, sent to their new beds, and the hearths of the homes left empty let go out; its tooltip says what it
+  would do) and, per hearth, **Let it
+  go out / Light it again**.
+- **The season's notes**: at autumn's first dawn the twelve-day projection; at the first winter's dawn the
+  **preparation summary** (REQ-SET-149: ready food, heating fuel, warm beds, who works outdoors), pinned on the top-centre
+  card until you dismiss it. The planner's calendar has a **Fuel** lane (see The seasonal planner); the guide has a help
+  topic and a field-guide entry.
+- **Skip to next season** (the Demo Lab, F8; `winter/season_skip.gd`): the one calendar runs on, an hour crossing at a
+  time, to **06:00 on day 1 of the next season**, exactly on the tick. The farm's hours run (the crops grow, ripen and
+  wither, the beds take their rain, the season's event is drawn, the stores age), and the hearths burn in step, each hour
+  on its own day's weather. **Skipped**, and the news says so: the residents' walking and work (they carry on where they
+  stand), the kitchen's meals (none is cooked or eaten, nobody's hunger falls; the table's portions age), and the cold.
+  The woods, the pond's ice and the people catch up on the next frame. The skip's own real time is forgiven, so it is not
+  a stall. The spring opening is unchanged.
+- **For the balance sim**: `demo_village.winter().metrics_into(out)` -- the wood burned, the hearth-hours heated and out
+  of fuel, fuel-days, today's heating and cooking demand, the projection, the Chilled now and ever, the breaks sent.
 
 ## Weather, upgrades, hazards, finds, crews and threats
 
@@ -1862,6 +1930,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
+| `winter/` | The winter (decision 0571): the rules (`winter_rules.gd`), the hearths' fuel and the rooms' warmth (`hearth_fuel.gd`), each resident's cold (`cold_exposure.gd`), the warm-up break (`warm_up_task.gd`), the words, the Heating fuel breakdown (`fuel_panel.gd`), the season skip (`season_skip.gd`) and the node wiring it into the village (`demo_winter.gd`) |
 | `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
 | `goals/` | The village goals and milestones (decision 0781): the goal book and its registration API, the built-in goals as data with their evaluator, the ledger of running counts, the owner (hour tick, Village news) and the Goals tab's page |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |

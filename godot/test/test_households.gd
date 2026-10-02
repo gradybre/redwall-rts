@@ -3,8 +3,8 @@ extends "res://test/framework/test_case.gd"
 ##
 ## Every expectation is restated from the specification rather than read back from the module:
 ## the care rates, thresholds and turn bound are Brendan's confirmed values in DEC-044, the byte
-## total is FAMILY-STATE-R01's 46352, and the 6000 -> 8750 -> 8740 -> 9000 walk is the execution
-## package's own version-2 worked example.
+## total is FAMILY-STATE-R01's 46352 plus decision 0996's 2048-byte bound-slot column (48400), and
+## the 6000 -> 8750 -> 8740 -> 9000 walk is the execution package's own version-2 worked example.
 
 const Households := preload("res://scripts/core/households.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
@@ -89,9 +89,13 @@ func _advance(ticks: int, paired: PackedByteArray) -> void:
 
 # --- layout -------------------------------------------------------------------------------------
 
-func test_the_owner_payload_is_the_specified_46352_bytes() -> void:
-	"""19720 household bytes + 26632 dependent bytes, re-derived from the live columns."""
-	assert_equal(_store.payload_bytes(), 46352, "FAMILY-STATE-R01 combined owner payload")
+func test_the_owner_payload_is_the_specified_48400_bytes() -> void:
+	"""19720 household bytes + 28680 dependent bytes, re-derived from the live columns.
+
+	28680 is FAMILY-STATE-R01's 26632 plus decision 0996's i32[512] bound directory slot.
+	"""
+	assert_equal(_store.payload_bytes(), 19720 + 26632 + 4 * 512, "combined owner payload")
+	assert_equal(_store.payload_bytes(), 48400, "FAMILY-STATE-R01 as amended by decision 0996")
 	assert_equal(Households.MEMBER_CAPACITY, 2048, "256 households x 8 members")
 	assert_equal(Households.OWNER_SCHEMA_VERSION, 1, "a new owner starts at schema 1")
 
@@ -636,6 +640,15 @@ func test_hostile_dependent_images_refuse() -> void:
 	var lonely: int = _row(refs["lonely"])
 	var cases: Array = [
 		["d_resident_generation", child, 99, Households.REFUSE_COLUMN_BINDING, "wrong generation"],
+		["d_resident_slot", child, refs["child"].x + 1, Households.REFUSE_COLUMN_BINDING,
+			"the next directory slot"],
+		["d_resident_slot", child, refs["child"].x - 1, Households.REFUSE_COLUMN_BINDING,
+			"the previous directory slot"],
+		["d_resident_slot", child, refs["adult"].x, Households.REFUSE_COLUMN_BINDING,
+			"another living resident's slot at the same generation"],
+		["d_resident_slot", child, Households.NULL_SLOT, Households.REFUSE_COLUMN_BINDING,
+			"a bound row with a null slot"],
+		["d_resident_slot", 300, 0, Households.REFUSE_COLUMN_UNUSED, "an unbound row with a slot"],
 		["d_present", 300, 1, Households.REFUSE_COLUMN_BINDING, "bound row with no resident"],
 		["d_willing", child, 1, Households.REFUSE_COLUMN_STAGE, "a willing child"],
 		["d_care", adult, 5, Households.REFUSE_COLUMN_STAGE, "an adult with care"],
@@ -952,3 +965,106 @@ func test_a_slot_reused_without_unbind_inherits_nothing_and_can_be_released() ->
 	assert_equal(_store.care_of(row), 6500, "with fresh child defaults")
 	assert_equal(Households.columns_refusal(_fresh_image(), _residents, 1), "", "saveable again")
 
+
+
+# --- review R04 (decision 0996): a typed row reused under ANOTHER directory slot ---------------
+
+func _reuse_row_under_another_slot(old: Vector2i, stage: int) -> Vector2i:
+	"""Despawn `old` while still bound, let a resource node take its directory slot, then spawn
+	an unbound resident of `stage`. Asserts the replacement reuses the typed row under a different
+	slot at the SAME generation -- the case a generation-only binding cannot tell apart."""
+	var row: int = _row(old)
+	assert_true(_residents.despawn(old).ok, "despawned while still bound")
+	var node: Vector2i = _residents.directory().create(EntityDirectory.KIND_RESOURCE_NODE)
+	assert_equal(node.x, old.x, "another kind took the freed directory slot")
+	var fresh: Vector2i = _spawn(&"hare", stage, false)
+	assert_equal(_row(fresh), row, "the replacement reuses the typed row")
+	assert_true(fresh.x != old.x, "under a different directory slot")
+	assert_equal(fresh.y, old.y, "at the same directory generation")
+	return fresh
+
+
+func test_a_housed_row_reused_under_another_slot_inherits_nothing() -> void:
+	"""R04's housed reproduction: no household or willingness crosses to the new resident."""
+	var old: Vector2i = _spawn(&"mouse", ADULT)
+	var partner: Vector2i = _spawn(&"otter", ADULT)
+	assert_true(_store.create_household_into(_refs([old, partner]), _out), "household")
+	var household: int = _out.value
+	assert_true(_store.set_willing_into(old, false, _out), "the old tenant is unwilling")
+	var fresh: Vector2i = _reuse_row_under_another_slot(old, ADULT)
+	var row: int = _row(fresh)
+	assert_false(_store.is_bound(row), "the new resident is not bound")
+	assert_equal(_store.household_row_of(row), Households.NULL_ROW, "no inherited household")
+	assert_false(_store.bind_resident_into(fresh, _out), "a fresh bind meets the stale row")
+	assert_equal(_out.error, Households.REFUSE_STALE_BINDING, "as STALE, not ALREADY_BOUND")
+	assert_false(_store.detach_resident_into(fresh, _out), "detach does not read the old row")
+	assert_equal(_out.error, Households.REFUSE_STALE_BINDING, "detach names it")
+	assert_false(_store.set_willing_into(fresh, true, _out), "nor does a setter")
+	assert_equal(_out.error, Households.REFUSE_STALE_BINDING, "setter names it")
+	assert_false(_store.create_household_into(_refs([fresh]), _out), "nor household creation")
+	assert_equal(_out.error, Households.REFUSE_STALE_BINDING, "creation names it")
+	assert_false(_store.advance_care_into(_paired([]), _out), "the care tick refuses")
+	assert_equal(_out.error, Households.REFUSE_STALE_BINDING, "while a stale row exists")
+	assert_equal(Households.columns_refusal(_fresh_image(), _residents, 1),
+		Households.REFUSE_COLUMN_MEMBER, "the image still lists the gone tenant")
+	assert_true(_store.release_stale_row_into(row, _out), "the stale row is released")
+	assert_equal(_store.member_count_of(household), 1, "the partner survives alone")
+	assert_equal(_store.member_ref_of(household, 0), partner, "as the only member")
+	assert_true(_store.bind_resident_into(fresh, _out), "the new resident binds")
+	assert_true(_store.is_willing(row), "at the ADULT default, not the inherited unwilling")
+	assert_equal(_store.household_row_of(row), Households.NULL_ROW, "and unhoused")
+	assert_equal(Households.columns_refusal(_fresh_image(), _residents, 1), "", "saveable again")
+
+
+func test_an_unhoused_childs_row_reused_under_another_slot_inherits_no_care() -> void:
+	"""R04's second reproduction: decayed care must not cross, and the image must not pass."""
+	var old: Vector2i = _spawn(&"mouse", CHILD)
+	_advance(1500, _paired([]))
+	assert_equal(_store.care_of(_row(old)), 6000, "the old child decayed to 6000")
+	var fresh: Vector2i = _reuse_row_under_another_slot(old, CHILD)
+	var row: int = _row(fresh)
+	assert_false(_store.is_bound(row), "the new child is not bound")
+	assert_equal(_store.care_of(row), -1, "and reads no care, least of all 6000")
+	assert_false(_store.is_care_eligible(row), "nor the old eligibility latch")
+	var image: Households.Columns = _fresh_image()
+	assert_equal(image.d_resident_slot[row], old.x, "the image holds the old slot")
+	assert_equal(image.d_resident_generation[row], fresh.y, "at the new tenant's generation")
+	assert_equal(Households.columns_refusal(image, _residents, 1),
+		Households.REFUSE_COLUMN_BINDING, "so the generation alone would have passed it")
+	var target: Households = Households.new(_residents)
+	assert_false(target.restore_columns_into(image, _held_clock(), _out), "nor does it restore")
+	assert_equal(_out.error, Households.REFUSE_COLUMN_BINDING, "named")
+	assert_false(_store.bind_resident_into(fresh, _out), "a fresh bind refuses")
+	assert_equal(_out.error, Households.REFUSE_STALE_BINDING, "as stale")
+	assert_true(_store.release_stale_row_into(row, _out), "released")
+	assert_true(_store.bind_resident_into(fresh, _out), "then bound")
+	assert_equal(_store.care_of(row), 6500, "at the new child's own 6500")
+	assert_equal(Households.columns_refusal(_fresh_image(), _residents, 1), "", "saveable again")
+
+
+func test_a_binding_stores_and_captures_the_whole_directory_ref() -> void:
+	"""Bind writes (slot, generation); unbind returns both to the null pair (-1, 0)."""
+	var ref: Vector2i = _spawn(&"mouse", ADULT)
+	var row: int = _row(ref)
+	var image: Households.Columns = _fresh_image()
+	assert_true(ref.x != row, "the fixture keeps slot and row apart")
+	assert_equal(Vector2i(image.d_resident_slot[row], image.d_resident_generation[row]), ref,
+		"the bound ref is the directory's, slot first")
+	assert_true(_store.unbind_resident_into(ref, _out), "unbound")
+	image = _fresh_image()
+	assert_equal(Vector2i(image.d_resident_slot[row], image.d_resident_generation[row]),
+		Households.NULL_REF, "the canonical unused pair")
+	var fresh_image: Households.Columns = Households.Columns.new()
+	assert_equal(fresh_image.d_resident_slot[0], Households.NULL_SLOT, "a new image starts null")
+
+
+func test_a_swapped_slot_and_generation_refuses_the_image() -> void:
+	"""The two halves of the bound ref are not interchangeable."""
+	var refs: Dictionary = _rich_store()
+	var row: int = _row(refs["spare"])
+	var ref: Vector2i = refs["spare"]
+	assert_true(ref.x != ref.y, "a fixture where the swap is visible")
+	var image: Households.Columns = _fresh_image()
+	image.d_resident_slot[row] = ref.y
+	image.d_resident_generation[row] = ref.x
+	_expect_refused(image, Households.REFUSE_COLUMN_BINDING, "slot and generation swapped")

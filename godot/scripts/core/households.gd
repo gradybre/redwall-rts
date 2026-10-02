@@ -15,10 +15,16 @@ extends RefCounted
 ##     Household IDs are LOCAL to this owner, monotonic from 1, never recycled and never passed
 ##     as EntityRefs or resident IDs. A row reference is (row, generation), null (-1, 0).
 ##   * Dependents: exactly 512 rows indexed by the RESIDENT typed row, bound to that resident's
-##     DIRECTORY generation. `present` follows resident presence, not stage, and the stage stays
-##     solely in Residents (MOVE-DEP-R02). A CHILD row carries care; an ADULT/ELDER row carries
-##     provider state. Every stage may belong to a household.
-## Payload: 19720 household bytes + 26632 dependent bytes = 46352 (`payload_bytes()` re-derives
+##     full DIRECTORY EntityRef (slot AND generation). `present` follows resident presence, not
+##     stage, and the stage stays solely in Residents (MOVE-DEP-R02). A CHILD row carries care;
+##     an ADULT/ELDER row carries provider state. Every stage may belong to a household.
+## WHY THE WHOLE REF (decision 0996, review R04). The directory allocates its slot and the typed
+## row independently, and a generation belongs to a directory SLOT. A resident despawned while
+## still bound frees both; another kind can take the slot, and the next resident then reuses the
+## typed row under a DIFFERENT slot at the SAME generation. A generation-only binding would read
+## the previous tenant's household, care and willingness as the new resident's. Every reader,
+## mutator, recovery path and column validator therefore compares (slot, generation).
+## Payload: 19720 household bytes + 28680 dependent bytes = 48400 (`payload_bytes()` re-derives
 ## it from the columns). No scratch is allocated: the 5632-byte selection scratch belongs to the
 ## care-selection pass, which is held at gate 6 and is not built.
 ##
@@ -156,12 +162,14 @@ var _h_member_slot: PackedInt32Array = PackedInt32Array()
 var _h_member_generation: PackedInt32Array = PackedInt32Array()
 var _next_household_id: int = NEXT_HOUSEHOLD_ID_INITIAL
 
-# --- per-resident dependent/provider columns (FAMILY-STATE-R01, 26632 bytes) -------------------
+# --- per-resident dependent/provider columns (FAMILY-STATE-R01 + decision 0996, 28680 bytes) ---
 
 var _d_present: PackedByteArray = PackedByteArray()
 var _d_care_eligible: PackedByteArray = PackedByteArray()
 var _d_warning_bits: PackedByteArray = PackedByteArray()
 var _d_willing: PackedByteArray = PackedByteArray()
+## The bound resident's directory EntityRef, as a (slot, generation) pair of columns.
+var _d_resident_slot: PackedInt32Array = PackedInt32Array()
 var _d_resident_generation: PackedInt32Array = PackedInt32Array()
 var _d_household_row: PackedInt32Array = PackedInt32Array()
 var _d_household_generation: PackedInt32Array = PackedInt32Array()
@@ -205,7 +213,7 @@ func _allocate_columns() -> void:
 	_h_member_generation.resize(MEMBER_CAPACITY)
 	for column: PackedByteArray in [_d_present, _d_care_eligible, _d_warning_bits, _d_willing]:
 		column.resize(RESIDENT_CAPACITY)
-	for column: PackedInt32Array in [_d_resident_generation, _d_household_row,
+	for column: PackedInt32Array in [_d_resident_slot, _d_resident_generation, _d_household_row,
 			_d_household_generation, _d_preferred_0, _d_preferred_1, _d_care, _d_provider_slot,
 			_d_provider_generation, _d_service_paired_ticks, _d_provider_served_ticks_today]:
 		column.resize(RESIDENT_CAPACITY)
@@ -233,6 +241,7 @@ func _clear_dependent_row(row: int) -> void:
 	_d_care_eligible[row] = 0
 	_d_warning_bits[row] = 0
 	_d_willing[row] = 0
+	_d_resident_slot[row] = NULL_SLOT
 	_d_resident_generation[row] = NULL_GENERATION
 	_d_household_row[row] = NULL_ROW
 	_d_household_generation[row] = NULL_GENERATION
@@ -330,15 +339,16 @@ func _row_of_ref(ref: Vector2i) -> int:
 func _bound_row_into(ref: Vector2i, out: IntMath.IntResult) -> bool:
 	"""Resolve a ref to the row bound to THIS resident (dead or alive) into `out`, or refuse.
 
-	The stored binding generation must equal the ref's: a row still bound to a previous tenant
-	of the same typed row is refused as STALE, never read as the new resident's.
+	The stored binding ref -- slot AND generation -- must equal the ref's: a row still bound to a
+	previous tenant of the same typed row is refused as STALE, never read as the new resident's,
+	even when that tenant's directory slot carried the same generation (decision 0996).
 	"""
 	var row: int = _row_of_ref(ref)
 	if row == NULL_ROW:
 		return out.refuse(REFUSE_RESIDENT_INVALID)
 	if _d_present[row] == 0:
 		return out.refuse(REFUSE_NOT_BOUND)
-	if _d_resident_generation[row] != ref.y:
+	if _bound_ref_of(row) != ref:
 		return out.refuse(REFUSE_STALE_BINDING)
 	return out.succeed(row)
 
@@ -352,9 +362,14 @@ func _bound_living_row(ref: Vector2i, out: IntMath.IntResult) -> bool:
 	return true
 
 
+func _bound_ref_of(row: int) -> Vector2i:
+	"""The directory EntityRef a row is bound to, (slot, generation); NULL_REF when unbound."""
+	return Vector2i(_d_resident_slot[row], _d_resident_generation[row])
+
+
 func _binding_is_current(row: int) -> bool:
-	"""True when a bound row's stored generation is its present tenant's directory generation."""
-	return _d_present[row] == 1 and _d_resident_generation[row] == _residents.ref_of(row).y
+	"""True when a bound row's stored EntityRef is its present tenant's whole directory ref."""
+	return _d_present[row] == 1 and _bound_ref_of(row) == _residents.ref_of(row)
 
 
 func _is_provider_stage(row: int) -> bool:
@@ -383,10 +398,11 @@ func bind_resident_into(ref: Vector2i, out: IntMath.IntResult) -> bool:
 	if row == NULL_ROW:
 		return out.refuse(REFUSE_RESIDENT_INVALID)
 	if _d_present[row] == 1:
-		return out.refuse(REFUSE_ALREADY_BOUND if _d_resident_generation[row] == ref.y
+		return out.refuse(REFUSE_ALREADY_BOUND if _bound_ref_of(row) == ref
 			else REFUSE_STALE_BINDING)
 	_clear_dependent_row(row)
 	_d_present[row] = 1
+	_d_resident_slot[row] = ref.x
 	_d_resident_generation[row] = ref.y
 	if _residents.life_stage_code_of(row) == STAGE_CHILD:
 		_d_care[row] = CARE_INITIAL_CHILD
@@ -893,9 +909,9 @@ func payload_bytes() -> int:
 	for column: PackedByteArray in [_d_present, _d_care_eligible, _d_warning_bits, _d_willing]:
 		total += column.size()
 	for column: PackedInt32Array in [_h_generation, _h_persistent_id, _h_member_count,
-			_h_member_slot, _h_member_generation, _d_resident_generation, _d_household_row,
-			_d_household_generation, _d_preferred_0, _d_preferred_1, _d_care, _d_provider_slot,
-			_d_provider_generation, _d_service_paired_ticks, _d_provider_served_ticks_today]:
+			_h_member_slot, _h_member_generation]:
+		total += column.size() * 4
+	for column: PackedInt32Array in _i32_resident_columns():
 		total += column.size() * 4
 	return total
 
@@ -927,6 +943,7 @@ class Columns:
 	var d_care_eligible: PackedByteArray = PackedByteArray()
 	var d_warning_bits: PackedByteArray = PackedByteArray()
 	var d_willing: PackedByteArray = PackedByteArray()
+	var d_resident_slot: PackedInt32Array = PackedInt32Array()
 	var d_resident_generation: PackedInt32Array = PackedInt32Array()
 	var d_household_row: PackedInt32Array = PackedInt32Array()
 	var d_household_generation: PackedInt32Array = PackedInt32Array()
@@ -953,14 +970,15 @@ class Columns:
 			column.resize(RESIDENT_CAPACITY)
 		d_care_remainder.resize(RESIDENT_CAPACITY)
 		h_member_slot.fill(NULL_SLOT)
+		d_resident_slot.fill(NULL_SLOT)
 		d_household_row.fill(NULL_ROW)
 		d_provider_slot.fill(NULL_SLOT)
 
 	func i32_resident_columns() -> Array[PackedInt32Array]:
-		"""The ten 512-row int32 columns, in declaration order."""
-		return [d_resident_generation, d_household_row, d_household_generation, d_preferred_0,
-			d_preferred_1, d_care, d_provider_slot, d_provider_generation, d_service_paired_ticks,
-			d_provider_served_ticks_today]
+		"""The eleven 512-row int32 columns, in declaration order."""
+		return [d_resident_slot, d_resident_generation, d_household_row, d_household_generation,
+			d_preferred_0, d_preferred_1, d_care, d_provider_slot, d_provider_generation,
+			d_service_paired_ticks, d_provider_served_ticks_today]
 
 
 static func _columns_shaped(c: Columns) -> bool:
@@ -1025,10 +1043,10 @@ func copy_columns_into(out: Columns) -> bool:
 
 
 func _i32_resident_columns() -> Array[PackedInt32Array]:
-	"""This store's ten 512-row int32 columns, in the same order as Columns'."""
-	return [_d_resident_generation, _d_household_row, _d_household_generation, _d_preferred_0,
-		_d_preferred_1, _d_care, _d_provider_slot, _d_provider_generation, _d_service_paired_ticks,
-		_d_provider_served_ticks_today]
+	"""This store's eleven 512-row int32 columns, in the same order as Columns'."""
+	return [_d_resident_slot, _d_resident_generation, _d_household_row, _d_household_generation,
+		_d_preferred_0, _d_preferred_1, _d_care, _d_provider_slot, _d_provider_generation,
+		_d_service_paired_ticks, _d_provider_served_ticks_today]
 
 
 func restore_columns_into(candidate: Columns, clock: SimClockScript,
@@ -1075,7 +1093,7 @@ static func columns_refusal(c: Columns, residents: ResidentsScript, world_day: i
 	"""Pure validation of a whole image against a Residents store and a world day. "" accepts.
 
 	Lengths, schema version, scalar ranges, every canonical unused value, unique household IDs,
-	ascending living members, two-sided membership, the resident binding and its generation,
+	ascending living members, two-sided membership, the resident binding's whole EntityRef,
 	stage restrictions, care/remainder/latch consistency, preferences and provider references
 	and their uniqueness. Mutates nothing.
 	"""
@@ -1202,7 +1220,7 @@ static func _dependent_row_refusal(c: Columns, residents: ResidentsScript,
 		return REFUSE_COLUMN_BINDING
 	if c.d_present[row] == 0:
 		return REFUSE_NONE if _dependent_row_unused(c, row) else REFUSE_COLUMN_UNUSED
-	if c.d_resident_generation[row] != residents.ref_of(row).y:
+	if Vector2i(c.d_resident_slot[row], c.d_resident_generation[row]) != residents.ref_of(row):
 		return REFUSE_COLUMN_BINDING
 	if c.d_care_eligible[row] > 1 or c.d_willing[row] > 1:
 		return REFUSE_COLUMN_LATCH
@@ -1220,6 +1238,7 @@ static func _dependent_row_refusal(c: Columns, residents: ResidentsScript,
 static func _dependent_row_unused(c: Columns, row: int) -> bool:
 	"""True when an unbound row holds FAMILY-STATE-R01's canonical unused value everywhere."""
 	return c.d_care_eligible[row] == 0 and c.d_warning_bits[row] == 0 and c.d_willing[row] == 0 \
+		and c.d_resident_slot[row] == NULL_SLOT \
 		and c.d_resident_generation[row] == NULL_GENERATION \
 		and c.d_household_row[row] == NULL_ROW and c.d_household_generation[row] == 0 \
 		and c.d_preferred_0[row] == 0 and c.d_preferred_1[row] == 0 and c.d_care[row] == 0 \

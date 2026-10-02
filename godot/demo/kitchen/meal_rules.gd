@@ -371,6 +371,20 @@ static func waits(dish: int) -> bool:
 	return not DISH_WAITS[dish].is_empty()
 
 
+static func is_everyday_dish(dish: int) -> bool:
+	"""Whether `dish` is one the kitchen cooks for an ordinary meal now: served at breakfast or supper (not a drink, not
+	an occasion's course alone) and waiting for no ingredient. "Every dish on the table" counts these (decision 0902)."""
+	return dish >= 0 and dish < DISH_COUNT and is_meal_dish(dish) and not waits(dish)
+
+
+static func everyday_dish_count() -> int:
+	"""How many everyday dishes the book holds (`is_everyday_dish`)."""
+	var n: int = 0
+	for dish: int in DISH_COUNT:
+		n += 1 if is_everyday_dish(dish) else 0
+	return n
+
+
 static func dish_for_meal(meal: int) -> int:
 	"""The meal's first dish, cooked when nothing is (ruling 1's: porridge at breakfast, soup at supper)."""
 	return DISH_PORRIDGE if meal == MEAL_BREAKFAST else DISH_SOUP

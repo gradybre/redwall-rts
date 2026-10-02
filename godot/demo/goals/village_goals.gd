@@ -46,6 +46,10 @@ const COUNT: int = BookScript.UNIT_COUNT
 const MILLI: int = BookScript.UNIT_MILLI
 const DAYS: int = BookScript.UNIT_DAYS
 const FLAG: int = BookScript.UNIT_FLAG
+## A part's target that is the recipe book's count of everyday dishes (meal_rules.gd `everyday_dish_count`), read when the
+## goals are registered: "Every dish on the table" follows the book as dishes are added, as decision 0781 ruled, and counts
+## no occasion's course, drink or dish still waiting for an ingredient (decision 0902).
+const EVERYDAY_DISHES: int = -1
 
 const GOALS: Array = [
 	[&"m1_settled_hearth", MILESTONE, "M1 Settled Hearth",
@@ -79,8 +83,8 @@ const GOALS: Array = [
 		[[&"harvested", "Harvested into store", 40000, MILLI, M_HARVESTED]]],
 	[&"every_dish", VILLAGE, "Every dish on the table",
 		"Porridge wants grain, soup wants roots and the fish stew a catch from the stream: a village that can cook them all is not at the mercy of one crop.",
-		"each of the kitchen's dishes has been cooked.",
-		[[&"dishes", "Dishes cooked", Rules.DISH_COUNT, COUNT, M_DISHES]]],
+		"each of the kitchen's everyday dishes has been cooked.",
+		[[&"dishes", "Everyday dishes cooked", EVERYDAY_DISHES, COUNT, M_DISHES]]],
 	[&"full_table", VILLAGE, "A table for everyone",
 		"Supper is when the village gathers. Everyone eating a cooked portion means the harvest, the water butt, the woodpile and the cook all came together.",
 		"every resident ate a cooked supper.",
@@ -133,7 +137,8 @@ func register_all(book: BookScript) -> int:
 		for spec: Array in row[5] as Array:
 			var kind: int = int(spec[4])
 			var measure: Callable = value.bind(kind) if kind != M_NONE else Callable()
-			parts.append(BookScript.part(StringName(spec[0]), String(spec[1]), int(spec[2]), int(spec[3]), measure))
+			var target: int = Rules.everyday_dish_count() if int(spec[2]) == EVERYDAY_DISHES else int(spec[2])
+			parts.append(BookScript.part(StringName(spec[0]), String(spec[1]), target, int(spec[3]), measure))
 		if book.register(StringName(row[0]), String(row[2]), String(row[3]), parts, int(row[1]), String(row[4])).is_empty():
 			taken += 1
 	return taken

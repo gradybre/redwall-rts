@@ -217,7 +217,8 @@ func test_the_built_in_goals_are_the_gdds_milestones_then_the_village_goals() ->
 	var fuel: BookScript.Part = book.part_of(&"m4_hearth_charter", &"fuel")
 	assert_equal([fuel.target, fuel.unit, fuel.is_measured()], [18000, BookScript.UNIT_DAYS, false], "M4 fuel>=18 days")
 	assert_equal(book.part_of(&"m3_deep_roots", &"food_days").target, 8000, "M3 food-days>=8")
-	assert_equal(book.part_of(&"every_dish", &"dishes").target, Rules.DISH_COUNT, "every dish the kitchen has")
+	assert_equal(book.part_of(&"every_dish", &"dishes").target, Rules.everyday_dish_count(),
+		"every everyday dish the book holds (decision 0902)")
 	for goal: BookScript.Goal in book.goals:
 		assert_false(goal.why.is_empty() or goal.said.is_empty(), "%s has a why and a line" % goal.id)
 	for k: int in 4:
@@ -320,10 +321,19 @@ func test_the_ledger_counts_portions_and_dishes_from_the_kitchens_log() -> void:
 	_cook(kitchen, Rules.DISH_SOUP)
 	_cook(kitchen, Rules.NO_DISH)
 	ledger.observe(kitchen, 9, null, LATE)
-	assert_equal(ledger.dishes_cooked(), 3, "the everyday three: the feast's hotpot not yet")
+	assert_equal(ledger.dishes_cooked(), 3, "porridge, stew and soup")
 	_cook(kitchen, Rules.DISH_BEAN_HOTPOT)
 	ledger.observe(kitchen, 9, null, LATE)
-	assert_equal(ledger.dishes_cooked(), Rules.DISH_COUNT, "every dish, the feast's hotpot with them (decision 0781)")
+	assert_equal(ledger.dishes_cooked(), 4, "the hotpot: an everyday supper dish too (decision 0601)")
+	_cook(kitchen, Rules.DISH_ROOT_PIE)
+	_cook(kitchen, Rules.DISH_CORDIAL)
+	ledger.observe(kitchen, 9, null, LATE)
+	assert_equal(ledger.dishes_cooked(), 4, "a dish still waiting and a drink are not counted (decision 0902)")
+	for dish: int in Rules.DISH_COUNT:
+		_cook(kitchen, dish)
+	ledger.observe(kitchen, 9, null, LATE)
+	assert_equal(ledger.dishes_cooked(), Rules.everyday_dish_count(), "every everyday dish (decisions 0781, 0902)")
+	assert_true(Rules.everyday_dish_count() < Rules.DISH_COUNT, "fewer than the book's every row")
 
 
 func _tally(kitchen: KitchenScript, key: int, ate: int) -> void:

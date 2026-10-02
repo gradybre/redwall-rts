@@ -315,11 +315,14 @@ func test_holding_reserves_the_food_and_wood_and_skipping_gives_them_back() -> v
 	assert_equal(rig.kitchen.plan_of(Rules.feast_key(day))[0], MealRules.DISH_BEAN_HOTPOT, "planned as bean hotpot")
 	assert_true(r.refusal(day, 2, true).contains("already"), "once a season: no second plan")
 	assert_equal(r.skip(), "", "skipped")
-	assert_equal(r.free_beans(), 8000, "the beans back")
-	assert_equal(r.free_cabbage(), 8000, "the cabbage back")
 	assert_equal(_services.stores.wood_milli_u, wood, "the wood back")
 	assert_equal(rig.kitchen.occasion_key, KitchenScript.FREE, "no occasion")
-	assert_true(rig.kitchen.plan_of(Rules.feast_key(day))[0] != MealRules.DISH_BEAN_HOTPOT, "the supper back to the alternation")
+	# The supper goes back to the cook's own choice, which may be the hotpot: since the recipe book it is an everyday
+	# supper dish as well (decision 0601), so the kitchen may hold some beans and greens for it again -- its own.
+	var plan: PackedInt32Array = rig.kitchen.plan_of(Rules.feast_key(day))
+	var own: int = plan[3] * 2000 if plan[0] == MealRules.DISH_BEAN_HOTPOT else 0
+	assert_equal(r.free_beans(), 8000 - own, "the beans back, but the everyday supper's own")
+	assert_equal(r.free_cabbage(), 8000 - own, "the cabbage back, but the everyday supper's own")
 	assert_true(r.skip().contains("skipped"), "skipped already")
 	assert_true(r.target_season() > Rules.FIRST_SEASON, "this season is done: the next one's is next")
 

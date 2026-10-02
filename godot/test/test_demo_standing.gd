@@ -30,7 +30,6 @@ const FarmCrewScript := preload("res://demo/farm/farm_crew.gd")
 const FarmJobs := preload("res://demo/farm/farm_jobs.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
-const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const PlacesScript := preload("res://demo/kitchen/kitchen_places.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
@@ -219,8 +218,8 @@ func test_the_goods_are_read_from_the_catalog() -> void:
 	assert_equal(Kinds.title(Kinds.KIND_PLANKS, -1, 20000), "Keep 20.0 U of planks", "the brief's example")
 	assert_equal(Kinds.title(Kinds.KIND_MEALS, -1, 3000), "Keep 3.0 days of meals", "the brief's example")
 	assert_true(CropGoal.is_meal_crop(CARROT) and CropGoal.is_meal_crop(WHEAT), "roots and grain feed a dish")
-	assert_false(CropGoal.is_meal_crop(PEA), "no everyday dish takes peas: only the feast's hotpot")
-	assert_true(MealRules.is_input(MealRules.DISH_BEAN_HOTPOT, PEA), "the hotpot does take them")
+	assert_true(CropGoal.is_meal_crop(PEA), "peas feed the bean hotpot, an everyday supper dish (decision 0601)")
+	assert_false(CropGoal.is_meal_crop(Catalog.ITEM_FLOUR), "flour is no crop")
 
 
 func test_adding_refuses_with_words() -> void:
@@ -598,12 +597,13 @@ func test_the_hour_never_keeps_a_built_in_order() -> void:
 
 
 func test_only_a_food_crop_is_urgent_and_only_under_two_food_days() -> void:
-	"""REQ-SET-113: a crop a dish takes is urgent below 2.000 food-days, not at it; a crop no everyday dish takes (peas: only the feast's hotpot) never is."""
+	"""REQ-SET-113: a crop an everyday dish takes is urgent below 2.000 food-days, not at it; what is no crop never is."""
 	var days: Array[int] = [1999]
 	var goal := CropGoal.new(FarmCrewScript.new(), SimScript.new(), PantryScript.new(StorageScript.new(Vector2.ZERO)),
 		func() -> int: return days[0])
 	assert_true(goal.urgent(CARROT), "roots under two days")
-	assert_false(goal.urgent(PEA), "peas never")
+	assert_true(goal.urgent(PEA), "peas too: the hotpot's")
+	assert_false(goal.urgent(Catalog.ITEM_FLOUR), "no crop: never")
 	days[0] = 2000
 	assert_false(goal.urgent(CARROT), "two days exactly: ordinary")
 

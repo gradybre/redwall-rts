@@ -535,7 +535,6 @@ func _adopt_occasion(s: int) -> void:
 	takes.keep_fetched(pantry, _slot_take[s], _larder_take)
 	takes.release(_slot_take[s])
 	_slot_take[s] = occasion_take
-	_slot_prefer[s] = occasion_dish
 	_slot_dish[s] = occasion_dish
 
 
@@ -556,8 +555,7 @@ func clear_occasion() -> void:
 		takes.keep_fetched(pantry, _slot_take[s], _larder_take)
 		takes.release(_slot_take[s])
 		_slot_take[s] = takes.new_take()
-		_slot_prefer[s] = Rules.dish_for_meal(_slot_key[s] % 2)
-		_slot_dish[s] = _choose_dish(_slot_prefer[s])
+		_slot_dish[s] = _choose_dish(s)
 		_slot_wanted[s] = _wanted(s)
 		_top_up(s, _hour_seen)
 	occasion_take = 0

@@ -24,6 +24,7 @@ const BED_LOAM: int = 0
 const BED_RADISH: int = 3
 const SITE_1: int = Catalog.GARDEN_FIRST
 const RADISH: int = 0
+const WHEAT: int = 13
 const COOK: int = 1
 const OTHER: int = 0
 
@@ -182,3 +183,19 @@ func test_the_soil_plans_offer_a_garden_bed_only_once_laid() -> void:
 	planner._plans_key[0] = -1
 	planner.refresh()
 	assert_true(planner._bed_buttons[SITE_1].visible, "laid out: its button")
+
+
+func test_the_crew_reaches_every_south_field_tile_and_a_garden_bed() -> void:
+	"""Each tile of the south field (and a laid garden bed) is sown by the routine crew walking there: none is boxed in."""
+	var farm := _farm()
+	farm.crew.set_crew(PackedInt32Array([OTHER]))
+	farm.select_bed(SITE_1)
+	farm.lay_out_garden_bed()
+	var beds: Array[int] = [SITE_1]
+	for k: int in Catalog.SOUTH_BEDS:
+		beds.append(Catalog.SOUTH_FIRST + k)
+	for bed: int in beds:
+		farm.sim.choose(bed, WHEAT)
+		farm.crew.order(JobsScript.KIND_SOW, bed, PackedInt32Array([OTHER]), JobsScript.ORIGIN_PLAYER)
+		assert_true(_run(farm, 60.0, func() -> bool: return farm.sim.stage_of(bed) != SimScript.STAGE_EMPTY),
+			"bed %d sown" % (bed + 1))

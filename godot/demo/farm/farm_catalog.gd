@@ -231,8 +231,8 @@ const BED_SOILS: Array[int] = [
 ## tiles are not walking obstacles (the six world beds are). Checked clear of every obstacle (test_demo_sowing.gd).
 const SOUTH_FIRST: int = 6
 const SOUTH_BEDS: int = 6
-const SOUTH_AT: Array[Vector2] = [Vector2(13.4, 12.3), Vector2(15.4, 12.3), Vector2(17.4, 12.3), Vector2(13.4, 14.3),
-	Vector2(15.4, 14.3), Vector2(17.4, 14.3)]
+const SOUTH_AT: Array[Vector2] = [Vector2(12.6, 12.3), Vector2(14.6, 12.3), Vector2(16.6, 12.3), Vector2(12.6, 14.3),
+	Vector2(14.6, 14.3), Vector2(16.6, 14.3)]
 ## THE KITCHEN GARDEN'S SITES (review ECO-004 and feature #48; decision 0883). Four places for small garden beds on the
 ## open ground across the east road from the kitchen, between the square and the covered store, around a cross of
 ## garden paths: the player LAYS OUT a bed on any of them (farm_garden.gd), and a site nobody has laid out grows

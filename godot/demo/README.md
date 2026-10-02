@@ -53,8 +53,9 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   plant's card atlases, the woods' stumps, saplings and tree splits (about 0.13 s on the Mac, timed in
   its `report`) -- and the clock starts only once the first three frames are drawn, and then two frames
   of the underground view with a sample of everything it can show (decision 0206), two of the canopy's
-  fade and the selected residents' silhouette, and two of the frost and snow overlay on the village
-  (decision 0301), so a first fade, a first selection under a crown and a first frost cost no compile. While the banner
+  fade and the selected residents' silhouette, two of the frost and snow overlay on the village
+  (decision 0301) and two of the night's light (decision 0541), so a first fade, a first selection under a crown, a
+  first frost and a first dusk cost no compile. While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
 
@@ -1867,6 +1868,56 @@ wheel: a demo simplification); the beds' water changes at midnight.
   empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop.
 - **The Water service map layer** colours each bed by its service.
 
+## Day and night (decision 0541)
+
+The world's light follows the demo calendar (`world/day_night.gd`). Everything tunable is in one data file,
+`world/daylight_curves.gd`. It holds named curves (the light's energy and colour, its shadow, the ambient, the sky, the
+haze, saturation, exposure, the lamps), each given at four keys: NIGHT, DAWN, DAY and DUSK. `world/daylight.gd` samples
+the curves, allocating nothing.
+
+- **The hours are the GDD's §5.10 daylight.** Spring is 06:00-19:00: dawn 05:00-07:00 (sunrise in its middle), dusk
+  19:00-21:00, night from 21:00. Summer (05:00-21:00), autumn (07:00-18:00) and winter (08:00-16:00) shift the windows.
+  Every window lies inside its day, so the change of season at midnight shows nothing. Neither the GDD nor the calendar
+  gives the sun's height, so its peak stays the same all year.
+- **One light, the sun by day and the moon by night.** By day it is the sun on its arc: east at sunrise, due south in the
+  middle of the daylight, west at sunset, and never lower than 12°. By night it is a soft blue moon from the south-west.
+  The DAY key is the world's own reviewed look (decision 0301's values exactly; a test holds it to `world_look.gd`).
+  The shadow fades out over the dusk's first half and in over the dawn's second. From the middle of the dusk to the
+  middle of the dawn, while the light swings between the moon's and the sun's, the shadow pass is off.
+- **Night stays playable.** The ambient turns a moonlit blue of its own, the selection rings and marks are unshaded, and
+  the paths still read lighter than the grass. **Brighter nights** (Settings, Accessibility; also part of *Large
+  readable*) raises the night's ambient, moonlight and exposure, in proportion to how much night there is. Noon is
+  unchanged.
+- **The weather sits on top.** Rain, a storm (rain on a heavy-rain day), snow and an overcast dry hour of a wet day
+  each have a gloom (`weather/weather_view.gd gloom`). Gloom darkens the ambient and sky, greys the colours and softens
+  the shadow, whatever the hour. The rain's share still dims the light, and its haze adds to the hour's. The rain,
+  the snowflakes and the chimney smoke are unshaded, so they take the hour's tint and darken with the evening. The
+  smoke is tinted per chimney. Frost
+  and snow cover stay lit by the moon, pale blue at night.
+- **Night lights** (`world/night_lights.gd`): a pool of at most 8 shadowless omni lights on the surface layer, given to
+  the spots nearest the camera's focus. The spots are the five homes' doors (the hall, three residences, the kitchen)
+  and every standing tunnel mouth's lantern. The building models carry one baked material and no window slot, so homes
+  read lit by lamplight spilling from their fronts. Their windows do not glow. Which homes are lit is one query
+  (`set_home_lit`); without one, every home is lit at night. While the lamps are lit, the surface
+  environment's glow is on, so the lanterns' emissive glass blooms. The lamps flicker gently in real time while the
+  village runs, stand still while paused, and hold steady with reduced motion. The underground keeps its own pool of 32 (decision 0207).
+- **The underground is not touched.** The U view wears its own environment (decision 0206), which the cycle never
+  writes. The light and the night lights reach only the surface layers.
+- **How often.** The light is written:
+  - when the calendar has moved about a game minute (13 ticks);
+  - when the weather's eased look moves, at most every quarter second;
+  - when Brighter nights changes;
+  - when the season changes.
+
+  While paused, nothing is written.
+- **The prewarm** holds the boot's frames at noon (the shadow on), then draws two at midnight (the moon, no shadow
+  pass, the glow, the pool lit), then gives sunrise back. Neither the first shadowed morning nor the first dusk
+  compiles anything.
+- **The HUD's date trigger** wears a sun by day and a moon by night, drawn like the HUD's own line icons. The 3D
+  lighting never touches the UI skin.
+- Nothing here changes gameplay timing. The night routine (dusk 20:00, dawn 06:00), the hearths (19:00-07:00), the
+  songs' evening (19:00-22:00) and the kitchen keep their own hours.
+
 ## Songs (decision 0442)
 
 The otters sing, and teach their songs (`songs/`; review SOC-026, UX-030, UX-032). **Four short original songs**
@@ -1937,7 +1988,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 |---|---|
 | `demo_manifest.gd` | Reads the staged manifest |
 | `demo_clock.gd` | The presentation clock that follows the HUD's pause and speed |
-| `world/` | Terrain, lighting, village layout, points of interest |
+| `world/` | Terrain, lighting, village layout, points of interest; the day and night (the curves, their sampler, the cycle, the surface's night lights; decision 0541) |
 | `cast/` | The residents: body, clips, live tail, job routines, orders |
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `people/` | The cast's names and interests (`demo_people.json`, `people_book.gd`), the committed deeds, curation and affinity (`people_ledger.gd`, written by `people_taps.gd`), the spotlight, reflection, evening lines and inspector info (`demo_people.gd`), the inspector's person section and the offer card (decision 0491) |

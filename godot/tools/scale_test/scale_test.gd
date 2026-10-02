@@ -357,8 +357,9 @@ func _lift_unasked_pause() -> void:
 
 
 func _follow_routes() -> void:
-	"""Each resident's wait for a route: when it joins the desk's queue, and how long until it leaves it. Read from the
-	desk's queue itself (O(residents) a frame; route_desk.gd keeps no wait times of its own)."""
+	"""Each resident's wait for a route: when it joins the desk's queue -- or its plan is the desk's job, carried over
+	(route_desk.gd THE JOB, decision 1001) -- and how long until it leaves it. Read from the desk itself (O(residents) a
+	frame; route_desk.gd keeps no wait times of its own)."""
 	var desk: Object = _desk()
 	var queue: PackedInt32Array = desk.get("_queue")
 	var count: int = int(desk.get("_count"))
@@ -366,6 +367,9 @@ func _follow_routes() -> void:
 	for k: int in count:
 		if queue[k] >= 0 and queue[k] < _waiting_now.size():
 			_waiting_now[queue[k]] = 1
+	var owner: int = int(desk.get("job_owner"))
+	if owner >= 0 and owner < _waiting_now.size():
+		_waiting_now[owner] = 1
 	var now: int = virtual_usec
 	for who: int in _wait_since.size():
 		if _waiting_now[who] == 1 and _wait_since[who] < 0:
@@ -564,6 +568,16 @@ func behaviour() -> Dictionary:
 func bursts() -> Array:
 	"""The bursts reported apart (BURSTS)."""
 	return BURSTS
+
+
+func desk_counts() -> Dictionary:
+	"""The routing desk's own counts over the run (route_desk.gd; decisions 1001-1002): plans served late, windows that
+	ended with a plan carried over, the slices those plans took, the fields searched for shared goals, and the most a
+	window spent."""
+	var desk: Object = _desk()
+	var worker: Object = desk.get("worker")
+	return {"served": desk.get("served"), "jobs_carried": desk.get("jobs_carried"), "job_slices": desk.get("job_slices"),
+		"fields_built": worker.get("fields_built"), "max_window_us": desk.get("max_window_usec")}
 
 
 func route_waits_of(phase: int) -> PackedInt64Array:

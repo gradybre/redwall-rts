@@ -584,15 +584,17 @@ func _stock_menu(rig: Rig) -> void:
 
 
 func test_the_nut_loaf_is_the_gdds_row_and_an_occasion_dish() -> void:
-	"""§5.7's nut_loaf: flour 2 + nuts 2 + water 1 -> 3 x 2600 NP, 24 WU, 72 h; the library's nutbread; never in the
-	alternation; Shared Warmth is the Hearth row's -25% cold exposure and +400 mood for 48 h."""
+	"""§5.7's nut_loaf: flour 2 + nuts 2 + water 1 -> 3 x 2600 NP, 24 WU, 72 h; the library's nutbread; never the cook's
+	choice (the recipe book's OCCASION dish; the hotpot is an everyday supper dish too, decision 0601); Shared Warmth is the Hearth row's -25% cold exposure and +400 mood for 48 h."""
 	var loaf: int = MealRules.DISH_NUT_LOAF
 	assert_equal(MealRules.GDD_ROWS[loaf], "nut_loaf", "the GDD's row")
 	assert_equal([MealRules.INPUT_CROP[loaf], MealRules.SIDE_CROP[loaf]], [Catalog.CAT_FLOUR, Catalog.CAT_NUTS], "flour and nuts")
 	assert_equal([MealRules.INPUT_MILLI[loaf], MealRules.SIDE_MILLI[loaf], MealRules.WATER_MILLI[loaf]], [2000, 2000, 1000], "2, 2, 1")
 	assert_equal(MealRules.PORTIONS_PER_BATCH[loaf] * MealRules.NP_PER_PORTION[loaf], 7800, "3 x 2600 NP")
 	assert_equal([MealRules.WORK_MWU[loaf], MealRules.SHELF_HOURS[loaf]], [24000, 72], "24 WU, 72 h")
-	assert_true(MealRules.is_occasion_dish(loaf) and MealRules.is_occasion_dish(MealRules.DISH_BEAN_HOTPOT), "occasion dishes")
+	assert_true(MealRules.is_occasion_dish(loaf), "the nut loaf: an occasion dish")
+	assert_false(MealRules.is_occasion_dish(MealRules.DISH_BEAN_HOTPOT), "the hotpot is everyday too (decision 0601)")
+	assert_false(MealRules.is_meal_dish(loaf) or MealRules.is_everyday_dish(loaf), "never a meal's choice")
 	assert_false(MealRules.is_occasion_dish(MealRules.DISH_SOUP), "the soup is everyday")
 	assert_equal([Rules.BUFF_HOURS, Rules.BUFF_COLD_PERMILLE, Rules.BUFF_MOOD], [48, 750, 400], "Shared Warmth")
 

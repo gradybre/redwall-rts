@@ -56,6 +56,7 @@ const GDD_ROWS: Dictionary = {
 	"bean_hotpot": [[[FarmingScript.CROP_BEANS, 2000], [FarmingScript.CROP_CABBAGE, 2000]], 2000, 3, 2100, 20000, 36],
 	"woodland_pie": [[[Catalog.CAT_FLOUR, 2000], [Book.NEEDS, 2000], [FarmingScript.CROP_ROOTS, 1000]], 1000, 3, 2300,
 		30000, 48],
+	"nut_loaf": [[[Catalog.CAT_FLOUR, 2000], [Catalog.CAT_NUTS, 2000]], 1000, 3, 2600, 24000, 72],
 }
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -143,7 +144,7 @@ static func _many(species: String, n: int) -> PackedStringArray:
 func test_every_dish_is_cooked_as_its_gdd_row_exactly() -> void:
 	"""Each dish carries its §5.7 row's inputs (categories and milli-U), water, portions, NP, WU and shelf exactly."""
 	assert_equal(Rules.DISH_COUNT, Book.DISHES.size(), "a column per row")
-	assert_equal(Rules.DISH_COUNT, 19, "nineteen dishes: eight (0601) and eleven (0603)")
+	assert_equal(Rules.DISH_COUNT, 20, "twenty dishes: eight (0601), eleven (0603) and the feast's nut loaf (0682, 0902)")
 	assert_equal(GDD_ROWS.keys(), Book.ADOPTED_ROWS, "the adopted rows are the ones checked here")
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.ROW_ADOPTED[dish] == 0:
@@ -182,7 +183,8 @@ func test_every_dish_has_an_input_and_a_meal() -> void:
 	dish of no dish is none."""
 	for dish: int in Rules.DISH_COUNT:
 		assert_true(Rules.INPUT_N[dish] >= 1, "%s has an input" % Rules.DISH_NAMES[dish])
-		assert_true(Rules.is_meal_dish(dish) or Rules.DISH_MEAL[dish] == Book.DRINK, "a meal, or a drink")
+		assert_true(Rules.is_meal_dish(dish) or Rules.DISH_MEAL[dish] == Book.DRINK or Rules.is_occasion_dish(dish),
+			"a meal, a drink or an occasion's course")
 	assert_equal(Rules.other(Rules.NO_DISH), Rules.NO_DISH, "no dish")
 
 
@@ -248,7 +250,7 @@ func test_recipes_and_freshness_rank_as_the_gdd_says() -> void:
 	assert_true(Rules.same_recipe(Rules.DISH_PORRIDGE, Rules.DISH_BARLEYMEAL), "one recipe")
 	assert_false(Rules.same_recipe(Rules.DISH_SOUP, Rules.DISH_FISH_STEW), "two recipes")
 	assert_false(Rules.same_recipe(Rules.NO_DISH, Rules.DISH_SOUP), "no dish")
-	assert_equal(Rules.ROW_COUNT, 15, "four §5.7 rows of 0601, woodland_pie and ten drafts")
+	assert_equal(Rules.ROW_COUNT, 16, "four §5.7 rows of 0601, woodland_pie, ten drafts and nut_loaf")
 	assert_equal(Rules.FRESHEST_HOURS.slice(0, 8), PackedInt32Array([720, 240, 48, 720, 240, 240, 48, 144]),
 		"freshest input")
 	assert_true(Rules.fresher_first(Rules.DISH_FISH_STEW, Rules.DISH_BEAN_HOTPOT) < 0, "fish before greens")
@@ -651,21 +653,20 @@ func test_the_drafted_rows_are_decision_0603_s_table() -> void:
 
 
 func test_what_the_demo_cannot_make_waits_and_says_why() -> void:
-	"""The pasty and the scones wait for hazelnut, the woodland pie for mushroom (foragers' items, not yet in the
-	pantry), the root pie for potato and hazelnut, the cordial for raspberry and honey; everything else can be had."""
-	assert_equal(Rules.DISH_WAITS[Rules.DISH_PASTY], "needs hazelnut: gathered by foragers", "pasty")
-	assert_equal(Rules.DISH_WAITS[Rules.DISH_WOODLAND_PIE], "needs mushroom: gathered by foragers", "woodland pie")
-	assert_equal(Rules.DISH_WAITS[Rules.DISH_ROOT_PIE],
-		"needs potato: grown in the fields, not yet planted in the demo; needs hazelnut: gathered by foragers", "root pie")
-	assert_equal(Rules.DISH_WAITS[Rules.DISH_CORDIAL],
-		"needs raspberry: gathered by foragers; needs honey: made in beehives, not yet in the demo", "cordial")
+	"""The root pie waits for potato, the cordial for honey; the foragers' nuts, mushrooms and berries are in the pantry
+	(the library's hazelnut, mushroom and raspberry: decision 0902), so the pasty, the scones and the woodland pie can be
+	had; everything else can be had."""
+	assert_equal(Rules.DISH_WAITS[Rules.DISH_ROOT_PIE], "needs potato: grown in the fields, not yet planted in the demo",
+		"root pie")
+	assert_equal(Rules.DISH_WAITS[Rules.DISH_CORDIAL], "needs honey: made in beehives, not yet in the demo", "cordial")
 	for dish: int in [Rules.DISH_SOUP, Rules.DISH_OATCAKE, Rules.DISH_FARL, Rules.DISH_HARDTACK, Rules.DISH_SALAD,
-			Rules.DISH_BAKED_FISH, Rules.DISH_BISCUIT_SOUP]:
+			Rules.DISH_BAKED_FISH, Rules.DISH_BISCUIT_SOUP, Rules.DISH_PASTY, Rules.DISH_SCONES, Rules.DISH_WOODLAND_PIE,
+			Rules.DISH_NUT_LOAF]:
 		assert_false(Rules.waits(dish), "%s can be had" % Rules.DISH_NAMES[dish])
-	if Catalog.ITEM_KEYS.find(&"hazelnut") < 0:
-		assert_equal(Rules.input_selector(Rules.DISH_PASTY, 3), TakesScript.SELECT_ITEMS, "an item not yet defined: none")
-		assert_equal([Rules.FRESHEST_HOURS[Rules.DISH_PASTY], Rules.FRESHEST_HOURS[Rules.DISH_SCONES]], [144, 240],
-			"an input still to be defined does not count toward freshness (greens, flour)")
+	assert_true(TakesScript.matches(Rules.input_selector(Rules.DISH_PASTY, 3), Catalog.ITEM_NUTS)
+		and Rules.is_input(Rules.DISH_SCONES, Catalog.ITEM_NUTS), "the library's hazelnut: the foragers' nuts")
+	assert_true(Rules.is_input(Rules.DISH_WOODLAND_PIE, Catalog.ITEM_MUSHROOMS), "its mushroom: their mushrooms")
+	assert_true(Rules.is_input(Rules.DISH_CORDIAL, Catalog.ITEM_BERRIES), "its raspberry: their berries")
 	for dish: int in Rules.DISH_COUNT:
 		for input: Array in Book.DISHES[dish]["inputs"]:
 			for key: Variant in input[2]:
@@ -678,11 +679,11 @@ func test_the_kitchen_tab_and_the_recipes_list_the_waiting_dishes() -> void:
 	var kitchen := _kitchen(_many("mouse", 2), tick_at(0, 10), _pantry(), StoresScript.new())
 	var text: String = kitchen.waiting_text()
 	assert_true(text.begins_with("Waiting for ingredients:\n"), text)
-	for dish: int in [Rules.DISH_PASTY, Rules.DISH_ROOT_PIE, Rules.DISH_WOODLAND_PIE, Rules.DISH_SCONES, Rules.DISH_CORDIAL]:
+	for dish: int in [Rules.DISH_ROOT_PIE, Rules.DISH_CORDIAL]:
 		assert_true(text.contains(Words.waiting_line(dish)), Rules.DISH_NAMES[dish])
-	assert_equal(text.count("\n"), 5, "five waiting dishes")
+	assert_equal(text.count("\n"), 2, "two waiting dishes (the foragers' items in, decision 0902)")
 	var potato: String = kitchen.cookable_text(Catalog.ITEM_POTATO)
-	assert_true(potato.contains("Waiting (needs potato: grown in the fields, not yet planted in the demo; needs hazelnut: gathered by foragers): Turnip, potato and beetroot pie"),
+	assert_true(potato.contains("Waiting (needs potato: grown in the fields, not yet planted in the demo): Turnip, potato and beetroot pie"),
 		potato)
 	assert_true(potato.contains("Cookable (active): Togget's vegetable soup"), "a potato is roots for the soup")
 	assert_false(potato.contains("Raspberry cordial") or potato.contains("Hazelnut scones"),
@@ -708,13 +709,15 @@ func test_the_new_dishes_that_can_be_had_are_cooked() -> void:
 
 
 func test_a_drink_is_never_a_meal_and_the_guide_says_what_waits() -> void:
-	"""The cordial is a drink, never planned for a meal; the guide's pasty says what it waits for, the potato's entry
-	that nothing produces it yet, and flour's what cooks it now."""
+	"""The cordial is a drink and the nut loaf an occasion's course, never planned for a meal; the guide's root pie says
+	what it waits for, the potato's entry that nothing produces it yet, and flour's what cooks it now."""
 	assert_false(Rules.is_meal_dish(Rules.DISH_CORDIAL), "a drink")
 	for meal: int in 2:
 		assert_false(Rules.serves(Rules.DISH_CORDIAL, meal, true) or Rules.serves(Rules.DISH_CORDIAL, meal, false),
 			"the cordial serves no meal, its own or the other")
-		assert_false(Rules.serves(Rules.DISH_PASTY, Rules.MEAL_SUPPER, meal == 0), "a waiting dish serves none")
+		assert_false(Rules.serves(Rules.DISH_ROOT_PIE, Rules.MEAL_SUPPER, meal == 0), "a waiting dish serves none")
+		assert_false(Rules.serves(Rules.DISH_NUT_LOAF, meal, true) or Rules.serves(Rules.DISH_NUT_LOAF, meal, false),
+			"the feast's nut loaf serves no meal")
 	assert_true(Rules.serves(Rules.DISH_SALAD, Rules.MEAL_SUPPER, true), "the salad, supper's own")
 	assert_true(Rules.serves(Rules.DISH_SALAD, Rules.MEAL_BREAKFAST, false), "and breakfast's fallback")
 	assert_false(Rules.serves(Rules.DISH_SALAD, Rules.MEAL_BREAKFAST, true), "not breakfast's own")
@@ -725,14 +728,17 @@ func test_a_drink_is_never_a_meal_and_the_guide_says_what_waits() -> void:
 	for key: int in kitchen.planned_keys():
 		assert_true(kitchen.plan_of(key)[0] != Rules.DISH_CORDIAL, "never the cordial")
 	var guide := FieldGuideScript.new()
-	var pasty: FieldGuideScript.Entry = guide.entry(guide.index_of(&"dish_pasty"))
-	assert_true(pasty.requires.contains("Waiting: needs hazelnut: gathered by foragers."), pasty.requires)
+	var pie: FieldGuideScript.Entry = guide.entry(guide.index_of(&"dish_root_pie"))
+	assert_true(pie.requires.contains("Waiting: needs potato: grown in the fields, not yet planted in the demo."), pie.requires)
+	var loaf: FieldGuideScript.Entry = guide.entry(guide.index_of(&"dish_nut_loaf"))
+	assert_equal(loaf.summary, "Cooked for a feast", "the nut loaf's summary")
 	var cordial: FieldGuideScript.Entry = guide.entry(guide.index_of(&"dish_cordial"))
 	assert_equal(cordial.summary, "A drink", "the cordial's summary")
 	var potato: FieldGuideScript.Entry = guide.entry(guide.index_of(&"goods_potato"))
 	assert_equal(potato.summary, "Not yet in the demo", "the potato")
 	var flour: FieldGuideScript.Entry = guide.entry(guide.index_of(&"goods_flour"))
-	assert_true(flour.uses.contains("Haversack hardtack") and flour.uses.contains("Vegetable pasty (waiting)"), flour.uses)
+	assert_true(flour.uses.contains("Haversack hardtack") and flour.uses.contains("Vegetable pasty;")
+		and flour.uses.contains("Turnip, potato and beetroot pie (waiting)") and flour.uses.contains("Nutbread"), flour.uses)
 	assert_true(flour.links.has(&"dish_hardtack"), "flour links its dishes")
 	assert_true(potato.alternatives.contains("cook without it"), "the potato's dishes are not all waiting")
 	var trout: FieldGuideScript.Entry = guide.entry(guide.index_of(&"goods_trout"))

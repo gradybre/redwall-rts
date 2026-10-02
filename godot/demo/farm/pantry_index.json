@@ -3199,6 +3199,862 @@
      "use": "direct"
     }
    ]
+  },
+  {
+   "item_key": "nuts",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_hazelnut",
+    "LEAF_beechnut",
+    "LEAF_chestnut",
+    "LEAF_sweet_chestnut"
+   ],
+   "direct_count": 142,
+   "component_count": 463,
+   "dishes": [
+    {
+     "label": "Almond and chestnut slices with redcurrant preserve",
+     "id": "outcast::OUT_recipe_almond_and_chestnut_slices_with_redcurrant_preserve",
+     "use": "direct"
+    },
+    {
+     "label": "Autumn oat-and-nut cheese",
+     "id": "long_patrol::LP-RECIPE-autumn-nut-cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Baked sweet chestnuts",
+     "id": "mossflower::MF_recipe_baked_sweet_chestnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Beechnut crumble",
+     "id": "mossflower::MF_recipe_beechnut_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Beechnut scones",
+     "id": "salamandastron::SAL_recipe_beechnut_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Beechnut sponge",
+     "id": "marlfox::MF_RECIPE_beechnut_sponge",
+     "use": "direct"
+    },
+    {
+     "label": "Berry apple and hazelnut salad",
+     "id": "lord_brocktree::LB-RECIPE-berry-apple-and-hazelnut-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Blackcurrant pudding with peach beechnut and strawberry cream",
+     "id": "salamandastron::SAL_recipe_blackcurrant_pudding_with_peach_beechnut_and_strawberry_cream",
+     "use": "direct"
+    },
+    {
+     "label": "Broggle's nutfarls",
+     "id": "taggerung::TAG_recipe_broggle_s_nutfarls",
+     "use": "direct"
+    },
+    {
+     "label": "Cached winter nuts",
+     "id": "outcast::OUT_recipe_cached_winter_nuts",
+     "use": "direct"
+    },
+    {
+     "label": "Candied chestnuts",
+     "id": "lord_brocktree::LB-RECIPE-candied-chestnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Candied hazelnuts",
+     "id": "martin_warrior::MW_RECIPE_candied_hazelnuts",
+     "use": "direct"
+    },
+    {
+     "label": "Candied nuts",
+     "id": "long_patrol::LP-RECIPE-candied-nuts",
+     "use": "direct"
+    },
+    {
+     "label": "Celery and fennel stew with hazelnut dumplings",
+     "id": "mossflower::MF_recipe_celery_and_fennel_stew_with_hazelnut_dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Celery-chestnut bake",
+     "id": "taggerung::TAG_recipe_celery_chestnut_bake",
+     "use": "direct"
+    },
+    {
+     "label": "Chessberry flan",
+     "id": "pearls_lutra::PL_RECIPE_chessberry_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut ale",
+     "id": "martin_warrior::MW_RECIPE_chestnut_ale",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut and mushroom flan",
+     "id": "pearls_lutra::PL_RECIPE_chestnut_and_mushroom_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut bread",
+     "id": "mossflower::MF_recipe_chestnut_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut brown beer",
+     "id": "martin_warrior::MW_RECIPE_chestnut_brown_beer",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut mushroom and leek pastie",
+     "id": "salamandastron::SAL_recipe_chestnut_mushroom_and_leek_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut platter fragment",
+     "id": "pearls_lutra::PL_RECIPE_chestnut_platter_fragment",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut-barley bread",
+     "id": "rakkety_tam::RAK_recipe_chestnut_barley_bread",
+     "use": "direct"
+    },
+    {
+     "label": "Crystallized fruit and nuts",
+     "id": "mossflower::MF_recipe_crystallized_fruit_and_nuts",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-crusted hazelnut-mushroom loaf",
+     "id": "rakkety_tam::RAK_recipe_cheese_crusted_hazelnut_mushroom_loaf",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Brown nut cheese",
+     "id": "martin_warrior::MW_RECIPE_brown_nut_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Hazelnut cheese",
+     "id": "pearls_lutra::PL_RECIPE_hazelnut_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Strong old chestnut cheese",
+     "id": "pearls_lutra::PL_RECIPE_strong_old_chestnut_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of White hazelnut cheese",
+     "id": "pearls_lutra::PL_RECIPE_white_hazelnut_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Yellow chestnut and celery cheese",
+     "id": "pearls_lutra::PL_RECIPE_yellow_chestnut_and_celery_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Dried fruit and nuts",
+     "id": "mossflower::MF_recipe_dried_fruit_and_nuts",
+     "use": "direct"
+    },
+    {
+     "label": "Durral-style celebration cake with candied mint leaves",
+     "id": "pearls_lutra::PL_RECIPE_durral_s_seven_season_celebration_cake",
+     "use": "direct"
+    },
+    {
+     "label": "Filboonimgun cultured hazelnut wheel",
+     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Frutch's beech hazelnut and plum slice",
+     "id": "lord_brocktree::LB-RECIPE-frutch-s-beech-hazelnut-and-plum-slice",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Chestnut and dandelion beer",
+     "id": "lord_brocktree::LB-RECIPE-chestnut-and-buttercup-beer",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Damson and hazelnut flan with mintcream",
+     "id": "martin_warrior::MW_RECIPE_damson_and_hazelnut_flan_with_mintcream",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Damson flan with whiterose cream",
+     "id": "martin_warrior::MW_RECIPE_damson_flan_with_whiterose_cream",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Gerul and Arven's huge fruitcake",
+     "id": "pearls_lutra::PL_RECIPE_gerul_and_arven_s_huge_fruitcake",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Hazelnut cream pie",
+     "id": "pearls_lutra::PL_RECIPE_hazelnut_cream_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Light brown nutbread (liberation song)",
+     "id": "martin_warrior::MW_RECIPE_light_brown_nutbread_liberation_song",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "mushrooms",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_mushroom",
+    "LEAF_button_mushroom"
+   ],
+   "direct_count": 112,
+   "component_count": 10,
+   "dishes": [
+    {
+     "label": "Beetroot and mushroom pastie with leek gravy",
+     "id": "martin_warrior::MW_RECIPE_beetroot_and_mushroom_pastie_with_leek_gravy",
+     "use": "direct"
+    },
+    {
+     "label": "Bloggflash Special",
+     "id": "outcast::OUT_recipe_bloggflash_special",
+     "use": "direct"
+    },
+    {
+     "label": "Button mushroom and watershrimp pasties",
+     "id": "outcast::OUT_recipe_button_mushroom_and_watershrimp_pasties",
+     "use": "direct"
+    },
+    {
+     "label": "Button mushroom turnover with parsley",
+     "id": "martin_warrior::MW_RECIPE_button_mushroom_turnover_with_parsley",
+     "use": "direct"
+    },
+    {
+     "label": "Button-mushroom herb-sauce sandwich",
+     "id": "taggerung::TAG_recipe_button_mushroom_herb_sauce_sandwich",
+     "use": "direct"
+    },
+    {
+     "label": "Camp mushroom caps",
+     "id": "triss::TRI_recipe_camp_woodpigeons",
+     "use": "direct"
+    },
+    {
+     "label": "Camp mushroom pot",
+     "id": "rakkety_tam::RAK_recipe_half_stewed_unplucked_birds",
+     "use": "direct"
+    },
+    {
+     "label": "Camp mushroom skewers",
+     "id": "rakkety_tam::RAK_recipe_gulo_camp_woodpigeon",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and mushroom flan",
+     "id": "pearls_lutra::PL_RECIPE_carrot_and_mushroom_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot and mushroom pastie",
+     "id": "outcast::OUT_recipe_carrot_and_mushroom_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot mushroom and onion hotpot",
+     "id": "long_patrol::LP-RECIPE-carrot-mushroom-and-onion-hotpot",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot-mushroom bake with cultured hazelnut cheese",
+     "id": "triss::TRI_recipe_carrot_mushroom_bake_with_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Celery and mushroom turnover",
+     "id": "pearls_lutra::PL_RECIPE_celery_and_mushroom_turnover",
+     "use": "direct"
+    },
+    {
+     "label": "Cheese mushroom and leek bake",
+     "id": "outcast::OUT_recipe_cheese_mushroom_and_leek_bake",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut and mushroom flan",
+     "id": "pearls_lutra::PL_RECIPE_chestnut_and_mushroom_flan",
+     "use": "direct"
+    },
+    {
+     "label": "Chestnut mushroom and leek pastie",
+     "id": "salamandastron::SAL_recipe_chestnut_mushroom_and_leek_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Coastal roast mushroom caps",
+     "id": "taggerung::TAG_recipe_roasted_seabird",
+     "use": "direct"
+    },
+    {
+     "label": "Cream mushroom soup — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_cream_mushroom_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Creamy mushroom soup",
+     "id": "long_patrol::LP-RECIPE-creamy-mushroom-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured hazelnut cheese-crusted hazelnut-mushroom loaf",
+     "id": "rakkety_tam::RAK_recipe_cheese_crusted_hazelnut_mushroom_loaf",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety's vegetable sausages",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_vegetable_sausages",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety-inspired garden forager soup",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_forager_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Final-camp mushroom roast",
+     "id": "rakkety_tam::RAK_recipe_raw_nightjar",
+     "use": "direct"
+    },
+    {
+     "label": "Folrig and Ruddle's hotroot soup",
+     "id": "outcast::OUT_recipe_folrig_and_ruddle_s_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Forager's stew",
+     "id": "long_patrol::LP-RECIPE-forager-s-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Fully cooked mushroom skewers",
+     "id": "rakkety_tam::RAK_recipe_part_cooked_dove",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel stew",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Soft mushroom and oat cheese pasty",
+     "id": "lord_brocktree::LB-RECIPE-soft-mushroom-and-cheese-pasty",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Dead birds eaten by Monitors",
+     "id": "pearls_lutra::PL_RECIPE_dead_birds_eaten_by_monitors",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Iceberg survival soup",
+     "id": "pearls_lutra::PL_RECIPE_iceberg_survival_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Mushroom, cress and green-acorn soup",
+     "id": "martin_warrior::MW_RECIPE_mushroom_cress_and_green_acorn_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Roasted bird wing",
+     "id": "pearls_lutra::PL_RECIPE_roasted_bird_wing",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation: Skipper's expanded hotroot soup",
+     "id": "pearls_lutra::PL_RECIPE_skipper_s_expanded_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game pasty: leek, mushroom, oat pastry, watercress",
+     "id": "salamandastron::SAL_recipe_giant_leek_and_mushroom_pastie",
+     "use": "direct"
+    },
+    {
+     "label": "Game roast: mushroom, hazelnut oil",
+     "id": "salamandastron::SAL_recipe_camp_frogs_and_toads",
+     "use": "direct"
+    },
+    {
+     "label": "Guosim-style mussel and vegetable stew",
+     "id": "long_patrol::LP-RECIPE-guosim-prebattle-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Gurt tunnel stew",
+     "id": "lord_brocktree::LB-RECIPE-gurt-tunnel-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Hazelnut-mushroom-turnip casserole",
+     "id": "taggerung::TAG_recipe_hazelnut_mushroom_turnip_casserole",
+     "use": "direct"
+    },
+    {
+     "label": "Heartwood's watershrimp button mushroom and hotroot soup",
+     "id": "outcast::OUT_recipe_heartwood_s_watershrimp_button_mushroom_and_hotroot_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Hillside mushroom roast",
+     "id": "rakkety_tam::RAK_recipe_roasted_crow",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "herb",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_mint",
+    "LEAF_thyme",
+    "LEAF_sage",
+    "LEAF_rosemary"
+   ],
+   "direct_count": 128,
+   "component_count": 13,
+   "dishes": [
+    {
+     "label": "Apple and mint oat ice",
+     "id": "redwall::RW-RECIPE-apple-and-mint-ice-cream",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-mint cordial (proposed pennycloud alternative)",
+     "id": "marlfox::MF_RECIPE_apple_mint_cordial_proposed_pennycloud_alternative",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-raspberry flan with mint cream pattern — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_apple_raspberry_flan_with_mint_cream_pattern",
+     "use": "direct"
+    },
+    {
+     "label": "Barley and beet soup with corn dumplings",
+     "id": "long_patrol::LP-RECIPE-barley-and-beet-soup-with-corn-dumplings",
+     "use": "direct"
+    },
+    {
+     "label": "Blunn's stream-cooled cordial",
+     "id": "outcast::OUT_recipe_blunn_s_stream_cooled_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Borage and rosehip tea",
+     "id": "outcast::OUT_recipe_borage_and_rosehip_tea",
+     "use": "direct"
+    },
+    {
+     "label": "Brocktree's unnamed camp soup",
+     "id": "lord_brocktree::LB-RECIPE-brocktree-s-unnamed-camp-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Candied mintleaves",
+     "id": "martin_warrior::MW_RECIPE_candied_mintleaves",
+     "use": "direct"
+    },
+    {
+     "label": "Carrot mushroom and onion hotpot",
+     "id": "long_patrol::LP-RECIPE-carrot-mushroom-and-onion-hotpot",
+     "use": "direct"
+    },
+    {
+     "label": "Cavemob-style dace and herb pie",
+     "id": "taggerung::TAG_recipe_snakeyfish_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Charcoal-cooked fish",
+     "id": "long_patrol::LP-RECIPE-charcoal-cooked-fish",
+     "use": "direct"
+    },
+    {
+     "label": "Coastal mussel and cultivated-greens stew",
+     "id": "lord_brocktree::LB-RECIPE-doomeye-s-coastal-shield-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Cold mint springwater",
+     "id": "salamandastron::SAL_recipe_cold_mint_springwater",
+     "use": "direct"
+    },
+    {
+     "label": "Cold mint tea",
+     "id": "long_patrol::LP-RECIPE-cold-mint-tea",
+     "use": "direct"
+    },
+    {
+     "label": "Cold mint-dandelion tea",
+     "id": "taggerung::TAG_recipe_cold_mint_dandelion_tea",
+     "use": "direct"
+    },
+    {
+     "label": "Cooked fish ration",
+     "id": "long_patrol::LP-RECIPE-cooked-fish-ration",
+     "use": "direct"
+    },
+    {
+     "label": "Cooled onion-mint cereal broth",
+     "id": "triss::TRI_recipe_mock_seasickness_tonic",
+     "use": "direct"
+    },
+    {
+     "label": "Cornflower's homemade vegetable soup",
+     "id": "redwall::RW-RECIPE-cornflower-s-homemade-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Crabapple-mint cordial",
+     "id": "triss::TRI_recipe_crabapple_sweetwoodruff_tonic",
+     "use": "direct"
+    },
+    {
+     "label": "Creamy mushroom soup",
+     "id": "long_patrol::LP-RECIPE-creamy-mushroom-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cress-and-mint cordial",
+     "id": "taggerung::TAG_recipe_pennycress_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Cress-mint infusion",
+     "id": "triss::TRI_recipe_pennycress_comfrey_tea",
+     "use": "direct"
+    },
+    {
+     "label": "Cultivated watercress soup",
+     "id": "long_patrol::LP-RECIPE-pondweed-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Cultured oat-curd adaptation of Yellow sage cheese",
+     "id": "martin_warrior::MW_RECIPE_yellow_sage_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Dandelion-mint tea",
+     "id": "triss::TRI_recipe_dandelion_mint_tea",
+     "use": "direct"
+    },
+    {
+     "label": "Didjety-inspired garden forager soup",
+     "id": "rakkety_tam::RAK_recipe_didjety_s_forager_soup",
+     "use": "direct"
+    },
+    {
+     "label": "Early spring vegetable soup",
+     "id": "long_patrol::LP-RECIPE-early-spring-vegetable-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Feast herbal teas",
+     "id": "triss::TRI_recipe_feast_herbal_teas",
+     "use": "direct"
+    },
+    {
+     "label": "Filboonimgun cultured hazelnut wheel",
+     "id": "taggerung::TAG_recipe_filboonimgun_cheese",
+     "use": "direct"
+    },
+    {
+     "label": "Forager's stew",
+     "id": "long_patrol::LP-RECIPE-forager-s-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Fragrant herb tea",
+     "id": "rakkety_tam::RAK_recipe_fragrant_herb_tea",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh mackerel camp ration",
+     "id": "lord_brocktree::LB-RECIPE-poor-mackerel-ration",
+     "use": "direct"
+    },
+    {
+     "label": "Fresh-catch perch meal",
+     "id": "long_patrol::LP-RECIPE-scavenged-perch",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Captured mussel stock",
+     "id": "lord_brocktree::LB-RECIPE-captured-shrimp-stock",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Frutch's family mussel and hotroot soup",
+     "id": "lord_brocktree::LB-RECIPE-frutch-s-family-shrimp-and-hotroot-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Mint and lemon balm tea",
+     "id": "lord_brocktree::LB-RECIPE-mint-and-comfrey-tea",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Mixed woodland forage greens",
+     "id": "lord_brocktree::LB-RECIPE-mixed-woodland-forage-greens",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel soup",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-soup",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Pretended mussel stew",
+     "id": "lord_brocktree::LB-RECIPE-pretended-shrimp-stew",
+     "use": "direct"
+    },
+    {
+     "label": "Game adaptation — Remembered trout meal",
+     "id": "lord_brocktree::LB-RECIPE-remembered-grayling-meal",
+     "use": "direct"
+    }
+   ]
+  },
+  {
+   "item_key": "berries",
+   "leaf_id": "",
+   "targets": [
+    "LEAF_raspberry",
+    "LEAF_blackberry",
+    "LEAF_bilberry",
+    "LEAF_elderberry",
+    "LEAF_strawberry",
+    "LEAF_whortleberry"
+   ],
+   "direct_count": 176,
+   "component_count": 18,
+   "dishes": [
+    {
+     "label": "Abbey Trifle",
+     "id": "long_patrol::LP-RECIPE-abbey-trifle",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry crumble with arrowroot sauce",
+     "id": "outcast::OUT_recipe_apple_and_blackberry_crumble_with_arrowroot_sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry pie",
+     "id": "outcast::OUT_recipe_apple_and_blackberry_pie",
+     "use": "direct"
+    },
+    {
+     "label": "Apple and blackberry pudding",
+     "id": "martin_warrior::MW_RECIPE_apple_and_blackberry_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Apple blackberry and plum crumble with greensap maple sauce",
+     "id": "long_patrol::LP-RECIPE-apple-blackberry-and-plum-crumble-with-greensap-maple-sauce",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-blackberry crumble",
+     "id": "marlfox::MF_RECIPE_apple_and_blackberry_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-and-strawberry crumble",
+     "id": "marlfox::MF_RECIPE_apple_and_strawberry_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-raspberry flan with mint cream pattern — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_apple_raspberry_flan_with_mint_cream_pattern",
+     "use": "direct"
+    },
+    {
+     "label": "Apple-whortleberry pudding",
+     "id": "triss::TRI_recipe_apple_whortleberry_pudding",
+     "use": "direct"
+    },
+    {
+     "label": "Baked fruit loaf",
+     "id": "triss::TRI_recipe_baked_fruit_loaf",
+     "use": "direct"
+    },
+    {
+     "label": "Bat lilac-colored drink",
+     "id": "outcast::OUT_recipe_bat_lilac_colored_drink",
+     "use": "direct"
+    },
+    {
+     "label": "Beetroot and raspberry wine",
+     "id": "outcast::OUT_recipe_beetroot_and_raspberry_wine",
+     "use": "direct"
+    },
+    {
+     "label": "Berry and pear cellar wine",
+     "id": "lord_brocktree::LB-RECIPE-berry-and-pear-wine-with-herbal-essences",
+     "use": "direct"
+    },
+    {
+     "label": "Berry apple and hazelnut salad",
+     "id": "lord_brocktree::LB-RECIPE-berry-apple-and-hazelnut-salad",
+     "use": "direct"
+    },
+    {
+     "label": "Bilberries",
+     "id": "lord_brocktree::LB-RECIPE-bilberries",
+     "use": "direct"
+    },
+    {
+     "label": "Bilberry cordial",
+     "id": "taggerung::TAG_recipe_bilberry_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Bilberry redcurrant and apple tarts",
+     "id": "salamandastron::SAL_recipe_bilberry_redcurrant_and_apple_tarts",
+     "use": "direct"
+    },
+    {
+     "label": "Bilberry scones",
+     "id": "pearls_lutra::PL_RECIPE_bilberry_scones",
+     "use": "direct"
+    },
+    {
+     "label": "Bilberry tart",
+     "id": "salamandastron::SAL_recipe_bilberry_tart",
+     "use": "direct"
+    },
+    {
+     "label": "Bilberry-apple cordial",
+     "id": "rakkety_tam::RAK_recipe_bilberry_apple_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberries from glade",
+     "id": "marlfox::MF_RECIPE_blackberries_from_glade",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry and apple crumble",
+     "id": "mossflower::MF_recipe_blackberry_and_apple_crumble",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry and apple tarts",
+     "id": "martin_warrior::MW_RECIPE_blackberry_and_apple_tarts",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry and pear lattice tart",
+     "id": "outcast::OUT_recipe_blackberry_and_pear_lattice_tart",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry cordial",
+     "id": "martin_warrior::MW_RECIPE_blackberry_cordial",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry grog (ordinary beverage)",
+     "id": "martin_warrior::MW_RECIPE_blackberry_grog_ordinary_beverage",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry jelly (trifle ingredient)",
+     "id": "marlfox::MF_RECIPE_blackberry_jelly_trifle_ingredient",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry muffin",
+     "id": "redwall::RW-RECIPE-blackberry-muffin",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry muffins",
+     "id": "pearls_lutra::PL_RECIPE_blackberry_muffins",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry muffins soaked in warm honey",
+     "id": "mossflower::MF_recipe_blackberry_muffins_soaked_in_warm_honey",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry pies",
+     "id": "taggerung::TAG_recipe_blackberry_pies",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry pudding with meadowcream — plant/approved-fish game adaptation",
+     "id": "taggerung::TAG_recipe_blackberry_pudding_with_meadowcream",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry tart",
+     "id": "salamandastron::SAL_recipe_blackberry_tart",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry tarts",
+     "id": "long_patrol::LP-RECIPE-blackberry-tarts",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry wine",
+     "id": "taggerung::TAG_recipe_blackberry_wine",
+     "use": "direct"
+    },
+    {
+     "label": "Blackberry-filled scone",
+     "id": "marlfox::MF_RECIPE_blackberry_filled_scone",
+     "use": "direct"
+    },
+    {
+     "label": "Blackcurrant pudding with peach beechnut and strawberry cream",
+     "id": "salamandastron::SAL_recipe_blackcurrant_pudding_with_peach_beechnut_and_strawberry_cream",
+     "use": "direct"
+    },
+    {
+     "label": "Bowfleg's elderberry and plum wine",
+     "id": "outcast::OUT_recipe_bowfleg_s_elderberry_and_plum_wine",
+     "use": "direct"
+    },
+    {
+     "label": "Breakfast strawberry-honey burgoo",
+     "id": "taggerung::TAG_recipe_breakfast_strawberry_honey_burgoo",
+     "use": "direct"
+    },
+    {
+     "label": "Candied chestnut trifle with plant and approved-aquatic ingredients",
+     "id": "triss::TRI_recipe_candied_chestnut_trifle",
+     "use": "direct"
+    }
+   ]
   }
  ]
 }

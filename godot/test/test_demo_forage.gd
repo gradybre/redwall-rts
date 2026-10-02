@@ -155,7 +155,8 @@ func test_the_four_items_are_the_catalogues_keys_and_their_rows() -> void:
 	"""nuts, mushrooms, herb, berries: data/item_definitions.json's ids and shelf hours, each its own category; nuts and
 	berries raw edible at §5.7's 1600 and 700 NP, mushrooms and herb never; the forage store's patch rows map to them,
 	roots to none."""
-	assert_equal(Catalog.PANTRY_ITEM_COUNT, 28, "24 before, and four")
+	assert_equal(Catalog.PANTRY_ITEM_COUNT, 30, "24 before, the dishes' potato and honey, and four (decision 0902)")
+	assert_equal(Catalog.FIRST_FORAGE, Catalog.ITEM_HONEY + 1, "the forage after the dishes' two")
 	var keys: Array[StringName] = [Catalog.ITEM_KEYS[Catalog.ITEM_NUTS], Catalog.ITEM_KEYS[Catalog.ITEM_MUSHROOMS],
 		Catalog.ITEM_KEYS[Catalog.ITEM_HERB], Catalog.ITEM_KEYS[Catalog.ITEM_BERRIES]]
 	assert_equal(keys, [&"nuts", &"mushrooms", &"herb", &"berries"] as Array[StringName], "the catalogue's keys")
@@ -381,8 +382,9 @@ func test_a_full_store_holds_the_seat_until_there_is_room() -> void:
 
 
 func test_the_work_board_reads_the_seats() -> void:
-	"""Source 9 (the walk moved to 10), the Woods activity; a waiting seat queued, taken, then its states; its words."""
-	assert_equal(WorkIds.SOURCE_FORAGE, 9, "the next source")
+	"""Source 12 since the batch 7 integration (decision 0902: after the ferry, the food stores, the hall and the
+	infirmary; the walk after it), the Woods activity; a waiting seat queued, taken, then its states; its words."""
+	assert_equal(WorkIds.SOURCE_FORAGE, 12, "the source after the infirmary's")
 	assert_equal(WorkIds.SOURCE_WALK, WorkIds.SOURCE_COUNT, "a queued walk is past every source")
 	assert_equal(WorkIds.SOURCE_NAMES[WorkIds.SOURCE_FORAGE], "Foraging", "named")
 	var rig: Rig = _rig(2, 8)

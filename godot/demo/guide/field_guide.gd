@@ -344,7 +344,7 @@ static func _dishes_taking(item: int, links: Array[StringName]) -> String:
 
 
 func _forage_goods(item: int) -> Entry:
-	"""One of the woods' forage (decision 0681): nuts, mushrooms or herbs, gathered on a foraging trip."""
+	"""One of the woods' forage (decision 0681): nuts, mushrooms, herbs or berries, gathered on a foraging trip."""
 	var k: int = item - Catalog.FIRST_FORAGE
 	var raw: int = Rules.raw_np_per_u(item)
 	var links: Array[StringName] = [&"station_foraging", &"station_store"]
@@ -353,13 +353,13 @@ func _forage_goods(item: int) -> Entry:
 		uses.append("eaten raw by a hungry resident when a meal is missed (%d NP a unit)" % raw)
 	if item == Catalog.ITEM_NUTS or item == Catalog.ITEM_HERB:
 		links.append(&"occasion_regatta")
-	var entry: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], "Gathered in the woods",
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], "Gathered in the woods",
 		PackedStringArray(["; ".join(uses) + ".",
 		"A foraging trip (the Woods panel's Foraging) while they are in season; the woods' daily quota and their stock above its floor bound it.",
 		"The other kinds of the woods; the fields for everyday food.",
 		"Gathered at %s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k], Catalog.shelf_hours_of(item)]]), links)
-	entry.item = item
-	return entry
+	made.item = item
+	return made
 
 
 static func _forage_use(item: int, links: Array[StringName]) -> String:

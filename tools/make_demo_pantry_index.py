@@ -20,6 +20,8 @@ WHAT IS RESOLVED, exactly as the handoff's section 3 specifies:
     COMPONENT when a target is in the recursive closure (leaves and components) of one of its
     COMPONENT inputs (the handoff's `Leaves(v)` formula over `game_components[].dependencies`).
   * potato and honey (decision 0603: ingredients with no source yet) by their LEAF;
+  * the woods' forage (decision 0681: nuts, mushrooms, herb, berries) by the woodland leaves each stands for
+    (FORAGE_LEAVES: the batch 7 integration's demo selection, decision 0902 -- never nutmeg, a spice);
   * Salmon and carp have no pantry leaf (the library's fish leaves are dace, herring, mackerel,
     mussel, perch, trout and whitefish): they are listed with no targets and no dishes.
 
@@ -56,7 +58,17 @@ ITEM_KEYS = [
     "trout", "dace", "salmon", "perch", "carp", "whitefish",
     "dried_fish", "flour",
     "potato", "honey",
+    "nuts", "mushrooms", "herb", "berries",
 ]
+## The woods' forage (farm_catalog.gd THE WOODS' FORAGE): each item's pantry leaves, the demo's own selection of the
+## woodland's nuts, fungi, pot herbs and wild berries (decision 0902).
+FORAGE_LEAVES = {
+    "nuts": ["LEAF_hazelnut", "LEAF_beechnut", "LEAF_chestnut", "LEAF_sweet_chestnut"],
+    "mushrooms": ["LEAF_mushroom", "LEAF_button_mushroom"],
+    "herb": ["LEAF_mint", "LEAF_thyme", "LEAF_sage", "LEAF_rosemary"],
+    "berries": ["LEAF_raspberry", "LEAF_blackberry", "LEAF_bilberry", "LEAF_elderberry", "LEAF_strawberry",
+                "LEAF_whortleberry"],
+}
 CATCH = ["trout", "dace", "salmon", "perch", "carp", "whitefish"]
 GRAIN_LEAVES = {"LEAF_wheat", "LEAF_barley", "LEAF_oats"}
 ## At most this many dish names per ingredient are listed (direct uses first); the counts are whole.
@@ -102,6 +114,8 @@ def targets_of(key: str, known: set, components: dict, memo: dict) -> list:
         return goods_targets(components, "dried", {f"LEAF_{k}" for k in CATCH}, memo)
     if key == "flour":
         return goods_targets(components, "flour", GRAIN_LEAVES, memo)
+    if key in FORAGE_LEAVES:
+        return [leaf for leaf in FORAGE_LEAVES[key] if leaf in known]
     return [f"LEAF_{key}"] if f"LEAF_{key}" in known else []
 
 

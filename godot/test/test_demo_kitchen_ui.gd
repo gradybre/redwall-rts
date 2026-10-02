@@ -167,8 +167,8 @@ func test_the_pantry_shows_the_kitchen_tab_and_marks_the_dishes_cookable() -> vo
 		"no ruling or person in player text")
 	assert_true(panel.cookable_text().contains("Rakkety Tam: 2.0 U of flour + water 0.5 U → 2 portions"),
 		"a category named by its one item is said once")
-	assert_true(panel.cookable_text().contains("Waiting (needs hazelnut: gathered by foragers): Vegetable pasty"),
-		"and the pasty, waiting and said why")
+	assert_true(panel.cookable_text().contains("Waiting (needs potato: grown in the fields, not yet planted in the demo): Turnip, potato and beetroot pie"),
+		"and the root pie, waiting and said why")
 	assert_equal(panel.recipe_heading(), PantryPanelScript.RECIPE_HEADING_COOKING, "the heading says the kitchen's dishes are cookable")
 	panel.show_tab(PantryPanelScript.TAB_KITCHEN)
 	assert_true(panel.page_shown(PantryPanelScript.TAB_KITCHEN), "the Kitchen tab")

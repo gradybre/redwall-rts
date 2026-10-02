@@ -30,6 +30,14 @@ const RESIDENTS: int = 25
 ## leaked at exit", which the outer leak count misses (its unexpected-warning count still fails it; decision 0998).
 const EXIT_RESOURCES_PATTERN: String = "(\\d+) resources? still in use at exit"
 const EXIT_OBJECTS_PATTERN: String = "(\\d+) ObjectDB instances? (?:were|was) leaked at exit"
+## THE SUBPROCESS'S WARNINGS (decision 0998 P2, built by decision 1049): every `WARNING:` line the run prints is a finding,
+## as in the outer runner, except one containing a fragment named here -- each a warning that depends on the machine, not
+## the code (`tolerate_diagnostic`'s rule, test/framework/test_case.gd). Both come from a tree where the demo's assets are
+## not staged, as in CI: the village says it runs on placeholders (demo_village.gd), and each sound cue that it plays
+## silent (the sound cues). A run with the assets staged prints neither. Measured 2026-10-02: those are the only
+## `WARNING:` lines either run (the real one and the fault run) prints, staged or not, the exit report apart.
+const TOLERATED_WARNINGS: PackedStringArray = ["demo assets are not staged (tools/stage_demo_assets.py); running on placeholders",
+	"it plays silent until they are staged"]
 
 ## The kitchen's books, as scale_checks.gd reads them (duck-typed: `get` and `call`).
 class StubStore extends RefCounted:
@@ -270,6 +278,24 @@ func test_the_exit_check_allows_no_count() -> void:
 		"no exit report: no finding (other errors are _errors_in's)")
 
 
+func test_the_subprocess_fails_an_unnamed_warning() -> void:
+	"""Decision 0998 P2 (built by 1049): any `WARNING:` line is a finding unless it names a machine-dependent fragment
+	(THE SUBPROCESS'S WARNINGS) -- the placeholders' and the silent sound cues' warnings pass, anything else fails --
+	and the exit report's object warning stays `exit_report`'s alone, never counted twice."""
+	var tolerated: PackedStringArray = ["WARNING: demo assets are not staged (tools/stage_demo_assets.py); running on placeholders",
+		"WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav); it plays silent until they are staged",
+		"   at: push_warning (core/variant/variant_utility.cpp:1034)"]
+	assert_equal(_errors_in(tolerated), PackedStringArray(), "the named fragments pass")
+	var other: String = "WARNING: The cast lost a resident"
+	assert_equal(_errors_in(PackedStringArray([other])), PackedStringArray([other]), "an unnamed warning is a finding")
+	var leak: String = "WARNING: 1 ObjectDB instance was leaked at exit (run with `--verbose` for details)."
+	var lines: PackedStringArray = [leak, other]
+	assert_equal(_errors_in(lines), PackedStringArray([other]), "the exit report's warning is not counted here")
+	assert_equal(int(exit_report(lines)["objects"]), 1, "it is exit_report's")
+	assert_equal(_errors_in(PackedStringArray(["warning: lower case is not the engine's"])), PackedStringArray(),
+		"only the engine's `WARNING:` prefix")
+
+
 func _run_harness(script: String, user_args: PackedStringArray) -> Dictionary:
 	"""Run `script` headless at the fixed 60 Hz step with RESIDENTS residents (and `user_args`): its exit code and its
 	merged output's lines."""
@@ -299,8 +325,9 @@ func _close_held(lines: PackedStringArray) -> int:
 	return -1
 
 
-func _errors_in(lines: PackedStringArray) -> PackedStringArray:
-	"""Every script error, engine error and harness error the run printed, the exit report apart (`exit_report`)."""
+static func _errors_in(lines: PackedStringArray) -> PackedStringArray:
+	"""Every script error, engine error and harness error the run printed, and every warning not named in
+	TOLERATED_WARNINGS (THE SUBPROCESS'S WARNINGS), the exit report apart (`exit_report`)."""
 	var report: PackedStringArray = exit_report(lines)["lines"]
 	var out := PackedStringArray()
 	for line: String in lines:
@@ -309,7 +336,17 @@ func _errors_in(lines: PackedStringArray) -> PackedStringArray:
 			continue
 		if text.contains("SCRIPT ERROR") or text.begins_with("ERROR:") or text.begins_with("SCALE-ERROR"):
 			out.append(text)
+		elif text.begins_with("WARNING:") and not _tolerated(text):
+			out.append(text)
 	return out
+
+
+static func _tolerated(text: String) -> bool:
+	"""Whether a `WARNING:` line contains a fragment TOLERATED_WARNINGS names."""
+	for fragment: String in TOLERATED_WARNINGS:
+		if text.contains(fragment):
+			return true
+	return false
 
 
 static func exit_report(lines: PackedStringArray) -> Dictionary:

@@ -302,6 +302,9 @@ func _the_spotlight() -> void:
 	_check("the spotlight shows", int(card.call(&"mode")) == CardScript.MODE_SPOTLIGHT, card.call(&"body_text"))
 	var rect: Rect2 = card.call(&"frame_rect")
 	_check("the card is in the window", Rect2(Vector2.ZERO, Vector2(_size)).encloses(rect), str(rect))
+	var frame: Control = card.get("_frame")
+	_check("as tall as its words (decision 1047)", frame.size.y <= frame.get_combined_minimum_size().y + 1.0,
+		"%.0f px, its words need %.0f" % [frame.size.y, frame.get_combined_minimum_size().y])
 	var party: Rect2 = _command().call(&"panel").call(&"frame_rect")
 	_check("clear of the party panel", not rect.intersects(party), "%s / %s" % [rect, party])
 	var pause_card: CanvasLayer = _village.call(&"pause_card")

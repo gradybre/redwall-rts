@@ -233,7 +233,10 @@ static func baked(piece: Node3D, standing: Transform3D, yaw: float, size: float,
 
 static func _cache_key(piece: Node3D, reach: float, trunk_radius: float) -> String:
 	"""The model a piece draws, as a cache key: its first mesh resource and the bake's bounds ("" when it
-	draws none: never cached)."""
+	draws none: never cached). The mesh is named by its resource path ("res://.../oak_mature.glb::ArrayMesh_k7m36"),
+	which a Restart demo's reload keeps: keyed by instance id, each restart's freshly loaded meshes added two fields the
+	cache held for good (decision 1048). A mesh with no path (made in code) falls back to its instance id -- such a mesh
+	made again on a Restart would still add a field each time; the demo's trees are all staged files."""
 	var mesh_node := piece as MeshInstance3D
 	if mesh_node == null:
 		for child: Node in piece.get_children():
@@ -242,7 +245,10 @@ static func _cache_key(piece: Node3D, reach: float, trunk_radius: float) -> Stri
 				break
 	if mesh_node == null or mesh_node.mesh == null:
 		return ""
-	return "%d:%.3f:%.3f" % [mesh_node.mesh.get_instance_id(), reach, trunk_radius]
+	var model: String = mesh_node.mesh.resource_path
+	if model.is_empty():
+		model = str(mesh_node.mesh.get_instance_id())
+	return "%s:%.3f:%.3f" % [model, reach, trunk_radius]
 
 
 static func root_obstacles(trees: Array[Dictionary], node_of: Callable, reach: float) -> Array[Vector3]:

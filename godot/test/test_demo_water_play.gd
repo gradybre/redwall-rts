@@ -36,6 +36,9 @@ const DemoWorldScript := preload("res://demo/world/demo_world.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
+const DemoCareScript := preload("res://demo/infirmary/demo_care.gd")
+const CareStateScript := preload("res://demo/infirmary/care_state.gd")
+const InjuryScript := preload("res://scripts/core/injury.gd")
 const TaskScript := preload("res://demo/tunnel/tunnel_task.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -350,6 +353,97 @@ func test_low_air_and_air_out_are_raised_below_the_surface() -> void:
 	state.advance_usec(33333)
 	assert_equal(state.air[1], 0, "spent")
 	assert_equal(state.take_events(1) & StateScript.EVENT_AIR_OUT, StateScript.EVENT_AIR_OUT, "air out")
+
+
+## HAZ-001's health half, as the infirmary answers it (decision 1045): health and an untreated injury per resident.
+class Fitness:
+	var health: PackedInt32Array = PackedInt32Array([100, 100, 100])
+	var hurt: PackedByteArray = PackedByteArray([0, 0, 0])
+
+	func fit(who: int) -> bool:
+		"""HAZ-001's test on this table."""
+		return Rules.admits_health(health[who], hurt[who] == 1)
+
+
+func test_entry_needs_health_seventy_and_no_untreated_injury() -> void:
+	"""HAZ-001 (decision 1045): health 70 admits, 69 does not; an untreated injury refuses at any health."""
+	assert_true(Rules.admits_health(70, false), "70")
+	assert_false(Rules.admits_health(69, false), "69")
+	assert_true(Rules.admits_health(100, false), "100")
+	assert_false(Rules.admits_health(100, true), "hurt at 100")
+	assert_equal(Rules.ENTRY_HEALTH, 70, "HAZ-001's figure")
+
+
+func test_a_hurt_or_weak_swimmer_is_refused_the_water() -> void:
+	"""With the fitness hook set: health 69 or an injury refuse as HURT -- after capability, a load and consent, before
+	tiredness; fit again, it may swim. Unset, nobody is refused for it."""
+	var state := _state()
+	assert_true(state.fit(0), "no hook: fit")
+	var table := Fitness.new()
+	state.fitness = table.fit
+	table.health[0] = 69
+	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_HURT, "health 69")
+	assert_equal(state.swim_refusal(0, true), Rules.REFUSE_LOADED, "a load is named first")
+	assert_equal(state.swim_refusal(2, false), Rules.REFUSE_CANNOT_SWIM, "capability first")
+	state.set_consent(0, false)
+	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_NO_CONSENT, "consent before health")
+	state.set_consent(0, true)
+	state.rest[0] = 100
+	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_HURT, "hurt before tired")
+	state.rest[0] = Rules.REST_MAX
+	table.health[0] = 70
+	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_NONE, "health 70")
+	table.hurt[0] = 1
+	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_HURT, "an untreated injury")
+	assert_false(state.fit(0), "not fit")
+	assert_true(state.fit(1), "the otter is")
+
+
+func test_a_patient_is_not_drafted_as_a_rescuer() -> void:
+	"""The infirmary review's M6 (decision 1045): a resident with an untreated injury or under health 70 is not sent to
+	any rescue -- to swim, to dive or to throw from the bank -- and a fit one still is."""
+	var rig := _rig()
+	_swimmer(rig, 0, 600, true)
+	_swimmer(rig, 2, 600)
+	var table := Fitness.new()
+	table.health.resize(rig.cast.actor_count())
+	table.health.fill(100)
+	table.hurt.resize(rig.cast.actor_count())
+	var rescue: RescueScript = rig.play.rescue
+	assert_true(rescue.may_go(0, 1, RescueScript.NEED_SWIMMER), "fit: a swimmer")
+	rig.play.state.fitness = table.fit
+	table.hurt[0] = 1
+	for need: int in [RescueScript.NEED_ANY, RescueScript.NEED_SWIMMER, RescueScript.NEED_DIVER, RescueScript.NEED_BOAT]:
+		assert_false(rescue.may_go(0, 1, need), "hurt: need %d" % need)
+	table.hurt[0] = 0
+	table.health[0] = 69
+	assert_false(rescue.may_go(0, 1, RescueScript.NEED_ANY), "health 69: not even from the bank")
+	assert_true(rescue.may_go(2, 1, RescueScript.NEED_SWIMMER), "a fit swimmer still goes")
+	assert_true(rescue.may_go(3, 1, RescueScript.NEED_ANY), "a fit thrower still goes")
+	assert_true(rig.play.text.refusal_words(0, Rules.REFUSE_HURT).ends_with("isn't well enough to go in the water (%s)" % TextScript.HURT_WORDS),
+		rig.play.text.refusal_words(0, Rules.REFUSE_HURT))
+	assert_equal(rig.play.text.reason_words(0, Rules.REFUSE_HURT), "not well enough (%s)" % TextScript.HURT_WORDS, "the bank's words")
+
+
+func test_the_infirmary_answers_the_water_s_fitness() -> void:
+	"""demo_care.gd `fitness_in` (decision 1045): well -> fit; a bite (health 80, untreated) -> not; a resident the care
+	state holds no row for -> fit (never refused for want of a row)."""
+	var care := CareStateScript.new()
+	var sizes := PackedByteArray()
+	sizes.resize(3)
+	care.configure(sizes, -1)
+	care.start_at(0, 1)
+	assert_true(DemoCareScript.fitness_in(care, 0), "well")
+	assert_true(care.hurt(0, InjuryScript.KIND_BITE, 1, 20), "bitten")
+	assert_false(DemoCareScript.fitness_in(care, 0), "hurt, health %d" % care.health(0))
+	assert_true(DemoCareScript.fitness_in(care, 1), "the next is well")
+	assert_true(DemoCareScript.fitness_in(care, 7), "no row: not refused")
+	assert_true(care.needs_store().apply_health_event(1, -31).ok, "health 69, no injury")
+	assert_false(care.is_hurt(1), "unhurt")
+	assert_false(DemoCareScript.fitness_in(care, 1), "no injury but health 69")
+	assert_true(care.needs_store().apply_health_event(1, 1).ok, "health 70")
+	assert_true(DemoCareScript.fitness_in(care, 1), "no injury, health 70")
+	assert_true(DemoCareScript.fitness_in(care, -1), "no resident: not refused")
 
 
 func test_a_swim_is_refused_naming_its_failed_condition() -> void:
@@ -765,6 +859,55 @@ func test_a_planned_dive_waits_for_its_air_goes_down_and_brings_up_a_find() -> v
 	assert_equal(got[0], 3, "the find handed over")
 	assert_true(lowest[0] < -0.18 - down + 0.05, "below the surface: %.2f" % lowest[0])
 	assert_false(task.cut_short, "the whole search")
+
+
+func test_a_diver_hurt_on_the_way_is_refused_at_the_water() -> void:
+	"""HAZ-001's edge recheck for a dive (review H1, decision 1045): a fit otter ordered to dive is bitten on its way;
+	at the waterline it is refused (HURT), never goes in, and walks back up with nothing."""
+	var rig := _rig()
+	_swimmer(rig, 0, 1100, true)
+	rig.play.state.height_u[0] = 1526
+	_place(rig, 0, Vector2(19.0, 28.7))
+	var table := Fitness.new()
+	table.health.resize(rig.cast.actor_count())
+	table.health.fill(100)
+	table.hurt.resize(rig.cast.actor_count())
+	rig.play.state.fitness = table.fit
+	var got: Array[int] = [-2]
+	var task := DiveTaskScript.new(rig.play.motion, rig.play.links, POND_CENTRE, 1.0,
+		func(_b: RefCounted) -> int: return 3, func(b: RefCounted, find: int) -> void:
+			got[0] = find
+			rig.play.find_home(b, find))
+	_brain(rig, 0).order_task(task)
+	table.hurt[0] = 1
+	var wet: Array[bool] = [false]
+	var done: bool = _run(rig, func() -> bool:
+		wet[0] = wet[0] or _brain(rig, 0).in_water
+		return got[0] != -2)
+	assert_true(done, "back home")
+	assert_equal(task.refusal, Rules.REFUSE_HURT, "refused at the water as hurt")
+	assert_false(wet[0], "never went in")
+	assert_equal(got[0], -1, "nothing brought up")
+	var said: String = "%s came back without diving: not well enough (%s)" % [rig.play.text.name_of(0), TextScript.HURT_WORDS]
+	assert_true(_services.notices.has_text(said), "the feed says why, not that the air ran short")
+
+
+func test_a_diver_hurt_at_the_surface_turns_for_home() -> void:
+	"""HAZ-002's return on an injury or health under 70 (decision 1045): treading at the spot, a diver no longer fit
+	does not go down; it swims back, refused as hurt."""
+	var rig := _rig()
+	_swimmer(rig, 0, 1100, true)
+	var table := Fitness.new()
+	rig.play.state.fitness = table.fit
+	var task := DiveTaskScript.new(rig.play.motion, rig.play.links, POND_CENTRE, 1.0, Callable(), Callable())
+	var brain := _brain(rig, 0)
+	brain.water_place(POND_CENTRE, -0.18, 0.0)
+	brain.water_in()
+	task.phase = DiveTaskScript.PHASE_READY
+	table.health[0] = 69
+	task.step(brain, 0.01)
+	assert_equal(task.phase, DiveTaskScript.PHASE_BACK, "back to the bank, not down")
+	assert_equal(task.refusal, Rules.REFUSE_HURT, "as hurt")
 
 
 func test_a_dive_turns_back_when_the_air_says_so() -> void:

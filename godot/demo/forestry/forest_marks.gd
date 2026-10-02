@@ -5,9 +5,10 @@ extends Node3D
 ##                   (a thin band on the ground; the selected zone's band is wider); redrawn only when
 ##                   the zones or the selection change
 ##   the overlay     V's one overlay cycle (demo_farm.gd add_overlay) gains "woods": each zone washed in
-##                   its colour, and a disc at every tree -- leaf mature, brass young, umber stump,
+##                   its colour, and a disc at every tree -- leaf mature, spring-green young, dark umber stump,
 ##                   clay cleared -- drawn over the canopies (no depth test), so a zone's floor reads
-##                   at a glance from above the woods
+##                   at a glance from above the woods. The six (two zones, four trees) pass the map
+##                   layers' colour-blind check (lens_colour_check.gd; decision 1044)
 ##   the selection   a brass ring round the selected tree
 ##   the zone tool   the rectangle being dragged, snapped to whole tiles, clay when it would be refused
 ## The overlay's discs are one MultiMesh; the outlines and the drag rectangle one ImmediateMesh each,
@@ -29,7 +30,22 @@ const RING_EXTRA_M: float = 0.5
 const SPOT_RING_M: float = 0.4
 const FORESTRY_COLOUR: Color = Palette.BRASS
 const CONSERVATION_COLOUR: Color = Palette.SAGE
-const STATE_COLOURS: Array[Color] = [Palette.CLAY, Palette.LEAF, Palette.UMBER, Palette.BRASS]
+## The trees' discs (decision 1044). Under decision 0581's floors (CIE76 delta E 10 in the legend and by day, 8 by night,
+## with full-severity deuteranopia and protanopia) the old UMBER stump fell to 8.6 / 7.8 against the LEAF mature tree
+## with deuteranopia, and the young tree shared BRASS with the forestry zone. The stump is now umber taken 30% of the
+## way to the palette's DEEP_SHADE (#44392B, still a brown), and the young tree is a spring green (#A6C24A, new growth),
+## which also stands out on the legend's parchment (an OAT young tree passed the check but vanished from the card).
+const MATURE_COLOUR: Color = Palette.LEAF
+const YOUNG_COLOUR: Color = Color("#A6C24A")
+const STUMP_COLOUR: Color = Color("#44392B")
+const CLEARED_COLOUR: Color = Palette.CLAY
+## By StandScript.STATE_*: cleared, mature, stump, young.
+const STATE_COLOURS: Array[Color] = [CLEARED_COLOUR, MATURE_COLOUR, STUMP_COLOUR, YOUNG_COLOUR]
+## The Woods layer's legend (demo_village.gd), in its entries' order: the zones, then the trees.
+const LEGEND_COLOURS: Array[Color] = [FORESTRY_COLOUR, CONSERVATION_COLOUR, MATURE_COLOUR, YOUNG_COLOUR,
+	STUMP_COLOUR, CLEARED_COLOUR]
+const LEGEND_NAMES: Array[String] = ["forestry zone", "conservation zone", "mature tree", "young tree", "stump",
+	"cleared spot"]
 
 var overlay_shown: bool = false
 var selected_zone: int = -1

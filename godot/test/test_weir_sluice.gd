@@ -493,4 +493,5 @@ func test_a_click_on_the_weir_picks_it_and_elsewhere_does_not() -> void:
 	assert_true(GateView.ray_hits_weir(Vector3(at.x, 10.0, at.y - 10.0), slant), "45 degrees onto its crest")
 	assert_false(GateView.ray_hits_weir(Vector3(at.x, 10.0, at.y + 3.0 - 10.0), slant), "45 degrees, 3 m south of it")
 	var obstacle: Vector3 = GateView.land_obstacles()[0]
-	assert_almost_equal(Vector2(obstacle.x, obstacle.y).distance_to(GateView.HEAD_AT), 0.0, "the head is an obstacle")
+	assert_almost_equal(Vector2(obstacle.x, obstacle.z).distance_to(GateView.HEAD_AT), 0.0, "the head is an obstacle")
+	assert_almost_equal(obstacle.y, GateView.HEAD_RADIUS, "a circle is (x, radius, z) (decision 1043)")

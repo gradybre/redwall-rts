@@ -23,6 +23,8 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 
 ## The water's own latest lines shown in its panel.
 const LOG_LINES: int = 3
+## Why a hurt resident may not go into the water (HAZ-001, decision 1045).
+const HURT_WORDS: String = "it needs health 70 and no untreated injury"
 ## How each kind's cost line in `site_text` starts: the Water panel puts each beside its Build button (decision 0391).
 const PLANK_LINE: String = "Plank footbridge: "
 const LOG_LINE: String = "Log bridge: "
@@ -89,6 +91,8 @@ func refusal_words(who: int, why: StringName, at: Vector2 = Vector2.ZERO) -> Str
 			return "too shallow for %s to dive here (%s)" % [name, depth_words(who, at)]
 		Rules.REFUSE_ICE:
 			return "%s can't swim there: ice covers the pond" % name
+		Rules.REFUSE_HURT:
+			return "%s isn't well enough to go in the water (%s)" % [name, HURT_WORDS]
 	return "%s can't go: %s" % [name, String(why).to_lower().replace("_", " ")]
 
 
@@ -112,6 +116,8 @@ func reason_words(who: int, why: StringName) -> String:
 			return "ice covers the pond"
 		Rules.REFUSE_CANNOT_SWIM:
 			return "it doesn't swim"
+		Rules.REFUSE_HURT:
+			return "not well enough (%s)" % HURT_WORDS
 	return String(why).to_lower().replace("_", " ")
 
 

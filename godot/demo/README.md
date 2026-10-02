@@ -543,7 +543,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
 | Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, by ferry (decision 0437), the posts (waiting, blocked); public ways never swim (decision 0461) |
-| Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
+| Woods: Zones and trees | Which trees may be felled, which must stay? | forestry (brass) and conservation (sage) zones; mature (leaf green), young (spring green), stump (dark umber), cleared (clay) -- the six pass the colour-blind check (decision 1044) |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
 - **The Map layer picker** (`ui/demo_lens_picker.gd`) names the shown layer on its header button ("Getting
@@ -1874,7 +1874,8 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
   `world/world_sizes.gd SINK_M`: oak 1.2 m, beech 0.5, residence 0.42, store 0.12, kitchen 0.11,
   workbench 0.07), so roots run into the ground and walls rise out of it. Residents stand on the roots
   where the roots are (decision 0301, review F40): each staged model's own support heightfield is baked
-  from its mesh at boot (`forest_root_field.gd`, 12.5 cm cells, about 8 ms a model) and read in the
+  from its mesh at boot (`forest_root_field.gd`, 12.5 cm cells, about 8 ms a model; kept by the mesh's resource path,
+  so a Restart demo bakes nothing again and keeps nothing more, decision 1048) and read in the
   tree's own frame -- its spot, its yaw, its size, a young tree's share -- so a walker rises onto a root
   and stays on the ground in the hollow beside it (`forest_lift.gd`). Roots standing more than 0.45 m
   proud are walked round instead: a flare circle about each staged trunk and up to fifteen lobe circles
@@ -2035,7 +2036,9 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   pond's chords at twice their length; a loaded resident never swims. At the surface with the swim clip,
   treading water when it stops, angling into the flow and swept by what it cannot hold; the tail floats.
   Stamina (HAZ-001/003): no routine swim under 40%, turn for the bank at 15%, in difficulty at 0; cold
-  water (below 10.0 °C) doubles the drain; a flood doubles the flow.
+  water (below 10.0 °C) doubles the drain; a flood doubles the flow. **Health** (HAZ-001, decision 1045): nobody
+  goes into the water -- a swim, a dive, a route's swim link, a rescue -- under health 70 or with an untreated
+  injury (the infirmary's `fit_for_water`, set on the swim state as its `fitness`); refused as "isn't well enough".
 - **The bank recheck** (review F07, decision 0231). A route's swim is checked again at the water, every
   step down the bank until the swimmer goes in: swim shortcuts, stamina, a load, and whether it can still
   swim against the flow there. Refused, it climbs back up, plans again from land (round, the ford, a
@@ -2058,7 +2061,8 @@ is named in `waterplay/swim_rules.gd`, as cited (HAZ-001..003) or as a demo valu
   and it floats up; with no swimmer at all, anyone takes a line (8 m) to the nearest landing and hauls it
   in once it is within reach. A fallback is looked at again every second: a diver come free takes over
   from one waiting above or on the bank, and it stands down (an otter sent to wait above because it was
-  short of air goes down itself once it has breathed). One rescuer answers a victim at a time; one the
+  short of air goes down itself once it has breathed). A patient -- under health 70 or with an untreated injury -- is
+  sent to no rescue at all, not even to throw a line (decision 1045). One rescuer answers a victim at a time; one the
   player calls away frees it at once and is not sent back to it, and one whose swim shortcuts are turned
   off on its way lets the victim go at the water rather than going in. Nobody drowns: with nobody coming
   after 90 s (or a rescuer on the way but not there after 240 s, who then stands down) it washes ashore
@@ -2256,7 +2260,8 @@ wheel: a demo simplification); the beds' water changes at midnight.
   ones into it, and the feed says so.
 - **Drawn**: a three-plank board in the weir's gate bay (the model's baked board is taken out) winds up on the demo
   clock -- half its lift at Half -- with broken white water below the bay while it is up; the leat head's water stands
-  empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop.
+  empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop. The head
+  is a 0.55 m walking obstacle (`weir_gate_view.gd land_obstacles`, a circle as (x, radius, z): decision 1043).
 - **The Water service map layer** colours each bed by its service.
 
 ## Day and night (decision 0541)

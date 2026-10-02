@@ -247,7 +247,6 @@ const LensKitScript := preload("res://demo/lenses/demo_lens_kit.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
 const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
-const Palette := preload("res://demo/ui/woodland_palette.gd")
 const NewsHistoryScript := preload("res://demo/ui/demo_news_history.gd")
 const IncidentCardsScript := preload("res://demo/ui/demo_incident_cards.gd")
 const NewsJumpScript := preload("res://demo/ui/demo_news_jump.gd")
@@ -658,9 +657,7 @@ func _build_forestry() -> void:
 	_orchard.set_woods(_forestry.stand)
 	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	var woods: int = _farm.add_overlay("Woods", "Zones and trees", WOODS_LENS_QUESTION, _forestry.set_overlay)
-	_farm.lenses.set_legend(woods, PackedColorArray([ForestMarks.FORESTRY_COLOUR, ForestMarks.CONSERVATION_COLOUR,
-		Palette.LEAF, Palette.BRASS, Palette.UMBER, Palette.CLAY]), PackedStringArray(["forestry zone",
-		"conservation zone", "mature tree", "young tree", "stump", "cleared spot"]))
+	_farm.lenses.set_legend(woods, PackedColorArray(ForestMarks.LEGEND_COLOURS), PackedStringArray(ForestMarks.LEGEND_NAMES))
 
 
 func _build_canopy() -> void:

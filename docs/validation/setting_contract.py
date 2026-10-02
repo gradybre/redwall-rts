@@ -42,7 +42,9 @@ def validate(docs):
     crops = select(['id', 'growth_hours'])
     counts = dict(zip(['items', 'recipes', 'ancillary', 'buildings', 'furniture', 'crops'],
                       map(len, [items, recipes, ancillary, buildings, furniture, crops])))
-    assert list(counts.values()) == [60, 24, 12, 30, 9, 5], counts
+    # 61 items: excavated_earth (MATERIAL) joined the catalog under SET-MOVE-ECON-001 ECON-002 / DEC-040
+    # (EH-01, PR #91; decision 1042). It was 60 before; the other five counts are unchanged.
+    assert list(counts.values()) == [61, 24, 12, 30, 9, 5], counts
     retired = set('bow carcass_boar carcass_deer carcass_grouse hide hunting_tool meal_game_roast raw_game smoked_game'.split())
     assert not retired & items.keys()
     assert not {'bow', 'hunting_tool', 'smoke_game', 'game_roast'} & recipes.keys()

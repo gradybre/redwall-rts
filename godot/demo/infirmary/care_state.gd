@@ -72,12 +72,11 @@ var herb_milli: int = Rules.START_HERB_MILLI
 var patch_milli: int = Rules.HERB_START_MILLI
 ## The stores whose cloth the treatments draw on (see THE CLOTH).
 var cloth_store: StoresScript = StoresScript.new()
-## The village's cloth now, milli-U: the stores' one cloth, read and written through (see THE CLOTH).
+## The village's cloth now, milli-U: the stores' one cloth, read through (see THE CLOTH; written only by the stores'
+## own API, so no claim can outgrow the stock).
 var cloth_milli: int:
 	get:
 		return cloth_store.cloth_milli_u
-	set(value):
-		cloth_store.cloth_milli_u = value
 ## Per resident: HEAL XP (§5.3), the incident ordinal last used (HAZ-004), the inputs paid for the open injury, whether
 ## it lies in an infirmary bed, whether it is airless (HAZ-002), its healer's retained work remainder and total HEAL
 ## work (milli-WU), care work not yet booked to the patient's injury row, and its foraging work total (milli-WU).
@@ -109,6 +108,8 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 func configure(size_classes: PackedByteArray, herbalist: int) -> void:
 	"""One row per resident (its §5.2 size class), at full health and uninjured; `herbalist` (-1: none) starts at
 	CareRules.HERBALIST_LEVEL in HEAL (P3)."""
+	for i: int in _cloth_claim.size():
+		release_cloth(i)
 	_count = size_classes.size()
 	for column: PackedInt64Array in [_ordinal, _work_remainder, _heal_mwu, _pending_mwu, _booked_mwu, _forage_mwu,
 			_cloth_claim]:
@@ -365,12 +366,11 @@ func cloth_claim_of(i: int) -> int:
 
 func pay_treatment(i: int) -> String:
 	"""Pay resident `i`'s treatment inputs at work start, once per injury (see SUPPLIES): the herb off the shelf, the
-	cloth its reservation lifted from the stores (reserved now when it had none; see THE CLOTH). REFUSE_NONE when paid
-	now or already."""
+	cloth its reservation lifted from the stores -- released and taken -- or, with none held, taken from the free cloth
+	(see THE CLOTH). REFUSE_NONE when paid now or already."""
 	var why: String = treatment_refusal(i)
 	if why != REFUSE_NONE or _paid[i] == 1:
 		return why
-	claim_cloth(i)
 	release_cloth(i)
 	if not cloth_store.take_cloth(Rules.CARE_CLOTH_MILLI):
 		return REFUSE_NO_CLOTH

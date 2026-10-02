@@ -200,3 +200,16 @@ func test_the_stores_cloth_api_is_all_or_nothing() -> void:
 	assert_equal(stores.reserve_cloth(StoresScript.CLOTH_CLAIMANTS, 1), 0, "no such claimant")
 	assert_equal(stores.release_cloth(-1, 1), 0, "no such claimant")
 	assert_equal(stores.cloth_claim(StoresScript.CLOTH_CLAIMANTS), 0, "no such claim")
+
+
+func test_a_paid_treatment_sent_a_healer_again_reserves_nothing_more() -> void:
+	"""Review M3: once a treatment is paid its cloth is taken; a healer sent again to it (the first stood down) reserves
+	no second half unit, and nothing is left claimed."""
+	var v := Village.new()
+	v.care.hurt(2, Injury.KIND_CUT, Injury.SEVERITY_MINOR, 5)
+	assert_true(v.care.claim_cloth(2), "reserved")
+	assert_equal(v.care.pay_treatment(2), CareState.REFUSE_NONE, "paid at work start")
+	v.care.release_cloth(2)
+	assert_true(v.care.claim_cloth(2), "a healer sent again: it holds its cloth already")
+	assert_equal([v.stores.cloth_claimed(), v.stores.cloth_milli_u], [0, OPENING - TREATMENT_CLOTH],
+		"no second reservation; taken once")

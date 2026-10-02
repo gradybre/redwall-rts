@@ -37,12 +37,10 @@ const REFUSE_DONE: String = "It is finished: nothing to cancel"
 var tier: int = Rules.TIER_REFUGE
 ## Whether the upgrade may be planned (hall_rules.gd THE UNLOCK; the hall node sets it).
 var unlocked: bool = Rules.UNLOCK_CONDITION == Rules.UNLOCK_AT_START
-## The village's cloth, milli-U: the stores' one cloth (see THE CLOTH), read and written through.
+## The village's cloth, milli-U: the stores' one cloth (see THE CLOTH), read through.
 var cloth_milli: int:
 	get:
 		return _stores.cloth_milli_u
-	set(value):
-		_stores.cloth_milli_u = value
 ## Per project: its phase, its generation (bumped whenever it is planned or cancelled), and its work done (demo usec).
 var phase: PackedByteArray = PackedByteArray()
 var generation: PackedInt32Array = PackedInt32Array()

@@ -37,6 +37,11 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 const HelpTopics := preload("res://demo/guide/help_topics.gd")
 const FieldGuide := preload("res://demo/guide/field_guide.gd")
+const CareDesk := preload("res://demo/infirmary/care_desk.gd")
+const CareTasks := preload("res://demo/infirmary/care_tasks.gd")
+const InfProject := preload("res://demo/infirmary/infirmary_project.gd")
+const Injury := preload("res://scripts/core/injury.gd")
+const NoticesScript := preload("res://demo/demo_notices.gd")
 
 const WOOD: int = 60
 const SPRING: int = WeatherScript.SEASON_SPRING
@@ -875,3 +880,67 @@ func test_a_cold_infirmary_with_patients_is_a_cold_home_and_its_words() -> void:
 	brain.task_go_indoors(false, BrainScript.INTERIOR_HALL)
 	assert_equal([brain.interior, WinterScript.interior_source(brain)], [BrainScript.INTERIOR_NONE, ColdScript.OUTDOORS],
 		"out again: no building")
+
+
+func test_consolidation_neither_lets_the_infirmary_go_out_nor_counts_it_as_saved() -> void:
+	"""Brendan's ruling P2 (decision 0995): consolidation leaves the infirmary lit, so its preview promises no saving from
+	it -- with the hall and the infirmary burning and no homes, nothing is saved, and nothing is let go."""
+	var made: Array = _infirmary_village()
+	var v: Village = made[0]
+	assert_equal(v.winter.fuel.burning_count(), 2, "the hall and the infirmary")
+	var preview: String = v.winter.consolidate_preview()
+	assert_true(preview.contains("saves about %s a day" % Text.units(0)), preview)
+	assert_equal(v.winter.consolidate()[1], 0, "no hearth let go")
+	assert_equal(v.winter.fuel.banked[FuelScript.INFIRMARY], 0, "the infirmary still lit")
+
+
+func _real_infirmary(v: Village) -> Array:
+	"""The real infirmary building's books (built, at an open spot) and the real care desk over the village's cast, the
+	winter bound to the building as the village binds it (demo_village.gd `_build_care`). [desk, project]."""
+	var n: int = v.cast.actor_count()
+	var project := InfProject.new(v.services.stores, n)
+	project.plan_at(Vector2(30.0, 30.0), 0.0)
+	project.state = InfProject.STATE_DONE
+	v.winter.bind_infirmary(project.is_done, project.has_patients)
+	var desk := CareDesk.new()
+	var brains: Array[BrainScript] = []
+	var names := PackedStringArray()
+	var keys: Array[StringName] = []
+	var sizes := PackedByteArray()
+	for i: int in n:
+		var actor := v.cast.actor(i) as DemoActorScript
+		brains.append(actor.brain)
+		names.append(actor.display_name)
+		keys.append(actor.creature_key)
+		sizes.append(0)
+	desk.configure(brains, names, keys, sizes, v.night, v.cast.space().tunnels)
+	desk.infirmary = project
+	return [desk, project]
+
+
+func test_a_real_patient_in_the_real_infirmary_warms_at_its_hearth() -> void:
+	"""R03 end to end on the real code: a Chilled resident hurt, sent to rest by the care desk, admitted to the real
+	infirmary building and in through its door (care_tasks.gd BedRest) is read in the infirmary's room -- its own hearth,
+	installed because the building is built -- and warms there with the hall's hearth let go out; the building's real
+	`has_patients` makes it a place with sleepers."""
+	var v: Village = _village(_winter_tick())
+	var made: Array = _real_infirmary(v)
+	var desk: CareDesk = made[0]
+	var project: InfProject = made[1]
+	v.services.stores.wood_milli_u = 200000
+	v.winter.catch_up()
+	_hours(v, 4)
+	assert_equal(v.winter.cold.cold_milli[0], 4000, "Chilled outdoors")
+	assert_true(desk.hurt(0, Injury.KIND_BITE, Injury.SEVERITY_SERIOUS, 10, NoticesScript.SOURCE_CREW), "hurt")
+	assert_true(desk.send_to_rest(0), "sent to rest")
+	var brain: BrainScript = v.cast.actor(0).brain
+	var rest := brain.task as CareTasks.BedRest
+	assert_true(rest != null and rest.where == CareTasks.WHERE_INFIRMARY, "to the infirmary")
+	rest.arrived(brain)
+	assert_equal(brain.interior, BrainScript.INTERIOR_INFIRMARY, "in through the infirmary's door")
+	assert_true(project.has_patients() and v.winter.has_sleepers(FuelScript.INFIRMARY), "a patient lies in it")
+	assert_equal(v.winter.fuel.hearth[FuelScript.INFIRMARY], 1, "built: its hearth stands")
+	v.winter.set_banked(HALL, true)
+	_hours(v, 1)
+	assert_equal(v.winter.cold.place[0], FuelScript.INFIRMARY, "read in the infirmary, not the hall")
+	assert_equal(v.winter.cold.cold_milli[0], 2000, "warming at the infirmary's fire, the hall's out")

@@ -235,7 +235,7 @@ func test_the_supplies_short_stop_a_treatment_starting() -> void:
 	s.herb_milli = 999
 	assert_equal(s.pay_treatment(0), StateScript.REFUSE_NO_HERB, "no herb")
 	s.herb_milli = 1000
-	s.cloth_milli = 499
+	s.cloth_store.cloth_milli_u = 499
 	assert_equal(s.pay_treatment(0), StateScript.REFUSE_NO_CLOTH, "no cloth")
 	assert_equal([s.herb_milli, s.cloth_milli], [1000, 499], "nothing taken")
 
@@ -362,12 +362,12 @@ func test_exactly_enough_supplies_pay_and_a_new_injury_pays_again() -> void:
 	"""Herb exactly 1 U and cloth exactly 0.5 U pay; treated, the next injury's treatment is paid afresh."""
 	var s := _state(2)
 	s.herb_milli = 1000
-	s.cloth_milli = 500
+	s.cloth_store.cloth_milli_u = 500
 	s.hurt(0, Injury.KIND_CUT, 1, 10)
 	assert_equal(s.pay_treatment(0), StateScript.REFUSE_NONE, "exactly enough")
 	assert_true(s.care(0, 1, 750, 1000), "treated")
 	s.herb_milli = 5000
-	s.cloth_milli = 5000
+	s.cloth_store.cloth_milli_u = 5000
 	s.hurt(0, Injury.KIND_BITE, 1, 10)
 	assert_false(s.is_paid(0), "a new injury is unpaid")
 	s.pay_treatment(0)

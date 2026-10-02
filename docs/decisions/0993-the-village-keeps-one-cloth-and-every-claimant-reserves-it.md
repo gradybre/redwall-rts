@@ -51,6 +51,14 @@ REQ-SET-126) giving back reservations, an unpaid treatment's reservation given b
 `test_demo_care_desk.gd`: a healer sent reserves the cloth and a healer stood down gives it back.
 `test_demo_infirmary_building.gd`: the old two-ledger test replaced by the shared-claims one.
 
+## After the independent review
+
+No CRITICAL or HIGH finding. Followed up: a paid treatment sent a healer again reserves nothing more (test); a healer
+whose brain refuses the order leaves no reservation (test); `pay_treatment` no longer reserves-then-releases (a dead
+pair); the `cloth_milli` views on the hall and the care state are read-only, so only the stores' API moves the stock
+and no claim can outgrow it; `demo_care.gd configure` binds the care state to the village stores explicitly; a
+reconfigured care state gives its claims back first.
+
 ## Consequences
 
 - Anything new that consumes cloth must reserve it in the village stores under a claimant row (add one) -- never keep

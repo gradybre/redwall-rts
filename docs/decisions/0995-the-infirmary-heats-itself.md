@@ -67,6 +67,14 @@ Both approved as recommended:
 - **P2 — consolidation leaves the infirmary lit.** Consolidation never lets an empty infirmary's hearth go out, until an
   automatic relight rule exists (a patient arriving would otherwise find it cold until the player relit it).
 
+## After the independent review
+
+No CRITICAL or HIGH finding. Followed up: the consolidation preview counted the infirmary as a saving it never makes
+(`homes_let_go` now counts only the home rows consolidation lets go; test with the hall and the infirmary burning); a
+test on the real care desk and infirmary building (a patient sent to rest, in through `care_tasks.gd`, read in the
+infirmary's room with the hall's hearth out; `has_patients` makes it a place with sleepers); the cold-infirmary line
+speaks of its patients, not "move them to a heated home".
+
 ## Source
 
 Brendan's ruling of 2026-10-02 on R03; GDD §5.8 (fuel-days, hearth demand), §5.9 (Infirmary row, room validity

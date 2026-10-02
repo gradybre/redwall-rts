@@ -136,7 +136,10 @@ static func out_line(out: PackedInt32Array, air_tenths: int) -> String:
 
 
 static func cold_home_line(source: int, tenths: int) -> String:
-	"""A home gone cold: below freezing inside."""
+	"""A home gone cold: below freezing inside (the infirmary: its patients, decision 0995)."""
+	if source == FuelScript.INFIRMARY:
+		return "The infirmary has gone cold (%s): its patients build up exposure — bring in wood (Heating fuel, the top bar)" % \
+			degrees(tenths)
 	return "%s has gone cold (%s): sleepers there build up exposure — bring in wood, or move them to a heated home (Heating fuel, the top bar)" % [
 		source_title(source), degrees(tenths)]
 

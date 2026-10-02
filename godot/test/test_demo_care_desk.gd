@@ -655,3 +655,17 @@ func test_a_trip_to_the_infirmary_lost_before_it_got_in_rests_elsewhere_next() -
 	v.brains[0].release()
 	_run(v, 40)
 	assert_equal((v.brains[0].task as Tasks.BedRest).where, Tasks.WHERE_FIELD, "elsewhere this time")
+
+
+func test_a_healer_whose_brain_refuses_gives_the_cloth_back_at_once() -> void:
+	"""Decision 0993 (review M4): the treatment's cloth is reserved before the healer is ordered; a brain that will not
+	take the order (held by the water's rescue) leaves no reservation behind."""
+	var v := _village(3)
+	v.desk.test_hurt(PackedInt32Array([0]), true)
+	_run(v, 2)
+	assert_true(v.desk.resting(0), "resting")
+	v.brains[1].water_hold = true
+	assert_false(v.desk._send_healer(1, 0), "the brain refused")
+	assert_equal(v.desk.state.cloth_claim_of(0), 0, "no reservation left behind")
+	assert_equal(v.desk.state.cloth_store.cloth_free(), 24000, "all the cloth free")
+	v.brains[1].water_hold = false

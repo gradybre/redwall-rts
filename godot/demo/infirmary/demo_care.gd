@@ -85,6 +85,7 @@ func configure(cast: DemoCastScript, services: ServicesScript, night: NightScrip
 	_fed = fed
 	_swim = swim
 	_configure_desk(night, graph)
+	desk.state.use_cloth(services.stores)
 	desk.bind_news(services.notices, services.incidents)
 	if pace != null:
 		desk.use_pace(pace)

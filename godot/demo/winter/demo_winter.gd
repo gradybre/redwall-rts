@@ -717,6 +717,15 @@ func _bank_empty_homes() -> int:
 	return banked
 
 
+func homes_let_go(kept: PackedByteArray) -> int:
+	"""How many burning homes consolidation would let go out with these homes `kept` (a byte per room row): only home
+	rows are let go -- never the hall, nor the infirmary (Brendan's ruling P2, decision 0995)."""
+	var n: int = 0
+	for r: int in FuelScript.ROOMS:
+		n += 1 if fuel.hearth[r] == 1 and fuel.banked[r] == 0 and kept[r] == 0 else 0
+	return n
+
+
 func consolidate_preview() -> String:
 	"""What `consolidate` would do now, in words."""
 	var empty := PackedInt32Array()
@@ -724,8 +733,8 @@ func consolidate_preview() -> String:
 		if fuel.hearth[r] == 1 and fuel.banked[r] == 0 and not has_sleepers(r):
 			empty.append(r)
 	var kept: int = keep_homes(_preview)
+	var saving: int = homes_let_go(_preview) * fuel.day_rate_milli
 	_preview.fill(0)
-	var saving: int = maxi(fuel.burning_count() - 1 - kept, 0) * fuel.day_rate_milli
 	var now_empty: String = "no home is empty yet" if empty.is_empty() else "%s %s empty already" % [Text.names_of(empty),
 		"is" if empty.size() == 1 else "are"]
 	return "Packs the %d %s into the fewest homes with a hearth (%d), then lets the hearths of the homes left empty go out (saves about %s a day); %s" % [

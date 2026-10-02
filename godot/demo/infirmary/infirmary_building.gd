@@ -38,11 +38,13 @@ var before_placing: Callable = Callable()
 
 func configure(cast: DemoCastScript, stores: StoresScript, care: StateScript, props: PropsScript, store_at: Vector2,
 		shelf_at: Vector2) -> void:
-	"""The infirmary for this cast, built from the village `stores` (wood, stone at `store_at`) and the `care` shelf
-	(cloth at `shelf_at`), drawn with `props` (null: placeholders)."""
+	"""The infirmary for this cast, built from the village `stores` (wood, stone at `store_at`, the one cloth fetched at
+	the `care` shelf's `shelf_at`), drawn with `props` (null: placeholders). The care state's treatments draw on the same
+	stores' cloth (care_state.gd `use_cloth`; decision 0993)."""
 	name = "InfirmaryBuilding"
 	_cast = cast
-	project = ProjectsScript.new(stores, care, cast.actor_count())
+	care.use_cloth(stores)
+	project = ProjectsScript.new(stores, cast.actor_count())
 	builders = BuildersScript.new(project)
 	builders.configure(cast, props, store_at, shelf_at)
 	add_child(view)

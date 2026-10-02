@@ -6,8 +6,10 @@ extends RefCounted
 ## STATE: NONE, DELIVERING (placed: its materials are being fetched), BUILDING (all delivered, REQ-SET-125) or DONE.
 ## Placing deducts nothing (REQ-SET-124). Per material it keeps what is DELIVERED to its site, RESERVED by a carrier on
 ## its way to fetch it, and IN TRANSIT in a carrier's arms; all three count against what it still needs, so nothing is
-## fetched twice. A material leaves its SOURCE -- the village stores for wood and stone, the care shelf for cloth --
-## only when a carrier LIFTS it, and a load put back goes back there whole. Only an infirmary still DELIVERING may be lifted
+## fetched twice. A material leaves its SOURCE -- the village stores -- only when a carrier LIFTS it, and a load put back
+## goes back there whole. THE CLOTH is the village's one cloth (tunnel_stores.gd CLOTH; Brendan's ruling on R01, decision
+## 0993), shared with the hall's upgrade and the treatments: a cloth reservation is made in the stores under the
+## infirmary's claim, so nobody else can take it meanwhile, and only the stores' FREE cloth may be reserved. Only an infirmary still DELIVERING may be lifted
 ## for or delivered to: every milli-U is in its source, a carrier's arms or the site, until it is built in. CANCEL
 ## (REQ-SET-126) returns 100% of what was delivered before the work began, 80% floored after.
 ##
@@ -15,7 +17,6 @@ extends RefCounted
 
 const Rules := preload("res://demo/infirmary/infirmary_rules.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
-const StateScript := preload("res://demo/infirmary/care_state.gd")
 
 const NONE: int = -1
 const STATE_NONE: int = 0
@@ -48,16 +49,11 @@ var admitted: PackedByteArray = PackedByteArray()
 var revision: int = 0
 
 var _stores: StoresScript = null
-var _care: StateScript = null
-## `() -> int`: cloth the treatments already sent will take (milli-U), kept back from the building (the review's M1).
-var cloth_held: Callable = Callable()
 
 
-func _init(stores: StoresScript, care: StateScript, residents: int) -> void:
-	"""No infirmary yet, fetched for from the village `stores` (wood, stone) and the `care` shelf (cloth), for this many
-	residents."""
+func _init(stores: StoresScript, residents: int) -> void:
+	"""No infirmary yet, fetched for from the village `stores` (wood, stone and the one cloth), for this many residents."""
 	_stores = stores
-	_care = care
 	for column: PackedInt64Array in [delivered, reserved, in_transit]:
 		column.resize(Rules.MAT_COUNT)
 	admitted.resize(residents)
@@ -88,7 +84,8 @@ func plan_at(centre: Vector2, yaw: float) -> bool:
 
 
 func _clear_books() -> void:
-	"""Nothing delivered, reserved, in transit or admitted."""
+	"""Nothing delivered, reserved, in transit or admitted; a cloth reservation goes back to the stores."""
+	_stores.release_cloth(StoresScript.CLOTH_INFIRMARY, reserved[Rules.MAT_CLOTH])
 	for column: PackedInt64Array in [delivered, reserved, in_transit]:
 		column.fill(0)
 	admitted.fill(0)
@@ -103,17 +100,21 @@ func in_stock(mat: int) -> int:
 			return _stores.wood_milli_u
 		Rules.MAT_STONE:
 			return _stores.stone_milli_u
-	return _care.cloth_milli if _care != null else 0
+	return _stores.cloth_milli_u
+
+
+func _free_in_source(mat: int) -> int:
+	"""What of a material its source could still give a new reservation, milli-U: wood and stone less what this building
+	has reserved; the cloth no claimant has reserved (see THE CLOTH)."""
+	if mat == Rules.MAT_CLOTH:
+		return _stores.cloth_free()
+	return maxi(0, in_stock(mat) - reserved[mat])
 
 
 func _take(mat: int, milli: int) -> bool:
 	"""Take `milli` of a material from its source, all or nothing."""
 	if mat == Rules.MAT_CLOTH:
-		if _care == null or _care.cloth_milli < milli:
-			return false
-		_care.cloth_milli -= milli
-		_care.revision += 1
-		return true
+		return _stores.take_cloth(milli)
 	return _stores.pay(milli if mat == Rules.MAT_WOOD else 0, milli if mat == Rules.MAT_STONE else 0)
 
 
@@ -122,9 +123,7 @@ func _give(mat: int, milli: int) -> void:
 	if milli <= 0:
 		return
 	if mat == Rules.MAT_CLOTH:
-		if _care != null:
-			_care.cloth_milli += milli
-			_care.revision += 1
+		_stores.add_cloth(milli)
 		return
 	_stores.refund(milli if mat == Rules.MAT_WOOD else 0, milli if mat == Rules.MAT_STONE else 0, 0)
 
@@ -140,8 +139,7 @@ func outstanding(mat: int) -> int:
 
 func fetchable(mat: int) -> int:
 	"""What of a material a carrier could set off for now: still needed, and in its source unreserved, milli-U."""
-	var held: int = int(cloth_held.call()) if mat == Rules.MAT_CLOTH and cloth_held.is_valid() else 0
-	return mini(outstanding(mat), maxi(0, in_stock(mat) - reserved[mat] - held))
+	return mini(outstanding(mat), _free_in_source(mat))
 
 
 func next_material() -> int:
@@ -153,8 +151,11 @@ func next_material() -> int:
 
 
 func reserve(mat: int, want_milli: int) -> int:
-	"""Reserve up to `want_milli` of a material for a carrier setting off; how much."""
+	"""Reserve up to `want_milli` of a material for a carrier setting off (cloth in the stores, see THE CLOTH); how
+	much."""
 	var amount: int = mini(want_milli, fetchable(mat))
+	if mat == Rules.MAT_CLOTH:
+		amount = _stores.reserve_cloth(StoresScript.CLOTH_INFIRMARY, amount)
 	if amount > 0:
 		reserved[mat] += amount
 		revision += 1
@@ -162,8 +163,12 @@ func reserve(mat: int, want_milli: int) -> int:
 
 
 func unreserve(mat: int, milli: int) -> void:
-	"""Give a reservation back (a carrier called away before it lifted)."""
-	reserved[mat] = maxi(0, reserved[mat] - milli)
+	"""Give a reservation back (a carrier called away before it lifted): what this building still holds of it, the
+	cloth back to the stores' free cloth."""
+	var freed: int = clampi(milli, 0, reserved[mat])
+	reserved[mat] -= freed
+	if mat == Rules.MAT_CLOTH:
+		_stores.release_cloth(StoresScript.CLOTH_INFIRMARY, freed)
 	revision += 1
 
 
@@ -171,7 +176,7 @@ func lift(mat: int, reserved_amount: int) -> int:
 	"""A carrier at the source lifts what it reserved -- as much as the source holds (REQ-SET-124: taken only now) -- and
 	it is in transit; only while DELIVERING. Its reservation is spent either way; how much it carries."""
 	unreserve(mat, reserved_amount)
-	var amount: int = mini(reserved_amount, in_stock(mat))
+	var amount: int = mini(reserved_amount, _stores.cloth_free() if mat == Rules.MAT_CLOTH else in_stock(mat))
 	if state != STATE_DELIVERING or amount <= 0 or not _take(mat, amount):
 		return 0
 	in_transit[mat] += amount
@@ -282,11 +287,6 @@ static func units_text(milli: int) -> String:
 	@warning_ignore("integer_division")  # whole units by intent
 	var whole: int = tenths / 10
 	return "%d.%d" % [whole, tenths % 10]
-
-
-func cloth_committed() -> int:
-	"""Cloth the building has reserved or has in a carrier's arms, milli-U (kept back from treatments)."""
-	return reserved[Rules.MAT_CLOTH] + in_transit[Rules.MAT_CLOTH]
 
 
 func percent() -> int:

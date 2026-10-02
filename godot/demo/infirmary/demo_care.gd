@@ -99,7 +99,6 @@ func configure(cast: DemoCastScript, services: ServicesScript, night: NightScrip
 	add_child(building)
 	building.configure(cast, services.stores, desk.state, services.props, Vector2.ZERO, desk.shelf_at())
 	desk.infirmary = building.project
-	building.project.cloth_held = desk.cloth_for_treatments
 	section.on_press(_on_section_pressed)
 
 

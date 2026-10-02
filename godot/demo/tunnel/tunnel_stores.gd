@@ -29,6 +29,13 @@ extends RefCounted
 ##
 ## FINDS. Every find dug up (tunnel_finds.gd) is tallied here by kind; relics also advance the story
 ## notices. A refused spend changes nothing (no partial debit).
+##
+## CLOTH (decision 0993; Brendan's ruling on the review's R01, 2026-10-02): the village's ONE cloth, GDD §5.1's opening
+## 24 U, kept here with the rest of the stores. Three claimants draw on it -- the hall's projects (the tier-2 upgrade),
+## the infirmary building and the treatments -- and each RESERVES what it means to take (`reserve_cloth`, into its own
+## claim), so cloth one claimant has reserved is never free to another (`cloth_free`). A reservation is given back with
+## `release_cloth`; LIFTING it is a release followed by `take_cloth` (all or nothing, from the free cloth), so the stock
+## falls only when the cloth is actually taken (REQ-SET-124). A load carried back, or a cancel's refund, is `add_cloth`.
 
 const FindsScript := preload("res://demo/tunnel/tunnel_finds.gd")
 
@@ -37,6 +44,13 @@ const START_STONE_MILLI_U: int = 20000
 ## The water butt by the well (see WATER): 40 U, over two days of both meals' water for nine residents (15 U a day;
 ## a demo value), so a day the drawers fall behind does not stop the cooking.
 const WATER_CAP_MILLI_U: int = 40000
+## The village's cloth at the start (GDD §5.1's initial inventory: cloth 24 U; see CLOTH).
+const START_CLOTH_MILLI_U: int = 24000
+## CLOTH's claimants, one claim row each.
+const CLOTH_HALL: int = 0
+const CLOTH_INFIRMARY: int = 1
+const CLOTH_TREATMENT: int = 2
+const CLOTH_CLAIMANTS: int = 3
 
 var wood_milli_u: int = START_WOOD_MILLI_U
 var stone_milli_u: int = START_STONE_MILLI_U
@@ -45,6 +59,9 @@ var plank_milli_u: int = 0
 var water_milli_u: int = 0
 ## Earth kept by the stockpile (see EARTH), milli-U.
 var earth_milli_u: int = 0
+## The village's cloth (see CLOTH), milli-U, and per claimant (CLOTH_*) what it has reserved of it.
+var cloth_milli_u: int = START_CLOTH_MILLI_U
+var cloth_claims: PackedInt64Array = PackedInt64Array()
 ## Per find kind (FindsScript.FIND_*): how many have been dug up.
 var finds: PackedInt32Array = PackedInt32Array()
 ## Bumped on every change, so the panel redraws only when something changed.
@@ -52,8 +69,9 @@ var revision: int = 0
 
 
 func _init() -> void:
-	"""Size the finds tally once."""
+	"""Size the finds tally and the cloth's claims once."""
 	finds.resize(FindsScript.KIND_COUNT)
+	cloth_claims.resize(CLOTH_CLAIMANTS)
 
 
 func can_pay(wood: int, stone: int) -> bool:
@@ -179,6 +197,65 @@ func add_stone(milli_u: int) -> void:
 	if milli_u <= 0:
 		return
 	stone_milli_u += milli_u
+	revision += 1
+
+
+# --- the cloth (see CLOTH) -------------------------------------------------------------------------------------
+
+func cloth_claimed() -> int:
+	"""Every claimant's reserved cloth, milli-U."""
+	var claimed: int = 0
+	for c: int in CLOTH_CLAIMANTS:
+		claimed += cloth_claims[c]
+	return claimed
+
+
+func cloth_free() -> int:
+	"""The cloth no claimant has reserved, milli-U (never below 0)."""
+	return maxi(cloth_milli_u - cloth_claimed(), 0)
+
+
+func cloth_claim(claimant: int) -> int:
+	"""What `claimant` (CLOTH_*) has reserved, milli-U (0 for no such claimant)."""
+	return cloth_claims[claimant] if claimant >= 0 and claimant < CLOTH_CLAIMANTS else 0
+
+
+func reserve_cloth(claimant: int, want_milli: int) -> int:
+	"""`claimant` reserves up to `want_milli` of the free cloth; how much (0: none free, or no such claimant)."""
+	if claimant < 0 or claimant >= CLOTH_CLAIMANTS:
+		return 0
+	var take: int = mini(maxi(want_milli, 0), cloth_free())
+	if take > 0:
+		cloth_claims[claimant] += take
+		revision += 1
+	return take
+
+
+func release_cloth(claimant: int, milli: int) -> int:
+	"""`claimant` gives back up to `milli` of its reservation; how much it held of that and gave back."""
+	if claimant < 0 or claimant >= CLOTH_CLAIMANTS:
+		return 0
+	var freed: int = clampi(milli, 0, cloth_claims[claimant])
+	if freed > 0:
+		cloth_claims[claimant] -= freed
+		revision += 1
+	return freed
+
+
+func take_cloth(milli: int) -> bool:
+	"""Take `milli` of the FREE cloth (a released reservation, lifted) -- all of it, or (false) none."""
+	if milli <= 0 or cloth_free() < milli:
+		return false
+	cloth_milli_u -= milli
+	revision += 1
+	return true
+
+
+func add_cloth(milli: int) -> void:
+	"""Cloth comes back into the stores (a load carried back, a cancel's refund)."""
+	if milli <= 0:
+		return
+	cloth_milli_u += milli
 	revision += 1
 
 

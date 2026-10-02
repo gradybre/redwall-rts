@@ -27,14 +27,16 @@ extends RefCounted
 ## after, 80%, rounded down to milli-U. At most UPGRADE_PLACES builders work the upgrade (§5.9: "Maximum 4
 ## builders/project").
 ##
-## THE CLOTH. Nothing else in the demo keeps cloth, so the hall model keeps the village's: the GDD's opening 24 U
-## (§5.1's initial inventory), at the stockpile with the rest of the stores (Brendan's ruling, decision 0771).
+## THE CLOTH. The village's one cloth, the GDD's opening 24 U (§5.1's initial inventory), at the stockpile with the rest
+## of the stores (Brendan's ruling, decision 0771). The infirmary building and the treatments draw on the same cloth, so
+## the stores keep it and every claimant reserves there (tunnel_stores.gd CLOTH; Brendan's ruling on R01, decision 0993).
 ##
 ## THE UNLOCK (Brendan's ruling of 2026-10-01, decision 0771). The GDD names no unlock for the tier-2 package, and the adopted milestones
 ## (§5.11: M1 needs 12 residents) are out of the nine-resident demo's reach. So one data constant decides it,
 ## UNLOCK_CONDITION: the first harvest gathered into store.
 
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 
 const TIER_REFUGE: int = 1
 const TIER_GREAT: int = 2
@@ -96,8 +98,8 @@ const UNLOCK_CONDITION: int = UNLOCK_FIRST_HARVEST
 const UNLOCK_WORDS: Array[String] = ["from the start", "once the first harvest is gathered into store",
 	"once the first winter sets in"]
 
-## The village's cloth at the start (GDD §5.1: cloth 24 U).
-const START_CLOTH_MILLI: int = 24000
+## The village's cloth at the start (GDD §5.1: cloth 24 U), the stores' one cloth (see THE CLOTH).
+const START_CLOTH_MILLI: int = StoresScript.START_CLOTH_MILLI_U
 
 
 static func is_project(project: int) -> bool:

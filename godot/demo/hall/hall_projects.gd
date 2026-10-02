@@ -13,6 +13,9 @@ extends RefCounted
 ## "Only one upgrade per building; tier 3 is absent"), while locked (hall_rules.gd THE UNLOCK) and while planned.
 ## `cancel` gives back REQ-SET-126's share of what was delivered, and any load still in arms whole, never having been
 ## delivered; the crew then lets its carriers go (hall_crew.gd `release_project`), setting down nothing more.
+##
+## THE CLOTH is the village's one cloth in the stores (tunnel_stores.gd CLOTH, decision 0993): a carrier setting off for
+## cloth reserves it there under the hall's claim, so the infirmary and the treatments cannot take it meanwhile.
 
 const Rules := preload("res://demo/hall/hall_rules.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
@@ -34,8 +37,12 @@ const REFUSE_DONE: String = "It is finished: nothing to cancel"
 var tier: int = Rules.TIER_REFUGE
 ## Whether the upgrade may be planned (hall_rules.gd THE UNLOCK; the hall node sets it).
 var unlocked: bool = Rules.UNLOCK_CONDITION == Rules.UNLOCK_AT_START
-## The village's cloth (hall_rules.gd THE CLOTH), milli-U.
-var cloth_milli: int = Rules.START_CLOTH_MILLI
+## The village's cloth, milli-U: the stores' one cloth (see THE CLOTH), read and written through.
+var cloth_milli: int:
+	get:
+		return _stores.cloth_milli_u
+	set(value):
+		_stores.cloth_milli_u = value
 ## Per project: its phase, its generation (bumped whenever it is planned or cancelled), and its work done (demo usec).
 var phase: PackedByteArray = PackedByteArray()
 var generation: PackedInt32Array = PackedInt32Array()
@@ -57,7 +64,7 @@ var _on_done: Callable = Callable()
 
 
 func _init(stores: StoresScript) -> void:
-	"""Projects paid from these village stores (wood and stone; the cloth is kept here)."""
+	"""Projects paid from these village stores (wood, stone and the village's one cloth)."""
 	_stores = stores
 	phase.resize(Rules.PROJECT_COUNT)
 	generation.resize(Rules.PROJECT_COUNT)
@@ -122,8 +129,11 @@ func outstanding(project: int, mat: int) -> int:
 
 
 func in_stock(mat: int) -> int:
-	"""What the stores hold of `mat` that no carrier has reserved (milli-U)."""
-	var held: int = cloth_milli
+	"""What the stores hold of `mat` that no carrier has reserved (milli-U): the cloth any claimant has reserved is not
+	free (see THE CLOTH)."""
+	if mat == Rules.MAT_CLOTH:
+		return _stores.cloth_free()
+	var held: int = 0
 	if mat == Rules.MAT_WOOD:
 		held = _stores.wood_milli_u
 	elif mat == Rules.MAT_STONE:
@@ -201,9 +211,9 @@ func percent(project: int) -> int:
 
 
 func held_total(mat: int) -> int:
-	"""Every milli-U of `mat` the village owns: the stores' (or the cloth), in arms, and delivered to a project not yet
-	finished (`conserved`'s left side)."""
-	var total: int = cloth_milli
+	"""Every milli-U of `mat` the village owns: the stores', in arms, and delivered to a project not yet finished
+	(`conserved`'s left side)."""
+	var total: int = _stores.cloth_milli_u
 	if mat == Rules.MAT_WOOD:
 		total = _stores.wood_milli_u
 	elif mat == Rules.MAT_STONE:
@@ -273,7 +283,8 @@ func _open(project: int) -> void:
 
 
 func _clear_cells(project: int) -> void:
-	"""Zero `project`'s delivered, transit and reserved columns."""
+	"""Zero `project`'s delivered, transit and reserved columns; a cloth reservation goes back to the stores."""
+	_stores.release_cloth(StoresScript.CLOTH_HALL, reserved[cell(project, Rules.MAT_CLOTH)])
 	for mat: int in Rules.MAT_COUNT:
 		var k: int = cell(project, mat)
 		delivered[k] = 0
@@ -283,7 +294,7 @@ func _clear_cells(project: int) -> void:
 
 func cancel(project: int) -> String:
 	"""Cancel `project` (REQ-SET-126): its delivered materials come back -- all of them before work began, 80% rounded
-	down after -- into the stores (the cloth into the hall's); any load in arms comes back whole, never having been
+	down after -- into the stores; any load in arms comes back whole, never having been
 	delivered, so the crew's carriers set down nothing when they are let go after (hall_crew.gd `release_project`,
 	called after this by demo_hall.gd). "" when cancelled, else why not."""
 	if not Rules.is_project(project) or phase[project] == PHASE_NONE:
@@ -308,7 +319,7 @@ func cancel(project: int) -> String:
 
 
 func _put_back(mat: int, milli: int) -> void:
-	"""Material `mat` comes back into the stores (the cloth into the hall's); nothing for none."""
+	"""Material `mat` comes back into the stores; nothing for none."""
 	if milli <= 0:
 		return
 	if mat == Rules.MAT_WOOD:
@@ -316,15 +327,17 @@ func _put_back(mat: int, milli: int) -> void:
 	elif mat == Rules.MAT_STONE:
 		_stores.add_stone(milli)
 	else:
-		cloth_milli += milli
+		_stores.add_cloth(milli)
 
 
 # --- carrying -----------------------------------------------------------------------------------------------------
 
 func reserve(project: int, mat: int, want_milli: int) -> int:
 	"""A carrier sets off for up to `want_milli` of `mat` for `project`: what it may fetch is reserved (nothing leaves
-	the stores yet). How much (0: nothing to fetch)."""
+	the stores yet; cloth is reserved in the stores too, see THE CLOTH). How much (0: nothing to fetch)."""
 	var take: int = mini(maxi(want_milli, 0), fetchable(project, mat))
+	if mat == Rules.MAT_CLOTH:
+		take = _stores.reserve_cloth(StoresScript.CLOTH_HALL, take)
 	if take > 0:
 		reserved[cell(project, mat)] += take
 		revision += 1
@@ -332,11 +345,15 @@ func reserve(project: int, mat: int, want_milli: int) -> int:
 
 
 func unreserve(project: int, mat: int, milli: int) -> void:
-	"""A carrier gives up a reservation it had not lifted."""
+	"""A carrier gives up a reservation it had not lifted (what the project still holds of it; cloth back to the
+	stores' free cloth)."""
 	if not Rules.is_project(project) or mat < 0 or mat >= Rules.MAT_COUNT or milli <= 0:
 		return
 	var k: int = cell(project, mat)
-	reserved[k] = maxi(reserved[k] - milli, 0)
+	var freed: int = mini(milli, reserved[k])
+	reserved[k] -= freed
+	if mat == Rules.MAT_CLOTH:
+		_stores.release_cloth(StoresScript.CLOTH_HALL, freed)
 	revision += 1
 
 
@@ -355,15 +372,12 @@ func lift(project: int, mat: int, reserved_milli: int) -> int:
 
 
 func _take_from_stores(mat: int, milli: int) -> bool:
-	"""Take `milli` of `mat` out of the stores (the cloth from the hall's) -- all of it, or (false) none."""
+	"""Take `milli` of `mat` out of the stores -- all of it, or (false) none."""
 	if mat == Rules.MAT_WOOD:
 		return _stores.pay(milli, 0)
 	if mat == Rules.MAT_STONE:
 		return _stores.pay(0, milli)
-	if cloth_milli < milli:
-		return false
-	cloth_milli -= milli
-	return true
+	return _stores.take_cloth(milli)
 
 
 func deliver(project: int, mat: int, milli: int) -> void:

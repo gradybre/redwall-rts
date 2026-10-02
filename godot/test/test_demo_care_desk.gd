@@ -435,6 +435,25 @@ func test_a_patient_ordered_away_lets_its_healer_go() -> void:
 	assert_true(_treated(v, 0), "treated in the end")
 
 
+func test_a_healer_sent_reserves_the_cloth_and_a_healer_stood_down_gives_it_back() -> void:
+	"""Decision 0993: the treatment's 0.5 U is reserved in the village stores when its healer is sent (so neither
+	building can carry it off), and given back when the healer is stood down before work; paid, it is taken."""
+	var v := _village(3)
+	v.desk.test_hurt(PackedInt32Array([0]), true)
+	_run(v, 100, func() -> bool: return v.desk.healer_of(0) != DeskScript.NOBODY)
+	assert_false(v.desk.state.is_paid(0), "on the way, not yet paid")
+	assert_equal(v.desk.state.cloth_claim_of(0), 500, "its cloth reserved")
+	assert_equal(v.desk.state.cloth_store.cloth_free(), 23500, "and not free to anyone else")
+	v.desk.state.herb_milli = 0
+	_run(v, 6000, func() -> bool: return v.desk.healer_of(0) == DeskScript.NOBODY)
+	assert_equal(v.desk.state.cloth_claim_of(0), 0, "stood down: the reservation given back")
+	assert_equal(v.desk.state.cloth_store.cloth_free(), 24000, "all of it free again")
+	v.desk.state.herb_milli = 12000
+	_run(v, 8000, _treated.bind(v, 0))
+	assert_true(_treated(v, 0), "treated in the end")
+	assert_equal([v.desk.state.cloth_milli, v.desk.state.cloth_store.cloth_claimed()], [23500, 0], "taken once, no claim left")
+
+
 # --- the review's cases (decision 0622) ------------------------------------------------------------------------------
 
 func test_one_treatment_s_herbs_send_one_healer_and_a_short_shelf_stands_one_down() -> void:
@@ -504,7 +523,8 @@ const INFIRMARY_AT: Vector2 = Vector2(6.0, -6.0)
 func _infirmary(v: Village, built: bool, residents: int = -1) -> ProjectScript:
 	"""An infirmary for the village at INFIRMARY_AT, built or only placed, its beds for `residents` (default the cast)."""
 	var stores := StoresScript.new()
-	var project := ProjectScript.new(stores, v.desk.state, residents if residents > 0 else v.brains.size())
+	v.desk.state.use_cloth(stores)
+	var project := ProjectScript.new(stores, residents if residents > 0 else v.brains.size())
 	project.plan_at(INFIRMARY_AT, 0.0)
 	if built:
 		project.state = ProjectScript.STATE_DONE

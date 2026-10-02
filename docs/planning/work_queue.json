@@ -2562,18 +2562,31 @@
     {
       "id": "DEMOLITION-D6",
       "title": "Evacuation hauling, demolition work under BUILD, and the admit retry coordinator",
-      "status": "blocked",
+      "status": "review",
       "depends_on": [
         "DEMOLITION-D5"
       ],
       "owns": [
+        "godot/scripts/core/demolition_work.gd",
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/demolition_admissions.gd",
         "godot/scripts/core/jobs.gd",
-        "godot/scripts/core/work.gd"
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/test/test_demolition_work.gd",
+        "godot/test/test_settlement_demolition_work.gd",
+        "docs/decisions/0537-demolition-work-is-a-build-job-and-evacuation-waits-for-hauling.md",
+        "docs/tasks/lanes/06/2026-10-02-demolition-d6-work-and-evacuation-intent.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Blocker 4: persisted evacuate-then-demolish intent, real HAUL jobs, no teleports, retry admit once sources are empty. Depends on task 06.4 physical hauling."
+      "acceptance": "Blocker 4: persisted evacuate-then-demolish intent, real HAUL jobs, no teleports, retry admit once sources are empty. Depends on task 06.4 physical hauling.",
+      "note": "Branch feat/demolition-d6, decision 0537. Built: one BUILD Job per admitted removal (demolition_work.gd), posted in the planner slot, its ticks credited to the project with add_work_mwu_into() after a validate-then-consume proof, completion committed through complete_demolition()/complete_furniture_removal(), commit-pending refusals retried hourly, the Job retired on every way out; order_evacuate_then_demolish() records the intent on a stage 3/5 goods refusal (UNRESOLVED-classified like the admission record) and the hourly reconcile retries admit once every container on the footprint is empty. REFUSED by name: the evacuation HAUL jobs -- task 06.4 physical hauling does not exist (no satchel, no settlement movement, no teleports); Brendan ruled 2026-10-02: P1, P2, P4, P5, P6 approved as recommended; no tool wear for now; P3 \"Build hauling (06.4) next\" -- a separate lane builds 06.4, and D6 stays as built with hauling waiting on it, so this entry is not done and CONSTRUCTION-EVACUATION-INTEGRATION cannot close on it. Memory +16384 B."
     },
     {
       "id": "DEMOLITION-D7",

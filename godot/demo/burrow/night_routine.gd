@@ -36,6 +36,9 @@ extends RefCounted
 ## that says so (its sleep task's morning; one still on its way to bed turns back, as at dawn), and while it does the
 ## night does not send it back to bed.
 ##
+## A GIVEN BED (decision 0622, the infirmary): `bed_task_at` sends a resident to a given bed with the night's own
+## motion (a hurt resident's bed rest in its own bed).
+##
 ## THE HEARTHS burn from HEARTH_FROM_HOUR to HEARTH_TO_HOUR -- evenings and nights (fixture_view.gd: their glow, their
 ## chimneys' smoke) -- in a village with no winter bound (a suite's).
 ##
@@ -389,7 +392,12 @@ func send(i: int) -> bool:
 
 func _bed_task(i: int, task: SleepTaskScript) -> bool:
 	"""Set `task` for resident `i`'s bed; false when it has none, or its home's middle cannot be reached."""
-	var bed := bed_of[i]
+	return bed_task_at(i, bed_of[i], task)
+
+
+func bed_task_at(i: int, bed: int, task: SleepTaskScript) -> bool:
+	"""Set `task` for resident `i` to lie in bed `bed` (room * PLACES + place); false when there is none, or its
+	home's middle cannot be reached (see A GIVEN BED)."""
 	if bed == AllocationScript.NO_BED:
 		return false
 	@warning_ignore("integer_division") var r := bed / FixturesScript.PLACES

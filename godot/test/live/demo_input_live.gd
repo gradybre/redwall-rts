@@ -674,15 +674,15 @@ func _enter_goes_to_the_dig_tool() -> void:
 # --- F50: the Demo Lab --------------------------------------------------------------------------
 
 func _lab_holds_the_triggers() -> void:
-	"""F8 opens the Lab with the four triggers, Skip to next season (decision 0571) and the season preview (decision
-	0551), then the guide's Practice stories
-	(decision 0481); the panels hold none of them; F8 closes it."""
+	"""F8 opens the Lab with the four triggers, Skip to next season (decision 0571), the season preview (decision 0551)
+	and the infirmary's two test injuries (decision 0622), then the guide's Practice stories (decision 0481); the panels
+	hold none of them; F8 closes it."""
 	var lab: CanvasLayer = _village.call(&"lab")
 	_key(KEY_F8)
 	_check("F8 opens the Demo Lab", lab.visible and _gate().top_layer() == lab)
-	_check("the Lab holds the four triggers, Skip to next season, the season preview and Practice stories",
+	_check("the Lab holds the triggers and Practice stories",
 		Array(lab.call(&"trigger_labels")) == ["Next weather", "Test event", "Storm gust", "Cramp", "Skip to next season",
-			"Season preview", "Practice stories"])
+			"Season preview", "Injury", "Serious injury", "Practice stories"], str(lab.call(&"trigger_labels")))
 	_check("Cramp waits for a swimmer", (lab.call(&"trigger_button", 3) as Button).disabled)
 	_capture("demo_lab")
 

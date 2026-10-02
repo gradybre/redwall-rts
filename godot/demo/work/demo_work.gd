@@ -22,6 +22,7 @@ const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const StoresWork := preload("res://demo/work/stores_work.gd")
+const CareWork := preload("res://demo/work/care_work.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -116,6 +117,15 @@ func add_stores(haul: RefCounted, pantry: RefCounted, builders: RefCounted = nul
 	for i: int in _cast.actor_count():
 		brains.append((_cast.actor(i) as DemoActorScript).brain)
 	board.add_source(StoresWork.new(haul, pantry, brains, builders))
+
+
+func add_care(builders: RefCounted) -> void:
+	"""THE INFIRMARY ON THE BOARD (decision 0623): the infirmary building's places (demo/infirmary/infirmary_builders.gd),
+	one source (work/care_work.gd), claimed like the farm's."""
+	var brains: Array[BrainScript] = []
+	for i: int in _cast.actor_count():
+		brains.append((_cast.actor(i) as DemoActorScript).brain)
+	board.add_source(CareWork.new(builders, brains))
 
 
 func set_readouts(activity: Callable, is_paused: Callable, jump: Callable, selection: Callable) -> void:

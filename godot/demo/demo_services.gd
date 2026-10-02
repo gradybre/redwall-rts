@@ -20,6 +20,8 @@ extends RefCounted
 ##   stores     demo/tunnel/tunnel_stores.gd -- THE demo stores: wood, stone, planks and finds. The woods
 ##              (demo/forestry/) put their wood in and saw their planks from it; the tunnel works pay
 ##              bracing and lanterns from it. One wood stock for the demo.
+##   work_pace  demo/work/work_pace.gd -- THE work pace: each owner's per-resident work factor (the
+##              infirmary's health factor, decision 0622), composed by multiplying; work owners read it.
 ##
 ## A suite that builds a farm, tunnel works or woods without a village passes nothing and gets a fresh
 ## set of its own, so no module ever runs without one of the six.
@@ -33,6 +35,7 @@ const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const NewsClockScript := preload("res://demo/demo_news_clock.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
+const WorkPaceScript := preload("res://demo/work/work_pace.gd")
 
 var calendar: CalendarScript = CalendarScript.new()
 var weather: WeatherScript = WeatherScript.new()
@@ -42,6 +45,7 @@ var incidents: IncidentsScript = IncidentsScript.new()
 var news_clock: NewsClockScript = NewsClockScript.new()
 var props: PropsScript = PropsScript.new()
 var stores: StoresScript = StoresScript.new()
+var work_pace: WorkPaceScript = WorkPaceScript.new()
 
 
 func _init(water_map: WaterMapScript = null) -> void:

@@ -294,6 +294,7 @@ const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
 const TapestryScript := preload("res://demo/hall/tapestry.gd")
+const CareScript := preload("res://demo/infirmary/demo_care.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -400,6 +401,7 @@ var _fuel_panel: FuelPanelScript = FuelPanelScript.new()
 var _day_night: DayNightScript = null
 var _night_lights: NightLightsScript = null
 var _hall: HallScript = null
+var _care: CareScript = null
 
 
 func _ready() -> void:
@@ -433,6 +435,7 @@ func _ready() -> void:
 	_build_waterplay()
 	_build_fishery()
 	_build_ferry()
+	_build_care()
 	_build_shared_ui()
 	_build_daylight()
 	_build_work()
@@ -759,6 +762,33 @@ func ferry() -> FerryNodeScript:
 	return _ferry
 
 
+func _build_care() -> void:
+	"""THE INFIRMARY (demo/infirmary/, decisions 0621-0623), after the kitchen, the water and the fishery: injuries and
+	their care on the cast, the night's beds and the network's rooms, the kitchen's hunger and the water's stamina and
+	hazards; its lines on the resident card, its factor on the work pace; the infirmary building placed from its section
+	in the Tunnels panel, built from the village stores at the open stockpile and the care shelf through the work board
+	(`_build_work` lists its places)."""
+	_care = CareScript.new()
+	add_child(_care)
+	var command: DemoCommandScript = _command as DemoCommandScript
+	var tool: TunnelControlScript = command.tunnels()
+	_care.configure(_cast as DemoCastScript, _services, tool.ext.night, _cast.space().tunnels, _kitchen.kitchen.fed,
+		_waterplay.state, _services.work_pace)
+	_care.configure_building(SpoilScript.drop_point(_cast as DemoCastScript), tool.room_site, tool.site_key,
+		tool.network, _camera.camera(), command.say, func() -> void:
+			if tool.planning:
+				tool.cancel_plan())
+	command.add_skill_text(_care.card_text)
+	command.add_task_text(_care.building.builders.doing_text)
+	command.add_input_hook(_care.building.handle_input)
+	tool.ext.panel.add_section(_care.section)
+
+
+func care() -> CareScript:
+	"""The village's infirmary (demo/infirmary/demo_care.gd)."""
+	return _care
+
+
 func _build_work() -> void:
 	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
 	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
@@ -771,6 +801,7 @@ func _build_work() -> void:
 	_work.add_ferry(_ferry.ferry)
 	_build_standing()
 	_winter.bind_work(_forestry.crew, _work.board, _standing.book)
+	_work.add_care(_care.building.builders)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -1603,8 +1634,8 @@ func _build_menu() -> void:
 
 
 func _build_lab() -> void:
-	"""The Demo Lab's four test triggers, each the same `on_action` its panel's button used to call, and the season
-	preview (presentation only; decision 0551)."""
+	"""The Demo Lab's test triggers: the four its panels' buttons used to call, Skip to next season (decision 0571), the
+	season preview (presentation only; decision 0551) and the infirmary's two test injuries (decision 0622)."""
 	add_child(_lab)
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_lab.add_trigger("Next weather", "Run the one calendar on to the next change of weather", "Tunnels",
@@ -1620,6 +1651,10 @@ func _build_lab() -> void:
 		skip_to_next_season)
 	_seasons.bind_lab(_lab.add_trigger(SeasonViewScript.PREVIEW_LABEL, SeasonViewScript.PREVIEW_TIP, "", _seasons.next_preview,
 		Callable(), "", SeasonViewScript.PREVIEW_DONE))
+	_lab.add_trigger("Injury", "Every selected resident takes the net hazard's bite (minor, −20 health; GDD §5.4)",
+		"Demo party", _lab_hurt.bind(false), _resident_selected, "Select a resident first")
+	_lab.add_trigger("Serious injury", "Every selected resident takes the boat hazard's exposure (serious, −35 health)",
+		"Demo party", _lab_hurt.bind(true), _resident_selected, "Select a resident first")
 
 
 func _build_session() -> void:
@@ -1795,6 +1830,16 @@ func target_marks() -> MarksScript:
 func focus_hint() -> HintScript:
 	"""The focus hint (checks)."""
 	return _hint
+
+
+func _resident_selected() -> bool:
+	"""Whether any resident is selected (the Lab's test injuries can act)."""
+	return not (_command as DemoCommandScript).selected().is_empty()
+
+
+func _lab_hurt(serious: bool) -> void:
+	"""The Lab's test injury on the selected residents (demo/infirmary/demo_care.gd `lab_hurt`)."""
+	_care.lab_hurt((_command as DemoCommandScript).selected(), serious)
 
 
 func _swimmer_selected() -> bool:

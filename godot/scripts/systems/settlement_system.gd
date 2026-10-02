@@ -384,9 +384,29 @@ extends Node
 ## 50% return, else a rolled-back ground-pile placement (#9) -- BEFORE its first write. Then it
 ## reserves that capacity and publishes the demolition project inside one inventory transaction,
 ## records the admission and advances the building's destination revision in
-## `demolition_admissions()`. Removing the building and placing the return is D5's.
+## `demolition_admissions()`. The return and the work include every piece of furniture: 50% of
+## each piece's bill, its package derived from its type, and a quarter of its WU (decision 0536,
+## Brendan's rulings on 0535). Only a piece with a live project of its own refuses, at the end of
+## the preview.
 ## `cancel_demolition()` is the only cancellation: it releases that claim BEFORE retiring the
-## project, because `construction().close_refund()` cannot see Inventory.
+## project, because construction cannot see Inventory; `close_refund()` refuses a demolition by
+## name (decision 0536), so `close_demolition_refund()` is the coordinator's own door.
+##
+## `complete_demolition()` IS #6's ONE NO-YIELD COMMIT (decision 0535). Once the project's work is
+## done it proves, writing nothing: the coordinator's own admitted project and its held claim,
+## stages 2-5 again, the furniture rule, and the return's placement (rolled back). Then it writes
+## in #6's order -- (1) every affected container destroyed, (2) every piece of furniture, (3) rooms,
+## (4) the building, (5) the 50% return into the released claim's store or onto ground piles,
+## (6) the project retired -- with (1) and (5) and the claim's release in ONE inventory
+## transaction, and the admission record released (destination revision +1) before the building
+## row goes. Every refusal before the record's release writes nothing and leaves the project
+## PHASE_WORK_DONE: commit-pending, retried at no cost; later ones are unreachable guards.
+##
+## ONE PIECE CAN BE TAKEN OUT OF A STANDING BUILDING (decision 0536, Brendan's P2):
+## `preview_furniture_removal()`, `request_furniture_removal()`, `complete_furniture_removal()` and
+## `cancel_furniture_removal()` are the same admit and commit with the piece as subject, recorded
+## against its building's admission row (one admission per building). A shelf in a pantry room
+## takes its 50000 g out of the building's main store, refusing when that would overflow (#3b).
 ##
 ## EVERY REFUSAL IS READ-ONLY, WHICH IS ASSERTED IN BYTES. Every path returns a
 ## `DemolitionReport` carrying exact counts and the exact stranded lot refs, and a refusal leaves
@@ -712,6 +732,23 @@ const REFUSE_DEMOLITION_CLAIM_MISSING: StringName = &"DEMOLITION_RESERVATION_NOT
 ## `release_stranded_reservation()`: the row's claim still has a live project (cancel instead), or
 ## the row records no claim at all.
 const REFUSE_DEMOLITION_NOT_STRANDED: StringName = &"DEMOLITION_RESERVATION_NOT_STRANDED"
+## Decision 0536: a piece of furniture whose own construction project is still live is not
+## completed capital (BUILD-C4-R01 settles in-progress work through its cancellation first), so
+## neither its building's demolition nor its own removal may take it until that project closes.
+## Every other piece's package is DERIVED from its type (Brendan's P1 ruling) and returns 50%.
+const REFUSE_DEMOLITION_FURNITURE_UNDER_CONSTRUCTION: StringName = \
+	&"DEMOLITION_FURNITURE_UNDER_CONSTRUCTION"
+## The commit's return is not the one admission charged: the recorded grams or the admitted charge
+## differ from what the project would place now -- a piece placed or removed around the
+## coordinator since admission (decisions 0535 review L5, 0536). Commit-pending until it agrees.
+const REFUSE_DEMOLITION_RESERVATION_MISMATCH: StringName = &"DEMOLITION_RESERVATION_MISMATCH"
+## Decision 0536's single-piece door: a stale piece; a piece whose building is not ACTIVE; and
+## DEMO-CONTAIN-R01 #3b's two refusals -- the pantry store left over capacity without the shelf,
+## or no single main store (an owned container at the building's origin) to take the reduction.
+const REFUSE_REMOVAL_STALE_PIECE: StringName = &"FURNITURE_REMOVAL_STALE_PIECE"
+const REFUSE_REMOVAL_BUILDING_NOT_ACTIVE: StringName = &"FURNITURE_REMOVAL_BUILDING_NOT_ACTIVE"
+const REFUSE_REMOVAL_PANTRY_OVER_CAPACITY: StringName = &"FURNITURE_REMOVAL_PANTRY_OVER_CAPACITY"
+const REFUSE_REMOVAL_PANTRY_STORE: StringName = &"FURNITURE_REMOVAL_PANTRY_STORE_UNREADABLE"
 
 ## The two endpoint stages. Named rather than a boolean flag: ONE walk defines the affected
 ## endpoint set, and running it twice with different stages is what makes the goods scan
@@ -720,17 +757,19 @@ const ENDPOINT_STAGE_PROVE: int = 0
 const ENDPOINT_STAGE_SCAN: int = 1
 ## Stage 5's first half: every container the owner scan reaches must be anchored on the footprint.
 const ENDPOINT_STAGE_CONTAIN: int = 2
+## #6's step (1), inside the commit's transaction: destroy every container the same walk reaches.
+const ENDPOINT_STAGE_DESTROY: int = 3
 
 
 class DemolitionReport:
 	"""One demolition request's outcome and the exact evidence behind it.
 
 	`OpResult.value` alone cannot describe a multi-lot notice (INV-GOODS-R01), so this carries
-	the counts a notice needs AND the stranded lot refs themselves. `ok` is false on every path
-	this gate can currently take; `error` says which of them, and the counters below are only
-	filled by the stage that reached them -- a refusal at the endpoint proof leaves the goods
-	totals at 0 BECAUSE NOTHING WAS COUNTED, which is exactly why `error` and not a zero total is
-	what a caller must read.
+	the counts a notice needs AND the stranded lot refs themselves. `ok` is true only when the
+	call it answers -- an admission or a completed demolition -- was made; `error` says why not,
+	and the counters below are only filled by the stage that reached them -- a refusal at the
+	endpoint proof leaves the goods totals at 0 BECAUSE NOTHING WAS COUNTED, which is exactly why
+	`error` and not a zero total is what a caller must read.
 
 	The lot columns are allocated once at the lot store's capacity and refilled per request.
 	"""
@@ -754,6 +793,14 @@ class DemolitionReport:
 	var output_reserved_g: int = 0
 	var output_to_ground_piles: bool = false
 	var destination_revision: int = 0
+	## D5 (decision 0535): the furniture that blocks the return (a DIRECTORY ref) and how many
+	## pieces do; and, after a completed demolition, what its commit destroyed, removed and placed.
+	var blocking_furniture: Vector2i = EntityDirectoryScript.NULL_REF
+	var blocked_furniture_count: int = 0
+	var removed_furniture_count: int = 0
+	var destroyed_container_count: int = 0
+	var removed_room_count: int = 0
+	var returned_lot_count: int = 0
 	var _lot_slot: PackedInt32Array = PackedInt32Array()
 	var _lot_generation: PackedInt32Array = PackedInt32Array()
 
@@ -782,6 +829,12 @@ class DemolitionReport:
 		output_reserved_g = 0
 		output_to_ground_piles = false
 		destination_revision = 0
+		blocking_furniture = EntityDirectoryScript.NULL_REF
+		blocked_furniture_count = 0
+		removed_furniture_count = 0
+		destroyed_container_count = 0
+		removed_room_count = 0
+		returned_lot_count = 0
 
 	func record_lot(lot_ref: Vector2i) -> void:
 		"""Record one stranded lot ref. The count is the authority; the columns are the list."""
@@ -952,6 +1005,14 @@ var _demolition_milli: PackedInt64Array = PackedInt64Array()
 var _demolition_specs: PackedInt64Array = PackedInt64Array()
 var _demolition_spec_rows: int = 0
 var _demolition_place: GroundPilesScript.PlaceResult = GroundPilesScript.PlaceResult.new()
+## Decision 0536: the pantry store a removed shelf's capacity leaves, and how much (#3b). Set by
+## the proof of the request that reads it; 0 g means the piece carries no pantry capacity.
+var _removal_pantry_store: Vector2i = InventoryScript.NULL_REF
+var _removal_pantry_g: int = 0
+## The planned return's capacity charge in grams, from `_compile_return_specs()`: what admit
+## records for every admission and the commit compares against (decision 0536). The report's
+## `output_reserved_g` shows only grams actually reserved, so a pile plan reports 0 (review L1).
+var _return_charge_g: int = 0
 ## The coordinator's per-building admission record and destination revision (decision 0534).
 var _admissions: DemolitionAdmissionsScript = null
 
@@ -1016,8 +1077,8 @@ func _size_index_and_scratch_columns() -> void:
 	_demolition_footprint.resize(_inventory.anchor_query_mask_bytes())
 	_demolition_outside.resize(_inventory.anchor_query_mask_bytes())
 	_demolition_seeds.resize(GroundPilesScript.REFUND_SEED_CAPACITY)
-	_demolition_keys.resize(ConstructionScript.MATERIAL_SLOTS_PER_PROJECT)
-	_demolition_milli.resize(ConstructionScript.MATERIAL_SLOTS_PER_PROJECT)
+	_demolition_keys.resize(ConstructionScript.RETURN_LINE_CAPACITY)
+	_demolition_milli.resize(ConstructionScript.RETURN_LINE_CAPACITY)
 
 
 func _compose_stock_layer() -> void:
@@ -2854,22 +2915,36 @@ func preview_demolition(building_ref: Vector2i) -> DemolitionReport:
 	"""REQ-SET-128 in full, read-only: prove the endpoints, then recheck goods, occupants, footprint.
 
 	CHANGES NOTHING ON ANY PATH: the five stages run in the header's order and stop at the first
-	refusal, and the occupant recheck is deliberately AFTER the endpoint proof. `report.ok` here
-	means only that *admit* may run; nothing is published by a preview.
+	refusal, and the occupant recheck is deliberately AFTER the endpoint proof. Then the furniture
+	rule (decision 0535), a read-only fact *admit* would refuse on, so a preview that passes is
+	one *admit* can act on. `report.ok` here means only that *admit* may run.
 	"""
 	_demolition.reset()
 	var code: StringName = _refuse_demolition_subject(building_ref)
 	if code == REFUSE_NONE:
-		code = _walk_endpoints(building_ref, ENDPOINT_STAGE_PROVE)
+		code = _gate_stages_refusal(building_ref)
+	if code == REFUSE_NONE:
+		code = _furniture_project_refusal(building_ref)
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func _gate_stages_refusal(building_ref: Vector2i) -> StringName:
+	"""Stages 2-5 in order: endpoints, goods, occupants, footprint. Shared with #6's commit.
+
+	The commit (decision 0535) runs these again after its own stage-1 variant, because stage 1
+	refuses the DEMOLISHING building it is completing. Its own project is then simply one more
+	endpoint: it has no material container and nothing delivered, so the walk passes it.
+	"""
+	var code: StringName = _walk_endpoints(building_ref, ENDPOINT_STAGE_PROVE)
 	if code == REFUSE_NONE:
 		code = _scan_demolition_goods(building_ref)
 	if code == REFUSE_NONE:
 		code = _recheck_demolition_residents(building_ref)
 	if code == REFUSE_NONE:
 		code = _footprint_containment_refusal(building_ref)
-	_demolition.error = code
-	_demolition.ok = code == REFUSE_NONE
-	return _demolition
+	return code
 
 
 func _refuse_demolition_subject(building_ref: Vector2i) -> StringName:
@@ -2943,6 +3018,8 @@ func _visit_owner(owner_ref: Vector2i, stage: int) -> StringName:
 		return REFUSE_DEMOLITION_SCAN  # guard, not a reachable state: see the docstring
 	if stage == ENDPOINT_STAGE_CONTAIN:
 		return _owned_containers_on_footprint(_demolition_read.value)
+	if stage == ENDPOINT_STAGE_DESTROY:
+		return _destroy_scanned_containers(_demolition_read.value)
 	return _accumulate_scanned_containers(_demolition_read.value)
 
 
@@ -2957,6 +3034,8 @@ func _visit_material_container(project_ref: Vector2i, stage: int) -> StringName:
 	var handle: Vector2i = _construction.material_container_ref_of(project_ref)
 	if handle == EntityDirectoryScript.NULL_REF:
 		return _unbound_material_refusal(project_ref)
+	if stage == ENDPOINT_STAGE_DESTROY:
+		return _destroy_affected_container(handle)
 	if not _inventory.is_container_valid(handle):
 		return REFUSE_DEMOLITION_MISSING_CONTAINMENT
 	if stage == ENDPOINT_STAGE_PROVE:
@@ -3188,18 +3267,26 @@ func _admit_demolition(building_ref: Vector2i) -> StringName:
 
 
 func _plan_demolition_output(building_ref: Vector2i) -> StringName:
-	"""Choose where the 50% return goes, writing nothing: one surviving store, else ground piles."""
+	"""Choose where the combined 50% return goes, writing nothing: one surviving store, else piles.
+
+	The combined return is the building's own half plus every piece of furniture's (decision
+	0536), so the reservation covers all of it, as the furniture rule requires.
+	"""
 	if not _construction.demolition_return_preview_into(building_ref, _demolition_keys,
 			_demolition_milli, _demolition_read):
 		return StringName(_demolition_read.error)
-	var code: StringName = _compile_return_specs(_demolition_read.value)
+	return _plan_output_for(building_ref, _demolition_read.value)
+
+
+func _plan_output_for(building_ref: Vector2i, lines: int) -> StringName:
+	"""Turn `lines` manifest lines into specs, then pick a surviving store or prove ground piles."""
+	var code: StringName = _compile_return_specs(lines)
 	if code != REFUSE_NONE or _demolition_spec_rows == 0:
 		return code
 	var store: Vector2i = _find_output_store(building_ref)
 	if store != InventoryScript.NULL_REF:
 		_demolition.output_container = store
 		return REFUSE_NONE
-	_demolition.output_reserved_g = 0
 	_demolition.output_to_ground_piles = true
 	if _ground_piles.preflight_lots_from_seeds(_demolition_seeds, _demolition_seed_count,
 			_demolition_footprint, _demolition_specs, _demolition_place):
@@ -3220,7 +3307,7 @@ func _compile_return_specs(lines: int) -> StringName:
 	_demolition_spec_rows = rows
 	_demolition_specs.resize(rows * GroundPilesScript.SPEC_STRIDE)
 	_demolition_specs.fill(0)
-	_demolition.output_reserved_g = 0
+	_return_charge_g = 0
 	var row: int = 0
 	for index: int in lines:
 		if _demolition_milli[index] <= 0:
@@ -3244,7 +3331,7 @@ func _add_return_spec(row: int, line: int) -> StringName:
 	if not IntMath.inventory_capacity_debit_g_into(_demolition_milli[line],
 			_inventory.item_mass_g(item), _demolition_read):
 		return REFUSE_DEMOLITION_OVERFLOW
-	_demolition.output_reserved_g += _demolition_read.value
+	_return_charge_g += _demolition_read.value
 	return REFUSE_NONE
 
 
@@ -3280,7 +3367,7 @@ func _is_output_store(container_ref: Vector2i, building_ref: Vector2i) -> bool:
 		return false
 	if not _inventory.container_reachable(container_ref):
 		return false
-	if _inventory.container_free_mass_g(container_ref) < _demolition.output_reserved_g:
+	if _inventory.container_free_mass_g(container_ref) < _return_charge_g:
 		return false
 	var filters: int = _inventory.container_filters(container_ref)
 	for row: int in _demolition_spec_rows:
@@ -3290,14 +3377,17 @@ func _is_output_store(container_ref: Vector2i, building_ref: Vector2i) -> bool:
 	return true
 
 
-func _commit_demolition_admission(building_ref: Vector2i) -> StringName:
+func _commit_demolition_admission(building_ref: Vector2i,
+		piece_ref: Vector2i = EntityDirectoryScript.NULL_REF) -> StringName:
 	"""The writes, after every proof: reserve, publish, commit, record (revision +1).
 
-	Reservation and transition share one inventory transaction, so a transition that still
-	refused rolls the reservation back; the other refusals are guards (`_undo_admission()`).
+	One inventory transaction holds the reservation and the transition, so a transition that
+	still refused rolls it back; other refusals are guards (`_undo_admission()`). A `piece_ref`
+	publishes that piece's removal instead, recorded on its building's row (decision 0536).
 	"""
 	var store: Vector2i = _demolition.output_container
-	var grams: int = _demolition.output_reserved_g if store != InventoryScript.NULL_REF else 0
+	var charge: int = _return_charge_g
+	var grams: int = charge if store != InventoryScript.NULL_REF else 0
 	_demolition.output_container = InventoryScript.NULL_REF
 	_demolition.output_reserved_g = 0
 	if not _inventory.begin().ok:
@@ -3305,31 +3395,44 @@ func _commit_demolition_admission(building_ref: Vector2i) -> StringName:
 	if grams > 0 and not _inventory.reserve_container_mass(store, grams).ok:
 		_inventory.abort()
 		return REFUSE_DEMOLITION_NO_OUTPUT
-	var opened: ConstructionScript.OpResult = _construction.open_demolition(building_ref)
+	var opened: ConstructionScript.OpResult = _open_removal_project(building_ref, piece_ref)
 	if not opened.ok:
 		_inventory.abort()
 		return opened.error
 	var committed: InventoryScript.OpResult = _inventory.commit()
 	var code: StringName = committed.error if not committed.ok \
-		else _admissions.record(building_ref, opened.ref, store, grams)
+		else _admissions.record(building_ref, opened.ref, store, grams, charge)
 	if code != REFUSE_NONE:
 		_undo_admission(opened.ref, store, grams if committed.ok else 0)
 		return code
-	_demolition.project_ref = opened.ref
+	_report_admission(building_ref, opened.ref, store, grams)
+	return REFUSE_NONE
+
+
+func _report_admission(building_ref: Vector2i, project: Vector2i, store: Vector2i,
+		grams: int) -> void:
+	"""Fill the report with what admit wrote: the project, the claim and the new revision."""
+	_demolition.project_ref = project
 	_demolition.output_container = store
 	_demolition.output_reserved_g = grams
 	_demolition.destination_revision = _admissions.destination_revision_of(building_ref)
-	return REFUSE_NONE
+
+
+func _open_removal_project(building_ref: Vector2i, piece_ref: Vector2i) -> ConstructionScript.OpResult:
+	"""The store transition admit publishes: the building's demolition, or one piece's removal."""
+	if piece_ref == EntityDirectoryScript.NULL_REF:
+		return _construction.open_demolition(building_ref)
+	return _construction.open_furniture_removal(piece_ref)
 
 
 func _undo_admission(project_ref: Vector2i, store: Vector2i, grams: int) -> void:
 	"""Unreachable guard: retire a just-published demolition and release its reservation.
 
-	`close_refund()` on a demolition returns the building to ACTIVE and frees the row; the
-	directory slot's generation has advanced, which is the one trace an allocator must leave.
+	`close_demolition_refund()` returns the building to ACTIVE and frees the row; the directory
+	slot's generation has advanced, which is the one trace an allocator must leave.
 	"""
 	var undone: bool = _construction.begin_refund(project_ref).ok \
-		and _construction.close_refund(project_ref).ok
+		and _construction.close_demolition_refund(project_ref).ok
 	if grams > 0:
 		undone = _inventory.release_container_mass(store, grams).ok and undone
 	if not undone:
@@ -3339,29 +3442,35 @@ func _undo_admission(project_ref: Vector2i, store: Vector2i, grams: int) -> void
 func cancel_demolition(building_ref: Vector2i) -> StringName:
 	"""Cancel an admitted demolition: release its reserved return capacity, then retire it.
 
-	The release comes FIRST and is the coordinator's, because `construction.close_refund()` sees
-	no inventory and a project retired with its claim still held would strand that headroom
-	(decision 0534, review H1). Every check runs before the first write; the building returns
-	to ACTIVE, the record is cleared and the destination revision advances.
+	The release comes FIRST and is the coordinator's, because construction sees no inventory and
+	a project retired with its claim still held would strand that headroom (decision 0534, review
+	H1); `close_refund()` refuses a demolition by name (0536). Every check runs before the first
+	write; the building returns to ACTIVE, the record is cleared and the revision advances.
 	"""
 	var project: Vector2i = _construction.project_of_building(building_ref)
-	var code: StringName = _cancel_refusal(building_ref, project)
+	var code: StringName = _cancel_refusal(building_ref, project,
+		ConstructionScript.PURPOSE_DEMOLISH)
 	if code != REFUSE_NONE:
 		return code
+	return _cancel_admitted(building_ref, project)
+
+
+func _cancel_admitted(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""Release the proved claim, retire the removal through the coordinator's door, clear the record."""
 	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
 	var done: bool = grams == 0 or _inventory.release_container_mass(
 		_admissions.unreleased_output_of(building_ref), grams).ok
 	done = _construction.begin_refund(project).ok and done
-	done = _construction.close_refund(project).ok and done
+	done = _construction.close_demolition_refund(project).ok and done
 	if not done:
 		push_error("SettlementSystem: a proved cancellation refused a write (%s)" % project)
 	return _admissions.release(building_ref)
 
 
-func _cancel_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
-	"""Why `cancel_demolition()` would refuse right now, or REFUSE_NONE. Writes nothing."""
+func _cancel_refusal(building_ref: Vector2i, project: Vector2i, purpose: int) -> StringName:
+	"""Why a cancellation would refuse right now, or REFUSE_NONE. Writes nothing."""
 	if not _construction.purpose_into(project, _demolition_read) \
-			or _demolition_read.value != ConstructionScript.PURPOSE_DEMOLISH:
+			or _demolition_read.value != purpose:
 		return REFUSE_DEMOLITION_NOT_ADMITTED
 	if not _construction.phase_into(project, _demolition_read) \
 			or _demolition_read.value == ConstructionScript.PHASE_REFUNDING:
@@ -3387,23 +3496,598 @@ func _claim_release_refusal(building_ref: Vector2i) -> StringName:
 
 
 func release_stranded_reservation(building_ref: Vector2i) -> StringName:
-	"""Release a recorded claim whose demolition project is gone without it (review M-A).
+	"""Release a recorded claim stranded by a write made around the coordinator (review M-A).
 
-	Only a project retired around the coordinator -- a store-level `close_refund()`, or a
-	completion that removed nothing -- leaves one. The record is per Building row, so any live
-	building on that row may ask; the claim is released from the recorded store and the record
-	cleared. Refuses NOT_STRANDED while a project is live (cancel it) or when no claim is recorded.
+	Two shapes: a project retired WITHOUT its claim (a store-level `close_demolition_refund()` or
+	`retire_demolition()` called around the coordinator), or -- decision 0536 -- a piece's
+	removal still live whose piece was removed around it, which nothing could complete or cancel.
+	The latter's project is retired first (nothing is returned: its piece is gone). The claim is
+	released from the recorded store and the record cleared. Refuses NOT_STRANDED otherwise.
 	"""
-	if _admissions.project_of(building_ref) != EntityDirectoryScript.NULL_REF \
-			or _admissions.unreleased_reserved_g_of(building_ref) == 0:
+	var project: Vector2i = _admissions.project_of(building_ref)
+	var orphaned: bool = _is_orphaned_removal(project)
+	if not orphaned and (project != EntityDirectoryScript.NULL_REF
+			or _admissions.unreleased_reserved_g_of(building_ref) == 0):
 		return REFUSE_DEMOLITION_NOT_STRANDED
 	var code: StringName = _claim_release_refusal(building_ref)
 	if code != REFUSE_NONE:
 		return code
-	if not _inventory.release_container_mass(_admissions.unreleased_output_of(building_ref),
-			_admissions.unreleased_reserved_g_of(building_ref)).ok:
+	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
+	var done: bool = grams == 0 or _inventory.release_container_mass(
+		_admissions.unreleased_output_of(building_ref), grams).ok
+	if orphaned:
+		done = _retire_orphaned_removal(project) and done
+	if not done:
 		push_error("SettlementSystem: a proved stranded release refused (%s)" % building_ref)
 	return _admissions.release(building_ref)
+
+
+func _is_orphaned_removal(project: Vector2i) -> bool:
+	"""A live piece-removal project whose piece no longer exists (removed around the coordinator)."""
+	if not _construction.purpose_into(project, _demolition_read) \
+			or _demolition_read.value != ConstructionScript.PURPOSE_REMOVE_FURNITURE:
+		return false
+	return not _buildings.is_live_furniture(_construction.subject_ref_of(project))
+
+
+func _retire_orphaned_removal(project: Vector2i) -> bool:
+	"""Retire an orphaned removal through the coordinator's cancellation door (returns nothing)."""
+	if not _construction.phase_into(project, _demolition_read):
+		return false
+	if _demolition_read.value != ConstructionScript.PHASE_REFUNDING \
+			and not _construction.begin_refund(project).ok:
+		return false
+	return _construction.close_demolition_refund(project).ok
+
+
+# --- D5: the composed completion (DEMO-CONTAIN-R01 #6, decision 0535) ---------------------------
+
+func complete_demolition(building_ref: Vector2i) -> DemolitionReport:
+	"""DEMO-CONTAIN-R01 #6: commit one finished, admitted demolition in one call with no yield.
+
+	Proves everything first: this coordinator admitted the building's project, its work is done
+	and its claim still held; the gate's stages 2-5 hold again; the furniture rule; and the 50%
+	return can be placed now. Then it writes in #6's order: (1) destroy the affected containers,
+	(2) every piece of furniture, (3) rooms, (4) the building, (5) the combined
+	return, (6) retire the project. A refusal of the proofs or of the commit's first,
+	inventory-only block writes nothing and leaves the project PHASE_WORK_DONE: commit-pending,
+	and a retry costs nothing (ECON-003). Later refusals are unreachable guards (decision 0535).
+	"""
+	_demolition.reset()
+	var project: Vector2i = _construction.project_of_building(building_ref)
+	var code: StringName = _commit_refusal(building_ref, project)
+	if code == REFUSE_NONE:
+		code = _commit_demolition(building_ref, project)
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func _commit_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""Every proof #6's commit needs, in order, writing nothing."""
+	var code: StringName = _commit_subject_refusal(building_ref, project)
+	if code == REFUSE_NONE:
+		code = _gate_stages_refusal(building_ref)
+	if code == REFUSE_NONE:
+		code = _commit_output_refusal(building_ref, project)
+	return code
+
+
+func _commit_subject_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""Stage 1's commit-time variant: the coordinator's own admitted demolition, its work done.
+
+	`construction.demolition_commit_refusal()`'s codes are re-raised, not re-spelled. The claim
+	proof is cancellation's: no caller transaction, the store still holding the recorded grams.
+	"""
+	if not _buildings.is_live_building(building_ref):
+		return REFUSE_DEMOLITION_STALE_BUILDING
+	if project == EntityDirectoryScript.NULL_REF or _admissions.project_of(building_ref) != project:
+		return REFUSE_DEMOLITION_NOT_ADMITTED
+	var code: StringName = _construction.demolition_commit_refusal(project)
+	if code != REFUSE_NONE:
+		return code
+	return _claim_release_refusal(building_ref)
+
+
+func _commit_output_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""The return's proofs: the furniture rule, the snapshot's manifest, and its placement now.
+
+	A store return is proved by releasing the claim and creating every lot in a rolled-back
+	transaction, after the recorded grams are proved equal to the snapshot's own charge; a
+	ground-pile return by #9's rolled-back preflight. Either failing is NO_OUTPUT_CAPACITY and the
+	demolition stays commit-pending (decision 0534's ruling R2).
+	"""
+	var code: StringName = _furniture_project_refusal(building_ref)
+	if code == REFUSE_NONE:
+		code = _commit_return_refusal(building_ref, project)
+	return code
+
+
+func _commit_return_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""The project's own manifest, its charge against admission's, and its placement now.
+
+	Shared by a demolition's commit and a piece's removal (decision 0536). The refund seeds and
+	footprint mask the pile proof reads must already be built for `building_ref`.
+	"""
+	var code: StringName = _compile_project_return(project)
+	if code == REFUSE_NONE and _admissions.admitted_charge_g_of(building_ref) \
+			!= _return_charge_g:
+		code = REFUSE_DEMOLITION_RESERVATION_MISMATCH
+	if code != REFUSE_NONE or _demolition_spec_rows == 0:
+		return code
+	var store: Vector2i = _admissions.output_container_of(building_ref)
+	if store == InventoryScript.NULL_REF:
+		return _preflight_pile_return()
+	# A guard: record() makes a store's reserved grams equal its charge, which was just compared.
+	var grams: int = _admissions.output_reserved_g_of(building_ref)
+	if grams != _return_charge_g:
+		return REFUSE_DEMOLITION_RESERVATION_MISMATCH
+	return _preflight_store_return(store, grams)
+
+
+func _preflight_pile_return() -> StringName:
+	"""#9's rolled-back placement from the refund seeds stage 5 just rebuilt, footprint excluded."""
+	if _ground_piles.preflight_lots_from_seeds(_demolition_seeds, _demolition_seed_count,
+			_demolition_footprint, _demolition_specs, _demolition_place):
+		return REFUSE_NONE
+	return REFUSE_DEMOLITION_NO_OUTPUT
+
+
+func _furniture_project_refusal(building_ref: Vector2i) -> StringName:
+	"""Refuse while any piece in the building still has a live project of its own (decision 0536).
+
+	Every other piece is taken down WITH the building and returns 50% of its type's bill (P1). A
+	piece still under construction, or already being removed on its own, is not: it settles
+	through its own project first. All such pieces are counted and the first is named.
+	"""
+	for room_row: int in _buildings.rooms_of_building(building_ref):
+		var room_ref: Vector2i = _buildings.room_ref_of_row(room_row)
+		for furniture_row: int in _buildings.furniture_rows_in_room(room_ref):
+			var piece: Vector2i = _buildings.furniture_ref_of_row(furniture_row)
+			if _construction.project_of_subject(piece) == EntityDirectoryScript.NULL_REF:
+				continue
+			if _demolition.blocked_furniture_count == 0:
+				_demolition.blocking_furniture = piece
+			_demolition.blocked_furniture_count += 1
+	if _demolition.blocked_furniture_count > 0:
+		return REFUSE_DEMOLITION_FURNITURE_UNDER_CONSTRUCTION
+	return REFUSE_NONE
+
+
+func _compile_project_return(project: Vector2i) -> StringName:
+	"""Read the admitted project's own manifest (its snapshot, already halved) into spec rows."""
+	if not _construction.demolition_return_into(project, _demolition_keys, _demolition_milli,
+			_demolition_read):
+		return StringName(_demolition_read.error)
+	return _compile_return_specs(_demolition_read.value)
+
+
+func _preflight_store_return(store: Vector2i, grams: int) -> StringName:
+	"""Release the claim and create every return lot in the store, then roll it all back."""
+	if not _inventory.begin().ok:
+		return REFUSE_DEMOLITION_TRANSACTION  # guard: the claim proof refused an open one
+	var code: StringName = _inventory.release_container_mass(store, grams).error
+	if code == REFUSE_NONE:
+		code = _create_return_lots(store)
+	_inventory.abort()
+	return REFUSE_NONE if code == REFUSE_NONE else REFUSE_DEMOLITION_NO_OUTPUT
+
+
+func _create_return_lots(store: Vector2i) -> StringName:
+	"""One new lot per return line in `store`, with the spec row's attributes (all unset, age 0)."""
+	for row: int in _demolition_spec_rows:
+		var base: int = row * GroundPilesScript.SPEC_STRIDE
+		var made: InventoryScript.OpResult = _inventory.create_lot(store,
+			_demolition_specs[base + GroundPilesScript.SPEC_ITEM],
+			_demolition_specs[base + GroundPilesScript.SPEC_QUANTITY],
+			_demolition_specs[base + GroundPilesScript.SPEC_QUALITY],
+			_demolition_specs[base + GroundPilesScript.SPEC_PROVENANCE],
+			_demolition_specs[base + GroundPilesScript.SPEC_RECIPE],
+			_demolition_specs[base + GroundPilesScript.SPEC_AGE],
+			_demolition_specs[base + GroundPilesScript.SPEC_AGE_REMAINDER])
+		if not made.ok:
+			return made.error
+	return REFUSE_NONE
+
+
+func _commit_demolition(building_ref: Vector2i, project: Vector2i,
+		piece_ref: Vector2i = EntityDirectoryScript.NULL_REF) -> StringName:
+	"""#6's writes, after every proof. Only `_open_commit()` can still refuse cleanly.
+
+	Inventory's steps share ONE transaction: (1) the destroyed stores, the released claim and (5)
+	the return. The admission record is released BEFORE the building row goes, because it is
+	keyed by that row (decision 0534), and that is where the destination revision advances. Any
+	later refusal is a guard the proofs make unreachable; `_abandon_commit()` aborts Inventory,
+	re-records the admission while the building row stands, and logs. With a `piece_ref` it is that
+	piece's removal (decision 0536): its stores, the pantry capacity it carried, then the piece.
+	"""
+	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
+	var store: Vector2i = _admissions.unreleased_output_of(building_ref)
+	var charge: int = _admissions.admitted_charge_g_of(building_ref)
+	var code: StringName = _open_commit(building_ref, piece_ref, store, grams)
+	if code != REFUSE_NONE:
+		return code
+	_demolition.destination_revision = _admissions.destination_revision_of(building_ref)
+	code = _remove_subject(building_ref, project, piece_ref)
+	if code == REFUSE_NONE:
+		code = _place_return(store)
+	if code == REFUSE_NONE:
+		code = _commit_and_declare()
+	if code != REFUSE_NONE:
+		_abandon_commit(building_ref, project, store, grams, charge, code)
+		return code
+	code = _construction.retire_demolition(project).error
+	if code != REFUSE_NONE:
+		push_error("SettlementSystem: a committed removal's project would not retire (%s)" % code)
+		return code
+	_demolition.project_ref = project
+	_demolition.output_container = store
+	_demolition.output_reserved_g = grams
+	return REFUSE_NONE
+
+
+func _abandon_commit(building_ref: Vector2i, project: Vector2i, store: Vector2i, grams: int,
+		charge: int, code: StringName) -> void:
+	"""Unreachable guard, BEFORE the commit and after the record's release: undo what can be.
+
+	The abort restores Inventory, the claim's grams included, and while the BUILDING row stands
+	the admission is recorded again: for a demolition that keeps it reachable by cancellation or
+	a retry; for a piece already removed it is exactly the orphaned-removal shape
+	`release_stranded_reservation()` recovers. Removed furniture, rooms or a removed building
+	cannot be restored (Buildings has no transaction), and the abort brings back a removed
+	piece's stores and shelf capacity, which no door repairs (decisions 0535, 0536; reviews M1).
+	"""
+	_inventory.abort()
+	_demolition.removed_furniture_count = 0
+	var recorded: StringName = &"BUILDING_GONE"
+	if _buildings.is_live_building(building_ref):
+		recorded = _admissions.record(building_ref, project, store, grams, charge)
+	_demolition.destroyed_container_count = 0
+	_demolition.removed_room_count = 0
+	_demolition.returned_lot_count = 0
+	_demolition.destination_revision = _admissions.destination_revision_of(building_ref)
+	push_error("SettlementSystem: a proved demolition commit refused a write (%s); re-record: '%s'"
+		% [code, recorded])
+
+
+func _open_commit(building_ref: Vector2i, piece_ref: Vector2i, store: Vector2i,
+		grams: int) -> StringName:
+	"""Open the transaction, (1) destroy the affected stores, release the claim and the record.
+
+	The only block of the commit that can still refuse cleanly: inventory is rolled back and the
+	record is released last, so a refusal here leaves every store as it was. A piece's removal
+	destroys only the piece's own stores (and its removal project's, by handle).
+	"""
+	if not _inventory.begin().ok:
+		return REFUSE_DEMOLITION_TRANSACTION  # guard: the claim proof refused an open one
+	var code: StringName = _walk_endpoints(building_ref, ENDPOINT_STAGE_DESTROY) \
+		if piece_ref == EntityDirectoryScript.NULL_REF \
+		else _visit_endpoint(piece_ref, ENDPOINT_STAGE_DESTROY)
+	if code == REFUSE_NONE and grams > 0:
+		code = _inventory.release_container_mass(store, grams).error
+	if code == REFUSE_NONE:
+		code = _admissions.release(building_ref)
+	if code != REFUSE_NONE:
+		_inventory.abort()
+		_demolition.destroyed_container_count = 0
+	return code
+
+
+func _destroy_scanned_containers(pair_count: int) -> StringName:
+	"""Step (1) for one owner: destroy every container the last owner query wrote."""
+	for index: int in pair_count:
+		var code: StringName = _destroy_affected_container(Vector2i(
+			_demolition_pairs[index * 2], _demolition_pairs[index * 2 + 1]))
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+func _destroy_affected_container(container_ref: Vector2i) -> StringName:
+	"""Destroy one affected container, proved empty and on the footprint by stages 3 and 5.
+
+	A project's material container is reached twice, through its owner and by handle; the
+	second visit finds it already gone, and that is the only way one can be gone here.
+	"""
+	if not _inventory.is_container_valid(container_ref):
+		return REFUSE_NONE
+	var destroyed: InventoryScript.OpResult = _inventory.destroy_container(container_ref)
+	if not destroyed.ok:
+		return destroyed.error
+	_demolition.destroyed_container_count += 1
+	return REFUSE_NONE
+
+
+func _remove_subject(building_ref: Vector2i, project: Vector2i, piece_ref: Vector2i) -> StringName:
+	"""The subject's step: the whole structure, or one piece and the pantry capacity it carried."""
+	if piece_ref == EntityDirectoryScript.NULL_REF:
+		return _remove_structure(building_ref, project)
+	if _removal_pantry_g > 0:
+		var reduced: InventoryScript.OpResult = _inventory.reduce_container_capacity(
+			_removal_pantry_store, _removal_pantry_g)
+		if not reduced.ok:
+			return reduced.error
+	var removed: ConstructionScript.OpResult = _construction.remove_demolished_subject(project)
+	_demolition.removed_furniture_count = 1 if removed.ok else 0
+	return removed.error
+
+
+func _remove_structure(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""Steps (2)-(4): every piece of furniture, every room, then the building."""
+	var code: StringName = _remove_all_furniture(building_ref)
+	if code != REFUSE_NONE:
+		return code
+	for room_row: int in _buildings.rooms_of_building(building_ref):
+		var removed: BuildingsScript.OpResult = _buildings.remove_room(
+			_buildings.room_ref_of_row(room_row))
+		if not removed.ok:
+			return removed.error
+		_demolition.removed_room_count += 1
+	return _construction.remove_demolished_subject(project).error
+
+
+func _remove_all_furniture(building_ref: Vector2i) -> StringName:
+	"""Step (2): take every piece out. Each one's 50% is already in the combined return (0536)."""
+	for room_row: int in _buildings.rooms_of_building(building_ref):
+		for furniture_row: int in _buildings.furniture_rows_in_room(
+				_buildings.room_ref_of_row(room_row)):
+			var removed: BuildingsScript.OpResult = _buildings.remove_furniture(
+				_buildings.furniture_ref_of_row(furniture_row))
+			if not removed.ok:
+				return removed.error
+			_demolition.removed_furniture_count += 1
+	return REFUSE_NONE
+
+
+func _place_return(store: Vector2i) -> StringName:
+	"""Step (5), inside the commit's transaction: into the released claim's store, else piles.
+
+	The piles start from the refund seeds and exclude the footprint mask stage 5 built BEFORE
+	the building row went (decision 0532), with the same placement the proof rolled back.
+	"""
+	if _demolition_spec_rows == 0:
+		return REFUSE_NONE
+	if store != InventoryScript.NULL_REF:
+		var code: StringName = _create_return_lots(store)
+		_demolition.returned_lot_count = _demolition_spec_rows if code == REFUSE_NONE else 0
+		return code
+	_demolition.output_to_ground_piles = true
+	if not _ground_piles.place_lots_from_seeds_in_transaction(_demolition_seeds,
+			_demolition_seed_count, _demolition_footprint, _demolition_specs, _demolition_place):
+		return _demolition_place.error
+	_demolition.returned_lot_count = _demolition_place.lots_created
+	return REFUSE_NONE
+
+
+func _commit_and_declare() -> StringName:
+	"""Commit the transaction, then declare the new piles' storage class. Step (6) follows it."""
+	var committed: InventoryScript.OpResult = _inventory.commit()
+	if not committed.ok:
+		return committed.error
+	if _demolition.output_to_ground_piles and not _ground_piles.declare_placed_piles():
+		push_error("SettlementSystem: a placed demolition return's pile class was refused")
+	return REFUSE_NONE
+
+
+# --- decision 0536: one piece of furniture taken out of a standing building (P2) ----------------
+
+func preview_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
+	"""The single-piece gate, read-only: the piece, its building, its goods, and #3b's capacity.
+
+	The piece is live and in an ACTIVE building; no resident uses it and it carries no project
+	of its own; its own stores (and any its project names) hold no goods and no claim; and, when
+	it is a shelf in a pantry room, the building's pantry store still fits its contents and
+	reservations at the capacity left without it (DEMO-CONTAIN-R01 #3b). CHANGES NOTHING.
+	"""
+	_demolition.reset()
+	var code: StringName = _removal_subject_refusal(piece_ref)
+	if code == REFUSE_NONE:
+		code = _removal_goods_refusal(piece_ref)
+	if code == REFUSE_NONE:
+		code = _pantry_shelf_refusal(piece_ref)
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func request_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
+	"""The preview, then *admit* in the same call: reserve the piece's 50%, publish its removal.
+
+	D4's admit with the piece as subject: the store transition, the building row's admission
+	record (one admission per building -- decision 0536), no caller transaction and an output
+	plan are all proved before the first write; the return goes to another building's store,
+	else onto ground piles from the building's refund seeds (ruling R1/R2 unchanged).
+	"""
+	preview_furniture_removal(piece_ref)
+	if not _demolition.ok:
+		return _demolition
+	var code: StringName = _admit_furniture_removal(piece_ref, _building_of_piece(piece_ref))
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func complete_furniture_removal(piece_ref: Vector2i) -> DemolitionReport:
+	"""Commit one finished, admitted piece removal with no yield: D5's commit with a piece subject.
+
+	Proves the admitted project, its work and its claim, the preview's checks again and the
+	return's placement; then, in one inventory transaction, destroys the piece's stores, releases
+	the claim and the record, lowers the pantry capacity it carried (#3b), removes the piece,
+	places its 50% and retires the project. Refusals write nothing and stay commit-pending.
+	"""
+	_demolition.reset()
+	var building: Vector2i = _building_of_piece(piece_ref)
+	var project: Vector2i = _construction.project_of_subject(piece_ref)
+	var code: StringName = _removal_commit_refusal(piece_ref, building, project)
+	if code == REFUSE_NONE:
+		code = _commit_demolition(building, project, piece_ref)
+	_demolition.error = code
+	_demolition.ok = code == REFUSE_NONE
+	return _demolition
+
+
+func cancel_furniture_removal(piece_ref: Vector2i) -> StringName:
+	"""Cancel an admitted piece removal: release its claim, retire it, clear the record. Free (R5)."""
+	if not _buildings.is_live_furniture(piece_ref):
+		return REFUSE_REMOVAL_STALE_PIECE
+	var building: Vector2i = _building_of_piece(piece_ref)
+	var project: Vector2i = _construction.project_of_subject(piece_ref)
+	var code: StringName = _cancel_refusal(building, project,
+		ConstructionScript.PURPOSE_REMOVE_FURNITURE)
+	if code != REFUSE_NONE:
+		return code
+	return _cancel_admitted(building, project)
+
+
+func _building_of_piece(piece_ref: Vector2i) -> Vector2i:
+	"""The building a piece's room belongs to, or the null ref for a stale piece."""
+	return _buildings.room_building_ref_of(_buildings.room_ref_of_furniture(piece_ref))
+
+
+func _removal_subject_refusal(piece_ref: Vector2i) -> StringName:
+	"""A live piece in an ACTIVE building, unused, with no project of its own."""
+	if not _buildings.is_live_furniture(piece_ref):
+		return REFUSE_REMOVAL_STALE_PIECE
+	var state: BuildingsScript.OpResult = _buildings.state_of_building(_building_of_piece(piece_ref))
+	if not state.ok or state.value != ConstructionScript.STATE_ACTIVE:
+		return REFUSE_REMOVAL_BUILDING_NOT_ACTIVE
+	if _construction.project_of_subject(piece_ref) != EntityDirectoryScript.NULL_REF:
+		_demolition.blocking_furniture = piece_ref
+		_demolition.blocked_furniture_count = 1
+		return REFUSE_DEMOLITION_FURNITURE_UNDER_CONSTRUCTION
+	return _removal_user_refusal(piece_ref)
+
+
+func _removal_user_refusal(piece_ref: Vector2i) -> StringName:
+	"""REQ-SET-128's resident half for one piece: construction's own FURNITURE_IN_USE code."""
+	if _buildings.user_ref_of_furniture(piece_ref) == EntityDirectoryScript.NULL_REF:
+		return REFUSE_NONE
+	_demolition.furniture_user_count = 1
+	return ConstructionScript.REFUSE_FURNITURE_IN_USE
+
+
+func _removal_goods_refusal(piece_ref: Vector2i) -> StringName:
+	"""Prove the piece's endpoints, then count its stores' lots and claims (stage 2-3 for one piece)."""
+	var code: StringName = _visit_endpoint(piece_ref, ENDPOINT_STAGE_PROVE)
+	if code != REFUSE_NONE:
+		return code
+	_demolition_seen.fill(0)
+	code = _visit_endpoint(piece_ref, ENDPOINT_STAGE_SCAN)
+	if code != REFUSE_NONE:
+		return code
+	if _demolition.stranded_lot_count > 0:
+		return REFUSE_DEMOLITION_STORED_GOODS
+	if _demolition.outstanding_reserved_mass_g > 0:
+		return REFUSE_DEMOLITION_CAPACITY_CLAIM
+	return REFUSE_NONE
+
+
+func _pantry_shelf_refusal(piece_ref: Vector2i) -> StringName:
+	"""DEMO-CONTAIN-R01 #3b: a shelf's 50000 g leaves its pantry store; refuse if that overflows.
+
+	#3b's own words: "A shelf adds 50,000 g of capacity to the Building-owned pantry container".
+	So a shelf in a PANTRY room carries it -- the kitchen's fifth shelf does not (R-BUILD-DOM-004)
+	-- whether or not the room is yet VALID, because that is how the capacity was granted: D3
+	gives the starter pantry its 200000 g from its four shelves while no system yet marks any room
+	valid (decision 0536, review H2). The pantry store is the building's main store: its one owned
+	container anchored at its origin tile (#3a). Its contents plus reservations must fit what is
+	left; the reduction itself is the commit's.
+	"""
+	_removal_pantry_store = InventoryScript.NULL_REF
+	_removal_pantry_g = 0
+	var room: Vector2i = _buildings.room_ref_of_furniture(piece_ref)
+	if _buildings.type_of_room(room).value != BuildingsScript.ROOM_TYPE_PANTRY:
+		return REFUSE_NONE
+	var by_g: int = _buildings.definitions().shelf_capacity_g_of(
+		_buildings.type_id_of_furniture(piece_ref).value)
+	if by_g == 0:
+		return REFUSE_NONE
+	var store: Vector2i = _main_store_of(_buildings.room_building_ref_of(room))
+	if store == InventoryScript.NULL_REF:
+		return REFUSE_REMOVAL_PANTRY_STORE
+	var held: int = _inventory.container_used_mass_g(store) \
+		+ _inventory.container_reserved_mass_g(store)
+	if _inventory.container_max_mass_g(store) - by_g < held:
+		_demolition.blocking_container = store
+		return REFUSE_REMOVAL_PANTRY_OVER_CAPACITY
+	_removal_pantry_store = store
+	_removal_pantry_g = by_g
+	return REFUSE_NONE
+
+
+func _main_store_of(building_ref: Vector2i) -> Vector2i:
+	"""The building's ONE owned container anchored at its origin tile (#3a), else the null ref."""
+	var origin: int = _buildings.origin_tile_of_building(building_ref).value
+	if not _inventory.containers_by_owner_into(building_ref, _demolition_pairs, _demolition_read):
+		return InventoryScript.NULL_REF  # guard: the owner is live and the buffer the store's own
+	var found: Vector2i = InventoryScript.NULL_REF
+	for index: int in _demolition_read.value:
+		var container: Vector2i = Vector2i(_demolition_pairs[index * 2],
+			_demolition_pairs[index * 2 + 1])
+		if _inventory.container_anchor_tile(container) != origin:
+			continue
+		if found != InventoryScript.NULL_REF:
+			return InventoryScript.NULL_REF
+		found = container
+	return found
+
+
+func _admit_furniture_removal(piece_ref: Vector2i, building_ref: Vector2i) -> StringName:
+	"""Prove the transition, the building row's record, no transaction and an output plan; write."""
+	var code: StringName = _construction.furniture_removal_open_refusal(piece_ref)
+	if code == REFUSE_NONE:
+		code = _admissions.admit_refusal(building_ref)
+	if code == REFUSE_NONE and _inventory.is_transaction_open():
+		code = REFUSE_DEMOLITION_TRANSACTION
+	if code == REFUSE_NONE:
+		code = _plan_removal_output(piece_ref, building_ref)
+	if code != REFUSE_NONE:
+		return code
+	return _commit_demolition_admission(building_ref, piece_ref)
+
+
+func _plan_removal_output(piece_ref: Vector2i, building_ref: Vector2i) -> StringName:
+	"""The piece's 50% (its type's bill, P1), placed exactly as a demolition's would be."""
+	var code: StringName = _mark_refund_seeds(building_ref)
+	if code != REFUSE_NONE:
+		return code
+	if not _construction.furniture_removal_return_preview_into(piece_ref, _demolition_keys,
+			_demolition_milli, _demolition_read):
+		return StringName(_demolition_read.error)
+	return _plan_output_for(building_ref, _demolition_read.value)
+
+
+func _mark_refund_seeds(building_ref: Vector2i) -> StringName:
+	"""Rebuild the footprint mask and the refund seeds for one standing building."""
+	_demolition_footprint.fill(0)
+	if not _ground_piles.refund_seeds_into(building_ref, _demolition_footprint,
+			_demolition_seeds, _demolition_read):
+		return REFUSE_DEMOLITION_FOOTPRINT
+	_demolition_seed_count = _demolition_read.value
+	return REFUSE_NONE
+
+
+func _removal_commit_refusal(piece_ref: Vector2i, building_ref: Vector2i,
+		project: Vector2i) -> StringName:
+	"""Every proof a piece's commit needs, writing nothing: subject, the gate again, the return."""
+	if not _buildings.is_live_furniture(piece_ref):
+		return REFUSE_REMOVAL_STALE_PIECE
+	if project == EntityDirectoryScript.NULL_REF or _admissions.project_of(building_ref) != project:
+		return REFUSE_DEMOLITION_NOT_ADMITTED
+	var code: StringName = _construction.demolition_commit_refusal(project)
+	if code == REFUSE_NONE:
+		code = _claim_release_refusal(building_ref)
+	if code == REFUSE_NONE:
+		code = _removal_user_refusal(piece_ref)
+	if code == REFUSE_NONE:
+		code = _removal_goods_refusal(piece_ref)
+	if code == REFUSE_NONE:
+		code = _pantry_shelf_refusal(piece_ref)
+	if code == REFUSE_NONE:
+		code = _mark_refund_seeds(building_ref)
+	if code == REFUSE_NONE:
+		code = _commit_return_refusal(building_ref, project)
+	return code
 
 
 func demolition_admissions() -> DemolitionAdmissionsScript:

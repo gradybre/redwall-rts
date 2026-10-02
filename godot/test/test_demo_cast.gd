@@ -20,6 +20,7 @@ const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const WaterDressingScript := preload("res://demo/water/water_dressing.gd")
 const WaterLayoutScript := preload("res://demo/water/water_layout.gd")
 const WaterplayScript := preload("res://demo/waterplay/demo_waterplay.gd")
+const WeirViewScript := preload("res://demo/water/weir_gate_view.gd")
 
 const DT: float = 1.0 / 60.0
 const BODY_M: float = 0.25
@@ -1174,13 +1175,14 @@ func _cast_bodies() -> PackedFloat32Array:
 
 func _real_village_space() -> CastSpaceScript:
 	"""The village as demo_village.gd lays it for the cast: the world's and the water's spots, the world's,
-	the water's and the bank's circles and the band round deep water, inside the widened area."""
+	the water's, the bank's and the leat head's circles and the band round deep water, inside the widened area."""
 	var world: Node3D = DemoWorldScript.new()
 	var circles: Array[Vector3] = world.obstacles()
 	var points: Array[Dictionary] = world.points_of_interest()
 	world.free()
 	circles.append_array(WaterDressingScript.obstacles())
 	circles.append_array(WaterplayScript.land_obstacles())
+	circles.append_array(WeirViewScript.land_obstacles())
 	var links := WaterplayScript.make_links(WaterLayoutScript.make_map(), circles)
 	circles.append_array(links.band)
 	points.append_array(WaterDressingScript.points_of_interest())
@@ -1188,6 +1190,33 @@ func _real_village_space() -> CastSpaceScript:
 	space.nav.area = links.area
 	space.setup(points, circles)
 	return space
+
+
+func test_every_circle_the_village_gives_the_cast_is_a_circle() -> void:
+	"""Every obstacle the village hands the cast is (x, radius, z) with a sane radius -- the leat head's was handed over
+	as (x, z, radius), a 7.3 m disc round (-7.45, 0.55) that walked the cabbage bed's slot into the bed and stood the
+	otter boatwright there, stuck (decision 1043) -- and the leat head stands where it is drawn."""
+	var space := _real_village_space()
+	var bad := PackedStringArray()
+	for circle: Vector3 in space.obstacles:
+		if circle.y <= 0.0 or circle.y >= 3.0:
+			bad.append(str(circle))
+	assert_equal(bad, PackedStringArray(), "every radius positive and under 3 m")
+	var head: Vector3 = WeirViewScript.land_obstacles()[0]
+	assert_equal(Vector2(head.x, head.z), WeirViewScript.HEAD_AT, "the head's circle is at the head")
+	assert_almost_equal(head.y, WeirViewScript.HEAD_RADIUS, "its radius is the head's")
+
+
+func test_the_cabbage_bed_slot_stands_outside_the_bed() -> void:
+	"""The crops_cabbage slot (the otter boatwright's starting spot) stands clear of every circle -- the bed's own
+	among them -- for the widest body the cast registers (decision 1043)."""
+	var space := _real_village_space()
+	for body: float in _cast_bodies():
+		space.add_resident(Vector2(0.0, 0.0), body)
+	var poi: int = space.poi_names.find(&"crops_cabbage")
+	assert_true(poi >= 0, "the cabbage bed's spot is a POI")
+	var at: Vector2 = space.slot_position(poi, 0)
+	assert_true(space.obstacle_clearance(at) >= DemoActorScript.body_radius(OTTER_HEIGHT_M), "clear of the bed: %s" % str(at))
 
 
 func test_the_slot_margin_is_the_ordered_spots_margin() -> void:

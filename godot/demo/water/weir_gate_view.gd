@@ -103,8 +103,10 @@ static func ray_hits_weir(origin: Vector3, direction: Vector3) -> bool:
 
 
 static func land_obstacles() -> Array[Vector3]:
-	"""The leat head's footprint as a walking obstacle (x, z, radius), for the cast."""
-	return [Vector3(HEAD_AT.x, HEAD_AT.y, HEAD_RADIUS)]
+	"""The leat head's footprint as a walking obstacle, for the cast: a circle as every obstacle is, Vector3(x, radius,
+	z) (demo_cast.gd). Decision 1043: it was (x, z, radius), a 7.3 m disc round (-7.45, 0.55) that pushed the cabbage
+	bed's slot into the bed."""
+	return [Vector3(HEAD_AT.x, HEAD_RADIUS, HEAD_AT.y)]
 
 
 static func target_lift(flow_permille: int) -> float:

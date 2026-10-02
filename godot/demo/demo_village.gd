@@ -304,6 +304,8 @@ var _objects: ObjectListScript = ObjectListScript.new()
 var _guide: GuideScript = null
 var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
+## The HUD's alert stack, found once (the pause card asks whether it shows every frame it is up; decision 0931).
+var _alert_stack: Control = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
 
@@ -1162,11 +1164,14 @@ func _build_session() -> void:
 
 func _top_card_rect() -> Rect2:
 	"""The one card shown at the top centre under the alerts, which the pause card steps below: the incident card, else
-	the first-village guide's card (which yields to it), else nothing."""
+	the first-village guide's card (which yields to it), else the people's offer card (which yields to both; decision
+	0931), else nothing."""
 	if _cards.is_shown():
 		return _cards.frame_rect()
 	if _guide != null and _guide.card.is_shown():
 		return _guide.card.frame_rect()
+	if _people_card != null and _people_card.is_shown():
+		return _people_card.frame_rect()
 	return Rect2()
 
 
@@ -1234,10 +1239,12 @@ func _hud_rect(id: int) -> Rect2:
 
 
 func _hud_cards_shown() -> bool:
-	"""Whether the HUD's own alert cards are showing (the pause card then sits under them)."""
-	var shell: UiShell = _shell()
-	var stack: Control = shell.control_for(UiShell.ID_ALERT_STACK) if shell != null else null
-	return stack != null and stack.visible
+	"""Whether the HUD's own alert cards are showing (the pause card then sits under them). The stack is looked up
+	once, not each frame."""
+	if _alert_stack == null or not is_instance_valid(_alert_stack):
+		var shell: UiShell = _shell()
+		_alert_stack = shell.control_for(UiShell.ID_ALERT_STACK) if shell != null else null
+	return _alert_stack != null and _alert_stack.visible
 
 
 func ripe_beds() -> int:

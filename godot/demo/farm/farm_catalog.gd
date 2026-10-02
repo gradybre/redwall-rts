@@ -65,6 +65,7 @@ const ITEM_KEYS: Array[StringName] = [
 	&"wheat", &"barley", &"oats",
 	&"trout", &"dace", &"salmon", &"perch", &"carp", &"whitefish",
 	&"dried_fish", &"flour",
+	&"potato", &"honey",
 ]
 const ITEM_LABELS: Array[String] = [
 	"Radish", "Turnip", "Carrot", "Beetroot", "Parsnip", "Onion",
@@ -73,6 +74,7 @@ const ITEM_LABELS: Array[String] = [
 	"Wheat", "Barley", "Oats",
 	"Trout", "Dace", "Salmon", "Perch", "Carp", "Whitefish",
 	"Dried fish", "Flour",
+	"Potato", "Honey",
 ]
 const ITEM_LEAVES: Array[String] = [
 	"LEAF_radish", "LEAF_turnip", "LEAF_carrot", "LEAF_beetroot", "LEAF_parsnip", "LEAF_onion",
@@ -101,17 +103,26 @@ const ITEM_COUNT: int = 16
 ##   * flour, §5.7's `flour` output: "Grain/flour | 1200 | No | 720/240" -- 240 h, not eaten raw.
 ## Their CATEGORY (what a recipe asks for) extends the §5.6 crop rows past FarmingScript's five: CAT_FISH is §5.7's
 ## `fish` selector over the species (BAL-CAT-004), CAT_DRIED_FISH and CAT_FLOUR their own items.
-const PANTRY_ITEM_COUNT: int = 24
+##   * potato and honey (decision 0603, DEC-045): ingredients of the kitchen's dishes that the demo has NO SOURCE for
+##     yet -- defined so a dish can name them and a source lane can fill them. Potato (pantry LEAF_potato) is a tuber,
+##     so it is in the §5.6 roots row, as the onion is (240 h; the GDD's roots are raw-edible -- the crops lane plants it
+##     and may revisit that); honey (LEAF_honey) is §5.7's `Honey | 1200 | Yes | 1440` (CAT_HONEY), the hives' output.
+##     Nuts, herbs and mushrooms are the foraging lane's items (decision 0603): the kitchen names them by key only.
+const PANTRY_ITEM_COUNT: int = 26
 const FIRST_CATCH: int = 16
 const CATCH_COUNT: int = 6
 const ITEM_DRIED_FISH: int = 22
 const ITEM_FLOUR: int = 23
+const ITEM_POTATO: int = 24
+const ITEM_HONEY: int = 25
 const CAT_FISH: int = 5
 const CAT_DRIED_FISH: int = 6
 const CAT_FLOUR: int = 7
+const CAT_HONEY: int = 8
 ## The goods' categories and §5.7 shelf hours, from FIRST_CATCH on.
-const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR]
-const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240]
+const GOODS_CATEGORY: Array[int] = [CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_FISH, CAT_DRIED_FISH, CAT_FLOUR,
+	FarmingScript.CROP_ROOTS, CAT_HONEY]
+const GOODS_SHELF_HOURS: Array[int] = [48, 48, 48, 48, 48, 48, 720, 240, 240, 1440]
 ## scripts/core/fishing.gd SPECIES_KEYS row -> pantry item (NO_ITEM: the coast's three, which the demo cannot catch).
 const SPECIES_ITEM: Array[int] = [16, 17, 18, 19, 20, 21, NO_ITEM, NO_ITEM, NO_ITEM]
 
@@ -195,6 +206,7 @@ const ITEM_PROP: Array[StringName] = [
 	&"", &"item_barley", &"item_oats",
 	&"item_trout", &"", &"", &"item_perch", &"", &"",
 	&"", &"",
+	&"", &"",
 ]
 ## The fallback icon's colour: the item's own, from its produce (parsnip cream, spinach dark leaf).
 const ITEM_SWATCH: Array[Color] = [
@@ -207,6 +219,7 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.62, 0.6, 0.5), Color(0.66, 0.7, 0.72), Color(0.86, 0.5, 0.42), Color(0.5, 0.6, 0.36),
 	Color(0.7, 0.58, 0.32), Color(0.84, 0.84, 0.8),
 	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
+	Color(0.72, 0.6, 0.4), Color(0.9, 0.66, 0.22),
 ]
 
 ## The beds: world crop ids, one FarmPlot each, their demo soils.

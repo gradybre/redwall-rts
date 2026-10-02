@@ -24,9 +24,10 @@ extends CanvasLayer
 ## KITCHEN (demo/kitchen/kitchen_tab.gd: the cook, the next meals, the pot and the table, the water butt, how the
 ## village is fed, and the Cook and Draw water orders with their action cards); the Stocks table ends with the
 ## kitchen's own stock -- each dish's cooked portions as ready food, and the water -- and a store's row says how much
-## of it the kitchen has reserved ("6.0 U · 2.0 U for the kitchen"); the second tab is RECIPES, marking the two dishes
+## of it the kitchen has reserved ("6.0 U · 2.0 U for the kitchen"); the second tab is RECIPES, marking the dishes
 ## the kitchen cooks as cookable (active) above the library's ideas. Without a kitchen (a suite that builds a farm
-## alone) it is as before.
+## alone) it is as before. The Recipes tab lists every pantry item -- the crops, then the catch, dried fish and flour
+## (decision 0602).
 ## Every quantity is the farm's one units form (farm_text.gd UNITS).
 ##
 ## LAYER. It is the Food command's pop-up and is drawn ABOVE the HUD (LAYER), as UI §3 draws a modal
@@ -75,8 +76,10 @@ const MIN_BODY_H: float = 160.0
 const TAB_KITCHEN: int = 2
 const RECIPES_TAB_COOKING: String = "Recipes"
 const KITCHEN_TAB: String = "Kitchen"
-const RECIPE_HEADING_COOKING: String = "Recipes — two are cookable"
-const RECIPE_NOTE_COOKING: String = "The kitchen cooks two dishes, in turn: they are marked cookable. The rest are dishes from the Redwall content library that use the ingredient — ideas, not cookable yet."
+const RECIPE_HEADING_COOKING: String = "Recipes — the kitchen's dishes are cookable"
+const RECIPE_NOTE_COOKING: String = "The dishes the kitchen cooks are marked cookable. The rest are dishes from the Redwall content library that use the ingredient — ideas, not cookable yet."
+## An item the content library's pantry does not name (salmon, carp).
+const NOT_IN_LIBRARY: String = "%s is not in the content library's pantry: it has no library dishes."
 ## The panel's height that is not a tab's page: header, tab strip, gaps and margins.
 const BODY_RESERVE_H: float = 110.0
 ## `_scrolls[STOCK_SCROLL]` is the stock table's; the rest are the Recipes tab's.
@@ -137,7 +140,7 @@ func configure(sim: SimScript, pantry: PantryScript, recipes: RecipesScript) -> 
 func set_goods(goods: GoodsScript) -> void:
 	"""Show each ingredient's icon from these goods."""
 	_goods = goods
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		FarmUi.set_icon(_item_buttons[item], goods.icon_of(item))
 
 
@@ -322,7 +325,7 @@ func _build_recipes() -> HBoxContainer:
 	rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	rows.add_theme_constant_override(&"separation", 3)
 	list.add_child(rows)
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var row: Button = FarmUi.button("", FarmUi.BODY_PX)
 		row.custom_minimum_size.y = TARGET_PX
 		row.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -481,7 +484,7 @@ func _fill_stores() -> void:
 
 func _fill_recipes() -> void:
 	"""Each ingredient's stock on its button, and the picked one's dish list."""
-	for item: int in Catalog.ITEM_COUNT:
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		var held: int = _pantry.milli_of(item)
 		_item_buttons[item].set_pressed_no_signal(item == selected_item)
 		_item_buttons[item].text = "%s · %s" % [Catalog.ITEM_LABELS[item],
@@ -493,6 +496,10 @@ func _fill_recipes() -> void:
 	if _recipes == null or not _recipes.is_loaded():
 		_dish_title.text = label
 		_dishes.text = "(the recipe index is missing)"
+		return
+	if not _recipes.in_library(selected_item):
+		_dish_title.text = NOT_IN_LIBRARY % label
+		_dishes.text = ""
 		return
 	_dish_title.text = "%s feeds %d dishes (and %d more through prepared parts)" % [label,
 		_recipes.direct_count(selected_item), _recipes.component_count(selected_item)]

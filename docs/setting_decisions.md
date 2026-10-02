@@ -1145,6 +1145,30 @@ elder rule while children are inactive; the GDD amendments to mood, relationship
 REQ-SET-036 that the package proposes take effect only when children are active.
 Implementation and gate state: [decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md).
 
+### DEC-045 — Every Redwall dish family the kitchen lacked is added, as drafted recipes
+
+2026-10-01 · State: `USER_CONFIRMED` -- the families, and (his ruling on decision 0603, "Approve all") their drafted numbers.
+
+Brendan, on decision 0601's fifth proposal, relayed through the settlement coordinator on 2026-10-01:
+**"Approve, but add in everything for 5 now."** The dish families the live demo's kitchen had rejected for want of a
+GDD §5.7 recipe row -- pies, pasties and turnovers, scones, oatcakes, farls and hardtack, salads, cordials -- are
+added now, each a content-library dish cooked by a NEW recipe row written in §5.7's format. He also approved three
+balance-tuning experiments for the same work: a fish dish needing no roots (E2), dried fish and flour as kitchen
+inputs (E3), and a cabbage-and-bean pottage only if the bean hotpot leaves a gap (E4: it does not).
+
+- **The rows were drafts, now confirmed.** Their inputs, portions, NP, work and shelf life are authored inside the adopted §5.7 rows'
+  range; he confirmed them as drafted on decision 0603. They are his rows, not yet written into the GDD's §5.7 table.
+- **The setting exclusions stand**: joke, captive and cruelty contexts, shrimp and the fictional hotroot stay out --
+  they were excluded for setting reasons, not for want of a recipe.
+- **A dish whose ingredient has no source yet waits and says why**; the sources belong to their own lanes (foraging,
+  crops, hives).
+
+**Ruled on decision 0603 (2026-10-01): "Approve all".** The drafted recipe numbers are confirmed as drafted; moles
+favour the root pie (their deeper'n'ever pie, library-backed); oatcakes and farls are left to feature 17; potato stays
+raw-edible.
+
+Engineering record, the confirmed table and the waiting ingredients: decision 0603.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

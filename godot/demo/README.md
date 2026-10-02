@@ -422,7 +422,7 @@ same object its panel reads, and writes nothing into the settlement simulation:
 
 | Cell | Figure | Owner (and where else it shows) |
 |---|---|---|
-| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain, roots and fresh fish would cook (each dish at its own portions: decision 0436), over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain, roots and any fish (the Pantry's Kitchen tab, K) |
+| Ready food | days of meals, one decimal, floored (`2.5 days`; decision 0381) | the kitchen: portions held plus the portions the stores' grain, roots, fresh fish, beans and greens would cook (each dish at its own portions: decisions 0436 and 0601), over the portions the village eats a day; the ledger adds one line of the stock behind it, the portions, grain, roots and any fish (the Pantry's Kitchen tab, K) |
 | Heating fuel (Fuel's slot) | days of fuel, one decimal, floored (`2.5 days`), or "No demand" -- UI-SET-003's "No current heat demand" in its tooltip and the ledger; clay with the warning glyph under 2 days | the winter: the wood over today's heating demand plus the three-day cooking mean (decision 0571; its click opens the Heating fuel breakdown) |
 | Wood / Stone | U, one decimal | the village stores (Tunnels, Woods, Water panels); Wood's tooltip and ledger line add the planks |
 | Residents | count | the cast (the Residents roster) |
@@ -1404,8 +1404,11 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
   ripens soonest, else an empty bed to plant -- with an **Open bed N** button.
   A row with food reserved for the kitchen says so ("· 2.0 U for the kitchen"); the table ends with each dish's
   portions, as ready food, and the water in the butt.
-- **Recipes**: every ingredient in catalog order with its stock, and the content library's dishes the picked one
-  feeds. The two the kitchen cooks are marked **Cookable (active)** on their crops; the rest are ideas.
+- **Recipes**: every pantry item in catalog order with its stock -- the crops, then the catch, dried fish and flour
+  (decision 0602) -- and the content library's dishes the picked one feeds. Every recipe-book dish the kitchen cooks
+  from it is marked **Cookable (active)**, with how the cook picks among them; the rest are ideas. Salmon and carp are
+  not in the library's pantry and say so. The index is `farm/pantry_index.json`, rebuilt by
+  `python3 tools/make_demo_pantry_index.py`.
 - **Kitchen**: see The kitchen, below.
 
 **Nothing harvested is lost or credited from afar** (decision 0222, the review's F19/F24/F27/F28):
@@ -1494,18 +1497,51 @@ rank under their label ("#2 by harvest") until Back. There is no bulk bed order 
 
 ## The kitchen (decision 0381)
 
-Breakfast and supper, cooked from the pantry's real stock (`kitchen/`). Two dishes, alternating: **wild oat
+Breakfast and supper, cooked from the pantry's real stock (`kitchen/`). The recipe book (`kitchen/dish_book.gd`,
+decision 0601) holds eight dishes, each a content-library dish cooked as a GDD §5.7 row with that row's numbers; the
+first three are below, and **the recipe book** after them adds the rest. **Wild oat
 porridge** at breakfast (the GDD's `porridge` row: grain 2 U + water 2 U, 12 WU) and **Togget's vegetable soup** at
 supper (its `root_stew` row: roots 3 U + water 1 U, 16 WU), each batch 2 portions of 1800 NP that keep 24 h, and 0.1 U
-of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion (each crop's
+of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion -- and potato once it is grown (each crop's
 §5.6 row). If one dish's food is short the other is cooked. **The third dish** (water part B, decision 0436): at
 supper, whenever the stores hold a batch's fresh fish and roots nobody has set aside, the kitchen cooks **poached perch
 or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
 2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
 not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
 spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + cabbage 2 U + water 2 U,
-20 WU, 3 portions of 2100 NP, keeping 36 h), cooked only for an **occasion** -- the regatta's supper -- from the food the
-regatta reserved, never by the everyday alternation.
+20 WU, 3 portions of 2100 NP, keeping 36 h), cooked for an **occasion** -- the regatta's supper -- from the food the
+regatta reserved. Since the recipe book (decision 0601: Brendan's "the hotpot cooked from the start") it is an everyday
+supper dish as well; the batch 7 integration kept that ruling (decision 0902).
+
+**The recipe book** (decision 0601). Adding a recipe is adding a row to `kitchen/dish_book.gd`; every other table is
+built from it. Beside the three above:
+
+| Dish | Library recipe | Cooked as (§5.7) | Takes | Meal |
+|---|---|---|---|---|
+| Barleymeal porridge | `pearls_lutra::PL_RECIPE_barleymeal_porridge` | `porridge` | barley or oats 2 U + water 2 U | breakfast |
+| Wild-beetroot soup | `triss::TRI_recipe_wild_beetroot_soup` | `root_stew` | beetroot or onion 3 U + water 1 U | supper |
+| Vole vegetable stew | `taggerung::TAG_recipe_vole_vegetable_stew` | `root_stew` | carrot, onion or turnip 3 U + water 1 U | supper |
+| Poached dace | `taggerung::TAG_recipe_poached_dace` | `fish_stew` | dace 2 U + any roots 2 U + water 2 U | supper |
+| Bean hotpot | the GDD's own | `bean_hotpot` | pea or broad bean 2 U + greens 2 U + water 2 U; 3 x 2100 NP, 20 WU, keeps 36 h | supper |
+
+A dish naming its own ingredients takes only those; the numbers are its row's (0.1 U of wood a batch, as every batch).
+
+**The directed families** (decision 0603, Brendan's DEC-045 and tuning E2/E3): eleven more dishes, ten on Brendan's DEC-045 rows
+in §5.7's format, confirmed by him ("Approve all"). Cookable now: **Breakfast oatcake** (oats), **Barley farl** (barley),
+**Haversack hardtack** (flour, keeps 480 h), **Spring salad** (greens and roots), **Baked fish** (fresh fish, no roots:
+E2) and **Durral's dried-fish biscuit soup** (dried fish, flour and roots: E3). Waiting, listed with why: **Vegetable
+pasty** and **Hazelnut scones** (hazelnut: foragers), the **Turnip, potato and beetroot pie** (potato: crops; hazelnut),
+the GDD's **Woodland pie** (mushroom: foragers) and **Raspberry cordial** (raspberry: foragers; honey: hives) -- a drink,
+never a meal's dish. Potato and honey are pantry items with no source yet; the foragers' items are named by key until
+that lane defines them. The Recipes tab marks each "Cookable (active)" or "Waiting (needs ...)", the Kitchen tab lists
+"Waiting for ingredients", the field guide says the same. **The cook's choice**: of the meal's dishes whose free food makes a batch, one that feeds the
+whole meal, then the one whose food keeps least long (fresh fish, then greens, roots, grain), then the one the village
+likes most, then the book's order; with none, the other meal's best; deterministic. **Favourites** (`kitchen/dish_favourites.gd`): each species' liked
+and disliked dishes -- moles Togget's soup (Togget is a mole) and the beetroot soup, badgers the beetroot soup,
+squirrels the barleymeal and the vole stew, moles also the root pie (their deeper'n'ever pie), otters the poached dace, mice and the beaver the hotpot, the beaver
+disliking both fish stews; all but the moles' Togget's soup are proposals. Data and display only: no mood. A resident
+who ate a favourite reads "Last meal: supper, beetroot soup — a favourite"; the Kitchen tab's plan says "(liked by 2)";
+the field guide's dish entries say whose favourite each is. Monotony counts §5.7 recipes, so the three soups are one.
 
 - **The day** (decision 0421). Breakfast is called at 07:00 and served until 08:59; supper at 17:00 until 18:59, an
   hour before dusk (so whoever goes to eat raw food at its end has eaten before bed). The cook (the keeper; a free
@@ -1936,8 +1972,8 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
 - **The mill** (**Mill grain**): 3 U of grain carried over the stream to the watermill, ground (12 WU, the wheel
   churning), 3 U of flour back to the store whose room was held for it. No dish uses flour yet: every flour recipe needs nuts, mushrooms, berries,
   fruit or honey, which the village does not have; it is stock for later.
-- **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops (the Recipes tab still lists the
-  16 farm ingredients: its library index has no fish yet). The sound: a splash where a net
+- **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops, and so does its Recipes tab
+  (decision 0602). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
 
 ## The ferry and the regatta (water part B lane 3; decisions 0437-0439)
@@ -2293,7 +2329,7 @@ ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
 | `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village, the Water panel and the HUD's Feast command (`demo_regatta.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
-| `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
+| `kitchen/` | The meal loop: the recipe book (`dish_book.gd`) and each species' favourites (`dish_favourites.gd`), the dishes' columns and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `seasons/` | The seasons on the woods and ground (decision 0551): the sampling (`season_look.gd`), the view that writes it to every tree, the ground and the tufts (`season_view.gd`), the leaf shader include and the in-leaf tree shader, the bare boughs and the falling leaves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |

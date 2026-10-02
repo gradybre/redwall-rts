@@ -41,5 +41,10 @@ nothing here. It is not added.
   2560x1440. The card's height equalled its minimum every time: 158, 272, 158,
   181, then 181 at each size.
 
-The new check stays in the harness as the guard. If a later change makes the
-card place itself before its words are laid out, the windowed run fails.
+The new check stays in the harness, but **it guards only a windowed run**. CI
+runs the harness headless (`test_demo_people_live.gd`), and as decision 0931
+found, a headless run lays the words out before the card is placed, so the
+check cannot fail there (review M2). It catches a regression only when someone
+runs the harness windowed, as here. A CI guard would need a windowed run under a
+virtual display. That is not set up in this repository's CI and is not added
+here.

@@ -97,9 +97,7 @@ func step(brain: RefCounted, delta: float) -> bool:
 	"""One frame of the dive; false once it is over."""
 	match phase:
 		PHASE_DOWN:
-			if _motion.walk_bank(brain, _water, delta):
-				brain.water_in()
-				phase = PHASE_OUT
+			_step_down(brain, delta)
 		PHASE_OUT:
 			if _motion.swim(brain, spot, delta):
 				phase = PHASE_READY
@@ -115,10 +113,28 @@ func step(brain: RefCounted, delta: float) -> bool:
 	return phase != PHASE_DONE
 
 
+func _step_down(brain: RefCounted, delta: float) -> void:
+	"""Down the bank; at the water, in -- checked again there like any swim (HAZ-001's edge entry: an injury since the
+	order, say; decision 1045): refused, back up the bank, the reason kept."""
+	if not _motion.walk_bank(brain, _water, delta):
+		return
+	refusal = _motion.state.swim_refusal(brain.index, false)
+	if refusal != Rules.REFUSE_NONE:
+		phase = PHASE_UP
+		return
+	brain.water_in()
+	phase = PHASE_OUT
+
+
 func _ready_to_dive(brain: RefCounted, delta: float) -> void:
-	"""Tread at the spot until the plan is admitted (MOVE-REQ-009), or head home refused."""
+	"""Tread at the spot until the plan is admitted (MOVE-REQ-009), or head home refused: hurt or under health 70
+	(HAZ-001/002, decision 1045), or tired."""
 	var state: StateScript = _motion.state
 	_motion.tread(brain, spot, delta)
+	if not state.fit(brain.index):
+		refusal = Rules.REFUSE_HURT
+		phase = PHASE_BACK
+		return
 	if not Rules.admits_swim(state.rest[brain.index]):
 		refusal = Rules.REFUSE_TIRED
 		phase = PHASE_BACK

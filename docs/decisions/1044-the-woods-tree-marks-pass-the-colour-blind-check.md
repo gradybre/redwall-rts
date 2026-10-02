@@ -53,6 +53,23 @@ code owns. The village's legend now reads them from there
   `lens_readout_tree` (hovering a young oak) shows the spring-green disc, the
   brass zone edge and a readable legend.
 
+## What the check does not cover
+
+The check passes on the marks **as drawn opaque**: the legend's chips, the
+trees' discs and the zones' outline bands. Each zone is also washed at 22%
+(`WASH_ALPHA`). Composited over the grass, the two zone washes are close:
+forestry against conservation is about 7.9 by day (floor 10) and 5.5 by night
+(floor 8), in every vision. Neither zone's colour changed here, so this was
+already true. The review measured it.
+
+A zone is told apart by its opaque outline and by the legend, so the washes are
+left as they are. If they should pass on their own, the options are:
+
+1. Raise `WASH_ALPHA`.
+2. Move one zone's colour away from the other.
+
+That is a question for Brendan, not part of this fix.
+
 ## PROPOSAL for Brendan
 
 The two new colours sit outside the woodland palette's twelve pigments, though

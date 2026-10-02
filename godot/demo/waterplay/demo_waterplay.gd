@@ -516,6 +516,11 @@ static func find_of(dive: int) -> int:
 func find_home(brain: RefCounted, find: int) -> void:
 	"""A diver is up the bank with its find: tallied, a stone to the stores, a relic to the finds."""
 	var who: int = brain.index
+	var task: Object = brain.get("task")
+	var why: StringName = task.get("refusal") if task is DiveTaskScript else Rules.REFUSE_NONE
+	if find < 0 and why != Rules.REFUSE_NONE and why != Rules.REFUSE_AIR:
+		_say("%s came back without diving: %s" % [name_of(who), text.reason_words(who, why)], false)
+		return
 	if find < 0:
 		_say("%s came back up with nothing: the air ran short" % name_of(who), false)
 		return

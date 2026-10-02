@@ -32,8 +32,15 @@ a rescuer and sent into the pond.
   - `swim_refusal` now refuses `REFUSE_HURT` after capability, load and consent,
     and before tiredness.
   - Every entry goes through `swim_refusal`: an ordered swim or dive, a route's
-    swim link, and both bank rechecks (the crossings' and the rescuer's
-    step-down). So the check happens again at the edge, as HAZ-001 asks.
+    swim link, and the bank rechecks (the crossings', the rescuer's step-down,
+    and the swim's and the dive's own at the waterline). So the check happens
+    again at the edge, as HAZ-001 asks.
+- **`dive_task.gd`** (review H1): the dive used to go in at the bank with no
+  recheck. It now asks `swim_refusal` at the waterline (`_step_down`). Treading
+  at its spot before going down, a diver no longer `fit` turns for home, refused
+  `REFUSE_HURT`, as HAZ-002 requires on health < 70 or an injury. When a dive
+  comes back refused without its find, the feed says why ("came back without
+  diving: not well enough (…)") instead of "the air ran short".
 - **`rescue.gd may_go`**: a resident that is not `fit` is not sent to any
   rescue role. That covers swimmer, diver, a line thrown from the bank, and boat
   crew.
@@ -43,8 +50,9 @@ a rescuer and sent into the pond.
   - `configure` sets `swim.fitness = fit_for_water`. This is the only wiring.
     It uses a method Callable, so there is no reference cycle, and
     `demo_village.gd` is untouched.
-- **Words** (`waterplay_text.gd`): "X isn't well enough to swim (it needs health
-  70 and no untreated injury)", and at the bank, "not well enough (…)".
+- **Words** (`waterplay_text.gd`): "X isn't well enough to go in the water (it
+  needs health 70 and no untreated injury)", and at the bank, "not well enough
+  (…)".
 
 Someone already in the water is never pulled out. `swim_refusal` is asked only
 at entry, so retreat, finishing a crossing, and a rescue already under way in
@@ -79,7 +87,12 @@ Options:
     and the unset hook);
   - `test_a_patient_is_not_drafted_as_a_rescuer` (every role, a fit swimmer and
     a fit thrower still go, and the words);
-  - `test_the_infirmary_answers_the_water_s_fitness`.
+  - `test_the_infirmary_answers_the_water_s_fitness`, which covers health 69
+    and 70 with no injury as well as a bite;
+  - `test_a_diver_hurt_on_the_way_is_refused_at_the_water` and
+    `test_a_diver_hurt_at_the_surface_turns_for_home` (review H1).
+- Mutation testing: 11 mutants over the rule, the hook, the refusal order, every
+  role, the default and the wiring. All 11 killed.
 - `demo_care_live.gd` at 1280x720 and 1920x1080 checks the real village's wiring:
   the bitten fisher is not fit, and is fit again once treated. The harness's
   minimum check count is raised from 31 to 33. `LIVE-SUMMARY 37 0` at both sizes.

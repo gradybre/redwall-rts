@@ -463,8 +463,10 @@ func test_every_ramp_passes_the_colour_blind_check() -> void:
 
 
 func test_the_woods_marks_pass_the_colour_blind_check() -> void:
-	"""The Woods layer's six marks -- two zones, four tree states -- clear decision 0581's floors over the grass, any
-	vision, in the legend, by day and by night (decision 1044), and each tree state draws its legend entry's colour."""
+	"""The Woods layer's six marks as drawn opaque -- the legend's chips, the trees' discs and the zones' outline bands --
+	clear decision 0581's floors over the grass, any vision, in the legend, by day and by night (decision 1044), and each
+	tree state draws its legend entry's colour. (The zones' 22% washes are not checked: forestry against conservation
+	falls under the floors there, as it did before; 1044 records it.)"""
 	var failing: PackedStringArray = ColourCheck.failures(PackedColorArray(ForestMarks.LEGEND_COLOURS),
 		LensPalette.OVER_GRASS, PackedStringArray(ForestMarks.LEGEND_NAMES))
 	assert_true(failing.is_empty(), "; ".join(failing))

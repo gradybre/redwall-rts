@@ -385,6 +385,9 @@ func test_a_hurt_or_weak_swimmer_is_refused_the_water() -> void:
 	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_HURT, "health 69")
 	assert_equal(state.swim_refusal(0, true), Rules.REFUSE_LOADED, "a load is named first")
 	assert_equal(state.swim_refusal(2, false), Rules.REFUSE_CANNOT_SWIM, "capability first")
+	state.set_consent(0, false)
+	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_NO_CONSENT, "consent before health")
+	state.set_consent(0, true)
 	state.rest[0] = 100
 	assert_equal(state.swim_refusal(0, false), Rules.REFUSE_HURT, "hurt before tired")
 	state.rest[0] = Rules.REST_MAX
@@ -410,14 +413,14 @@ func test_a_patient_is_not_drafted_as_a_rescuer() -> void:
 	assert_true(rescue.may_go(0, 1, RescueScript.NEED_SWIMMER), "fit: a swimmer")
 	rig.play.state.fitness = table.fit
 	table.hurt[0] = 1
-	for need: int in [RescueScript.NEED_ANY, RescueScript.NEED_SWIMMER, RescueScript.NEED_DIVER]:
+	for need: int in [RescueScript.NEED_ANY, RescueScript.NEED_SWIMMER, RescueScript.NEED_DIVER, RescueScript.NEED_BOAT]:
 		assert_false(rescue.may_go(0, 1, need), "hurt: need %d" % need)
 	table.hurt[0] = 0
 	table.health[0] = 69
 	assert_false(rescue.may_go(0, 1, RescueScript.NEED_ANY), "health 69: not even from the bank")
 	assert_true(rescue.may_go(2, 1, RescueScript.NEED_SWIMMER), "a fit swimmer still goes")
 	assert_true(rescue.may_go(3, 1, RescueScript.NEED_ANY), "a fit thrower still goes")
-	assert_true(rig.play.text.refusal_words(0, Rules.REFUSE_HURT).ends_with("isn't well enough to swim (%s)" % TextScript.HURT_WORDS),
+	assert_true(rig.play.text.refusal_words(0, Rules.REFUSE_HURT).ends_with("isn't well enough to go in the water (%s)" % TextScript.HURT_WORDS),
 		rig.play.text.refusal_words(0, Rules.REFUSE_HURT))
 	assert_equal(rig.play.text.reason_words(0, Rules.REFUSE_HURT), "not well enough (%s)" % TextScript.HURT_WORDS, "the bank's words")
 
@@ -435,6 +438,11 @@ func test_the_infirmary_answers_the_water_s_fitness() -> void:
 	assert_false(DemoCareScript.fitness_in(care, 0), "hurt, health %d" % care.health(0))
 	assert_true(DemoCareScript.fitness_in(care, 1), "the next is well")
 	assert_true(DemoCareScript.fitness_in(care, 7), "no row: not refused")
+	assert_true(care.needs_store().apply_health_event(1, -31).ok, "health 69, no injury")
+	assert_false(care.is_hurt(1), "unhurt")
+	assert_false(DemoCareScript.fitness_in(care, 1), "no injury but health 69")
+	assert_true(care.needs_store().apply_health_event(1, 1).ok, "health 70")
+	assert_true(DemoCareScript.fitness_in(care, 1), "no injury, health 70")
 	assert_true(DemoCareScript.fitness_in(care, -1), "no resident: not refused")
 
 
@@ -851,6 +859,55 @@ func test_a_planned_dive_waits_for_its_air_goes_down_and_brings_up_a_find() -> v
 	assert_equal(got[0], 3, "the find handed over")
 	assert_true(lowest[0] < -0.18 - down + 0.05, "below the surface: %.2f" % lowest[0])
 	assert_false(task.cut_short, "the whole search")
+
+
+func test_a_diver_hurt_on_the_way_is_refused_at_the_water() -> void:
+	"""HAZ-001's edge recheck for a dive (review H1, decision 1045): a fit otter ordered to dive is bitten on its way;
+	at the waterline it is refused (HURT), never goes in, and walks back up with nothing."""
+	var rig := _rig()
+	_swimmer(rig, 0, 1100, true)
+	rig.play.state.height_u[0] = 1526
+	_place(rig, 0, Vector2(19.0, 28.7))
+	var table := Fitness.new()
+	table.health.resize(rig.cast.actor_count())
+	table.health.fill(100)
+	table.hurt.resize(rig.cast.actor_count())
+	rig.play.state.fitness = table.fit
+	var got: Array[int] = [-2]
+	var task := DiveTaskScript.new(rig.play.motion, rig.play.links, POND_CENTRE, 1.0,
+		func(_b: RefCounted) -> int: return 3, func(b: RefCounted, find: int) -> void:
+			got[0] = find
+			rig.play.find_home(b, find))
+	_brain(rig, 0).order_task(task)
+	table.hurt[0] = 1
+	var wet: Array[bool] = [false]
+	var done: bool = _run(rig, func() -> bool:
+		wet[0] = wet[0] or _brain(rig, 0).in_water
+		return got[0] != -2)
+	assert_true(done, "back home")
+	assert_equal(task.refusal, Rules.REFUSE_HURT, "refused at the water as hurt")
+	assert_false(wet[0], "never went in")
+	assert_equal(got[0], -1, "nothing brought up")
+	var said: String = "%s came back without diving: not well enough (%s)" % [rig.play.text.name_of(0), TextScript.HURT_WORDS]
+	assert_true(_services.notices.has_text(said), "the feed says why, not that the air ran short")
+
+
+func test_a_diver_hurt_at_the_surface_turns_for_home() -> void:
+	"""HAZ-002's return on an injury or health under 70 (decision 1045): treading at the spot, a diver no longer fit
+	does not go down; it swims back, refused as hurt."""
+	var rig := _rig()
+	_swimmer(rig, 0, 1100, true)
+	var table := Fitness.new()
+	rig.play.state.fitness = table.fit
+	var task := DiveTaskScript.new(rig.play.motion, rig.play.links, POND_CENTRE, 1.0, Callable(), Callable())
+	var brain := _brain(rig, 0)
+	brain.water_place(POND_CENTRE, -0.18, 0.0)
+	brain.water_in()
+	task.phase = DiveTaskScript.PHASE_READY
+	table.health[0] = 69
+	task.step(brain, 0.01)
+	assert_equal(task.phase, DiveTaskScript.PHASE_BACK, "back to the bank, not down")
+	assert_equal(task.refusal, Rules.REFUSE_HURT, "as hurt")
 
 
 func test_a_dive_turns_back_when_the_air_says_so() -> void:

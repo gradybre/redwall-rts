@@ -50,12 +50,14 @@ func permille(who: int) -> int:
 	"""The product of every factor for resident `who`, per mille (PERMILLE with none)."""
 	var pace: int = PERMILLE
 	for k: int in _factors.size():
+		@warning_ignore("integer_division")
 		pace = pace * factor_of(k, who) / PERMILLE
 	return pace
 
 
 func scale(who: int, amount: int) -> int:
 	"""`amount` of work (any unit) at resident `who`'s pace, floored."""
+	@warning_ignore("integer_division")
 	return amount * permille(who) / PERMILLE
 
 
@@ -65,7 +67,9 @@ func slowed_text(who: int) -> String:
 	for k: int in _factors.size():
 		var f: int = factor_of(k, who)
 		if f != PERMILLE:
+			@warning_ignore("integer_division")
 			parts.append("%s %d%%" % [_names[k], f / 10])
 	if parts.is_empty():
 		return ""
+	@warning_ignore("integer_division")
 	return "work at %d%% (%s)" % [permille(who) / 10, ", ".join(parts)]

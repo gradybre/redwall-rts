@@ -66,7 +66,7 @@ func _run() -> void:
 	"""Every step, then the summary."""
 	await _frames(BOOT_FRAMES)
 	_manager().call(&"pause_game")
-	await _built()
+	_built()
 	await _the_test_injury()
 	await _treated()
 	await _the_herb_patch()

@@ -175,6 +175,7 @@ func test_airless_is_one_serious_exposure_and_a_hundred_and_twenty_nine_an_hour(
 	assert_true(s.set_airless(0, true), "airless")
 	assert_false(s.set_airless(0, true), "already")
 	assert_equal([s.kind(0), s.severity(0), s.health(0)], [Injury.KIND_EXPOSURE, 2, 100], "exposure, no loss")
+	@warning_ignore("integer_division")
 	_run(s, HOUR / 10)
 	assert_equal(s.health(0), 88, "−129 x 0.1 h, truncated")
 	assert_true(s.set_airless(0, false), "breathing")

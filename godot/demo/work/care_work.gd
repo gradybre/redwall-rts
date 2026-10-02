@@ -45,7 +45,7 @@ func worker(row: int) -> int:
 	return _builders.worker[row]
 
 
-func activity(row: int) -> int:
+func activity(_row: int) -> int:
 	"""A place fetching is HAULING; building, BUILDING."""
 	return WorkIds.ACT_BUILD if _projects().state == ProjectsScript.STATE_BUILDING else WorkIds.ACT_HAUL
 

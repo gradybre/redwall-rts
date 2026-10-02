@@ -70,7 +70,9 @@ const BOAT_HAZARD_LOSS: int = 35
 # --- cited: the herb patch and the foraging hazard (§5.5, REQ-SET-068) -----------------------------------------------
 const HERB_KIND: int = Forage.PATCH_HERB
 const HERB_CAPACITY_MILLI: int = Forage.PATCH_CAPACITY_U[HERB_KIND] * Forage.MILLI_PER_UNIT
+@warning_ignore("integer_division")
 const HERB_START_MILLI: int = HERB_CAPACITY_MILLI * Forage.INITIAL_STOCK_NUMERATOR / Forage.INITIAL_STOCK_DENOMINATOR
+@warning_ignore("integer_division")
 const HERB_FLOOR_MILLI: int = HERB_CAPACITY_MILLI * Forage.SUSTAINABLE_FLOOR_PERCENT / Forage.PERCENT_DENOMINATOR
 const FORAGE_SEGMENT_WU: int = Forage.EXPOSURE_SEGMENT_WU
 const FORAGE_INJURY_KIND: int = Injury.KIND_CUT
@@ -121,6 +123,7 @@ static func care_factor(level: int, pace_permille: int) -> int:
 	factor and any other owner's, demo/work/work_pace.gd), clamped to §5.2's 300..1800. The demo has no mood, so the
 	mood factor is 1000."""
 	var skill: int = ForestRules.skill_factor_permille(clampi(level, 0, ForestRules.SKILL_LEVEL_MAX))
+	@warning_ignore("integer_division")
 	return clampi(skill * pace_permille / PERMILLE, WORK_FACTOR_MIN, WORK_FACTOR_MAX)
 
 
@@ -149,6 +152,7 @@ static func herb_regrowth_milli(stock_milli: int, season: int) -> int:
 	var availability: int = Forage.PATCH_AVAILABILITY_PER_1000[HERB_KIND * 4 + clampi(season, 0, 3)]
 	if room <= 0 or availability == 0:
 		return 0
+	@warning_ignore("integer_division")
 	var grown: int = room * Forage.PATCH_REGROWTH_PER_1000[HERB_KIND] * availability / Forage.REGROWTH_DENOMINATOR
 	return mini(room, grown + Forage.REGROWTH_MINIMUM_MILLI)
 

@@ -325,7 +325,7 @@ func _put_down(row: int) -> void:
 		_end(row)
 
 
-func _work(row: int, usec: int) -> void:
+func _work(_row: int, usec: int) -> void:
 	"""The builder's time into the infirmary; built, every builder on it is done."""
 	if projects.add_work(usec):
 		for other: int in capacity():

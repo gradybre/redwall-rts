@@ -52,10 +52,10 @@ var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 
 
-func configure(tapestry: TapestryScript, back_to_hall: Callable) -> void:
-	"""Show this tapestry; "Back to the hall" calls `back_to_hall()`."""
+func configure(tapestry: TapestryScript, on_back: Callable) -> void:
+	"""Show this tapestry; "Back to the hall" calls `on_back()`."""
 	_tapestry = tapestry
-	_back = back_to_hall
+	_back = on_back
 	build()
 
 

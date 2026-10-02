@@ -163,19 +163,19 @@ func _add_row(body: VBoxContainer, buttons: Array) -> void:
 	"""A row of buttons."""
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override(&"separation", 6)
-	for button: Button in buttons:
-		row.add_child(button)
+	for each: Button in buttons:
+		row.add_child(each)
 	body.add_child(row)
 
 
 func _button(action: StringName, words: String, tip: String) -> Button:
 	"""A wood button that runs `action` (see `set_actions`)."""
-	var button: Button = FarmUi.button(words)
-	button.name = String(action)
-	button.tooltip_text = tip
-	button.pressed.connect(press.bind(action))
-	_buttons[action] = button
-	return button
+	var made: Button = FarmUi.button(words)
+	made.name = String(action)
+	made.tooltip_text = tip
+	made.pressed.connect(press.bind(action))
+	_buttons[action] = made
+	return made
 
 
 # --- opening, pressing ----------------------------------------------------------------------------------------------

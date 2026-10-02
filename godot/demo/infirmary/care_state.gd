@@ -224,14 +224,14 @@ func regrow_to(day: int, season: int) -> int:
 
 # --- injuries -----------------------------------------------------------------------------------------------------
 
-func hurt(i: int, kind: int, severity: int, loss: int) -> bool:
-	"""One injury incident on resident `i` (GDD §4.2's merge), its immediate `loss` capped at the floor. False when the
-	core refuses it (no such row, a bad kind or severity)."""
+func hurt(i: int, injury_kind: int, injury_severity: int, loss: int) -> bool:
+	"""One injury incident on resident `i` (GDD §4.2's merge) of `injury_kind` and `injury_severity`, its immediate `loss`
+	capped at the floor. False when the core refuses it (no such row, a bad kind or severity)."""
 	if not _valid(i):
 		return false
 	_needs.health_into(i, _read)
 	var capped: int = clampi(mini(loss, _read.value - Rules.HEALTH_FLOOR), 0, Rules.HEALTH_MAX)
-	var applied: Needs.OpResult = _injury.apply_incident(i, kind, severity, capped, _ordinal[i] + 1, _needs)
+	var applied: Needs.OpResult = _injury.apply_incident(i, injury_kind, injury_severity, capped, _ordinal[i] + 1, _needs)
 	_take_ordinal(i, applied.ok)
 	return _counted(applied.ok)
 

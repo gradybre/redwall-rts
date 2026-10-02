@@ -490,9 +490,9 @@ func test_a_carrier_called_away_puts_its_load_back_and_comes_back_to_it() -> voi
 	assert_true(crew.carrying(0), "carrying")
 	assert_true(crew.doing_text(0).begins_with("Carrying"), crew.doing_text(0))
 	var held: int = stores.stone_milli_u
-	var load: int = crew.load_milli[0]
+	var carried: int = crew.load_milli[0]
 	_brain(0).order_move(Vector2(-10.0, 10.0))
-	assert_equal(stores.stone_milli_u, held + load, "the load back in the stores")
+	assert_equal(stores.stone_milli_u, held + carried, "the load back in the stores")
 	assert_equal(crew.worker[0], CrewScript.NOBODY, "the place free")
 	assert_equal(projects.transit[projects.cell(UPGRADE, STONE)], 0, "nothing in arms")
 	assert_true(_brain(0).take_up_unfinished(), "it comes back to the hall")

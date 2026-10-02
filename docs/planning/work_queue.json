@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-01",
+  "updated": "2026-10-02",
   "note": "The dispatchable graph. tools/dispatch_plan.py reads this and emits the largest conflict-free set of ready tasks. Status values: blocked, ready, in_flight, review, done. A task is dispatchable only when every dependency is done, its gate is cleared, and no file it owns is owned by a task already in flight.",
   "gates": {
     "none": "No human decision required. Fully automatic.",
@@ -1318,7 +1318,8 @@
       ],
       "agent": "self",
       "gate": "none",
-      "acceptance": "Task06.1-4: existing stores to18remaining commands; job admission/source/destination reservations/hauling/arrival/WU/upgrade/cancel/demolition/occupants/only exit; BUILD-C4-R01 paid package ledger and atomic outputs. Materialize bounded owned implementations after API review."
+      "acceptance": "Task06.1-4: existing stores to18remaining commands; job admission/source/destination reservations/hauling/arrival/WU/upgrade/cancel/demolition/occupants/only exit; BUILD-C4-R01 paid package ledger and atomic outputs. Materialize bounded owned implementations after API review.",
+      "note": "2026-10-02: the hauling packet (task 06.4) is written by HAUL-H0 (decision 1021); the command, material delivery, upgrade and service sections are still owed."
     },
     {
       "id": "PLAN-LIVE-FOOD",
@@ -2359,7 +2360,7 @@
     {
       "id": "GROUND-CLEARANCE-ADMISSION",
       "title": "Bind ground travel admission to qualified route clearance",
-      "status": "in_flight",
+      "status": "done",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/movement.gd",
@@ -2373,7 +2374,10 @@
       "agent": "game-coder",
       "gate": "none",
       "acceptance": "GROUND-CLEARANCE-R01v1 / ADR0185: qualified profile and exact descriptor class required before attachment; prior traveller preserved on refusal; actual focused/full, three valid mutation witnesses, independent source review, committed identity and CI.",
-      "note": "Source-proven gap selected from corrected ground architecture review; all production profiles remain unqualified, existing positive motion suites use explicit test-only fixture."
+      "note": "Source-proven gap selected from corrected ground architecture review; all production profiles remain unqualified, existing positive motion suites use explicit test-only fixture. Status corrected 2026-10-02 by HAUL-H0 (decision 1021): it merged as PR #176 (043c4da5) on 2026-09-20 and was left in_flight.",
+      "pr": 176,
+      "merged_at": "2026-09-20T17:50:25Z",
+      "merge_commit": "043c4da567861d313fb0e23656b4a1363d8cf708"
     },
     {
       "id": "DEMOLITION-D1",
@@ -2627,6 +2631,155 @@
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
       "acceptance": "INV-GOODS-R01's full-gate list plus DEMO-CONTAIN-R01's additions; closes REQ-SET-127/128 and CONSTRUCTION-EVACUATION-INTEGRATION only if all pass."
+    },
+    {
+      "id": "HAUL-H0",
+      "title": "Task 06.4 hauling packet, queue entries and the provisional clearance proposal",
+      "status": "review",
+      "depends_on": [],
+      "owns": [
+        "docs/planning/construction_execution_package.md",
+        "docs/decisions/1021-the-hauling-packet-and-brendans-hauling-rulings.md",
+        "docs/decisions/1024-a-provisional-ground-clearance-class-proposal.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "branch": "feat/hauling-h0-h2",
+      "acceptance": "Packet records Brendan's 2026-10-02 rulings, the specified haul rules, the H0-H8 slice plan, dependencies and file ownership; queue validates; GROUND-CLEARANCE-ADMISSION status corrected; provisional clearance values proposed from adopted geometry and marked PROVISIONAL, closing no MOVE gate."
+    },
+    {
+      "id": "HAUL-H1",
+      "title": "Satchel door, claim-carrying load/unload, ground-pile mover and the death/departure drop",
+      "status": "review",
+      "depends_on": [
+        "HAUL-H0"
+      ],
+      "owns": [
+        "godot/scripts/core/haul_carry.gd",
+        "godot/scripts/core/ground_piles.gd",
+        "godot/test/test_haul_carry.gd",
+        "godot/test/test_reservations_carry.gd",
+        "godot/test/test_ground_piles_move.gd",
+        "godot/test/fixtures/haul_world.gd",
+        "docs/decisions/1022-a-satchel-is-made-per-haul-and-the-claim-travels-with-the-goods.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "branch": "feat/hauling-h0-h2",
+      "acceptance": "Satchel made per haul at load (one inventory transaction), sized to species carry, unplaced, resident-owned, destroyed when emptied; claims travel with goods; drop on death/departure under DEC-043 #9; conservation and byte-identical refusals tested."
+    },
+    {
+      "id": "HAUL-H2",
+      "title": "Payload sizer, haul demand, destination selection, numbered ReservationPurpose and destination reservation",
+      "status": "review",
+      "depends_on": [
+        "HAUL-H1"
+      ],
+      "owns": [
+        "godot/scripts/core/haul_planner.gd",
+        "godot/scripts/core/reservations.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_haul_planner.gd",
+        "docs/decisions/1023-haul-payloads-are-sized-at-assignment-and-go-to-the-lowest-eligible-store.md"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "branch": "feat/hauling-h0-h2",
+      "acceptance": "REQ-SET-111/BAL-WORK-003 sizing and trips; BAL-CAT-010/REQ-SET-134 handling work; decision 0534 R1/R2 destinations reused; REQ-SET-030/031 all-or-nothing admission with destination grams recorded; HAUL_SOURCE=1, HAUL_DESTINATION=2; ledger, registry and capacity audit updated."
+    },
+    {
+      "id": "HAUL-H3",
+      "title": "Compose navigation and movement into the settlement under the confirmed provisional clearance; store contacts",
+      "status": "blocked",
+      "depends_on": [
+        "HAUL-H2",
+        "DEMOLITION-D6"
+      ],
+      "owns": [
+        "godot/scripts/core/movement.gd",
+        "godot/scripts/core/navigation.gd",
+        "godot/scripts/systems/settlement_system.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "Brendan confirms decision 1024 first. Bind the provisional class without closing MOVE-G01; real routes and arrival in the settlement tick; contact producer per R-H4 (lowest-id walkable edge-adjacent cell; hall shelves from the common-room edge); destination revisions. Coordinate movement.gd with DEMOLITION-D8.",
+      "note": "Needs Brendan's confirmation of decision 1024's PROVISIONAL class values."
+    },
+    {
+      "id": "HAUL-H4",
+      "title": "HAUL Job lifecycle: admission at assignment, WORK load, HAUL_OUTPUT carry and unload, leases, cancel and death",
+      "status": "blocked",
+      "depends_on": [
+        "HAUL-H3"
+      ],
+      "owns": [
+        "godot/scripts/core/jobs.gd",
+        "godot/scripts/core/work.gd",
+        "godot/scripts/systems/settlement_system.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "REQ-SET-030-033 on real HAUL Jobs: RESERVED->TRAVEL->WORK(2000 mWU load)->HAUL_OUTPUT(carry + 2000 mWU unload)->COMPLETE; 30/300-tick leases; 300-tick unreachable BLOCKED with 900-tick retry; cancel keeps carried goods and re-posts; drop_satchel before despawn."
+    },
+    {
+      "id": "HAUL-H5",
+      "title": "Haul demand producers: ground-pile recovery, evacuation hauls (D6b) and production output hauls",
+      "status": "blocked",
+      "depends_on": [
+        "HAUL-H4"
+      ],
+      "owns": [
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/demolition_work.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "REQ-SET-110 piles recovered into storage, D6's evacuate-then-demolish intent served by real HAUL Jobs, production outputs hauled in HAUL_OUTPUT with REQ-SET-112 output reservations; REQ-SET-113 urgency bucket 2."
+    },
+    {
+      "id": "HAUL-H6",
+      "title": "Storage policy commands: SET_STORE_FILTER, SET_STORE_MINIMUM, mass limits and the pantry connection",
+      "status": "blocked",
+      "depends_on": [
+        "HAUL-H3"
+      ],
+      "owns": [
+        "godot/scripts/core/command_dispatch.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "Task 06.4's filter/minimum/mass-limit items through the task-04 dispatcher; REQ-SET-117 minimum reserves; REQ-SET-134 pantry connection measured as walking distance."
+    },
+    {
+      "id": "HAUL-H7",
+      "title": "Gear wear, equipment swaps, EQUIP, the shared instance allocator and the boat installation contract",
+      "status": "blocked",
+      "depends_on": [
+        "HAUL-H4"
+      ],
+      "owns": [
+        "godot/scripts/core/gear.gd",
+        "godot/scripts/core/command_dispatch.gd"
+      ],
+      "agent": "game-coder",
+      "gate": "none",
+      "acceptance": "Task 06.4's gear items; hauls never split a gear lot; a declared boat installation/owner contract with no fabricated boat item."
+    },
+    {
+      "id": "HAUL-H8",
+      "title": "Haul saves, UI, live harness and task 06.4 acceptance",
+      "status": "blocked",
+      "depends_on": [
+        "HAUL-H5",
+        "HAUL-H6",
+        "HAUL-H7"
+      ],
+      "owns": [
+        "docs/tasks/lanes/06/2026-10-02-hauling-h8-acceptance.md"
+      ],
+      "agent": "self",
+      "gate": "none",
+      "acceptance": "Save bindings for the haul record with satchel/Equipment.satchel cross-checks; UI and notices; task 06 acceptance list (overlapping delivery/consumption, full destination, worker death, slot reuse); MOVE-TEST-02 once tunnels exist."
     }
   ],
   "cycle_report": "docs/planning/astra_cycles/cycle_03.md"

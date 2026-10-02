@@ -1,0 +1,152 @@
+# Construction execution package — hauling packet (task 06.4)
+
+2026-10-02 · Owner: `PLAN-LIVE-CONSTRUCTION` (work queue). Slice H0 of task 06.4, written on
+`feat/hauling-h0-h2` with Brendan's rulings of 2026-10-02 (relayed by the coordinator) and
+recorded in [decision 1021](../decisions/1021-the-hauling-packet-and-brendans-hauling-rulings.md).
+
+**This file is the hauling packet only.** `PLAN-LIVE-CONSTRUCTION`'s acceptance also names the
+remaining construction commands, material delivery, upgrades and service integration; those
+sections are still owed and are not written here. Nothing below closes a MOVE gate, and nothing
+below claims that hauling runs in the game yet: H1 and H2 land primitives and admission, and the
+first slice that moves a resident is H3.
+
+## 1. What task 06.4 asks, and what this packet covers
+
+[Task 06.4](../tasks/06_buildings_rooms_logistics.md): "physical hauling and output/source
+reservations, storage filters/minimums/mass limits, carry/ground-pile recovery, gear
+wear/equipment swaps and shared instance allocator; integrate SET_STORE_FILTER,
+SET_STORE_MINIMUM and EQUIP through the task-04 dispatcher. A fishing boat's installation and
+owner need a declared contract; do not fabricate a `boat` inventory item."
+
+This packet specifies the hauling half completely and slices the rest (H6, H7). Upstream is task
+05.4's RESERVED → TRAVEL → WORK; every movement gate MOVE-G01–05 is open, and decision 0185 makes
+`movement.begin_travel()` refuse any profile without a qualified clearance class, which every
+starter profile lacks. H3 therefore waits for Brendan's confirmation of a PROVISIONAL class
+(§6, decision 1024).
+
+## 2. Brendan's rulings, 2026-10-02
+
+| # | Ruling | Where it lands |
+|---|---|---|
+| R-H1 | **Provisional ground clearance class** for the four starter adult species, recorded as NOT closing MOVE-G01, so real navigation and movement can be composed in H3. H0 proposes the values from adopted geometry, marked PROVISIONAL, for his confirmation. | §6; [decision 1024](../decisions/1024-a-provisional-ground-clearance-class-proposal.md) |
+| R-H2 | **Satchels are created per haul** (option b): made at load, sized to the hauler's species carry limit, unplaced, owned by the resident, destroyed when empty. ARCH-MEM-002's 512 satchel budget holds: one per resident at most. | H1; [decision 1022](../decisions/1022-a-satchel-is-made-per-haul-and-the-claim-travels-with-the-goods.md) |
+| R-H2a | Derived from R-H2, recorded by H0: a resident who dies or departs while carrying drops the contents as a ground pile at its tile under DEC-043 #9, then the satchel is destroyed. | H1 `haul_carry.drop_satchel()` |
+| R-H2b | Derived from R-H2: a haul cancelled mid-carry keeps its goods in the satchel and posts a fresh haul with the satchel as its source. | H1 `load_payload()` re-key; H2 `cancel()`; H4 posts |
+| R-H3 | **Destinations**: the lowest-slot eligible store -- off the source footprint, a different ACTIVE building, reachable, filters admit, room for the payload (decision 0534 R1, reused); otherwise ground piles on the refund-seed ring (R2). | H2 `select_destination_into()` |
+| R-H4 | **Approach / contact cell**: any walkable cell edge-adjacent to the footprint, chosen by lowest cell id; hall shelves use the common-room edge (GDD §5.9: "shelves can be reached from the open common-room edge"). | H3 contact producer |
+| R-H5 | **The unload is worked in HAUL_OUTPUT.** WORK covers the load at the source contact; HAUL_OUTPUT covers the carry leg and the unload. The same state serves production output hauls. ARCH-JOB-001 carries a note. | H4; `systems_architecture.md` ARCH-JOB-001 |
+| R-H6 | **Loads are sized at assignment** (REQ-SET-030), re-proved at load, one item lot per job at first. | H2 `admit()`; H1 `load_payload()` |
+| R-H7 | **New numbered ReservationPurpose values** HAUL_SOURCE and HAUL_DESTINATION; number the domain. | H2 `reservations.gd`; [decision 1023](../decisions/1023-haul-payloads-are-sized-at-assignment-and-go-to-the-lowest-eligible-store.md) |
+
+## 3. The specified rules a haul obeys
+
+| Rule | Value | Source |
+|---|---|---|
+| Carry limit by size | 12000 / 16000 / 24000 g (small / medium / large) | GDD §5.2; BAL-WORK-003; `residents.size_carry_g()` |
+| Speed cap by size | 3277 / 4096 / 3072 u/s | GDD §5.2; BAL-WORK-003 |
+| Payload per departure | `min(available, floor((carry_g - other_cargo_g) * 1000 / m))` milli-U; one lot charged `ceil(q*m/1000)` g | REQ-SET-111; BAL-NUM-001; BAL-SAFE-016 |
+| Planning trips | `ceil_div(ceil_div(Q*M,1000), carry_g - other_cargo_g)`; each actual departure records its exact payload (can be one more) | BAL-WORK-003 |
+| Travel lower bound | `ceil_div(D*30, v)` ticks per straight leg | BAL-WORK-003 |
+| Handling work | 2000 milli-WU to load, 2000 to unload | BAL-CAT-010 |
+| Pantry connection | x 9/10 handling work when a kitchen door is within 8 m walking distance of a pantry/store access point; never movement | REQ-SET-134; BAL-WORK-004 |
+| Acceptance | worker, complete inputs, output capacity and destination slot reserved atomically before movement | REQ-SET-030 |
+| Blocked cause | a refused reservation keeps the job queued with the exact cause, locking nothing unrelated | REQ-SET-031 |
+| Leases | travelling owners renew every 30 ticks; a lease expires 300 ticks after its last renewal | REQ-SET-032; BAL-SAFE-004; ARCH-JOB-004 |
+| Unreachable | 300 ticks unreachable → BLOCKED, release, retry after 900 ticks or a navigation revision | REQ-SET-033; ARCH-JOB-004 |
+| Full storage | stop new production reservations; existing cargo may go to a visible temporary ground pile at the destination | REQ-SET-110 |
+| One container in transit | a lot in transit is in exactly one container; source debit and satchel credit are atomic | BAL-SAFE-002 |
+| No teleports | goods move only by real jobs that commit each transfer | INV-GOODS-R01 |
+| Pile rules | at most 400000 g, one per tile, never on a standing footprint, breadth-first N, E, S, W from the door or the front-first ring | DEC-043 #9; decision 0532 |
+
+## 4. The haul's life, state by state
+
+```text
+QUEUED ──admit (H2: size, choose destination, reserve grams + HAUL_SOURCE claim)──► RESERVED
+RESERVED ──route ready (H3)──► TRAVEL to the source contact
+TRAVEL ──arrive (H3)──► WORK: 2000 milli-WU (1800 on a pantry connection)
+WORK done ──load (H1: satchel minted, goods + claim move, claim becomes HAUL_DESTINATION)──► HAUL_OUTPUT
+HAUL_OUTPUT: travel to the destination contact, then 2000 milli-WU of unload
+HAUL_OUTPUT done ──unload (H1: deliver, grams released, satchel destroyed)──► COMPLETE (H2 finish)
+
+cancel before load  → H2 cancel: claim and grams released; nothing moved
+cancel after load   → H2 cancel: grams released, claim released; goods stay in the satchel;
+                      a fresh haul is posted with the satchel as source (its load re-keys)
+death / departure   → H1 drop_satchel BEFORE despawn: pile at the tile (or the building's
+                      refund origin when the tile is a footprint), claims released, satchel gone
+no store, no ring   → REQ-SET-031: HAUL_NO_DESTINATION, queued, nothing locked
+```
+
+Claims and grams by phase:
+
+| Phase | Reservation pool | Inventory | Haul record (H2) |
+|---|---|---|---|
+| RESERVED, TRAVEL, WORK | HAUL_SOURCE on the source lot, payload milli-U, lease | destination `reserved_mass_g` += charge | job → destination, tile, grams |
+| HAUL_OUTPUT | HAUL_DESTINATION on the satchel lot, same lease | goods in the satchel; destination grams still held | unchanged |
+| COMPLETE | none | goods in the destination; grams released in the unload's transaction | cleared |
+
+## 5. Destinations and contacts
+
+- **Store (R1).** Lowest container slot among placed containers off the source building's
+  footprint whose owner is a different live ACTIVE Building, that is reachable, not a pile, not a
+  satchel, whose filters admit the item's category and whose free mass takes the whole payload
+  charge. The grams are reserved at admission.
+- **Ground (R2).** With no store, ground piles from the source building's refund seeds (the hall's
+  door at rotation 0, else the footprint's front-first edge ring), proved by a rolled-back
+  placement; nothing is reserved, as for demolition. The unload tile is the first eligible seed.
+  A source with no Building owner (a pile, a satchel) has no ring and refuses
+  HAUL_NO_DESTINATION -- an open question (§9).
+- **Contact (R-H4, built in H3).** The approach cell for a store is the lowest-id walkable
+  navigation cell edge-adjacent to its owner's footprint; for the hall's shelves, a cell on the
+  common-room edge. The work point is the store's anchor. Under the provisional class 1 a cell
+  is its own clearance square, so "walkable" and "passes class 1" coincide.
+
+## 6. Movement under a provisional clearance class (R-H1)
+
+Decision 1024 proposes **class 1 for all four starter adults** (mouse, mole, otter, squirrel), the
+only derivation from adopted geometry that yields a class for all four under MOVE-C2-R01's anchored
+containment at the baseline `(+256,+256)` offset: DEC-039's approved heights times the
+proportion manifest's `torso_width`/`torso_depth` permille, quantized outward with zero margin.
+The walking-pose blockout bounds (which include the tail) give mouse 3, squirrel 4 and mole/otter
+PLACEMENT_INCOMPATIBLE. It is PROVISIONAL: it closes no MOVE gate, leaves Q2-01–05 empty and is
+not a qualified envelope. H3 may bind it only after Brendan confirms it.
+
+## 7. Slice plan H0–H8
+
+| Slice | Content | Files owned | Depends on | State |
+|---|---|---|---|---|
+| H0 | This packet; queue entries; the stale GROUND-CLEARANCE-ADMISSION status; the provisional clearance proposal | this file, `docs/planning/work_queue.json`, decisions 1021, 1024 | -- | built |
+| H1 | Satchel door; transactional carry doors that move claims with goods; ground-pile mover; death/departure drop; conservation tests | `inventory.gd`, `reservations.gd`, `ground_piles.gd`, new `haul_carry.gd`, tests | H0 | built |
+| H2 | Payload sizer; haul demand; destination selection (R1/R2); numbered ReservationPurpose; destination mass reservation and its record | new `haul_planner.gd`, `reservations.gd`, ledger, registry, tests | H1 | built |
+| H3 | Bind the confirmed provisional class in `movement.gd`; compose navigation and movement into the settlement tick; contact producer for stores (R-H4); destination revisions; reference arrival | `movement.gd`, `navigation.gd`, `settlement_system.gd`, a new contacts module | Brendan's confirmation of 1024; DEMOLITION-D6 merged; coordinate with DEMOLITION-D8 (`movement.gd`) | blocked |
+| H4 | HAUL Job lifecycle: admission at assignment, TRAVEL → WORK(load) → HAUL_OUTPUT(carry + unload) → COMPLETE, `work.gd` ticking HAUL_OUTPUT's unload; leases (30/300); REQ-SET-033 unreachable handling; cancel and fresh-haul re-post; drop before despawn | `jobs.gd`, `work.gd`, `settlement_system.gd` | H3 | blocked |
+| H5 | Demand producers: REQ-SET-110 ground-pile recovery, D6's evacuate-then-demolish hauls (D6b), production output hauls and REQ-SET-112 output reservations; REQ-SET-113 urgency | `settlement_system.gd`, `demolition_work.gd` | H4 | blocked |
+| H6 | Storage policy: SET_STORE_FILTER, SET_STORE_MINIMUM (REQ-SET-117), mass limits, REQ-SET-134's pantry connection by walking distance | `command_dispatch.gd`, a store-policy module | H3 | blocked |
+| H7 | Gear: wear, equipment swaps, EQUIP, the shared instance allocator, the boat installation/owner contract (no `boat` item); hauls never split a gear lot | `gear.gd`, `command_dispatch.gd` | H4 | blocked |
+| H8 | Saves for the haul record (with satchel ↔ `Equipment.satchel` cross-checks), haul UI and notices, live harness, 06.4 acceptance, MOVE-TEST-02 once tunnels exist | save sections, `ui/`, `docs/tasks/` | H4–H7 | blocked |
+
+One writer per file. `jobs.gd`, `work.gd` and `settlement_system.gd` belong to
+`feat/demolition-d6` until it merges; H1 and H2 touched none of them.
+
+## 8. Acceptance for the slices built here
+
+- **H1.** Every load, unload and drop conserves each item (`audit()`; sourced and sunk
+  unchanged); a lot in transit is in exactly one container; the claim moves with the goods; every
+  refusal leaves Inventory, the pool and the resident equipment columns byte-identical; the
+  satchel is minted inside the load's own transaction and destroyed inside the unload's.
+- **H2.** Payload, trips, travel ticks and handling work match §3 at their boundaries; R1's
+  seven clauses each exclude a store; R2 writes nothing; admission is all-or-nothing with the
+  exact REQ-SET-031 cause; cancellation returns both claim and grams; the record and scratch are
+  the ledgered sizes.
+
+## 9. Open questions for Brendan
+
+1. Confirm decision 1024's provisional class 1 for the four starter adults, or choose another
+   option it lists.
+2. A pile or satchel source with no store free has no R2 ring: keep it queued (built), or drop
+   at the hauler's tile, or use the nearest building's ring?
+3. Unloads move the carried lot whole (identity kept, no merge on arrival): accept the extra lot
+   rows, or merge on arrival except for gear lots?
+4. Should the reservation pool refuse unnumbered purposes now, or once every producer is
+   numbered (built: it still admits any int32)?
+5. A resident who dies standing on a footprint drops from that building's refund origin (built,
+   PROPOSAL): accept?

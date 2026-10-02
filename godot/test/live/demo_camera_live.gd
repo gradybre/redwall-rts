@@ -354,6 +354,28 @@ func _strip_clear_of_the_news() -> void:
 	_key(KEY_U)
 	_key(KEY_END)
 	await _frames(SETTLE_FRAMES)
+	await _long_line_at_125()
+
+
+func _long_line_at_125() -> void:
+	"""With the interface at 125 %, a long line stays inside the gap between the minimap and the right column: cut to it
+	at 1280x720 (500 logical px), whole at 1920x1080."""
+	DemoUiScale.apply(125, root)
+	var strip: Node = _modes().get("strip")
+	strip.call(&"set_mode_text", "Following Wenna Tallowby-Highbough-Whitethorn of the Long Name · End or a pan stops")
+	await _frames(SETTLE_FRAMES)
+	var at: Rect2 = strip.call(&"rect")
+	var geometry: Object = strip.get("_geometry")
+	var s: float = float(geometry.get("scale"))
+	var low: float = ((geometry.get("minimap") as Rect2).end.x + 6.0) * s
+	var high: float = ((geometry.get("detail") as Rect2).position.x - 6.0) * s
+	var cut: bool = bool(strip.call(&"clipped"))
+	_check("long line: inside the gap between the minimap and the right column, cut only where it must be",
+		at.position.x >= low - 0.5 and at.end.x <= high + 0.5 and cut == (_size.y < 1080),
+		"%s in %.0f..%.0f, cut %s" % [at, low, high, cut])
+	strip.call(&"set_mode_text", "")
+	DemoUiScale.apply(100, root)
+	await _frames(SETTLE_FRAMES)
 
 
 func _check_strip_clear(where: String) -> void:

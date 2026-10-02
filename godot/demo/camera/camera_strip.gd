@@ -114,19 +114,49 @@ func place_for(size_px: Vector2) -> void:
 	_placed_percent = DemoUiScale.percent
 	var band: Rect2 = NewsStrip.band_placement(int(size_px.x), int(size_px.y), _layout, _geometry, journal)
 	var s: float = _geometry.scale
-	var width: float = _box.get_combined_minimum_size().x
-	var height: float = _box.get_combined_minimum_size().y
+	var low: float = _geometry.minimap.end.x + STACK_GAP
+	var high: float = _geometry.detail.position.x - STACK_GAP
+	var width: float = _fitted_width(high - low)
 	_box.size = Vector2(width, 0.0)
 	_box.scale = Vector2(s, s)
-	var x: float = row_left(band.get_center().x, width, _geometry.minimap.end.x + STACK_GAP,
-		_geometry.detail.position.x - STACK_GAP)
-	_box.position = Vector2(x, _geometry.commands.position.y - STACK_GAP - height) * s
+	var x: float = row_left(band.get_center().x, width, low, high)
+	_box.position = Vector2(x, _geometry.commands.position.y - STACK_GAP - _box.get_combined_minimum_size().y) * s
+
+
+func _fitted_width(room: float) -> float:
+	"""The strip's width: its words' own, or -- wider than `room` (the gap between the minimap and the right column) --
+	`room`, the words cut with an ellipsis."""
+	_cut(false)
+	var natural: float = _box.get_combined_minimum_size().x
+	var width: float = width_for(natural, room)
+	if width < natural:
+		_cut(true)
+	return width
+
+
+static func width_for(natural: float, room: float) -> float:
+	"""A strip's width: its words' own `natural` width, or `room` where they are wider (logical px)."""
+	return minf(natural, maxf(room, 0.0))
+
+
+func _cut(on: bool) -> void:
+	"""Cut the words with an ellipsis (`on`) or show them whole, and have the strip measure itself again (in the tree:
+	off it Godot keeps a control's first measure)."""
+	_label.clip_text = on
+	_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS if on else TextServer.OVERRUN_NO_TRIMMING
+	_label.update_minimum_size()
+	_box.update_minimum_size()
 
 
 static func row_left(centre: float, width: float, low: float, high: float) -> float:
 	"""The strip's left edge: centred on `centre`, moved in to stay between `low` and `high` where it fits (logical
 	px; a strip wider than the gap starts at `low`)."""
 	return maxf(low, minf(centre - width / 2.0, high - width))
+
+
+func clipped() -> bool:
+	"""Whether the words are cut to fit the gap (checks)."""
+	return _label.clip_text
 
 
 func reserved_height() -> float:

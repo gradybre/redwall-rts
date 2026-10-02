@@ -770,6 +770,15 @@ func test_the_strip_stands_in_its_own_row_above_the_commands() -> void:
 	strip.free()
 
 
+func test_a_line_wider_than_the_gap_takes_the_gap() -> void:
+	"""Its own width where it fits; the gap's where it is wider (the words then cut with an ellipsis: the live harness
+	checks the drawn strip at 1280x720 at 125 %); never negative."""
+	assert_almost_equal(Strip.width_for(300.0, 500.0), 300.0, "fits: its own")
+	assert_almost_equal(Strip.width_for(500.0, 500.0), 500.0, "exactly")
+	assert_almost_equal(Strip.width_for(686.0, 500.0), 500.0, "wider: the gap")
+	assert_almost_equal(Strip.width_for(686.0, -4.0), 0.0, "no gap: nothing")
+
+
 func test_a_long_line_is_moved_in_to_stay_in_the_gap() -> void:
 	"""Centred where it fits; pushed in from the right column; from the minimap; wider than the gap: at its start."""
 	assert_almost_equal(Strip.row_left(500.0, 200.0, 100.0, 900.0), 400.0, "centred")
@@ -797,6 +806,12 @@ func test_the_strip_reserves_its_row_only_while_shown() -> void:
 	news.lift = Callable()
 	news.refresh(0)
 	assert_almost_equal(news.lifted_by(), 0.0, "and none without one")
+	var row: Array[float] = [0.0]
+	news.lift = func() -> float: return row[0]
+	news._process(0.01)
+	row[0] = 37.0
+	news._process(0.01)
+	assert_almost_equal(news.lifted_by(), 37.0, "the next frame, not the next refresh")
 	news.free()
 	strip.free()
 
@@ -808,7 +823,9 @@ func test_edge_scroll_is_a_setting_on_by_default_under_camera() -> void:
 	back on."""
 	assert_true(Access.is_on(Access.SET_EDGE_SCROLL), "on by default")
 	assert_equal(Access.SET_NAMES[Access.SET_EDGE_SCROLL], "Edge scroll", "named")
-	assert_true(SettingsUi.CAMERA_SETTINGS.has(Access.SET_EDGE_SCROLL), "under Camera")
+	assert_equal(Access.DEFAULTS.size(), Access.SET_COUNT, "a default for every setting")
+	assert_equal(Access.SET_NAMES.size(), Access.SET_COUNT, "a name for every setting")
+	assert_equal(Access.SET_TIPS.size(), Access.SET_COUNT, "a tip for every setting")
 	var section := SettingsUi.new()
 	assert_equal(section.toggle_button(Access.SET_EDGE_SCROLL).text, "Edge scroll: on", "in words")
 	section.toggle_button(Access.SET_EDGE_SCROLL).button_pressed = false

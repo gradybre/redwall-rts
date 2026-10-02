@@ -196,6 +196,7 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 func _process(delta: float) -> void:
 	"""Advance the news clock (every frame), and refresh a few times a second (real time) at the feed's time."""
 	tick_news(Time.get_ticks_msec())
+	_follow_lift()
 	_refresh_in -= delta
 	if _refresh_in > 0.0:
 		return
@@ -236,10 +237,15 @@ func _follow_layout() -> void:
 	if _journal_is_open() != _journal_open:
 		_journal_open = not _journal_open
 		_place.call_deferred()
+	_follow_lift()
+
+
+func _follow_lift() -> void:
+	"""Every frame: stand on the camera strip's row as soon as it shows or hides (no lag behind it; allocates nothing)."""
 	var lifted: float = float(lift.call()) if lift.is_valid() else 0.0
 	if lifted != _lift_now:
 		_lift_now = lifted
-		_place.call_deferred()
+		_place()
 
 
 func lifted_by() -> float:

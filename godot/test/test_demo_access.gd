@@ -191,7 +191,7 @@ func test_the_menu_shows_the_section_in_settings() -> void:
 	var text: String = menu.page_text(MenuScript.PAGE_SETTINGS)
 	game.free()
 	for words: String in ["Accessibility", "Large readable", "Keyboard planner", "Reduced motion", "Quiet focus",
-			"Pause while planning: off", "Pause on a critical incident: on", "Restore defaults"]:
+			"Pause while planning: off", "Pause on a critical incident: on", "Camera", "Edge scroll: on", "Restore defaults"]:
 		assert_true(text.contains(words), "Settings shows '%s'" % words)
 
 

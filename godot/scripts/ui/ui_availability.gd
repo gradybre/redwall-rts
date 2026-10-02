@@ -110,7 +110,7 @@ const COMPACT_REASON_LIMIT: int = 40
 ## full-size unavailable page, so the row prints THIS and the long sentence stays in inspection.
 const COMPACT_TEXTS: Array[String] = [
 	"",
-	"no buildings placed or commands wired",
+	"no build or room commands wired",
 	"needs camera picking and multi-select",
 	"no save files written yet (task 09)",
 	"needs the ManualTask store",
@@ -130,8 +130,8 @@ const COMPACT_TEXTS: Array[String] = [
 
 const REASON_TEXTS: Array[String] = [
 	"",
-	"the Building, Room and Furniture stores exist, but no building is placed and no build, room"
-		+ " or bed command is wired; task 06 owns both",
+	"the Building, Room and Furniture stores hold the starter colony (decision 0533), but no build,"
+		+ " room, demolish or bed command is wired and no panel reads them; task 06 owns both",
 	"resident poses are stored, but the interface binds no camera to pick or project them and"
 		+ " keeps no multi-selection",
 	"the save codec encodes sections in memory, but some sections are still unwritten and nothing"

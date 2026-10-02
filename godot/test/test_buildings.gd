@@ -962,3 +962,75 @@ func test_a_shared_directory_is_not_cleared_by_this_store() -> void:
 	assert_true(directory.is_valid(outsider), "the outsider's row survives the clear")
 	assert_equal(directory.live_count(EntityDirectory.KIND_BUILDING), 0,
 		"while every building row was released")
+
+
+# --- decision 0533: the placement authority and the placement preview ---------------------------
+
+class TileAuthority extends RefCounted:
+	"""A placement authority that refuses exactly one tile with its own code, and counts asks."""
+	var refused_tile: int = -1
+	var asks: int = 0
+
+	func building_tile_refusal(tile: int) -> StringName:
+		"""Refuse `refused_tile` with a code of its own; pass every other tile."""
+		asks += 1
+		return &"TEST_TILE_REFUSED" if tile == refused_tile else &""
+
+
+func test_a_placement_authority_sees_every_footprint_tile_and_its_refusal_passes_through() -> void:
+	"""Every one of a 2x2 well's four tiles is shown; a refused tile stops the placement unchanged."""
+	var store: Buildings = Buildings.new()
+	var authority: TileAuthority = TileAuthority.new()
+	assert_true(store.set_placement_authority(authority).ok, "the authority binds")
+	assert_true(store.has_placement_authority(), "and is live")
+	var well: int = int(CatalogScript.BUILDING_DEFINITION["well"])
+	assert_true(store.place_building(well, _tile(10, 10), 0, START_MASK).ok, "a clear well places")
+	assert_equal(authority.asks, 4, "after all four footprint tiles were shown")
+	authority.refused_tile = _tile(21, 21)
+	var before: int = store.directory().total_live_count()
+	var refused: Buildings.OpResult = store.place_building(well, _tile(20, 20), 0, START_MASK)
+	assert_equal(refused.error, &"TEST_TILE_REFUSED", "the far corner's refusal is returned as is")
+	assert_equal(store.placement_refusal(well, _tile(20, 20), 0, START_MASK), &"TEST_TILE_REFUSED",
+		"and the preview agrees without placing")
+	assert_equal(store.directory().total_live_count(), before, "no directory row was taken")
+	assert_equal(store.building_at_tile(_tile(20, 20)), EntityDirectory.NULL_REF, "nor any tile")
+
+
+func test_an_occupied_footprint_refuses_before_the_authority_is_asked() -> void:
+	"""Overlap is this store's own rule and is decided first; the authority is not consulted."""
+	var store: Buildings = Buildings.new()
+	var authority: TileAuthority = TileAuthority.new()
+	var well: int = int(CatalogScript.BUILDING_DEFINITION["well"])
+	assert_true(store.place_building(well, _tile(10, 10), 0, START_MASK).ok, "a well stands")
+	assert_true(store.set_placement_authority(authority).ok, "then the authority binds")
+	assert_equal(store.place_building(well, _tile(11, 11), 0, START_MASK).error,
+		Buildings.REFUSE_FOOTPRINT_OCCUPIED, "an overlap is refused as an overlap")
+	assert_equal(authority.asks, 0, "without asking the authority anything")
+
+
+func test_a_released_or_malformed_authority_fails_closed() -> void:
+	"""A released authority refuses every placement; an object without the method is not bound."""
+	var store: Buildings = Buildings.new()
+	assert_equal(store.set_placement_authority(RefCounted.new()).error,
+		Buildings.REFUSE_INVALID_PLACEMENT_AUTHORITY, "an object without the method is refused")
+	assert_false(store.has_placement_authority(), "and nothing is bound")
+	var authority: TileAuthority = TileAuthority.new()
+	assert_true(store.set_placement_authority(authority).ok, "a real authority binds")
+	authority = null
+	assert_false(store.has_placement_authority(), "released, it is no longer live")
+	var well: int = int(CatalogScript.BUILDING_DEFINITION["well"])
+	assert_equal(store.place_building(well, _tile(10, 10), 0, START_MASK).error,
+		Buildings.REFUSE_INVALID_PLACEMENT_AUTHORITY, "and every placement refuses rather than pass")
+	assert_equal(store.live_building_count(), 0, "so nothing is placed unchecked")
+
+
+func test_the_placement_authority_is_wiring_and_survives_clear() -> void:
+	"""`clear()` empties rows, not wiring: the binding is still in force afterwards."""
+	var store: Buildings = Buildings.new()
+	var authority: TileAuthority = TileAuthority.new()
+	assert_true(store.set_placement_authority(authority).ok, "the authority binds")
+	store.clear()
+	assert_true(store.has_placement_authority(), "and survives the clear")
+	authority.refused_tile = _tile(10, 10)
+	assert_equal(store.placement_refusal(int(CatalogScript.BUILDING_DEFINITION["well"]),
+		_tile(10, 10), 0, START_MASK), &"TEST_TILE_REFUSED", "still asked after the clear")

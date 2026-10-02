@@ -41,6 +41,11 @@ class ReentrantAuthority extends RefCounted:
 		return false
 
 
+## A well-formed directory-shaped owner. Decision 0533 made `create_container()` refuse the null
+## ref these fixtures used to pass; ownership is not what this suite measures.
+const STORE_OWNER: Vector2i = Vector2i(1, 1)
+
+
 func before_each() -> void:
 	"""Small real stores preserve the exact owner API without allocating a second world."""
 	_inv = Inventory.new(8, 16)
@@ -53,7 +58,7 @@ func before_each() -> void:
 func _container() -> Vector2i:
 	"""Create an ordinary reachable store."""
 	var made: Inventory.OpResult = _inv.create_container(
-		Inventory.NULL_REF, 1000000, Inventory.FILTERS_ACCEPT_ALL, 0, true)
+		STORE_OWNER, 1000000, Inventory.FILTERS_ACCEPT_ALL, 0, true)
 	assert_true(made.ok, "container fixture")
 	return made.ref
 

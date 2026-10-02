@@ -116,7 +116,8 @@ a future save-schema bump, not part of D1–D9.
 |---|---|---|---|
 | D1 | in review (branch `feat/demolition-d1`) | [decision 0531](../decisions/0531-demolition-containment-is-adopted-and-containers-carry-an-anchor-tile.md) | The anchor column, its two write doors, the bounded anchor query, section 7 schema 5. |
 | D2 | done (branch `feat/demolition-d2`) | [decision 0532](../decisions/0532-ground-piles-are-placed-breadth-first-and-reclaimed-at-commit.md) | #9 in full, plus the follow-up ruling below: `inventory.gd::create_ground_pile()`, the derived unsaved tile -> pile map, reclaim at commit, and `ground_piles.gd`'s site authority, all-or-nothing N/E/S/W placement (16384-tile cap) and refund start tiles (door, or the footprint's ring front-first). No save schema change. |
-| D3-D9 | not started | -- | -- |
+| D3 | done (branch `feat/demolition-d3`) | [decision 0533](../decisions/0533-the-starter-colony-is-materialised-and-the-stores-are-owned-by-it.md) | INIT-C live apply: `starter_colony.gd` places the 7 buildings, 4 rooms and 31 floor furniture inside the generation transaction (and on Create), verified against the plan; the World row is created and `ground_piles.gd` composed and bound; `buildings.gd` refuses a footprint over a live pile (0532's M4); EconomySystem's pantry is owned by the hall and its material store is four 400000 g stores owned by the stockpiles, all anchored at their origin tiles; `create_container()` refuses an ownerless container. No save schema change. **The stores are still in EconomySystem's own inventory, not the one the gate reads** -- see 0533's Consequences before D4. |
+| D4-D9 | not started | -- | -- |
 
 **Follow-up ruling, 2026-10-01** (Brendan, recorded under [DEC-043](../setting_decisions.md)),
 answering the two points D2 raised:

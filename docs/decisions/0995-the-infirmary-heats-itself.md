@@ -46,9 +46,8 @@ must include the infirmary."
   the hall.
 - With a patient inside, an infirmary out of fuel and below freezing is a cold home (its own incident, "The infirmary
   has gone cold"), as a home with sleepers is.
-- Derived, not taken from the GDD: the infirmary is **not** a warm-up-break destination and **not** touched by
-  consolidation (which banks empty homes). Those are not among the ruling's four rules, and keeping them unchanged keeps
-  the scope to heat and fuel.
+- The infirmary is **not** a warm-up-break destination and **not** touched by consolidation (which banks empty homes):
+  Brendan's rulings P1 and P2 below.
 
 ## Tests
 
@@ -59,14 +58,14 @@ counting in the demand line, fuel-days and projection, and no hearth when not bu
 reported in its own name; `interior_source` for none / infirmary / out again. `test_demo_care_desk.gd`: an admitted
 patient's interior is the infirmary.
 
-## Proposals for Brendan
+## Brendan's rulings on the proposals (2026-10-02)
 
-- **P1 — warm-up breaks at the infirmary.** Options: (a) as built: Chilled residents warm at homes or the hall only;
-  (b) the infirmary's lit hearth is also a warm-up destination for anyone; (c) only for its patients' healers.
-  Recommendation: (a) -- an infirmary is for the hurt, and its 8 beds should not fill with the merely cold.
-- **P2 — consolidation and the infirmary.** Options: (a) as built: consolidation never banks it; (b) bank it when
-  empty, as an empty home is. Recommendation: (b) would save 4 U a winter day while nobody is hurt, but a patient
-  arriving would then find it cold until the player relights it; (a) is safer until an auto-relight rule exists.
+Both approved as recommended:
+
+- **P1 — warm-up breaks at the infirmary: none for non-patients.** Chilled residents warm at homes or the hall only; an
+  infirmary is for the hurt, and its 8 beds should not fill with the merely cold.
+- **P2 — consolidation leaves the infirmary lit.** Consolidation never lets an empty infirmary's hearth go out, until an
+  automatic relight rule exists (a patient arriving would otherwise find it cold until the player relit it).
 
 ## Source
 

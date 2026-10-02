@@ -1,0 +1,37 @@
+{
+  "full": {
+    "assertions": 577344,
+    "expected": 268,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 7974,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "differing_suite_counts": {
+    "test_demo_lens_kit.gd": {
+      "full": {
+        "assertions": 211,
+        "failures": 0,
+        "tests": 34
+      },
+      "shards": {
+        "assertions": 213,
+        "failures": 0,
+        "tests": 34
+      }
+    }
+  },
+  "all_other_suite_counts_identical": true,
+  "suite_count": 240,
+  "differing_test_method": "test_a_trace_is_sliced_and_the_old_outline_stays_until_done",
+  "test_source": "godot/test/test_demo_lens_kit.gd:325",
+  "time_budget_source": "godot/demo/lenses/lens_contours.gd:137",
+  "explanation": "The existing test asserts once per contours.step(1) iteration. step uses Time.get_ticks_usec() and a one-microsecond budget, so the number of assertions depends on scheduling. Every test method and every diagnostic total is unchanged.",
+  "original_full_assertions": 577345,
+  "pilot_assertions": 577344,
+  "weighted_assertions": 577346,
+  "strict_baseline_guard_unchanged": true
+}

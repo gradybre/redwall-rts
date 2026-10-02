@@ -1,0 +1,28 @@
+{
+  "run_id": 37006524569,
+  "job_id": 110835991389,
+  "head_commit": "4eb8e3c04669cbfdcc14460502502a2ded6763f0",
+  "merged_master": "d75d9d89d7a7b08fc2dac1de2c50567ea66b0b77",
+  "counts": {
+    "tests": 8644,
+    "assertions": 589136,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 268,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "suite_count": 275,
+  "method_count": 8644,
+  "method_list_sha256": "f2c0db3a9759a540a50dff297dce4f7c79dc037c90c04c14b30b557379d80e3e",
+  "job_wall_seconds": 3278,
+  "suite_wall_seconds": 1786,
+  "analyzer": {
+    "warnings": 0,
+    "files": 980,
+    "summary": "0 GDScript warning(s) in 0 of 980 file(s)"
+  },
+  "head_tree_equals_merged_master_tree": true
+}

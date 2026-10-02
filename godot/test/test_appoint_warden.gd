@@ -399,10 +399,10 @@ func _directory_copy() -> EntityDirectory:
 # --- the command: APPOINT_WARDEN through ARCH-SYS-002 -------------------------------------------
 
 func test_appoint_warden_is_an_implemented_kind_with_no_missing_owner() -> void:
-	"""It is now one of the seven, and no longer names a missing contract."""
+	"""It is now one of the implemented kinds, and no longer names a missing contract."""
 	assert_true(_dispatch.is_supported_kind(KIND_APPOINT_WARDEN), "APPOINT_WARDEN is implemented")
 	assert_equal(_dispatch.unsupported_reason(KIND_APPOINT_WARDEN), &"", "and names no gap")
-	assert_equal(_dispatch.supported_kind_count(), 7, "seven of the 24 kinds are implemented")
+	assert_equal(_dispatch.supported_kind_count(), 9, "nine of the 24 kinds are implemented")
 
 
 func test_an_appoint_warden_command_commits_the_appointment() -> void:

@@ -1,0 +1,29 @@
+{
+  "full": {
+    "assertions": 577344,
+    "expected": 268,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 7974,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "differing_suite_counts": {
+    "test_demo_lens_kit.gd": {
+      "full": {
+        "assertions": 211,
+        "failures": 0,
+        "tests": 34
+      },
+      "shards": {
+        "assertions": 213,
+        "failures": 0,
+        "tests": 34
+      }
+    }
+  },
+  "all_other_suite_counts_identical": true,
+  "suite_count": 240
+}

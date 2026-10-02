@@ -39,9 +39,9 @@ extends RefCounted
 ## That is not policy and not goods; it is recorded here rather than hidden.
 ##
 ## ---------------------------------------------------------------------------------------
-## WHICH KINDS ARE IMPLEMENTED, AND WHY THE OTHER SEVENTEEN REFUSE. ARCH-CMD-003 fixes 24 kinds.
+## WHICH KINDS ARE IMPLEMENTED, AND WHY THE OTHER FIFTEEN REFUSE. ARCH-CMD-003 fixes 24 kinds.
 ## Task 04.2 implements them "where their owning stores/contracts exist" and requires the rest to
-## reach an "explicit unsupported-feature refusal, never silent success". Seven exist:
+## reach an "explicit unsupported-feature refusal, never silent success". Nine exist:
 ##
 ##   APPOINT_WARDEN         `residents.gd` appoint_warden(), REQ-SET-157 (decision 0511)
 ##   CANCEL_JOB             `jobs.gd`      set_state(CANCELLED), after release_worker()
@@ -51,6 +51,8 @@ extends RefCounted
 ##   SET_ACTIVITY_SCHEDULE  `schedule.gd`  set_hour_activity() x24
 ##   SET_JOB_PRIORITIES     `priorities.gd` set_priority()/set_auto_fallback()/set_dangerous_work()
 ##   SET_POLICY             `forage.gd`    set_quota_mode(), set_zone_enabled()
+##   SET_STORE_FILTER       `store_policy.gd` set_allowed() per row (decision 1031)
+##   SET_STORE_MINIMUM      `store_policy.gd` set_minimum() per row (decision 1031)
 ##
 ## ---------------------------------------------------------------------------------------
 ## THE PER-KIND PAYLOAD SCHEMAS ARE THIS FILE'S, BECAUSE NOWHERE ELSE STATES THEM. §8.1 says only
@@ -83,8 +85,18 @@ extends RefCounted
 ##                          argument or a payload refuses rather than being ignored. Every
 ##                          eligibility rule is `residents.gd`'s and reaches the ledger as
 ##                          COMMAND_STORE_REFUSED carrying the store's own code.
+##   SET_STORE_FILTER       decision 1031. target = the BUILDING whose main store is filtered;
+##                          arg0 = arg1 = 0; payload = ARCH-CMD-003's "count first followed by
+##                          owner-ID-sorted rows": i32 count (1..256) then `(item_id:i32,
+##                          allowed:i32 0/1)` rows, ascending item. The B8 byte travels as an i32,
+##                          as SET_JOB_PRIORITIES carries its byte priority.
+##   SET_STORE_MINIMUM      decision 1031. Same target and arguments; rows are
+##                          `(item_id:i32, minimum_milli:i64)`, BuildingItemMinimum's own I64.
+##                          Every row's item, value and the building are validated by
+##                          `store_policy.gd` before the first write; any refusal is ledgered as
+##                          COMMAND_STORE_REFUSED carrying that store's own code.
 ##
-## The other seventeen refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner in
+## The other fifteen refuse COMMAND_UNSUPPORTED_FEATURE and name their missing owner in
 ## `unsupported_reason()`. SET_MANUAL_TASK and CANCEL_MANUAL are among them: THERE IS NO ManualTask
 ## STORE, because blocker U6 records that "owner-major indexing for the 8-per-resident store is
 ## unspecified" -- `jobs.gd` and `schedule.gd` both say so in their own headers, and `manual_until`
@@ -180,6 +192,7 @@ const JobsScript := preload("res://scripts/core/jobs.gd")
 const PrioritiesScript := preload("res://scripts/core/priorities.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const ScheduleScript := preload("res://scripts/core/schedule.gd")
+const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 # --- ARCH-CMD-003's 24 kind ids, read from the compiled catalog and never respelled -------------
@@ -194,6 +207,8 @@ const KIND_SET_ACTIVITY_SCHEDULE: int = Catalog.COMMAND_KIND["SET_ACTIVITY_SCHED
 const KIND_SET_JOB_PRIORITIES: int = Catalog.COMMAND_KIND["SET_JOB_PRIORITIES"]
 const KIND_SET_MANUAL_TASK: int = Catalog.COMMAND_KIND["SET_MANUAL_TASK"]
 const KIND_SET_POLICY: int = Catalog.COMMAND_KIND["SET_POLICY"]
+const KIND_SET_STORE_FILTER: int = Catalog.COMMAND_KIND["SET_STORE_FILTER"]
+const KIND_SET_STORE_MINIMUM: int = Catalog.COMMAND_KIND["SET_STORE_MINIMUM"]
 const KIND_COUNT: int = 24
 
 ## Why each unimplemented kind refuses, indexed by kind id. The empty name marks an implemented
@@ -221,8 +236,8 @@ const UNSUPPORTED_REASON: Array[StringName] = [
 	&"",
 	&"NO_MANUAL_TASK_STORE_BLOCKER_U6",
 	&"",
-	&"NO_BUILDING_ITEM_FILTER_STORE",
-	&"NO_BUILDING_ITEM_MINIMUM_STORE",
+	&"",
+	&"",
 	&"NO_BUILDING_STORE",
 ]
 
@@ -319,6 +334,14 @@ const APPOINT_CONFIRM_REPLACE: int = 1
 const POLICY_FORAGE_QUOTA_MODE: int = 0
 const POLICY_FORAGE_ZONE_ENABLED: int = 1
 const POLICY_COUNT: int = 2
+
+## SET_STORE_FILTER and SET_STORE_MINIMUM carry count-first rows in their component's own field
+## types: `(item_id:i32, allowed:i32)` and `(item_id:i32, minimum_milli:i64)`. At most one row per
+## compiled item key, so the ceiling is ARCH-STATE-004's 256-key envelope.
+const STORE_FILTER_ROW_BYTES: int = 8
+const STORE_MINIMUM_ROW_BYTES: int = 12
+const STORE_ITEM_MAX_ROWS: int = StorePolicyScript.ITEM_CAPACITY
+const STORE_GROUP_MAX_BYTES: int = GROUP_COUNT_BYTES + STORE_MINIMUM_ROW_BYTES * STORE_ITEM_MAX_ROWS
 
 ## DESIGNATE_ZONE carries §8.1's "zone tiles": an i32 tile count, then that many i32 tile indices
 ## in ascending order with no repeat. The ceiling is `forage.gd`'s own total link budget.
@@ -439,6 +462,7 @@ var _schedule: ScheduleScript = null
 var _jobs: JobsScript = null
 var _forage: ForageScript = null
 var _planner: JobPlannerScript = null
+var _store_policy: StorePolicyScript = null
 
 # --- the result ledger: packed columns, allocated once (ARCH-MEM-001) ---------------------------
 
@@ -533,6 +557,8 @@ func _assert_shared_directory() -> void:
 		"the jobs store must share the command queue's directory")
 	assert(_forage == null or _forage.directory() == _directory,
 		"the forage store must share the command queue's directory")
+	@warning_ignore("assert_always_true") assert(STORE_GROUP_MAX_BYTES <= PAYLOAD_SCRATCH_BYTES,
+		"the largest store-policy group must fit the payload scratch")
 
 
 func _allocate_columns() -> void:
@@ -589,6 +615,22 @@ func bind_ecology(p_forage: ForageScript, p_planner: JobPlannerScript) -> bool:
 	return true
 
 
+func bind_store_policy(p_store_policy: StorePolicyScript) -> bool:
+	"""Attach `store_policy.gd` after composition, so SET_STORE_FILTER/MINIMUM stop refusing unbound.
+
+	Decision 1031's runtime handoff, shaped like `bind_ecology()`: the store is built over the
+	Building store and the inventory, which the composer owns, so it arrives here rather than
+	through `_init()`. A store validating against another directory is refused, not bound. Null
+	unbinds it, and both kinds then refuse COMMAND_STORE_NOT_BOUND again.
+	"""
+	if p_store_policy != null and p_store_policy.directory() != _directory:
+		_last_refusal = REFUSE_SHARED_DIRECTORY
+		return false
+	_store_policy = p_store_policy
+	_last_refusal = REFUSE_NONE
+	return true
+
+
 # --- ARCH-SYS-002: the stage ---------------------------------------------------------------------
 
 func commit_tick_into(executing_tick: int, out: TickReport) -> bool:
@@ -640,6 +682,10 @@ func _dispatch(command: CommandsScript.Command) -> int:
 		return _commit_set_job_priorities(command)
 	if command.kind == KIND_SET_POLICY:
 		return _commit_set_policy(command)
+	if command.kind == KIND_SET_STORE_FILTER:
+		return _commit_set_store_filter(command)
+	if command.kind == KIND_SET_STORE_MINIMUM:
+		return _commit_set_store_minimum(command)
 	return RESULT_UNSUPPORTED_FEATURE
 
 
@@ -1033,6 +1079,97 @@ func _commit_appoint_warden(command: CommandsScript.Command) -> int:
 		_store_code = appointed.error
 		return RESULT_STORE_REFUSED
 	_math.succeed(_target_row)
+	return RESULT_COMMITTED
+
+
+# --- SET_STORE_FILTER and SET_STORE_MINIMUM (decision 1031) -------------------------------------
+
+func _commit_set_store_filter(command: CommandsScript.Command) -> int:
+	"""REQ-SET-117's per-item store filter: set a building's BuildingItemAllow bytes atomically."""
+	return _commit_store_rows(command, STORE_FILTER_ROW_BYTES)
+
+
+func _commit_set_store_minimum(command: CommandsScript.Command) -> int:
+	"""REQ-SET-117's per-item minimum reserve: set a building's BuildingItemMinimum atomically."""
+	return _commit_store_rows(command, STORE_MINIMUM_ROW_BYTES)
+
+
+func _commit_store_rows(command: CommandsScript.Command, row_bytes: int) -> int:
+	"""Validate every row of one store-policy group, then write them all. Atomic by preflight.
+
+	Ascending item order is checked here; the building, the item and the value's domain are
+	`store_policy.gd`'s, asked through the same predicate its writer uses. Nothing is written until
+	every row has passed, so a group with one bad row leaves that building's policy exactly as it
+	was. The write loop cannot meet a refusal the preflight did not: nothing runs between the two
+	loops, and each row was proved writable against the state the writes then see. The row count
+	is taken out of `_math` and the channel refused at once, so a refused group ledgers value 0
+	rather than the count of rows it did not write.
+	"""
+	var shaped: int = _store_rows_preflight(command, row_bytes)
+	if shaped != RESULT_COMMITTED:
+		return shaped
+	var rows: int = _math.value
+	_math.refuse(String(RESULT_CODES[RESULT_STORE_REFUSED]))
+	var building: Vector2i = Vector2i(command.target_slot, command.target_generation)
+	var previous: int = -1
+	for index: int in rows:
+		var base: int = GROUP_COUNT_BYTES + index * row_bytes
+		var item: int = _payload.decode_s32(base)
+		if item <= previous:
+			return RESULT_PAYLOAD_SCHEMA
+		previous = item
+		_store_code = _store_row(building, base, row_bytes, false)
+		if _store_code != StorePolicyScript.REFUSE_NONE:
+			return RESULT_STORE_REFUSED
+	for index: int in rows:
+		_store_code = _store_row(building, GROUP_COUNT_BYTES + index * row_bytes, row_bytes, true)
+		if _store_code != StorePolicyScript.REFUSE_NONE:
+			push_error("CommandDispatch: store-policy row %d refused AFTER its preflight (%s); "
+				% [index, _store_code] + "the group is partially written")
+			return RESULT_STORE_REFUSED
+	_math.succeed(rows)
+	return RESULT_COMMITTED
+
+
+func _store_row(building: Vector2i, base: int, row_bytes: int, write: bool) -> StringName:
+	"""Check -- or, with `write`, apply -- one decoded row. The store's refusal code, or none.
+
+	`row_bytes` names the schema: an 8-byte row is `(item_id:i32, allowed:i32)`, a 12-byte row is
+	`(item_id:i32, minimum_milli:i64)`. Checking and writing share one decode so the value that
+	was validated is, byte for byte, the value that is written.
+	"""
+	var item: int = _payload.decode_s32(base)
+	if row_bytes == STORE_FILTER_ROW_BYTES:
+		var allowed: int = _payload.decode_s32(base + 4)
+		if write:
+			return _store_policy.set_allowed(building, item, allowed)
+		return _store_policy.allowed_refusal(building, item, allowed)
+	var minimum: int = _payload.decode_s64(base + 4)
+	if write:
+		return _store_policy.set_minimum(building, item, minimum)
+	return _store_policy.minimum_refusal(building, item, minimum)
+
+
+func _store_rows_preflight(command: CommandsScript.Command, row_bytes: int) -> int:
+	"""The gates both store-policy kinds share. Leaves the row count in `_math` when they pass.
+
+	The store must be bound; the target must still be a live BUILDING now, not merely at admission;
+	both arguments must be 0 because neither kind names a use for them, and a nonzero value is
+	refused rather than ignored; the payload must be a well-formed count-first group of at least
+	one row. An empty group would commit a command that changes nothing, so it is refused.
+	"""
+	if _store_policy == null:
+		return RESULT_STORE_NOT_BOUND
+	var resolved: int = _resolve_target(command, EntityDirectory.KIND_BUILDING)
+	if resolved != RESULT_COMMITTED:
+		return resolved
+	if command.arg0 != 0 or command.arg1 != 0:
+		return RESULT_ARGUMENT_RANGE
+	var shaped: int = _group_row_count(command, row_bytes, STORE_ITEM_MAX_ROWS)
+	if shaped != RESULT_COMMITTED:
+		return shaped
+	if _math.value < 1:
+		return RESULT_PAYLOAD_SCHEMA
 	return RESULT_COMMITTED
 
 

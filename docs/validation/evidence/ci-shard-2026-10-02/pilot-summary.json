@@ -1,0 +1,29 @@
+{
+  "baseline_matches": false,
+  "counts": {
+    "assertions": 577344,
+    "expected": 268,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 7974,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "shard_count": 8,
+  "suite_count": 240,
+  "version": 1,
+  "wall_seconds": [
+    164,
+    84,
+    131,
+    143,
+    59,
+    123,
+    46,
+    108
+  ],
+  "baseline_assertion_difference": -1,
+  "baseline_comparison_exit_code": 1
+}

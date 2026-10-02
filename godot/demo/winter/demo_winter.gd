@@ -26,7 +26,9 @@ extends Node
 ## -- in autumn and winter, or on any day heat is demanded -- one Firewood order stands on the woods' board
 ## (forest_crew.gd `raise_firewood`: deadfall first, else a fell in a forestry zone), listed under the Woods activity, and
 ## marked URGENT on the work board (its bucket 2, systems_architecture.md's food/fuel bucket) while fuel-days are under 2
-## -- REQ-SET-131's urgent refuel job when a hearth is out.
+## -- REQ-SET-131's urgent refuel job when a hearth is out. It is a BUILT-IN STANDING ORDER (decision 0711): the
+## standing orders' book (demo/orders/standing_orders.gd) holds it, with the winter's rule as its goal
+## (goal_firewood.gd), and the winter keeps it on its own hour exactly as before; the player may switch it off.
 ##
 ## THE EMERGENCY ACTIONS (GDD §5.10, "consolidate residents into heated halls"; never taken by themselves): `consolidate`
 ## -- beds allocated warm first now and the sleepers sent to them, and the hearths of homes nobody sleeps in let go out
@@ -62,6 +64,8 @@ const ForestCrewScript := preload("res://demo/forestry/forest_crew.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
 const CrewsScript := preload("res://demo/work/work_crews.gd")
 const SkipScript := preload("res://demo/winter/season_skip.gd")
+const OrdersScript := preload("res://demo/orders/standing_orders.gd")
+const FirewoodGoal := preload("res://demo/orders/goal_firewood.gd")
 
 ## A frame bringing more calendar than this was not lived (see EACH FRAME).
 const MAX_LIVED_TICKS: int = Rules.TICKS_PER_HOUR
@@ -108,9 +112,9 @@ var _out: PackedInt32Array = PackedInt32Array()
 var _cold_on: PackedByteArray = PackedByteArray()
 var _low_on: bool = false
 var _out_on: bool = false
-## The Firewood order last marked (its serial: a reused board row is a new order) and how.
-var _urgent_key: int = -1
-var _urgent_on: bool = false
+## The standing orders' book holding the Firewood order (decision 0711), and its row there (-1: none).
+var _orders: OrdersScript = null
+var _firewood_order: int = -1
 var _summary_day: int = -1
 var _summary_resolved: bool = false
 ## A season skip is running: its hours are not cooked in, so they are not counted as cooking days (`rebase_cooking`).
@@ -162,10 +166,24 @@ func bind_kitchen(kitchen: KitchenScript) -> void:
 	_kitchen = kitchen
 
 
-func bind_work(crew: ForestCrewScript, board: BoardScript) -> void:
-	"""The woods' crew the Firewood order goes to (forest_crew.gd) and the work board that marks it urgent (null: none)."""
+func bind_work(crew: ForestCrewScript, board: BoardScript, orders: OrdersScript = null) -> void:
+	"""The woods' crew the Firewood order goes to (forest_crew.gd), the work board that marks it urgent (null: none),
+	and the standing orders' book it is a built-in order of (null: a book of its own)."""
 	_crew = crew
 	_board = board
+	_orders = orders
+	if _orders == null:
+		_orders = OrdersScript.new()
+		_orders.bind_board(board)
+	var goal := FirewoodGoal.new(crew, _services.stores, firewood_wanted, firewood_urgent, fuel.projection_milli)
+	_firewood_order = _orders.add_builtin(goal)
+	if _firewood_order < 0:
+		push_error("the standing orders' book is full: the winter has no Firewood order")
+
+
+func firewood_order() -> int:
+	"""The Firewood's row in the standing orders' book (-1: none)."""
+	return _firewood_order
 
 
 func _process(_delta: float) -> void:
@@ -404,18 +422,10 @@ func firewood_taken() -> bool:
 
 
 func _keep_firewood() -> void:
-	"""One Firewood order while wood is wanted; urgent under 2 fuel-days (see THE FIREWOOD ORDER)."""
-	if _crew == null:
-		return
-	var row: int = firewood_row()
-	if row < 0 and firewood_wanted():
-		row = _crew.raise_firewood()
-	var urgent: bool = row >= 0 and firewood_urgent()
-	var key: int = _crew.jobs.serial[row] if row >= 0 else -1
-	if _board != null and row >= 0 and (key != _urgent_key or urgent != _urgent_on):
-		_board.set_urgent(WorkIds.SOURCE_WOODS, row, urgent)
-	_urgent_key = key
-	_urgent_on = urgent
+	"""One Firewood order while wood is wanted; urgent under 2 fuel-days (see THE FIREWOOD ORDER): the book keeps its
+	built-in order on the winter's hour (standing_orders.gd `keep`)."""
+	if _crew != null and _orders != null:
+		_orders.keep(_firewood_order)
 
 
 # --- each frame: exposure -----------------------------------------------------------------------------

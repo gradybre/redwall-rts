@@ -249,6 +249,7 @@ const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
 const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
 const PlaytestTaps := preload("res://demo/playtest/playtest_taps.gd")
 const WinterScript := preload("res://demo/winter/demo_winter.gd")
+const StandingScript := preload("res://demo/orders/demo_standing.gd")
 ## GameManager's host-clock field the season skip re-bases (see `forgive_host_time`).
 const HOST_USEC_FIELD: StringName = &"_last_host_usec"
 const FuelPanelScript := preload("res://demo/winter/fuel_panel.gd")
@@ -340,6 +341,7 @@ var _fishery: FisheryNodeScript = null
 var _ferry: FerryNodeScript = null
 var _regatta: RegattaNodeScript = null
 var _winter: WinterScript = null
+var _standing: StandingScript = null
 var _fuel_panel: FuelPanelScript = FuelPanelScript.new()
 
 
@@ -681,12 +683,28 @@ func _build_work() -> void:
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
 	_work.add_ferry(_ferry.ferry)
-	_winter.bind_work(_forestry.crew, _work.board)
+	_build_standing()
+	_winter.bind_work(_forestry.crew, _work.board, _standing.book)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
 	_work.unlock_jobs_command(_shell())
 	_work.screen.close_requested.connect(_work.screen.close)
+
+
+func _build_standing() -> void:
+	"""THE STANDING ORDERS (decision 0711, demo/orders/): goals kept on the game hour through the owners' own boards,
+	their section on the Work screen; the winter's Firewood joins the same book as a built-in order (`bind_work`)."""
+	_standing = StandingScript.new()
+	add_child(_standing)
+	_standing.configure(_services, _work.board, _forestry, _farm.crew, _farm.sim, _farm.pantry, _kitchen.kitchen,
+		_winter.firewood_urgent)
+	_work.screen.set_standing(_standing.make_view())
+
+
+func standing() -> StandingScript:
+	"""The village's standing orders (demo/orders/demo_standing.gd)."""
+	return _standing
 
 
 func _build_routes() -> void:

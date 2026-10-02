@@ -1,10 +1,23 @@
 # 0537 — Demolition work is a BUILD Job, and "evacuate, then demolish" waits for hauling
-Date: 2026-10-02 · Status: Accepted (D6 of DEMO-CONTAIN-R01; the HAUL half refused, P1–P6 open)
+Date: 2026-10-02 · Status: Accepted (D6 of DEMO-CONTAIN-R01; the HAUL half refused and waiting on task 06.4). Brendan ruled on P1–P6 and the tool question on 2026-10-02 (below)
 
 Numbered 0537 because the brief named it. No record numbered 0537 exists on any branch
 (`git ls-tree` over every local and remote ref), in any registered worktree or in the main
 checkout when this was written; `docs/validation/decision_numbers.py` refuses a collision at
 merge.
+
+## Brendan's rulings, 2026-10-02 (relayed by the coordinator)
+
+- **P1, P2, P4, P5 and P6: approved as recommended.** The cadence is the hour crossing (P1); one
+  builder per removal until a party owner exists (P2); CANCEL_JOB cancels the Job, not the
+  demolition, and the hour offers a fresh Job (P4); an order with nothing to evacuate simply
+  admits (P5); a claim-only refusal is evacuable (P6). No behaviour changed: each was built as
+  recommended.
+- **Tools: no wear for now.** Demolition BUILD work binds and wears no tool, as built.
+- **P3, hauling: "Build hauling (06.4) next."** A separate lane scopes and builds task 06.4. D6
+  stays as built: the evacuation HAUL jobs remain refused and are recorded as waiting on 06.4.
+  The intent and its hourly retry need no change when hauls arrive; they are what will empty
+  the sources.
 
 ## Decision
 
@@ -119,7 +132,7 @@ on D5 and on task 06.4. Two of its three clauses are built; the HAUL clause is r
    pantry, spoiled food removed as waste -- and will work unchanged once
    06.4's hauls are the thing that empties them. **P3.**
 
-## Proposals for Brendan
+## Proposals for Brendan (ruled 2026-10-02 -- see "Brendan's rulings" above)
 
 - **P1 -- the retry cadence.** Options: (a) the hour crossing, as built; (b) every tick with a
   cheaper precheck, which needs an Inventory change counter nobody publishes; (c) only on an
@@ -158,7 +171,7 @@ on D5 and on task 06.4. Two of its three clauses are built; the HAUL clause is r
   its owner, not hauled. Alternative: accept only stored goods. Recommendation: keep; the order
   waits for "sources empty", and a claimed store is not empty.
 
-A question rather than a proposal: GDD §5.9's "Generic BUILD/CRAFT/FARM/KEEP extraction work
+A question rather than a proposal (ruled 2026-10-02: no wear for now): GDD §5.9's "Generic BUILD/CRAFT/FARM/KEEP extraction work
 consumes 1 equipped tool durability per completed 10 WU". Demolition work is BUILD, but no
 production code binds a tool to any Job yet (`work.claim_tool_for_work()` has no production
 caller; EH-03's gap, decision 0110), so it wears none. Whether demolition counts as "extraction

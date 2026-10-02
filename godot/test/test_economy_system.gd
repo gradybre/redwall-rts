@@ -34,6 +34,7 @@ extends "res://test/framework/test_case.gd"
 
 const EconomySystemScript := preload("res://scripts/systems/economy_system.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
+const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const BuildingDefinitionsScript := preload("res://scripts/core/building_definitions.gd")
@@ -769,3 +770,86 @@ func test_open_and_seed_is_boots_and_creates_one_entry() -> void:
 	assert_true(fresh.open_and_seed_starter_stores(_colony.binding), "a binding opens and seeds")
 	assert_equal(fresh.ready_nutrition_points(), STARTER_READY_NP, "§7.1's 408000 NP")
 	fresh.free()
+
+
+# --- decision 0534: adopting the settlement's inventory -------------------------------------------
+
+func _settlement_like_store() -> InventoryScript:
+	"""A store registered from the shipped catalog, as the settlement's own inventory is."""
+	var store: InventoryScript = InventoryScript.new()
+	var items: ItemDefinitionsScript = ItemDefinitionsScript.new()
+	assert_true(items.load_default(store).ok, "the catalog registers into the borrowed store")
+	return store
+
+
+func _closed_economy() -> EconomySystemScript:
+	"""A fresh economy with its stores still closed, freed by the caller."""
+	return EconomySystemScript.new()
+
+
+func test_a_bound_economy_opens_its_stores_in_the_borrowed_inventory() -> void:
+	"""The lots land in the adopted store, which is the one a demolition gate scans."""
+	var economy: EconomySystemScript = _closed_economy()
+	var store: InventoryScript = _settlement_like_store()
+	assert_true(economy.bind_inventory(store), "the store is adopted: %s" % economy.last_refusal())
+	assert_true(economy.is_inventory_borrowed(), "and reported as borrowed")
+	assert_true(economy.open_and_seed_starter_stores(_colony.binding), "the stores open and seed")
+	assert_true(economy.inventory() == store, "the economy reads the adopted store")
+	assert_equal(store.live_container_count(), 1 + STARTER_OPEN_STOCKPILES, "five stores there")
+	assert_equal(economy.ready_nutrition_points(), STARTER_READY_NP, "with §5.1's food")
+	economy.free()
+
+
+func test_reset_drops_a_borrowed_store_and_never_clears_it() -> void:
+	"""Decision 0087's wrinkle: the settlement owns those rows; a reset must not destroy them."""
+	var economy: EconomySystemScript = _closed_economy()
+	var store: InventoryScript = _settlement_like_store()
+	assert_true(economy.bind_inventory(store), "adopted")
+	assert_true(economy.open_and_seed_starter_stores(_colony.binding), "opened")
+	var lots: int = store.live_lot_count()
+	economy.reset()
+	assert_false(economy.is_inventory_borrowed(), "the binding is dropped")
+	assert_false(economy.inventory() == store, "the economy is back on its private store")
+	assert_equal(store.live_lot_count(), lots, "and the borrowed lots are all still there")
+	assert_false(economy.stores_open(), "its stores are closed")
+	economy.free()
+
+
+func test_binding_refuses_once_open_null_or_a_disagreeing_catalog() -> void:
+	"""Each refusal leaves the private store in use."""
+	assert_false(_economy.bind_inventory(_settlement_like_store()), "open stores refuse")
+	assert_equal(_economy.last_refusal(), EconomySystemScript.REFUSE_STORES_ALREADY_OPEN, "named")
+	var economy: EconomySystemScript = _closed_economy()
+	assert_false(economy.bind_inventory(null), "null refuses")
+	assert_equal(economy.last_refusal(), EconomySystemScript.REFUSE_INVALID_INVENTORY, "named")
+	var bare: InventoryScript = InventoryScript.new()
+	assert_false(economy.bind_inventory(bare), "an unregistered store refuses")
+	assert_equal(economy.last_refusal(), EconomySystemScript.REFUSE_INVENTORY_CATALOG_MISMATCH,
+		"named")
+	var heavier: InventoryScript = InventoryScript.new()
+	for item_id: int in InventoryScript.ITEM_CAPACITY:
+		if economy.inventory().is_item_registered(item_id):
+			heavier.register_item(item_id, economy.inventory().item_mass_g(item_id) + 1,
+				economy.inventory().item_category(item_id))
+	assert_false(economy.bind_inventory(heavier), "a different mass refuses")
+	var moved: InventoryScript = InventoryScript.new()
+	for item_id: int in InventoryScript.ITEM_CAPACITY:
+		if economy.inventory().is_item_registered(item_id):
+			moved.register_item(item_id, economy.inventory().item_mass_g(item_id),
+				(economy.inventory().item_category(item_id) + 1) % InventoryScript.CATEGORY_COUNT)
+	assert_false(economy.bind_inventory(moved), "a different category refuses")
+	var extra: InventoryScript = _settlement_like_store()
+	extra.register_item(InventoryScript.ITEM_CAPACITY - 1, 1000, 0)
+	assert_false(economy.bind_inventory(extra), "an extra registration refuses")
+	assert_false(economy.is_inventory_borrowed(), "and nothing was adopted")
+	economy.free()
+
+
+func test_binding_the_private_store_is_an_unbind() -> void:
+	"""Handing back its own store leaves nothing borrowed."""
+	var economy: EconomySystemScript = _closed_economy()
+	assert_true(economy.bind_inventory(_settlement_like_store()), "adopted")
+	economy.reset()
+	assert_true(economy.bind_inventory(economy.inventory()), "its own store binds")
+	assert_false(economy.is_inventory_borrowed(), "and is not borrowed")
+	economy.free()

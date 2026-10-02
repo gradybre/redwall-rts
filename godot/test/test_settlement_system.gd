@@ -3533,10 +3533,16 @@ func _active_hall() -> Vector2i:
 	return hall
 
 
-func _store_owned_by(owner_ref: Vector2i, mass_g: int = 400000) -> Vector2i:
-	"""Create one accept-everything container keyed to `owner_ref` and return its handle."""
+## The hall's origin tile, where its own stores are anchored (DEMO-CONTAIN-R01 #3a). A resident's
+## container is passed WorldInventoryScript.UNPLACED_TILE instead (#3d).
+const HALL_ANCHOR_TILE: int = HALL_ORIGIN_Z * 128 + HALL_ORIGIN_X
+
+
+func _store_owned_by(owner_ref: Vector2i, mass_g: int = 400000,
+		anchor_tile: int = HALL_ANCHOR_TILE) -> Vector2i:
+	"""Create one accept-everything container keyed to `owner_ref`, anchored on `anchor_tile`."""
 	var made: WorldInventoryScript.OpResult = _settlement.inventory().create_container(
-		owner_ref, mass_g, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true)
+		owner_ref, mass_g, WorldInventoryScript.FILTERS_ACCEPT_ALL, 0, true, anchor_tile)
 	assert_true(made.ok, "the container is created (%s)" % made.error)
 	return made.ref
 
@@ -3555,6 +3561,7 @@ func _demolition_snapshot() -> PackedByteArray:
 	var out: PackedByteArray = _settlement.construction().state_bytes()
 	out.append_array(_settlement.inventory().state_bytes())
 	out.append_array(_settlement.directory().state_bytes())
+	out.append_array(_settlement.demolition_admissions().state_bytes())
 	out.append_array(var_to_bytes(_building_image()))
 	return out
 
@@ -3590,22 +3597,24 @@ func _append_room_image(fields: PackedInt64Array, building_ref: Vector2i) -> voi
 			fields.append_array(PackedInt64Array([furniture.x, furniture.y, user.x, user.y]))
 
 
-func test_a_spotless_building_still_refuses_because_containment_cannot_be_proved() -> void:
-	"""The whole point of INV-GOODS-R01: an empty scan is NOT a proof that nothing is there.
+func test_a_spotless_building_passes_the_preview_and_admit_then_needs_output_capacity() -> void:
+	"""Decision 0534: stage 5 now SEES the footprint, so an empty scan of it is a proof.
 
-	No container is keyed to this hall, no project touches it and nobody is inside, so stages 2
-	to 4 all pass -- and the request still refuses, because no store binds an inventory container
-	to a footprint tile and a ground pile in the doorway is invisible to every query that exists.
+	No container is keyed to or anchored on this hall and nobody is inside, so the preview
+	passes. Admit then needs somewhere for the 50% return: this bare settlement has no store and
+	no World row for a ground pile, so it refuses by that name and publishes nothing.
 	"""
 	var hall: Vector2i = _active_hall()
+	var preview: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
+	assert_true(preview.ok, "the preview passes (%s)" % preview.error)
+	assert_equal(preview.endpoint_owner_count, 1, "the one endpoint is the hall")
+	assert_equal(preview.scanned_container_count, 0, "which owns no container")
+	assert_equal(preview.anchored_container_count, 0, "and none stands on its footprint")
 	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_false(report.ok, "a gate that cannot see the footprint may never pass")
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_MISSING_CONTAINMENT,
-		"and it refuses as a MISSING containment contract, not as a proved-empty success")
-	assert_equal(report.endpoint_owner_count, 1, "the one endpoint it can enumerate is the hall")
-	assert_equal(report.scanned_container_count, 0, "which really does own no container")
-	assert_equal(report.stranded_lot_count, 0, "so nothing was found")
-	assert_equal(report.occupant_count, 0, "and the occupant recheck ran and found nobody")
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_NO_OUTPUT,
+		"with no store and no ground pile for the return, admit refuses")
+	assert_true(report.output_to_ground_piles, "having fallen back to the piles")
+	assert_equal(_settlement.construction().live_project_count(), 0, "and published nothing")
 
 
 func test_the_gate_refuses_a_stale_inactive_or_already_demolishing_building() -> void:
@@ -3700,9 +3709,9 @@ func test_a_projects_material_container_is_scanned_through_its_inventory_handle(
 	var project: ConstructionScript.OpResult = _settlement.construction().open_furniture(bed)
 	assert_true(project.ok, "the bed's construction project opens (%s)" % project.error)
 	var carrier: Vector2i = _settlement.directory().create(EntityDirectoryScript.KIND_RESIDENT)
-	var retired: Vector2i = _store_owned_by(carrier)
+	var retired: Vector2i = _store_owned_by(carrier, 400000, WorldInventoryScript.UNPLACED_TILE)
 	assert_true(_settlement.inventory().destroy_container(retired).ok, "a container is retired")
-	var satchel: Vector2i = _store_owned_by(carrier)
+	var satchel: Vector2i = _store_owned_by(carrier, 400000, WorldInventoryScript.UNPLACED_TILE)
 	assert_equal(satchel.x, retired.x, "the next container reuses that slot")
 	assert_true(_settlement.inventory().is_container_valid(satchel),
 		"so the handle is a live INVENTORY container")
@@ -3765,10 +3774,9 @@ func test_a_delivered_project_with_no_container_binding_refuses_as_a_missing_con
 	assert_true(project.ok, "the project opens (%s)" % project.error)
 	assert_equal(_settlement.construction().material_container_ref_of(project.ref),
 		EntityDirectoryScript.NULL_REF, "and it names no material container")
-	var undelivered: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_equal(undelivered.error,
-		SettlementSystemScript.REFUSE_DEMOLITION_MISSING_CONTAINMENT,
-		"a project that took nothing is no endpoint, so the walk reaches the footprint refusal")
+	var undelivered: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
+	assert_true(undelivered.ok,
+		"a project that took nothing is no endpoint, so the preview passes (%s)" % undelivered.error)
 	assert_equal(undelivered.endpoint_owner_count, 4, "hall, room, bed and the bed's project")
 	_grain_lot(_store_owned_by(room), 1200)
 	assert_true(_settlement.construction().deliver_material(project.ref, 0, 1000).ok,
@@ -3835,19 +3843,19 @@ func test_the_resident_half_still_refuses_after_a_proved_empty_goods_scan() -> v
 	assert_equal(in_use.furniture_user_count, 1, "with the exact count still in use")
 
 
-func test_a_haul_that_clears_the_store_changes_the_refusal_to_the_missing_contract() -> void:
+func test_a_haul_that_clears_the_store_lets_the_preview_pass() -> void:
 	"""Real transfers, then a retry: the gate re-reads the store rather than a cached verdict."""
 	var hall: Vector2i = _active_hall()
 	var store: Vector2i = _store_owned_by(hall)
 	var lot: Vector2i = _grain_lot(store, 4000)
 	var elsewhere: Vector2i = _store_owned_by(
-		_settlement.directory().create(EntityDirectoryScript.KIND_RESIDENT))
+		_settlement.directory().create(EntityDirectoryScript.KIND_RESIDENT), 400000,
+		WorldInventoryScript.UNPLACED_TILE)
 	assert_equal(_settlement.request_demolition(hall).error,
 		SettlementSystemScript.REFUSE_DEMOLITION_STORED_GOODS, "the full store blocks it")
 	assert_true(_settlement.inventory().move_lot(lot, elsewhere).ok, "the lot is really hauled")
-	var hauled: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_equal(hauled.error, SettlementSystemScript.REFUSE_DEMOLITION_MISSING_CONTAINMENT,
-		"the goods refusal is gone, and the containment gap is what is left")
+	var hauled: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
+	assert_true(hauled.ok, "the goods refusal is gone and the preview passes (%s)" % hauled.error)
 	assert_equal(hauled.stranded_lot_count, 0, "nothing is stranded in the endpoints it can see")
 	assert_equal(hauled.scanned_container_count, 1, "the emptied container was still scanned")
 	assert_equal(_settlement.inventory().lot_container(lot), elsewhere,
@@ -3880,8 +3888,8 @@ func test_a_spotless_request_changes_nothing_either() -> void:
 	var hall: Vector2i = _active_hall()
 	var before: PackedByteArray = _demolition_snapshot()
 	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_MISSING_CONTAINMENT,
-		"it refuses at the footprint binding")
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_NO_OUTPUT,
+		"it passes the preview and refuses in admit, before admit's first write")
 	assert_true(_demolition_snapshot() == before, "having changed nothing on the way there")
 
 
@@ -3895,8 +3903,8 @@ func test_the_gate_scans_every_container_an_owner_holds_rather_than_a_buffers_wo
 	var hall: Vector2i = _active_hall()
 	for index: int in 50:
 		_store_owned_by(hall)
-	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_MISSING_CONTAINMENT,
-		"the scan completed, so the footprint gap is what is left")
+	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
+	assert_true(report.ok, "the scan completed and every container is on the footprint")
 	assert_equal(report.scanned_container_count, 50, "and every container was really scanned")
+	assert_equal(report.anchored_container_count, 50, "and found again by the tile scan")
 	assert_equal(report.stranded_lot_count, 0, "all fifty of them being empty")

@@ -101,7 +101,7 @@ const SEGMENT_NAMES: Array[String] = [
 	"material_container_slot", "material_container_generation", "assigned_count",
 	"max_workers", "refund_policy", "remaining_mwu", "paused", "present", "work_begun",
 	"ref_slot", "ref_generation", "subject_slot", "subject_generation", "purpose",
-	"type_id", "phase", "delivered_milli", "live_count",
+	"type_id", "phase", "delivered_milli", "paid_base_type", "paid_upgrade_mask", "live_count",
 ]
 const SEGMENT_KIND: Dictionary = {
 	"material_container_slot": KIND_I32, "material_container_generation": KIND_I32,
@@ -109,7 +109,8 @@ const SEGMENT_KIND: Dictionary = {
 	"remaining_mwu": KIND_I64, "paused": KIND_BYTE, "present": KIND_BYTE,
 	"work_begun": KIND_BYTE, "ref_slot": KIND_I32, "ref_generation": KIND_I32,
 	"subject_slot": KIND_I32, "subject_generation": KIND_I32, "purpose": KIND_I32,
-	"type_id": KIND_I32, "phase": KIND_I32, "delivered_milli": KIND_I64, "live_count": KIND_I64,
+	"type_id": KIND_I32, "phase": KIND_I32, "delivered_milli": KIND_I64,
+	"paid_base_type": KIND_I32, "paid_upgrade_mask": KIND_I32, "live_count": KIND_I64,
 }
 const SEGMENT_EXTENT: Dictionary = {
 	"material_container_slot": CONSTRUCTION_CAPACITY,
@@ -121,7 +122,8 @@ const SEGMENT_EXTENT: Dictionary = {
 	"ref_generation": CONSTRUCTION_CAPACITY, "subject_slot": CONSTRUCTION_CAPACITY,
 	"subject_generation": CONSTRUCTION_CAPACITY, "purpose": CONSTRUCTION_CAPACITY,
 	"type_id": CONSTRUCTION_CAPACITY, "phase": CONSTRUCTION_CAPACITY,
-	"delivered_milli": DELIVERED_CELLS, "live_count": 1,
+	"delivered_milli": DELIVERED_CELLS, "paid_base_type": CONSTRUCTION_CAPACITY,
+	"paid_upgrade_mask": CONSTRUCTION_CAPACITY, "live_count": 1,
 }
 
 
@@ -624,6 +626,9 @@ func _assert_delivered_and_live_zero(decoded: Dictionary) -> void:
 	assert_equal(cells.size(), 4, "four delivered cells were decoded")
 	for index: int in 4:
 		assert_equal(int(cells[index]), 0, "delivered cell %d is cleared" % index)
+	assert_equal(int(decoded["paid_base_type"]), Construction.NO_PAID_PACKAGE,
+		"the paid-ledger base key is cleared (decision 0534)")
+	assert_equal(int(decoded["paid_upgrade_mask"]), 0, "and so are its upgrade bits")
 	assert_equal(int(decoded["live_count"]), 0, "live_count is zero after retirement")
 
 

@@ -87,11 +87,12 @@ extends RefCounted
 ##     REQ-SET-128 in full must go through the coordinator. `occupant_count_of_building()` and
 ##     `furniture_user_count_of_building()` are public so that coordinator rechecks THESE counts
 ##     immediately before any state change, rather than keeping a second copy of the rule.
-##   * A TIER-2 BUILDING'S DEMOLITION BASIS IS UNRESOLVED. REQ-SET-127 says "50% original material
-##     costs" and "the declared construction WU x 0.25". §4.2's upgrade table declares no
-##     demolition consequence and no document says whether a tier-2 package's materials and work
-##     join that basis. This store uses the BASE §4.1 row for every tier and states so; no
-##     summation rule was invented.
+##   * A TIER-2 BUILDING'S DEMOLITION BASIS IS BUILD-C4-R01's (decision 0534). Every row records
+##     its paid package KEYS in the ConstructionPaidLedger columns `_paid_base_type` and
+##     `_paid_upgrade_mask`; `open_demolition()` snapshots the building's base package and, at
+##     tier 2, its one completed upgrade. The return totals each item over both packages and
+##     floors the 50% once per item; the work is a quarter of the same completed WU sum. Tier 1
+##     is the inherited formula unchanged.
 ##   * NO CONTAINER IS CREATED OR READ. `material_container` is stored as the §4.2 column it is,
 ##     in the INVENTORY CONTAINER generation namespace -- not the directory's -- and this store
 ##     holds no `inventory.gd` reference with which to attest it, so `set_material_container()`
@@ -286,6 +287,15 @@ const REFUSE_OCCUPANTS_PRESENT: StringName = &"DEMOLITION_BLOCKED_OCCUPANTS"
 const REFUSE_FURNITURE_IN_USE: StringName = &"DEMOLITION_BLOCKED_FURNITURE_USER"
 const REFUSE_OVERFLOW: StringName = &"INT64_OVERFLOW"
 const REFUSE_POLICY_MISMATCH: StringName = &"REFUND_POLICY_MISMATCH"
+const REFUSE_MANIFEST_BUFFER: StringName = &"DEMOLITION_MANIFEST_BUFFER_TOO_SMALL"
+
+## BUILD-C4-R01's ConstructionPaidLedger (ARCH §3: `base_type, upgrade_mask`, I32 x 82944): the
+## exact paid package KEYS each project row was admitted with. Costs are never stored; they are
+## read back from the compiled §4.1/§4.2 bills, which the save header's rules hash pins.
+## NO_PAID_PACKAGE is "this row paid no base package" -- an UPGRADE project pays only its upgrade.
+const NO_PAID_PACKAGE: int = -1
+## Bit 0 of `upgrade_mask`: §4.2's one tier-1 -> tier-2 package ("tier 3 is absent").
+const UPGRADE_TIER_TWO_BIT: int = 1
 
 
 class OpResult:
@@ -353,6 +363,16 @@ var _phase: PackedInt32Array = PackedInt32Array()
 ## The per-project delivered ledger, owner-major at stride MATERIAL_SLOTS_PER_PROJECT.
 var _delivered_milli: PackedInt64Array = PackedInt64Array()
 
+# --- ConstructionPaidLedger (BUILD-C4-R01; ARCH §3, already budgeted at 663552 B) ----------------
+
+## The base package key a row was admitted with, or NO_PAID_PACKAGE; and its completed-upgrade
+## bits. A DEMOLITION row's pair is the SNAPSHOT of its building's paid packages at admission.
+var _paid_base_type: PackedInt32Array = PackedInt32Array()
+var _paid_upgrade_mask: PackedInt32Array = PackedInt32Array()
+## Cold scratch for one return manifest: material key index and total milli per line.
+var _manifest_key: PackedInt32Array = PackedInt32Array()
+var _manifest_milli: PackedInt64Array = PackedInt64Array()
+
 var _live_count: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -391,6 +411,10 @@ func _allocate_columns() -> void:
 	_type_id.resize(CONSTRUCTION_CAPACITY)
 	_phase.resize(CONSTRUCTION_CAPACITY)
 	_delivered_milli.resize(DELIVERED_CELLS)
+	_paid_base_type.resize(CONSTRUCTION_CAPACITY)
+	_paid_upgrade_mask.resize(CONSTRUCTION_CAPACITY)
+	_manifest_key.resize(MATERIAL_SLOTS_PER_PROJECT)
+	_manifest_milli.resize(MATERIAL_SLOTS_PER_PROJECT)
 	_allocate_bill_columns()
 
 
@@ -462,6 +486,24 @@ func _assert_bills() -> void:
 	for type_id: int in BuildingDefinitions.FURNITURE_DEFINITION_COUNT:
 		assert(_definitions.furniture_work_mwu_of(type_id) % DEMOLITION_WORK_DEN == 0,
 			"every §4.3 work_mwu must divide exactly by 4 for REQ-SET-127's x0.25")
+	for key: String in UPGRADE_MATERIALS.keys():
+		assert(_distinct_package_keys(int(Catalog.BUILDING_DEFINITION[key]))
+				<= MATERIAL_SLOTS_PER_PROJECT,
+			"BUILD-C4-R01's base + upgrade manifest of '%s' must fit one project's lines" % key)
+
+
+func _distinct_package_keys(type_id: int) -> int:
+	"""How many distinct material keys a definition's base and upgrade packages name together."""
+	var seen: int = 0
+	var count: int = 0
+	var base: int = type_id * MATERIAL_SLOTS_PER_PROJECT
+	for index: int in _build_count[type_id]:
+		seen |= 1 << _build_key[base + index]
+	for index: int in _upgrade_count[type_id]:
+		seen |= 1 << _upgrade_key[base + index]
+	for bit: int in MATERIAL_KEY_COUNT:
+		count += (seen >> bit) & 1
+	return count
 
 
 func clear() -> void:
@@ -484,6 +526,8 @@ func clear() -> void:
 	_type_id.fill(-1)
 	_phase.fill(PHASE_AWAITING_MATERIALS)
 	_delivered_milli.fill(0)
+	_paid_base_type.fill(NO_PAID_PACKAGE)
+	_paid_upgrade_mask.fill(0)
 	_live_count = 0
 	if _owns_buildings:
 		_buildings.clear()
@@ -618,8 +662,9 @@ func material_index_of_key_into(purpose: int, type_id: int, key: StringName,
 func declared_work_mwu_into(purpose: int, type_id: int, out: IntMath.IntResult) -> bool:
 	"""Write the total milli-WU a project of this purpose and type declares.
 
-	REQ-SET-127 prices a demolition at "the declared construction WU x 0.25" of the BASE §4.1 row.
-	Whether a tier-2 package's own work joins that basis is unresolved (header); it does not here.
+	For PURPOSE_DEMOLISH this is the TIER-1 price, the BASE §4.1 row x 0.25. A real demolition
+	is priced by `open_demolition()` from its admission snapshot instead, which adds a completed
+	upgrade's own work (BUILD-C4-R01: "one quarter of that same completed construction WU sum").
 	"""
 	if not bill_size_into(purpose, type_id, out):
 		return false
@@ -676,10 +721,9 @@ func open_demolition(building_ref: Vector2i) -> OpResult:
 	live user. The stored-goods half of REQ-SET-128 is NOT enforced here and the header says why.
 	The project's work is the declared construction WU x 0.25 and it delivers no material at all.
 
-	NOT THE PLAYER-FACING GATE. This publishes the project and moves the subject to DEMOLISHING
-	as soon as the resident half passes; it can see no container at all. REQ-SET-128 in full is
-	`settlement_system.gd::request_demolition()`, which proves endpoints and rechecks goods,
-	claims and occupants before anything here is called.
+	NOT THE PLAYER-FACING GATE: it sees no container. REQ-SET-128 in full is
+	`settlement_system.gd::request_demolition()`. BUILD-C4-R01's SNAPSHOT is taken in the same
+	write that publishes the row: the base package and, at tier 2, the completed upgrade.
 	"""
 	var code: StringName = _refuse_open_building(building_ref, STATE_ACTIVE)
 	if code != REFUSE_NONE:
@@ -690,11 +734,62 @@ func open_demolition(building_ref: Vector2i) -> OpResult:
 	var users: int = furniture_user_count_of_building(building_ref)
 	if users > 0:
 		return OpResult.new(false, REFUSE_FURNITURE_IN_USE, users, NULL_REF)
-	var opened: OpResult = _open(PURPOSE_DEMOLISH, building_ref,
-		_buildings.type_id_of_building(building_ref).value)
+	var type_id: int = _buildings.type_id_of_building(building_ref).value
+	var mask: int = demolition_upgrade_mask_of(building_ref)
+	if not _demolition_work_into(type_id, mask, _math):
+		return _refuse(StringName(_math.error))
+	var opened: OpResult = _open_row(PURPOSE_DEMOLISH, building_ref, type_id, _math.value,
+		type_id, mask)
 	if opened.ok:
 		_buildings.set_building_state(building_ref, STATE_DEMOLISHING)
 	return opened
+
+
+func demolition_open_refusal(building_ref: Vector2i) -> StringName:
+	"""Every refusal `open_demolition()` can return, decided without writing a byte.
+
+	The coordinator's admit step runs this BEFORE its first write, so the store-level transition
+	it then makes cannot refuse: the subject, the resident half, the snapshot's work and a free
+	CONSTRUCTION directory row are all proved here.
+	"""
+	var code: StringName = _refuse_open_building(building_ref, STATE_ACTIVE)
+	if code != REFUSE_NONE:
+		return code
+	if occupant_count_of_building(building_ref) > 0:
+		return REFUSE_OCCUPANTS_PRESENT
+	if furniture_user_count_of_building(building_ref) > 0:
+		return REFUSE_FURNITURE_IN_USE
+	var type_id: int = _buildings.type_id_of_building(building_ref).value
+	if not _demolition_work_into(type_id, demolition_upgrade_mask_of(building_ref), _math):
+		return StringName(_math.error)
+	return _directory.create_refusal(EntityDirectory.KIND_CONSTRUCTION)
+
+
+func demolition_upgrade_mask_of(building_ref: Vector2i) -> int:
+	"""The completed-upgrade bits a demolition of this building would snapshot right now.
+
+	BAL-SAFE-013: tier 2 is set ONCE, by a completed upgrade, so tier 2 is the record that the
+	upgrade package was paid and completed. An in-progress upgrade leaves tier 1 and also holds
+	the building's construction link, so a demolition cannot even be admitted beside it.
+	"""
+	var tier: Buildings.OpResult = _buildings.tier_of_building(building_ref)
+	if tier.ok and tier.value >= BuildingDefinitions.TIER_TWO:
+		return UPGRADE_TIER_TWO_BIT
+	return 0
+
+
+func _demolition_work_into(type_id: int, mask: int, out: IntMath.IntResult) -> bool:
+	"""BUILD-C4-R01's demolition work: a quarter of the base WU plus each completed upgrade's."""
+	if not _definitions.is_building_id(type_id):
+		return out.refuse(REFUSE_UNKNOWN_BUILDING_TYPE)
+	var total: int = _definitions.work_mwu_of(type_id)
+	if mask & UPGRADE_TIER_TWO_BIT != 0:
+		if _upgrade_count[type_id] == 0:
+			return out.refuse(REFUSE_NO_UPGRADE_PACKAGE)
+		total += _upgrade_work[type_id]
+	if not IntMath.checked_mul_into(total, DEMOLITION_WORK_NUM, out):
+		return out.refuse(REFUSE_OVERFLOW)
+	return IntMath.floor_div_into(out.value, DEMOLITION_WORK_DEN, out)
 
 
 func open_furniture(furniture_ref: Vector2i) -> OpResult:
@@ -727,12 +822,21 @@ func _open(purpose: int, subject_ref: Vector2i, type_id: int) -> OpResult:
 	"""Allocate the directory row and write the project, after every refusal has been ruled out."""
 	if not declared_work_mwu_into(purpose, type_id, _math):
 		return _refuse(StringName(_math.error))
-	var work: int = _math.value
+	var base: int = NO_PAID_PACKAGE if purpose == PURPOSE_UPGRADE else type_id
+	var mask: int = UPGRADE_TIER_TWO_BIT if purpose == PURPOSE_UPGRADE else 0
+	return _open_row(purpose, subject_ref, type_id, _math.value, base, mask)
+
+
+func _open_row(purpose: int, subject_ref: Vector2i, type_id: int, work: int, paid_base: int,
+		paid_mask: int) -> OpResult:
+	"""Allocate the row, write it with its paid-ledger keys, and link the building subject."""
 	var ref: Vector2i = _directory.create(EntityDirectory.KIND_CONSTRUCTION)
 	if ref == NULL_REF:
 		return _refuse(_directory.last_refusal())
 	var row: int = _directory.get_typed_row(ref)
 	_write_row(row, ref, purpose, subject_ref, type_id, work)
+	_paid_base_type[row] = paid_base
+	_paid_upgrade_mask[row] = paid_mask
 	if purpose != PURPOSE_FURNITURE:
 		_buildings.set_building_construction(subject_ref, ref)
 	_live_count += 1
@@ -931,6 +1035,8 @@ func _retire(row: int, project_ref: Vector2i, subject: Vector2i) -> void:
 	_assigned_count[row] = 0
 	_paused[row] = 0
 	_remaining_mwu[row] = 0
+	_paid_base_type[row] = NO_PAID_PACKAGE
+	_paid_upgrade_mask[row] = 0
 	for index: int in MATERIAL_SLOTS_PER_PROJECT:
 		_delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index] = 0
 	_live_count -= 1
@@ -978,33 +1084,128 @@ func cancellation_refund_milli_into(project_ref: Vector2i, index: int,
 
 func demolition_return_milli_into(project_ref: Vector2i, index: int,
 		out: IntMath.IntResult) -> bool:
-	"""REQ-SET-127's manifest line: 50% of the ORIGINAL §4.1 material cost, floored to milli-U.
+	"""REQ-SET-127's manifest line: 50% of the item's ORIGINAL paid cost, floored ONCE.
 
-	REFUSES anything but a demolition. The basis is the definition's own bill, never the delivered
-	ledger, which a demolition never fills -- and never the tier-2 package (header).
+	REFUSES anything but a demolition. BUILD-C4-R01: the basis is the row's paid-ledger snapshot
+	-- the recorded base package plus each completed upgrade, totalled per item in milli-U --
+	and the 50% is floored once per item, never per package. Never the delivered ledger, which a
+	demolition never fills, and never a repricing from anything but the compiled bills.
 	"""
-	var row: int = _row_of(project_ref)
+	var row: int = _demolition_manifest_row(project_ref, out)
 	if row == NO_ROW:
-		return out.refuse(REFUSE_STALE_PROJECT_REF)
-	if _purpose[row] != PURPOSE_DEMOLISH:
-		return out.refuse(REFUSE_NOT_A_DEMOLITION)
-	var type_id: int = _type_id[row]
-	if index < 0 or index >= _build_count[type_id]:
+		return false
+	var count: int = _manifest_of_row(row)
+	if index < 0 or index >= count:
 		return out.refuse(REFUSE_MATERIAL_INDEX)
-	var base: int = type_id * MATERIAL_SLOTS_PER_PROJECT
-	if not IntMath.checked_mul_into(_build_milli[base + index], REFUND_DEMOLITION_NUM, out):
-		return out.refuse(REFUSE_OVERFLOW)
-	return IntMath.floor_div_into(out.value, REFUND_DEMOLITION_DEN, out)
+	return _half_of_into(_manifest_milli[index], out)
+
+
+func demolition_return_key_index_into(project_ref: Vector2i, index: int,
+		out: IntMath.IntResult) -> bool:
+	"""The MATERIAL_KEYS index of one return-manifest line. Refuses anything but a demolition."""
+	var row: int = _demolition_manifest_row(project_ref, out)
+	if row == NO_ROW:
+		return false
+	if index < 0 or index >= _manifest_of_row(row):
+		return out.refuse(REFUSE_MATERIAL_INDEX)
+	return out.succeed(_manifest_key[index])
 
 
 func demolition_return_size_into(project_ref: Vector2i, out: IntMath.IntResult) -> bool:
 	"""How many lines REQ-SET-127's return manifest has. Refuses anything but a demolition."""
+	var row: int = _demolition_manifest_row(project_ref, out)
+	if row == NO_ROW:
+		return false
+	return out.succeed(_manifest_of_row(row))
+
+
+func demolition_return_preview_into(building_ref: Vector2i, out_keys: PackedInt32Array,
+		out_milli: PackedInt64Array, out: IntMath.IntResult) -> bool:
+	"""The return manifest a demolition admitted NOW would carry, already halved and floored.
+
+	Reads the building's type and tier exactly as `open_demolition()`'s snapshot will, so the
+	coordinator can reserve output capacity for it before its first write. `out.value` is the
+	line count; both buffers must hold MATERIAL_SLOTS_PER_PROJECT cells. Writes nothing else.
+	"""
+	var type_result: Buildings.OpResult = _buildings.type_id_of_building(building_ref)
+	if not type_result.ok:
+		return out.refuse(REFUSE_STALE_BUILDING_REF)
+	if out_keys.size() < MATERIAL_SLOTS_PER_PROJECT or out_milli.size() < MATERIAL_SLOTS_PER_PROJECT:
+		return out.refuse(REFUSE_MANIFEST_BUFFER)
+	var count: int = _manifest_into(type_result.value, type_result.value,
+		demolition_upgrade_mask_of(building_ref))
+	for index: int in count:
+		if not _half_of_into(_manifest_milli[index], out):
+			return false
+		out_keys[index] = _manifest_key[index]
+		out_milli[index] = out.value
+	return out.succeed(count)
+
+
+func paid_base_type_into(project_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""ConstructionPaidLedger `base_type`: the base package key, or NO_PAID_PACKAGE."""
+	return _field_into(project_ref, _paid_base_type, out)
+
+
+func paid_upgrade_mask_into(project_ref: Vector2i, out: IntMath.IntResult) -> bool:
+	"""ConstructionPaidLedger `upgrade_mask`: the completed-upgrade bits this row recorded."""
+	return _field_into(project_ref, _paid_upgrade_mask, out)
+
+
+func _demolition_manifest_row(project_ref: Vector2i, out: IntMath.IntResult) -> int:
+	"""The live DEMOLITION row behind a ref, or NO_ROW with `out` refused."""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
-		return out.refuse(REFUSE_STALE_PROJECT_REF)
+		out.refuse(REFUSE_STALE_PROJECT_REF)
+		return NO_ROW
 	if _purpose[row] != PURPOSE_DEMOLISH:
-		return out.refuse(REFUSE_NOT_A_DEMOLITION)
-	return out.succeed(_build_count[_type_id[row]])
+		out.refuse(REFUSE_NOT_A_DEMOLITION)
+		return NO_ROW
+	return row
+
+
+func _manifest_of_row(row: int) -> int:
+	"""Fill the manifest scratch from one row's paid-ledger snapshot; return its line count."""
+	return _manifest_into(_type_id[row], _paid_base_type[row], _paid_upgrade_mask[row])
+
+
+func _manifest_into(type_id: int, paid_base: int, mask: int) -> int:
+	"""Total each item's paid milli-U into the scratch, base package then completed upgrade.
+
+	Lines are in first-appearance order: the base bill's own order, then any key only the
+	upgrade names. `_assert_bills()` proves every union fits MATERIAL_SLOTS_PER_PROJECT lines.
+	"""
+	var count: int = 0
+	var base: int = type_id * MATERIAL_SLOTS_PER_PROJECT
+	if paid_base != NO_PAID_PACKAGE:
+		for index: int in _build_count[type_id]:
+			count = _add_manifest_line(_build_key[base + index], _build_milli[base + index], count)
+	if mask & UPGRADE_TIER_TWO_BIT != 0:
+		for index: int in _upgrade_count[type_id]:
+			count = _add_manifest_line(_upgrade_key[base + index], _upgrade_milli[base + index],
+				count)
+	return count
+
+
+func _add_manifest_line(key_index: int, milli: int, count: int) -> int:
+	"""Add one package entry to its item's line, opening a new line for a new item.
+
+	A plain sum: two authored int32 quantities cannot overflow int64.
+	"""
+	for line: int in count:
+		if _manifest_key[line] == key_index:
+			_manifest_milli[line] += milli
+			return count
+	_manifest_key[count] = key_index
+	_manifest_milli[count] = milli
+	return count + 1
+
+
+func _half_of_into(total_milli: int, out: IntMath.IntResult) -> bool:
+	"""REQ-SET-127's 50% of one item's total, floored to milli-U once."""
+	if not IntMath.checked_mul_into(total_milli, REFUND_DEMOLITION_NUM, out):
+		return out.refuse(REFUSE_OVERFLOW)
+	return IntMath.floor_div_into(out.value, REFUND_DEMOLITION_DEN, out)
 
 
 func close_refund(project_ref: Vector2i) -> OpResult:
@@ -1318,6 +1519,8 @@ func state_bytes() -> PackedByteArray:
 	out.append_array(var_to_bytes(_type_id))
 	out.append_array(var_to_bytes(_phase))
 	out.append_array(var_to_bytes(_delivered_milli))
+	out.append_array(var_to_bytes(_paid_base_type))
+	out.append_array(var_to_bytes(_paid_upgrade_mask))
 	out.append_array(var_to_bytes(PackedInt64Array([_live_count])))
 	return out
 

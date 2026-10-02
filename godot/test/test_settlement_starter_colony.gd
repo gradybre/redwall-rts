@@ -455,21 +455,89 @@ func test_the_world_row_and_the_colony_take_the_ids_after_every_world_entity() -
 	assert_equal(lowest_colony, world_id + 1, "and the colony follows the World row")
 
 
-# --- the demolition gate, pinned for D4 ------------------------------------------------------------
+# --- the demolition gate over the real colony (D4, decision 0534) ------------------------------
 
-func test_every_starter_building_still_refuses_demolition_at_stage_5() -> void:
-	"""Pinned on purpose: the gate cannot see the starter stores (decision 0533's Consequences).
+func _open_economy_on_settlement() -> EconomySystemScript:
+	"""An EconomySystem that adopts the settlement's inventory, then opens and seeds the stores."""
+	var binding: StarterColony.StoreBinding = StarterColony.StoreBinding.new()
+	assert_true(_settlement.starter_store_binding_into(binding), "the binding reads back")
+	var economy: EconomySystemScript = EconomySystemScript.new()
+	assert_true(economy.bind_inventory(_settlement.inventory()), "the economy adopts the store")
+	assert_true(economy.open_and_seed_starter_stores(binding),
+		"the stores open and seed: %s" % economy.last_refusal())
+	return economy
 
-	The hall's pantry and the stockpiles' stores live in EconomySystem's inventory, and the gate
-	scans `settlement.inventory()`. Until D4 resolves that, a success here would let a stockpile
-	full of wood be demolished as if empty, so every starter building must still refuse at the
-	containment stage. D4 changes this test deliberately, or it fails.
+
+func test_the_starter_stores_block_the_hall_and_the_stockpiles() -> void:
+	"""Changed on purpose by D4: the gate now SEES the starter stores, so their goods block.
+
+	D3 pinned every starter building at stage 5's MISSING_CONTAINMENT_CONTRACT, because the
+	stores lived in EconomySystem's own inventory. EconomySystem now adopts the settlement's, so
+	the hall's pantry and every stockpile's store are found by both scans and refuse by goods.
 	"""
 	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
 	var buildings: Buildings = _settlement.buildings()
-	for tile: int in [HALL_TILE, STOCKPILE_TILES[0], _tile(64, 54), _tile(58, 54)]:
+	for tile: int in [HALL_TILE, STOCKPILE_TILES[0], STOCKPILE_TILES[3]]:
+		var before: int = _settlement.construction().live_project_count()
 		var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(
 			buildings.building_at_tile(tile))
-		assert_false(report.ok, "the building at tile %d is not demolishable yet" % tile)
-		assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_MISSING_CONTAINMENT,
-			"and refuses at the containment stage")
+		assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_STORED_GOODS,
+			"the building at tile %d holds goods and refuses" % tile)
+		assert_true(report.stranded_lot_count > 0, "naming its lots")
+		assert_equal(_settlement.construction().live_project_count(), before, "publishing nothing")
+	economy.free()
+
+
+func test_the_well_is_admitted_into_the_last_stockpiles_headroom() -> void:
+	"""A storeless starter building passes, and its return is reserved in a surviving store.
+
+	The well returns wood 5 U and stone 10 U, 75000 g. Stockpiles 1-3 are full (400000 g) and the
+	fourth holds 312000 g, so the fourth is the lowest store with room.
+	"""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var well: Vector2i = _settlement.buildings().building_at_tile(_tile(64, 54))
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(well)
+	assert_true(report.ok, "the well is admitted (%s)" % report.error)
+	assert_equal(report.output_container, economy.stockpile(3), "into the fourth stockpile")
+	assert_equal(report.output_reserved_g, 75000, "reserving the whole return")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(economy.stockpile(3)), 75000,
+		"which EconomySystem's own store now carries")
+	assert_equal(_settlement.buildings().state_of_building(well).value,
+		Catalog.BUILDING_STATE["DEMOLISHING"], "the well is DEMOLISHING")
+	economy.free()
+
+
+func test_the_workbench_then_falls_back_to_ground_piles() -> void:
+	"""With 13000 g left nowhere holds the workbench's 40000 g, so #9's piles take it."""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var buildings: Buildings = _settlement.buildings()
+	assert_true(_settlement.request_demolition(buildings.building_at_tile(_tile(64, 54))).ok,
+		"the well is admitted first")
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(
+		buildings.building_at_tile(_tile(58, 54)))
+	assert_true(report.ok, "the workbench is admitted (%s)" % report.error)
+	assert_true(report.output_to_ground_piles, "its return goes to ground piles at D5")
+	assert_equal(report.output_reserved_g, 0, "with nothing reserved")
+	economy.free()
+
+
+func test_without_the_adoption_the_hall_would_read_as_empty() -> void:
+	"""Why decision 0534 adopts the inventory: stores in a second inventory are invisible.
+
+	An economy left on its PRIVATE store opens the same five owned, anchored stores, and the gate
+	scanning the settlement's inventory finds none of them -- the hall passes the preview.
+	"""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var binding: StarterColony.StoreBinding = StarterColony.StoreBinding.new()
+	assert_true(_settlement.starter_store_binding_into(binding), "the binding reads back")
+	var detached: EconomySystemScript = EconomySystemScript.new()
+	assert_true(detached.open_and_seed_starter_stores(binding), "the private stores open")
+	var hall: Vector2i = _settlement.buildings().building_at_tile(HALL_TILE)
+	assert_true(_settlement.preview_demolition(hall).ok,
+		"the gate cannot see a pantry in another inventory")
+	detached.free()
+
+

@@ -469,6 +469,10 @@ func test_create_materialises_the_starter_colony_and_rebinds_the_stores_to_it() 
 		buildings.building_at_tile(60 * 128 + 50), "and the first store by the new stockpile")
 	assert_equal(EconomySystem.stock_units(&"wood"), 180, "and §5.1's inventory was reseeded")
 	assert_equal(EconomySystem.ready_nutrition_points(), 408000, "food included")
+	assert_true(EconomySystem.inventory() == SettlementSystem.inventory(),
+		"in the settlement's own inventory, which EconomySystem adopted (decision 0534)")
+	assert_true(SettlementSystem.inventory().is_container_valid(EconomySystem.pantry()),
+		"so the demolition gate's store holds the pantry")
 	SettlementSystem.reset()
 
 
@@ -847,6 +851,25 @@ func test_create_still_succeeds_in_a_running_game() -> void:
 		var id: IntMath.IntResult = residents.persistent_id_of(index)
 		assert_equal(id.value, index + 1,
 			"and the cohort still takes id %d, so the fix did not cost R-INIT-ID-001" % [index + 1])
+	SettlementSystem.reset()
+
+
+func test_create_still_succeeds_while_a_demolition_is_admitted() -> void:
+	"""Decision 0534: admit publishes a KIND_CONSTRUCTION row, which the reset also clears.
+
+	Without KIND_CONSTRUCTION in `ui_world_session._caller_cleared_kinds` the generator's preflight
+	sees a live row it does not own and Create refuses WORLD_FOREIGN_LIVE_ROWS mid-demolition.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots with its colony")
+	var well: Vector2i = SettlementSystem.buildings().building_at_tile(54 * 128 + 64)
+	assert_true(SettlementSystem.request_demolition(well).ok, "the well's demolition is admitted")
+	assert_equal(SettlementSystem.directory().live_count(EntityDirectoryScript.KIND_CONSTRUCTION),
+		1, "so a construction row is live")
+	assert_true(_ui.create_world(), "and Create still succeeds")
+	assert_equal(SettlementSystem.directory().live_count(EntityDirectoryScript.KIND_CONSTRUCTION),
+		0, "the new settlement has no project")
 	SettlementSystem.reset()
 
 

@@ -126,10 +126,15 @@ func _seed_stores() -> void:
 	open stockpiles, each anchored at its origin tile, so the stores can only open after the
 	colony stands. The inventory list itself is `EconomySystem.INITIAL_INVENTORY_U`, deposited in
 	§5.9's fill order by `seed_initial_inventory()`.
+
+	The stores open in the SETTLEMENT's inventory (decision 0534): EconomySystem adopts it first,
+	so the demolition gate and section 7 see the starter stock. A refused adoption leaves the
+	stores closed rather than opening them in a second inventory nobody else can see.
 	"""
 	var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
 	if not SettlementSystem.starter_store_binding_into(binding):
 		push_error("Starter stores have no colony to bind to: %s" % SettlementSystem.last_refusal())
 		return
-	if not EconomySystem.open_and_seed_starter_stores(binding):
+	if not EconomySystem.bind_inventory(SettlementSystem.inventory()) \
+			or not EconomySystem.open_and_seed_starter_stores(binding):
 		push_error("Starter stores could not open and seed: %s" % EconomySystem.last_refusal())

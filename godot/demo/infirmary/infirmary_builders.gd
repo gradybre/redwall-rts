@@ -29,7 +29,7 @@ const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
-const SpotScript := preload("res://demo/infirmary/stand_spot.gd")
+const SpotScript := preload("res://demo/cast/stand_spot.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
 
 const NOBODY: int = -1

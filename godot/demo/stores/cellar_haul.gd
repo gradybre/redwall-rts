@@ -40,7 +40,7 @@ const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
-const SpotScript := preload("res://demo/stores/stand_spot.gd")
+const SpotScript := preload("res://demo/cast/stand_spot.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 

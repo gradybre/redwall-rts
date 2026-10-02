@@ -162,7 +162,8 @@ var _bounds_u: Rect2i = Rect2i()
 var _circles_u: PackedInt32Array = PackedInt32Array()
 var _spots_u: PackedInt32Array = PackedInt32Array()
 var _under_u: PackedInt32Array = PackedInt32Array()
-## The world's buildings alone; `_under_u` adds every structure placed since (a cellar building, decision 0612).
+## The world's buildings alone; `_under_u` adds every structure placed since (a cellar building, decision 0612; the
+## infirmary, decision 0623).
 var _world_under_u: PackedInt32Array = PackedInt32Array()
 var _ground: Vector2 = Vector2.ZERO
 var _cursor: Vector2 = Vector2.ZERO

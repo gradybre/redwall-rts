@@ -1,8 +1,8 @@
 extends RefCounted
-## Where a resident may stand to work at something: the standable, reachable spot nearest it on rings round a target,
-## clear of anyone standing (cast_orders.gd `spot_ok`). Decision 0612's rule (demo/stores/stand_spot.gd on the cellar
-## branch), copied for the infirmary's builders (decision 0623) so this branch does not depend on that one; merge the
-## two when both land. Presentation only.
+## Where a resident may stand to work at something (decision 0612; the farm's, the spoil crew's and the haul's one rule):
+## the standable, reachable spot nearest it on rings round a target, clear of anyone standing (cast_orders.gd
+## `spot_ok`). Shared by the food stores' haul, the cellar builders and the infirmary's builders (decisions 0612, 0623; the
+## two lanes' copies made one here at the batch 7 integration, decision 0902). Presentation only.
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")

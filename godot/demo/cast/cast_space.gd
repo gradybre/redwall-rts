@@ -81,7 +81,9 @@ const MAX_SLOTS: int = 16
 const CONSTRAIN_PASSES: int = 2
 ## A room's mound as obstacle circles: up to this many a room (see TUNNEL MOUTHS AND HEAPS).
 const MOUND_CIRCLES: int = 4
-## Surface structures placed during play (a cellar building, decision 0612): one circle each, at most this many.
+## Surface structures placed during play: one circle each, at most this many. The cellar buildings take slots 0 and 1
+## (demo_stores.gd FIRST_STRUCTURE, decision 0612) and the infirmary the last (infirmary_building.gd STRUCTURE, decision
+## 0623); the two lanes' identical hunks were merged once at the batch 7 integration (decision 0902).
 const STRUCTURES: int = 4
 const STOCKPILE_WORDS: PackedStringArray = ["stockpile", "store", "storage", "pile", "crate", "sack", "log"]
 const CARRY_CLIP: StringName = &"carry_heavy_object_walk"
@@ -191,7 +193,7 @@ func set_mound(r: int, circles: PackedVector3Array) -> void:
 
 
 func set_structure(s: int, circle: Vector3) -> void:
-	"""Surface structure `s` (0..STRUCTURES-1; a cellar building, decision 0612) now stands as this circle (x, radius,
+	"""Surface structure `s` (0..STRUCTURES-1; a cellar building or the infirmary) now stands as this circle (x, radius,
 	z); radius 0 removes it. The obstacles are rebuilt as a heap's are."""
 	_structure_circles[s] = circle
 	_rebuild_obstacles()

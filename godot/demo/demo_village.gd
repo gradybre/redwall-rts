@@ -92,6 +92,9 @@ extends Node3D
 ## green and catkins in spring, a staggered turn to gold and russet in autumn with a few leaves falling, bare
 ## boughs in winter -- every tree in its model's ONE tree material (the canopy's) with per-tree instance numbers.
 ## `_build_seasons()` wires it after the canopy; the Demo Lab's Season preview draws a preset season.
+## CAMERA MODES (demo/camera/camera_modes.gd, decision 0801): bookmarks (Ctrl+Shift / Shift + 1-4), follow the
+## selected resident (End), orbit the building in view (Shift+O) and the U view's cutaway angle (Shift+U), with the
+## edge pan and a strip saying which is on. `_build_camera_modes()` wires them.
 ##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
@@ -212,6 +215,7 @@ const ForestPanelScript := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
 const SeasonViewScript := preload("res://demo/seasons/season_view.gd")
+const CameraModesScript := preload("res://demo/camera/camera_modes.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
 const LensKitScript := preload("res://demo/lenses/demo_lens_kit.gd")
@@ -349,6 +353,7 @@ var _objects: ObjectListScript = ObjectListScript.new()
 var _guide: GuideScript = null
 var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
+var _camera_modes: CameraModesScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
 ## Water part B lane 3 (decision 0437): the ferry. (Decision 0438): the regatta.
@@ -401,6 +406,7 @@ func _ready() -> void:
 	_build_regatta()
 	_build_sound()
 	_build_guide()
+	_build_camera_modes()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -800,6 +806,35 @@ func _build_guide() -> void:
 		HelpTopics.ACTION_LOGS: PlaytestLog.open_folder,
 		HelpTopics.ACTION_FUEL: _fuel_panel.open,
 	}
+
+
+func _build_camera_modes() -> void:
+	"""The camera's modes over the rig: bookmarks, follow (End), orbit and the U view's cutaway angle, with the edge pan
+	and their strip (demo/camera/camera_modes.gd, decision 0801)."""
+	var tool: TunnelControlScript = _tunnel_tool()
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_camera_modes = CameraModesScript.new()
+	add_child(_camera_modes)
+	_camera_modes.primary = command.first_selected
+	_camera_modes.resident_point = resident_point
+	_camera_modes.resident_name = func(who: int) -> String: return String(_cast.actor(who).get(&"display_name"))
+	var shell: UiShell = _shell()
+	_camera_modes.modal_open = func() -> bool:
+		return _gate.modal_open() or (shell != null and shell.workspace_owns_input())
+	_camera_modes.underground = func() -> bool: return tool.view.on
+	_camera_modes.set_underground = show_underground
+	_camera_modes.tunnel_extent = func() -> Rect2: return CameraModesScript.network_extent(tool.network, tool.view.level)
+	_camera_modes.strip.journal_open = _zone.journal_open
+	_camera_modes.follow_changed = command.panel().set_following
+	_camera_modes.configure(_camera as DemoCameraScript)
+	command.add_input_hook(_camera_modes.escape_hook)
+	command.panel().follow_requested.connect(_camera_modes.toggle_follow)
+	_news.lift = _camera_modes.strip.reserved_height
+
+
+func camera_modes() -> CameraModesScript:
+	"""The camera's modes (demo/camera/camera_modes.gd)."""
+	return _camera_modes
 
 
 func _open_dig_tool(tool: TunnelControlScript) -> void:

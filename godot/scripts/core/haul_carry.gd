@@ -31,6 +31,11 @@ extends RefCounted
 ## still-claimed source and the unload re-claims what it released -- restoring the pool's
 ## canonical image exactly (`test_a_second_claim_on_the_satchel_lot_rolls_the_unload_back`).
 ##
+## CALLERS UNLOAD THROUGH THE PLANNER. `haul_planner.complete_unload()` is the door the job layer
+## uses: it passes this file the recorded destination and grams and retires the record with the
+## delivery. Calling the two unloads below directly and then `haul_planner.cancel()` would release
+## the destination grams twice (decision 1023, review H1).
+##
 ## NO STATE OF ITS OWN. Every authoritative fact lives in Inventory, the reservation pool and the
 ## resident store, all of which already save; the columns below are cold-path scratch.
 

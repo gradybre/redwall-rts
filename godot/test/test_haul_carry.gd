@@ -427,3 +427,17 @@ func test_a_second_claim_on_the_satchel_lot_rolls_the_unload_back() -> void:
 		_seeds_for(HaulWorld.tile(45, 45)), 1, PackedByteArray())
 	assert_equal(unloaded.error, GroundPilesScript.REFUSE_MOVE_SOURCE_RESERVED, "J2's claim stands")
 	assert_equal(_w.state(), before, "J1's claim restored, nothing moved")
+
+
+func test_a_pile_unload_reports_the_claimed_quantity() -> void:
+	"""The job's claim, not the carried lot's size, is what the pile unload reports."""
+	var loaded: InventoryScript.OpResult = _load(_mouse, 12000)
+	_w.pool.release_job_claims(JOB, _w.inventory)
+	assert_true(_w.claim(OTHER_JOB, loaded.ref, SOURCE, 12000), "the fresh haul claims it all")
+	assert_true(_w.carry.load_payload(OTHER_JOB, _mouse, loaded.ref).ok, "re-keyed")
+	assert_true(_w.pool.release_claim(OTHER_JOB, loaded.ref, CARRIED, _w.inventory).ok, "released")
+	assert_true(_w.claim(OTHER_JOB, loaded.ref, CARRIED, 5000), "a smaller claim")
+	var unloaded: InventoryScript.OpResult = _w.carry.unload_into_piles(OTHER_JOB, _mouse,
+		_seeds_for(HaulWorld.tile(45, 45)), 1, PackedByteArray())
+	assert_true(unloaded.ok, "unloaded: %s" % unloaded.error)
+	assert_equal(unloaded.value, 5000, "the claimed quantity, not the lot's 12000")

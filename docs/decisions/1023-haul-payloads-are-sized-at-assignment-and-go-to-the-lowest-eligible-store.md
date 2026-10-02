@@ -39,7 +39,9 @@ R-H6 and R-H7 (decision 1021).
    only when the unload succeeded, so a late `cancel()` refuses instead of releasing grams the
    delivery already returned (review H1/H2: a separate `finish()` let a cancel after the unload
    take another job's grams, and let a pile unload of a store destination leak its grams).
-   `audit()` checks that, per store, the records never hold more grams than the store reserves.
+   `audit()` checks that, per store, the records never hold more grams than the store reserves;
+   it rescans the 8192 rows per store, so it is a test and diagnostic tool -- a save-time check
+   should sum per store in one pass first (H8).
 5. **The ReservationPurpose domain is numbered (R-H7).** `PURPOSE_UNSPECIFIED = 0` (the value a
    cleared row holds and every pre-domain claim carried), `PURPOSE_HAUL_SOURCE = 1`,
    `PURPOSE_HAUL_DESTINATION = 2`, in `reservations.gd`, explicitly, never by a sorted-key compile.
@@ -80,7 +82,8 @@ R-H6 and R-H7 (decision 1021).
 ## Consequences
 
 - H4 calls `admit()` at assignment with `now + LEASE_EXPIRY_TICKS`, `load_payload()` after WORK's
-  2000 milli-WU, and `complete_unload()` after HAUL_OUTPUT's. **Every early end goes through
+  2000 milli-WU, and `complete_unload()` after HAUL_OUTPUT's -- never `haul_carry`'s unloads
+  directly, which would leave the record's grams for a later `cancel()` to release twice. **Every early end goes through
   `cancel()`**: a cancellation, the hauler's death or departure (`cancel()`, then
   `haul_carry.drop_satchel()` before despawn), and a lease the pool expired. Anything else leaves
   the record's grams reserved in the store, which `audit()` does not see (it checks the other

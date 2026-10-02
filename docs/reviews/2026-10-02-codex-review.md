@@ -8,6 +8,8 @@ The merged-master review is pinned to `d07dabb7629be8a7721b87fdd5b9532e3568a963`
 
 **PR #215 was OPEN, not merged, when reviewed.** Batch 7 is reviewed separately at its exact head, `4eb8e3c04669cbfdcc14460502502a2ded6763f0`. References marked **B7** below are to that commit, not assertions about the contents of merged master. References marked **M** are to the master snapshot. Later changes are outside these snapshots.
 
+Follow-up: #215 merged as `d75d9d89d7a7b08fc2dac1de2c50567ea66b0b77` after the initial review. Its tree is identical to the reviewed B7 head. R08 and the hosted-failure evidence below were added after this docs-only PR's CI completed; they do not change the reviewed source revisions.
+
 The review traces decision-record intent through source, callers and tests. Severity describes behavior and impact, not style. Recorded demo exceptions and approved numerical proposals are distinguished from production settlement requirements; the demo's explicitly unsaved state is not reported as a newly introduced save defect. Headless evidence does not establish rendered performance on the qualification PC or a new visual sign-off at 1280×720.
 
 ## Findings: shared resources and progression
@@ -107,6 +109,16 @@ The final line is a second case: an unhoused child's care decays from its initia
 
 **Suggested fix:** Bound or incrementally schedule search work inside a plan, restrict obstacle-neighbor work spatially, and use the adopted crowd presentation above the skeletal actor cap. After integration, repeat 9/25/50/100/256 tests with contention recorded, then run the release qualification profile. Include synchronized meal, dusk, group-order and winter/care activity; a short invariant smoke at 25 residents is not that performance gate. Retain the report's separate capacity limits (seats, beds, POIs and the 62-resident deed mask) as explicit follow-ups rather than treating successful spawning as functional 256-resident support.
 
+### R08 — low — The live route test retries a transient refusal while the village is paused
+
+**Revision:** M; the harness and its wrapper are unchanged in B7.
+
+**Evidence:** [godot/test/live/demo_routes_live.gd:308](https://github.com/gradybre/redwall-rts/blob/d07dabb7629be8a7721b87fdd5b9532e3568a963/godot/test/live/demo_routes_live.gd#L308) pauses after moving the group. `_tunnel_project()` does not resume it. Lines `:339–344` nevertheless assume residents keep moving and retry `confirm()` for 120 frames. [godot/demo/demo_clock.gd:46](https://github.com/gradybre/redwall-rts/blob/d07dabb7629be8a7721b87fdd5b9532e3568a963/godot/demo/demo_clock.gd#L46) yields no simulation steps while paused, and `godot/demo/cast/demo_actor.gd:364–365` returns without brain movement. The harness accepts a candidate using only `laid_piece_reason()` at `demo_routes_live.gd:362`, which checks geometry. [godot/demo/tunnel/tunnel_control.gd:902](https://github.com/gradybre/redwall-rts/blob/d07dabb7629be8a7721b87fdd5b9532e3568a963/godot/demo/tunnel/tunnel_control.gd#L902) additionally checks entrance occupancy and digger reachability during confirmation.
+
+**Why it matters:** The fixture can freeze a geometrically valid plan in a legitimately unconfirmable state; repeating the call cannot clear a paused occupant. The docs-only review PR's [full hosted run](https://github.com/gradybre/redwall-rts/actions/runs/37013102939/job/110857329034) actually failed `test_the_previews_work_on_the_live_village_at_1280x720`: “confirm refused for 120 frames”; the panel retained its unconfirmed preview. The 1920×1080 case passed. This is a test-setup/reliability finding, not proof that the product should accept that plan. The log does not capture the refusal code, so **entrance occupancy is a supported counterexample, not an established diagnosis of this particular failure**.
+
+**Suggested fix:** Arrange explicit resident/digger positions and a confirmable entrance before pausing for the preview assertions. The preceding movement waits 30 rendered frames (`:305–308`), so its end positions depend on frame timing. If a test intentionally covers a transient occupied entrance, assert that refusal first, then move the occupant through controlled simulation progress before confirming. Report `tool.notice()` and relevant actor positions on failure. Keep the strict failure gate; extending the frame timeout while paused does not repair the setup.
+
 ## Coverage and intent checks
 
 The first-parent merges in the requested date range are #179, #199 and #201–#214. #215 is the separately reviewed open PR. The nested lane decisions were used to distinguish adopted behavior, proposals and disclosed deferrals.
@@ -116,7 +128,7 @@ The first-parent merges in the requested date range are #179, #199 and #201–#2
 | #179 asset-pipeline skill | Skill diff and decision 0188 provenance; species authority, measured import axes, paid-generation approval and provisional asset status | No new actionable defect. No assets generated or paid requests made. |
 | #199, #201–#203, batches 1–4 | Decisions 0196, 0205–0212, 0222–0261, 0292–0301, 0331–0332, 0351–0361, 0371–0411; focused checks of arrivals, orders, audio/input ownership, meal conservation and work resumption | The old HOLD-as-arrival concern is addressed by the later work-board changes. R05 concerns actual committed meal consumers, not that earlier issue. This is focused source review, not a claim to exhaustively exercise every historical path. |
 | #204–#205 | 0421 day-length change and 0511 loose ends; tick-derived calendar/needs context | No confirmed additional finding. |
-| #207 batch 5 | 0431–0436, 0441–0442, 0451, 0461, 0471, 0481, 0491–0493; water/fishing including delivery/cancellation, planner/routes, session/guide, people, keybindings and external-review approval log | R05's resident-memory consumer. No additional confirmed ownership defect. |
+| #207 batch 5 | 0431–0436, 0441–0442, 0451, 0461, 0471, 0481, 0491–0493; water/fishing including delivery/cancellation, planner/routes, session/guide, people, keybindings and external-review approval log | R05's resident-memory consumer and R08's paused route-test setup. No additional confirmed ownership defect. |
 | #212 batch 6 | 0437–0439, 0561–0562, 0581, 0591, 0781 and integration 0901; ferry/regatta, scale, playtest evidence, map layers, notices and goals | R05's feast consumer and R06–R07. Ferry route refusal and boat ownership were traced. The scale report's limits are retained, not restated as a successful 256-resident qualification. |
 | #209 PC-04 | Decision 0521; households, child hunger wiring, reuse/recovery, column restoration and family schema | R04, including live store-level reproduction and accepted-invalid-state case. |
 | #206/#208/#211/#214 demolition D1–D4 | 0531–0534; anchor transaction journals/restore, pile BFS and quantity rollback, starter structure ownership/capacity, containment, shared inventory, admission reservations and cancellation/stranded release | No additional confirmed defect. D5–D9 and the construction/admission persistence closure are explicitly incomplete in the lane records. They are not silently declared save-ready by this review. |
@@ -148,3 +160,13 @@ ok: 7974 tests, 577345 assertions, 0 failures.
 The import took 4.122 seconds and the full suite 783.548 seconds on this local machine. These are actual local observations, not an estimate of hosted CI time or rendered frame performance. Exact CI-sharding equivalence evidence belongs to the companion CI PR under `docs/validation/evidence/ci-shard-2026-10-02/`.
 
 The isolated PC-04 probe independently reproduced R04. R01–R03 and R05 are source-traced counterexamples with the missing integration tests specified above; this review did not run a second full suite on the unmerged B7 head. R06 is a direct inspection of the nested diagnostic filter. R07 uses explicitly attributed existing measurements, not a new benchmark. A passing master suite therefore does not close these findings.
+
+The docs-only review PR's later hosted run at `57cfef9d` failed the existing 1280×720 route test, as recorded in R08. Its actual summary was:
+
+```text
+7974 test(s), 577334 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 268 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 1 failing test(s).
+```
+
+The wrapper stopped at the assertion-failure gate before printing its final raw-log summary. This failed run is not evidence of a clean suite, and the earlier successful local run does not erase it. The test and game sources were unchanged by the review branch.

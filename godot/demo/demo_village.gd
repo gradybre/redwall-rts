@@ -163,6 +163,7 @@ extends Node3D
 ## boat race on the pond between the boathouse's two rowboats and the GDD's Hearth feast at the day's supper (the
 ## kitchen's occasion), its day and host the player's, remembered in the chronicle. `_build_regatta()` wires it after the
 ## people (the winners' deed, the feast's company); its section is the Water panel's, and the HUD's Feast command opens it.
+##
 ## THE WINTER (decision 0571, demo/winter/; Brendan's rulings of 2026-10-01): the hearths -- the hall's and every fitted
 ## burrow home's -- burn the stores' wood by the GDD's continuous demand, rooms cool without it, residents build up
 ## exposure in the cold and are Chilled at 4 hours (working at 80% and warming up at a lit hearth), the woods keep a
@@ -170,6 +171,12 @@ extends Node3D
 ## opens the fuel breakdown with the emergency choices), the planner has a Fuel lane, and the Demo Lab's "Skip to next
 ## season" brings winter. `_build_winter()` wires it after the woods (its firewood) and the kitchen (its cooking wood);
 ## `_build_work()` hands it the work board.
+##
+## THE HALL (decision 0771, demo/hall/): the community hall grows in Brendan's adopted two stages -- the hall the village
+## starts with, then its one tier-2 upgrade (REQ-SET-136) -- and up to four banners, each carried in and built by the
+## residents through the work board; clicking the hall opens its panel, and from it the village tapestry, whose
+## add-entry API (`tapestry()`, demo/hall/tapestry.gd THE API) the chronicle and milestones may weave into; `hall()`
+## answers the feasts' gathering query. `_build_hall()` wires it once the work board and the guide are built.
 ##
 ## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
 ## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
@@ -285,6 +292,7 @@ const NightLightsScript := preload("res://demo/world/night_lights.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
+const HallScript := preload("res://demo/hall/demo_hall.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -390,6 +398,7 @@ var _fuel_panel: FuelPanelScript = FuelPanelScript.new()
 ## The day and the night (decision 0541): the light on the calendar, and the surface's pooled night lights.
 var _day_night: DayNightScript = null
 var _night_lights: NightLightsScript = null
+var _hall: HallScript = null
 
 
 func _ready() -> void:
@@ -434,6 +443,7 @@ func _ready() -> void:
 	_build_guide()
 	_build_camera_modes()
 	_build_chronicle()
+	_build_hall()
 	_skin_hud.call_deferred()
 	add_child(WindowKeysScript.new())
 	_hold_restart_open()
@@ -844,6 +854,36 @@ func _cellar_unlock_facts() -> Vector4i:
 func stores() -> StoresNodeScript:
 	"""The food stores at work (demo/stores/demo_stores.gd)."""
 	return _stores
+
+
+func _build_hall() -> void:
+	"""The hall (see THE HALL), once the work board, the guide and the people are built: its projects on the work board,
+	its click and right-click after every other ground handler, the farm's harvest log for the tapestry, the night's
+	bedless for its panel; the top-centre cards yield to its panel, which stands where they do."""
+	_hall = HallScript.new()
+	add_child(_hall)
+	var command: DemoCommandScript = _command as DemoCommandScript
+	_hall.configure(_cast as DemoCastScript, _services, _world, _camera.camera())
+	_hall.bind_board(_work.board)
+	_hall.bind_farm(_farm.crew)
+	_hall.set_selection(command.selected)
+	_hall.set_bedless(command.tunnels().ext.night.bedless_names)
+	command.add_ground_handlers(_hall.on_click, _hall.on_order)
+	_cards.hide_while(_hall.is_open)
+	if _guide != null:
+		_guide.card.hide_while(_hall.is_open)
+	if _people_card != null:
+		_people_card.hide_while(_hall.is_open)
+
+
+func hall() -> HallScript:
+	"""The village's hall (demo/hall/demo_hall.gd): its stages, banners and the gathering query."""
+	return _hall
+
+
+func tapestry() -> RefCounted:
+	"""The village tapestry (demo/hall/tapestry.gd; see its THE API), or null before the hall is built."""
+	return _hall.tapestry if _hall != null else null
 
 
 func _build_routes() -> void:
@@ -1604,6 +1644,7 @@ func _add_planning() -> void:
 	_time.add_planning("the Dig tool", func() -> bool: return tool.planning)
 	_time.add_planning("the Residents list", _workspace_open)
 	_time.add_planning("the heating fuel breakdown", func() -> bool: return _fuel_panel.visible)
+	_time.add_planning("the hall", _hall.is_open)
 
 
 func _workspace_open() -> bool:

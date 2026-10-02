@@ -54,8 +54,9 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   its `report`) -- and the clock starts only once the first three frames are drawn, and then two frames
   of the underground view with a sample of everything it can show (decision 0206), two of the canopy's
   fade and the selected residents' silhouette, two of the frost and snow overlay on the village
-  (decision 0301) and two of the night's light (decision 0541), so a first fade, a first selection under a crown, a
-  first frost and a first dusk cost no compile. While the banner
+  (decision 0301), two of the night's light (decision 0541), and two of every falling leaf below the ground, after the
+  trees' bare boughs are made (decision 0551), so a first fade, a first selection under a crown, a first frost, a first
+  dusk and a first autumn cost no compile. While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
 
@@ -370,9 +371,11 @@ decision 0391), full screen, and the sound's volumes, mutes and mixes
 **The Demo Lab** (`ui/demo_lab.gd`, F8, or the menu's "Demo Lab"): the demo's test triggers, and only here --
 Next weather (the one calendar runs on to the next change of weather, at most 48 h), Test event (the tunnels'
 next seeded threat now), Storm gust (through the woods) and Cramp (every selected resident swimming tires at
-once; disabled with no swimmer selected) -- and Practice stories (the village guide's practice tab; decision 0481), and
-**Skip to next season** (decision 0571: the one calendar to 06:00 on day 1 of the next season; see Winter). They are the
-same actions the panels' "(demo)" buttons were; the Tunnels, Woods and Water panels now hold only the village's own choices.
+once; disabled with no swimmer selected), **Skip to next season** (decision 0571: the one calendar to 06:00 on day 1 of
+the next season; see Winter), Season preview (decision 0551: the village drawn at the next of five seasons,
+presentation only; its button names the one drawn) -- and Practice stories (the village guide's practice tab; decision
+0481). They are the same actions the panels' "(demo)" buttons were; the Tunnels, Woods and Water panels now hold only
+the village's own choices.
 
 **Keyboard focus** (decision 0261). The demo's panel buttons -- the right column's tabs and "×", the Farm,
 Pantry, Tunnels (rooms and fit-out too), Woods and Water panels, and the party panel's Dig and room buttons --
@@ -398,7 +401,7 @@ sets is in place -- and each setting as its own toggle, which a preset only ever
 |---|---|
 | Large readable | the interface at 150 % where the window offers it, else 125 %; bigger tooltips (x1.25); high-contrast panels (a flat, opaque face under every panel's text, re-drawn in place: `woodland_styles.gd set_high_contrast`) |
 | Keyboard planner | focus hints (a line under the keyboard's focus naming it and its keys: `access/focus_hint.gd`); show interactive targets (a brass ring on every resident, bed, tree, bridge, mouth and room a click selects: `access/target_marks.gd`) |
-| Reduced motion | the camera stops easing; the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`). The demo has no camera shake |
+| Reduced motion | the camera stops easing; the selection rings, a swimmer's ripple and the mound over a digger stop pulsing; every particle system at 35 %; the rain and snow thinner and half as fast (`access/demo_motion.gd`); autumn's falling leaves off altogether (decision 0551). The demo has no camera shake |
 | Quiet focus | the sound's Quiet focus mix; fewer news toasts (warnings only, one at a time; everything stays in the village news) |
 
 Under **Time**: Pause while planning (off) and Pause on a critical incident (on). **Restore defaults** says everything it
@@ -1610,6 +1613,33 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
 Every number that is not the GDD's is a demo value named in `forestry/forest_rules.gd` (and the root
 mounds' measured profiles in `forest_roots.gd`).
 
+## The seasons (decision 0551)
+
+The woods, the grass and the ground follow the one calendar (`seasons/`; presentation only -- nothing reads
+it back). Twelve days a season; each change eases in over a tree's first 2.5 days, which every tree starts up to
+1.5 days late by a stable hash of where it stands, so no season arrives as a swap and no two neighbours turn
+together:
+
+- **Spring**: fresh light green, and the oaks' catkins (a pale speckle) over the first nine days. The leaf-out
+  itself is the thaw at the END of winter, so the demo, which opens on Spring 1, opens in leaf.
+- **Summer**: the trees as authored.
+- **Autumn**: each tree turns, at its own pace, to its own gold, ochre or russet (a tenth of them a dark red),
+  the crowns kept whole; the grass dries a little, fallen leaves gather in drifts (thickest toward the woods),
+  and from day 3 a few leaves fall over where the camera looks (`falling_leaves.gd`: one pool of 40, at the
+  game's speed). **Reduced motion turns the falling leaves off entirely.**
+- **Winter**: the leaves come down over the first days; then the oaks and beeches stand bare -- drawn as each
+  model's own **bare boughs** (`bare_boughs.gd`, its leaf triangles taken out once at boot) -- but for the trees
+  that keep their dry leaves (most young oaks, a third of the beeches, a few old oaks). The weather's frost and
+  snow lie on the boughs' upward faces as they do on the roofs. The grass is dry; old leaves lie under the snow.
+  The demo stages no conifer: an EVERGREEN kind in `season_look.gd` would keep its summer look all year.
+
+Every tree wears its model's ONE tree material (the canopy's shader with the season in it) or that shader's
+in-leaf variant, with three per-tree instance numbers written when the calendar's hour turns; nothing is
+duplicated per tree and nothing is made per frame. **The Demo Lab's Season preview** (F8) draws the village at
+mid-spring, mid-summer, early autumn, late autumn or mid-winter and then back at the calendar's own season;
+it moves no calendar, crop or weather, and it stays on after the Lab closes (step it round to the calendar's to
+end it).
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past
@@ -2006,6 +2036,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
+| `seasons/` | The seasons on the woods and ground (decision 0551): the sampling (`season_look.gd`), the view that writes it to every tree, the ground and the tufts (`season_view.gd`), the leaf shader include and the in-leaf tree shader, the bare boughs and the falling leaves |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |

@@ -88,6 +88,11 @@ extends Node3D
 ## a silhouette through foliage and roofs. `_build_canopy()` wires it after the woods; its materials are
 ## drawn once at boot (a prewarm frame step).
 ##
+## SEASONS (demo/seasons/, decision 0551): the woods, the grass and the ground follow the one calendar -- fresh
+## green and catkins in spring, a staggered turn to gold and russet in autumn with a few leaves falling, bare
+## boughs in winter -- every tree in its model's ONE tree material (the canopy's) with per-tree instance numbers.
+## `_build_seasons()` wires it after the canopy; the Demo Lab's Season preview draws a preset season.
+##
 ## WOODS (demo/forestry/): every tree is a real ResourceNode row -- felled, hauled, regrown, blown down,
 ## replanted -- worked by the residents, with forestry and conservation zones, deadfall, a sawhorse and
 ## the "Woods (demo)" panel, the right column's third tab. Its wood goes into the demo's ONE stores
@@ -206,6 +211,7 @@ const TunnelPanelScript := preload("res://demo/tunnel/tunnel_panel.gd")
 const ForestPanelScript := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
+const SeasonViewScript := preload("res://demo/seasons/season_view.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
 const LensKitScript := preload("res://demo/lenses/demo_lens_kit.gd")
@@ -308,6 +314,7 @@ var _waterplay: WaterplayScript = null
 var _links: LinksScript = null
 var _spoil: SpoilScript = null
 var _canopy: CanopyScript = null
+var _seasons: SeasonViewScript = null
 var _prewarm: PrewarmScript = PrewarmScript.new()
 var _shadow_view_m: float = -1.0
 var _gate: InputGateScript = InputGateScript.new()
@@ -379,6 +386,7 @@ func _ready() -> void:
 	_build_forestry()
 	_build_canopy()
 	_build_winter()
+	_build_seasons()
 	_command.add_skill_text(_command.tunnels().ext.skill_text, true)
 	_command.add_skill_text(_command.tunnels().ext.night.home_text)
 	_command.set_fed_text(fed_and_warm_text)
@@ -411,6 +419,7 @@ func _warm_and_open() -> void:
 	_prewarm.add_step("props and icons", _services.props.warm_all)
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
+	_prewarm.add_step("woods: bare boughs", _seasons.prepare_bare)
 	_prewarm.add_step("sound streams", _sound.warm)
 	if _songs != null and _songs.hum != null:
 		_prewarm.add_step("song hums", _songs.hum.warm)
@@ -423,6 +432,7 @@ func _warm_and_open() -> void:
 	var weather_view: WeatherViewScript = (_command as DemoCommandScript).tunnels().ext.weather_view
 	_prewarm.add_frame_step("frost and snow overlay", COVER_PREWARM_FRAMES, weather_view.begin_prewarm, weather_view.end_prewarm)
 	_prewarm.add_frame_step("the night's light", NIGHT_PREWARM_FRAMES, _day_night.begin_prewarm, _day_night.end_prewarm)
+	_prewarm.add_frame_step("falling leaves", COVER_PREWARM_FRAMES, _seasons.begin_prewarm, _seasons.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 
@@ -630,6 +640,20 @@ static func forgive_host_time() -> void:
 func canopy() -> CanopyScript:
 	"""The canopy clearance (demo/camera/canopy_clear.gd)."""
 	return _canopy
+
+
+func _build_seasons() -> void:
+	"""The seasons on the woods, the grass and the ground (demo/seasons/season_view.gd), each tree in the canopy's
+	material for its model."""
+	_seasons = SeasonViewScript.new()
+	add_child(_seasons)
+	_seasons.configure(_services.calendar, (_cast as DemoCastScript).clock, _world as DemoWorldScript, _forestry.stand,
+		_forestry.view, (_command as DemoCommandScript).tunnels().ext.weather_view, _canopy.fade_material_for)
+
+
+func seasons() -> SeasonViewScript:
+	"""The seasons' view (demo/seasons/season_view.gd)."""
+	return _seasons
 
 
 func compost_left() -> int:
@@ -1340,7 +1364,8 @@ func _build_menu() -> void:
 
 
 func _build_lab() -> void:
-	"""The Demo Lab's four test triggers, each the same `on_action` its panel's button used to call."""
+	"""The Demo Lab's four test triggers, each the same `on_action` its panel's button used to call, and the season
+	preview (presentation only; decision 0551)."""
 	add_child(_lab)
 	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
 	_lab.add_trigger("Next weather", "Run the one calendar on to the next change of weather", "Tunnels",
@@ -1354,6 +1379,8 @@ func _build_lab() -> void:
 	_lab.add_trigger("Skip to next season", "Run the one calendar on to 06:00 on day 1 of the next season: crops, stores, "
 		+ "weather and the hearths catch up; walking, work, meals and the cold are skipped", "Village news",
 		skip_to_next_season)
+	_seasons.bind_lab(_lab.add_trigger(SeasonViewScript.PREVIEW_LABEL, SeasonViewScript.PREVIEW_TIP, "", _seasons.next_preview,
+		Callable(), "", SeasonViewScript.PREVIEW_DONE))
 
 
 func _build_session() -> void:

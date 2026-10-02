@@ -77,7 +77,13 @@ const FROST_KEY: String = "farm:frost"
 var targets: PackedInt32Array = PackedInt32Array()
 var serials: PackedInt32Array = PackedInt32Array()
 
+## The lines said, by key. Every key but a forecast's names the day it is for (`collect_into`'s day), so on a new day
+## the older keys can never be asked again and are let go; a forecast's names its season, and goes with its season.
+## Kept for good, they grew a few keys a day for as long as the village ran (decision 0923; found by the soak test).
 var _said: Dictionary = {}
+var _said_day: int = -1
+var _forecasts: Dictionary = {}
+var _forecast_season: int = -1
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _levels: PackedByteArray = PackedByteArray()
 var _incidents: IncidentsScript = null
@@ -115,6 +121,7 @@ func collect_into(sim: SimScript, events: PackedInt32Array, spoiled_items: Packe
 	targets.clear()
 	serials.clear()
 	var day: int = sim.absolute_day()
+	_forget_before(day)
 	for k: int in range(0, events.size() - 1, 2):
 		_event_line(sim, events[k], events[k + 1], day, out)
 	_frost_line(sim, day, out)
@@ -188,8 +195,15 @@ func _forecast_line(sim: SimScript, out: PackedStringArray) -> void:
 	var event: int = sim.forecast_event()
 	if event < 0 or event >= EVENT_NAMES.size():
 		return
-	@warning_ignore("integer_division") _once(out, "forecast:%d:%d" % [event, (sim.absolute_day() - 1) / SimClock.DAYS_PER_SEASON],
-		"Forecast: %s coming in the next days" % EVENT_NAMES[event].to_lower(), NOTE)
+	@warning_ignore("integer_division")
+	var season: int = (sim.absolute_day() - 1) / SimClock.DAYS_PER_SEASON
+	if season != _forecast_season:
+		_forecast_season = season
+		_forecasts.clear()
+	if _forecasts.has(event):
+		return
+	_forecasts[event] = true
+	_say(out, "Forecast: %s coming in the next days" % EVENT_NAMES[event].to_lower(), NOTE, -1)
 
 
 func _bed_lines(sim: SimScript, bed: int, day: int, out: PackedStringArray) -> void:
@@ -290,6 +304,18 @@ func _blight(bed: int) -> void:
 	_blight_open[bed] = 1
 	_line_key = _blight_key(bed)
 	_line_severity = IncidentsScript.SEVERITY_WARNING
+
+
+func _forget_before(day: int) -> void:
+	"""On a new day, let the keys of the days before go (see `_said`)."""
+	if day != _said_day:
+		_said_day = day
+		_said.clear()
+
+
+func said_count() -> int:
+	"""How many keys are kept (today's and this season's forecasts): bounded, whatever the village's age."""
+	return _said.size() + _forecasts.size()
 
 
 func _once(out: PackedStringArray, key: String, text: String, level: int, bed: int = -1) -> void:

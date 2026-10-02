@@ -2103,6 +2103,24 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
   frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
   worn-path grid) took about 16 ms with nothing staged and 22 ms loading all 56 files.
 
+## Soak test: twenty game days, leaks and slowdown (decision 0921)
+
+`python3 tools/soak_test.py --out-dir <dir> --days 20` runs the real village headless at 4x for twenty game days
+(`godot/tools/soak/soak_test.gd`, on the scale test's per-system driver, decision 0561). It runs about 6-12 minutes on
+the Mac at nine residents. It writes `<dir>/soak.json`, a markdown report and a verdict JSON (`tools/soak_report.py`,
+thresholds and their reasons in `tools/soak_thresholds.json`).
+
+- **What it samples.** Every game hour: static memory, objects, nodes, resources, orphan nodes, video memory, errors
+  and warnings, and the village's capped books. Every game day: frame-time percentiles and each system's time.
+- **What it does, as a player would.** It tops up the pantry at 04:00, sends a work party to the square at 10:00, and
+  can press Restart demo every `--restart-every-hours`.
+- **The restart leak watch.** It names anything of the old village still alive once the new one is open, and whether
+  anything alive still reaches it.
+- **The first runs** are in `docs/performance/2026-10-01-soak-test.md`. They found the kitchen's Restart cycle (fixed:
+  decision 0922) and the farm alerts' said-once keys growing a few a day (fixed: decision 0923).
+- **The suite** runs five game hours with a Restart. One whole game day runs with `REDWALL_SLOW_TESTS=1`
+  (`test/test_soak_harness.gd`).
+
 ## Layout
 
 | Folder | Owns |

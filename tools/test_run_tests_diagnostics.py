@@ -77,15 +77,25 @@ FIXTURES = {
 }
 
 
-def run() -> str:
-    """Run the real runner over the fixtures in a scratch project; return its merged output."""
+SINGLE_LEAK = {
+    "test_g_one_leak.gd": HEAD + (
+        "func test_one_object_outlives_the_run() -> void:\n"
+        '\t"""One engine object holding itself (no script of its own to keep alive): the singular report."""\n'
+        "\tvar a := RefCounted.new()\n"
+        '\ta.set_meta("me", a)\n'
+        '\tassert_true(a.get_meta("me") == a, "linked")\n'),
+}
+
+
+def run(fixtures: dict = FIXTURES) -> str:
+    """Run the real runner over `fixtures` in a scratch project; return its merged output."""
     with tempfile.TemporaryDirectory(prefix="redwall-runner-diagnostics-") as scratch:
         project = Path(scratch)
         (project / "project.godot").write_text('config_version=5\n\n[application]\n\nconfig/name="runner"\n')
         (project / "test" / "framework").mkdir(parents=True)
         shutil.copy(REPO / "godot/test/run_tests.gd", project / "test/run_tests.gd")
         shutil.copy(REPO / "godot/test/framework/test_case.gd", project / "test/framework/test_case.gd")
-        for name, text in FIXTURES.items():
+        for name, text in fixtures.items():
             (project / "test" / name).write_text(text)
         result = subprocess.run(["godot", "--headless", "--path", str(project), "--script", "res://test/run_tests.gd"],
                                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=300)
@@ -130,9 +140,35 @@ def check(output: str) -> list[str]:
     return problems
 
 
+def check_single(output: str) -> list[str]:
+    """Decision 0998 (Brendan's P1): one leaked object -- the engine's singular "1 ObjectDB instance was leaked" --
+    is counted by the runner's diagnostics line and by tools/run_tests.sh's own grep."""
+    problems: list[str] = []
+    if not re.search(r"^WARNING: 1 ObjectDB instance was leaked at exit", output, re.M):
+        problems.append("the engine did not print its singular line for one leaked object")
+    if not re.search(r"^diagnostics: .*leaked at exit: 1 object\(s\), \d+ resource\(s\)$", output, re.M):
+        problems.append("the runner did not count the one leaked object")
+    shell = (REPO / "tools/run_tests.sh").read_text()
+    grep = re.search(r"leaked_objects=\"\$\(grep -oE '([^']+)'", shell)
+    if grep is None:
+        problems.append("tools/run_tests.sh has no leaked-objects grep")
+        return problems
+    sample = "WARNING: 1 ObjectDB instance was leaked at exit\nWARNING: 3 ObjectDB instances were leaked at exit\n"
+    counted = subprocess.run(["bash", "-c", f"grep -oE '{grep.group(1)}' | awk '{{ t += $1 }} END {{ print t + 0 }}'"],
+                             input=sample, capture_output=True, text=True).stdout.strip()
+    if counted != "4":
+        problems.append(f"tools/run_tests.sh's grep counts {counted!r} objects in the singular and plural lines, want 4")
+    return problems
+
+
 def main() -> int:
     output = run()
     problems = check(output)
+    single = run(SINGLE_LEAK)
+    single_problems = check_single(single)
+    if single_problems:
+        print(single)
+    problems += single_problems
     if problems:
         print(output)
         for problem in problems:

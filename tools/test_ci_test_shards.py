@@ -153,7 +153,8 @@ class ShardGuards(unittest.TestCase):
     def test_raw_diagnostics_leaks_and_aborts_cannot_hide_behind_clean_summaries(self) -> None:
         clean = self.log(self.plan["shards"][0])
         for diagnostic in ("ERROR: hidden", "WARNING: hidden", "USER ERROR: hidden", "SCRIPT ERROR: abort",
-                           "1 ObjectDB instances were leaked", "1 resources still in use at exit"):
+                           "1 ObjectDB instances were leaked", "1 ObjectDB instance was leaked",
+                           "1 resources still in use at exit"):
             with self.subTest(diagnostic=diagnostic), self.assertRaises(shards.InvalidRun):
                 shards.parse_log(clean + diagnostic + "\n")
 
@@ -237,6 +238,18 @@ class RealRunner(unittest.TestCase):
                 self.assertNotEqual(run.returncode, 0, run.stdout)
                 self.assertFalse((self.output / label / "shard-0.json").exists())
                 self.assertTrue((self.output / label / "shard-0.log").exists())
+
+    def test_one_leaked_object_is_counted_by_the_shard_runner_and_its_shell(self) -> None:
+        # Decision 0998 (Brendan's P1): the engine's singular, "1 ObjectDB instance was leaked", is counted by the
+        # shard runner (the runner's subclass) and by tools/run_tests.sh's own tally, not only failed as a warning.
+        self.suite("test_bad.gd", '\nfunc test_bad() -> void:\n\tvar a := RefCounted.new()\n\ta.set_meta("me", a)\n'
+                   '\tassert_true(true, "ran")\n')
+        run = self.run_shell("--shard", "0/1", "--output-dir", str(self.output / "one"))
+        self.assertNotEqual(run.returncode, 0, run.stdout)
+        log = (self.output / "one" / "shard-0.log").read_text()
+        self.assertIn("1 ObjectDB instance was leaked", log)
+        self.assertRegex(log, r"(?m)^diagnostics: .*leaked at exit: 1 object\(s\), 0 resource\(s\)$")
+        self.assertRegex(log, r"(?m)^log: .*leaked at exit: 1 object\(s\), 0 resource\(s\)\.$")
 
     def test_discovery_rejects_invalid_selection_in_the_actual_godot_worker(self) -> None:
         self.suite("test_ok.gd", '\nfunc test_ok() -> void:\n\tassert_true(true, "ran")\n')

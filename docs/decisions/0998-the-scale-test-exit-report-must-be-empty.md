@@ -150,7 +150,21 @@ outer summary shows, and that was checked by hand instead. The live test was poi
 - **Do not forward the fault run's lines.** They are the expected outcome of that test. Reprinted, they would be
   counted by `tools/run_tests.sh`'s raw grep, even under an `EXPECTED` prefix.
 
-## Proposals for Brendan
+## Brendan's rulings (2026-10-02)
+
+- **P1 -- approved and built.** The engine's singular "1 ObjectDB instance was leaked" is counted in every leak gate:
+  `run_tests.gd LEAKED_OBJECTS_PATTERN` (and so `tools/ci_test_shard_runner.gd`, its subclass, decision 0991),
+  `tools/run_tests.sh`'s object grep, `tools/ci_test_shards.py`'s raw-log check (`LEAKED_OBJECTS`) and
+  `tools/soak_test.py EXIT_SUMMARY` -- all `instances? (were|was) leaked`. Tests: `tools/test_run_tests_diagnostics.py`
+  runs the real runner over one self-holding object and checks its diagnostics line counts 1, and runs
+  `run_tests.sh`'s own grep over a singular and a plural line (4); `tools/test_ci_test_shards.py --godot` runs the
+  sharded shell over the same object and checks both its diagnostics and log lines count 1, and its raw-log check
+  rejects the singular; `tools/test_soak_report.py` checks the soak's scan reports it. Reverting each pattern to the
+  plural alone fails its test.
+- **P2 -- a follow-up**, not built now.
+- **P3 -- to apply when the soak harness is next touched.**
+
+## Proposals as written
 
 1. **Count the singular in the outer leak gates.** Widen the object pattern in `run_tests.gd`, `tools/run_tests.sh`
    and `tools/soak_test.py` to `instances? (were|was) leaked`.

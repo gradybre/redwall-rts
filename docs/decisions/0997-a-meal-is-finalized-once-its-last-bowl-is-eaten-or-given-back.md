@@ -92,7 +92,9 @@ lets an eater finish its bowl, then calls the rest away), so a feast's tally com
   `_count_attendees` (only the regatta clears the occasion, after counting) and the people's diner-index guard
   (`people_ledger.gd pair` already refuses an out-of-range resident).
 
-## PROPOSAL (needs Brendan's ruling)
+## PROPOSAL, ruled
+
+**Brendan, 2026-10-02: option A, as built.**
 
 **A season skip during the feast's own supper.** The Demo Lab's skip (decision 0571) ends a meal being served quietly:
 "the kitchen's meals … did not run". With this decision such a feast is `meal_lapsed` and tallied with **nobody**, even

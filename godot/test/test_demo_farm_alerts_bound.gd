@@ -40,7 +40,7 @@ func test_letting_old_keys_go_says_the_same_lines_and_stays_bounded() -> void:
 	sim.choose(BED_EMPTY_CLAY, WHEAT)
 	assert_true(sim.sow_start(BED_EMPTY_CLAY).ok and sim.sow_finish(BED_EMPTY_CLAY).ok, "wheat sown")
 	var bounded := AlertsScript.new()
-	var reference := KeepEverything.new()
+	var keep_all := KeepEverything.new()
 	var events := PackedInt32Array()
 	var said: int = 0
 	var most: int = 0
@@ -51,7 +51,7 @@ func test_letting_old_keys_go_says_the_same_lines_and_stays_bounded() -> void:
 		var lines := PackedStringArray()
 		var expected := PackedStringArray()
 		bounded.collect_into(sim, events, PackedInt32Array(), lines)
-		reference.collect_into(sim, events, PackedInt32Array(), expected)
+		keep_all.collect_into(sim, events, PackedInt32Array(), expected)
 		if lines != expected:
 			fail("hour %d: %s, the old way %s" % [hour, lines, expected])
 			return
@@ -59,7 +59,7 @@ func test_letting_old_keys_go_says_the_same_lines_and_stays_bounded() -> void:
 		most = maxi(most, bounded.said_count())
 	assert_true(said > DAYS, "lines were said (%d)" % said)
 	assert_true(most <= 40, "at most a day's keys kept: %d" % most)
-	assert_true(reference.said_count() > 2 * most, "the old way kept %d" % reference.said_count())
+	assert_true(keep_all.said_count() > 2 * most, "the old way kept %d" % keep_all.said_count())
 
 
 func test_a_forecast_is_said_once_a_season_and_again_the_next() -> void:

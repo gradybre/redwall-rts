@@ -136,7 +136,7 @@ func test_the_leak_watch_finds_a_cycle_and_spares_what_is_freed_or_held() -> voi
 	village.free()
 	var out: Dictionary = leaks.check(keeper)
 	assert_equal([out["survivors"], out["unreachable"], out["held"]], [6, 4, 2], "spare freed; 4 unreachable; 2 held")
-	assert_equal(out["unreachable_by_label"].values().reduce(func(a: int, b: int) -> int: return a + b, 0), 4,
+	assert_equal(out["unreachable_by_label"].values().reduce(func(sum: int, n: int) -> int: return sum + n, 0), 4,
 		"labelled")
 	var a: Pal = cycle.get_ref()
 	if a != null:

@@ -13,11 +13,11 @@ var _capacity: int = 0
 var _count: int = 0
 
 
-func setup(names: PackedStringArray, capacity: int) -> void:
-	"""Name the columns and size the table for `capacity` rows (all zero), once, before the first row."""
+func setup(names: PackedStringArray, row_capacity: int) -> void:
+	"""Name the columns and size the table for `row_capacity` rows (all zero), once, before the first row."""
 	columns = names
 	_width = names.size()
-	_capacity = maxi(capacity, 0)
+	_capacity = maxi(row_capacity, 0)
 	_index.clear()
 	for k: int in _width:
 		_index[names[k]] = k

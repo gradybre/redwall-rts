@@ -748,14 +748,14 @@ func test_the_strip_stands_in_its_own_row_above_the_commands() -> void:
 	strip.set_mode_text("Cutaway angle")
 	for size: Vector2 in [SIZE_720, SIZE_1080, SIZE_4K]:
 		strip.place_for(size)
-		var layout := UiLayout.new()
-		var geometry := UiLayout.Geometry.new()
-		var band: Rect2 = NewsStrip.band_placement(int(size.x), int(size.y), layout, geometry, false)
-		var s: float = geometry.scale
+		var size_layout := UiLayout.new()
+		var size_geometry := UiLayout.Geometry.new()
+		var size_band: Rect2 = NewsStrip.band_placement(int(size.x), int(size.y), size_layout, size_geometry, false)
+		var s: float = size_geometry.scale
 		var at: Rect2 = strip.rect()
-		assert_almost_equal(at.end.y, (geometry.commands.position.y - Strip.STACK_GAP) * s, "%s: above the commands" % size)
-		assert_almost_equal(at.get_center().x, band.get_center().x * s, "%s: centred on the news' band" % size)
-		assert_true(at.position.x >= geometry.minimap.end.x * s and at.end.x <= geometry.detail.position.x * s,
+		assert_almost_equal(at.end.y, (size_geometry.commands.position.y - Strip.STACK_GAP) * s, "%s: above the commands" % size)
+		assert_almost_equal(at.get_center().x, size_band.get_center().x * s, "%s: centred on the news' band" % size)
+		assert_true(at.position.x >= size_geometry.minimap.end.x * s and at.end.x <= size_geometry.detail.position.x * s,
 			"%s: between the minimap and the right column" % size)
 	strip.place_for(SIZE_1080)
 	var small: Rect2 = strip.rect()

@@ -447,7 +447,7 @@ func _built_in_statuses() -> void:
 	brain.set("trip_outcome", BrainScript.TRIP_FAILED)
 	_command().call(&"select", PackedInt32Array([0, 1, 2, 3]))
 	await _settle()
-	await _statuses_read()
+	_statuses_read()
 	_set_column(fed, "hunger", 0, int(kept[0]))
 	_set_column(fed, "hunger", 1, int(kept[1]))
 	_set_column(night, "bed_of", 3, int(kept[2]))

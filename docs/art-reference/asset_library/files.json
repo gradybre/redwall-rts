@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1522,
- "total_bytes": 18320911905,
+ "count": 1599,
+ "total_bytes": 20078397298,
  "files": [
   {
    "family": "building",
@@ -13636,6 +13636,699 @@
    "path": "assets/library/creature/badger_quarryman/anim_cautious_crouch_walk_forward.glb",
    "bytes": 7019692,
    "sha256": "b03c0525f0b8dba2a280ff71cbdb815474cacae61cb72ca726ea1f161c090099"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_foods_a",
+   "stage": "icon_sheet",
+   "task_id": "01a0fabb-231d-7535-a65a-7ac4c035a01d",
+   "path": "assets/library/icon/sheet_foods_a/sheet.png",
+   "bytes": 918989,
+   "sha256": "9709a0d6ce7829374c8d23cb4d8a9890de0ad7ccb6bbb62a310d54ed72bfcbc4"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_dishes_b",
+   "stage": "icon_sheet",
+   "task_id": "01a0fabc-3220-704b-ae73-a535295b7efc",
+   "path": "assets/library/icon/sheet_dishes_b/sheet.png",
+   "bytes": 1125717,
+   "sha256": "4601842989b3960c0a3071a677e5530bc54f0d44ed2dd51eba217179f196d9e6"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_dishes_c",
+   "stage": "icon_sheet",
+   "task_id": "01a0fabc-3b70-7544-9950-124dd77a56ab",
+   "path": "assets/library/icon/sheet_dishes_c/sheet.png",
+   "bytes": 1060012,
+   "sha256": "81971da3d951e2b70696d4f900e9750c4fa62af2aa1c953168239dcbe889a752"
+  },
+  {
+   "family": "environment",
+   "key": "apple_tree",
+   "stage": "concept",
+   "task_id": "01a0fabe-6e08-702d-b2e2-c660c39fbd7f",
+   "path": "assets/library/environment/apple_tree/concept.png",
+   "bytes": 728422,
+   "sha256": "343033987ec8b30ef21e8e352cfe7f5923eb68e6e8bbe3a95a7cf1b8dd94493f"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "concept",
+   "task_id": "01a0fabe-77ea-7433-9550-75e746f1efc4",
+   "path": "assets/library/environment/pear_tree/concept_v1_rejected.png",
+   "bytes": 774292,
+   "sha256": "2dd1ab5eb02b69450eda2d8d44ff495f7fc006e23e2d3d82818cc0ce96aed291"
+  },
+  {
+   "family": "environment",
+   "key": "raspberry_canes",
+   "stage": "concept",
+   "task_id": "01a0fabe-8125-73fa-8ca2-9887a3043d7a",
+   "path": "assets/library/environment/raspberry_canes/concept.png",
+   "bytes": 1158828,
+   "sha256": "12dda790b57d4e53b1737dec580718f603348e568fc51ae15e7f602328d7afac"
+  },
+  {
+   "family": "environment",
+   "key": "hazel_bush",
+   "stage": "concept",
+   "task_id": "01a0fabe-8a8f-7549-8b1b-f7f4e4a89638",
+   "path": "assets/library/environment/hazel_bush/concept.png",
+   "bytes": 999008,
+   "sha256": "105d86ad613b0ebb012a237936808d05e5b530dd222b81cb37eca419edaeaf0c"
+  },
+  {
+   "family": "environment",
+   "key": "strawberry_patch",
+   "stage": "concept",
+   "task_id": "01a0fabe-9421-73aa-964d-9ec6fd4ecffe",
+   "path": "assets/library/environment/strawberry_patch/concept.png",
+   "bytes": 1251961,
+   "sha256": "d1c5b62c31d03dea6e4efc18cdef604e18aef391feba2f109e5dd6734084b1ed"
+  },
+  {
+   "family": "environment",
+   "key": "mushroom_forage",
+   "stage": "concept",
+   "task_id": "01a0fabe-aaf3-756b-bd92-ea4538def38c",
+   "path": "assets/library/environment/mushroom_forage/concept.png",
+   "bytes": 1084190,
+   "sha256": "a52a1973bd033da3204768719d34482cc94106d3f36bd6c8b87bfa5f7123dac4"
+  },
+  {
+   "family": "environment",
+   "key": "herb_patch",
+   "stage": "concept",
+   "task_id": "01a0fabe-b469-755e-91fb-7e600eafcf37",
+   "path": "assets/library/environment/herb_patch/concept.png",
+   "bytes": 1155864,
+   "sha256": "8132fd0e97d55302a80e45d0e534ffcf917c961e74456a281673f6b716ddc663"
+  },
+  {
+   "family": "prop",
+   "key": "apple_basket",
+   "stage": "concept",
+   "task_id": "01a0fabe-bdd9-7302-875b-f63829aee299",
+   "path": "assets/library/prop/apple_basket/concept.png",
+   "bytes": 1090977,
+   "sha256": "848fe02d7dacda0cd296d72409058c2cd959efb490a01bfa057761f7bb375d0a"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "concept",
+   "task_id": "01a0fabe-c70c-761c-8be8-6ada708430e3",
+   "path": "assets/library/building/infirmary_ward/concept_v1_rejected.png",
+   "bytes": 1001927,
+   "sha256": "ae3263152f77d133b81e6da1708d7bcf1b1cd5e5c16e3217b6c7f7989c0fd721"
+  },
+  {
+   "family": "prop",
+   "key": "bee_skep",
+   "stage": "concept",
+   "task_id": "01a0fabe-d1af-76b2-b393-ee19b394e984",
+   "path": "assets/library/prop/bee_skep/concept.png",
+   "bytes": 951334,
+   "sha256": "7e5a15c31749c9687706a56026651d767b75fcab331f16e73bd01b34b0a78c99"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "concept",
+   "task_id": "01a0fac0-c248-745c-bf70-e5e544106b17",
+   "path": "assets/library/environment/pear_tree/concept.png",
+   "bytes": 912846,
+   "sha256": "36765c1428ce06ca38a0e60ce562b86976afe14dcad4ff582069baff5144d2ce"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "concept",
+   "task_id": "01a0fac0-e008-736c-90a4-ebce72aa7d57",
+   "path": "assets/library/building/infirmary_ward/concept.png",
+   "bytes": 1266506,
+   "sha256": "a8884d6b1d20d24b5af4cc89a680baa876b17fb128372e93144a4257103461aa"
+  },
+  {
+   "family": "environment",
+   "key": "bramble_blackberry",
+   "stage": "concept",
+   "task_id": "01a0fad9-2198-75e9-8ae5-bbb590bf7bf3",
+   "path": "assets/library/environment/bramble_blackberry/concept.png",
+   "bytes": 1059797,
+   "sha256": "e90a49a0c9a6f4f02c1d28701d735a6c075a9ffc2497a842dd200436304f675d"
+  },
+  {
+   "family": "environment",
+   "key": "apple_tree",
+   "stage": "highpoly",
+   "task_id": "01a0fac0-f470-7394-a33f-4dd7d1fcf5ac",
+   "path": "assets/library/environment/apple_tree/highpoly.glb",
+   "bytes": 119065372,
+   "sha256": "20c04e8d70899ecdd328acdcf859d558c40bd482c603a66b6013d72e41d10938"
+  },
+  {
+   "family": "environment",
+   "key": "apple_tree",
+   "stage": "texture",
+   "task_id": "01a0fac0-f470-7394-a33f-4dd7d1fcf5ac",
+   "path": "assets/library/environment/apple_tree/highpoly_textures/base_color.png",
+   "bytes": 5096712,
+   "sha256": "5a887d12ed2bd80c89ef0fbda70dfc7ccb4cee1a29ff0fc66bdfbdd47162351a"
+  },
+  {
+   "family": "environment",
+   "key": "apple_tree",
+   "stage": "texture",
+   "task_id": "01a0fac0-f470-7394-a33f-4dd7d1fcf5ac",
+   "path": "assets/library/environment/apple_tree/highpoly_textures/metallic.png",
+   "bytes": 24775,
+   "sha256": "b13797113cfa962fd6fe7a8acb9d388a65d0f1551172aa16dd87ed9a773bfbf8"
+  },
+  {
+   "family": "environment",
+   "key": "apple_tree",
+   "stage": "texture",
+   "task_id": "01a0fac0-f470-7394-a33f-4dd7d1fcf5ac",
+   "path": "assets/library/environment/apple_tree/highpoly_textures/normal.png",
+   "bytes": 3747539,
+   "sha256": "66e668a31a6a2a49c2ee197fcab1e52bc3ce937c477528eaf1482d8b9df659c0"
+  },
+  {
+   "family": "environment",
+   "key": "apple_tree",
+   "stage": "texture",
+   "task_id": "01a0fac0-f470-7394-a33f-4dd7d1fcf5ac",
+   "path": "assets/library/environment/apple_tree/highpoly_textures/roughness.png",
+   "bytes": 1527633,
+   "sha256": "ccbde41617c5caef8deaaae844c0fd717b2c8643a753bbcd12fdb018b9a2adab"
+  },
+  {
+   "family": "environment",
+   "key": "raspberry_canes",
+   "stage": "highpoly",
+   "task_id": "01a0fac0-fe24-7492-8171-898ce2b3a1c3",
+   "path": "assets/library/environment/raspberry_canes/highpoly.glb",
+   "bytes": 75162980,
+   "sha256": "e47fb227f5230591119a588b5e73cd1f854affc093ef6f53040f1c4ecc691a21"
+  },
+  {
+   "family": "environment",
+   "key": "raspberry_canes",
+   "stage": "texture",
+   "task_id": "01a0fac0-fe24-7492-8171-898ce2b3a1c3",
+   "path": "assets/library/environment/raspberry_canes/highpoly_textures/base_color.png",
+   "bytes": 7401976,
+   "sha256": "ed52e0c1c2b52b16122990745b3f4453c36f48247a55312ff4f6fde5b3a6b80f"
+  },
+  {
+   "family": "environment",
+   "key": "raspberry_canes",
+   "stage": "texture",
+   "task_id": "01a0fac0-fe24-7492-8171-898ce2b3a1c3",
+   "path": "assets/library/environment/raspberry_canes/highpoly_textures/metallic.png",
+   "bytes": 208698,
+   "sha256": "e72beadd27690e61169a2b3967423c01db4c94351be88cc2128e2516187019b9"
+  },
+  {
+   "family": "environment",
+   "key": "raspberry_canes",
+   "stage": "texture",
+   "task_id": "01a0fac0-fe24-7492-8171-898ce2b3a1c3",
+   "path": "assets/library/environment/raspberry_canes/highpoly_textures/normal.png",
+   "bytes": 6085348,
+   "sha256": "25cdeacb0a4b0368b21dd66d59668577711326d9d0f96da36a65a4a0c18e0021"
+  },
+  {
+   "family": "environment",
+   "key": "raspberry_canes",
+   "stage": "texture",
+   "task_id": "01a0fac0-fe24-7492-8171-898ce2b3a1c3",
+   "path": "assets/library/environment/raspberry_canes/highpoly_textures/roughness.png",
+   "bytes": 1859307,
+   "sha256": "a23d4c6ae949c2eec14e7b756d2b52592044fbbe74ba0f3ccb55d83f6e3b5e7d"
+  },
+  {
+   "family": "environment",
+   "key": "hazel_bush",
+   "stage": "highpoly",
+   "task_id": "01a0fac1-0949-72ef-9047-98641bd2898b",
+   "path": "assets/library/environment/hazel_bush/highpoly.glb",
+   "bytes": 70318864,
+   "sha256": "af8b02378738ce8b9d07741679df6c64b150358bb8b228753df03c772d70c1fa"
+  },
+  {
+   "family": "environment",
+   "key": "hazel_bush",
+   "stage": "texture",
+   "task_id": "01a0fac1-0949-72ef-9047-98641bd2898b",
+   "path": "assets/library/environment/hazel_bush/highpoly_textures/base_color.png",
+   "bytes": 6625042,
+   "sha256": "9991649392ab33a05bcf84a1c47ec914fa60966f1d251de7976826a11bca2b76"
+  },
+  {
+   "family": "environment",
+   "key": "hazel_bush",
+   "stage": "texture",
+   "task_id": "01a0fac1-0949-72ef-9047-98641bd2898b",
+   "path": "assets/library/environment/hazel_bush/highpoly_textures/metallic.png",
+   "bytes": 107900,
+   "sha256": "0e6eeb405e569757a5bbe13f3d136c4ffcda0824be0debf60c23468bc422bd0d"
+  },
+  {
+   "family": "environment",
+   "key": "hazel_bush",
+   "stage": "texture",
+   "task_id": "01a0fac1-0949-72ef-9047-98641bd2898b",
+   "path": "assets/library/environment/hazel_bush/highpoly_textures/normal.png",
+   "bytes": 5149600,
+   "sha256": "6667c7a58e9e2a222da283f039e8f70fd961de903388d20b97ea41a6f10afe85"
+  },
+  {
+   "family": "environment",
+   "key": "hazel_bush",
+   "stage": "texture",
+   "task_id": "01a0fac1-0949-72ef-9047-98641bd2898b",
+   "path": "assets/library/environment/hazel_bush/highpoly_textures/roughness.png",
+   "bytes": 1673689,
+   "sha256": "52ab42dc966b0fee3edc947e79f389da04691c29cc39d180cf43150d6cd5af9a"
+  },
+  {
+   "family": "environment",
+   "key": "strawberry_patch",
+   "stage": "highpoly",
+   "task_id": "01a0fac1-1298-76b9-880f-f6ebaf09beaa",
+   "path": "assets/library/environment/strawberry_patch/highpoly.glb",
+   "bytes": 176587324,
+   "sha256": "51d81bcc5a0cda434e23b6b84312328ca3ccc39a107f69dc2513eda655669810"
+  },
+  {
+   "family": "environment",
+   "key": "strawberry_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-1298-76b9-880f-f6ebaf09beaa",
+   "path": "assets/library/environment/strawberry_patch/highpoly_textures/base_color.png",
+   "bytes": 6892909,
+   "sha256": "917952d0fb832895660206f47b51ced25892bacda5622493ea7c8a6979cbcd4c"
+  },
+  {
+   "family": "environment",
+   "key": "strawberry_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-1298-76b9-880f-f6ebaf09beaa",
+   "path": "assets/library/environment/strawberry_patch/highpoly_textures/metallic.png",
+   "bytes": 85060,
+   "sha256": "e9eed48638e99ebce7ba90e7b8586037d02cdb646b3571780955b0152ab2cd25"
+  },
+  {
+   "family": "environment",
+   "key": "strawberry_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-1298-76b9-880f-f6ebaf09beaa",
+   "path": "assets/library/environment/strawberry_patch/highpoly_textures/normal.png",
+   "bytes": 6062870,
+   "sha256": "d773e1ad5c4536f8246e0e1d5e8bfb7eec665db0e23ef19d1a182d86e7a3d0fa"
+  },
+  {
+   "family": "environment",
+   "key": "strawberry_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-1298-76b9-880f-f6ebaf09beaa",
+   "path": "assets/library/environment/strawberry_patch/highpoly_textures/roughness.png",
+   "bytes": 1930685,
+   "sha256": "28bd93742ea35b5d053b0ac37c7b05ee94e11976c1e410a833590ec00c849ca4"
+  },
+  {
+   "family": "environment",
+   "key": "mushroom_forage",
+   "stage": "highpoly",
+   "task_id": "01a0fac1-26d3-74d9-81c8-5f567ed0a19c",
+   "path": "assets/library/environment/mushroom_forage/highpoly.glb",
+   "bytes": 111861360,
+   "sha256": "3fd8121c7953d1a052f2bdba892678e9ff788b0e2f7a8e7ba2ef1df2022d4942"
+  },
+  {
+   "family": "environment",
+   "key": "mushroom_forage",
+   "stage": "texture",
+   "task_id": "01a0fac1-26d3-74d9-81c8-5f567ed0a19c",
+   "path": "assets/library/environment/mushroom_forage/highpoly_textures/base_color.png",
+   "bytes": 6360830,
+   "sha256": "42b2f1ea97e556e0c651d6bce37eada7f03677572f0e0ac9569aa8b08cb1efe2"
+  },
+  {
+   "family": "environment",
+   "key": "mushroom_forage",
+   "stage": "texture",
+   "task_id": "01a0fac1-26d3-74d9-81c8-5f567ed0a19c",
+   "path": "assets/library/environment/mushroom_forage/highpoly_textures/metallic.png",
+   "bytes": 27232,
+   "sha256": "811eefcf3889cfb64ef14068e2d73751d5ab9862279bc05639134d5025ece2a5"
+  },
+  {
+   "family": "environment",
+   "key": "mushroom_forage",
+   "stage": "texture",
+   "task_id": "01a0fac1-26d3-74d9-81c8-5f567ed0a19c",
+   "path": "assets/library/environment/mushroom_forage/highpoly_textures/normal.png",
+   "bytes": 5154401,
+   "sha256": "0cd3fa0d9814a4e102b4adec2c55373d1dcc45db130d7539fb996d72ba2b0095"
+  },
+  {
+   "family": "environment",
+   "key": "mushroom_forage",
+   "stage": "texture",
+   "task_id": "01a0fac1-26d3-74d9-81c8-5f567ed0a19c",
+   "path": "assets/library/environment/mushroom_forage/highpoly_textures/roughness.png",
+   "bytes": 1709444,
+   "sha256": "03023f71f929c7fb8ddf24c228f5a3f77b5ed47ade35b91be6ca7b166bc1ef4d"
+  },
+  {
+   "family": "environment",
+   "key": "herb_patch",
+   "stage": "highpoly",
+   "task_id": "01a0fac1-3043-722c-9785-4c30b7e90725",
+   "path": "assets/library/environment/herb_patch/highpoly.glb",
+   "bytes": 246716440,
+   "sha256": "4a8af97b34bd96cb14679a50f3e7b7035c00f1138a3f13ede1e53ce88a885a6f"
+  },
+  {
+   "family": "environment",
+   "key": "herb_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-3043-722c-9785-4c30b7e90725",
+   "path": "assets/library/environment/herb_patch/highpoly_textures/base_color.png",
+   "bytes": 6626177,
+   "sha256": "ed42ca4bddcbd431bce3e9816f4e21c4ffd2e11d4eeb318f1a2684360212fd1f"
+  },
+  {
+   "family": "environment",
+   "key": "herb_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-3043-722c-9785-4c30b7e90725",
+   "path": "assets/library/environment/herb_patch/highpoly_textures/metallic.png",
+   "bytes": 34937,
+   "sha256": "7909cfddeca02a62ad85423c096d7cea4882533200833250568affdbf5622714"
+  },
+  {
+   "family": "environment",
+   "key": "herb_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-3043-722c-9785-4c30b7e90725",
+   "path": "assets/library/environment/herb_patch/highpoly_textures/normal.png",
+   "bytes": 5609638,
+   "sha256": "2694c01cba02b7041e07bb26ba0a6132ddcb0af56392d45e88c2973532ae682f"
+  },
+  {
+   "family": "environment",
+   "key": "herb_patch",
+   "stage": "texture",
+   "task_id": "01a0fac1-3043-722c-9785-4c30b7e90725",
+   "path": "assets/library/environment/herb_patch/highpoly_textures/roughness.png",
+   "bytes": 1837721,
+   "sha256": "776c61415b1cf493056a7d3b40430a728d16de2eb96a1c43702d94e7394f58fc"
+  },
+  {
+   "family": "prop",
+   "key": "apple_basket",
+   "stage": "highpoly",
+   "task_id": "01a0fac1-39aa-714b-90aa-bd12755532a3",
+   "path": "assets/library/prop/apple_basket/highpoly.glb",
+   "bytes": 242594212,
+   "sha256": "341c0ca553d07ede36a498e06ae43bd53784284f8d90976a9d1a93b94141dc5a"
+  },
+  {
+   "family": "prop",
+   "key": "apple_basket",
+   "stage": "texture",
+   "task_id": "01a0fac1-39aa-714b-90aa-bd12755532a3",
+   "path": "assets/library/prop/apple_basket/highpoly_textures/base_color.png",
+   "bytes": 6372139,
+   "sha256": "31dcf6770714569afba10b9519bf914cfe31f818bd2f67dd6cdcdcaa4072a0e2"
+  },
+  {
+   "family": "prop",
+   "key": "apple_basket",
+   "stage": "texture",
+   "task_id": "01a0fac1-39aa-714b-90aa-bd12755532a3",
+   "path": "assets/library/prop/apple_basket/highpoly_textures/metallic.png",
+   "bytes": 19286,
+   "sha256": "cc126c95e1684bc991e4d63e98f55e4afcc4830e169c2ae08a914f241c179b0d"
+  },
+  {
+   "family": "prop",
+   "key": "apple_basket",
+   "stage": "texture",
+   "task_id": "01a0fac1-39aa-714b-90aa-bd12755532a3",
+   "path": "assets/library/prop/apple_basket/highpoly_textures/normal.png",
+   "bytes": 5959603,
+   "sha256": "1640c8e7ec7104ce5e1f2bab86cf263ee8b35c6760ad6dbad153d39008a802ef"
+  },
+  {
+   "family": "prop",
+   "key": "apple_basket",
+   "stage": "texture",
+   "task_id": "01a0fac1-39aa-714b-90aa-bd12755532a3",
+   "path": "assets/library/prop/apple_basket/highpoly_textures/roughness.png",
+   "bytes": 1969385,
+   "sha256": "b3ae55111c53cae6ee6d177000862eef71d3a540090ca6434a53816fdfe8c48c"
+  },
+  {
+   "family": "prop",
+   "key": "bee_skep",
+   "stage": "highpoly",
+   "task_id": "01a0fac1-43a4-73ac-80b6-b750cb818705",
+   "path": "assets/library/prop/bee_skep/highpoly.glb",
+   "bytes": 124880276,
+   "sha256": "c8923e8633b38f493506f497495802f2b780f78eb70acd096449bfca2db8f4dc"
+  },
+  {
+   "family": "prop",
+   "key": "bee_skep",
+   "stage": "texture",
+   "task_id": "01a0fac1-43a4-73ac-80b6-b750cb818705",
+   "path": "assets/library/prop/bee_skep/highpoly_textures/base_color.png",
+   "bytes": 6117288,
+   "sha256": "d64eba6fdcaed4cca1438b29fd2949d43307304dafde3d5d9f587c9e558c113c"
+  },
+  {
+   "family": "prop",
+   "key": "bee_skep",
+   "stage": "texture",
+   "task_id": "01a0fac1-43a4-73ac-80b6-b750cb818705",
+   "path": "assets/library/prop/bee_skep/highpoly_textures/metallic.png",
+   "bytes": 18829,
+   "sha256": "09959995d988a1093171895357912aa81d8faf1b1691f108b26979617a6d3a85"
+  },
+  {
+   "family": "prop",
+   "key": "bee_skep",
+   "stage": "texture",
+   "task_id": "01a0fac1-43a4-73ac-80b6-b750cb818705",
+   "path": "assets/library/prop/bee_skep/highpoly_textures/normal.png",
+   "bytes": 5322260,
+   "sha256": "e246b6227ffda2f44ad80fe717ed3b9f46781f6a395e52cfa705f7168802581e"
+  },
+  {
+   "family": "prop",
+   "key": "bee_skep",
+   "stage": "texture",
+   "task_id": "01a0fac1-43a4-73ac-80b6-b750cb818705",
+   "path": "assets/library/prop/bee_skep/highpoly_textures/roughness.png",
+   "bytes": 1663381,
+   "sha256": "a4d502116891e733ce4ac91b0d40baec3f5ad77f52d41555f5dcf3ad7f24e0c3"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "highpoly",
+   "task_id": "01a0fac5-4674-76a8-af6a-a47215ecdd63",
+   "path": "assets/library/environment/pear_tree/highpoly.glb",
+   "bytes": 111188304,
+   "sha256": "b6f396103f49b4adfc6297498ec6093618c3ddd9a74706cf1aad7706679ecd9c"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "texture",
+   "task_id": "01a0fac5-4674-76a8-af6a-a47215ecdd63",
+   "path": "assets/library/environment/pear_tree/highpoly_textures/base_color.png",
+   "bytes": 5130499,
+   "sha256": "7d9d61bb0189ce65a1db17eff7d7871b86aa62780516886d3ac3f297eaf3b292"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "texture",
+   "task_id": "01a0fac5-4674-76a8-af6a-a47215ecdd63",
+   "path": "assets/library/environment/pear_tree/highpoly_textures/metallic.png",
+   "bytes": 23901,
+   "sha256": "4e4f5427c97e5ac9b8e34584415e47c3135e1a749e6a41d9e4fefeceb2f01a1f"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "texture",
+   "task_id": "01a0fac5-4674-76a8-af6a-a47215ecdd63",
+   "path": "assets/library/environment/pear_tree/highpoly_textures/normal.png",
+   "bytes": 3771266,
+   "sha256": "67a52b9e3890ad4b14538bfe0887acba47f15321f52e160e6cf3ec7216406d51"
+  },
+  {
+   "family": "environment",
+   "key": "pear_tree",
+   "stage": "texture",
+   "task_id": "01a0fac5-4674-76a8-af6a-a47215ecdd63",
+   "path": "assets/library/environment/pear_tree/highpoly_textures/roughness.png",
+   "bytes": 1604116,
+   "sha256": "01ded4261f3fd989a2c8a863b2aa69ce603ebced320777bbabfd25c20236d52c"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "highpoly",
+   "task_id": "01a0fac6-3dc2-73fb-b937-e4912fc5c0d3",
+   "path": "assets/library/building/infirmary_ward/highpoly.glb",
+   "bytes": 150019688,
+   "sha256": "5b03c4911e796ece783c92626f98f24e15d3f788edec6a1c3c005bdb7562bda5"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fac6-3dc2-73fb-b937-e4912fc5c0d3",
+   "path": "assets/library/building/infirmary_ward/highpoly_textures/base_color.png",
+   "bytes": 7352119,
+   "sha256": "e44968acc95ca9efb3f196e24e2d793356a805b2ba662ea1b65ce8b0a28085a6"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fac6-3dc2-73fb-b937-e4912fc5c0d3",
+   "path": "assets/library/building/infirmary_ward/highpoly_textures/metallic.png",
+   "bytes": 23416,
+   "sha256": "e03d0e34152b0d8ffd2f79d67ee8c7e4c1fee34f76715a1fc7d6ebfbeb298bf4"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fac6-3dc2-73fb-b937-e4912fc5c0d3",
+   "path": "assets/library/building/infirmary_ward/highpoly_textures/normal.png",
+   "bytes": 6315277,
+   "sha256": "0d7ad7e03bcfa9b60540025b869b42eaf8f612bac392cf9b8ed4a26a413a248e"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fac6-3dc2-73fb-b937-e4912fc5c0d3",
+   "path": "assets/library/building/infirmary_ward/highpoly_textures/roughness.png",
+   "bytes": 1855299,
+   "sha256": "450db60da492462fb8242f8e2facbb0f7f9551b493d84dbd1cc36d326571ce24"
+  },
+  {
+   "family": "environment",
+   "key": "bramble_blackberry",
+   "stage": "highpoly",
+   "task_id": "01a0fad9-8d58-750a-96ea-3428f3b0615c",
+   "path": "assets/library/environment/bramble_blackberry/highpoly.glb",
+   "bytes": 109540740,
+   "sha256": "ebc024732d387c37b4fa71e13150ea82fe18b0491e834bc2357437f9d7b22055"
+  },
+  {
+   "family": "environment",
+   "key": "bramble_blackberry",
+   "stage": "texture",
+   "task_id": "01a0fad9-8d58-750a-96ea-3428f3b0615c",
+   "path": "assets/library/environment/bramble_blackberry/highpoly_textures/base_color.png",
+   "bytes": 5390799,
+   "sha256": "661a6df19390c63b861176d2e301b4f6f591dd6a9cbfb6e2fbb30a049ee01204"
+  },
+  {
+   "family": "environment",
+   "key": "bramble_blackberry",
+   "stage": "texture",
+   "task_id": "01a0fad9-8d58-750a-96ea-3428f3b0615c",
+   "path": "assets/library/environment/bramble_blackberry/highpoly_textures/metallic.png",
+   "bytes": 27952,
+   "sha256": "1d3a01c2873d2aa8d1565d5ff8d9887fd21f6435cffda9fdbdbc0b24bc3670c8"
+  },
+  {
+   "family": "environment",
+   "key": "bramble_blackberry",
+   "stage": "texture",
+   "task_id": "01a0fad9-8d58-750a-96ea-3428f3b0615c",
+   "path": "assets/library/environment/bramble_blackberry/highpoly_textures/normal.png",
+   "bytes": 4073996,
+   "sha256": "6cc7fb192f8badb9245f6072127010ae80aab8647d9aca02c2d9349392719248"
+  },
+  {
+   "family": "environment",
+   "key": "bramble_blackberry",
+   "stage": "texture",
+   "task_id": "01a0fad9-8d58-750a-96ea-3428f3b0615c",
+   "path": "assets/library/environment/bramble_blackberry/highpoly_textures/roughness.png",
+   "bytes": 1560162,
+   "sha256": "c1d74baf7545805f2a3c718618a2defb71afee3877210777480e68933263c7a9"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "l0_remesh",
+   "task_id": "01a0fad3-cc7e-7247-8e95-0c62759ab7ea",
+   "path": "assets/library/building/infirmary_ward/l0.glb",
+   "bytes": 26178724,
+   "sha256": "dd98d146fb880cfcfe712232f6826610a3ec46b858e3f8ff43b7f89baa0da5eb"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fad3-cc7e-7247-8e95-0c62759ab7ea",
+   "path": "assets/library/building/infirmary_ward/l0_textures/base_color.png",
+   "bytes": 6888208,
+   "sha256": "78708060fbfa51bc52508903da2490a9d6f9bdc2f0f595598731b45d44ad88d5"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fad3-cc7e-7247-8e95-0c62759ab7ea",
+   "path": "assets/library/building/infirmary_ward/l0_textures/metallic.png",
+   "bytes": 2232211,
+   "sha256": "24a0b70c8d66d3a90bba8eb0f7a7cd1ee8e29799f093cb920d5401dc372c7521"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fad3-cc7e-7247-8e95-0c62759ab7ea",
+   "path": "assets/library/building/infirmary_ward/l0_textures/metallic_roughness.png",
+   "bytes": 10562238,
+   "sha256": "d159f8f8a02a0967b4a1f5b2f1ed058ab4e919c107da912f9678fed31669b5b4"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fad3-cc7e-7247-8e95-0c62759ab7ea",
+   "path": "assets/library/building/infirmary_ward/l0_textures/normal.png",
+   "bytes": 6799202,
+   "sha256": "611338ee84727b8b7caa6434bbde9eee03723a9d530e59fe70128f78435a70a9"
+  },
+  {
+   "family": "building",
+   "key": "infirmary_ward",
+   "stage": "texture",
+   "task_id": "01a0fad3-cc7e-7247-8e95-0c62759ab7ea",
+   "path": "assets/library/building/infirmary_ward/l0_textures/roughness.png",
+   "bytes": 3937484,
+   "sha256": "c011132ec3d674d7f05b00ee0400b740675ccc7433c7d5e0cf9faff54a0d9403"
   }
  ]
 }

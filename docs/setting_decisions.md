@@ -1191,6 +1191,46 @@ Scope: the live demo's farm (`godot/demo/farm/`). Engineering record: decision 0
 harvest plans, kitchen garden, tunnel outlets and tending policies, approved with it). Recorded at the batch 7
 integration (decision 0902).
 
+### DEC-049 — Goods are shown in natural measures, in the demo and in the game
+
+2026-10-02 · State: `USER_CONFIRMED` (the measures table and P1–P8). The game-catalogue rows added afterwards, and
+the settlement Wood counter's band, are open (P9, P10).
+
+Brendan, 2026-10-02, relayed through the settlement coordinator:
+
+- **Replace the "U" amount label with natural, per-good measures**: "40 logs", "12 sacks of barley", "5 bunches of
+  herbs".
+- **Each good's weight goes in its tooltip.**
+- **The HUD's quick readouts use plain words** ("plenty", "running low"). Heating fuel and Ready food stay in days.
+- **"The U view" is renamed "Underground"** in all text. The U key stays.
+
+On decision 1011 the same day, he approved the following:
+
+- **The measures table** in decision 1011 §1. Every good has a measure that one small resident can carry, with a
+  smaller measure below it, and its weight below that. Examples: a log and a block are 5 kg, a sack is 5 kg, a
+  basket of food is 1.25 kg, a bunch of herbs is 250 g, a bucket is 10 L, and one fish is one U.
+- **P1–P6 and P8 as recommended:**
+  - Stone is a count in blocks;
+  - a plank is 5 kg;
+  - every fish species counts one fish per U;
+  - onions are counted;
+  - capacities show no weight;
+  - the demo's Wood cell uses none / very low / running low / enough / plenty, on the winter's existing thresholds;
+  - water tooltips show litres and kg.
+- **P7, changed: "Apply to demo and game spec".** The natural measures apply to the release game's UI as well as the
+  live demo. `docs/ui_ux_controls.md` is amended to match (its "Amounts are shown in natural measures" section).
+
+What the ruling does not change:
+
+- **Display only.** GDD §4.1's `quantity_milli:int64` (1000 = one catalogue unit, U) stays the simulation's unit in
+  `docs/game_gdd.md` and `docs/gameplay_balance.md`. That covers every recipe, cost, rate, store, save field and
+  test.
+- **Only the words a player reads change.** U remains the engineering unit in the GDD, the balance tables,
+  diagnostics and code.
+
+Scope: the settlement UI (`docs/ui_ux_controls.md`, `godot/scripts/ui/`) and the live demo (`godot/demo/`).
+Engineering record, the full table, the wording rules and the phase-2 plan: decision 1011.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

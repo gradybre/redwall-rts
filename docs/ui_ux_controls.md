@@ -9,6 +9,11 @@ presentation rules. Revision2 also incorporates explicit art-finish and icon
 variant/size changes; the generated concept is not a geometry override. All other registry gates, gameplay/input/accessibility
 contracts remain unchanged. Runtime implementation and visual approval are pending.
 
+**Natural measures, 2026-10-02:** [DEC-049](setting_decisions.md#dec-049--goods-are-shown-in-natural-measures-in-the-demo-and-in-the-game)
+applies to every player-facing amount: each good is shown in its own measure, with its weight in the tooltip, never
+as "U". See [Amounts are shown in natural measures](#amounts-are-shown-in-natural-measures--dec-049-2026-10-02) at
+the end of this document. Display only: the simulation keeps integer milli-U.
+
 **Adopted movement amendment:** [SET-MOVE-001](movement_direction_amendment.md) implements DEC-035 at the direction/specification level. Its requirements supersede ground-only and one-floor claims as the complete settlement design. `settlement_rules_v2` remains the incomplete implementation baseline; MOVE-G01–05 identify exact engineering closure still required.
 
 | Field | Value |
@@ -179,8 +184,8 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-001 Resource cluster |TL, left/top |176×88→480×88 |PANEL |“Settlement resources” |ALWAYS; compact composition in narrow |
 | UI-SET-002 Food counter |TL, grid cell |104×36→144×40 |READOUT |“Ready food: ”+food_days.to_fixed(2)+“ days; ”+ready_NP+“ nutrition” |ALWAYS; opens food ledger; critical icon<1 day |
 | UI-SET-003 Fuel counter |TL, grid cell |104×36→144×40 |READOUT |“Heating fuel: ”+fuel_days+“ days” or no-demand state |ALWAYS except narrow ledger; opens fuel breakdown |
-| UI-SET-004 Wood counter |TL, grid cell |104×36→144×40 |READOUT |“Wood: ”+available_U+“ available; ”+reserved_U+“ reserved” |ALWAYS except narrow ledger; opens item lots |
-| UI-SET-005 Stone counter |TL, grid cell |104×36→144×40 |READOUT |Same formatter for Stone |Same |
+| UI-SET-004 Wood counter |TL, grid cell |104×36→144×40 |READOUT |“Wood: ”+available in logs+“ available; ”+reserved in logs+“ reserved” (DEC-049; tooltip adds each weight) |ALWAYS except narrow ledger; opens item lots |
+| UI-SET-005 Stone counter |TL, grid cell |104×36→144×40 |READOUT |Same formatter for Stone, in blocks (DEC-049) |Same |
 | UI-SET-006 Population counter |TL, grid cell |104×36→144×40 |READOUT |“Residents: ”+living+“ of 256; ”+idle+“ idle” |ALWAYS; opens roster |
 | UI-SET-007 Bed counter |TL, grid cell |104×36→144×40 |READOUT |“Beds: ”+used+“ assigned; ”+free+“ free; ”+warm+“ warm” |ALWAYS except narrow ledger; opens housing |
 | UI-SET-008 Expand resources |TL, cluster bottom/right |32×32→44×44 |BUTTON |“Open all resources” |ALWAYS; toggle 009 |
@@ -223,14 +228,14 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-040 Skill row |BR, skill list |280×44→352×56 |ROW |Skill+level+“; ”+XP+“ of ”+next_XP |SELECTED resident |
 | UI-SET-041 Priority cell |BR or BC, job grid |32×32→44×44 |FIELD |Resident+job+priority word;0 means forbidden |WORKSPACE 070/selected resident; click cycles 1,2,3,4,0; Shift click reverse |
 | UI-SET-042 Schedule grid |BC, workspace |480×160→896×320 |FIELD |Resident+hour+activity |WORKSPACE;24 columns with horizontal scroll if needed; keyboard arrow/select/paint |
-| UI-SET-043 Lot row |BR or TL, inventory list |280×52→896×64 |ROW |Item+available/reserved quantity+quality+effective hours remaining+provenance |SELECTED container/ledger; details never hide age |
+| UI-SET-043 Lot row |BR or TL, inventory list |280×52→896×64 |ROW |Item+available/reserved quantity in the item's measure (DEC-049; weight in tooltip)+quality+effective hours remaining+provenance |SELECTED container/ledger; details never hide age |
 | UI-SET-044 Order row |BR or BC, orders list |280×64→896×80 |ROW |Recipe+mode+target+in progress+blocking reason |SELECTED station/WORKSPACE 060; edit 062 |
 | UI-SET-045 Fish stock row |BR, habitat detail |280×64→352×88 |METER |Species+stock percent+quota+closure/reopen date |SELECTED habitat; opens risk/quota |
 | UI-SET-046 Crop stat row |BR, plot/field detail |280×52→352×72 |ROW |Crop+growth+fertility+moisture+expected yield+harvest date |SELECTED field; warn wrong plant window |
 | UI-SET-047 Room row |BR, interior list |280×52→352×80 |ROW |Room type+tiles+capacity+temperature+validity cause |SELECTED managed building; click highlights room |
 | UI-SET-048 Relationship row |BR, resident detail |280×44→352×64 |ROW |Other resident+affinity+friend state+last contact |SELECTED resident/social tab |
 | UI-SET-049 Danger consent |BR, zone/policy footer |280×64→352×88 |TOGGLE |“Allow dangerous work for ”+resident_or_zone+“; injury chance ”+chance+“ per 10000 cycles” |CONDITION danger≥2 or hazard policy; never prechecked |
-| UI-SET-050 Quota slider |BR, stock policy |280×64→352×88 |FIELD |“Harvest quota ”+U+“ units per day; protected floor ”+percent |SELECTED habitat/zone; min 0, max catalog quota; intensive policy separate 100 |
+| UI-SET-050 Quota slider |BR, stock policy |280×64→352×88 |FIELD |“Harvest quota ”+quota in the stock's measure (fish counted, DEC-049)+“ a day; protected floor ”+percent |SELECTED habitat/zone; min 0, max catalog quota; intensive policy separate 100 |
 | UI-SET-051 Workspace/modal frame |BC opens CENTER |480×320→960×720 |MODAL |Workspace title |WORKSPACE or MODAL; nonmodal workspace uses no SCRIM/MENU pause unless user chose pause-on-management |
 | UI-SET-052 Build catalog |BC, inside 051 |448×240→928×624 |PANEL |“Construction catalog” |WORKSPACE 027; category tabs 038/search 075/cards 053 |
 | UI-SET-053 Building card |BC, catalog grid |136×128→208×160 |BUTTON |Building name+cost+footprint+worker/room capacity+unlock |WORKSPACE 052; locked cards inspectable; activate placement 054 |
@@ -242,11 +247,11 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-059 Zone brush |BC, tool strip |240×112→640×160 |PANEL |“Zone type ”+type+“; brush ”+size+“; selected tiles ”+count |WORLD_TOOL; type 038, size 062; conservation distinct hatch |
 | UI-SET-060 Recipe list |BC, inside 051 |448×240→928×624 |PANEL |“Recipes and production” |WORKSPACE 030; category tabs/filter/cards 061 |
 | UI-SET-061 Recipe card |BC, list row |280×96→896×128 |ROW |Recipe+inputs+outputs+NP+work+station+unlock |WORKSPACE 060; activate creates/edits order 044 |
-| UI-SET-062 Number stepper |BR or BC, owning form |160×44→320×64 |FIELD |Field label+value+minimum+maximum+unit |CONDITION numeric field; minus/plus 32 px hit areas; typed entry; Enter commit |
+| UI-SET-062 Number stepper |BR or BC, owning form |160×44→320×64 |FIELD |Field label+value+minimum+maximum+unit (an amount's unit is its good's measure, never “U”; DEC-049) |CONDITION numeric field; minus/plus 32 px hit areas; typed entry; Enter commit |
 | UI-SET-063 Feast planner |BC, inside 051 |480×400→960×720 |PANEL |“Plan feast; attendees ”+E+“; reserve after feast ”+food days |M1 WORKSPACE; themes 064; confirm 066; errors visible |
 | UI-SET-064 Feast theme picker |BC, feast form |280×64→896×88 |TOGGLE |Theme name+exact main/second/beverage+buff |WORKSPACE 063; only legal fixed themes; no custom recipe guessing |
 | UI-SET-065 Reserve override |BC, confirmation footer |280×72→896×96 |TOGGLE |“Allow this feast or immigration despite reserve warning” |CONDITION post action reserves below threshold; default off; expires with dialog |
-| UI-SET-066 Confirm |Owning modal/workspace, bottom right |120×44→240×48 |BUTTON |Action verb+affected quantity; “Confirm demolition”for 034 |MODAL/WORKSPACE; disabled while invalid with reason; Enter only when focused |
+| UI-SET-066 Confirm |Owning modal/workspace, bottom right |120×44→240×48 |BUTTON |Action verb+affected quantity in its measure (DEC-049); “Confirm demolition”for 034 |MODAL/WORKSPACE; disabled while invalid with reason; Enter only when focused |
 | UI-SET-067 Cancel |Owning modal/workspace, bottom left |96×44→160×48 |BUTTON |“Cancel ”+operation |MODAL/WORKSPACE; Esc same; no financial effect before commit |
 | UI-SET-068 Immigration review |TC alert opens CENTER 051 |480×360→960×720 |PANEL |“Immigration candidates; ”+selected+“ accepted; ”+spare beds+“ spare beds” |CONDITION immigration event;069 rows;065 override;066 commit |
 | UI-SET-069 Resident row |BC roster or 068 |280×56→896×72 |ROW |Name/anonymous label+species+role+mood+health+current job |WORKSPACE/SELECTED; click single; Shift multi; double centers world |
@@ -288,7 +293,7 @@ All content pickers exclude retired hunt zones, hunter huts, hunting gear, game 
 | UI-SET-096 Context quick menu |Owning zone, next to invoker |200×88→320×480 |PANEL |“Actions for ”+target |CONDITION context; row buttons 066/067 with action labels; outside click consumed |
 | UI-SET-097 Relief seed action |BR farm detail or critical food notice |240×44→352×72 |BUTTON |“Request annual relief seeds; arrives next dawn” |CONDITION seed deadlock or help menu; disable if used this year |
 | UI-SET-098 Pin resident/item |BR titleor TLledger |32×32→44×44 |TOGGLE |“Pin and name resident”or“Pin resource counter” |SELECTED/ledger; resident pin opens 082; resource pin changes ledger favorites |
-| UI-SET-099 Ration reserve |BR food policy |280×64→352×88 |FIELD |“Keep ”+quantity+“ ration units for reserves” |M2; future transfer execution hidden |
+| UI-SET-099 Ration reserve |BR food policy |280×64→352×88 |FIELD |“Keep ”+count+“ rations in reserve” (DEC-049) |M2; future transfer execution hidden |
 | UI-SET-100 Work policy |BR resident/zoneor BC 070 |280×64→896×88 |TOGGLE |Policy name+enabled state+consequence |CONDITION; Auto fallback, Dangerous work, Intensive harvest, Pause production, Auto immigration each has stable instance key |
 | UI-SET-101 Date trigger |TR, time row 2; narrow row 1 |36×36→120×44 |READOUT |“Year ”+year+“, ”+season+“, day ”+day+“, ”+hour24+“. Open calendar” |ALWAYS; icon in narrow, text otherwise; activates 018; T shortcut |
 | UI-SET-102 History trigger |TC, right rail of 010 |32×32→32×32 |BUTTON |“Notification history; ”+unread_count+“ unread” |ALWAYS, even when no alerts; activates 012; N shortcut |
@@ -425,7 +430,7 @@ Roof AUTO hides only the selected managed building's roof when its interior tab/
 
 Order active cards by severity descending, then earliest tick, then notice ID. Wide/standard HUD shows at most 2 cards; narrow shows 1 and an unread count. Group multiple residents with the same code into one card listing count and a drill-down roster. History cap 500 evicts oldest resolved INFO first, then oldest resolved higher severity; active conditions remain in the active-condition store even if their historical entries aggregate. Repeated same code/source updates count/last-seen tick without replaying chime.
 
-Each notice includes severity word+icon, title, plain consequence, affected entity/zone, one primary action, and resolved state. Clicking focuses the problem and opens the exact tab; it does not automatically change production policies. “Insufficient flour:2.0 U missing; mill order disabled” is valid. “Production issue” alone is not. Forecast charts have a table alternative with day, expected stock, known consumption, committed production, and uncertain harvest separately. Potential harvest is never drawn as guaranteed ready food.
+Each notice includes severity word+icon, title, plain consequence, affected entity/zone, one primary action, and resolved state. Clicking focuses the problem and opens the exact tab; it does not automatically change production policies. “Insufficient flour: 2 scoops missing; mill order disabled” is valid (DEC-049 measures). “Production issue” alone is not. Forecast charts have a table alternative with day, expected stock, known consumption, committed production, and uncertain harvest separately. Potential harvest is never drawn as guaranteed ready food.
 
 Screen-reader announcements use one polite queue, maximum one noncritical announcement per 2 real seconds. A new critical condition may interrupt once; subsequent count updates are polite. Pause and selected entity changes announce immediately; meter updates do not announce every frame. Notification volume is separate from world ambience. All sound cues have visible text; no auditory-only deadline.
 
@@ -563,3 +568,28 @@ This does not permit guessed baseline rates or fake environmental context.
 ## SET-MOVE-ECON-001 hazard presentation binding
 
 For the deterministic movement hazards in [HAZ-005](underground_economy_hazard_amendment.md#haz-005--interruption-matrix-ui-and-save-obligations), UI-SET-049 displays actual entry conditions, air/return budgets or fall consequences instead of an invented chance-per10000 value. Existing fishing/forage probabilities keep their probability wording. Spoil previews show volume, work, materials, output mass/capacity and real blocked reasons; compacted tip earth is not ready inventory. Existing first-incapacity auto-pause/settings remain unchanged. G03 still supplies exact additional control registration/geometry and actual visual acceptance.
+
+## Amounts are shown in natural measures — DEC-049, 2026-10-02
+
+[DEC-049](setting_decisions.md#dec-049--goods-are-shown-in-natural-measures-in-the-demo-and-in-the-game) (Brendan,
+2026-10-02) supersedes every “U” and “units” wording above for what a player reads. The engineering record is
+[decision 1011](decisions/1011-goods-are-counted-in-natural-measures.md). Its §1 holds the approved measures table,
+§1a the rest of the game catalogue (pending approval), and §2 the wording rules. This section binds the UI to them,
+and does not copy the table.
+
+- **Display only.** Every amount stays `quantity_milli:int64` in the simulation, saves and data (GDD §4.1,
+  `gameplay_balance.md`). Only the words change. No UI path writes a rounded figure back.
+- **Each good has its own measure**: logs, blocks, planks, sacks and scoops, baskets and bowls, bunches, jars,
+  buckets and jugs, bolts and lengths, counted fish and vegetables, portions and rations. The measure comes from the
+  good, so every amount binding takes the item (or recipe category) as well as its milli-U.
+- **Rounding** (decision 1011 §2):
+  - Stock, yield and production round down. Nothing present ever reads zero: below its smallest measure an amount
+    shows its weight.
+  - Requirements, costs and consumption round up.
+  - Authored and player-set amounts print exactly.
+  - A have/need pair uses the need's measure for both, and reads “enough” once the have meets the need in milli-U.
+- **Weight goes in the tooltip** and the accessible description: integer grams from the catalogue `mass_g`, shown
+  in kg or g; liquids also in litres. A store's or room's capacity shows no weight, because capacity is counted in
+  baskets of food.
+- **Days stay days.** UI-SET-002 Ready food and UI-SET-003 Heating fuel keep their day readouts.
+- SET-UX-VIS-002's “Resources label units” is met by the measure noun (“180 logs”).

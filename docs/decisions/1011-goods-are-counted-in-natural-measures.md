@@ -1,6 +1,25 @@
 # 1011 — Goods are counted in natural measures, and the U view is called Underground
 
-Date: 2026-10-02 · Status: Proposed (phase 1 design; the rulings are Brendan's, the tables await his approval)
+Date: 2026-10-02 · Status: Accepted (Brendan's rulings, 2026-10-02; recorded as `DEC-049` in
+`docs/setting_decisions.md`). Phase 2, the implementation, has not started.
+
+## Rulings (Brendan, 2026-10-02, relayed by the coordinator)
+
+- **The measures table (§1): approved** as written below. The rows marked *game catalogue* in §1a were added
+  afterwards to cover the release game, and are **not yet approved** (see P9).
+- **P1–P6 and P8: approved as recommended.** These are:
+  - P1, Stone as a count in blocks;
+  - P2, a plank is 5 kg;
+  - P3, one fish per U for every species;
+  - P4, onions counted;
+  - P5, no weight on capacities;
+  - P6, the five Wood words with no extra warning colour;
+  - P8, water tooltips show litres and kg.
+- **P7, changed from the recommendation: "Apply to demo and game spec".** The natural measures apply to the release
+  game's UI too, not only to the demo. `docs/ui_ux_controls.md` is amended to match (its "Amounts are shown in
+  natural measures" section, under DEC-049). The internal integer milli-U stays the simulation's unit in
+  `docs/game_gdd.md` and `docs/gameplay_balance.md`; only the display wording changes.
+- **The Underground rename (§5)**, which was Brendan's own ruling, stands.
 
 ## Context
 
@@ -11,8 +30,7 @@ Brendan ruled on 2026-10-02 that the demo stops showing the catalogue unit "U" t
    "running low"). Heating fuel and Ready food stay in days.
 2. **"The U view" becomes "Underground"** in all text. The U key stays.
 
-This record is the design only. It changes no game code. Phase 2 implements it after Brendan approves the tables
-below, or adjusts them.
+This record is the design only. It changes no game code. Phase 2 implements it.
 
 ### What U is (the rules this keeps)
 
@@ -118,6 +136,46 @@ category's measure:
 
   So no rule ever has to show a weight.
 
+### 1a. The rest of the game catalogue (added after the ruling; awaiting approval, P9)
+
+P7 extends the measures to the release game. Its catalogue (`gameplay_balance.md` §3.1, 61 items) has goods the
+demo never shows, so they need rows too. These rows follow the approved table's rules: one small resident can carry
+a measure, counted objects are counted, and anything below the smallest measure shows as its weight. **They are not
+yet approved.**
+
+| Good (key, g/U) | Measure | U each | Weight of one | Below it |
+|---|---|---:|---:|---|
+| `grain`, `beans` (250) | as the approved grain and pulse rows: sack, from 2, ½ | 20 | 5 kg | scoop, 1 U |
+| `roots` (250) | as the approved roots category: basket, from 2, ½ | 5 | 1.25 kg | bowl, 1 U |
+| `cabbage` (250) | counted cabbage(s), as approved | 2 | 500 g | weight |
+| `fruit` (250) | basket, from 2, ½ | 5 | 1.25 kg | bowl, 1 U |
+| `herring`, `mackerel` (250) | counted, same plural, as the other fish (P3) | 1 | 250 g | weight |
+| `mussel` (250) | bowl / bowls of mussels | 1 | 250 g (about a dozen) | weight |
+| `salted_fish` (250) | piece / pieces of salted fish | 1 | 250 g | weight |
+| `dried_fruit` (250) | bag / bags of dried fruit | 1 | 250 g | weight |
+| `ration` (500) | counted ration(s) | 1 | 500 g | — (whole outputs) |
+| `meal_*` (500) | portion(s), as approved | 1 | 500 g | — |
+| `brine` (1000) | as water: bucket, from 2, ½; jug; cup | 10 | 10 kg (10 L) | jug 1 U, cup 0.25 U |
+| `salt` (250) | bag / bags of salt | 1 | 250 g | weight |
+| `seed_grain`, `seed_roots`, `seed_beans`, `seed_cabbage`, `seed_flax` (100) | pouch / pouches of grain seed (and so on) | 4 | 400 g | handful / handfuls of seed, 0.25 U = 25 g |
+| `sapling_apple`, `sapling_pear` (1000) | counted apple / pear sapling(s) | 1 | 1 kg | — |
+| `spoiled_food` (250) | as mixed food: basket, from 2, ½ | 5 | 1.25 kg | bowl, 1 U |
+| `candle` (125) | counted candle(s) | 1 | 125 g | — |
+| `tool` (1000), `net` (1000), `trap` (3000), `ice_kit` (2000), `outfit_tier2` (500) | counted: tool(s), net(s), trap(s), ice kit(s), winter outfit(s) | 1 | their mass | — |
+
+How the game's fixed quantities land in these rows:
+
+- One seed separation gives a pouch of seed (§5.6: 1 U of crop gives 4 U of seed).
+- A tile is sown with a handful of seed (0.25 U).
+- The relief seed pouch holds 8 U, which is 2 pouches.
+
+Three of the game's stated quantities are not a whole number of any approved measure, so `exact` prints their
+weight. P9 offers smaller measures instead:
+
+- a torch burns 0.25 U of wood every 6 hours: "1.25 kg of wood";
+- a hive makes 0.25 U of wax a day: "62.5 g of wax";
+- a candle takes 0.25 U of flax: "62.5 g of flax".
+
 ### 2. How an amount is worded
 
 The amount helper takes **the good** as well as the milli-U. Today's helpers take only the milli-U, which is why they
@@ -184,14 +242,17 @@ With no winter bound (suites that build no village), the cell shows the count, "
 
 ### 4. Implementation plan (phase 2)
 
-**One formatting module:** `godot/demo/ui/goods_measures.gd`, a new file.
+**One formatting module:** `godot/scripts/ui/goods_measures.gd`, a new file.
+
+- After P7 it serves both the settlement UI and the demo, so it lives under `scripts/ui/`. The demo already preloads
+  `scripts/` code; the settlement layer must not depend on `demo/`.
 
 - It is static and `RefCounted`, a pure function of `(good, milli)`.
 - It holds the table above as `const` packed rows: noun singular, noun plural, milli per measure, the "from" count,
   the halves flag, and "of"-noun or counted.
 - It provides `amount`, `need`, `exact`, `have_need`, `weight` and `tooltip`.
-- Goods are keyed by the catalogue `StringName`, with demo keys for `planks`, `earth`, `food` and the kitchen
-  categories.
+- Goods are keyed by the catalogue `StringName`, covering all 61 catalogue items (§1 and §1a). There are also demo
+  keys for `planks`, `earth`, `food` and the kitchen categories.
 - An unknown key calls `push_error` and returns "?". The suite's log gate (decision 0501) turns that into a test
   failure, so "U" can never come back as a fallback.
 - The mass comes from `item_definitions.gd` (planks: P2), never retyped.
@@ -272,6 +333,39 @@ the 104 px cell (1280×720).
 **Also check in phase 2:** the "½" glyph in the HUD body font, and the heading font (`ui/fonts/NotoSerif-SemiBold.ttf`).
 If it is missing, write "1 and a half".
 
+### 4a. The settlement UI code (phase 2, after P7)
+
+There is player-facing "U" text in `godot/scripts/`. It changes in phase 2, through the same module; it is not
+changed now.
+
+| Where | Text now | Becomes (amended spec) |
+|---|---|---|
+| `godot/scripts/systems/ui_manager.gd:681` | `_hud.set_counter(&"Wood", EconomySystem.stock_units(&"wood"), "U")` → "Wood 180 U" | UI-SET-004: "Wood: 180 logs available; N reserved" |
+| `godot/scripts/systems/ui_manager.gd:682` | the same for Stone → "Stone 100 U" | UI-SET-005: "Stone: 100 blocks available; N reserved" |
+| `godot/scripts/ui/hud.gd:97` `set_counter(label, value, unit)` | appends a bare unit string to a comma-grouped integer | takes the good and the milli-U, and words it through the module. The "NP" counter keeps its own unit. |
+| `godot/scripts/ui/ui_specimen.gd:38` `SYNTHETIC_COUNTER` | "1,234 U" (the specimen's synthetic counter) | "1,234 logs" |
+
+Their tests assert the old text, and their expected strings are rewritten by hand:
+
+- `godot/test/test_ui_manager.gd:60-61` (`"180 U"`, `"100 U"`) and `:194-195`;
+- `godot/test/test_hud.gd:138`, `:181` (`set_counter(&"Wood", 180, "U")`).
+
+Not player-facing, so left alone:
+
+- `scripts/core/save_owner_fishing.gd:328`, a save refusal's diagnostic ("holds %d U");
+- `assert` messages in `world_init.gd`, `resource_nodes.gd`, `fishing.gd` and `forage.gd`;
+- docstrings throughout `scripts/core/`.
+
+These are GDD-facing engineering text, and the GDD keeps U.
+
+The UI refinement's reference renders also say "180 U" / "100 U":
+
+- `docs/design/ui_refinement/render_targets.py:128`;
+- `docs/design/ui_refinement/woodland_art_prompt.txt:10`.
+
+They produce hashed reference visuals, so they are re-rendered under the art process, not hand-edited. That is
+flagged for the UI art owner. The settlement HUD's plain-words band for Wood is not part of the ruling (see P10).
+
 ### 5. "Underground" replaces "the U view"
 
 Brendan: rename it in all text; the U key stays. The player-facing strings, with the full list of what changes:
@@ -333,17 +427,41 @@ Beyond the player's screen:
     recommended.
 - **P7 — Scope against the settlement UI spec.** UI-SET-004/005 specify "Wood: "+available_U+" available;
   "+reserved_U+" reserved", and UI-SET-050/099 say "units". The demo already departs from 004/005 (decision 0251).
-  The ruling as given is for the demo.
-  - (a) Keep it demo-only, and record the ruling as a `DEC-047` row in `docs/setting_decisions.md`.
-    **Recommended.**
+  The ruling as given was for the demo.
+  - (a) Keep it demo-only, and record the ruling as a row in `docs/setting_decisions.md`.
   - (b) Also amend `docs/ui_ux_controls.md` for the release game.
-- **P8 — Liquids in tooltips.** Water shows litres and kg (**recommended**), or kg only.
+  - **Ruled (b): "Apply to demo and game spec".** It is recorded as `DEC-049`. DEC-047 and DEC-048 are taken by the
+    art-size rulings on other branches.
+- **P8 — Liquids in tooltips.** Water shows litres and kg (**recommended**), or kg only. *Ruled as recommended.*
+
+P1–P6 were ruled as recommended.
+
+Two questions are still open:
+
+- **P9 — The game-catalogue rows (§1a).** They were added after the ruling so that P7's spec amendment covers every
+  good.
+  - (a) Approve §1a as written. **Recommended.**
+  - (b) Approve it with smaller measures for the three quantities that otherwise print a weight:
+    - "a piece of wax" = 0.25 U;
+    - "a handful of flax" = 0.25 U;
+    - the torch's wood as "a quarter log".
+- **P10 — The settlement HUD's Wood counter.**
+  - (a) Use the amended UI-SET-004 as given: an available and reserved count in logs. **Recommended**, because that is
+    what the ruling asked for.
+  - (b) Also give it the demo's plain-words band.
+
+  The game's fuel thresholds exist (UI §7 "fuel<2 cold-weather days" and REQ-SET-114's twelve-day projection), so (b)
+  would need no new numbers. It would, though, change UI-SET-004's available/reserved readout, which the ruling did
+  not ask for.
 
 ## Consequences
 
 - Integer milli-U is unchanged everywhere: the simulation, saves, reservations, recipes, `STEP` constants and every
   balance figure. Only wording changes.
-- One module owns every player-facing amount in the demo, and a lint test keeps "U" from coming back.
+- One module owns every player-facing amount in the demo and in the settlement UI, and a lint test keeps "U" from
+  coming back.
+- `docs/ui_ux_controls.md` states the rule for the release game (DEC-049), so a later settlement UI change that
+  prints "U" contradicts the spec.
 - A good the demo begins to show needs a measures row first. Otherwise the module refuses it with an error, and the
   suite fails.
 - Decision 0222's "tenths of a U, floored" form is superseded for display. Its rules are kept: amounts round down,
@@ -351,12 +469,15 @@ Beyond the player's screen:
 
 ## Source
 
-- Brendan's rulings, 2026-10-02 (via the coordinator's brief).
+- Brendan's rulings, 2026-10-02 (via the coordinator's brief), and his ruling on this record the same day: the
+  table approved, P1–P6 and P8 as recommended, and P7 "Apply to demo and game spec" (`DEC-049`).
 - GDD §4.1 (U), §5.1, §5.2 (carry), §5.6, §5.7 (masses, recipes), §5.8 (fuel-days), §5.9 (well), REQ-SET-114;
   `docs/gameplay_balance.md` §3.1, BAL-NUM-001, BAL-WORK-003, BAL-SUPPLY-004;
   `docs/ui_ux_controls.md` UI-SET-002…006, 050, 099, §7.
 - `godot/data/item_definitions.json`.
 - Decisions 0222, 0251, 0381, 0411, 0571, 0612.
 - The demo sources named above, at `origin/master` fd9b80a1.
-- The decision tooling: nothing in `tools/`, `.github/` or `godot/test/` parses decision numbers, so 1011 needs no
-  four-digit support. It fits the existing `NNNN-` pattern.
+- The decision tooling: `docs/validation/decision_numbers.py` takes any four-digit number (`^\d{4}-…\.md$`, with a
+  matching `# NNNN` heading). 1011 passes it, so no tooling change is needed.
+  - *Correction:* this record's first version said no tool parsed decision numbers. That checker was missed because
+    it lives in `docs/validation/`.

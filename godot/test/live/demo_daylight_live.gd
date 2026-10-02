@@ -22,6 +22,7 @@ const CalendarScript := preload("res://demo/demo_calendar.gd")
 const Access := preload("res://demo/access/demo_access.gd")
 const Daylight := preload("res://demo/world/daylight.gd")
 const Curves := preload("res://demo/world/daylight_curves.gd")
+const HearthFuel := preload("res://demo/winter/hearth_fuel.gd")
 const Layers := preload("res://demo/demo_layers.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 
@@ -371,7 +372,17 @@ func _check_late() -> void:
 	_check("23:00's night lights lit, within the pool", lit > 0 and lit <= Curves.NIGHT_LIGHTS, "%d lit" % lit)
 	_check("23:00's glow on", _env().glow_enabled)
 	_check("23:00's date shows the moon", not _icon_is_day())
+	_check_home_lamps()
 	_wait = SETTLE_FRAMES
+
+
+func _check_home_lamps() -> void:
+	"""The homes' lamplight query is bound (decision 0902): the hall's lamp is its hearth's fuelled-and-demanded state,
+	and a residence, with no hearth in the winter's model, keeps the lamps' hours."""
+	var hall_hearth: bool = bool(_village.call(&"winter").fuel.call(&"hearth_lit", HearthFuel.HALL))
+	_check("23:00's hall lamp follows its hearth", bool(_village.call(&"home_lamp_lit", 0)) == hall_hearth,
+		"hearth %s" % hall_hearth)
+	_check("23:00's residence lamp lit", bool(_village.call(&"home_lamp_lit", 1)))
 
 
 func _walker_on_the_path() -> void:

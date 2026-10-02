@@ -256,6 +256,8 @@ const FuelPanelScript := preload("res://demo/winter/fuel_panel.gd")
 const DayNightScript := preload("res://demo/world/day_night.gd")
 const NightLightsScript := preload("res://demo/world/night_lights.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
+const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
+const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -964,9 +966,20 @@ func _build_daylight() -> void:
 	add_child(_day_night)
 	_day_night.configure(_services.calendar, _world, tunnels.ext.weather_view, _night_lights)
 	_day_night.set_smoke_tinter(tunnels.ext.fixture_view.set_smoke_tint)
+	_night_lights.set_home_lit(home_lamp_lit)
 	var shell: UiShell = _shell()
 	if shell != null:
 		_day_night.set_date_button(shell.status_label())
+
+
+func home_lamp_lit(k: int) -> bool:
+	"""THE HOMES' LAMPLIGHT (night_lights.gd `set_home_lit`, home `k` in daylight_curves.gd LIT_HOMES order): the hall's
+	follows its hearth, fuelled AND demanded (hearth_fuel.gd `hearth_lit(HALL)`, decision 0571), so an unfuelled hall
+	stands dark. The three surface residences and the kitchen have no hearth in the winter's model (its homes are the
+	burrow rows below), so they keep the lamps' hours (batch 7 integration, decision 0902)."""
+	if _winter == null or k < 0 or k >= DaylightCurves.LIT_HOMES.size() or DaylightCurves.LIT_HOMES[k] != &"hall":
+		return true
+	return _winter.fuel.hearth_lit(HearthFuelScript.HALL)
 
 
 func day_night() -> DayNightScript:

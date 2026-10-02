@@ -320,7 +320,10 @@ func test_the_ledger_counts_portions_and_dishes_from_the_kitchens_log() -> void:
 	_cook(kitchen, Rules.DISH_SOUP)
 	_cook(kitchen, Rules.NO_DISH)
 	ledger.observe(kitchen, 9, null, LATE)
-	assert_equal(ledger.dishes_cooked(), Rules.DISH_COUNT, "every dish")
+	assert_equal(ledger.dishes_cooked(), 3, "the everyday three: the feast's hotpot not yet")
+	_cook(kitchen, Rules.DISH_BEAN_HOTPOT)
+	ledger.observe(kitchen, 9, null, LATE)
+	assert_equal(ledger.dishes_cooked(), Rules.DISH_COUNT, "every dish, the feast's hotpot with them (decision 0781)")
 
 
 func _tally(kitchen: KitchenScript, key: int, ate: int) -> void:

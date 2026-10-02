@@ -12,7 +12,7 @@ A job is {"step": ..., "library": <assets/library>, "out": <godot/demo/assets>}.
                to be dyed) and 1 `banner_wood` (the crossbar and cord, never dyed).
   pine_tint    The pine's teal needles turned pine green (the season system's leaf test needs green >= blue)
                and its orange bark calmed a little.
-  wildlife     The wildlife bodies (songbird perched and on the wing, butterfly, frog, fish) at proposed game
+  wildlife     The wildlife bodies (songbird perched and on the wing, butterfly, frog, fish) at their approved game
                scale (metres), each with an authored armature and clips (Meshy's rig is a 24-joint humanoid and cannot take a bird, a butterfly, a frog
                or a fish: decision 0951). Origin: the feet (perched bird, frog), the body's centre (flying bird,
                butterfly, fish).
@@ -42,7 +42,7 @@ import bpy
 import numpy as np
 from mathutils import Matrix, Vector
 
-## Proposed game sizes (metres) for the wildlife, against the 1.00 m mouse: UNAPPROVED (decision 0951).
+## Game sizes (metres) for the wildlife, against the 1.00 m mouse: Brendan's ruling, 2026-10-02 (decision 0951).
 ## The dimension each is fitted by: the bird's and frog's and fish's length (glTF Z), the butterfly's span (X).
 WILD_SIZE = {"wild_songbird": ("length", 0.45), "wild_songbird_flight": ("length", 0.45), "wild_butterfly": ("span", 0.36), "wild_frog": ("length", 0.40),
 	"wild_trout_leaping": ("length", 0.80)}
@@ -315,7 +315,7 @@ def smooth(values, lo, hi):
 
 
 def fit_size(obj, key):
-	"""Scale to the proposed size; return (length along glTF Z, span X, height Y) after."""
+	"""Scale to the approved size; return (length along glTF Z, span X, height Y) after."""
 	co = co_array(obj)
 	extent = co.max(axis=0) - co.min(axis=0)
 	axis, metres = WILD_SIZE[key]

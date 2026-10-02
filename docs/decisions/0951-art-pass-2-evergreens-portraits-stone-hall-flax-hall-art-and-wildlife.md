@@ -1,5 +1,5 @@
 # 0951 — Art pass 2: evergreens, portraits, the stone hall, flax, hall art and wildlife
-Date: 2026-10-02 · Status: Accepted (Brendan's approval of the list; visual acceptance still his, through `tools/art_gate.py`)
+Date: 2026-10-02 · Status: Accepted (Brendan's approval of the list and of the sizes; visual acceptance still his, through `tools/art_gate.py`)
 
 Numbered 0951: art pass 2 was given 0951–0959, and none was taken on any branch. Pass 1 is 0941.
 
@@ -22,7 +22,6 @@ The coordinator delegated the paid calls to a subagent under
 - a **hard cap of 450 credits**, counted from this pass's own tasks;
 - Meshy as the only service.
 
-The record of 0961 itself is on `docs/art-lock-request` until #213 merges.
 
 ## Spend
 
@@ -95,17 +94,26 @@ are in `docs/art-reference/asset_library/meshy_tasks.jsonl`.
 11. **The pine's needles were teal:** blue was above green in 86% of crown texels, so the season system's leaf test
     (green ≥ blue) read them as bark. The pine is re-tinted to pine green, and 82% of its texels pass now. The yew
     passed as generated.
-12. **The wildlife sizes are proposals, not approvals:**
-    - songbird 0.45 m;
-    - butterfly 0.36 m span;
-    - frog 0.40 m;
-    - trout 0.80 m.
+12. **The sizes are Brendan's ruling (2026-10-02).** They were proposed by this pass and judged against the 1.00 m
+    mouse at the demo's storybook scale. Brendan approved them on 2026-10-02, relayed by the coordinator:
 
-    They are judged against the 1.00 m mouse at the demo's storybook scale. The skill says a new species' height is
-    Brendan's, recorded in `setting_decisions.md`. The bodies are in metres, so a resize is one uniform scale.
+    | Asset | Size |
+    |---|---|
+    | Robin (`wild_songbird`, `wild_songbird_flight`) | 0.45 m long |
+    | Butterfly (`wild_butterfly`) | 0.36 m span |
+    | Frog (`wild_frog`) | 0.40 m long |
+    | Trout (`wild_trout_leaping`) | 0.80 m long |
+    | Scots pine (`pine_scots`) | 16 m tall |
+    | Yew (`yew_ancient`) | 10 m tall |
+    | Flax (`plant_flax`) | 0.80 m tall |
+    | Hall banner (`hall_banner`) | 1.6 m drawn height |
 
-    The tree heights are proposed too: pine 16 m and yew 10 m, beside the demo's 13 m oak. They are `DEMO_HEIGHT_M`
-    values, which are demo-only.
+    - The wildlife bodies are already exported at these sizes, in metres.
+    - The tree, flax and banner sizes are the draw sizes the integrator sets: `DEMO_HEIGHT_M`, `PLANT_HEIGHT_M` and
+      the banner's scale (0.84 of its native 1.903).
+    - The tree, flax and banner figures stay demo-only presentation values, like every `DEMO_HEIGHT_M`.
+    - The asset-pipeline skill puts a new species' approved height in `setting_decisions.md`. This record is where
+      the coordinator asked for the ruling to be kept; no DEC entry was written for the wildlife.
 
 ## What this does not do
 

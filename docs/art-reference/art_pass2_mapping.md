@@ -30,7 +30,7 @@ The demo turns nothing on import (asset library README).
 
 ## Evergreens: the seasonal trees' `KIND_EVERGREEN` (decision 0551, `feat/demo-seasonal-trees`)
 
-| Key | Staged file | Native size (glTF units) | Proposed `DEMO_HEIGHT_M` | Proposed `SINK_M` | Triangles / texture |
+| Key | Staged file | Native size (glTF units) | `DEMO_HEIGHT_M` (Brendan, 2026-10-02) | Proposed `SINK_M` | Triangles / texture |
 |---|---|---|---|---|---|
 | `pine_scots` | `world/pine_scots.glb` | 1.062 × 1.900 × 1.024 | **16.0** (taller and narrower than the 13 m oak) | 0.6 | 5,686 / 1,024 |
 | `yew_ancient` | `world/yew_ancient.glb` | 1.657 × 1.505 × 1.881 | **10.0** (low and broad: 16.5 m spread) | 0.6 | 5,658 / 1,024 |
@@ -91,7 +91,7 @@ To integrate:
 - In `hall_view.gd`, replace `relic_banner` with `hall_banner`.
 - Change `_dye()` to multiply **surface 0 only** with `BANNER_DYES[k]` (CLAY, LEAF, BRASS, SAGE). It currently assumes
   one material.
-- Proposed drawn height: 1.6 m. That is `BANNER_SCALE` 0.84 against the native 1.903.
+- Drawn height: 1.6 m (Brendan, 2026-10-02). That is `BANNER_SCALE` 0.84 against the native 1.903.
 - The four tints at game scale are in `art2_check/lineup_small.png`.
 
 ## Tapestry panel art (decision 0771, `tapestry_panel.gd`)
@@ -162,7 +162,7 @@ Flax follows that rule.
 
 To integrate:
 - Add `"plant_flax": (-0.797, False)` to `make_demo_props.py` `PLANTS`.
-- Add flax to these `farm_catalog.gd` tables: `PLANT_KEYS`, `PLANT_HEIGHT_M` (proposed **0.80**, a little over
+- Add flax to these `farm_catalog.gd` tables: `PLANT_KEYS`, `PLANT_HEIGHT_M` (**0.80**, Brendan, 2026-10-02; a little over
   barley's 0.74), `PLANT_SPACING` (0.34, as the cereals), the top lift and top scale entries, `PLANT_HEAD_MESH` and
   `ITEM_VISUAL`.
 - Flax is a FIBRE crop, and the demo grows none (`farm_catalog.gd:30`). Growing it is a gameplay decision for the
@@ -175,7 +175,7 @@ The files are staged under `godot/demo/assets/wildlife/`. Each is skinned, with 
 **Import the clips with looping on** for idle, swim, flap, glide and rest; Godot imports glTF animations without
 looping.
 
-| Key | Size (proposed, unapproved) | Origin | Clips |
+| Key | Size (Brendan, 2026-10-02) | Origin | Clips |
 |---|---|---|---|
 | `wild_songbird` (robin, perched) | 0.45 m long, 0.34 m tall | feet | `idle` 2.0 s, `hop` 0.5 s (in place), `peck` 1.0 s |
 | `wild_songbird_flight` (robin, on the wing) | 0.45 m long, 0.70 m span | body centre | `flap` 0.2 s, `glide` 1.0 s |
@@ -183,9 +183,8 @@ looping.
 | `wild_frog` | 0.40 m long | feet | `idle` 2.0 s (breathing), `hop` 0.7 s (in place, stretch and land) |
 | `wild_trout_leaping` | 0.80 m long | body centre (**y = 0 is the water surface**) | `swim` 1.0 s (in place), `leap` 1.4 s (**travels 1.2 m forward**, rising 0.5 m above the water and starting and ending 0.25 m under it) |
 
-The sizes are judged against the 1.00 m mouse at the demo's storybook scale, where grass tufts are 0.45 m. **No
-wildlife size is approved.** The asset-pipeline skill says a new species' height is settled by Brendan in
-`setting_decisions.md`. The bodies are exported in metres, so a different size is a uniform scale on the node.
+The sizes are judged against the 1.00 m mouse at the demo's storybook scale, where grass tufts are 0.45 m. **Brendan
+approved them on 2026-10-02** (decision 0951). The bodies are exported at these sizes, in metres.
 
 Every clip moves in place except the trout's `leap`, which carries its own travel. The hop has no forward step: move
 the node about 0.15 m (bird) or 0.3 m (frog) during the air frames.

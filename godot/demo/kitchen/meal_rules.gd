@@ -77,6 +77,18 @@ const DISH_BEETROOT_SOUP: int = 4
 const DISH_VOLE_STEW: int = 5
 const DISH_POACHED_DACE: int = 6
 const DISH_BEAN_HOTPOT: int = 7
+## THE DISHES OF DECISION 0603 (Brendan's DEC-045 and his tuning E2/E3): dish_book.gd's rows 8..18.
+const DISH_OATCAKE: int = 8
+const DISH_FARL: int = 9
+const DISH_HARDTACK: int = 10
+const DISH_SALAD: int = 11
+const DISH_BAKED_FISH: int = 12
+const DISH_BISCUIT_SOUP: int = 13
+const DISH_PASTY: int = 14
+const DISH_ROOT_PIE: int = 15
+const DISH_WOODLAND_PIE: int = 16
+const DISH_SCONES: int = 17
+const DISH_CORDIAL: int = 18
 const NO_DISH: int = -1
 
 ## THE RECIPE BOOK'S COLUMNS (dish_book.gd: one row a dish; adding a recipe is adding a row there). Built once, when this
@@ -93,6 +105,11 @@ static var LIBRARY_IDS: Array[String] = []
 static var GDD_ROWS: Array[String] = []
 static var ROW_OF: PackedInt32Array = PackedInt32Array()
 static var ROW_COUNT: int = 0
+## Per dish: 1 when its row is one the GDD adopts (dish_book.gd ADOPTED_ROWS), 0 for a draft (decision 0603).
+static var ROW_ADOPTED: PackedByteArray = PackedByteArray()
+## How many categories the pantry's items use (the highest farm_catalog.gd category_of, plus one; at least the words'):
+## a category another lane adds is counted, so the ready-food estimate's pool fits it (built in `_static_init`).
+static var CATEGORY_COUNT: int = 0
 static var DISH_MEAL: PackedInt32Array = PackedInt32Array()
 static var PORTIONS_PER_BATCH: PackedInt32Array = PackedInt32Array()
 static var NP_PER_PORTION: PackedInt32Array = PackedInt32Array()
@@ -102,9 +119,16 @@ static var WATER_MILLI: PackedInt32Array = PackedInt32Array()
 static var INPUT_FIRST: PackedInt32Array = PackedInt32Array()
 static var INPUT_N: PackedInt32Array = PackedInt32Array()
 ## Per input (all dishes' inputs, in dish order).
-static var IN_SELECTOR: PackedInt32Array = PackedInt32Array()
+static var IN_SELECTOR: PackedInt64Array = PackedInt64Array()
 static var IN_CATEGORY: PackedInt32Array = PackedInt32Array()
 static var IN_MILLI: PackedInt32Array = PackedInt32Array()
+## Per input: its items in words ("beetroot or onion"), what a recipe calls it ("roots", "honey"), and what it waits for
+## ("" when it can be had: `_waits_for`).
+static var IN_ITEMS_TEXT: Array[String] = []
+static var IN_WORDS: Array[String] = []
+static var IN_WAITS: Array[String] = []
+## Per dish: what it WAITS for -- its inputs' reasons, "; "-joined ("" when every input can be had: decision 0603).
+static var DISH_WAITS: Array[String] = []
 ## Per dish: the shortest base shelf life among its inputs' categories (`fresher_first`).
 ## Per dish: 1 when every input is a whole category (the meal's plain dish of its §5.7 row: porridge, Togget's soup,
 ## the perch-or-trout stew, the hotpot) -- the Ready food estimate counts these (kitchen.gd THE READY-FOOD ESTIMATE).
@@ -120,7 +144,8 @@ static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 ## What a recipe calls each category, by farm_catalog.gd category id (beans, cabbage, flax, grain, roots, fish, dried
 ## fish, flour). §5.7's `cabbage` input is the cabbage row -- cabbage, lettuce, spinach, leek and celery -- so it is
 ## "greens" to the player.
-const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour"]
+const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
+	"honey"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -139,6 +164,8 @@ const MEAL_BREAKFAST: int = 0
 const MEAL_SUPPER: int = 1
 const MEAL_NAMES: Array[String] = ["breakfast", "supper"]
 const MEAL_TITLES: Array[String] = ["Breakfast", "Supper"]
+## A dish's meal in words, by dish_book.gd `meal`: a drink is no meal (decision 0603).
+const DISH_MEAL_WORDS: Array[String] = ["breakfast", "supper", "a drink"]
 const CALL_HOUR: Array[int] = [7, 17]
 const END_HOUR: Array[int] = [9, 19]
 const COOK_RISE_HOUR: int = 5
@@ -172,14 +199,18 @@ const MONOTONY_HOURS: int = 6
 ## REQ-SET-013 and §5.7's raw table.
 const RAW_NP_CAP: int = 3000
 ## Dried fish is §5.7's PRESERVED `dried_fish` (1800 NP/U, "Dried/salted fish ... are directly edible"; decision 0431):
-## the village's reserve, eaten only this way -- §5.7's `fish` selector names the nine species, not their dried form.
+## the village's reserve, eaten this way or in the biscuit soup (decision 0603) -- §5.7's `fish` selector names the nine species, not their dried form.
+## Honey is §5.7's "Honey | 1200 | Yes" (decision 0603's item; no source yet).
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
-	Catalog.CAT_DRIED_FISH: 1800}
+	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200}
 
 
 static func _static_init() -> void:
 	"""Build the recipe book's columns from dish_book.gd DISHES, once."""
 	DISH_COUNT = Book.DISHES.size()
+	CATEGORY_COUNT = CATEGORY_WORDS.size()
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		CATEGORY_COUNT = maxi(CATEGORY_COUNT, Catalog.category_of(item) + 1)
 	for dish: int in DISH_COUNT:
 		var row: Dictionary = Book.DISHES[dish]
 		DISH_KEYS.append(StringName(row["key"]))
@@ -187,6 +218,7 @@ static func _static_init() -> void:
 		DISH_SHORT.append(String(row["short"]))
 		LIBRARY_IDS.append(String(row["library"]))
 		_add_row(String(row["gdd_row"]))
+		ROW_ADOPTED.append(1 if Book.ADOPTED_ROWS.has(String(row["gdd_row"])) else 0)
 		DISH_MEAL.append(int(row["meal"]))
 		PORTIONS_PER_BATCH.append(int(row["portions"]))
 		NP_PER_PORTION.append(int(row["np"]))
@@ -212,28 +244,66 @@ static func _add_row(gdd_row: String) -> void:
 
 
 static func _add_inputs(inputs: Array) -> void:
-	"""Append a dish's inputs to the input columns: each its selector, category and milli-U; and whether the dish is
-	plain and its freshest input's shelf hours."""
+	"""Append a dish's inputs to the input columns (`_add_input`), and the dish's plainness, freshest input's shelf hours
+	and what it waits for."""
 	INPUT_FIRST.append(IN_SELECTOR.size())
 	INPUT_N.append(inputs.size())
 	var freshest: int = 1 << 30
 	var plain: int = 1
+	var reasons := PackedStringArray()
 	for input: Variant in inputs:
-		var category: int = int(input[0])
-		var items := PackedInt32Array()
-		for key: Variant in input[2]:
-			var item: int = Catalog.ITEM_KEYS.find(StringName(key))
-			if item < 0 or item >= TakesScript.MASK_BITS:
-				push_error("meal_rules: dish_book.gd names no pantry item %s" % key)
-				continue
-			items.append(item)
-		IN_SELECTOR.append(category if items.is_empty() else TakesScript.items_selector(items))
-		plain = plain if items.is_empty() else 0
-		IN_CATEGORY.append(category)
-		IN_MILLI.append(int(input[1]))
-		freshest = mini(freshest, category_shelf_hours(category))
+		_add_input(input)
+		var k: int = IN_SELECTOR.size() - 1
+		plain = plain if (input[2] as Array).is_empty() else 0
+		if IN_CATEGORY[k] >= 0:
+			freshest = mini(freshest, category_shelf_hours(IN_CATEGORY[k]))
+		if not IN_WAITS[k].is_empty():
+			reasons.append(IN_WAITS[k])
 	FRESHEST_HOURS.append(freshest)
 	PLAIN.append(plain)
+	DISH_WAITS.append("; ".join(reasons))
+
+
+static func _add_input(input: Array) -> void:
+	"""One input: its selector (its category, or its own items -- none yet when a NEEDS item does not exist), its
+	category (a NEEDS input takes its items' own), milli-U, words and what it waits for (Book.PENDING_SOURCES)."""
+	var keys: Array = input[2]
+	var items := PackedInt32Array()
+	for key: Variant in keys:
+		var item: int = Catalog.ITEM_KEYS.find(StringName(key))
+		if item >= TakesScript.MASK_BITS or (item < 0 and not Book.PENDING_SOURCES.has(StringName(key))):
+			push_error("meal_rules: dish_book.gd names no pantry item %s" % key)
+		elif item >= 0:
+			items.append(item)
+	var category: int = int(input[0])
+	if category == Book.NEEDS and not items.is_empty():
+		category = Catalog.category_of(items[0])
+	IN_SELECTOR.append(category if keys.is_empty() else TakesScript.items_selector(items))
+	IN_CATEGORY.append(category)
+	IN_MILLI.append(int(input[1]))
+	IN_ITEMS_TEXT.append(items_text(IN_SELECTOR[IN_SELECTOR.size() - 1]) if not items.is_empty() or keys.is_empty() \
+		else " or ".join(PackedStringArray(keys)))
+	IN_WORDS.append(CATEGORY_WORDS[category] if category >= 0 and category < CATEGORY_WORDS.size() \
+		else IN_ITEMS_TEXT[IN_ITEMS_TEXT.size() - 1])
+	IN_WAITS.append(_waits_for(category, keys))
+
+
+static func _waits_for(category: int, keys: Array) -> String:
+	"""What an input waits for: "needs hazelnut: gathered by foragers" when every item it takes is pending (an item
+	not yet in the pantry, or one with no source yet: Book.PENDING_SOURCES); "" when it can be had."""
+	var named := PackedStringArray()
+	for key: Variant in keys:
+		named.append(String(key))
+	if keys.is_empty():
+		for item: int in Catalog.PANTRY_ITEM_COUNT:
+			if Catalog.category_of(item) == category:
+				named.append(String(Catalog.ITEM_KEYS[item]))
+	var reasons := PackedStringArray()
+	for key: String in named:
+		if not Book.PENDING_SOURCES.has(StringName(key)):
+			return ""
+		reasons.append("needs %s: %s" % [key.replace("_", " "), Book.PENDING_SOURCES[StringName(key)]])
+	return "; ".join(reasons)
 
 
 static func category_shelf_hours(category: int) -> int:
@@ -283,6 +353,22 @@ static func batch_food_milli(dish: int) -> int:
 	for k: int in INPUT_N[dish]:
 		total += input_milli(dish, k)
 	return total
+
+
+static func serves(dish: int, meal: int, own: bool) -> bool:
+	"""Whether the cook may pick `dish` for `meal`: one of that meal's dishes (`own`) or of the other meal's (not `own`)
+	-- never a drink, nor a dish still waiting for an ingredient (its label is the cook's rule too; decision 0603)."""
+	return is_meal_dish(dish) and not waits(dish) and (DISH_MEAL[dish] == meal) == own
+
+
+static func is_meal_dish(dish: int) -> bool:
+	"""Whether `dish` is served at breakfast or supper (a drink is not)."""
+	return DISH_MEAL[dish] == MEAL_BREAKFAST or DISH_MEAL[dish] == MEAL_SUPPER
+
+
+static func waits(dish: int) -> bool:
+	"""Whether `dish` waits for an ingredient the demo cannot produce yet (DISH_WAITS)."""
+	return not DISH_WAITS[dish].is_empty()
 
 
 static func dish_for_meal(meal: int) -> int:

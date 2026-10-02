@@ -34,12 +34,42 @@ extends RefCounted
 ## The fish-stew rows' roots are §5.7's second input, which the library's poached fish do not name (as decision 0436).
 ## bean_hotpot's §5.7 unlock is M1; the demo runs no milestones, so unlocks are not evaluated (as the fishing driver's).
 ## Rows 0-2 keep their indices: the meal store, the logs and the guide's ids refer to them.
+##
+## THE FAMILIES BRENDAN DIRECTED (decision 0603, DEC-045, 2026-10-01: "add in everything for 5 now"), and his tuning
+## experiments E2 and E3. Their `gdd_row` is a NEW recipe row in §5.7's format, DRAFTED for his confirmation (0603's
+## table) -- woodland_pie alone is §5.7's own:
+##   oatcake        Breakfast oatcake          rakkety_tam    oatcake (new)        oats                    cookable
+##   farl           Barley farl                taggerung      farl (new)           barley                  cookable
+##   hardtack       Haversack hardtack         rakkety_tam    hardtack (new)       flour                   cookable
+##   salad          Spring salad               outcast        salad (new)          greens + roots          cookable
+##   baked_fish     Baked fish (E2)            mossflower     baked_fish (new)     fresh fish, no roots    cookable
+##   biscuit_soup   Durral's dried-fish        pearls_lutra   fish_biscuit_soup    dried fish + flour +    cookable
+##                  biscuit soup (E3)                        (new)                roots
+##   pasty          Vegetable pasty            salamandastron pasty (new)          flour, roots, greens,   waits:
+##                                                                                + hazelnut              hazelnut
+##   root_pie       Turnip, potato and         martin_warrior root_pie (new)       flour, turnip or beet-  waits:
+##                  beetroot pie                                                  root, potato, hazelnut  potato, nuts
+##   woodland_pie   Woodland pie               (the GDD's)    woodland_pie         flour, mushroom, roots  waits:
+##                                                                                                        mushroom
+##   scones         Hazelnut scones            martin_warrior scones (new)         flour + hazelnut        waits: nuts
+##   cordial        Raspberry cordial          lord_brocktree cordial (new)        raspberry + honey       waits: both
+## A dish whose ingredient the demo cannot yet produce WAITS: it is listed, never hidden, with its reason
+## (PENDING_SOURCES). An input of category NEEDS names items by their content-library key only -- items another lane
+## owns (the foraging lane's nuts, mushrooms and berries) -- and takes its category from them once they exist.
+## The cordial is a DRINK: never chosen for a meal (the feasts lane serves drinks); it is listed with its recipe.
 
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 
 const BREAKFAST: int = 0
 const SUPPER: int = 1
+## Not a meal: a drink (meal_rules.gd: never chosen for breakfast or supper).
+const DRINK: int = 2
+## An input whose items another lane defines: its category is theirs (meal_rules.gd resolves it, or the input waits).
+const NEEDS: int = -1
+const FLOUR: int = Catalog.CAT_FLOUR
+const DRIED_FISH: int = Catalog.CAT_DRIED_FISH
+const HONEY: int = Catalog.CAT_HONEY
 const BEANS: int = FarmingScript.CROP_BEANS
 const GREENS: int = FarmingScript.CROP_CABBAGE
 const GRAIN: int = FarmingScript.CROP_GRAIN
@@ -79,4 +109,63 @@ const DISHES: Array[Dictionary] = [
 		"library": "", "gdd_row": "bean_hotpot", "meal": SUPPER,
 		"portions": 3, "np": 2100, "work_mwu": 20000, "shelf_hours": 36, "water_milli": 2000,
 		"inputs": [[BEANS, 2000, []], [GREENS, 2000, []]]},
+	{"key": &"oatcake", "name": "Breakfast oatcake", "short": "oatcakes",
+		"library": "rakkety_tam::RAK_recipe_breakfast_oatcake", "gdd_row": "oatcake", "meal": BREAKFAST,
+		"portions": 2, "np": 1800, "work_mwu": 14000, "shelf_hours": 72, "water_milli": 1000,
+		"inputs": [[GRAIN, 2000, [&"oats"]]]},
+	{"key": &"farl", "name": "Barley farl", "short": "farls",
+		"library": "taggerung::TAG_recipe_barley_farl", "gdd_row": "farl", "meal": BREAKFAST,
+		"portions": 2, "np": 1800, "work_mwu": 14000, "shelf_hours": 48, "water_milli": 1000,
+		"inputs": [[GRAIN, 2000, [&"barley"]]]},
+	{"key": &"hardtack", "name": "Haversack hardtack", "short": "hardtack",
+		"library": "rakkety_tam::RAK_recipe_haversack_hardtack", "gdd_row": "hardtack", "meal": BREAKFAST,
+		"portions": 2, "np": 1800, "work_mwu": 16000, "shelf_hours": 480, "water_milli": 500,
+		"inputs": [[FLOUR, 2000, []]]},
+	{"key": &"salad", "name": "Spring salad", "short": "salad",
+		"library": "outcast::OUT_recipe_spring_salad", "gdd_row": "salad", "meal": SUPPER,
+		"portions": 2, "np": 1400, "work_mwu": 6000, "shelf_hours": 12, "water_milli": 500,
+		"inputs": [[GREENS, 2000, []], [ROOTS, 1000, []]]},
+	{"key": &"baked_fish", "name": "Baked fish", "short": "baked fish",
+		"library": "mossflower::MF_recipe_baked_fish", "gdd_row": "baked_fish", "meal": SUPPER,
+		"portions": 2, "np": 1900, "work_mwu": 14000, "shelf_hours": 24, "water_milli": 500,
+		"inputs": [[FISH, 2000, []]]},
+	{"key": &"biscuit_soup", "name": "Durral's dried-fish biscuit soup", "short": "biscuit soup",
+		"library": "pearls_lutra::PL_RECIPE_durral_s_dried_fish_biscuit_soup", "gdd_row": "fish_biscuit_soup",
+		"meal": SUPPER, "portions": 3, "np": 2000, "work_mwu": 20000, "shelf_hours": 24, "water_milli": 2000,
+		"inputs": [[DRIED_FISH, 1000, []], [FLOUR, 1000, []], [ROOTS, 1000, []]]},
+	{"key": &"pasty", "name": "Vegetable pasty", "short": "pasties",
+		"library": "salamandastron::SAL_recipe_vegetable_pasty", "gdd_row": "pasty", "meal": SUPPER,
+		"portions": 3, "np": 2200, "work_mwu": 24000, "shelf_hours": 48, "water_milli": 500,
+		"inputs": [[FLOUR, 2000, []], [ROOTS, 1000, []], [GREENS, 1000, []], [NEEDS, 500, [&"hazelnut"]]]},
+	{"key": &"root_pie", "name": "Turnip, potato and beetroot pie", "short": "root pie",
+		"library": "martin_warrior::MW_RECIPE_turnip_potato_and_beetroot_pie", "gdd_row": "root_pie", "meal": SUPPER,
+		"portions": 4, "np": 2300, "work_mwu": 32000, "shelf_hours": 48, "water_milli": 500,
+		"inputs": [[FLOUR, 2000, []], [ROOTS, 2000, [&"turnip", &"beetroot"]], [ROOTS, 1000, [&"potato"]],
+			[NEEDS, 500, [&"hazelnut"]]]},
+	{"key": &"woodland_pie", "name": "Woodland pie", "short": "woodland pie",
+		"library": "", "gdd_row": "woodland_pie", "meal": SUPPER,
+		"portions": 3, "np": 2300, "work_mwu": 30000, "shelf_hours": 48, "water_milli": 1000,
+		"inputs": [[FLOUR, 2000, []], [NEEDS, 2000, [&"mushroom"]], [ROOTS, 1000, []]]},
+	{"key": &"scones", "name": "Hazelnut scones", "short": "scones",
+		"library": "martin_warrior::MW_RECIPE_hazelnut_scones", "gdd_row": "scones", "meal": BREAKFAST,
+		"portions": 3, "np": 1800, "work_mwu": 20000, "shelf_hours": 48, "water_milli": 1000,
+		"inputs": [[FLOUR, 2000, []], [NEEDS, 500, [&"hazelnut"]]]},
+	{"key": &"cordial", "name": "Raspberry cordial", "short": "cordial",
+		"library": "lord_brocktree::LB-RECIPE-raspberry-cordial", "gdd_row": "cordial", "meal": DRINK,
+		"portions": 4, "np": 500, "work_mwu": 10000, "shelf_hours": 72, "water_milli": 2000,
+		"inputs": [[NEEDS, 2000, [&"raspberry"]], [HONEY, 500, []]]},
 ]
+
+## The §5.7 recipe rows the GDD adopts; every other `gdd_row` here is a DRAFT for Brendan to confirm (decision 0603).
+const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "woodland_pie"]
+
+## WHERE A MISSING INGREDIENT WILL COME FROM, by item key: a dish taking one waits, saying so ("needs hazelnut:
+## gathered by foragers"). The lane that lands a source deletes its key here (and a NEEDS key resolves itself once its
+## item exists).
+const PENDING_SOURCES: Dictionary = {
+	&"hazelnut": "gathered by foragers",
+	&"mushroom": "gathered by foragers",
+	&"raspberry": "gathered by foragers",
+	&"potato": "grown in the fields, not yet planted in the demo",
+	&"honey": "made in beehives, not yet in the demo",
+}

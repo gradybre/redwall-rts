@@ -19,6 +19,7 @@ WHAT IS RESOLVED, exactly as the handoff's section 3 specifies:
   * a dish uses an item DIRECTLY when one of its inputs is one of the item's targets, and VIA A
     COMPONENT when a target is in the recursive closure (leaves and components) of one of its
     COMPONENT inputs (the handoff's `Leaves(v)` formula over `game_components[].dependencies`).
+  * potato and honey (decision 0603: ingredients with no source yet) by their LEAF;
   * Salmon and carp have no pantry leaf (the library's fish leaves are dace, herring, mackerel,
     mussel, perch, trout and whitefish): they are listed with no targets and no dishes.
 
@@ -54,6 +55,7 @@ ITEM_KEYS = [
     "wheat", "barley", "oats",
     "trout", "dace", "salmon", "perch", "carp", "whitefish",
     "dried_fish", "flour",
+    "potato", "honey",
 ]
 CATCH = ["trout", "dace", "salmon", "perch", "carp", "whitefish"]
 GRAIN_LEAVES = {"LEAF_wheat", "LEAF_barley", "LEAF_oats"}
@@ -98,7 +100,9 @@ def targets_of(key: str, known: set, components: dict, memo: dict) -> list:
         return [f"LEAF_{key}"] if f"LEAF_{key}" in known else []
     if key == "dried_fish":
         return goods_targets(components, "dried", {f"LEAF_{k}" for k in CATCH}, memo)
-    return goods_targets(components, "flour", GRAIN_LEAVES, memo)
+    if key == "flour":
+        return goods_targets(components, "flour", GRAIN_LEAVES, memo)
+    return [f"LEAF_{key}"] if f"LEAF_{key}" in known else []
 
 
 def dish_label(row: dict) -> str:

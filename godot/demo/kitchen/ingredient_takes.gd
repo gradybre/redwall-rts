@@ -37,9 +37,9 @@ const IN_HAND: int = 1
 const AT_KITCHEN: int = 2
 const REFUSE_SHORT: String = "NOT_ENOUGH_RESERVED"
 const ANY: int = -1
-## A selector with this bit set is an item mask; the pantry's 24 item rows fit beneath it (test_demo_dishes.gd checks).
-const SELECT_ITEMS: int = 1 << 30
-const MASK_BITS: int = 30
+## A selector with this bit set is an item mask; the pantry's item rows fit beneath it (62 of them) (test_demo_dishes.gd checks).
+const SELECT_ITEMS: int = 1 << 62
+const MASK_BITS: int = 62
 
 var _take: PackedInt32Array = PackedInt32Array()
 var _lot: PackedInt32Array = PackedInt32Array()

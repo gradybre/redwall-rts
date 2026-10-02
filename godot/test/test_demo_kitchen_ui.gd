@@ -161,7 +161,12 @@ func test_the_pantry_shows_the_kitchen_tab_and_marks_the_dishes_cookable() -> vo
 	panel.select_item(CABBAGE)
 	assert_true(panel.cookable_text().begins_with("Cookable (active): Bean hotpot — cooked as the GDD's bean_hotpot: 2.0 U of beans (pea or broad bean) + 2.0 U of greens"), "cabbage: the hotpot")
 	panel.select_item(Catalog.ITEM_FLOUR)
-	assert_equal(panel.cookable_text(), "", "flour feeds no dish (decision 0434)")
+	assert_true(panel.cookable_text().begins_with("Cookable (active): Haversack hardtack — cooked as the draft row hardtack (DEC-045)"),
+		"flour: the hardtack, a draft row (decision 0603)")
+	assert_true(panel.cookable_text().contains("(DEC-045): 2.0 U of flour + water 0.5 U → 2 portions"),
+		"a category named by its one item is said once")
+	assert_true(panel.cookable_text().contains("Waiting (needs hazelnut: gathered by foragers): Vegetable pasty"),
+		"and the pasty, waiting and said why")
 	assert_equal(panel.recipe_heading(), PantryPanelScript.RECIPE_HEADING_COOKING, "the heading says the kitchen's dishes are cookable")
 	panel.show_tab(PantryPanelScript.TAB_KITCHEN)
 	assert_true(panel.page_shown(PantryPanelScript.TAB_KITCHEN), "the Kitchen tab")

@@ -19,6 +19,7 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const FarmingScript := preload("res://scripts/core/farming.gd")
 const Rules := preload("res://demo/kitchen/meal_rules.gd")
 const KitchenWords := preload("res://demo/kitchen/kitchen_text.gd")
+const Book := preload("res://demo/kitchen/dish_book.gd")
 const Tastes := preload("res://demo/kitchen/dish_favourites.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const StorageScript := preload("res://demo/farm/farm_storage.gd")
@@ -146,7 +147,7 @@ func _crop_uses(item: int, links: Array[StringName]) -> String:
 	var parts := PackedStringArray()
 	for dish: int in Rules.DISH_COUNT:
 		if Rules.is_input(dish, item):
-			parts.append("%s (%s): %s makes %d portions" % [Rules.DISH_NAMES[dish], Rules.MEAL_NAMES[meal_of(dish)],
+			parts.append("%s (%s): %s makes %d portions" % [Rules.DISH_NAMES[dish], Rules.DISH_MEAL_WORDS[meal_of(dish)],
 				FarmText.units_text(input_milli(dish, item)), Rules.PORTIONS_PER_BATCH[dish]])
 			links.append(DISH_IDS[dish])
 	if Rules.raw_np_per_u(item) > 0:
@@ -224,62 +225,109 @@ func _dish(dish: int) -> Entry:
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		if Rules.is_input(dish, item):
 			links.append(item_id(item))
-	links.append(DISH_IDS[Rules.other(dish)])
+	if Rules.is_meal_dish(dish):
+		links.append(DISH_IDS[Rules.other(dish)])
 	var meal: int = meal_of(dish)
-	var uses: String = "%s: each batch is %d portions of %d NP, keeping %d game hours.%s" % [Rules.MEAL_TITLES[meal],
-		Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish], Rules.SHELF_HOURS[dish], _tastes_text(dish)]
+	var uses: String = "%s: each batch is %d portions of %d NP, keeping %d game hours.%s" % [
+		Rules.DISH_MEAL_WORDS[meal].left(1).to_upper() + Rules.DISH_MEAL_WORDS[meal].substr(1),
+		Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
+		Rules.SHELF_HOURS[dish], _tastes_text(dish)]
 	var food: String = KitchenWords.inputs_text(dish, 1).replace(" + ", " and ")
-	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron." % [food,
+	@warning_ignore("integer_division")
+	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron.%s" % [food,
 		FarmText.units_text(Rules.WATER_MILLI[dish]), FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH),
-		Rules.WORK_MWU[dish] / 1000]
-	var other: String = "The cook picks it when the stores hold its food: a dish that feeds everyone first, then the food that keeps least long, then what the village likes most. When no %s can be made, the cook makes %s." % [
-		Rules.MEAL_NAMES[meal], Rules.DISH_NAMES[Rules.other(dish)]]
-	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], "Cooked for %s" % Rules.MEAL_NAMES[meal],
-		PackedStringArray([uses, requires, other, "Cooked at the cauldron by the keeper, served at the hall's tables."]),
-		links)
+		Rules.WORK_MWU[dish] / 1000, " Waiting: %s." % Rules.DISH_WAITS[dish] if Rules.waits(dish) else ""]
+	var summary: String = "Cooked for %s" % Rules.DISH_MEAL_WORDS[meal] if Rules.is_meal_dish(dish) else "A drink"
+	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], summary,
+		PackedStringArray([uses, requires, _choice_text(dish), "Cooked at the cauldron by the keeper%s." % (
+			", served at the hall's tables" if Rules.is_meal_dish(dish) else "")]), links)
+
+
+static func _choice_text(dish: int) -> String:
+	"""How the cook comes to cook `dish` (a drink: not at meals)."""
+	if not Rules.is_meal_dish(dish):
+		return "A drink: the kitchen does not serve it at meals yet."
+	return "The cook picks it when the stores hold its food: a dish that feeds everyone first, then the food that keeps least long, then what the village likes most. When no %s can be made, the cook makes %s." % [
+		Rules.DISH_MEAL_WORDS[meal_of(dish)], Rules.DISH_NAMES[Rules.other(dish)]]
 
 
 # --- fish and preserved food -------------------------------------------------------------------------
 
 func _goods(item: int) -> Entry:
-	"""One of the pantry's other goods (decision 0431): a fish of the catch, dried fish or flour."""
+	"""One of the pantry's other goods (decision 0431): a fish of the catch, dried fish or flour -- or an ingredient with
+	no source yet (decision 0603: potato, honey)."""
 	var links: Array[StringName] = [&"station_store", &"station_fishing"]
-	var shelf: int = Catalog.shelf_hours_of(item)
 	var fields: PackedStringArray
 	var summary: String
+	if item == Catalog.ITEM_DRIED_FISH or item == Catalog.ITEM_FLOUR:
+		links = [&"station_rack_mill", &"station_store", &"goods_flour" if item == Catalog.ITEM_DRIED_FISH else &"crop_oats"]
+		summary = "Fish smoked at the rack" if item == Catalog.ITEM_DRIED_FISH else "Grain ground at the mill"
+		fields = _station_goods_fields(item, links)
+	elif item - Catalog.FIRST_CATCH >= 0 and item - Catalog.FIRST_CATCH < Catalog.CATCH_COUNT:
+		summary = "Fresh fish from %s" % CATCH_WATERS[item - Catalog.FIRST_CATCH]
+		links.append(&"goods_dried_fish")
+		fields = _catch_fields(item, links)
+	elif Book.PENDING_SOURCES.has(Catalog.ITEM_KEYS[item]):
+		summary = "Not yet in the demo"
+		links = [&"station_kitchen"]
+		fields = PackedStringArray([_dishes_taking(item, links), "Nothing in the village produces it yet: %s." %
+			Book.PENDING_SOURCES[Catalog.ITEM_KEYS[item]], _pending_note(item),
+			"Keeps %d game hours in store once there is some." % Catalog.shelf_hours_of(item)])
+	else:
+		push_error("field_guide: no entry for pantry goods %s" % Catalog.ITEM_KEYS[item])
+		summary = Catalog.ITEM_LABELS[item]
+		fields = PackedStringArray([_dishes_taking(item, links), "", "", ""])
+	var made: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], summary, fields, links)
+	made.item = item
+	return made
+
+
+func _station_goods_fields(item: int, links: Array[StringName]) -> PackedStringArray:
+	"""Dried fish's or flour's fields: what cooks it, how it is made, its alternatives, how long it keeps."""
+	var shelf: int = Catalog.shelf_hours_of(item)
 	if item == Catalog.ITEM_DRIED_FISH:
-		summary = "Fish smoked at the rack"
-		links = [&"station_rack_mill", &"station_store"]
-		fields = PackedStringArray([
-			"The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit)." % Rules.raw_np_per_u(item),
+		@warning_ignore("integer_division")
+		return PackedStringArray([
+			"The village's reserve: eaten raw by a hungry resident when a meal is missed (%d NP a unit). %s" % [
+				Rules.raw_np_per_u(item), _dishes_taking(item, links)],
 			"Drying fresh fish at the rack: %s of fish makes %s, %d WU and %d hours' curing." % [
 				FarmText.units_text(FisheryRules.DRY_IN_MILLI), FarmText.units_text(FisheryRules.DRY_OUT_MILLI),
 				FisheryRules.DRY_WORK_MWU / 1000, FisheryRules.DRY_PASSIVE_HOURS],
 			"Fresh fish, cooked in the fish stew while it keeps (%d game hours)." % Catalog.shelf_hours_of(Catalog.FIRST_CATCH),
 			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
-	elif item == Catalog.ITEM_FLOUR:
-		summary = "Grain ground at the mill"
-		links = [&"station_rack_mill", &"station_store", &"crop_oats"]
-		fields = PackedStringArray([
-			"Kept as stock for later baking: none of the demo's dishes uses it yet, and it is not eaten raw.",
-			"Milling grain: %s of grain makes %s, %d WU." % [FarmText.units_text(FisheryRules.MILL_IN_MILLI),
-				FarmText.units_text(FisheryRules.MILL_OUT_MILLI), FisheryRules.MILL_WORK_MWU / 1000],
-			"Unground grain cooks as porridge.", "Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
-	else:
-		var water: String = CATCH_WATERS[item - Catalog.FIRST_CATCH]
-		summary = "Fresh fish from %s" % water
-		links.append(&"dish_fish_stew")
-		links.append(&"goods_dried_fish")
-		fields = PackedStringArray([
-			"%s (supper): %s of fresh fish with %s of roots makes %d portions; or dried at the rack." % [
-				Rules.DISH_NAMES[Rules.DISH_FISH_STEW], FarmText.units_text(Rules.INPUT_MILLI[Rules.DISH_FISH_STEW]),
-				FarmText.units_text(Rules.SIDE_MILLI[Rules.DISH_FISH_STEW]), Rules.PORTIONS_PER_BATCH[Rules.DISH_FISH_STEW]],
-			"An authorised fishing trip (the Water panel's Fishing) and its gear; keeps only %d game hours, and is never eaten raw." % shelf,
-			"The other fish of the catch; dried fish keeps far longer.",
-			"Fished in %s." % water])
-	var entry: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], summary, fields, links)
-	entry.item = item
-	return entry
+	@warning_ignore("integer_division")
+	return PackedStringArray([
+		"%s It is not eaten raw." % _dishes_taking(item, links),
+		"Milling grain: %s of grain makes %s, %d WU." % [FarmText.units_text(FisheryRules.MILL_IN_MILLI),
+			FarmText.units_text(FisheryRules.MILL_OUT_MILLI), FisheryRules.MILL_WORK_MWU / 1000],
+		"Unground grain cooks as porridge.", "Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
+
+
+func _catch_fields(item: int, links: Array[StringName]) -> PackedStringArray:
+	"""A fish of the catch's fields: the dishes that cook it (the stews, the baked fish), or dried at the rack."""
+	return PackedStringArray([
+		"%s Or dried at the rack." % _dishes_taking(item, links),
+		"An authorised fishing trip (the Water panel's Fishing) and its gear; keeps only %d game hours, and is never eaten raw." % Catalog.shelf_hours_of(item),
+		"The other fish of the catch; dried fish keeps far longer.",
+		"Fished in %s." % CATCH_WATERS[item - Catalog.FIRST_CATCH]])
+
+
+static func _pending_note(item: int) -> String:
+	"""Whether the dishes taking a pending `item` wait for it, or cook without it (a dish taking any roots)."""
+	for dish: int in Rules.DISH_COUNT:
+		if Rules.is_input(dish, item) and not Rules.waits(dish):
+			return "Dishes that take it among others cook without it; the rest wait for it."
+	return "Its dishes wait for it."
+
+
+static func _dishes_taking(item: int, links: Array[StringName]) -> String:
+	"""The dishes that take `item`, cookable or waiting ("Cooked in: hardtack, vegetable pasty (waiting)."); each linked."""
+	var names := PackedStringArray()
+	for dish: int in Rules.DISH_COUNT:
+		if Rules.is_input(dish, item):
+			names.append(Rules.DISH_NAMES[dish] + (" (waiting)" if Rules.waits(dish) else ""))
+			links.append(DISH_IDS[dish])
+	return "Cooked in: %s." % "; ".join(names) if not names.is_empty() else "No dish of the demo cooks it yet."
 
 
 # --- materials ---------------------------------------------------------------------------------------

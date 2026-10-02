@@ -1100,6 +1100,26 @@ The verbatim answers and the D1-D9 plan are in
 [DEMO-CONTAIN-R01](rulings/2026-10-01_demolition_containment.md); engineering adoption is
 decision 0531.
 
+### DEC-045 — Every Redwall dish family the kitchen lacked is added, as drafted recipes
+
+2026-10-01 · State: `USER_CONFIRMED` for adding the families; their numbers are `PROPOSED_FOR_REVIEW`.
+
+Brendan, on decision 0601's fifth proposal, relayed through the settlement coordinator on 2026-10-01:
+**"Approve, but add in everything for 5 now."** The dish families the live demo's kitchen had rejected for want of a
+GDD §5.7 recipe row -- pies, pasties and turnovers, scones, oatcakes, farls and hardtack, salads, cordials -- are
+added now, each a content-library dish cooked by a NEW recipe row written in §5.7's format. He also approved three
+balance-tuning experiments for the same work: a fish dish needing no roots (E2), dried fish and flour as kitchen
+inputs (E3), and a cabbage-and-bean pottage only if the bean hotpot leaves a gap (E4: it does not).
+
+- **The rows are drafts.** Their inputs, portions, NP, work and shelf life are authored inside the adopted §5.7 rows'
+  range and await his confirmation or retuning; they are not GDD rows until he confirms them.
+- **The setting exclusions stand**: joke, captive and cruelty contexts, shrimp and the fictional hotroot stay out --
+  they were excluded for setting reasons, not for want of a recipe.
+- **A dish whose ingredient has no source yet waits and says why**; the sources belong to their own lanes (foraging,
+  crops, hives).
+
+Engineering record, the drafted table and the waiting ingredients: decision 0603.
+
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.

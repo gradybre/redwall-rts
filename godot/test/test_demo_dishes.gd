@@ -54,6 +54,8 @@ const GDD_ROWS: Dictionary = {
 	"root_stew": [[[FarmingScript.CROP_ROOTS, 3000]], 1000, 2, 1800, 16000, 24],
 	"fish_stew": [[[Catalog.CAT_FISH, 2000], [FarmingScript.CROP_ROOTS, 2000]], 2000, 3, 2200, 20000, 24],
 	"bean_hotpot": [[[FarmingScript.CROP_BEANS, 2000], [FarmingScript.CROP_CABBAGE, 2000]], 2000, 3, 2100, 20000, 36],
+	"woodland_pie": [[[Catalog.CAT_FLOUR, 2000], [Book.NEEDS, 2000], [FarmingScript.CROP_ROOTS, 1000]], 1000, 3, 2300,
+		30000, 48],
 }
 
 var _read: IntMath.IntResult = IntMath.IntResult.new()
@@ -114,6 +116,12 @@ func _breakfast_of(species: PackedStringArray, stock: Dictionary) -> int:
 	return kitchen.plan_of(Rules.meal_key(1, Rules.MEAL_BREAKFAST))[0]
 
 
+static func _declared_category(dish: int, k: int) -> int:
+	"""Input `k`'s category as the book declares it (Book.NEEDS for an item another lane defines), so the checks hold
+	before and after that lane lands it."""
+	return int((Book.DISHES[dish]["inputs"] as Array)[k][0])
+
+
 static func _lot_of(pantry: PantryScript, item: int) -> int:
 	"""The first live lot row of `item` (-1: none)."""
 	for lot: int in PantryScript.MAX_LOTS:
@@ -135,13 +143,16 @@ static func _many(species: String, n: int) -> PackedStringArray:
 func test_every_dish_is_cooked_as_its_gdd_row_exactly() -> void:
 	"""Each dish carries its §5.7 row's inputs (categories and milli-U), water, portions, NP, WU and shelf exactly."""
 	assert_equal(Rules.DISH_COUNT, Book.DISHES.size(), "a column per row")
-	assert_equal(Rules.DISH_COUNT, 8, "eight dishes")
+	assert_equal(Rules.DISH_COUNT, 19, "nineteen dishes: eight (0601) and eleven (0603)")
+	assert_equal(GDD_ROWS.keys(), Book.ADOPTED_ROWS, "the adopted rows are the ones checked here")
 	for dish: int in Rules.DISH_COUNT:
+		if Rules.ROW_ADOPTED[dish] == 0:
+			continue
 		var row: Array = GDD_ROWS[Rules.GDD_ROWS[dish]]
 		var inputs: Array = row[0]
 		assert_equal(Rules.INPUT_N[dish], inputs.size(), "%s: its inputs" % Rules.DISH_NAMES[dish])
 		for k: int in inputs.size():
-			assert_equal([Rules.input_category(dish, k), Rules.input_milli(dish, k)], inputs[k],
+			assert_equal([_declared_category(dish, k), Rules.input_milli(dish, k)], inputs[k],
 				"%s input %d" % [Rules.DISH_NAMES[dish], k])
 		assert_equal([Rules.WATER_MILLI[dish], Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
 			Rules.WORK_MWU[dish], Rules.SHELF_HOURS[dish]], row.slice(1), Rules.DISH_NAMES[dish])
@@ -160,8 +171,8 @@ func test_every_dish_is_a_library_production_candidate() -> void:
 			found[recipe["id"]] = bool(recipe["production_candidate"])
 	for dish: int in Rules.DISH_COUNT:
 		var id: String = Rules.LIBRARY_IDS[dish]
-		if dish == Rules.DISH_BEAN_HOTPOT:
-			assert_equal(id, "", "the hotpot is the GDD's")
+		if dish == Rules.DISH_BEAN_HOTPOT or dish == Rules.DISH_WOODLAND_PIE:
+			assert_equal(id, "", "the hotpot and the woodland pie are the GDD's")
 			continue
 		assert_true(found.get(id, false), "%s is a production candidate" % id)
 
@@ -171,13 +182,22 @@ func test_every_dish_has_an_input_and_a_meal() -> void:
 	dish of no dish is none."""
 	for dish: int in Rules.DISH_COUNT:
 		assert_true(Rules.INPUT_N[dish] >= 1, "%s has an input" % Rules.DISH_NAMES[dish])
-		assert_true(Rules.DISH_MEAL[dish] == Rules.MEAL_BREAKFAST or Rules.DISH_MEAL[dish] == Rules.MEAL_SUPPER, "a meal")
+		assert_true(Rules.is_meal_dish(dish) or Rules.DISH_MEAL[dish] == Book.DRINK, "a meal, or a drink")
 	assert_equal(Rules.other(Rules.NO_DISH), Rules.NO_DISH, "no dish")
+
+
+func test_every_pantry_category_fits_the_estimate() -> void:
+	"""The ready-food estimate pools food by category: every pantry item's category is below CATEGORY_COUNT, counted from
+	the catalog (a lane adding a category is counted, never written past the pool)."""
+	for item: int in Catalog.PANTRY_ITEM_COUNT:
+		assert_true(Catalog.category_of(item) >= 0 and Catalog.category_of(item) < Rules.CATEGORY_COUNT,
+			"%s's category fits" % Catalog.ITEM_KEYS[item])
+	assert_true(Rules.CATEGORY_COUNT >= Rules.CATEGORY_WORDS.size(), "at least the named ones")
 
 
 func test_inputs_are_the_demos_own_produce_and_never_overlap() -> void:
 	"""Every input's items are of its category and are things the demo grows or catches; a dish's inputs never share an
-	item (so no food counts twice); keys are unique; dried fish and flour feed no dish."""
+	item (so no food counts twice); keys are unique."""
 	var keys: Dictionary = {}
 	for dish: int in Rules.DISH_COUNT:
 		assert_false(keys.has(Rules.DISH_KEYS[dish]), "unique key %s" % Rules.DISH_KEYS[dish])
@@ -191,8 +211,6 @@ func test_inputs_are_the_demos_own_produce_and_never_overlap() -> void:
 				for j: int in Rules.INPUT_N[dish]:
 					takers += 1 if TakesScript.matches(Rules.input_selector(dish, j), item) else 0
 				assert_equal(takers, 1, "one input takes %s" % Catalog.ITEM_KEYS[item])
-		assert_false(Rules.is_input(dish, Catalog.ITEM_DRIED_FISH), "no dish takes dried fish (decision 0434)")
-		assert_false(Rules.is_input(dish, Catalog.ITEM_FLOUR), "no dish takes flour (decision 0434)")
 	assert_true(Catalog.PANTRY_ITEM_COUNT <= TakesScript.MASK_BITS, "every pantry item fits a selector mask")
 
 
@@ -207,7 +225,7 @@ func test_a_dish_takes_only_its_own_ingredients() -> void:
 		Rules.input_of(Rules.DISH_POACHED_DACE, RADISH)], [0, -1, 1], "dace, not trout; any roots second")
 	assert_false(Rules.is_input(Rules.DISH_BARLEYMEAL, WHEAT), "no wheat in barleymeal")
 	assert_true(Rules.is_input(Rules.DISH_PORRIDGE, WHEAT), "the plain porridge takes any grain")
-	assert_equal(Rules.PLAIN, PackedByteArray([1, 1, 1, 0, 0, 0, 0, 1]), "the plain dishes")
+	assert_equal(Rules.PLAIN.slice(0, 8), PackedByteArray([1, 1, 1, 0, 0, 0, 0, 1]), "the plain dishes of 0601")
 	assert_equal(Rules.batch_food_milli(Rules.DISH_BEAN_HOTPOT), 4000, "beans 2 + greens 2")
 	assert_false(Rules.is_input(Rules.DISH_SOUP, Catalog.NO_ITEM), "no item is no input")
 
@@ -230,8 +248,9 @@ func test_recipes_and_freshness_rank_as_the_gdd_says() -> void:
 	assert_true(Rules.same_recipe(Rules.DISH_PORRIDGE, Rules.DISH_BARLEYMEAL), "one recipe")
 	assert_false(Rules.same_recipe(Rules.DISH_SOUP, Rules.DISH_FISH_STEW), "two recipes")
 	assert_false(Rules.same_recipe(Rules.NO_DISH, Rules.DISH_SOUP), "no dish")
-	assert_equal(Rules.ROW_COUNT, 4, "four §5.7 rows")
-	assert_equal(Rules.FRESHEST_HOURS, PackedInt32Array([720, 240, 48, 720, 240, 240, 48, 144]), "freshest input")
+	assert_equal(Rules.ROW_COUNT, 15, "four §5.7 rows of 0601, woodland_pie and ten drafts")
+	assert_equal(Rules.FRESHEST_HOURS.slice(0, 8), PackedInt32Array([720, 240, 48, 720, 240, 240, 48, 144]),
+		"freshest input")
 	assert_true(Rules.fresher_first(Rules.DISH_FISH_STEW, Rules.DISH_BEAN_HOTPOT) < 0, "fish before greens")
 	assert_true(Rules.fresher_first(Rules.DISH_BEAN_HOTPOT, Rules.DISH_SOUP) < 0, "greens before roots")
 	assert_equal(Rules.fresher_first(Rules.DISH_SOUP, Rules.DISH_VOLE_STEW), 0, "roots alike")
@@ -308,7 +327,8 @@ func test_supper_picks_the_food_that_keeps_least_long() -> void:
 	"""Fresh fish (48 h) before greens (144 h) before roots (240 h), whatever the village likes: the fish stew over the
 	hotpot over a soup; a meal with only roots is a soup."""
 	var everything: Dictionary = {TROUT: 4000, PEA: 4000, CABBAGE: 4000, CARROT: 6000}
-	assert_equal(_supper_of(_many("beaver", 3), everything), Rules.DISH_FISH_STEW, "fish first, even for beavers")
+	assert_equal(_supper_of(_many("beaver", 3), everything), Rules.DISH_BAKED_FISH,
+		"fish first, even for beavers -- the fish dish they do not dislike (E2's baked fish)")
 	assert_equal(_supper_of(_many("mouse", 3), {PEA: 4000, CABBAGE: 4000, CARROT: 6000}), Rules.DISH_BEAN_HOTPOT,
 		"greens before roots")
 	assert_equal(_supper_of(_many("mouse", 3), {CARROT: 6000}), Rules.DISH_SOUP, "roots: the soup")
@@ -325,9 +345,9 @@ func test_among_alike_the_village_s_favourite_wins_then_the_book_s_order() -> vo
 	assert_equal(_supper_of(_many("squirrel", 2), {RADISH: 6000}), Rules.DISH_SOUP, "radish: only Togget's")
 	assert_equal(_supper_of(_many("otter", 2), {DACE: 4000, CARROT: 4000}), Rules.DISH_POACHED_DACE, "otters")
 	assert_equal(_supper_of(PackedStringArray(["otter", "beaver", "beaver"]), {DACE: 4000, CARROT: 4000}),
-		Rules.DISH_POACHED_DACE, "an otter and two beavers: the dace's 1 - 2 beats the plain stew's -2")
-	assert_equal(_supper_of(_many("beaver", 2), {DACE: 4000, CARROT: 4000}), Rules.DISH_FISH_STEW,
-		"beavers dislike both alike: the book's order")
+		Rules.DISH_BAKED_FISH, "an otter and two beavers: the baked fish's 0 beats the dace's -1 and the stew's -2")
+	assert_equal(_supper_of(_many("beaver", 2), {DACE: 4000, CARROT: 4000}), Rules.DISH_BAKED_FISH,
+		"beavers dislike both stews: the baked fish")
 	assert_equal(_supper_of(_many("otter", 2), {TROUT: 4000, CARROT: 4000}), Rules.DISH_FISH_STEW, "trout: no dace")
 
 
@@ -586,3 +606,134 @@ func test_the_recipes_tab_lists_every_pantry_item() -> void:
 	panel.select_item(18)
 	assert_equal(panel.dish_title(), PantryPanelScript.NOT_IN_LIBRARY % "Salmon", "salmon")
 	panel.free()
+
+
+# --- the families Brendan directed (decision 0603, DEC-045) -------------------------------------------------
+
+## The drafted rows, as decision 0603's table puts them for Brendan: inputs (category, milli-U), water, portions, NP, WU,
+## shelf, meal. Changing one here is changing the draft he confirms.
+const DRAFT_ROWS: Dictionary = {
+	"oatcake": [[[FarmingScript.CROP_GRAIN, 2000]], 1000, 2, 1800, 14000, 72, Rules.MEAL_BREAKFAST],
+	"farl": [[[FarmingScript.CROP_GRAIN, 2000]], 1000, 2, 1800, 14000, 48, Rules.MEAL_BREAKFAST],
+	"hardtack": [[[Catalog.CAT_FLOUR, 2000]], 500, 2, 1800, 16000, 480, Rules.MEAL_BREAKFAST],
+	"salad": [[[FarmingScript.CROP_CABBAGE, 2000], [FarmingScript.CROP_ROOTS, 1000]], 500, 2, 1400, 6000, 12,
+		Rules.MEAL_SUPPER],
+	"baked_fish": [[[Catalog.CAT_FISH, 2000]], 500, 2, 1900, 14000, 24, Rules.MEAL_SUPPER],
+	"fish_biscuit_soup": [[[Catalog.CAT_DRIED_FISH, 1000], [Catalog.CAT_FLOUR, 1000], [FarmingScript.CROP_ROOTS, 1000]],
+		2000, 3, 2000, 20000, 24, Rules.MEAL_SUPPER],
+	"pasty": [[[Catalog.CAT_FLOUR, 2000], [FarmingScript.CROP_ROOTS, 1000], [FarmingScript.CROP_CABBAGE, 1000],
+		[Book.NEEDS, 500]], 500, 3, 2200, 24000, 48, Rules.MEAL_SUPPER],
+	"root_pie": [[[Catalog.CAT_FLOUR, 2000], [FarmingScript.CROP_ROOTS, 2000], [FarmingScript.CROP_ROOTS, 1000],
+		[Book.NEEDS, 500]], 500, 4, 2300, 32000, 48, Rules.MEAL_SUPPER],
+	"scones": [[[Catalog.CAT_FLOUR, 2000], [Book.NEEDS, 500]], 1000, 3, 1800, 20000, 48, Rules.MEAL_BREAKFAST],
+	"cordial": [[[Book.NEEDS, 2000], [Catalog.CAT_HONEY, 500]], 2000, 4, 500, 10000, 72, Book.DRINK],
+}
+
+
+func test_the_drafted_rows_are_decision_0603_s_table() -> void:
+	"""Every row not adopted by the GDD is a draft in decision 0603's table, with these numbers; every batch still
+	burns 0.1 U of wood (§5.8: kitchen production)."""
+	var drafts: int = 0
+	for dish: int in Rules.DISH_COUNT:
+		if Rules.ROW_ADOPTED[dish] == 1:
+			continue
+		drafts += 1
+		var row: Array = DRAFT_ROWS[Rules.GDD_ROWS[dish]]
+		var inputs: Array = []
+		for k: int in Rules.INPUT_N[dish]:
+			inputs.append([_declared_category(dish, k), Rules.input_milli(dish, k)])
+		assert_equal([inputs, Rules.WATER_MILLI[dish], Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
+			Rules.WORK_MWU[dish], Rules.SHELF_HOURS[dish], Rules.DISH_MEAL[dish]], row, Rules.DISH_NAMES[dish])
+	assert_equal(drafts, DRAFT_ROWS.size(), "ten drafted rows")
+
+
+func test_what_the_demo_cannot_make_waits_and_says_why() -> void:
+	"""The pasty and the scones wait for hazelnut, the woodland pie for mushroom (foragers' items, not yet in the
+	pantry), the root pie for potato and hazelnut, the cordial for raspberry and honey; everything else can be had."""
+	assert_equal(Rules.DISH_WAITS[Rules.DISH_PASTY], "needs hazelnut: gathered by foragers", "pasty")
+	assert_equal(Rules.DISH_WAITS[Rules.DISH_WOODLAND_PIE], "needs mushroom: gathered by foragers", "woodland pie")
+	assert_equal(Rules.DISH_WAITS[Rules.DISH_ROOT_PIE],
+		"needs potato: grown in the fields, not yet planted in the demo; needs hazelnut: gathered by foragers", "root pie")
+	assert_equal(Rules.DISH_WAITS[Rules.DISH_CORDIAL],
+		"needs raspberry: gathered by foragers; needs honey: made in beehives, not yet in the demo", "cordial")
+	for dish: int in [Rules.DISH_SOUP, Rules.DISH_OATCAKE, Rules.DISH_FARL, Rules.DISH_HARDTACK, Rules.DISH_SALAD,
+			Rules.DISH_BAKED_FISH, Rules.DISH_BISCUIT_SOUP]:
+		assert_false(Rules.waits(dish), "%s can be had" % Rules.DISH_NAMES[dish])
+	if Catalog.ITEM_KEYS.find(&"hazelnut") < 0:
+		assert_equal(Rules.input_selector(Rules.DISH_PASTY, 3), TakesScript.SELECT_ITEMS, "an item not yet defined: none")
+		assert_equal([Rules.FRESHEST_HOURS[Rules.DISH_PASTY], Rules.FRESHEST_HOURS[Rules.DISH_SCONES]], [144, 240],
+			"an input still to be defined does not count toward freshness (greens, flour)")
+	for dish: int in Rules.DISH_COUNT:
+		for input: Array in Book.DISHES[dish]["inputs"]:
+			for key: Variant in input[2]:
+				assert_true(Catalog.ITEM_KEYS.has(key) or Book.PENDING_SOURCES.has(key),
+					"%s names an item or a pending one: %s" % [Rules.DISH_NAMES[dish], key])
+
+
+func test_the_kitchen_tab_and_the_recipes_list_the_waiting_dishes() -> void:
+	"""The Kitchen tab lists every waiting dish and why; the potato's Recipes lines mark the root pie waiting."""
+	var kitchen := _kitchen(_many("mouse", 2), tick_at(0, 10), _pantry(), StoresScript.new())
+	var text: String = kitchen.waiting_text()
+	assert_true(text.begins_with("Waiting for ingredients:\n"), text)
+	for dish: int in [Rules.DISH_PASTY, Rules.DISH_ROOT_PIE, Rules.DISH_WOODLAND_PIE, Rules.DISH_SCONES, Rules.DISH_CORDIAL]:
+		assert_true(text.contains(Words.waiting_line(dish)), Rules.DISH_NAMES[dish])
+	assert_equal(text.count("\n"), 5, "five waiting dishes")
+	var potato: String = kitchen.cookable_text(Catalog.ITEM_POTATO)
+	assert_true(potato.contains("Waiting (needs potato: grown in the fields, not yet planted in the demo; needs hazelnut: gathered by foragers): Turnip, potato and beetroot pie"),
+		potato)
+	assert_true(potato.contains("Cookable (active): Togget's vegetable soup"), "a potato is roots for the soup")
+	assert_false(potato.contains("Raspberry cordial") or potato.contains("Hazelnut scones"),
+		"only the dishes that take a potato")
+	var tab := TabScript.new()
+	tab.configure(kitchen, func() -> PackedInt32Array: return PackedInt32Array(), Callable())
+	tab.refresh()
+	assert_equal(tab.waiting_shown(), text, "shown on the tab")
+	tab.free()
+
+
+func test_the_new_dishes_that_can_be_had_are_cooked() -> void:
+	"""Flour alone makes breakfast hardtack (flour keeps less than grain); dried fish, flour and 2 U of roots make
+	supper the biscuit soup when the soup cannot feed four (E3); greens and a little root make the salad; fish alone
+	is baked (E2); oats-only breakfast for squirrels is still their barleymeal (the oatcake waits on the book's order)."""
+	assert_equal(_breakfast_of(_many("mouse", 2), {Catalog.ITEM_FLOUR: 4000, OATS: 4000}), Rules.DISH_HARDTACK, "hardtack")
+	assert_equal(_supper_of(_many("mouse", 4), {Catalog.ITEM_DRIED_FISH: 2000, Catalog.ITEM_FLOUR: 2000, CARROT: 2000}),
+		Rules.DISH_BISCUIT_SOUP, "the biscuit soup")
+	assert_equal(_supper_of(_many("mouse", 2), {CABBAGE: 4000, CARROT: 2000}), Rules.DISH_SALAD, "the salad")
+	assert_equal(_supper_of(_many("mouse", 2), {TROUT: 4000}), Rules.DISH_BAKED_FISH, "baked fish")
+	assert_equal(_breakfast_of(_many("squirrel", 2), {OATS: 4000}), Rules.DISH_BARLEYMEAL, "barleymeal")
+	assert_equal(_breakfast_of(_many("mouse", 2), {OATS: 4000}), Rules.DISH_PORRIDGE, "the plain porridge first")
+
+
+func test_a_drink_is_never_a_meal_and_the_guide_says_what_waits() -> void:
+	"""The cordial is a drink, never planned for a meal; the guide's pasty says what it waits for, the potato's entry
+	that nothing produces it yet, and flour's what cooks it now."""
+	assert_false(Rules.is_meal_dish(Rules.DISH_CORDIAL), "a drink")
+	for meal: int in 2:
+		assert_false(Rules.serves(Rules.DISH_CORDIAL, meal, true) or Rules.serves(Rules.DISH_CORDIAL, meal, false),
+			"the cordial serves no meal, its own or the other")
+		assert_false(Rules.serves(Rules.DISH_PASTY, Rules.MEAL_SUPPER, meal == 0), "a waiting dish serves none")
+	assert_true(Rules.serves(Rules.DISH_SALAD, Rules.MEAL_SUPPER, true), "the salad, supper's own")
+	assert_true(Rules.serves(Rules.DISH_SALAD, Rules.MEAL_BREAKFAST, false), "and breakfast's fallback")
+	assert_false(Rules.serves(Rules.DISH_SALAD, Rules.MEAL_BREAKFAST, true), "not breakfast's own")
+	assert_true(Rules.is_meal_dish(Rules.DISH_SALAD), "a meal")
+	var pantry := _pantry()
+	pantry.add_into(Catalog.ITEM_HONEY, 4000, 0, _read)
+	var kitchen := _kitchen(_many("mouse", 2), tick_at(0, 10), pantry, StoresScript.new())
+	for key: int in kitchen.planned_keys():
+		assert_true(kitchen.plan_of(key)[0] != Rules.DISH_CORDIAL, "never the cordial")
+	var guide := FieldGuideScript.new()
+	var pasty: FieldGuideScript.Entry = guide.entry(guide.index_of(&"dish_pasty"))
+	assert_true(pasty.requires.contains("Waiting: needs hazelnut: gathered by foragers."), pasty.requires)
+	var cordial: FieldGuideScript.Entry = guide.entry(guide.index_of(&"dish_cordial"))
+	assert_equal(cordial.summary, "A drink", "the cordial's summary")
+	var potato: FieldGuideScript.Entry = guide.entry(guide.index_of(&"goods_potato"))
+	assert_equal(potato.summary, "Not yet in the demo", "the potato")
+	var flour: FieldGuideScript.Entry = guide.entry(guide.index_of(&"goods_flour"))
+	assert_true(flour.uses.contains("Haversack hardtack") and flour.uses.contains("Vegetable pasty (waiting)"), flour.uses)
+	assert_true(flour.links.has(&"dish_hardtack"), "flour links its dishes")
+	assert_true(potato.alternatives.contains("cook without it"), "the potato's dishes are not all waiting")
+	var trout: FieldGuideScript.Entry = guide.entry(guide.index_of(&"goods_trout"))
+	assert_true(trout.uses.contains("Baked fish"), "fresh fish names the baked fish (E2)")
+	assert_false(cordial.here.contains("hall's tables"), "a drink is not served at the tables")
+	assert_true(cordial.uses.begins_with("A drink:"), cordial.uses)
+	assert_equal(Rules.raw_np_per_u(Catalog.ITEM_HONEY), 1200, "honey is raw-edible (§5.7)")

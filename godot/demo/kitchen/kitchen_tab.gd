@@ -37,6 +37,8 @@ var _pot: Label = null
 var _water: Label = null
 var _village: Label = null
 var _history: Label = null
+## The dishes waiting for an ingredient the demo cannot produce yet, and why (decision 0603).
+var _waiting: Label = null
 var _cook: Button = null
 var _draw: Button = null
 var _keep: Button = null
@@ -60,6 +62,7 @@ func configure(kitchen: KitchenScript, members: Callable, interrupt: Callable) -
 	_history = _line(NOTE_PX, Palette.UMBER)
 	add_child(_buttons())
 	add_child(FarmUi.label(Words.tab_note(), NOTE_PX, Palette.UMBER))
+	_waiting = _line(NOTE_PX, Palette.UMBER)
 
 
 func _line(px: int, colour: Color) -> Label:
@@ -109,6 +112,7 @@ func refresh() -> void:
 	_village.text = village_text()
 	var meals: String = _kitchen.last_meals_text(LAST_MEALS)
 	_history.text = "Last meals:\n" + meals if not meals.is_empty() else ""
+	_waiting.text = _kitchen.waiting_text()
 	_keep.text = KEEP_ON if _kitchen.keep_water else KEEP_OFF
 	_keep.tooltip_text = KEEP_TIP
 	FarmUi.set_enabled(_cancel, not _kitchen.planned_keys().is_empty(), Words.NOTHING_PLANNED)
@@ -195,6 +199,11 @@ func keep_button() -> Button:
 func cancel_button() -> Button:
 	"""The Cancel button (checks)."""
 	return _cancel
+
+
+func waiting_shown() -> String:
+	"""The waiting dishes' lines as shown (checks)."""
+	return _waiting.text
 
 
 func history_text() -> String:

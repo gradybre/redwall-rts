@@ -1074,7 +1074,7 @@ decision 0601) holds eight dishes, each a content-library dish cooked as a GDD �
 first three are below, and **the recipe book** after them adds the rest. **Wild oat
 porridge** at breakfast (the GDD's `porridge` row: grain 2 U + water 2 U, 12 WU) and **Togget's vegetable soup** at
 supper (its `root_stew` row: roots 3 U + water 1 U, 16 WU), each batch 2 portions of 1800 NP that keep 24 h, and 0.1 U
-of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion (each crop's
+of wood. Grain is wheat, barley or oats; roots are radish, turnip, carrot, beetroot, parsnip or onion -- and potato once it is grown (each crop's
 §5.6 row). If one dish's food is short the other is cooked. **The third dish** (water part B, decision 0436): at
 supper, whenever the stores hold a batch's fresh fish and roots nobody has set aside, the kitchen cooks **poached perch
 or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
@@ -1094,8 +1094,16 @@ built from it. Beside the three above:
 | Bean hotpot | the GDD's own | `bean_hotpot` | pea or broad bean 2 U + greens 2 U + water 2 U; 3 x 2100 NP, 20 WU, keeps 36 h | supper |
 
 A dish naming its own ingredients takes only those; the numbers are its row's (0.1 U of wood a batch, as every batch).
-Pies, pasties, scones, salads and cordials are not here: no §5.7 row cooks them from food the demo has (decision 0601
-lists each rejected dish). **The cook's choice**: of the meal's dishes whose free food makes a batch, one that feeds the
+
+**The directed families** (decision 0603, Brendan's DEC-045 and tuning E2/E3): eleven more dishes, ten on DRAFTED rows
+in §5.7's format awaiting his confirmation. Cookable now: **Breakfast oatcake** (oats), **Barley farl** (barley),
+**Haversack hardtack** (flour, keeps 480 h), **Spring salad** (greens and roots), **Baked fish** (fresh fish, no roots:
+E2) and **Durral's dried-fish biscuit soup** (dried fish, flour and roots: E3). Waiting, listed with why: **Vegetable
+pasty** and **Hazelnut scones** (hazelnut: foragers), the **Turnip, potato and beetroot pie** (potato: crops; hazelnut),
+the GDD's **Woodland pie** (mushroom: foragers) and **Raspberry cordial** (raspberry: foragers; honey: hives) -- a drink,
+never a meal's dish. Potato and honey are pantry items with no source yet; the foragers' items are named by key until
+that lane defines them. The Recipes tab marks each "Cookable (active)" or "Waiting (needs ...)", the Kitchen tab lists
+"Waiting for ingredients", the field guide says the same. **The cook's choice**: of the meal's dishes whose free food makes a batch, one that feeds the
 whole meal, then the one whose food keeps least long (fresh fish, then greens, roots, grain), then the one the village
 likes most, then the book's order; with none, the other meal's best; deterministic. **Favourites** (`kitchen/dish_favourites.gd`): each species' liked
 and disliked dishes -- moles Togget's soup (Togget is a mole) and the beetroot soup, badgers the beetroot soup,

@@ -178,16 +178,16 @@ func test_a_supper_with_fresh_fish_is_the_fish_stew() -> void:
 	assert_equal(v.kitchen.consumed_food_milli, batches * 4000, "the books: both inputs")
 
 
-func test_without_roots_the_fish_waits_and_supper_is_what_there_is() -> void:
-	"""Fresh fish but no roots: no fish stew (both inputs or neither); with no roots for the soup either, the meal turns
-	to porridge as the alternation does; the fish is not touched."""
+func test_without_roots_the_fish_is_baked_not_left_to_rot() -> void:
+	"""Fresh fish but no roots: no fish stew (both inputs or neither) -- but since Brendan's tuning ruling E2 (decision
+	0603) the fish is baked, a fish dish needing no roots, rather than kept while porridge is cooked and the fish rots."""
 	var v := _open(_village(2, tick_at(0, 14)))
 	_stock(v, Catalog.FIRST_CATCH, 4000)
 	_stock(v, OATS, 4000)
 	v.stores.add_water(10000)
 	_run(v, FRAMES_PER_HOUR + 10)
-	assert_equal(v.kitchen.plan_of(Rules.meal_key(0, Rules.MEAL_SUPPER))[0], Rules.DISH_PORRIDGE, "porridge instead")
-	assert_equal(v.kitchen.takes.free_milli_of_crop(v.pantry, Catalog.CAT_FISH), 4000, "the fish untouched")
+	assert_equal(v.kitchen.plan_of(Rules.meal_key(0, Rules.MEAL_SUPPER))[0], Rules.DISH_BAKED_FISH, "baked fish")
+	assert_true(v.kitchen.takes.free_milli_of_crop(v.pantry, Catalog.CAT_FISH) < 4000, "the fish held for it")
 
 
 func test_the_ready_food_counts_each_dish_at_its_own_portions() -> void:

@@ -1,6 +1,9 @@
 # 0601 — The kitchen's recipe book, each species' favourites, and the cook's choice
 Date: 2026-10-01 · Status: Accepted (Brendan ruled P1–P4 as built and directed P5, 2026-10-01: see below)
 
+> **Extended by [0603](0603-the-directed-dish-families-and-what-waits.md) (2026-10-01):** P5's families, E2 and E3 --
+> eleven more dishes, ten on drafted rows (DEC-045); dishes waiting for an ingredient are listed with why.
+
 Feature 16, approved by Brendan on 2026-10-01: more Redwall dishes, with each species' favourites. Extends decisions
 0381 (the meal loop, ruling 1's alternation) and 0436 (the fish stew). Numbered in this lane's 0601–0609 range; 0602 is
 the Recipes tab's index.
@@ -101,7 +104,7 @@ first): a difference of a portion or two only when wood is short.
 (whole meal, freshness, taste, book order -- so 0436's "a fish stew whenever there is a batch" is narrowed by his
 ruling), no variety rotation (feature 17's), and the hotpot cooked from the start without its M1 unlock. **P5**: the
 families rejected for want of a §5.7 row -- pies, pasties and turnovers, scones, oatcakes, farls and hardtack, salads,
-cordials -- are to be added now: decision 0603 and DEC-045.
+cordials -- are added: decision 0603 and DEC-045.
 
 ## The proposals as they were put
 

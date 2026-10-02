@@ -211,17 +211,25 @@ static func no_side_reason(dish: int, k: int, have: int) -> String:
 
 
 static func input_words(dish: int, k: int) -> String:
-	"""What `dish`'s input `k` is called: its category's word ("roots", "greens", "fresh fish")."""
-	return Rules.CATEGORY_WORDS[Rules.input_category(dish, k)]
+	"""What `dish`'s input `k` is called: its category's word ("roots", "greens", "fresh fish"), or its own items when
+	another lane defines them ("hazelnut")."""
+	return Rules.IN_WORDS[Rules.INPUT_FIRST[dish] + k]
 
 
 static func inputs_text(dish: int, batches: int) -> String:
 	"""All of `dish`'s food for `batches` batches: "2.0 U of fresh fish (dace) + 2.0 U of roots (radish, ... or onion)"."""
 	var parts := PackedStringArray()
 	for k: int in Rules.INPUT_N[dish]:
-		parts.append("%s of %s (%s)" % [units(Rules.input_milli(dish, k) * batches), input_words(dish, k),
-			Rules.items_text(Rules.input_selector(dish, k))])
+		var words: String = input_words(dish, k)
+		var items: String = Rules.IN_ITEMS_TEXT[Rules.INPUT_FIRST[dish] + k]
+		parts.append("%s of %s" % [units(Rules.input_milli(dish, k) * batches), words] if words == items
+			else "%s of %s (%s)" % [units(Rules.input_milli(dish, k) * batches), words, items])
 	return " + ".join(parts)
+
+
+static func waiting_line(dish: int) -> String:
+	"""A dish waiting for an ingredient, and why: "Vegetable pasty — needs hazelnut: gathered by foragers"."""
+	return "%s — %s" % [Rules.DISH_NAMES[dish], Rules.DISH_WAITS[dish]]
 
 
 static func no_water_reason(dish: int, have: int, need: int) -> String:
@@ -322,12 +330,22 @@ static func days_text(milli_days: int) -> String:
 
 static func cookable_line(dish: int) -> String:
 	"""The Recipes tab's mark for one dish: "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of
-	grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast."."""
+	grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast." -- or
+	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "the draft row
+	salad (DEC-045)" for a row Brendan has yet to confirm (decision 0603)."""
 	@warning_ignore("integer_division")
-	return "Cookable (active): %s — cooked as the GDD's %s: %s + water %s → %d portions of %d NP, %d WU, keeps %d h; for %s." % [
-		Rules.DISH_NAMES[dish], Rules.GDD_ROWS[dish], inputs_text(dish, 1), units(Rules.WATER_MILLI[dish]),
-		Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish], Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish],
-		Rules.MEAL_NAMES[Rules.DISH_MEAL[dish]]]
+	return "%s: %s — cooked as %s: %s + water %s → %d portions of %d NP, %d WU, keeps %d h; %s." % [
+		"Waiting (%s)" % Rules.DISH_WAITS[dish] if Rules.waits(dish) else "Cookable (active)", Rules.DISH_NAMES[dish],
+		("the GDD's %s" if Rules.ROW_ADOPTED[dish] == 1 else "the draft row %s (DEC-045)") % Rules.GDD_ROWS[dish],
+		inputs_text(dish, 1),
+		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
+		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], _for_meal(dish)]
+
+
+static func _for_meal(dish: int) -> String:
+	"""Which meal a dish is for: "for supper", or "a drink"."""
+	var meal: int = Rules.DISH_MEAL[dish]
+	return "for " + Rules.DISH_MEAL_WORDS[meal] if Rules.is_meal_dish(dish) else Rules.DISH_MEAL_WORDS[meal]
 
 
 static func choice_note() -> String:

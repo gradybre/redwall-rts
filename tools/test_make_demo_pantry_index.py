@@ -26,7 +26,7 @@ class PantryIndexTest(unittest.TestCase):
         self.assertEqual(committed, self.built)
 
     def test_every_pantry_item_in_catalog_order(self) -> None:
-        """24 items, the crops first by their LEAF, then the goods by key."""
+        """26 items, the crops first by their LEAF, then the goods by key."""
         self.assertEqual([item["item_key"] for item in self.built["items"]], tool.ITEM_KEYS)
         for leaf, item in zip(tool.LEAVES, self.built["items"]):
             self.assertEqual(item["leaf_id"], leaf)
@@ -40,6 +40,8 @@ class PantryIndexTest(unittest.TestCase):
         self.assertEqual(self.by_key["dried_fish"]["targets"], ["COMPONENT_shared_dried_trout"])
         self.assertIn("COMPONENT_shared_wheat_flour", self.by_key["flour"]["targets"])
         self.assertNotIn("COMPONENT_shared_rye_flour", self.by_key["flour"]["targets"])
+        self.assertEqual(self.by_key["potato"]["targets"], ["LEAF_potato"])
+        self.assertEqual(self.by_key["honey"]["targets"], ["LEAF_honey"])
 
     def test_uses_are_direct_or_through_a_component(self) -> None:
         """A dish naming the target is direct; one whose component contains it is through a component; else none."""

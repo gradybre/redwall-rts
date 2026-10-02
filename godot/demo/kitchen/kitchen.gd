@@ -19,9 +19,10 @@ extends RefCounted
 ##      being called to every meal;
 ##   4. the book's order -- the meal's plain dish (porridge, Togget's soup, the perch-or-trout stew) before a dish that
 ##      names its own ingredients.
-## With no dish of its own meal possible, the best of the other meal's (ruling 1: "the other dish when this one's food
-## is wanting"); with none at all, the meal's plain dish, waiting for food. A meal is re-chosen only while it holds no
-## food. Deterministic: the same stores, meal and village always give the same dish.
+## A drink (dish_book.gd DRINK) is never a meal's dish, nor is a dish waiting for an ingredient (meal_rules.gd
+## `serves`). With no dish of its own meal possible, the best of the other meal's (ruling 1: "the other dish when this
+## one's food is wanting"); with none at all, the meal's plain dish, waiting for food. A meal is re-chosen only while it
+## holds no food. Deterministic: the same stores, meal and village always give the same dish.
 ##
 ## THE COOK (ruling: any resident can cook). The village cook is the keeper (COOK_KEYS; the first resident without
 ## one), as the bridgewright is the village's bridge specialist; when the cook is not free while a meal is due, the
@@ -278,6 +279,9 @@ var _dish_taste: PackedInt32Array = PackedInt32Array()
 ## once sized.
 var _pool: PackedInt64Array = PackedInt64Array()
 var _estimated: PackedInt32Array = PackedInt32Array()
+## The Kitchen tab's waiting dishes, built on first read (`waiting_text`).
+var _waiting_cache: String = ""
+var _waiting_built: bool = false
 ## Every milli-U the kitchen has taken or made, for the conservation checks and the ledger.
 var consumed_food_milli: int = 0
 var consumed_water_milli: int = 0
@@ -469,7 +473,7 @@ func _best_dish(meal: int, own: bool, portions: int) -> int:
 	var best: int = Rules.NO_DISH
 	var best_covers: bool = false
 	for dish: int in Rules.DISH_COUNT:
-		var batches: int = _free_batches(dish) if (Rules.DISH_MEAL[dish] == meal) == own else 0
+		var batches: int = _free_batches(dish) if Rules.serves(dish, meal, own) else 0
 		if batches == 0:
 			continue
 		var covers: bool = batches * Rules.PORTIONS_PER_BATCH[dish] >= portions
@@ -2015,7 +2019,7 @@ func _estimate() -> void:
 	whole category -- a dish naming its own ingredients cooks the same numbers from fewer) share the pantry's food by
 	category, those of several inputs first (they cannot use what the others leave: the fish stew's roots before the
 	soup's, never counted twice), then the rest, each in the book's order; the wood bounds the total. No allocation."""
-	_pool.resize(Rules.CATEGORY_WORDS.size())
+	_pool.resize(Rules.CATEGORY_COUNT)
 	_pool.fill(0)
 	for item: int in Catalog.PANTRY_ITEM_COUNT:
 		_pool[Catalog.category_of(item)] += pantry.milli_of(item)
@@ -2114,6 +2118,20 @@ func cookable_text(item: int) -> String:
 		return ""
 	lines.append(Words.choice_note())
 	return "\n".join(lines)
+
+
+func waiting_text() -> String:
+	"""The Kitchen tab's dishes still waiting for an ingredient, a line each with why ("" for none; decision 0603). The
+	book is fixed once loaded, so it is built once."""
+	if _waiting_built:
+		return _waiting_cache
+	_waiting_built = true
+	var lines := PackedStringArray()
+	for dish: int in Rules.DISH_COUNT:
+		if Rules.waits(dish):
+			lines.append(Words.waiting_line(dish))
+	_waiting_cache = "" if lines.is_empty() else "Waiting for ingredients:\n" + "\n".join(lines)
+	return _waiting_cache
 
 
 func dish_of_meal(key: int) -> int:

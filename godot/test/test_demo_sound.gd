@@ -160,6 +160,7 @@ func _staged_count(table: SoundTable) -> int:
 
 func test_missing_files_play_silent_with_one_warning_per_cue() -> void:
 	"""Nothing staged: no stream loads, every cue is silent, each warned about once however often it loads."""
+	expect_diagnostic("files missing")
 	var table := _unstaged()
 	assert_equal(table.load_streams(), 0, "nothing to load")
 	assert_equal(table.warnings, table.count(), "one warning per cue")
@@ -172,6 +173,7 @@ func test_missing_files_play_silent_with_one_warning_per_cue() -> void:
 
 func test_a_silent_cue_still_plays_its_voice_and_its_gap() -> void:
 	"""With no file the director still gives a cue its voice and its gap, so caps behave as they will with audio."""
+	tolerate_diagnostic("it plays silent until they are staged")  # the real cues: unstaged in CI
 	var director := _director()
 	director.warm()
 	var chop: int = director.table.row(&"chop")
@@ -184,6 +186,7 @@ func test_a_silent_cue_still_plays_its_voice_and_its_gap() -> void:
 func test_the_prewarm_loads_the_streams_at_boot() -> void:
 	"""The director's warm() is a prewarm step: run with the rest, reported; it loads every staged file (none
 	in CI) and the director is silent exactly when nothing is staged."""
+	tolerate_diagnostic("it plays silent until they are staged")  # the real cues: unstaged in CI
 	var director := _director()
 	var staged: int = _staged_count(director.table)
 	var prewarm := PrewarmScript.new()
@@ -321,7 +324,7 @@ func _fellers(n: int) -> Array:
 	var jobs := JobsScript.new()
 	for k: int in n:
 		var brain := BrainScript.new()
-		brain.position = Vector2(float(k % 5) * 0.8, float(k / 5) * 0.8)
+		@warning_ignore("integer_division") brain.position = Vector2(float(k % 5) * 0.8, float(k / 5) * 0.8)
 		brains.append(brain)
 		assert_true(jobs.open_into(JobsScript.KIND_FELL, k, 0, JobsScript.ORIGIN_PLAYER, _read), "fell %d" % k)
 		jobs.assign(_read.value, k)
@@ -342,7 +345,7 @@ func _run_fellers(speed: int, seconds: int, n: int) -> Array:
 	var chop: int = director.table.row(&"chop")
 	var raised: int = 0
 	var most: int = 0
-	for frame: int in seconds * 1000 / FRAME_MS:
+	@warning_ignore("integer_division") for frame: int in seconds * 1000 / FRAME_MS:
 		var now: int = 1000 + frame * FRAME_MS
 		for row: int in n:
 			jobs.elapsed_usec[row] += FRAME_MS * 1000 * speed
@@ -360,7 +363,7 @@ func test_four_x_raises_more_strikes_but_never_stacks_them() -> void:
 	assert_true(int(four[0]) >= 3 * int(one[0]), "4x raises far more strikes (%d vs %d)" % [four[0], one[0]])
 	var table := _shipped()
 	var chop: int = table.row(&"chop")
-	var allowed: int = 10000 / table.gap_ms[chop] + 1
+	@warning_ignore("integer_division") var allowed: int = 10000 / table.gap_ms[chop] + 1
 	assert_true(int(four[1]) <= allowed, "4x plays at most the gap's %d (%d)" % [allowed, four[1]])
 	assert_true(int(one[1]) <= allowed, "1x too (%d)" % one[1])
 	assert_true(int(four[2]) <= table.voices[chop], "never more than %d chops at once" % table.voices[chop])
@@ -372,7 +375,7 @@ func _wav(ms: int) -> AudioStreamWAV:
 	wav.format = AudioStreamWAV.FORMAT_16_BITS
 	wav.mix_rate = 22050
 	var data := PackedByteArray()
-	data.resize(22050 * 2 * ms / 1000)
+	@warning_ignore("integer_division") data.resize(22050 * 2 * ms / 1000)
 	wav.data = data
 	return wav
 
@@ -431,6 +434,7 @@ func _given_streams(director: DirectorScript) -> Array:
 func test_a_staged_file_loads_without_a_warning_and_loops_as_its_cue_says() -> void:
 	"""A file that exists is loaded (no warning), the cue is no longer silent, and a looping cue's Ogg is set to
 	loop -- the drop-in path the sourcing plan relies on, with a saved stream standing in for a staged file."""
+	expect_diagnostic("files missing (res://demo/assets/sound/no_such.ogg)")
 	var path: String = "user://test_demo_sound_loop.tres"
 	var ogg := AudioStreamOggVorbis.new()
 	ogg.loop = false
@@ -1051,7 +1055,7 @@ func test_a_worn_path_sounds_as_dirt() -> void:
 	assert_false(taps.is_dirt(_grass_point()), "the grass is not")
 
 
-func _a_path_point(taps: TapsScript) -> Vector2:
+func _a_path_point(_taps: TapsScript) -> Vector2:
 	"""The middle of the first worn path segment."""
 	var seg: Vector4 = WorldLayout.PATH_SEGMENTS[0]
 	return Vector2((seg.x + seg.z) * 0.5, (seg.y + seg.w) * 0.5)

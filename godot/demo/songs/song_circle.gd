@@ -77,20 +77,20 @@ func configure(book: BookScript, names: PackedStringArray, otters: PackedByteArr
 	_names = names
 	_news = news
 	_deeds = deeds
-	var count: int = names.size()
+	var followed: int = names.size()
 	for column: PackedInt32Array in [song, line, joining, knows, _sung]:
-		column.resize(count)
+		column.resize(followed)
 	song.fill(NO_SONG)
 	joining.fill(NOBODY)
 	line.fill(0)
 	_sung.fill(0)
-	_line_left.resize(count)
-	_rest_left.resize(count)
-	_deed.resize(count)
-	_heard.resize(count * BookScript.MAX_SONGS)
+	_line_left.resize(followed)
+	_rest_left.resize(followed)
+	_deed.resize(followed)
+	_heard.resize(followed * BookScript.MAX_SONGS)
 	_heard.fill(0)
-	otter.resize(count)
-	for i: int in count:
+	otter.resize(followed)
+	for i: int in followed:
 		otter[i] = 1 if i < otters.size() and otters[i] == 1 else 0
 		knows[i] = book.all_mask() if otter[i] == 1 else 0
 		_rest_left[i] = FIRST_REST_STEP_USEC * (i + 1)

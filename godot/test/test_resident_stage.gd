@@ -80,8 +80,8 @@ func test_no_debt_draws_the_committed_tick_exactly() -> void:
 
 func test_part_of_a_tick_is_that_part_of_the_way() -> void:
 	"""Half a tick's debt is half the numerator; quarter is a quarter. No rounding, no scaling."""
-	assert_equal(ResidentStageScript.alpha_numerator_of(TICK_COST / 2), 500000, "half a tick")
-	assert_equal(ResidentStageScript.alpha_numerator_of(TICK_COST / 4), 250000, "a quarter")
+	@warning_ignore("integer_division") assert_equal(ResidentStageScript.alpha_numerator_of(TICK_COST / 2), 500000, "half a tick")
+	@warning_ignore("integer_division") assert_equal(ResidentStageScript.alpha_numerator_of(TICK_COST / 4), 250000, "a quarter")
 	assert_equal(ResidentStageScript.alpha_numerator_of(1), 1, "one debt unit")
 	assert_equal(ResidentStageScript.alpha_numerator_of(TICK_COST - 1), 999999, "one short of a tick")
 

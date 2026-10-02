@@ -330,11 +330,11 @@ var _room_tile_used: int = 0
 
 func _init(p_directory: EntityDirectory = null) -> void:
 	"""Allocate every column once and adopt or build the directory behind every reference."""
-	assert(BUILDING_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_BUILDING],
+	@warning_ignore("assert_always_true") assert(BUILDING_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_BUILDING],
 		"Building columns must match the directory's BUILDING row capacity")
-	assert(ROOM_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_ROOM],
+	@warning_ignore("assert_always_true") assert(ROOM_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_ROOM],
 		"Room columns must match the directory's ROOM row capacity")
-	assert(FURNITURE_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FURNITURE],
+	@warning_ignore("assert_always_true") assert(FURNITURE_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FURNITURE],
 		"Furniture columns must match the directory's FURNITURE row capacity")
 	_owns_directory = p_directory == null
 	_directory = p_directory if p_directory != null else EntityDirectory.new()
@@ -549,7 +549,7 @@ func _footprint_fits(origin_tile: int, extent_x: int, extent_z: int) -> bool:
 	if not is_tile_index(origin_tile) or extent_x <= 0 or extent_z <= 0:
 		return false
 	var origin_x: int = origin_tile % MAP_TILES_X
-	var origin_z: int = origin_tile / MAP_TILES_X
+	@warning_ignore("integer_division") var origin_z: int = origin_tile / MAP_TILES_X
 	return origin_x + extent_x <= MAP_TILES_X and origin_z + extent_z <= MAP_TILES_Z
 
 
@@ -949,11 +949,11 @@ func _is_interior_tile(building_row: int, tile: int) -> bool:
 	var size_z: int = _definitions.footprint_z_of(type_id)
 	var origin_tile: int = _b_origin_tile[building_row]
 	var min_x: int = origin_tile % MAP_TILES_X + INTERIOR_INSET_TILES
-	var min_z: int = origin_tile / MAP_TILES_X + INTERIOR_INSET_TILES
+	@warning_ignore("integer_division") var min_z: int = origin_tile / MAP_TILES_X + INTERIOR_INSET_TILES
 	var inner_x: int = extent_x_of(size_x, size_z, rotation) - 2 * INTERIOR_INSET_TILES
 	var inner_z: int = extent_z_of(size_x, size_z, rotation) - 2 * INTERIOR_INSET_TILES
 	var tile_x: int = tile % MAP_TILES_X
-	var tile_z: int = tile / MAP_TILES_X
+	@warning_ignore("integer_division") var tile_z: int = tile / MAP_TILES_X
 	return (tile_x >= min_x and tile_x < min_x + inner_x
 		and tile_z >= min_z and tile_z < min_z + inner_z)
 
@@ -2467,7 +2467,7 @@ static func _columns_extent_fits(origin_tile: int, size_x: int, size_z: int,
 		return false
 	var extent_x: int = size_z if (rotation % 2) == 1 else size_x
 	var extent_z: int = size_x if (rotation % 2) == 1 else size_z
-	return (origin_tile % MAP_TILES_X + extent_x <= MAP_TILES_X
+	@warning_ignore("integer_division") return (origin_tile % MAP_TILES_X + extent_x <= MAP_TILES_X
 		and origin_tile / MAP_TILES_X + extent_z <= MAP_TILES_Z)
 
 

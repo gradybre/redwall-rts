@@ -747,18 +747,18 @@ func _allocate_fauna_columns() -> void:
 
 func _assert_authored_constants() -> void:
 	"""Drift guard on the transcribed §5.1 relationships this module cannot restate elsewhere."""
-	assert(TERRAIN_COAST < TERRAIN_RIVER and TERRAIN_RIVER < TERRAIN_LAKE
+	@warning_ignore("assert_always_true") assert(TERRAIN_COAST < TERRAIN_RIVER and TERRAIN_RIVER < TERRAIN_LAKE
 			and TERRAIN_LAKE < TERRAIN_LAND,
 		"terrain ordinals must be GDD 5.1's mask priority: coast, river, lake, land")
-	assert(TILE_SIZE_UNITS == 2 * UNITS_PER_METRE, "one exterior tile is exactly 2 m")
-	assert(GROVE_NODE_COUNT
+	@warning_ignore("assert_always_true") assert(TILE_SIZE_UNITS == 2 * UNITS_PER_METRE, "one exterior tile is exactly 2 m")
+	@warning_ignore("assert_always_true") assert(GROVE_NODE_COUNT
 			== (GROVE_LAST_X - GROVE_FIRST_X + 1) * (GROVE_LAST_Z - GROVE_FIRST_Z + 1),
 		"the guaranteed grove is one tree per tile of GDD 5.1's 10x10 rectangle")
-	assert(TREE_WOOD_MILLI * (WOOD_MIN_U / TREE_WOOD_U) == WOOD_MIN_U * MILLI_PER_UNIT,
+	@warning_ignore("assert_always_true", "integer_division") assert(TREE_WOOD_MILLI * (WOOD_MIN_U / TREE_WOOD_U) == WOOD_MIN_U * MILLI_PER_UNIT,
 		"1200 U of wood must be a whole number of 12 U tree nodes")
-	assert(BASIN_COUNT == FOREST_BASIN_COUNT + FISH_BASIN_COUNT,
+	@warning_ignore("assert_always_true") assert(BASIN_COUNT == FOREST_BASIN_COUNT + FISH_BASIN_COUNT,
 		"the basin roster is four forest partitions plus decision 0037's three fish habitats")
-	assert(HALL_SIZE_X - 2 * HALL_INTERIOR_OFFSET == 10 and HALL_SIZE_Z - 2 * HALL_INTERIOR_OFFSET == 8,
+	@warning_ignore("assert_always_true") assert(HALL_SIZE_X - 2 * HALL_INTERIOR_OFFSET == 10 and HALL_SIZE_Z - 2 * HALL_INTERIOR_OFFSET == 8,
 		"GDD 5.9's hall interior 10x8 must close against its 12x10 footprint at origin+(1,1)")
 	_assert_footprints_dont_overlap()
 
@@ -818,7 +818,7 @@ static func tile_x_of(tile: int) -> int:
 
 static func tile_z_of(tile: int) -> int:
 	"""The z of an exterior tile index, or -1 when it is off the grid."""
-	return tile / MAP_TILES_X if is_tile_index(tile) else -1
+	@warning_ignore("integer_division") return tile / MAP_TILES_X if is_tile_index(tile) else -1
 
 
 static func tile_center_x_units(x: int) -> int:
@@ -2075,7 +2075,7 @@ func _wood_milli_within(metres: int) -> int:
 
 func _tile_within(tile: int, limit_sq: int) -> bool:
 	"""True when a tile index lies within a squared anchor distance."""
-	return anchor_distance_sq(tile % MAP_TILES_X, tile / MAP_TILES_X) <= limit_sq
+	@warning_ignore("integer_division") return anchor_distance_sq(tile % MAP_TILES_X, tile / MAP_TILES_X) <= limit_sq
 
 
 func _deposit_milli_within(origin_x: int, origin_z: int, per_node_milli: int, metres: int) -> int:
@@ -2415,7 +2415,7 @@ func copy_section_1_columns_into(out: SavedMap) -> bool:
 	return true
 
 
-func section_1_local_refusal(published: int, published_seed: int, state: SavedMap) -> StringName:
+func section_1_local_refusal(published: int, p_published_seed: int, state: SavedMap) -> StringName:
 	"""S1-WORLD_INIT local domains, plus `_reset_published()`'s exact shape when unpublished."""
 	if not state.is_sized():
 		_refuse_section_1(COLUMN_REFUSE_SHAPE, "the carrier is not at its declared extents")
@@ -2424,8 +2424,8 @@ func section_1_local_refusal(published: int, published_seed: int, state: SavedMa
 		_refuse_section_1(COLUMN_REFUSE_PUBLISHED_FLAG,
 			"the published flag is %d, not 0 or 1" % published)
 		return COLUMN_REFUSE_PUBLISHED_FLAG
-	if published_seed < IntMath.INT32_MIN or published_seed > IntMath.INT32_MAX:
-		_refuse_section_1(COLUMN_REFUSE_SEED, "published seed %d is not an i32" % published_seed)
+	if p_published_seed < IntMath.INT32_MIN or p_published_seed > IntMath.INT32_MAX:
+		_refuse_section_1(COLUMN_REFUSE_SEED, "published seed %d is not an i32" % p_published_seed)
 		return COLUMN_REFUSE_SEED
 	var grids: StringName = _section_1_grid_refusal(state)
 	if grids != COLUMN_REFUSE_NONE:
@@ -2439,7 +2439,7 @@ func section_1_local_refusal(published: int, published_seed: int, state: SavedMa
 	# `_section_1_basin_column_refusal()` has proved all seven entries are bound and distinct. A
 	# fourth loop re-deriving that would be unreachable code shaped like a check.
 	if published == 0:
-		return _section_1_empty_refusal(published_seed, state)
+		return _section_1_empty_refusal(p_published_seed, state)
 	_section_1_accept()
 	return COLUMN_REFUSE_NONE
 
@@ -2498,11 +2498,11 @@ func _section_1_distinct_basin_refusal(state: SavedMap) -> StringName:
 	return COLUMN_REFUSE_NONE
 
 
-func _section_1_empty_refusal(published_seed: int, state: SavedMap) -> StringName:
+func _section_1_empty_refusal(p_published_seed: int, state: SavedMap) -> StringName:
 	"""`_reset_published()`'s exact empty state, enforced field for field when unpublished."""
-	if published_seed != 0:
+	if p_published_seed != 0:
 		return _refuse_section_1_code(COLUMN_REFUSE_NOT_EMPTY,
-			"an unpublished map carries seed %d, not 0" % published_seed)
+			"an unpublished map carries seed %d, not 0" % p_published_seed)
 	for tile: int in TILE_COUNT:
 		if state.terrain[tile] != TERRAIN_LAND or state.soil[tile] != SOIL_NONE \
 				or state.basin[tile] != NO_BASIN or state.cleared[tile] != 0:
@@ -2557,13 +2557,13 @@ func _section_1_zone_refusal(index: int, slot: int) -> StringName:
 	return COLUMN_REFUSE_NONE
 
 
-func restore_section_1_columns(published: int, published_seed: int, state: SavedMap) -> bool:
+func restore_section_1_columns(published: int, p_published_seed: int, state: SavedMap) -> bool:
 	"""Install the validated published map. Validates first, so a refusal changes nothing.
 
 	No generation runs and no zone is created: this writes the stored columns and the two scalars
 	and stops. `_staged_*` is untouched, because staging is generation scratch and not saved state.
 	"""
-	if section_1_local_refusal(published, published_seed, state) != COLUMN_REFUSE_NONE:
+	if section_1_local_refusal(published, p_published_seed, state) != COLUMN_REFUSE_NONE:
 		return false
 	_terrain = state.terrain.duplicate()
 	_soil = state.soil.duplicate()
@@ -2573,7 +2573,7 @@ func restore_section_1_columns(published: int, published_seed: int, state: Saved
 	_basin_ref_generation = state.basin_ref_generation.duplicate()
 	_basin_danger = state.basin_danger.duplicate()
 	_published = published == 1
-	_published_seed = published_seed
+	_published_seed = p_published_seed
 	_section_1_accept()
 	return true
 

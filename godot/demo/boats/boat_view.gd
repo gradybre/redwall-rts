@@ -42,8 +42,8 @@ func refresh(delta_s: float) -> void:
 		var heading := Vector2(sin(yaw), cos(yaw))
 		var bob: float = BOB_M * sin(_clock_s * BOB_RATE + float(boat) * 1.9)
 		var roll: float = ROLL_RAD * sin(_clock_s * 3.1) if _fleet.moving(boat) else 0.0
-		var basis := Basis(Vector3.UP, atan2(-heading.y, heading.x)) * Basis(Vector3.RIGHT, roll)
-		_boats[boat].transform = Transform3D(basis, Vector3(at.x, BASE_Y_M + bob, at.y)) * _props.fit_of(BOAT_KEY)
+		var turn := Basis(Vector3.UP, atan2(-heading.y, heading.x)) * Basis(Vector3.RIGHT, roll)
+		_boats[boat].transform = Transform3D(turn, Vector3(at.x, BASE_Y_M + bob, at.y)) * _props.fit_of(BOAT_KEY)
 
 
 func boat_node(boat: int) -> MeshInstance3D:

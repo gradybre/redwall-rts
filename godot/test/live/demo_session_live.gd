@@ -317,7 +317,7 @@ func _jump_to_before_dawn() -> void:
 	"""Space resumes; run the calendar on to 05:40 (the farm's own hours, as the Lab's Next weather does), at 4x still."""
 	_key(KEY_SPACE)
 	_check("Space resumed after the meal", not bool(_manager().call(&"is_paused")))
-	var to: int = SimClock.TICKS_PER_DAY - SimClock.TICKS_PER_HOUR / 3
+	@warning_ignore("integer_division") var to: int = SimClock.TICKS_PER_DAY - SimClock.TICKS_PER_HOUR / 3
 	var usec: int = CalendarScript.usec_for_ticks(to - _calendar().tick)
 	_village.get("_farm").call(&"advance_calendar", usec)
 	_forgive()

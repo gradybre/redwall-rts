@@ -47,7 +47,7 @@ func build(props: PropsScript) -> void:
 		var good := MeshInstance3D.new()
 		good.name = "Good%d" % slot
 		good.visible = false
-		_slot_at.append(Vector3(PLACES_ACROSS[slot % PLACES_ACROSS.size()] * bound.size.x, 0.0,
+		@warning_ignore("integer_division") _slot_at.append(Vector3(PLACES_ACROSS[slot % PLACES_ACROSS.size()] * bound.size.x, 0.0,
 			bound.end.z + ROWS_OUT_M[slot / PLACES_ACROSS.size()]))
 		add_child(good)
 		_goods.append(good)
@@ -64,7 +64,7 @@ static func jars_for(fill_permille: int) -> int:
 	"""How many jars stand for this fullness: one per started third, none when empty."""
 	if fill_permille <= 0:
 		return 0
-	return mini(JARS, (fill_permille * JARS + PERMILLE - 1) / PERMILLE)
+	@warning_ignore("integer_division") return mini(JARS, (fill_permille * JARS + PERMILLE - 1) / PERMILLE)
 
 
 func show_stock(fill_permille: int, keys: Array[StringName]) -> void:

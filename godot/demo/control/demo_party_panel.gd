@@ -688,16 +688,16 @@ func fit(height: float) -> bool:
 	return _docked
 
 
-func _dock(docked: bool) -> void:
-	"""Put the summary and actions above the inspector (`docked`) or at its top; a button of theirs that had the
+func _dock(dock_above: bool) -> void:
+	"""Put the summary and actions above the inspector (`dock_above`) or at its top; a button of theirs that had the
 	focus keeps it (moving a node drops its focus)."""
-	if docked == _docked:
+	if dock_above == _docked:
 		return
-	_docked = docked
+	_docked = dock_above
 	var focused: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
 	var keyboard: bool = focused != null and _top.is_ancestor_of(focused) and focused.has_focus(true)
 	_top.get_parent().remove_child(_top)
-	if docked:
+	if dock_above:
 		_column.add_child(_top)
 		_column.move_child(_top, 1)
 	else:

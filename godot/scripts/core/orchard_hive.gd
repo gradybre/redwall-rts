@@ -570,13 +570,13 @@ func _init(p_directory: EntityDirectory = null) -> void:
 
 func _assert_capacities() -> void:
 	"""Assert both stores' row counts are the directory's and the architecture's, not local."""
-	assert(ORCHARD_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_ORCHARD_PLOT],
+	@warning_ignore("assert_always_true") assert(ORCHARD_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_ORCHARD_PLOT],
 		"OrchardPlot columns must match the directory's ORCHARD_PLOT row capacity")
-	assert(HIVE_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_HIVE],
+	@warning_ignore("assert_always_true") assert(HIVE_CAPACITY == EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_HIVE],
 		"Hive columns must match the directory's HIVE row capacity")
-	assert(ORCHARD_CAPACITY == Farming.TILE_COUNT / BLOCK_TILE_COUNT,
+	@warning_ignore("assert_always_true", "integer_division") assert(ORCHARD_CAPACITY == Farming.TILE_COUNT / BLOCK_TILE_COUNT,
 		"ARCH-MEM-003: orchard blocks are 16384/16, which must equal the 1024 stored rows")
-	assert(FARM_RECIPIENT_CAPACITY == Farming.FARM_PLOT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(FARM_RECIPIENT_CAPACITY == Farming.FARM_PLOT_CAPACITY,
 		"the farm recipient block is exactly FarmPlot's own capacity")
 	assert(Catalog.SEASON.size() == SEASON_COUNT, "GDD §4.3 Season has exactly four values")
 
@@ -597,7 +597,7 @@ func _assert_species_tables() -> void:
 		assert(SPECIES_HARVEST_FIRST_DAY[species] <= SPECIES_HARVEST_LAST_DAY[species],
 			"§5.6's harvest window start must not follow its end")
 		assert(SPECIES_MATURITY_DAYS[species] > 0, "§5.6's maturities are positive day counts")
-	assert(CHILL_FACTOR_LOW * SPECIES_YIELD_MILLI[SPECIES_APPLE] % CHILL_FACTOR_DENOMINATOR == 0,
+	@warning_ignore("assert_always_true") assert(CHILL_FACTOR_LOW * SPECIES_YIELD_MILLI[SPECIES_APPLE] % CHILL_FACTOR_DENOMINATOR == 0,
 		"§5.6's 75% low-chill yield is exact at the stated apple figure")
 
 
@@ -619,14 +619,14 @@ func _assert_species_ids_match_the_compiled_catalog() -> void:
 
 func _assert_link_arithmetic() -> void:
 	"""Assert ruling §3's stated capacity, payload and delta are what these constants produce."""
-	assert(RECIPIENT_CAPACITY == 5120, "ruling §3: 4096 farm + 1024 orchard recipients")
-	assert(ORCHARD_RECIPIENT_BASE == 4096, "ruling §3: orchard recipients start at 4096")
-	assert(LINK_CAPACITY == 30720, "ruling §3: 30720 references")
-	assert(LINK_PAYLOAD_BYTES == 245760, "ruling §3: 245760 payload bytes")
-	assert(LINK_PAYLOAD_DELTA_BYTES == 49152, "ruling §3: +49152 bytes over the 24576-row table")
-	assert(LEGACY_LINK_CAPACITY == FARM_RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT,
+	@warning_ignore("assert_always_true") assert(RECIPIENT_CAPACITY == 5120, "ruling §3: 4096 farm + 1024 orchard recipients")
+	@warning_ignore("assert_always_true") assert(ORCHARD_RECIPIENT_BASE == 4096, "ruling §3: orchard recipients start at 4096")
+	@warning_ignore("assert_always_true") assert(LINK_CAPACITY == 30720, "ruling §3: 30720 references")
+	@warning_ignore("assert_always_true") assert(LINK_PAYLOAD_BYTES == 245760, "ruling §3: 245760 payload bytes")
+	@warning_ignore("assert_always_true") assert(LINK_PAYLOAD_DELTA_BYTES == 49152, "ruling §3: +49152 bytes over the 24576-row table")
+	@warning_ignore("assert_always_true") assert(LEGACY_LINK_CAPACITY == FARM_RECIPIENT_CAPACITY * LINKS_PER_RECIPIENT,
 		"the superseded 24576 rows are exactly the 4096 farm recipients' six slices")
-	assert(CANDIDATE_SCRATCH_BYTES == 120, "ruling §3: 120 scratch bytes for the six-candidate buffer")
+	@warning_ignore("assert_always_true") assert(CANDIDATE_SCRATCH_BYTES == 120, "ruling §3: 120 scratch bytes for the six-candidate buffer")
 
 
 func _assert_geometry_matches_the_tile_primitive() -> void:
@@ -636,18 +636,18 @@ func _assert_geometry_matches_the_tile_primitive() -> void:
 	is what `resource_nodes.gd` computes. Checked at both ends of the axis and at the 12 m range,
 	whose square the ruling states independently of the distance itself.
 	"""
-	assert(TILE_SIZE_UNITS == 2 * TILE_HALF_UNITS, "GDD §5.1: a tile centre sits half a tile in")
+	@warning_ignore("assert_always_true") assert(TILE_SIZE_UNITS == 2 * TILE_HALF_UNITS, "GDD §5.1: a tile centre sits half a tile in")
 	var sample_tiles: Array[int] = [0, 1, MAP_TILES_X - 1]
 	for tile_x: int in sample_tiles:
 		var stated: int = tile_x * TILE_SIZE_UNITS + TILE_HALF_UNITS
 		assert(_footprint_center_units(tile_x, tile_x) == stated,
 			"ruling §3's footprint centre must equal GDD §5.1's tile centre for a 1x1 footprint")
-	assert(MAX_CENTER_UNITS == (MAP_TILES_X - 1) * TILE_SIZE_UNITS + TILE_HALF_UNITS,
+	@warning_ignore("assert_always_true") assert(MAX_CENTER_UNITS == (MAP_TILES_X - 1) * TILE_SIZE_UNITS + TILE_HALF_UNITS,
 		"the largest centre is the last tile's own centre")
-	assert(POLLINATION_RANGE_UNITS == 12 * 1024, "ruling §3: 12 m at 1024 units/m")
-	assert(POLLINATION_RANGE_SQUARED == POLLINATION_RANGE_UNITS * POLLINATION_RANGE_UNITS,
+	@warning_ignore("assert_always_true") assert(POLLINATION_RANGE_UNITS == 12 * 1024, "ruling §3: 12 m at 1024 units/m")
+	@warning_ignore("assert_always_true") assert(POLLINATION_RANGE_SQUARED == POLLINATION_RANGE_UNITS * POLLINATION_RANGE_UNITS,
 		"ruling §3's 150994944 must be the square of its own 12 m range")
-	assert(2 * MAX_CENTER_UNITS * MAX_CENTER_UNITS < IntMath.INT64_MAX,
+	@warning_ignore("assert_always_true") assert(2 * MAX_CENTER_UNITS * MAX_CENTER_UNITS < IntMath.INT64_MAX,
 		"the grid bounds every squared distance well inside int64")
 
 
@@ -798,7 +798,7 @@ static func is_calendar_day(day: int) -> bool:
 
 static func season_of_day(day: int) -> int:
 	"""§4.3's 0-3 Season ordinal of an absolute day. Callers validate the day first."""
-	return ((day - MIN_CALENDAR_DAY) % DAYS_PER_YEAR) / DAYS_PER_SEASON
+	@warning_ignore("integer_division") return ((day - MIN_CALENDAR_DAY) % DAYS_PER_YEAR) / DAYS_PER_SEASON
 
 
 static func season_day_of_day(day: int) -> int:
@@ -808,7 +808,7 @@ static func season_day_of_day(day: int) -> int:
 
 static func year_of_day(day: int) -> int:
 	"""The 1-based year of an absolute day. Callers validate the day first."""
-	return (day - MIN_CALENDAR_DAY) / DAYS_PER_YEAR + FIRST_YEAR
+	@warning_ignore("integer_division") return (day - MIN_CALENDAR_DAY) / DAYS_PER_YEAR + FIRST_YEAR
 
 
 static func first_day_of_year(year: int) -> int:
@@ -933,12 +933,12 @@ func footprint_center_units(min_tile: int, max_tile: int) -> IntMath.IntResult:
 	return out
 
 
-static func is_in_pollination_range(squared_distance: int) -> bool:
+static func is_in_pollination_range(distance_sq: int) -> bool:
 	"""Ruling §3's inclusive test `dx*dx + dz*dz <= 150994944`, i.e. 12 m at 1024 units/m.
 
 	A negative argument is not a distance and reports false rather than passing the bound.
 	"""
-	return squared_distance >= 0 and squared_distance <= POLLINATION_RANGE_SQUARED
+	return distance_sq >= 0 and distance_sq <= POLLINATION_RANGE_SQUARED
 
 
 func squared_distance(ax: int, az: int, bx: int, bz: int) -> IntMath.IntResult:
@@ -1380,15 +1380,15 @@ static func is_pollinated_crop(crop_id: int) -> bool:
 	return crop_id == POLLINATED_CROP_ID
 
 
-static func pollination_factor_for_count(hive_count: int) -> int:
+static func pollination_factor_for_count(hives_in_range: int) -> int:
 	"""§5.6's factor for a count of eligible healthy hives: 0 -> 1000, 1 -> 1100, 2+ -> 1150.
 
 	REQ-SET-082's "ignore further hives for that crop": three, six or sixty hives all pay 1150.
 	A negative count names no hive and takes the neutral factor.
 	"""
-	if hive_count <= 0:
+	if hives_in_range <= 0:
 		return POLLINATION_FACTOR_NEUTRAL
-	if hive_count == 1:
+	if hives_in_range == 1:
 		return POLLINATION_FACTOR_ONE_HIVE
 	return POLLINATION_FACTOR_TWO_HIVES
 
@@ -2372,7 +2372,7 @@ func _apply_hive_working_day(slot: int, season: int, out: HiveDayResult) -> void
 
 func _produced_milli(daily_milli: int, strength: int) -> int:
 	"""§5.6's `daily x strength/10000`, floored. Both operands are bounded, so this cannot wrap."""
-	return daily_milli * strength / HIVE_STRENGTH_DENOMINATOR
+	@warning_ignore("integer_division") return daily_milli * strength / HIVE_STRENGTH_DENOMINATOR
 
 
 func _write_hive_strength(slot: int, strength: int) -> void:

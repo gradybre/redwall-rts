@@ -65,8 +65,8 @@ func taker(row: int) -> int:
 	free one (-1: nobody)."""
 	var kept: int = _graph.fit.asked[row]
 	if kept >= 0 and kept < _brains.size():
-		return kept if is_free(kept) and can_reach(kept, row / FixturesScript.PLACES) else -1
-	return nearest_free(row / FixturesScript.PLACES)
+		@warning_ignore("integer_division") return kept if is_free(kept) and can_reach(kept, row / FixturesScript.PLACES) else -1
+	@warning_ignore("integer_division") return nearest_free(row / FixturesScript.PLACES)
 
 
 func _age_keeps(usec: int) -> void:
@@ -119,7 +119,7 @@ func nearest_free(r: int) -> int:
 func give(row: int, who: int) -> bool:
 	"""Resident `who` puts in the fixture planned at place row `row`, taken off whatever it was doing. False when the
 	place is not waiting, it cannot reach the room, or the water's rescue holds it (it would take no order)."""
-	var r := row / FixturesScript.PLACES
+	@warning_ignore("integer_division") var r := row / FixturesScript.PLACES
 	var f := row % FixturesScript.PLACES
 	if _brains[who].water_hold or not can_reach(who, r) or not _graph.fit.claim(_graph, r, f, who):
 		return false
@@ -145,7 +145,7 @@ func give_selected(r: int, members: PackedInt32Array) -> int:
 	var fit: FixturesScript = _graph.fit
 	fit.waiting_into(_graph, _waiting)
 	for row in _waiting:
-		if row / FixturesScript.PLACES != r:
+		@warning_ignore("integer_division") if row / FixturesScript.PLACES != r:
 			continue
 		while m < members.size() and not give(row, members[m]):
 			m += 1

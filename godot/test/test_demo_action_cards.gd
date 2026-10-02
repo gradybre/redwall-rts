@@ -642,7 +642,7 @@ func test_a_tunnel_card_costs_what_the_job_pays() -> void:
 	assert_equal([int(card.cost_need[0]), int(card.cost_need[1])], [cost[0], cost[1]], "the job's price")
 	assert_equal([int(card.cost_have[0]), int(card.cost_have[1])], [works.stores.wood_milli_u, works.stores.stone_milli_u],
 		"the stores the HUD reads")
-	assert_equal(card.work_usec, works.jobs.ticks_for(0, TunnelJobs.JOB_BRACE) * 1000000 / TunnelRules.TICKS_PER_SECOND,
+	@warning_ignore("integer_division") assert_equal(card.work_usec, works.jobs.ticks_for(0, TunnelJobs.JOB_BRACE) * 1000000 / TunnelRules.TICKS_PER_SECOND,
 		"its ticks at the base rate")
 	var wood: int = works.stores.wood_milli_u
 	var stone: int = works.stores.stone_milli_u
@@ -1306,7 +1306,7 @@ func test_a_tunnel_card_counts_work_done_and_its_crew() -> void:
 	assert_true(done > 0, "some done")
 	var card := CardScript.new()
 	actions.preview_into(card, TunnelJobs.JOB_BRACE, PackedInt32Array([2]))
-	assert_equal(card.work_usec, (works.jobs.ticks_for(0, TunnelJobs.JOB_BRACE) - done) * 1000000 / TunnelRules.TICKS_PER_SECOND,
+	@warning_ignore("integer_division") assert_equal(card.work_usec, (works.jobs.ticks_for(0, TunnelJobs.JOB_BRACE) - done) * 1000000 / TunnelRules.TICKS_PER_SECOND,
 		"what is left")
 	actions.select(1)
 	actions.preview_into(card, TunnelJobs.JOB_WIDEN, PackedInt32Array([0, 2, 3]))

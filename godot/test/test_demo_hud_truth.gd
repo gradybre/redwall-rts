@@ -309,7 +309,7 @@ func test_where_a_resident_is() -> void:
 	assert_equal(RosterScript.location_text(brain), "Indoors", "indoors")
 	brain.in_water = true
 	assert_equal(RosterScript.location_text(brain), "In the water", "in the water first")
-	var between: int = (Rules.BORE_FLOOR_DEPTH_U + Rules.LEVEL_2_FLOOR_DEPTH_U) / 2
+	@warning_ignore("integer_division") var between: int = (Rules.BORE_FLOOR_DEPTH_U + Rules.LEVEL_2_FLOOR_DEPTH_U) / 2
 	assert_equal(RosterScript.level_at_depth_u(0), 1, "a ramp's top is level 1's way down")
 	assert_equal(RosterScript.level_at_depth_u(between), 1, "halfway: still level 1")
 	assert_equal(RosterScript.level_at_depth_u(between + 1), 2, "past halfway: level 2")

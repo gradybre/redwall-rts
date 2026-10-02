@@ -520,7 +520,7 @@ func _assert_contracts() -> void:
 	assert(UNSUPPORTED_REASON.size() == KIND_COUNT,
 		"every ARCH-CMD-003 kind must state why it is unsupported, or state that it is not")
 	assert(Catalog.COMMAND_KIND.size() == KIND_COUNT, "ARCH-CMD-003 fixes 24 command kinds")
-	assert(RESULT_CODES[RESULT_COMMITTED] == &"COMMAND_COMMITTED",
+	@warning_ignore("assert_always_true") assert(RESULT_CODES[RESULT_COMMITTED] == &"COMMAND_COMMITTED",
 		"the success id must index the success code")
 	_assert_shared_directory()
 

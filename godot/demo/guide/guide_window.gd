@@ -95,11 +95,11 @@ func _build_tabs(column: VBoxContainer) -> void:
 	var row: HFlowContainer = GuideUi.row(6)
 	column.add_child(row)
 	for k: int in TAB_NAMES.size():
-		var tab: Button = FarmUi.button(TAB_NAMES[k], FarmUi.BODY_PX)
-		tab.toggle_mode = true
-		tab.pressed.connect(show_tab.bind(k))
-		row.add_child(tab)
-		_tabs.append(tab)
+		var tab_choice: Button = FarmUi.button(TAB_NAMES[k], FarmUi.BODY_PX)
+		tab_choice.toggle_mode = true
+		tab_choice.pressed.connect(show_tab.bind(k))
+		row.add_child(tab_choice)
+		_tabs.append(tab_choice)
 
 
 func _build_pages(column: VBoxContainer) -> void:
@@ -149,10 +149,10 @@ func _ready() -> void:
 
 # --- opening, closing, tabs --------------------------------------------------------------------------
 
-func open(tab: int = -1) -> void:
-	"""Show the window (on `tab`, else the last one) and hold the MENU pause."""
-	if tab >= 0:
-		show_tab(tab)
+func open(index: int = -1) -> void:
+	"""Show the window (on `index`, else the last one) and hold the MENU pause."""
+	if index >= 0:
+		show_tab(index)
 	if visible:
 		return
 	_hold(true)
@@ -184,9 +184,9 @@ func toggle() -> void:
 		open()
 
 
-func show_tab(tab: int) -> void:
+func show_tab(index: int) -> void:
 	"""One tab's page shown; the page's first control takes focus when the window is up."""
-	_tab = clampi(tab, 0, TAB_NAMES.size() - 1)
+	_tab = clampi(index, 0, TAB_NAMES.size() - 1)
 	for k: int in _pages.size():
 		_pages[k].visible = k == _tab
 		_tabs[k].set_pressed_no_signal(k == _tab)

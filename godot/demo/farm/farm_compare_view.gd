@@ -92,10 +92,10 @@ func refresh(open_bed: int) -> void:
 	_table.set_row_count(order.size())
 	for n: int in order.size():
 		var bed: int = order[n]
-		var title: String = "%d. Bed %d · %s%s" % [n + 1, bed + 1, Rows.crop_text(_sim, bed),
+		var heading: String = "%d. Bed %d · %s%s" % [n + 1, bed + 1, Rows.crop_text(_sim, bed),
 			" (this bed)" if bed == open_bed else ""]
 		_cells.resize(1)
-		_cells[0] = "%s\n%s" % [title, Rows.compare_line(_sim, bed, _read)]
+		_cells[0] = "%s\n%s" % [heading, Rows.compare_line(_sim, bed, _read)]
 		_table.set_row(n, _cells, bed, Palette.INK, "Open bed %d" % (bed + 1))
 
 

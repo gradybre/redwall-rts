@@ -62,7 +62,10 @@ func test_the_props_warm_every_staged_model_once() -> void:
 	props.load_from({})
 	assert_equal(props.warm_all(), 0, "nothing staged")
 	assert_equal(props.loaded_count(), 0, "nothing loaded")
-	props._rows[&"basket"] = {"path": "res://demo/demo_village.tscn", "aabb_min": [0, 0, 0], "aabb_max": [1, 1, 1]}
+	# A committed model, not demo_village.tscn: the village makes its child nodes in member initialisers and parents
+	# them in _ready(), so instancing it outside the tree and freeing it leaked every one (decision 0501).
+	props._rows[&"basket"] = {"path": "res://assets/units/species_mouse_body_a_lod0.glb", "aabb_min": [0, 0, 0],
+		"aabb_max": [1, 1, 1]}
 	assert_equal(props.warm_all(), 1, "the staged row loaded")
 	assert_equal(props.loaded_count(), 1, "one model")
 	assert_equal(props.warm_all(), 0, "not twice")
@@ -84,27 +87,27 @@ func test_frame_steps_run_after_the_warm_frames_in_order_before_the_release() ->
 	first), exactly its frames are drawn, it finishes (timed, its frames as `loaded`), the next begins --
 	and only then is the pause released, once."""
 	var prewarm := PrewarmScript.new()
-	var log: Array[String] = []
+	var step_log: Array[String] = []
 	var released: Array[int] = [0]
-	prewarm.add_frame_step("under", 2, func() -> void: log.append("under+"), func() -> void: log.append("under-"))
-	prewarm.add_frame_step("more", 1, func() -> void: log.append("more+"), func() -> void: log.append("more-"))
+	prewarm.add_frame_step("under", 2, func() -> void: step_log.append("under+"), func() -> void: step_log.append("under-"))
+	prewarm.add_frame_step("more", 1, func() -> void: step_log.append("more+"), func() -> void: step_log.append("more-"))
 	prewarm.release_after_frames(func() -> void: released[0] += 1, 1)
 	prewarm._process(0.016)
-	assert_equal(log, [] as Array[String], "the warm frame first")
+	assert_equal(step_log,[] as Array[String], "the warm frame first")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+"] as Array[String], "then the first step begins: its first frame")
+	assert_equal(step_log,["under+"] as Array[String], "then the first step begins: its first frame")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+"] as Array[String], "its second frame")
+	assert_equal(step_log,["under+"] as Array[String], "its second frame")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+", "under-", "more+"] as Array[String], "two drawn: finished, and the next begun")
+	assert_equal(step_log,["under+", "under-", "more+"] as Array[String], "two drawn: finished, and the next begun")
 	assert_equal(released[0], 0, "not released yet")
 	prewarm._process(0.016)
-	assert_equal(log, ["under+", "under-", "more+", "more-"] as Array[String], "one drawn: all finished")
+	assert_equal(step_log,["under+", "under-", "more+", "more-"] as Array[String], "one drawn: all finished")
 	assert_equal(released[0], 1, "then released")
 	assert_equal([String(prewarm.report[0]["step"]), int(prewarm.report[0]["loaded"])], ["under", 2], "reported, its frames")
 	for frame: int in 5:
 		prewarm._process(0.016)
-	assert_equal([released[0], log.size()], [1, 4], "released once, each step once")
+	assert_equal([released[0], step_log.size()], [1, 4], "released once, each step once")
 	prewarm.free()
 
 

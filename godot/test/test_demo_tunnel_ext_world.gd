@@ -59,6 +59,11 @@ var _notices: PackedStringArray = PackedStringArray()
 var _services: ServicesScript = ServicesScript.new()
 
 
+func tolerates_outside_tree() -> bool:
+	"""Its node fixtures are never inside the scene tree (test_case.gd ENGINE DIAGNOSTICS)."""
+	return true
+
+
 func before_each() -> void:
 	"""A fresh set of demo services per test."""
 	_services = ServicesScript.new()
@@ -578,7 +583,7 @@ func test_a_crew_follows_the_foremole_s_work() -> void:
 	space.tunnels.add_into(PackedInt32Array([0, 0, 12288, 0]), 2, 0, ref)
 	assert_true(works.crew_active(0), "digging")
 	assert_equal(works.crew_along(0), 0.0, "the entrance shaft: at the surface")
-	space.tunnels.dig_usec[0] = 200 * 1000000 / 30
+	@warning_ignore("integer_division") space.tunnels.dig_usec[0] = 200 * 1000000 / 30
 	assert_true(works.crew_along(0) > 0.0, "the ramp: at the face (%.3f)" % works.crew_along(0))
 	space.tunnels.advance(0, ref[1], 1000000000)
 	assert_false(works.crew_active(0), "open: nothing going on there")
@@ -659,10 +664,10 @@ func test_the_foremole_speaks_up_at_rock() -> void:
 	var ref := PackedInt32Array([-1, 0, -1])
 	space.tunnels.add_into(PackedInt32Array(T1_ROUTE), 2, 0, ref)
 	for k in 3:
-		space.tunnels.dig_usec[0] = k * 100 * 1000000 / 30
+		@warning_ignore("integer_division") space.tunnels.dig_usec[0] = k * 100 * 1000000 / 30
 		works.step(1)
 	assert_false(_services.notices.has_text(CrewScript.LINE_ROCK_ALONE), "not in loam (200 ticks)")
-	space.tunnels.dig_usec[0] = 300 * 1000000 / 30
+	@warning_ignore("integer_division") space.tunnels.dig_usec[0] = 300 * 1000000 / 30
 	works.step(1)
 	assert_true(_services.notices.has_text(CrewScript.LINE_ROCK_ALONE), "said, in the notice feed")
 	assert_true(_warned("Rock! The Foremole needs the badger"), "a warning, with its short line")
@@ -1372,17 +1377,17 @@ func test_a_room_s_shell_grows_while_it_is_dug() -> void:
 	network.start_dig(ref[3], ref[4], 0)
 	network.advance(ref[3], ref[4], 1000000000)
 	network.start_dig(body, network.generation[body], 0)
-	network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 3000)
+	@warning_ignore("integer_division") network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 3000)
 	view.refresh()
 	assert_true(network.rooms.dug_permille(network, ref[0]) in range(1, 50), "a little dug")
 	assert_equal([view.stage(0), view.shell_builds], [1, 1], "its first stage, built")
 	var revision := network.revision
-	network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 60)
+	@warning_ignore("integer_division") network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 60)
 	view.refresh()
 	assert_equal(network.revision, revision, "digging moved no revision")
 	assert_equal([view.stage(0), view.shell_builds], [3, 2], "half dug: built again at its third stage")
 	var ramp_ticks := network.total_ticks(ref[3])
-	var percent := (ramp_ticks + network.done(body)) * 100 / (ramp_ticks + network.total_ticks(body))
+	@warning_ignore("integer_division") var percent := (ramp_ticks + network.done(body)) * 100 / (ramp_ticks + network.total_ticks(body))
 	assert_equal(view.percent_dug(0), percent, "its ramp and body dug, of both")
 	assert_equal(view.label(0).text, "Burrow home 1 (digging %d%%)" % percent, "counting")
 
@@ -1479,7 +1484,7 @@ func test_the_room_tool_takes_its_site_afresh_after_a_room_is_laid() -> void:
 	var spots := tool.room.site().spots_u
 	assert_true(spots.size() > before, "more to keep clear")
 	var found := false
-	for i in spots.size() / 3:
+	@warning_ignore("integer_division") for i in spots.size() / 3:
 		found = found or (spots[3 * i] == hole.x and spots[3 * i + 2] == hole.y)
 	assert_true(found, "its door among them")
 
@@ -1528,7 +1533,7 @@ static func _dig_ramp_and_half_the_body(network: GraphScript, ref: PackedInt32Ar
 	network.start_dig(ref[3], ref[4], 0)
 	network.advance(ref[3], ref[4], 1000000000)
 	network.start_dig(body, network.generation[body], 0)
-	network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 60)
+	@warning_ignore("integer_division") network.advance(body, network.generation[body], network.total_ticks(body) * Rules.USEC_PER_SECOND / 60)
 
 
 func _check_planned_cellar(view: RoomViewScript, space: CastSpaceScript, obstacles: int) -> void:

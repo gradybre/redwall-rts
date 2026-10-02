@@ -313,7 +313,7 @@ func cellar_stored_u(r: int) -> int:
 	"""How much food root cellar row `r` holds, in whole units rounded up (0 when it is no store): its racks cannot be
 	taken out below it (room_fixtures.gd `take_out`)."""
 	var location := _cellar_location(r)
-	return (pantry.used_milli_of(location) + StorageScript.MILLI_PER_U - 1) / StorageScript.MILLI_PER_U if location > 0 else 0
+	@warning_ignore("integer_division") return (pantry.used_milli_of(location) + StorageScript.MILLI_PER_U - 1) / StorageScript.MILLI_PER_U if location > 0 else 0
 
 
 func _cellar_location(r: int) -> int:
@@ -420,7 +420,7 @@ func _keep_record() -> void:
 			RecordText.day_summary(record, k))
 		var day: int = record.value(k, RecordScript.F_DAY)
 		if day % RecordScript.DAYS_PER_SEASON == RecordScript.DAYS_PER_SEASON - 1:
-			services.notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Season's record, "
+			@warning_ignore("integer_division") services.notices.post(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE, "Season's record, "
 				+ RecordText.season_line(record, day / RecordScript.DAYS_PER_SEASON))
 
 
@@ -642,11 +642,11 @@ func _farm_overlay(on: bool, mode: int) -> void:
 	view.set_overlay(mode if on else ViewScript.OVERLAY_OFF)
 
 
-func add_overlay(group: String, label: String, question: String, show: Callable) -> int:
-	"""Put another map layer on V's cycle, after the farm's own: `show(on: bool)` switches it (the
+func add_overlay(group: String, label: String, question: String, shown: Callable) -> int:
+	"""Put another map layer on V's cycle, after the farm's own: `shown(on: bool)` switches it (the
 	village's water range, the woods). One active layer for V and the picker alike. Returns its row in
 	`lenses`."""
-	return lenses.add(group, label, question, show)
+	return lenses.add(group, label, question, shown)
 
 
 func cycle_overlays() -> String:

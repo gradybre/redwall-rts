@@ -25,7 +25,7 @@ Decision: [0534](../../../decisions/0534-demolition-admit-and-the-adopted-invent
   retired around the coordinator.
 
 **Not done here, by design:** removing the building and placing the return (D5), hauling (D6),
-dispatch and UI (D7), movement consumption of the revision (D8). Five proposals in 0534 await a
-ruling. **D5 must read 0534's Consequences first.**
+dispatch and UI (D7), movement consumption of the revision (D8). Brendan approved 0534's five
+proposals as built on 2026-10-01 (rulings R1–R5). **D5 must read 0534's Consequences first.**
 
 No checklist box in task 06 closes with D4.

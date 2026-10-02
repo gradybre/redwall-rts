@@ -88,7 +88,7 @@ func _view() -> Array:
 
 func _at_hour(view: ViewScript, hour: int) -> void:
 	"""Draw the woods `hour` hours after day 1's midnight (a regrowth dated day 1)."""
-	view.sync(1 + hour / 24, hour % 24)
+	@warning_ignore("integer_division") view.sync(1 + hour / 24, hour % 24)
 
 
 func _first_young_hour(view: ViewScript, t: int) -> int:

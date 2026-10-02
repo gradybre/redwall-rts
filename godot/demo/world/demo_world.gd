@@ -125,9 +125,9 @@ func obstacles() -> Array[Vector3]:
 	return out
 
 
-static func public_circle(layout_circle: Vector3) -> Vector3:
+static func public_circle(from_layout: Vector3) -> Vector3:
 	"""A layout circle (x, z, radius) in the published form (x, radius, z)."""
-	return Vector3(layout_circle.x, layout_circle.z, layout_circle.y)
+	return Vector3(from_layout.x, from_layout.z, from_layout.y)
 
 
 static func layout_circle(public: Vector3) -> Vector3:
@@ -277,8 +277,8 @@ func _clear_built() -> void:
 static func piece_transform(p: Dictionary, scale_factor: float, sink: float) -> Transform3D:
 	"""Placement transform: uniform scale, yaw about +Y, base on the ground let down `sink` m into it."""
 	var at: Vector2 = p["at"]
-	var basis := Basis(Vector3.UP, float(p["yaw"])).scaled(Vector3.ONE * scale_factor)
-	return Transform3D(basis, Vector3(at.x, GROUND_Y - sink, at.y))
+	var facing := Basis(Vector3.UP, float(p["yaw"])).scaled(Vector3.ONE * scale_factor)
+	return Transform3D(facing, Vector3(at.x, GROUND_Y - sink, at.y))
 
 
 func _staged_scene(world: Dictionary, key: StringName) -> PackedScene:

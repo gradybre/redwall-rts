@@ -92,7 +92,7 @@ func refund(wood: int, stone: int, planks: int) -> void:
 
 func holdings_text() -> String:
 	"""What the stock holds, in whole units, for a refusal: "0 planks, 40 wood, 20 stone"."""
-	return "%d planks, %d wood, %d stone" % [plank_milli_u / 1000, wood_milli_u / 1000, stone_milli_u / 1000]
+	@warning_ignore("integer_division") return "%d planks, %d wood, %d stone" % [plank_milli_u / 1000, wood_milli_u / 1000, stone_milli_u / 1000]
 
 
 func add_wood(milli_u: int) -> void:
@@ -190,7 +190,7 @@ func add_find(kind: int) -> void:
 
 static func units_text(milli_u: int) -> String:
 	"""Milli-U as the panel shows it: whole units and one decimal, floored ("12.5 U")."""
-	return "%d.%d U" % [milli_u / 1000, (milli_u % 1000) / 100]
+	@warning_ignore("integer_division") return "%d.%d U" % [milli_u / 1000, (milli_u % 1000) / 100]
 
 
 func stock_line() -> String:

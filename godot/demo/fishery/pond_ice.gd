@@ -64,7 +64,7 @@ func safe() -> bool:
 
 func millimetres() -> int:
 	"""The thickness in whole millimetres (floored)."""
-	return thickness_um / 1000
+	@warning_ignore("integer_division") return thickness_um / 1000
 
 
 static func hours_to_safe(thickness: int, day_tenths: int) -> int:
@@ -74,7 +74,7 @@ static func hours_to_safe(thickness: int, day_tenths: int) -> int:
 	if day_tenths >= 0:
 		return -1
 	var per_hour: int = -day_tenths * ICE_GROWTH_UM_PER_TENTH
-	return (SAFE_UM - thickness + per_hour - 1) / per_hour
+	@warning_ignore("integer_division") return (SAFE_UM - thickness + per_hour - 1) / per_hour
 
 
 func line() -> String:
@@ -83,5 +83,5 @@ func line() -> String:
 		STATE_OPEN:
 			return "The pond: open water" if thickness_um == 0 else "The pond: open water (a skin of ice, %d mm)" % millimetres()
 		STATE_THIN:
-			return "The pond: thin ice, %d mm — keep off (safe from %d mm)" % [millimetres(), SAFE_UM / 1000]
+			@warning_ignore("integer_division") return "The pond: thin ice, %d mm — keep off (safe from %d mm)" % [millimetres(), SAFE_UM / 1000]
 	return "The pond: safe ice, %d mm — ice fishing only" % millimetres()

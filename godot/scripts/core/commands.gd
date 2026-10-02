@@ -154,7 +154,7 @@ const U32_MODULUS: int = 4294967296
 ## types: `count` is one i32 and each row is an EntityRef, which GDD §4.2 defines as two i32.
 const ID_GROUP_COUNT_BYTES: int = 4
 const ID_GROUP_ROW_BYTES: int = 8
-const ID_GROUP_MAX_ROWS: int = (PAYLOAD_ARENA_BYTES - ID_GROUP_COUNT_BYTES) / ID_GROUP_ROW_BYTES
+@warning_ignore("integer_division") const ID_GROUP_MAX_ROWS: int = (PAYLOAD_ARENA_BYTES - ID_GROUP_COUNT_BYTES) / ID_GROUP_ROW_BYTES
 
 # --- refusal codes (StringName; this module never returns a sentinel to signal failure) ----------
 
@@ -363,11 +363,11 @@ func _assert_contracts() -> void:
 	var verified: Catalog.DomainResult = Catalog.verify_compiled_enum(Catalog.COMMAND_KIND_DOMAIN)
 	assert(verified.ok, "ARCH-CMD-003's kinds must be the ASCII compilation of their own keys")
 	assert(_kind_count == verified.ids.size(), "every compiled kind must be in the table")
-	assert(OFFSET_RESERVED_ZERO + FIELD_BYTES == RECORD_BYTES,
+	@warning_ignore("assert_always_true") assert(OFFSET_RESERVED_ZERO + FIELD_BYTES == RECORD_BYTES,
 		"§8.1's last field must end exactly at the 64-byte stride")
-	assert(TICK_FIELD_BYTES + 14 * FIELD_BYTES == RECORD_BYTES,
+	@warning_ignore("assert_always_true") assert(TICK_FIELD_BYTES + 14 * FIELD_BYTES == RECORD_BYTES,
 		"the record is one i64 tick plus fourteen i32 fields")
-	assert(QUEUE_CAPACITY * RECORD_BYTES == 262144,
+	@warning_ignore("assert_always_true") assert(QUEUE_CAPACITY * RECORD_BYTES == 262144,
 		"§2.3's command queue row is 4096 records of 64 bytes")
 
 
@@ -466,7 +466,7 @@ func _lower_bound(tick: int, player: int, high: int, low: int) -> int:
 	var lower: int = 0
 	var upper: int = _count
 	while lower < upper:
-		var middle: int = (lower + upper) / 2
+		@warning_ignore("integer_division") var middle: int = (lower + upper) / 2
 		if _compare_row(_row_at(middle), tick, player, high, low) < 0:
 			lower = middle + 1
 		else:
@@ -551,7 +551,7 @@ func _stamped_key_refusal(tick: int, members: int) -> StringName:
 	"""
 	for step: int in members:
 		var low: int = _next_sequence_low + step
-		var high: int = _next_sequence_high + low / U32_MODULUS
+		@warning_ignore("integer_division") var high: int = _next_sequence_high + low / U32_MODULUS
 		if _has_key(tick, RELEASE_ONE_PLAYER_ID, to_int32_bits(high),
 				to_int32_bits(low % U32_MODULUS)):
 			return REFUSE_DUPLICATE_KEY
@@ -598,7 +598,7 @@ func submit_id_group_into(command: Command, refs: PackedInt32Array, out: SubmitR
 		return _bar_submit(out)
 	_refused_member = 0
 	var tick: int = next_execute_tick()
-	var length: int = ID_GROUP_COUNT_BYTES + (refs.size() / 2) * ID_GROUP_ROW_BYTES
+	@warning_ignore("integer_division") var length: int = ID_GROUP_COUNT_BYTES + (refs.size() / 2) * ID_GROUP_ROW_BYTES
 	var refusal: StringName = REFUSE_NONE if command.payload.is_empty() \
 		else REFUSE_PAYLOAD_CONFLICT
 	if refusal == REFUSE_NONE:
@@ -733,7 +733,7 @@ func id_group_refusal(refs: PackedInt32Array) -> StringName:
 	"""Validate a whole count-prefixed ID group: shape, owner-ID order, and every generation."""
 	if refs.is_empty() or refs.size() % 2 != 0:
 		return REFUSE_ID_GROUP_SHAPE
-	var count: int = refs.size() / 2
+	@warning_ignore("integer_division") var count: int = refs.size() / 2
 	if count > ID_GROUP_MAX_ROWS:
 		return REFUSE_ID_GROUP_SHAPE
 	var previous_slot: int = EntityDirectory.NULL_SLOT
@@ -825,7 +825,7 @@ func _copy_payload(command: Command, offset: int, length: int) -> void:
 
 func _write_id_group(offset: int, refs: PackedInt32Array) -> void:
 	"""Encode ARCH-CMD-003's count-prefixed, owner-ID-sorted EntityRef rows into the arena."""
-	var count: int = refs.size() / 2
+	@warning_ignore("integer_division") var count: int = refs.size() / 2
 	_payload.encode_s32(offset, count)
 	for index: int in count:
 		var row_offset: int = offset + ID_GROUP_COUNT_BYTES + index * ID_GROUP_ROW_BYTES
@@ -1094,7 +1094,7 @@ func restore_sequence(high: int, low: int) -> bool:
 # per-row object array exists, and no retained or persisted field is added anywhere here.
 
 func pending_window_refusal(records: PackedByteArray, arena: PackedByteArray,
-		next_sequence_high: int, next_sequence_low: int) -> StringName:
+		p_next_sequence_high: int, p_next_sequence_low: int) -> StringName:
 	"""Every rule a saved pending window must satisfy, as a check that mutates nothing.
 
 	`records` is `n * 64` bytes of §8.1 records in ARCH-CMD-001 order, STRICTLY ascending and so
@@ -1105,14 +1105,14 @@ func pending_window_refusal(records: PackedByteArray, arena: PackedByteArray,
 		return REFUSE_LOAD_BARRIER
 	if records.size() % RECORD_BYTES != 0:
 		return REFUSE_WINDOW_RECORD_SHAPE
-	var count: int = records.size() / RECORD_BYTES
+	@warning_ignore("integer_division") var count: int = records.size() / RECORD_BYTES
 	if count > QUEUE_CAPACITY:
 		return REFUSE_WINDOW_RECORD_SHAPE
 	if arena.size() > PAYLOAD_ARENA_BYTES:
 		return REFUSE_WINDOW_ARENA_SIZE
 	if count == 0 and arena.size() != 0:
 		return REFUSE_WINDOW_ARENA_NOT_EMPTY
-	if not _window_sequence_is_legal(next_sequence_high, next_sequence_low):
+	if not _window_sequence_is_legal(p_next_sequence_high, p_next_sequence_low):
 		return REFUSE_WINDOW_SEQUENCE
 	var keys: PackedInt64Array = PackedInt64Array()
 	keys.resize(count)
@@ -1181,7 +1181,7 @@ func _window_arena_refusal(arena: PackedByteArray, keys: PackedInt64Array) -> St
 	keys.sort()
 	var cursor: int = 0
 	for index: int in keys.size():
-		var offset: int = keys[index] / SPAN_KEY_SCALE
+		@warning_ignore("integer_division") var offset: int = keys[index] / SPAN_KEY_SCALE
 		var length: int = keys[index] % SPAN_KEY_SCALE
 		if offset < cursor:
 			return REFUSE_WINDOW_SPAN_OVERLAP
@@ -1215,7 +1215,7 @@ static func _window_sequence_is_legal(high: int, low: int) -> bool:
 
 
 func restore_pending_window(records: PackedByteArray, arena: PackedByteArray,
-		next_sequence_high: int, next_sequence_low: int) -> bool:
+		p_next_sequence_high: int, p_next_sequence_low: int) -> bool:
 	"""Install a validated pending window verbatim, replacing whatever this queue now holds.
 
 	Validated in full before the first write, so a refusal leaves the queue byte-identical and
@@ -1226,13 +1226,13 @@ func restore_pending_window(records: PackedByteArray, arena: PackedByteArray,
 	The accepted, refused and drained counters are deliberately PRESERVED: they count what this
 	process has done, not what the restored window contains.
 	"""
-	var refusal: StringName = pending_window_refusal(records, arena, next_sequence_high,
-		next_sequence_low)
+	var refusal: StringName = pending_window_refusal(records, arena, p_next_sequence_high,
+		p_next_sequence_low)
 	if refusal != REFUSE_NONE:
 		_last_refusal = refusal
 		return false
 	var probe: Command = Command.new()
-	var count: int = records.size() / RECORD_BYTES
+	@warning_ignore("integer_division") var count: int = records.size() / RECORD_BYTES
 	_reset_rows()
 	for index: int in count:
 		var decoded: bool = decode_record_into(records, index * RECORD_BYTES, probe)
@@ -1241,8 +1241,8 @@ func restore_pending_window(records: PackedByteArray, arena: PackedByteArray,
 	_head = 0
 	_count = count
 	_copy_arena_prefix(arena)
-	_next_sequence_high = next_sequence_high
-	_next_sequence_low = next_sequence_low
+	_next_sequence_high = p_next_sequence_high
+	_next_sequence_low = p_next_sequence_low
 	_last_refusal = REFUSE_NONE
 	return true
 

@@ -38,7 +38,7 @@ func capacity() -> int:
 
 func live(row: int) -> bool:
 	"""A planned place."""
-	return _fit().phase_of(_graph, row / FixturesScript.PLACES, row % FixturesScript.PLACES) == FixturesScript.PLANNED
+	@warning_ignore("integer_division") return _fit().phase_of(_graph, row / FixturesScript.PLACES, row % FixturesScript.PLACES) == FixturesScript.PLANNED
 
 
 func key(row: int) -> int:
@@ -58,18 +58,18 @@ func activity(_row: int) -> int:
 
 func point(row: int) -> Vector2:
 	"""The room's middle."""
-	return _graph.node_m(_graph.rooms.middle[row / FixturesScript.PLACES])
+	@warning_ignore("integer_division") return _graph.node_m(_graph.rooms.middle[row / FixturesScript.PLACES])
 
 
 func eligibility(row: int, who: int) -> String:
 	"""One who can walk into the room."""
-	return "" if _crew.can_reach(who, row / FixturesScript.PLACES) else CANT_REACH_ROOM
+	@warning_ignore("integer_division") return "" if _crew.can_reach(who, row / FixturesScript.PLACES) else CANT_REACH_ROOM
 
 
 func fill(task: TaskScript, row: int) -> void:
 	"""The fixture's record."""
 	task.reset(id, row)
-	var r: int = row / FixturesScript.PLACES
+	@warning_ignore("integer_division") var r: int = row / FixturesScript.PLACES
 	var kind: int = _fit().kind_at(_graph, r, row % FixturesScript.PLACES)
 	task.key = row
 	task.action = "Put in a %s" % RoomsScript.FIXTURE_NAMES[kind]
@@ -79,7 +79,7 @@ func fill(task: TaskScript, row: int) -> void:
 	task.point = point(row)
 	var total: int = FixturesScript.install_usec(kind)
 	task.remaining_usec = maxi(total - _fit().work_usec[row], 0)
-	task.percent = mini(100, int(_fit().work_usec[row] * 100 / maxi(total, 1)))
+	@warning_ignore("integer_division") task.percent = mini(100, int(_fit().work_usec[row] * 100 / maxi(total, 1)))
 	task.pause_refusal = ROOM_PANEL
 	task.cancel_refusal = ROOM_PANEL
 	if task.worker >= 0:

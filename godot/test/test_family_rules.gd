@@ -86,8 +86,8 @@ func test_flat_packed_payload_is_288_bytes_and_queries_leave_it_identical() -> v
 	var demand_before: PackedByteArray = demand.to_byte_array()
 	var out: IntMath.IntResult = IntMath.IntResult.new()
 	for repeat: int in 100:
-		assert_true(rules.hunger_rate_milli_into(repeat % 3, (repeat / 3) % 3, repeat % 2 == 1, out), "repeated hunger")
-		assert_true(rules.daily_demand_np_into(repeat % 3, (repeat / 3) % 3, repeat % 2 == 1, out), "repeated demand")
+		@warning_ignore("integer_division") assert_true(rules.hunger_rate_milli_into(repeat % 3, (repeat / 3) % 3, repeat % 2 == 1, out), "repeated hunger")
+		@warning_ignore("integer_division") assert_true(rules.daily_demand_np_into(repeat % 3, (repeat / 3) % 3, repeat % 2 == 1, out), "repeated demand")
 	assert_false(rules.hunger_rate_milli_into(-1, 0, false, out), "refusal also read-only")
 	var hunger_after: PackedInt64Array = rules.get("_hunger_rates_milli")
 	var demand_after: PackedInt64Array = rules.get("_daily_demand_np")

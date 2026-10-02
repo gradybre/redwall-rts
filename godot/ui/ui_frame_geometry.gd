@@ -125,11 +125,11 @@ static func minimum_size_of(frame: int) -> Vector2:
 	Callers validate the frame index first, exactly as `ui_art.gd`'s accessors require.
 	"""
 	var tl: Vector2i = UiArt.frame_corner_size(frame, CORNER_TL)
-	var tr: Vector2i = UiArt.frame_corner_size(frame, CORNER_TR)
+	var top_right: Vector2i = UiArt.frame_corner_size(frame, CORNER_TR)
 	var bl: Vector2i = UiArt.frame_corner_size(frame, CORNER_BL)
 	var br: Vector2i = UiArt.frame_corner_size(frame, CORNER_BR)
-	var width: float = maxf(float(tl.x + tr.x), float(bl.x + br.x)) + MINIMUM_EDGE_RUN
-	var height: float = maxf(float(tl.y + bl.y), float(tr.y + br.y)) + MINIMUM_EDGE_RUN
+	var width: float = maxf(float(tl.x + top_right.x), float(bl.x + br.x)) + MINIMUM_EDGE_RUN
+	var height: float = maxf(float(tl.y + bl.y), float(top_right.y + br.y)) + MINIMUM_EDGE_RUN
 	return Vector2(width, height)
 
 
@@ -165,11 +165,11 @@ static func rects_into(frame: int, panel_size: Vector2, out: Array[Rect2]) -> bo
 static func _corner_rects_into(frame: int, panel_size: Vector2, out: Array[Rect2]) -> void:
 	"""Place the four corners flush into the four corners of the panel, unscaled."""
 	var tl: Vector2 = Vector2(UiArt.frame_corner_size(frame, CORNER_TL))
-	var tr: Vector2 = Vector2(UiArt.frame_corner_size(frame, CORNER_TR))
+	var top_right: Vector2 = Vector2(UiArt.frame_corner_size(frame, CORNER_TR))
 	var bl: Vector2 = Vector2(UiArt.frame_corner_size(frame, CORNER_BL))
 	var br: Vector2 = Vector2(UiArt.frame_corner_size(frame, CORNER_BR))
 	out[PIECE_CORNER_TL] = Rect2(Vector2.ZERO, tl)
-	out[PIECE_CORNER_TR] = Rect2(Vector2(panel_size.x - tr.x, 0.0), tr)
+	out[PIECE_CORNER_TR] = Rect2(Vector2(panel_size.x - top_right.x, 0.0), top_right)
 	out[PIECE_CORNER_BL] = Rect2(Vector2(0.0, panel_size.y - bl.y), bl)
 	out[PIECE_CORNER_BR] = Rect2(panel_size - br, br)
 
@@ -177,16 +177,16 @@ static func _corner_rects_into(frame: int, panel_size: Vector2, out: Array[Rect2
 static func _edge_rects_into(frame: int, panel_size: Vector2, out: Array[Rect2]) -> void:
 	"""Run each strip between the two corners that bracket it, at its declared thickness."""
 	var tl: Vector2 = out[PIECE_CORNER_TL].size
-	var tr: Vector2 = out[PIECE_CORNER_TR].size
+	var top_right: Vector2 = out[PIECE_CORNER_TR].size
 	var bl: Vector2 = out[PIECE_CORNER_BL].size
 	var br: Vector2 = out[PIECE_CORNER_BR].size
 	var top: float = float(UiArt.frame_edge_inset(frame, SIDE_TOP))
 	var right: float = float(UiArt.frame_edge_inset(frame, SIDE_RIGHT))
 	var bottom: float = float(UiArt.frame_edge_inset(frame, SIDE_BOTTOM))
 	var left: float = float(UiArt.frame_edge_inset(frame, SIDE_LEFT))
-	out[PIECE_EDGE_TOP] = Rect2(tl.x, 0.0, panel_size.x - tl.x - tr.x, top)
+	out[PIECE_EDGE_TOP] = Rect2(tl.x, 0.0, panel_size.x - tl.x - top_right.x, top)
 	out[PIECE_EDGE_BOTTOM] = Rect2(
 		bl.x, panel_size.y - bottom, panel_size.x - bl.x - br.x, bottom)
 	out[PIECE_EDGE_LEFT] = Rect2(0.0, tl.y, left, panel_size.y - tl.y - bl.y)
 	out[PIECE_EDGE_RIGHT] = Rect2(
-		panel_size.x - right, tr.y, right, panel_size.y - tr.y - br.y)
+		panel_size.x - right, top_right.y, right, panel_size.y - top_right.y - br.y)

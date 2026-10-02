@@ -484,7 +484,7 @@ func next_persistent_id() -> int:
 
 func restore_columns_and_cursor(active: PackedByteArray, generation: PackedInt32Array,
 		retired: PackedByteArray, persistent_id: PackedInt32Array, kind: PackedInt32Array,
-		typed_row: PackedInt32Array, next_persistent_id: int) -> bool:
+		typed_row: PackedInt32Array, p_next_persistent_id: int) -> bool:
 	"""Restore §3's six columns AND §1's persistent-ID cursor as one indivisible step.
 
 	The load path. The cursor is ASSIGNED from the save, never derived: `destroy()` zeroes
@@ -497,30 +497,30 @@ func restore_columns_and_cursor(active: PackedByteArray, generation: PackedInt32
 	rules ahead of every write, so a refusal from either half leaves the directory byte-identical
 	and `state_bytes()` proves it. See `last_column_refusal()` for which rule refused.
 	"""
-	var cursor: StringName = cursor_refusal(next_persistent_id, persistent_id)
+	var cursor: StringName = cursor_refusal(p_next_persistent_id, persistent_id)
 	if cursor != REFUSAL_NONE:
 		_last_column_refusal = cursor
 		return false
 	if not restore_columns(active, generation, retired, persistent_id, kind, typed_row):
 		return false
-	_next_persistent_id = next_persistent_id
+	_next_persistent_id = p_next_persistent_id
 	return true
 
 
-func cursor_refusal(next_persistent_id: int, persistent_id: PackedInt32Array) -> StringName:
+func cursor_refusal(p_next_persistent_id: int, persistent_id: PackedInt32Array) -> StringName:
 	"""The D2 rule, on its own so a loader can test a cursor before it owns a directory.
 
 	Two rules and no third: the cursor lies in `1..PERSISTENT_ID_EXHAUSTED`, and it EXCEEDS every
 	positive id in the column. Zeroed ids belong to destroyed rows and constrain nothing, which is
 	exactly why the maximum of the LIVE ids cannot stand in for the cursor.
 	"""
-	if next_persistent_id < PERSISTENT_ID_MIN or next_persistent_id > PERSISTENT_ID_EXHAUSTED:
+	if p_next_persistent_id < PERSISTENT_ID_MIN or p_next_persistent_id > PERSISTENT_ID_EXHAUSTED:
 		return REFUSAL_COLUMN_CURSOR_RANGE
 	if persistent_id.size() != DIRECTORY_CAPACITY:
 		return REFUSAL_COLUMN_SHAPE
 	var sorted: PackedInt32Array = persistent_id.duplicate()
 	sorted.sort()
-	if sorted[DIRECTORY_CAPACITY - 1] >= next_persistent_id:
+	if sorted[DIRECTORY_CAPACITY - 1] >= p_next_persistent_id:
 		return REFUSAL_COLUMN_CURSOR_STALE
 	return REFUSAL_NONE
 
@@ -912,7 +912,7 @@ func _push_free(heap: PackedInt32Array, base: int, count: int, value: int) -> vo
 	"""Insert `value` into the arena window at `base` already holding `count` entries."""
 	var index: int = count
 	while index > 0:
-		var parent: int = (index - 1) / 2
+		@warning_ignore("integer_division") var parent: int = (index - 1) / 2
 		if heap[base + parent] <= value:
 			break
 		heap[base + index] = heap[base + parent]

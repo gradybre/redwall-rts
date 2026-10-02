@@ -522,7 +522,7 @@ func test_adapter_success_uses_exact_ordinals_and_independent_arrays() -> void:
 	for ordinal: int in 12:
 		var expected: Variant = _store.get("_"+FIELDS[ordinal])
 		assert_equal(target.get("_"+FIELDS[ordinal]),expected,"exact semantic field")
-		var column: Variant = block.u8_column(ordinal) if ordinal == 0 or ordinal == 9 else block.i32_column(ordinal)
+		var column: Variant = (block.u8_column(ordinal) as Variant) if ordinal == 0 or ordinal == 9 else (block.i32_column(ordinal) as Variant)
 		assert_equal(column,expected,"literal ordinal "+str(ordinal))
 	assert_equal(_fields(block),before,"input untouched")
 	var recaptured: Codec.OwnerRecord = _block()
@@ -566,10 +566,10 @@ func test_default_capacity_and_literal_wire_goldens() -> void:
 			raw.append_array(prefix.to_bytes())
 			raw.append_array(Codec.column_slice(block,ordinal,0,rows))
 		assert_equal(raw.size(),128+42*rows,"literal framed size")
-		var hash: HashingContext = HashingContext.new()
-		hash.start(HashingContext.HASH_SHA256)
-		hash.update(raw)
-		assert_equal(hash.finish().hex_encode(),hashes[variant],"independent preimplementation golden")
+		var hasher: HashingContext = HashingContext.new()
+		hasher.start(HashingContext.HASH_SHA256)
+		hasher.update(raw)
+		assert_equal(hasher.finish().hex_encode(),hashes[variant],"independent preimplementation golden")
 
 func test_loaded_catalog_with_unresolved_gear_keys_is_legal() -> void:
 	var parsed: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(Defs.DEFAULT_JSON_PATH))

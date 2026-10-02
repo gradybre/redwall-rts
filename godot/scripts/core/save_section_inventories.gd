@@ -952,7 +952,7 @@ static func section_bytes_of(record: Record) -> int:
 
 static func elements_per_chunk(type_code: int) -> int:
 	"""How many values of one type fit in CHUNK_BYTES. 65536 for u8, 16384 i32, 8192 i64."""
-	return CHUNK_BYTES / width_of_type(type_code)
+	@warning_ignore("integer_division") return CHUNK_BYTES / width_of_type(type_code)
 
 
 static func column_slice(record: OwnerRecord, ordinal: int, start: int,
@@ -1958,10 +1958,10 @@ static func _inventory_containers_refusal(block: OwnerRecord) -> SaveHeader.Refu
 			if not unused.is_ok():
 				return unused
 		var owner_slot: int = block.i32_column(6)[slot]
-		var reference: SaveHeader.Refusal = _slot_refusal(owner_slot, false, DIRECTORY_CAPACITY,
+		var owner_link: SaveHeader.Refusal = _slot_refusal(owner_slot, false, DIRECTORY_CAPACITY,
 			block.owner, 6, slot)
-		if not reference.is_ok():
-			return reference
+		if not owner_link.is_ok():
+			return owner_link
 		var owner_generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(7)[slot],
 			owner_slot != NULL_SLOT, block.owner, 7, slot)
 		if not owner_generation.is_ok():
@@ -2089,10 +2089,10 @@ static func _lot_identity_refusal(block: OwnerRecord, slot: int, is_live: bool,
 		return _refuse(REFUSE_ITEM_ID,
 			"lot %d names item %d, outside 0..%d" % [slot, item_id, ITEM_CAPACITY - 1])
 	var container_slot: int = block.i32_column(20)[slot]
-	var reference: SaveHeader.Refusal = _slot_refusal(container_slot, false,
+	var container_link: SaveHeader.Refusal = _slot_refusal(container_slot, false,
 		block.primary_count, block.owner, 20, slot)
-	if not reference.is_ok():
-		return reference
+	if not container_link.is_ok():
+		return container_link
 	var generation: SaveHeader.Refusal = _generation_refusal(block.i32_column(21)[slot],
 		container_slot != NULL_SLOT, block.owner, 21, slot)
 	if not generation.is_ok():

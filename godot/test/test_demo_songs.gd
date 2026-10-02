@@ -284,14 +284,14 @@ func test_hearing_a_song_to_its_end_twice_teaches_it() -> void:
 	assert_equal(circle.song[0], evening, "the otter sings the evening song")
 	circle.step(LINE, none, at, 0)
 	assert_equal(circle.song[0], CircleScript.NO_SONG, "cut short")
-	for round: int in 2:
+	for turn: int in 2:
 		circle.step(CircleScript.REST_USEC + CircleScript.REST_SPREAD_USEC, none, at, 0)
 		circle.step(1, out, at, 0)
-		assert_equal(circle.song[0], evening, "sung again (%d)" % round)
+		assert_equal(circle.song[0], evening, "sung again (%d)" % turn)
 		for k: int in _book().line_count(evening):
 			circle.step(LINE, out, at, 0)
-		assert_equal(circle.song[0], CircleScript.NO_SONG, "to its end (%d)" % round)
-		assert_equal(circle.knows_song(1, evening), round == 1, "learned only on the second hearing (%d)" % round)
+		assert_equal(circle.song[0], CircleScript.NO_SONG, "to its end (%d)" % turn)
+		assert_equal(circle.knows_song(1, evening), turn == 1, "learned only on the second hearing (%d)" % turn)
 	assert_false(circle.knows_song(2, evening), "the squirrel was too far")
 	assert_equal(_news, PackedStringArray(["r1 has learned “The Heron's Hour” from the otters."]), "one news line")
 
@@ -516,7 +516,7 @@ func test_a_learner_teaches_in_its_own_name() -> void:
 	var out := PackedByteArray([EVENING, NONE])
 	var listening := PackedByteArray([EVENING, EVENING])
 	circle.step(60000000, none, at, 0)
-	for round: int in 2:
+	for turn: int in 2:
 		circle.step(1, out, at, 0)
 		for k: int in _book().line_count(evening):
 			circle.step(LINE, listening, at, 0)

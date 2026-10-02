@@ -386,15 +386,15 @@ var _route_carry: bool = false
 var _carry_order: bool = false
 
 
-func configure(space: CastSpaceScript, speed_m_s: float, body_radius: float, seed: int, clip_lengths: Dictionary) -> void:
-	"""Join `space` as a new resident. `clip_lengths` maps each playable clip to its length in seconds."""
-	_space = space
+func configure(cast_space: CastSpaceScript, speed_m_s: float, body_radius: float, seed_value: int, clip_lengths: Dictionary) -> void:
+	"""Join `cast_space` as a new resident. `clip_lengths` maps each playable clip to its length in seconds."""
+	_space = cast_space
 	walk_speed = speed_m_s
 	radius = body_radius
-	rng.seed = seed
+	rng.seed = seed_value
 	_clip_lengths = clip_lengths
-	index = space.add_resident(position, radius)
-	space.routes.register(index, route_turn)
+	index = cast_space.add_resident(position, radius)
+	cast_space.routes.register(index, route_turn)
 
 
 func space() -> CastSpaceScript:
@@ -549,13 +549,13 @@ func _enter_act() -> void:
 	"""Play one of this POI's activities for a whole number of its loops, about ACT_MIN..MAX seconds."""
 	state = State.ACT
 	_bouts_left -= 1
-	var activity := _pick_activity(_last_activity)
-	_last_activity = activity
-	var length := float(_clip_lengths.get(activity, DEFAULT_CLIP_S))
+	var act_clip := _pick_activity(_last_activity)
+	_last_activity = act_clip
+	var length := float(_clip_lengths.get(act_clip, DEFAULT_CLIP_S))
 	var seconds := rng.randf_range(ACT_MIN_S, ACT_MAX_S) * clampf(SLOW_WALK_M_S / walk_speed, 1.0, SLOW_WORK_MAX)
 	var loops := maxi(1, roundi(seconds / maxf(length, 0.1)))
 	_timer = length * loops
-	_set_clip(activity, 1.0)
+	_set_clip(act_clip, 1.0)
 
 
 func owes_work() -> bool:
@@ -568,16 +568,16 @@ func _pick_activity(last: StringName) -> StringName:
 	there is a choice, so bouts cycle -- else idle."""
 	var activities := _space.poi_activities[poi]
 	var playable := 0
-	for activity in activities:
-		if has_clip(activity) and activity != last:
+	for act_clip in activities:
+		if has_clip(act_clip) and act_clip != last:
 			playable += 1
 	if playable == 0:
 		return last if has_clip(last) and activities.has(last) else CLIP_IDLE
 	var pick := rng.randi_range(0, playable - 1)
-	for activity in activities:
-		if has_clip(activity) and activity != last:
+	for act_clip in activities:
+		if has_clip(act_clip) and act_clip != last:
 			if pick == 0:
-				return activity
+				return act_clip
 			pick -= 1
 	return CLIP_IDLE
 
@@ -766,8 +766,8 @@ func _step_walk(delta: float) -> void:
 		return
 	var to_target := path[path_index] - position
 	var distance := to_target.length()
-	var step := ground_step(delta)
-	if path_index == path.size() - 1 and distance <= maxf(ARRIVE_RADIUS_M, step.length()):
+	var stride := ground_step(delta)
+	if path_index == path.size() - 1 and distance <= maxf(ARRIVE_RADIUS_M, stride.length()):
 		_arrive()
 		return
 	var facing := forward()
@@ -783,8 +783,8 @@ func _step_walk(delta: float) -> void:
 		return
 	yaw = turn_toward(yaw, yaw + error, WALK_TURN_RATE * delta)
 	clip_speed = _walk_clip_speed()
-	var moved := _space.constrain(index, position, position + step, _goal)
-	var held := moved.distance_to(position) < step.length() * BLOCKED_FRACTION
+	var moved := _space.constrain(index, position, position + stride, _goal)
+	var held := moved.distance_to(position) < stride.length() * BLOCKED_FRACTION
 	position = moved
 	ground_y_m = _space.crossings.ground_y_m(position)
 	_space.move_resident(index, moved)
@@ -903,8 +903,8 @@ func _shuffle_to(place: Vector2, delta: float) -> void:
 		return
 	yaw = turn_toward(yaw, yaw_of(to), SPOT_TURN_RATE * delta)
 	_set_clip(_locomotion_clip(), _walk_clip_speed())
-	var step := to.limit_length(walk_speed * _surface_factor() * delta)
-	position = _space.constrain(index, position, position + step, place)
+	var stride := to.limit_length(walk_speed * _surface_factor() * delta)
+	position = _space.constrain(index, position, position + stride, place)
 	_space.move_resident(index, position)
 
 
@@ -1109,8 +1109,8 @@ func _plan_and_go() -> void:
 
 # --- orders ---------------------------------------------------------------------------------
 
-func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
-	"""Give up any POI slot, walk to `goal` and hold there until ordered again or released. Given a
+func order_move(goal_at: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
+	"""Give up any POI slot, walk to `goal_at` and hold there until ordered again or released. Given a
 	finite `face_toward`, it turns to face that point on arrival (a queue facing its POI). Not taken
 	while the water's rescue holds it (`water_hold`)."""
 	if water_hold:
@@ -1121,7 +1121,7 @@ func order_move(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	order = ORDER_MOVE
 	_faces_on_hold = face_toward.is_finite()
 	_hold_face = face_toward if _faces_on_hold else Vector2.ZERO
-	_start_ordered_trip(goal)
+	_start_ordered_trip(goal_at)
 
 
 func order_work(work_poi: int, work_slot: int) -> void:
@@ -1155,6 +1155,14 @@ func release() -> void:
 	_let_go()
 	_unfinished.clear()
 	queue_revision += 1
+
+
+func drop_jobs() -> void:
+	"""Forget the task and every unfinished job without acting on either: the actor that owns this brain is being
+	freed. An unfinished job holds its owner (the kitchen, the tunnel works) and the owner holds the brains, a cycle no
+	reference count breaks, so a freed cast kept every such owner alive past a Restart (decision 0501)."""
+	task = null
+	_unfinished.clear()
 
 
 func work_done() -> void:
@@ -1219,8 +1227,8 @@ func _leave_below() -> void:
 		_finish_tunnel_then_stop()
 
 
-func _start_ordered_trip(goal: Vector2) -> void:
-	"""Plan to `goal` and set off (turning first); an order never carries. Underground, it finishes
+func _start_ordered_trip(goal_at: Vector2) -> void:
+	"""Plan to `goal_at` and set off (turning first); an order never carries. Underground, it finishes
 	the tunnel first and plans from the mouth it comes up at. A new order overrides an earlier
 	release's idling on the surface (and a finished dig's taking its saved job up once clear of the hole). On the
 	surface it sets off through the routing desk (see ROUTING)."""
@@ -1230,7 +1238,7 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	_leave_line()
 	carrying = false
 	_bouts_left = 0
-	_goal = goal
+	_goal = goal_at
 	_goal_node = -1
 	_replans = 0
 	_start_trip_record()
@@ -1240,7 +1248,7 @@ func _start_ordered_trip(goal: Vector2) -> void:
 	if in_water:
 		_space.crossings.swim_ashore(self)
 		return
-	if position.distance_to(goal) <= ARRIVE_RADIUS_M:
+	if position.distance_to(goal_at) <= ARRIVE_RADIUS_M:
 		_arrive()
 		return
 	_set_off(true, false, _carry_order)
@@ -1268,13 +1276,13 @@ func _enter_hold() -> void:
 
 # --- farm tasks (demo/farm/) ------------------------------------------------------------------
 
-func order_carry(goal: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
+func order_carry(goal_at: Vector2, face_toward: Vector2 = Vector2.INF) -> void:
 	"""order_move(), walking with the carry clip when this resident has one -- the farm's harvest to
 	the store, and water or spoil to a bed. A route through a tunnel is planned again LOADED (HAULING:
 	the routine's own rule, `_plan_loaded`), so the load goes below only through a bore it fits, and
 	on the surface otherwise. Arriving drops the load. It sets off carrying when its route is planned (see ROUTING)."""
 	_carry_order = true
-	order_move(goal, face_toward)
+	order_move(goal_at, face_toward)
 	_carry_order = false
 
 
@@ -1433,9 +1441,9 @@ func _step_tunnel(delta: float) -> void:
 		_wait_stranded(delta)
 		return
 	var wanted := _bore_speed() * delta * slope_share()
-	var step := minf(wanted, _space.room_ahead(index, BORE_GAP_M))
-	clip_speed = _bore_clip_speed() * (step / wanted if wanted > 0.0 else 0.0)
-	_travel_m = move_toward(_travel_m, _travel_end_m, step)
+	var step_m := minf(wanted, _space.room_ahead(index, BORE_GAP_M))
+	clip_speed = _bore_clip_speed() * (step_m / wanted if wanted > 0.0 else 0.0)
+	_travel_m = move_toward(_travel_m, _travel_end_m, step_m)
 	var side_target := PASS_OFFSET_M if _space.oncoming(index, PASS_WINDOW_M) else 0.0
 	_side_m = move_toward(_side_m, side_target, SIDE_STEP_M_S * delta)
 	_place_in_tunnel()
@@ -1533,17 +1541,17 @@ func _place_in_tunnel() -> void:
 	_space.set_in_bore(index, _travel_slot, _travel_m, 1 if _travel_forward else -1)
 
 
-func stand_in_bore(slot_index: int, along_m: float, forward: bool) -> void:
+func stand_in_bore(slot_index: int, along_m: float, facing_forward: bool) -> void:
 	"""Stand on segment `slot_index`'s floor `along_m` in, on its drawn centreline (bore_curve.gd, the one the
 	bore is swept along), facing along it (or back), tilted with its ramp (see RAMPS)."""
 	var tunnels := _space.tunnels
 	BoreCurveScript.of(tunnels, slot_index).sample(along_m, _curve_sample)
-	var facing: Vector2 = _curve_sample[1] if forward else -_curve_sample[1]
+	var facing: Vector2 = _curve_sample[1] if facing_forward else -_curve_sample[1]
 	position = _curve_sample[0]
 	yaw = yaw_of(facing)
 	ground_y_m = tunnels.floor_y_at(slot_index, along_m)
 	var grade := tunnels.floor_grade_at(slot_index, along_m)
-	pitch = atan(-grade if forward else grade)
+	pitch = atan(-grade if facing_forward else grade)
 
 
 func _end_travel() -> void:

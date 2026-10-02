@@ -43,16 +43,16 @@ func configure(titles: PackedStringArray, ratios: PackedFloat32Array, pressable:
 
 func _cell_row(columns: int, heading: bool) -> HBoxContainer:
 	"""An HBox of `columns` wrapping labels at the table's relative widths."""
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override(&"separation", 8)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var line := HBoxContainer.new()
+	line.add_theme_constant_override(&"separation", 8)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for k: int in columns:
 		var cell: Label = FarmUi.label("", CELL_PX, Palette.INK, heading)
 		cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		cell.size_flags_stretch_ratio = _ratios[k] if k < _ratios.size() else 1.0
 		cell.custom_minimum_size.x = CELL_MIN_W
-		row.add_child(cell)
-	return row
+		line.add_child(cell)
+	return line
 
 
 func set_row_count(count: int) -> void:
@@ -67,10 +67,10 @@ func set_row_count(count: int) -> void:
 func _add_row() -> void:
 	"""One more pooled row."""
 	var cells: HBoxContainer = _cell_row(_header.get_child_count(), false)
-	var row: Control = cells
+	var line: Control = cells
 	if _pressable:
-		row = _row_button(cells)
-	_rows.append(row)
+		line = _row_button(cells)
+	_rows.append(line)
 	_ids.append(-1)
 	_colours.append(Color.TRANSPARENT)
 	_descriptions.append("")
@@ -78,7 +78,7 @@ func _add_row() -> void:
 	for child: Node in cells.get_children():
 		labels.append(child)
 	_cells.append(labels)
-	add_child(row)
+	add_child(line)
 
 
 func _row_button(cells: HBoxContainer) -> Button:

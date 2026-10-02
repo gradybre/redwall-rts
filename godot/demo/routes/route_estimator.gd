@@ -260,7 +260,7 @@ func step(desk: DeskScript) -> bool:
 	max_step_usec = maxi(max_step_usec, spent)
 	if desk != null:
 		desk.charge(-1, spent)
-		_rest = spent / desk.budget_usec if desk.budget_usec > 0 else 0
+		@warning_ignore("integer_division") _rest = spent / desk.budget_usec if desk.budget_usec > 0 else 0
 	return true
 
 
@@ -318,7 +318,7 @@ func _open_piece(graph: GraphScript, p: int, upto: int) -> void:
 func _plan_step(j: int) -> void:
 	"""Plan step `j`: trip j (no proposal), else trip j / 2 before (even) or after (odd)."""
 	var after: bool = proposal != PROPOSE_NONE and j % 2 == 1
-	var k: int = j / 2 if proposal != PROPOSE_NONE else j
+	@warning_ignore("integer_division") var k: int = j / 2 if proposal != PROPOSE_NONE else j
 	var cost: float = INF
 	if not after or proposal_ok:
 		cost = plan_cost(_after if after else _live, _after_hook if after else _live_hook, trip_from[k], trip_to[k])

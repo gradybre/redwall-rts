@@ -326,33 +326,33 @@ func _label(text: String, px: int, colour: Color, font: Font) -> Label:
 
 func _action_button(key: StringName) -> Button:
 	"""A wood button that emits `action(key)`, with its hover text."""
-	var button := _wood_button(BUTTON_TEXT[key], func() -> void: action.emit(key))
-	button.tooltip_text = BUTTON_TIPS.get(key, BUTTON_TEXT[key])
-	_buttons[key] = button
-	return button
+	var made := _wood_button(BUTTON_TEXT[key], func() -> void: action.emit(key))
+	made.tooltip_text = BUTTON_TIPS.get(key, BUTTON_TEXT[key])
+	_buttons[key] = made
+	return made
 
 
 func _wood_button(text: String, pressed: Callable) -> Button:
 	"""A wood button at least BUTTON_H tall, its caption cut with an ellipsis where the column is too narrow;
 	takes keyboard focus (decision 0261)."""
-	var button := Button.new()
-	button.text = text
-	Styles.focusable(button, BUTTON_MARGINS)
-	button.custom_minimum_size.y = BUTTON_H
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.clip_text = true
-	button.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	button.add_theme_font_size_override(&"font_size", SMALL_PX)
-	button.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
-	button.add_theme_stylebox_override(&"disabled", Styles.box(Styles.PIECE_WOOD_DISABLED, BUTTON_MARGINS))
+	var made := Button.new()
+	made.text = text
+	Styles.focusable(made, BUTTON_MARGINS)
+	made.custom_minimum_size.y = BUTTON_H
+	made.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	made.clip_text = true
+	made.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	made.add_theme_font_size_override(&"font_size", SMALL_PX)
+	made.add_theme_stylebox_override(&"normal", Styles.box(Styles.PIECE_WOOD, BUTTON_MARGINS))
+	made.add_theme_stylebox_override(&"hover", Styles.box(Styles.PIECE_WOOD_HOVER, BUTTON_MARGINS))
+	made.add_theme_stylebox_override(&"pressed", Styles.box(Styles.PIECE_BRASS, BUTTON_MARGINS))
+	made.add_theme_stylebox_override(&"disabled", Styles.box(Styles.PIECE_WOOD_DISABLED, BUTTON_MARGINS))
 	for item: StringName in [&"font_color", &"font_hover_color"]:
-		button.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
-	button.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
-	button.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
-	button.pressed.connect(pressed)
-	return button
+		made.add_theme_color_override(item, Palette.text_on(Palette.SURFACE_WOOD))
+	made.add_theme_color_override(&"font_pressed_color", Palette.text_on(Palette.SURFACE_BRASS))
+	made.add_theme_color_override(&"font_disabled_color", Palette.text_on(Palette.SURFACE_WOOD_DISABLED))
+	made.pressed.connect(pressed)
+	return made
 
 
 func button(key: StringName) -> Button:
@@ -490,17 +490,17 @@ func show_site(title: String, text: String, enabled: Dictionary) -> void:
 	_texts[&"site"] = text
 	var site := PackedStringArray()
 	var plank: String = ""
-	var log: String = ""
+	var log_line: String = ""
 	for part: String in text.split("\n", false):
 		if part.begins_with(TextScript.PLANK_LINE):
 			plank = part
 		elif part.begins_with(TextScript.LOG_LINE):
-			log = part
+			log_line = part
 		else:
 			site.append(part)
 	_show_label(&"site", "\n".join(site))
 	_show_label(&"plank_cost", plank)
-	_show_label(&"log_cost", log)
+	_show_label(&"log_cost", log_line)
 	for key: StringName in SITE_ACTIONS:
 		(_buttons[key] as Button).disabled = not bool(enabled.get(key, true))
 	for key: StringName in BUILD_ACTIONS:
@@ -543,11 +543,11 @@ func set_source(caption: String, tip: String, shown: bool) -> void:
 	b.tooltip_text = tip
 
 
-func show_status(bridges: String, stores: String, log: String) -> void:
+func show_status(bridges: String, stores: String, log_line: String) -> void:
 	"""The bridges planned and open, the stores and the water's news."""
 	_set_line(&"bridges", bridges)
 	_set_line(&"stores", stores)
-	_set_line(&"log", log)
+	_set_line(&"log", log_line)
 
 
 func set_swim_buttons(consent_on: bool, enabled: Dictionary) -> void:

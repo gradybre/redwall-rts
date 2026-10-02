@@ -233,7 +233,7 @@ func _expect(c: Owner.Columns, code: StringName, label: String) -> void:
 		assert_true(actual.detail.contains(String(code)),label+" raw code detail")
 	for field: int in 29:
 		assert_true(c.get(FIELDS[field]) == before[field],label+" input unchanged")
-		var held: Variant = f.u8_column(field) if TYPES[field] == 0 else f.i32_column(field)
+		var held: Variant = (f.u8_column(field) as Variant) if TYPES[field] == 0 else (f.i32_column(field) as Variant)
 		assert_true(held == before[field],label+" frame unchanged")
 func test_layout_defaults_and_borrowed_constructor() -> void:
 	var c: Owner.Columns = Owner.Columns.new()
@@ -294,7 +294,7 @@ func test_each_field_at_first_midpoint_and_last_physical_row() -> void:
 	var bad: Array[int] = [2,2,2,30,3,-2,4,6,-1,0,1,-2,8,0,1,-1,-1,1,512,257,2,9,0,1,-2,4,0,1,-1]
 	var codes: Array[StringName] = [&"COLUMN_FLAG",&"COLUMN_FLAG",&"COLUMN_FLAG",&"COLUMN_BUILDING_ENUM",&"COLUMN_BUILDING_ENUM",&"COLUMN_BUILDING_VALUE",&"COLUMN_BUILDING_ENUM",&"COLUMN_BUILDING_ENUM",&"COLUMN_BUILDING_VALUE",&"COLUMN_BUILDING_REF",&"COLUMN_BUILDING_REF",&"COLUMN_BUILDING_VALUE",&"COLUMN_ROOM_ENUM",&"COLUMN_ROOM_REF",&"COLUMN_ROOM_REF",&"COLUMN_ROOM_VALUE",&"COLUMN_ROOM_VALUE",&"COLUMN_ROOM_FREE",&"COLUMN_ROOM_VALUE",&"COLUMN_ROOM_VALUE",&"COLUMN_FLAG",&"COLUMN_FURNITURE_ENUM",&"COLUMN_FURNITURE_REF",&"COLUMN_FURNITURE_REF",&"COLUMN_FURNITURE_VALUE",&"COLUMN_FURNITURE_ENUM",&"COLUMN_FURNITURE_REF",&"COLUMN_FURNITURE_REF",&"COLUMN_FURNITURE_VALUE"]
 	for field: int in 29:
-		for row: int in [0,COUNTS[field]/2,COUNTS[field]-1]:
+		@warning_ignore("integer_division") for row: int in [0,COUNTS[field]/2,COUNTS[field]-1]:
 			_put(c,field,row,bad[field])
 			_expect(c,codes[field],"sampled field%d row%d" % [field,row])
 			_put(c,field,row,-1 if field in [5,9,11,13,22,24,26] else 0)

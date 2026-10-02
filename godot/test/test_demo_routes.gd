@@ -112,13 +112,13 @@ static func _penned_tee(dig_branch: bool) -> CastSpaceScript:
 	return space
 
 
-static func _walker(space: CastSpaceScript, at: Vector2, seed: int = 11) -> BrainScript:
+static func _walker(space: CastSpaceScript, at: Vector2, walker_seed: int = 11) -> BrainScript:
 	"""A resident who fits a bore, standing at `at`."""
 	var lengths := {}
 	for clip: StringName in DemoActorScript.CLIPS:
 		lengths[clip] = 2.0
 	var brain := BrainScript.new()
-	brain.configure(space, 1.0, BODY_M, seed, lengths)
+	brain.configure(space, 1.0, BODY_M, walker_seed, lengths)
 	brain.start_at(at, 0.0, -1, -1)
 	space.tunnels.set_fit(brain.index, true)
 	return brain
@@ -638,12 +638,12 @@ func test_the_next_payoff_counts_the_work_left_to_it() -> void:
 	assert_equal(stages.percent_to_next(graph), 0, "nothing yet")
 	_dig_ticks(graph, ramp, graph.total_ticks(ramp))
 	stages.read(graph, 1)
-	assert_equal(stages.percent_to_next(graph), graph.total_ticks(ramp) * 100 / to_junction, "the ramp's share")
+	@warning_ignore("integer_division") assert_equal(stages.percent_to_next(graph), graph.total_ticks(ramp) * 100 / to_junction, "the ramp's share")
 
 
 static func _dig_ticks(graph: GraphScript, slot: int, ticks: int) -> void:
 	"""Dig `ticks` ticks of segment `slot` at one F1000 worker (1 tick = 1/30 s)."""
-	graph.advance(slot, graph.generation[slot], ticks * 1000000 / 30 + 1)
+	@warning_ignore("integer_division") graph.advance(slot, graph.generation[slot], ticks * 1000000 / 30 + 1)
 
 
 func test_a_stage_s_benefit_opens_only_the_segments_to_it() -> void:
@@ -944,11 +944,11 @@ func test_past_a_reached_stage_the_next_payoff_counts_from_it() -> void:
 		graph.advance(stages.chain[k], graph.generation[stages.chain[k]], 1000000000)
 	var past: int = stages.chain[2]
 	graph.start_dig(past, graph.generation[past], 0)
-	_dig_ticks(graph, past, graph.total_ticks(past) / 2)
+	@warning_ignore("integer_division") _dig_ticks(graph, past, graph.total_ticks(past) / 2)
 	stages.read(graph, 1)
 	assert_equal(stages.reached, 1, "the junction reached")
 	var left := graph.total_ticks(stages.chain[2]) + graph.total_ticks(stages.chain[3])
-	assert_equal(stages.percent_to_next(graph), graph.done(past) * 100 / left, "counted from the junction")
+	@warning_ignore("integer_division") assert_equal(stages.percent_to_next(graph), graph.done(past) * 100 / left, "counted from the junction")
 
 
 func test_after_a_step_longer_than_the_budget_the_estimate_rests_as_many_windows() -> void:

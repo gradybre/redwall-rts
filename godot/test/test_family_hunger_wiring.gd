@@ -241,7 +241,7 @@ func test_a_child_releases_three_quarters_of_the_adult_hunger_exactly() -> void:
 	var rates: Array[int] = [250000, 187500, 250000]
 	for index: int in 3:
 		var released: int = 1001 * rates[index]
-		var whole: int = released / NEED_DENOMINATOR
+		@warning_ignore("integer_division") var whole: int = released / NEED_DENOMINATOR
 		assert_equal(_hunger(needs, rows[index]), INITIAL_NEED - whole,
 			"stage %d hunger" % index)
 		assert_equal(_hunger_remainder(needs, rows[index]), -(released - whole * NEED_DENOMINATOR),

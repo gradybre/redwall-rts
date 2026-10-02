@@ -160,7 +160,7 @@ func test_the_record_counts_the_kitchen_meals_from_its_ledgers() -> void:
 	var ate: int = 0
 	var without: int = 0
 	for k: int in v.kitchen.meal_keys.size():
-		if v.kitchen.meal_keys[k] / 2 == 1:
+		@warning_ignore("integer_division") if v.kitchen.meal_keys[k] / 2 == 1:
 			ate += v.kitchen.meal_ate[k] + v.kitchen.meal_raw[k]
 			without += v.kitchen.meal_without[k]
 	assert_equal([record.value(0, RecordScript.F_ATE), record.value(0, RecordScript.F_WITHOUT)], [ate, without],
@@ -482,7 +482,7 @@ func test_the_calendar_shows_the_kitchen_s_planned_meals_and_the_food_in_store()
 	season.build(farm.sim, farm.record, v.kitchen, 0)
 	assert_equal(_lane_count(season, SeasonScript.LANE_MEALS), 5, "four planned meals and the food in store")
 	assert_true(_has_entry(season, SeasonScript.LANE_MEALS, SeasonScript.SCHEDULED, 2, 2), "spring 2's meals")
-	var days: int = v.kitchen.days_of_meals_milli() / 1000
+	@warning_ignore("integer_division") var days: int = v.kitchen.days_of_meals_milli() / 1000
 	assert_true(_has_entry(season, SeasonScript.LANE_MEALS, SeasonScript.ESTIMATE, 2, 2 + days), "food lasts %d days" % days)
 
 

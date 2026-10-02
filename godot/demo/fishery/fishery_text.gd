@@ -53,12 +53,12 @@ static func date_text(season: int, day: int) -> String:
 
 static func risk_text(per_10000: int) -> String:
 	"""§5.4's injury chance, numerically (REQ-SET-055): '12 in 10000 (0.12%) a cycle'."""
-	return "%d in 10000 (%d.%02d%%) a cycle" % [per_10000, per_10000 / 100, per_10000 % 100]
+	@warning_ignore("integer_division") return "%d in 10000 (%d.%02d%%) a cycle" % [per_10000, per_10000 / 100, per_10000 % 100]
 
 
 static func stock_line(p: Driver.Preview) -> String:
 	"""REQ-SET-055's stock and quota: 'Perch: 720.0 / 900.0 U (80%) · quota left 25.5 / 52.5 U today'."""
-	var percent: int = p.stock_milli * 100 / maxi(p.capacity_milli, 1)
+	@warning_ignore("integer_division") var percent: int = p.stock_milli * 100 / maxi(p.capacity_milli, 1)
 	var state: String = " · restocking" if p.restocking else ""
 	return "%s: %s / %s (%d%%)%s · quota left %s / %s today" % [species_label(p.species_key).capitalize(),
 		units(p.stock_milli), units(p.capacity_milli), percent, state, units(p.remaining_quota_milli),

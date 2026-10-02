@@ -43,11 +43,12 @@ func before_each() -> void:
 
 
 func after_each() -> void:
-	"""Free what a test built."""
+	"""Free what a test built, and drop the targets: their lambdas capture this suite, which holds them (a cycle)."""
 	for node: Node in _nodes:
 		if is_instance_valid(node):
 			node.free()
 	_nodes.clear()
+	_targets = null
 
 
 func _list() -> ListScript:

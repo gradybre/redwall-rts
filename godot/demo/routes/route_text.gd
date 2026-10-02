@@ -43,11 +43,11 @@ static func short_time_text(cost_m: float, pace_m_s: float) -> String:
 	if seconds == INF:
 		return NO_WAY
 	var usec: int = roundi(seconds * USEC_PER_S)
-	var minutes: int = (usec * 60 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
+	@warning_ignore("integer_division") var minutes: int = (usec * 60 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
 	if minutes < 60:
 		return "%d game min" % maxi(minutes, 1)
-	var tenths: int = (usec * 10 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
-	return "%d.%d game h" % [tenths / 10, tenths % 10]
+	@warning_ignore("integer_division") var tenths: int = (usec * 10 + CalendarScript.HOUR_USEC - 1) / CalendarScript.HOUR_USEC
+	@warning_ignore("integer_division") return "%d.%d game h" % [tenths / 10, tenths % 10]
 
 
 static func trip_line(estimate: EstimatorScript, k: int, pace_m_s: float) -> String:

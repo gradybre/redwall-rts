@@ -589,7 +589,7 @@ static func scheduler_count_of_extension_bytes(extension_bytes: int) -> int:
 	var records: int = extension_bytes - EXTENSION_FIXED_BYTES
 	if records % SCHEDULER_RECORD_BYTES != 0:
 		return -1
-	return records / SCHEDULER_RECORD_BYTES
+	@warning_ignore("integer_division") return records / SCHEDULER_RECORD_BYTES
 
 
 static func economic_record_offset(index: int) -> int:
@@ -1304,7 +1304,7 @@ static func _payload_refusal(record: Record) -> SaveHeader.Refusal:
 	var spans: PackedInt64Array = _sorted_spans(record)
 	var cursor: int = 0
 	for index: int in spans.size():
-		var offset: int = spans[index] / 2097152
+		@warning_ignore("integer_division") var offset: int = spans[index] / 2097152
 		var length: int = spans[index] % 2097152
 		if offset < cursor:
 			return SaveHeader.Refusal.new(REFUSE_PAYLOAD_OVERLAP,

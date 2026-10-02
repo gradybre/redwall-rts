@@ -184,7 +184,7 @@ func _zone_paint(map: WaterMapScript, grid: WaterGridScript) -> MeshInstance3D:
 	vertices.resize(count)
 	colours.resize(count)
 	for k: int in count:
-		var at: Vector2 = grid.position_m(k % grid.xs.size(), k / grid.xs.size())
+		@warning_ignore("integer_division") var at: Vector2 = grid.position_m(k % grid.xs.size(), k / grid.xs.size())
 		var drop: float = Rules.to_m(map.body_level_drop_u(grid.body[k]))
 		vertices[k] = Vector3(at.x, LIFT_M - drop, at.y)
 		var pond: float = 1.0 if map.body_kind(grid.body[k]) == WaterMapScript.KIND_POND else 0.0
@@ -316,7 +316,7 @@ func _add_legend(map: WaterMapScript) -> void:
 	var at := Vector3(24.0, LABEL_HEIGHT_M, -24.0)
 	for c: int in map.crossing_count():
 		if map.crossing_kind(c) == WaterMapScript.CROSSING_BRIDGE:
-			var mid: Vector2i = (map.crossing_a(c) + map.crossing_b(c)) / 2
+			@warning_ignore("integer_division") var mid: Vector2i = (map.crossing_a(c) + map.crossing_b(c)) / 2
 			at = Vector3(Rules.to_m(mid.x), LABEL_HEIGHT_M, Rules.to_m(mid.y))
 			break
 	_legend = _label(at, legend_text(body_label, body_height_u))
@@ -390,19 +390,19 @@ func lay_out_view(eye: Transform3D, lens: Projection, viewport_size: Vector2, fo
 	anchor on screen (`project_px`, Camera3D.unproject_position's own arithmetic), its drawn size, a
 	sideways nudge that keeps a label whose landing is on screen inside the viewport, and the lift that
 	keeps it clear of the others -- nudge and lift applied as its offset. Allocates nothing."""
-	var scale: float = screen_px_per_label_px(viewport_size.y, fov_degrees)
+	var px_scale: float = screen_px_per_label_px(viewport_size.y, fov_degrees)
 	var to_view: Transform3D = eye.affine_inverse()
 	for k: int in _laid.size():
 		var local: Vector3 = to_view * _anchor[k]
 		var on: bool = _anchored[k] == 1 and _laid[k].text != "" and local.z < 0.0
 		_shown[k] = 1 if on else 0
-		_screen_size[k] = _size_label_px[k] * scale
+		_screen_size[k] = _size_label_px[k] * px_scale
 		var at: Vector2 = project_px(lens, local, viewport_size) if on else Vector2.ZERO
 		_nudge[k] = inside_nudge_px(at.x, _screen_size[k].x, viewport_size.x) if on else 0.0
 		_screen[k] = at + Vector2(_nudge[k] + _screen_size[k].x * 0.5, 0.0)
 	stack_lifts_into(_screen, _screen_size, _shown, LABEL_GAP_PX, _order, _lift)
 	for k: int in _laid.size():
-		var offset := Vector2(_nudge[k], _lift[k]) / scale
+		var offset := Vector2(_nudge[k], _lift[k]) / px_scale
 		if _laid[k].offset != offset:
 			_laid[k].offset = offset  # re-meshes the label: only when it moved
 

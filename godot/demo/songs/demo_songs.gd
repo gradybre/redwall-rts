@@ -214,7 +214,7 @@ func draw() -> void:
 
 func _day() -> int:
 	"""The game day now (0 on the first), for one supper news line a day."""
-	return _calendar.hour_index() / 24 if _calendar != null else 0
+	@warning_ignore("integer_division") return _calendar.hour_index() / 24 if _calendar != null else 0
 
 
 func _post(text: String) -> void:

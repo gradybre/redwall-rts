@@ -1277,7 +1277,7 @@ class SingleDayWindowFarming extends FarmingScript:
 	const ONLY_SEASON: int = 0
 	const ONLY_SEASON_DAY: int = 12
 
-	func is_plant_window(_crop_id: int, season: int, season_day: int) -> bool:
+	func is_plant_window(_crop: int, season: int, season_day: int) -> bool:
 		"""Admit spring day 12 and no other day of the year."""
 		return season == ONLY_SEASON and season_day == ONLY_SEASON_DAY
 
@@ -1290,7 +1290,7 @@ class WindowlessFarming extends FarmingScript:
 	here exactly as `forage.gd`'s malformed-stock guard is exercised through a subclass.
 	"""
 
-	func is_plant_window(_crop_id: int, _season: int, _season_day: int) -> bool:
+	func is_plant_window(_crop: int, _season: int, _season_day: int) -> bool:
 		"""Admit no day of the year, so every legal-window search comes back empty."""
 		return false
 

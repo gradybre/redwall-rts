@@ -96,7 +96,7 @@ func fill(task: TaskScript, row: int) -> void:
 	else:
 		worker_state_into(task, _crew.brain_of(task.worker), code < JobsScript.STEP_WORK, jobs.issued[row] == 1)
 	if code >= JobsScript.STEP_WORK and task.worker != JobsScript.NOBODY:
-		task.percent = mini(100, int(jobs.elapsed_usec[row] * 100 / maxi(jobs.work_usec(code - JobsScript.STEP_WORK), 1)))
+		@warning_ignore("integer_division") task.percent = mini(100, int(jobs.elapsed_usec[row] * 100 / maxi(jobs.work_usec(code - JobsScript.STEP_WORK), 1)))
 	_refusals(task, row)
 
 

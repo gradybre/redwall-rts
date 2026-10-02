@@ -18,15 +18,15 @@ const TABLE_COLUMNS: int = 7
 
 static func day_name(day: int) -> String:
 	"""A calendar day index as the HUD names it: 'Spring 3' (and the year after the first: 'Y2 Spring 3')."""
-	var season: int = (day / SimClock.DAYS_PER_SEASON) % SimClock.SEASONS_PER_YEAR
-	var year: int = day / SimClock.DAYS_PER_YEAR + 1
+	@warning_ignore("integer_division") var season: int = (day / SimClock.DAYS_PER_SEASON) % SimClock.SEASONS_PER_YEAR
+	@warning_ignore("integer_division") var year: int = day / SimClock.DAYS_PER_YEAR + 1
 	var name: String = CalendarScript.day_text(season, day % SimClock.DAYS_PER_SEASON + 1)
 	return name if year == 1 else "Y%d %s" % [year, name]
 
 
 static func season_name(absolute_season: int) -> String:
 	"""'Spring, year 1'."""
-	return "%s, year %d" % [CalendarScript.SEASON_TITLES[absolute_season % SimClock.SEASONS_PER_YEAR],
+	@warning_ignore("integer_division") return "%s, year %d" % [CalendarScript.SEASON_TITLES[absolute_season % SimClock.SEASONS_PER_YEAR],
 		absolute_season / SimClock.SEASONS_PER_YEAR + 1]
 
 

@@ -188,7 +188,7 @@ var _calendar: SimClockScript.Calendar = SimClockScript.Calendar.new()
 func _init(p_residents: ResidentsScript) -> void:
 	"""Compose with one Residents store (and through it the directory and Needs)."""
 	assert(p_residents != null, "the household owner composes with a Residents store")
-	assert(RESIDENT_CAPACITY == ResidentsScript.RESIDENT_CAPACITY,
+	@warning_ignore("assert_always_true") assert(RESIDENT_CAPACITY == ResidentsScript.RESIDENT_CAPACITY,
 		"dependent rows are resident rows")
 	_residents = p_residents
 	_directory = p_residents.directory()
@@ -260,7 +260,7 @@ static func care_after_tick(care: int, remainder: int, served: bool, out: Packed
 	if remainder >= CARE_DENOMINATOR or remainder <= -CARE_DENOMINATOR:
 		return false
 	var accumulator: int = remainder + (CARE_RATE_SERVED if served else CARE_RATE_IDLE)
-	var whole: int = accumulator / CARE_DENOMINATOR
+	@warning_ignore("integer_division") var whole: int = accumulator / CARE_DENOMINATOR
 	accumulator -= whole * CARE_DENOMINATOR
 	var value: int = clampi(care + whole, CARE_MIN, CARE_MAX)
 	if (value == CARE_MAX and accumulator > 0) or (value == CARE_MIN and accumulator < 0):

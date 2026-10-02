@@ -464,9 +464,9 @@ func test_the_neck_takes_a_plank_footbridge_without_piers() -> void:
 	assert_equal(plank.piers, 0, "no piers")
 	assert_equal(plank.planks_milli, Rules.plank_milli(plank.deck_u), "the planks")
 	assert_equal(plank.wood_milli, 0, "no pier wood")
-	var log := BridgesScript.Survey.new()
-	assert_true(bridges.survey_candidate_into(0, Rules.KIND_LOG, log), log.reason)
-	assert_equal(log.wood_milli, 6000, "one log")
+	var survey := BridgesScript.Survey.new()
+	assert_true(bridges.survey_candidate_into(0, Rules.KIND_LOG, survey), survey.reason)
+	assert_equal(survey.wood_milli, 6000, "one log")
 
 
 func test_a_line_over_two_waters_is_not_one_span() -> void:
@@ -1366,7 +1366,7 @@ func test_a_bridge_is_drawn_stage_by_stage() -> void:
 	bridges.add_work(0, bridges.stage_left_wu(0, Rules.STAGE_BEAMS))
 	view.refresh()
 	assert_equal(_live_children(holder), 4, "two piers, two beams")
-	bridges.add_work(0, bridges.stage_total_wu[2] / 2)
+	@warning_ignore("integer_division") bridges.add_work(0, bridges.stage_total_wu[2] / 2)
 	view.refresh()
 	assert_true(_live_children(holder) > 10, "loose planks laid: %d" % _live_children(holder))
 	bridges.add_work(0, 1000)
@@ -1680,14 +1680,14 @@ func test_the_site_text_names_the_piers_once() -> void:
 	plank.piers = 2
 	plank.planks_milli = 6400
 	plank.wood_milli = 2000
-	var log := BridgesScript.Survey.new()
-	log.kind = Rules.KIND_LOG
-	log.reason = "too long"
-	assert_equal(TextScript.site_text(plank, log, false),
+	var survey := BridgesScript.Survey.new()
+	survey.kind = Rules.KIND_LOG
+	survey.reason = "too long"
+	assert_equal(TextScript.site_text(plank, survey, false),
 		"5.1 m of water · 6.3 m of deck\nPlank footbridge: 6.4 U planks and 2.0 U wood for 2 piers\nLog bridge: can't — too long", "two piers")
 	plank.piers = 0
 	plank.wood_milli = 0
-	assert_true(TextScript.site_text(plank, log, false).contains("Plank footbridge: 6.4 U planks, no piers"), "none")
+	assert_true(TextScript.site_text(plank, survey, false).contains("Plank footbridge: 6.4 U planks, no piers"), "none")
 
 
 func test_a_ranking_with_nobody_routable_plans_at_most_its_cap() -> void:

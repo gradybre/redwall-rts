@@ -43,6 +43,8 @@ const SEASON_TICKS: int = SimClock.TICKS_PER_DAY * SimClock.DAYS_PER_SEASON
 const EVENING_TICK: int = (PeopleScript.EVENING_HOUR - 6) * SimClock.TICKS_PER_HOUR
 
 var _nodes: Array[Node] = []
+## Whether this test has declared the placeholder cast's warning (once a test: one declaration matches every line).
+var _cast_declared: bool = false
 
 
 func after_each() -> void:
@@ -51,6 +53,7 @@ func after_each() -> void:
 		if is_instance_valid(node):
 			node.free()
 	_nodes.clear()
+	_cast_declared = false
 
 
 func _keep(node: Node) -> Node:
@@ -78,6 +81,9 @@ func _rig() -> Rig:
 	"""The named village (see Rig), wired as demo_village.gd wires it."""
 	var rig := Rig.new()
 	rig.cast = _keep(DemoCastScript.new())
+	if not _cast_declared:
+		expect_diagnostic("has no loadable body; using a placeholder")  # PeopleTest.manifest() names no body, on purpose
+		_cast_declared = true
 	rig.cast.build(PeopleTest.manifest(), [] as Array[Dictionary], [] as Array[Vector3])
 	rig.cast.set_bounds(AABB(Vector3(-20.0, 0.0, -20.0), Vector3(40.0, 4.0, 40.0)))
 	rig.command = _keep(CommandScript.new())
@@ -200,7 +206,7 @@ func test_the_inspector_shows_skills_as_meters_and_keeps_details_optional() -> v
 	"""One resident: its role and why; its skill "Felling · Level 3" with its meter half way; About closed until asked,
 	then its interest and its (empty) moments."""
 	var rig := _rig()
-	rig.felling[3] = (ForestRules.xp_of_level(3) + ForestRules.xp_of_level(4)) / 2
+	@warning_ignore("integer_division") rig.felling[3] = (ForestRules.xp_of_level(3) + ForestRules.xp_of_level(4)) / 2
 	_select(rig, 3)
 	var section := _section(rig)
 	assert_true(section.visible, "a person shown")

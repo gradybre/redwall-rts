@@ -24,7 +24,7 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
 ## The first signs show at this share of the way to striking: half the warning's.
-const SIGN_PERMILLE: int = HazardsScript.WARN_PERMILLE / 2
+@warning_ignore("integer_division") const SIGN_PERMILLE: int = HazardsScript.WARN_PERMILLE / 2
 
 const LOOK_NONE: int = 0
 const LOOK_SEEP_SIGNS: int = 1
@@ -42,7 +42,7 @@ static func level_permille(pressure_permille: int) -> int:
 	1000."""
 	if pressure_permille < SIGN_PERMILLE:
 		return 0
-	return mini((pressure_permille - SIGN_PERMILLE) * Rules.PERMILLE / (Rules.PERMILLE - SIGN_PERMILLE), Rules.PERMILLE)
+	@warning_ignore("integer_division") return mini((pressure_permille - SIGN_PERMILLE) * Rules.PERMILLE / (Rules.PERMILLE - SIGN_PERMILLE), Rules.PERMILLE)
 
 
 static func seep_look(seep_permille: int, closed: int, braced: bool) -> int:

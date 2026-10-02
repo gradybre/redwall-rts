@@ -37,7 +37,7 @@ const NeedsScript := preload("res://scripts/core/needs.gd")
 ## point, and 100 need points is one percentage point of the 10000-point scale.
 const MILLI_PER_HUNDREDTH: int = 1000
 ## Half of that, added before the integer division to round to nearest, ties away from zero.
-const ROUND_HALF: int = MILLI_PER_HUNDREDTH / 2
+@warning_ignore("integer_division") const ROUND_HALF: int = MILLI_PER_HUNDREDTH / 2
 ## Two decimal places, as the divisor that splits them off.
 const HUNDREDTHS: int = 100
 
@@ -68,7 +68,7 @@ static func signed_hundredths(rate_milli: int) -> int:
 	`-0.00` trap lives one level up, in `text()`, which takes its sign from THESE hundredths
 	and never from the raw `rate_milli` -- see the guard there.
 	"""
-	var magnitude: int = (absi(rate_milli) + ROUND_HALF) / MILLI_PER_HUNDREDTH
+	@warning_ignore("integer_division") var magnitude: int = (absi(rate_milli) + ROUND_HALF) / MILLI_PER_HUNDREDTH
 	return -magnitude if rate_milli < 0 else magnitude
 
 
@@ -76,7 +76,7 @@ static func text(rate_milli: int) -> String:
 	"""A signed rate to two decimals with the compact unit: `+2.50 pp/h`, `-3.00 pp/h`, `0.00 pp/h`."""
 	var hundredths: int = signed_hundredths(rate_milli)
 	var magnitude: int = absi(hundredths)
-	var body: String = "%d.%02d %s" % [magnitude / HUNDREDTHS, magnitude % HUNDREDTHS, UNIT_SHORT]
+	@warning_ignore("integer_division") var body: String = "%d.%02d %s" % [magnitude / HUNDREDTHS, magnitude % HUNDREDTHS, UNIT_SHORT]
 	if hundredths == 0:
 		return body
 	## The sign comes from the ROUNDED hundredths, never from `rate_milli`. Reading the raw
@@ -120,7 +120,7 @@ static func sign_word(rate_milli: int) -> String:
 static func accessible_text(basis_points: int, rate_milli: int) -> String:
 	"""The rate in full words, with the cap explanation when the row is capped."""
 	var magnitude: int = absi(signed_hundredths(rate_milli))
-	var spoken: String = "%s, %d.%02d %s" \
+	@warning_ignore("integer_division") var spoken: String = "%s, %d.%02d %s" \
 		% [sign_word(rate_milli), magnitude / HUNDREDTHS, magnitude % HUNDREDTHS, UNIT_WORDS]
 	if is_capped(basis_points, rate_milli):
 		return "%s; %s: %s" % [spoken, CAPPED_LABEL, CAPPED_EXPLANATION]

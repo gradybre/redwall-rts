@@ -61,7 +61,7 @@ static func allocate(current: PackedInt32Array, at_u: PackedInt32Array, permitte
 
 static func _size_of_bed(beds: PackedInt32Array, id: int) -> int:
 	"""The size of bed `id` among `beds` (SIZE_NONE: it does not stand)."""
-	for k in beds.size() / 4:
+	@warning_ignore("integer_division") for k in beds.size() / 4:
 		if beds[4 * k] == id:
 			return beds[4 * k + 3]
 	return SIZE_NONE
@@ -72,7 +72,7 @@ static func nearest_free(beds: PackedInt32Array, taken: PackedInt32Array, at: Ve
 	(`beds` come in ID order, so the first found wins it). NO_BED when every such bed is taken."""
 	var best := NO_BED
 	var best_d := 0
-	for k in beds.size() / 4:
+	@warning_ignore("integer_division") for k in beds.size() / 4:
 		var id := beds[4 * k]
 		if beds[4 * k + 3] != size or taken.has(id):
 			continue

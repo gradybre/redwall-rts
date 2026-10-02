@@ -193,7 +193,7 @@ func test_a_demolition_bill_is_empty_but_its_return_basis_is_not() -> void:
 	assert_equal(_out.value, 0, "a demolition has no delivery bill at all")
 	assert_true(_construction.declared_work_mwu_into(
 		Construction.PURPOSE_DEMOLISH, _hall_id, _out), "its work is priced")
-	assert_equal(_out.value, HALL_WORK / 4, "REQ-SET-127 prices demolition at WU x 0.25")
+	@warning_ignore("integer_division") assert_equal(_out.value, HALL_WORK / 4, "REQ-SET-127 prices demolition at WU x 0.25")
 
 
 func test_an_upgrade_bill_exists_only_for_the_four_tier_two_keys() -> void:
@@ -285,10 +285,10 @@ func test_work_cannot_be_earned_before_materials_are_delivered() -> void:
 func test_partial_delivery_leaves_the_project_awaiting_materials() -> void:
 	"""Workers may deliver in parts; the project stays out of PHASE_READY until the last line."""
 	var project: Vector2i = _open_hall()
-	assert_true(_construction.deliver_material(project, 0, HALL_WOOD / 2).ok, "half the wood")
+	@warning_ignore("integer_division") assert_true(_construction.deliver_material(project, 0, HALL_WOOD / 2).ok, "half the wood")
 	assert_true(_construction.phase_into(project, _out), "the phase reads")
 	assert_equal(_out.value, Construction.PHASE_AWAITING_MATERIALS, "still awaiting materials")
-	assert_true(_construction.deliver_material(project, 0, HALL_WOOD / 2).ok, "the rest")
+	@warning_ignore("integer_division") assert_true(_construction.deliver_material(project, 0, HALL_WOOD / 2).ok, "the rest")
 	assert_true(_construction.deliver_material(project, 1, HALL_STONE).ok, "the stone")
 	assert_true(_construction.phase_into(project, _out), "the phase reads again")
 	assert_equal(_out.value, Construction.PHASE_AWAITING_MATERIALS,
@@ -443,9 +443,9 @@ func test_the_eighty_percent_refund_floors_to_milli_u() -> void:
 	assert_true(_construction.cancellation_refund_milli_into(project.ref, 0, _out),
 		"the manifest reads")
 	assert_equal(_out.value, 3200, "4000 * 4 / 5 is exactly 3200")
-	assert_equal(1 * Construction.REFUND_PARTIAL_NUM / Construction.REFUND_PARTIAL_DEN, 0,
+	@warning_ignore("integer_division") assert_equal(1 * Construction.REFUND_PARTIAL_NUM / Construction.REFUND_PARTIAL_DEN, 0,
 		"one milli at 80%% floors to nothing, which is what 'rounded down' means")
-	assert_equal(4 * Construction.REFUND_PARTIAL_NUM / Construction.REFUND_PARTIAL_DEN, 3,
+	@warning_ignore("integer_division") assert_equal(4 * Construction.REFUND_PARTIAL_NUM / Construction.REFUND_PARTIAL_DEN, 3,
 		"four milli at 80%% floors to three")
 
 
@@ -510,7 +510,7 @@ func test_demolition_returns_fifty_percent_of_the_original_cost() -> void:
 	assert_true(_construction.demolition_return_size_into(project.ref, _out),
 		"the return manifest has a size")
 	assert_equal(_out.value, 3, "§4.1's hall bill has three lines to return")
-	var expected: PackedInt64Array = PackedInt64Array([
+	@warning_ignore("integer_division") var expected: PackedInt64Array = PackedInt64Array([
 		HALL_WOOD / 2, HALL_STONE / 2, HALL_CLOTH / 2])
 	for index: int in 3:
 		assert_true(_construction.demolition_return_milli_into(project.ref, index, _out),
@@ -542,7 +542,7 @@ func test_demolition_work_is_a_quarter_of_the_declared_construction_work() -> vo
 	var project: Construction.OpResult = _construction.open_demolition(building)
 	assert_true(project.ok, "the demolition opens")
 	assert_true(_construction.remaining_mwu_into(project.ref, _out), "its work reads")
-	assert_equal(_out.value, HALL_WORK / 4, "2400000 x 0.25 is 600000")
+	@warning_ignore("integer_division") assert_equal(_out.value, HALL_WORK / 4, "2400000 x 0.25 is 600000")
 	assert_equal(_buildings.state_of_building(building).value,
 		int(CatalogScript.BUILDING_STATE["DEMOLISHING"]), "the subject says DEMOLISHING")
 	assert_true(_construction.phase_into(project.ref, _out), "the phase reads")
@@ -556,7 +556,7 @@ func test_a_finished_demolition_removes_the_building() -> void:
 	var project: Construction.OpResult = _construction.open_demolition(building)
 	assert_true(project.ok, "the demolition opens")
 	assert_true(_construction.begin_work(project.ref).ok, "demolition work begins")
-	assert_true(_construction.add_work_mwu(project.ref, HALL_WORK / 4).ok, "and completes")
+	@warning_ignore("integer_division") assert_true(_construction.add_work_mwu(project.ref, HALL_WORK / 4).ok, "and completes")
 	assert_true(_construction.commit_completion(project.ref).ok, "the demolition commits")
 	assert_false(_buildings.is_live_building(building), "the building is gone")
 	assert_equal(_buildings.building_at_tile(tile), EntityDirectory.NULL_REF,
@@ -575,7 +575,7 @@ func test_a_refused_completion_restores_the_buildings_back_reference() -> void:
 	var project: Construction.OpResult = _construction.open_demolition(building)
 	assert_true(project.ok, "the demolition opens")
 	assert_true(_construction.begin_work(project.ref).ok, "demolition work begins")
-	assert_true(_construction.add_work_mwu(project.ref, HALL_WORK / 4).ok, "and completes")
+	@warning_ignore("integer_division") assert_true(_construction.add_work_mwu(project.ref, HALL_WORK / 4).ok, "and completes")
 	var room: Buildings.OpResult = _buildings.designate_room(building,
 		int(CatalogScript.ROOM_TYPE["PANTRY"]), _interior_tiles(building, 4))
 	assert_true(room.ok, "a room now blocks the removal (%s)" % room.error)

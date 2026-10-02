@@ -1,5 +1,5 @@
 # 0534 — Demolition admit, the stage-5 success path, and the adopted inventory
-Date: 2026-10-01 · Status: Accepted (five PROPOSALS below await Brendan's ruling)
+Date: 2026-10-01 · Status: Accepted. Brendan approved rulings R1–R5 below as built on 2026-10-01.
 
 Numbered 0534 because the brief named it. No record numbered 0534–0539 exists on any branch
 (`git ls-tree` over every ref) or in any sibling worktree when this was written;
@@ -69,10 +69,10 @@ Consequences that name D4.
      `output_to_ground_piles` and `destination_revision`.
 4. **Output capacity is reserved (blocker 3; BUILD-C4-R01 "reserve legal output capacity").**
    The return's charge is the sum of each line's own `ceil(q * m / 1000)` lot debit. It is
-   reserved with `inventory.reserve_container_mass()` in ONE surviving store (PROPOSAL P1). With
+   reserved with `inventory.reserve_container_mass()` in ONE surviving store (ruling R1). With
    no such store the return falls back to ground piles (#9), proved placeable now by
    `preflight_lots_from_seeds()` from the refund seeds with the footprint excluded, and nothing
-   is reserved (PROPOSAL P2). Neither: `DEMOLITION_NO_OUTPUT_CAPACITY`, writing nothing.
+   is reserved (ruling R2). Neither: `DEMOLITION_NO_OUTPUT_CAPACITY`, writing nothing.
 5. **BUILD-C4-R01's tier-2 basis, from ConstructionPaidLedger.** `construction.gd` gains
    `_paid_base_type` and `_paid_upgrade_mask`, I32 × 82944: §3's already-budgeted
    ConstructionPaidLedger row (663552 B), now implemented.
@@ -87,7 +87,7 @@ Consequences that name D4.
    - `demolition_return_preview_into()` gives admit the exact manifest the snapshot will carry.
    - `_assert_bills()` proves every base+upgrade union fits the four manifest lines.
    - Tier 1 is unchanged: every existing test of the 50% and the 0.25 still passes.
-6. **The destination revision is produced (PROPOSAL P3).** `core/demolition_admissions.gd`, one
+6. **The destination revision is produced (ruling R3).** `core/demolition_admissions.gd`, one
    row per Building typed row (1024): the admitted project, the output container and grams,
    and MOVE-DEP-R05's destination revision — `FIRST_DESTINATION_REVISION` (1) after `clear()`,
    +1 per admitted demolition, refusing at I32 max. A record whose project is no longer live is
@@ -118,30 +118,37 @@ Consequences that name D4.
    falls back to ground piles. A fifth test shows the hall reading as empty when the economy is
    left on its private store — the reason for item 1.
 
-## PROPOSALS needing Brendan's ruling
+## Brendan's rulings, 2026-10-01
 
-Where the documents are silent the smallest sensible behaviour was built and is marked here.
+Where the documents were silent the smallest sensible behaviour was built and offered as five
+proposals, P1–P5. **Brendan approved all five as built on 2026-10-01**, each with its recommended
+option (a); the coordinator relayed the approval. They are rulings R1–R5 of this record, and no
+behaviour changed when they were adopted. The options he did not choose are kept so a later
+reader can see what was weighed.
 
-- **P1 — which store the return's capacity is reserved in.** Built: the lowest-slot container
+- **R1 (was P1) — which store the return's capacity is reserved in.** Built: the lowest-slot
+  container
   anchored off the footprint, owned by a different ACTIVE building, reachable, not a ground pile,
   whose filters admit every returned item and whose free mass takes the WHOLE return. One
   container per demolition. Lowest slot follows §5.9's only authored order ("filling container
   IDs ascending"). Options: (a) as built; (b) split the return line by line across stores, which
   needs a variable-length reservation record; (c) only the economy's stockpiles; (d) always
-  ground piles, reserving nothing. **Recommendation: (a)**; (b) when hauling (06.4) makes store
-  choice a logistics policy.
-- **P2 — the pile fallback reserves nothing.** An empty pile with a claim is refused at commit
+  ground piles, reserving nothing. **Ruled: (a)**, as built; (b) remains the option when hauling (06.4)
+  makes store choice a logistics policy.
+- **R2 (was P2) — the pile fallback reserves nothing.** An empty pile with a claim is refused at
+  commit
   (decision 0532), so pile capacity cannot be held from admit to completion. Built: a rolled-back
   placement proves it now; D5 places for real and stays commit-pending if it then fails.
   Options: (a) as built; (b) refuse admission whenever no store can take the return.
-  **Recommendation: (a)**, since #9 names piles as the fallback.
-- **P3 — who publishes the building contact's destination revision.** No building, room or
+  **Ruled: (a)**, as built, since #9 names piles as the fallback.
+- **R3 (was P3) — who publishes the building contact's destination revision.** No building, room or
   service store publishes one (movement.gd's `revalidate_destination()` says so), and MOVE-DEP-R05
   gives it to the contact owner. Built: the coordinator, per Building row, monotonic across row
   reuse. Options: (a) as built until BUILDINGS-SAVED-BINDINGS / D8 move it into the building
   store with its contacts; (b) a `buildings.gd` column now, reopening that store's frozen save
-  bridge. **Recommendation: (a).**
-- **P4 — the demolition snapshot is DERIVED from the building's type and tier at admission, so a
+  bridge. **Ruled: (a)**, as built.
+- **R4 (was P4) — the demolition snapshot is DERIVED from the building's type and tier at
+  admission, so a
   never-built (starter) building's base package counts as paid.** BUILD-C4-R01 reads "the
   recorded paid base package", but INIT-C places the starter colony without a project, and a
   BUILD or UPGRADE project's ledger row retires with the project, so no per-building payment
@@ -149,15 +156,16 @@ Where the documents are silent the smallest sensible behaviour was built and is 
   BUILD-C4-R01's own "Ordinary tier-1 behavior remains the inherited formula", and tier 2 is
   the record of the completed upgrade (BAL-SAFE-013 sets it once, only on completion). The
   BUILD/UPGRADE/FURNITURE rows' ledger keys are written but not yet read; they are what
-  CONSTRUCTION-SAVED-BINDINGS saves, and a per-building record would replace the derivation. Options: (a) as built; (b) starter
-  structures return nothing; (c) record a per-building paid mask (ARCH's BuildingService
-  `upgrade_paid_mask`) and treat INIT-C as paying. **Recommendation: (a).**
-
-- **P5 — cancelling a demolition is free.** `cancel_demolition()` accepts a project in any phase
+  CONSTRUCTION-SAVED-BINDINGS saves, and a per-building record would replace the derivation.
+  Options: (a) as built; (b) starter structures return nothing; (c) record a per-building paid
+  mask (ARCH's BuildingService `upgrade_paid_mask`) and treat INIT-C as paying.
+  **Ruled: (a)**, as built.
+- **R5 (was P5) — cancelling a demolition is free.** `cancel_demolition()` accepts a project in any
+  phase
   but REFUNDING, including one whose work has begun or finished, and the building returns to
   ACTIVE with nothing charged and nothing returned. REQ-SET-126 prices cancelling a BUILD; no
   document prices cancelling a demolition. Options: (a) as built; (b) refuse cancellation once
-  demolition work has begun; (c) charge the earned work somehow. **Recommendation: (a)**, since
+  demolition work has begun; (c) charge the earned work somehow. **Ruled: (a)**, as built, since
   a demolition delivers and consumes no material, so there is nothing to refund or forfeit.
 
 ## Why — the executor's other readings
@@ -281,7 +289,7 @@ Where the documents are silent the smallest sensible behaviour was built and is 
   - Second pass: no CRITICAL or HIGH. MEDIUM, fixed: no way back out for a stranded claim
     (`release_stranded_reservation()`, and the release-before-removal order stated for D5); the
     cancel's open-transaction refusal untested (test added). LOW, fixed: unchecked results in
-    cancel, the anonymous-claim note, the registry wording; recorded as P5: cancelling is free.
+    cancel, the anonymous-claim note, the registry wording; recorded as P5, now ruling R5: cancelling is free.
 
 ## Source
 

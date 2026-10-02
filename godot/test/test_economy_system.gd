@@ -445,7 +445,7 @@ func test_food_days_reproduces_the_gdd_starter_fixture() -> void:
 func test_food_days_truncates_rather_than_rounds() -> void:
 	"""§5.8 writes floor(100*NP/demand)/100: 548.38 hundredths displays as 5.48, never 5.49."""
 	_bind_starting_settlement()
-	assert_equal(STARTER_READY_NP * 100 / STARTER_DEMAND_NP, 548, "the exact quotient floors to 548")
+	@warning_ignore("integer_division") assert_equal(STARTER_READY_NP * 100 / STARTER_DEMAND_NP, 548, "the exact quotient floors to 548")
 	assert_true(STARTER_READY_NP * 100 % STARTER_DEMAND_NP > 0, "the quotient is not exact")
 	assert_equal(_economy.food_days_text(), "5.48 days", "the discarded remainder is not rounded up")
 

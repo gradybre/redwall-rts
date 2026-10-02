@@ -415,7 +415,7 @@ func skill_rows(who: int) -> Array[Dictionary]:
 		var top: bool = level >= ForestRules.SKILL_LEVEL_MAX
 		var from: int = ForestRules.xp_of_level(level)
 		var span: int = maxi(ForestRules.xp_of_level(level + 1) - from, 1) if not top else 1
-		rows.append({"name": taps.skill_name(s), "level": level, "top": top,
+		@warning_ignore("integer_division") rows.append({"name": taps.skill_name(s), "level": level, "top": top,
 			"permille": 1000 if top else clampi((xp - from) * 1000 / span, 0, 1000)})
 	return rows
 

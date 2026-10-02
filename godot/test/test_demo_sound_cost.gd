@@ -50,7 +50,7 @@ func _crowd() -> void:
 	assert_true(_director.configure(), "the table reads")
 	for k: int in WORKERS:
 		var brain := BrainScript.new()
-		brain.position = Vector2(float(k % 5) * 1.5 - 3.0, float(k / 5) * 1.5 - 3.0)
+		@warning_ignore("integer_division") brain.position = Vector2(float(k % 5) * 1.5 - 3.0, float(k / 5) * 1.5 - 3.0)
 		_brains.append(brain)
 		if k < FELLERS:
 			assert_true(_jobs.open_into(JobsScript.KIND_FELL, k, 0, JobsScript.ORIGIN_PLAYER, _read), "fell %d" % k)
@@ -114,6 +114,7 @@ func _frame(f: int) -> void:
 
 func test_twenty_workers_at_four_x_cost_little_per_frame() -> void:
 	"""The director's frame, p50 / p95 / p99 / max, with every source busy; p99 under BUDGET_P99_USEC."""
+	tolerate_diagnostic("it plays silent until they are staged")  # the real cues: unstaged in CI
 	_crowd()
 	var samples := PackedInt64Array()
 	samples.resize(FRAMES)
@@ -127,8 +128,8 @@ func test_twenty_workers_at_four_x_cost_little_per_frame() -> void:
 		events += _director.taps.event_count
 		most_chops = maxi(most_chops, _director.voices.sounding(_director.table.row(&"chop"), 1000 + f * FRAME_MS))
 	samples.sort()
-	var p99: int = samples[FRAMES * 99 / 100]
-	print("SOUND-COST %d workers at %dx: p50 %d us, p95 %d us, p99 %d us, max %d us; %d events, %d played, %d folded" % [
+	@warning_ignore("integer_division") var p99: int = samples[FRAMES * 99 / 100]
+	@warning_ignore("integer_division") print("SOUND-COST %d workers at %dx: p50 %d us, p95 %d us, p99 %d us, max %d us; %d events, %d played, %d folded" % [
 		WORKERS, SPEED, samples[FRAMES / 2], samples[FRAMES * 95 / 100], p99, samples[FRAMES - 1], events,
 		_director.voices.total_played(), _director.voices.refused[1]])
 	assert_true(events > FRAMES, "the crowd is busy (%d events)" % events)

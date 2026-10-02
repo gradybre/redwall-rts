@@ -805,7 +805,7 @@ static func catalog_hash_refusal(header: Header) -> Refusal:
 	`SAVE_HEADER_CATALOG_HASH_OFFSET`, and this function asserts the two constants agree before
 	comparing, so the two files cannot drift to different offsets unnoticed.
 	"""
-	assert(OFFSET_CATALOG_HASH == CatalogIdsScript.SAVE_HEADER_CATALOG_HASH_OFFSET)
+	@warning_ignore("assert_always_true") assert(OFFSET_CATALOG_HASH == CatalogIdsScript.SAVE_HEADER_CATALOG_HASH_OFFSET)
 	if header.catalog_hash.size() != DIGEST_BYTES:
 		return Refusal.new(REFUSE_DIGEST_LENGTH, "the catalog hash is %d bytes, not %d"
 			% [header.catalog_hash.size(), DIGEST_BYTES])

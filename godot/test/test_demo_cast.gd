@@ -59,10 +59,10 @@ func _space(points: Array[Dictionary], obstacles: Array[Vector3]) -> CastSpaceSc
 	return space
 
 
-func _brain(space: CastSpaceScript, at_poi: int, seed: int) -> BrainScript:
+func _brain(space: CastSpaceScript, at_poi: int, seed_value: int) -> BrainScript:
 	"""A resident standing in slot 0 of `at_poi`, facing its face direction."""
 	var brain := BrainScript.new()
-	brain.configure(space, WALK_M_S, BODY_M, seed, _lengths())
+	brain.configure(space, WALK_M_S, BODY_M, seed_value, _lengths())
 	var slot := space.free_slot(at_poi)
 	space.reserve(at_poi, slot)
 	brain.start_at(space.slot_position(at_poi, slot), BrainScript.yaw_of(space.poi_face[at_poi]), at_poi, slot)
@@ -515,6 +515,7 @@ func _soaked_positions() -> PackedVector2Array:
 
 func test_a_creature_whose_body_cannot_load_becomes_a_placeholder() -> void:
 	"""A manifest row whose body is missing falls back to a placeholder."""
+	expect_diagnostic("has no loadable body; using a placeholder")
 	_cast = DemoCastScript.new()
 	var row := {"species": "mouse", "height_m": 1.0, "body": "res://demo/assets/cast/nobody/body.glb", "clips": {}, "walk_speed_m_s": 0.7}
 	var none: Array[Vector3] = []
@@ -584,6 +585,7 @@ func test_an_obstacle_push_never_shoves_a_body_into_a_resident() -> void:
 
 func test_a_circle_without_a_positive_radius_is_refused() -> void:
 	"""setup() drops (and reports) a circle whose radius is not positive: the wrong axis order."""
+	expect_diagnostic("a circle is (x, radius, z) -- ignored")
 	var space := _space([], [Vector3(0.0, -1.0, 0.0), Vector3(3.0, 0.0, 3.0), Vector3(5.0, 1.0, 5.0)])
 	assert_equal(space.obstacles.size(), 1, "only the real circle is kept")
 	assert_equal(space.obstacles[0], Vector3(5.0, 1.0, 5.0), "and it is the positive one")
@@ -1103,7 +1105,7 @@ func test_a_resident_works_twice_as_long_as_it_walked_to_get_there() -> void:
 	var trip := 0.0
 	var worked := 0.0
 	for f in 60 * 400:
-		var was := brain.state
+		var _was := brain.state
 		brain.step(DT)
 		var travelling := brain.state == BrainScript.State.TURN or brain.state == BrainScript.State.WALK
 		if brain.poi == 1 and travelling and worked > 0.0:

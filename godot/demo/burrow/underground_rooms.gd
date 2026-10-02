@@ -151,7 +151,7 @@ const NOOK_REASONS: Array[String] = ["", "a tunnel runs within 1 m of where its 
 ## three bed alcoves; the beds themselves are fixtures now, room_fixtures.gd).
 const DORMITORY_BEDS: int = 12
 const DORMITORY_TILES: int = 40
-const BEDS_PER_HOME: int = 12 * DORMITORY_BEDS / DORMITORY_TILES
+@warning_ignore("integer_division") const BEDS_PER_HOME: int = 12 * DORMITORY_BEDS / DORMITORY_TILES
 ## A root cellar: the GDD's cellar store factor when it is COOL, the pantry's when it is not (§5.8; the cool rule
 ## is room_fixtures.gd's). Its capacity is its racks' (room_fixtures.gd CAPACITY_U), not a flat figure any more.
 const CELLAR_SPOILAGE_PERMILLE: int = 350
@@ -286,20 +286,20 @@ static func outward(kind: int, quarter_turns: int, k: int) -> Vector2i:
 static func cell_local(kind: int, k: int) -> Vector2i:
 	"""The floor cell quantum `k` of the room's timeline is cut in, in its own frame (HIGH_QUANTA a cell)."""
 	var cells: Array = CELLS_LOCAL[kind]
-	return cells[clampi(k / HIGH_QUANTA, 0, cells.size() - 1)]
+	@warning_ignore("integer_division") return cells[clampi(k / HIGH_QUANTA, 0, cells.size() - 1)]
 
 
 static func void_half(kind: int) -> Vector2i:
 	"""The void's half extents in its own frame (u): the floor bowed out BULGE_PERMILLE -- all round a round
 	room; across a vault, whose end walls stand straight."""
-	var x := HALF_X_U[kind] * BULGE_PERMILLE / Rules.PERMILLE
+	@warning_ignore("integer_division") var x := HALF_X_U[kind] * BULGE_PERMILLE / Rules.PERMILLE
 	var z := x if SHAPE[kind] == SHAPE_ROUND else HALF_Z_U[kind]
 	return Vector2i(x, z)
 
 
 static func fixture_count(kind: int) -> int:
 	"""How many fixture places template `kind` has."""
-	return (FIXTURES[kind] as Array).size() / FIXTURE_FIELDS
+	@warning_ignore("integer_division") return (FIXTURES[kind] as Array).size() / FIXTURE_FIELDS
 
 
 static func fixture_field(kind: int, f: int, field: int) -> int:
@@ -529,7 +529,7 @@ static func along_place_u(kind: int, f: int, reach_u: int) -> Vector2i:
 	"""The point `reach_u` from a room's middle along the axis through its place `f` (its own frame, u)."""
 	var place := Vector2i(fixture_field(kind, f, 1), fixture_field(kind, f, 2))
 	var length := maxi(Rules.isqrt(place.x * place.x + place.y * place.y), 1)
-	return place * reach_u / length
+	@warning_ignore("integer_division") return place * reach_u / length
 
 
 func nook_a(r: int, f: int) -> Vector2i:
@@ -556,11 +556,11 @@ func nook_refusal(graph: RefCounted, r: int, f: int, site: Site) -> int:
 	for h in MAX_ROOMS:
 		if h != r and is_room(h) and level[h] == level[r] and leg_gap_of(h, a, b) < Rules.PILLAR_U + NOOK_HALF_U:
 			return NOOK_NEAR_ROOM
-	if site.water.is_valid() and bool(site.water.call(a, b, NOOK_HALF_U + Rules.BORE_WIDTH_U / 2)):
+	@warning_ignore("integer_division") if site.water.is_valid() and bool(site.water.call(a, b, NOOK_HALF_U + Rules.BORE_WIDTH_U / 2)):
 		return NOOK_UNDER_WATER
 	if level[r] != Rules.TOP_LEVEL:
 		return NOOK_OK
-	for i in site.under_u.size() / 3:
+	@warning_ignore("integer_division") for i in site.under_u.size() / 3:
 		var c := Vector2i(site.under_u[3 * i], site.under_u[3 * i + 2])
 		if Rules.point_leg_u(c, a, b) < site.under_u[3 * i + 1] + NOOK_HALF_U:
 			return NOOK_UNDER_BUILDING
@@ -576,7 +576,7 @@ func _nook_near_tunnel(graph: RefCounted, r: int, a: Vector2i, b: Vector2i) -> b
 		if graph.phase[slot] == FREE_PHASE or h == r or (h >= 0 and ramp[h] != slot) or _joins_at_socket(graph, r, slot) \
 				or (graph.seg_kind[slot] != LINK_KIND and graph.seg_level[slot] != level[r]):
 			continue
-		var reach: int = Rules.PILLAR_U + NOOK_HALF_U + Rules.BORE_WIDTHS_U[graph.bore[slot]] / 2
+		@warning_ignore("integer_division") var reach: int = Rules.PILLAR_U + NOOK_HALF_U + Rules.BORE_WIDTHS_U[graph.bore[slot]] / 2
 		var base: int = 2 * slot * Rules.MAX_POINTS
 		for k in range(1, graph.point_count[slot]):
 			var p := Vector2i(graph.points_u[base + 2 * k - 2], graph.points_u[base + 2 * k - 1])
@@ -666,7 +666,7 @@ static func _water_reason(site: Site, kind: int, at: Vector2i, quarter_turns: in
 	"""No part of the void or the door ramp under water or within half a bore of it (the no-dig band)."""
 	if not site.water.is_valid():
 		return REFUSE_NONE
-	var band := Rules.BORE_WIDTH_U / 2
+	@warning_ignore("integer_division") var band := Rules.BORE_WIDTH_U / 2
 	if bool(site.water.call(hole, door_foot, HOOD_HALF_U + band)):
 		return REFUSE_UNDER_WATER
 	return _void_water_reason(site, kind, at, quarter_turns)
@@ -676,7 +676,7 @@ static func _void_water_reason(site: Site, kind: int, at: Vector2i, quarter_turn
 	"""No part of the void under water or within half a bore of it (the no-dig band)."""
 	if not site.water.is_valid():
 		return REFUSE_NONE
-	var band := Rules.BORE_WIDTH_U / 2
+	@warning_ignore("integer_division") var band := Rules.BORE_WIDTH_U / 2
 	var half := void_half(kind)
 	if SHAPE[kind] == SHAPE_ROUND:
 		return REFUSE_UNDER_WATER if bool(site.water.call(at, at, half.x + band)) else REFUSE_NONE
@@ -693,7 +693,7 @@ static func _crops_reason(site: Site, kind: int, at: Vector2i, quarter_turns: in
 		door_foot: Vector2i) -> int:
 	"""The mound and the hood off every crop bed (squares: x, half-width, z)."""
 	var mound := world_box(kind, at, quarter_turns, SKIRT_U)
-	for i in site.beds_u.size() / 3:
+	@warning_ignore("integer_division") for i in site.beds_u.size() / 3:
 		var bed := Vector2i(site.beds_u[3 * i], site.beds_u[3 * i + 2])
 		var half := Vector2i(site.beds_u[3 * i + 1], site.beds_u[3 * i + 1])
 		var over := _box_gap(at - bed, half) < void_half(kind).x + SKIRT_U if SHAPE[kind] == SHAPE_ROUND \
@@ -718,7 +718,7 @@ static func _leg_box_gap(a: Vector2i, b: Vector2i, at: Vector2i, half: Vector2i)
 static func _building_reason(site: Site, kind: int, at: Vector2i, quarter_turns: int, hole: Vector2i,
 		door_foot: Vector2i) -> int:
 	"""The mound and the hood off every building's footprint circle."""
-	for i in site.under_u.size() / 3:
+	@warning_ignore("integer_division") for i in site.under_u.size() / 3:
 		var c := Vector2i(site.under_u[3 * i], site.under_u[3 * i + 2])
 		var reach := site.under_u[3 * i + 1]
 		if gap_u(kind, at, quarter_turns, c) < reach + SKIRT_U or Rules.point_leg_u(c, hole, door_foot) < reach + HOOD_HALF_U:
@@ -738,7 +738,7 @@ func _rooms_reason(graph: RefCounted, kind: int, at: Vector2i, quarter_turns: in
 			return REFUSE_NEAR_ROOM
 		if room_level != Rules.TOP_LEVEL:
 			continue
-		if leg_gap_of(r, hole, door_foot) < Rules.PILLAR_U + Rules.BORE_WIDTHS_U[Rules.BORE_WIDE] / 2:
+		@warning_ignore("integer_division") if leg_gap_of(r, hole, door_foot) < Rules.PILLAR_U + Rules.BORE_WIDTHS_U[Rules.BORE_WIDE] / 2:
 			return REFUSE_NEAR_ROOM
 		if legs_gap_u(hole, door_foot, mouth_u(r), door_u(r)) < Rules.pillar_gap_u(Rules.BORE_WIDE, Rules.BORE_WIDE):
 			return REFUSE_NEAR_ROOM
@@ -773,7 +773,7 @@ static func _link_near_void(graph: RefCounted, slot: int, kind: int, at: Vector2
 	"""Whether link `slot` comes within the pillar and its half-width of a room's void where it passes within a
 	pillar of the room's height -- sampled every PILLAR_STEP_U of its run (a link's void is a standard bore)."""
 	var room_floor := Rules.level_floor_depth_u(room_level)
-	var reach := Rules.PILLAR_U + Rules.BORE_WIDTH_U / 2
+	@warning_ignore("integer_division") var reach := Rules.PILLAR_U + Rules.BORE_WIDTH_U / 2
 	var along := 0
 	while along <= graph.length_u[slot]:
 		var depth: int = graph.floor_depth_u_at(slot, along)
@@ -786,7 +786,7 @@ static func _link_near_void(graph: RefCounted, slot: int, kind: int, at: Vector2
 
 static func _segment_near_void(graph: RefCounted, slot: int, kind: int, at: Vector2i, quarter_turns: int) -> bool:
 	"""Whether any leg of segment `slot` comes within the pillar and its half-width of a room's void."""
-	var reach: int = Rules.PILLAR_U + Rules.BORE_WIDTHS_U[graph.bore[slot]] / 2
+	@warning_ignore("integer_division") var reach: int = Rules.PILLAR_U + Rules.BORE_WIDTHS_U[graph.bore[slot]] / 2
 	var base: int = 2 * slot * Rules.MAX_POINTS
 	for k in range(1, graph.point_count[slot]):
 		var a := Vector2i(graph.points_u[base + 2 * k - 2], graph.points_u[base + 2 * k - 1])
@@ -822,7 +822,7 @@ static func _covers(circles: PackedInt32Array, kind: int, at: Vector2i, quarter_
 		door_foot: Vector2i) -> bool:
 	"""Whether the mound (the void and SKIRT_U) or the hood (HOOD_HALF_U either side of the ramp) comes over any
 	of `circles` (x, reach, z in u)."""
-	for i in circles.size() / 3:
+	@warning_ignore("integer_division") for i in circles.size() / 3:
 		var c := Vector2i(circles[3 * i], circles[3 * i + 2])
 		var reach := circles[3 * i + 1]
 		if gap_u(kind, at, quarter_turns, c) < reach + SKIRT_U or Rules.point_leg_u(c, hole, door_foot) < reach + HOOD_HALF_U:

@@ -132,7 +132,7 @@ func _calibrate_one(type_id: int) -> Dictionary:
 		"elements": CALIBRATION_ELEMENTS, "declared": int(DECLARED_ELEMENT_BYTES[type_id]),
 	}
 	row["measured"] = delta >= CALIBRATION_ELEMENTS
-	row["bytes_per_element"] = delta / CALIBRATION_ELEMENTS if row["measured"] else 0
+	@warning_ignore("integer_division") row["bytes_per_element"] = delta / CALIBRATION_ELEMENTS if row["measured"] else 0
 	return row
 
 
@@ -172,7 +172,7 @@ func calibrate_string_array_element_bytes() -> Dictionary:
 	var delta: int = OS.get_static_memory_usage() - before
 	slots.clear()
 	var ok: bool = delta >= CALIBRATION_ELEMENTS
-	return {
+	@warning_ignore("integer_division") return {
 		"elements": CALIBRATION_ELEMENTS, "delta_bytes": delta, "measured": ok,
 		"bytes_per_empty_element": delta / CALIBRATION_ELEMENTS if ok else 0,
 	}
@@ -373,7 +373,7 @@ func calibrate_array_element_bytes() -> Dictionary:
 	var delta: int = OS.get_static_memory_usage() - before
 	names.clear()
 	var ok: bool = delta >= CALIBRATION_ELEMENTS
-	return {
+	@warning_ignore("integer_division") return {
 		"elements": CALIBRATION_ELEMENTS, "delta_bytes": delta, "measured": ok,
 		"bytes_per_element": delta / CALIBRATION_ELEMENTS if ok else 0, "declared": 8,
 	}

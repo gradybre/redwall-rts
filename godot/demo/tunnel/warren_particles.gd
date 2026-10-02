@@ -111,12 +111,12 @@ func configure() -> void:
 	for k in HAZARD_SLOTS:
 		_drips.append(_emitter(DRIP_AMOUNT, DRIP_LIFE_S, drip_mesh(), false, Layers.UNDERGROUND))
 		_sand.append(_emitter(SAND_AMOUNT, SAND_LIFE_S, sand_mesh(), false, Layers.UNDERGROUND))
-	for clods in _clods:
-		_throw(clods, 55.0, Vector2(0.8, 1.6), -6.0)
-	for mound in _mounds:
-		_throw(mound, 40.0, Vector2(1.0, 1.8), -6.0)
-	for puff in _dust:
-		_billow(puff)
+	for clod_set in _clods:
+		_throw(clod_set, 55.0, Vector2(0.8, 1.6), -6.0)
+	for mound_set in _mounds:
+		_throw(mound_set, 40.0, Vector2(1.0, 1.8), -6.0)
+	for dust_set in _dust:
+		_billow(dust_set)
 	for drip in _drips:
 		_fall(drip, 0.02, -9.0)
 	for trickle in _sand:
@@ -215,14 +215,14 @@ static func dust_mesh() -> QuadMesh:
 	if not _meshes.has("dust"):
 		var quad := QuadMesh.new()
 		quad.size = Vector2(0.8, 0.8)
-		var puff := StandardMaterial3D.new()
-		puff.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		puff.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-		puff.vertex_color_use_as_albedo = true
-		puff.vertex_color_is_srgb = true
-		puff.roughness = 1.0
-		puff.albedo_texture = (KitScript.smoke_mesh().material as StandardMaterial3D).albedo_texture
-		quad.material = puff
+		var puff_material := StandardMaterial3D.new()
+		puff_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		puff_material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		puff_material.vertex_color_use_as_albedo = true
+		puff_material.vertex_color_is_srgb = true
+		puff_material.roughness = 1.0
+		puff_material.albedo_texture = (KitScript.smoke_mesh().material as StandardMaterial3D).albedo_texture
+		quad.material = puff_material
 		_meshes["dust"] = quad
 	return _meshes["dust"]
 

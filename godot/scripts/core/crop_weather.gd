@@ -420,20 +420,20 @@ func _init(p_ecology: EcologyScript = null, p_rng: Rng = null) -> void:
 
 func _assert_shared_contracts() -> void:
 	"""Prove the cadence and capacity facts this file reads out of other modules."""
-	assert(SimClock.TICKS_PER_DAY % SimClock.TICKS_PER_HOUR == 0,
+	@warning_ignore("assert_always_true") assert(SimClock.TICKS_PER_DAY % SimClock.TICKS_PER_HOUR == 0,
 		"a day must be a whole number of hours, or a midnight is not an hour boundary")
 	assert(is_hour_boundary(SimClock.FIRST_MIDNIGHT_TICK),
 		"the first midnight must also be an hour crossing, because both legs run at it")
-	assert(FarmingScript.TILE_COUNT == ResourceNodesScript.TILE_COUNT,
+	@warning_ignore("assert_always_true") assert(FarmingScript.TILE_COUNT == ResourceNodesScript.TILE_COUNT,
 		"the crop ledger and the tile geometry owner must describe one 128x128 grid")
-	assert(FarmingScript.FARM_PLOT_CAPACITY
+	@warning_ignore("assert_always_true") assert(FarmingScript.FARM_PLOT_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_FARM_PLOT],
 		"the plot sweep must cover exactly the directory's FarmPlot rows")
 	assert(_farming.directory() == _directory,
 		"the crop store must validate references through the ecology's one directory")
 	assert(_fishing == _ecology.fishing(),
 		"ruling §4.1's closure must be written into ARCH-SYS-005's own fishery, not a copy")
-	assert(WeatherScript.DAYS_PER_SEASON == SimClock.DAYS_PER_SEASON,
+	@warning_ignore("assert_always_true") assert(WeatherScript.DAYS_PER_SEASON == SimClock.DAYS_PER_SEASON,
 		"the absolute-season identity and the clock must agree on a season's length")
 
 

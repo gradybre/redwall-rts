@@ -52,7 +52,7 @@ func point(k: int) -> Vector2i:
 
 func crossing_count() -> int:
 	"""How many crossings the piece makes."""
-	return crossings.size() / 3
+	@warning_ignore("integer_division") return crossings.size() / 3
 
 
 func starts_at_mouth() -> bool:

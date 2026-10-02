@@ -66,8 +66,8 @@ const CELLS_PER_TILE: int = 4
 
 ## ARCH-PATH-003: "Macro cells contain 16x16 navigation cells".
 const MACRO_CELLS: int = 16
-const MACROS_X: int = CELLS_X / MACRO_CELLS
-const MACROS_Z: int = CELLS_Z / MACRO_CELLS
+@warning_ignore("integer_division") const MACROS_X: int = CELLS_X / MACRO_CELLS
+@warning_ignore("integer_division") const MACROS_Z: int = CELLS_Z / MACRO_CELLS
 const MACRO_COUNT: int = MACROS_X * MACROS_Z
 const CELLS_PER_MACRO: int = MACRO_CELLS * MACRO_CELLS
 
@@ -260,7 +260,7 @@ func _recompute_clearance() -> void:
 			_clearance[cell] = 0
 			continue
 		var x: int = cell % CELLS_X
-		var z: int = cell / CELLS_X
+		@warning_ignore("integer_division") var z: int = cell / CELLS_X
 		if x == CELLS_X - 1 or z == CELLS_Z - 1:
 			_clearance[cell] = 1
 			continue
@@ -292,17 +292,17 @@ static func cell_x_of(cell: int) -> int:
 
 static func cell_z_of(cell: int) -> int:
 	"""The Z coordinate of a cell index. Caller checks `is_cell()` first."""
-	return cell / CELLS_X
+	@warning_ignore("integer_division") return cell / CELLS_X
 
 
 static func macro_of(cell: int) -> int:
 	"""ARCH-PATH-003's macro cell containing `cell`. Caller checks `is_cell()` first."""
-	return (cell / CELLS_X / MACRO_CELLS) * MACROS_X + (cell % CELLS_X) / MACRO_CELLS
+	@warning_ignore("integer_division") return (cell / CELLS_X / MACRO_CELLS) * MACROS_X + (cell % CELLS_X) / MACRO_CELLS
 
 
 static func macro_first_cell(macro_id: int) -> int:
 	"""The north-west cell of a macro cell. Caller checks `0 <= macro_id < MACRO_COUNT` first."""
-	return (macro_id / MACROS_X) * MACRO_CELLS * CELLS_X + (macro_id % MACROS_X) * MACRO_CELLS
+	@warning_ignore("integer_division") return (macro_id / MACROS_X) * MACRO_CELLS * CELLS_X + (macro_id % MACROS_X) * MACRO_CELLS
 
 
 static func cell_centre_x_units(cell: int) -> int:
@@ -312,7 +312,7 @@ static func cell_centre_x_units(cell: int) -> int:
 
 static func cell_centre_z_units(cell: int) -> int:
 	"""The Z centre of a cell in GDD 4.2's 1/1024 m units. Caller checks `is_cell()` first."""
-	return (cell / CELLS_X) * CELL_SIZE_UNITS + CELL_CENTRE_OFFSET_UNITS
+	@warning_ignore("integer_division") return (cell / CELLS_X) * CELL_SIZE_UNITS + CELL_CENTRE_OFFSET_UNITS
 
 
 func cell_index_into(x: int, z: int, out: IntMath.IntResult) -> bool:
@@ -329,8 +329,8 @@ func cell_of_position_into(x_units: int, z_units: int, out: IntMath.IntResult) -
 	if x_units < 0 or z_units < 0:
 		_last_refusal = REFUSE_INVALID_POSITION
 		return out.refuse(REFUSE_INVALID_POSITION)
-	var x: int = x_units / CELL_SIZE_UNITS
-	var z: int = z_units / CELL_SIZE_UNITS
+	@warning_ignore("integer_division") var x: int = x_units / CELL_SIZE_UNITS
+	@warning_ignore("integer_division") var z: int = z_units / CELL_SIZE_UNITS
 	if not is_cell_coord(x, z):
 		_last_refusal = REFUSE_INVALID_POSITION
 		return out.refuse(REFUSE_INVALID_POSITION)
@@ -354,7 +354,7 @@ func is_ford_cell(cell: int) -> bool:
 	"""
 	if not is_cell(cell):
 		return false
-	return WorldInit.is_ford(cell % CELLS_X / CELLS_PER_TILE, cell / CELLS_X / CELLS_PER_TILE)
+	@warning_ignore("integer_division") return WorldInit.is_ford(cell % CELLS_X / CELLS_PER_TILE, cell / CELLS_X / CELLS_PER_TILE)
 
 
 func cell_passes_clearance(cell: int, clearance_class: int) -> bool:

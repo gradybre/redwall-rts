@@ -552,7 +552,7 @@ func _ore_node_quantity(x: int, z: int, resource_id: int, per_node_milli: int) -
 
 func _footprint_tile(origin_x: int, origin_z: int, index: int) -> int:
 	"""The `index`-th tile of a 4x4 footprint in ascending tile-index order (z outer, x inner)."""
-	return _tile(origin_x + index % DEPOSIT_SIZE, origin_z + index / DEPOSIT_SIZE)
+	@warning_ignore("integer_division") return _tile(origin_x + index % DEPOSIT_SIZE, origin_z + index / DEPOSIT_SIZE)
 
 
 func _fill_trees(count: int) -> int:

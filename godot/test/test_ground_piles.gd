@@ -402,7 +402,7 @@ func _bfs_order_from(start: int) -> PackedInt32Array:
 		head += 1
 		for step: Vector2i in [Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)]:
 			var x: int = tile % 128 + step.x
-			var z: int = tile / 128 + step.y
+			@warning_ignore("integer_division") var z: int = tile / 128 + step.y
 			if x < 0 or x >= 128 or z < 0 or z >= 128 or seen[z * 128 + x] == 1:
 				continue
 			seen[z * 128 + x] = 1
@@ -607,7 +607,7 @@ func test_a_ring_at_the_south_east_corner_never_wraps_onto_the_next_row() -> voi
 	assert_equal(_origin(well, _empty_mask(), seeds), 4, "north and west sides only")
 	for index: int in 4:
 		var x: int = seeds[index] % 128
-		var z: int = seeds[index] / 128
+		@warning_ignore("integer_division") var z: int = seeds[index] / 128
 		assert_true(x == 125 or z == 125, "seed %d (%d, %d) touches the footprint" % [index, x, z])
 
 

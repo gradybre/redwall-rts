@@ -779,9 +779,9 @@ func test_every_latch_and_care_rule_refuses_its_own_hostile_image() -> void:
 		[9500, 0, 1, Households.REFUSE_COLUMN_LATCH, "eligible kept at 9500"],
 		[5000, 0, 2, Households.REFUSE_COLUMN_LATCH, "eligibility byte 2"]]
 	for case: Array in cases:
-		var image: Households.Columns = _fresh_image()
-		_set_child_care(image, lonely, case[0], case[1], case[2])
-		_expect_refused(image, case[3], case[4])
+		var case_image: Households.Columns = _fresh_image()
+		_set_child_care(case_image, lonely, case[0], case[1], case[2])
+		_expect_refused(case_image, case[3], case[4])
 	var image: Households.Columns = _fresh_image()
 	_set_child_care(image, lonely, 0, 3, 1)
 	image.d_care_remainder[lonely] = -1

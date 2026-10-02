@@ -553,7 +553,7 @@ func _select_tile(shell: UiShell, tile_index: int) -> void:
 	var terrain: IntMath.IntResult = world.terrain_at(tile_index)
 	var title: String = "Tile %d,%d - %s" % [WorldInitScript.tile_x_of(tile_index),
 		WorldInitScript.tile_z_of(tile_index),
-		WorldInitScript.TERRAIN_KEYS[terrain.value] if terrain.ok else "unknown"]
+		WorldInitScript.TERRAIN_KEYS[terrain.value] if terrain.ok else &"unknown"]
 	if not basin_index.ok or basin_index.value == WorldInitScript.NO_BASIN:
 		shell.set_detail_display(title, "No ecology basin here.", "")
 		shell.set_detail_open(true)

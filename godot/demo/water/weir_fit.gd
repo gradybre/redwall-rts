@@ -96,7 +96,7 @@ static func stream_margin_m(p: Vector2) -> float:
 	capsules over water_layout.gd's STREAM_VERTICES -- the largest of r(t) - |p - c(t)|."""
 	var best: float = -INF
 	var v: Array[int] = WaterLayout.STREAM_VERTICES
-	for k: int in range(1, v.size() / 4):
+	@warning_ignore("integer_division") for k: int in range(1, v.size() / 4):
 		var a := Vector2(Rules.to_m(v[k * 4 - 4]), Rules.to_m(v[k * 4 - 3]))
 		var b := Vector2(Rules.to_m(v[k * 4]), Rules.to_m(v[k * 4 + 1]))
 		var ab: Vector2 = b - a

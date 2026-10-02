@@ -124,13 +124,13 @@ func set_kitchen(p_kitchen: KitchenScript) -> void:
 
 func start(hour_index: int) -> void:
 	"""Open the day holding `hour_index` (the calendar's hour index), the ledgers as they stand now, its weather seen."""
-	_open_day_at(hour_index / HOURS_PER_DAY)
+	@warning_ignore("integer_division") _open_day_at(hour_index / HOURS_PER_DAY)
 	note_weather(hour_index)
 
 
 static func day_of_hour(hour_index: int) -> int:
 	"""The calendar day index (0 = spring day 1 of year 1) an hour index falls in."""
-	return hour_index / HOURS_PER_DAY
+	@warning_ignore("integer_division") return hour_index / HOURS_PER_DAY
 
 
 func open_day() -> int:
@@ -181,7 +181,7 @@ func note_weather(hour_index: int) -> void:
 	_weather_seen[at] = day
 	_weather_seen[at + 1] = weather.temperature_tenths()
 	_weather_seen[at + 2] = weather.rain()
-	_weather_seen[at + 3] = weather.event_of() if weather.is_event_active(day / DAYS_PER_SEASON,
+	@warning_ignore("integer_division") _weather_seen[at + 3] = weather.event_of() if weather.is_event_active(day / DAYS_PER_SEASON,
 		day % DAYS_PER_SEASON + 1) else WeatherScript.EVENT_NONE
 
 
@@ -272,7 +272,7 @@ func _read_kitchen_into(out: PackedInt64Array) -> void:
 
 func day_count() -> int:
 	"""How many closed days are kept."""
-	return _days.size() / STRIDE
+	@warning_ignore("integer_division") return _days.size() / STRIDE
 
 
 func value(k: int, field: int) -> int:
@@ -302,7 +302,7 @@ func season_total(absolute_season: int, field: int) -> int:
 	"""A field summed over the kept days of one absolute season (season index = day / 12)."""
 	var total: int = 0
 	for k: int in day_count():
-		if value(k, F_DAY) / DAYS_PER_SEASON == absolute_season:
+		@warning_ignore("integer_division") if value(k, F_DAY) / DAYS_PER_SEASON == absolute_season:
 			total += value(k, field)
 	return total
 
@@ -311,7 +311,7 @@ func season_item_total(absolute_season: int, group: int, item: int) -> int:
 	"""An item's movement in group G_* summed over the kept days of one absolute season."""
 	var total: int = 0
 	for k: int in day_count():
-		if value(k, F_DAY) / DAYS_PER_SEASON == absolute_season:
+		@warning_ignore("integer_division") if value(k, F_DAY) / DAYS_PER_SEASON == absolute_season:
 			total += item_value(k, group, item)
 	return total
 
@@ -320,6 +320,6 @@ func season_days(absolute_season: int) -> int:
 	"""How many of a season's days are kept (closed)."""
 	var days: int = 0
 	for k: int in day_count():
-		if value(k, F_DAY) / DAYS_PER_SEASON == absolute_season:
+		@warning_ignore("integer_division") if value(k, F_DAY) / DAYS_PER_SEASON == absolute_season:
 			days += 1
 	return days

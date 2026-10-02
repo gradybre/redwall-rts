@@ -515,22 +515,22 @@ static func _local_to_global(local_tile: int, hall_origin_tile: int) -> int:
 	"""Convert one interior-local tile (0..79, `z_local*10+x_local`) to its exterior global tile,
 	using the hall's own origin (interior origin = exterior origin + (1,1), GDD §5.9)."""
 	var hall_x: int = hall_origin_tile % MAP_TILES_X
-	var hall_z: int = hall_origin_tile / MAP_TILES_X
+	@warning_ignore("integer_division") var hall_z: int = hall_origin_tile / MAP_TILES_X
 	var interior_origin_x: int = hall_x + INTERIOR_INSET_TILES
 	var interior_origin_z: int = hall_z + INTERIOR_INSET_TILES
 	var lx: int = local_tile % INTERIOR_WIDTH
-	var lz: int = local_tile / INTERIOR_WIDTH
+	@warning_ignore("integer_division") var lz: int = local_tile / INTERIOR_WIDTH
 	return (interior_origin_z + lz) * MAP_TILES_X + (interior_origin_x + lx)
 
 
 static func _global_to_local(global_tile: int, hall_origin_tile: int) -> int:
 	"""Inverse of `_local_to_global()`; returns -1 when the global tile is outside the interior."""
 	var hall_x: int = hall_origin_tile % MAP_TILES_X
-	var hall_z: int = hall_origin_tile / MAP_TILES_X
+	@warning_ignore("integer_division") var hall_z: int = hall_origin_tile / MAP_TILES_X
 	var interior_origin_x: int = hall_x + INTERIOR_INSET_TILES
 	var interior_origin_z: int = hall_z + INTERIOR_INSET_TILES
 	var gx: int = global_tile % MAP_TILES_X
-	var gz: int = global_tile / MAP_TILES_X
+	@warning_ignore("integer_division") var gz: int = global_tile / MAP_TILES_X
 	var lx: int = gx - interior_origin_x
 	var lz: int = gz - interior_origin_z
 	if lx < 0 or lx >= INTERIOR_WIDTH or lz < 0 or lz >= INTERIOR_HEIGHT:
@@ -795,7 +795,7 @@ static func _check_building_layout(plan: Plan) -> StringName:
 			return REFUSE_BUILDING_LAYOUT
 		var extent: Vector2i = _building_extent(footprint_x, footprint_z, rotation)
 		var min_x: int = origin_tile % MAP_TILES_X
-		var min_z: int = origin_tile / MAP_TILES_X
+		@warning_ignore("integer_division") var min_z: int = origin_tile / MAP_TILES_X
 		var max_x: int = min_x + extent.x
 		var max_z: int = min_z + extent.y
 		if max_x > MAP_TILES_X or max_z > MAP_TILES_Z:
@@ -839,7 +839,7 @@ static func _find_hall_origin(plan: Plan) -> int:
 	if origin_tile >= MAP_TILES_X * MAP_TILES_Z:
 		return -1
 	var hall_x: int = origin_tile % MAP_TILES_X
-	var hall_z: int = origin_tile / MAP_TILES_X
+	@warning_ignore("integer_division") var hall_z: int = origin_tile / MAP_TILES_X
 	if hall_x + INTERIOR_INSET_TILES + INTERIOR_WIDTH > MAP_TILES_X:
 		return -1
 	if hall_z + INTERIOR_INSET_TILES + INTERIOR_HEIGHT > MAP_TILES_Z:
@@ -981,7 +981,7 @@ static func _check_furniture_layout(plan: Plan, hall_origin_tile: int) -> String
 		if footprint_offset + footprint_count > Plan.FOOTPRINTS_ROW_COUNT:
 			return REFUSE_FURNITURE_LAYOUT
 		var origin_x: int = origin_local % INTERIOR_WIDTH
-		var origin_z: int = origin_local / INTERIOR_WIDTH
+		@warning_ignore("integer_division") var origin_z: int = origin_local / INTERIOR_WIDTH
 		if origin_x + extent.x > INTERIOR_WIDTH or origin_z + extent.y > INTERIOR_HEIGHT:
 			return REFUSE_FURNITURE_LAYOUT
 		var write_index: int = footprint_offset
@@ -1049,7 +1049,7 @@ static func _check_edge_layout(plan: Plan, hall_origin_tile: int) -> StringName:
 			return REFUSE_EDGE_LAYOUT
 		previous_a = tile_a
 		var local_x: int = tile_a % INTERIOR_WIDTH
-		var local_z: int = tile_a / INTERIOR_WIDTH
+		@warning_ignore("integer_division") var local_z: int = tile_a / INTERIOR_WIDTH
 		if local_x + 1 >= INTERIOR_WIDTH or tile_b != tile_a + 1:
 			return REFUSE_EDGE_LAYOUT
 		if column == -1:
@@ -1116,9 +1116,9 @@ static func _orthogonally_adjacent_global(a: int, b: int) -> bool:
 	if a < 0 or a >= tile_limit or b < 0 or b >= tile_limit:
 		return false
 	var ax: int = a % MAP_TILES_X
-	var az: int = a / MAP_TILES_X
+	@warning_ignore("integer_division") var az: int = a / MAP_TILES_X
 	var bx: int = b % MAP_TILES_X
-	var bz: int = b / MAP_TILES_X
+	@warning_ignore("integer_division") var bz: int = b / MAP_TILES_X
 	var dx: int = absi(ax - bx)
 	var dz: int = absi(az - bz)
 	return (dx == 1 and dz == 0) or (dx == 0 and dz == 1)
@@ -1141,9 +1141,9 @@ static func _inside_building_footprint(plan: Plan, global_tile: int, origin_tile
 			return false
 		var extent: Vector2i = _building_extent(footprint_x, footprint_z, rotation)
 		var min_x: int = origin_tile % MAP_TILES_X
-		var min_z: int = origin_tile / MAP_TILES_X
+		@warning_ignore("integer_division") var min_z: int = origin_tile / MAP_TILES_X
 		var gx: int = global_tile % MAP_TILES_X
-		var gz: int = global_tile / MAP_TILES_X
+		@warning_ignore("integer_division") var gz: int = global_tile / MAP_TILES_X
 		return gx >= min_x and gx < min_x + extent.x and gz >= min_z and gz < min_z + extent.y
 	return false
 
@@ -1170,7 +1170,7 @@ static func _local_neighbors(local_tile: int) -> Array[int]:
 	"""The up-to-four orthogonal in-bounds neighbors of one interior-local tile."""
 	var neighbors: Array[int] = []
 	var lx: int = local_tile % INTERIOR_WIDTH
-	var lz: int = local_tile / INTERIOR_WIDTH
+	@warning_ignore("integer_division") var lz: int = local_tile / INTERIOR_WIDTH
 	if lx > 0:
 		neighbors.append(local_tile - 1)
 	if lx < INTERIOR_WIDTH - 1:

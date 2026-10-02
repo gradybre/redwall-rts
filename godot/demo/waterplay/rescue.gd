@@ -108,7 +108,6 @@ var _map: WaterMapScript = null
 var _say: Callable = Callable()
 var _victim_task: Array[Tasks.VictimTask] = []
 var _dispatch_s: float = 0.0
-var _bank: WaterMapScript.Bank = WaterMapScript.Bank.new()
 var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _conn: IntMath.IntResult = IntMath.IntResult.new()
 ## Scratch for NEAREST BY ROUTE, one row per candidate (sized at configure): who, where it goes in on

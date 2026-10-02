@@ -137,9 +137,9 @@ func set_hall(door: Vector2) -> void:
 	_hall = door
 
 
-func set_early_riser(up_early: Callable) -> void:
-	"""`up_early(i: int) -> bool`: whether resident `i` is up before dawn (see AN EARLY RISER)."""
-	_early = up_early
+func set_early_riser(early_test: Callable) -> void:
+	"""`early_test(i: int) -> bool`: whether resident `i` is up before dawn (see AN EARLY RISER)."""
+	_early = early_test
 
 
 func up_early(i: int) -> bool:
@@ -160,9 +160,9 @@ func _morning_for(i: int) -> bool:
 	return is_morning() or up_early(i)
 
 
-func set_alarm(alarm: Callable) -> void:
-	"""`alarm() -> bool`: whether a threat is under way (see THE ALARM)."""
-	_alarm = alarm
+func set_alarm(alarm_test: Callable) -> void:
+	"""`alarm_test() -> bool`: whether a threat is under way (see THE ALARM)."""
+	_alarm = alarm_test
 
 
 static func is_night_hour(hour: int) -> bool:
@@ -301,7 +301,7 @@ func _bed_task(i: int, task: SleepTaskScript) -> bool:
 	var bed := bed_of[i]
 	if bed == AllocationScript.NO_BED:
 		return false
-	var r := bed / FixturesScript.PLACES
+	@warning_ignore("integer_division") var r := bed / FixturesScript.PLACES
 	var f := bed % FixturesScript.PLACES
 	var rooms: RoomsScript = _graph.rooms
 	var middle: int = rooms.middle[r]
@@ -350,7 +350,7 @@ func sleepers_of(r: int) -> String:
 	"""Who has a bed in home row `r`, by name ("" nobody)."""
 	var out := PackedStringArray()
 	for i in _brains.size():
-		if bed_of[i] != AllocationScript.NO_BED and bed_of[i] / FixturesScript.PLACES == r:
+		@warning_ignore("integer_division") if bed_of[i] != AllocationScript.NO_BED and bed_of[i] / FixturesScript.PLACES == r:
 			out.append(_names[i])
 	return ", ".join(out)
 
@@ -368,7 +368,7 @@ func home_text(who: int, alone: bool) -> String:
 		return "No %s: sleeps on the hall's floor" % BED_WORDS[permitted[who]] if alone else "no bed"
 	if not alone:
 		return ""
-	var r := bed / FixturesScript.PLACES
+	@warning_ignore("integer_division") var r := bed / FixturesScript.PLACES
 	var comfort: int = _graph.fit.comfort(_graph, r)
 	return "Bed: %s · comfort %d (%s)" % [room_name(r), comfort, FixturesScript.comfort_word(comfort)]
 

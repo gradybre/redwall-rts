@@ -379,7 +379,7 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 
 func _init(p_buildings: Buildings = null) -> void:
 	"""Adopt or build the Building store, compile the three bills, and size every column once."""
-	assert(CONSTRUCTION_CAPACITY
+	@warning_ignore("assert_always_true") assert(CONSTRUCTION_CAPACITY
 			== EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_CONSTRUCTION],
 		"Construction columns must match the directory's CONSTRUCTION row capacity")
 	_owns_buildings = p_buildings == null
@@ -453,7 +453,7 @@ func _compile_bills() -> void:
 func _write_bill(pairs: Array, id: int, keys: PackedInt32Array,
 		milli: PackedInt64Array) -> int:
 	"""Expand one flat `key, milli` list into the owner-major columns; return its pair count."""
-	var count: int = pairs.size() / 2
+	@warning_ignore("integer_division") var count: int = pairs.size() / 2
 	assert(pairs.size() % 2 == 0, "a materials_milli row must be whole key/quantity pairs")
 	assert(count <= MATERIAL_SLOTS_PER_PROJECT, "a bill exceeds MATERIAL_SLOTS_PER_PROJECT")
 	for index: int in count:
@@ -1076,7 +1076,7 @@ func cancellation_refund_milli_into(project_ref: Vector2i, index: int,
 		return out.refuse(REFUSE_MATERIAL_INDEX)
 	var delivered: int = _delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + index]
 	if _refund_policy[row] == REFUND_FULL:
-		return out.succeed(delivered * REFUND_FULL_NUM / REFUND_FULL_DEN)
+		@warning_ignore("integer_division") return out.succeed(delivered * REFUND_FULL_NUM / REFUND_FULL_DEN)
 	if not IntMath.checked_mul_into(delivered, REFUND_PARTIAL_NUM, out):
 		return out.refuse(REFUSE_OVERFLOW)
 	return IntMath.floor_div_into(out.value, REFUND_PARTIAL_DEN, out)
@@ -1764,7 +1764,7 @@ static func _bill_shape_ok(bill: Variant, expected_pairs: int) -> bool:
 	var pairs: Array = bill
 	if pairs.size() % 2 != 0:
 		return false
-	var pair_count: int = pairs.size() / 2
+	@warning_ignore("integer_division") var pair_count: int = pairs.size() / 2
 	if pair_count < 0 or pair_count > MATERIAL_SLOTS_PER_PROJECT or pair_count != expected_pairs:
 		return false
 	for index: int in pair_count:
@@ -2265,7 +2265,7 @@ static func _declared_work_mwu_for_row(purpose: int, type_id: int) -> int:
 		PURPOSE_DEMOLISH:
 			if type_id < 0 or type_id >= BUILDING_KINDS:
 				return 0
-			return COLUMN_BUILDING_WORK_MWU[type_id] * DEMOLITION_WORK_NUM / DEMOLITION_WORK_DEN
+			@warning_ignore("integer_division") return COLUMN_BUILDING_WORK_MWU[type_id] * DEMOLITION_WORK_NUM / DEMOLITION_WORK_DEN
 	return 0
 
 

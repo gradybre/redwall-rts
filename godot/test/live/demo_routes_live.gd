@@ -147,8 +147,8 @@ func _water_site() -> void:
 	var source: Button = panel.call(&"button", WaterPanel.ACTION_SOURCE)
 	_check("site: the source button leads to the saw", source.is_visible_in_tree() and source.text == SAW_CAPTION, source.text)
 	var plank: Button = panel.call(&"button", WaterPanel.ACTION_BUILD_PLANK)
-	var log: Button = panel.call(&"button", WaterPanel.ACTION_BUILD_LOG)
-	_check("site: no Build for the footbridge it can't pay for", not plank.visible and log.visible, "plank %s, log %s" % [plank.visible, log.visible])
+	var log_button: Button = panel.call(&"button", WaterPanel.ACTION_BUILD_LOG)
+	_check("site: no Build for the footbridge it can't pay for", not plank.visible and log_button.visible, "plank %s, log %s" % [plank.visible, log_button.visible])
 	var steps: int = _routes().steps
 	var took: int = await _until(func() -> bool:
 		_water().call(&"refresh_panel")
@@ -164,7 +164,7 @@ func _water_site() -> void:
 func _source_link() -> void:
 	"""The source button: no saw task queued, so the Woods panel comes forward -- and nothing is ordered."""
 	var panel: CanvasLayer = _water().get("panel")
-	var board: Object = _village.call(&"work").get("board")
+	var _board: Object = _village.call(&"work").get("board")
 	(panel.call(&"button", WaterPanel.ACTION_SOURCE) as Button).pressed.emit()
 	await _frames(SETTLE_FRAMES)
 	_check("source: the Woods panel brought forward", int(_village.get("_zone").get("shown")) == ZoneScript.PANEL_WOODS)
@@ -331,8 +331,8 @@ func _tunnel_project() -> void:
 	var ext: Node = tool.get("ext")
 	var took: int = await _until(func() -> bool:
 		ext.call(&"refresh_panel")
-		var text: String = ext.get("panel").call(&"line", &"project")
-		return text.begins_with("If this piece is dug") and not text.contains(TextScript.CALCULATING), ESTIMATE_FRAMES)
+		var line: String = ext.get("panel").call(&"line", &"project")
+		return line.begins_with("If this piece is dug") and not line.contains(TextScript.CALCULATING), ESTIMATE_FRAMES)
 	var text: String = ext.get("panel").call(&"line", &"project")
 	_check("dig: its benefit if dug", took >= 0 and text.contains("one end to the other"), text)
 	await _capture("routes_dig_laid")

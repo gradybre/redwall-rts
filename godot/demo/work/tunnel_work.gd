@@ -136,7 +136,7 @@ func fill(task: TaskScript, row: int) -> void:
 	task.target_kind = NoticesScript.TARGET_TUNNEL
 	task.target_id = row
 	task.percent = _jobs.percent(row)
-	task.remaining_usec = (_jobs.total[row] - _jobs.done_ticks(row)) * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
+	@warning_ignore("integer_division") task.remaining_usec = (_jobs.total[row] - _jobs.done_ticks(row)) * Rules.USEC_PER_SECOND / Rules.TICKS_PER_SECOND
 	if _jobs.paid[row] == 1:
 		task.cancel_refusal = PAID_CANCEL
 	if task.worker < 0:

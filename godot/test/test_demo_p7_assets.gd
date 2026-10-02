@@ -492,7 +492,7 @@ static func _area(mesh: Mesh) -> float:
 		for k in points.size():
 			index.append(k)
 	var total := 0.0
-	for t in index.size() / 3:
+	@warning_ignore("integer_division") for t in index.size() / 3:
 		var a := Vector2(points[index[t * 3]].x, points[index[t * 3]].z)
 		var b := Vector2(points[index[t * 3 + 1]].x, points[index[t * 3 + 1]].z)
 		var c := Vector2(points[index[t * 3 + 2]].x, points[index[t * 3 + 2]].z)
@@ -842,7 +842,7 @@ func test_a_hole_moved_or_wound_the_other_way_is_cut_again() -> void:
 	var ground_points: PackedVector3Array = ground.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var ground_index: PackedInt32Array = ground.mesh.surface_get_arrays(0)[Mesh.ARRAY_INDEX]
 	var up := _facing(ground_points[ground_index[0]], ground_points[ground_index[1]], ground_points[ground_index[2]])
-	for t in points.size() / 3:
+	@warning_ignore("integer_division") for t in points.size() / 3:
 		assert_equal(_facing(points[t * 3], points[t * 3 + 1], points[t * 3 + 2]), up, "collar triangle %d wound as the ground" % t)
 
 
@@ -1043,12 +1043,12 @@ func test_a_hole_splits_no_triangle_it_misses_and_leaves_no_slivers() -> void:
 	var b := PackedVector2Array([Vector2(2.5, 0.8), Vector2(3.5, 0.8), Vector2(3.5, 1.2), Vector2(2.5, 1.2)])
 	var counts := PackedInt32Array()
 	for holes: Array in [[a], [b], [a, b]]:
-		var cut := GroundCutScript.new()
-		cut.set_ground(_keep(_ground_grid(8, 2.0)))
+		var trial_cut := GroundCutScript.new()
+		trial_cut.set_ground(_keep(_ground_grid(8, 2.0)))
 		for k in holes.size():
-			cut.set_hole(k, holes[k])
-		cut.apply()
-		counts.append(cut.collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size())
+			trial_cut.set_hole(k, holes[k])
+		trial_cut.apply()
+		counts.append(trial_cut.collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX].size())
 	assert_equal(counts[2], counts[0] + counts[1], "two holes' collar: the two collars, no more")
 	var cut := GroundCutScript.new()
 	cut.set_ground(ground)
@@ -1056,7 +1056,7 @@ func test_a_hole_splits_no_triangle_it_misses_and_leaves_no_slivers() -> void:
 	cut.set_hole(0, PackedVector2Array([Vector2(-2, -1), Vector2(1, -1), Vector2(1, 1), Vector2(-2, 1)]))
 	cut.apply()
 	var points: PackedVector3Array = cut.collar.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-	for t in points.size() / 3:
+	@warning_ignore("integer_division") for t in points.size() / 3:
 		var area := absf((points[t * 3 + 1] - points[t * 3]).cross(points[t * 3 + 2] - points[t * 3]).y)
 		assert_true(area > 1e-6, "collar triangle %d has an area" % t)
 	var other: MeshInstance3D = _keep(_ground_grid(8, 2.0))

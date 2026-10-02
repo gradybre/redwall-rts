@@ -53,6 +53,6 @@ static func planned_lines(bridges: BridgesScript, crew: CrewScript, row: int) ->
 	"""A planned bridge: its materials (see NOTHING IS MISSING ONCE PLANNED), each stage's work, its builder."""
 	var work := PackedStringArray()
 	for stage: int in SwimRules.STAGE_COUNT:
-		work.append("%s %d%%" % [SwimRules.STAGE_NAMES[stage], bridges.stage_permille(row, stage) / 10])
+		@warning_ignore("integer_division") work.append("%s %d%%" % [SwimRules.STAGE_NAMES[stage], bridges.stage_permille(row, stage) / 10])
 	return "\n".join(PackedStringArray([MATERIALS % [material_words(bridges, row), where_words(crew, row)],
 		"Work: " + " · ".join(work), "Builder: " + crew.job_text(row)]))

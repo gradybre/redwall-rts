@@ -480,7 +480,7 @@ static func _declared_work(purpose: int, type_id: int) -> int:
 	if purpose == P_UPGRADE:
 		return T_UPGRADE_WORK[T_UPGRADE_IDS.find(type_id)]
 	if purpose == P_DEMOLISH:
-		return T_BUILDING_WORK[type_id] * 1 / 4
+		@warning_ignore("integer_division") return T_BUILDING_WORK[type_id] * 1 / 4
 	return T_BUILDING_WORK[type_id]
 
 

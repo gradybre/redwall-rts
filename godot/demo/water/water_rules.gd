@@ -89,19 +89,19 @@ static func isqrt(n: int) -> int:
 	if n < 2:
 		return n
 	var x: int = 1
-	while x * x <= n / 4:
+	@warning_ignore("integer_division") while x * x <= n / 4:
 		x *= 2
 	x *= 2
-	var y: int = (x + n / x) / 2
+	@warning_ignore("integer_division") var y: int = (x + n / x) / 2
 	while y < x:
 		x = y
-		y = (x + n / x) / 2
+		@warning_ignore("integer_division") y = (x + n / x) / 2
 	return x
 
 
 static func ceil_div(a: int, b: int) -> int:
 	"""ceil(a / b) for a >= 0 and b > 0."""
-	return (a + b - 1) / b
+	@warning_ignore("integer_division") return (a + b - 1) / b
 
 
 static func zone_for_depth(depth_u: int, body_height_u: int) -> int:
@@ -120,9 +120,9 @@ static func zone_for_depth(depth_u: int, body_height_u: int) -> int:
 
 static func wade_max_u(body_height_u: int) -> int:
 	"""The deepest water a body this tall still wades, in u (floor)."""
-	return WADE_MAX_PERMILLE * body_height_u / PERMILLE
+	@warning_ignore("integer_division") return WADE_MAX_PERMILLE * body_height_u / PERMILLE
 
 
 static func dive_min_u(body_height_u: int) -> int:
 	"""The depth past which water is a dive zone for a body this tall, in u (floor)."""
-	return DIVE_MIN_PERMILLE * body_height_u / PERMILLE
+	@warning_ignore("integer_division") return DIVE_MIN_PERMILLE * body_height_u / PERMILLE

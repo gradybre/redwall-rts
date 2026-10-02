@@ -215,7 +215,7 @@ func test_one_pantry_hour_in_spring_is_the_gdd_product() -> void:
 	assert_true(out.ok, "the hour ran")
 	assert_equal(out.season, SEASON_SPRING, "day 3 is in spring")
 	assert_equal(out.lots_aged, 1, "one lot aged")
-	assert_equal(_inv.lot_age_milli_hours(lot), PANTRY_FACTOR * SPRING_FACTOR / 1000,
+	@warning_ignore("integer_division") assert_equal(_inv.lot_age_milli_hours(lot), PANTRY_FACTOR * SPRING_FACTOR / 1000,
 		"§5.8's floor(store*temperature/1000) in milli-hours")
 	assert_equal(_inv.lot_age_remainder(lot), 0, "with nothing left over")
 
@@ -242,10 +242,10 @@ func test_summer_and_winter_move_the_same_store_at_different_rates() -> void:
 	var cellar: Vector2i = _container(StockAgeScript.STORAGE_CELLAR)
 	var summer_lot: Vector2i = _lot(cellar, &"grain", 1000)
 	assert_true(_age.run_hour(_hour_tick(15, 5)).ok, "a summer hour runs")
-	assert_equal(_inv.lot_age_milli_hours(summer_lot), CELLAR_FACTOR * SUMMER_FACTOR / 1000,
+	@warning_ignore("integer_division") assert_equal(_inv.lot_age_milli_hours(summer_lot), CELLAR_FACTOR * SUMMER_FACTOR / 1000,
 		"cellar in summer is floor(350*1500/1000) = 525")
 	assert_true(_age.run_hour(_hour_tick(40, 5)).ok, "a winter hour runs")
-	assert_equal(_inv.lot_age_milli_hours(summer_lot),
+	@warning_ignore("integer_division") assert_equal(_inv.lot_age_milli_hours(summer_lot),
 		CELLAR_FACTOR * SUMMER_FACTOR / 1000 + CELLAR_FACTOR * WINTER_FACTOR / 1000,
 		"and winter adds floor(350*500/1000) = 175 on top")
 
@@ -257,9 +257,9 @@ func test_a_heated_interior_ages_faster_in_winter_than_an_unheated_one() -> void
 	var chilled: Vector2i = _lot(cold, &"grain", 1000)
 	var heated: Vector2i = _lot(warm, &"grain", 1000)
 	assert_true(_age.run_hour(_hour_tick(40, 5)).ok, "a winter hour runs over both")
-	assert_equal(_inv.lot_age_milli_hours(chilled), PANTRY_FACTOR * WINTER_FACTOR / 1000,
+	@warning_ignore("integer_division") assert_equal(_inv.lot_age_milli_hours(chilled), PANTRY_FACTOR * WINTER_FACTOR / 1000,
 		"an unheated pantry ages at floor(750*500/1000) = 375")
-	assert_equal(_inv.lot_age_milli_hours(heated), PANTRY_FACTOR * HEATED_WINTER_FACTOR / 1000,
+	@warning_ignore("integer_division") assert_equal(_inv.lot_age_milli_hours(heated), PANTRY_FACTOR * HEATED_WINTER_FACTOR / 1000,
 		"a heated one uses the §5.8 substitution and ages at 750")
 
 
@@ -280,7 +280,7 @@ func test_midnight_ages_with_the_elapsed_intervals_season_not_the_new_days() -> 
 	var out: StockAgeScript.HourResult = _age.run_hour(midnight)
 	assert_true(out.ok, "the midnight hour runs")
 	assert_equal(out.season, SEASON_SPRING, "the pass reports the elapsed interval's season")
-	assert_equal(_inv.lot_age_milli_hours(lot), OPEN_PILE_FACTOR * SPRING_FACTOR / 1000,
+	@warning_ignore("integer_division") assert_equal(_inv.lot_age_milli_hours(lot), OPEN_PILE_FACTOR * SPRING_FACTOR / 1000,
 		"so the lot took spring's 1500, not summer's 2250")
 
 
@@ -638,7 +638,7 @@ func test_the_catalog_masses_still_make_the_expiry_divisor_exactly_ten() -> void
 		assert_equal(_defs.shelf_hours(id), SEED_SHELF_HOURS, "%s has a 1440 h shelf life" % key)
 	assert_equal(_inv.item_mass_g(_item(&"compost")), COMPOST_MASS_G, "compost is 1000 g/U")
 	assert_equal(COMPOST_MASS_G % SEED_MASS_G, 0, "the two masses divide, so a divisor exists")
-	assert_equal(COMPOST_MASS_G / SEED_MASS_G, EXPECTED_DIVISOR,
+	@warning_ignore("integer_division") assert_equal(COMPOST_MASS_G / SEED_MASS_G, EXPECTED_DIVISOR,
 		"the derived divisor is currently 10; changing a catalog mass must fail here")
 
 

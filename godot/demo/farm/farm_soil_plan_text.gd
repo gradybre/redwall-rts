@@ -70,7 +70,7 @@ static func staff_line(plan: Plans.Plan) -> String:
 	if plan.work_usec <= 0:
 		return "Staff time: none"
 	var hundredths: int = Plans.staff_hundredths(plan.work_usec)
-	return "Staff time: %s (%d.%02d staff-days)" % [CardScript.hours_text(plan.work_usec), hundredths / 100,
+	@warning_ignore("integer_division") return "Staff time: %s (%d.%02d staff-days)" % [CardScript.hours_text(plan.work_usec), hundredths / 100,
 		hundredths % 100]
 
 

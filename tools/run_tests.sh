@@ -11,8 +11,18 @@
 # report zero failures, and it must report a non-zero test count. A run that
 # executes nothing fails here rather than reporting success.
 #
+# It also fails a run whose log is not clean (decision 0501): an `ERROR:` or `WARNING:` line that no test
+# declared (the runner reprints declared ones as `EXPECTED ...` and outside-the-tree notices as `TOLERATED ...`,
+# so they no longer start the line), or objects/resources the worker never freed. The allowances below are all
+# zero; raising one needs a decision record that names what is allowed and why.
+#
 # Usable locally as well as in CI: ./tools/run_tests.sh
 set -uo pipefail
+
+readonly MAX_UNEXPECTED_ERRORS=0
+readonly MAX_UNEXPECTED_WARNINGS=0
+readonly MAX_LEAKED_OBJECTS=0
+readonly MAX_LEAKED_RESOURCES=0
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
@@ -59,6 +69,32 @@ fi
 if [[ "$godot_status" -ne 0 ]]; then
     echo "error: the suite reported no failures but godot exited ${godot_status}." >&2
     exit "$godot_status"
+fi
+
+# Counted from the raw log rather than from the runner's own diagnostics line, so a supervisor that stopped
+# classifying (or a leak report from the supervisor process itself) is still caught.
+unexpected_errors="$(grep -cE '^(USER )?ERROR:' "$output_file")"
+unexpected_warnings="$(grep -cE '^(USER )?WARNING:' "$output_file")"
+leaked_objects="$(grep -oE '[0-9]+ ObjectDB instances were leaked' "$output_file" \
+    | awk '{ total += $1 } END { print total + 0 }')"
+leaked_resources="$(grep -oE '[0-9]+ resources still in use at exit' "$output_file" \
+    | awk '{ total += $1 } END { print total + 0 }')"
+echo "log: ${unexpected_errors} unexpected error(s), ${unexpected_warnings} unexpected warning(s);" \
+    "leaked at exit: ${leaked_objects} object(s), ${leaked_resources} resource(s)."
+
+dirty=0
+check_allowance() {
+    if [[ "$2" -gt "$3" ]]; then
+        echo "error: ${2} ${1} (allowed: ${3}). See docs/ENVIRONMENT.md, 'Reading the test log'." >&2
+        dirty=1
+    fi
+}
+check_allowance "unexpected ERROR line(s)" "$unexpected_errors" "$MAX_UNEXPECTED_ERRORS"
+check_allowance "unexpected WARNING line(s)" "$unexpected_warnings" "$MAX_UNEXPECTED_WARNINGS"
+check_allowance "leaked ObjectDB instance(s)" "$leaked_objects" "$MAX_LEAKED_OBJECTS"
+check_allowance "leaked resource(s)" "$leaked_resources" "$MAX_LEAKED_RESOURCES"
+if [[ "$dirty" -ne 0 ]]; then
+    exit 1
 fi
 
 echo "ok: ${tests} tests, ${assertions} assertions, 0 failures."

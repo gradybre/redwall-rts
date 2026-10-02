@@ -80,7 +80,7 @@ func _ready() -> void:
 		push_error("ResidentStage has no ResidentCrowd child; residents will not be drawn.")
 
 
-func attach(residents: ResidentsScript, transforms: TransformsScript) -> bool:
+func attach(residents: ResidentsScript, transform_store: TransformsScript) -> bool:
 	"""Bind the crowd to the settlement's OWN resident and pose stores. Called by `main.gd`.
 
 	BOTH ARE BORROWED AND NEITHER IS CREATED HERE. Placement is the settlement's, inside its
@@ -95,11 +95,11 @@ func attach(residents: ResidentsScript, transforms: TransformsScript) -> bool:
 		return _refuse(REFUSE_NO_CROWD)
 	if residents == null:
 		return _refuse(REFUSE_NO_RESIDENTS)
-	if transforms == null:
+	if transform_store == null:
 		return _refuse(REFUSE_NO_TRANSFORMS)
-	if not _crowd.bind_stores(residents, transforms):
+	if not _crowd.bind_stores(residents, transform_store):
 		return _refuse(REFUSE_BIND)
-	_transforms = transforms
+	_transforms = transform_store
 	_crowd.set_crowd_mesh(_resolve_crowd_mesh())
 	_attached = true
 	_last_refusal = REFUSE_NONE

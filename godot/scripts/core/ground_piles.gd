@@ -679,7 +679,8 @@ func preflight_container_into_piles(source_ref: Vector2i, seeds: PackedInt32Arra
 	CLAIMED GOODS ARE ASKED ABOUT AS IF RELEASED. A haul proves its pile fallback while its claim
 	still stands, so inside the rolled-back transaction every lot's reserved quantity is released
 	first -- the abort restores it byte for byte, and the pool's rows are never touched -- and the
-	walk then sees exactly what the real move will see once the caller has released the claim.
+	walk then sees exactly what the real move will see once the caller has released the claims.
+	Reserved MASS on the source is not a lot claim and refuses here exactly as the move refuses it.
 	"""
 	return _run_move(source_ref, seeds, seed_count, excluded_mask, out, false)
 
@@ -773,10 +774,10 @@ func _move_refusal(source_ref: Vector2i, seeds: PackedInt32Array, seed_count: in
 	if not _inventory.is_container_valid(source_ref) or _inventory.is_ground_pile(source_ref) \
 			or _inventory.container_lot_count(source_ref) == 0:
 		return REFUSE_MOVE_SOURCE
-	if not require_unreserved:
-		return REFUSE_NONE
 	if _inventory.container_reserved_mass_g(source_ref) != 0:
 		return REFUSE_MOVE_SOURCE_RESERVED
+	if not require_unreserved:
+		return REFUSE_NONE
 	var lot: Vector2i = _inventory.container_first_lot(source_ref)
 	while lot != InventoryScript.NULL_REF:
 		if _inventory.lot_reserved_milli(lot) != 0:

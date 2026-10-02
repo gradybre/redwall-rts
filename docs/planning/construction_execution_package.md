@@ -66,13 +66,16 @@ RESERVED ──route ready (H3)──► TRAVEL to the source contact
 TRAVEL ──arrive (H3)──► WORK: 2000 milli-WU (1800 on a pantry connection)
 WORK done ──load (H1: satchel minted, goods + claim move, claim becomes HAUL_DESTINATION)──► HAUL_OUTPUT
 HAUL_OUTPUT: travel to the destination contact, then 2000 milli-WU of unload
-HAUL_OUTPUT done ──unload (H1: deliver, grams released, satchel destroyed)──► COMPLETE (H2 finish)
+HAUL_OUTPUT done ──H2 complete_unload (H1 deliver: grams released, satchel destroyed;
+                    record retired)──► COMPLETE
 
 cancel before load  → H2 cancel: claim and grams released; nothing moved
 cancel after load   → H2 cancel: grams released, claim released; goods stay in the satchel;
                       a fresh haul is posted with the satchel as source (its load re-keys)
-death / departure   → H1 drop_satchel BEFORE despawn: pile at the tile (or the building's
-                      refund origin when the tile is a footprint), claims released, satchel gone
+death / departure   → H2 cancel, then H1 drop_satchel BEFORE despawn: pile at the tile (or the
+                      building's refund origin when the tile is a footprint), satchel gone
+lease expired       → H2 cancel (the pool's expiry sweep releases claims, never the grams)
+store full at unload → complete_unload refuses; H2 cancel, then re-admit
 no store, no ring   → REQ-SET-031: HAUL_NO_DESTINATION, queued, nothing locked
 ```
 
@@ -82,7 +85,7 @@ Claims and grams by phase:
 |---|---|---|---|
 | RESERVED, TRAVEL, WORK | HAUL_SOURCE on the source lot, payload milli-U, lease | destination `reserved_mass_g` += charge | job → destination, tile, grams |
 | HAUL_OUTPUT | HAUL_DESTINATION on the satchel lot, same lease | goods in the satchel; destination grams still held | unchanged |
-| COMPLETE | none | goods in the destination; grams released in the unload's transaction | cleared |
+| COMPLETE | none | goods in the destination; grams released in the unload's transaction | cleared by `complete_unload()` |
 
 ## 5. Destinations and contacts
 

@@ -103,12 +103,15 @@ func test_the_preflight_sees_claimed_goods_as_released_and_changes_nothing() -> 
 	"""A claimed source passes the preflight when the walk fits, and nothing is kept."""
 	var stones: Vector2i = _w.lot(_box, STONE, 5000)
 	assert_true(_w.claim(JOB, stones, ReservationsScript.PURPOSE_HAUL_DESTINATION, 5000), "claimed")
-	assert_true(_w.inventory.reserve_container_mass(_box, 10).ok, "and some headroom held")
 	var before: PackedByteArray = _w.state()
 	assert_true(_w.piles.preflight_container_into_piles(_box, _seed(HaulWorld.tile(45, 45)), 1,
 		PackedByteArray(), _out), "it would fit: %s" % _out.error)
 	assert_equal(_out.lots_created, 1, "it counted the move")
 	assert_equal(_w.state(), before, "byte-identical")
+	assert_true(_w.inventory.reserve_container_mass(_box, 10).ok, "headroom held on the source")
+	assert_false(_w.piles.preflight_container_into_piles(_box, _seed(HaulWorld.tile(45, 45)), 1,
+		PackedByteArray(), _out), "refused exactly as the move refuses it")
+	assert_equal(_out.error, GroundPilesScript.REFUSE_MOVE_SOURCE_RESERVED, "named")
 
 
 func test_a_walk_with_no_room_refuses_and_rolls_back() -> void:

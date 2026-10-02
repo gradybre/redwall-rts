@@ -43,6 +43,7 @@ const ReservationsScript := preload("res://scripts/core/reservations.gd")
 const ResidentsScript := preload("res://scripts/core/residents.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 
@@ -86,6 +87,9 @@ const REFUSE_NOT_HAULERS_SATCHEL: StringName = &"HAUL_SATCHEL_NOT_THE_HAULERS"
 ## REQ-SET-031's blocking cause: no store takes the payload and no pile fallback applies.
 const REFUSE_NO_DESTINATION: StringName = &"HAUL_NO_DESTINATION"
 const REFUSE_TRANSACTION_OPEN: StringName = &"HAUL_INVENTORY_TRANSACTION_OPEN"
+## `audit()`: a record names a dead store, or the records hold more grams than a store reserves.
+const REFUSE_AUDIT_STORE: StringName = &"HAUL_AUDIT_DESTINATION_DEAD"
+const REFUSE_AUDIT_GRAMS: StringName = &"HAUL_AUDIT_GRAMS_EXCEED_STORE"
 
 
 class Destination:
@@ -131,6 +135,8 @@ var _seeds: PackedInt32Array = PackedInt32Array()
 var _seed_count: int = 0
 var _spec: PackedInt64Array = PackedInt64Array()
 var _claim: PackedInt64Array = PackedInt64Array()
+## The recorded unload tile as a one-cell seed buffer for a ground destination's unload.
+var _one_seed: PackedInt32Array = PackedInt32Array()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _place: GroundPilesScript.PlaceResult = GroundPilesScript.PlaceResult.new()
 var _chosen: Destination = Destination.new()
@@ -145,9 +151,12 @@ func _init() -> void:
 	_reserved_g.resize(JOB_CAPACITY)
 	_footprint.resize(InventoryScript.ANCHOR_TILE_COUNT)
 	_outside.resize(InventoryScript.ANCHOR_TILE_COUNT)
+	_footprint.fill(0)
+	_outside.fill(1)
 	_seeds.resize(GroundPilesScript.REFUND_SEED_CAPACITY)
 	_spec.resize(GroundPilesScript.SPEC_STRIDE)
 	_claim.resize(ReservationsScript.CLAIM_STRIDE)
+	_one_seed.resize(1)
 	clear()
 
 
@@ -194,6 +203,7 @@ static func payload_milli_into(available_milli: int, mass_g: int, carry_g: int,
 	if room <= 0 or available_milli == 0:
 		return out.succeed(0)
 	if mass_g == 0:
+		# Defensive: `inventory.register_item()` refuses a massless item today.
 		return out.succeed(available_milli)
 	if not IntMath.checked_mul_into(room, MILLI_PER_UNIT, out):
 		return out.refuse(String(REFUSE_OVERFLOW))
@@ -258,15 +268,16 @@ func is_standing_haul_source(container: Vector2i) -> bool:
 	"""Whether goods here are owed a haul by default, before any player or intent asks.
 
 	REQ-SET-110's ground pile is "visible temporary" storage, and a satchel left holding
-	unclaimed goods is a cancelled haul's cargo awaiting its fresh haul. A building's store is a
+	unclaimed goods is a cancelled haul's cargo awaiting its fresh haul -- either only while it
+	holds quantity no haul has claimed yet. A building's store is a
 	source only when something names it (D6's evacuation intent, a production output policy), so
 	it answers false here.
 	"""
 	if _inventory == null or not _inventory.is_container_valid(container):
 		return false
-	if _inventory.is_ground_pile(container):
-		return true
-	return _inventory.is_satchel(container) and next_haul_lot(container) != NULL_REF
+	if not _inventory.is_ground_pile(container) and not _inventory.is_satchel(container):
+		return false
+	return next_haul_lot(container) != NULL_REF
 
 
 # --- destination ----------------------------------------------------------------------------
@@ -290,6 +301,8 @@ func select_destination_into(source_lot: Vector2i, payload_milli: int, out: Dest
 		return _refuse_into(out, StringName(_math.error))
 	out.charge_g = _math.value
 	var store: Vector2i = _lowest_destination_store(owner, source_lot, out.charge_g)
+	if built:
+		_set_footprint_rect(owner, 0)
 	if store != NULL_REF:
 		out.kind = DESTINATION_STORE
 		out.container = store
@@ -314,21 +327,35 @@ func _destination_input_refusal(source_lot: Vector2i, payload_milli: int) -> Str
 
 
 func _mark_source_footprint(owner: Vector2i, built: bool) -> bool:
-	"""Fill `_footprint` (and `_seeds`) for a Building owner, then `_outside` as its complement.
+	"""Read a Building owner's refund seeds, and clear its footprint out of `_outside`.
 
-	Keeps the payload charge in `_math.value` across the call. With no Building owner nothing is
-	excluded and `_seed_count` is 0; otherwise it is the refund seed count.
+	BETWEEN CALLS `_outside` IS ALL ONES AND `_footprint` ALL ZEROS, so only the footprint's own
+	rectangle is written here and restored after the scan (`_set_footprint_rect(owner, 0)`): a
+	destination choice costs its footprint, not 16384 tiles. Keeps the payload charge in
+	`_math.value`. With no Building owner nothing is excluded and `_seed_count` is 0.
 	"""
 	var charge: int = _math.value
-	_footprint.fill(0)
 	_seed_count = 0
 	if built:
 		if not _piles.refund_seeds_into(owner, _footprint, _seeds, _math):
 			return false
 		_seed_count = _math.value
-	for tile: int in _outside.size():
-		_outside[tile] = 1 - _footprint[tile]
+		_set_footprint_rect(owner, 1)
 	return _math.succeed(charge)
+
+
+func _set_footprint_rect(owner: Vector2i, marked: int) -> void:
+	"""Write `marked` into `_footprint` and its complement into `_outside` over one footprint."""
+	var type_id: int = _buildings.type_id_of_building(owner).value
+	var origin: int = _buildings.origin_tile_of_building(owner).value
+	var rotation: int = _buildings.rotation_of_building(owner).value
+	var size_x: int = _buildings.definitions().footprint_x_of(type_id)
+	var size_z: int = _buildings.definitions().footprint_z_of(type_id)
+	for dz: int in _buildings.extent_z_of(size_x, size_z, rotation):
+		for dx: int in _buildings.extent_x_of(size_x, size_z, rotation):
+			var tile: int = origin + dz * GroundPilesScript.MAP_TILES_X + dx
+			_footprint[tile] = marked
+			_outside[tile] = 1 - marked
 
 
 func _lowest_destination_store(owner: Vector2i, lot: Vector2i, charge_g: int) -> Vector2i:
@@ -542,12 +569,29 @@ func reserved_g_of(job_ref: Vector2i) -> int:
 	return _reserved_g[job_ref.x] if is_admitted(job_ref) else 0
 
 
-func finish(job_ref: Vector2i) -> InventoryScript.OpResult:
-	"""Retire a delivered haul's record. The unload already released its grams with the goods."""
+func complete_unload(job_ref: Vector2i, hauler_slot: int,
+		carry: HaulCarryScript) -> InventoryScript.OpResult:
+	"""The haul's unload, done through its OWN record, which it then retires.
+
+	A store destination unloads into the recorded store, releasing exactly the recorded grams in
+	the same transaction; a ground destination unloads breadth-first from the recorded tile. The
+	record is cleared only after the unload succeeded, so no later `cancel()` can release grams the
+	delivery already gave back (the record is the one authority on which grams are this job's).
+	A store that can no longer take the goods refuses; the caller cancels and re-admits.
+	"""
 	if not is_admitted(job_ref):
 		return _refuse(REFUSE_JOB_NOT_ADMITTED)
-	_clear_row(job_ref.x)
-	return InventoryScript.OpResult.new(true, REFUSE_NONE, NULL_REF, 0)
+	var row: int = job_ref.x
+	var unloaded: InventoryScript.OpResult = null
+	if destination_kind_of(job_ref) == DESTINATION_STORE:
+		unloaded = carry.unload_into_store(job_ref, hauler_slot, destination_of(job_ref),
+			_reserved_g[row])
+	else:
+		_one_seed[0] = _dest_tile[row]
+		unloaded = carry.unload_into_piles(job_ref, hauler_slot, _one_seed, 1, PackedByteArray())
+	if unloaded.ok:
+		_clear_row(row)
+	return unloaded
 
 
 func cancel(job_ref: Vector2i) -> InventoryScript.OpResult:
@@ -556,7 +600,11 @@ func cancel(job_ref: Vector2i) -> InventoryScript.OpResult:
 	Before the load this returns the source claim; after it, the HAUL_DESTINATION claim on the
 	satchel lot goes and the goods stay in the satchel, unclaimed, for the fresh haul the ruling
 	posts. Proved first, written after: the grams must still be held, and the pool's own release
-	is all-or-nothing. `.value` is the claim rows released.
+	is all-or-nothing. `.value` is the claim rows released. After `complete_unload()` the record
+	is gone, so a late cancel refuses instead of releasing grams the delivery already returned.
+	Every path that ends a haul early -- cancellation, the hauler's death or departure (cancel,
+	then `haul_carry.drop_satchel()`), and a lease the pool expired -- must come through here, or
+	the record's grams stay reserved in the store.
 	"""
 	var ready: StringName = _cancel_refusal(job_ref)
 	if ready != REFUSE_NONE:
@@ -590,6 +638,46 @@ func _cancel_refusal(job_ref: Vector2i) -> StringName:
 	return REFUSE_NONE
 
 
+func audit() -> StringName:
+	"""NOT A PRODUCTION CALL: every store a record names is live and holds the records' grams.
+
+	Inventory's `reserved_mass_g` is anonymous, so this is the one check that the record and the
+	stores agree: for each store, the sum of the grams every admitted record holds there must not
+	exceed what the store has reserved. A record whose grams went back without the record being
+	cleared, or a release that took another job's grams, shows up here. O(rows x stores); tests
+	and save checks only.
+	"""
+	for row: int in JOB_CAPACITY:
+		if _job_generation[row] == 0 or _reserved_g[row] <= 0:
+			continue
+		var store: Vector2i = Vector2i(_dest_slot[row], _dest_generation[row])
+		if not _inventory.is_container_valid(store):
+			return REFUSE_AUDIT_STORE
+		if _first_row_holding(store) == row \
+				and _grams_recorded_on(store) > _inventory.container_reserved_mass_g(store):
+			return REFUSE_AUDIT_GRAMS
+	return REFUSE_NONE
+
+
+func _first_row_holding(store: Vector2i) -> int:
+	"""The lowest record row holding grams in `store`."""
+	for row: int in JOB_CAPACITY:
+		if _job_generation[row] != 0 and _reserved_g[row] > 0 and _dest_slot[row] == store.x \
+				and _dest_generation[row] == store.y:
+			return row
+	return -1
+
+
+func _grams_recorded_on(store: Vector2i) -> int:
+	"""The sum of every admitted record's grams in `store`."""
+	var total: int = 0
+	for row: int in JOB_CAPACITY:
+		if _job_generation[row] != 0 and _dest_slot[row] == store.x \
+				and _dest_generation[row] == store.y:
+			total += _reserved_g[row]
+	return total
+
+
 func _clear_row(row: int) -> void:
 	"""Return one record row to "no admission"."""
 	_job_generation[row] = 0
@@ -620,4 +708,4 @@ func record_bytes() -> int:
 func scratch_bytes() -> int:
 	"""Bytes of cold-path scratch: the §2.3 row decision 1023 adds."""
 	return _footprint.size() + _outside.size() + _seeds.size() * 4 + _spec.size() * 8 \
-		+ _claim.size() * 8
+		+ _claim.size() * 8 + _one_seed.size() * 4

@@ -64,10 +64,12 @@ in decision 1021) and its two derived rules (R-H2a death/departure drop, R-H2b r
   refund origin (`refund_seeds_into()`: the hall's door, else the front-first ring). Options:
   (a) as built; (b) the nearest tile off the footprint by breadth-first search from the tile;
   (c) refuse and leave the goods in an ownerless satchel. **Recommend (a).**
-- **P2 -- unloads do not merge.** The carried lot arrives as its own lot. Options: (a) as built,
-  identity kept, one extra lot row per partial haul until something merges them; (b) merge on
-  arrival with a compatible lot (`transfer()`), except gear lots, which needs a gear test the
-  inventory does not have. **Recommend (a) now, (b) with H7's gear work.**
+- **P2 -- a whole carried lot does not merge.** A claim covering the whole lot moves the lot itself
+  (`move_lot()`), so it arrives as its own lot; only a PART of a lot (a re-posted haul claiming
+  less than the satchel holds) moves by `transfer()`, which merges on arrival. Options: (a) as
+  built, identity kept, one extra lot row per partial load until something merges them; (b)
+  merge on arrival whenever compatible, except gear lots, which needs a gear test the inventory
+  does not have. **Recommend (a) now, (b) with H7's gear work.**
 - **P3 -- satchels are not reachable.** Built: `reachable = false`, so no planner treats a
   satchel as a store. Options: (a) as built; (b) reachable, relying on `is_satchel()` exclusions
   everywhere. **Recommend (a).**
@@ -87,7 +89,40 @@ in decision 1021) and its two derived rules (R-H2a death/departure drop, R-H2b r
 
 ## Evidence
 
-Filled in below the line once the gates have run.
+- **Suite, CI-style** (no staged demo assets in this worktree, fresh `--editor --quit` import),
+  on the merged tree before the review fixes: `8871 test(s), 599911 assertion(s), 0 failure(s)`;
+  `diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated;
+  leaked at exit: 0 object(s), 0 resource(s)`. The rerun after the review fixes is quoted in the
+  lane record.
+- **New suites:** `test_haul_carry.gd`, `test_haul_planner.gd`, `test_reservations_carry.gd`,
+  `test_ground_piles_move.gd` (77 tests; 106 with `test_inventory_ground_piles.gd`), on the shared
+  fixture `test/fixtures/haul_world.gd`. Every refusal is checked byte-identical across
+  Inventory, the pool and the resident equipment columns; every success re-runs both audits.
+- **Mutation testing, 81 mutants** over `haul_carry.gd`, `haul_planner.gd`, `reservations.gd`,
+  `ground_piles.gd` and `inventory.gd`, each run against the five focused suites: **75 killed**.
+  The first pass's survivors were real gaps, closed by tests (a pair naming another resident's
+  satchel, a re-post that minted a second satchel, an empty satchel's drop, a drop with nowhere to
+  go, a claimed lot split by the preflight, a full component, a same-building store off its
+  footprint, a covered front ring tile, a stale generation, the ground destination kind, an open
+  transaction at admission) or by the review fixes. **Four mutated clauses were dead and were
+  removed** (source-headroom release in the preflight, `candidate == source`, the ground-kind
+  grams conditional, `if not built` before R2). **Two survivors are equivalent:**
+  `_preflight_carry()`'s reserved-total check, which can fire only if the pool's invariant is
+  already broken; and removing the pile unload's preflight, because its re-claim restores the
+  pool's canonical image (`state_bytes()` excludes row indices by design).
+- **Independent `code-reviewer`:** its own 41 mutants (36 killed) and the full suite. Two HIGH,
+  both fixed: a cancel after an unload released another job's grams, and a store-destination job
+  unloaded onto piles leaked its grams (now `complete_unload()` through the record, plus
+  `audit()`). MEDIUM, all addressed: the preflight now refuses source headroom exactly as the move
+  does; the second-claim rollback is tested and its "unreachable" wording corrected; R2's proof is
+  tested with a full ring pile; the footprint mask costs its rectangle, not the map; these
+  records' numbers and evidence. LOW, addressed: the repurpose lease is pinned, the massless
+  branch is marked defensive, a pile with everything claimed is no standing source, the pile
+  unload reports the claimed quantity. Not changed: one-satchel-per-owner is enforced in
+  `haul_carry.gd`, not in Inventory's doors (H8's restore cross-check); no production caller
+  exists until H4.
+- **Analyzer:** `tools/gdscript_warnings.py` on all eleven changed `.gd` files: 0 warnings.
+- **Contracts:** every "Specification contracts" step of `.github/workflows/tests.yml` passes.
 
 ## Source
 

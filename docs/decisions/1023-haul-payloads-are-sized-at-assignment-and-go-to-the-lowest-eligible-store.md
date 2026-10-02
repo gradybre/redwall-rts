@@ -8,20 +8,24 @@ R-H6 and R-H7 (decision 1021).
 
 1. **Sizing (REQ-SET-111, BAL-WORK-003).** `payload_milli_into()` is
    `min(available, floor((carry_g − other_cargo_g)·1000 / m))` -- exactly the largest quantity
-   whose per-lot charge `ceil(q·m/1000)` fits -- and a massless item goes whole. `trips_into()` is
+   whose per-lot charge `ceil(q·m/1000)` fits (a massless item would go whole; the branch is
+   defensive, since `register_item()` refuses mass 0). `trips_into()` is
    BAL-WORK-003's planning formula; a test pins that the actual per-lot-ceiling departures can be
    one more (3428571 milli-U at 7 g/U: plan 2, departures 3). `travel_ticks_into()` is the
    straight-leg lower bound; `handling_milli_wu()` is BAL-CAT-010's 2000/2000 cut to 1800 on a
    REQ-SET-134 pantry connection. REQ-SET-032's 30/300 lease ticks are published constants.
 2. **Demand.** `next_haul_lot()` walks a source in list order to lots with unclaimed quantity --
    one item lot per job (R-H6). `is_standing_haul_source()` is true for REQ-SET-110's ground
-   piles and for a satchel left holding unclaimed goods (R-H2b); a building store is a source only
+   piles and for a satchel left by a cancelled haul (R-H2b), each while it holds unclaimed goods; a building store is a source only
    when something names it (D6's evacuation intent, an output policy).
 3. **Destination (R-H3).** `select_destination_into()` takes decision 0534's R1 for hauling: the
    lowest container slot, walked with the new allocation-free `inventory.next_container_anchored_in()`
    over the complement of the source building's footprint, that is not the source, not a pile,
    not a satchel, owned by a different live ACTIVE Building, reachable, admitting the item's
-   category and with free mass for the whole charge. Else R2: ground piles from the source
+   category and with free mass for the whole charge. The footprint mask costs only the footprint's
+   own rectangle: between calls it is all ones, and the rectangle is cleared for one choice and
+   restored after it (review M4: the first build rewrote all 16384 tiles, about 0.27 ms a call).
+   Else R2: ground piles from the source
    building's refund seeds, proved by a rolled-back placement, reserving nothing; the unload tile
    is the first eligible seed. A source with no Building owner has no R2 and refuses
    `HAUL_NO_DESTINATION`, REQ-SET-031's cause.
@@ -29,8 +33,13 @@ R-H6 and R-H7 (decision 1021).
    chooses the destination, reserves the store's grams, then takes the HAUL_SOURCE claim through
    `claim_batch()`; a refused claim gives the grams back exactly, so a refusal is byte-identical and
    its code is the blocking cause. A satchel source admits only its owner. `cancel()` releases the
-   grams and every claim the job holds (after the load, the goods stay in the satchel unclaimed);
-   `finish()` retires the record after the unload released its grams.
+   grams and every claim the job holds (after the load, the goods stay in the satchel unclaimed).
+   **`complete_unload()` unloads through the haul's own record** -- into the recorded store with
+   exactly the recorded grams, or breadth-first from the recorded tile -- and retires the record
+   only when the unload succeeded, so a late `cancel()` refuses instead of releasing grams the
+   delivery already returned (review H1/H2: a separate `finish()` let a cancel after the unload
+   take another job's grams, and let a pile unload of a store destination leak its grams).
+   `audit()` checks that, per store, the records never hold more grams than the store reserves.
 5. **The ReservationPurpose domain is numbered (R-H7).** `PURPOSE_UNSPECIFIED = 0` (the value a
    cleared row holds and every pre-domain claim carried), `PURPOSE_HAUL_SOURCE = 1`,
    `PURPOSE_HAUL_DESTINATION = 2`, in `reservations.gd`, explicitly, never by a sorted-key compile.
@@ -71,17 +80,26 @@ R-H6 and R-H7 (decision 1021).
 ## Consequences
 
 - H4 calls `admit()` at assignment with `now + LEASE_EXPIRY_TICKS`, `load_payload()` after WORK's
-  2000 milli-WU, `unload_into_store(dest, reserved_g_of(job))` or `unload_into_piles([tile])`
-  after HAUL_OUTPUT's, then `finish()`; on cancel `cancel()`, and a fresh admit for satchel goods.
-- An unload onto piles starts from the recorded tile only; the admission's proof walked the whole
-  ring. A world that changed in between refuses the unload's own preflight and H4 re-plans.
-- Memory: +196608 B record (§3) and +34952 B scratch (one §2.3 row, `haul_carry.gd`'s 40 B
-  included); live 79328028, headroom 20671972; the rejected two-world peak is 463120 B worse.
-  `ready07_arithmetic.py` pins it. The capacity audit sidecar is regenerated (source hashes moved).
+  2000 milli-WU, and `complete_unload()` after HAUL_OUTPUT's. **Every early end goes through
+  `cancel()`**: a cancellation, the hauler's death or departure (`cancel()`, then
+  `haul_carry.drop_satchel()` before despawn), and a lease the pool expired. Anything else leaves
+  the record's grams reserved in the store, which `audit()` does not see (it checks the other
+  direction) but which blocks that store's destruction.
+- A store that filled before the unload refuses `complete_unload()`; the record stays, H4
+  cancels and re-admits. An unload onto piles starts from the recorded tile only; the
+  admission's proof walked the whole ring, so a world that changed in between refuses the
+  unload's own preflight and H4 re-plans.
+- Memory: +196608 B record (§3) and +34956 B scratch (one §2.3 row, `haul_carry.gd`'s 40 B
+  included). After merging master (decision 0537's +16384 B): payload 70955808, live 79344416,
+  headroom 20655584; the rejected two-world peak is 463128 B worse. `ready07_arithmetic.py` pins
+  it. The capacity audit sidecar is regenerated (source hashes moved).
 
 ## Evidence
 
-Filled in below the line once the gates have run.
+See decision 1022's Evidence: the two slices were built, tested, mutated and reviewed together.
+H2-specific: `test_haul_planner.gd` (31 tests) pins every R1 clause, R2's proof with a full
+ring pile, the 3-departure / 2-trip case, the 150-tick 16 m leg, 1800 milli-WU by a pantry,
+byte-identical refusals, the late-cancel case and the planner audit.
 
 ## Source
 

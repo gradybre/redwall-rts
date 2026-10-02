@@ -140,9 +140,14 @@ func test_repurposing_re_keys_in_place_and_coalesces() -> void:
 	"""Same lot, quantity and lease; a second row of the new purpose merges with the first."""
 	assert_true(_w.pool.repurpose_claim(JOB, _stones, SOURCE, CARRIED).ok, "re-keyed")
 	assert_equal(_w.pool.claim_quantity_milli(JOB, _stones, CARRIED), 4000, "same quantity")
+	var expiry: IntMath.IntResult = IntMath.IntResult.new()
+	_w.pool.claim_expiry_into(JOB, _stones, CARRIED, expiry)
+	assert_equal(expiry.value, 77, "same lease")
 	assert_true(_w.claim(JOB, _stones, SOURCE, 1000, 90), "another source claim")
 	assert_true(_w.pool.repurpose_claim(JOB, _stones, SOURCE, CARRIED).ok, "coalesced")
 	assert_equal(_w.pool.claim_quantity_milli(JOB, _stones, CARRIED), 5000, "one row of 5")
+	_w.pool.claim_expiry_into(JOB, _stones, CARRIED, expiry)
+	assert_equal(expiry.value, 90, "the later lease wins on coalescing")
 	assert_equal(_w.pool.active_row_count(), 1, "one row")
 	assert_equal(_w.pool.repurpose_claim(JOB, _stones, SOURCE, CARRIED).error,
 		ReservationsScript.REFUSE_NO_SUCH_CLAIM, "nothing left to re-key")

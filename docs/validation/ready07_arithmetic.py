@@ -229,18 +229,18 @@ assert DECISION_0537_ADDED==16384
 # Decisions 1022/1023: task 06.4 H1/H2's haul slices. haul_planner.gd's admission record, four
 # I32 and one I64 per reservation-pool Job key (8192), folds into the Auxiliary payload row; the
 # cold-path scratch is one new allocation row: two 16384-byte tile masks, 512 i32 refund seeds,
-# one 7 x i64 placement spec and one 5 x i64 claim record in the planner, and haul_carry.gd's
-# one 5 x i64 re-claim record.
+# one 7 x i64 placement spec, one 5 x i64 claim record and a one-cell i32 seed in the planner,
+# and haul_carry.gd's one 5 x i64 re-claim record.
 DECISION_1023_RECORD=(4*4+8)*8192
-DECISION_1023_SCRATCH=2*16384+512*4+7*8+5*8+5*8
-assert (DECISION_1023_RECORD,DECISION_1023_SCRATCH)==(196608,34952)
+DECISION_1023_SCRATCH=2*16384+512*4+7*8+5*8+1*4+5*8
+assert (DECISION_1023_RECORD,DECISION_1023_SCRATCH)==(196608,34956)
 DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decision 1023 one more.
 assert len(allocations)==40 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1023_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70955804
-assert live==79344412 and candidate==64710607 and live+candidate==144055019
+assert payload==70955808
+assert live==79344416 and candidate==64710611 and live+candidate==144055027
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s

@@ -21,6 +21,15 @@ const OTHER_JOB: Vector2i = Vector2i(8, 1)
 const STONE: int = HaulWorld.ITEM_STONE
 const NOW: int = 1000
 
+
+class RingTilePassable:
+	extends "res://scripts/core/ground_piles.gd"
+	## Only tile (41, 44) -- the yard's nearest front ring tile -- is passable.
+
+	func is_tile_passable(tile: int) -> bool:
+		"""The one passable tile."""
+		return tile == 44 * 128 + 41
+
 var _w: HaulWorld = null
 var _mouse: int = -1
 var _otter: int = -1
@@ -138,8 +147,13 @@ func test_piles_and_left_satchels_are_standing_sources_but_stores_are_not() -> v
 	assert_true(_w.planner.is_standing_haul_source(pile), "a pile is a source")
 	var satchel: Vector2i = _w.inventory.create_satchel(_w.residents.ref_of(_mouse), 12000).ref
 	assert_false(_w.planner.is_standing_haul_source(satchel), "an empty satchel is not")
-	_w.lot(satchel, STONE, 1000)
+	var carried: Vector2i = _w.lot(satchel, STONE, 1000)
 	assert_true(_w.planner.is_standing_haul_source(satchel), "a satchel with unclaimed goods is")
+	var on_pile: Vector2i = _w.inventory.container_first_lot(pile)
+	assert_true(_w.claim(JOB, on_pile, SOURCE, 1000), "the pile's goods are all claimed")
+	assert_false(_w.planner.is_standing_haul_source(pile), "so the pile owes no new haul")
+	assert_true(_w.claim(JOB, carried, SOURCE, 1000), "and the satchel's")
+	assert_false(_w.planner.is_standing_haul_source(satchel), "nor the satchel")
 
 
 # --- destination ---------------------------------------------------------------------------
@@ -327,16 +341,16 @@ func test_a_cancel_whose_grams_are_gone_refuses() -> void:
 
 # --- end to end ----------------------------------------------------------------------------
 
-func test_admit_load_unload_finish_conserves_every_gram() -> void:
+func test_admit_load_unload_conserves_every_gram() -> void:
 	"""The whole haul: no teleport, nothing cloned, no claim or gram left behind."""
 	var depot_store: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(50, 40))
 	assert_true(_w.planner.admit(JOB, _mouse, _stones, 20000, NOW).ok, "admitted")
 	assert_true(_w.carry.load_payload(JOB, _mouse, _stones).ok, "loaded")
 	assert_true(_w.audits_pass(), "audits pass mid-carry")
-	var unloaded: InventoryScript.OpResult = _w.carry.unload_into_store(JOB, _mouse,
-		_w.planner.destination_of(JOB), _w.planner.reserved_g_of(JOB))
+	assert_equal(_w.planner.audit(), &"", "the record agrees with the store mid-carry")
+	var unloaded: InventoryScript.OpResult = _w.planner.complete_unload(JOB, _mouse, _w.carry)
 	assert_true(unloaded.ok, "unloaded: %s" % unloaded.error)
-	assert_true(_w.planner.finish(JOB).ok, "finished")
+	assert_false(_w.planner.is_admitted(JOB), "the record is retired with the delivery")
 	assert_equal(_w.inventory.container_used_mass_g(depot_store), 12000, "12 stone delivered")
 	assert_equal(_w.inventory.container_used_mass_g(_source), 8000, "8 left")
 	assert_equal(_w.inventory.container_reserved_mass_g(depot_store), 0, "no grams held")
@@ -353,18 +367,17 @@ func test_a_ground_destination_unloads_onto_its_tile() -> void:
 	assert_equal(_w.planner.reserved_g_of(JOB), 0, "nothing reserved")
 	assert_equal(_w.planner.destination_kind_of(JOB), HaulPlannerScript.DESTINATION_GROUND, "kind")
 	_w.carry.load_payload(JOB, _mouse, _stones)
-	var seeds: PackedInt32Array = PackedInt32Array([_w.planner.destination_tile_of(JOB)])
-	assert_true(_w.carry.unload_into_piles(JOB, _mouse, seeds, 1, PackedByteArray()).ok, "put down")
+	assert_true(_w.planner.complete_unload(JOB, _mouse, _w.carry).ok, "put down")
 	var pile: Vector2i = _w.inventory.ground_pile_at_tile(HaulWorld.tile(41, 44))
 	assert_equal(_w.inventory.container_used_mass_g(pile), 12000, "on the ring tile")
-	assert_true(_w.planner.finish(JOB).ok, "finished")
+	assert_false(_w.planner.is_admitted(JOB), "retired")
 	assert_true(_w.audits_pass(), "audits pass")
 
 
 func test_the_record_and_scratch_are_the_ledgered_sizes() -> void:
-	"""Decision 1023's §3 record (196608 B) and §2.3 scratch (34912 B)."""
+	"""Decision 1023's §3 record (196608 B) and §2.3 scratch (34916 B in the planner)."""
 	assert_equal(_w.planner.record_bytes(), 196608, "five columns over 8192 job keys")
-	assert_equal(_w.planner.scratch_bytes(), 34912, "two masks, the seeds, a spec and a claim")
+	assert_equal(_w.planner.scratch_bytes(), 34916, "two masks, seeds, a spec, a claim, one seed")
 
 
 func test_the_pile_tile_is_the_first_eligible_ring_seed() -> void:
@@ -374,3 +387,80 @@ func test_the_pile_tile_is_the_first_eligible_ring_seed() -> void:
 	assert_equal(_dest.kind, HaulPlannerScript.DESTINATION_GROUND, "ground")
 	assert_true(_w.piles.ground_pile_tile_refusal(_dest.tile) == &"", "an eligible tile")
 	assert_true(_dest.tile != HaulWorld.tile(41, 44), "not the covered front tile")
+
+
+func test_a_cancel_after_the_unload_cannot_take_another_jobs_grams() -> void:
+	"""Two hauls hold 12000 g each in one depot; A delivers; a late cancel of A changes nothing."""
+	var depot_store: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(50, 40))
+	var more: Vector2i = _w.lot(_source, STONE, 20000)
+	assert_true(_w.planner.admit(JOB, _mouse, _stones, 12000, NOW).ok, "A")
+	assert_true(_w.planner.admit(OTHER_JOB, _otter, more, 12000, NOW).ok, "B")
+	assert_equal(_w.inventory.container_reserved_mass_g(depot_store), 24000, "both held")
+	_w.carry.load_payload(JOB, _mouse, _stones)
+	assert_true(_w.planner.complete_unload(JOB, _mouse, _w.carry).ok, "A delivered")
+	var before: PackedByteArray = _w.state()
+	assert_equal(_w.planner.cancel(JOB).error, HaulPlannerScript.REFUSE_JOB_NOT_ADMITTED, "refused")
+	assert_equal(_w.state(), before, "nothing changed")
+	assert_equal(_w.inventory.container_reserved_mass_g(depot_store), 12000, "B's grams intact")
+	assert_equal(_w.planner.audit(), &"", "the records agree with the store")
+
+
+func test_the_audit_sees_grams_the_record_holds_but_the_store_does_not() -> void:
+	"""Grams released behind the record's back, or a dead store, fail the planner's audit."""
+	var depot_store: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(50, 40))
+	_w.planner.admit(JOB, _mouse, _stones, 12000, NOW)
+	assert_equal(_w.planner.audit(), &"", "consistent")
+	_w.inventory.release_container_mass(depot_store, 1)
+	assert_equal(_w.planner.audit(), HaulPlannerScript.REFUSE_AUDIT_GRAMS, "one gram short")
+	_w.inventory.release_container_mass(depot_store, 11999)
+	_w.inventory.destroy_container(depot_store)
+	assert_equal(_w.planner.audit(), HaulPlannerScript.REFUSE_AUDIT_STORE, "store gone")
+
+
+func test_a_store_that_fills_before_the_unload_refuses_and_keeps_the_record() -> void:
+	"""complete_unload into a store that no longer has room refuses; the record stays to cancel."""
+	var depot_store: Vector2i = _w.store(_depot, 12000, HaulWorld.tile(50, 40))
+	_w.planner.admit(JOB, _mouse, _stones, 12000, NOW)
+	_w.carry.load_payload(JOB, _mouse, _stones)
+	assert_true(_w.inventory.release_container_mass(depot_store, 12000).ok, "grams stolen")
+	_w.lot(depot_store, STONE, 12000)
+	assert_false(_w.planner.complete_unload(JOB, _mouse, _w.carry).ok, "refused")
+	assert_true(_w.planner.is_admitted(JOB), "the record stays")
+
+
+func test_a_ring_with_no_eligible_tile_has_no_pile_fallback() -> void:
+	"""R2's proof: with every ring tile under another footprint, HAUL_NO_DESTINATION."""
+	for origin: Vector2i in [Vector2i(40, 36), Vector2i(40, 44), Vector2i(36, 40), Vector2i(44, 40)]:
+		assert_true(_w.place_active("open_stockpile", origin.x, origin.y) != InventoryScript.NULL_REF,
+			"a neighbour at %s" % origin)
+	assert_false(_w.planner.select_destination_into(_stones, 12000, _dest), "no ring tile")
+	assert_equal(_w.planner.last_refusal(), HaulPlannerScript.REFUSE_NO_DESTINATION, "named")
+
+
+func test_the_footprint_exclusion_does_not_outlive_its_choice() -> void:
+	"""After choosing for the yard, a store on the yard's footprint is eligible for another source."""
+	var on_yard: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(42, 42))
+	assert_true(_w.planner.select_destination_into(_stones, 12000, _dest), "the yard's choice")
+	assert_true(_dest.container != on_yard, "the footprint store is skipped for the yard")
+	var satchel: Vector2i = _w.inventory.create_satchel(_w.residents.ref_of(_mouse), 12000).ref
+	var carried: Vector2i = _w.lot(satchel, STONE, 3000)
+	_w.inventory.set_container_reachable(_source, false)
+	assert_true(_w.planner.select_destination_into(carried, 3000, _dest), "a satchel's choice")
+	assert_equal(_dest.container, on_yard, "the yard's footprint is no longer excluded")
+
+
+func test_a_ring_whose_piles_are_full_has_no_pile_fallback() -> void:
+	"""R2 is PROVED: an eligible ring tile whose pile cannot take the payload refuses."""
+	var piles: RingTilePassable = RingTilePassable.new()
+	assert_true(piles.bind_stores(_w.inventory, _w.buildings, _w.stock_age), "bound")
+	assert_true(piles.bind_world(_w.world), "world")
+	var planner: HaulPlannerScript = HaulPlannerScript.new()
+	planner.bind(_w.inventory, _w.pool, _w.residents, _w.buildings, piles)
+	_w.inventory.begin()
+	var pile: Vector2i = _w.inventory.create_ground_pile(HaulWorld.tile(41, 44)).ref
+	_w.lot(pile, STONE, 399000)
+	assert_true(_w.inventory.commit().ok, "the only ring pile is nearly full")
+	assert_false(planner.select_destination_into(_stones, 12000, _dest), "12 stone do not fit")
+	assert_equal(planner.last_refusal(), HaulPlannerScript.REFUSE_NO_DESTINATION, "named")
+	assert_true(planner.select_destination_into(_stones, 1000, _dest), "1 stone does")
+	assert_equal(_dest.tile, HaulWorld.tile(41, 44), "on that tile")

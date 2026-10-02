@@ -24,10 +24,12 @@ extends RefCounted
 ## THE TWO PILE PATHS ARE TWO TRANSACTIONS, AND SAY SO. The pool cannot join an inventory
 ## transaction (its rows are not journaled there), so an unload onto ground piles and a drop
 ## release the claim through the pool and then move the goods through `ground_piles.gd`. Both
-## first run that mover's exact preflight with the claim still standing, so the move after the
-## release refuses only if the world changed between two lines of this file -- which nothing in
-## a sequential tick can do. The unload still re-claims on that unreachable refusal; the drop
-## cannot (its claims belonged to a job the death cancels) and reports it.
+## first run that mover's preflight with the claims still standing (it asks as if every claim
+## were released). The drop releases every claim on the satchel, so its move sees exactly what
+## the preflight saw. The unload releases only ITS job's claim: if another job also claims the
+## carried lot (a second haul admitted against the same satchel goods), the move refuses the
+## still-claimed source and the unload re-claims what it released -- restoring the pool's
+## canonical image exactly (`test_a_second_claim_on_the_satchel_lot_rolls_the_unload_back`).
 ##
 ## NO STATE OF ITS OWN. Every authoritative fact lives in Inventory, the reservation pool and the
 ## resident store, all of which already save; the columns below are cold-path scratch.
@@ -223,8 +225,9 @@ func unload_into_piles(job_ref: Vector2i, hauler_slot: int, seeds: PackedInt32Ar
 	"""The unload onto ground piles: R2's fallback when no store could take the payload.
 
 	The pile walk is proved with the claim still standing, the claim is released, the goods move
-	breadth-first from `seeds` (DEC-043 #9), and the emptied satchel is destroyed. `.value` is the
-	quantity moved; `.ref` the null ref, because the goods may now span several piles.
+	breadth-first from `seeds` (DEC-043 #9), and the emptied satchel is destroyed. Every lot in
+	the satchel moves (one item lot per haul, R-H6). `.value` is the job's claimed quantity; `.ref`
+	the null ref, because the goods may now span several piles.
 	"""
 	var refusal: StringName = _carrying_refusal(job_ref, hauler_slot)
 	if refusal != REFUSE_NONE:
@@ -233,7 +236,7 @@ func unload_into_piles(job_ref: Vector2i, hauler_slot: int, seeds: PackedInt32Ar
 	var lot: Vector2i = carried_lot(hauler_slot)
 	if not _piles.preflight_container_into_piles(satchel, seeds, seed_count, excluded_mask, _place):
 		return _refuse(_place.error)
-	var quantity: int = _inventory.lot_quantity_milli(lot)
+	var quantity: int = _reservations.claim_quantity_milli(job_ref, lot, HAUL_DESTINATION)
 	_reservations.claim_expiry_into(job_ref, lot, HAUL_DESTINATION, _expiry)
 	var released: InventoryScript.OpResult = _reservations.release_claim(job_ref, lot,
 		HAUL_DESTINATION, _inventory)
@@ -280,8 +283,10 @@ func drop_satchel(hauler_slot: int, seeds: PackedInt32Array,
 	Call it BEFORE the resident's row is despawned: the row's satchel pair is how the satchel is
 	found, and a despawned row must not leave an owned container behind. `seeds` come from
 	`ground_piles.drop_seeds_into()` for the resident's tile. Every claim on the satchel's lots is
-	released -- they belonged to a haul the death cancels -- after the pile walk is proved.
-	A hauler carrying nothing answers ok with `.value` 0. `.value` is the lots moved.
+	released -- they belonged to a haul the death cancels -- after the pile walk is proved. The
+	caller cancels the haul through `haul_planner.cancel()` first, so its destination grams go
+	back too. A hauler carrying nothing answers ok with `.value` 0; otherwise `.value` counts
+	the lots or lot parts that arrived on piles.
 	"""
 	var ready: StringName = _hauler_refusal(hauler_slot)
 	if ready != REFUSE_NONE:

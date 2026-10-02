@@ -13,7 +13,6 @@ extends SceneTree
 
 const CrewsScript := preload("res://demo/work/work_crews.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
-const GroupSelectScript := preload("res://demo/control/group_select.gd")
 
 const BOOT_FRAMES: int = 14
 const SETTLE_FRAMES: int = 4
@@ -532,7 +531,10 @@ func _line_name(who: int) -> String:
 	var full := PackedStringArray()
 	for k: int in int(_cast().call(&"actor_count")):
 		full.append(String((_cast().call(&"actor", k) as Node).get("display_name")))
-	return GroupSelectScript.short_names(full)[who]
+	# Loaded at run time: a main loop's script is compiled before the autoloads are registered, and group_select.gd's
+	# dependencies name them.
+	var names: PackedStringArray = (load("res://demo/control/group_select.gd") as GDScript).call(&"short_names", full)
+	return names[who]
 
 
 func _floors(panel: Control) -> void:

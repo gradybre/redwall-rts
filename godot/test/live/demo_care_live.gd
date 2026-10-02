@@ -383,6 +383,14 @@ func _the_infirmary() -> void:
 	await _patient_inside(building, at)
 
 
+func _carriers() -> int:
+	"""How many of the cast can carry a load (resident_brain.gd `can_carry`: a carry clip; none on placeholder bodies)."""
+	var n: int = 0
+	for i: int in int(_cast().call(&"actor_count")):
+		n += 1 if bool((_cast().call(&"actor", i) as Node).get("brain").call(&"can_carry")) else 0
+	return n
+
+
 func _placed(place: Node) -> Vector2:
 	"""Move the ghost over rings round INFIRMARY_AT until a spot is allowed, and place it there (INF: none)."""
 	for ring: int in INFIRMARY_RINGS:
@@ -409,7 +417,14 @@ func _being_built(building: Node, at: Vector2) -> void:
 			got += int((project.get("delivered") as PackedInt64Array)[m])
 		return got > 0, 9000)
 	_hold()
-	_check("the board's residents fetch its materials", fetched >= 0, "%d frames" % fetched)
+	if _carriers() > 0:
+		_check("the board's residents fetch its materials", fetched >= 0, "%d frames" % fetched)
+	else:
+		# The unstaged cast (CI: placeholder bodies with no carry clip) can carry nothing, so the check is what the
+		# board says instead: every place waits on "can't carry a load" (batch 7 integration, decision 0902).
+		var why: String = String(building.get("builders").call(&"eligibility", 0, 0))
+		_check("the board's residents fetch its materials", fetched < 0 and why == "can't carry a load",
+			"no carrier in this cast: %s" % why)
 	_look_at(at, 16.0)
 	await _capture("care_infirmary_building")
 	building.get("builders").call(&"release_all")

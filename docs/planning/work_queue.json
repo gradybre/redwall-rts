@@ -2718,8 +2718,8 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "Brendan confirms decision 1024 first. Bind the provisional class without closing MOVE-G01; real routes and arrival in the settlement tick; contact producer per R-H4 (lowest-id walkable edge-adjacent cell; hall shelves from the common-room edge); destination revisions. Coordinate movement.gd with DEMOLITION-D8.",
-      "note": "Needs Brendan's confirmation of decision 1024's PROVISIONAL class values."
+      "acceptance": "Decision 1024 confirmed (option a). Bind the provisional class without closing MOVE-G01; real routes and arrival in the settlement tick; contact producer per R-H4 (lowest-id walkable edge-adjacent cell; hall shelves from the common-room edge); destination revisions. Coordinate movement.gd with DEMOLITION-D8. Includes the RESERVED->TRAVEL->WORK job state writer.",
+      "note": "Decision 1024 confirmed by Brendan 2026-10-02: option (a), PROVISIONAL class 1 for the four starter adults, closing no MOVE gate. New lane from master once feat/hauling-h0-h2 merges; read construction_execution_package.md section 6 first."
     },
     {
       "id": "HAUL-H4",

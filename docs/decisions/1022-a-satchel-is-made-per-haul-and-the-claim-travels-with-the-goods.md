@@ -1,5 +1,5 @@
 # 1022 — A satchel is made per haul, and the claim travels with the goods
-Date: 2026-10-02 · Status: Accepted (slice H1 of task 06.4); proposals P1–P3 await Brendan
+Date: 2026-10-02 · Status: Accepted (slice H1 of task 06.4); P1–P3 ruled by Brendan 2026-10-02, all as recommended
 
 ## Decision
 
@@ -57,7 +57,16 @@ in decision 1021) and its two derived rules (R-H2a death/departure drop, R-H2b r
 - **A numbered policy, not a flag column:** decision 0532 set the pattern for a container whose
   identity carries rules; a new column would cost 101376 bytes for one bit the policy already has.
 
-## Proposals for Brendan (the documents are silent)
+## Brendan's rulings on P1–P3, 2026-10-02
+
+All three approved as recommended (relayed by the coordinator); no behaviour changed:
+- **P1 → (a).** A death or departure drop on a standing footprint starts from that building's
+  door or front ring (`refund_seeds_into()`).
+- **P2 → (a) now, (b) in H7.** Carried lots keep their identity and do not merge on arrival
+  until H7's gear work, which then merges compatible lots on arrival, gear lots excepted.
+- **P3 → (a).** Satchels are unreachable for planning (`reachable = false`).
+
+## Proposals as offered (the documents were silent)
 
 - **P1 -- a death on a footprint.** A hauler standing on a standing building's footprint (inside
   the hall) is on a tile #9 never lets a pile sit on. Built: the drop starts from that building's

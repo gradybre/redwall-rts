@@ -1,11 +1,17 @@
-# 1024 — A provisional ground clearance class for the four starter adults (PROPOSAL)
-Date: 2026-10-02 · Status: Proposed — awaiting Brendan's confirmation. **PROVISIONAL; closes no MOVE gate.**
+# 1024 — A provisional ground clearance class for the four starter adults
+Date: 2026-10-02 · Status: Accepted — Brendan chose option (a) on 2026-10-02. **PROVISIONAL; closes no MOVE gate.**
 
 Numbered 1024 from the range the brief assigned (1021–1029). No record numbered 1021–1029
 exists on any local or remote branch or in any sibling worktree (`git ls-tree` over every ref,
 2026-10-02).
 
-## Decision (proposed)
+## Brendan's ruling, 2026-10-02
+
+**Option (a): provisional clearance class 1 for mouse, mole, otter and squirrel**, recorded as
+PROVISIONAL and closing no MOVE gate (relayed by the coordinator). Binding it in code is slice
+H3's; the caveats below are the ones he confirmed past and stay true.
+
+## Decision (as proposed and accepted)
 
 Brendan ruled on 2026-10-02 that the four starter adult species get a **provisional** ground
 clearance class, recorded as NOT closing MOVE-G01, so that task 06.4's slice H3 can compose the
@@ -65,10 +71,10 @@ each of them.
   derived class) stay empty; this fills none of them. MOVE-G02–05 are untouched.
 - **No code binds it yet.** `movement.gd::profile_clearance_class_into()` still refuses every
   starter profile, and `test_no_profile_publishes_a_clearance_class` still pins that. Binding the
-  value is H3's change, made only after confirmation, and it will mark the bound value PROVISIONAL
-  in code and keep MOVE-G01's open status in `movement_profile_readiness.json`.
+  value is H3's change (now confirmed); it marks the bound value PROVISIONAL in code and keeps
+  MOVE-G01's open status in `movement_profile_readiness.json`. See the packet's §6 for H3's notes.
 
-## Options for Brendan
+## Options as offered (ruled: (a))
 
 - **(a) Recommended:** class 1 for all four, as above.
 - (b) Class 1 for mouse and squirrel only; mole and otter stay refused until measured (hauls by

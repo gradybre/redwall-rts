@@ -1,5 +1,5 @@
 # 1023 — Haul payloads are sized at assignment and go to the lowest eligible store
-Date: 2026-10-02 · Status: Accepted (slice H2 of task 06.4); proposals P1–P3 await Brendan
+Date: 2026-10-02 · Status: Accepted (slice H2 of task 06.4); P1–P3 ruled by Brendan 2026-10-02, all as recommended
 
 ## Decision
 
@@ -67,7 +67,17 @@ R-H6 and R-H7 (decision 1021).
 - **The carried claim is HAUL_DESTINATION** because a Reservation row names a LOT (GDD §4.2);
   destination capacity is container mass, which Inventory reserves and this record attributes.
 
-## Proposals for Brendan (the documents are silent)
+## Brendan's rulings on P1–P3, 2026-10-02
+
+All three approved as recommended (relayed by the coordinator); no behaviour changed here:
+- **P1 → as built.** HAUL_DESTINATION means the claim on the carried lot from load to unload.
+- **P2 → refuse later.** The pool keeps admitting any int32 now and refuses unnumbered purposes
+  once every producer is numbered; that change belongs to whichever slice numbers the last one.
+- **P3 → (a) for piles, (b) for satchels.** A pile source with no free store stays queued with
+  HAUL_NO_DESTINATION. A satchel's goods with no free store go down at the hauler's tile, through
+  the drop path (`drop_seeds_into()` + the pile mover); H4 builds that.
+
+## Proposals as offered (the documents were silent)
 
 - **P1 -- HAUL_DESTINATION's meaning.** Built: the claim on the carried lot from load to unload.
   Alternative: a purpose for a container-capacity claim, which would need a new row shape GDD

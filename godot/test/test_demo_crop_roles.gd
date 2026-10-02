@@ -79,8 +79,9 @@ func test_the_words_for_days_and_seasons() -> void:
 
 
 func test_uses_are_read_from_the_kitchen_and_the_mill() -> void:
-	"""Carrots: the soup and the fish stew, raw in a pinch; wheat: porridge and the mill; lettuce only raw; peas none --
-	each from meal_rules.gd's own tables, so a dish added there shows here."""
+	"""Carrots: the soup and the fish stew, raw in a pinch; wheat: porridge and the mill; lettuce the dishes that take
+	greens, then raw; peas the bean hotpot -- each from meal_rules.gd's own tables, so a dish added there shows here (the
+	recipe book's twenty since the batch 7 integration, decision 0902)."""
 	var radish: PackedStringArray = Roles.uses_of(RADISH)
 	assert_true(radish.has(MealRules.DISH_NAMES[MealRules.DISH_SOUP]), "radish feeds the soup")
 	assert_true(radish.has(MealRules.DISH_NAMES[MealRules.DISH_FISH_STEW]), "and the fish stew")
@@ -90,17 +91,21 @@ func test_uses_are_read_from_the_kitchen_and_the_mill() -> void:
 	assert_true(wheat.has(MealRules.DISH_NAMES[MealRules.DISH_PORRIDGE]), "wheat: porridge")
 	assert_true(wheat.has(Roles.MILL_USE), "and the mill")
 	assert_false(wheat.has(Roles.RAW_USE), "never raw (§5.7: grain is not raw-edible)")
-	assert_equal(Roles.uses_of(LETTUCE), PackedStringArray([Roles.RAW_USE]), "lettuce: only raw")
-	assert_equal(Roles.uses_of(CABBAGE), PackedStringArray([Roles.RAW_USE]), "cabbage the same")
-	assert_true(Roles.uses_of(PEA).is_empty(), "no dish takes peas yet")
-	assert_equal(Roles.uses_text(PEA), "Uses: " + Roles.NO_USE, "said so")
+	var lettuce: PackedStringArray = Roles.uses_of(LETTUCE)
+	assert_true(lettuce.has(MealRules.DISH_NAMES[MealRules.DISH_SALAD]) and lettuce[lettuce.size() - 1] == Roles.RAW_USE,
+		"lettuce: the salad and the other greens' dishes, then raw: %s" % ", ".join(lettuce))
+	assert_equal(Roles.uses_of(CABBAGE), lettuce, "cabbage the same")
+	assert_equal(Roles.uses_of(PEA), PackedStringArray([MealRules.DISH_NAMES[MealRules.DISH_BEAN_HOTPOT]]),
+		"peas: the bean hotpot alone")
+	assert_equal(Roles.uses_text(PEA), "Uses: " + MealRules.DISH_NAMES[MealRules.DISH_BEAN_HOTPOT], "said so")
 	assert_true(Roles.uses_of(TROUT).is_empty(), "not a crop")
 	for dish: int in MealRules.DISH_COUNT:
 		var any: bool = false
+		var fed: bool = false
 		for item: int in Catalog.ITEM_COUNT:
 			any = any or Roles.uses_of(item).has(MealRules.DISH_NAMES[dish])
-		assert_equal(any, MealRules.INPUT_CROP[dish] != Catalog.CAT_FISH or MealRules.SIDE_CROP[dish] >= 0,
-			"%s is listed where a crop feeds it" % MealRules.DISH_NAMES[dish])
+			fed = fed or MealRules.is_input(dish, item)
+		assert_equal(any, fed, "%s is listed where a crop feeds it" % MealRules.DISH_NAMES[dish])
 
 
 func test_the_role_line() -> void:

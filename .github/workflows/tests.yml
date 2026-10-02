@@ -293,8 +293,10 @@ jobs:
     # Deliberately excluded: validate_blocker_package.py and
     # validate_executor_followup.py, which are report GENERATORS. They always
     # exit 0 and they rewrite tracked JSON, so running them in CI would prove
-    # nothing and dirty the tree. arithmetic/qualify/run_headless/setting_contract/
-    # winter all require an --output path and are likewise generators.
+    # nothing and dirty the tree. arithmetic/qualify/run_headless/winter all
+    # require an --output path and are likewise generators. setting_contract.py
+    # is a generator too, but its assertions are the check, so it runs below
+    # with its report written outside the tree (decision 1042).
 
     steps:
       - name: Check out the repository
@@ -308,6 +310,12 @@ jobs:
 
       - name: Merge gate (ledger chain, double budgets, row arithmetic)
         run: python3 docs/validation/merge_gate.py
+
+      # The rules-v2 catalog contract (counts, material references, roast arithmetic,
+      # admission fixtures). It failed on master from 2026-09-12, when ECON-002 added
+      # excavated_earth, and nothing ran it to notice (decision 1042).
+      - name: Rules-v2 setting catalog contract
+        run: python3 -B docs/validation/setting_contract.py --output "$RUNNER_TEMP/setting-contract.json"
 
       - name: Dispatch graph is well formed
         run: python3 tools/dispatch_plan.py --validate

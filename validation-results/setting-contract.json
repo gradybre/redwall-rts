@@ -1,7 +1,7 @@
 {
   "status": "PASS_STATIC_SPEC_AND_REFERENCE_ONLY",
   "catalog_counts": {
-    "items": 60,
+    "items": 61,
     "recipes": 24,
     "ancillary": 12,
     "buildings": 30,
@@ -140,11 +140,11 @@
     ]
   },
   "source_sha256": {
-    "game_gdd.md": "f6b073ef618d2e8144f2c84cac3cb55f680863491672447096487be4cfe40453",
-    "gameplay_balance.md": "66b784467348bb28126fc947b9c979aeea5fe23c831d6d04e6f8190c62e3b56f",
-    "systems_architecture.md": "8e0150605b331210ec45a97c0bd1f481ff9662f4f5d6f0ad31e375b6ce3d0e58",
-    "ui_ux_controls.md": "9ff100d135ccf98ccb528edc3354fd0e3ab835b67652f8087dfb789710b7268e",
-    "setting_rules_amendment.md": "64fb7429a33aa40a3635ea83c17f8c97e32c4ddb4435c898c90965d2e08c709c"
+    "game_gdd.md": "d4e5f7dee1e5af913fb23730bf8e3f33a9869c0a3e8d789f19025fc44e033600",
+    "gameplay_balance.md": "8c01df320b84cdcff218bfd1ce993fadfdd8c98dcaa4dd54eb14e9dbb7afb84d",
+    "systems_architecture.md": "2868bb56a2d4a5f94072019019e556a6da3b92b8709405ac9c62885806fb9e5e",
+    "ui_ux_controls.md": "72bcb52901b0c1ed52257e8272209e9805ac32c276b2aed41648b7abdb818c9d",
+    "setting_rules_amendment.md": "ede2b0508f8428b7216c3b831d5ea54d1db3a868d903224b192d56b61cf1db10"
   },
   "limitations": "Checks catalog definitions and independent arithmetic fixtures. Does not run admission, UI, saves, ecology, or full settlement survival in Godot."
 }

@@ -20,6 +20,7 @@ const StarterColony := preload("res://scripts/core/starter_colony.gd")
 const Section7 := preload("res://scripts/core/save_section_inventories.gd")
 const SaveHeader := preload("res://scripts/core/save_header.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ConstructionScript := preload("res://scripts/core/construction.gd")
 
 const TUTORIAL_SEED: int = 20260905
 const OTHER_SEED: int = 20260910
@@ -577,8 +578,25 @@ func test_the_starter_workbench_completes_onto_ground_piles() -> void:
 	economy.free()
 
 
-func test_the_emptied_starter_hall_still_refuses_for_its_31_pieces() -> void:
-	"""The furniture rule over the real colony: with the pantry emptied, the 31 pieces refuse."""
+func _starter_furniture_half_milli(item_key: String) -> int:
+	"""Half of `item_key` over every live piece, each floored on its own -- from §4.3's own table."""
+	var buildings: Buildings = _settlement.buildings()
+	var total: int = 0
+	for key: String in ConstructionScript.FURNITURE_MATERIALS.keys():
+		var pairs: Array = ConstructionScript.FURNITURE_MATERIALS[key]
+		var pieces: int = buildings.live_furniture_of_kind(int(Catalog.FURNITURE_DEFINITION[key]))
+		for index: int in range(0, pairs.size(), 2):
+			if pairs[index] == item_key:
+				@warning_ignore("integer_division") total += pieces * (int(pairs[index + 1]) / 2)
+	return total
+
+
+func test_the_emptied_starter_hall_is_demolished_with_its_31_pieces() -> void:
+	"""Decision 0536 over the real colony: once its pantry is empty the hall goes, all of it.
+
+	Its 4 rooms and 31 pieces are removed with it, and its return -- the hall's own half plus each
+	piece's -- is too large for the stockpiles' headroom, so it lands on ground piles at the door.
+	"""
 	assert_true(_generate(_settlement), "the settlement generates")
 	var economy: EconomySystemScript = _open_economy_on_settlement()
 	var hall: Vector2i = _settlement.buildings().building_at_tile(HALL_TILE)
@@ -588,12 +606,93 @@ func test_the_emptied_starter_hall_still_refuses_for_its_31_pieces() -> void:
 		var lot: Vector2i = report.stranded_lot_at(index)
 		assert_true(_settlement.inventory().sink_lot_quantity(lot,
 			_settlement.inventory().lot_quantity_milli(lot)).ok, "the pantry is emptied")
+	var wood: int = _settlement.item_definitions().compiled_id(&"wood")
+	var expected_wood: int = _settlement.inventory().total_live_milli(wood) + 50000 \
+		+ _starter_furniture_half_milli("wood")
 	report = _settlement.request_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID,
-		"then every piece refuses")
-	assert_equal(report.unpaid_furniture_count, 31, "all 31 of them")
-	assert_true(_settlement.buildings().is_live_furniture(report.blocking_furniture), "one named")
-	assert_equal(_settlement.construction().live_project_count(), 0, "nothing was admitted")
+	assert_true(report.ok, "now the hall is admitted (%s)" % report.error)
+	assert_true(report.output_to_ground_piles, "onto ground piles")
+	_finish_demolition_work(report.project_ref)
+	report = _settlement.complete_demolition(hall)
+	assert_true(report.ok, "and completes (%s)" % report.error)
+	assert_equal(report.removed_furniture_count, 31, "all 31 pieces")
+	assert_equal(report.removed_room_count, 4, "all 4 rooms")
+	assert_false(_settlement.buildings().is_live_building(hall), "the hall is gone")
+	assert_equal(_settlement.inventory().total_live_milli(wood), expected_wood,
+		"its 50 U of wood and half of every piece's are on the ground")
+	assert_true(_settlement.inventory().audit().ok, "audits")
+	economy.free()
+
+
+func _first_starter_piece(key: String) -> Vector2i:
+	"""The first piece of `key` the hall's room chains reach."""
+	var buildings: Buildings = _settlement.buildings()
+	var hall: Vector2i = buildings.building_at_tile(HALL_TILE)
+	for room_row: int in buildings.rooms_of_building(hall):
+		for furniture_row: int in buildings.furniture_rows_in_room(buildings.room_ref_of_row(room_row)):
+			var piece: Vector2i = buildings.furniture_ref_of_row(furniture_row)
+			if buildings.type_id_of_furniture(piece).value == int(Catalog.FURNITURE_DEFINITION[key]):
+				return piece
+	return EntityDirectory.NULL_REF
+
+
+func test_a_starter_bed_is_removed_into_the_fourth_stockpile() -> void:
+	"""Decision 0536's single-piece door over the real colony: the hall keeps its pantry goods."""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var bed: Vector2i = _first_starter_piece("bed")
+	assert_true(_settlement.buildings().is_live_furniture(bed), "a starter bed")
+	var used: int = _settlement.inventory().container_used_mass_g(economy.stockpile(3))
+	var admitted: SettlementSystemScript.DemolitionReport = _settlement.request_furniture_removal(bed)
+	assert_true(admitted.ok, "admitted although the pantry is full (%s)" % admitted.error)
+	assert_equal(admitted.output_container, economy.stockpile(3), "into the fourth stockpile")
+	_finish_demolition_work(admitted.project_ref)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.complete_furniture_removal(bed)
+	assert_true(report.ok, "completes (%s)" % report.error)
+	assert_false(_settlement.buildings().is_live_furniture(bed), "the bed is gone")
+	assert_equal(_settlement.buildings().live_furniture_count(), 30, "30 pieces remain")
+	assert_equal(_settlement.inventory().container_used_mass_g(economy.stockpile(3)), used + 5125,
+		"half the bed: 1 U of wood and 0.5 U of cloth")
+	assert_true(_settlement.inventory().audit().ok, "audits")
+	economy.free()
+
+
+func _starter_pantry_shelf() -> Vector2i:
+	"""The first shelf in the starter hall's PANTRY room (not the kitchen's fifth)."""
+	var buildings: Buildings = _settlement.buildings()
+	var hall: Vector2i = buildings.building_at_tile(HALL_TILE)
+	for room_row: int in buildings.rooms_of_building(hall):
+		var room: Vector2i = buildings.room_ref_of_row(room_row)
+		if buildings.type_of_room(room).value != Catalog.ROOM_TYPE["PANTRY"]:
+			continue
+		return buildings.furniture_ref_of_row(buildings.furniture_rows_in_room(room)[0])
+	return EntityDirectory.NULL_REF
+
+
+func test_a_starter_pantry_shelf_cannot_leave_a_full_pantry() -> void:
+	"""#3b over the real colony (review H2): 179200 g will not fit 150000 g, so the shelf stays.
+
+	The starter pantry room is not yet VALID (nothing evaluates validity), but its 200000 g was
+	granted from its four shelves, and #3b's own words key the capacity to a shelf in the pantry.
+	"""
+	assert_true(_generate(_settlement), "the settlement generates")
+	var economy: EconomySystemScript = _open_economy_on_settlement()
+	var shelf: Vector2i = _starter_pantry_shelf()
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_furniture_removal(shelf)
+	assert_equal(report.error, SettlementSystemScript.REFUSE_REMOVAL_PANTRY_OVER_CAPACITY,
+		"the full pantry keeps its shelf")
+	var pantry: Vector2i = report.blocking_container
+	assert_equal(_settlement.inventory().container_max_mass_g(pantry), 200000, "the 200000 g store")
+	while _settlement.inventory().container_used_mass_g(pantry) > 150000:
+		var lot: Vector2i = _settlement.inventory().container_first_lot(pantry)
+		assert_true(_settlement.inventory().sink_lot_quantity(lot,
+			_settlement.inventory().lot_quantity_milli(lot)).ok, "the pantry is drawn down")
+	report = _settlement.request_furniture_removal(shelf)
+	assert_true(report.ok, "now the shelf may go (%s)" % report.error)
+	_finish_demolition_work(report.project_ref)
+	assert_true(_settlement.complete_furniture_removal(shelf).ok, "and does")
+	assert_equal(_settlement.inventory().container_max_mass_g(pantry), 150000,
+		"taking its 50000 g with it")
 	economy.free()
 
 
@@ -601,7 +700,7 @@ func test_without_the_adoption_the_hall_would_read_as_empty() -> void:
 	"""Why decision 0534 adopts the inventory: stores in a second inventory are invisible.
 
 	An economy left on its PRIVATE store opens the same five owned, anchored stores, and the gate
-	scanning the settlement's inventory finds none of them: the hall's goods scan reads empty.
+	scanning the settlement's inventory finds none of them -- the hall passes the preview.
 	"""
 	assert_true(_generate(_settlement), "the settlement generates")
 	var binding: StarterColony.StoreBinding = StarterColony.StoreBinding.new()
@@ -610,9 +709,8 @@ func test_without_the_adoption_the_hall_would_read_as_empty() -> void:
 	assert_true(detached.open_and_seed_starter_stores(binding), "the private stores open")
 	var hall: Vector2i = _settlement.buildings().building_at_tile(HALL_TILE)
 	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
-	assert_equal(report.stranded_lot_count, 0, "the gate cannot see a pantry in another inventory")
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID,
-		"so it gets as far as the furniture rule (decision 0535) instead of refusing on goods")
+	assert_true(report.ok, "the gate cannot see a pantry in another inventory (%s)" % report.error)
+	assert_equal(report.stranded_lot_count, 0, "so the hall reads as empty")
 	detached.free()
 
 

@@ -408,67 +408,125 @@ func test_a_foreign_container_on_the_footprint_after_admission_blocks_the_commit
 	assert_true(_snapshot() == before, "byte-identical")
 
 
-# --- the furniture rule --------------------------------------------------------------------------
+# --- the furniture rule, as Brendan ruled it (decision 0536) --------------------------------------
 
-func test_admit_refuses_a_building_with_furniture_and_names_the_first_piece() -> void:
-	"""No piece carries a paid package, so admit cannot reserve its 50%: every piece refuses."""
+func _piece(room: Vector2i, key: String, tile: int) -> Vector2i:
+	"""Place one piece of furniture of `key` in `room` on `tile`."""
+	var made: BuildingsScript.OpResult = _settlement.buildings().place_furniture(room,
+		int(CatalogScript.FURNITURE_DEFINITION[key]), tile, 0)
+	assert_true(made.ok, "a %s is placed (%s)" % [key, made.error])
+	return made.ref
+
+
+func _quarter_work_of(key: String) -> int:
+	"""A quarter of one piece's §4.3 WU, read from the definitions, not from construction."""
+	@warning_ignore("integer_division") return _settlement.building_definitions().furniture_work_mwu_of(
+		int(CatalogScript.FURNITURE_DEFINITION[key])) / 4
+
+
+func test_a_hall_with_furniture_returns_half_of_each_piece_and_takes_it_out() -> void:
+	"""P1: each piece's package derived from its type; its 50% is reserved, worked for and placed."""
 	var hall: Vector2i = _place_active("hall", HALL_TILE)
 	var bed: Vector2i = _bed(_room(hall, INSIDE_TILE), INSIDE_TILE)
-	var other: Vector2i = _bed(_room(hall, INSIDE_TILE_2), INSIDE_TILE_2)
+	_piece(_room(hall, INSIDE_TILE_2), "seat", INSIDE_TILE_2)
+	var depot: Vector2i = _depot_store()
+	var admitted: SettlementSystemScript.DemolitionReport = _admitted(hall)
+	# The bed: 1 U of wood (5000 g) and 0.5 U of cloth (125 g); the seat: 0.5 U of wood (2500 g).
+	var charge: int = HALL_RETURN_G + 5000 + 125 + 2500
+	assert_equal(admitted.output_reserved_g, charge, "the reservation covers the pieces too")
+	var remaining: IntMath.IntResult = IntMath.IntResult.new()
+	assert_true(_settlement.construction().remaining_mwu_into(admitted.project_ref, remaining), "")
+	assert_equal(remaining.value, 600000 + _quarter_work_of("bed") + _quarter_work_of("seat"),
+		"the work is a quarter of the hall's WU plus a quarter of each piece's")
+	_finish_work(admitted.project_ref)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.complete_demolition(hall)
+	assert_true(report.ok, "the hall completes (%s)" % report.error)
+	assert_equal(report.removed_furniture_count, 2, "(2) both pieces taken out")
+	assert_false(_settlement.buildings().is_live_furniture(bed), "the bed is gone")
+	assert_equal(_settlement.buildings().live_furniture_count(), 0, "no piece survives")
+	assert_equal(_milli_of(depot, &"wood"), 50000 + 1000 + 500, "hall wood + half the bed + seat")
+	assert_equal(_milli_of(depot, &"cloth"), 6000 + 500, "hall cloth + half the bed's")
+	assert_equal(_settlement.inventory().container_used_mass_g(depot), charge, "the whole charge")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(depot), 0, "claim released")
+
+
+func test_furniture_adds_items_the_building_never_named() -> void:
+	"""Wax and iron come only from furniture: the combined return holds five lines."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	_piece(_room(hall, INSIDE_TILE), "decoration", INSIDE_TILE)
+	var kitchen: BuildingsScript.OpResult = _settlement.buildings().designate_room(hall,
+		int(CatalogScript.ROOM_TYPE["KITCHEN"]), PackedInt32Array([INSIDE_TILE_2, INSIDE_TILE_2 + 1]))
+	assert_true(kitchen.ok, "a two-tile kitchen (%s)" % kitchen.error)
+	_piece(kitchen.ref, "kitchen_bench", INSIDE_TILE_2)
+	var depot: Vector2i = _depot_store()
+	_admit_and_finish(hall)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.complete_demolition(hall)
+	assert_true(report.ok, "completes (%s)" % report.error)
+	assert_equal(report.returned_lot_count, 5, "wood, stone, cloth, wax, iron")
+	assert_equal(_milli_of(depot, &"wood"), 50000 + 500 + 2000, "wood")
+	assert_equal(_milli_of(depot, &"stone"), 30000 + 2000, "stone")
+	assert_equal(_milli_of(depot, &"wax"), 125, "half the decoration's 250 milli of wax")
+	assert_equal(_milli_of(depot, &"iron"), 500, "half the bench's iron")
+
+
+func test_two_pieces_of_one_kind_each_return_their_half() -> void:
+	"""Two decorations: 125 + 125 milli of wax. Every §4.3 quantity is even, so flooring per piece
+	and flooring the total agree with today's data; the per-piece rule is stated in 0536."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var room: Vector2i = _room(hall, INSIDE_TILE)
+	_piece(room, "decoration", INSIDE_TILE)
+	_piece(_room(hall, INSIDE_TILE_2), "decoration", INSIDE_TILE_2)
+	var depot: Vector2i = _depot_store()
+	_admit_and_finish(hall)
+	assert_true(_settlement.complete_demolition(hall).ok, "completes")
+	assert_equal(_milli_of(depot, &"wax"), 250, "125 + 125")
+
+
+func test_a_piece_with_a_live_furniture_project_refuses_by_name() -> void:
+	"""A piece still under construction is not completed capital: preview and admit refuse."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var bed: Vector2i = _bed(_room(hall, INSIDE_TILE), INSIDE_TILE)
+	_piece(_room(hall, INSIDE_TILE_2), "seat", INSIDE_TILE_2)
+	assert_true(_settlement.construction().open_furniture(bed).ok, "the bed's project is live")
 	_depot_store()
 	var before: PackedByteArray = _snapshot()
-	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID,
-		"the furniture rule refuses")
-	assert_equal(report.unpaid_furniture_count, 2, "counting every piece")
-	var buildings: BuildingsScript = _settlement.buildings()
-	var first_room: Vector2i = buildings.room_ref_of_row(buildings.rooms_of_building(hall)[0])
-	var first: Vector2i = buildings.furniture_ref_of_row(buildings.furniture_rows_in_room(first_room)[0])
-	assert_true(first == bed or first == other, "(the walk's first piece is one of the two)")
-	assert_equal(report.blocking_furniture, first, "and naming the first piece the walk reaches")
-	assert_true(_snapshot() == before, "byte-identical: no reservation, no project")
-
-
-func test_a_piece_with_a_live_furniture_project_refuses_the_same() -> void:
-	"""A piece still being built is not completed capital: the same refusal, by name."""
-	var hall: Vector2i = _place_active("hall", HALL_TILE)
-	var bed: Vector2i = _bed(_room(hall, INSIDE_TILE), INSIDE_TILE)
-	assert_true(_settlement.construction().open_furniture(bed).ok, "its project is live")
-	_depot_store()
-	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID, "refused")
+	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNDER_CONSTRUCTION,
+		"the preview refuses")
 	assert_equal(report.blocking_furniture, bed, "naming the bed")
+	assert_equal(report.blocked_furniture_count, 1, "and only the bed")
+	assert_equal(_settlement.request_demolition(hall).error,
+		SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNDER_CONSTRUCTION, "admit too")
+	assert_true(_snapshot() == before, "byte-identical")
 
 
-func test_furniture_placed_after_admission_blocks_the_commit_until_removed() -> void:
-	"""The furniture rule runs again at the commit; removing the piece lets the retry through."""
+func test_a_piece_placed_after_admission_blocks_the_commit_until_removed() -> void:
+	"""The return the commit would place is not the one admitted: MISMATCH, commit-pending."""
 	var hall: Vector2i = _place_active("hall", HALL_TILE)
 	var room: Vector2i = _room(hall, INSIDE_TILE)
 	_depot_store()
 	var project: Vector2i = _admit_and_finish(hall)
 	var bed: Vector2i = _bed(room, INSIDE_TILE)
 	var before: PackedByteArray = _snapshot()
-	var report: SettlementSystemScript.DemolitionReport = _settlement.complete_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID, "refused")
-	assert_equal(report.blocking_furniture, bed, "naming the bed")
+	assert_equal(_settlement.complete_demolition(hall).error,
+		SettlementSystemScript.REFUSE_DEMOLITION_RESERVATION_MISMATCH, "refused")
 	assert_true(_snapshot() == before, "byte-identical")
 	assert_equal(_phase_of(project), ConstructionScript.PHASE_WORK_DONE, "commit-pending")
-	assert_true(_settlement.buildings().remove_furniture(bed).ok, "the bed is taken out")
+	assert_true(_settlement.buildings().remove_furniture(bed).ok, "the bed is taken out again")
 	assert_true(_settlement.complete_demolition(hall).ok, "and the retry completes")
 
 
-func test_the_preview_applies_the_furniture_rule_too() -> void:
-	"""Review M3: a preview that passes is one admit can act on, so it refuses furniture as well."""
+func test_a_piece_placed_after_a_pile_admission_is_caught_too() -> void:
+	"""The admitted charge is recorded for a ground-pile fallback as well (decision 0536)."""
 	var hall: Vector2i = _place_active("hall", HALL_TILE)
-	var bed: Vector2i = _bed(_room(hall, INSIDE_TILE), INSIDE_TILE)
-	_depot_store()
+	var room: Vector2i = _room(hall, INSIDE_TILE)
+	_bind_world()
+	_admit_and_finish(hall)
+	_bed(room, INSIDE_TILE)
 	var before: PackedByteArray = _snapshot()
-	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(hall)
-	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_FURNITURE_UNPAID,
-		"the preview refuses")
-	assert_equal(report.blocking_furniture, bed, "naming the bed")
-	assert_equal(report.unpaid_furniture_count, 1, "once, not twice")
-	assert_true(_snapshot() == before, "and writes nothing")
+	assert_equal(_settlement.complete_demolition(hall).error,
+		SettlementSystemScript.REFUSE_DEMOLITION_RESERVATION_MISMATCH, "refused")
+	assert_true(_snapshot() == before, "byte-identical")
 
 
 # --- the return's placement can fail at the commit (stay commit-pending) ----------------------
@@ -480,7 +538,7 @@ func test_recorded_grams_that_differ_from_the_snapshots_charge_refuse() -> void:
 	var project: Vector2i = _admit_and_finish(well)
 	var admissions: DemolitionAdmissionsScript = _settlement.demolition_admissions()
 	assert_equal(admissions.release(well), &"", "the record is cleared around the coordinator")
-	assert_equal(admissions.record(well, project, depot, WELL_RETURN_G - 1), &"",
+	assert_equal(admissions.record(well, project, depot, WELL_RETURN_G - 1, WELL_RETURN_G - 1), &"",
 		"and re-recorded one gram short")
 	var before: PackedByteArray = _snapshot()
 	assert_equal(_settlement.complete_demolition(well).error,
@@ -489,7 +547,7 @@ func test_recorded_grams_that_differ_from_the_snapshots_charge_refuse() -> void:
 	assert_equal(_phase_of(project), ConstructionScript.PHASE_WORK_DONE, "commit-pending")
 	assert_equal(admissions.release(well), &"", "cleared again")
 	assert_true(_settlement.inventory().reserve_container_mass(depot, 1).ok, "one gram more held")
-	assert_equal(admissions.record(well, project, depot, WELL_RETURN_G + 1), &"",
+	assert_equal(admissions.record(well, project, depot, WELL_RETURN_G + 1, WELL_RETURN_G + 1), &"",
 		"and re-recorded one gram over")
 	assert_equal(_settlement.complete_demolition(well).error,
 		SettlementSystemScript.REFUSE_DEMOLITION_RESERVATION_MISMATCH, "over refuses too")
@@ -534,11 +592,13 @@ func test_a_store_that_can_no_longer_take_the_return_stays_commit_pending() -> v
 func _abandon_after_first_block(building: Vector2i, project: Vector2i, store: Vector2i,
 		grams: int) -> void:
 	"""Run the commit's first block, then the guard that follows an unreachable later refusal."""
-	assert_equal(_settlement._open_commit(building, store, grams), &"", "the first block runs")
+	var charge: int = _settlement.demolition_admissions().admitted_charge_g_of(building)
+	assert_equal(_settlement._open_commit(building, EntityDirectoryScript.NULL_REF, store, grams),
+		&"", "the first block runs")
 	assert_equal(_settlement.demolition_admissions().project_of(building),
 		EntityDirectoryScript.NULL_REF, "and released the record")
 	expect_diagnostic("a proved demolition commit refused a write")
-	_settlement._abandon_commit(building, project, store, grams, &"TEST_FAULT")
+	_settlement._abandon_commit(building, project, store, grams, charge, &"TEST_FAULT")
 
 
 func test_an_abandoned_store_commit_restores_inventory_and_re_records_the_admission() -> void:
@@ -585,9 +645,11 @@ func test_the_abandon_guard_zeroes_the_reports_counters_and_rereads_the_revision
 	report.destroyed_container_count = 9
 	report.removed_room_count = 9
 	report.returned_lot_count = 9
+	report.removed_furniture_count = 9
 	_abandon_after_first_block(well, project, depot, WELL_RETURN_G)
 	assert_equal(report.destroyed_container_count, 0, "destroyed reset")
 	assert_equal(report.removed_room_count, 0, "rooms reset")
 	assert_equal(report.returned_lot_count, 0, "lots reset")
+	assert_equal(report.removed_furniture_count, 0, "pieces reset")
 	assert_equal(report.destination_revision,
 		_settlement.demolition_admissions().destination_revision_of(well), "the row's revision")

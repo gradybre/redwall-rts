@@ -31,7 +31,9 @@ extends RefCounted
 ##   * REQ-SET-127 -- DEMOLITION. `open_demolition()` prices the work at the declared construction
 ##     WU x 0.25 and `demolition_return_milli_into()` hands back 50% of the ORIGINAL material
 ##     costs -- the definition's own bill, never the delivered ledger, which is empty for a
-##     demolition.
+##     demolition. Every piece of furniture in the building adds 50% of its own §4.3 bill, floored
+##     per piece, and a quarter of its WU (Brendan's rulings on decision 0535, recorded in 0536);
+##     `open_furniture_removal()` takes ONE piece out of a standing building on the same terms.
 ##   * REQ-SET-137 -- PAUSE. `set_paused()` retains the delivered ledger and `remaining_mwu`
 ##     untouched and drops `assigned_count` to 0, which is "release workers" in this store's terms.
 ##
@@ -87,15 +89,22 @@ extends RefCounted
 ##     REQ-SET-128 in full must go through the coordinator. `occupant_count_of_building()` and
 ##     `furniture_user_count_of_building()` are public so that coordinator rechecks THESE counts
 ##     immediately before any state change, rather than keeping a second copy of the rule.
-##     Likewise `commit_completion()` is the STORE-LEVEL completion. DEMO-CONTAIN-R01 #6's is the
-##     coordinator's `complete_demolition()` (decision 0535): it removes the rooms, then calls
-##     `remove_demolished_building()`, places the 50% return, and only then `retire_demolition()`.
+##     A demolition or furniture removal COMPLETES AND IS CANCELLED ONLY THROUGH THE COORDINATOR
+##     (decision 0536, Brendan's P3): `commit_completion()` and `close_refund()` refuse such a row
+##     COORDINATOR_ONLY, because finishing it here would skip its Inventory claim and orphan its
+##     stores. The coordinator calls `remove_demolished_subject()`, places the 50% return, then
+##     `retire_demolition()`; a cancellation ends in `close_demolition_refund()`.
 ##   * A TIER-2 BUILDING'S DEMOLITION BASIS IS BUILD-C4-R01's (decision 0534). Every row records
 ##     its paid package KEYS in the ConstructionPaidLedger columns `_paid_base_type` and
 ##     `_paid_upgrade_mask`; `open_demolition()` snapshots the building's base package and, at
 ##     tier 2, its one completed upgrade. The return totals each item over both packages and
 ##     floors the 50% once per item; the work is a quarter of the same completed WU sum. Tier 1
-##     is the inherited formula unchanged.
+##     is the inherited formula unchanged. A piece of furniture's package is DERIVED from its type
+##     (0536, ruling R4's reading applied to furniture): no store records a completed piece's.
+##     ADR 0186's frozen local Columns validation still declares a DEMOLISH row's W as the BASE
+##     WU x 0.25 and pins purposes 0..3, so a tier-2 or furnished demolition's W and every
+##     furniture-removal row fail it closed; CONSTRUCTION-SAVED-BINDINGS must revisit that
+##     contract before any open removal is saved (decision 0536).
 ##   * NO CONTAINER IS CREATED OR READ. `material_container` is stored as the §4.2 column it is,
 ##     in the INVENTORY CONTAINER generation namespace -- not the directory's -- and this store
 ##     holds no `inventory.gd` reference with which to attest it, so `set_material_container()`
@@ -214,6 +223,14 @@ const PURPOSE_UPGRADE: int = 1
 const PURPOSE_FURNITURE: int = 2
 const PURPOSE_DEMOLISH: int = 3
 const PURPOSE_COUNT: int = 4
+## Decision 0536 (Brendan's P2 ruling on decision 0535): ONE piece of furniture taken out of a
+## standing building -- removal work a quarter of the piece's §4.3 WU, return 50% of its bill.
+## DELIBERATELY OUTSIDE PURPOSE_COUNT. ADR 0186's frozen local Columns validation pins purposes
+## 0..3 (`SOURCE_PURPOSE_COUNT`), so it refuses a removal row COLUMN_ENUM -- fail closed -- until
+## CONSTRUCTION-SAVED-BINDINGS revisits that contract. LIVE_PURPOSE_COUNT is the domain this
+## store's own doors accept.
+const PURPOSE_REMOVE_FURNITURE: int = 4
+const LIVE_PURPOSE_COUNT: int = 5
 
 ## Where a project is in REQ-SET-124-127's sequence. See the header on ECON-003's separate
 ## excavation-site phases, which these are NOT.
@@ -294,6 +311,14 @@ const REFUSE_MANIFEST_BUFFER: StringName = &"DEMOLITION_MANIFEST_BUFFER_TOO_SMAL
 ## `retire_demolition()` (decision 0535): the building a finished demolition acts on still stands,
 ## so retiring the project would leave a DEMOLISHING building with no project behind it.
 const REFUSE_SUBJECT_STANDING: StringName = &"DEMOLITION_SUBJECT_STILL_STANDING"
+## Decision 0536 (Brendan's P3 ruling): a demolition or a furniture removal completes and is
+## cancelled ONLY through the coordinator, which releases its Inventory claim and destroys its
+## stores first. `commit_completion()` and `close_refund()` refuse such a row by this name.
+const REFUSE_COORDINATOR_ONLY: StringName = &"DEMOLITION_COMPLETES_THROUGH_COORDINATOR"
+
+## A demolition's combined return names at most every material key once: the building's base +
+## upgrade lines and each piece of furniture's (decision 0536), so a caller's buffers hold six.
+const RETURN_LINE_CAPACITY: int = MATERIAL_KEY_COUNT
 
 ## BUILD-C4-R01's ConstructionPaidLedger (ARCH §3: `base_type, upgrade_mask`, I32 x 82944): the
 ## exact paid package KEYS each project row was admitted with. Costs are never stored; they are
@@ -372,12 +397,17 @@ var _delivered_milli: PackedInt64Array = PackedInt64Array()
 # --- ConstructionPaidLedger (BUILD-C4-R01; ARCH §3, already budgeted at 663552 B) ----------------
 
 ## The base package key a row was admitted with, or NO_PAID_PACKAGE; and its completed-upgrade
-## bits. A DEMOLITION row's pair is the SNAPSHOT of its building's paid packages at admission.
+## bits. A DEMOLITION row's pair is the SNAPSHOT of its building's paid packages at admission; a
+## REMOVE_FURNITURE row's base key is the piece's own furniture type (decision 0536). The key is
+## a building id or a furniture id according to `_purpose`, exactly as `_type_id` is.
 var _paid_base_type: PackedInt32Array = PackedInt32Array()
 var _paid_upgrade_mask: PackedInt32Array = PackedInt32Array()
 ## Cold scratch for one return manifest: material key index and total milli per line.
 var _manifest_key: PackedInt32Array = PackedInt32Array()
 var _manifest_milli: PackedInt64Array = PackedInt64Array()
+## Cold scratch for one HALVED return (decision 0536): the building's lines plus each piece's.
+var _return_key: PackedInt32Array = PackedInt32Array()
+var _return_milli: PackedInt64Array = PackedInt64Array()
 
 var _live_count: int = 0
 var _math: IntMath.IntResult = IntMath.IntResult.new()
@@ -421,6 +451,8 @@ func _allocate_columns() -> void:
 	_paid_upgrade_mask.resize(CONSTRUCTION_CAPACITY)
 	_manifest_key.resize(MATERIAL_SLOTS_PER_PROJECT)
 	_manifest_milli.resize(MATERIAL_SLOTS_PER_PROJECT)
+	_return_key.resize(RETURN_LINE_CAPACITY)
+	_return_milli.resize(RETURN_LINE_CAPACITY)
 	_allocate_bill_columns()
 
 
@@ -571,7 +603,7 @@ func definitions() -> BuildingDefinitions:
 
 func _bill_stride_row(purpose: int, type_id: int) -> int:
 	"""The owner-major base index of one bill, or NO_ROW when the purpose/type pair is unknown."""
-	if purpose == PURPOSE_FURNITURE:
+	if is_furniture_subject(purpose):
 		if not _definitions.is_furniture_id(type_id):
 			return NO_ROW
 		return type_id * MATERIAL_SLOTS_PER_PROJECT
@@ -596,28 +628,28 @@ func _bill_count_of(purpose: int, type_id: int) -> int:
 
 func bill_size_into(purpose: int, type_id: int, out: IntMath.IntResult) -> bool:
 	"""Write the DELIVERY bill's pair count into `out`; refuse an unknown purpose or type."""
-	if purpose < 0 or purpose >= PURPOSE_COUNT:
+	if purpose < 0 or purpose >= LIVE_PURPOSE_COUNT:
 		return out.refuse(REFUSE_UNKNOWN_PURPOSE)
 	if _bill_stride_row(purpose, type_id) == NO_ROW:
-		return out.refuse(REFUSE_UNKNOWN_BUILDING_TYPE if purpose != PURPOSE_FURNITURE
-			else REFUSE_UNKNOWN_FURNITURE_TYPE)
+		return out.refuse(REFUSE_UNKNOWN_FURNITURE_TYPE if is_furniture_subject(purpose)
+			else REFUSE_UNKNOWN_BUILDING_TYPE)
 	return out.succeed(_bill_count_of(purpose, type_id))
 
 
 func _bill_key_column(purpose: int) -> PackedInt32Array:
-	"""The key column a delivery purpose reads. PURPOSE_DEMOLISH has no delivery bill."""
+	"""The key column a delivery purpose reads. A removal has no delivery bill (count 0)."""
 	if purpose == PURPOSE_UPGRADE:
 		return _upgrade_key
-	if purpose == PURPOSE_FURNITURE:
+	if is_furniture_subject(purpose):
 		return _furniture_key
 	return _build_key
 
 
 func _bill_milli_column(purpose: int) -> PackedInt64Array:
-	"""The quantity column a delivery purpose reads. PURPOSE_DEMOLISH has no delivery bill."""
+	"""The quantity column a delivery purpose reads. A removal has no delivery bill (count 0)."""
 	if purpose == PURPOSE_UPGRADE:
 		return _upgrade_milli
-	if purpose == PURPOSE_FURNITURE:
+	if is_furniture_subject(purpose):
 		return _furniture_milli
 	return _build_milli
 
@@ -683,6 +715,9 @@ func declared_work_mwu_into(purpose: int, type_id: int, out: IntMath.IntResult) 
 			if _upgrade_count[type_id] == 0:
 				return out.refuse(REFUSE_NO_UPGRADE_PACKAGE)
 			return out.succeed(_upgrade_work[type_id])
+		PURPOSE_REMOVE_FURNITURE:
+			return IntMath.floor_div_into(_definitions.furniture_work_mwu_of(type_id)
+				* DEMOLITION_WORK_NUM, DEMOLITION_WORK_DEN, out)
 	return IntMath.floor_div_into(_definitions.work_mwu_of(type_id) * DEMOLITION_WORK_NUM,
 		DEMOLITION_WORK_DEN, out)
 
@@ -742,7 +777,7 @@ func open_demolition(building_ref: Vector2i) -> OpResult:
 		return OpResult.new(false, REFUSE_FURNITURE_IN_USE, users, NULL_REF)
 	var type_id: int = _buildings.type_id_of_building(building_ref).value
 	var mask: int = demolition_upgrade_mask_of(building_ref)
-	if not _demolition_work_into(type_id, mask, _math):
+	if not _demolition_work_into(building_ref, type_id, mask, _math):
 		return _refuse(StringName(_math.error))
 	var opened: OpResult = _open_row(PURPOSE_DEMOLISH, building_ref, type_id, _math.value,
 		type_id, mask)
@@ -766,7 +801,8 @@ func demolition_open_refusal(building_ref: Vector2i) -> StringName:
 	if furniture_user_count_of_building(building_ref) > 0:
 		return REFUSE_FURNITURE_IN_USE
 	var type_id: int = _buildings.type_id_of_building(building_ref).value
-	if not _demolition_work_into(type_id, demolition_upgrade_mask_of(building_ref), _math):
+	if not _demolition_work_into(building_ref, type_id, demolition_upgrade_mask_of(building_ref),
+			_math):
 		return StringName(_math.error)
 	return _directory.create_refusal(EntityDirectory.KIND_CONSTRUCTION)
 
@@ -784,8 +820,14 @@ func demolition_upgrade_mask_of(building_ref: Vector2i) -> int:
 	return 0
 
 
-func _demolition_work_into(type_id: int, mask: int, out: IntMath.IntResult) -> bool:
-	"""BUILD-C4-R01's demolition work: a quarter of the base WU plus each completed upgrade's."""
+func _demolition_work_into(building_ref: Vector2i, type_id: int, mask: int,
+		out: IntMath.IntResult) -> bool:
+	"""BUILD-C4-R01's demolition work plus a quarter of every piece of furniture's §4.3 WU.
+
+	A quarter of the base WU plus each completed upgrade's; then, by Brendan's ruling on decision
+	0535 (recorded in 0536), a quarter of each piece's WU, for every piece in the building's rooms
+	now. `_assert_bills()` proves every §4.3 WU divides by 4, so no piece's quarter is floored.
+	"""
 	if not _definitions.is_building_id(type_id):
 		return out.refuse(REFUSE_UNKNOWN_BUILDING_TYPE)
 	var total: int = _definitions.work_mwu_of(type_id)
@@ -795,7 +837,21 @@ func _demolition_work_into(type_id: int, mask: int, out: IntMath.IntResult) -> b
 		total += _upgrade_work[type_id]
 	if not IntMath.checked_mul_into(total, DEMOLITION_WORK_NUM, out):
 		return out.refuse(REFUSE_OVERFLOW)
-	return IntMath.floor_div_into(out.value, DEMOLITION_WORK_DEN, out)
+	if not IntMath.floor_div_into(out.value, DEMOLITION_WORK_DEN, out):
+		return false
+	return out.succeed(out.value + _furniture_removal_work_of(building_ref))
+
+
+func _furniture_removal_work_of(building_ref: Vector2i) -> int:
+	"""A quarter of the §4.3 WU of every piece in a building's rooms, summed. Exact (divisible)."""
+	var total: int = 0
+	for room_row: int in _buildings.rooms_of_building(building_ref):
+		for furniture_row: int in _buildings.furniture_rows_in_room(
+				_buildings.room_ref_of_row(room_row)):
+			var piece: Vector2i = _buildings.furniture_ref_of_row(furniture_row)
+			@warning_ignore("integer_division") total += _definitions.furniture_work_mwu_of(
+				_buildings.type_id_of_furniture(piece).value) * DEMOLITION_WORK_NUM / DEMOLITION_WORK_DEN
+	return total
 
 
 func open_furniture(furniture_ref: Vector2i) -> OpResult:
@@ -810,6 +866,39 @@ func open_furniture(furniture_ref: Vector2i) -> OpResult:
 		return _refuse(REFUSE_ALREADY_UNDER_CONSTRUCTION)
 	return _open(PURPOSE_FURNITURE, furniture_ref,
 		_buildings.type_id_of_furniture(furniture_ref).value)
+
+
+func furniture_removal_open_refusal(furniture_ref: Vector2i) -> StringName:
+	"""Every refusal `open_furniture_removal()` can return, decided without writing a byte.
+
+	A stale piece; a piece that already carries a project (it is still being built, or already
+	being removed: "At most 1 project/... furniture"); a piece a resident is using; a full
+	CONSTRUCTION directory kind.
+	"""
+	if not _buildings.is_live_furniture(furniture_ref):
+		return REFUSE_STALE_FURNITURE_REF
+	if _project_of_subject(furniture_ref) != NO_ROW:
+		return REFUSE_ALREADY_UNDER_CONSTRUCTION
+	if _buildings.user_ref_of_furniture(furniture_ref) != NULL_REF:
+		return REFUSE_FURNITURE_IN_USE
+	return _directory.create_refusal(EntityDirectory.KIND_CONSTRUCTION)
+
+
+func open_furniture_removal(furniture_ref: Vector2i) -> OpResult:
+	"""Decision 0536 (P2): publish the project that takes one piece out of a standing building.
+
+	Its work is a quarter of the piece's §4.3 WU; it delivers nothing; its paid-ledger base key is
+	the piece's own type, DERIVED as ruling R4 derives a building's (P1), so its return is 50% of
+	that bill. A STORE-LEVEL transition like `open_demolition()`: the coordinator's
+	`request_furniture_removal()` is the player-facing gate.
+	"""
+	var code: StringName = furniture_removal_open_refusal(furniture_ref)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var type_id: int = _buildings.type_id_of_furniture(furniture_ref).value
+	if not declared_work_mwu_into(PURPOSE_REMOVE_FURNITURE, type_id, _math):
+		return _refuse(StringName(_math.error))
+	return _open_row(PURPOSE_REMOVE_FURNITURE, furniture_ref, type_id, _math.value, type_id, 0)
 
 
 func _refuse_open_building(building_ref: Vector2i, required_state: int) -> StringName:
@@ -843,7 +932,7 @@ func _open_row(purpose: int, subject_ref: Vector2i, type_id: int, work: int, pai
 	_write_row(row, ref, purpose, subject_ref, type_id, work)
 	_paid_base_type[row] = paid_base
 	_paid_upgrade_mask[row] = paid_mask
-	if purpose != PURPOSE_FURNITURE:
+	if not is_furniture_subject(purpose):
 		_buildings.set_building_construction(subject_ref, ref)
 	_live_count += 1
 	return OpResult.new(true, REFUSE_NONE, row, ref)
@@ -875,14 +964,14 @@ func _write_row(row: int, ref: Vector2i, purpose: int, subject_ref: Vector2i, ty
 
 func _max_workers_for(purpose: int, type_id: int) -> int:
 	"""GDD §5.9's "Maximum 4 builders/project unless listed", read from the owning definition."""
-	if purpose == PURPOSE_FURNITURE:
+	if is_furniture_subject(purpose):
 		return MAX_BUILDERS
 	return _definitions.max_builders_of(type_id)
 
 
 static func _policy_for(purpose: int, work_begun: int) -> int:
 	"""§4.2's `refund_policy`, derived from the only two facts REQ-SET-126/127 depend on."""
-	if purpose == PURPOSE_DEMOLISH:
+	if is_removal(purpose):
 		return REFUND_DEMOLITION
 	return REFUND_PARTIAL if work_begun == 1 else REFUND_FULL
 
@@ -987,15 +1076,18 @@ func add_work_mwu(project_ref: Vector2i, mwu: int) -> OpResult:
 
 
 func commit_completion(project_ref: Vector2i) -> OpResult:
-	"""Atomically publish a finished project's result and retire its row.
+	"""Atomically publish a finished BUILD, UPGRADE or FURNITURE project's result and retire it.
 
-	ECON-003's commit-pending rule in force: if the Building edit refuses -- a demolition whose
-	rooms still exist, for instance -- the project stays in PHASE_WORK_DONE with its earned work
-	intact and the retry costs nothing. Nothing is published in halves.
+	ECON-003's commit-pending rule in force: if the Building edit refuses, the project stays in
+	PHASE_WORK_DONE with its earned work intact and the retry costs nothing. A demolition or a
+	furniture removal is REFUSED by name, COORDINATOR_ONLY (decision 0536): completing one here
+	would skip its Inventory claim and leave its stores orphaned on a freed footprint.
 	"""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	if is_removal(_purpose[row]):
+		return _refuse(REFUSE_COORDINATOR_ONLY)
 	if _phase[row] != PHASE_WORK_DONE:
 		return _refuse(REFUSE_WRONG_PHASE)
 	var subject: Vector2i = Vector2i(_subject_slot[row], _subject_generation[row])
@@ -1017,8 +1109,6 @@ func _apply_completion(row: int, subject: Vector2i) -> StringName:
 		PURPOSE_UPGRADE:
 			return REFUSE_NONE if _buildings.set_building_tier(
 				subject, BuildingDefinitions.TIER_TWO).ok else REFUSE_NO_UPGRADE_PACKAGE
-		PURPOSE_DEMOLISH:
-			return _demolish_subject(row, subject)
 	return REFUSE_NONE
 
 
@@ -1035,66 +1125,92 @@ func _demolish_subject(row: int, subject: Vector2i) -> StringName:
 # --- the coordinator's split completion (DEMO-CONTAIN-R01 #6, decision 0535) ---------------------
 
 func demolition_commit_refusal(project_ref: Vector2i) -> StringName:
-	"""Why a finished demolition could not be committed right now, or REFUSE_NONE. Writes nothing.
+	"""Why a finished removal could not be committed right now, or REFUSE_NONE. Writes nothing.
 
 	The coordinator's composed completion runs this in its prove-everything phase: a live
-	DEMOLITION row whose work is done (PHASE_WORK_DONE: earned, not yet published) and whose
-	building still stands. Every other condition of #6's commit is the coordinator's to prove.
+	DEMOLITION or furniture-removal row whose work is done (PHASE_WORK_DONE: earned, not yet
+	published) and whose subject still stands. Every other condition is the coordinator's.
 	"""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return REFUSE_STALE_PROJECT_REF
-	if _purpose[row] != PURPOSE_DEMOLISH:
+	if not is_removal(_purpose[row]):
 		return REFUSE_NOT_A_DEMOLITION
 	if _phase[row] != PHASE_WORK_DONE:
 		return REFUSE_WRONG_PHASE
-	if not _buildings.is_live_building(Vector2i(_subject_slot[row], _subject_generation[row])):
+	if not _subject_is_live(row, Vector2i(_subject_slot[row], _subject_generation[row])):
 		return REFUSE_SUBJECT_LOST
 	return REFUSE_NONE
 
 
-func remove_demolished_building(project_ref: Vector2i) -> OpResult:
-	"""Step (4) of #6 alone: remove a finished demolition's building and keep the project row.
+func remove_demolished_subject(project_ref: Vector2i) -> OpResult:
+	"""#6's subject step alone: remove a finished removal's building or piece; keep the row.
 
-	`commit_completion()` removes the building and retires the row in one call; #6 places the 50%
-	return BETWEEN those two, so the coordinator calls this, then places the return, then
-	`retire_demolition()`. Refuses everything `demolition_commit_refusal()` names and
-	`demolish_building()`'s own BUILDING_HAS_ROOMS, writing nothing on any refusal.
+	`retire_demolition()` is the second half; #6 places the 50% return BETWEEN them. A demolition
+	unlinks and removes its building (`demolish_building()`'s BUILDING_HAS_ROOMS refuses, relinked);
+	a furniture removal removes its piece (`remove_furniture()`'s FURNITURE_IN_USE refuses).
+	Refuses everything `demolition_commit_refusal()` names, writing nothing on any refusal.
 	"""
 	var code: StringName = demolition_commit_refusal(project_ref)
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	var row: int = _row_of(project_ref)
-	code = _demolish_subject(row, Vector2i(_subject_slot[row], _subject_generation[row]))
+	var subject: Vector2i = Vector2i(_subject_slot[row], _subject_generation[row])
+	if _purpose[row] == PURPOSE_DEMOLISH:
+		code = _demolish_subject(row, subject)
+	else:
+		code = _buildings.remove_furniture(subject).error
 	if code != REFUSE_NONE:
 		return _refuse(code)
 	return OpResult.new(true, REFUSE_NONE, row, project_ref)
 
 
 func retire_demolition(project_ref: Vector2i) -> OpResult:
-	"""Step (6) of #6: retire a finished demolition whose building `remove_demolished_building()` took.
+	"""#6's step (6): retire a finished removal whose subject `remove_demolished_subject()` took.
 
-	Refuses a stale ref, anything but a demolition, a project whose work is not done, and -- by
-	name, SUBJECT_STILL_STANDING -- one whose building still stands, so no DEMOLISHING building is
+	Refuses a stale ref, anything but a removal, a project whose work is not done, and -- by
+	name, SUBJECT_STILL_STANDING -- one whose subject still stands, so no DEMOLISHING building is
 	ever left with no project behind it. The row and its paid-ledger snapshot are freed.
 	"""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
-	if _purpose[row] != PURPOSE_DEMOLISH:
+	if not is_removal(_purpose[row]):
 		return _refuse(REFUSE_NOT_A_DEMOLITION)
 	if _phase[row] != PHASE_WORK_DONE:
 		return _refuse(REFUSE_WRONG_PHASE)
 	var subject: Vector2i = Vector2i(_subject_slot[row], _subject_generation[row])
-	if _buildings.is_live_building(subject):
+	if _subject_is_live(row, subject):
 		return _refuse(REFUSE_SUBJECT_STANDING)
+	_retire(row, project_ref, subject)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func close_demolition_refund(project_ref: Vector2i) -> OpResult:
+	"""The coordinator's cancellation half for a demolition or a furniture removal (P3, 0536).
+
+	`close_refund()` refuses these by name; the coordinator releases the removal's Inventory claim
+	first and then calls this. A cancelled demolition returns its building to ACTIVE; nothing is
+	charged or returned either way (decision 0534's ruling R5). Refuses a stale ref, anything but
+	a removal, and a project not yet in PHASE_REFUNDING, writing nothing.
+	"""
+	var row: int = _row_of(project_ref)
+	if row == NO_ROW:
+		return _refuse(REFUSE_STALE_PROJECT_REF)
+	if not is_removal(_purpose[row]):
+		return _refuse(REFUSE_NOT_A_DEMOLITION)
+	if _phase[row] != PHASE_REFUNDING:
+		return _refuse(REFUSE_WRONG_PHASE)
+	var subject: Vector2i = Vector2i(_subject_slot[row], _subject_generation[row])
+	if _purpose[row] == PURPOSE_DEMOLISH and _buildings.is_live_building(subject):
+		_buildings.set_building_state(subject, STATE_ACTIVE)
 	_retire(row, project_ref, subject)
 	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
 
 func _retire(row: int, project_ref: Vector2i, subject: Vector2i) -> void:
 	"""Clear the subject's back-reference, free the row and hand the directory slot back."""
-	if _purpose[row] != PURPOSE_FURNITURE and _buildings.is_live_building(subject):
+	if not is_furniture_subject(_purpose[row]) and _buildings.is_live_building(subject):
 		_buildings.set_building_construction(subject, NULL_REF)
 	_present[row] = 0
 	_work_begun[row] = 0
@@ -1142,7 +1258,7 @@ func cancellation_refund_milli_into(project_ref: Vector2i, index: int,
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return out.refuse(REFUSE_STALE_PROJECT_REF)
-	if _purpose[row] == PURPOSE_DEMOLISH:
+	if is_removal(_purpose[row]):
 		return out.refuse(REFUSE_IS_A_DEMOLITION)
 	if index < 0 or index >= _bill_count_of(_purpose[row], _type_id[row]):
 		return out.refuse(REFUSE_MATERIAL_INDEX)
@@ -1156,83 +1272,99 @@ func cancellation_refund_milli_into(project_ref: Vector2i, index: int,
 
 func demolition_return_milli_into(project_ref: Vector2i, index: int,
 		out: IntMath.IntResult) -> bool:
-	"""REQ-SET-127's manifest line: 50% of the item's ORIGINAL paid cost, floored ONCE.
+	"""One return-manifest line's milli-U: 50% of the item's ORIGINAL paid cost, floored.
 
-	REFUSES anything but a demolition. BUILD-C4-R01: the basis is the row's paid-ledger snapshot
-	-- the recorded base package plus each completed upgrade, totalled per item in milli-U --
-	and the 50% is floored once per item, never per package. Never the delivered ledger, which a
-	demolition never fills, and never a repricing from anything but the compiled bills.
+	REFUSES anything but a demolition or a furniture removal. BUILD-C4-R01: a building's basis is
+	the row's paid-ledger snapshot -- the base package plus each completed upgrade, totalled per
+	item -- floored once per item. Each piece of furniture adds 50% of ITS OWN bill, floored once
+	per item of that piece (DEMO-CONTAIN-R01's furniture rule; decision 0536). Never the delivered
+	ledger, and never anything but the compiled bills under the rules hash.
 	"""
-	var row: int = _demolition_manifest_row(project_ref, out)
+	var row: int = _removal_row(project_ref, out)
 	if row == NO_ROW:
 		return false
-	var count: int = _manifest_of_row(row)
+	var count: int = _return_of_row(row)
 	if index < 0 or index >= count:
 		return out.refuse(REFUSE_MATERIAL_INDEX)
-	return _half_of_into(_manifest_milli[index], out)
+	return out.succeed(_return_milli[index])
 
 
 func demolition_return_key_index_into(project_ref: Vector2i, index: int,
 		out: IntMath.IntResult) -> bool:
-	"""The MATERIAL_KEYS index of one return-manifest line. Refuses anything but a demolition."""
-	var row: int = _demolition_manifest_row(project_ref, out)
+	"""The MATERIAL_KEYS index of one return-manifest line. Refuses anything but a removal."""
+	var row: int = _removal_row(project_ref, out)
 	if row == NO_ROW:
 		return false
-	if index < 0 or index >= _manifest_of_row(row):
+	if index < 0 or index >= _return_of_row(row):
 		return out.refuse(REFUSE_MATERIAL_INDEX)
-	return out.succeed(_manifest_key[index])
+	return out.succeed(_return_key[index])
 
 
 func demolition_return_size_into(project_ref: Vector2i, out: IntMath.IntResult) -> bool:
-	"""How many lines REQ-SET-127's return manifest has. Refuses anything but a demolition."""
-	var row: int = _demolition_manifest_row(project_ref, out)
+	"""How many lines a removal's return manifest has. Refuses anything but a removal."""
+	var row: int = _removal_row(project_ref, out)
 	if row == NO_ROW:
 		return false
-	return out.succeed(_manifest_of_row(row))
+	return out.succeed(_return_of_row(row))
 
 
 func demolition_return_preview_into(building_ref: Vector2i, out_keys: PackedInt32Array,
 		out_milli: PackedInt64Array, out: IntMath.IntResult) -> bool:
-	"""The return manifest a demolition admitted NOW would carry, already halved and floored.
+	"""The combined return a demolition admitted NOW would carry, already halved and floored.
 
-	Reads the building's type and tier exactly as `open_demolition()`'s snapshot will, so the
-	coordinator can reserve output capacity for it before its first write. `out.value` is the
-	line count; both buffers must hold MATERIAL_SLOTS_PER_PROJECT cells. Writes nothing else.
+	The building's type and tier exactly as `open_demolition()`'s snapshot will read them, plus
+	every piece of furniture in its rooms now, so the coordinator can reserve output capacity for
+	the whole return before its first write. `out.value` is the line count; both buffers must hold
+	RETURN_LINE_CAPACITY cells. Writes nothing else.
 	"""
 	var type_result: Buildings.OpResult = _buildings.type_id_of_building(building_ref)
 	if not type_result.ok:
 		return out.refuse(REFUSE_STALE_BUILDING_REF)
-	if out_keys.size() < MATERIAL_SLOTS_PER_PROJECT or out_milli.size() < MATERIAL_SLOTS_PER_PROJECT:
+	if not _return_buffers_fit(out_keys, out_milli):
 		return out.refuse(REFUSE_MANIFEST_BUFFER)
-	var count: int = _manifest_into(type_result.value, type_result.value,
+	var count: int = _building_return(type_result.value, type_result.value,
 		demolition_upgrade_mask_of(building_ref))
-	return _halved_manifest_into(count, out_keys, out_milli, out)
+	return _copy_return_into(_add_furniture_returns(building_ref, count), out_keys, out_milli, out)
+
+
+func furniture_removal_return_preview_into(furniture_ref: Vector2i, out_keys: PackedInt32Array,
+		out_milli: PackedInt64Array, out: IntMath.IntResult) -> bool:
+	"""The return one piece's removal admitted NOW would carry: 50% of its bill, floored per item."""
+	var type_result: Buildings.OpResult = _buildings.type_id_of_furniture(furniture_ref)
+	if not type_result.ok:
+		return out.refuse(REFUSE_STALE_FURNITURE_REF)
+	if not _return_buffers_fit(out_keys, out_milli):
+		return out.refuse(REFUSE_MANIFEST_BUFFER)
+	return _copy_return_into(_add_piece_return(type_result.value, 0), out_keys, out_milli, out)
 
 
 func demolition_return_into(project_ref: Vector2i, out_keys: PackedInt32Array,
 		out_milli: PackedInt64Array, out: IntMath.IntResult) -> bool:
-	"""An admitted demolition's whole return manifest, from its paid-ledger SNAPSHOT, halved.
+	"""A removal's whole return manifest in one call: its snapshot, plus furniture, halved.
 
-	The same lines `demolition_return_*_into()` read one at a time, in one call, for the
-	coordinator's commit (decision 0535); `out.value` is the line count. Refuses anything but a
-	live demolition and buffers under MATERIAL_SLOTS_PER_PROJECT cells. Writes nothing else.
+	The same lines `demolition_return_*_into()` read one at a time, for the coordinator's commit
+	(decisions 0535, 0536); `out.value` is the line count. Refuses anything but a live removal and
+	buffers under RETURN_LINE_CAPACITY cells. Writes nothing else.
 	"""
-	var row: int = _demolition_manifest_row(project_ref, out)
+	var row: int = _removal_row(project_ref, out)
 	if row == NO_ROW:
 		return false
-	if out_keys.size() < MATERIAL_SLOTS_PER_PROJECT or out_milli.size() < MATERIAL_SLOTS_PER_PROJECT:
+	if not _return_buffers_fit(out_keys, out_milli):
 		return out.refuse(REFUSE_MANIFEST_BUFFER)
-	return _halved_manifest_into(_manifest_of_row(row), out_keys, out_milli, out)
+	return _copy_return_into(_return_of_row(row), out_keys, out_milli, out)
 
 
-func _halved_manifest_into(count: int, out_keys: PackedInt32Array, out_milli: PackedInt64Array,
+func _return_buffers_fit(out_keys: PackedInt32Array, out_milli: PackedInt64Array) -> bool:
+	"""Whether a caller's two manifest buffers each hold RETURN_LINE_CAPACITY cells."""
+	return out_keys.size() >= RETURN_LINE_CAPACITY and out_milli.size() >= RETURN_LINE_CAPACITY
+
+
+func _copy_return_into(count: int, out_keys: PackedInt32Array, out_milli: PackedInt64Array,
 		out: IntMath.IntResult) -> bool:
-	"""Copy the manifest scratch's first `count` lines out, each 50% floored once."""
+	"""Copy the return scratch's first `count` lines out."""
 	for index: int in count:
-		if not _half_of_into(_manifest_milli[index], out):
-			return false
-		out_keys[index] = _manifest_key[index]
-		out_milli[index] = out.value
+		out_keys[index] = _return_key[index]
+		out_milli[index] = _return_milli[index]
 	return out.succeed(count)
 
 
@@ -1246,16 +1378,73 @@ func paid_upgrade_mask_into(project_ref: Vector2i, out: IntMath.IntResult) -> bo
 	return _field_into(project_ref, _paid_upgrade_mask, out)
 
 
-func _demolition_manifest_row(project_ref: Vector2i, out: IntMath.IntResult) -> int:
-	"""The live DEMOLITION row behind a ref, or NO_ROW with `out` refused."""
+func _removal_row(project_ref: Vector2i, out: IntMath.IntResult) -> int:
+	"""The live DEMOLITION or furniture-removal row behind a ref, or NO_ROW with `out` refused."""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		out.refuse(REFUSE_STALE_PROJECT_REF)
 		return NO_ROW
-	if _purpose[row] != PURPOSE_DEMOLISH:
+	if not is_removal(_purpose[row]):
 		out.refuse(REFUSE_NOT_A_DEMOLITION)
 		return NO_ROW
 	return row
+
+
+func _return_of_row(row: int) -> int:
+	"""Fill the return scratch for one removal row; return its line count.
+
+	A furniture removal returns its piece's own half (its paid base key is the piece's type). A
+	demolition returns its snapshot's half plus every piece still in its building's rooms; once
+	the building is gone (between #6's steps 4 and 6) it has no rooms, so only the snapshot.
+	"""
+	if _purpose[row] == PURPOSE_REMOVE_FURNITURE:
+		return _add_piece_return(_paid_base_type[row], 0)
+	var count: int = _building_return(_type_id[row], _paid_base_type[row], _paid_upgrade_mask[row])
+	return _add_furniture_returns(Vector2i(_subject_slot[row], _subject_generation[row]), count)
+
+
+func _building_return(type_id: int, paid_base: int, mask: int) -> int:
+	"""The building's own half into the return scratch: base + upgrade per item, floored ONCE."""
+	var count: int = _manifest_into(type_id, paid_base, mask)
+	for line: int in count:
+		_return_key[line] = _manifest_key[line]
+		_return_milli[line] = _half(_manifest_milli[line])
+	return count
+
+
+func _add_furniture_returns(building_ref: Vector2i, count: int) -> int:
+	"""Add every piece in a building's rooms to the return scratch, each piece floored on its own."""
+	for room_row: int in _buildings.rooms_of_building(building_ref):
+		for furniture_row: int in _buildings.furniture_rows_in_room(
+				_buildings.room_ref_of_row(room_row)):
+			var piece: Vector2i = _buildings.furniture_ref_of_row(furniture_row)
+			count = _add_piece_return(_buildings.type_id_of_furniture(piece).value, count)
+	return count
+
+
+func _add_piece_return(furniture_type: int, count: int) -> int:
+	"""Add one piece's 50% of its §4.3 bill, floored once per item of THAT piece.
+
+	DEMO-CONTAIN-R01's furniture rule ("same rule as buildings"): the piece's package totalled per
+	item, then floored once per item. Its package is DERIVED from its type -- Brendan's ruling on
+	decision 0535's P1, R4's reading applied to furniture, starter pieces included (0536).
+	"""
+	var base: int = furniture_type * MATERIAL_SLOTS_PER_PROJECT
+	for index: int in _furniture_count[furniture_type]:
+		count = _add_return_line(_furniture_key[base + index],
+			_half(_furniture_milli[base + index]), count)
+	return count
+
+
+func _add_return_line(key_index: int, milli: int, count: int) -> int:
+	"""Add an already-halved quantity to its item's return line, opening a line for a new item."""
+	for line: int in count:
+		if _return_key[line] == key_index:
+			_return_milli[line] += milli
+			return count
+	_return_key[count] = key_index
+	_return_milli[count] = milli
+	return count + 1
 
 
 func _manifest_of_row(row: int) -> int:
@@ -1295,23 +1484,29 @@ func _add_manifest_line(key_index: int, milli: int, count: int) -> int:
 	return count + 1
 
 
-func _half_of_into(total_milli: int, out: IntMath.IntResult) -> bool:
-	"""REQ-SET-127's 50% of one item's total, floored to milli-U once."""
-	if not IntMath.checked_mul_into(total_milli, REFUND_DEMOLITION_NUM, out):
-		return out.refuse(REFUSE_OVERFLOW)
-	return IntMath.floor_div_into(out.value, REFUND_DEMOLITION_DEN, out)
+static func _half(total_milli: int) -> int:
+	"""REQ-SET-127's 50% of one item's total, floored to milli-U once.
+
+	A plain floor: the operand is one or two authored int32 quantities, never negative, so the
+	product by REFUND_DEMOLITION_NUM cannot overflow int64.
+	"""
+	@warning_ignore("integer_division") return total_milli * REFUND_DEMOLITION_NUM / REFUND_DEMOLITION_DEN
 
 
 func close_refund(project_ref: Vector2i) -> OpResult:
-	"""Retire a cancelled project once its refund manifest has been placed.
+	"""Retire a cancelled BUILD, UPGRADE or FURNITURE project once its refund has been placed.
 
 	A cancelled BUILD project also removes the blueprint it was building: a cancelled blueprint is
 	not a building. If that removal refuses -- a blueprint that somehow owns rooms -- the project
-	stays in PHASE_REFUNDING with its ledger intact and the retry spends nothing.
+	stays in PHASE_REFUNDING with its ledger intact and the retry spends nothing. A demolition or
+	a furniture removal is REFUSED by name, COORDINATOR_ONLY: its claim must be released first, and
+	`close_demolition_refund()` is the coordinator's door (decision 0536).
 	"""
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	if is_removal(_purpose[row]):
+		return _refuse(REFUSE_COORDINATOR_ONLY)
 	if _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	var subject: Vector2i = Vector2i(_subject_slot[row], _subject_generation[row])
@@ -1321,8 +1516,6 @@ func close_refund(project_ref: Vector2i) -> OpResult:
 		if not result.ok:
 			_buildings.set_building_construction(subject, project_ref)
 			return _refuse(result.error)
-	if _purpose[row] == PURPOSE_DEMOLISH and _buildings.is_live_building(subject):
-		_buildings.set_building_state(subject, STATE_ACTIVE)
 	_retire(row, project_ref, subject)
 	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
@@ -1567,9 +1760,23 @@ func furniture_user_count_of_building(building_ref: Vector2i) -> int:
 
 func _subject_is_live(row: int, subject: Vector2i) -> bool:
 	"""Whether this project's subject still exists in the store that owns it."""
-	if _purpose[row] == PURPOSE_FURNITURE:
+	if is_furniture_subject(_purpose[row]):
 		return _buildings.is_live_furniture(subject)
 	return _buildings.is_live_building(subject)
+
+
+static func is_furniture_subject(purpose: int) -> bool:
+	"""Whether a purpose's subject is a Furniture row (FURNITURE, REMOVE_FURNITURE) not a Building."""
+	return purpose == PURPOSE_FURNITURE or purpose == PURPOSE_REMOVE_FURNITURE
+
+
+static func is_removal(purpose: int) -> bool:
+	"""Whether a purpose takes something down: a building demolition or a furniture removal.
+
+	Both return 50% of a paid package (REFUND_DEMOLITION), deliver nothing, and complete and are
+	cancelled only through the coordinator (decision 0536, REFUSE_COORDINATOR_ONLY).
+	"""
+	return purpose == PURPOSE_DEMOLISH or purpose == PURPOSE_REMOVE_FURNITURE
 
 
 func verify_refund_policies() -> OpResult:

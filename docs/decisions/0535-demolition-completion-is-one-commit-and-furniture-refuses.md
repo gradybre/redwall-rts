@@ -1,5 +1,9 @@
 # 0535 — Demolition completion is one commit, and every piece of furniture refuses
-Date: 2026-10-02 · Status: Accepted (the proposals below await Brendan)
+Date: 2026-10-02 · Status: Accepted; **partly superseded by
+[decision 0536](0536-furniture-returns-half-by-type-and-pieces-are-removed-alone.md)**, which
+records Brendan's rulings on P1–P3 (2026-10-02): furniture now returns 50% of its type's bill
+and is removed at step (2) (item 3's refusal is gone), a single piece can be removed on its own
+(#3b's live case), and `commit_completion()`/`close_refund()` refuse a demolition by name.
 
 Numbered 0535 because the brief named it. No record numbered 0535–0539 exists on any branch
 (`git ls-tree` over every ref), in any registered worktree or in the main checkout when this was

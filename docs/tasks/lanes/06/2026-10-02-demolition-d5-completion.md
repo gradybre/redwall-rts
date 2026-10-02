@@ -1,5 +1,9 @@
 # 2026-10-02 — demolition D5: the composed completion
 
+*Superseded in part the same day by
+[the furniture-rulings follow-up](2026-10-02-demolition-d5-furniture-rulings.md) (decision 0536):
+furniture no longer refuses.*
+
 Task: 06_buildings_rooms_logistics.md (06.2's demolition; REQ-SET-127/128)
 Date: 2026-10-02
 Ruling: [DEMO-CONTAIN-R01](../../../rulings/2026-10-01_demolition_containment.md) answer #6, the

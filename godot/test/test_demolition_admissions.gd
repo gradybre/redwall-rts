@@ -47,7 +47,7 @@ func test_recording_an_admission_advances_the_revision_and_keeps_the_binding() -
 	"""One admission: project, store, grams, and revision + 1."""
 	var building: Vector2i = _building()
 	var project: Vector2i = _project()
-	assert_equal(_admissions.record(building, project, STORE, 75000), Admissions.REFUSE_NONE,
+	assert_equal(_admissions.record(building, project, STORE, 75000, 75000), Admissions.REFUSE_NONE,
 		"the admission records")
 	assert_equal(_admissions.destination_revision_of(building),
 		SpatialWorld.FIRST_DESTINATION_REVISION + 1, "the revision advanced")
@@ -64,10 +64,10 @@ func test_a_live_admission_refuses_a_second_and_a_retired_one_keeps_its_claim() 
 	"""
 	var building: Vector2i = _building()
 	var project: Vector2i = _project()
-	assert_equal(_admissions.record(building, project, STORE, 10), Admissions.REFUSE_NONE, "first")
+	assert_equal(_admissions.record(building, project, STORE, 10, 10), Admissions.REFUSE_NONE, "first")
 	assert_equal(_admissions.admit_refusal(building), Admissions.REFUSE_ALREADY_ADMITTED, "live")
 	var before: PackedByteArray = _admissions.state_bytes()
-	assert_equal(_admissions.record(building, _project(), STORE, 10),
+	assert_equal(_admissions.record(building, _project(), STORE, 10, 10),
 		Admissions.REFUSE_ALREADY_ADMITTED, "a second record refuses")
 	assert_true(_admissions.state_bytes() == before, "writing nothing")
 	assert_true(_directory.destroy(project), "the project retires")
@@ -86,7 +86,7 @@ func test_release_clears_the_record_advances_the_revision_and_refuses_nothing_to
 	var building: Vector2i = _building()
 	assert_equal(_admissions.release(building), Admissions.REFUSE_NOTHING_TO_RELEASE, "empty row")
 	assert_equal(_admissions.release(Vector2i(900, 1)), Admissions.REFUSE_STALE_BUILDING, "stale")
-	assert_equal(_admissions.record(building, _project(), STORE, 10), Admissions.REFUSE_NONE, "ok")
+	assert_equal(_admissions.record(building, _project(), STORE, 10, 10), Admissions.REFUSE_NONE, "ok")
 	var revision: int = _admissions.destination_revision_of(building)
 	assert_equal(_admissions.release(building), Admissions.REFUSE_NONE, "released")
 	assert_equal(_admissions.destination_revision_of(building), revision + 1, "revision advanced")
@@ -98,19 +98,29 @@ func test_record_refuses_a_stale_building_a_stale_project_and_a_bad_output_shape
 	"""Each refusal writes nothing."""
 	var building: Vector2i = _building()
 	var before: PackedByteArray = _admissions.state_bytes()
-	assert_equal(_admissions.record(Vector2i(900, 1), _project(), STORE, 1),
+	assert_equal(_admissions.record(Vector2i(900, 1), _project(), STORE, 1, 1),
 		Admissions.REFUSE_STALE_BUILDING, "a stale building")
-	assert_equal(_admissions.record(building, Vector2i(900, 1), STORE, 1),
+	assert_equal(_admissions.record(building, Vector2i(900, 1), STORE, 1, 1),
 		Admissions.REFUSE_STALE_PROJECT, "a stale project")
-	assert_equal(_admissions.record(building, _project(), STORE, 0),
+	assert_equal(_admissions.record(building, _project(), STORE, 0, 0),
 		Admissions.REFUSE_OUTPUT_SHAPE, "a store with no grams")
-	assert_equal(_admissions.record(building, _project(), EntityDirectory.NULL_REF, 5),
+	assert_equal(_admissions.record(building, _project(), EntityDirectory.NULL_REF, 5, 5),
 		Admissions.REFUSE_OUTPUT_SHAPE, "grams with no store")
-	assert_equal(_admissions.record(building, _project(), STORE, -1),
+	assert_equal(_admissions.record(building, _project(), STORE, -1, -1),
 		Admissions.REFUSE_OUTPUT_SHAPE, "negative grams")
+	assert_equal(_admissions.record(building, _project(), STORE, 10, 11),
+		Admissions.REFUSE_OUTPUT_SHAPE, "a reservation that is not the admitted charge")
+	assert_equal(_admissions.record(building, _project(), EntityDirectory.NULL_REF, 0, -1),
+		Admissions.REFUSE_OUTPUT_SHAPE, "a negative charge")
 	assert_true(_admissions.state_bytes() == before, "nothing was written")
-	assert_equal(_admissions.record(building, _project(), EntityDirectory.NULL_REF, 0),
-		Admissions.REFUSE_NONE, "the ground-pile fallback's null store with 0 g records")
+	var project: Vector2i = _project()
+	assert_equal(_admissions.record(building, project, EntityDirectory.NULL_REF, 0, 40000),
+		Admissions.REFUSE_NONE, "the ground-pile fallback's null store with 0 g records its charge")
+	assert_equal(_admissions.admitted_charge_g_of(building), 40000, "which reads back")
+	assert_equal(_admissions.release(building), Admissions.REFUSE_NONE, "released")
+	assert_equal(_admissions.admitted_charge_g_of(building), 0, "and the charge is cleared")
+	assert_equal(_admissions._admitted_charge_g[_directory.get_typed_row(building)], 0,
+		"in the column too, not merely hidden behind the dead project")
 
 
 func test_the_revision_refuses_before_it_would_pass_int32() -> void:
@@ -118,7 +128,7 @@ func test_the_revision_refuses_before_it_would_pass_int32() -> void:
 	var building: Vector2i = _building()
 	var row: int = _directory.get_typed_row(building)
 	_admissions._destination_revision[row] = Admissions.INT32_MAX - 2
-	assert_equal(_admissions.record(building, _project(), STORE, 1), Admissions.REFUSE_NONE,
+	assert_equal(_admissions.record(building, _project(), STORE, 1, 1), Admissions.REFUSE_NONE,
 		"two below the limit still admits")
 	assert_equal(_admissions.release_refusal(building), Admissions.REFUSE_NONE,
 		"and its release always has room")
@@ -131,7 +141,7 @@ func test_the_revision_refuses_before_it_would_pass_int32() -> void:
 func test_clear_forgets_every_record_and_restarts_revisions() -> void:
 	"""Settlement reset semantics."""
 	var building: Vector2i = _building()
-	assert_equal(_admissions.record(building, _project(), STORE, 9), Admissions.REFUSE_NONE, "ok")
+	assert_equal(_admissions.record(building, _project(), STORE, 9, 9), Admissions.REFUSE_NONE, "ok")
 	_admissions.clear()
 	assert_equal(_admissions.project_of(building), EntityDirectory.NULL_REF, "no record")
 	assert_equal(_admissions.destination_revision_of(building),
@@ -146,7 +156,7 @@ func test_both_revision_bounds_refuse_at_their_exact_edge() -> void:
 	assert_equal(_admissions.admit_refusal(building), Admissions.REFUSE_REVISION_EXHAUSTED,
 		"one below the limit leaves no room for the release, so admit refuses")
 	_admissions._destination_revision[row] = Admissions.INT32_MAX - 2
-	assert_equal(_admissions.record(building, _project(), STORE, 1), Admissions.REFUSE_NONE, "ok")
+	assert_equal(_admissions.record(building, _project(), STORE, 1, 1), Admissions.REFUSE_NONE, "ok")
 	_admissions._destination_revision[row] = Admissions.INT32_MAX
 	assert_equal(_admissions.release_refusal(building), Admissions.REFUSE_REVISION_EXHAUSTED,
 		"a release at the limit refuses instead of wrapping")

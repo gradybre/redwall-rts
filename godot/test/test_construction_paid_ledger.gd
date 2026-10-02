@@ -10,6 +10,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const BuildingDefinitions := preload("res://scripts/core/building_definitions.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 
 const HALL_TILE: int = 59 * 128 + 58
 const WELL_TILE: int = 40 * 128 + 40
@@ -179,25 +180,24 @@ func test_a_tier_two_demolition_works_a_quarter_of_both_packages() -> void:
 
 
 func test_the_fifty_percent_is_floored_once_per_item_not_per_package() -> void:
-	"""The live tier-2 path equals floor((base + upgrade) / 2) for every item it returns.
+	"""BUILD-C4-R01's synthetic tier-2 fixture: odd base and upgrade entries for one item.
 
-	Every §4.1/§4.2 quantity is authored even, so with today's catalog floor-once and
-	floor-per-package agree; this pins the live path to the ruled form and records that the two
-	forms do differ on odd totals, so a later catalog edit cannot make the choice matter silently.
+	Every authored quantity is even, so the real catalog cannot tell "floor once per item" from
+	"floor per package". This store's compiled bill cells are overwritten in THIS instance only:
+	wood 1001 milli in the base package and 3 in the upgrade. Once per item is
+	floor(1004 / 2) = 502; per package would be 500 + 1 = 501.
 	"""
-	@warning_ignore("integer_division")
-	var per_package: int = 1001 / 2 + 3 / 2
-	@warning_ignore("integer_division")
-	var once: int = (1001 + 3) / 2
-	assert_equal(once, per_package + 1, "the two rules differ on odd totals")
+	var base_cell: int = _hall_id * Construction.MATERIAL_SLOTS_PER_PROJECT
+	assert_equal(Construction.MATERIAL_KEYS[_construction._build_key[base_cell]], &"wood",
+		"line 0 of the hall's base package is wood")
+	assert_equal(Construction.MATERIAL_KEYS[_construction._upgrade_key[base_cell]], &"wood",
+		"and so is line 0 of its upgrade")
 	var hall: Vector2i = _tier_two_hall()
+	_construction._build_milli[base_cell] = 1001
+	_construction._upgrade_milli[base_cell] = 3
 	var project: Construction.OpResult = _construction.open_demolition(hall)
-	for key: StringName in [&"wood", &"stone", &"cloth"]:
-		var total: int = _bill_milli(Construction.PURPOSE_BUILD, _hall_id, key) \
-			+ _bill_milli(Construction.PURPOSE_UPGRADE, _hall_id, key)
-		@warning_ignore("integer_division")
-		var floored_once: int = total / 2
-		assert_equal(_return_of(project.ref, key), floored_once, "%s is floored once" % key)
+	assert_true(project.ok, "the demolition opens (%s)" % project.error)
+	assert_equal(_return_of(project.ref, &"wood"), 502, "floored once over the item's total")
 
 
 func test_cancelling_an_incomplete_upgrade_earns_its_refund_and_not_a_demolition_share() -> void:
@@ -278,3 +278,17 @@ func test_the_open_refusal_preview_names_every_transition_refusal() -> void:
 	assert_true(_buildings.set_room_occupants(room.ref, 0).ok, "they leave")
 	assert_equal(_construction.demolition_open_refusal(hall), Construction.REFUSE_NONE,
 		"and the preview passes")
+
+
+func test_the_open_refusal_preview_names_a_full_construction_kind() -> void:
+	"""The directory row is proved too, with the directory's own capacity code, writing nothing."""
+	var hall: Vector2i = _active(_hall_id, HALL_TILE)
+	var directory: EntityDirectory = _buildings.directory()
+	while directory.free_row_count(EntityDirectory.KIND_CONSTRUCTION) > 0:
+		directory.create(EntityDirectory.KIND_CONSTRUCTION)
+	assert_equal(_construction.demolition_open_refusal(hall),
+		EntityDirectory.KIND_CAPACITY_REFUSAL[EntityDirectory.KIND_CONSTRUCTION],
+		"a full CONSTRUCTION kind is named before any write")
+	assert_equal(_construction.open_demolition(hall).error,
+		EntityDirectory.KIND_CAPACITY_REFUSAL[EntityDirectory.KIND_CONSTRUCTION],
+		"and it is the very code the transition itself would return")

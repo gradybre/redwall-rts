@@ -15,6 +15,7 @@ const EntityDirectoryScript := preload("res://scripts/core/entity_directory.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
 const BuildingDefinitions := preload("res://scripts/core/building_definitions.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const DemolitionAdmissions := preload("res://scripts/core/demolition_admissions.gd")
 
 const HALL_X: int = 20
 const HALL_Z: int = 20
@@ -250,7 +251,7 @@ func test_admit_reserves_the_return_in_a_surviving_store_and_publishes_the_proje
 	assert_equal(_settlement.buildings().state_of_building(hall).value,
 		ConstructionScript.STATE_DEMOLISHING, "the hall is DEMOLISHING")
 	assert_equal(report.destination_revision, revision + 1, "its revision advanced by one")
-	var admissions: Object = _settlement.demolition_admissions()
+	var admissions: DemolitionAdmissions = _settlement.demolition_admissions()
 	assert_equal(admissions.project_of(hall), report.project_ref, "the record names the project")
 	assert_equal(admissions.output_container_of(hall), store, "and the store")
 	assert_equal(admissions.output_reserved_g_of(hall), HALL_RETURN_G, "and the grams")
@@ -286,7 +287,7 @@ func test_admit_snapshots_a_tier_two_hall_and_reserves_for_both_packages() -> vo
 
 
 func test_the_lowest_eligible_store_is_chosen_and_ineligible_ones_skipped() -> void:
-	"""Food-only, too small, unreachable and DEMOLISHING-owned stores are passed over."""
+	"""Accept-nothing, too small, unreachable and DEMOLISHING-owned stores are passed over."""
 	var hall: Vector2i = _place_active("hall", HALL_TILE)
 	var depot: Vector2i = _depot()
 	_store(depot, DEPOT_TILE, 500000, 0)
@@ -378,3 +379,150 @@ func test_reset_forgets_admissions_and_restarts_revisions() -> void:
 		1, "the revision restarts at FIRST_DESTINATION_REVISION")
 	assert_equal(_settlement.demolition_admissions().project_of(again), EntityDirectoryScript.NULL_REF,
 		"and no admission survives")
+
+
+func test_an_unplaced_store_refuses_even_for_a_footprint_on_the_last_tile() -> void:
+	"""UNPLACED_TILE (-1) is never a footprint index, even when the footprint covers tile 16383."""
+	var corner: Vector2i = _place_active("well", 126 * 128 + 126)
+	var store: Vector2i = _store(corner, InventoryScript.UNPLACED_TILE)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(corner)
+	assert_equal(report.error, SettlementSystemScript.REFUSE_DEMOLITION_OFF_FOOTPRINT,
+		"an unplaced store is off every footprint, the grid's last tile included")
+	assert_equal(report.blocking_container, store, "and is named")
+
+
+func test_an_open_transaction_refuses_before_the_pile_fallback_is_tried() -> void:
+	"""With no store, the transaction refusal still names itself rather than NO_OUTPUT."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	_bind_world()
+	assert_true(_settlement.inventory().begin().ok, "a caller holds a transaction")
+	assert_equal(_settlement.request_demolition(hall).error,
+		SettlementSystemScript.REFUSE_DEMOLITION_TRANSACTION, "admit names the open transaction")
+	_settlement.inventory().abort()
+
+
+# --- review H1: a cancelled demolition releases its claim ---------------------------------------
+
+func test_cancel_releases_the_reservation_and_a_readmission_reserves_it_once() -> void:
+	"""The coordinator releases the claim BEFORE retiring the project; re-admission takes it once."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var store: Vector2i = _store(_depot(), DEPOT_TILE)
+	var first: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
+	var revision: int = first.destination_revision
+	assert_true(first.ok, "admitted (%s)" % first.error)
+	assert_equal(_settlement.cancel_demolition(hall), SettlementSystemScript.REFUSE_NONE, "cancel")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(store), 0, "claim released")
+	assert_equal(_settlement.buildings().state_of_building(hall).value,
+		ConstructionScript.STATE_ACTIVE, "the hall stands ACTIVE again")
+	assert_equal(_settlement.construction().live_project_count(), 0, "the project retired")
+	assert_equal(_settlement.demolition_admissions().destination_revision_of(hall), revision + 1,
+		"and the revision advanced again")
+	assert_true(_settlement.request_demolition(hall).ok, "it may be admitted again")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(store), HALL_RETURN_G,
+		"holding the return's charge exactly once, not twice")
+
+
+func test_a_project_retired_without_releasing_its_claim_blocks_readmission() -> void:
+	"""Review H1's reproduction: a store-level cancel strands the claim, and admit refuses over it."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var store: Vector2i = _store(_depot(), DEPOT_TILE)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
+	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refund begins")
+	assert_true(_settlement.construction().close_refund(report.project_ref).ok, "and retires")
+	assert_equal(_settlement.demolition_admissions().unreleased_reserved_g_of(hall), HALL_RETURN_G,
+		"the stranded claim is still named")
+	var before: PackedByteArray = _snapshot()
+	assert_equal(_settlement.request_demolition(hall).error,
+		DemolitionAdmissions.REFUSE_RESERVATION_UNRELEASED, "re-admission refuses over it")
+	assert_true(_snapshot() == before, "writing nothing")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(store), HALL_RETURN_G,
+		"and the claim was not taken a second time")
+
+
+func test_cancel_refuses_without_an_admitted_demolition_and_writes_nothing() -> void:
+	"""NOT_ADMITTED for an ACTIVE building and for a project the coordinator did not admit."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var before: PackedByteArray = _snapshot()
+	assert_equal(_settlement.cancel_demolition(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_NOT_ADMITTED, "nothing to cancel")
+	assert_true(_settlement.construction().open_demolition(hall).ok, "a store-level demolition")
+	var opened: PackedByteArray = _snapshot()
+	assert_equal(_settlement.cancel_demolition(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_NOT_ADMITTED, "is not the coordinator's")
+	assert_true(_snapshot() == opened, "and neither refusal wrote anything")
+	assert_false(before == opened, "(the fixture really changed state between them)")
+
+
+func test_cancel_refuses_a_refunding_project_and_a_missing_claim() -> void:
+	"""CANCEL_WRONG_PHASE once refunding; RESERVATION_NOT_HELD when the store lost the claim."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var store: Vector2i = _store(_depot(), DEPOT_TILE)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
+	assert_true(_settlement.inventory().release_container_mass(store, 1).ok, "a gram goes astray")
+	var before: PackedByteArray = _snapshot()
+	assert_equal(_settlement.cancel_demolition(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_CLAIM_MISSING, "the claim is not fully held")
+	assert_true(_snapshot() == before, "nothing written")
+	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refunding")
+	assert_equal(_settlement.cancel_demolition(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_CANCEL_PHASE, "already refunding")
+
+
+# --- review M1(b): the footprint mask is rebuilt per request -------------------------------------
+
+func test_a_second_buildings_preview_does_not_inherit_the_first_footprint() -> void:
+	"""A preview of the hall marks its footprint; the next preview of the well must not keep it."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	_store(hall, HALL_TILE)
+	var well: Vector2i = _place_active("well", OUTSIDE_TILE)
+	assert_true(_settlement.preview_demolition(hall).ok, "the hall's preview passes")
+	var report: SettlementSystemScript.DemolitionReport = _settlement.preview_demolition(well)
+	assert_true(report.ok, "the well's preview passes too (%s)" % report.error)
+	assert_equal(report.anchored_container_count, 0, "and sees nothing on its own footprint")
+
+
+func test_cancel_inside_a_callers_transaction_refuses_and_writes_nothing() -> void:
+	"""Review M-B: a release joined to a caller's transaction could roll back after the record."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	_store(_depot(), DEPOT_TILE)
+	assert_true(_settlement.request_demolition(hall).ok, "admitted")
+	assert_true(_settlement.inventory().begin().ok, "a caller holds a transaction")
+	var before: PackedByteArray = _snapshot()
+	assert_equal(_settlement.cancel_demolition(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_TRANSACTION, "cancel refuses")
+	assert_true(_snapshot() == before, "and writes nothing")
+	_settlement.inventory().abort()
+
+
+func test_a_stranded_claim_is_released_through_its_own_door() -> void:
+	"""Review M-A: a project retired around the coordinator leaves a claim only this door frees."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var store: Vector2i = _store(_depot(), DEPOT_TILE)
+	assert_equal(_settlement.release_stranded_reservation(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_NOT_STRANDED, "nothing recorded yet")
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
+	assert_equal(_settlement.release_stranded_reservation(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_NOT_STRANDED, "a live project is cancelled instead")
+	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refund begins")
+	assert_true(_settlement.construction().close_refund(report.project_ref).ok, "store-level retire")
+	assert_equal(_settlement.cancel_demolition(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_NOT_ADMITTED, "cancel has no project to cancel")
+	assert_equal(_settlement.release_stranded_reservation(hall), SettlementSystemScript.REFUSE_NONE,
+		"the stranded claim is released")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(store), 0, "from the store")
+	assert_true(_settlement.request_demolition(hall).ok, "and the hall may be admitted again")
+	assert_equal(_settlement.inventory().container_reserved_mass_g(store), HALL_RETURN_G, "once")
+
+
+func test_a_stranded_release_refuses_when_the_store_no_longer_holds_the_claim() -> void:
+	"""The release is proved before it is made; a short store refuses and writes nothing."""
+	var hall: Vector2i = _place_active("hall", HALL_TILE)
+	var store: Vector2i = _store(_depot(), DEPOT_TILE)
+	var report: SettlementSystemScript.DemolitionReport = _settlement.request_demolition(hall)
+	assert_true(_settlement.construction().begin_refund(report.project_ref).ok, "refund begins")
+	assert_true(_settlement.construction().close_refund(report.project_ref).ok, "store-level retire")
+	assert_true(_settlement.inventory().release_container_mass(store, 1).ok, "a gram goes astray")
+	var before: PackedByteArray = _snapshot()
+	assert_equal(_settlement.release_stranded_reservation(hall),
+		SettlementSystemScript.REFUSE_DEMOLITION_CLAIM_MISSING, "refused")
+	assert_true(_snapshot() == before, "nothing written")

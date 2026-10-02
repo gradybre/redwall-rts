@@ -762,11 +762,7 @@ func demolition_open_refusal(building_ref: Vector2i) -> StringName:
 	var type_id: int = _buildings.type_id_of_building(building_ref).value
 	if not _demolition_work_into(type_id, demolition_upgrade_mask_of(building_ref), _math):
 		return StringName(_math.error)
-	if _directory.free_row_count(EntityDirectory.KIND_CONSTRUCTION) <= 0:
-		return EntityDirectory.KIND_CAPACITY_REFUSAL[EntityDirectory.KIND_CONSTRUCTION]
-	if _directory.free_slot_count() <= 0:
-		return EntityDirectory.REFUSAL_DIRECTORY_FULL
-	return REFUSE_NONE
+	return _directory.create_refusal(EntityDirectory.KIND_CONSTRUCTION)
 
 
 func demolition_upgrade_mask_of(building_ref: Vector2i) -> int:

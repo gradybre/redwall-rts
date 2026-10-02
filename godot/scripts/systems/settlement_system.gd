@@ -385,6 +385,8 @@ extends Node
 ## reserves that capacity and publishes the demolition project inside one inventory transaction,
 ## records the admission and advances the building's destination revision in
 ## `demolition_admissions()`. Removing the building and placing the return is D5's.
+## `cancel_demolition()` is the only cancellation: it releases that claim BEFORE retiring the
+## project, because `construction().close_refund()` cannot see Inventory.
 ##
 ## EVERY REFUSAL IS READ-ONLY, WHICH IS ASSERTED IN BYTES. Every path returns a
 ## `DemolitionReport` carrying exact counts and the exact stranded lot refs, and a refusal leaves
@@ -702,6 +704,14 @@ const REFUSE_DEMOLITION_FOOTPRINT: StringName = &"DEMOLITION_FOOTPRINT_UNREADABL
 const REFUSE_DEMOLITION_RETURN_ITEM: StringName = &"DEMOLITION_RETURN_ITEM_UNKNOWN"
 const REFUSE_DEMOLITION_NO_OUTPUT: StringName = &"DEMOLITION_NO_OUTPUT_CAPACITY"
 const REFUSE_DEMOLITION_TRANSACTION: StringName = &"DEMOLITION_INVENTORY_TRANSACTION_OPEN"
+## `cancel_demolition()`: the building carries no demolition project to cancel, or the project is
+## already being refunded, or the recorded claim is no longer held where the record says.
+const REFUSE_DEMOLITION_NOT_ADMITTED: StringName = &"DEMOLITION_NOT_ADMITTED"
+const REFUSE_DEMOLITION_CANCEL_PHASE: StringName = &"DEMOLITION_CANCEL_WRONG_PHASE"
+const REFUSE_DEMOLITION_CLAIM_MISSING: StringName = &"DEMOLITION_RESERVATION_NOT_HELD"
+## `release_stranded_reservation()`: the row's claim still has a live project (cancel instead), or
+## the row records no claim at all.
+const REFUSE_DEMOLITION_NOT_STRANDED: StringName = &"DEMOLITION_RESERVATION_NOT_STRANDED"
 
 ## The two endpoint stages. Named rather than a boolean flag: ONE walk defines the affected
 ## endpoint set, and running it twice with different stages is what makes the goods scan
@@ -3283,12 +3293,13 @@ func _is_output_store(container_ref: Vector2i, building_ref: Vector2i) -> bool:
 func _commit_demolition_admission(building_ref: Vector2i) -> StringName:
 	"""The writes, after every proof: reserve, publish, commit, record (revision +1).
 
-	The reservation and the store transition share one inventory transaction, so a transition
-	that still refused would roll the reservation back. Every refusal below is a guard against a
-	store disagreeing with the proof it just passed; `_undo_admission()` restores the rest.
+	Reservation and transition share one inventory transaction, so a transition that still
+	refused rolls the reservation back; the other refusals are guards (`_undo_admission()`).
 	"""
 	var store: Vector2i = _demolition.output_container
 	var grams: int = _demolition.output_reserved_g if store != InventoryScript.NULL_REF else 0
+	_demolition.output_container = InventoryScript.NULL_REF
+	_demolition.output_reserved_g = 0
 	if not _inventory.begin().ok:
 		return REFUSE_DEMOLITION_TRANSACTION
 	if grams > 0 and not _inventory.reserve_container_mass(store, grams).ok:
@@ -3305,6 +3316,7 @@ func _commit_demolition_admission(building_ref: Vector2i) -> StringName:
 		_undo_admission(opened.ref, store, grams if committed.ok else 0)
 		return code
 	_demolition.project_ref = opened.ref
+	_demolition.output_container = store
 	_demolition.output_reserved_g = grams
 	_demolition.destination_revision = _admissions.destination_revision_of(building_ref)
 	return REFUSE_NONE
@@ -3316,10 +3328,82 @@ func _undo_admission(project_ref: Vector2i, store: Vector2i, grams: int) -> void
 	`close_refund()` on a demolition returns the building to ACTIVE and frees the row; the
 	directory slot's generation has advanced, which is the one trace an allocator must leave.
 	"""
-	_construction.begin_refund(project_ref)
-	_construction.close_refund(project_ref)
+	var undone: bool = _construction.begin_refund(project_ref).ok \
+		and _construction.close_refund(project_ref).ok
 	if grams > 0:
-		_inventory.release_container_mass(store, grams)
+		undone = _inventory.release_container_mass(store, grams).ok and undone
+	if not undone:
+		push_error("SettlementSystem: a demolition admission could not be undone (%s)" % project_ref)
+
+
+func cancel_demolition(building_ref: Vector2i) -> StringName:
+	"""Cancel an admitted demolition: release its reserved return capacity, then retire it.
+
+	The release comes FIRST and is the coordinator's, because `construction.close_refund()` sees
+	no inventory and a project retired with its claim still held would strand that headroom
+	(decision 0534, review H1). Every check runs before the first write; the building returns
+	to ACTIVE, the record is cleared and the destination revision advances.
+	"""
+	var project: Vector2i = _construction.project_of_building(building_ref)
+	var code: StringName = _cancel_refusal(building_ref, project)
+	if code != REFUSE_NONE:
+		return code
+	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
+	var done: bool = grams == 0 or _inventory.release_container_mass(
+		_admissions.unreleased_output_of(building_ref), grams).ok
+	done = _construction.begin_refund(project).ok and done
+	done = _construction.close_refund(project).ok and done
+	if not done:
+		push_error("SettlementSystem: a proved cancellation refused a write (%s)" % project)
+	return _admissions.release(building_ref)
+
+
+func _cancel_refusal(building_ref: Vector2i, project: Vector2i) -> StringName:
+	"""Why `cancel_demolition()` would refuse right now, or REFUSE_NONE. Writes nothing."""
+	if not _construction.purpose_into(project, _demolition_read) \
+			or _demolition_read.value != ConstructionScript.PURPOSE_DEMOLISH:
+		return REFUSE_DEMOLITION_NOT_ADMITTED
+	if not _construction.phase_into(project, _demolition_read) \
+			or _demolition_read.value == ConstructionScript.PHASE_REFUNDING:
+		return REFUSE_DEMOLITION_CANCEL_PHASE
+	if _admissions.project_of(building_ref) != project:
+		return REFUSE_DEMOLITION_NOT_ADMITTED
+	return _claim_release_refusal(building_ref)
+
+
+func _claim_release_refusal(building_ref: Vector2i) -> StringName:
+	"""The shared proof before a recorded claim is released: no caller transaction, claim held.
+
+	Inventory keeps one anonymous `reserved_mass_g` per container, so "held" can only mean the
+	store still carries AT LEAST the recorded grams; whose grams they are is the record's word.
+	"""
+	if _inventory.is_transaction_open():
+		return REFUSE_DEMOLITION_TRANSACTION
+	var grams: int = _admissions.unreleased_reserved_g_of(building_ref)
+	if grams > 0 and _inventory.container_reserved_mass_g(
+			_admissions.unreleased_output_of(building_ref)) < grams:
+		return REFUSE_DEMOLITION_CLAIM_MISSING
+	return _admissions.release_refusal(building_ref)
+
+
+func release_stranded_reservation(building_ref: Vector2i) -> StringName:
+	"""Release a recorded claim whose demolition project is gone without it (review M-A).
+
+	Only a project retired around the coordinator -- a store-level `close_refund()`, or a
+	completion that removed nothing -- leaves one. The record is per Building row, so any live
+	building on that row may ask; the claim is released from the recorded store and the record
+	cleared. Refuses NOT_STRANDED while a project is live (cancel it) or when no claim is recorded.
+	"""
+	if _admissions.project_of(building_ref) != EntityDirectoryScript.NULL_REF \
+			or _admissions.unreleased_reserved_g_of(building_ref) == 0:
+		return REFUSE_DEMOLITION_NOT_STRANDED
+	var code: StringName = _claim_release_refusal(building_ref)
+	if code != REFUSE_NONE:
+		return code
+	if not _inventory.release_container_mass(_admissions.unreleased_output_of(building_ref),
+			_admissions.unreleased_reserved_g_of(building_ref)).ok:
+		push_error("SettlementSystem: a proved stranded release refused (%s)" % building_ref)
+	return _admissions.release(building_ref)
 
 
 func demolition_admissions() -> DemolitionAdmissionsScript:

@@ -468,6 +468,10 @@ func test_create_materialises_the_starter_colony_and_rebinds_the_stores_to_it() 
 		buildings.building_at_tile(60 * 128 + 50), "and the first store by the new stockpile")
 	assert_equal(EconomySystem.stock_units(&"wood"), 180, "and §5.1's inventory was reseeded")
 	assert_equal(EconomySystem.ready_nutrition_points(), 408000, "food included")
+	assert_true(EconomySystem.inventory() == SettlementSystem.inventory(),
+		"in the settlement's own inventory, which EconomySystem adopted (decision 0534)")
+	assert_true(SettlementSystem.inventory().is_container_valid(EconomySystem.pantry()),
+		"so the demolition gate's store holds the pantry")
 	SettlementSystem.reset()
 
 

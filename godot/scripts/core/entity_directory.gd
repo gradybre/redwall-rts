@@ -209,6 +209,15 @@ func create(kind: int) -> Vector2i:
 	return _publish_row(slot, kind, row)
 
 
+func create_refusal(kind: int) -> StringName:
+	"""The ARCH-ID-004 code `create(kind)` would refuse with right now, or REFUSAL_NONE. Read-only.
+
+	For a coordinator that must prove a later `create()` cannot refuse before its own first write
+	(decision 0534's demolition admit), without restating these rules.
+	"""
+	return _refuse_create(kind)
+
+
 func _publish_row(slot: int, kind: int, row: int) -> Vector2i:
 	"""Initialize every column of a reserved slot, then publish `active=1` (ARCH-ID-002)."""
 	# Initial generation is 1 and it increments on reuse, never on destroy. A

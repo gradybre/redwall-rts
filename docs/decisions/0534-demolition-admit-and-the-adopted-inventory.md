@@ -1,5 +1,5 @@
 # 0534 — Demolition admit, the stage-5 success path, and the adopted inventory
-Date: 2026-10-01 · Status: Accepted (four PROPOSALS below await Brendan's ruling)
+Date: 2026-10-01 · Status: Accepted (five PROPOSALS below await Brendan's ruling)
 
 Numbered 0534 because the brief named it. No record numbered 0534–0539 exists on any branch
 (`git ls-tree` over every ref) or in any sibling worktree when this was written;
@@ -59,6 +59,8 @@ Consequences that name D4.
      `construction.demolition_open_refusal()` (new: every refusal `open_demolition()` can return,
      including a full CONSTRUCTION kind), the admission record's own refusal, a caller's open
      inventory transaction (`DEMOLITION_INVENTORY_TRANSACTION_OPEN`), and the output plan.
+   - `construction.demolition_open_refusal()` asks the directory through the new read-only
+     `entity_directory.gd::create_refusal(kind)` rather than restating its create rules.
    - Then, in order: one inventory transaction holding the reservation and `open_demolition()`
      (a transition that still refused would roll the reservation back); commit; the admission
      record and the destination revision. Two guards that the proofs make unreachable — a commit
@@ -90,10 +92,26 @@ Consequences that name D4.
    and MOVE-DEP-R05's destination revision — `FIRST_DESTINATION_REVISION` (1) after `clear()`,
    +1 per admitted demolition, refusing at I32 max. A record whose project is no longer live is
    read as absent. Composed and cleared by the settlement (`demolition_admissions()`).
-7. **`ui_world_session.gd` declares `KIND_CONSTRUCTION`** among its reset's cleared kinds
+7. **A cancellation releases the claim first (review H1).** `cancel_demolition(building_ref)`
+   proves, writing nothing, that the building carries the coordinator's own admitted
+   demolition, that it is not already refunding, that no caller holds an inventory transaction,
+   that the recorded store still holds the recorded grams and that the record can be released;
+   then it releases the claim, retires the project through `begin_refund()`/`close_refund()`
+   (the building returns to ACTIVE) and calls `demolition_admissions.release()`, which clears the
+   record and advances the destination revision again. A project retired WITHOUT that release
+   (a store-level `close_refund()`) cannot hide its claim: `unreleased_output_of()` and
+   `unreleased_reserved_g_of()` still name it, and `admit_refusal()` refuses
+   `DEMOLITION_RESERVATION_UNRELEASED`, so the same capacity is never reserved twice. Admit
+   keeps one revision of headroom for its own release. `release_stranded_reservation()` is the
+   way back out for such a claim (second review, M-A): with no live project and a recorded
+   claim, it proves the store still holds the grams and releases them. Both doors refuse a
+   caller's open inventory transaction, because a release joined to it could be rolled back
+   after the record was cleared. "Held" can only mean the store still carries AT LEAST the
+   recorded grams: Inventory's `reserved_mass_g` is one anonymous total per container.
+8. **`ui_world_session.gd` declares `KIND_CONSTRUCTION`** among its reset's cleared kinds
    (0533's third Consequence), so Create during an admitted demolition still succeeds
    (`test_create_still_succeeds_while_a_demolition_is_admitted`).
-8. **`test_every_starter_building_still_refuses_demolition_at_stage_5` was changed on purpose**
+9. **`test_every_starter_building_still_refuses_demolition_at_stage_5` was changed on purpose**
    (0533's fourth Consequence). With the economy adopting the settlement's inventory, the hall and
    the stockpiles now refuse `DEMOLITION_BLOCKED_STORED_GOODS` because the gate sees their goods;
    the well is admitted into the fourth stockpile's headroom (75000 g) and the workbench then
@@ -123,13 +141,24 @@ Where the documents are silent the smallest sensible behaviour was built and is 
   reuse. Options: (a) as built until BUILDINGS-SAVED-BINDINGS / D8 move it into the building
   store with its contacts; (b) a `buildings.gd` column now, reopening that store's frozen save
   bridge. **Recommendation: (a).**
-- **P4 — a never-built (starter) building's base package counts as paid.** BUILD-C4-R01 reads
-  "the recorded paid base package", but INIT-C places the starter colony without a project.
-  Built: the snapshot records every live building's base package, on BUILD-C4-R01's own "Ordinary
-  tier-1 behavior remains the inherited formula", and tier 2 is the record of the completed
-  upgrade (BAL-SAFE-013 sets it once, only on completion). Options: (a) as built; (b) starter
+- **P4 — the demolition snapshot is DERIVED from the building's type and tier at admission, so a
+  never-built (starter) building's base package counts as paid.** BUILD-C4-R01 reads "the
+  recorded paid base package", but INIT-C places the starter colony without a project, and a
+  BUILD or UPGRADE project's ledger row retires with the project, so no per-building payment
+  record survives to read. Built: the snapshot records every live building's base package, on
+  BUILD-C4-R01's own "Ordinary tier-1 behavior remains the inherited formula", and tier 2 is
+  the record of the completed upgrade (BAL-SAFE-013 sets it once, only on completion). The
+  BUILD/UPGRADE/FURNITURE rows' ledger keys are written but not yet read; they are what
+  CONSTRUCTION-SAVED-BINDINGS saves, and a per-building record would replace the derivation. Options: (a) as built; (b) starter
   structures return nothing; (c) record a per-building paid mask (ARCH's BuildingService
   `upgrade_paid_mask`) and treat INIT-C as paying. **Recommendation: (a).**
+
+- **P5 — cancelling a demolition is free.** `cancel_demolition()` accepts a project in any phase
+  but REFUNDING, including one whose work has begun or finished, and the building returns to
+  ACTIVE with nothing charged and nothing returned. REQ-SET-126 prices cancelling a BUILD; no
+  document prices cancelling a demolition. Options: (a) as built; (b) refuse cancellation once
+  demolition work has begun; (c) charge the earned work somehow. **Recommendation: (a)**, since
+  a demolition delivers and consumes no material, so there is nothing to refund or forfeit.
 
 ## Why — the executor's other readings
 
@@ -144,6 +173,19 @@ Where the documents are silent the smallest sensible behaviour was built and is 
   bills cannot change, so a per-row copy would duplicate a world-wide fact.
 - **A DEMOLISHING building's stores are never an output.** Its containers are destroyed by its
   own completion (#6 step 1), so the store scan requires an ACTIVE owner.
+- **Tier-2 demolition is implemented, not yet ACCEPTED.** BUILD-C4-R01 says the upgraded case
+  "remains unaccepted ... until repaired and the owning ruleset/catalog/save identity is
+  versioned under REQ-SET-001". This repairs it; the versioning is not done here (no ruleset,
+  catalog or save identity changed), so acceptance stays open and is D9's to check.
+- **`_paid_base_type` is a building id or a furniture id by `_purpose`**, the same namespace rule
+  as `_type_id`.
+- **Stage 5's capacity-claim refusal is a guard for piles.** Owner-scanned claims refuse at
+  stage 3; a ground pile with a claim but no lot cannot exist (decision 0532 refuses it at
+  commit, and section 7's restore refuses an empty pile), and a pile with a lot refuses
+  STORED_GOODS first.
+- **`DEMOLITION_FOOTPRINT_UNREADABLE` also blocks a store-bound return**, because the footprint
+  mask and the refund seeds come from one call; only a hall whose door would fall off the grid
+  can trigger it.
 - **No rule was reinterpreted.** Every refusal named in the D4 row is implemented with its own
   code; nothing picks an Alternative column.
 
@@ -159,13 +201,17 @@ Where the documents are silent the smallest sensible behaviour was built and is 
   carries a project and is not ACTIVE, which is exactly a DEMOLISHING building. D5 needs a
   commit-time variant of stages 2–5 that expects its own demolition project as an endpoint (it has
   no material container and nothing delivered, so the walk passes it).
-- **Cancellation does not release the reservation.** `construction.close_refund()` on a
-  demolition sets the building ACTIVE and retires the row; the admission record then lapses, but
-  the store keeps the reserved grams. A coordinator cancellation path must release
-  `output_reserved_g_of()` first (D5/D6/D7).
-- **The destination revision advances only at admit.** Removal (D5) and D8's movement wiring
-  must advance it again; `demolition_admissions.record()` is admit-only, so D5 adds the removal
-  door.
+- **Release BEFORE removal.** The admission record is keyed by Building typed row and its doors
+  take a live building ref, so D5 must release the claim and call `release()` before
+  `demolish_building()` removes the row. A claim left on a row is still named and still blocks
+  re-admission on that row, and `release_stranded_reservation()` can free it from any live
+  building there, but nothing reaches it once no building stands on the row.
+- **Cancel through `cancel_demolition()`, never `construction.close_refund()` directly.** The
+  store-level call cannot see Inventory; the coordinator releases the claim first. D7's UI and D6's
+  evacuation retry must use the coordinator door. D5's commit must likewise release the claim
+  and then call `demolition_admissions.release()` (which also advances the revision).
+- **The destination revision advances at admit and at release** (cancellation, and D5's commit
+  through `release()`). D8 wires movement to read it.
 - **A pile fallback proved at admit can fail at completion** (the world changed). D5 stays
   commit-pending and retries at no extra cost, per ECON-003.
 - **Open demolitions do not survive a load** (CONSTRUCTION-SAVED-BINDINGS), but section 7 saves
@@ -179,7 +225,63 @@ Where the documents are silent the smallest sensible behaviour was built and is 
 
 ## Evidence
 
-Filled in below from the runs on this branch.
+- **Suite.** `./tools/run_tests.sh` on the final tree: `ok: 7760 tests, 574658 assertions, 0
+  failures.`
+- **Tests added or changed.**
+  - `test_construction_paid_ledger.gd` (12): the keys each purpose records; tier 1 unchanged;
+    tier 2 = base + upgrade per item, derived from the distinct §4.1/§4.2 entries; a quarter of
+    both packages' WU; BUILD-C4-R01's synthetic odd-bill fixture (1001 + 3 milli → 502, not 501);
+    a cancelled incomplete upgrade earning its own refund and no demolition share; the preview
+    equal to the snapshot; every open refusal, a full CONSTRUCTION kind included.
+  - `test_settlement_demolition_admit.gd` (30): both scan disagreements, the anchored orphan, the
+    unanchored orphan, satchels, piles on and off the footprint, a footprint on the grid's last
+    tile, admit end to end, the tier-2 reservation, store selection, the pile fallback, open
+    transactions, byte-identical refusals, reset, cancellation, the stranded claim, and the
+    footprint mask being rebuilt per request.
+  - `test_demolition_admissions.gd` (8), the bind tests in `test_economy_system.gd` (4), the
+    starter-colony gate tests (4, replacing D3's pinned stage-5 test), Create during a demolition
+    and the adopted inventory after Create in `test_ui_manager.gd`, and the retired-history
+    decoder's two new segments.
+- **Contracts.** Every "Specification contracts" step in `.github/workflows/tests.yml` passes on
+  the final tree, plus `test_construction_metadata_preflights.py` (62/62),
+  `test_construction_allocation.py`, `test_buildings_metadata_preflights.py`,
+  `test_buildings_allocation.py` and `test_starter_structures_metadata.py`. The capacity audit
+  is regenerated.
+- **Boot.** 600 frames of `scenes/main.tscn`: exit 0, no error, "food-days 5.48 days, ready
+  408000 NP" — the starter stock now lives in the settlement's inventory and reads the same.
+- **Warnings.** `tools/gdscript_warnings.py` (from the test-hygiene branch) reports no warning on
+  any line this branch adds.
+- **Mutation testing: 63 mutants** over `construction.gd`, `settlement_system.gd`,
+  `demolition_admissions.gd`, `economy_system.gd`, `ui_world_session.gd` and `ui_manager.gd`,
+  each in a cloned tree against its focused suites. **57 killed.** The first runs left
+  survivors that were real gaps, now closed by tests: the directory-capacity preview, an
+  unplaced store under a footprint covering tile 16383, the open-transaction refusal ahead of
+  the pile fallback, Create's adoption of the settlement inventory, and both revision edges.
+  **The six survivors are equivalent:**
+  - `_manifest_into()`'s `paid_base != NO_PAID_PACKAGE` clause: only DEMOLITION rows reach the
+    manifest, and they always record a base package;
+  - `_is_output_store()`'s "not the subject" and "owner is a BUILDING" clauses: the subject's own
+    stores are anchored on the footprint the complement mask excludes, and a non-building owner
+    fails the ACTIVE-state check that follows;
+  - the complement mask itself (`1 - footprint`): any container on the footprint that is not the
+    subject's was already refused at stage 5;
+  - counting only nonzero manifest lines: no authored quantity halves to 0;
+  - `_on_footprint_refusal()`'s stale-ref refusal: every ref it is given was just proved live.
+- **Independent `code-reviewer`, two passes.**
+  - First pass: no CRITICAL. One HIGH, fixed: a demolition cancelled through
+    `construction.close_refund()` left its reservation in Inventory while the record lapsed, so a
+    re-admission reserved the same capacity again (reproduced: 401500 g, then 803000 g). Fixed by
+    keeping the claim recorded until `release()`, refusing re-admission over it, and adding the
+    coordinator's `cancel_demolition()`. MEDIUM, all addressed: untested footprint-mask reset and
+    floor-once rule (tests added; the odd-bill fixture), the pile capacity-claim clause (documented
+    as an unreachable guard), the paid ledger's derived snapshot and tier-2's pending acceptance
+    (stated above), `demolition_open_refusal()` restating the directory's rules (now
+    `create_refusal()`), and this section. LOW, fixed: stale report fields on guard refusals,
+    unchecked undo results, test naming and typing.
+  - Second pass: no CRITICAL or HIGH. MEDIUM, fixed: no way back out for a stranded claim
+    (`release_stranded_reservation()`, and the release-before-removal order stated for D5); the
+    cancel's open-transaction refusal untested (test added). LOW, fixed: unchecked results in
+    cancel, the anonymous-claim note, the registry wording; recorded as P5: cancelling is free.
 
 ## Source
 

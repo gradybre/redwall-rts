@@ -18,8 +18,13 @@ extends RefCounted
 ##     never reused for a row, so a reused row's new building never inherits an equal revision
 ##     under the same identity. Movement consuming it is D8.
 ##
-## A record whose project is no longer a live CONSTRUCTION row is no record: every reader treats
-## it as absent, and the next admission overwrites it. Nothing here touches another store.
+## A RESERVATION OUTLIVES NOTHING SILENTLY. The record's project and binding readers answer only
+## while the project is a live CONSTRUCTION row, but the reserved grams stay recorded until
+## `release()` is called by whoever released them in Inventory (the coordinator's cancellation,
+## or D5's commit). Until then `admit_refusal()` refuses RESERVATION_UNRELEASED and
+## `unreleased_*_of()` still names the claim, so a project retired without its claim being
+## released can neither hide the claim nor be admitted again over it. Nothing here touches
+## another store.
 
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
@@ -36,6 +41,8 @@ const REFUSE_ALREADY_ADMITTED: StringName = &"DEMOLITION_ALREADY_ADMITTED"
 const REFUSE_REVISION_EXHAUSTED: StringName = &"DEMOLITION_DESTINATION_REVISION_EXHAUSTED"
 const REFUSE_STALE_PROJECT: StringName = &"DEMOLITION_ADMISSION_STALE_PROJECT"
 const REFUSE_OUTPUT_SHAPE: StringName = &"DEMOLITION_ADMISSION_OUTPUT_SHAPE"
+const REFUSE_RESERVATION_UNRELEASED: StringName = &"DEMOLITION_RESERVATION_UNRELEASED"
+const REFUSE_NOTHING_TO_RELEASE: StringName = &"DEMOLITION_ADMISSION_NOTHING_TO_RELEASE"
 
 var _directory: EntityDirectory = null
 var _project_slot: PackedInt32Array = PackedInt32Array()
@@ -88,7 +95,10 @@ func admit_refusal(building_ref: Vector2i) -> StringName:
 		return REFUSE_STALE_BUILDING
 	if _live_project_row(row):
 		return REFUSE_ALREADY_ADMITTED
-	if _destination_revision[row] >= INT32_MAX:
+	if _output_reserved_g[row] > 0:
+		return REFUSE_RESERVATION_UNRELEASED
+	# Headroom for this admission AND its later release, so a cancellation never runs out.
+	if _destination_revision[row] >= INT32_MAX - 1:
 		return REFUSE_REVISION_EXHAUSTED
 	return REFUSE_NONE
 
@@ -116,6 +126,52 @@ func record(building_ref: Vector2i, project_ref: Vector2i, output_ref: Vector2i,
 	_output_reserved_g[row] = reserved_g
 	_destination_revision[row] += 1
 	return REFUSE_NONE
+
+
+func release(building_ref: Vector2i) -> StringName:
+	"""Forget a building's admission once its claim has been released in Inventory.
+
+	The caller releases `unreleased_reserved_g_of()` grams from `unreleased_output_of()` FIRST;
+	this only clears the record and advances the destination revision (the building's state
+	changed under any admitted journey). Refuses a stale building and a row with no record.
+	"""
+	var code: StringName = release_refusal(building_ref)
+	if code != REFUSE_NONE:
+		return code
+	var row: int = _row_of(building_ref)
+	_project_slot[row] = NULL_REF.x
+	_project_generation[row] = NULL_REF.y
+	_output_slot[row] = NULL_REF.x
+	_output_generation[row] = NULL_REF.y
+	_output_reserved_g[row] = 0
+	_destination_revision[row] += 1
+	return REFUSE_NONE
+
+
+func release_refusal(building_ref: Vector2i) -> StringName:
+	"""Why `release()` would refuse right now, or REFUSE_NONE. Writes nothing."""
+	var row: int = _row_of(building_ref)
+	if row < 0:
+		return REFUSE_STALE_BUILDING
+	if _project_slot[row] == NULL_REF.x and _output_reserved_g[row] == 0:
+		return REFUSE_NOTHING_TO_RELEASE
+	if _destination_revision[row] >= INT32_MAX:
+		return REFUSE_REVISION_EXHAUSTED
+	return REFUSE_NONE
+
+
+func unreleased_output_of(building_ref: Vector2i) -> Vector2i:
+	"""The container still holding a recorded claim, live project or not; null when none."""
+	var row: int = _row_of(building_ref)
+	if row < 0 or _output_reserved_g[row] == 0:
+		return NULL_REF
+	return Vector2i(_output_slot[row], _output_generation[row])
+
+
+func unreleased_reserved_g_of(building_ref: Vector2i) -> int:
+	"""Grams of a recorded claim not yet released, live project or not; 0 when none."""
+	var row: int = _row_of(building_ref)
+	return 0 if row < 0 else _output_reserved_g[row]
 
 
 func destination_revision_of(building_ref: Vector2i) -> int:

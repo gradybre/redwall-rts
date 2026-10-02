@@ -11,7 +11,8 @@ extends CanvasLayer
 ##
 ## WHERE: centred on the HUD's alert column, at its top (under the HUD's alert cards when they show), one row so it
 ## stays inside the alert zone; it steps below the top card (the incident card, the guide's card or the people's offer
-## card: `avoid`) if the two would meet. WHILE A POP-UP IS OPEN (the
+## card: `avoid`) if the two would meet -- unless that covers the Map layer picker (`keep_clear`), when it stands at the
+## top of the alert column instead, over the HUD's alert cards (decision 0902). WHILE A POP-UP IS OPEN (the
 ## Pantry, the Work screen, the object list: `modal_open`) it rises above the pop-ups' layer and moves to the bottom
 ## centre, so a planning pause is said beside the panel that holds it, and its Resume runs the village with the panel
 ## still open. Hidden while the village runs, while the stall banner shows (that banner is the stall's surface and its
@@ -62,6 +63,10 @@ var hud_cards_shown: Callable = Callable()
 var modal_open: Callable = Callable()
 ## The Resume itself, `() -> int` (the ledger's `resume`).
 var on_resume: Callable = Callable()
+## `() -> Rect2`: a control the card must not cover once it has stepped below the top card -- the Map layer picker, in
+## viewport px (an empty rect: none). Where it would, the card falls back to its own place, UI-SET-086's, at the top of
+## the alert column over the HUD's alert cards (Brendan's ruling on decision 0902's question 4, 2026-10-02).
+var keep_clear: Callable = Callable()
 
 var _ledger: LedgerScript = null
 var _speed: Callable = Callable()
@@ -78,6 +83,8 @@ var _place_queued: bool = false
 ## What the card was last placed against: the rect it stepped below, and whether the HUD's cards showed.
 var _placed_clear: Rect2 = Rect2()
 var _placed_cards: bool = false
+## And the rect it kept clear of (`keep_clear`), as last placed.
+var _placed_keep: Rect2 = Rect2()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 
 
@@ -155,12 +162,25 @@ func refresh() -> bool:
 
 func _moved() -> bool:
 	"""Whether what the card sits against has changed since it was placed (the top card, the HUD's cards)."""
-	return _clear_rect() != _placed_clear or _cards_shown() != _placed_cards
+	return _clear_rect() != _placed_clear or _cards_shown() != _placed_cards or _keep_rect() != _placed_keep
 
 
 func _clear_rect() -> Rect2:
 	"""The top card to keep clear of, in viewport px (none: an empty rect)."""
 	return avoid.call() if avoid.is_valid() else Rect2()
+
+
+func _step_below(alerts: Rect2) -> void:
+	"""Below the top card it would meet -- or, where that covers `keep_clear`'s control, back to the top of the alert
+	column (see `keep_clear`)."""
+	_frame.position.y = _placed_clear.end.y + GAP * _geometry.scale
+	if _placed_keep.has_area() and frame_rect().intersects(_placed_keep):
+		_frame.position.y = alerts.position.y * _geometry.scale
+
+
+func _keep_rect() -> Rect2:
+	"""The control to keep clear of once stepped down, in viewport px (none: an empty rect)."""
+	return keep_clear.call() if keep_clear.is_valid() else Rect2()
 
 
 func _cards_shown() -> bool:
@@ -255,8 +275,9 @@ func _place() -> void:
 	FarmUi.place(_frame, Rect2(alerts.get_center().x - width / 2.0, top, width, 0.0), _geometry.scale)
 	_frame.reset_size()
 	_placed_clear = _clear_rect()
+	_placed_keep = _keep_rect()
 	if layer == MODAL_LAYER:
 		_frame.position.y = get_viewport().get_visible_rect().size.y - (_frame.size.y + GAP) * _geometry.scale
 		return
 	if _placed_clear.has_area() and frame_rect().intersects(_placed_clear):
-		_frame.position.y = _placed_clear.end.y + GAP * _geometry.scale
+		_step_below(alerts)

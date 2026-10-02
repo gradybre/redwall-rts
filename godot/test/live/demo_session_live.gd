@@ -75,7 +75,7 @@ func _initialize() -> void:
 	current_scene = _village
 	_steps = [_wait_until_open, _running_shows_no_card, _space_pauses_and_the_card_says_so, _show_the_guide_card,
 		_the_card_fits_under_the_guide, _the_card_fits_with_the_guide_gone, _the_guide_card_returns,
-		_the_card_fits_under_the_guide_again, _a_click_below_the_card_passes, _the_card_grew, _the_card_shrank_back,
+		_the_u_view_with_the_guide, _the_card_keeps_off_the_picker, _the_card_fits_under_the_guide_again, _a_click_below_the_card_passes, _the_card_grew, _the_card_shrank_back,
 		_the_card_resumes_by_space,
 		_planning_pauses_with_the_pantry, _the_pantry_paused, _closing_the_pantry_resumes, _g_opens_the_run_menu, _choose_4x_and_next_meal,
 		_wait_for_the_meal, _resume_after_the_meal, _jump_to_before_dawn, _run_until_dawn, _wait_for_dawn,
@@ -302,6 +302,25 @@ func _the_card_fits_with_the_guide_gone() -> void:
 func _the_guide_card_returns() -> void:
 	"""The guide's card shown again (the frame above is saved first)."""
 	_set_guide_card(true)
+
+
+func _the_u_view_with_the_guide() -> void:
+	"""U, paused, with the guide's card up: the Map layer picker unfolds its legend higher up (at 1280x720, where the
+	pause card would step below the guide's card onto it)."""
+	_key(KEY_U)
+
+
+func _the_card_keeps_off_the_picker() -> void:
+	"""Decision 0902 (Brendan's ruling on question 4): the pause card never covers the Map layer picker -- where stepping
+	below the guide's card would, it stands at the top of the alert column instead. Then U back to the surface."""
+	var picker: Control = _village.get("_lens_picker").get("_frame")
+	var rect: Rect2 = _card().call(&"frame_rect")
+	_check("the pause card shows in the U view", bool(_card().call(&"is_shown")))
+	_check("the pause card clear of the Map layer picker", not picker.is_visible_in_tree()
+		or not rect.intersects(picker.get_global_rect()), "%s / %s" % [rect, picker.get_global_rect()])
+	_check("and clear of the guide's card", not rect.intersects(_village.call(&"_top_card_rect")), str(rect))
+	_capture("pause_card_u_view")
+	_key(KEY_U)
 
 
 func _the_card_fits_under_the_guide_again() -> void:

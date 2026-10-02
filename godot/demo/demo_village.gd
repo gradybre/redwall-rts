@@ -1716,6 +1716,7 @@ func _build_session() -> void:
 		func() -> bool: return _menu.visible] as Array[Callable]
 	_card.modal_open = func() -> bool: return _gate.modal_open()
 	_card.avoid = _top_card_rect
+	_card.keep_clear = func() -> Rect2: return _lens_picker.frame_rect() if _lens_picker.visible else Rect2()
 	_card.hud_cards_shown = _hud_cards_shown
 	add_child(_run_menu)
 	add_child(_run_menu.button_layer())

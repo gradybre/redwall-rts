@@ -251,6 +251,7 @@ const ObjectListScript := preload("res://demo/access/object_list.gd")
 const VillageTargets := preload("res://demo/access/village_targets.gd")
 const Access := preload("res://demo/access/demo_access.gd")
 const FarmSimScript := preload("res://demo/farm/farm_sim.gd")
+const OpeningPantryScript := preload("res://demo/farm/opening_pantry.gd")
 const FarmCatalog := preload("res://demo/farm/farm_catalog.gd")
 const GuideScript := preload("res://demo/guide/demo_guide.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -536,8 +537,9 @@ func weir_view() -> WeirViewScript:
 
 func _build_kitchen() -> void:
 	"""The kitchen (demo/kitchen/, decision 0381): the meal loop over the farm's pantry and the village's stores, its
-	cook the night's early riser; its tab in the Pantry. (Each resident's fed rows join the party panel in `_ready`,
-	`set_fed_text`: their own rows after what it is doing, decision 0391.)"""
+	cook the night's early riser; its tab in the Pantry; and the pantry the demo opens with (decision 0912). (Each
+	resident's fed rows join the party panel in `_ready`, `set_fed_text`: their own rows after what it is doing,
+	decision 0391.)"""
 	_kitchen = KitchenNodeScript.new()
 	add_child(_kitchen)
 	var command := _command as DemoCommandScript
@@ -546,6 +548,9 @@ func _build_kitchen() -> void:
 	tab.said.connect(command.say)
 	_farm.pantry_panel.set_kitchen(_kitchen.kitchen, tab)
 	_farm.bind_kitchen(_kitchen.kitchen)
+	var stored: int = OpeningPantryScript.stock(_farm.pantry, _farm.record, _services.calendar.hour_index())
+	if stored != OpeningPantryScript.total_milli():
+		push_error("the opening pantry stored %d of %d milli-U" % [stored, OpeningPantryScript.total_milli()])
 
 
 func kitchen() -> KitchenNodeScript:

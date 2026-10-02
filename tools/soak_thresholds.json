@@ -1,0 +1,45 @@
+{
+ "_about": "Thresholds for tools/soak_report.py (decision 0921). Every number has its reason beside it; a flag quotes the reason. Units: KB, counts, microseconds, or a fraction of the baseline per game day.",
+ "skip_days": 1,
+ "_skip_days": "Day 0 is warm-up: the first meals, the first night, the first threat and the capped books (notices 128, incidents 48, meal log 64, batch log 256) filling for the first time all allocate once.",
+ "min_days": 4,
+ "_min_days": "A line through fewer than four daily points is a guess; shorter runs are reported, not judged.",
+ "growth": {
+  "static_kb": {"per_day": 512, "min_rising": 0.6, "reason": "Static memory's daily floor should be flat once the capped books are full. 512 KB a game day is 10 MB over a 20-day soak and 50 MB over a 100-day village: small for one session, a leak for a long one."},
+  "objects": {"per_day": 50, "min_rising": 0.6, "reason": "The live object count's floor (about 13 600 at nine residents) should be flat: tasks, plans and notices are made and freed. 50 a game day that never come back is a per-day leak."},
+  "nodes": {"per_day": 5, "min_rising": 0.6, "reason": "Toasts, cards and marks come and go; a node count whose floor rises day after day is a node not freed."},
+  "resources": {"per_day": 5, "min_rising": 0.6, "reason": "Everything the demo shows is loaded at boot (demo_prewarm.gd); a rising floor is a resource made at run time and kept."},
+  "orphans": {"per_day": 0.5, "min_rising": 0.5, "reason": "A node outside the tree that nobody frees is a leak; any lasting rise is one."},
+  "video_kb": {"per_day": 1024, "min_rising": 0.6, "reason": "Video memory (windowed runs only; 0 headless) should not climb once every texture is resident."},
+  "pantry_lots": {"per_day": 2, "min_rising": 0.6, "reason": "The pantry's lot table should reuse spent lots; a floor that rises a lot or more a day grows without bound."},
+  "managed_nodes": {"per_day": 5, "min_rising": 0.6, "reason": "Script nodes processing each frame (the per-system driver's list): a rise is a processing node added and never removed."}
+ },
+ "frame_drift": {
+  "base_days": 3,
+  "p50_relative_per_day": 0.01,
+  "p95_relative_per_day": 0.02,
+  "cpu_relative_per_day": 0.01,
+  "reason": "A frame's work should not depend on how long the village has run. 1 % a game day on the median is 20 % over a 20-day soak; the p95 is noisier on a shared machine and gets 2 %. A drift is flagged only when the Godot process's own CPU per frame drifts too, so a busier machine is not mistaken for a slower game."
+ },
+ "systems": {
+  "base_days": 3,
+  "min_mean_us": 20,
+  "mean_relative_per_day": 0.03,
+  "min_rising": 0.6,
+  "reason": "A system's daily mean frame time rising 3 % a game day, day after day, is work that accumulates (a list that grows, a scan over history). Systems under 20 us a frame are below the noise and are not judged."
+ },
+ "errors": {
+  "max_errors": 0,
+  "reason": "The demo prints no errors in normal play; any error over a soak is a defect, whatever else passed.",
+  "reason_exit_leak": "The engine reported objects or resources still alive at exit: a reference cycle that also survives Restart demo."
+ },
+ "restarts": {
+  "max_unreachable": 0,
+  "held_per_restart": 1,
+  "objects_per_restart": 50,
+  "static_kb_per_restart": 256,
+  "min_rising": 0.6,
+  "reason_unreachable": "Objects of the old village that nothing alive reaches after Restart demo can never be freed: each restart leaks them again.",
+  "reason_growth": "What a fresh village holds right after a restart should be the same each time; a rise restart after restart is something the old village left behind."
+ }
+}

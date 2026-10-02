@@ -177,6 +177,27 @@ oak in winter, the Pantry and Kitchen tab icons, the rock-faced tunnel), `batch8
 halls by day and night, the banners, a residence and the kitchen at night) and `batch8_check/ui/` (the group tiles, the
 person header, the tapestry, the chronicle).
 
+### Master, merged after the batch, and the gates again
+
+`origin/master` (#218 sharded CI, decision 0991; #219 demolition D6, decision 0537; #216, a review doc) merged cleanly
+(eff597e3): no demo file changed on master, and the workflow keeps this branch's `test_stage_art_passes.py` step. The
+gates ran again as the sharded CI runs them -- the demo's assets moved aside, `godot/.godot` deleted and re-imported:
+
+```text
+./tools/run_tests.sh --shard N/8 --output-dir <dir>      # N = 0..7, each exit 0, each 0 failures, 0 unexpected, 0 leaks
+python3 tools/ci_test_shards.py verify --reports <dir> --count 8
+ok: 286 suite files executed exactly once across 8 shards
+tests 8925, assertions 603020, failures 0, expected 272, tolerated 353, unexpected errors 0, unexpected warnings 0,
+leaked objects 0, leaked resources 0
+
+python3 tools/test_ci_test_shards.py --godot              # Ran 17 tests ... OK
+python3 tools/gdscript_warnings.py --max 0
+0 GDScript warning(s) in 0 of 1008 file(s)
+```
+
+The sharding picked up this batch's new suites (`test_demo_art_wiring.gd`, `test_demo_hall_art.gd` and the orchard's
+three) without any change. Every other CI step listed in `.github/workflows/tests.yml` exits 0.
+
 ## For Brendan
 
 1. **The stone hall's roundels.** The brief said to remove the composed second chimney and roundels at tier 2; built so.

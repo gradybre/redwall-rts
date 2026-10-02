@@ -20,9 +20,18 @@ extends RefCounted
 ## the row's bound the whole model's: `part_mesh(key, part)` with `fit_of(key)` (`part_fit`) puts each where it
 ## belongs. It is staged only when every part's file is.
 ##
+## ICONS BY KEY (decision 0903). Besides a model row's own `icon`, the manifest's top-level `icons` section names
+## icon-only rows, {key: {"icon": res://..png}}: the food art's foods and dishes (decision 0941) and art pass 3's
+## preserves, drinks, finds, flax, linen and wax (0971, 0972). `icon_of` reads either, BY KEY -- an item's icon is
+## `item_<its pantry key>`, a dish's `dish_<its recipe key>` -- never by an item's number.
+##
+## UI ART (decision 0903). The manifest's `ui` section (tools/stage_art_passes.py): the residents' portraits by cast
+## key, the tapestry's ground and its emblems by entry kind, and the chronicle's page. `ui_texture` reads one, cached
+## with the icons, so a restart's new table starts clean.
+##
 ## NOTHING STAGED (CI, a fresh clone): every key still draws, as a plain box of its drawn size
-## standing on y = 0, and every icon is a fallback roundel in the swatch colour asked for -- so the
-## demo, and the tests, run the same code either way.
+## standing on y = 0, every icon is a fallback roundel in the swatch colour asked for, and every UI art asked for is
+## null (its panel keeps its drawn look) -- so the demo, and the tests, run the same code either way.
 
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 const Sizes := preload("res://demo/world/world_sizes.gd")
@@ -86,6 +95,12 @@ const SIZES: Dictionary = {
 	&"hanging_stores": [RULE_LONGEST, 0.8], &"hanging_stores_strung": [RULE_LONGEST, 0.8],
 	&"root_bin": [RULE_LONGEST, 0.85], &"chimney_pot": [RULE_HEIGHT, 0.62], &"rag_rug": [RULE_LONGEST, 1.5],
 	&"large_bed": [RULE_LONGEST, 2.7],
+	# The art passes' props (decision 0903), PRESCALED to these heights (their manifest rows' `height_m`, so each
+	# draws at scale 1.0): the orchard stand's full apple basket (decision 0941); the hall's linen banner at
+	# Brendan's 1.6 m (DEC-047); the tunnel's assembled timber set at the standard bore's frame height (DEC-048,
+	# decision 0971: two posts and a lintel, 1.1 m across); the rock face where a bore meets hard ground.
+	&"apple_basket": [RULE_HEIGHT, 0.4], &"hall_banner": [RULE_HEIGHT, 1.6], &"tunnel_set": [RULE_HEIGHT, 0.72],
+	&"rock_face": [RULE_HEIGHT, 0.765],
 }
 ## Library BUILDINGS this pass draws as props: drawn at their authoritative envelope height
 ## (world_sizes.gd, lookdev_dimensions.gd BUILDING_MAX_Y_MM) -- the root cellar's door-in-a-mound
@@ -112,6 +127,11 @@ var _fitted: Dictionary = {}
 var _derived: Dictionary = {}
 var _icons: Dictionary = {}
 var _roundels: Dictionary = {}
+## key -> res path of an icon-only row (the manifest's `icons` section; staged files only).
+var _icon_paths: Dictionary = {}
+## The manifest's `ui` section, and each UI picture read so far (res path -> Texture2D; null: it would not load).
+var _ui: Dictionary = {}
+var _ui_textures: Dictionary = {}
 
 
 func load_from(manifest: Dictionary) -> void:
@@ -121,6 +141,12 @@ func load_from(manifest: Dictionary) -> void:
 		var row: Dictionary = world.get(String(key), {})
 		if not row.is_empty() and ResourceLoader.exists(String(row.get("path", ""))) and _parts_exist(row):
 			_rows[key] = row
+	var icons: Dictionary = manifest.get("icons", {})
+	for key: String in icons:
+		var path: String = String((icons[key] as Dictionary).get("icon", "")) if icons[key] is Dictionary else ""
+		if FileAccess.file_exists(path) or FileAccess.file_exists(path + ".import"):
+			_icon_paths[StringName(key)] = path
+	_ui = manifest.get("ui", {})
 
 
 static func _parts_exist(row: Dictionary) -> bool:
@@ -357,13 +383,16 @@ func warm_all() -> int:
 				loaded += 1
 		if has_icon(key) and not _icons.has(key) and _warm_icon(key):
 			loaded += 1
+	for key: StringName in _icon_paths:
+		if not _icons.has(key) and _warm_icon(key):
+			loaded += 1
 	return loaded
 
 
 func _warm_icon(key: StringName) -> bool:
 	"""Read `key`'s staged icon into the cache; false (nothing cached) when it will not load, so a later
 	`icon_of` still falls back to its roundel."""
-	var image := Image.load_from_file(DemoManifestScript.readable_path(String(_rows[key]["icon"])))
+	var image := Image.load_from_file(DemoManifestScript.readable_path(icon_path(key)))
 	if image == null or image.is_empty():
 		return false
 	_icons[key] = ImageTexture.create_from_image(image)
@@ -378,8 +407,15 @@ func loaded_count() -> int:
 # --- icons -----------------------------------------------------------------------------------
 
 func has_icon(key: StringName) -> bool:
-	"""Whether `key` has a staged icon."""
-	return _rows.has(key) and String((_rows[key] as Dictionary).get("icon", "")) != ""
+	"""Whether `key` has a staged icon: its model row's, or an icon-only row (ICONS BY KEY)."""
+	return _icon_paths.has(key) or (_rows.has(key) and String((_rows[key] as Dictionary).get("icon", "")) != "")
+
+
+func icon_path(key: StringName) -> String:
+	"""Where `key`'s staged icon is (the icon-only row first; "" for none)."""
+	if _icon_paths.has(key):
+		return _icon_paths[key]
+	return String((_rows[key] as Dictionary).get("icon", "")) if _rows.has(key) else ""
 
 
 func icon_of(key: StringName, swatch: Color) -> Texture2D:
@@ -388,9 +424,51 @@ func icon_of(key: StringName, swatch: Color) -> Texture2D:
 	if not has_icon(key):
 		return roundel(swatch)
 	if not _icons.has(key):
-		var image := Image.load_from_file(DemoManifestScript.readable_path(String(_rows[key]["icon"])))
+		var image := Image.load_from_file(DemoManifestScript.readable_path(icon_path(key)))
 		_icons[key] = ImageTexture.create_from_image(image) if image != null and not image.is_empty() else roundel(swatch)
 	return _icons[key]
+
+
+func staged_icon(key: StringName) -> Texture2D:
+	"""`key`'s staged icon, or null when none is staged (a panel that shows no roundel in its place)."""
+	if not has_icon(key) or (not _icons.has(key) and not _warm_icon(key)):
+		return null
+	return _icons[key]
+
+
+# --- UI art ----------------------------------------------------------------------------------
+
+func ui_row(entry: String) -> Variant:
+	"""The manifest's `ui` entry (portraits, emblems, tapestry_full, tapestry_half, chronicle_page), or null."""
+	return _ui.get(entry)
+
+
+func ui_texture(path: String) -> Texture2D:
+	"""The staged UI picture at `path`, read once (null when "" or it will not load)."""
+	if path.is_empty():
+		return null
+	if not _ui_textures.has(path):
+		var image: Image = null
+		if FileAccess.file_exists(path) or FileAccess.file_exists(path + ".import"):
+			image = Image.load_from_file(DemoManifestScript.readable_path(path))
+		_ui_textures[path] = ImageTexture.create_from_image(image) if image != null and not image.is_empty() else null
+	return _ui_textures[path]
+
+
+func portrait(cast_key: StringName, size: int) -> Texture2D:
+	"""Resident `cast_key`'s staged portrait medallion at `size` px (48 or 64), or null when none is staged."""
+	var portraits: Variant = _ui.get("portraits")
+	if not portraits is Dictionary or not (portraits as Dictionary).has(String(cast_key)):
+		return null
+	return ui_texture(String(((portraits as Dictionary)[String(cast_key)] as Dictionary).get(str(size), "")))
+
+
+func emblem(kind_name: String, size: int) -> Texture2D:
+	"""The tapestry's embroidered emblem for entry kind `kind_name` at `size` px, or null when none is staged."""
+	var emblems: Variant = _ui.get("emblems")
+	if not emblems is Dictionary or not (emblems as Dictionary).has(kind_name):
+		return null
+	return ui_texture(String(((emblems as Dictionary)[kind_name] as Dictionary).get(str(size), "")))
 
 
 func roundel(swatch: Color) -> Texture2D:

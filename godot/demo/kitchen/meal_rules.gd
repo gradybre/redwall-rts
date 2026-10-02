@@ -107,6 +107,9 @@ const NO_DISH: int = -1
 ## milli-U a batch.
 static var DISH_COUNT: int = 0
 static var DISH_KEYS: Array[StringName] = []
+## Each dish's icon key, `dish_<its key>` (demo_props.gd ICONS BY KEY; the food art's dish icons, decision 0941): wired
+## by key, never by the dish's number (decision 0903).
+static var DISH_ICON_KEYS: Array[StringName] = []
 static var DISH_NAMES: Array[String] = []
 static var DISH_SHORT: Array[String] = []
 static var LIBRARY_IDS: Array[String] = []
@@ -226,6 +229,7 @@ static func _static_init() -> void:
 	for dish: int in DISH_COUNT:
 		var row: Dictionary = Book.DISHES[dish]
 		DISH_KEYS.append(StringName(row["key"]))
+		DISH_ICON_KEYS.append(StringName("dish_" + String(row["key"])))
 		DISH_NAMES.append(String(row["name"]))
 		DISH_SHORT.append(String(row["short"]))
 		LIBRARY_IDS.append(String(row["library"]))

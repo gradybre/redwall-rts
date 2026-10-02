@@ -2352,6 +2352,16 @@ func stock_rows() -> Array[PackedStringArray]:
 	return rows
 
 
+func stock_row_dishes() -> PackedInt32Array:
+	"""The dish of each of `stock_rows`' rows, in their order (NO_DISH for the water's): the Pantry draws its icon."""
+	var dishes := PackedInt32Array()
+	for dish: int in Rules.DISH_COUNT:
+		if store.portions_of(dish) > 0:
+			dishes.append(dish)
+	dishes.append(Rules.NO_DISH)
+	return dishes
+
+
 func reserved_text(item: int, location: int) -> String:
 	"""'2.0 U for the kitchen' -- what of `item` at `location` the kitchen reserves ('' none)."""
 	var held: int = takes.with_cook_milli(pantry, item, location)

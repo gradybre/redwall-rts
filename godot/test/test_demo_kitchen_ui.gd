@@ -283,3 +283,28 @@ func test_the_cook_rises_early_only_with_work_and_is_not_sent_back() -> void:
 	kitchen.calendar.tick = tick_at(1, 6)
 	kitchen.update()
 	assert_false(kitchen.up_early(0), "dawn: everyone is up")
+
+
+func test_the_kitchen_tab_shows_the_dishes_icons_only_when_staged() -> void:
+	"""kitchen_tab.gd (decision 0903): no props, or none staged -> no icon row; a dish in the pot with a staged icon by
+	its key (`dish_<key>`) -> its icon, once; the Stocks rows' dishes in their order, the water's last."""
+	var kitchen := _kitchen(2, 6 * SimClock.TICKS_PER_HOUR, _pantry(), StoresScript.new())
+	var tab := TabScript.new()
+	_nodes.append(tab)
+	tab.configure(kitchen, func() -> PackedInt32Array: return PackedInt32Array(), Callable())
+	tab.refresh()
+	assert_equal(tab.meal_icons_shown(), 0, "no props: no icons")
+	DirAccess.make_dir_recursive_absolute("user://kitchen_icons")
+	var image := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	image.save_png("user://kitchen_icons/dish_pasty.png")
+	var props := preload("res://demo/props/demo_props.gd").new()
+	props.load_from({"icons": {"dish_pasty": {"icon": "user://kitchen_icons/dish_pasty.png"}}})
+	tab.set_props(props)
+	kitchen.store.add(Rules.DISH_KEYS.find(&"pasty"), 2, 0)
+	kitchen.store.add(Rules.DISH_KEYS.find(&"scones"), 2, 0)
+	tab.refresh()
+	assert_equal(tab.meal_icons_shown(), 1, "the pasty's icon; the scones have none staged")
+	var dishes: PackedInt32Array = kitchen.stock_row_dishes()
+	assert_equal(dishes[dishes.size() - 1], Rules.NO_DISH, "the water's row last")
+	assert_equal(dishes.size(), kitchen.stock_rows().size(), "a dish a stock row")
+	assert_equal(dishes[0], Rules.DISH_KEYS.find(&"pasty"), "the pasty first, in the book's order")

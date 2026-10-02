@@ -1279,16 +1279,21 @@ func firewood_row() -> int:
 
 
 func raise_firewood() -> int:
-	"""THE WINTER'S FIREWOOD ORDER (decision 0571): gather the deadfall pile nearest the log stack; with none lying, fell
-	the mature tree nearest it in a FORESTRY zone that its floor allows (never a conservation zone, never an unzoned
-	tree). Its row, or -1 when the woods offer neither now."""
+	"""THE WINTER'S FIREWOOD ORDER (decision 0571): `raise_wood` for the winter (ORIGIN_FIREWOOD). Its row, or -1."""
+	return raise_wood(JobsScript.ORIGIN_FIREWOOD)
+
+
+func raise_wood(origin: int) -> int:
+	"""ONE JOB OF WOOD for the stores (decision 0571's Firewood rule, shared with the standing orders' "Keep wood" --
+	decision 0711): gather the deadfall pile nearest the log stack; with none lying, fell the mature tree nearest it in a
+	FORESTRY zone that its floor allows (never a conservation zone, never an unzoned tree). Opened with `origin`. Its row,
+	or -1 when the woods offer neither now."""
 	var stack: Vector2 = Yard.log_stack_at()
 	var pile: int = _firewood_pile(stack)
-	if pile >= 0 and jobs.open_into(JobsScript.KIND_GATHER, pile, _deadfall.generation[pile], JobsScript.ORIGIN_FIREWOOD,
-			_read):
+	if pile >= 0 and jobs.open_into(JobsScript.KIND_GATHER, pile, _deadfall.generation[pile], origin, _read):
 		return _read.value
 	var best: int = _firewood_tree(stack)
-	if best != StandScript.NO_SLOT and jobs.open_into(JobsScript.KIND_FELL, best, 0, JobsScript.ORIGIN_FIREWOOD, _read):
+	if best != StandScript.NO_SLOT and jobs.open_into(JobsScript.KIND_FELL, best, 0, origin, _read):
 		return _read.value
 	return -1
 

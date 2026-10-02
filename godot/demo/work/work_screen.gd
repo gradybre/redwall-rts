@@ -16,6 +16,8 @@ extends CanvasLayer
 ##              work PRESETS -- Normal, Harvest week, Winter stores -- above, each previewed (the changes it makes)
 ##              before it is applied.
 ##   Projects   the same tasks grouped by where they are: the farm, the woods, each bridge, each tunnel, each room.
+##   Standing orders  the player's goals -- "keep 20 U of planks", "keep 3 days of meals" -- for which the village
+##              queues the work itself (decision 0711; demo/orders/standing_view.gd, added by `set_standing`).
 ## CANCEL ALL WORK stays separate and explicit: its button only shows its scope, counted per source, with Cancel them /
 ## Keep working; deliveries, paid tunnel jobs and bridges go on. An empty board says so ("No work waiting") with how to
 ## make some; while the village is paused the header says the work waits with it, so a paused village never reads as
@@ -31,6 +33,7 @@ const TaskScript := preload("res://demo/work/work_task.gd")
 const TaskRowScript := preload("res://demo/work/work_task_row.gd")
 const ResidentRowScript := preload("res://demo/work/work_resident_row.gd")
 const SourceScript := preload("res://demo/work/work_source.gd")
+const StandingViewScript := preload("res://demo/orders/standing_view.gd")
 
 signal close_requested
 
@@ -38,7 +41,9 @@ const TITLE: String = "Work"
 const VIEW_TASKS: int = 0
 const VIEW_RESIDENTS: int = 1
 const VIEW_PROJECTS: int = 2
-const VIEW_NAMES: Array[String] = ["Tasks", "Residents and crews", "Projects"]
+## The standing orders (decision 0711): shown only once `set_standing` has given the screen their view.
+const VIEW_ORDERS: int = 3
+const VIEW_NAMES: Array[String] = ["Tasks", "Residents and crews", "Projects", "Standing orders"]
 const EMPTY: String = ("No work waiting. Order some: right-click a bed, a tree or a heap with residents "
 	+ "selected, use a tunnel's or the Water panel's buttons, or plant from a bed's panel.")
 const PAUSED_NOTE: String = " · the village is paused: the work waits with it"
@@ -103,6 +108,9 @@ var _bound: PackedInt32Array = PackedInt32Array()
 var _row_used: PackedByteArray = PackedByteArray()
 ## The preset whose preview shows (-1: none; the line says the preset in force).
 var _previewing: int = -1
+## The Standing orders view (null until `set_standing`) and the scroll it sits in.
+var _standing: StandingViewScript = null
+var _standing_scroll: ScrollContainer = null
 
 
 func configure(board: BoardScript, activity: Callable, is_paused: Callable) -> void:
@@ -216,9 +224,26 @@ func _build_tabs() -> HBoxContainer:
 		made.button_group = group
 		made.button_pressed = k == view
 		made.pressed.connect(show_view.bind(k))
+		made.visible = k != VIEW_ORDERS
 		row.add_child(made)
 		_tabs.append(made)
 	return row
+
+
+func set_standing(standing: StandingViewScript) -> void:
+	"""THE STANDING ORDERS VIEW (decision 0711): shown in the list's place under its own tab (once)."""
+	assert(_standing == null, "the Standing orders view is set once")
+	_standing = standing
+	_standing_scroll = ScrollContainer.new()
+	_standing_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_standing_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_standing_scroll.custom_minimum_size.y = MIN_BODY_H
+	_standing_scroll.follow_focus = true
+	_standing_scroll.visible = false
+	_standing_scroll.add_child(_standing)
+	_scroll.add_sibling(_standing_scroll)
+	_tabs[VIEW_ORDERS].visible = true
+	_place()
 
 
 func _build_presets() -> VBoxContainer:
@@ -275,7 +300,7 @@ func close() -> void:
 
 func show_view(which: int) -> void:
 	"""Show view `which` (VIEW_*)."""
-	view = clampi(which, VIEW_TASKS, VIEW_PROJECTS)
+	view = clampi(which, VIEW_TASKS, VIEW_ORDERS if _standing != null else VIEW_PROJECTS)
 	for k: int in _tabs.size():
 		_tabs[k].set_pressed_no_signal(k == view)
 	_presets.visible = view == VIEW_RESIDENTS
@@ -298,6 +323,13 @@ func refresh() -> void:
 		return
 	_collect()
 	_summary.text = summary_text()
+	var orders: bool = view == VIEW_ORDERS and _standing != null
+	_scroll.visible = not orders
+	if _standing != null:
+		_standing_scroll.visible = orders
+	if orders:
+		_standing.refresh()
+		return
 	for header: Label in _headers:
 		header.visible = false
 	for row: TaskRowScript in _task_rows:
@@ -611,6 +643,8 @@ func _place() -> void:
 	var inner: float = rect.size.x - FarmUi.CONTENT_MARGINS[0] - FarmUi.CONTENT_MARGINS[2]
 	for line: Label in [_answer, _confirm_text, _preset_note]:
 		line.custom_minimum_size.x = inner
+	if _standing != null:
+		_standing.set_line_width(inner)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.position = rect.position * _geometry.scale
 	_frame.custom_minimum_size = rect.size
@@ -630,6 +664,11 @@ func cancel_all_button() -> Button:
 func confirm_buttons() -> Array[Button]:
 	"""Cancel them, Keep working (checks)."""
 	return [_confirm_yes, _confirm_no]
+
+
+func standing_view() -> StandingViewScript:
+	"""The Standing orders view (checks; null without one)."""
+	return _standing
 
 
 func tab_button(which: int) -> Button:

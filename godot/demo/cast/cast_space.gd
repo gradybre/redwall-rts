@@ -47,6 +47,11 @@ extends RefCounted
 ## (`set_mound`, MOUND_CIRCLES by room row; decision 0209): nobody walks over a burrow home or its dig -- in
 ## at its door, round it otherwise.
 ##
+## NEIGHBOURS BY CELL (decision 1004). A walker's questions about the residents round it -- `separation`, `constrain`,
+## `standing_blocks` (and so `line_clear`), `surface_occupied` -- read only those in the cells round the question
+## (resident_cells.gd), not every resident: each is still tested exactly as before, and where the order of the tests
+## matters (a sum of pushes, a sequence of them) they come in the old order. `move_resident` keeps the cells.
+##
 ## Per-frame work (`constrain`, `separation`, `line_clear`) allocates nothing.
 
 const CastNavScript := preload("res://demo/cast/cast_nav.gd")
@@ -58,6 +63,7 @@ const CrossingHookScript := preload("res://demo/cast/crossing_hook.gd")
 const RouteDeskScript := preload("res://demo/cast/route_desk.gd")
 const MouthScript := preload("res://demo/tunnel/tunnel_mouth.gd")
 const PropsScript := preload("res://demo/props/demo_props.gd")
+const ResidentCellsScript := preload("res://demo/cast/resident_cells.gd")
 
 const PLAN_MARGIN_M: float = CastNavScript.PLAN_MARGIN_M
 const GOAL_EPSILON_M: float = CastNavScript.GOAL_EPSILON_M
@@ -79,6 +85,11 @@ const SLOT_PUSH_PASSES: int = 6
 const SEPARATION_MARGIN_M: float = 0.55
 const MAX_SLOTS: int = 16
 const CONSTRAIN_PASSES: int = 2
+## How far a step's pushes may carry it before it is gathered again from everyone (see NEIGHBOURS BY CELL): each push
+## moves the step at most its own distance from where it began, so a few pushes stay within a few strides; this many,
+## and this much more, is headroom -- and a step that strays further anyway is pushed again by everyone (`_pushed`).
+const STEP_PUSH_SPAN: float = 8.0
+const STEP_PUSH_PAD_M: float = 0.5
 ## A room's mound as obstacle circles: up to this many a room (see TUNNEL MOUTHS AND HEAPS).
 const MOUND_CIRCLES: int = 4
 ## Surface structures placed during play: one circle each, at most this many. The cellar buildings take slots 0 and 1
@@ -132,6 +143,10 @@ var _world_obstacles: PackedVector3Array = PackedVector3Array()
 var _heap_circles: PackedVector3Array = PackedVector3Array()
 var _mound_circles: PackedVector3Array = PackedVector3Array()
 var _structure_circles: PackedVector3Array = PackedVector3Array()
+## The residents by cell (see NEIGHBOURS BY CELL), the candidates a question gathers, and the widest body registered.
+var _cells: ResidentCellsScript = ResidentCellsScript.new()
+var _near: PackedInt32Array = PackedInt32Array()
+var _widest_m: float = 0.0
 
 
 func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
@@ -157,6 +172,13 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	poi_used.fill(0)
 	slot_body_m = 0.0
 	_place_slots()
+	_clear_residents()
+	tunnels = GraphScript.new()
+	_renew_routes()
+
+
+func _clear_residents() -> void:
+	"""Nobody registered: every resident column empty, and nobody in the cells (see NEIGHBOURS BY CELL)."""
 	resident_position.clear()
 	resident_radius.clear()
 	resident_walking.clear()
@@ -165,15 +187,17 @@ func setup(points: Array[Dictionary], obstacle_list: Array[Vector3]) -> void:
 	resident_tunnel.clear()
 	resident_along.clear()
 	resident_heading.clear()
-	tunnels = GraphScript.new()
-	_renew_routes()
+	_cells.clear()
+	_widest_m = 0.0
 
 
 func _renew_routes() -> void:
-	"""A fresh routing desk for a fresh cast (nobody registered or waiting), keeping the budget it was given."""
+	"""A fresh routing desk for a fresh cast (nobody registered or waiting), keeping the budget it was given; its own
+	planner plans over these circles (route_desk.gd THE JOB)."""
 	var budget := routes.budget_usec
 	routes = RouteDeskScript.new()
 	routes.budget_usec = budget
+	routes.worker.share_world(nav)
 
 
 func set_heap(m: int, circle: Vector3) -> void:
@@ -222,6 +246,7 @@ func _rebuild_obstacles() -> void:
 		if circle.y > 0.0:
 			obstacles.append(circle)
 	nav.setup(obstacles)
+	routes.worker.share_world(nav)
 
 
 func _clear_pois() -> void:
@@ -278,6 +303,9 @@ func add_resident(at: Vector2, radius: float) -> int:
 	resident_along.append(0.0)
 	resident_heading.append(0)
 	_standing.resize(resident_position.size())
+	_near.resize(resident_position.size())
+	_cells.add(at)
+	_widest_m = maxf(_widest_m, radius)
 	nav.ensure_graph(radius)
 	if radius > slot_body_m:
 		slot_body_m = radius
@@ -286,8 +314,23 @@ func add_resident(at: Vector2, radius: float) -> int:
 
 
 func move_resident(index: int, at: Vector2) -> void:
-	"""Record where a resident now stands."""
+	"""Record where a resident now stands (and in which cell: see NEIGHBOURS BY CELL)."""
 	resident_position[index] = at
+	if index < _cells.count():
+		_cells.move(index, at)
+
+
+func _gather(lo: Vector2, hi: Vector2, sorted: bool) -> int:
+	"""Into `_near`: the residents a question about the box [lo, hi] must test (see NEIGHBOURS BY CELL), ascending when
+	`sorted` -- everyone, should a resident have come in round `add_resident`, or for a box at INF. The count."""
+	var n := resident_position.size()
+	if _cells.count() != n or not lo.is_finite():
+		if _near.size() < n:
+			_near.resize(n)
+		for j in n:
+			_near[j] = j
+		return n
+	return _cells.gather(lo, hi, _near, sorted)
 
 
 func set_walking(index: int, walking: bool) -> void:
@@ -418,7 +461,10 @@ func mouth_circles() -> PackedVector3Array:
 func surface_occupied(index: int, at: Vector2, clearance: float) -> bool:
 	"""Whether anyone on the surface but `index` stands closer to `at` than resident `index`'s radius
 	plus theirs plus `clearance`."""
-	for j in resident_position.size():
+	var pad := resident_radius[index] + _widest_m + maxf(clearance, 0.0)
+	var count := _gather(at - Vector2(pad, pad), at + Vector2(pad, pad), false)
+	for k in count:
+		var j := _near[k]
 		if j == index or resident_underground[j] != 0:
 			continue
 		var reach := resident_radius[index] + resident_radius[j] + clearance
@@ -431,7 +477,10 @@ func separation(index: int, at: Vector2, forward: Vector2) -> Vector2:
 	"""Soft push away from nearby residents, plus a pass-on-the-right nudge for anyone ahead."""
 	var push := Vector2.ZERO
 	var radius := resident_radius[index]
-	for j in resident_position.size():
+	var pad := radius + _widest_m + SEPARATION_MARGIN_M
+	var count := _gather(at - Vector2(pad, pad), at + Vector2(pad, pad), true)
+	for k in count:
+		var j := _near[k]
 		if j == index or resident_underground[j] != 0:
 			continue
 		var offset := at - resident_position[j]
@@ -453,15 +502,38 @@ func constrain(index: int, from: Vector2, to: Vector2, goal: Vector2) -> Vector2
 	var radius := resident_radius[index]
 	var pad := nav.max_radius + radius
 	var count := nav.circles_near(to.min(from) - Vector2(pad, pad), to.max(from) + Vector2(pad, pad))
+	var span := STEP_PUSH_SPAN * from.distance_to(to) + STEP_PUSH_PAD_M
+	var near := _gather_round_step(index, from, to, span)
+	var at := _pushed(index, from, to, goal, count, near, span)
+	if at == Vector2.INF:
+		near = _gather(Vector2.INF, Vector2.INF, true)
+		at = _pushed(index, from, to, goal, count, near, -1.0)
+	if _clear_of_residents(index, from, at, near) and _clear_of_obstacles(count, radius, from, at, goal):
+		return at
+	return from
+
+
+func _pushed(index: int, from: Vector2, to: Vector2, goal: Vector2, count: int, near: int, span: float) -> Vector2:
+	"""The step pushed out of the first `near` gathered residents and the last circles_near() query's `count` circles,
+	CONSTRAIN_PASSES times; INF once it strays past `span` (>= 0) from `from` -- beyond what the gathering covered."""
+	var radius := resident_radius[index]
 	var at := to
 	for pass_index in CONSTRAIN_PASSES:
-		at = _push_from_residents(index, from, at)
+		at = _push_from_residents(index, from, at, near, span)
+		if at == Vector2.INF:
+			return at
 		for k in count:
 			var o := obstacles[nav.hit(k)]
 			at = _keep_out(Vector2(o.x, o.z), _obstacle_reach(o, radius, goal), from, at)
-	if _clear_of_residents(index, from, at) and _clear_of_obstacles(count, radius, from, at, goal):
-		return at
-	return from
+	return Vector2.INF if span >= 0.0 and at.distance_to(from) > span else at
+
+
+func _gather_round_step(index: int, from: Vector2, to: Vector2, span: float) -> int:
+	"""The residents a step from -> to could be pushed by (see NEIGHBOURS BY CELL), ascending: within the two bodies'
+	reach of the step's box widened by `span`, as far as the pushes may carry the step before it is gathered again
+	from everyone (`_pushed`)."""
+	var pad := resident_radius[index] + _widest_m + span
+	return _gather(from.min(to) - Vector2(pad, pad), from.max(to) + Vector2(pad, pad), true)
 
 
 func _obstacle_reach(o: Vector3, radius: float, goal: Vector2) -> float:
@@ -470,12 +542,18 @@ func _obstacle_reach(o: Vector3, radius: float, goal: Vector2) -> float:
 	return maxf(o.y, minf(o.y + radius, Vector2(o.x, o.z).distance_to(goal) - GOAL_EPSILON_M))
 
 
-func _push_from_residents(index: int, from: Vector2, at: Vector2) -> Vector2:
-	"""`at` pushed out of every other resident's circle (monotone)."""
+func _push_from_residents(index: int, from: Vector2, at: Vector2, near: int, span: float) -> Vector2:
+	"""`at` pushed out of every other resident's circle (monotone): the first `near` gathered, in order; INF once it
+	stands past `span` (>= 0) from `from`, where a resident not gathered could push it."""
 	var radius := resident_radius[index]
-	for j in resident_position.size():
+	if span >= 0.0 and at.distance_to(from) > span:
+		return Vector2.INF
+	for k in near:
+		var j := _near[k]
 		if j != index and resident_underground[j] == 0:
 			at = _keep_out(resident_position[j], radius + resident_radius[j], from, at)
+			if span >= 0.0 and at.distance_to(from) > span:
+				return Vector2.INF
 	return at
 
 
@@ -490,10 +568,11 @@ func _clear_of_obstacles(count: int, radius: float, from: Vector2, at: Vector2, 
 	return true
 
 
-func _clear_of_residents(index: int, from: Vector2, at: Vector2) -> bool:
-	"""Whether `at` keeps the monotone distance to every other resident."""
+func _clear_of_residents(index: int, from: Vector2, at: Vector2, near: int) -> bool:
+	"""Whether `at` keeps the monotone distance to every other resident (the first `near` gathered)."""
 	var radius := resident_radius[index]
-	for j in resident_position.size():
+	for k in near:
+		var j := _near[k]
 		if j == index or resident_underground[j] != 0:
 			continue
 		var other := resident_position[j]
@@ -695,6 +774,26 @@ func plan_path(index: int, from: Vector2, to: Vector2, body_radius: float, out: 
 		crossings if use_crossings else null, use_tunnels)
 
 
+func plan_trip(index: int, from: Vector2, to: Vector2, body_radius: float, out: PackedVector2Array,
+		legs: PackedInt32Array, allow_tunnels: bool, loaded: bool, goal_node: int, divisible: bool) -> bool:
+	"""A resident's own trip, as `plan_path` plans it -- except that under a routing budget a `divisible` trip on the
+	surface alone (no tunnel, no crossing) is planned by the routing desk, and may be carried over to later frames
+	(route_desk.gd THE JOB). True with the route in `out` and `legs`; false while it is the desk's job (`out` untouched:
+	the resident waits)."""
+	if not divisible or routes.budget_usec <= 0 or goal_node >= 0 or not routes.may_divide(index) \
+			or (allow_tunnels and tunnels.open_count() > 0 and tunnels.fits_any(index, loaded)) \
+			or crossings.offers_for(index, from, to, loaded):
+		plan_path(index, from, to, body_radius, out, legs, allow_tunnels, loaded, goal_node)
+		return true
+	var count := 0 if routes.holds_job(index, from, to, body_radius) else _gather_standing(index)
+	if not routes.plan_surface(index, from, to, body_radius, _standing, count, out):
+		return false
+	nav.last_found = routes.worker.last_found
+	legs.resize(out.size())
+	legs.fill(-1)
+	return true
+
+
 func _gather_standing(index: int) -> int:
 	"""Every resident but `index` standing still on the surface, as circles into _standing; how many."""
 	var count := 0
@@ -728,7 +827,10 @@ func standing_blocks(index: int, a: Vector2, b: Vector2, body_radius: float, goa
 	"""Whether a resident standing still (not `index`) is in the way of segment a-b, by the walker's
 	own body radius plus `margin` (negative for a tolerance), shrunk to leave `a` and the goal outside.
 	Allocates nothing."""
-	for j in resident_position.size():
+	var pad := _widest_m + body_radius + maxf(margin, 0.0)
+	var count := _gather(a.min(b) - Vector2(pad, pad), a.max(b) + Vector2(pad, pad), false)
+	for k in count:
+		var j := _near[k]
 		if j != index and resident_walking[j] == 0 and resident_underground[j] == 0:
 			var at := resident_position[j]
 			var r := CastNavScript.inflated(Vector3(at.x, resident_radius[j], at.y), body_radius, margin, a, goal, true)

@@ -135,7 +135,9 @@ extends RefCounted
 ## once while the frame's routing budget lasts, else the resident stands in ROUTE -- "finding a route" in the party
 ## panel -- until its turn comes, first come first served, on a later frame (DemoCast serves the desk each frame). A
 ## routine departure that finds the budget spent just idles a moment longer. Out of the live scene the desk has no
-## budget and every plan runs at once.
+## budget and every plan runs at once. A plan on the surface alone may be cut across frames by the desk (route_desk.gd
+## THE JOB, decision 1001): `_plan_trip` then says it is not finished, and the resident stands in ROUTE until its turn
+## brings the finished route -- a departure among them, which picks its spot first and keeps it to go to (`_route_poi`).
 ##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator. (In the live scene the FRAME a
@@ -389,6 +391,9 @@ var _resume_after_dig: bool = false
 var _route_tunnels: bool = true
 var _route_loaded: bool = false
 var _route_carry: bool = false
+## A routine departure whose plan the desk carries over (see ROUTING): the spot and slot it goes to (-1: none).
+var _route_poi: int = -1
+var _route_slot: int = -1
 ## Set while `order_carry` (or `order_carry_below`) starts its trip: the trip sets off carrying.
 var _carry_order: bool = false
 
@@ -610,7 +615,19 @@ func _depart() -> void:
 	var next_slot := _space.free_slot(next)
 	_goal = _space.slot_position(next, next_slot)
 	_goal_node = -1
-	_plan_trip(true, false)
+	if not _plan_trip(true, false):
+		_route_tunnels = true
+		_route_loaded = false
+		_route_carry = false
+		_route_poi = next
+		_route_slot = next_slot
+		_wait_for_route()
+		return
+	_depart_to(next, next_slot)
+
+
+func _depart_to(next: int, next_slot: int) -> void:
+	"""The departure planned (see `_depart`): with no route, stay and retry; else swap the reservations and set off."""
 	if not _space.nav.last_found:
 		_enter_idle(RETRY_S)  # boxed in by residents standing across every way out: wait, then retry
 		return
@@ -630,6 +647,18 @@ func _depart() -> void:
 	_begin_leg()
 
 
+func _depart_waited() -> void:
+	"""A departure whose plan the desk carried over (see ROUTING): to the spot it picked, while that slot is free still;
+	else it idles a moment and picks again."""
+	var next := _route_poi
+	var next_slot := _route_slot
+	_route_poi = -1
+	if _space.poi_used[next] & (1 << next_slot) != 0:
+		_enter_idle(ROUTE_RETRY_S)
+		return
+	_depart_to(next, next_slot)
+
+
 func _routing_spent() -> bool:
 	"""A routine departure finding the frame's routing budget spent (see ROUTING) idles a moment longer instead."""
 	if _space.routes.may_plan(index):
@@ -645,7 +674,7 @@ func _plan_loaded(max_surface_m: float) -> void:
 	both come through here: one hauling rule.)"""
 	var legs := path_tunnel.duplicate()
 	var route := path.duplicate()
-	_plan_trip(true, true)
+	_plan_trip(true, true, false)
 	if _space.nav.last_found and _surface_length() <= max_surface_m:
 		return
 	carrying = false
@@ -1081,11 +1110,17 @@ func _set_off(tunnels: bool, loaded: bool, carry: bool) -> void:
 	_route_tunnels = tunnels
 	_route_loaded = loaded
 	_route_carry = carry
+	_route_poi = -1
 	if _space.routes.may_plan(index):
 		_plan_and_go()
 		return
+	_wait_for_route()
+
+
+func _wait_for_route() -> void:
+	"""Stand in ROUTE, "finding a route", until the desk serves it (see ROUTING), out of any mouth's line."""
 	_leave_line()
-	_space.routes.wait(index)
+	_space.routes.wait(index, _goal)
 	state = State.ROUTE
 	_set_clip(CLIP_IDLE, 1.0)
 
@@ -1094,17 +1129,24 @@ func route_turn() -> void:
 	"""Its turn at the routing desk (DemoCast serves it, first come first served): plan and set off. Taken off the trip
 	meanwhile (another order, a release), it gives its place up."""
 	if state != State.ROUTE:
+		_route_poi = -1
 		_space.routes.forget(index)
 		return
 	_plan_and_go()
 
 
 func _plan_and_go() -> void:
-	"""Plan the waiting trip and set off along it; an ordered carry sets off carrying, its route planned again LOADED
-	when it goes through a tunnel (HAULING)."""
+	"""Plan the waiting trip and set off along it -- or, the desk carrying the plan over, wait on (see ROUTING); a
+	departure goes to the spot it picked (when that is free still); an ordered carry sets off carrying, its route
+	planned again LOADED when it goes through a tunnel (HAULING)."""
+	if not _plan_trip(_route_tunnels, _route_loaded):
+		_wait_for_route()
+		return
+	if _route_poi >= 0:
+		_depart_waited()
+		return
 	var carry := _route_carry
 	_route_carry = false
-	_plan_trip(_route_tunnels, _route_loaded)
 	_begin_leg()
 	if not carry:
 		return
@@ -1838,13 +1880,17 @@ func _route_between(from_node: int, to_node: int) -> bool:
 	return true
 
 
-func _plan_trip(allow_tunnels: bool, loaded: bool) -> void:
+func _plan_trip(allow_tunnels: bool, loaded: bool, divisible: bool = true) -> bool:
 	"""Plan the trip from here to its goal -- on the surface, or to its node underground -- into the route; its time
-	is charged to this frame's routing budget (see ROUTING)."""
+	is charged to this frame's routing budget (see ROUTING). False when the desk carries a `divisible` plan over to a
+	later frame (the route is then untouched); true once planned."""
 	var began := Time.get_ticks_usec()
-	_space.plan_path(index, position, _goal, radius, path, path_tunnel, allow_tunnels or _goal_node >= 0, loaded, _goal_node)
-	_route_topology = _space.tunnels.topology
-	_space.routes.charge(index, Time.get_ticks_usec() - began)
+	var done := _space.plan_trip(index, position, _goal, radius, path, path_tunnel, allow_tunnels or _goal_node >= 0,
+		loaded, _goal_node, divisible)
+	if done:
+		_route_topology = _space.tunnels.topology
+	_space.routes.charge(index, Time.get_ticks_usec() - began, done)
+	return done
 
 
 # --- digging --------------------------------------------------------------------------------

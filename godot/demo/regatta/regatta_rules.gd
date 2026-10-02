@@ -19,11 +19,11 @@ extends RefCounted
 ## ceil(E/3) of nut_loaf, warm infusion water ceil(E/4) U + herb 0.25 x ceil(E/12) U; staffing 2 cooks + 1 keeper;
 ## seats >= ceil(E/3); service wood ceil(E/12) U reserved at confirmation; at most one feast in any 72 game hours;
 ## REQ-SET-101's 3 food-days and 3 fuel-days after it, or the player's explicit override; REQ-SET-104's settlement buff
-## only when 80% of E attend ALL required courses. The demo village has NO NUTS AND NO HERB (no source of either: the
-## content groups that add them are queued), so the second course and the infusion cannot be made: the preview says so,
-## the feast serves the main course it can, and no settlement buff is granted (REQ-SET-104's "otherwise": the attendees'
-## meal and its social benefits only). That reading -- confirm a feast whose missing courses are declared, rather than
-## refuse it outright under REQ-SET-099 -- is decision 0438's, recorded for Brendan's ruling.
+## only when 80% of E attend ALL required courses. Since decision 0682 (Brendan's ruling of 2026-10-01: "add nuts & herbs
+## now") nuts and herb come from foraging trips and flour from the mill, so the whole menu is cooked whenever the pantry
+## holds it (regatta_menu.gd). A course the pantry cannot make is still declared in the preview with its exact shortfall;
+## the feast then serves what it can and grants no settlement buff (REQ-SET-104's "otherwise") -- decision 0438's reading,
+## kept for that case.
 ##
 ## THE DAY. Crews are called at CREW_CALL_HOUR, the race starts at RACE_HOUR once both boats are crewed (called off at
 ## RACE_GIVE_UP_HOUR if not: the feast still is), and the feast is the day's supper (the kitchen's 17:00 call, decision
@@ -64,10 +64,13 @@ const COVERAGE_PERMILLE: int = 800       # REQ-SET-104: 80% of E attend all requ
 const RESERVE_DAYS: int = 3              # REQ-SET-101: 3 food-days and 3 fuel-days
 const FEAST_INTERVAL_HOURS: int = 72     # at most one feast in any 72 game hours
 const FEAST_GAIN: int = 5                # REQ-SET-036: two residents sharing a feast, +5 affinity
-## The second course (nut_loaf: flour 2, nuts 2, water 1) and the infusion's herb need what the demo has none of.
+## The second course (nut_loaf: flour 2, nuts 2, water 1): its flour the mill's, its nuts and the infusion's herb a
+## foraging trip's (decision 0682, Brendan's ruling of 2026-10-01: "add nuts & herbs now").
 const SECOND_COURSE: String = "nut loaf"
-const SECOND_MISSING: String = "nuts"
-const INFUSION_MISSING: String = "herb"
+## Shared Warmth (§5.7's Hearth row): "cold-exposure accumulation-25% and mood+400 for 48 h".
+const BUFF_HOURS: int = 48
+const BUFF_COLD_PERMILLE: int = 750
+const BUFF_MOOD: int = 400
 const MILLI_PER_U: int = 1000
 
 

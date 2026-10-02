@@ -1511,7 +1511,10 @@ not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry r
 spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + cabbage 2 U + water 2 U,
 20 WU, 3 portions of 2100 NP, keeping 36 h), cooked for an **occasion** -- the regatta's supper -- from the food the
 regatta reserved. Since the recipe book (decision 0601: Brendan's "the hotpot cooked from the start") it is an everyday
-supper dish as well; the batch 7 integration kept that ruling (decision 0902).
+supper dish as well; the batch 7 integration kept that ruling (decision 0902). Its **second course** (decision 0682), the
+`nut_loaf` row (flour 2 U + nuts 2 U + water 1 U, 24 WU, 3 portions of 2600 NP, keeping 72 h), is the recipe book's one
+OCCASION dish: cooked after the hotpot for the same occasion, each guest eating one portion of each, and never chosen by
+the cook for an everyday meal.
 
 **The recipe book** (decision 0601). Adding a recipe is adding a row to `kitchen/dish_book.gd`; every other table is
 built from it. Beside the three above:
@@ -1529,11 +1532,11 @@ A dish naming its own ingredients takes only those; the numbers are its row's (0
 **The directed families** (decision 0603, Brendan's DEC-045 and tuning E2/E3): eleven more dishes, ten on Brendan's DEC-045 rows
 in §5.7's format, confirmed by him ("Approve all"). Cookable now: **Breakfast oatcake** (oats), **Barley farl** (barley),
 **Haversack hardtack** (flour, keeps 480 h), **Spring salad** (greens and roots), **Baked fish** (fresh fish, no roots:
-E2) and **Durral's dried-fish biscuit soup** (dried fish, flour and roots: E3). Waiting, listed with why: **Vegetable
-pasty** and **Hazelnut scones** (hazelnut: foragers), the **Turnip, potato and beetroot pie** (potato: crops; hazelnut),
-the GDD's **Woodland pie** (mushroom: foragers) and **Raspberry cordial** (raspberry: foragers; honey: hives) -- a drink,
-never a meal's dish. Potato and honey are pantry items with no source yet; the foragers' items are named by key until
-that lane defines them. The Recipes tab marks each "Cookable (active)" or "Waiting (needs ...)", the Kitchen tab lists
+E2), **Durral's dried-fish biscuit soup** (dried fish, flour and roots: E3), and -- with the foragers' nuts and
+mushrooms (decision 0681; the library's hazelnut and mushroom are those items, decision 0902) -- the **Vegetable pasty**,
+**Hazelnut scones** and the GDD's **Woodland pie**. Waiting, listed with why: the **Turnip, potato and beetroot pie**
+(potato: crops) and **Raspberry cordial** (honey: hives; its raspberries are the foragers' berries) -- a drink, never a
+meal's dish. Potato and honey are pantry items with no source yet. The Recipes tab marks each "Cookable (active)" or "Waiting (needs ...)", the Kitchen tab lists
 "Waiting for ingredients", the field guide says the same. **The cook's choice**: of the meal's dishes whose free food makes a batch, one that feeds the
 whole meal, then the one whose food keeps least long (fresh fish, then greens, roots, grain), then the one the village
 likes most, then the book's order; with none, the other meal's best; deterministic. **Favourites** (`kitchen/dish_favourites.gd`): each species' liked
@@ -1830,6 +1833,37 @@ mid-spring, mid-summer, early autumn, late autumn or mid-winter and then back at
 it moves no calendar, crop or weather, and it stays on after the Lab closes (step it round to the calendar's to
 end it).
 
+## Foraging trips (decision 0681; feature #22)
+
+Brendan, 2026-10-01: "send a small party into the woods for nuts, mushrooms and herbs; they come back hours later with a
+haul" (berries too, at the dishes lane's request). `forage/`:
+
+- **The woods' forage basin is the settlement's real forage store** (`scripts/core/forage.gd`, run by
+  `forage/forage_driver.gd` as the fishery runs `fishing.gd`): one basin, its five §5.5 patches at 80% with the compiled
+  catalogue's ids, the **seasons** (nuts summer–winter, mushrooms spring–autumn, herbs all year, berries summer and
+  autumn), the **daily quota**
+  shared by every kind (spring 10.7 U, summer 21.1, autumn 22.2, winter 6.1), the **sustainable floor** (20% of each
+  patch) and the **daily regrowth** at midnight. Natural danger 1 (§5.5: within 64 m of the hall, no lookout); the
+  injury chance is shown, never rolled.
+- **Woods panel ▸ Foraging**: what the woods hold of the chosen kind, its seasons and today's quota left, what a trip
+  would bring home; **Gather ▸** nuts / mushrooms / herbs / berries, **Party ▸** 1–3, **Authorise trip**, **Cancel trip** (each
+  order's tooltip its action card). A basket is 4 U a forager (a demo value), bounded by what the basin admits now.
+- **A trip**: each forager is a seat on the work board (J; "Forage nuts — the hazel brake", the Woods activity, source
+  12 since the batch 7 integration), the selected residents first. It walks to its spot -- the hazel brake (nuts), the beech hollow (mushrooms), the herb
+  bank (herbs), the bramble edge (berries) -- is checked there (in season, its share still admitted, room in a store), claims its share from the
+  basin, gathers it (§5.5's work per U at its FORAGE skill, which it learns), and carries the haul home in a basket to the
+  store holding its room: **the Pantry's Stocks show Nuts, Mushrooms, Herbs and Berries** like the crops. "The foraging party is
+  back from the hazel brake: 8.0 U of nuts in the stores" is said in the village news.
+- **Nothing is lost**: called away, a seat goes back on the board with its claim, room and work kept; a haul in hand is
+  delivered before the night or a meal; Cancel ends the seats not yet carrying and gives their claims and room back.
+- **The items**: `nuts` (1600 NP, raw edible, 720 h), `mushrooms` (72 h), `herb` (480 h), `berries` (700 NP, raw edible,
+  48 h) -- the catalogue's keys, items 26–29 of the pantry (after the dishes' potato and honey). Nuts and herb are the
+  regatta feast's (below); nuts and mushrooms also cook the pasty, the scones and the woodland pie, and the berries
+  the cordial once there is honey (decision 0902). The herb is the infirmary's too: see The herbalist and the infirmary.
+- The party panel says what each forager is doing and its "Foraging N"; the Routes layer's public ways include **the
+  forage grounds**; the field guide has the four goods and "Foraging trips".
+- Checked by `test_demo_forage.gd` (the placeholder cast on the real layout; no staged assets).
+
 ## Water
 
 A stream runs down the village's east edge -- narrowing to a neck at the north-east corner, past
@@ -1970,8 +2004,9 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   4 U of the fresh fish that spoils first, hung (24 WU), cured 12 game hours in one of four slots (smoke rises), taken
   down: 3 U of dried fish that keep 720 h.
 - **The mill** (**Mill grain**): 3 U of grain carried over the stream to the watermill, ground (12 WU, the wheel
-  churning), 3 U of flour back to the store whose room was held for it. No dish uses flour yet: every flour recipe needs nuts, mushrooms, berries,
-  fruit or honey, which the village does not have; it is stock for later.
+  churning), 3 U of flour back to the store whose room was held for it. The hardtack, the biscuit soup, the pasty, the
+  pies and the scones bake with it (decisions 0603, 0902), and the regatta feast's nut loaf with foraged nuts (decision
+  0682).
 - **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops, and so does its Recipes tab
   (decision 0602). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
@@ -2017,8 +2052,11 @@ first in summer:
 
 - **Water panel ▸ Regatta** (or the HUD's **Feast** command, unlocked for it): **◀ Day / Day ▶** (the season's days from
   tomorrow; before summer, summer's), **Host ▸** (anyone but the village cook), and the **preview** -- the GDD's Hearth
-  feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course (nut loaf)
-  and the warm infusion **declared unservable: the village has no nuts or herb**, so no Shared Warmth; seats, staffing,
+  feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course -- **nut
+  loaf** ×ceil(E/3) (flour from the mill, nuts from a foraging trip) -- and the **warm infusion** (water and herb), each
+  read from the pantry's real stock and, when short, named with its shortfall and fix (decision 0682, Brendan's ruling
+  "add nuts & herbs now"); the **Shared Warmth** line (cold exposure −25%, mood +400 for 48 h if 80% eat every course);
+  seats, staffing,
   the 1 U of service wood, the reserves after it, and the race's crews and paces. **Hold the regatta** refuses what is
   invalid with its fix; under 3 days of ready food or wood it needs **Override reserves** (REQ-SET-101). Held, the feast's
   beans and cabbage are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
@@ -2026,8 +2064,12 @@ first in summer:
 - **The day**: crews called at 13:00 to the boathouse jetty; at 15:00 both rowboats race out to a floating barrel and
   home, each at its crew's fishing-skill pace (deterministic; equal paces a dead heat); the otters sing their work songs
   as they row. A storm or a crew not aboard by 16:00 calls the race off; the feast goes on.
-- **The feast** is the day's supper: the kitchen cooks the occasion's bean hotpot from the reserved food and serves it at
-  the hall's tables at 17:00 (the supper song is sung there); the service wood burns.
+- **The feast** is the day's supper: the kitchen cooks the occasion's bean hotpot and then its nut loaves from the reserved
+  food and serves them at the hall's tables at 17:00 -- each guest eats one portion of each course -- with the warm
+  infusion poured from the reserved herb and water drawn from the butt then (used for those who came); the supper song is
+  sung there; the service wood burns. At its end, **Shared Warmth** for 48 h when 80% ate every course (never stacked or
+  extended; shown in the chronicle and the Regatta section). The demo models no mood or cold exposure, so the buff is a
+  readout (`regatta_menu.gd`) nothing consumes yet.
 - **Remembered**: at the supper's end the chronicle (Village news, Village): the day, the host, the race, who shared the
   feast and **one moment** (the finish); the winners' deed in their own histories, pinned to the chronicle; +5 affinity
   for every pair who shared the feast (REQ-SET-036).

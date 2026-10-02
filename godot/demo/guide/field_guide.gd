@@ -37,6 +37,7 @@ const GearLocker := preload("res://demo/fishery/gear_locker.gd")
 const FerryRules := preload("res://demo/ferry/ferry_rules.gd")
 const RegattaRules := preload("res://demo/regatta/regatta_rules.gd")
 const WinterRules := preload("res://demo/winter/winter_rules.gd")
+const ForageRules := preload("res://demo/forage/forage_rules.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -44,10 +45,10 @@ const KIND_MATERIAL: int = 2
 const KIND_STATION: int = 3
 const KIND_SKILL: int = 4
 const KIND_SAFETY: int = 5
-## The pantry's other goods (decision 0431): the catch, dried fish and flour.
+## The pantry's other goods (decision 0431): the catch, dried fish and flour; and the woods' forage (decision 0681).
 const KIND_GOODS: int = 6
 const KIND_NAMES: Array[String] = ["Crops", "Dishes", "Materials", "Buildings and stations", "Residents' skills",
-	"Water safety", "Fish and preserved food"]
+	"Water safety", "Fish, forage and preserved food"]
 ## The crop rows' names as the guide says them (farming.gd's rows: roots, cabbage, beans, grain).
 const ROW_WORDS: Dictionary = {FarmingScript.CROP_ROOTS: "Root crop", FarmingScript.CROP_CABBAGE: "Leaf crop",
 	FarmingScript.CROP_BEANS: "Pulse", FarmingScript.CROP_GRAIN: "Grain"}
@@ -240,18 +241,25 @@ func _dish(dish: int) -> Entry:
 	var requires: String = "%s, %s of water and %s of wood a batch; %d WU of cooking at the cauldron.%s" % [food,
 		FarmText.units_text(Rules.WATER_MILLI[dish]), FarmText.units_text(Rules.WOOD_MILLI_PER_BATCH),
 		Rules.WORK_MWU[dish] / 1000, " Waiting: %s." % Rules.DISH_WAITS[dish] if Rules.waits(dish) else ""]
-	var summary: String = "Cooked for %s" % Rules.DISH_MEAL_WORDS[meal] if Rules.is_meal_dish(dish) else "A drink"
+	var summary: String = "Cooked for %s" % Rules.DISH_MEAL_WORDS[meal] if Rules.is_meal_dish(dish) else (
+		"Cooked for a feast" if Rules.is_occasion_dish(dish) else "A drink")
+	if Rules.is_occasion_dish(dish) or dish == Rules.DISH_BEAN_HOTPOT:
+		links.append(&"occasion_regatta")
 	return make(DISH_IDS[dish], KIND_DISH, Rules.DISH_NAMES[dish], summary,
 		PackedStringArray([uses, requires, _choice_text(dish), "Cooked at the cauldron by the keeper%s." % (
 			", served at the hall's tables" if Rules.is_meal_dish(dish) else "")]), links)
 
 
 static func _choice_text(dish: int) -> String:
-	"""How the cook comes to cook `dish` (a drink: not at meals)."""
+	"""How the cook comes to cook `dish` (a drink: not at meals; an occasion's course: only for a feast)."""
+	if Rules.is_occasion_dish(dish):
+		return "Only for a feast (the regatta's), at its day's supper: the Hearth feast's second course, one portion for every resident; the cook never chooses it for an everyday meal."
 	if not Rules.is_meal_dish(dish):
 		return "A drink: the kitchen does not serve it at meals yet."
-	return "The cook picks it when the stores hold its food: a dish that feeds everyone first, then the food that keeps least long, then what the village likes most. When no %s can be made, the cook makes %s." % [
-		Rules.DISH_MEAL_WORDS[meal_of(dish)], Rules.DISH_NAMES[Rules.other(dish)]]
+	var feast: String = " It is also the Hearth feast's main course, cooked for the regatta's supper." \
+		if dish == Rules.DISH_BEAN_HOTPOT else ""
+	return "The cook picks it when the stores hold its food: a dish that feeds everyone first, then the food that keeps least long, then what the village likes most. When no %s can be made, the cook makes %s.%s" % [
+		Rules.DISH_MEAL_WORDS[meal_of(dish)], Rules.DISH_NAMES[Rules.other(dish)], feast]
 
 
 # --- fish and preserved food -------------------------------------------------------------------------
@@ -259,6 +267,8 @@ static func _choice_text(dish: int) -> String:
 func _goods(item: int) -> Entry:
 	"""One of the pantry's other goods (decision 0431): a fish of the catch, dried fish or flour -- or an ingredient with
 	no source yet (decision 0603: potato, honey)."""
+	if item >= Catalog.FIRST_FORAGE:
+		return _forage_goods(item)
 	var links: Array[StringName] = [&"station_store", &"station_fishing"]
 	var fields: PackedStringArray
 	var summary: String
@@ -331,6 +341,33 @@ static func _dishes_taking(item: int, links: Array[StringName]) -> String:
 			names.append(Rules.DISH_NAMES[dish] + (" (waiting)" if Rules.waits(dish) else ""))
 			links.append(DISH_IDS[dish])
 	return "Cooked in: %s." % "; ".join(names) if not names.is_empty() else "No dish of the demo cooks it yet."
+
+
+func _forage_goods(item: int) -> Entry:
+	"""One of the woods' forage (decision 0681): nuts, mushrooms or herbs, gathered on a foraging trip."""
+	var k: int = item - Catalog.FIRST_FORAGE
+	var raw: int = Rules.raw_np_per_u(item)
+	var links: Array[StringName] = [&"station_foraging", &"station_store"]
+	var uses: PackedStringArray = PackedStringArray([_forage_use(item, links)])
+	if raw > 0:
+		uses.append("eaten raw by a hungry resident when a meal is missed (%d NP a unit)" % raw)
+	if item == Catalog.ITEM_NUTS or item == Catalog.ITEM_HERB:
+		links.append(&"occasion_regatta")
+	var entry: Entry = make(item_id(item), KIND_GOODS, Catalog.ITEM_LABELS[item], "Gathered in the woods",
+		PackedStringArray(["; ".join(uses) + ".",
+		"A foraging trip (the Woods panel's Foraging) while they are in season; the woods' daily quota and their stock above its floor bound it.",
+		"The other kinds of the woods; the fields for everyday food.",
+		"Gathered at %s; keeps %d game hours in store." % [ForageRules.SPOT_NAMES[k], Catalog.shelf_hours_of(item)]]), links)
+	entry.item = item
+	return entry
+
+
+static func _forage_use(item: int, links: Array[StringName]) -> String:
+	"""What a forage item is for in the demo: the dishes that take it (each linked; the nuts' include the feast's nut
+	loaf), or, for herbs, the feast's warm infusion and the infirmary's treatments."""
+	if item == Catalog.ITEM_HERB:
+		return "The feast's warm infusion: %s of herb for every twelve guests; and the infirmary's treatments, 1 U each, from the care shelf it is carried to" % FarmText.units_text(RegattaRules.INFUSION_HERB_MILLI)
+	return _dishes_taking(item, links).trim_suffix(".")
 
 
 # --- materials ---------------------------------------------------------------------------------------
@@ -441,6 +478,7 @@ func _add_stations() -> void:
 	_add(_station_fishing())
 	_add(_station_rack_mill())
 	_add(_station_ferry())
+	_add(_station_foraging())
 	_add(_occasion_regatta())
 	_add(_station_hearths())
 
@@ -573,15 +611,27 @@ static func _station_ferry() -> Entry:
 		[&"material_wood", &"station_fishing", &"station_bridges", &"occasion_regatta"])
 
 
+static func _station_foraging() -> Entry:
+	"""Foraging trips (decision 0681), from forage_rules.gd."""
+	return make(&"station_foraging", KIND_STATION, "Foraging trips", "Nuts, mushrooms, herbs and berries from the woods",
+		PackedStringArray([
+		"Sending %d to %d foragers into the woods for one kind; they come back hours later with up to %s each." % [
+			ForageRules.PARTY_MIN, ForageRules.PARTY_MAX, FarmText.units_text(ForageRules.BASKET_MILLI)],
+		"The kind in season (nuts summer to winter, mushrooms spring to autumn, herbs all year, berries summer and autumn); the woods' daily quota and their stock above the sustainable floor; room in a store.",
+		"The fields and the water feed the village; the woods add the feast's nuts and herbs.",
+		"%s; the Woods panel's Foraging." % ", ".join(ForageRules.SPOT_NAMES)]),
+		[&"goods_nuts", &"goods_mushrooms", &"goods_herb", &"goods_berries", &"occasion_regatta"])
+
+
 static func _occasion_regatta() -> Entry:
 	"""The regatta and its feast (decision 0438), from regatta_rules.gd."""
 	return make(&"occasion_regatta", KIND_STATION, "The regatta", "A race and a feast, once a season", PackedStringArray([
 		"Once a season, the first in summer: a race between the two rowboats and the %s feast at the day's supper, remembered in the chronicle." % RegattaRules.THEME_NAME,
-		"A day and a host; two helms; the main course's beans and cabbage (bean hotpot); %s of wood for its service; 3 days of food and wood after it, or your override." %
-			FarmText.units_text(RegattaRules.service_wood_milli(9)),
+		"A day and a host; two helms; the main course's beans and cabbage (bean hotpot), the nut loaf's flour and nuts and the infusion's herb for all three courses (and %s); %s of wood for its service; 3 days of food and wood after it, or your override." % [
+			RegattaRules.BUFF_NAME, FarmText.units_text(RegattaRules.service_wood_milli(9))],
 		"Skip the season: no penalty, nothing withheld.",
 		"The pond and the boathouse jetty; the hall's tables; the Water panel's Regatta, or the Feast command."]),
-		[&"dish_bean_hotpot", &"station_fishing", &"station_kitchen", &"station_ferry"])
+		[&"dish_bean_hotpot", &"dish_nut_loaf", &"station_fishing", &"station_kitchen", &"station_foraging"])
 
 
 # --- residents' skills -------------------------------------------------------------------------------

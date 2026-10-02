@@ -56,7 +56,7 @@ extends RefCounted
 ## RAW EMERGENCY FOOD (REQ-SET-013, WorldPolicy raw_emergency_food default true): with no portion, a resident at
 ## hunger 1500 or less may eat raw-edible food nobody has reserved, "enough quantity to add at most 3000 NP", in the
 ## same 12 WU. Raw-edible are the roots row (800 NP/U), the cabbage row (600 NP/U) and dried fish (1800 NP/U, decision
-## 0431); grain, beans, flour and fresh fish are not (§5.7:
+## 0431), nuts (1600 NP/U) and berries (700 NP/U, decision 0681); grain, beans, flour, fresh fish, mushrooms and herb are not (§5.7:
 ## "Raw ingredients marked 'No' cannot be consumed even in emergency").
 
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
@@ -89,6 +89,13 @@ const DISH_ROOT_PIE: int = 15
 const DISH_WOODLAND_PIE: int = 16
 const DISH_SCONES: int = 17
 const DISH_CORDIAL: int = 18
+## THE FEAST'S SECOND COURSE (decision 0682, Brendan's ruling of 2026-10-01 "add nuts & herbs now"): the Hearth feast's
+## second course, the library's "Nutbread" (redwall::RW-RECIPE-nutbread, its nuts and flour the pantry's AI completion)
+## COOKED AS §5.7's `nut_loaf` row exactly -- "flour 2, nuts 2, water 1 | meal_nut_loaf 3x2600 | 24 | Kitchen/COOK | 72 |
+## M1". Its flour is the mill's (decision 0434), its nuts a foraging trip's (decision 0681). It is never in the cook's
+## choice: dish_book.gd's OCCASION meal, cooked only as an occasion's second course (kitchen.gd `set_occasion`). Row 4 on
+## the foraging lane; dish_book.gd's row 19 since the batch 7 integration put it in the recipe book (decision 0902).
+const DISH_NUT_LOAF: int = 19
 const NO_DISH: int = -1
 
 ## THE RECIPE BOOK'S COLUMNS (dish_book.gd: one row a dish; adding a recipe is adding a row there). Built once, when this
@@ -142,10 +149,10 @@ static var SIDE_CROP: PackedInt32Array = PackedInt32Array()
 static var SIDE_MILLI: PackedInt32Array = PackedInt32Array()
 
 ## What a recipe calls each category, by farm_catalog.gd category id (beans, cabbage, flax, grain, roots, fish, dried
-## fish, flour). §5.7's `cabbage` input is the cabbage row -- cabbage, lettuce, spinach, leek and celery -- so it is
-## "greens" to the player.
+## fish, flour, honey, and the woods' forage: nuts, mushrooms, herbs, berries). §5.7's `cabbage` input is the cabbage
+## row -- cabbage, lettuce, spinach, leek and celery -- so it is "greens" to the player.
 const CATEGORY_WORDS: Array[String] = ["beans", "greens", "flax", "grain", "roots", "fresh fish", "dried fish", "flour",
-	"honey"]
+	"honey", "nuts", "mushrooms", "herbs", "berries"]
 ## BAL-SUPPLY-004: "wood 100 milli-U/batch".
 const WOOD_MILLI_PER_BATCH: int = 100
 ## A portion's mass and spoiled food's (§5.7: 500 g and 250 g a unit): a spoiled portion is twice its milli-U.
@@ -165,7 +172,7 @@ const MEAL_SUPPER: int = 1
 const MEAL_NAMES: Array[String] = ["breakfast", "supper"]
 const MEAL_TITLES: Array[String] = ["Breakfast", "Supper"]
 ## A dish's meal in words, by dish_book.gd `meal`: a drink is no meal (decision 0603).
-const DISH_MEAL_WORDS: Array[String] = ["breakfast", "supper", "a drink"]
+const DISH_MEAL_WORDS: Array[String] = ["breakfast", "supper", "a drink", "a feast's course"]
 const CALL_HOUR: Array[int] = [7, 17]
 const END_HOUR: Array[int] = [9, 19]
 const COOK_RISE_HOUR: int = 5
@@ -200,9 +207,11 @@ const MONOTONY_HOURS: int = 6
 const RAW_NP_CAP: int = 3000
 ## Dried fish is §5.7's PRESERVED `dried_fish` (1800 NP/U, "Dried/salted fish ... are directly edible"; decision 0431):
 ## the village's reserve, eaten this way or in the biscuit soup (decision 0603) -- §5.7's `fish` selector names the nine species, not their dried form.
-## Honey is §5.7's "Honey | 1200 | Yes" (decision 0603's item; no source yet).
+## Honey is §5.7's "Honey | 1200 | Yes" (decision 0603's item; no source yet). Nuts and berries are §5.7's "Nuts | 1600
+## | Yes" and "Berries | 700 | Yes" (decision 0681): raw edible, so a hungry resident may eat them when nobody has set
+## them aside.
 const RAW_NP_PER_U: Dictionary = {FarmingScript.CROP_ROOTS: 800, FarmingScript.CROP_CABBAGE: 600,
-	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200}
+	Catalog.CAT_DRIED_FISH: 1800, Catalog.CAT_HONEY: 1200, Catalog.CAT_NUTS: 1600, Catalog.CAT_BERRIES: 700}
 
 
 static func _static_init() -> void:
@@ -345,6 +354,12 @@ static func input_of(dish: int, item: int) -> int:
 static func is_input(dish: int, item: int) -> bool:
 	"""Whether pantry `item` is one `dish` takes (its category, narrowed to the dish's own ingredients)."""
 	return input_of(dish, item) >= 0
+
+
+static func is_occasion_dish(dish: int) -> bool:
+	"""Whether `dish` is cooked only for an occasion (dish_book.gd OCCASION: the feast's nut loaf), never by the cook's
+	choice. The feast's bean hotpot is an everyday supper dish as well (decision 0601), so it is not one."""
+	return dish >= 0 and dish < DISH_COUNT and DISH_MEAL[dish] == Book.OCCASION
 
 
 static func batch_food_milli(dish: int) -> int:

@@ -20,6 +20,7 @@ const FitOutWork := preload("res://demo/work/fit_out_work.gd")
 const SpoilWork := preload("res://demo/work/spoil_work.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
+const ForageWork := preload("res://demo/work/forage_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const StoresWork := preload("res://demo/work/stores_work.gd")
 const CareWork := preload("res://demo/work/care_work.gd")
@@ -96,6 +97,12 @@ func add_ferry(ferry: RefCounted) -> void:
 	"""THE FERRY ON THE BOARD (decision 0437): the far copse's gathering, the ferried wood's hauls and the crossings' crews
 	(work/ferry_work.gd) -- claimed like the farm's."""
 	board.add_source(FerryWork.new(ferry))
+
+
+func add_forage(trips: RefCounted) -> void:
+	"""THE FORAGING TRIPS ON THE BOARD (decision 0681): each forager's seat (work/forage_work.gd) -- the Woods crew's work,
+	claimed like the farm's."""
+	board.add_source(ForageWork.new(trips))
 
 
 func add_kitchen(kitchen: KitchenScript) -> void:

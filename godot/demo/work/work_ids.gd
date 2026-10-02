@@ -29,12 +29,16 @@ const SOURCE_HALL: int = 10
 ## The infirmary building's places: fetching its materials and building it (decision 0623; demo/work/care_work.gd):
 ## claimed like the farm's. (8 on its own lane; 11 since the batch 7 integration, decision 0902.)
 const SOURCE_CARE: int = 11
-const SOURCE_COUNT: int = 12
+## The foraging trips' seats: a forager walking to its spot in the woods, gathering, carrying the haul home (decision
+## 0681; demo/work/forage_work.gd): claimed like the farm's, the Woods crew's work. (9 on its own lane; 12 since the
+## batch 7 integration, decision 0902.)
+const SOURCE_FORAGE: int = 12
+const SOURCE_COUNT: int = 13
 ## What each source is called in the Projects view and the Cancel all scope.
 const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
-	"Kitchen", "Fishery and stations", "Ferry", "Food stores", "The hall", "Infirmary"]
+	"Kitchen", "Fishery and stations", "Ferry", "Food stores", "The hall", "Infirmary", "Foraging"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 12
+const SOURCE_WALK: int = 13
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1

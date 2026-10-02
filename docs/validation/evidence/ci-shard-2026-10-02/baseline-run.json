@@ -1,0 +1,30 @@
+{
+  "base_commit": "d07dabb7629be8a7721b87fdd5b9532e3568a963",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "assets_staged_initially": false,
+  "user_dir": "Redwall RTS ci-shard-2026-10-02-baseline",
+  "steps": [
+    {
+      "name": "import",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 4.122
+    },
+    {
+      "name": "baseline",
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 783.548
+    }
+  ],
+  "runtime_setup_restored": true
+}

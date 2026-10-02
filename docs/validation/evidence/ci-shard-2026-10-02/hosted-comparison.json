@@ -1,0 +1,145 @@
+{
+  "run_id": 37017561053,
+  "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053",
+  "head_commit": "21949121cf2f2e2ffba655b6510db6b0df36fdcd",
+  "conclusion": "success",
+  "baseline_run_id": 37006524569,
+  "baseline_head_commit": "4eb8e3c04669cbfdcc14460502502a2ded6763f0",
+  "suite_count": 275,
+  "method_count": 8644,
+  "raw_baseline_method_list_sha256": "f2c0db3a9759a540a50dff297dce4f7c79dc037c90c04c14b30b557379d80e3e",
+  "source_normalized_method_list_sha256": "2c76a8fe693c7f192055e3040c11359b0565905ec518bf9a2b1fc67a74b75552",
+  "hosted_baseline_log_redactions": [
+    {
+      "suite": "test_demo_seasons.gd",
+      "hosted_log_name": "test_bare_bou***",
+      "unique_matching_source_method": "test_bare_boughs_keep_the_bark_triangles_and_the_material"
+    }
+  ],
+  "identical_source_normalized_method_list": true,
+  "test_and_diagnostic_counts_identical": true,
+  "baseline_counts": {
+    "tests": 8644,
+    "assertions": 589136,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 268,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "shard_counts": {
+    "tests": 8644,
+    "assertions": 589132,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 268,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "shard_wrapper_wall_seconds": [
+    235,
+    234,
+    453,
+    284,
+    245,
+    226,
+    286,
+    254
+  ],
+  "assertion_difference": -4,
+  "analyzer_summary": "0 GDScript warning(s) in 0 of 980 file(s)",
+  "shard_guard_tests": "17 tests, OK",
+  "jobs_wall_seconds": 544,
+  "including_initial_queue_seconds": 548,
+  "baseline_job_wall_seconds": 3278,
+  "jobs": [
+    {
+      "name": "Specification contracts",
+      "conclusion": "success",
+      "seconds": 71,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872077987"
+    },
+    {
+      "name": "Godot gates (metadata-a)",
+      "conclusion": "success",
+      "seconds": 378,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078210"
+    },
+    {
+      "name": "Godot gates (analyzer)",
+      "conclusion": "success",
+      "seconds": 531,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078251"
+    },
+    {
+      "name": "Godot gates (metadata-b)",
+      "conclusion": "success",
+      "seconds": 386,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078260"
+    },
+    {
+      "name": "Godot suite shard 7 / 8",
+      "conclusion": "success",
+      "seconds": 285,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078284"
+    },
+    {
+      "name": "Godot suite shard 4 / 8",
+      "conclusion": "success",
+      "seconds": 272,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078310"
+    },
+    {
+      "name": "Godot suite shard 1 / 8",
+      "conclusion": "success",
+      "seconds": 261,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078320"
+    },
+    {
+      "name": "Godot suite shard 2 / 8",
+      "conclusion": "success",
+      "seconds": 486,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078388"
+    },
+    {
+      "name": "Godot suite shard 6 / 8",
+      "conclusion": "success",
+      "seconds": 321,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078389"
+    },
+    {
+      "name": "Godot suite shard 5 / 8",
+      "conclusion": "success",
+      "seconds": 258,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078391"
+    },
+    {
+      "name": "Godot gates (metadata-c)",
+      "conclusion": "success",
+      "seconds": 353,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078407"
+    },
+    {
+      "name": "Godot suite shard 3 / 8",
+      "conclusion": "success",
+      "seconds": 316,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078582"
+    },
+    {
+      "name": "Godot suite shard 0 / 8",
+      "conclusion": "success",
+      "seconds": 270,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110872078589"
+    },
+    {
+      "name": "Godot headless suite",
+      "conclusion": "success",
+      "seconds": 10,
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37017561053/job/110875523867"
+    }
+  ]
+}

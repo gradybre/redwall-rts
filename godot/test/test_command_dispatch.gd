@@ -45,6 +45,8 @@ const KIND_SET_ACTIVITY_SCHEDULE: int = 15
 const KIND_SET_JOB_PRIORITIES: int = 18
 const KIND_SET_MANUAL_TASK: int = 19
 const KIND_SET_POLICY: int = 20
+const KIND_SET_STORE_FILTER: int = 21
+const KIND_SET_STORE_MINIMUM: int = 22
 const KIND_COUNT: int = 24
 
 ## GDD §4.3's JobState and JobKind numbering, transcribed.
@@ -552,14 +554,15 @@ func test_every_unimplemented_kind_refuses_with_the_unsupported_feature_code() -
 		assert_equal(_last_code(), CommandDispatchScript.RESULT_UNSUPPORTED_FEATURE,
 			"kind %d refuses as an unsupported feature" % kind)
 		refused += 1
-	assert_equal(refused, 17, "seventeen of ARCH-CMD-003's 24 kinds have no owning store here")
+	assert_equal(refused, 15, "fifteen of ARCH-CMD-003's 24 kinds have no owning store here")
 
 
-func test_exactly_seven_kinds_are_implemented_and_they_are_the_named_seven() -> void:
+func test_exactly_nine_kinds_are_implemented_and_they_are_the_named_nine() -> void:
 	"""The supported set is asserted by NAME, so adding a kind cannot pass by changing a count."""
-	assert_equal(_dispatch.supported_kind_count(), 7, "seven kinds have an owning store")
+	assert_equal(_dispatch.supported_kind_count(), 9, "nine kinds have an owning store")
 	for kind: int in [KIND_APPOINT_WARDEN, KIND_CANCEL_JOB, KIND_DESIGNATE_ZONE, KIND_NAME_RESIDENT,
-			KIND_SET_ACTIVITY_SCHEDULE, KIND_SET_JOB_PRIORITIES, KIND_SET_POLICY]:
+			KIND_SET_ACTIVITY_SCHEDULE, KIND_SET_JOB_PRIORITIES, KIND_SET_POLICY,
+			KIND_SET_STORE_FILTER, KIND_SET_STORE_MINIMUM]:
 		assert_true(_dispatch.is_supported_kind(kind), "kind %d is implemented" % kind)
 
 

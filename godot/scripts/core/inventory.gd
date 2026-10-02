@@ -436,6 +436,8 @@ const REFUSE_NO_GROUND_PILE_AUTHORITY: StringName = &"NO_GROUND_PILE_AUTHORITY"
 const REFUSE_INVALID_GROUND_PILE_AUTHORITY: StringName = &"INVALID_GROUND_PILE_AUTHORITY"
 ## `set_container_anchor()` on a pile: a pile IS its tile, and the tile map indexes it there.
 const REFUSE_GROUND_PILE_ANCHOR_FIXED: StringName = &"GROUND_PILE_ANCHOR_FIXED"
+## Decision 0536 (DEMO-CONTAIN-R01 #3b): a pile's 400000 g is #9's fixed value, never recomputed.
+const REFUSE_GROUND_PILE_CAPACITY_FIXED: StringName = &"GROUND_PILE_CAPACITY_FIXED"
 ## `audit()`: the derived tile -> pile map disagrees with the pile rows it is derived from, or a
 ## pile is at rest with no lot (ARCH-MEM-002 forbids that row).
 const REFUSE_AUDIT_GROUND_PILE: StringName = &"AUDIT_GROUND_PILE_MAP"
@@ -1371,6 +1373,39 @@ func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
 	_journal_container(container_ref.x)
 	_c_anchor_tile[container_ref.x] = tile
 	return _succeed(NULL_REF, 0)
+
+
+func reduce_container_capacity(container_ref: Vector2i, by_g: int) -> OpResult:
+	"""Lower a live container's `max_mass_g` by `by_g` grams: DEMO-CONTAIN-R01 #3b's recompute.
+
+	A pantry shelf adds 50000 g to its building's pantry container, so removing one lowers it.
+	Refuses, writing nothing: a dead or stale container, a ground pile (#9's capacity is fixed),
+	a non-positive `by_g` or one above the capacity (INVALID_MASS), and -- #3b's own rule -- a
+	reduced capacity the container's contents plus reservations would exceed (CAPACITY_EXCEEDED).
+	Journaled inside a transaction like every container write. Cold path.
+	"""
+	var owned: bool = _enter()
+	return _leave(owned, _reduce_capacity_checked(container_ref, by_g))
+
+
+func _reduce_capacity_checked(container_ref: Vector2i, by_g: int) -> StringName:
+	"""Validate then lower one container's capacity."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	if not is_container_valid(container_ref):
+		return REFUSE_INVALID_CONTAINER
+	var slot: int = container_ref.x
+	if _c_policy[slot] == POLICY_GROUND_PILE:
+		return REFUSE_GROUND_PILE_CAPACITY_FIXED
+	if by_g <= 0 or by_g > _c_max_mass_g[slot]:
+		return REFUSE_INVALID_MASS
+	var reduced: int = _c_max_mass_g[slot] - by_g
+	if _c_used_mass_g[slot] + _c_reserved_mass_g[slot] > reduced:
+		return REFUSE_CAPACITY_EXCEEDED
+	_journal_container(slot)
+	_c_max_mass_g[slot] = reduced
+	return _succeed(NULL_REF, reduced)
 
 
 static func is_well_formed_owner(owner_ref: Vector2i) -> bool:

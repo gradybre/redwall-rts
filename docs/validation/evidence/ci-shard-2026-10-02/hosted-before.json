@@ -1,0 +1,181 @@
+{
+  "run_url": "https://github.com/gradybre/redwall-rts/actions/runs/37001196751/job/110819400605",
+  "head_sha": "d07dabb7629be8a7721b87fdd5b9532e3568a963",
+  "steps": [
+    {
+      "name": "Set up job",
+      "seconds": 1,
+      "conclusion": "success"
+    },
+    {
+      "name": "Check out the repository",
+      "seconds": 13,
+      "conclusion": "success"
+    },
+    {
+      "name": "Cache the Godot binary",
+      "seconds": 5,
+      "conclusion": "success"
+    },
+    {
+      "name": "Download Godot 4.7.2",
+      "seconds": 0,
+      "conclusion": "skipped"
+    },
+    {
+      "name": "Put Godot on PATH",
+      "seconds": 0,
+      "conclusion": "success"
+    },
+    {
+      "name": "Report the engine version",
+      "seconds": 1,
+      "conclusion": "success"
+    },
+    {
+      "name": "Import the project",
+      "seconds": 11,
+      "conclusion": "success"
+    },
+    {
+      "name": "Run the suite",
+      "seconds": 1678,
+      "conclusion": "success"
+    },
+    {
+      "name": "Runner diagnostics self-test",
+      "seconds": 0,
+      "conclusion": "success"
+    },
+    {
+      "name": "GDScript analyzer warnings",
+      "seconds": 384,
+      "conclusion": "success"
+    },
+    {
+      "name": "Component stream preflight fault injection",
+      "seconds": 40,
+      "conclusion": "success"
+    },
+    {
+      "name": "Needs metadata preflight fault injection",
+      "seconds": 106,
+      "conclusion": "success"
+    },
+    {
+      "name": "Priorities metadata preflight fault injection",
+      "seconds": 99,
+      "conclusion": "success"
+    },
+    {
+      "name": "Schedule metadata preflight fault injection",
+      "seconds": 98,
+      "conclusion": "success"
+    },
+    {
+      "name": "Transforms metadata preflight fault injection",
+      "seconds": 102,
+      "conclusion": "success"
+    },
+    {
+      "name": "Fauna metadata preflight fault injection",
+      "seconds": 125,
+      "conclusion": "success"
+    },
+    {
+      "name": "Work metadata preflight fault injection",
+      "seconds": 103,
+      "conclusion": "success"
+    },
+    {
+      "name": "ResourceNodes metadata preflight fault injection",
+      "seconds": 101,
+      "conclusion": "success"
+    },
+    {
+      "name": "Injury metadata preflight fault injection",
+      "seconds": 101,
+      "conclusion": "success"
+    },
+    {
+      "name": "Residents metadata preflight fault injection",
+      "seconds": 145,
+      "conclusion": "success"
+    },
+    {
+      "name": "FieldPolicy metadata preflight fault injection",
+      "seconds": 107,
+      "conclusion": "success"
+    },
+    {
+      "name": "Farming metadata preflight fault injection",
+      "seconds": 24,
+      "conclusion": "success"
+    },
+    {
+      "name": "Fishing metadata preflight fault injection",
+      "seconds": 35,
+      "conclusion": "success"
+    },
+    {
+      "name": "Movement metadata preflight fault injection",
+      "seconds": 29,
+      "conclusion": "success"
+    },
+    {
+      "name": "Buildings metadata preflight fault injection",
+      "seconds": 93,
+      "conclusion": "success"
+    },
+    {
+      "name": "Buildings borrowed-buffer allocation discriminator",
+      "seconds": 4,
+      "conclusion": "success"
+    },
+    {
+      "name": "Construction source and schema fault injection",
+      "seconds": 79,
+      "conclusion": "success"
+    },
+    {
+      "name": "Construction borrowed-buffer allocation discriminator",
+      "seconds": 5,
+      "conclusion": "success"
+    },
+    {
+      "name": "Starter structures metadata fault injection",
+      "seconds": 12,
+      "conclusion": "success"
+    },
+    {
+      "name": "Demo audio staging self-test",
+      "seconds": 1,
+      "conclusion": "success"
+    },
+    {
+      "name": "UI refinement contract",
+      "seconds": 0,
+      "conclusion": "success"
+    },
+    {
+      "name": "Check the copied hash kernel against the engine",
+      "seconds": 0,
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Cache the Godot binary",
+      "seconds": 0,
+      "conclusion": "success"
+    },
+    {
+      "name": "Post Check out the repository",
+      "seconds": 0,
+      "conclusion": "success"
+    },
+    {
+      "name": "Complete job",
+      "seconds": 1,
+      "conclusion": "success"
+    }
+  ]
+}

@@ -2,7 +2,7 @@ extends Control
 ## A drawn oak-leaf spray with an acorn, pinned to one corner of a HUD panel. Vector, not raster.
 ##
 ## The woodland concept frames its panels with oak leaves and acorns. It may not be cut up for
-## runtime use (ART-UI-11), and paid generation is not approved, so the spray is DRAWN: two lobed
+## runtime use (ART-UI-11), and no paid generation was requested for it, so the spray is DRAWN: two lobed
 ## leaves built from a parametric outline and one acorn, filled and inked in ART-LOCK-001
 ## pigments (I06 Leaf and I05 Sage for the leaves, I01 Ink contour, I08 Timber nut, I09 Umber
 ## cap). The polygons are computed once on construction; `_draw()` runs only when the canvas

@@ -782,6 +782,9 @@ func test_the_village_stores_node_places_stands_cancels_and_stores_a_cellar() ->
 	var pantry := PantryScript.new(StorageScript.new(STORE_AT))
 	var node := DemoStoresScript.new()
 	_nodes.append(node)
+	# The Pantry's cellar bar is the village's to parent (farm_pantry_panel.gd `add_store_control`), so freeing the
+	# node alone would leave it orphaned and leaked at exit (decision 0501's gate; batch 7 integration).
+	_nodes.append(node.bar)
 	node.configure(_cast, _cast.space().tunnels, pantry, Callable(), func() -> int: return 0, null)
 	node.configure_cellars(stores, null, STORE_AT, _site, Callable(), GraphScript.new(), null, Callable())
 	assert_true(node.start_placing(), "armed")

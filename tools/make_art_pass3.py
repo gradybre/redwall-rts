@@ -21,6 +21,14 @@ The keys, sizes and the code each file serves are in docs/art-reference/art_pass
 
 	python3 tools/make_art_pass3.py [--only KEY ...]
 	python3 tools/make_art_pass3.py --check-ice     # water_iced.gdshader is still water.gdshader plus its ICE lines
+	python3 tools/make_art_pass3.py --icons         # cut the nine icons (no Blender; needs Pillow)
+
+ICONS (Brendan's ruling, 2026-10-02: item and dish icons stay in the 3D-render style of the pantry icons). One
+nano-banana-2 3x3 sheet conditioned on pass 1's sheet_foods_a, cut here exactly as pass 1 cut its sheets
+(make_demo_food_art.py, decision 0941, on art/new-foods; the cutter is repeated here so this branch stands alone):
+the cell's border-connected background flood-filled out, the edge softened, the subject centred in a transparent
+ICON_PX square with ICON_MARGIN_PX each side on its longest axis. Written to godot/demo/assets/icons/<key>.png, with
+their rows in godot/demo/assets/art_pass3_icons.json.
 """
 
 from __future__ import annotations
@@ -234,6 +242,87 @@ def make_kit(lib: pathlib.Path) -> dict[str, dict]:
 	return rows
 
 
+ICON_PX = 128
+ICON_MARGIN_PX = 4
+SHEET_GRID = 3
+BACKGROUND_TOLERANCE = 18.0
+EDGE_SOFT = 22.0
+ICON_SHEET = "icon/sheet_preserves_finds/sheet.png"
+## icon key: (column, row) in ICON_SHEET. The keys are proposed; the features that use them name the final ones.
+ICONS = {
+	"item_jam": (0, 0), "item_pickles": (1, 0), "item_dried_fruit": (2, 0),
+	"item_cheese": (0, 1), "item_ale": (1, 1), "item_cider": (2, 1),
+	"find_coins": (0, 2), "find_old_map": (1, 2), "find_spring": (2, 2),
+}
+
+
+def _distance(a: tuple, b: tuple) -> float:
+	"""Euclidean RGB distance."""
+	return ((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2) ** 0.5
+
+
+def cut_cell(sheet, column: int, row: int):
+	"""One cell of a 3 x 3 sheet (a PIL image) with its border-connected background made transparent."""
+	from PIL import Image, ImageFilter
+	w, h = sheet.size[0] // SHEET_GRID, sheet.size[1] // SHEET_GRID
+	cell = sheet.crop((column * w, row * h, (column + 1) * w, (row + 1) * h)).convert("RGB")
+	px = cell.load()
+	border = [px[x, y] for x in range(w) for y in (0, h - 1)] + [px[x, y] for y in range(h) for x in (0, w - 1)]
+	background = tuple(sorted(c[i] for c in border)[len(border) // 2] for i in range(3))
+	alpha = Image.new("L", (w, h), 255)
+	pa = alpha.load()
+	seen = bytearray(w * h)
+	stack = [(x, y) for x in range(w) for y in (0, h - 1)] + [(x, y) for y in range(h) for x in (0, w - 1)]
+	while stack:
+		x, y = stack.pop()
+		if seen[y * w + x]:
+			continue
+		seen[y * w + x] = 1
+		d = _distance(px[x, y], background)
+		if d > BACKGROUND_TOLERANCE + EDGE_SOFT:
+			continue
+		pa[x, y] = int(255 * max(0.0, d - BACKGROUND_TOLERANCE) / EDGE_SOFT)
+		if d <= BACKGROUND_TOLERANCE:
+			stack.extend((nx, ny) for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+				if 0 <= nx < w and 0 <= ny < h and not seen[ny * w + nx])
+	alpha = alpha.filter(ImageFilter.GaussianBlur(0.6))
+	out = cell.convert("RGBA")
+	out.putalpha(alpha)
+	return out
+
+
+def fit_icon(cut):
+	"""The cut subject centred on a transparent ICON_PX square, its longest side ICON_PX - 2 margins."""
+	from PIL import Image
+	box = cut.getchannel("A").point(lambda a: 255 if a > 24 else 0).getbbox()
+	if box is None:
+		raise RuntimeError("the cell is empty after the background cut")
+	subject = cut.crop(box)
+	scale = (ICON_PX - 2 * ICON_MARGIN_PX) / max(subject.size)
+	subject = subject.resize((max(1, round(subject.size[0] * scale)), max(1, round(subject.size[1] * scale))),
+		Image.LANCZOS)
+	icon = Image.new("RGBA", (ICON_PX, ICON_PX), (0, 0, 0, 0))
+	icon.alpha_composite(subject, ((ICON_PX - subject.size[0]) // 2, (ICON_PX - subject.size[1]) // 2))
+	return icon
+
+
+def make_icons(lib: pathlib.Path) -> int:
+	"""Cut every icon of ICON_SHEET into OUT/icons/; write their rows to OUT/art_pass3_icons.json."""
+	from PIL import Image
+	sheet = Image.open(lib / ICON_SHEET)
+	(OUT / "icons").mkdir(parents=True, exist_ok=True)
+	rows = {}
+	for key, (column, row) in ICONS.items():
+		target = OUT / "icons" / f"{key}.png"
+		fit_icon(cut_cell(sheet, column, row)).save(target)
+		rows[key] = {"icon": f"{RES}/icons/{key}.png", "px": ICON_PX, "sheet": ICON_SHEET, "cell": [column, row],
+			"sheet_sha256": sha256(lib / ICON_SHEET), "sha256": sha256(target), "tool": "tools/make_art_pass3.py",
+			"decision": "0971"}
+		print(f"  {key:18} {ICON_SHEET} {column},{row}", flush=True)
+	(OUT / "art_pass3_icons.json").write_text(json.dumps(rows, indent=1, sort_keys=True) + "\n")
+	return 0
+
+
 def check_ice() -> int:
 	"""Whether godot/demo/water/water_iced.gdshader is water.gdshader verbatim apart from its own header and the lines
 	marked `// ICE` (decision 0971): 0 if so, 1 with the first difference if not."""
@@ -256,9 +345,12 @@ def main() -> int:
 	parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
 	parser.add_argument("--only", nargs="+", choices=list(MODELS))
 	parser.add_argument("--check-ice", action="store_true")
+	parser.add_argument("--icons", action="store_true")
 	args = parser.parse_args()
 	if args.check_ice:
 		return check_ice()
+	if args.icons:
+		return make_icons(library())
 	lib = library()
 	record = OUT / "art_pass3_models.json"
 	rows = json.loads(record.read_text()) if record.exists() else {}

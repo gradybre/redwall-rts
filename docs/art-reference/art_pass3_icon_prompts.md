@@ -1,4 +1,4 @@
-# Art pass 3: icon briefs and prompts, in both candidate styles (HELD)
+# Art pass 3: icon briefs and prompts, in both candidate styles
 
 [Decision 0971](../decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md). Brendan approved nine
 icons on 2026-10-02:
@@ -6,8 +6,17 @@ icons on 2026-10-02:
 - preserving and brewing: jam, pickles, dried fruit, cheese, ale and cider;
 - digging finds: coins, an old map and a spring.
 
-**They are held, and nothing here has been generated.** Brendan is ruling on which icon style the game uses. Each icon
-is briefed once and prompted twice:
+**Ruled 2026-10-02: style A.** Brendan ruled that item and dish icons stay in the 3D-render style of the pantry
+icons, and the world keeps its look (decision 0971, after the icon-style probe, decision 0981). Style A's sheet was
+generated as written below:
+- **sheet:** `assets/library/icon/sheet_preserves_finds/sheet.png`, task `01a0fc94-6141-7684-be9b-4193024f9aab`, 6
+  credits;
+- **cut:** by `python3 tools/make_art_pass3.py --icons` into `godot/demo/assets/icons/<key>.png`, 128 px RGBA;
+- **review:** `art3_check/icons_dark.png` and `icons_light.png` (native and 32 px, beside `item_strawberry` and
+  `find_flint`).
+
+Style B was not generated. Its prompts stay here as the record of what the comparison would have been. Each icon was
+briefed once and prompted twice:
 
 - **Style A, 3D render.** This matches the pantry icons already in the game:
   - pass 1's sheets (`assets/library/icon/sheet_foods_a`, `sheet_dishes_b`, `sheet_dishes_c`, decision 0941);
@@ -16,7 +25,8 @@ is briefed once and prompted twice:
   ([`asset_generation_lock.md`](../design/ui_refinement/asset_generation_lock.md) §2–§4): storybook watercolour, I01
   ink contour, the twelve I-pigments, upper-left light, transparent RGBA, no backing disc.
 
-When the ruling comes, run only that style's calls. The other style's prompts stay here as the record.
+Style A's map carries scribbled pseudo-lettering and a compass rose, and one of its coins has a square hole. Both
+depart from the briefs but do not read at 128 px, so no redo was bought.
 
 ## The briefs (style-independent)
 
@@ -113,5 +123,4 @@ length, trim adjectives in the family clause, never the object.
 | Style B | 3 sheets (nano-banana-pro) | **27** (18 on nano-banana-2) |
 | Both, for a side-by-side probe | 4 | 33 |
 
-Pass 3 has **48 credits** of its 270-credit cap unspent, but the icons are held. **No icon call is made until Brendan
-rules.**
+Style A was ruled and made: 6 credits. Pass 3 spent 228 of its 270-credit cap.

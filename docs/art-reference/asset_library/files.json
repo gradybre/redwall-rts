@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1567,
- "total_bytes": 18664719743,
+ "count": 1568,
+ "total_bytes": 18665806671,
  "files": [
   {
    "family": "building",
@@ -14041,6 +14041,15 @@
    "path": "assets/library/prop/rock_face/l0.glb",
    "bytes": 3279472,
    "sha256": "669c0c89ced5634cead4cb0a404a339735f33d2e2eae6521657e917030be5caa"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_preserves_finds",
+   "stage": "concept",
+   "task_id": "01a0fc94-6141-7684-be9b-4193024f9aab",
+   "path": "assets/library/icon/sheet_preserves_finds/sheet.png",
+   "bytes": 1086928,
+   "sha256": "b8cd4ace6e39cccb5aecb18bf507802e8431e345499afcb719d931f637465b09"
   }
  ]
 }

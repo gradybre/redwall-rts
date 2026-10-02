@@ -179,15 +179,21 @@ it (support tolerance 2 cm, `REPIN`): its two contacts left unpinned above pin, 
 
 ## Art pass 3 — 2026-10-02
 
-Preserving and brewing props, the digging revamp's timber kit and rock face. **222 credits** were spent against the
-**270** Brendan approved for the itemised list:
-- the balance was 410 before and 176 after;
-- the other 12 credits were two "inventory icon" redraws by another task on the shared account, not this pass's.
+Preserving and brewing props, the digging revamp's timber kit and rock face, and nine icons. **228 credits** were spent
+against the **270** Brendan approved for the itemised list:
+- the balance was 410 before and 104 after;
+- the style probe (decision 0981) spent from the same account at the same time, and its tasks are not this pass's.
 
 A subagent made the calls under decision 0961's delegated cap. Decision
 [0971](../../decisions/0971-art-pass-3-preserving-brewing-digging-and-free-effects.md) records the choices. The assets
-and the code each one serves are in [`../art_pass3_mapping.md`](../art_pass3_mapping.md). The nine approved icons are
-held for Brendan's style ruling, and their prompts are in [`../art_pass3_icon_prompts.md`](../art_pass3_icon_prompts.md).
+and the code each one serves are in [`../art_pass3_mapping.md`](../art_pass3_mapping.md). The nine icons were made
+after Brendan's ruling (item and dish icons stay in the 3D-render style), from one sheet:
+
+| Sheet | Task | Model |
+|---|---|---|
+| `icon/sheet_preserves_finds/sheet.png` (jam, pickles, dried fruit, cheese, ale, cider, coins, old map, spring) | `01a0fc94-6141-7684-be9b-4193024f9aab` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
+
+Their briefs and prompts are in [`../art_pass3_icon_prompts.md`](../art_pass3_icon_prompts.md).
 
 **3D models.** Each uses the library recipe: a concept from the style reference (nano-banana-2, 6), then a meshy-7
 high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model. All are in the `prop/` family.

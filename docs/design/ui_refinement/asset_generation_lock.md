@@ -12,8 +12,33 @@ rows, twelve pigment swatches and numeric rendering conventions for prompts.
 These are newly authored art parameters, not inherited GDD constants or user quotes.
 
 **Scope:** this lock governs UI illustrations. Its pigments, contours and lighting
-are not a global world-rendering specification. See [DEC-037 alignment](../../art-reference/visual_direction_alignment.md)
+are not a global world-rendering specification. **Item, food and dish icons are outside it**: they use the 3D-render
+style (Brendan's ruling of 2026-10-02, below). See [DEC-037 alignment](../../art-reference/visual_direction_alignment.md)
 for the whole-game reference synthesis and the approved world-finish example (DEC-038).
+
+## Style scope: Brendan's ruling, 2026-10-02
+
+Brendan ruled on 2026-10-02, after the icon-style probe (decision 0981 on `art/style-probe`). His ruling is recorded
+in decision 0971:
+
+- **The world keeps its current look** (DEC-038, unchanged).
+- **Item, food and dish icons use the 3D-render style that matches the world models.**
+  - This covers the pantry and inventory icons of goods, dishes, drinks and dig finds.
+  - The style is the studio render the existing pantry icons use (decision 0981 describes the setup):
+    - an orthographic three-quarter view, 28° elevation and 32° azimuth;
+    - a key light from the upper left, a cool fill and a thin rim;
+    - a soft grey world and a transparent film, with no tonemap curve;
+    - matte materials, warm natural saturation, and no ink contour.
+  - Pass 1's sheets (decision 0941) are `nano-banana-2` images conditioned on those renders; new item, food and dish
+    icons follow them. Art pass 3's nine (decision 0971) do.
+- **The watercolour with ink contours stays for:** portraits, emblems, medallions, the tapestry, and ceremonial or
+  illustrative UI. That means the journal and chronicle art, the medallion frames and the species marks.
+  §2–§5 below govern those unchanged.
+
+**Not settled by the ruling: the sixteen rows in §5.** These are the HUD's resource and command icons and the four
+medallions. The medallions are watercolour by the ruling. The resource and command rows are not item, food or dish
+icons, so they stay as locked here. One of them, RES-FOOD (a bowl of stew), overlaps the food icons in subject. If it
+should match the pantry's render instead, that is Brendan's to say; this amendment does not move it.
 
 ## 1. Reference permission: direct use is allowed
 

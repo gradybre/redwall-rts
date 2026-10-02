@@ -13,6 +13,15 @@ DEC-036 direct-reference permission. Use IMG-25 directly; do not request substit
 references. Paid generation is by request: ask Brendan with an itemised, costed list and proceed once
 he approves it (decision 0961).
 
+**Style scope, Brendan's ruling of 2026-10-02** (decision 0971, after the icon-style probe, decision 0981):
+- **Item, food and dish icons** use the **3D-render style** that matches the world models: the studio render of the
+  existing pantry icons. They are outside ART-LOCK-001.
+- **The watercolour with ink contours** stays for portraits, emblems, medallions, the tapestry, and ceremonial or
+  illustrative UI.
+- The world look is unchanged (DEC-038).
+
+The lock's sixteen HUD rows stand as locked. See the lock's "Style scope" section.
+
 ## Visual quality correction
 
 Brendan clarified that visual appeal is a primary goal. Read the new

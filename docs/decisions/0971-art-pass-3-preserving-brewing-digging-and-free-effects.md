@@ -13,7 +13,7 @@ digging revamp, free now"**:
   - a stoneware crock, a jar shelf, a barrel and a brew vat;
   - timber tunnel supports (props and a lintel, modular);
   - a rock face for hard ground in tunnels.
-- **Icons**, held for his ruling on the icon style:
+- **Icons**, at first held for his ruling on the icon style (see "Brendan's icon-style ruling" below):
   - jam, pickles, dried fruit, cheese, ale and cider;
   - coins, an old map and a spring.
 - **Free**, with no credits:
@@ -26,23 +26,44 @@ The coordinator delegated the paid calls to a subagent under
 - a **hard cap of 270 credits**, counted from this pass's own tasks;
 - Meshy as the only service.
 
+## Brendan's icon-style ruling (2026-10-02)
+
+After the icon-style probe ([decision 0981](0981-icon-style-probe-house-and-mouse.md), branch `art/style-probe`: one
+icon-style house and mouse compared at the game camera), Brendan ruled, relayed by the coordinator:
+
+- **The world keeps its current look.** DEC-038 is unchanged.
+- **Item and dish icons stay in the 3D-render style,** matching the existing pantry icons and pass 1's 24.
+
+This pass then:
+- **generated the nine held icons in that style**: one `nano-banana-2` 3×3 sheet, 6 credits, conditioned on pass 1's
+  `sheet_foods_a`, and cut exactly as pass 1 cut its sheets into transparent 128 px icons;
+- **amended the UI art lock** to match: `asset_generation_lock.md` (its new "Style scope" section),
+  `asset_generation_lock.json` (`style_scope`) and `docs/design/ui_refinement/README.md`.
+  - Item, food and dish icons use the studio render that 0981 describes, and are outside ART-LOCK-001.
+  - The watercolour with ink contours stays for portraits, emblems, medallions, the tapestry, and ceremonial or
+    illustrative UI.
+  - The lock's sixteen HUD rows stand as locked. Whether RES-FOOD, a stew bowl, should match the pantry render
+    instead is left open for Brendan; the amendment does not move it.
+
 ## Spend
 
-The pass spent **222 of 270 credits**. The balance was checked before each group and after it:
+The pass spent **228 of 270 credits**. The balance was checked before each group and after it:
 
 | Group | Calls | Credits | Running |
 |---|---|---|---|
 | 1 | 6 concepts (nano-banana-2 image-to-image, from the world style reference) | 36 | 36 |
 | Redo | the rock face's concept (see choice 5) | 6 | 42 |
 | 2 | 6 meshy-7 high-polys (PBR, 2K, triangles, no remesh) | 180 | 222 |
+| Icons | 1 nano-banana-2 3×3 sheet (after the style ruling) | 6 | 228 |
 
-All 13 tasks succeeded. The ledger's art-pass-3 rows sum to 222; the task IDs are in
+All 14 tasks succeeded. The ledger's art-pass-3 rows sum to 228; the task IDs are in
 `docs/art-reference/asset_library/meshy_tasks.jsonl`.
 
-- **The balance.** It was 410 at the start and **176** after. That is 234 down, 12 more than this pass spent: two
-  image-to-image tasks made on the shared account meanwhile (`01a0fc72-79f5…`, `01a0fc72-86f3…`, "inventory icon"
-  style redraws of a cottage and a mouse) were **not this pass's**. They are left out of its ledger.
-- **What was not spent.** 48 credits of the cap are unspent. No Meshy remesh, rig or animation was bought: every L0,
+- **The balance.** It was 410 at the start, 176 after the models and 104 after the icons. The style probe (decision
+  0981) was spending from the same account at the same time; its tasks (`01a0fc72-…`, `01a0fc74-…` and its
+  high-polys) are **not this pass's** and are left out of its ledger. The cap is counted from this pass's own tasks'
+  `consumed_credits`.
+- **What was not spent.** 42 credits of the cap are unspent. No Meshy remesh, rig or animation was bought: every L0,
   the kit's split and set, and every effect were made free in Blender and Godot.
 
 ## Choices
@@ -89,12 +110,18 @@ All 13 tasks succeeded. The ledger's art-pass-3 rows sum to 222; the task IDs ar
    - **The ice is an include plus an iced copy of the water shader.** It is not edited into `water.gdshader`, because
      the brief was a material the water revamp switches on. `make_art_pass3.py --check-ice` guards the copy against
      drift. Moving water resists freezing, so the stream keeps an open channel, as `pond_ice.gd` says it must.
-8. **Icons: held, briefed and prompted in both styles.** The briefs and prompts are in
-   `docs/art-reference/art_pass3_icon_prompts.md`:
-   - style A, the 3D render that matches the pantry icons: one 3×3 sheet, 6 credits;
-   - style B, the UI lock's watercolour with ink contours: three three-cell sheets, 27 credits.
-
-   Pass 1's `sheet_dishes_c` already holds an uncut cheese wedge in style A.
+8. **Icons: briefed in both styles while held, then made in the 3D-render style** once Brendan ruled. The briefs and
+   both styles' prompts are in `docs/art-reference/art_pass3_icon_prompts.md`. Style A's sheet,
+   `assets/library/icon/sheet_preserves_finds/sheet.png`, was used as written. `make_art_pass3.py --icons` cuts it
+   into `godot/demo/assets/icons/<key>.png` (128 px RGBA, 4 px margin). It uses pass 1's cutter, repeated so this
+   branch stands alone.
+   - The keys are proposed: `item_jam`, `item_pickles`, `item_dried_fruit`, `item_cheese`, `item_ale`,
+     `item_cider`, `find_coins`, `find_old_map`, `find_spring`.
+   - **Two deviations from the briefs** were accepted rather than spending a redo, because neither reads at 128 px:
+     - the map carries scribbled pseudo-lettering and a compass rose;
+     - one coin has a square hole.
+   - Pass 1's `sheet_dishes_c` also holds an uncut cheese wedge in the same style, so there is an alternative cheese
+     at no cost.
 9. **The sizes are proposals**, demo-only, beside the 1.00 m mouse:
 
    | Asset | Proposed size |

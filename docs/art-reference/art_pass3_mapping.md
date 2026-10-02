@@ -12,8 +12,8 @@ assets are queued and not yet built:
 
 Each section below says what the integrator changes.
 
-The icons are **held** pending Brendan's style ruling. Their briefs and both styles' prompts are in
-[`art_pass3_icon_prompts.md`](art_pass3_icon_prompts.md).
+The nine icons were made in the 3D-render style after Brendan's ruling (see [Icons](#icons) at the end). Their briefs
+are in [`art_pass3_icon_prompts.md`](art_pass3_icon_prompts.md).
 
 ## Where the files are
 
@@ -40,6 +40,7 @@ show can be remade with the tools above:
 - `concepts.png`;
 - `lineup_preserving_brewing.png`, `lineup_digging.png`, `digging_from_above.png`;
 - `fx_bees.png`, `fx_fire.png`, `fx_lightning.png`, `fx_ice.png`.
+- `icons_dark.png`, `icons_light.png`.
 
 **Prescaled, facing +Z.** Every model is at game scale, as pass 1's are (decision 0941):
 - its row's `height_m` is its height in metres;
@@ -217,3 +218,30 @@ To integrate, in the water revamp:
     ice does.
 - **Retire the flat ice sheet.** `fishery_view.gd` draws its own ice mesh over the pond (`_build_ice`, `SAFE_ICE`,
   `THIN_ICE`). With this on, that sheet should go; the ice-fishing hole stays.
+
+## Icons
+
+Brendan ruled on 2026-10-02 that item and dish icons stay in the 3D-render style of the pantry icons (decision 0971;
+the UI lock is amended to match). The nine are cut from one sheet, `assets/library/icon/sheet_preserves_finds/sheet.png`
+(task `01a0fc94-6141-7684-be9b-4193024f9aab`), by `python3 tools/make_art_pass3.py --icons`:
+- into `godot/demo/assets/icons/<key>.png`, 128 px RGBA, the same size and cut as pass 1's and `make_demo_props.py`'s;
+- with their rows (sheet, cell and hashes) in `godot/demo/assets/art_pass3_icons.json`.
+
+The keys are proposed. Wire icons **by key**, never by index (pass 1's `index_collisions` note).
+
+| Key | Cell | Serves |
+|---|---|---|
+| `item_jam` | 0,0 | Preserving (#18): jam |
+| `item_pickles` | 1,0 | Preserving (#18): pickles |
+| `item_dried_fruit` | 2,0 | Preserving (#18): dried fruit |
+| `item_cheese` | 0,1 | Preserving (#18) and feasts (#9): cheese. Pass 1's `sheet_dishes_c` (1,2) holds an uncut alternative |
+| `item_ale` | 1,1 | Brewing (#19) and feasts (#9): ale |
+| `item_cider` | 2,1 | Brewing (#19) and feasts (#9): cider |
+| `find_coins` | 0,2 | Digging revamp (#51): a find, beside `tunnel_finds.gd`'s flint and clay |
+| `find_old_map` | 1,2 | Digging revamp (#51): a find |
+| `find_spring` | 2,2 | Digging revamp (#51): striking a spring |
+
+To integrate:
+- Add the rows to the manifest's top-level `icons` section, `{key: {"icon": res://...}}`, as pass 1's staging does.
+  `tools/demo_texture_imports.py` already finds images anywhere in the manifest.
+- The panels draw them as they draw the pantry's.

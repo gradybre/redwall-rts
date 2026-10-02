@@ -1673,6 +1673,17 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "A thick irregular upright SLAB of hard bedrock as one game wall piece, wider than tall, gently curved: its front face blue-grey layered stone with sharp fractures, pale quartz veins and fresh pick marks; dark brown packed earth and small pebbles clinging along its ragged top and side edges; a flat back. Front three-quarter view from slightly above, whole piece visible, solid opaque object, plain light grey background, flat even light, no box, no glass, no frame, no shadows, no characters, no text. Same painted stylized-realistic look and stone materials as the reference."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_preserves_finds",
+      "task_id": "01a0fc94-6141-7684-be9b-4193024f9aab",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins: 1 squat jar of red jam, cloth cover tied with string; 2 stoneware jar of green pickles, dill; 3 dried apple rings and dark berries on cloth; 4 wedge of yellow cheese; 5 wooden tankard of ale, white head; 6 stoneware cider jug, red apple; 7 old bronze and silver coins in earth; 8 half-unrolled old parchment map; 9 clear water welling between wet stones. Flat light grey background, no shadows, no text."
     }
   ]
 }

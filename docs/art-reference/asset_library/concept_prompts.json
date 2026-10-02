@@ -1952,6 +1952,94 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "The same small wild SONGBIRD, a European robin, in flight seen from above at a slight angle: both wings fully spread out flat to the sides, round body, orange-red breast, olive-brown back and wings, short tail fanned, legs tucked. Wings symmetrical and clearly separate from the body. One isolated game asset, whole bird visible, plain light grey background, flat even light, no perch, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "crock_stoneware",
+      "task_id": "01a0fc6e-cc02-75fa-bae0-5797434db889",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A large salt-glazed STONEWARE CROCK for pickling and preserving: a wide straight-sided cylindrical belly, two small lug handles, a fitted lid with a round knob; a cream-grey glaze speckled brown, dipped dark brown at the rim and shoulder, one simple incised band. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no cloth, no characters, no text. Same painted stylized-realistic look and ceramic materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "jar_shelf",
+      "task_id": "01a0fc6e-d7aa-74a2-a6b8-ea59e52ee929",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wide low freestanding wooden PRESERVES SHELF: two thick plank shelves between solid plank end-boards, no thin legs, holding neat rows of small glass and stoneware preserve jars sealed with cloth covers tied with string, jars of red jam, golden honey, green pickles and amber fruit, each jar standing on the planks. One isolated game prop, three-quarter front view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "ale_cask",
+      "task_id": "01a0fc6e-e1e1-74d5-b7cb-b4550f5747e0",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "An oak ALE CASK lying on its side on a low sturdy wooden cradle of two thick notched cross-beams, iron hoops, a wooden spigot tap in the front head, a wooden bung on top, the cask's staves dark with age. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood and iron materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "brew_vat",
+      "task_id": "01a0fc6e-ed19-711c-ba27-7780da747614",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A wide open-topped wooden BREWING VAT, a mash tun: a round stave-built tub with three iron hoops, wider than tall, standing on a low ring of fieldstones, filled near the brim with pale golden-brown foamy mash, a thick wooden mash paddle resting in it and leaning on the rim, a small wooden tap low on its side. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and wood materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "tunnel_timber_kit",
+      "task_id": "01a0fc6e-f739-75ce-b3db-00a3eaf715b4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A modular timber TUNNEL SUPPORT kit of two separate pieces standing apart with a wide clear gap, not touching: on the left one stout upright PROP post of rough adzed oak, squared top with a tenon, slightly flared foot; on the right one heavy squared LINTEL cap beam lying level on the ground, a notched housing cut near each end where the posts seat, axe marks and dark oak grain. Three-quarter view from slightly above, both pieces whole, plain light grey background, flat even light, no shadows, no earth, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "rock_face",
+      "task_id": "01a0fc6f-0100-71ca-841a-5add62707dfa",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A section of hard BEDROCK tunnel wall as one isolated game piece: a wide, shallow, slightly concave slab of blue-grey layered stone with sharp fractures, pale quartz veins and fresh pick marks, its ragged outer edges crumbling into dark brown packed earth and small rubble, flat back. Front three-quarter view, whole piece visible, plain light grey background, flat even light, no shadows, no wooden supports, no characters, no text. Same painted stylized-realistic look and stone materials as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "rock_face",
+      "task_id": "01a0fc6f-b47b-77ae-b198-a2b02abace26",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A thick irregular upright SLAB of hard bedrock as one game wall piece, wider than tall, gently curved: its front face blue-grey layered stone with sharp fractures, pale quartz veins and fresh pick marks; dark brown packed earth and small pebbles clinging along its ragged top and side edges; a flat back. Front three-quarter view from slightly above, whole piece visible, solid opaque object, plain light grey background, flat even light, no box, no glass, no frame, no shadows, no characters, no text. Same painted stylized-realistic look and stone materials as the reference."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_preserves_finds",
+      "task_id": "01a0fc94-6141-7684-be9b-4193024f9aab",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins: 1 squat jar of red jam, cloth cover tied with string; 2 stoneware jar of green pickles, dill; 3 dried apple rings and dark berries on cloth; 4 wedge of yellow cheese; 5 wooden tankard of ale, white head; 6 stoneware cider jug, red apple; 7 old bronze and silver coins in earth; 8 half-unrolled old parchment map; 9 clear water welling between wet stones. Flat light grey background, no shadows, no text."
     }
   ]
 }

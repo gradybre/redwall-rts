@@ -300,11 +300,11 @@ func show_room(title: String, text: String, rows: Array[Dictionary], suggest: St
 		_place.call_deferred()
 
 
-func add_room_section(section: Control) -> void:
-	"""Another owner's section at the foot of the selected room's box (decision 0622: the infirmary's sickbay
-	section), shown with the room; the owner fills it and hides it for rooms it does not concern. The panel is placed
-	again whenever the section's size or visibility changes."""
-	_room_box.add_child(section)
+func add_section(section: Control) -> void:
+	"""Another owner's section in the panel, under the housing line (decision 0623: the infirmary's), placed again
+	whenever its size or visibility changes; the owner fills it."""
+	_column.add_child(section)
+	_column.move_child(section, (_lines[&"housing"] as Control).get_index() + 1)
 	section.minimum_size_changed.connect(_place, CONNECT_DEFERRED)
 	section.visibility_changed.connect(_place, CONNECT_DEFERRED)
 	_place.call_deferred()

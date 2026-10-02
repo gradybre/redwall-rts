@@ -1,7 +1,9 @@
 extends "res://test/framework/test_case.gd"
-## The care desk on real brains (decision 0622): a hurt resident sent to rest -- in the sickbay, in its own bed or at
+## The care desk on real brains (decisions 0622, 0623): a hurt resident sent to rest -- in the infirmary building, in
+## its own bed or at
 ## its field-care spot -- the best healer sent to it and the treatment done beside it; the news and the
-## incident; supplies short and the herbalist gathering; the water's hazards as injuries; the sickbay's rules and its
+## incident; supplies short and the herbalist gathering; the water's hazards as injuries; the infirmary's beds, healer
+## slots and rate, and its
 ## kept beds; and who may not be taken. No scene tree: hand-built spaces, a burrow home laid on the network and dug.
 
 const Rules := preload("res://demo/infirmary/care_rules.gd")
@@ -20,6 +22,9 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const IncidentsScript := preload("res://demo/demo_incidents.gd")
+const ProjectScript := preload("res://demo/infirmary/infirmary_project.gd")
+const InfirmaryRules := preload("res://demo/infirmary/infirmary_rules.gd")
+const StoresScript := preload("res://demo/tunnel/tunnel_stores.gd")
 const NewsClockScript := preload("res://demo/demo_news_clock.gd")
 const SwimStateScript := preload("res://demo/waterplay/swim_state.gd")
 const Injury := preload("res://scripts/core/injury.gd")
@@ -37,8 +42,6 @@ const SHELF_AT: Vector2 = Vector2(3.0, -5.0)
 ## 09:00 on the first day (tick 0 is 06:00): daytime.
 const MORNING: int = 3 * SimClock.TICKS_PER_HOUR
 ## The home's places (underground_rooms.gd FIXTURES): beds 0-2, the hearth 3, the hanging stores 7.
-const HEARTH_PLACE: int = 3
-const HANGING_PLACE: int = 7
 const FED: int = 9000
 
 
@@ -198,7 +201,7 @@ func test_the_patient_rests_in_its_own_bed_and_the_healer_comes_down_to_it() -> 
 	_run(v, 2)
 	var rest := v.brains[0].task as Tasks.BedRest
 	assert_not_null(rest, "resting")
-	assert_equal([rest.where, rest.bed, rest.sickbay], [Tasks.WHERE_BED, v.night.bed_of[0], false], "its own bed")
+	assert_equal([rest.where, rest.bed], [Tasks.WHERE_BED, v.night.bed_of[0]], "its own bed")
 	var took := _run(v, 6000, _treated.bind(v, 0))
 	assert_true(_treated(v, 0), "treated within %d frames" % took)
 	assert_true(v.brains[1].underground, "the healer came down")
@@ -323,47 +326,6 @@ func test_the_player_s_order_and_an_emergency_are_left_alone() -> void:
 	w.desk.test_hurt(PackedInt32Array([0]), false)
 	_run(w, 2)
 	assert_equal(w.desk.healer_of(0), 2, "the herbalist in the water: the other one")
-
-
-# --- the sickbay --------------------------------------------------------------------------------------------------
-
-func test_a_home_becomes_the_sickbay_only_when_whole() -> void:
-	"""A bed, a hearth (warm) and hanging stores (the herb shelf): each missing piece is the refusal in words."""
-	var v := _village(2, 0)
-	assert_equal(v.desk.sickbay_refusal(v.home), DeskScript.NEEDS_BED, "no bed")
-	_install(v.graph, v.home, 0)
-	assert_equal(v.desk.sickbay_refusal(v.home), DeskScript.NEEDS_HEARTH, "no hearth")
-	_install(v.graph, v.home, HEARTH_PLACE)
-	assert_equal(v.desk.set_sickbay(v.home), DeskScript.NEEDS_SHELF, "no shelf")
-	assert_false(v.desk.is_designated(), "not made")
-	_install(v.graph, v.home, HANGING_PLACE)
-	assert_equal(v.desk.set_sickbay(v.home), "", "made")
-	assert_true(v.desk.sickbay_valid(), "valid")
-	assert_equal(v.desk.sickbay_refusal(5), DeskScript.NOT_A_HOME, "no such room")
-	assert_true(v.desk.home_lines(v.home).begins_with("This home is the sickbay"), "said")
-
-
-func test_the_sickbay_s_beds_are_kept_for_the_sick_who_mend_twice_as_fast() -> void:
-	"""Made the sickbay, its beds leave the night's allocation; a patient lies in one and recovers at +4 an hour."""
-	var v := _village(2, 2)
-	_install(v.graph, v.home, HEARTH_PLACE)
-	_install(v.graph, v.home, HANGING_PLACE)
-	v.night.allocate()
-	assert_true(v.night.bed_of[0] != AllocationScript.NO_BED, "a bed before")
-	assert_equal(v.desk.set_sickbay(v.home), "", "the sickbay")
-	assert_equal([v.night.bed_of[0], v.night.bed_of[1]], [AllocationScript.NO_BED, AllocationScript.NO_BED], "kept")
-	v.desk.test_hurt(PackedInt32Array([0]), true)
-	v.desk.hurt(0, Injury.KIND_BITE, 1, 20, NoticesScript.SOURCE_CREW)
-	_run(v, 2)
-	var rest := v.brains[0].task as Tasks.BedRest
-	assert_true(rest.sickbay and rest.room == v.home, "to the sickbay")
-	_run(v, 4000, func() -> bool: return v.desk.state.in_infirmary(0))
-	assert_true(v.desk.state.in_infirmary(0), "lying in it: the infirmary's rate")
-	assert_equal(v.desk.state.rate_per_hour(0), -4, "serious: no recovery yet")
-	_run(v, 6000, _treated.bind(v, 0))
-	assert_equal(v.desk.state.rate_per_hour(0), 4, "treated: +4 an hour")
-	v.desk.clear_sickbay()
-	assert_true(v.night.bed_of[1] != AllocationScript.NO_BED, "its beds the night's again")
 
 
 # --- the card -----------------------------------------------------------------------------------------------------
@@ -500,28 +462,6 @@ func test_a_patient_gets_up_to_eat_and_when_it_cannot_recover() -> void:
 	assert_true(w.desk.resting(0), "serious, no herbs: rests on")
 
 
-func test_a_suspended_sickbay_keeps_its_beds_and_stops_its_rate() -> void:
-	"""REQ-SET-129: the sickbay's hearth taken out, its care is suspended (no +4) though it stays the sickbay; two patients
-	lie in two different beds."""
-	var v := _village(3, 2)
-	_install(v.graph, v.home, HEARTH_PLACE)
-	_install(v.graph, v.home, HANGING_PLACE)
-	v.desk.set_sickbay(v.home)
-	v.desk.test_hurt(PackedInt32Array([0, 2]), false)
-	_run(v, 4000, func() -> bool: return v.desk.state.in_infirmary(0) and v.desk.state.in_infirmary(2))
-	assert_true(v.desk.state.in_infirmary(0) and v.desk.state.in_infirmary(2), "both in")
-	var r0 := v.brains[0].task as Tasks.BedRest
-	var r2 := v.brains[2].task as Tasks.BedRest
-	assert_true(r0.bed != r2.bed, "two beds")
-	assert_equal(v.night.sleepers_of(v.home), NightScript.KEPT_WORDS, "the room says its beds are kept")
-	v.graph.fit.phase[v.home * FixturesScript.PLACES + HEARTH_PLACE] = FixturesScript.EMPTY
-	v.graph.fit.revision += 1
-	_run(v, 2)
-	assert_true(v.desk.is_designated() and not v.desk.sickbay_valid(), "suspended")
-	assert_false(v.desk.state.in_infirmary(0), "no +4")
-	assert_true(v.desk.home_lines(v.home).contains("Its care is suspended"), "said")
-
-
 func test_the_incident_recovers_then_resolves() -> void:
 	"""Treated under 70, the incident is Recovering; up again, Resolved."""
 	var v := _village(2)
@@ -533,21 +473,134 @@ func test_the_incident_recovers_then_resolves() -> void:
 	assert_equal(v.desk.incident_state(0), IncidentsScript.STATE_RECOVERING, "the watch")
 
 
-func test_a_patient_under_treatment_stays_and_a_cleared_sickbay_keeps_its_patient_s_bed() -> void:
-	"""Hungry while a healer tends it, a patient stays for the treatment; the sickbay cleared while a patient lies in its
-	bed, that bed stays the patient's (resident 2: the lower ones are allocated first) and no sleeper is given it."""
+
+
+# --- the infirmary building (decision 0623) -------------------------------------------------------------------------
+
+## Where the test village's infirmary stands, and its door (its front faces +Z).
+const INFIRMARY_AT: Vector2 = Vector2(6.0, -6.0)
+
+
+func _infirmary(v: Village, built: bool, residents: int = -1) -> ProjectScript:
+	"""An infirmary for the village at INFIRMARY_AT, built or only placed, its beds for `residents` (default the cast)."""
+	var stores := StoresScript.new()
+	var project := ProjectScript.new(stores, v.desk.state, residents if residents > 0 else v.brains.size())
+	project.plan_at(INFIRMARY_AT, 0.0)
+	if built:
+		project.state = ProjectScript.STATE_DONE
+	v.desk.infirmary = project
+	return project
+
+
+func test_built_the_hurt_go_into_the_infirmary_and_mend_twice_as_fast() -> void:
+	"""Built: a hurt resident walks to its door and in, has a bed, is treated inside, mends at +4 an hour, and leaves its
+	bed when up again."""
 	var v := _village(3, 2)
-	_install(v.graph, v.home, HEARTH_PLACE)
-	_install(v.graph, v.home, HANGING_PLACE)
-	v.desk.set_sickbay(v.home)
+	var project := _infirmary(v, true)
+	v.desk.test_hurt(PackedInt32Array([0]), true)
+	v.desk.hurt(0, Injury.KIND_BITE, 1, 20, NoticesScript.SOURCE_CREW)
+	_run(v, 2)
+	var rest := v.brains[0].task as Tasks.BedRest
+	assert_equal(rest.where, Tasks.WHERE_INFIRMARY, "to the infirmary")
+	assert_true(project.is_admitted(0), "a bed")
+	assert_equal(project.beds_free(), 7, "7 left")
+	_run(v, 4000, func() -> bool: return v.desk.state.in_infirmary(0))
+	assert_true(v.brains[0].indoors, "inside")
+	assert_true(v.brains[0].task_label().begins_with("Resting in the infirmary"), v.brains[0].task_label())
+	_run(v, 6000, _treated.bind(v, 0))
+	assert_true(_treated(v, 0), "treated there")
+	assert_equal(v.desk.state.rate_per_hour(0), 4, "+4 an hour inside")
+	_run(v, 20 * SimClock.TICKS_PER_HOUR, func() -> bool: return not v.desk.resting(0))
+	_run(v, 3)
+	assert_false(project.is_admitted(0), "its bed freed")
+	assert_false(v.brains[0].indoors, "out again")
+
+
+func test_before_it_is_built_or_when_full_the_hurt_rest_in_their_own_beds() -> void:
+	"""Only placed: the patient goes to its own bed; built but full: the same."""
+	var v := _village(2, 2)
+	v.night.allocate()
+	_infirmary(v, false)
+	v.desk.test_hurt(PackedInt32Array([0]), false)
+	_run(v, 2)
+	assert_equal((v.brains[0].task as Tasks.BedRest).where, Tasks.WHERE_BED, "not built: its own bed")
+	var w := _village(2)
+	var full := _infirmary(w, true, 12)
+	for k: int in range(4, 12):
+		full.admit(k)
+	assert_equal(full.beds_free(), 0, "full")
+	w.desk.test_hurt(PackedInt32Array([0]), false)
+	_run(w, 2)
+	assert_equal((w.brains[0].task as Tasks.BedRest).where, Tasks.WHERE_FIELD, "full and no bed: the field-care spot")
+
+
+func _all_inside(v: Village, who: PackedInt32Array) -> bool:
+	"""Whether every one of `who` rests inside the infirmary."""
+	for i: int in who:
+		if not v.desk.state.in_infirmary(i):
+			return false
+	return true
+
+
+func test_at_most_two_healers_treat_inside_at_once() -> void:
+	"""GDD §5.9 Healer 2: three patients inside, two healers sent; the third waits."""
+	var v := _village(6)
+	_infirmary(v, true)
+	v.desk.test_hurt(PackedInt32Array([0, 2, 3]), true)
+	_run(v, 3000, _all_inside.bind(v, PackedInt32Array([0, 2, 3])))
+	_run(v, 2 * DeskScript.DISPATCH_TICKS)
+	assert_equal(v.desk.healers_inside(), InfirmaryRules.healer_slots(), "two inside")
+	var waiting: int = 0
+	for p: int in [0, 2, 3]:
+		waiting += 1 if v.desk.healer_of(p) == DeskScript.NOBODY else 0
+	assert_equal(waiting, 1, "the third waits")
+
+
+func test_a_patient_under_treatment_stays_through_hunger() -> void:
+	"""Hungry while a healer tends it, a patient stays for the treatment."""
+	var v := _village(3)
+	_infirmary(v, true)
 	v.desk.test_hurt(PackedInt32Array([2]), true)
 	_run(v, 6000, func() -> bool: return v.desk.healer_of(2) != DeskScript.NOBODY)
 	v.hunger[2] = 3000
 	_run(v, 2)
 	assert_false(v.desk.may_get_up(2), "a healer on it: it stays")
-	v.hunger[2] = 9000
-	_run(v, 4000, func() -> bool: return v.desk.state.in_infirmary(2))
-	var bed: int = (v.brains[2].task as Tasks.BedRest).bed
-	v.desk.clear_sickbay()
-	assert_equal(v.night.bed_of[2], bed, "its bed stays its own")
-	assert_false(v.night.bed_of[0] == bed or v.night.bed_of[1] == bed, "no sleeper is given it")
+
+
+func test_the_infirmary_lines() -> void:
+	"""The section's lines: none yet, then built with its beds; the supplies and the patients."""
+	var v := _village(2)
+	assert_true(v.desk.infirmary_lines().begins_with("No infirmary"), "no building bound")
+	var project := _infirmary(v, false)
+	assert_true(v.desk.infirmary_lines().begins_with("Infirmary: materials being fetched"), v.desk.infirmary_lines())
+	project.state = ProjectScript.STATE_DONE
+	assert_true(v.desk.infirmary_lines().begins_with("Infirmary: built — 8 of 8 patient beds free"), v.desk.infirmary_lines())
+	assert_true(v.desk.infirmary_lines().contains("No patients"), "patients")
+
+
+func test_a_healer_at_the_field_spot_does_not_count_against_the_infirmary() -> void:
+	"""One bed free: one patient inside, one at the field-care spot; their two healers count one inside."""
+	var v := _village(6)
+	var project := _infirmary(v, true, 14)
+	for k: int in range(6, 13):
+		project.admit(k)
+	v.desk.test_hurt(PackedInt32Array([0, 2]), true)
+	_run(v, 6000, func() -> bool: return v.desk.healer_of(0) != DeskScript.NOBODY and v.desk.healer_of(2) != DeskScript.NOBODY)
+	assert_equal([(v.brains[0].task as Tasks.BedRest).where, (v.brains[2].task as Tasks.BedRest).where],
+		[Tasks.WHERE_INFIRMARY, Tasks.WHERE_FIELD], "one in, one out")
+	assert_equal(v.desk.healers_inside(), 1, "one healer inside")
+
+
+func test_a_trip_to_the_infirmary_lost_before_it_got_in_rests_elsewhere_next() -> void:
+	"""Taken off its rest before reaching the door: its bed is freed and the next rest is its own bed or the spot."""
+	var v := _village(2)
+	var project := _infirmary(v, true)
+	v.desk.test_hurt(PackedInt32Array([0]), true)
+	_run(v, 2)
+	assert_true(project.is_admitted(0), "admitted")
+	v.brains[0].order_move(Vector2(-4.0, 4.0))
+	_run(v, 2)
+	assert_false(project.is_admitted(0), "its bed freed")
+	v.brains[0].release()
+	_run(v, 40)
+	assert_equal((v.brains[0].task as Tasks.BedRest).where, Tasks.WHERE_FIELD, "elsewhere this time")

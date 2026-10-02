@@ -560,17 +560,25 @@ func fishery() -> FisheryNodeScript:
 
 
 func _build_care() -> void:
-	"""THE INFIRMARY (demo/infirmary/, decisions 0621-0622), after the kitchen, the water and the fishery: injuries and
+	"""THE INFIRMARY (demo/infirmary/, decisions 0621-0623), after the kitchen, the water and the fishery: injuries and
 	their care on the cast, the night's beds and the network's rooms, the kitchen's hunger and the water's stamina and
-	hazards; its lines on the resident card, its sickbay section in a selected home's box, its factor on the work pace."""
+	hazards; its lines on the resident card, its factor on the work pace; the infirmary building placed from its section
+	in the Tunnels panel, built from the village stores at the open stockpile and the care shelf through the work board
+	(`_build_work` lists its places)."""
 	_care = CareScript.new()
 	add_child(_care)
-	var ext: TunnelExtScript = (_command as DemoCommandScript).tunnels().ext
-	_care.configure(_cast as DemoCastScript, _services, ext.night, _cast.space().tunnels, _kitchen.kitchen.fed,
+	var command: DemoCommandScript = _command as DemoCommandScript
+	var tool: TunnelControlScript = command.tunnels()
+	_care.configure(_cast as DemoCastScript, _services, tool.ext.night, _cast.space().tunnels, _kitchen.kitchen.fed,
 		_waterplay.state, _services.work_pace)
-	_command.add_skill_text(_care.card_text)
-	ext.panel.add_room_section(_care.section)
-	_care.watch_rooms(func() -> int: return ext.selected_room if ext.has_room_selected() else -1)
+	_care.configure_building(SpoilScript.drop_point(_cast as DemoCastScript), tool.room_site, tool.site_key,
+		tool.network, _camera.camera(), command.say, func() -> void:
+			if tool.planning:
+				tool.cancel_plan())
+	command.add_skill_text(_care.card_text)
+	command.add_task_text(_care.building.builders.doing_text)
+	command.add_input_hook(_care.building.handle_input)
+	tool.ext.panel.add_section(_care.section)
 
 
 func care() -> CareScript:
@@ -587,6 +595,7 @@ func _build_work() -> void:
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
+	_work.add_care(_care.building.builders)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)

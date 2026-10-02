@@ -1,6 +1,7 @@
 extends Node3D
-## THE INFIRMARY in the live village: injuries and their care, run each frame on the one calendar. Decision 0622 (the
-## findings: 0621). Presentation only: it writes nothing into the settlement simulation.
+## THE INFIRMARY in the live village: injuries and their care, run each frame on the one calendar, and the infirmary
+## building the hurt go to. Decisions 0622, 0623 (the findings: 0621). Presentation only: it writes nothing into the
+## settlement simulation.
 ##
 ## What it wires (the rules are care_desk.gd's and care_state.gd's):
 ##   * the care desk over the cast's brains, the night's beds (demo/burrow/night_routine.gd) and the network's rooms,
@@ -11,12 +12,16 @@ extends Node3D
 ##   * the herb patch drawn by the south road (herb_patch_view.gd), and its standing spot found on the cast's ground;
 ##   * the FIELD-CARE SPOTS (P2): a row of places on the open ground before the hall's steps, one a resident, where a
 ##     patient with no bed lies to be treated, each found on the cast's ground and kept apart;
-##   * the SICKBAY SECTION in a selected burrow home's box (sickbay_section.gd), refreshed while shown;
+##   * the INFIRMARY BUILDING (infirmary_building.gd, decision 0623): placed from the Tunnels panel's INFIRMARY SECTION
+##     (infirmary_section.gd: its state, the supplies, the patients; "Build the infirmary…" or "Cancel the
+##     infirmary"), built by residents through the work board, and handed to the desk, which sends the hurt there;
 ##   * the resident card's lines (`card_text`, through demo_command.gd `add_skill_text`) and the Demo Lab's test
 ##     injuries (`lab_hurt`).
 
 const DeskScript := preload("res://demo/infirmary/care_desk.gd")
-const SectionScript := preload("res://demo/infirmary/sickbay_section.gd")
+const SectionScript := preload("res://demo/infirmary/infirmary_section.gd")
+const BuildingScript := preload("res://demo/infirmary/infirmary_building.gd")
+const ProjectsScript := preload("res://demo/infirmary/infirmary_project.gd")
 const PatchViewScript := preload("res://demo/infirmary/herb_patch_view.gd")
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const PaceScript := preload("res://demo/work/work_pace.gd")
@@ -26,7 +31,6 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastOrdersScript := preload("res://demo/cast/cast_orders.gd")
 const ServicesScript := preload("res://demo/demo_services.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
-const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const SwimStateScript := preload("res://demo/waterplay/swim_state.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -44,16 +48,20 @@ const FIELD_OUT_M: float = 2.6
 ## The herb shelf's delivery spot: this far out from the hall's steps toward the square, clear of the steps' own spot
 ## (residents stand there), so a carrier's way is not blocked.
 const SHELF_OUT_M: float = 1.2
-## The sickbay section is refreshed this often while shown (real seconds).
+## The infirmary section is refreshed this often (real seconds).
 const SECTION_REFRESH_S: float = 0.25
-const MAKE: String = "Make it the sickbay"
-const STOP: String = "Stop using it as the sickbay"
-const MAKE_TIP: String = "Keep this home's beds for the sick: they mend at +4 health an hour here, not +2 (REQ-SET-017)"
-const STOP_TIP: String = "Give this home's beds back to the night's sleepers"
+const BUILD: String = "Build the infirmary…"
+const CANCEL: String = "Cancel the infirmary"
+const BUILT: String = "The infirmary is built"
+const BUILD_TIP: String = ("Place it, then residents fetch wood 40, stone 30 and cloth 12 and build it (1000 WU):"
+	+ " the hurt rest and heal there at +4 health an hour (REQ-SET-017)")
+const BUILT_TIP: String = ("The hurt rest and heal here; before it, or when its 8 beds are full, they rest in their own"
+	+ " beds or by the hall")
 
 var desk: DeskScript = DeskScript.new()
 var section: SectionScript = SectionScript.new()
 var patch_view: PatchViewScript = PatchViewScript.new()
+var building: BuildingScript = BuildingScript.new()
 
 var _cast: DemoCastScript = null
 var _services: ServicesScript = null
@@ -61,8 +69,6 @@ var _night: NightScript = null
 ## Read each frame: the kitchen's nourishment (its `hunger`) and the water's swim state (its `rest` and hazards).
 var _fed: RefCounted = null
 var _swim: SwimStateScript = null
-## `selected_room() -> int`: the room the tunnels' panel shows (-1: none).
-var _selected_room: Callable = Callable()
 var _empty: PackedInt32Array = PackedInt32Array()
 var _section_in: float = 0.0
 var _field_spots: PackedVector2Array = PackedVector2Array()
@@ -90,7 +96,11 @@ func configure(cast: DemoCastScript, services: ServicesScript, night: NightScrip
 	add_child(patch_view)
 	patch_view.build(Rules.HERB_PATCH_AT, 0.0)
 	patch_view.show_stock(desk.state.patch_milli)
-	section.on_press(_on_sickbay_pressed)
+	add_child(building)
+	building.configure(cast, services.stores, desk.state, services.props, Vector2.ZERO, desk.shelf_at())
+	desk.infirmary = building.project
+	building.project.cloth_held = desk.cloth_for_treatments
+	section.on_press(_on_section_pressed)
 
 
 func _configure_desk(night: NightScript, graph: RefCounted) -> void:
@@ -108,9 +118,16 @@ func _configure_desk(night: NightScript, graph: RefCounted) -> void:
 	desk.configure(brains, names, keys, sizes, night, graph)
 
 
-func watch_rooms(selected_room: Callable) -> void:
-	"""`selected_room() -> int`: the room the tunnels' panel shows, whose sickbay section this fills."""
-	_selected_room = selected_room
+func configure_building(store_at: Vector2, site: Callable, site_key: Callable, network: RefCounted, camera: Camera3D,
+		say: Callable, before_placing: Callable) -> void:
+	"""Where its builders fetch wood and stone (`store_at`, the open stockpile), its placing tool's site, network, camera
+	and voice (infirmary_building.gd `configure_place`) -- kept clear of the shelf, the herb patch, the field-care spots
+	and the stockpile -- and what runs before the tool is armed (the Dig tool put away)."""
+	building.builders.configure(_cast, _services.props, store_at, desk.shelf_at())
+	var keep := PackedVector2Array([desk.shelf_at(), desk.patch_at(), store_at])
+	keep.append_array(_field_spots)
+	building.configure_place(site, site_key, network, camera, _services.props, say, keep)
+	building.before_placing = before_placing
 
 
 func _toward() -> Vector2:
@@ -179,31 +196,26 @@ func update() -> void:
 
 
 func refresh_section() -> void:
-	"""Fill the sickbay section for the burrow home the tunnels' panel shows (hidden for anything else)."""
-	var r: int = int(_selected_room.call()) if _selected_room.is_valid() else -1
-	if r < 0 or desk.sickbay_refusal(r) == DeskScript.NOT_A_HOME:
-		section.hide_section()
-		return
-	var is_it: bool = r == desk.sickbay and desk.is_designated()
-	var why: String = desk.sickbay_refusal(r)
-	section.show_home(desk.home_lines(r), STOP if is_it else MAKE, is_it or why.is_empty(),
-		STOP_TIP if is_it else (MAKE_TIP if why.is_empty() else "Not yet: " + why))
-
-
-func _on_sickbay_pressed() -> void:
-	"""The section's button: make the shown home the sickbay, or stop using it as one; said in the news."""
-	var r: int = int(_selected_room.call()) if _selected_room.is_valid() else -1
-	if r < 0:
-		return
-	var words: String
-	if r == desk.sickbay and desk.is_designated():
-		desk.clear_sickbay()
-		words = "%s is a home again: its beds are the night's" % NightScript.room_name(r)
+	"""Fill the infirmary section: its lines and its one button (see the header)."""
+	var project: ProjectsScript = building.project
+	if project.is_done():
+		section.show_lines(desk.infirmary_lines(), BUILT, false, BUILT_TIP)
+	elif project.is_active():
+		section.show_lines(desk.infirmary_lines(), CANCEL, true, "Cancel it: " + project.refund_text())
 	else:
-		var why: String = desk.set_sickbay(r)
-		words = "%s is the sickbay: its beds are kept for the sick" % NightScript.room_name(r) if why.is_empty() \
-			else "%s cannot be the sickbay: %s" % [NightScript.room_name(r), why]
-	_services.notices.post(NoticesScript.SOURCE_TUNNELS, NoticesScript.LEVEL_NOTE, words)
+		section.show_lines(desk.infirmary_lines(), BUILD, true, BUILD_TIP)
+
+
+func _on_section_pressed() -> void:
+	"""The section's button: arm the placing tool, or cancel the planned infirmary (said in the news)."""
+	var project: ProjectsScript = building.project
+	if project.is_active():
+		var refund: String = project.refund_text()
+		if building.cancel().is_empty():
+			_services.notices.post(NoticesScript.SOURCE_VILLAGE, NoticesScript.LEVEL_NOTE,
+				"The infirmary was cancelled: it " + refund)
+	elif not project.is_done():
+		building.start_placing()
 	refresh_section()
 
 

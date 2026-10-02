@@ -17,12 +17,16 @@ const SOURCE_KITCHEN: int = 6
 ## The fishery: fishing trips' seats, traps' collections, the rack, the mill and the gear (water part B, decision 0431;
 ## demo/work/fishery_work.gd): claimed like the farm's.
 const SOURCE_FISHERY: int = 7
-const SOURCE_COUNT: int = 8
+## The infirmary building's places: fetching its materials and building it (decision 0623; demo/work/care_work.gd):
+## claimed like the farm's. NUMBER MAY COLLIDE with another branch's next source (the cellar's SOURCE_STORES, decision
+## 0612): whoever merges second renumbers its own to the next free number and moves SOURCE_COUNT and SOURCE_WALK up.
+const SOURCE_CARE: int = 8
+const SOURCE_COUNT: int = 9
 ## What each source is called in the Projects view and the Cancel all scope.
 const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
-	"Kitchen", "Fishery and stations"]
+	"Kitchen", "Fishery and stations", "Infirmary"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 8
+const SOURCE_WALK: int = 9
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1

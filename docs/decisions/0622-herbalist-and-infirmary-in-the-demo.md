@@ -1,5 +1,6 @@
 # 0622 — Herbalist and infirmary in the live demo: injuries, bed rest, treatment, the sickbay and herbs
-Date: 2026-10-01 · Status: Accepted (demo feature #26, approved by Brendan 2026-10-01; proposals P1–P8 await his ruling)
+Date: 2026-10-01 · Status: Accepted (demo feature #26, approved by Brendan 2026-10-01). Ruled 2026-10-01: P1, P3, P4,
+P6, P7, P8 approved as built; **P2 and P5 superseded by decision 0623** (the infirmary is its own building)
 
 ## Decision
 The live demo gains a non-fatal injury-and-care loop built on the adopted rules found in decision 0621
@@ -30,6 +31,14 @@ is not written. No combat, no death, no illness.
 - **Herb patch** (§5.5, §5.1): capacity 160 U, start 0.8 K = 128 U, the ruled regrowth
   `min(K−P, floor((K−P)·80·S/10⁶)+1000)` each midnight by season, sustainable floor 20% K, work per U
   `ceil(8·10⁶/((1000+40L)(1000+100d)))` (8 WU at level 0, danger 1); starting shelf stocks herb 12 U, cloth 24 U.
+
+## Brendan's rulings (2026-10-01, relayed by the coordinator)
+"The infirmary should be its own place and that's where residents go to rest and heal."
+- **P1, P3, P4, P6, P7, P8 are approved as built.**
+- **P2 and P5 change** (decision 0623): the GDD's Infirmary building is built and the hurt rest and heal there; the
+  bed / field-care spot is the fallback before it exists or when it is full (0623 P2). **The "designate a dug home as
+  the sickbay" path is retired** — its section in the Tunnels panel's room box, the night's kept-beds filter and the
+  desk's sickbay rules are removed. The text below is kept as the record of what was weighed and first built.
 
 ## PROPOSALS — demo choices where the documents are silent (each a question for Brendan)
 - **P1 — the health floor.** Health never falls below 16: an incident's loss is capped there, and a tick that brings

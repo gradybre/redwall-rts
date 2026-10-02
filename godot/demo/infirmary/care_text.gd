@@ -1,5 +1,5 @@
 extends RefCounted
-## The infirmary's words: the resident card's lines, the news and incident lines, the sickbay section's lines.
+## The infirmary's words: the resident card's lines, the news and incident lines, the infirmary section's lines.
 ## Decision 0622. Pure: everything is read from the arguments. Plain words (UI §7: the severity is said, never only
 ## coloured), and the GDD's numbers as the player meets them -- health out of 100, herbs and cloth in U, care in WU.
 
@@ -56,9 +56,9 @@ static func care_words(healer_name: String, percent: int, waiting: String) -> St
 
 
 static func recovering_line(health: int, rate: int, infirmary: bool, resting: bool) -> String:
-	"""A treated resident below full health: "Recovering · health 67 · +4 an hour in the sickbay · up at 70 in about
+	"""A treated resident below full health: "Recovering · health 67 · +4 an hour in the infirmary · up at 70 in about
 	1 h"."""
-	var where := " in the sickbay" if infirmary else ""
+	var where := " in the infirmary" if infirmary else ""
 	var line := "Recovering · health %d · %s%s" % [health, rate_words(rate), where]
 	if resting and health < Rules.UP_HEALTH and rate > 0:
 		line += " · up at %d in about %d h" % [Rules.UP_HEALTH, ceili(float(Rules.UP_HEALTH - health) / float(rate))]

@@ -1542,50 +1542,49 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
   frame (`test/test_demo_sound_cost.gd`, headless, Apple Silicon). The boot prewarm step (streams and the
   worn-path grid) took about 16 ms with nothing staged and 22 ms loading all 56 files.
 
-## The herbalist and the infirmary (decisions 0621-0622)
+## The herbalist and the infirmary (decisions 0621-0623)
 
-Injuries and their care, by the GDD's own rules (`infirmary/`). The demo is **non-fatal**: health never falls below
-16, so nobody is incapacitated or dies (a demo floor, decision 0622 P1, as the water's "washed ashore" is). No
-illness is modelled: the family illnesses (CHILL) are a draft.
+Injuries and their care, by the GDD's own rules (`infirmary/`), and the GDD's Infirmary building the hurt go to. The demo
+is **non-fatal**: health never falls below 16, so nobody is incapacitated or dies (a demo floor, decision 0622 P1,
+ruled). No illness is modelled: the family illnesses (CHILL) are a draft.
 
 - **Health and the Injury row are the real stores'** (`care_state.gd`): a private `scripts/core/needs.gd` and
   `injury.gd`, one row a resident, run on the one calendar. Hunger (the kitchen's) and rest (the water's stamina) are
-  mirrored in, so REQ-SET-017's recovery (+2 health an hour when fed and rested, +4 in the sickbay) and REQ-SET-014's
+  mirrored in, so REQ-SET-017's recovery (+2 health an hour when fed and rested, +4 in the infirmary) and REQ-SET-014's
   starvation (−4) read the demo's own figures. An untreated injury costs −1 an hour (minor) or −4 (serious,
-  REQ-SET-172); one aggregate injury a resident, the worse severity replacing (GDD §4.2). While everyone is well no
-  tick is integrated.
-- **What hurts** (decision 0621 lists the GDD's sources): a swimmer exhausted in the water (HAZ-003: exhaustion,
-  minor, no immediate loss -- the Lab's Cramp brings it) and one left below with no air (HAZ-002: exposure, serious,
-  −125 an hour while airless); a bramble cut while gathering herbs (REQ-SET-068: 8 in 10000 every 60 WU, −10). Storms,
-  wildlife, tunnels and digging hurt nobody, by the GDD. The Demo Lab's **Injury** and **Serious injury** give the
-  selected residents §5.4's net hazard (a bite, −20) or its boat hazard (exposure, −35).
-- **A hurt resident rests** (`care_tasks.gd` BedRest): in a free sickbay bed of its size, else its own bed, else lying
-  on the ground at its **field-care spot** before the hall's steps (REQ-SET-173: "at a field landing point or a bed").
-  It stays until treated and back at 70 health, the full work band (P4) -- but it gets up to eat, a minor injury the
-  shelf cannot pay for is borne at work, and a treated one that cannot recover (hungry or tired) gets up too. The news says who is hurt and why; an incident
-  stays open (*Needs a decision* while there are no herbs, no cloth or nobody free; *Assigned* while it waits or is
-  treated; *Recovering*; resolved once it is up).
-- **The healer** (`care_desk.gd`): the resting patient is given the best free resident -- the highest Healing level
-  first (the squirrel gatherer, Linnet Whinberry, starts at level 2: P3), then the nearest. Treatment pays herb 1 U and
-  cloth 0.5 U once, at work start, and takes 60 WU of HEAL at §5.2's 80 milli-WU a tick times the work factor (an hour
-  at level 0); its work stays with the patient if the healer is called away. Done: the injury clears, +10 health, 10
-  XP a WU. A healer goes only while the shelf covers every healer already sent, and only one that can reach the bed.
-  A sleeper is woken for it; the night parks neither the patient nor the treatment.
-- **The resident card** (the party panel, through `add_skill_text`): "Hurt: a bite (minor) · health 80", its untreated
-  hours and rate, who treats it and how far ("Being treated by Linnet Whinberry — 40%") or what it waits for; then
-  "Recovering · health 67 · +4 an hour in the sickbay · up at 70 in about 1 h"; "Work at 85% (health 85%)" while
-  health is under 70; and the healer's "Healing · Level 2".
-- **The sickbay** (GDD §5.9's infirmary room: a bed, a shelf, heated): select a dug burrow home; the Tunnels panel's
-  room box ends with a **Sickbay** section -- what the home still needs (a bed, a hearth for warmth, hanging stores
-  for the herbs), the herbs and cloth on the shelf, the herb patch and the patients -- and **Make it the sickbay** /
-  **Stop using it as the sickbay**. Its beds are then kept for the sick (the night gives them to nobody; the room says
-  so) and a patient lying in one mends at +4 an hour. A sickbay that loses its hearth or shelf keeps its beds and stops
-  its care until it is whole (REQ-SET-129).
-- **Herbs** (§5.5's herb row): the shelf at the hall's steps starts with the GDD's 12 U of herb and 24 U of cloth. One
-  herb patch grows by the south road into the woods (`herb_patch_view.gd`: leafy clumps with pale flowers, as many as
-  it holds): 160 U capacity, 128 U at the start, regrowing each midnight by §5.5's ruled formula, gathered down to 32 U.
-  By day, while the shelf holds under 12 U, the idle herbalist gathers 4 U (8 WU a U) and carries it to the shelf; the
-  patch is debited only at the shelf. Cloth is not made in the demo.
+  REQ-SET-172); one aggregate injury a resident, the worse severity replacing (GDD §4.2).
+- **What hurts** (decision 0621 lists the GDD's sources): a swimmer exhausted in the water (HAZ-003) and one left below
+  with no air (HAZ-002); a bramble cut while gathering herbs (REQ-SET-068). Storms, wildlife, tunnels and digging hurt
+  nobody, by the GDD. The Demo Lab's **Injury** and **Serious injury** give the selected residents §5.4's net hazard (a
+  bite, −20) or its boat hazard (exposure, −35).
+- **The infirmary building** (decision 0623; Brendan: "The infirmary should be its own place and that's where residents
+  go to rest and heal"): GDD §5.9's Infirmary -- wood 40, stone 30, cloth 12, 1000 WU, 8 patient beds, Healer 2 --
+  available from the start. The Tunnels panel's **Infirmary** section (under the housing line) says how it stands, the
+  herbs and cloth, the herb patch and the patients, with **Build the infirmary…**: a ghost follows the pointer, brass
+  where it may stand, clay with the reason where not; a click places it (nothing taken), Esc or a right click puts the
+  tool away. Residents then build it through the work board ("Infirmary" source, REQ-SET-124/125/126 as the cellar
+  building does): wood and stone fetched from the stores at the open stockpile, cloth from the care shelf at the hall's
+  steps, the books always adding up; **Cancel the infirmary** returns all before the work begins, 80% after. It is drawn
+  with the library's residence model at the infirmary's 5.5 m envelope, with herb strings and a shelf of remedies at its
+  door (no infirmary model exists: an art gap), flat while fetched for, rising as it is built.
+- **A hurt resident rests** (`care_tasks.gd` BedRest): in the infirmary when it is built and has a bed -- in at its
+  door, admitted to a bed, treated there, mending at +4 an hour, at most 2 healers inside at once; before it is built,
+  or when it is full, in its own bed, else lying at its **field-care spot** before the hall's steps (decision 0623 P2).
+  It stays until treated and back at 70 health (P4, ruled) -- but it gets up to eat, a minor injury the shelf cannot pay
+  for is borne at work, and a treated one that cannot recover (hungry or tired) gets up too. The news says who is hurt
+  and why; an incident stays open until it is up again.
+- **The healer** (`care_desk.gd`): the best free resident who can reach the patient -- the highest Healing level first
+  (the squirrel gatherer, Linnet Whinberry, starts at level 2), then the nearest. Treatment pays herb 1 U and cloth 0.5 U
+  once, at work start, and takes 60 WU of HEAL (an hour at level 0); its work stays with the patient if the healer is
+  called away. A healer goes only while the shelf covers every healer already sent.
+- **The resident card** (the party panel): "Hurt: a bite (minor) · health 80", its untreated hours and rate, who treats
+  it and how far or what it waits for; then "Recovering · health 67 · +4 an hour in the infirmary · up at 70 in about 1
+  h"; "Work at 85% (health 85%)" while health is under 70; the healer's "Healing · Level 2"; a builder's "Carrying wood
+  to the infirmary".
+- **Herbs** (§5.5's herb row): the shelf starts with the GDD's 12 U of herb and 24 U of cloth. One herb patch grows by
+  the south road (160 U, 128 at the start, regrowing each midnight, gathered down to 32 U); by day, while the shelf
+  holds under 12 U, the idle herbalist gathers 4 U and carries it to the shelf. Cloth is not made in the demo (0622 P8,
+  ruled): building the infirmary takes 12 U of it (0623 P1).
 - **The work pace** (`work/work_pace.gd`, `demo_services.gd` `work_pace`): each owner's per-resident work factor,
   multiplied; the infirmary adds the health factor (600 under 40, 850 under 70). HEAL work reads it.
 
@@ -1616,7 +1615,7 @@ illness is modelled: the family illnesses (CHILL) are a draft.
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
 | `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411); the village's one work pace (`work_pace.gd`, decision 0622) |
-| `infirmary/` | Injuries and their care (decisions 0621-0622): the numbers (`care_rules.gd`), health and the Injury row on the real stores (`care_state.gd`), the patients, healers, herbalist and sickbay (`care_desk.gd`), the bed rest, treatment and gathering tasks, the words, the herb patch's drawing, the sickbay section and the node wiring it into the village (`demo_care.gd`) |
+| `infirmary/` | Injuries and their care (decisions 0621-0623): the numbers (`care_rules.gd`), health and the Injury row on the real stores (`care_state.gd`), the patients, healers and herbalist (`care_desk.gd`), the bed rest, treatment and gathering tasks, the words, the herb patch's drawing; the infirmary building -- its numbers, books, builders, placing tool, drawing and node (`infirmary_*.gd`) -- its section in the Tunnels panel, and the node wiring it all into the village (`demo_care.gd`) |
 | `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
 | `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |

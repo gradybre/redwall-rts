@@ -36,9 +36,8 @@ extends RefCounted
 ## that says so (its sleep task's morning; one still on its way to bed turns back, as at dawn), and while it does the
 ## night does not send it back to bed.
 ##
-## KEPT BEDS (decision 0622, the infirmary): `set_bed_filter(keep)` -- `keep(bed: int) -> bool` -- leaves out of the
-## allocation every bed it answers false for (a sickbay's beds are kept for the sick), and `bed_task_at` sends a
-## resident to a given bed with the night's own motion (the infirmary's bed rest).
+## A GIVEN BED (decision 0622, the infirmary): `bed_task_at` sends a resident to a given bed with the night's own
+## motion (a hurt resident's bed rest in its own bed).
 ##
 ## THE HEARTHS burn from HEARTH_FROM_HOUR to HEARTH_TO_HOUR -- evenings and nights (fixture_view.gd: their glow, their
 ## chimneys' smoke).
@@ -52,8 +51,6 @@ const UnfinishedScript := preload("res://demo/cast/unfinished_job.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
 const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const NO_BED_KEY: String = "village:no_bed"
-## A home whose beds the filter keeps (see KEPT BEDS), as its sleepers line says it.
-const KEPT_WORDS: String = "the sick only (nobody sleeps in them at night)"
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 const Layers := preload("res://demo/demo_layers.gd")
@@ -102,8 +99,6 @@ var _at_u: PackedInt32Array = PackedInt32Array()
 var _next: PackedInt32Array = PackedInt32Array()
 ## Per resident: the calendar tick it was last sent to bed at (see RESEND_TICKS).
 var _sent_tick: PackedInt32Array = PackedInt32Array()
-## `keep(bed: int) -> bool` (see KEPT BEDS); unset: every bed may be allocated.
-var _bed_filter: Callable = Callable()
 
 
 func configure(graph: RefCounted, brains: Array[BrainScript], names: PackedStringArray, heights_u: PackedInt32Array,
@@ -265,34 +260,14 @@ func _at_dawn() -> void:
 			b.work_done()
 
 
-func set_bed_filter(keep: Callable) -> void:
-	"""Leave out of the allocation every bed `keep(bed) -> bool` answers false for (see KEPT BEDS); takes effect at the
-	next allocation (call `allocate`)."""
-	_bed_filter = keep
-
-
 func allocate() -> void:
 	"""REQ-SET-132 over the beds standing now (bed_allocation.gd), from where everyone is."""
 	_graph.fit.beds_into(_graph, _beds)
-	_keep_beds()
 	for i in _brains.size():
 		_at_u[2 * i] = Rules.to_u(_brains[i].position.x)
 		_at_u[2 * i + 1] = Rules.to_u(_brains[i].position.y)
 	AllocationScript.allocate(bed_of, _at_u, permitted, _beds, _next)
 	bed_of = _next.duplicate()
-
-
-func _keep_beds() -> void:
-	"""Drop from `_beds` (id, x, z, size quads) every bed the filter does not keep (see KEPT BEDS)."""
-	if not _bed_filter.is_valid():
-		return
-	var kept: int = 0
-	for q in _beds.size() / 4:
-		if bool(_bed_filter.call(_beds[4 * q])):
-			for k in 4:
-				_beds[4 * kept + k] = _beds[4 * q + k]
-			kept += 1
-	_beds.resize(4 * kept)
 
 
 func may_send(i: int) -> bool:
@@ -331,7 +306,7 @@ func _bed_task(i: int, task: SleepTaskScript) -> bool:
 
 func bed_task_at(i: int, bed: int, task: SleepTaskScript) -> bool:
 	"""Set `task` for resident `i` to lie in bed `bed` (room * PLACES + place); false when there is none, or its
-	home's middle cannot be reached (see KEPT BEDS)."""
+	home's middle cannot be reached (see A GIVEN BED)."""
 	if bed == AllocationScript.NO_BED:
 		return false
 	var r := bed / FixturesScript.PLACES
@@ -380,13 +355,11 @@ func bedless_names() -> String:
 
 
 func sleepers_of(r: int) -> String:
-	"""Who has a bed in home row `r`, by name ("" nobody); a home whose beds are all kept (see KEPT BEDS) says so."""
+	"""Who has a bed in home row `r`, by name ("" nobody)."""
 	var out := PackedStringArray()
 	for i in _brains.size():
 		if bed_of[i] != AllocationScript.NO_BED and bed_of[i] / FixturesScript.PLACES == r:
 			out.append(_names[i])
-	if out.is_empty() and _bed_filter.is_valid() and not bool(_bed_filter.call(r * FixturesScript.PLACES)):
-		return KEPT_WORDS
 	return ", ".join(out)
 
 

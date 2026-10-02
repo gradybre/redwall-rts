@@ -1,17 +1,17 @@
 extends VBoxContainer
-## The SICKBAY SECTION at the foot of a selected burrow home's box in the "Tunnels & burrows (demo)" panel
-## (tunnel_panel.gd `add_room_section`). Decision 0622. DEMO UI: it shows what the infirmary (demo_care.gd) hands it and
-## presses back through one callable; nothing here decides anything.
+## The INFIRMARY SECTION in the "Tunnels & burrows (demo)" panel, under its housing line (tunnel_panel.gd
+## `add_section`). Decision 0623. DEMO UI: it shows what the infirmary (demo_care.gd) hands it and presses back through
+## one callable; nothing here decides anything.
 ##
-## Its heading ("Sickbay"), its lines -- what a sickbay is, what this home still needs to be one, the care supplies and
-## the herb patch, the patients -- and one wood button: "Make it the sickbay" or "Stop using it as the sickbay",
-## disabled with its reason as the tooltip while the home cannot be one. The panel's own type and wood button
-## (tunnel_panel.gd `_label`, `_button`), so it reads as part of the room's box; the button takes keyboard focus.
+## Its heading ("Infirmary"), its lines -- the building's state (none, being fetched for or built, built and its beds),
+## the care supplies, the herb patch and the patients -- and one wood button: "Build the infirmary…" (arms the placing
+## tool), "Cancel the infirmary" (REQ-SET-126, saying what it returns) or, built, disabled. The panel's own type and
+## wood button, so it reads as part of the panel; the button takes keyboard focus.
 
 const Styles := preload("res://demo/ui/woodland_styles.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
 
-const HEADING: String = "Sickbay"
+const HEADING: String = "Infirmary"
 const BODY_PX: int = 14
 const BUTTON_H: float = 32.0
 const BUTTON_MARGINS: PackedFloat32Array = [10.0, 5.0, 10.0, 6.0]
@@ -23,9 +23,8 @@ var _pressed: Callable = Callable()
 
 
 func _init() -> void:
-	"""Build the heading, the lines and the button (hidden until a home is shown)."""
-	name = "SickbaySection"
-	visible = false
+	"""Build the heading, the lines and the button."""
+	name = "InfirmarySection"
 	add_theme_constant_override(&"separation", 4)
 	_heading = _label(HEADING, BODY_PX + 2, Palette.INK, Styles.heading_font())
 	add_child(_heading)
@@ -40,19 +39,13 @@ func on_press(pressed: Callable) -> void:
 	_pressed = pressed
 
 
-func show_home(lines: String, button_text: String, enabled: bool, tip: String) -> void:
-	"""Show the section for a home: its lines, the button's words, whether it can be pressed and its tooltip."""
-	visible = true
+func show_lines(lines: String, button_text: String, enabled: bool, tip: String) -> void:
+	"""Show the section: its lines, the button's words, whether it can be pressed and its tooltip."""
 	if _lines.text != lines:
 		_lines.text = lines
 	_button.text = button_text
 	_button.disabled = not enabled
 	_button.tooltip_text = tip
-
-
-func hide_section() -> void:
-	"""Not a home: nothing shown."""
-	visible = false
 
 
 func lines_text() -> String:

@@ -1,19 +1,18 @@
 extends SceneTree
-## The infirmary (decision 0622) on the REAL scene: the Demo Lab's test injury on a selected resident, the resident
-## card's lines, the herbalist walking over and treating it, the news, the herb patch drawn, and a burrow home made the
-## sickbay from its section in the Tunnels panel -- in view, clicked, a serious patient lying in its bed at the
-## infirmary's rate. Not discovered by the runner: test/test_demo_care_live.gd runs it in its own process, as the other
+## The infirmary (decisions 0622, 0623) on the REAL scene: the Demo Lab's test injury on a selected resident, the
+## resident card's lines, the herbalist walking over and treating it at the field-care spot (no infirmary yet), the
+## news, the herb patch drawn, and the infirmary building placed from its section in the Tunnels panel -- in view,
+## clicked, placed, fetched for by the work board's residents, built -- and a serious patient resting inside it. Not
+## discovered by the runner: test/test_demo_care_live.gd runs it in its own process, as the other
 ## live harnesses are (decisions 0261, 0391), because only an in-tree scene lays its Controls out and takes input.
 ##
 ##     godot --headless --path godot --script res://test/live/demo_care_live.gd [-- --size 1920x1080]
 ##         [-- --capture <dir>]   (not headless: saves the checked frames as PNGs)
 ##
-## The home is laid by the room tool's own `place` and its dig finished and fitted out at once (the night suite's way):
-## the dig is the tunnels' feature, checked by theirs; here the sickbay is. Prints `LIVE <name>: PASS|FAIL <detail>` per
+## Once its residents have fetched some of its materials the building is finished off at once (the whole round is
+## test_demo_infirmary_building.gd's). Prints `LIVE <name>: PASS|FAIL <detail>` per
 ## check and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
-const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
-const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const Tasks := preload("res://demo/infirmary/care_tasks.gd")
 const ZoneScript := preload("res://demo/ui/demo_detail_zone.gd")
@@ -23,12 +22,12 @@ const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const BOOT_FRAMES: int = 14
 const SETTLE_FRAMES: int = 4
 const FULL: float = 0.99
-## Frames allowed for the healer to arrive and treat at 4x, and for the patient to reach the sickbay's bed.
+## Frames allowed for the healer to arrive and treat at 4x, and for the patient to reach the infirmary.
 const TREAT_FRAMES: int = 6000
-## Where the sickbay home is laid (m): the open ground west of the hall's apron, tried on rings round it.
-const HOME_AT: Vector2 = Vector2(-13.0, -14.0)
-const HOME_RINGS: int = 6
-const HOME_RING_M: float = 2.0
+## Where the infirmary is placed (m): the open ground east of the square, tried on rings round it.
+const INFIRMARY_AT: Vector2 = Vector2(14.0, 8.0)
+const INFIRMARY_RINGS: int = 8
+const INFIRMARY_RING_M: float = 2.0
 
 var _village: Node = null
 var _size: Vector2i = Vector2i(1280, 720)
@@ -71,7 +70,7 @@ func _run() -> void:
 	await _the_test_injury()
 	await _treated()
 	await _the_herb_patch()
-	await _the_sickbay()
+	await _the_infirmary()
 	print("LIVE-SUMMARY %d %d" % [_checks, _failures])
 	quit(1 if _failures > 0 else 0)
 
@@ -348,100 +347,88 @@ func _the_herb_patch() -> void:
 	await _capture("care_herb_patch")
 
 
-func _the_sickbay() -> void:
-	"""A home laid, dug and fitted (bed, hearth, hanging stores); selected, its section in the Tunnels panel offers to
-	make it the sickbay; clicked, it is; a serious patient lies in its bed at the infirmary's rate."""
-	var r: int = _lay_home()
-	_check("a home laid for the sickbay", r >= 0)
-	if r < 0:
-		return
+func _the_infirmary() -> void:
+	"""The Tunnels panel's infirmary section offers to build it; clicked, the placing tool is armed; placed on open ground
+	it stands as an obstacle; with the stores topped up the work board's residents fetch for it; built, a serious patient
+	goes in and mends at the infirmary's rate."""
 	var ext: Node = _command().call(&"tunnels").get("ext")
-	ext.set("selected_room", r)
-	ext.set("selected_room_gen", _graph().get("rooms").get("generation")[r])
 	_village.get("_zone").call(&"show_panel", ZoneScript.PANEL_TUNNELS)
 	ext.call(&"refresh_panel")
 	_care().call(&"refresh_section")
-	_look_at(_graph().get("rooms").call(&"centre_m", r), 14.0)
 	await _frames(SETTLE_FRAMES)
 	var section: Control = _care().get("section")
 	var button: Button = section.call(&"button")
-	_check("the section shows for the home", section.is_visible_in_tree())
-	_check("it offers to make it the sickbay", button.text == "Make it the sickbay" and not button.disabled, button.text)
+	_check("the section shows in the Tunnels panel", section.is_visible_in_tree())
+	_check("it offers to build the infirmary", button.text == "Build the infirmary…" and not button.disabled, button.text)
 	await _reveal(button)
 	_check("its button in view", _fraction(button) >= FULL, str(button.get_global_rect()))
 	_floors("the Tunnels panel with the section", ext.get("panel"))
-	await _capture("care_sickbay_section")
+	await _capture("care_infirmary_section")
 	_click(button)
 	await _frames(SETTLE_FRAMES)
+	var building: Node = _care().get("building")
+	var place: Node = building.get("place")
+	_check("clicked: the placing tool is armed", bool(place.get("armed")))
+	var at: Vector2 = _placed(place)
+	_check("placed on open ground", at.is_finite(), str(at))
+	if not at.is_finite():
+		return
+	await _being_built(building, at)
+	await _patient_inside(building, at)
+
+
+func _placed(place: Node) -> Vector2:
+	"""Move the ghost over rings round INFIRMARY_AT until a spot is allowed, and place it there (INF: none)."""
+	for ring: int in INFIRMARY_RINGS:
+		for k: int in (1 if ring == 0 else 8):
+			var at: Vector2 = INFIRMARY_AT + Vector2.from_angle(TAU * k / 8.0) * INFIRMARY_RING_M * ring
+			place.call(&"move_to", at)
+			if String(place.get("refusal")).is_empty() and bool(place.call(&"place")):
+				return at
+	return Vector2.INF
+
+
+func _being_built(building: Node, at: Vector2) -> void:
+	"""Placed: an obstacle; the stores topped up, the board's residents fetch for it at 4x; then it is finished off (the
+	whole round is the unit suite's) and stands built."""
+	var project: RefCounted = building.get("project")
+	await _frames(2)
+	_check("an obstacle once placed", (_cast().call(&"space").call(&"structure_circles") as PackedVector3Array).size() == 1)
+	var stores: RefCounted = _village.get("_services").get("stores")
+	stores.set("wood_milli_u", 200000)
+	stores.set("stone_milli_u", 200000)
+	var fetched: int = await _until(func() -> bool:
+		var got: int = 0
+		for m: int in 3:
+			got += int((project.get("delivered") as PackedInt64Array)[m])
+		return got > 0, 9000)
+	_hold()
+	_check("the board's residents fetch its materials", fetched >= 0, "%d frames" % fetched)
+	_look_at(at, 16.0)
+	await _capture("care_infirmary_building")
+	building.get("builders").call(&"release_all")
+	for m: int in 3:
+		var need: int = int(project.call(&"outstanding", m))
+		project.call(&"reserve", m, need)
+		project.call(&"deliver", m, project.call(&"lift", m, need))
+	project.call(&"add_work", 1 << 40)
+	await _frames(SETTLE_FRAMES)
+	_check("built", bool(project.call(&"is_done")), str(project.get("state")))
 	_care().call(&"refresh_section")
-	_check("clicked: it is the sickbay", int(_desk().get("sickbay")) == r and bool(_desk().call(&"sickbay_valid")))
-	_check("the button now stops it", button.text == "Stop using it as the sickbay", button.text)
-	await _sickbay_patient(r)
+	var button: Button = _care().get("section").call(&"button")
+	_check("the section says it is built", button.text == "The infirmary is built" and button.disabled, button.text)
 
 
-func _sickbay_patient(r: int) -> void:
-	"""The badger takes the serious test injury and lies in a sickbay bed; there it mends at the infirmary's rate."""
+func _patient_inside(building: Node, at: Vector2) -> void:
+	"""A serious patient goes in and rests there at the infirmary's rate."""
 	var who: int = maxi(_index_of(&"mouse_fieldworker"), 0)
 	_desk().call(&"test_hurt", PackedInt32Array([who]), true)
-	var lying: int = await _until(func() -> bool: return bool(_desk().get("state").call(&"in_infirmary", who)), TREAT_FRAMES)
+	var inside: int = await _until(func() -> bool: return bool(_desk().get("state").call(&"in_infirmary", who)), TREAT_FRAMES)
 	_hold()
-	_check("the patient lies in the sickbay", lying >= 0, "%d frames" % lying)
-	var rest: Object = _brain(who).get("task")
-	_check("in the sickbay's bed", rest is Tasks.BedRest and (rest as Tasks.BedRest).room == r)
-	_village.call(&"show_underground", true)
-	_look_at(_brain(who).get("position"), 10.0)
+	_check("the patient rests inside the infirmary", inside >= 0, "%d frames" % inside)
+	_check("it has a bed there", bool(building.get("project").call(&"is_admitted", who)))
+	_look_at(at, 16.0)
 	await _select(who)
-	_check("serious and untreated in the sickbay: −4 an hour, no recovery yet",
-		int(_desk().get("state").call(&"rate_per_hour", who)) == -4, str(_desk().get("state").call(&"rate_per_hour", who)))
-	await _capture("care_sickbay_patient")
-
-
-func _graph() -> RefCounted:
-	"""The network."""
-	return _cast().call(&"space").get("tunnels")
-
-
-func _lay_home() -> int:
-	"""Lay a burrow home by the room tool on the first legal spot round HOME_AT, finish its dig and fit a bed, the
-	hearth and the hanging stores (the night suite's way); its room (-1: none laid)."""
-	var control: Node = _command().call(&"tunnels")
-	var tool: Object = control.get("room")
-	if tool == null or not bool(control.call(&"begin_room", RoomsScript.TEMPLATE_HOME)):
-		return -1
-	var graph: RefCounted = _graph()
-	var laid: bool = false
-	for ring: int in HOME_RINGS:
-		for k: int in (1 if ring == 0 else 8):
-			tool.call(&"move_to", HOME_AT + Vector2.from_angle(TAU * k / 8.0) * HOME_RING_M * ring)
-			if bool(tool.call(&"place", true)):
-				laid = true
-				break
-		if laid:
-			break
-	control.call(&"cancel_plan")
-	return _finish_home(graph) if laid else -1
-
-
-func _finish_home(graph: RefCounted) -> int:
-	"""The newest home dug out at once and fitted (see `_lay_home`)."""
-	var rooms: RefCounted = graph.get("rooms")
-	var r: int = -1
-	for k: int in RoomsScript.MAX_ROOMS:
-		if rooms.call(&"is_room", k) and int(rooms.get("template")[k]) == RoomsScript.TEMPLATE_HOME:
-			r = k
-	if r < 0:
-		return -1
-	var chain := PackedInt32Array()
-	graph.call(&"piece_segments_into", int(rooms.get("piece")[r]), chain)
-	for slot: int in chain:
-		var gen: int = int(graph.get("generation")[slot])
-		graph.call(&"start_dig", slot, gen, 0)
-		graph.call(&"advance", slot, gen, 1000000000)
-	var fit: RefCounted = graph.get("fit")
-	for f: int in [0, 1, 3, 7]:
-		fit.call(&"phase_of", graph, r, f)
-		var phase: PackedByteArray = fit.get("phase")
-		phase[r * FixturesScript.PLACES + f] = FixturesScript.INSTALLED
-		fit.set("phase", phase)
-	fit.set("revision", int(fit.get("revision")) + 1)
-	return r
+	var line: Label = _label_with(_command().call(&"panel"), "Resting in the infirmary")
+	_check("its card says so", line != null)
+	await _capture("care_infirmary_patient")

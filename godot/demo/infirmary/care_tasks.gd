@@ -1,15 +1,15 @@
 extends RefCounted
-## The infirmary's three tasks (resident_brain.gd TASKS). Decision 0622. Presentation only: the care state
+## The infirmary's three tasks (resident_brain.gd TASKS). Decisions 0622, 0623. Presentation only: the care state
 ## (care_state.gd) keeps every number; these only move the residents.
 ##
-##   * BedRest -- a hurt resident's: to a bed and lying in it until it may be up again (CareRules.UP_HEALTH, P4). The
-##     bed is a sickbay bed, else its own; with neither, it lies down at the FIELD-CARE SPOT, on the ground by the hall's
-##     steps beside the herb shelf (REQ-SET-173: treatment "at a field landing point or a bed"; P2). In a bed it wraps
-##     the night's own SleepTask, so the walk home through the network, the stroll to the bedside and lying down are the
-##     night's motion, and its "morning" is being well again. It is urgent: dusk does not send it to bed again, nor
-##     dawn turn it back.
-##   * Treat -- the healer's: to the patient's bed (or its spot), beside it, and the work clip while the care state
-##     credits the HEAL work; done, back out. Urgent, so the night does not park a treatment.
+##   * BedRest -- a hurt resident's: to rest until it may be up again (CareRules.UP_HEALTH, P4). In the INFIRMARY
+##     building when it is built and has a bed (decision 0623: in at its door, inside, not drawn); before that, or when
+##     it is full (PROPOSAL 0623 P2), its own bed, else lying on the ground at the FIELD-CARE SPOT by the hall's steps
+##     (REQ-SET-173: treatment "at a field landing point or a bed"). In a bed it wraps the night's own SleepTask, so the
+##     walk home through the network, the stroll to the bedside and lying down are the night's motion, and its "morning"
+##     is being well again. It is urgent: dusk does not send it to bed again, nor dawn turn it back.
+##   * Treat -- the healer's: into the infirmary, or to the patient's bed or spot, beside it, and the work clip while the
+##     care state credits the HEAL work; done, back out. Urgent, so the night does not park a treatment.
 ##   * Gather -- the herbalist's: to the herb patch, the work clip while the care state credits the gathering, then the
 ##     load carried to the shelf at the hall's steps, where it is delivered (the patch is debited there, not before).
 
@@ -19,6 +19,7 @@ const BrainScript := preload("res://demo/cast/resident_brain.gd")
 ## Where a patient rests.
 const WHERE_BED: int = 0
 const WHERE_FIELD: int = 1
+const WHERE_INFIRMARY: int = 2
 ## The clip a healer tends with and a gatherer picks with: the hand clip (install_task.gd WORK_CLIP).
 const WORK_CLIP: StringName = &"collect_object"
 ## A healer stands this far from the patient's bedside toward the room's middle (m), and this far beside a patient
@@ -34,9 +35,8 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 	"""A hurt resident resting until it may be up (see the header)."""
 	var who: int = -1
 	var where: int = WHERE_FIELD
-	## The room's name and whether it is the sickbay (WHERE_BED), and the bed (room * PLACES + place).
+	## Where it rests, in words, and (WHERE_BED) the bed (room * PLACES + place) and its room.
 	var room_name: String = ""
-	var sickbay: bool = false
 	var bed: int = -1
 	var room: int = -1
 	var middle_node: int = -1
@@ -46,6 +46,8 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 	var _hurt: Callable = Callable()
 	var _field_at: Vector2 = Vector2.ZERO
 	var _lying: bool = false
+	## Whether it ever reached its place (kept after it gets up: a lost trip is one that never did).
+	var arrived_once: bool = false
 
 	func _init(i: int, up: Callable, alarm: Callable, hurt: Callable = Callable()) -> void:
 		"""Resident `i` rests until `up() -> bool` (`hurt() -> bool` says whether it is still hurt, for its words);
@@ -55,16 +57,22 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 		_hurt = hurt if hurt.is_valid() else func() -> bool: return false
 		sleep = SleepTaskScript.new(up, alarm)
 
-	func in_bed(bed_id: int, r: int, name_of_room: String, node: int, at: Vector2, is_sickbay: bool) -> void:
-		"""Rest in bed `bed_id` of room `r` (named so; its middle `node` at `at`), the sickbay's or not (the night
-		has set the sleep task's bed: night_routine.gd `bed_task_at`)."""
+	func in_bed(bed_id: int, r: int, name_of_room: String, node: int, at: Vector2) -> void:
+		"""Rest in bed `bed_id` of room `r` (named so; its middle `node` at `at`) (the night has set the sleep task's bed:
+		night_routine.gd `bed_task_at`)."""
 		where = WHERE_BED
 		bed = bed_id
 		room = r
 		room_name = name_of_room
 		middle_node = node
 		middle = at
-		sickbay = is_sickbay
+
+	func in_infirmary(door: Vector2) -> void:
+		"""Rest in the infirmary building, going in at its `door` (decision 0623)."""
+		where = WHERE_INFIRMARY
+		room_name = "the infirmary"
+		sleep = null
+		_field_at = door
 
 	func in_field(at: Vector2) -> void:
 		"""Rest lying on the ground at the field-care spot `at` (no bed)."""
@@ -74,7 +82,7 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 		_field_at = at
 
 	func site(brain: RefCounted) -> Vector2:
-		"""The field-care spot (a bed's walk goes by its node)."""
+		"""The infirmary's door or the field-care spot (a bed's walk goes by its node)."""
 		return sleep.site(brain) if sleep != null else _field_at
 
 	func site_node(brain: RefCounted) -> int:
@@ -82,11 +90,17 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 		return sleep.site_node(brain) if sleep != null else -1
 
 	func arrived(brain: RefCounted) -> void:
-		"""At the room: across to the bed (the night's motion). At the spot: lie down on the ground."""
+		"""At the room: across to the bed (the night's motion). At the infirmary: in. At the spot: lie down."""
+		arrived_once = true
 		if sleep != null:
 			sleep.arrived(brain)
 			return
-		(brain as BrainScript).task_lie(_field_at, FIELD_YAW, GROUND_Y_M)
+		var walker := brain as BrainScript
+		if where == WHERE_INFIRMARY:
+			walker.task_go_indoors(true)
+			walker.task_play(BrainScript.CLIP_IDLE)
+		else:
+			walker.task_lie(_field_at, FIELD_YAW, GROUND_Y_M)
 		_lying = true
 
 	func step(brain: RefCounted, delta: float) -> bool:
@@ -104,21 +118,23 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 		_get_up(brain as BrainScript)
 
 	func _get_up(walker: BrainScript) -> void:
-		"""Stand up: the night's way from a bed, beside the spot from the ground."""
+		"""Stand up: the night's way from a bed, out of the infirmary's door, beside the spot from the ground."""
 		if sleep != null:
 			sleep.finish(walker)
 		elif walker.lying:
 			walker.task_rise(_field_at + Vector2(FIELD_GAP_M, 0.0))
+		if where == WHERE_INFIRMARY and walker.indoors:
+			walker.task_go_indoors(false)
 		_lying = false
 
 	func in_place() -> bool:
-		"""Whether it lies in its bed or on the ground at its spot: treatment may go on."""
+		"""Whether it lies in its bed, in the infirmary, or on the ground at its spot: treatment may go on."""
 		if sleep == null:
 			return _lying
 		return sleep.stage == SleepTaskScript.STAGE_ASLEEP
 
 	func bedside() -> Vector2:
-		"""Where the bed is got into, off its foot (at the field-care spot: the spot)."""
+		"""Where the bed is got into, off its foot (the infirmary's door; the field-care spot)."""
 		return sleep.bedside() if sleep != null else _field_at
 
 	func urgent() -> bool:
@@ -132,10 +148,9 @@ class BedRest extends "res://demo/tunnel/tunnel_task.gd":
 	func label() -> String:
 		"""What the panel says."""
 		var how := "getting up" if bool(_up.call()) else ("hurt" if bool(_hurt.call()) else "recovering")
-		var place := "the sickbay, " + room_name if sickbay else room_name
 		if not in_place():
-			return "Going to %s to rest (%s)" % [place, how]
-		return ("Resting in %s (%s)" if where == WHERE_BED else "Resting at %s (%s)") % [place, how]
+			return "Going to %s to rest (%s)" % [room_name, how]
+		return ("Resting at %s (%s)" if where == WHERE_FIELD else "Resting in %s (%s)") % [room_name, how]
 
 
 class Treat extends "res://demo/tunnel/tunnel_task.gd":
@@ -166,7 +181,9 @@ class Treat extends "res://demo/tunnel/tunnel_task.gd":
 		_ended = ended
 
 	func site(_brain: RefCounted) -> Vector2:
-		"""Beside the field-care spot (a bed's walk goes by its node)."""
+		"""The infirmary's door, or beside the field-care spot (a bed's walk goes by its node)."""
+		if rest.where == WHERE_INFIRMARY:
+			return rest.bedside()
 		return rest.bedside() + Vector2(FIELD_GAP_M, 0.0)
 
 	func site_node(_brain: RefCounted) -> int:
@@ -179,12 +196,15 @@ class Treat extends "res://demo/tunnel/tunnel_task.gd":
 		return side + (rest.middle - side).normalized() * BESIDE_M if rest.middle.distance_to(side) > 1e-3 else side
 
 	func arrived(brain: RefCounted) -> void:
-		"""In the room: across to the bed. At the spot: tend."""
+		"""In the room: across to the bed. At the infirmary: in, and tend. At the spot: tend."""
+		var walker := brain as BrainScript
 		if rest.where == WHERE_BED:
-			(brain as BrainScript).task_hold_below()
+			walker.task_hold_below()
 			stage = STAGE_TO_SPOT
-		else:
-			stage = STAGE_WORKING
+			return
+		if rest.where == WHERE_INFIRMARY:
+			walker.task_go_indoors(true)
+		stage = STAGE_WORKING
 
 	func step(brain: RefCounted, delta: float) -> bool:
 		"""One frame: to the bedside, then tend while the patient is hurt and resting under this rest; back to the middle
@@ -205,16 +225,18 @@ class Treat extends "res://demo/tunnel/tunnel_task.gd":
 		"""Whether the work counts now: beside the patient, who lies in its bed or at its spot."""
 		return stage == STAGE_WORKING and rest.in_place()
 
-	func finish(_brain: RefCounted) -> void:
-		"""Done: the infirmary told."""
-		_end()
+	func finish(brain: RefCounted) -> void:
+		"""Done: out of the infirmary's door, and the desk told."""
+		_end(brain as BrainScript)
 
-	func cancel(_brain: RefCounted) -> void:
+	func cancel(brain: RefCounted) -> void:
 		"""Called away: the care work done so far stays the patient's (care_state.gd `book_care`)."""
-		_end()
+		_end(brain as BrainScript)
 
-	func _end() -> void:
-		"""The infirmary told, once."""
+	func _end(walker: BrainScript) -> void:
+		"""Out of the infirmary's door, and the desk told, once."""
+		if walker.indoors:
+			walker.task_go_indoors(false)
 		if _ended.is_valid():
 			_ended.call(healer, patient)
 			_ended = Callable()

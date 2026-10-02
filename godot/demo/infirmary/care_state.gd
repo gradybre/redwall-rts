@@ -304,9 +304,11 @@ func treatment_refusal(i: int) -> String:
 	return REFUSE_NO_CLOTH if cloth_milli < Rules.CARE_CLOTH_MILLI else REFUSE_NONE
 
 
-func affords(treatments: int) -> bool:
-	"""Whether the shelf holds the inputs of `treatments` more treatments (healers sent but not yet paid count)."""
-	return herb_milli >= Rules.CARE_HERB_MILLI * treatments and cloth_milli >= Rules.CARE_CLOTH_MILLI * treatments
+func affords(treatments: int, cloth_kept: int = 0) -> bool:
+	"""Whether the shelf holds the inputs of `treatments` more treatments (healers sent but not yet paid count), with
+	`cloth_kept` milli-U of its cloth kept for the infirmary building (decision 0623, the review's M1)."""
+	return herb_milli >= Rules.CARE_HERB_MILLI * treatments \
+		and cloth_milli - cloth_kept >= Rules.CARE_CLOTH_MILLI * treatments
 
 
 func pay_treatment(i: int) -> String:

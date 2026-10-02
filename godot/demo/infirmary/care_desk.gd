@@ -1,22 +1,25 @@
 extends RefCounted
 ## THE CARE DESK: who is hurt, who rests where, who treats them, who gathers herbs -- on the demo's real brains.
-## Decision 0622. Presentation only: it moves the cast and keeps its numbers in the care state (care_state.gd); the
-## settlement simulation is never written. No scene tree: the tests drive it as the village does (demo_care.gd).
+## Decisions 0622, 0623. Presentation only: it moves the cast and keeps its numbers in the care state (care_state.gd);
+## the settlement simulation is never written. No scene tree: the tests drive it as the village does (demo_care.gd).
 ##
 ## EACH FRAME (`update`): the water's hazards read (HAZ-002/003 from demo/waterplay/swim_state.gd), the herb patch
 ## regrown at midnight, every tick since the last integrated (care_state.gd), the HEAL and gathering work of the frame
-## credited, the sickbay's +4 an hour set for who lies in its beds, a new injury reported (the news and an incident),
+## credited, the infirmary's +4 an hour set for who rests in it, a new injury reported (the news and an incident),
 ## and every DISPATCH_TICKS the patients, healers and gatherer looked at.
 ##
-## PATIENTS (P2, decision 0622). A hurt resident that may be taken -- not in the water or held by its rescue, not
-## crossing, not under the player's own move or work order, not in an emergency -- is sent to rest in a bed
-## (care_tasks.gd BedRest): a free sickbay bed of its size, else its own bed (the night's allocation), else the
-## field-care spot by the hall's steps (P2). It rests until treated and back at CareRules.UP_HEALTH (P4).
+## PATIENTS (decision 0623, Brendan's ruling: "The infirmary should be its own place and that's where residents go to
+## rest and heal"). A hurt resident that may be taken -- not in the water or held by its rescue, not crossing, not under
+## the player's own move or work order, not in an emergency -- is sent to rest (care_tasks.gd BedRest) in the INFIRMARY
+## building when it is built and has a free bed (infirmary_project.gd `admit`: 8 patient beds); before that, or when it
+## is full, its own bed (the night's allocation), else the field-care spot by the hall's steps (PROPOSAL 0623 P2). It
+## rests until treated and back at CareRules.UP_HEALTH (0622 P4).
 ##
 ## HEALERS. A resting patient whose treatment can be paid for (care_state.gd `treatment_refusal`) is given the best
 ## healer that may be taken -- up, unhurt, not treating already, not in an emergency: the highest HEAL level, then the
-## nearest, then the lower index (P3: the herbalist first). A sleeper is woken for it (an order wakes a sleeper, as the
-## player's does). The treatment's inputs are paid at work start, its work credited only while the healer stands
+## nearest, then the lower index (P3: the herbalist first). At most infirmary_rules.gd `healer_slots()` ("Healer 2")
+## treat inside the infirmary at once. A sleeper is woken for it (an order wakes a sleeper, as the player's does). The
+## treatment's inputs are paid at work start, its work credited only while the healer stands
 ## beside a patient lying in its bed.
 ##
 ## UP AND ABOUT (decision 0622, review H2/H3). A patient does not lie in bed for good: hurt, it gets up while it needs a
@@ -28,12 +31,6 @@ extends RefCounted
 ## the patch has herb above its floor, an idle herbalist goes to the patch, picks a trip's load at §5.5's work per U
 ## (REQ-SET-068's roll every 60 WU) and carries it to the shelf at the hall's steps.
 ##
-## THE SICKBAY (P5, GDD §5.9's infirmary room: at least one bed and one shelf, heated). One burrow home may be made the
-## sickbay when it is dug and has a bed, a hearth (its warmth) and hanging stores (its herb shelf). Its beds are then
-## kept for the sick (night_routine.gd KEPT BEDS); while it is valid a patient lying in one recovers at REQ-SET-017's
-## infirmary rate. A sickbay that loses its hearth or shelf stays the sickbay, its service suspended (REQ-SET-129),
-## until it is whole again.
-
 const Rules := preload("res://demo/infirmary/care_rules.gd")
 const StateScript := preload("res://demo/infirmary/care_state.gd")
 const Tasks := preload("res://demo/infirmary/care_tasks.gd")
@@ -41,8 +38,9 @@ const Text := preload("res://demo/infirmary/care_text.gd")
 const PaceScript := preload("res://demo/work/work_pace.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
-const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
+const ProjectScript := preload("res://demo/infirmary/infirmary_project.gd")
+const InfirmaryRules := preload("res://demo/infirmary/infirmary_rules.gd")
 const AllocationScript := preload("res://demo/burrow/bed_allocation.gd")
 const SwimStateScript := preload("res://demo/waterplay/swim_state.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
@@ -57,19 +55,12 @@ const PathsScript := preload("res://demo/tunnel/graph_paths.gd")
 ## work board's claim period) at 30 ticks a second.
 const DISPATCH_TICKS: int = Rules.DISPATCH_USEC * SimClock.TICKS_PER_SECOND / 1000000
 const NOBODY: int = -1
-## The sickbay's refusals, in words.
-const NOT_A_HOME: String = "only a burrow home can be the sickbay"
-const NOT_DUG: String = "dig it out first"
-const NEEDS_BED: String = "it needs a bed for the sick"
-const NEEDS_HEARTH: String = "it needs a hearth: a sickbay is kept warm (GDD §5.9: an infirmary is heated)"
-const NEEDS_SHELF: String = "it needs hanging stores for the herbs (GDD §5.9: an infirmary has a shelf)"
 const INCIDENT_KEY: String = "care:hurt:%d"
 
 var state: StateScript = StateScript.new()
 var pace: PaceScript = PaceScript.new()
-## The sickbay's room (-1: none) and that room's generation when it was made the sickbay.
-var sickbay: int = -1
-var sickbay_gen: int = 0
+## The infirmary building (decision 0623; null: none in this village).
+var infirmary: ProjectScript = null
 var herbalist: int = NOBODY
 var revision: int = 0
 
@@ -91,11 +82,13 @@ var _loss: PackedInt32Array = PackedInt32Array()
 var _kind_said: PackedByteArray = PackedByteArray()
 ## Per resident: 1 while it rests waiting and the last dispatch found nobody to treat it.
 var _no_healer: PackedByteArray = PackedByteArray()
+## Per resident: 1 when its last trip to the infirmary was lost before it got in -- the next rest is elsewhere (the
+## review's M2: an unreachable door never loops).
+var _skip_infirmary: PackedByteArray = PackedByteArray()
 var _patch: Vector2 = Rules.HERB_PATCH_AT
 var _shelf: Vector2 = Vector2.ZERO
 var _tick: int = 0
 var _next_dispatch: int = 0
-var _quads: PackedInt32Array = PackedInt32Array()
 ## §5.5's work for one U of herb at the patch, worked out once.
 var _herb_mwu_per_u: int = Rules.herb_work_mwu(Rules.FORAGE_LEVEL, Rules.PATCH_DANGER)
 ## `spot(i) -> Vector2`: the field-care spot (see `set_field_spot`).
@@ -124,12 +117,10 @@ func configure(brains: Array[BrainScript], names: PackedStringArray, keys: Array
 	_cause.fill(NoticesScript.SOURCE_CREW)
 	_loss.resize(n)
 	_loss.fill(0)
-	for column: PackedByteArray in [_kind_said, _no_healer]:
+	for column: PackedByteArray in [_kind_said, _no_healer, _skip_infirmary]:
 		column.resize(n)
 		column.fill(0)
 	pace.add_factor("health", state.pace_permille)
-	if night != null:
-		night.set_bed_filter(keeps_bed)
 
 
 func bind_news(notices: NoticesScript, incidents: IncidentsScript) -> void:
@@ -142,6 +133,16 @@ func set_places(patch: Vector2, shelf: Vector2) -> void:
 	"""The herb patch's standing spot and the shelf's (the hall's steps), m."""
 	_patch = patch
 	_shelf = shelf
+
+
+func patch_at() -> Vector2:
+	"""The herb patch's standing spot (m)."""
+	return _patch
+
+
+func shelf_at() -> Vector2:
+	"""The care shelf's spot, where herbs are delivered and cloth is fetched (m)."""
+	return _shelf
 
 
 func use_pace(shared: PaceScript) -> void:
@@ -273,12 +274,15 @@ func _on_treated(p: int, h: int) -> void:
 
 
 func _sync_infirmary() -> void:
-	"""REQ-SET-017's infirmary rate for whoever lies in a bed of a valid sickbay now."""
-	var valid: bool = sickbay_valid()
+	"""REQ-SET-017's infirmary rate for whoever rests inside the infirmary now; a patient no longer resting there leaves
+	its bed."""
 	for i: int in _brains.size():
 		var r: Tasks.BedRest = _rest[i]
-		var inside: bool = valid and r != null and _brains[i].task == r and r.sickbay and r.room == sickbay and r.in_place()
-		state.set_in_infirmary(i, inside)
+		var there: bool = resting(i) and r.where == Tasks.WHERE_INFIRMARY
+		if infirmary != null and infirmary.is_admitted(i) and not there:
+			infirmary.discharge(i)
+			_skip_infirmary[i] = 1 if r != null and r.where == Tasks.WHERE_INFIRMARY and not r.arrived_once else 0
+		state.set_in_infirmary(i, there and r.in_place() and infirmary != null and infirmary.is_done())
 
 
 # --- news ---------------------------------------------------------------------------------------------------------
@@ -383,13 +387,19 @@ func may_take(i: int) -> bool:
 
 
 func send_to_rest(i: int) -> bool:
-	"""Resident `i` to rest (see PATIENTS): a sickbay bed, its own, or the field-care spot. False when the brain would
-	not take it."""
+	"""Resident `i` to rest (see PATIENTS): the infirmary, its own bed, or the field-care spot. False when the brain
+	would not take it."""
 	var task := Tasks.BedRest.new(i, may_get_up.bind(i), _alarm(), state.is_hurt.bind(i))
-	if not _sickbay_bed(i, task) and not _own_bed(i, task):
+	var admitted: bool = infirmary != null and _skip_infirmary[i] == 0 and infirmary.admit(i)
+	_skip_infirmary[i] = 0
+	if admitted:
+		task.in_infirmary(infirmary.door())
+	elif not _own_bed(i, task):
 		task.in_field(field_spot(i))
 	_brains[i].order_task(task)
 	if _brains[i].task != task:
+		if admitted:
+			infirmary.discharge(i)
 		return false
 	_rest[i] = task
 	revision += 1
@@ -412,21 +422,6 @@ func _alarm() -> Callable:
 	return _night.alarm if _night != null else func() -> bool: return false
 
 
-func _sickbay_bed(i: int, task: Tasks.BedRest) -> bool:
-	"""A free bed of resident `i`'s size in the valid sickbay, set on `task`; false when there is none to reach."""
-	if not sickbay_valid() or _night == null:
-		return false
-	_graph.fit.beds_into(_graph, _quads)
-	for q: int in _quads.size() / 4:
-		var bed: int = _quads[4 * q]
-		if bed / FixturesScript.PLACES != sickbay or _quads[4 * q + 3] != _night.permitted[i] or _bed_taken(bed, i):
-			continue
-		if _night.bed_task_at(i, bed, task.sleep):
-			_mark_bed(task, bed, true)
-			return true
-	return false
-
-
 func _own_bed(i: int, task: Tasks.BedRest) -> bool:
 	"""Resident `i`'s own bed (the night's allocation), set on `task`; false with none, or none it can reach."""
 	if _night == null or i >= _night.bed_of.size():
@@ -434,15 +429,15 @@ func _own_bed(i: int, task: Tasks.BedRest) -> bool:
 	var bed: int = _night.bed_of[i]
 	if bed == AllocationScript.NO_BED or _bed_taken(bed, i) or not _night.bed_task_at(i, bed, task.sleep):
 		return false
-	_mark_bed(task, bed, false)
+	_mark_bed(task, bed)
 	return true
 
 
-func _mark_bed(task: Tasks.BedRest, bed: int, in_sickbay: bool) -> void:
+func _mark_bed(task: Tasks.BedRest, bed: int) -> void:
 	"""Tell `task` which bed it rests in."""
 	var r: int = bed / FixturesScript.PLACES
 	var node: int = _graph.rooms.middle[r]
-	task.in_bed(bed, r, NightScript.room_name(r), node, _graph.node_m(node), in_sickbay)
+	task.in_bed(bed, r, NightScript.room_name(r), node, _graph.node_m(node))
 
 
 func _bed_taken(bed: int, i: int) -> bool:
@@ -463,13 +458,34 @@ func _dispatch_healers() -> void:
 		_no_healer[p] = 0
 		if _healer_of[p] != NOBODY or not state.is_hurt(p) or not resting(p):
 			continue
-		if not state.is_paid(p) and (state.treatment_refusal(p) != StateScript.REFUSE_NONE or not state.affords(owed + 1)):
+		if not state.is_paid(p) and (state.treatment_refusal(p) != StateScript.REFUSE_NONE
+				or not state.affords(owed + 1, _cloth_for_building())):
+			continue
+		if _rest[p].where == Tasks.WHERE_INFIRMARY and healers_inside() >= InfirmaryRules.healer_slots():
 			continue
 		var h: int = choose_healer(p)
 		if h == NOBODY or not _send_healer(h, p):
 			_no_healer[p] = 1
 		elif not state.is_paid(p):
 			owed += 1
+
+
+func healers_inside() -> int:
+	"""Healers treating patients in the infirmary now ("Healer 2": at most infirmary_rules.gd `healer_slots()`)."""
+	var n: int = 0
+	for p: int in _healer_of.size():
+		n += 1 if _healer_of[p] != NOBODY and _rest[p] != null and _rest[p].where == Tasks.WHERE_INFIRMARY else 0
+	return n
+
+
+func _cloth_for_building() -> int:
+	"""Cloth the infirmary building has reserved or in arms (kept back from treatments; one ledger, the review's M1)."""
+	return infirmary.cloth_committed() if infirmary != null else 0
+
+
+func cloth_for_treatments() -> int:
+	"""Cloth the healers already sent will take (kept back from the building): `infirmary_project.gd cloth_held`."""
+	return _unpaid_sent() * Rules.CARE_CLOTH_MILLI
 
 
 func _unpaid_sent() -> int:
@@ -588,67 +604,6 @@ func gatherer() -> Tasks.Gather:
 	return _gather
 
 
-# --- the sickbay --------------------------------------------------------------------------------------------------
-
-func sickbay_refusal(r: int) -> String:
-	"""Why room `r` cannot be the sickbay ("" : it can; see THE SICKBAY)."""
-	if _graph == null or r < 0 or r >= RoomsScript.MAX_ROOMS or _graph.rooms.template[r] != RoomsScript.TEMPLATE_HOME:
-		return NOT_A_HOME
-	if not _graph.rooms.is_done(_graph, r):
-		return NOT_DUG
-	var fit: FixturesScript = _graph.fit
-	if fit.count(_graph, r, RoomsScript.FIX_BED, FixturesScript.INSTALLED) \
-			+ fit.count(_graph, r, RoomsScript.FIX_BIG_BED, FixturesScript.INSTALLED) == 0:
-		return NEEDS_BED
-	if not fit.has_hearth(_graph, r):
-		return NEEDS_HEARTH
-	return NEEDS_SHELF if fit.count(_graph, r, RoomsScript.FIX_HANGING, FixturesScript.INSTALLED) == 0 else ""
-
-
-func set_sickbay(r: int) -> String:
-	"""Make room `r` the sickbay; its refusal ("" : done). The beds are allocated again at once."""
-	var why: String = sickbay_refusal(r)
-	if not why.is_empty():
-		return why
-	sickbay = r
-	sickbay_gen = _graph.rooms.generation[r]
-	_reallocate()
-	return ""
-
-
-func clear_sickbay() -> void:
-	"""No sickbay: its beds are anyone's again."""
-	sickbay = -1
-	_reallocate()
-
-
-func _reallocate() -> void:
-	"""The night's beds allocated again (KEPT BEDS changed). A patient lying in a bed is its current holder first, so
-	REQ-SET-132's "prefer the resident's current valid bed" keeps it there and no sleeper is given it."""
-	revision += 1
-	if _night == null:
-		return
-	for j: int in _rest.size():
-		if resting(j) and _rest[j].bed >= 0:
-			_night.bed_of[j] = _rest[j].bed
-	_night.allocate()
-
-
-func is_designated() -> bool:
-	"""Whether a room that still stands is the sickbay."""
-	return sickbay >= 0 and _graph != null and _graph.rooms.is_ref(sickbay, sickbay_gen)
-
-
-func sickbay_valid() -> bool:
-	"""Whether the sickbay stands and is whole (its service not suspended)."""
-	return is_designated() and sickbay_refusal(sickbay).is_empty()
-
-
-func keeps_bed(bed: int) -> bool:
-	"""The night's bed filter: every bed but the sickbay's (see THE SICKBAY)."""
-	return not is_designated() or bed / FixturesScript.PLACES != sickbay
-
-
 # --- words --------------------------------------------------------------------------------------------------------
 
 func name_of(i: int) -> String:
@@ -687,22 +642,10 @@ func _care_line(p: int) -> String:
 	return Text.care_words("", 0, waiting_for(p))
 
 
-func home_lines(r: int) -> String:
-	"""The sickbay section's lines for home `r`: what it is (or would be), what it lacks, the supplies, the patch and
-	the patients."""
+func infirmary_lines() -> String:
+	"""The Tunnels panel's infirmary section lines: the building's state, the supplies, the herb patch, the patients."""
 	var lines := PackedStringArray()
-	var why: String = sickbay_refusal(r)
-	if r == sickbay and is_designated():
-		lines.append(("This home is the sickbay: its beds are kept for the sick, who mend twice as fast here (+%d health"
-			+ " an hour, not +%d).")
-			% [Rules.RECOVERY_INFIRMARY_PER_HOUR, Rules.RECOVERY_PER_HOUR])
-		if not why.is_empty():
-			lines.append("Its care is suspended: " + why)
-	else:
-		lines.append("A sickbay keeps its beds for the sick, who mend twice as fast there (+%d health an hour, not +%d)."
-			% [Rules.RECOVERY_INFIRMARY_PER_HOUR, Rules.RECOVERY_PER_HOUR])
-		if not why.is_empty():
-			lines.append("To be the sickbay, " + why)
+	lines.append(infirmary.status_text() if infirmary != null else "No infirmary")
 	lines.append(Text.supplies_line(state.herb_milli, state.cloth_milli))
 	lines.append(Text.patch_line(state.patch_milli, Rules.HERB_FLOOR_MILLI))
 	lines.append(patients_line())

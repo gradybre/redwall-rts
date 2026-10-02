@@ -344,7 +344,7 @@ func test_the_card_and_news_words() -> void:
 	assert_equal(Text.hurt_lines(78, Injury.KIND_BITE, 1, 2, -1, "Waiting: a healer is coming"),
 		PackedStringArray(["Hurt: a bite (minor) · health 78", "Untreated 2 h · health −1 an hour until treated",
 		"Waiting: a healer is coming"]), "hurt lines")
-	assert_equal(Text.recovering_line(66, 4, true, true), "Recovering · health 66 · +4 an hour in the sickbay · up at 70 in about 1 h",
+	assert_equal(Text.recovering_line(66, 4, true, true), "Recovering · health 66 · +4 an hour in the infirmary · up at 70 in about 1 h",
 		"recovering")
 	assert_equal(Text.short_word(true, Injury.KIND_CUT, 80), "hurt (cut)", "group: hurt")
 	assert_equal(Text.short_word(false, 0, 100), "", "group: well")

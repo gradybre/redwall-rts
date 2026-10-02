@@ -2735,7 +2735,7 @@
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "REQ-SET-030-033 on real HAUL Jobs: RESERVED->TRAVEL->WORK(2000 mWU load)->HAUL_OUTPUT(carry + 2000 mWU unload)->COMPLETE; 30/300-tick leases; 300-tick unreachable BLOCKED with 900-tick retry; cancel keeps carried goods and re-posts; drop_satchel before despawn."
+      "acceptance": "REQ-SET-030-033 on real HAUL Jobs: RESERVED->TRAVEL->WORK(2000 mWU load)->HAUL_OUTPUT(carry + 2000 mWU unload)->COMPLETE; 30/300-tick leases; 300-tick unreachable BLOCKED with 900-tick retry; cancel keeps carried goods and re-posts; drop_satchel before despawn. Also REQ-SET-134: the pantry connection measured as walking distance (moved from H6, decision 1031)."
     },
     {
       "id": "HAUL-H5",
@@ -2755,16 +2755,19 @@
     {
       "id": "HAUL-H6",
       "title": "Storage policy commands: SET_STORE_FILTER, SET_STORE_MINIMUM, mass limits and the pantry connection",
-      "status": "blocked",
-      "depends_on": [
-        "HAUL-H3"
-      ],
+      "status": "done",
+      "depends_on": [],
       "owns": [
-        "godot/scripts/core/command_dispatch.gd"
+        "godot/scripts/core/command_dispatch.gd",
+        "godot/scripts/core/store_policy.gd"
       ],
       "agent": "game-coder",
       "gate": "none",
-      "acceptance": "Task 06.4's filter/minimum/mass-limit items through the task-04 dispatcher; REQ-SET-117 minimum reserves; REQ-SET-134 pantry connection measured as walking distance."
+      "acceptance": "Task 06.4's filter/minimum/mass-limit items through the task-04 dispatcher; REQ-SET-117 minimum reserves; REQ-SET-134 pantry connection measured as walking distance.",
+      "pr": 220,
+      "merge_commit": "7dadb0f0968b53087548c57f87653d908371bad3",
+      "merged_at": "2026-10-02T18:32:07Z",
+      "note": "Landed as PR #220 (decision 1031): store filters, minimums and SET_STORE_* commands; mass limits need no new state. REQ-SET-134 pantry connection by walking distance is not covered and moves to HAUL-H4. Status set when master was merged into feat/hauling-h0-h2."
     },
     {
       "id": "HAUL-H7",

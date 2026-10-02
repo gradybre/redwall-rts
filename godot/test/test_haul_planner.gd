@@ -455,7 +455,7 @@ func test_a_ring_whose_piles_are_full_has_no_pile_fallback() -> void:
 	assert_true(piles.bind_stores(_w.inventory, _w.buildings, _w.stock_age), "bound")
 	assert_true(piles.bind_world(_w.world), "world")
 	var planner: HaulPlannerScript = HaulPlannerScript.new()
-	planner.bind(_w.inventory, _w.pool, _w.residents, _w.buildings, piles)
+	planner.bind(_w.inventory, _w.pool, _w.residents, _w.buildings, piles, _w.store_policy)
 	_w.inventory.begin()
 	var pile: Vector2i = _w.inventory.create_ground_pile(HaulWorld.tile(41, 44)).ref
 	_w.lot(pile, STONE, 399000)
@@ -464,3 +464,22 @@ func test_a_ring_whose_piles_are_full_has_no_pile_fallback() -> void:
 	assert_equal(planner.last_refusal(), HaulPlannerScript.REFUSE_NO_DESTINATION, "named")
 	assert_true(planner.select_destination_into(_stones, 1000, _dest), "1 stone does")
 	assert_equal(_dest.tile, HaulWorld.tile(41, 44), "on that tile")
+
+
+func test_a_main_stores_per_item_allow_byte_excludes_it() -> void:
+	"""Decision 1031 P3: a depot whose building disallows stone is skipped for the next store."""
+	var depot_main: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(50, 40))
+	var depot_side: Vector2i = _w.store(_depot, 400000, HaulWorld.tile(51, 40))
+	assert_true(_w.planner.select_destination_into(_stones, 12000, _dest), "chosen")
+	assert_equal(_dest.container, depot_main, "the main store, while stone is allowed")
+	assert_equal(_w.store_policy.set_allowed(_depot, STONE, 0), &"", "stone disallowed")
+	assert_true(_w.planner.select_destination_into(_stones, 12000, _dest), "chosen again")
+	assert_equal(_dest.container, depot_side, "the off-origin store answers by its mask alone")
+
+
+func test_binding_needs_every_store() -> void:
+	"""A null store policy binds nothing."""
+	var planner: HaulPlannerScript = HaulPlannerScript.new()
+	assert_false(planner.bind(_w.inventory, _w.pool, _w.residents, _w.buildings, _w.piles, null),
+		"no store policy")
+

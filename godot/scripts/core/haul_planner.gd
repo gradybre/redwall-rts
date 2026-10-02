@@ -44,6 +44,7 @@ const ResidentsScript := preload("res://scripts/core/residents.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
 const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
+const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 
@@ -115,6 +116,7 @@ var _reservations: ReservationsScript = null
 var _residents: ResidentsScript = null
 var _buildings: BuildingsScript = null
 var _piles: GroundPilesScript = null
+var _store_policy: StorePolicyScript = null
 
 # --- the record: one row per Job key (registry: UNRESOLVED, decision 1023) -------------------
 ## The admitted job's generation; 0 means the row holds no admission.
@@ -174,11 +176,17 @@ func clear() -> void:
 
 
 func bind(inventory: InventoryScript, reservations: ReservationsScript,
-		residents: ResidentsScript, buildings: BuildingsScript, piles: GroundPilesScript) -> bool:
-	"""Borrow the five stores a haul admission reads and writes. False, binding nothing, on a null."""
+		residents: ResidentsScript, buildings: BuildingsScript, piles: GroundPilesScript,
+		store_policy: StorePolicyScript) -> bool:
+	"""Borrow the six stores a haul admission reads and writes. False, binding nothing, on a null.
+
+	`store_policy` answers R1's "filters admit" (decision 1031 P3: destination selection asks
+	`store_admits()`, the category mask AND a main store's per-item allow byte).
+	"""
 	if inventory == null or reservations == null or residents == null or buildings == null \
-			or piles == null:
+			or piles == null or store_policy == null:
 		return false
+	_store_policy = store_policy
 	_inventory = inventory
 	_reservations = reservations
 	_residents = residents
@@ -384,8 +392,7 @@ func _is_destination_store(candidate: Vector2i, source_owner: Vector2i, lot: Vec
 		return false
 	if not _inventory.container_reachable(candidate):
 		return false
-	var category: int = _inventory.item_category(_inventory.lot_item_id(lot))
-	if (_inventory.container_filters(candidate) >> category) & 1 != 1:
+	if not _store_policy.store_admits(candidate, _inventory.lot_item_id(lot)):
 		return false
 	return _inventory.container_free_mass_g(candidate) >= charge_g
 

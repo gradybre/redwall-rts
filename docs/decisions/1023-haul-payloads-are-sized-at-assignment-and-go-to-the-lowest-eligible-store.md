@@ -53,6 +53,14 @@ R-H6 and R-H7 (decision 1021).
    -- 196608 B, folded into §3's Auxiliary payload as `HaulAdmission`. Registry: UNRESOLVED with
    its question, as decision 0534 classified the demolition record.
 
+7. **"Filters admit" asks the store policy (added when master's decision 1031 merged in).**
+   R1's filter clause calls `store_policy.store_admits(candidate, item)` -- the container's
+   category mask AND, for a building's main store, its per-item allow byte -- as decision 1031 P3
+   rules; `bind()` takes the store policy as a required sixth store. A building that disallows an
+   item sends its haul to the next eligible store. Capacity and reachability stay separate
+   clauses, as `store_admits()` intends. Decision 1031 P2's haul-out demand for disallowed stock
+   and its `inventory.container_accepts_item()` follow-up are H5's and H8's, not done here.
+
 ## Why
 
 - **R1 restated, not called.** Its only implementation is `settlement_system.gd`'s private

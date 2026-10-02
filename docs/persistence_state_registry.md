@@ -399,7 +399,7 @@ Neither needs new state.
 | Placement spec | `_spec` | 8 | `GroundPilesScript.SPEC_STRIDE` = 7 | Overwritten per call | 3 | -- | One `preflight_lots_from_seeds()` row carrying the source lot's attributes and the payload. |
 | Claim record | `_claim` | 8 | `ReservationsScript.CLAIM_STRIDE` = 5 | Overwritten per call | 3 | -- | The one HAUL_SOURCE row `admit()` hands the pool's `claim_batch()`. |
 | Unload seed | `_one_seed` | 4 | `1` = 1 | Overwritten per call | 3 | -- | The recorded unload tile as a one-cell seed buffer for `complete_unload()` onto ground piles. |
-| Bindings and scratch | -- | -- | -- | -- | 3 | -- | `_inventory`, `_reservations`, `_residents`, `_buildings` and `_piles` are borrowed wiring; `_seed_count`, `_math`, `_place` and `_chosen` are call scratch. |
+| Bindings and scratch | -- | -- | -- | -- | 3 | -- | `_inventory`, `_reservations`, `_residents`, `_buildings`, `_piles` and `_store_policy` (decision 1031) are borrowed wiring; `_seed_count`, `_math`, `_place` and `_chosen` are call scratch. |
 
 ### `godot/scripts/core/households.gd`
 

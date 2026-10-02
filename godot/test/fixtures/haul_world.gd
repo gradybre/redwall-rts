@@ -15,6 +15,7 @@ const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
 const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
 const HaulPlannerScript := preload("res://scripts/core/haul_planner.gd")
+const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 
@@ -40,6 +41,7 @@ var pool: ReservationsScript = null
 var residents: ResidentsScript = null
 var carry: HaulCarryScript = null
 var planner: HaulPlannerScript = null
+var store_policy: StorePolicyScript = null
 
 
 func _init(container_capacity: int = 64, lot_capacity: int = 64, row_capacity: int = 256) -> void:
@@ -59,8 +61,9 @@ func _init(container_capacity: int = 64, lot_capacity: int = 64, row_capacity: i
 	residents = ResidentsScript.new(directory, null)
 	carry = HaulCarryScript.new()
 	carry.bind(inventory, pool, residents, piles)
+	store_policy = StorePolicyScript.new(buildings, inventory)
 	planner = HaulPlannerScript.new()
-	planner.bind(inventory, pool, residents, buildings, piles)
+	planner.bind(inventory, pool, residents, buildings, piles, store_policy)
 
 
 static func tile(x: int, z: int) -> int:

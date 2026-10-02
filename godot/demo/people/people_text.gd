@@ -17,6 +17,7 @@ const EVENT_WORDS: Array[String] = [
 	"First harvest: %s",          # KIND_FIRST_HARVEST: "carrot from the carrot bed"
 	"Reached %s",                 # KIND_SKILL: "Felling · Level 4"
 	"Cooked %s for everyone",     # KIND_MEAL: "supper, day 3"
+	"Won the %s",                 # KIND_REGATTA: "summer regatta's race"
 ]
 ## The same deeds told of the resident, for the chronicle and the spotlight ("Corra Netley brought ... ashore").
 const DEED_WORDS: Array[String] = [
@@ -28,6 +29,7 @@ const DEED_WORDS: Array[String] = [
 	"%s brought in a first harvest: %s",
 	"%s reached %s",
 	"%s cooked %s for everyone",
+	"%s won the %s",
 ]
 ## Kinds whose words name another person rather than the subject.
 const NAMES_OTHER: PackedInt32Array = [Ledger.KIND_RESCUE, Ledger.KIND_RESCUED]

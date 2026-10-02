@@ -10,6 +10,8 @@ extends Node
 ##     Objectives command (O, unlocked here as the work board unlocks Jobs), the card's Help, the game menu's guide row
 ##     and the Demo Lab's "Practice stories";
 ##   * the PROJECTS (projects.gd), measured on the same real figures;
+##   * the VILLAGE GOALS (demo/goals/demo_goals.gd, decision 0781): the GDD's milestones and the village goals, measured on
+##     the same figures once a game hour, each said once in Village news when reached;
 ##   * the CHRONICLE: the guide's completion and each finished project, written into the village news history under the
 ##     Village source (demo_notices.gd SOURCE_VILLAGE).
 ## SKIP AND REOPEN (REQ-SET-168) are the card's Hide guide, the menu row's Skip / Reopen and the window's Show / Hide: they
@@ -23,6 +25,7 @@ const CardScript := preload("res://demo/guide/guide_card.gd")
 const BeaconScript := preload("res://demo/guide/guide_beacon.gd")
 const WindowScript := preload("res://demo/guide/guide_window.gd")
 const ProjectsScript := preload("res://demo/guide/projects.gd")
+const GoalsScript := preload("res://demo/goals/demo_goals.gd")
 const TopicsScript := preload("res://demo/guide/help_topics.gd")
 const Text := preload("res://demo/guide/guide_text.gd")
 const GuideUi := preload("res://demo/guide/guide_ui.gd")
@@ -53,6 +56,7 @@ var world: WorldScript = null
 var facts: FactsScript = FactsScript.new()
 var steps: StepsScript = StepsScript.new()
 var projects: ProjectsScript = ProjectsScript.new()
+var goals: GoalsScript = GoalsScript.new()
 var card: CardScript = CardScript.new()
 var beacon: BeaconScript = BeaconScript.new()
 var window: WindowScript = WindowScript.new()
@@ -86,6 +90,9 @@ func configure(p_world: WorldScript, notices: NoticesScript, jump: JumpScript, r
 	_paused = manager.is_paused if manager != null else Callable()
 	window.bind(manager)
 	projects.post = _chronicle
+	goals.post = func(text: String) -> void: _chronicle(text, NoticesScript.TARGET_NONE, -1)
+	goals.guide_done = steps.is_complete
+	goals.configure(world, world.record)
 	add_child(beacon)
 	add_child(card)
 	add_child(window)
@@ -113,6 +120,7 @@ func _wire_window() -> void:
 	window.projects.facts = facts
 	window.projects.places_into = world.places_into
 	window.projects.go_to = go_to
+	window.goals.book = goals.book
 	window.field_guide.guide.bind_pantry(world.pantry)
 	window.help.action_requested.connect(run_action)
 
@@ -202,6 +210,7 @@ func _process(delta: float) -> void:
 	steps.update(facts, 0.0 if paused else delta)
 	if steps.take_completion():
 		_chronicle(Text.CHRONICLE_COMPLETE % _choice_words(), NoticesScript.TARGET_NONE, -1)
+	goals.update()
 	_refresh_in -= delta
 	if _refresh_in > 0.0 and Vector3i(steps.revision, facts.revision, int(steps.hidden)) == _drawn:
 		return

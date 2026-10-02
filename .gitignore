@@ -37,3 +37,5 @@ assets/library/
 
 # Live demo: staged from the provisional asset library by tools/stage_demo_assets.py (decision 0196)
 godot/demo/assets/
+# The Windows build's version file, written and removed by tools/build_demo_windows.py (decision 0562)
+godot/demo/build_info.json

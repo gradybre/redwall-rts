@@ -114,14 +114,16 @@ func _process(_delta: float) -> void:
 
 
 func _count_warnings() -> void:
-	"""The feed's new rows since the last frame (entry 0 the newest), counted when they are warnings."""
-	if _notices == null:
+	"""The feed's new rows since the last frame, counted when they are warnings of a kind not snoozed. Read by entry id
+	(decision 0591: a grouped repeat moves its row to the newest place without writing a new one). A snoozed kind does
+	not end a run (Brendan's ruling, 0591); a warning the toast budget held back does -- the strip counts it."""
+	if _notices == null or _notices.rows_posted == _rows_seen:
 		return
-	var fresh: int = mini(_notices.rows_posted - _rows_seen, _notices.count())
-	_rows_seen = _notices.rows_posted
-	for k: int in fresh:
-		if _notices.level(k) == NoticesScript.LEVEL_WARNING:
+	for k: int in _notices.count():
+		if _notices.is_new_since(k, _rows_seen) and _notices.level(k) == NoticesScript.LEVEL_WARNING \
+				and not _notices.is_snoozed_entry(k):
 			_warning_rows += 1
+	_rows_seen = _notices.rows_posted
 
 
 func warnings_seen() -> int:

@@ -22,6 +22,7 @@ const TunnelPanel := preload("res://demo/tunnel/tunnel_panel.gd")
 const ForestPanel := preload("res://demo/forestry/forest_panel.gd")
 const WaterPanel := preload("res://demo/waterplay/water_panel.gd")
 const CalendarScript := preload("res://demo/demo_calendar.gd")
+const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
 
 ## Frames to let the village boot (its prewarm releases the clock after its first frames).
 const BOOT_FRAMES: int = 12
@@ -42,6 +43,9 @@ var _order_before: int = 0
 var _ids: Dictionary = {}
 var _pending_capture: String = ""
 var _restart_checked_hold: bool = false
+## The playtest log's node and file as first seen (decision 0562): the same after a restart.
+var _playtest_node: Node = null
+var _playtest_file: String = ""
 
 
 func _initialize() -> void:
@@ -63,7 +67,7 @@ func _initialize() -> void:
 	_steps = [_pantry_opens_as_a_modal, _pantry_blocks_the_world, _pantry_traps_tab, _pantry_escape_returns,
 		_escape_ladder_ends_in_the_menu, _menu_button_opens_the_menu, _menu_pages_and_escape, _menu_controls_back,
 		_menu_restores_speed, _menu_confirms_restart_and_quit, _confirm_cancel_and_quit,
-		_settings_offer_what_works, _settings_fit_and_sound, _settings_close, _sound_really_plays, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
+		_settings_offer_what_works, _settings_fit_and_sound, _settings_close, _playtest_opens_the_menu, _playtest_presses_f12, _playtest_marked, _sound_really_plays, _f7_and_tab_reach_every_panel_button, _focus_ring_off,
 		_f7_reaches_the_left_column_then_the_world, _enter_and_space_route_by_focus, _enter_goes_to_the_dig_tool,
 		_lab_holds_the_triggers, _lab_fires_and_panels_are_clean, _lab_from_the_menu, _history_click_does_not_leak,
 		_a_click_gives_the_arrows_back, _the_banner_over_the_lab, _the_banner_takes_enter,
@@ -73,7 +77,8 @@ func _initialize() -> void:
 		_work_open_the_picker, _work_reassign_by_click, _work_show_residents, _work_scroll_to_resident, _work_edit_a_crew, _work_cancel_all_shows_its_scope,
 		_work_keep_working, _work_closes_on_j, _shift_right_click_queues,
 		_scale_follows_the_choice, _work_at_the_chosen_scale, _work_close_scaled,
-		_restart_boots_again, _after_restart, _a_smaller_window_steps_the_scale_down]
+		_restart_boots_again, _after_restart, _playtest_survives_the_restart, _playtest_presses_f12, _playtest_marked_again,
+		_a_smaller_window_steps_the_scale_down]
 
 
 func _process(_delta: float) -> bool:
@@ -493,6 +498,67 @@ func _settings_close() -> void:
 	_key(KEY_ESCAPE)
 	_key(KEY_ESCAPE)
 	_check("two Escs close the menu", not _menu().visible and not _gate().modal_open())
+
+
+# --- the playtest log (decision 0562) ----------------------------------------------------------
+
+func _playtest_file_text() -> String:
+	"""The running session's file so far ('' without one)."""
+	var session: RefCounted = PlaytestLog.session()
+	if session == null:
+		return ""
+	return FileAccess.get_file_as_string(String(session.call(&"dir")).path_join(String(session.call(&"file_name"))))
+
+
+func _playtest_opens_the_menu() -> void:
+	"""The village started the log under the root, its probes bound; Settings shows its section; the menu opens (a
+	panel breadcrumb on the next frame)."""
+	_playtest_node = root.get_node_or_null(NodePath(String(PlaytestLog.NODE_NAME)))
+	_check("the playtest log runs under the root", _playtest_node != null and PlaytestLog.session() != null)
+	if PlaytestLog.session() == null:
+		return
+	_playtest_file = String(PlaytestLog.session().call(&"file_name"))
+	_check("its breadcrumbs are bound", int(_playtest_node.call(&"probe_count")) >= 5)
+	_check("the compared map layer is a breadcrumb", (_playtest_node.get("_probe_tags") as Array).has(&"compare layer"))
+	_menu().open()
+	_check("Settings has the playtest log", _menu().page_text(MenuScript.PAGE_SETTINGS).contains("Open log folder"))
+
+
+func _playtest_presses_f12() -> void:
+	"""F12 over the open menu marks; the menu stays open (the log's node reads F12 before the gate)."""
+	_key(KEY_F12)
+	_check("F12 over the menu leaves it open", _menu().visible and _gate().modal_open())
+
+
+func _playtest_marked() -> void:
+	"""The mark is in the file, with the menu's breadcrumb before it; Esc closes the menu."""
+	var text: String = _playtest_file_text()
+	_check("F12 wrote the mark", text.contains("MARK #1  the tester marked a problem here"))
+	_check("after the menu's breadcrumb", text.contains("panel DemoMenu opened"))
+	_check("the village opened in the log", text.contains("scene village open"))
+	_key(KEY_ESCAPE)
+
+
+func _playtest_survives_the_restart() -> void:
+	"""After Restart demo: the same node and file, the new village's probes bound, and the node last under the root
+	again (so F12 still comes before the gate)."""
+	var node: Node = root.get_node_or_null(NodePath(String(PlaytestLog.NODE_NAME)))
+	_check("the same playtest log after the restart", node != null and node == _playtest_node)
+	_check("the same session file", PlaytestLog.session() != null
+		and String(PlaytestLog.session().call(&"file_name")) == _playtest_file)
+	if node == null:
+		return
+	_check("the new village's breadcrumbs are bound", int(node.call(&"probe_count")) >= 5)
+	_check("it is the root's last child again", node.get_index() == root.get_child_count() - 1)
+	_menu().open()
+
+
+func _playtest_marked_again() -> void:
+	"""The second mark lands over the restarted village's menu, after the restart's breadcrumb."""
+	var text: String = _playtest_file_text()
+	_check("F12 marks again after the restart", text.contains("MARK #2  the tester marked a problem here"))
+	_check("the restart is a breadcrumb", text.contains("scene restart"))
+	_key(KEY_ESCAPE)
 
 
 # --- F30: keyboard focus ------------------------------------------------------------------------

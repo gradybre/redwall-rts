@@ -1,0 +1,7 @@
+{
+	"version": 1,
+	"provenance": "DEMO-TEST ONLY. Generated, non-canon placeholder names for the live demo's scale test (docs/performance/2026-10-01-scale-test.md). They are not authored residents, not taken from the books and not the main game's naming system (docs/game_gdd.md 5.3). A stress resident is named first + ' ' + surname_head + surname_tail, chosen by its cast index (demo/stress/stress_cast.gd). Never shown outside a --stress-residents run.",
+	"first": ["Abbet", "Brannoc", "Cuddy", "Delphy", "Ebbet", "Fennick", "Gorlan", "Hobbet", "Issolt", "Jubb", "Kesset", "Lorrin", "Mabbet", "Nettick", "Orrel", "Pellow", "Quenby", "Rudd", "Sallet", "Tobbin", "Ursel", "Venn", "Wickett", "Yarrel"],
+	"surname_head": ["Ash", "Brack", "Clover", "Dun", "Elder", "Fern", "Gorse", "Hollin", "Ivy", "Knap", "Larch", "Moss", "Nut", "Osier", "Pebble", "Reed", "Sorrel", "Thistle", "Willow"],
+	"surname_tail": ["by", "combe", "dale", "field", "ford", "holt", "ley", "mere", "stead", "thorpe", "wick"]
+}

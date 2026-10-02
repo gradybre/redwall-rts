@@ -205,14 +205,46 @@ func report(key: String, source: int, severity: int, text: String, summary: Stri
 		target_kind: int = NoticesScript.TARGET_NONE, target_id: int = -1, watch: Callable = Callable()) -> int:
 	"""`raise`, and post its line to the bound feed with its target and serial (a WARNING unless routine) --
 	a merged repeat too, so the history keeps every date it was said. Refused by a full table, the line is still
-	posted (with no incident): a warning is never lost because the incidents are. Returns the serial."""
+	posted (with no incident): a warning is never lost because the incidents are. The line's tier is the severity's
+	(`tier_of`), its kind and subject the key's (`kind_of_key`, `subject_of_key`; decision 0591). Returns the
+	serial."""
 	var serial: int = raise(key, source, severity, text, target_kind, target_id, watch)
 	if serial == NO_SERIAL:
 		push_warning("incident table full or raise refused: %s" % key)
 	if _feed != null:
 		var level: int = NoticesScript.LEVEL_NOTE if severity == SEVERITY_ROUTINE else NoticesScript.LEVEL_WARNING
-		_feed.post(source, level, text, summary, target_kind, target_id, serial)
+		_feed.post(source, level, text, summary, target_kind, target_id, serial, tier_of(severity),
+			StringName(kind_of_key(key)), subject_of_key(key))
 	return serial
+
+
+static func tier_of(severity: int) -> int:
+	"""The feed tier an incident's line takes (decision 0591): critical is urgent, warning normal, routine info."""
+	if severity == SEVERITY_CRITICAL:
+		return NoticesScript.TIER_URGENT
+	return NoticesScript.TIER_NORMAL if severity == SEVERITY_WARNING else NoticesScript.TIER_INFO
+
+
+static func kind_of_key(key: String) -> String:
+	"""A key's KIND: its words up to the first whole number ("tunnel:flooded:4:2" -> "tunnel:flooded")."""
+	var cut: int = _number_at(key)
+	return key if cut < 0 else key.substr(0, maxi(cut - 1, 0))
+
+
+static func subject_of_key(key: String) -> String:
+	"""A key's SUBJECT: its words from the first whole number on ("tunnel:flooded:4:2" -> "4:2"; "" with none)."""
+	var cut: int = _number_at(key)
+	return "" if cut < 0 else key.substr(cut)
+
+
+static func _number_at(key: String) -> int:
+	"""Where a key's first all-digit part starts (-1: none)."""
+	var at: int = 0
+	for part: String in key.split(":"):
+		if part.is_valid_int():
+			return at
+		at += part.length() + 1
+	return -1
 
 
 func resolve(key: String) -> bool:

@@ -112,6 +112,9 @@ var _markers_below: Array[MeshInstance3D] = []
 var _marker_age: PackedFloat32Array = PackedFloat32Array()
 var _marker_colour: PackedColorArray = PackedColorArray()
 var _marker_next: int = 0
+## Orders marked so far, accepted and refused (the playtest log's breadcrumbs read them; decision 0562).
+var orders_accepted: int = 0
+var orders_refused: int = 0
 var _box_layer: CanvasLayer = null
 var _box: Panel = null
 var _feet: PackedVector3Array = PackedVector3Array()
@@ -752,7 +755,11 @@ func release_selection() -> void:
 
 
 func mark(at: Vector3, accepted: bool) -> void:
-	"""Start a fading ring at `at`: ember for an order, clay for a refusal."""
+	"""Start a fading ring at `at`: ember for an order, clay for a refusal; and count it."""
+	if accepted:
+		orders_accepted += 1
+	else:
+		orders_refused += 1
 	var i := _marker_next
 	_marker_next = (_marker_next + 1) % MARKER_POOL
 	_marker_age[i] = 0.0

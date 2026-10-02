@@ -352,8 +352,23 @@ func advance(clock: DemoClockScript) -> void:
 	clip playing at the game's speed (see TIME)."""
 	if brain == null:
 		return
+	step_brain(clock)
+	draw(clock)
+
+
+func step_brain(clock: DemoClockScript) -> void:
+	"""The brain's half of `advance`: its sub-steps through this frame's demo time. The scale test times it apart from
+	`draw` (demo_cast.gd `_step_actors`, decision 0561); together they are `advance`."""
+	if brain == null:
+		return
 	for k in clock.steps():
 		brain.step(clock.step_s(k))
+
+
+func draw(clock: DemoClockScript) -> void:
+	"""The drawing half of `advance`: stand, stoop, strike and play the clip where the brain says (see TIME)."""
+	if brain == null:
+		return
 	_apply_transform()
 	_step_strike(clock.delta_s())
 	ease_stoop(clock.delta_s())

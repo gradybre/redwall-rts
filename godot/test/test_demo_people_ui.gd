@@ -300,7 +300,10 @@ func test_why_names_the_owner_that_has_the_resident() -> void:
 	assert_equal(rig.people.why_of(1), PeopleScript.WHY_NIGHT, "asleep")
 	brain.resting = false
 	brain.water_hold = true
+	brain.in_water = true
 	assert_equal(rig.people.why_of(1), PeopleScript.WHY_HELD, "in difficulty")
+	brain.in_water = false
+	assert_equal(rig.people.why_of(1), PeopleScript.WHY_ABOARD, "held on the water out of it: aboard a boat")
 	brain.water_hold = false
 	var source := PeopleTest.StubSource.new()
 	source.id = 0

@@ -15,6 +15,11 @@ extends RefCounted
 ## `ashore`, REQ-SET-054's landing). ONE RESPONDER: a rescue whose victim is no longer reserved for it (relieved, or it
 ## came ashore another way) rows home empty. Out on the water it is held (`water_hold`): no order takes it off the
 ## boat mid-pond (MOVE-REQ-007); the player's way to stop it is to let the victim be taken over.
+##
+## EACH BOAT FROM ITS OWN JETTY (decision 0437). The ferry boat (boat_routes.gd FERRY_BOAT) is a third boat, moored off
+## the ferry stage on the run; while the ferry has given it back between crossings it is free like the others, and a
+## rescue that takes it walks to the ferry stage, rows from its berth there and lands the victim at the ferry stage
+## (boat_routes.gd BERTH_JETTY). `entry_m` is the jetty of the boat the last `boat_for` chose.
 
 const Routes := preload("res://demo/boats/boat_routes.gd")
 const FleetScript := preload("res://demo/boats/boat_fleet.gd")
@@ -31,6 +36,8 @@ var fleet: FleetScript = null
 var map: WaterMapScript = null
 ## `can_helm(who) -> bool`: the fishery's FISH skill gate.
 var can_helm: Callable = Callable()
+## The boat the last `boat_for` chose (-1: none), whose jetty `entry_m` answers.
+var _chosen: int = -1
 
 
 func configure(p_fleet: FleetScript, p_map: WaterMapScript, helm_gate: Callable) -> void:
@@ -42,11 +49,13 @@ func configure(p_fleet: FleetScript, p_map: WaterMapScript, helm_gate: Callable)
 
 func boat_for(at: Vector2) -> int:
 	"""A free boat that can row straight from its berth to `at` (-1: none)."""
+	_chosen = -1
 	if fleet == null or map == null:
 		return -1
 	var to: Vector2i = Routes.u_of(at)
 	for boat: int in fleet.count:
 		if fleet.is_free(boat) and Routes.leg_is_water(map, Routes.BERTH_U[boat], to):
+			_chosen = boat
 			return boat
 	return -1
 
@@ -57,8 +66,9 @@ func may_crew(who: int) -> bool:
 
 
 func entry_m() -> Vector2:
-	"""Where a crew walks to: the jetty's land end."""
-	return Routes.m_of(Routes.JETTY_LAND_U)
+	"""Where a crew walks to: the land end of the jetty of the boat the last `boat_for` chose (the boathouse jetty when
+	none was)."""
+	return Routes.boat_jetty_land_m(_chosen) if _chosen >= 0 else Routes.m_of(Routes.JETTY_LAND_U)
 
 
 func row_cost_m(at: Vector2) -> float:
@@ -113,8 +123,8 @@ class BoatRescue extends "res://demo/tunnel/tunnel_task.gd":
 		_on_ashore = on_ashore
 
 	func site(_brain: RefCounted) -> Vector2:
-		"""The jetty's land end."""
-		return Routes.m_of(Routes.JETTY_LAND_U)
+		"""Its boat's jetty's land end."""
+		return Routes.boat_jetty_land_m(boat)
 
 	func arrived(brain: RefCounted) -> void:
 		"""At the jetty: on to the boat, held on the water from now on."""
@@ -196,13 +206,13 @@ class BoatRescue extends "res://demo/tunnel/tunnel_task.gd":
 
 	func _land(brain: RefCounted, fleet: FleetScript, delta: float) -> void:
 		"""Up the deck to the land end, the victim handed over there (rescue.gd `ashore`), the boat free again."""
-		var target: Vector2 = Routes.m_of(Routes.BERTH_STEP_U[boat]) if _sub == 0 else Routes.m_of(Routes.JETTY_LAND_U)
+		var target: Vector2 = Routes.m_of(Routes.BERTH_STEP_U[boat]) if _sub == 0 else Routes.boat_jetty_land_m(boat)
 		if not _walk(brain, target, delta):
 			return
 		_sub += 1
 		if _sub < 2:
 			if _with_victim and _on_ashore.is_valid():
-				_on_ashore.call(victim, PackedVector2Array([Routes.m_of(Routes.JETTY_LAND_U), target]))
+				_on_ashore.call(victim, PackedVector2Array([Routes.boat_jetty_land_m(boat), target]))
 				_with_victim = false
 			return
 		brain.water_hold = false

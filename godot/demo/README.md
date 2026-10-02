@@ -23,7 +23,8 @@ Without staging it still runs, on placeholder shapes.
 
 ## Windows build
 
-`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows copy -- a folder
+`python3 tools/build_demo_windows.py --out <folder>` makes a standalone Windows playtest copy (a debug export;
+`--release` for a final build, decision 0562) -- a folder
 with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight into this scene
 (`docs/ENVIRONMENT.md` has the details and what it needs). Decision 0196 records the choices:
 
@@ -56,6 +57,91 @@ with `RedwallDemo.exe`, its `.pck` and a README, zipped -- that boots straight i
   (decision 0301), so a first fade, a first selection under a crown and a first frost cost no compile. While the banner
   is up it is the one overload surface (the HUD's CLOCK_OVERLOADED card is withheld); Resume resolves
   the notice, and a 2x/4x step-down warning (no pause) is resolved once the clock has run 10 s quiet.
+
+## For playtesters: the crash and error log (decision 0562)
+
+Every run of the demo writes a **playtest log**, one file per session, beside Godot's own `godot.log`:
+
+| System | Folder |
+|---|---|
+| Windows (the build) | `%APPDATA%\Godot\app_userdata\Redwall Demo\logs` |
+| macOS (an exported copy) | `~/Library/Application Support/Godot/app_userdata/Redwall Demo/logs` |
+| Run from the project | the same, with `Redwall RTS` in place of `Redwall Demo` |
+
+The file is `playtest-<date>_<time>-p<process>.log`, and the newest sorts last. The folder keeps the last ten sessions.
+Each file holds at most 2 MiB, with a reserve so that marks, freezes and the session's end are still written.
+
+**In the game.** Press **F12** the moment something goes wrong (on a Mac keyboard, Fn+F12). It writes a numbered
+*mark* with the time and the last 24 breadcrumbs, and a toast says "Marked #n". **Game menu → Settings → Playtest log**
+shows the folder and has three buttons:
+
+- **Open log folder**, which opens Explorer or Finder;
+- **Copy report**, which copies this machine's details and the session's last 120 lines to the clipboard, with no paths;
+- **Mark a problem here**, which does the same as F12.
+
+Help's "Something went wrong? Report it" topic says the same, and its button opens the folder.
+
+**What a file holds** (`demo/playtest/`):
+
+- **A header.** It records the start time and UTC offset; the version, which is the commit a build was made from
+  (`demo/build_info.json`, baked by the build script) or `dev <commit>` from git in a project run; and the build type
+  (export or project, debug or release). It then records Godot, the OS, CPU and memory, the graphics adapter, its
+  driver (Windows reports it; macOS does not) and the rendering method and driver actually running, after any
+  fallback. Last come the screen, the window (its mode, size and vsync), the demo's settings with the presets
+  fully in effect, and the language. It also records whether **the previous session ended cleanly**. A missing end
+  marker means a crash, a forced quit or a hang, and the header names that file, so the tester knows to send it too.
+- **Breadcrumbs**: a 64-entry ring of notable events, written in batches at most once a second:
+  - the village built, opened and restarted;
+  - the modal on top of the input gate opened and closed (the game menu, the Pantry, the Lab, Work and so on);
+  - the right column's panel, the underground view, the map layer and the layer compared with it (decision 0581);
+  - every order, accepted or refused, with how many residents were selected, plus Dig tunnel, Release and the room
+    buttons;
+  - the clock's speed and state;
+  - each village-news post (its source and level only).
+
+  There is never one per frame, and none holds typed text or anything about the player.
+- **Errors**: every `push_error`, `push_warning`, GDScript runtime error, engine error and `printerr`, caught through
+  Godot 4.7's `OS.add_logger`. Each is written with its place and up to six script frames, and the breadcrumbs before
+  it are written first, so the file stays in time order. A line repeated more than five times is only counted.
+- **A heartbeat every 30 s**: the game's date and speed, the frame rate and the worst frame, the slow frames (over
+  100 ms), memory and video memory, object, node and orphan counts, and the error totals.
+- **Freezes.** A frame longer than 3 s once the village runs (20 s while it loads) is written when the game recovers,
+  with the breadcrumbs. A watch thread writes the same freeze *while it is still going*, so a hang the tester ends by
+  killing the game is in the file too.
+- **The end**: `== session end` with the totals. Every line is flushed as it is written.
+
+Home and user-data folders are replaced by `~` and `<user data>` in every line. Nothing is sent anywhere: the tester
+sends the file.
+
+**What the tester can paste** (Brendan's message to a playtester):
+
+> If anything goes wrong -- a crash, a freeze, something odd -- press **F12** right then (on a Mac, Fn+F12), then
+> carry on or quit. Afterwards, open the game menu (Esc) → Settings → Playtest log → **Open log folder**, and send
+> me the newest `playtest-….log` file. If the game crashed and you have started it again since, send the newest
+> two, since the crashed session's file is then the second-newest. `godot.log` in the same folder helps as well. If you can't find the folder, it is
+> `%APPDATA%\Godot\app_userdata\Redwall Demo\logs` on Windows (paste that into Explorer's address bar) or
+> `~/Library/Application Support/Godot/app_userdata/Redwall Demo/logs` on a Mac (Finder → Go → Go to Folder).
+> **Copy report** in the same place puts a summary on the clipboard to paste into a message.
+
+**The Windows build.** The build needs nothing new to switch this on:
+
+- `debug/file_logging/enable_file_logging.pc` is on by Godot's default, release exports included, and
+  `test_demo_playtest_log.gd` pins it.
+- The build script bakes `demo/build_info.json` before the export and removes it afterwards. The pack's verification
+  fails if that file is missing, or if the log did not start.
+- The README in the zip says where the logs are.
+
+**Playtest builds are debug exports** (Brendan's ruling, 2026-10-01): `build_demo_windows.py` exports with
+`--export-debug` by default, and `--release` makes a final build on the release template. The reason, measured on the
+4.7.2 **release** template (the macOS one, which runs the same engine code as Windows'):
+
+- a method called on null **ends the process at once** (signal 11), with no message anywhere;
+- an out-of-range index raises nothing;
+- `print` output that has not been flushed is lost.
+
+The **debug** template reports both as SCRIPT ERRORs with script frames, and carries on. The packed build info names
+the mode, the header quotes it, and the pack check fails when it is not the mode asked for (decision 0562). With a
+release build, the breadcrumbs and the unclean-end note are what explain a crash.
 
 ## Time
 
@@ -92,7 +178,7 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
   narrow profile), or **G**: a menu with the speed (1x / 2x / 4x) and six targets, each saying when or why not --
   **Dawn** (06:00, the night routine's), **Dusk** (20:00), **Next meal** (the kitchen's 07:00 or 17:00 call), **Project
   done** (the selected room being dug, else the selected tunnel being dug, else the bridge planned at the Water panel's
-  site), **Harvest window** (a bed coming ripe), **Next warning** (a new warning line or incident). The village runs at the
+  site), **Harvest window** (a bed coming ripe), **Next warning** (a new warning line, not of a snoozed kind, or a new or recurring incident; decision 0591). The village runs at the
   speed, then pauses saying where it got to. The calendar targets land **on the tick** (the demo clock's next frame is
   capped, `demo_clock.gd limit_usec`): from 05:40 at 4x, Run until dawn stops at 06:00:00. Any pause or critical event
   first cancels the run, and the card says so ("Run until dawn cancelled: paused (you paused)"); the button reads
@@ -147,7 +233,7 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
 
 - **The history** (`ui/demo_news_history.gd`): every kept entry, newest first, "date · place · Warning: text",
   filtered by place (*All*, *Farm*, *Woods*, *Tunnels*, *Water*, *Village* -- weather, threats, the crew's
-  reports and the village's chronicle, a finished guide or project (decision 0481); the first place picked shows it alone, more add to it) and by severity (*All*, *Warnings*, *Notes*).
+  reports and the village's chronicle, a finished guide or project (decision 0481); the first place picked shows it alone, more add to it) and by tier (*All*, *Urgent*, *Normal*, *Info*; decision 0591, below).
   An entry about a bed, tree, tunnel, resident or bridge has **Go to**: it selects the target as a click would,
   brings its panel and eases the camera over it (`ui/demo_news_jump.gd`), closing the window. Above the
   history, **Needs attention** lists every open or pinned incident ("No active problems" erases nothing below).
@@ -172,6 +258,69 @@ that `demo_village.gd` makes once (`demo_services.gd`) and hands to both:
   CONDITIONS); back within those 2 hours it is the same occurrence, said once. Dry and worn out alike.
 - **The sound hook**: `demo_incidents.gd` emits `incident_cue(cue, serial, severity)` when a critical
   incident is raised or recurs and when any incident resolves, never for a merged repeat.
+
+## Better notices: tiers, kinds, grouping, snooze and the toast budget (decision 0591)
+
+Feature #39 (`demo_notices.gd`, `demo_notice_snoozes.gd`, `ui/demo_news_strip.gd`, `ui/demo_news_history.gd`).
+
+- **Tiers.** Each notice is *urgent*, *normal* or *info*.
+  - Urgent: the heading face, clay, "Urgent:", 60 s on the strip, and two chimes.
+  - Normal: clay, "Warning:", 30 s, and one chime.
+  - Info: ink, unworded, 12 s, and silent.
+  - A tier never pauses. A *critical incident* pauses through the ledger, as before.
+- **Grouping.** A notice that names its kind joins the same kind about the same subject said within a game day.
+  "Crows at the barley (×3)" moves to the top, and does not chime again.
+- **Strip.** Each line has a Go to (the centre-view crosshair: it selects the subject and centres the camera) and a ×
+  (dismiss that one).
+  - The title counts the lines held back: "· 6 more (N)".
+  - Where the lines would not fit the band (1280×720), it draws fewer, keeping the most urgent.
+- **Village news (N).** The severity filter is a tier filter: All, Urgent, Normal, Info.
+  - Each row has Go to, *Snooze 6 h* (quiet that kind for six game hours: kept, not toasted or chimed) or *Wake*, and
+    *Dismiss*.
+  - A line names the snoozed kinds, with *Wake all*.
+  - Urgent notices are never snoozed or held back.
+- **Run until the next warning** skips warnings of a snoozed kind. A warning the budget held back still stops it, and
+  the strip's "N more" says why.
+- **No spam at 4x.** New toasts are budgeted: 4 at once, +1 per 2.5 s of unpaused real time, info and normal apart.
+  The rest are kept in the history and counted on the strip.
+
+### The notice API (for other features)
+
+Every existing call is unchanged. To add a new kind of notice, use `notify`:
+
+```gdscript
+# notify(from_source, as_tier, as_kind, words, about_subject = "", brief = "", to_kind = TARGET_NONE, to_id = -1) -> bool
+services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_NORMAL, &"cold_home",
+	"The east burrow is cold — light a fire", "home:%d" % home, "Cold home")
+services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_URGENT, &"out_of_fuel", "The village is out of fuel")
+services.notices.notify(NoticesScript.SOURCE_CREW, NoticesScript.TIER_INFO, &"chilled", "A resident came in Chilled", "",
+	"", NoticesScript.TARGET_RESIDENT, who)
+```
+
+- **`kind`** (a StringName) is what sort of notice it is: the GDD's notice `code`. Repeats of a named kind about the
+  same **`subject`** group. The subject defaults to the target ("resident:4"), else none.
+  - Snooze works by kind, so use one kind per sort of notice, not one per resident.
+- **`tier`**: `TIER_URGENT` | `TIER_NORMAL` | `TIER_INFO`. `notify` posts urgent and normal as WARNING and info as NOTE.
+- **`to_kind` / `to_id`**: the jump target, `TARGET_*`. Go to shows when the village's jump can find it.
+- **`post`** is unchanged, with three optional parameters added last: `post(from_source, at_level, words, brief = "",
+  to_kind = TARGET_NONE, to_id = -1, serial = NO_INCIDENT, as_tier = TIER_AUTO, as_kind = NO_KIND, about_subject = "")`.
+  (The parameters are named apart from the accessors `text()`, `kind()`, ... that they would shadow; GDScript passes
+  arguments by position, so no caller changes.) `TIER_AUTO` infers the tier (warning -> normal, note -> info). Without a kind, a line
+  folds only with an identical line said just before it (decision 0210), and its kind is "<source>:<its words>".
+- **Incidents** (`incidents.report(key, ...)`): the line's tier is the severity's (critical -> urgent), and its kind and
+  subject come from the key. "farm:wet:3" gives kind `farm:wet` and subject `3`, so key a new incident
+  "<area>:<what>:<ids>". Only a critical incident pauses (and the ledger decides whether it does).
+- **Reading the history** (the chronicle):
+  - `count()` and per entry `k` (0 newest): `text`, `summary`, `stamp`, `tier`, `kind`, `subject`, `repeats`,
+    `first_tick`, `said_tick`, `entry_id`, `is_dismissed`, `is_announced`.
+  - `entry_id` is stable and never reused; `index_of(id)` finds it again.
+  - A grouped repeat keeps its id and moves to the top. Read new rows with `is_new_since(k, seen_rows_posted)`, never
+    as "the newest N".
+  - `tiers_into(group_mask, tier_mask, out)` filters.
+- **Breadcrumbs** (the crash log): `notices.notice_posted.connect(func(entry_id: int, tier: int, kind: StringName, text:
+  String) -> void: ...)`. It fires for every accepted post, folds and grouped repeats included.
+- **Snooze and dismiss from code**: `snooze_kind(kind, hours)`, `wake_kind(kind)`, `wake_all()`,
+  `is_kind_snoozed(kind)`, `dismiss(k)` and `dismiss_id(entry_id)`.
 
 **One stores** (`demo_services.gd` `stores`, `tunnel/tunnel_stores.gd`): the village's wood, stone, planks,
 finds and water (the kitchen's butt by the well, 40 U at most; decision 0381). The woods put their wood in and saw
@@ -339,7 +488,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Growing: Ripeness | Which beds are ready to harvest? | growing, ripe, past its best or lost, empty |
 | Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
-| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, the posts (waiting, blocked); public ways never swim (decision 0461) |
+| Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, by ferry (decision 0437), the posts (waiting, blocked); public ways never swim (decision 0461) |
 | Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
@@ -363,6 +512,42 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
   pushes the news strip left), else right of the minimap. It is clear of the minimap, the news strip, the
   command strip, the party panel and the right column; where its slot is short, its list and card scroll under
   its header (decision 0391).
+
+### Legends, the hover readout and comparing two layers (decision 0581)
+
+`lenses/` (wired by `demo_village.gd _build_lens_picker`, one `lenses/demo_lens_kit.gd`):
+
+- **The legend** (`ui/demo_lens_legend.gd`, in the picker's card): what the layer's ramp measures, with its units
+  (the caption), then its ordered **ramp** as one continuous colour bar with each entry's word and threshold under its
+  segment ("good / in range", "swim / ≤1.00 m") -- then its **keys** (fords, bridge sites, landings...). The Water range's
+  depths follow whoever is painted (a badger's wade reaches 0.64 m). The scales are data: `lenses/lens_scales.gd`.
+- **The hover readout** (`ui/demo_lens_readout.gd`): beside the pointer, the exact value under it for the shown
+  layer -- "Soil moisture 60% · good" with that bed's own band edges ("dry <5% · low <25% · wet ≤90% · waterlogged
+  >90%"), "Bed 3, Carrot · 80% grown / ripe in about N h at this hour's rate", "Bed 2 · leat: normal / up to 15 points
+  a day toward its good range's middle", "Water 1.40 m deep · dive / for a 1.0 m mouse: wade ≤0.25 m · swim ≤1.00 m",
+  "Oak · mature tree / forestry zone North stand: may be felled (keeps 20% mature)". Read ten times a second, worded
+  only when what is under the pointer changes, hidden over any panel; nothing is allocated per frame. Routes and
+  Underground have no readout (no probe).
+- **Compare** (the picker header's button between the layer's name and Off, two overlapping squares): pick a second layer and its areas are drawn as **outlines** over the
+  shown one (`lenses/lens_contours.gd`: each area traced in its own colour on its inside, round an ink core) -- a bed
+  filled by moisture and ringed by the leat's service; the readout adds the compared layer's value. Its legend shows
+  below its "Outlined: …" line, compact and outlined. Picking it again, or **✕**, turns it off. V and the list change the shown layer and keep
+  the compared one (unless it becomes the shown one); U's view drops it. Only layers with an outlining probe are
+  offered: the three Growing layers, the Water range and the Woods' zones.
+- **Colours** (`lenses/lens_palette.gd`): one token per area colour, read by the bed discs, the water's zone paint,
+  the legends and the outlines; every layer's area colours pass the colour-blind check (`lenses/lens_colour_check.gd`:
+  deuteranopia and protanopia, legend, day and night). The moisture and ripeness ramps changed for it (moisture: orange
+  dry, pale low, sage good, periwinkle wet, indigo waterlogged; ripeness: blue-grey growing, gold ripe, plum past its
+  best).
+- **At night**: every layer's marks are unshaded, and the outlines also ignore the haze, so the moon and lamps do not
+  dim them; only the frame's own grade does, and the check includes it.
+- **Reduced motion**: the readout fades in and out over 80 ms (UI §2.2), at once with Reduced motion on.
+- **Adding a layer** (a seasonal one, the winter's fuel): fill one `lenses/lens_def.gd` record -- group, label,
+  question, `show(on)`, swatches and words, which swatches form the ramp with a threshold each, the caption with
+  units, which swatches are areas, the ground they lie on, and optionally a probe (`lenses/lens_probe.gd`: `read_into`
+  with no allocation, `describe`, and a field to outline) -- and call `demo_farm.lenses.add_def(def)`. V, the picker,
+  the legend, the readout, compare and the colour check (`test/live/demo_lens_live.gd` checks every layer the village
+  has) pick it up with no other change. Put its area colours in `lens_palette.gd`.
 
 ## Routes and infrastructure previews (decision 0461)
 
@@ -398,10 +583,12 @@ Review group P (packet P5, ECO-039, ECO-045). `routes/`, wired by `demo_village.
 - **The Routes layer** (`routes/route_overlay.gd`): the selected residents' routes, each its own, coloured by stretch
   (`routes/route_kinds.gd`: surface, wading, underground dashed with its level, bridge, swimming, and **by boat** -- a
   crew member aboard, drawn along the boat's own course to its station or back to its berth, since a boat's legs are
-  its task's, not the router's), and a post with the
+  its task's, not the router's; and **by ferry** -- the ferry's crossing row, and anyone aboard the ferry boat: decision
+  0437), and a post with the
   words where one is held up (`routes/route_reasons.gd`, from the real cause): "finding a route", "waiting for mouth",
   "no safe exit", "closed by flood", "closed by a roof fall", "load too wide", "too big for the bore", "can't find a way
-  there", "gave up". The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
+  there", "gave up", "waiting for the ferry". The ferry's course is drawn with its line ("Ferry: open · next departure
+  10:00", or "closed: a storm"). The picker's notes give each member's stretches or hold-up. With nobody selected (ECO-039): each
   work district's **public way** from the square for the public walker (the widest body, carrying -- so never swimming),
   labelled with its time; a narrow body's tunnel **shortcut** beside it where there is one, marked optional; and the swim
   links drawn as what they are -- optional crossings for swimmers (a swimmer's whole trip is not estimated for the layer:
@@ -467,8 +654,9 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
 - **The work board** (`work/work_board.gd`) is the one common owner of who does what. Each job owner keeps its own
   board -- the farm's, the woods', the bridges', the tunnels' jobs, the rooms' fit-out, the spoil heaps' -- read
   through one adapter each (`farm_work.gd`, `woods_work.gd`, `bridge_work.gd`, `tunnel_work.gd`, `fit_out_work.gd`,
-  `spoil_work.gd`, and water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
-  0431); every command goes to the owner's own function, so its conservation rules hold (decision 0222:
+  `spoil_work.gd`, water part B's `fishery_work.gd`: trips' seats, traps, the rack, the mill and the gear, decision
+  0431, and `ferry_work.gd`: the far copse's gathering, ferried wood's hauls and the crossings' crews, decision 0437);
+  every command goes to the owner's own function, so its conservation rules hold (decision 0222:
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
@@ -534,14 +722,16 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **Done**: "The first village stands", and a chronicle entry in Village news under the new **Village** source. Free
   play goes on; the Hearth Charter, the long-term goal, is beyond the demo.
 - **The village guide** (O, the HUD's Objectives command, unlocked for it): a modal that holds a menu pause through the
-  pause ledger, "The village guide is open" (the village waits) with five tabs -- **Objectives** (done, current with its cause, ahead), **Projects**, **Field guide**, **Help**
+  pause ledger, "The village guide is open" (the village waits) with six tabs -- **Objectives** (done, current with its cause, ahead), **Goals** (decision 0781, below), **Projects**, **Field guide**, **Help**
   and **Practice**.
-- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 22 how-to topics and the 28 keys,
+- **Help** (also the game menu's Help page, in place of the 21-key Controls wall): 23 how-to topics (the ferry and the
+  regatta among them: decisions 0437, 0438) and the 28 keys,
   searched in plain words ("how do I cross the stream", "eat", "why is my job waiting"), each topic a command answers
   with that command as a button.
-- **Field guide**: 53 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the three dishes
-  (the fish stew at supper among them), 7 materials (fishing gear among them), 10 buildings and stations (fishing and
-  the boats, the drying rack and mill among them), 5 skills, 4 water-safety entries, and 8 fish and preserved foods (the
+- **Field guide**: 56 entries built from the demo's own tables -- the 16 crops (which dish each feeds), the four dishes
+  (the fish stew at supper and the feast's bean hotpot among them), 7 materials (fishing gear among them), 12 buildings,
+  stations and occasions (fishing and the boats, the drying rack and mill, the ferry and the regatta among them), 5
+  skills, 4 water-safety entries, and 8 fish and preserved foods (the
   six fish, dried fish, flour) -- each with Uses, Requires, Alternatives and
   Available here, linked, a crop's pantry stock live; nothing the demo lacks.
 - **Practice stories**: a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- three choices each,
@@ -551,6 +741,48 @@ centre under the alerts), each completed **only by what really happens in the vi
 - **Projects**: up to three, your name, the places selected when pinned (with Go to) and one measure with a target --
   wood, planks, stone, ready food, harvested or suppers eaten from now, bridges or tunnel stretches open. Reached, it is
   ticked and Village news records it once with before and after. Session only (no save).
+
+## Village goals and milestones (decision 0781)
+
+`goals/`: optional goals that guide play once the first-village guide is done, in the village guide's **Goals** tab (O,
+the second tab; the Objectives tab's *Goals for after the guide* opens it). No new key. The guide's four objectives and
+its completion are unchanged; once it completes, one Village news note (at the next game hour, after the guide's own
+line) points at the tab.
+
+- **Each goal** has a title, a short *why*, its parts' progress ("Harvested into store: 12.0 U of 40.0 U") and, reached,
+  the date ("✓ Wood for the cold -- reached Y1 Spring 5, 03:00"). Its reward is **a Village news note** ("Goal reached:
+  ...") -- the news strip shows it while fresh and the history keeps it. Nothing else is granted: no resource, unlock or
+  mood. A reached goal stays reached.
+- **Evaluated on the game hour**, never per frame: `demo_goals.gd update()` costs an integer compare until the calendar's
+  hour index changes; then the ledger reads the kitchen's and the planner record's logs (a supper's tally once its day is over) and every measure
+  is read once.
+- **Village goals** (approved by Brendan as built, 2026-10-01; decision 0781): Harvest home (40.0 U into store), Every dish on the table (each of the
+  kitchen's dishes cooked), A table for everyone (a supper where every resident ate cooked), A full larder (4.0 days of
+  Ready food), Wood for the cold (60.0 U), Over the water (a bridge open), A way below (3 tunnel stretches), A clean
+  season (a whole season in the planner's record with food harvested and no crop lost), The first winter weathered.
+- **Milestones**: the GDD's M1-M4 (§5.11), every condition a part worded as the GDD states it. What the demo models is
+  measured (day, residents, portions prepared, year, winters, Ready food); the rest -- mastery, feasts, specialists,
+  mood, warm beds, deaths, winter fuel, the three-day hold -- reads "not in this demo yet" and blocks its milestone. With
+  nine residents and no arrivals none is reachable here; they show the road ahead and would grant nothing.
+
+**Adding a goal from a later feature** (`goals/goal_book.gd`, THE REGISTRATION API). Reach the book through the guide
+(`demo_village.guide().goals.book`) and register a data entry with a measure -- a cheap, allocation-free `() -> int`
+read once a game hour, met at or above its target:
+
+```gdscript
+const GoalBook := preload("res://demo/goals/goal_book.gd")
+var book: GoalBook = village.guide().goals.book
+var parts: Array[GoalBook.Part] = [GoalBook.part(&"winters", "Winters with no one chilled", 1,
+	GoalBook.UNIT_COUNT, warmth.unchilled_winters)]   # a latched count your model keeps
+book.register(&"warm_first_winter", "A warm first winter", "Why it matters, in a sentence.", parts,
+	GoalBook.GROUP_VILLAGE, "no one was chilled all winter.")   # "" when taken, else why not
+book.bind_measure(&"m4_hearth_charter", &"fuel", warmth.fuel_winter_days_milli)   # M4's fuel>=18 winter days, milli-days
+book.keep(warmth)   # if nothing else holds the measuring object (a Callable does not keep it alive)
+```
+
+Units: `UNIT_COUNT`, `UNIT_MILLI` (thousandths, "12.0 U"), `UNIT_DAYS` (thousandths of a day) and `UNIT_FLAG` (1 or more
+is "yes"). A "none of X" goal measures a latch the feature keeps (1 once a winter ended with nobody chilled), since every
+part is read as at-least. Register before the first hour or after; a goal is first measured at the next hour.
 
 ## Commanding the residents
 
@@ -1075,7 +1307,9 @@ supper, whenever the stores hold a batch's fresh fish and roots nobody has set a
 or trout** instead of the soup -- the GDD's `fish_stew` row: fresh fish 2 U (any of the six species) + roots 2 U + water
 2 U, 20 WU, 3 portions of 2200 NP that keep 24 h; both inputs reserved from real lots and withdrawn together. Dried fish is
 not the stew's `fish`: it is the village's reserve, eaten as it is by a hungry resident (1800 NP a unit, after anything
-spoiling sooner).
+spoiling sooner). **The feast's dish** (decision 0438): the GDD's `bean_hotpot` row (beans 2 U + cabbage 2 U + water 2 U,
+20 WU, 3 portions of 2100 NP, keeping 36 h), cooked only for an **occasion** -- the regatta's supper -- from the food the
+regatta reserved, never by the everyday alternation.
 
 - **The day** (decision 0421). Breakfast is called at 07:00 and served until 08:59; supper at 17:00 until 18:59, an
   hour before dusk (so whoever goes to eat raw food at its end has eaten before bed). The cook (the keeper; a free
@@ -1402,7 +1636,7 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
   in a store for the catch), the work is done, the store's catch is taken, and the catch is carried to the store. **Cancel
   trip** releases everything at once; a catch out of the water is always landed. One called away sets its catch down
   where it stands, for the next to fetch. A trip two game hours past its estimate is an OVERDUE warning.
-- **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse, moored at the **jetty** on the pond's west bank
+- **Boats** (Water panel ▸ Boats): two rowboats kept at the boathouse (and a third, the ferry boat: see The ferry), moored at the **jetty** on the pond's west bank
   (outside the boathouse). The crew wait at the jetty, board, row a **fixed route** to a fishing station and back, and
   step off; out on the water they are held (nothing calls them off mid-pond). A boat wears 15 a trip and none sets out
   below its wear (Mend gear). **Boat rescue**: a resident in difficulty at the pond's surface may be answered by a boat
@@ -1424,6 +1658,64 @@ Fishing trips feed the pantry through the real fishery (`fishery/`, `boats/`): t
 - **The Pantry's Stocks** lists each fish species, dried fish and flour like the crops (the Recipes tab still lists the
   16 farm ingredients: its library index has no fish yet). The sound: a splash where a net
   or trap goes in, a boat pushes off or a hole is cut, and the oars' knock as a boat rows.
+
+## The ferry and the regatta (water part B lane 3; decisions 0437-0439)
+
+Brendan approved ferries and the regatta feast with the rest of water part B (decision 0493, group K), though the review
+rated the ferry "Stretch" and moving vessels lie outside the adopted movement scope (MOVE-G01–05 stay open): decision
+0439 records that authority. `ferry/`, `regatta/`.
+
+**The ferry** (`ferry/ferry.gd`; numbers in `ferry_rules.gd`; decision 0437) -- one fixed two-landing cargo ferry:
+
+- **Two landings**, the boathouse jetty's pattern, outside every building: **the ferry stage** on the run's west bank
+  below the fisher shelter, and **the far stage** on the stream's far bank at its mouth. A **third boat**, the ferry
+  boat, lies off the ferry stage and rows **one fixed route** (10.1 m) down the run into the pond's north-east lobe and
+  back. No free sailing; fishing never takes it; the regatta races the boathouse's two.
+- **Its reason, the far copse**: windfall at the east woods' edge across the run (the woods' deadfall numbers: 1.0–2.0 U a
+  pile, 20 WU a U; two lie at the start, one falls each midnight). By land it is over the ford; carried to the log stack
+  it is about 3.2 game hours that way and 2.3 by ferry -- the Ferry section's benefit line, from the cast's own planner.
+- **Water panel ▸ Ferry**: its state and timetable, the stacks, the copse, the benefit; **Gather the far copse** (each pile
+  on the work board, to the selected first), **Send the ferry** (a crossing now), **Cancel crossing** (only before its crew
+  is aboard) -- each with its action card.
+- **A staffed timetable**: departures 06:00–18:00 every 2 game hours when anything waits to be carried, or at once when
+  **4.0 U** waits at the far stage; the crew is a **helm, fishing 1** (the boatwright or the fisher; anyone who learns).
+  The crew walks to the stage, boards, **loads** the far stage's stack (1 WU a unit, up to **12 U**), rows, **unloads** at
+  the ferry stage, steps ashore and **gives the boat back** -- free between crossings, so a boat rescue may take it (a
+  rescue in it walks to the ferry stage). A hauler carries the landed wood to the log stack: **the stores' wood rises**.
+- **Closure**: a storm, a hard freeze, the stream in flood or ice on the pond. Nothing departs; a crossing under way
+  **finishes its leg and holds** -- at the far stage its crew steps ashore and the boat waits there until the ferry opens, when a crew walks round to
+  bring it home (none can reach it: the job stays on the board, never ended with the boat out; Cancel is refused).
+  Wood stranded at the far stage or aboard while closed is the incident **"The ferry is closed: …"** (Village news ▸
+  Needs attention). The Routes layer and the Water panel say it.
+- **Passengers**: the router offers the ferry to any trip across the water while it is open, staffed and boardable
+  within 2 game hours, costed as its decks, its row and **the wait for its next boarding** -- so it is chosen only when it
+  is quicker. A passenger waits at the stage ("waiting for the ferry" on the Routes layer), boards the second seat, rides
+  (held: no order takes it off; its panel says "aboard a boat") and steps off at the other stage. Any refusal while it waits -- closed, too long a wait,
+  the seat taken, another order -- ends the leg where it stands, and it goes by land.
+- **The books**: every unit that fell in the copse is lying there, in a hand (or set down for the next), on a stack,
+  aboard, or in the stores -- at every frame, through cancel, closure and interruption.
+
+**The regatta** (`regatta/regatta.gd`; numbers in `regatta_rules.gd`; decision 0438) -- a once-a-season occasion, the
+first in summer:
+
+- **Water panel ▸ Regatta** (or the HUD's **Feast** command, unlocked for it): **◀ Day / Day ▶** (the season's days from
+  tomorrow; before summer, summer's), **Host ▸** (anyone but the village cook), and the **preview** -- the GDD's Hearth
+  feast for every resident: bean hotpot ×ceil(E/3) (beans and cabbage, free in the pantry), the second course (nut loaf)
+  and the warm infusion **declared unservable: the village has no nuts or herb**, so no Shared Warmth; seats, staffing,
+  the 1 U of service wood, the reserves after it, and the race's crews and paces. **Hold the regatta** refuses what is
+  invalid with its fix; under 3 days of ready food or wood it needs **Override reserves** (REQ-SET-101). Held, the feast's
+  beans and cabbage are reserved at once and its wood set aside. **Skip this season** costs nothing and gives everything
+  back. Once a season: held or skipped, the season is done.
+- **The day**: crews called at 13:00 to the boathouse jetty; at 15:00 both rowboats race out to a floating barrel and
+  home, each at its crew's fishing-skill pace (deterministic; equal paces a dead heat); the otters sing their work songs
+  as they row. A storm or a crew not aboard by 16:00 calls the race off; the feast goes on.
+- **The feast** is the day's supper: the kitchen cooks the occasion's bean hotpot from the reserved food and serves it at
+  the hall's tables at 17:00 (the supper song is sung there); the service wood burns.
+- **Remembered**: at the supper's end the chronicle (Village news, Village): the day, the host, the race, who shared the
+  feast and **one moment** (the finish); the winners' deed in their own histories, pinned to the chronicle; +5 affinity
+  for every pair who shared the feast (REQ-SET-036).
+- Checked by `test_demo_ferry.gd` and `test_demo_regatta.gd` (the placeholder cast on the real layout and water, the real
+  kitchen at the hall's tables: no staged assets).
 
 ## Spoil heaps
 
@@ -1526,8 +1818,10 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
   beginning or ending (pickup, drop), entering or leaving the water, starting to swim or dive (splash), each
   stride by the ground underfoot (grass, a worn path's dirt, a bridge leg's wood, a tunnel, wading), each whole
   beat of a felling, grubbing or sawing step that has begun, a tree coming down, each dig quantum cut, a tunnel,
-  room or bridge opening (complete), a *new* warning in the notice feed (a folded repeat does not chime again)
-  or a critical incident raised or come back (decision 0331's `incident_cue`; one chime a frame at most),
+  room or bridge opening (complete), a *new* announced warning in the notice feed (a folded or grouped repeat,
+  a held-back or a snoozed one does not chime) or a critical incident raised or come back (decision 0331's
+  `incident_cue`; one chime a frame at most) -- an URGENT one chimes twice, 1.6 s apart, and info is silent
+  (decision 0591),
   and every button press. A tree blown down falls too. It reads the models and writes nothing: no sound, and no
   animation, awards anything.
 - **Every cue has a text or picture match** (the table refuses a cue without one): chips and the task line for a
@@ -1552,14 +1846,16 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `control/` | Selecting and ordering residents, and the demo party panel |
 | `people/` | The cast's names and interests (`demo_people.json`, `people_book.gd`), the committed deeds, curation and affinity (`people_ledger.gd`, written by `people_taps.gd`), the spotlight, reflection, evening lines and inspector info (`demo_people.gd`), the inspector's person section and the offer card (decision 0491) |
 | `tunnel/` | Player-dug tunnels: rules, the tunnel network and planner, planning, drawing, the underground view; and their extensions -- ground, queues, crews, jobs, hazards, finds, the demo stores, the tunnel panel; the construction theatre -- the warren's particle budget, the dig face, the baskets, the hazards' warnings, the surface signs |
-| `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed |
+| `demo_calendar.gd`, `demo_services.gd`, `village_water.gd`, `demo_notices.gd`, `demo_notice_snoozes.gd` | The one calendar, the shared set, the one water adapter (over `water/water_map.gd`), the one notice feed and its snoozed kinds (decision 0591) |
 | `demo_incidents.gd`, `demo_news_clock.gd` | The incidents (open conditions, the card queue, the sound hook) and the news clock that stands still while paused |
 | `weather/` | The demo's one weather (read from the farm's real §5.10 row) and its rain, snow and light |
 | `burrow/` | Rooms as their own structures: the templates, sockets and refusals (`underground_rooms.gd`), placing one and its passage (`room_plan.gd`, `room_tool.gd`), drawing it (`room_view.gd`, `room_mesh.gd`); the cellar API; the fit-out (`room_fixtures.gd`, `fixture_crew.gd`, `install_task.gd`, `fixture_view.gd`, `fixture_kit.gd`, `room_text.gd`) and the night (`night_routine.gd`, `bed_allocation.gd`, `sleep_task.gd`) |
 | `events/` | Seeded threats (a flood, a fire) and evacuation |
 | `water/` | The stream and pond: the integer depth/shore map, carved banks, surfaces, dressing, the fishery driver, the water overlay (the Water range map layer), the weir's sluice table and its gate and leat head (decision 0441) |
 | `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
-| `boats/` | The boat core: the jetty, berths and fixed routes (`boat_routes.gd`), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
+| `boats/` | The boat core: the jetties, berths and fixed routes (`boat_routes.gd`; the ferry's stages and third boat, decision 0437), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
+| `ferry/` | The ferry (decision 0437): its rules, the crossings, the far copse, the stacks, the passengers and the books (`ferry.gd`), its task, its drawing, and the node wiring it into the village, the Water panel and the incidents (`demo_ferry.gd`) |
+| `regatta/` | The regatta (decision 0438): its rules (the GDD's Hearth feast, the race), the occasion, race and tally (`regatta.gd`), the crews' task, and the node wiring it into the village, the Water panel and the HUD's Feast command (`demo_regatta.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
 | `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
@@ -1567,15 +1863,18 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
 | `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
+| `goals/` | The village goals and milestones (decision 0781): the goal book and its registration API, the built-in goals as data with their evaluator, the ledger of running counts, the owner (hour tick, Village news) and the Goals tab's page |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
 | `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
 | `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |
 | `demo_prewarm.gd` | The boot prewarm: what would first load mid-game, loaded while the village opens; then the underground view drawn once |
 | `demo_layers.gd` | The four render layers every drawn node is on, and the plane each view picks on (decision 0206) |
-| `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292) |
+| `map_lenses.gd`, `lens_subject.gd` | The map layers: one shown at a time, each with its question, legend and subject; V's cycle and U's followed layer (decision 0292); each layer's scale, probe and the compared layer (decision 0581) |
+| `lenses/` | The map layers' legends, hover readout and compare outlines (decision 0581): a layer as one record, the probes (beds, water, woods), the legend scales, the colour tokens and the colour-blind check, the outlines, and the kit that wires them |
 | `props/` | The staged small props (one table, one mesh per model, icons and their roundel fallback) and the store shelf |
 | `ui/` | The woodland HUD skin; the HUD date, the news strip, the village-news history, the incident card and "Go to", and the right column's tabs; the HUD's village read model (counters and ledger), the Residents roster and the village map; the Map layer picker; the pause card and the "Run until…" button and menu (decision 0471) |
 | `camera/` | The RTS camera, and the canopy clearance: the eye kept out of crowns, the crowns in the way thinned, the selected shown through |
 | `sound/` | The sound pass: the cue table (data), the mix and its buses, the voice pool, the event map, the owner and the Settings section |
 | `songs/` | The residents' songs: the repertoire (data), who sings what when, the bubbles, the hum (decision 0442) |
+| `playtest/` | The playtest log (decision 0562): the session and its file, the breadcrumb ring, the error logger, the freeze watch, the header, the folder's rotation, F12's mark and toast, the Settings section, and the village's taps |
 | `assets/` | **gitignored** — staged by `tools/stage_demo_assets.py` |

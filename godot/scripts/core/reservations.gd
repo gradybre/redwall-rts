@@ -46,10 +46,14 @@ extends RefCounted
 ## diagnostic `state_bytes()`.
 ##
 ## UNRESOLVED CONTRACTS, implemented as narrowly as possible rather than guessed:
-##  - `purpose` is an OPAQUE int32. GDD §4.3 numbers no `ReservationPurpose` domain, so this
-##    module never interprets the value; it compares it for equality (coalescing) and for order
-##    (canonical serialization) and nothing else. It is deliberately NOT mirrored into
-##    `catalog.gd`'s protected enums, because there is no specified numbering to protect.
+##  - `purpose` is an int32 this module still never INTERPRETS; it compares it for equality
+##    (coalescing) and for order (canonical serialization) and nothing else. GDD §4.3 numbers no
+##    `ReservationPurpose` domain. Brendan's task 06.4 ruling of 2026-10-02 numbers its first
+##    members here -- PURPOSE_UNSPECIFIED, PURPOSE_HAUL_SOURCE and PURPOSE_HAUL_DESTINATION
+##    (decision 1023) -- explicitly, so no later member can renumber them. The pool still admits
+##    any int32: whether an unnumbered purpose should be REFUSED is an open question decision 1023
+##    records, and refusing it today would invalidate claims no producer has numbered yet. It is
+##    still not mirrored into `catalog.gd`'s protected enums, whose artifact digest it would move.
 ##  - `expiry` is an OPAQUE absolute tick. `release_expired_for_job()` reads
 ##    `now_tick >= expiry` as expired, and there is no encoding for "never expires" because
 ##    GDD §4.2 gives the field no such sentinel. The cross-job expiry sweep of BAL-SAFE-004 --
@@ -80,6 +84,21 @@ const NULL_REF: Vector2i = Vector2i(NULL_SLOT, NULL_GENERATION)
 
 const INT32_MIN: int = -2147483648
 const INT32_MAX: int = 2147483647
+
+## ReservationPurpose, numbered (task 06.4 H2, decision 1023). A haul's goods are claimed twice
+## over their life, by the SAME Job, and the purpose says which half of the haul the claim is in:
+##   HAUL_SOURCE      -- sized and claimed at assignment (REQ-SET-030), still in its source store,
+##                       waiting for the load;
+##   HAUL_DESTINATION -- loaded into the hauler's satchel and owed to the haul's destination; the
+##                       load carries the claim over (`carry_claim()`), the unload ends it
+##                       (`deliver_claim()`).
+## UNSPECIFIED is 0, the value a cleared row holds and the one every claim made before the domain
+## was numbered carried; it names no producer. Explicit numbers, never a sorted-key compile.
+const PURPOSE_UNSPECIFIED: int = 0
+const PURPOSE_HAUL_SOURCE: int = 1
+const PURPOSE_HAUL_DESTINATION: int = 2
+## One past the highest numbered member.
+const PURPOSE_NUMBERED_COUNT: int = 3
 
 ## A batch is a flat int64 array of `claim_count` records of CLAIM_STRIDE fields. Passing the
 ## claims as one caller-owned buffer keeps this module free of a staging arena that the memory
@@ -720,6 +739,214 @@ func renew_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, new_expiry:
 		return _refuse(REFUSE_EXPIRY_NOT_LATER)
 	_r_expiry[row] = new_expiry
 	return _ok(lot_ref, new_expiry)
+
+
+# --- Carrying a claim with its goods (task 06.4 H1, decision 1022) ------------------------------
+#
+# A haul moves CLAIMED goods. INV-GOODS-R01 forbids teleporting them and BAL-SAFE-002 keeps a lot
+# in transit in exactly one container, so they move by Inventory's own move/transfer -- and the
+# claim must move with them in the same all-or-nothing step: a claim left on the source would
+# reserve quantity that is no longer there, and goods arriving unclaimed in a satchel could be
+# drawn by anyone. These two doors are that step. Like `claim_batch()`, each runs ONE inventory
+# transaction of its own and refuses a caller's open one, because the pool's rows are not
+# journaled by Inventory; the rows are written only after that transaction commits.
+#
+#   carry_claim():   the LOAD. The claim's whole quantity leaves its lot for `dest_ref` (the
+#                    haul's satchel) and arrives STILL CLAIMED by the same Job under
+#                    `carried_purpose`, with the same lease.
+#   deliver_claim(): the UNLOAD. The quantity leaves for `dest_ref` (the destination store)
+#                    UNCLAIMED, and the destination headroom reserved for it is released in the
+#                    same transaction, so the room is never counted twice or not at all.
+#
+# A WHOLE LOT MOVES WHOLE. When the claim is the entire lot, `move_lot()` moves the lot itself:
+# it keeps its identity, so whatever is keyed to it (a gear instance) survives and nothing splits
+# or merges. A part moves by `transfer()`, which splits it exactly and never clones (REQ-SET-111).
+
+func carry_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, dest_ref: Vector2i,
+		carried_purpose: int, inventory: Inventory) -> Inventory.OpResult:
+	"""Move one claim's goods into the live container `dest_ref` and keep them claimed.
+
+	On success `.ref` is the lot now holding the goods (the same lot when it moved whole) and
+	`.value` the quantity. Refuses, changing neither store: no such claim, a stale lot, an open
+	inventory transaction, an out-of-range purpose, and anything Inventory refuses (capacity, a
+	filter, an expired seed, a full journal). The lease (`expiry`) is carried unchanged.
+	"""
+	return _carry(job_ref, lot_ref, purpose, dest_ref, NULL_REF, 0, carried_purpose, inventory)
+
+
+func load_claim_into_new_satchel(job_ref: Vector2i, lot_ref: Vector2i, purpose: int,
+		owner_ref: Vector2i, carry_g: int, carried_purpose: int,
+		inventory: Inventory) -> Inventory.OpResult:
+	"""The haul's LOAD: `carry_claim()` into a satchel minted in the SAME transaction.
+
+	Brendan's 2026-10-02 ruling makes the satchel at load, owned by the hauler and sized to its
+	species carry limit; minting it inside the move's transaction means a load that refuses (an
+	expired seed, a full lot store) leaves no satchel behind and both stores byte-identical.
+	`.ref` is the carried lot; its container is the new satchel.
+	"""
+	if not Inventory.is_well_formed_owner(owner_ref):
+		return _refuse(Inventory.REFUSE_INVALID_OWNER_REF)
+	return _carry(job_ref, lot_ref, purpose, NULL_REF, owner_ref, carry_g, carried_purpose,
+		inventory)
+
+
+func _carry(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, dest_ref: Vector2i,
+		mint_owner: Vector2i, mint_g: int, carried_purpose: int,
+		inventory: Inventory) -> Inventory.OpResult:
+	"""`carry_claim()` and the load's shared body: preflight, one transaction, then the rows."""
+	var refusal: StringName = _preflight_carry(job_ref, lot_ref, purpose, carried_purpose, inventory)
+	if refusal != REFUSE_NONE:
+		return _refuse(refusal)
+	var row: int = _find_row(job_ref, lot_ref, purpose)
+	var quantity: int = _r_quantity_milli[row]
+	var expiry: int = _r_expiry[row]
+	var moved: Inventory.OpResult = _move_claimed_goods(lot_ref, dest_ref, quantity, 0, true,
+		inventory, mint_owner, mint_g)
+	if not moved.ok:
+		return _refuse(moved.error)
+	_free_row(row)
+	_upsert_row(job_ref, moved.ref, carried_purpose, quantity, expiry)
+	return _ok(moved.ref, quantity)
+
+
+func deliver_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, dest_ref: Vector2i,
+		release_mass_g: int, inventory: Inventory) -> Inventory.OpResult:
+	"""Move one claim's goods into `dest_ref` and end the claim: the haul's UNLOAD.
+
+	`release_mass_g` is the destination headroom the haul reserved for these goods (0 when it
+	reserved none); it is released in the same transaction as the move. A satchel the move
+	empties is destroyed in that transaction too ("destroyed when empty", decision 1022). `.ref`
+	is the delivered lot, `.value` the quantity. Refuses like `carry_claim()`, plus a negative
+	`release_mass_g` (INVALID_QUANTITY) and Inventory's own refusal of the release.
+	"""
+	var refusal: StringName = _preflight_carry(job_ref, lot_ref, purpose, PURPOSE_UNSPECIFIED,
+		inventory)
+	if refusal == REFUSE_NONE and release_mass_g < 0:
+		refusal = REFUSE_INVALID_QUANTITY
+	if refusal != REFUSE_NONE:
+		return _refuse(refusal)
+	var row: int = _find_row(job_ref, lot_ref, purpose)
+	var moved: Inventory.OpResult = _move_claimed_goods(lot_ref, dest_ref,
+		_r_quantity_milli[row], release_mass_g, false, inventory, NULL_REF, 0)
+	if not moved.ok:
+		return _refuse(moved.error)
+	var quantity: int = _r_quantity_milli[row]
+	_free_row(row)
+	return _ok(moved.ref, quantity)
+
+
+func repurpose_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int,
+		new_purpose: int) -> Inventory.OpResult:
+	"""Re-key one claim to `new_purpose` where it stands: same job, lot, quantity and lease.
+
+	The load of goods ALREADY in the hauler's satchel (a haul re-posted after a cancellation,
+	decision 1022) moves nothing, so only the claim's purpose changes. Inventory's
+	`reserved_milli` is untouched, so the module invariant holds without a transaction. A claim
+	already keyed `new_purpose` for the same job and lot coalesces with it. `.value` is the
+	quantity. Refuses NO_SUCH_CLAIM and an out-of-range purpose, writing nothing.
+	"""
+	if new_purpose < INT32_MIN or new_purpose > INT32_MAX:
+		return _refuse(REFUSE_INVALID_PURPOSE)
+	var row: int = _find_row(job_ref, lot_ref, purpose)
+	if row == NULL_ROW:
+		return _refuse(REFUSE_NO_SUCH_CLAIM)
+	var quantity: int = _r_quantity_milli[row]
+	var expiry: int = _r_expiry[row]
+	_free_row(row)
+	_upsert_row(job_ref, lot_ref, new_purpose, quantity, expiry)
+	return _ok(lot_ref, quantity)
+
+
+func _preflight_carry(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, carried_purpose: int,
+		inventory: Inventory) -> StringName:
+	"""Everything the carry doors check before their transaction opens."""
+	if inventory == null:
+		return REFUSE_NO_INVENTORY
+	if inventory.is_transaction_open():
+		return REFUSE_INVENTORY_TRANSACTION_OPEN
+	if carried_purpose < INT32_MIN or carried_purpose > INT32_MAX:
+		return REFUSE_INVALID_PURPOSE
+	var row: int = _find_row(job_ref, lot_ref, purpose)
+	if row == NULL_ROW:
+		return REFUSE_NO_SUCH_CLAIM
+	if not inventory.is_lot_valid(lot_ref):
+		return REFUSE_INVALID_LOT
+	if inventory.lot_reserved_milli(lot_ref) < _r_quantity_milli[row]:
+		return REFUSE_AUDIT_RESERVED_TOTAL
+	return REFUSE_NONE
+
+
+func _move_claimed_goods(lot_ref: Vector2i, dest_ref: Vector2i, quantity: int,
+		release_mass_g: int, keep_claim: bool, inventory: Inventory, mint_owner: Vector2i,
+		mint_g: int) -> Inventory.OpResult:
+	"""One inventory transaction: [mint a satchel,] unreserve, release headroom, move, re-reserve.
+
+	The pool is untouched until this commits, so any refusal -- Inventory's, or a pool row the
+	arriving lot's slot still lists under another generation -- aborts and leaves both stores
+	exactly as they were. `.ref` is the arriving lot.
+	"""
+	var opened: Inventory.OpResult = inventory.begin()
+	if not opened.ok:
+		return opened
+	var target: Inventory.OpResult = _carry_target(dest_ref, mint_owner, mint_g, inventory)
+	var moved: Inventory.OpResult = target
+	if target.ok:
+		moved = _move_inside(lot_ref, target.ref, quantity, release_mass_g, keep_claim, inventory)
+	if not moved.ok:
+		inventory.abort()
+		return moved
+	var committed: Inventory.OpResult = inventory.commit()
+	return moved if committed.ok else committed
+
+
+func _carry_target(dest_ref: Vector2i, mint_owner: Vector2i, mint_g: int,
+		inventory: Inventory) -> Inventory.OpResult:
+	"""The container the goods go to: `dest_ref`, or a satchel minted now for `mint_owner`."""
+	if mint_owner == NULL_REF:
+		return _ok(dest_ref, 0)
+	return inventory.create_satchel(mint_owner, mint_g)
+
+
+func _move_inside(lot_ref: Vector2i, dest_ref: Vector2i, quantity: int, release_mass_g: int,
+		keep_claim: bool, inventory: Inventory) -> Inventory.OpResult:
+	"""The writes inside `_move_claimed_goods()`'s open transaction, in order."""
+	var source: Vector2i = inventory.lot_container(lot_ref)
+	var step: Inventory.OpResult = inventory.release_reservation(lot_ref, quantity)
+	if step.ok and release_mass_g > 0:
+		step = inventory.release_container_mass(dest_ref, release_mass_g)
+	if not step.ok:
+		return step
+	var whole: bool = quantity == inventory.lot_quantity_milli(lot_ref)
+	var moved: Inventory.OpResult = inventory.move_lot(lot_ref, dest_ref) if whole \
+		else inventory.transfer(lot_ref, dest_ref, quantity)
+	if not moved.ok:
+		return moved
+	if not keep_claim:
+		return _retire_emptied_satchel(source, moved, inventory)
+	var head: StringName = _arrival_row_refusal(moved.ref)
+	if head != REFUSE_NONE:
+		return _refuse(head)
+	step = inventory.reserve_lot(moved.ref, quantity)
+	return moved if step.ok else step
+
+
+func _retire_emptied_satchel(source: Vector2i, moved: Inventory.OpResult,
+		inventory: Inventory) -> Inventory.OpResult:
+	"""Destroy the source satchel the delivery emptied, inside the same transaction."""
+	if not inventory.is_satchel(source) or inventory.container_lot_count(source) != 0:
+		return moved
+	var destroyed: Inventory.OpResult = inventory.destroy_satchel(source)
+	return moved if destroyed.ok else destroyed
+
+
+func _arrival_row_refusal(arrived: Vector2i) -> StringName:
+	"""Whether the pool can key a row to the arriving lot: in range, no other generation listed."""
+	if arrived.x < 0 or arrived.x >= _lot_capacity:
+		return REFUSE_LOT_OUT_OF_RANGE
+	var head: int = _lot_head[arrived.x]
+	if head != NULL_ROW and _r_lot_generation[head] != arrived.y:
+		return REFUSE_LOT_GENERATION_CONFLICT
+	return REFUSE_NONE
 
 
 # --- Row allocation ---------------------------------------------------------------------------

@@ -450,6 +450,23 @@ const REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM: StringName = &"GROUND_PILE_EMPTY_WITH
 const GROUND_PILE_TILE_METHOD: StringName = &"ground_pile_tile_refusal"
 const GROUND_PILE_OWNER_METHOD: StringName = &"ground_pile_owner_ref"
 
+## Decision 1022 (task 06.4 H1; Brendan's satchel ruling of 2026-10-02): the container policy
+## domain's SECOND authored member, numbered explicitly beside POLICY_GROUND_PILE for the same
+## reason. A satchel is the carried container GDD §4.2 gives a resident (`Equipment.satchel`):
+## made when a haul loads, sized to the hauler's species carry limit, owned by the resident,
+## UNPLACED for its whole life (DEMO-CONTAIN-R01 #3d) and destroyed when it empties.
+## `create_satchel()` is the only door that writes it; `create_container()` refuses it, so a row
+## carrying it IS a satchel. Every other value stays opaque.
+const POLICY_SATCHEL: int = 2
+## `create_container()` was handed POLICY_SATCHEL: only `create_satchel()` mints a satchel.
+const REFUSE_SATCHEL_POLICY_RESERVED: StringName = &"SATCHEL_POLICY_RESERVED"
+## `set_container_anchor()` on a satchel: it walks with its owner and never stands on a tile.
+const REFUSE_SATCHEL_ANCHOR_FIXED: StringName = &"SATCHEL_ANCHOR_FIXED"
+## `destroy_satchel()` on a row that is not a satchel.
+const REFUSE_NOT_A_SATCHEL: StringName = &"NOT_A_SATCHEL"
+## `audit()`: a satchel row anchored on a tile.
+const REFUSE_AUDIT_SATCHEL: StringName = &"AUDIT_SATCHEL_PLACED"
+
 
 class OpResult:
 	"""Outcome of one inventory operation: success flag, refusal code, produced ref and value.
@@ -1265,8 +1282,16 @@ func _create_container_checked(owner_ref: Vector2i, max_mass_g: int, filters: in
 		return REFUSE_OVERFLOW
 	if policy == POLICY_GROUND_PILE:
 		return REFUSE_GROUND_PILE_POLICY_RESERVED
+	if policy == POLICY_SATCHEL:
+		return REFUSE_SATCHEL_POLICY_RESERVED
 	if not is_anchor_tile_in_domain(anchor_tile):
 		return REFUSE_INVALID_ANCHOR_TILE
+	return _mint_container(owner_ref, max_mass_g, filters, policy, reachable, anchor_tile)
+
+
+func _mint_container(owner_ref: Vector2i, max_mass_g: int, filters: int, policy: int,
+		reachable: bool, anchor_tile: int) -> StringName:
+	"""Allocate and write one already-validated container row; refuses only a full store."""
 	if _c_free_count == 0:
 		return REFUSE_CAPACITY_INVENTORY_CONTAINER
 	var slot: int = _alloc_container_slot()
@@ -1368,6 +1393,8 @@ func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
 		return REFUSE_INVALID_CONTAINER
 	if _c_policy[container_ref.x] == POLICY_GROUND_PILE:
 		return REFUSE_GROUND_PILE_ANCHOR_FIXED
+	if _c_policy[container_ref.x] == POLICY_SATCHEL:
+		return REFUSE_SATCHEL_ANCHOR_FIXED
 	if not is_anchor_tile_in_domain(tile):
 		return REFUSE_INVALID_ANCHOR_TILE
 	_journal_container(container_ref.x)
@@ -1419,6 +1446,58 @@ static func is_well_formed_owner(owner_ref: Vector2i) -> bool:
 static func is_anchor_tile_in_domain(tile: int) -> bool:
 	"""True for UNPLACED_TILE and for every placement cell in `0..ANCHOR_TILE_COUNT-1`."""
 	return tile == UNPLACED_TILE or (tile >= 0 and tile < ANCHOR_TILE_COUNT)
+
+
+# --- Satchels (task 06.4 H1, decision 1022) ---------------------------------------------------
+#
+# Brendan's ruling of 2026-10-02 (option b): a satchel is made PER HAUL. The haul's load creates
+# it, sized to the hauler's species carry limit (GDD §5.2's 12000/16000/24000 g), owned by the
+# resident, unplaced; the unload or the drop that empties it destroys it. This store owns the two
+# doors and the row's identity; WHEN they open -- and the resident's `Equipment.satchel` mirror --
+# is `haul_carry.gd`'s, because this store holds no resident and no haul.
+#
+# A satchel admits every category (it carries whatever its haul loaded) and is NOT reachable: the
+# flag gates job planning, and nothing but its owner's own haul may plan against a satchel.
+
+func create_satchel(owner_ref: Vector2i, carry_g: int) -> OpResult:
+	"""Mint one empty satchel owned by `owner_ref`, holding at most `carry_g` grams.
+
+	Refuses, writing nothing: a malformed owner (INVALID_OWNER_REF), a non-positive carry limit
+	(INVALID_MASS) and a full container store. Journaled like every container write, so the load
+	that creates a satchel and fills it can be one all-or-nothing transaction.
+	"""
+	var owned: bool = _enter()
+	return _leave(owned, _create_satchel_checked(owner_ref, carry_g))
+
+
+func _create_satchel_checked(owner_ref: Vector2i, carry_g: int) -> StringName:
+	"""Validate then mint the satchel row."""
+	var guard: StringName = _guard()
+	if guard != REFUSE_NONE:
+		return guard
+	if not is_well_formed_owner(owner_ref):
+		return REFUSE_INVALID_OWNER_REF
+	if carry_g <= 0:
+		return REFUSE_INVALID_MASS
+	return _mint_container(owner_ref, carry_g, FILTERS_ACCEPT_ALL, POLICY_SATCHEL, false,
+		UNPLACED_TILE)
+
+
+func is_satchel(container_ref: Vector2i) -> bool:
+	"""True for a live satchel row: one `create_satchel()` minted."""
+	return is_container_valid(container_ref) and _c_policy[container_ref.x] == POLICY_SATCHEL
+
+
+func destroy_satchel(container_ref: Vector2i) -> OpResult:
+	"""Retire an EMPTY satchel, the haul's last step once its goods are out.
+
+	Refuses a live row that is not a satchel (NOT_A_SATCHEL) and everything `destroy_container()`
+	refuses: a dead ref, lots still inside (CONTAINER_NOT_EMPTY) or reserved mass on it.
+	"""
+	var owned: bool = _enter()
+	if is_container_valid(container_ref) and not is_satchel(container_ref):
+		return _leave(owned, REFUSE_NOT_A_SATCHEL)
+	return _leave(owned, _destroy_container_checked(container_ref))
 
 
 # --- Ground piles (DEMO-CONTAIN-R01 #9, decision 0532) ---------------------------------------
@@ -3471,6 +3550,24 @@ func _write_containers_anchored_in(tile_mask: PackedByteArray, out_pairs: Packed
 		cell += 2
 
 
+func next_container_anchored_in(after_slot: int, tile_mask: PackedByteArray) -> Vector2i:
+	"""The lowest-slot live container ABOVE `after_slot` placed on a tile the mask marks.
+
+	The cursor twin of `containers_anchored_in_into()` (task 06.4 H2, decision 1023): a caller
+	that wants the FIRST container passing its own test walks the rows in ascending slot order
+	from `-1` without owning a 2 x 101376-cell pair buffer. Unplaced rows are never returned. The
+	null ref ends the walk, and also answers a mask that is not exactly `anchor_query_mask_bytes()`
+	long, which a caller tells apart by checking the mask it built. Read-only and allocation-free;
+	a cold planning query, never a per-tick one.
+	"""
+	if tile_mask.size() != ANCHOR_TILE_COUNT:
+		return NULL_REF
+	for slot: int in range(maxi(after_slot + 1, 0), _c_slot_high_water):
+		if _anchored_in(slot, tile_mask):
+			return Vector2i(slot, _c_generation[slot])
+	return NULL_REF
+
+
 func container_reachable(container_ref: Vector2i) -> bool:
 	"""True when a container is currently reachable for hauling."""
 	return _c_reachable[container_ref.x] == 1 if is_container_valid(container_ref) else false
@@ -3827,9 +3924,19 @@ func _audit_container_row(slot: int) -> StringName:
 		return REFUSE_AUDIT_LOT_COUNT
 	if mass != _c_used_mass_g[slot]:
 		return REFUSE_AUDIT_MASS
+	var anchor: StringName = _audit_container_anchor(slot)
+	if anchor != REFUSE_NONE:
+		return anchor
+	return _audit_container_capacity(slot)
+
+
+func _audit_container_anchor(slot: int) -> StringName:
+	"""The anchor is in its domain, and a satchel is never placed (decision 1022)."""
 	if not is_anchor_tile_in_domain(_c_anchor_tile[slot]):
 		return REFUSE_AUDIT_ANCHOR
-	return _audit_container_capacity(slot)
+	if _c_policy[slot] == POLICY_SATCHEL and _c_anchor_tile[slot] != UNPLACED_TILE:
+		return REFUSE_AUDIT_SATCHEL
+	return REFUSE_NONE
 
 
 func _audit_container_capacity(slot: int) -> StringName:
@@ -4490,6 +4597,10 @@ func _canonical_live_anchor_refusal(cols: CanonicalColumns) -> StringName:
 		if cols.c_live[slot] == 1 and not is_anchor_tile_in_domain(cols.c_anchor_tile[slot]):
 			_canonical_detail = "live container %d is anchored at %d, outside %d and 0..%d" \
 				% [slot, cols.c_anchor_tile[slot], UNPLACED_TILE, ANCHOR_TILE_COUNT - 1]
+			return REFUSE_CANONICAL_LIVE_ROW
+		if cols.c_live[slot] == 1 and cols.c_policy[slot] == POLICY_SATCHEL \
+				and cols.c_anchor_tile[slot] != UNPLACED_TILE:
+			_canonical_detail = "satchel %d is anchored at %d" % [slot, cols.c_anchor_tile[slot]]
 			return REFUSE_CANONICAL_LIVE_ROW
 	return REFUSE_NONE
 

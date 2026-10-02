@@ -1095,8 +1095,8 @@ built from it. Beside the three above:
 
 A dish naming its own ingredients takes only those; the numbers are its row's (0.1 U of wood a batch, as every batch).
 
-**The directed families** (decision 0603, Brendan's DEC-045 and tuning E2/E3): eleven more dishes, ten on DRAFTED rows
-in §5.7's format awaiting his confirmation. Cookable now: **Breakfast oatcake** (oats), **Barley farl** (barley),
+**The directed families** (decision 0603, Brendan's DEC-045 and tuning E2/E3): eleven more dishes, ten on Brendan's DEC-045 rows
+in §5.7's format, confirmed by him ("Approve all"). Cookable now: **Breakfast oatcake** (oats), **Barley farl** (barley),
 **Haversack hardtack** (flour, keeps 480 h), **Spring salad** (greens and roots), **Baked fish** (fresh fish, no roots:
 E2) and **Durral's dried-fish biscuit soup** (dried fish, flour and roots: E3). Waiting, listed with why: **Vegetable
 pasty** and **Hazelnut scones** (hazelnut: foragers), the **Turnip, potato and beetroot pie** (potato: crops; hazelnut),
@@ -1107,7 +1107,7 @@ that lane defines them. The Recipes tab marks each "Cookable (active)" or "Waiti
 whole meal, then the one whose food keeps least long (fresh fish, then greens, roots, grain), then the one the village
 likes most, then the book's order; with none, the other meal's best; deterministic. **Favourites** (`kitchen/dish_favourites.gd`): each species' liked
 and disliked dishes -- moles Togget's soup (Togget is a mole) and the beetroot soup, badgers the beetroot soup,
-squirrels the barleymeal and the vole stew, otters the poached dace, mice and the beaver the hotpot, the beaver
+squirrels the barleymeal and the vole stew, moles also the root pie (their deeper'n'ever pie), otters the poached dace, mice and the beaver the hotpot, the beaver
 disliking both fish stews; all but the moles' Togget's soup are proposals. Data and display only: no mood. A resident
 who ate a favourite reads "Last meal: supper, beetroot soup — a favourite"; the Kitchen tab's plan says "(liked by 2)";
 the field guide's dish entries say whose favourite each is. Monotony counts §5.7 recipes, so the three soups are one.

@@ -105,7 +105,7 @@ static var LIBRARY_IDS: Array[String] = []
 static var GDD_ROWS: Array[String] = []
 static var ROW_OF: PackedInt32Array = PackedInt32Array()
 static var ROW_COUNT: int = 0
-## Per dish: 1 when its row is one the GDD adopts (dish_book.gd ADOPTED_ROWS), 0 for a draft (decision 0603).
+## Per dish: 1 when its row is one the GDD adopts (dish_book.gd ADOPTED_ROWS), 0 for one of Brendan's DEC-045 rows (decision 0603).
 static var ROW_ADOPTED: PackedByteArray = PackedByteArray()
 ## How many categories the pantry's items use (the highest farm_catalog.gd category_of, plus one; at least the words'):
 ## a category another lane adds is counted, so the ready-food estimate's pool fits it (built in `_static_init`).

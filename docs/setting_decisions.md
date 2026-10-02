@@ -1102,7 +1102,7 @@ decision 0531.
 
 ### DEC-045 — Every Redwall dish family the kitchen lacked is added, as drafted recipes
 
-2026-10-01 · State: `USER_CONFIRMED` for adding the families; their numbers are `PROPOSED_FOR_REVIEW`.
+2026-10-01 · State: `USER_CONFIRMED` -- the families, and (his ruling on decision 0603, "Approve all") their drafted numbers.
 
 Brendan, on decision 0601's fifth proposal, relayed through the settlement coordinator on 2026-10-01:
 **"Approve, but add in everything for 5 now."** The dish families the live demo's kitchen had rejected for want of a
@@ -1111,14 +1111,18 @@ added now, each a content-library dish cooked by a NEW recipe row written in §5
 balance-tuning experiments for the same work: a fish dish needing no roots (E2), dried fish and flour as kitchen
 inputs (E3), and a cabbage-and-bean pottage only if the bean hotpot leaves a gap (E4: it does not).
 
-- **The rows are drafts.** Their inputs, portions, NP, work and shelf life are authored inside the adopted §5.7 rows'
-  range and await his confirmation or retuning; they are not GDD rows until he confirms them.
+- **The rows were drafts, now confirmed.** Their inputs, portions, NP, work and shelf life are authored inside the adopted §5.7 rows'
+  range; he confirmed them as drafted on decision 0603. They are his rows, not yet written into the GDD's §5.7 table.
 - **The setting exclusions stand**: joke, captive and cruelty contexts, shrimp and the fictional hotroot stay out --
   they were excluded for setting reasons, not for want of a recipe.
 - **A dish whose ingredient has no source yet waits and says why**; the sources belong to their own lanes (foraging,
   crops, hives).
 
-Engineering record, the drafted table and the waiting ingredients: decision 0603.
+**Ruled on decision 0603 (2026-10-01): "Approve all".** The drafted recipe numbers are confirmed as drafted; moles
+favour the root pie (their deeper'n'ever pie, library-backed); oatcakes and farls are left to feature 17; potato stays
+raw-edible.
+
+Engineering record, the confirmed table and the waiting ingredients: decision 0603.
 
 ### DEC-040 engineering follow-through
 

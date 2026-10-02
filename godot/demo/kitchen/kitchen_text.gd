@@ -331,12 +331,12 @@ static func days_text(milli_days: int) -> String:
 static func cookable_line(dish: int) -> String:
 	"""The Recipes tab's mark for one dish: "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of
 	grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast." -- or
-	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "the draft row
-	salad (DEC-045)" for a row Brendan has yet to confirm (decision 0603)."""
+	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "Brendan's row
+	salad (DEC-045)" for a row he confirmed outside the GDD (decision 0603)."""
 	@warning_ignore("integer_division")
 	return "%s: %s — cooked as %s: %s + water %s → %d portions of %d NP, %d WU, keeps %d h; %s." % [
 		"Waiting (%s)" % Rules.DISH_WAITS[dish] if Rules.waits(dish) else "Cookable (active)", Rules.DISH_NAMES[dish],
-		("the GDD's %s" if Rules.ROW_ADOPTED[dish] == 1 else "the draft row %s (DEC-045)") % Rules.GDD_ROWS[dish],
+		("the GDD's %s" if Rules.ROW_ADOPTED[dish] == 1 else "Brendan's row %s (DEC-045)") % Rules.GDD_ROWS[dish],
 		inputs_text(dish, 1),
 		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
 		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], _for_meal(dish)]

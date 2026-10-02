@@ -12,7 +12,11 @@ extends RefCounted
 ##                   is his
 ##             likes Wild-beetroot soup -- PROPOSAL: moles' own dish in the books is the deeper'n'ever turnip, tater and
 ##                   beetroot pie (long_patrol::LP-FOOD-deeper-n-ever-turnip-tater-and-beetroot-pie, "Named
-##                   mole-associated pie"), which the demo cannot bake; this is its beetroot, as soup
+##                   mole-associated pie"); this is its beetroot, as soup
+##             likes the Turnip, potato and beetroot pie -- LIBRARY: that very pie, the moles' deeper'n'ever turnip,
+##                   tater and beetroot pie (long_patrol::LP-FOOD-deeper-n-ever-turnip-tater-and-beetroot-pie;
+##                   martin_warrior::MW_RECIPE_turnip_potato_and_beetroot_pie). Brendan's ruling on decision 0603,
+##                   2026-10-01
 ##   badger    likes Wild-beetroot soup -- PROPOSAL: a badger enjoys the pungent hotroot soup of "pounded thick red
 ##                   roots" (outcast::OUT_note_05_food_ingredients_prep); the demo's red-root soup
 ##   squirrel  likes Barleymeal porridge and Vole vegetable stew -- PROPOSAL: Drufo, an elder squirrel, makes a hot
@@ -38,6 +42,7 @@ const SPECIES: Array[StringName] = [&"mouse", &"mole", &"squirrel", &"otter", &"
 const ENTRIES: Array = [
 	[&"mole", &"soup", LIKE, LIBRARY],
 	[&"mole", &"beetroot_soup", LIKE, PROPOSAL],
+	[&"mole", &"root_pie", LIKE, LIBRARY],
 	[&"badger", &"beetroot_soup", LIKE, PROPOSAL],
 	[&"squirrel", &"barleymeal", LIKE, PROPOSAL],
 	[&"squirrel", &"vole_stew", LIKE, PROPOSAL],

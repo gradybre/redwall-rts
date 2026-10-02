@@ -273,6 +273,9 @@ func test_the_favourites_table_names_real_species_and_dishes() -> void:
 	assert_equal(Tastes.species_row("hare"), Tastes.NONE, "no tastes")
 	assert_equal(Tastes.taste(Tastes.species_row("mole"), &"soup"), Tastes.LIKE, "Togget's soup: a mole's")
 	assert_equal(Tastes.basis_of(Tastes.species_row("mole"), &"soup"), Tastes.LIBRARY, "from the library")
+	assert_equal([Tastes.taste(Tastes.species_row("mole"), &"root_pie"), Tastes.basis_of(Tastes.species_row("mole"),
+		&"root_pie")], [Tastes.LIKE, Tastes.LIBRARY], "moles like their deeper'n'ever pie (Brendan's ruling on 0603)")
+	assert_equal(Tastes.species_with(&"root_pie", Tastes.LIKE), PackedStringArray(["mole"]), "moles alone")
 	assert_equal(Tastes.basis_of(Tastes.species_row("otter"), &"poached_dace"), Tastes.PROPOSAL, "a proposal")
 	assert_equal(Tastes.basis_of(Tastes.species_row("otter"), &"soup"), "", "none")
 	assert_equal(Tastes.taste(Tastes.NONE, &"soup"), 0, "no species")

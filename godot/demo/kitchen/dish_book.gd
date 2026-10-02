@@ -36,7 +36,7 @@ extends RefCounted
 ## Rows 0-2 keep their indices: the meal store, the logs and the guide's ids refer to them.
 ##
 ## THE FAMILIES BRENDAN DIRECTED (decision 0603, DEC-045, 2026-10-01: "add in everything for 5 now"), and his tuning
-## experiments E2 and E3. Their `gdd_row` is a NEW recipe row in §5.7's format, DRAFTED for his confirmation (0603's
+## experiments E2 and E3. Their `gdd_row` is a NEW recipe row in §5.7's format, drafted and then CONFIRMED by him ("Approve all"; 0603's
 ## table) -- woodland_pie alone is §5.7's own:
 ##   oatcake        Breakfast oatcake          rakkety_tam    oatcake (new)        oats                    cookable
 ##   farl           Barley farl                taggerung      farl (new)           barley                  cookable
@@ -156,7 +156,7 @@ const DISHES: Array[Dictionary] = [
 		"inputs": [[NEEDS, 2000, [&"raspberry"]], [HONEY, 500, []]]},
 ]
 
-## The §5.7 recipe rows the GDD adopts; every other `gdd_row` here is a DRAFT for Brendan to confirm (decision 0603).
+## The §5.7 recipe rows the GDD adopts; every other `gdd_row` here is one of Brendan's DEC-045 rows (decision 0603).
 const ADOPTED_ROWS: Array[String] = ["porridge", "root_stew", "fish_stew", "bean_hotpot", "woodland_pie"]
 
 ## WHERE A MISSING INGREDIENT WILL COME FROM, by item key: a dish taking one waits, saying so ("needs hazelnut:

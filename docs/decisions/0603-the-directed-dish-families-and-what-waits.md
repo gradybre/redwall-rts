@@ -1,5 +1,5 @@
 # 0603 — The dish families Brendan directed, the tuning dishes, and what waits for an ingredient
-Date: 2026-10-01 · Status: Accepted (the drafted rows await Brendan's confirmation: DEC-045)
+Date: 2026-10-01 · Status: Accepted (Brendan: "Approve all", 2026-10-01 -- see his rulings)
 
 Feature 16, phase 2. Brendan, on decision 0601's P5 (2026-10-01): **"Approve, but add in everything for 5 now."** The
 families 0601 rejected for want of a GDD §5.7 row -- pies, pasties and turnovers, scones, oatcakes, farls and hardtack,
@@ -102,7 +102,21 @@ the waiting list below the tab note. Not changed: PENDING_SOURCES stays an untyp
 - Full suite: `ok: 7547 tests, 569210 assertions, 0 failures.`
 - GDScript analyzer: no warning on any line this change adds.
 
-## PROPOSALS needing Brendan's ruling
+## Brendan's rulings (2026-10-01): "Approve all"
+
+1. **The drafted numbers are confirmed as drafted** (the table above; DEC-045).
+2. **Moles favour the root pie**: added to `dish_favourites.gd`, LIBRARY-backed (the pie is the moles' deeper'n'ever
+   pie), with a test.
+3. **Oatcakes and farls** are left to feature 17's variety.
+4. **Potato stays raw-edible** (the roots row's 800 NP/U).
+
+## For integration: the foraging lane's keys
+
+The foraging lane's catalogue keys are **`nuts`, `mushrooms` and `berries`**, not this book's `hazelnut`, `mushroom`
+and `raspberry` (dish_book.gd's NEEDS inputs and PENDING_SOURCES). Integration maps them; the keys are not changed
+here. Until mapped, the pasty, pies, scones and cordial keep waiting.
+
+## The proposals as they were put
 
 1. **The drafted numbers** in the table (DEC-045). Recommendation: confirm, then the balance sim measures them.
 2. **Moles' favourite**: the library ties the deeper'n'ever pie to moles (`long_patrol::LP-FOOD-deeper-n-ever-...`,

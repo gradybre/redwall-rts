@@ -1596,6 +1596,182 @@
         "assets/library/_reference/style_right_panel_rts.png"
       ],
       "prompt": "A round BRAIDED RAG RUG lying flat on the floor, coiled from braided strips of faded red, ochre, moss-green and oatmeal cloth. One isolated game prop, three-quarter view from slightly above, whole object visible, plain light grey background, flat even light, no shadows, no characters, no text. Same painted stylized-realistic look and cloth materials as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "pine_scots",
+      "task_id": "01a0fae2-f823-7390-93ef-cf65f0ff49dc",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single mature Scots PINE tree: tall straight trunk, flaky orange-red bark high up and grey-brown furrowed bark at the base, visible roots, a high crown of dense dark blue-green needle clusters held in broad flat-topped layered tiers, a few short bare lower branch stubs. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no snow, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "environment",
+      "key": "yew_ancient",
+      "task_id": "01a0fae3-02bb-713e-b40e-adcec3113339",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single ancient English YEW tree: short massive fluted reddish-brown trunk with peeling bark, visible roots, a broad dense rounded crown of very dark green needle foliage in heavy layered masses that spreads wide and reaches low, upper surfaces of each foliage layer clearly facing up. One isolated game asset, three-quarter view from slightly above, whole tree visible top to roots, plain light grey background, flat even light, no berries, no snow, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_songbird",
+      "task_id": "01a0fae3-0c5a-770e-8778-da8925a6b4e5",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small wild SONGBIRD, a European robin: round body, orange-red breast, olive-brown back, folded wings, short tail slightly raised, thin legs, standing on the ground in side three-quarter view. One isolated game asset, whole bird visible, plain light grey background, flat even light, no perch, no ground patch, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_butterfly",
+      "task_id": "01a0fae3-15c3-73cf-a1c8-6b3fe0f9b2a1",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single PEACOCK BUTTERFLY with all four wings fully open and flat, seen from above at a slight angle: rust-red wings with blue-and-ochre eyespots, dark edges, slim dark body and two thin antennae, wings symmetrical and clearly separate from the body. One isolated game asset, whole butterfly visible, plain light grey background, flat even light, no flower, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_frog",
+      "task_id": "01a0fae3-1f64-76cd-8c1e-a72214c918fe",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A single common European FROG sitting crouched on the ground, ready to hop: olive-green and brown mottled skin, pale belly, dark mask behind the eye, folded hind legs, front legs straight, side three-quarter view. One isolated game asset, whole frog visible, plain light grey background, flat even light, no lily pad, no water, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "ui",
+      "key": "portrait_sheet_a",
+      "task_id": "01a0faef-409c-7616-ac77-e6f2ea3ff262",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/creature/mouse_keeper/concept_0.png",
+        "assets/library/creature/mouse_fieldworker/concept_0.png",
+        "assets/library/creature/mole_digger/concept_0.png",
+        "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png region [413,247,1304,565) (IMG-25 woodland lineup, DEC-036)",
+        "docs/design/ui_refinement/visuals/05_woodland_art_concept.png crop [1270,215,1445,390) (the journal medallion)"
+      ],
+      "prompt": "Storybook watercolour portrait sheet with dark green-black ink outlines and soft pigment washes, like image 5. Three equal cells in one row, wide gaps, each one head-and-shoulders bust on plain flat oat-cream paper; no frames, no text. Left: the mouse of image 1 (linen cap, moss-green dress, oatmeal apron). Middle: the mouse of image 2 (short hooded cape, linen tunic). Right: the mole of image 3 (mustard waistcoat, rust neckerchief, pink snout). Eye level, head turned 30 degrees toward screen-left, calm attentive, natural animal faces as image 4, light from upper left."
+    },
+    {
+      "family": "ui",
+      "key": "portrait_sheet_b",
+      "task_id": "01a0faef-506f-71b5-a500-a3350d7d32dc",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/creature/squirrel_gatherer/concept_0.png",
+        "assets/library/creature/squirrel_forester/concept_0.png",
+        "assets/library/creature/otter_boatwright/concept_0.png",
+        "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png region [413,247,1304,565) (IMG-25 woodland lineup, DEC-036)",
+        "docs/design/ui_refinement/visuals/05_woodland_art_concept.png crop [1270,215,1445,390) (the journal medallion)"
+      ],
+      "prompt": "Storybook watercolour portrait sheet with dark green-black ink outlines and soft pigment washes, like image 5. Three equal cells in one row, each one head-and-shoulders bust on plain flat oat-cream paper; no frames, no text. Left: the red squirrel of image 1 (ochre smock, satchel strap; tufted ears, tail arc behind shoulder). Middle: the squirrel of image 2 (green jerkin, brown hood down). Right: the otter of image 3 (leather vest, cream shirt, green neckerchief). Eye level, head turned 30 degrees toward screen-left, calm attentive, natural animal faces as image 4, light from upper left."
+    },
+    {
+      "family": "ui",
+      "key": "portrait_sheet_c",
+      "task_id": "01a0faef-6137-7348-8b47-b59f4076eaba",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/creature/otter_fisher/concept_0.png",
+        "assets/library/creature/badger_quarryman/concept_0.png",
+        "assets/library/creature/beaver_bridgewright/concept_0.png",
+        "ImageReference/Screenshot 2026-09-06 at 2.26.38 PM.png region [413,247,1304,565) (IMG-25 woodland lineup, DEC-036)",
+        "docs/design/ui_refinement/visuals/05_woodland_art_concept.png crop [1270,215,1445,390) (the journal medallion)"
+      ],
+      "prompt": "Storybook watercolour portrait sheet with dark green-black ink outlines and soft pigment washes, like image 5. Three equal cells in one row, wide gaps, each one head-and-shoulders bust on plain flat oat-cream paper; no frames, no text. Left: the otter of image 1 (slate-blue canvas smock, rope belt). Middle: the badger of image 2 (striped face, leather jerkin over linen shirt). Right: the beaver of image 3 (leather apron, moss-green shirt, orange front teeth). Eye level, head turned 30 degrees toward screen-left, calm attentive, natural animal faces, light from upper left."
+    },
+    {
+      "family": "building",
+      "key": "hall_stage2",
+      "task_id": "01a0faef-6ba5-7079-8673-294516278f13",
+      "model": "nano-banana-pro",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/building/hall/concept.png",
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "The same great hall as image 1, same proportions, footprint, gable end with tall arched double doors, chimney and slate roof, now rebuilt in stone: walls of warm dressed red-grey sandstone blocks replacing the timber framing and plaster, stone buttresses replacing the timber props, carved stone arch round the doors, larger leaded windows with stone mullions, a second stone chimney at the far right end. Single building on a small dirt base, same elevated three-quarter view from front-left, whole structure visible, plain light grey background, flat even light, no characters, no text."
+    },
+    {
+      "family": "environment",
+      "key": "plant_flax",
+      "task_id": "01a0faef-7560-766d-b791-617e27b53c76",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A small clump of FLAX growing from a small patch of dark tilled soil: many slender upright stems with narrow blue-green leaves, the lower stems turning straw-yellow, topped with a few delicate sky-blue five-petalled flowers and many small round seed bolls. One isolated game asset, three-quarter view from slightly above, whole plant visible, plain light grey background, flat even light, no characters, no text. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "prop",
+      "key": "hall_banner",
+      "task_id": "01a0faef-7e8e-7638-8362-7867e85a6e19",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "A hanging cloth BANNER for a village hall: one long vertical banner of plain undyed pale cream linen with a swallowtail bottom edge and a simple stitched border, hung by cloth loops from a short turned wooden crossbar with a cord for hanging. Cloth gently draped with soft folds, flat and thick enough to read as solid. One isolated game prop, front three-quarter view, whole object visible, plain light grey background, flat even light, no emblem, no text, no characters. Same painted stylized-realistic look as the reference."
+    },
+    {
+      "family": "ui",
+      "key": "tapestry_ground",
+      "task_id": "01a0faef-8817-72ae-94d0-d4e0244600e4",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [],
+      "prompt": "A woven wool village TAPESTRY ground, flat front view filling the whole frame, portrait format: plain undyed oat-coloured woven cloth centre with visible warp and weft, a woven border band of simple repeating oak leaves, acorns and wheat ears in umber, sage green, clay red and muted brass ochre, a row of small hanging loops along the top, short fringe along the bottom. Storybook watercolour illustration. Original design: no figures, no animals, no weapons, no text, no lettering.",
+      "aspect_ratio": "3:4"
+    },
+    {
+      "family": "ui",
+      "key": "tapestry_emblems",
+      "task_id": "01a0faef-8fcf-73be-9adf-b187237f026b",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [],
+      "prompt": "Sheet of eight separate embroidered wool emblems in a 4 by 2 grid with wide empty space between them, on plain flat pale oat cloth. Satin-stitch embroidery in muted umber, brass ochre, leaf green, sage, clay red and ember orange with dark green-black outline stitches. Each a simple round badge: a seedling on a mound; a gabled hall roof; a bound sheaf of grain; a snowflake; a hanging pennant; a small arched bridge; an open book with quill; a lantern. Original designs, no animals, no weapons, no text, no numbers.",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "family": "ui",
+      "key": "chronicle_page",
+      "task_id": "01a0faef-b3f1-73e0-9ef5-d3a43d48e120",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [],
+      "prompt": "One blank parchment page for a village chronicle book, flat front view filling the frame: warm aged oat-cream paper with soft watercolour mottling and faint deckled edges, a hand-inked border of twining oak leaves, acorns, bramble and small wildflowers in dark green-black ink with muted sage, leaf green, brass and clay washes, small corner flourishes, a large plain empty centre for writing. Storybook watercolour illustration. No text, no letters, no animals, no figures.",
+      "aspect_ratio": "3:4"
+    },
+    {
+      "family": "wildlife",
+      "key": "wild_songbird_flight",
+      "task_id": "01a0fb0c-a7ed-7023-9ac0-631748c83711",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/wildlife/wild_songbird/concept.png",
+        "assets/library/_reference/style_right_panel_rts.png"
+      ],
+      "prompt": "The same small wild SONGBIRD, a European robin, in flight seen from above at a slight angle: both wings fully spread out flat to the sides, round body, orange-red breast, olive-brown back and wings, short tail fanned, legs tucked. Wings symmetrical and clearly separate from the body. One isolated game asset, whole bird visible, plain light grey background, flat even light, no perch, no characters, no text. Same painted stylized-realistic look as the reference."
     }
   ]
 }

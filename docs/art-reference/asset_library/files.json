@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1522,
- "total_bytes": 18320911905,
+ "count": 1611,
+ "total_bytes": 19603728786,
  "files": [
   {
    "family": "building",
@@ -13636,6 +13636,807 @@
    "path": "assets/library/creature/badger_quarryman/anim_cautious_crouch_walk_forward.glb",
    "bytes": 7019692,
    "sha256": "b03c0525f0b8dba2a280ff71cbdb815474cacae61cb72ca726ea1f161c090099"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "concept",
+   "task_id": "01a0fae2-f823-7390-93ef-cf65f0ff49dc",
+   "path": "assets/library/environment/pine_scots/concept.png",
+   "bytes": 826103,
+   "sha256": "3f6e0d06f06d17c809d08a3a314810543255821ef0f22238b9a20a21239d9153"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-a288-7580-b802-d41c587524d4",
+   "path": "assets/library/environment/pine_scots/highpoly.glb",
+   "bytes": 316413664,
+   "sha256": "e888c1ad42c7fd0386d44f38d14dac596c219b06c374db23bcefe335cbd6059e"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-a288-7580-b802-d41c587524d4",
+   "path": "assets/library/environment/pine_scots/highpoly_textures/base_color.png",
+   "bytes": 4656648,
+   "sha256": "bd2f50696b8cc5aa77bd33b6b07822bdffce622b1848ef4fe05a3595b1ded697"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-a288-7580-b802-d41c587524d4",
+   "path": "assets/library/environment/pine_scots/highpoly_textures/metallic.png",
+   "bytes": 38463,
+   "sha256": "7903a6a338db72e5f3d07231d2e6f570b515717c73d9e3a9fcdafb5fdcee44cb"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-a288-7580-b802-d41c587524d4",
+   "path": "assets/library/environment/pine_scots/highpoly_textures/normal.png",
+   "bytes": 4726522,
+   "sha256": "f10eef2e283b48790a8a96f279dcaed507e8bf274d5a818da9bbbc6300070bdf"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-a288-7580-b802-d41c587524d4",
+   "path": "assets/library/environment/pine_scots/highpoly_textures/roughness.png",
+   "bytes": 1580897,
+   "sha256": "cde1f60f35a62256cc4851c074981af899b74eff5409d148284f77cdf45d26d3"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/pine_scots/l0.glb",
+   "bytes": 5665112,
+   "sha256": "0fd169a04a1fdd9a55a0ad89db46d7f84f336f5b30a2cb34cfee2d4ac3dd6d2c"
+  },
+  {
+   "family": "environment",
+   "key": "pine_scots",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/pine_scots/l0_raw.glb",
+   "bytes": 5707400,
+   "sha256": "d806e45a0599d6e40da9e205bf197fd5480fdf4d0f6295d5d602fb5867e4c6e2"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "concept",
+   "task_id": "01a0fae3-02bb-713e-b40e-adcec3113339",
+   "path": "assets/library/environment/yew_ancient/concept.png",
+   "bytes": 1181951,
+   "sha256": "17af8a700a41a2b8171c70dd7fba21804a90ee7ca9762d316c139d9f36d434d7"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-ab8f-7187-b286-318942cde084",
+   "path": "assets/library/environment/yew_ancient/highpoly.glb",
+   "bytes": 303538344,
+   "sha256": "1192ceab86f796cb2eeca98087431be8bd43cecb45a6847f4f338f7da1dc9992"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-ab8f-7187-b286-318942cde084",
+   "path": "assets/library/environment/yew_ancient/highpoly_textures/base_color.png",
+   "bytes": 4476820,
+   "sha256": "2a940e6820695addaf062cb8cfa1884e06f94f5011d4ed600eb826ba76bc1a59"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-ab8f-7187-b286-318942cde084",
+   "path": "assets/library/environment/yew_ancient/highpoly_textures/metallic.png",
+   "bytes": 25389,
+   "sha256": "e50cbcf2fb2e74b225fd4599f2c21a4438ef48508027af66b68ba95bfea030af"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-ab8f-7187-b286-318942cde084",
+   "path": "assets/library/environment/yew_ancient/highpoly_textures/normal.png",
+   "bytes": 4280664,
+   "sha256": "46bc2e2616b6549b3567e6910fc69424cd5b6a4f8c201f093fb10101ba6c2d7d"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-ab8f-7187-b286-318942cde084",
+   "path": "assets/library/environment/yew_ancient/highpoly_textures/roughness.png",
+   "bytes": 1468211,
+   "sha256": "6f51700baf3bca61f05368a90cda89b38df4583f5a529bd4c36b9f33d689e9b3"
+  },
+  {
+   "family": "environment",
+   "key": "yew_ancient",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/yew_ancient/l0.glb",
+   "bytes": 5439548,
+   "sha256": "f8f4e7ab7fa5a1bfea64084e66db194af116524399cae333077e99377db03fa0"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "concept",
+   "task_id": "01a0faef-7560-766d-b791-617e27b53c76",
+   "path": "assets/library/environment/plant_flax/concept.png",
+   "bytes": 892556,
+   "sha256": "4a32084219f59a27503e28b3a46103017ecedeb3029b7c28f88d289f04332d15"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-cfb6-7294-9f7a-b474bb7d075e",
+   "path": "assets/library/environment/plant_flax/highpoly.glb",
+   "bytes": 165651428,
+   "sha256": "4510f12087f33c4c2c8d5e9c9a1accf24f90055a12ab15c0cfe248ffbe62738b"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-cfb6-7294-9f7a-b474bb7d075e",
+   "path": "assets/library/environment/plant_flax/highpoly_textures/base_color.png",
+   "bytes": 6749692,
+   "sha256": "674db4b0779a4131d5cab9eaf5d9939587ad5c0d4bdf95f4e3624247fbee78fc"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-cfb6-7294-9f7a-b474bb7d075e",
+   "path": "assets/library/environment/plant_flax/highpoly_textures/metallic.png",
+   "bytes": 218987,
+   "sha256": "7693ee7cb6eb47bde14c90d5429b1b552a399a8db5fbb5205792860c65a4a462"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-cfb6-7294-9f7a-b474bb7d075e",
+   "path": "assets/library/environment/plant_flax/highpoly_textures/normal.png",
+   "bytes": 5616048,
+   "sha256": "e17f6026960c37ea946108c34f193f39051bb846c0172c237c9ff2f2e3851878"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-cfb6-7294-9f7a-b474bb7d075e",
+   "path": "assets/library/environment/plant_flax/highpoly_textures/roughness.png",
+   "bytes": 1961819,
+   "sha256": "4f3cb9b4a272225bf9cde8b668e43695e8200c1db23ab8b3b7f20bbc5044c1a9"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/plant_flax/l0.glb",
+   "bytes": 1124060,
+   "sha256": "be671ed2a72a41cb30239a05a76bf6baf91d9c3d85793217df410782a363aa52"
+  },
+  {
+   "family": "environment",
+   "key": "plant_flax",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/plant_flax/plant_flax_cards.png",
+   "bytes": 692783,
+   "sha256": "f3ff7a048ff88dc494630404f9f26f7b1f822e3a8356082434f353cb98e12290"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "concept",
+   "task_id": "01a0faef-6ba5-7079-8673-294516278f13",
+   "path": "assets/library/building/hall_stage2/concept.png",
+   "bytes": 1136813,
+   "sha256": "c91fe1f2ecca4c3c97a7773e8ab24cecf602a59d47ed517ef296e6378777f1b8"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-c43b-77ec-85b8-04b314ec39b9",
+   "path": "assets/library/building/hall_stage2/highpoly.glb",
+   "bytes": 81665892,
+   "sha256": "de5c76dde8ce54607e441c81417db269e79a7c7a54d33059719667f682ac967f"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-c43b-77ec-85b8-04b314ec39b9",
+   "path": "assets/library/building/hall_stage2/highpoly_textures/base_color.png",
+   "bytes": 7245510,
+   "sha256": "1856811c8d1b97897460e1eee481d946b0957a5f063e0970df119e01cac4e780"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-c43b-77ec-85b8-04b314ec39b9",
+   "path": "assets/library/building/hall_stage2/highpoly_textures/metallic.png",
+   "bytes": 43718,
+   "sha256": "9b9333a3c3f32e744152432763d3ab848d084dbf141785cca689391c0ec6d1de"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-c43b-77ec-85b8-04b314ec39b9",
+   "path": "assets/library/building/hall_stage2/highpoly_textures/normal.png",
+   "bytes": 6658237,
+   "sha256": "47d11c05ab6a91299abf31b9dbdd954d7f9a12bf016bf47d44560be7a10d85a2"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-c43b-77ec-85b8-04b314ec39b9",
+   "path": "assets/library/building/hall_stage2/highpoly_textures/roughness.png",
+   "bytes": 1973414,
+   "sha256": "e5d58dda628c3ddf30709a9c21046f9efdf6d6565c83ee3702f9dc53b2e11f83"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/hall_stage2/l0.glb",
+   "bytes": 16471076,
+   "sha256": "fa4b0d7e4a5980c12a710b48a417e3e28fc337593f880ea8d29c2874b0b70c2d"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/hall_stage2/l0_raw.glb",
+   "bytes": 16466212,
+   "sha256": "7e63235acc562ac92ebefce687650175e30e6003ebd7e5b61362c0504bb6dafc"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/hall_stage2/l0_windows.glb",
+   "bytes": 16491160,
+   "sha256": "b5738f24f694728313a03665a7e849dea15aef646c26ddb30b1a34bccb81c3e4"
+  },
+  {
+   "family": "building",
+   "key": "hall_stage2",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/hall_stage2/window_mask.png",
+   "bytes": 19862,
+   "sha256": "e4a6db152100bdf546657291d83639ccb0b7fcc2295ba43d0622735b455214e5"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "concept",
+   "task_id": "01a0faef-7e8e-7638-8362-7867e85a6e19",
+   "path": "assets/library/prop/hall_banner/concept.png",
+   "bytes": 737185,
+   "sha256": "36fbae2d9194c6c93fed6457b93f58b14a45f668ab2063f0be5b8bcccc126814"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9",
+   "path": "assets/library/prop/hall_banner/highpoly.glb",
+   "bytes": 14725700,
+   "sha256": "891a058afe3f6b0c5a8b232ea42bcd051cf608ad265c52c262b3a7ab13aacff5"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9",
+   "path": "assets/library/prop/hall_banner/highpoly_textures/base_color.png",
+   "bytes": 6442399,
+   "sha256": "981fd8ac5593065cc15956564d8dd4562331b879854c7b1723a207693f01e887"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9",
+   "path": "assets/library/prop/hall_banner/highpoly_textures/metallic.png",
+   "bytes": 22356,
+   "sha256": "1a786eeec8bae444f4f77bc0ef19cfdb6b10533b88e48a0b74d3dbdd4d26f154"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9",
+   "path": "assets/library/prop/hall_banner/highpoly_textures/normal.png",
+   "bytes": 5620293,
+   "sha256": "9a6ebebc89fd79d117729ad4fed2f224a0c8f1b594e2c36d55a0819dad3473d1"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "highpoly",
+   "task_id": "01a0faf0-db3b-7620-9cf2-e7e7cbcb09c9",
+   "path": "assets/library/prop/hall_banner/highpoly_textures/roughness.png",
+   "bytes": 988251,
+   "sha256": "4f69ca42032ad365c7e07b4bbe4907cefba7c06ecfa5ed663937c02c92c33768"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/prop/hall_banner/l0.glb",
+   "bytes": 3477688,
+   "sha256": "c980e14b09e3909e524836aa4a827e4cf1faa19239c12b515a0e2c49a06f01ee"
+  },
+  {
+   "family": "prop",
+   "key": "hall_banner",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/prop/hall_banner/l0_raw.glb",
+   "bytes": 3474336,
+   "sha256": "26e9ab06b74d716471c4f4f04f30bf61c4768c0ec01a2ee7730b95ff09ada956"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_songbird/animated.glb",
+   "bytes": 1039260,
+   "sha256": "2fe09e9586e0b6dc9701174a3a702ac446fbd6282c69128703556b162180db87"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "concept",
+   "task_id": "01a0fae3-0c5a-770e-8778-da8925a6b4e5",
+   "path": "assets/library/wildlife/wild_songbird/concept.png",
+   "bytes": 888762,
+   "sha256": "1a2d81611b7d40bb91bccf407aec50f26eea33a8e3c640660c05d6ec3848a12a"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-b5ac-72f5-8faf-3a48488e103c",
+   "path": "assets/library/wildlife/wild_songbird/highpoly.glb",
+   "bytes": 21209480,
+   "sha256": "db409cb816fed067fa420908ba1c9c2666c8e6631811847fe0f811465d32cb51"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-b5ac-72f5-8faf-3a48488e103c",
+   "path": "assets/library/wildlife/wild_songbird/highpoly_textures/base_color.png",
+   "bytes": 6249915,
+   "sha256": "5e44a429eea2e6d5f9036e232cb21b00f9b8ca353c99e328608135cbb496f3ed"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-b5ac-72f5-8faf-3a48488e103c",
+   "path": "assets/library/wildlife/wild_songbird/highpoly_textures/metallic.png",
+   "bytes": 24395,
+   "sha256": "5147232c07b83e040a67a4de241655ab3ffec5439a377145595f6cbd7b5320e8"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-b5ac-72f5-8faf-3a48488e103c",
+   "path": "assets/library/wildlife/wild_songbird/highpoly_textures/normal.png",
+   "bytes": 4506451,
+   "sha256": "3b74c83a20932cda04c8a7e50077248ef9f3a752eadc21f2ac7ab32b571acdfc"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-b5ac-72f5-8faf-3a48488e103c",
+   "path": "assets/library/wildlife/wild_songbird/highpoly_textures/roughness.png",
+   "bytes": 1152628,
+   "sha256": "24c77eff94b72ad41f9faf7ad73cb1c96c5c77167fad2881df594fbdb7acf112"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_songbird/l0.glb",
+   "bytes": 998028,
+   "sha256": "7927a63214243fb21eedf92b32d0bea5bb36e7bfb98b8b163bb71c2495af9f13"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_songbird_flight/animated.glb",
+   "bytes": 1074136,
+   "sha256": "61a2e19268ffda9c95a06f3e07f2907b22562fc148927c0ba4eab9ca0e5ba8e8"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "concept",
+   "task_id": "01a0fb0c-a7ed-7023-9ac0-631748c83711",
+   "path": "assets/library/wildlife/wild_songbird_flight/concept.png",
+   "bytes": 980278,
+   "sha256": "bdd8c7f1d1c6f87dacf002e106deacfda0c5991896790124f3f44eb7a85f817d"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "highpoly",
+   "task_id": "01a0fb0d-4604-7632-8d2f-0dfea5fed214",
+   "path": "assets/library/wildlife/wild_songbird_flight/highpoly.glb",
+   "bytes": 19710172,
+   "sha256": "7950deabc822512727529d00c162c7a7bc29a40a60ad55135a6adeeba75d9c32"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "highpoly",
+   "task_id": "01a0fb0d-4604-7632-8d2f-0dfea5fed214",
+   "path": "assets/library/wildlife/wild_songbird_flight/highpoly_textures/base_color.png",
+   "bytes": 6265921,
+   "sha256": "845b78f99909f804f794210f16b05567cd588660d073b628bf35eff44ed86139"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "highpoly",
+   "task_id": "01a0fb0d-4604-7632-8d2f-0dfea5fed214",
+   "path": "assets/library/wildlife/wild_songbird_flight/highpoly_textures/metallic.png",
+   "bytes": 23416,
+   "sha256": "ad16c9857d3f1bb8cfe738cd9a934f700d591cc1d83741228eec27e0ba414466"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "highpoly",
+   "task_id": "01a0fb0d-4604-7632-8d2f-0dfea5fed214",
+   "path": "assets/library/wildlife/wild_songbird_flight/highpoly_textures/normal.png",
+   "bytes": 4976712,
+   "sha256": "8f67e7096a9e73ef0c98ad4b03afa2857932d4e6a48ab1f4331e61e1e36152e1"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "highpoly",
+   "task_id": "01a0fb0d-4604-7632-8d2f-0dfea5fed214",
+   "path": "assets/library/wildlife/wild_songbird_flight/highpoly_textures/roughness.png",
+   "bytes": 1322779,
+   "sha256": "ae291a6904b85d4cf87cf3d9fe506f749f0a322c1518f91b9a835fe33fcd2a34"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_songbird_flight",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_songbird_flight/l0.glb",
+   "bytes": 1032984,
+   "sha256": "d54fc607f79cd9deff5717bd705f91faa0bdbd33fc354ade653aac6aaf2f813c"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_butterfly/animated.glb",
+   "bytes": 989932,
+   "sha256": "0da3326921158e377f5b4870b9621ec61aa0f87d87cf052a7000f69fbc321e64"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "concept",
+   "task_id": "01a0fae3-15c3-73cf-a1c8-6b3fe0f9b2a1",
+   "path": "assets/library/wildlife/wild_butterfly/concept.png",
+   "bytes": 958007,
+   "sha256": "64f5b4a552c50480cf0c37b531ed4979fcbcccf80cbec195dea80b34adfdd92a"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-beb8-7025-8fa6-3c850fe29723",
+   "path": "assets/library/wildlife/wild_butterfly/highpoly.glb",
+   "bytes": 17121140,
+   "sha256": "3b13089b871cb0e24735e5725e5e67a1a059dedb49915af8d255b50963700df3"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-beb8-7025-8fa6-3c850fe29723",
+   "path": "assets/library/wildlife/wild_butterfly/highpoly_textures/base_color.png",
+   "bytes": 7226294,
+   "sha256": "baaaaccd72392239e4b23c83038ba920129540c3f93b4cf2e36da601ca9c26ff"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-beb8-7025-8fa6-3c850fe29723",
+   "path": "assets/library/wildlife/wild_butterfly/highpoly_textures/metallic.png",
+   "bytes": 47794,
+   "sha256": "85ac50df269bbc60b5da32f4533d4f82bd84b5b0bca676b5e6acde2eb8c7757c"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-beb8-7025-8fa6-3c850fe29723",
+   "path": "assets/library/wildlife/wild_butterfly/highpoly_textures/normal.png",
+   "bytes": 5702916,
+   "sha256": "a9285e05d6e7cc417d47ce2b51776c9210c36a38fb6a4e88bdd183f8446491af"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-beb8-7025-8fa6-3c850fe29723",
+   "path": "assets/library/wildlife/wild_butterfly/highpoly_textures/roughness.png",
+   "bytes": 1368327,
+   "sha256": "1a13ea4dcfcdb2b0a931808cdbe5b612cbaf208bba2c1c9cac95f91359f9e4fb"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_butterfly",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_butterfly/l0.glb",
+   "bytes": 953412,
+   "sha256": "4d91896bfbec89941f54fd90472cc0b7142e6c85f9226c211e9ac4f80a388f7b"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_frog/animated.glb",
+   "bytes": 1160672,
+   "sha256": "2753e7061874c97e43419137963223b6a0af73caa9933fde8feeee40dd8fb161"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "concept",
+   "task_id": "01a0fae3-1f64-76cd-8c1e-a72214c918fe",
+   "path": "assets/library/wildlife/wild_frog/concept.png",
+   "bytes": 1017938,
+   "sha256": "d611b645f24617bfb256e83271549d8a1a1637ce9075d0a3f5c869b111e8797b"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-c7ae-74de-8272-4e4b7f03ae9b",
+   "path": "assets/library/wildlife/wild_frog/highpoly.glb",
+   "bytes": 27071272,
+   "sha256": "16bbcb3a5e4b705c96bffee04e362e64f1cc52dc7ccdadbbf3fcaa0f94b6f126"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-c7ae-74de-8272-4e4b7f03ae9b",
+   "path": "assets/library/wildlife/wild_frog/highpoly_textures/base_color.png",
+   "bytes": 6287355,
+   "sha256": "9c85c56c7afbd274cde848905b7b4bc70fe4ac13e9f17c2efba8fa4614e36885"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-c7ae-74de-8272-4e4b7f03ae9b",
+   "path": "assets/library/wildlife/wild_frog/highpoly_textures/metallic.png",
+   "bytes": 20222,
+   "sha256": "06523c8f2c18e95063d4000979664ec41e457b2d348fd6afbc3ddbc1f1e6d5f5"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-c7ae-74de-8272-4e4b7f03ae9b",
+   "path": "assets/library/wildlife/wild_frog/highpoly_textures/normal.png",
+   "bytes": 4930906,
+   "sha256": "01c513fdbcc99cd5d3bb6ecc3d11a58012a76c9f3d7af85600e9da4276cfdde9"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "highpoly",
+   "task_id": "01a0fae3-c7ae-74de-8272-4e4b7f03ae9b",
+   "path": "assets/library/wildlife/wild_frog/highpoly_textures/roughness.png",
+   "bytes": 1417973,
+   "sha256": "0ba84ccdf71cbe9e41acee0dd1a61bf420b61aad0d49ad55019b0935456b0d20"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_frog",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_frog/l0.glb",
+   "bytes": 1122688,
+   "sha256": "3ce9acd408134d2324247b6de8f60a24cb803587c28d9655f583f9febdef9208"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_trout_leaping",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_trout_leaping/animated.glb",
+   "bytes": 1032244,
+   "sha256": "efd11e78f55a65e5a3a8e43881bd7d116fe52c07836efd59fccb8a5a084e876c"
+  },
+  {
+   "family": "wildlife",
+   "key": "wild_trout_leaping",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/wildlife/wild_trout_leaping/l0.glb",
+   "bytes": 995784,
+   "sha256": "67ff0202f3ae1531a29a1167902829c68fbd528dd162a79159caef3b4a0d44dc"
+  },
+  {
+   "family": "ui",
+   "key": "portrait_sheet_a",
+   "stage": "concept",
+   "task_id": "01a0faef-409c-7616-ac77-e6f2ea3ff262",
+   "path": "assets/library/ui/portraits/sheet_a.png",
+   "bytes": 1526993,
+   "sha256": "12741bcac225aa198f206f95b9c927f2d29c627583da80c51d4c5470be0a096d"
+  },
+  {
+   "family": "ui",
+   "key": "portrait_sheet_b",
+   "stage": "concept",
+   "task_id": "01a0faef-506f-71b5-a500-a3350d7d32dc",
+   "path": "assets/library/ui/portraits/sheet_b.png",
+   "bytes": 1366651,
+   "sha256": "3e7034354e5dfe33c7f4487065c1694df143e0a4490046e6a7cf82a2c8d84109"
+  },
+  {
+   "family": "ui",
+   "key": "portrait_sheet_c",
+   "stage": "concept",
+   "task_id": "01a0faef-6137-7348-8b47-b59f4076eaba",
+   "path": "assets/library/ui/portraits/sheet_c.png",
+   "bytes": 1154154,
+   "sha256": "3589669bfc7622d67493e7ea6252731bc5ea15ba5cea8c0f6c7c841fc8cf46ff"
+  },
+  {
+   "family": "ui",
+   "key": "tapestry_ground",
+   "stage": "concept",
+   "task_id": "01a0faef-8817-72ae-94d0-d4e0244600e4",
+   "path": "assets/library/ui/tapestry/tapestry_ground.png",
+   "bytes": 2187320,
+   "sha256": "afb757886af1a5bc44ac2aef280a88b356703ac569ef2e769279eb5ab25d4f89"
+  },
+  {
+   "family": "ui",
+   "key": "tapestry_emblems",
+   "stage": "concept",
+   "task_id": "01a0faef-8fcf-73be-9adf-b187237f026b",
+   "path": "assets/library/ui/tapestry/tapestry_emblems_sheet.png",
+   "bytes": 2288224,
+   "sha256": "2fd5e507b45b2186404c9225c072e92e5c3311fe23c2cebda49933d7ea31a7f8"
+  },
+  {
+   "family": "ui",
+   "key": "chronicle_page",
+   "stage": "concept",
+   "task_id": "01a0faef-b3f1-73e0-9ef5-d3a43d48e120",
+   "path": "assets/library/ui/chronicle/chronicle_page.png",
+   "bytes": 1908763,
+   "sha256": "ed4bf9692b7143ad285bd1d786422922de2668c237a65ef80288a340f754cb34"
+  },
+  {
+   "family": "building",
+   "key": "hall",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/hall/window_mask.png",
+   "bytes": 21716,
+   "sha256": "9ea7b900eb47bf7d86e31a5d1e176069d3a44e4773f6cc0109d0f130bf100582"
+  },
+  {
+   "family": "building",
+   "key": "hall",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/hall/l0_windows.glb",
+   "bytes": 25596176,
+   "sha256": "bcf1cb382e98e5beacf9181db7e1ebcf36ee023a719e626c848fe53253a70083"
+  },
+  {
+   "family": "building",
+   "key": "residence",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/residence/window_mask.png",
+   "bytes": 14362,
+   "sha256": "ceb927530d57735b7b6e5fc24ba74baad170a612d2326416624367bfafdb46bd"
+  },
+  {
+   "family": "building",
+   "key": "residence",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/residence/l0_windows.glb",
+   "bytes": 23380480,
+   "sha256": "7526f9756d5287c631d3ad20dda9dc7657858e9e4785b36984603ad2d4a7c68c"
+  },
+  {
+   "family": "building",
+   "key": "kitchen",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/kitchen/window_mask.png",
+   "bytes": 14991,
+   "sha256": "1d50dac028e083fc9418af1899011a4048b3553bd2c779231a3b0aeb7f0a3e79"
+  },
+  {
+   "family": "building",
+   "key": "kitchen",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/building/kitchen/l0_windows.glb",
+   "bytes": 23845164,
+   "sha256": "f888a0e3707db47f02474bb772fbfd7a6197ac84d017b11e8d01398cc2f28d4a"
+  },
+  {
+   "family": "environment",
+   "key": "oak_mature",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/oak_mature/bare.glb",
+   "bytes": 19813804,
+   "sha256": "361d3d9a86b48437a818fae47f1a0f074c6672018c096d451ccf41e58bad0496"
+  },
+  {
+   "family": "environment",
+   "key": "oak_mature",
+   "stage": "derived_free",
+   "task_id": "tools/make_art_pass2.py",
+   "path": "assets/library/environment/oak_mature/bare_albedo.png",
+   "bytes": 2224679,
+   "sha256": "8602d8cab907d568d83d06e725d98b42971cdc8b87fac93c1ea15d4fec95ee29"
   }
  ]
 }

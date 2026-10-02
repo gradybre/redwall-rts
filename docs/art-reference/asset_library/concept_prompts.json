@@ -1684,6 +1684,17 @@
         "assets/library/icon/sheet_foods_a/sheet.png"
       ],
       "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins: 1 squat jar of red jam, cloth cover tied with string; 2 stoneware jar of green pickles, dill; 3 dried apple rings and dark berries on cloth; 4 wedge of yellow cheese; 5 wooden tankard of ale, white head; 6 stoneware cider jug, red apple; 7 old bronze and silver coins in earth; 8 half-unrolled old parchment map; 9 clear water welling between wet stones. Flat light grey background, no shadows, no text."
+    },
+    {
+      "family": "icon",
+      "key": "sheet_flax_linen_wax",
+      "task_id": "01a0fce6-bbf4-75f2-92a6-c99baf0c1a38",
+      "model": "nano-banana-2",
+      "multi_view": false,
+      "reference_images": [
+        "assets/library/icon/sheet_foods_a/sheet.png"
+      ],
+      "prompt": "Icons in exactly the reference's style: painted stylized-realistic 3D, soft light from upper left, three-quarter view from above. 3x3 grid, nine separate items centred in cells, wide margins. Row 1 flax: a tied sheaf of ripe flax stalks with seed bolls; a bundle of combed pale flax fibre; a heap of brown flax seed. Row 2 linen: a folded stack of undyed linen cloth; a bolt of linen tied with cord; a wooden spool of linen thread. Row 3 beeswax: a golden block of beeswax; three beeswax candles; a piece of empty honeycomb wax. Flat light grey background, no shadows, no text."
     }
   ]
 }

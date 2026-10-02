@@ -230,6 +230,7 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const OrchardScript := preload("res://demo/orchard/demo_orchard.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -313,6 +314,8 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+## THE ORCHARD (decisions 0671-0677; demo/orchard/): built after the spoil heaps, before the woods (its clicks first).
+var _orchard: OrchardScript = null
 
 
 func _ready() -> void:
@@ -334,6 +337,7 @@ func _ready() -> void:
 	_build_farm(manifest)
 	_build_kitchen()
 	_build_spoil()
+	_build_orchard()
 	_build_forestry()
 	_build_canopy()
 	_build_seasons()
@@ -409,6 +413,7 @@ func _build_cast(manifest: Dictionary) -> void:
 	obstacles.append_array(ForestryScript.extra_obstacles(_world as DemoWorldScript))
 	obstacles.append_array(WaterplayScript.land_obstacles())
 	obstacles.append_array(WeirViewScript.land_obstacles())
+	obstacles.append_array(OrchardScript.land_obstacles())
 	_links = WaterplayScript.make_links(_water.map(), obstacles)
 	obstacles.append_array(_links.band)
 	_cast.build(manifest, _water.merged_points(_world.points_of_interest()), obstacles, _links.area)
@@ -494,6 +499,23 @@ func spoil() -> SpoilScript:
 	return _spoil
 
 
+func _build_orchard() -> void:
+	"""THE ORCHARD (demo/orchard/, decisions 0671-0677): the trees, the hedge, the nursery and the grove over the farm's
+	pantry (its basket stands are in `storage_providers`) and compost; its hooks into the woods, the seasons, the
+	right column and the work board are made as those are built."""
+	_orchard = OrchardScript.new()
+	add_child(_orchard)
+	_orchard.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
+		_camera.camera(), _services, _farm.pantry)
+	_orchard.set_compost(compost_left, take_compost)
+	_orchard.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
+
+
+func orchard() -> OrchardScript:
+	"""The village's orchard (demo/orchard/demo_orchard.gd)."""
+	return _orchard
+
+
 func _build_forestry() -> void:
 	"""The woods, after the farm (the calendar's owner): the world's trees bound to real rows with the
 	compiled `wood` item, the crew on the cast, planting's compost from the farm's store, and the woods'
@@ -505,6 +527,8 @@ func _build_forestry() -> void:
 	_forestry.configure(_world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _services, wood)
 	_forestry.crew.set_compost(compost_left, take_compost)
+	_forestry.crew.set_protected(_orchard.grove_protects)
+	_orchard.set_woods(_forestry.stand)
 	_forestry.panel.watch_hud(_game.get_node_or_null(GAME_HUD_ROOT) as Control)
 	var woods: int = _farm.add_overlay("Woods", "Zones and trees", WOODS_LENS_QUESTION, _forestry.set_overlay)
 	_farm.lenses.set_legend(woods, PackedColorArray([ForestMarks.FORESTRY_COLOUR, ForestMarks.CONSERVATION_COLOUR,
@@ -533,6 +557,7 @@ func _build_seasons() -> void:
 	add_child(_seasons)
 	_seasons.configure(_services.calendar, (_cast as DemoCastScript).clock, _world as DemoWorldScript, _forestry.stand,
 		_forestry.view, (_command as DemoCommandScript).tunnels().ext.weather_view, _canopy.fade_material_for)
+	_seasons.add_trees(_orchard.view)
 
 
 func seasons() -> SeasonViewScript:
@@ -589,6 +614,7 @@ func _build_work() -> void:
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
+	_work.add_orchard(_orchard.jobs)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -799,6 +825,8 @@ func _build_shared_ui() -> void:
 	_zone.add_panel(DetailZoneScript.PANEL_TUNNELS, ext.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WOODS, _forestry.panel)
 	_zone.add_panel(DetailZoneScript.PANEL_WATER, _waterplay.panel)
+	_zone.add_panel(DetailZoneScript.PANEL_ORCHARD, _orchard.panel)
+	_orchard.set_panel_shower(_zone.show_panel.bind(DetailZoneScript.PANEL_ORCHARD))
 	_build_lens_picker()
 	_farm.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_FARM))
 	ext.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_TUNNELS))
@@ -972,7 +1000,8 @@ func storage_providers() -> Array[Callable]:
 	network's dug root cellars (demo/farm/farm_cellars.gd over underground_rooms `cellars()`), delivered at
 	their hatches, and the kitchen's pantry at its door (demo/kitchen/demo_kitchen.gd, decision 0381)."""
 	var network: GraphScript = (_command as DemoCommandScript).tunnels().network
-	var providers: Array[Callable] = [FarmCellars.provider(network), KitchenNodeScript.pantry_provider()]
+	var providers: Array[Callable] = [FarmCellars.provider(network), KitchenNodeScript.pantry_provider(),
+		OrchardScript.stand_provider()]
 	return providers
 
 

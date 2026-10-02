@@ -17,12 +17,17 @@ const SOURCE_KITCHEN: int = 6
 ## The fishery: fishing trips' seats, traps' collections, the rack, the mill and the gear (water part B, decision 0431;
 ## demo/work/fishery_work.gd): claimed like the farm's.
 const SOURCE_FISHERY: int = 7
-const SOURCE_COUNT: int = 8
+## The orchard: tending, picking, hauling the baskets on, planting, propagating and the grove's observation (decision
+## 0671; demo/work/orchard_work.gd): claimed like the farm's. 11, past the numbers other lanes take on their branches
+## (8: the ferry, the stores, the hall; 9: foraging), so a merge only fills the gap; until then 8-10 are unused (no
+## adapter: the board skips a null source) and their names empty.
+const SOURCE_ORCHARD: int = 11
+const SOURCE_COUNT: int = 12
 ## What each source is called in the Projects view and the Cancel all scope.
 const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
-	"Kitchen", "Fishery and stations"]
+	"Kitchen", "Fishery and stations", "", "", "", "Orchard"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 8
+const SOURCE_WALK: int = 12
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1

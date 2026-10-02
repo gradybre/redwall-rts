@@ -19,6 +19,7 @@ const TunnelWork := preload("res://demo/work/tunnel_work.gd")
 const FitOutWork := preload("res://demo/work/fit_out_work.gd")
 const SpoilWork := preload("res://demo/work/spoil_work.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
+const OrchardWork := preload("res://demo/work/orchard_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
@@ -87,6 +88,12 @@ func add_fishery(fishery: RefCounted) -> void:
 	"""WATER PART B ON THE BOARD (decision 0431): the fishery's jobs -- trips' seats, traps' collections, the rack, the mill
 	and the gear (work/fishery_work.gd) -- claimed like the farm's."""
 	board.add_source(FisheryWork.new(fishery))
+
+
+func add_orchard(jobs: RefCounted) -> void:
+	"""THE ORCHARD ON THE BOARD (decision 0671): tending, picking, hauling the baskets on, planting, propagating and the
+	grove's observation (work/orchard_work.gd), claimed like the farm's."""
+	board.add_source(OrchardWork.new(jobs))
 
 
 func add_kitchen(kitchen: KitchenScript) -> void:

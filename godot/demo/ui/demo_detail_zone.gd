@@ -40,6 +40,10 @@ const PANEL_FARM: int = 0
 const PANEL_TUNNELS: int = 1
 const PANEL_WOODS: int = 2
 const PANEL_WATER: int = 3
+## The orchard's panel (decision 0671, demo/orchard/orchard_panel.gd): it has NO TAB -- four tabs and the "×" are all the
+## 336 px zone holds at 1280x720 -- and is brought by clicking an orchard tree, site, bush, basket stand, the nursery
+## or the grove; while it shows no tab is lit, and any tab takes the zone back.
+const PANEL_ORCHARD: int = 4
 ## "Tunnels" (was "Tunnels & burrows"): with the strip's "×" the four tabs must fit the 336 px detail
 ## zone at 1280x720, and the long label alone took 154 px -- the "×" ran off the screen's edge. The
 ## tab's tooltip and the panel's own title still say "Tunnels & burrows".
@@ -66,7 +70,7 @@ const CLOSE_W: float = 28.0
 ## The panel shown (PANEL_*).
 var shown: int = PANEL_FARM
 
-var _panels: Array[Object] = [null, null, null, null]
+var _panels: Array[Object] = [null, null, null, null, null]
 var _tabs: Array[Button] = []
 var _strip: HBoxContainer = null
 var _layout: UiLayout = UiLayout.new()
@@ -152,7 +156,7 @@ func add_panel(key: int, panel: Object) -> void:
 
 func show_panel(key: int) -> void:
 	"""Show panel `key` in the zone (the other hides)."""
-	if key < PANEL_FARM or key > PANEL_WATER:
+	if key < PANEL_FARM or key >= _panels.size():
 		return
 	shown = key
 	_collapsed = false

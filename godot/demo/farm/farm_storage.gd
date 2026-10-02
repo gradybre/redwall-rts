@@ -9,7 +9,10 @@ extends RefCounted
 ##      "position": Vector2 (x, z) or Vector3 (x, y, z), metres -- where a carrier delivers
 ##      "capacity_u": int >= 1,            whole units it holds (farm quantities are milli-U)
 ##      "spoilage_permille": int 1..10000, its store factor: 1000 ages food at the base rate
-##      "label": String}                   optional; what the pantry calls it
+##      "label": String,                   optional; what the pantry calls it
+##      "staging": bool}                   optional; true: a gathering place food is set down at on its way to a
+##                                         store (the orchard's basket stands, decision 0674) -- never chosen as a
+##                                         harvest's or a delivery's destination (farm_pantry.gd `_best_location_into`)
 ##
 ## `spoilage_permille` IS GDD §5.8's store factor -- "open pile 1500, covered store 1000, pantry 750,
 ## cellar 350" -- so a root cellar that follows the GDD reports 350 (scripts/core/stock_age.gd
@@ -30,6 +33,8 @@ const KEY_POSITION: String = "position"
 const KEY_CAPACITY_U: String = "capacity_u"
 const KEY_PERMILLE: String = "spoilage_permille"
 const KEY_LABEL: String = "label"
+## A gathering place, never a destination (see the header; decision 0674).
+const KEY_STAGING: String = "staging"
 const MILLI_PER_U: int = 1000
 const MAX_PERMILLE: int = 10000
 ## The covered store (location 0): §5.8's covered-store factor, and a demo capacity.
@@ -46,6 +51,8 @@ var _labels: PackedStringArray = PackedStringArray()
 var _positions: PackedVector2Array = PackedVector2Array()
 var _capacity_milli: PackedInt64Array = PackedInt64Array()
 var _permille: PackedInt32Array = PackedInt32Array()
+## Per location: 1 when it is a gathering place (KEY_STAGING), never a destination.
+var _staging: PackedByteArray = PackedByteArray()
 var _refused: int = 0
 var _store_at: Vector2 = Vector2.ZERO
 
@@ -70,6 +77,7 @@ func refresh() -> void:
 	_positions = PackedVector2Array([_store_at])
 	_capacity_milli = PackedInt64Array([STORE_CAPACITY_U * MILLI_PER_U])
 	_permille = PackedInt32Array([STORE_PERMILLE])
+	_staging = PackedByteArray([0])
 	_refused = 0
 	for provider: Callable in _providers:
 		if not provider.is_valid():
@@ -106,6 +114,7 @@ func _take(entry: Variant) -> void:
 	_positions.append(Vector2(at.x, at.z) if at is Vector3 else at as Vector2)
 	_capacity_milli.append(int(capacity) * MILLI_PER_U)
 	_permille.append(int(permille))
+	_staging.append(1 if row.get(KEY_STAGING, false) == true else 0)
 
 
 func count() -> int:
@@ -144,6 +153,12 @@ func capacity_milli_of(location: int) -> int:
 func permille_of(location: int) -> int:
 	"""A location's spoilage multiplier (§5.8 store factor) per 1000."""
 	return _permille[location]
+
+
+func is_staging(location: int) -> bool:
+	"""Whether a location is a gathering place food waits at on its way to a store (KEY_STAGING), never a
+	destination."""
+	return location >= 0 and location < _staging.size() and _staging[location] == 1
 
 
 func refused_entries() -> int:

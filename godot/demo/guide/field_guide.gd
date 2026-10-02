@@ -31,6 +31,7 @@ const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const FarmText := preload("res://demo/farm/farm_text.gd")
 const FisheryRules := preload("res://demo/fishery/fishery_rules.gd")
 const GearLocker := preload("res://demo/fishery/gear_locker.gd")
+const OrchardText := preload("res://demo/orchard/orchard_text.gd")
 
 const KIND_CROP: int = 0
 const KIND_DISH: int = 1
@@ -229,6 +230,11 @@ func _goods(item: int) -> Entry:
 				FisheryRules.DRY_WORK_MWU / 1000, FisheryRules.DRY_PASSIVE_HOURS],
 			"Fresh fish, cooked in the fish stew while it keeps (%d game hours)." % Catalog.shelf_hours_of(Catalog.FIRST_CATCH),
 			"Keeps %d game hours in store; the Pantry (K) lists it." % shelf])
+	elif Catalog.is_orchard_item(item):
+		var orchard: Array = OrchardText.guide_fields(item)
+		summary = orchard[0]
+		fields = orchard[1]
+		links = [&"station_store"]
 	elif item == Catalog.ITEM_FLOUR:
 		summary = "Grain ground at the mill"
 		links = [&"station_rack_mill", &"station_store", &"crop_oats"]

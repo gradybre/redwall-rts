@@ -22,8 +22,13 @@ extends Node3D
 ## THE PREVIEW (the Demo Lab, F8): `next_preview` draws all of it at one of PRESET_NAMES -- presentation only; the
 ## calendar, the farm and the weather do not move -- and the last step hands it back to the calendar.
 ##
-## Per frame it compares two integers (the calendar's hour, the stand's revision), the weather's cover and the
-## view's focus, and allocates nothing. On an hour or a revision it writes each tree's three numbers; only when a
+## OTHER OWNERS' TREES (decision 0677): the orchard's fruit trees wear the season too. An owner registered with
+## `add_trees` answers `season_tree_count() -> int`, `season_tree_node(i) -> Node3D`, `season_tree_kind(i) -> int`
+## (season_look.gd KIND_*), `season_tree_at(i) -> Vector2` and `season_trees_revision() -> int` (bumped whenever it
+## makes or replaces a tree's node); they are dressed after the woods' own.
+##
+## Per frame it compares two integers (the calendar's hour, the stand's revision) and each owner's revision, the
+## weather's cover and the view's focus, and allocates nothing. On an hour or a revision it writes each tree's three numbers; only when a
 ## tree's node itself was made or replaced (a fall, a shoot, a replanting) does it collect the trees afresh.
 
 const LookScript := preload("res://demo/seasons/season_look.gd")
@@ -132,6 +137,9 @@ var _ground_base: Array[Color] = []
 var _litter_base: Color = Color.BLACK
 var _tufts: StandardMaterial3D = null
 var _tuft_base: Color = Color.WHITE
+## OTHER OWNERS' TREES: the owners, and each one's revision when its trees were last collected.
+var _owners: Array[Object] = []
+var _owner_revisions: PackedInt64Array = PackedInt64Array()
 
 
 func configure(calendar: CalendarScript, clock: DemoClockScript, world: DemoWorldScript, stand: StandScript,
@@ -203,10 +211,11 @@ func _process(_delta: float) -> void:
 		return
 	var hour: int = _calendar.hour_index()
 	var hour_turned: bool = hour != _seen_hour
-	if hour_turned or _stand.revision != _seen_revision:
+	var owners_moved: bool = _owners_moved()
+	if hour_turned or _stand.revision != _seen_revision or owners_moved:
 		_seen_hour = hour
 		_seen_revision = _stand.revision
-		var changed: bool = nodes_changed()
+		var changed: bool = nodes_changed() or owners_moved
 		if changed:
 			_collect()
 		if hour_turned or changed:
@@ -222,6 +231,23 @@ func nodes_changed() -> bool:
 		if _id(_view.tree_node(t)) != _known[k] or _id(_view.young_node(t)) != _known[k + 1]:
 			return true
 		if _id(_view.upper_part(t)) != _known[k + 2]:
+			return true
+	return false
+
+
+func add_trees(trees_owner: Object) -> void:
+	"""Dress `trees_owner`'s trees for the season too, from now on (see OTHER OWNERS' TREES)."""
+	_owners.append(trees_owner)
+	_owner_revisions.append(-1)
+	if _stand != null:
+		_collect()
+		refresh()
+
+
+func _owners_moved() -> bool:
+	"""Whether an owner made or replaced a tree's node since the trees were last collected."""
+	for k: int in _owners.size():
+		if is_instance_valid(_owners[k]) and int(_owners[k].call(&"season_trees_revision")) != _owner_revisions[k]:
 			return true
 	return false
 
@@ -297,14 +323,33 @@ func _collect() -> void:
 		_dress(_view.tree_node(t), key, _stand.at[t], seen)
 		_dress(_view.young_node(t), StandScript.SAPLING_KEY, _stand.at[t], seen)
 		_dress(_view.upper_part(t), key, _stand.at[t], seen)
+	_dress_owners(seen)
 	_cover = -1.0
 	follow_cover()
+
+
+func _dress_owners(seen: Dictionary) -> void:
+	"""Every registered owner's trees (see OTHER OWNERS' TREES), its revision noted."""
+	for k: int in _owners.size():
+		var trees_owner: Object = _owners[k]
+		if not is_instance_valid(trees_owner):
+			continue
+		_owner_revisions[k] = int(trees_owner.call(&"season_trees_revision"))
+		for i: int in int(trees_owner.call(&"season_tree_count")):
+			_dress_kind(trees_owner.call(&"season_tree_node", i) as Node, int(trees_owner.call(&"season_tree_kind", i)),
+				trees_owner.call(&"season_tree_at", i) as Vector2, seen)
 
 
 func _dress(node: Node, key: StringName, at: Vector2, seen: Dictionary) -> void:
 	"""Every staged mesh at or under `node` (a tree of model `key` standing `at`) wears its model's tree material
 	and is written each hour; a placeholder's, or one already dressed, is left."""
-	if node == null or not is_instance_valid(node) or not KIND_OF_KEY.has(key):
+	if KIND_OF_KEY.has(key):
+		_dress_kind(node, KIND_OF_KEY[key], at, seen)
+
+
+func _dress_kind(node: Node, kind: int, at: Vector2, seen: Dictionary) -> void:
+	"""`_dress` for a tree of season_look.gd `kind`."""
+	if node == null or not is_instance_valid(node):
 		return
 	var found: Array[Node] = node.find_children("*", "MeshInstance3D", true, false)
 	if node is MeshInstance3D:
@@ -322,7 +367,7 @@ func _dress(node: Node, key: StringName, at: Vector2, seen: Dictionary) -> void:
 		_bare_mesh.append(_bare_of.get(mesh.mesh) as Mesh)
 		_wearing.append(WEAR_LEAFY)
 		_meshes.append(mesh)
-		_kinds.append(KIND_OF_KEY[key])
+		_kinds.append(kind)
 		_hashes.append(LookScript.tree_hash(at))
 
 

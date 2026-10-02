@@ -87,9 +87,15 @@ func free_milli_of_crop(pantry: PantryScript, crop: int) -> int:
 	var total: int = 0
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item != PantryScript.FREE and Catalog.category_of(item) == crop:
+		if item != PantryScript.FREE and Catalog.category_of(item) == crop and not _staged(pantry, lot):
 			total += maxi(0, pantry.lot_milli(lot) - _per_lot[lot])
 	return total
+
+
+static func _staged(pantry: PantryScript, lot: int) -> bool:
+	"""Whether lot `lot` waits at a gathering place (the orchard's basket stands, decision 0674): not yet stored, so the
+	kitchen never reserves it (the orchard's hauls move it on)."""
+	return pantry.storage.is_staging(pantry.lot_location(lot))
 
 
 func _sum_per_lot(pantry: PantryScript, take: int, where: int) -> void:
@@ -135,7 +141,8 @@ func _candidates(pantry: PantryScript, crop: int, hour_index: int) -> void:
 	_hours.clear()
 	for lot: int in PantryScript.MAX_LOTS:
 		var item: int = pantry.lot_item(lot)
-		if item == PantryScript.FREE or Catalog.category_of(item) != crop or free_milli(pantry, lot) <= 0:
+		if item == PantryScript.FREE or Catalog.category_of(item) != crop or free_milli(pantry, lot) <= 0 \
+				or _staged(pantry, lot):
 			continue
 		_rows.append(lot)
 		_hours.append(pantry.lot_spoil_hours(lot, hour_index))

@@ -110,6 +110,10 @@ the waiting list below the tab note. Not changed: PENDING_SOURCES stays an untyp
 3. **Oatcakes and farls** are left to feature 17's variety.
 4. **Potato stays raw-edible** (the roots row's 800 NP/U).
 
+**Player text names the book, never the ruling**: the Recipes tab says a confirmed row is "cooked as a recipe from Rakkety
+Tam" (the library dish's book; `kitchen_text.gd BOOK_TITLES`) -- DEC-045 and Brendan are named only in comments and
+documents.
+
 ## For integration: the foraging lane's keys
 
 The foraging lane's catalogue keys are **`nuts`, `mushrooms` and `berries`**, not this book's `hazelnut`, `mushroom`

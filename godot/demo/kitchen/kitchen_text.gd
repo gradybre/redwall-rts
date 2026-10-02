@@ -10,6 +10,11 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 const SimClock := preload("res://scripts/core/sim_clock.gd")
 
 const NOTHING_PLANNED: String = "No meal is planned yet"
+## The content library's book keys (CONTENT-LIB-001 §2) as the player reads them.
+const BOOK_TITLES: Dictionary = {"redwall": "Redwall", "mossflower": "Mossflower", "salamandastron": "Salamandastron",
+	"martin_warrior": "Martin the Warrior", "outcast": "The Outcast of Redwall", "pearls_lutra": "Pearls of Lutra",
+	"long_patrol": "The Long Patrol", "marlfox": "Marlfox", "lord_brocktree": "Lord Brocktree",
+	"taggerung": "The Taggerung", "triss": "Triss", "rakkety_tam": "Rakkety Tam"}
 ## THE CHOICE in words (kitchen.gd): the Recipes tab says how the cook picks among the cookable dishes.
 const CHOICE_NOTE: String = "The cook picks each meal's dish from the food in store: one that feeds everyone first, then the food that keeps least long, then what the village likes most, then the plainest dish."
 ## The Kitchen tab's note: its hours are filled from meal_rules.gd's own (`tab_note`), so they cannot drift.
@@ -331,15 +336,22 @@ static func days_text(milli_days: int) -> String:
 static func cookable_line(dish: int) -> String:
 	"""The Recipes tab's mark for one dish: "Cookable (active): Wild oat porridge — cooked as the GDD's porridge: 2.0 U of
 	grain (wheat, barley or oats) + water 2.0 U → 2 portions of 1800 NP, 12 WU, keeps 24 h; for breakfast." -- or
-	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "Brendan's row
-	salad (DEC-045)" for a row he confirmed outside the GDD (decision 0603)."""
+	"Waiting (needs hazelnut: gathered by foragers): ..." for a dish an ingredient keeps waiting, and "a recipe
+	from The Outcast of Redwall" for a row confirmed outside the GDD (DEC-045, decision 0603: player text names the book,
+	never the ruling)."""
 	@warning_ignore("integer_division")
 	return "%s: %s — cooked as %s: %s + water %s → %d portions of %d NP, %d WU, keeps %d h; %s." % [
 		"Waiting (%s)" % Rules.DISH_WAITS[dish] if Rules.waits(dish) else "Cookable (active)", Rules.DISH_NAMES[dish],
-		("the GDD's %s" if Rules.ROW_ADOPTED[dish] == 1 else "Brendan's row %s (DEC-045)") % Rules.GDD_ROWS[dish],
+		"the GDD's %s" % Rules.GDD_ROWS[dish] if Rules.ROW_ADOPTED[dish] == 1 else _book_recipe(dish),
 		inputs_text(dish, 1),
 		units(Rules.WATER_MILLI[dish]), Rules.PORTIONS_PER_BATCH[dish], Rules.NP_PER_PORTION[dish],
 		Rules.WORK_MWU[dish] / 1000, Rules.SHELF_HOURS[dish], _for_meal(dish)]
+
+
+static func _book_recipe(dish: int) -> String:
+	"""A non-GDD row in player words: "a recipe from Rakkety Tam" -- the book its library dish is from."""
+	var book: String = Rules.LIBRARY_IDS[dish].get_slice("::", 0)
+	return "a recipe from %s" % BOOK_TITLES.get(book, "the Redwall books")
 
 
 static func _for_meal(dish: int) -> String:

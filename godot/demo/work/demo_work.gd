@@ -21,6 +21,7 @@ const SpoilWork := preload("res://demo/work/spoil_work.gd")
 const FisheryWork := preload("res://demo/work/fishery_work.gd")
 const FerryWork := preload("res://demo/work/ferry_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
+const StoresWork := preload("res://demo/work/stores_work.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -105,6 +106,16 @@ func add_kitchen(kitchen: KitchenScript) -> void:
 		brains.append((_cast.actor(i) as DemoActorScript).brain)
 	board.add_source(KitchenWork.new(kitchen, brains))
 	board.set_needs_gate(kitchen.kept_for_meals)
+
+
+func add_stores(haul: RefCounted, pantry: RefCounted, builders: RefCounted = null) -> void:
+	"""THE FOOD STORES ON THE BOARD (decisions 0611, 0612): surplus food carried from a warmer store into a cool cellar
+	(demo/stores/cellar_haul.gd) and the cellar buildings' places (cellar_builders.gd), one source
+	(work/stores_work.gd), claimed like the farm's."""
+	var brains: Array[BrainScript] = []
+	for i: int in _cast.actor_count():
+		brains.append((_cast.actor(i) as DemoActorScript).brain)
+	board.add_source(StoresWork.new(haul, pantry, brains, builders))
 
 
 func set_readouts(activity: Callable, is_paused: Callable, jump: Callable, selection: Callable) -> void:

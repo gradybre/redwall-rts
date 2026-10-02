@@ -20,12 +20,15 @@ const SOURCE_FISHERY: int = 7
 ## The ferry: gathering the far copse, hauling ferried wood, crewing a crossing (decision 0437; demo/work/ferry_work.gd):
 ## claimed like the farm's.
 const SOURCE_FERRY: int = 8
-const SOURCE_COUNT: int = 9
+## The food stores: surplus food carried from a warmer store into a cool cellar (decision 0611; demo/work/stores_work.gd):
+## claimed like the farm's, as HAULING. (8 on its own lane; 9 since the batch 7 integration, decision 0902.)
+const SOURCE_STORES: int = 9
+const SOURCE_COUNT: int = 10
 ## What each source is called in the Projects view and the Cancel all scope.
 const SOURCE_NAMES: Array[String] = ["Farm", "Woods", "Bridges", "Tunnels", "Rooms and fit-out", "Spoil heaps",
-	"Kitchen", "Fishery and stations", "Ferry"]
+	"Kitchen", "Fishery and stations", "Ferry", "Food stores"]
 ## A queued walk (Shift+right-click on open ground): an order-list entry, never a board task.
-const SOURCE_WALK: int = 9
+const SOURCE_WALK: int = 10
 
 const ACT_FARM: int = 0
 const ACT_WOODS: int = 1

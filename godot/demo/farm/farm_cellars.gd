@@ -19,6 +19,9 @@ extends RefCounted
 ## the hatch to the cellar's middle, faces its racks and shelves it (farm_crew.gd; `room_of`, `rack_at`); one who cannot
 ## leaves it at the hatch as before. The capacity is now the cellar's racks' and the spoilage the cool rule's
 ## (room_fixtures.gd).
+## ITS CLASS AND ITS WHY (decision 0611): a cool cellar is §5.8's CELLAR class, a warm one keeps like a PANTRY (the cool
+## rule's 750), and its WHY is the cool rule's own words for it ("cool: deep, racked and away from any hearth", "warm: a
+## hearth within 3 m of it warms it"), so the Pantry can say why food lasts longer there (farm_storage.gd STORAGE CLASS).
 ## Harvests are carried to the hatch, so a cellar dug near the beds shortens the haul -- and the pantry sends
 ## each harvest to the slowest-spoiling store with room, the nearest to its bed on a tie (farm_pantry.gd
 ## `location_near_into`).
@@ -28,6 +31,7 @@ const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FixturesScript := preload("res://demo/burrow/room_fixtures.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
+const StockAge := preload("res://scripts/core/stock_age.gd")
 
 const ID_FORMAT: String = "root_cellar:%d:%d"
 const ID_PREFIX: String = "root_cellar:"
@@ -39,14 +43,22 @@ static func entries(network: GraphScript) -> Array:
 	var out: Array = []
 	for cellar: Dictionary in network.rooms.cellars(network):
 		var ref: Vector2i = cellar["id"]
+		var cool: int = network.fit.cool(network, ref.x)
 		out.append({
 			StorageScript.KEY_ID: StringName(ID_FORMAT % [ref.x, ref.y]),
 			StorageScript.KEY_POSITION: cellar["position"],
 			StorageScript.KEY_CAPACITY_U: cellar["capacity_u"],
 			StorageScript.KEY_PERMILLE: cellar["spoilage_permille"],
 			StorageScript.KEY_LABEL: LABEL_FORMAT % (ref.x + 1),
+			StorageScript.KEY_CLASS: class_of_cool(cool),
+			StorageScript.KEY_WHY: FixturesScript.COOL_WORDS[cool],
 		})
 	return out
+
+
+static func class_of_cool(cool: int) -> int:
+	"""A cellar's storage class under the cool rule (room_fixtures.gd COOL_*): CELLAR while it is cool, else PANTRY."""
+	return StockAge.STORAGE_CELLAR if cool == FixturesScript.COOL_YES else StockAge.STORAGE_PANTRY
 
 
 static func room_of(id: Variant) -> Vector2i:

@@ -712,7 +712,9 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   a load in hand is carried on, never paused or handed over from afar -- earth too: a farm job carrying earth back
   to its heap reads "Carry earth back", a delivery, and Cancel refuses it; decision 0401). The kitchen's cook and
   water drawers are listed as well (`kitchen_work.gd`; the kitchen hands them out itself), and the board hands no
-  work to a resident at its meal (`set_needs_gate`, `kitchen.gd kept_for_meals`; decision 0381).
+  work to a resident at its meal (`set_needs_gate`, `kitchen.gd kept_for_meals`; decision 0381). The food stores'
+  moves into a cooler store are a ninth source, **Food stores** (`stores_work.gd`, decision 0611; see The cool cellar),
+  which also lists the cellar buildings' places (decision 0612).
 - **Nobody wanders while eligible work waits.** Every half second of cast time each resident is reconsidered
   (staggered); an idle one -- wandering, on the surface, not resting, not in the water nor held by its rescue, its
   needs not first -- takes the best waiting task it is eligible for (skills and physical fit -- fits the bore, can
@@ -1243,6 +1245,65 @@ in at the hatch and shelves it; the racks fill in place -- jars on the rack, sac
 hanging stores, the bin's roots heaped -- as the stock rises.
 
 **News**: a line said again straight after is counted, not repeated ("Tunnel 10: Good sticky clay... (×4)").
+
+## The cool cellar: food moved where it keeps longer (decision 0611)
+
+Digging pays off at the table. A root cellar dug and racked (above: 3 x 4 m, at least 1 m down, a shelf, rack, bin or
+hanging stores in it, no hearth near) is a **cool** store: GDD §5.8's cellar factor, food there ages at 350 per mille
+where the covered store ages it at 1000 -- it keeps 2.8 times as long. Nothing about the room changed; what is new:
+
+- **Surplus food is carried down** (`stores/cellar_haul.gd`, stepped by `stores/demo_stores.gd`). Every 2 s of demo
+  time the haul looks for food that would keep longer in another store with room: food nobody has reserved (the
+  kitchen's takes are left alone), the lot that spoils SOONEST where it is first, but none with under 6 game hours left
+  (not worth the walk). Its destination is the slowest-ageing store with room, the nearer on a tie -- so a covered
+  store's harvest goes down into a cool cellar, a warm cellar's into a cool one, and the covered store's into the
+  kitchen pantry (750) when that has room. A move is at most 48 U, §5.2's smallest carry (12000 g) of raw food at 250 g
+  a unit, so anybeast who can carry may take it. At most 4 moves stand at once. Part of a lot is never under 1 U, and
+  with every lot row taken only whole lots move. A move that cannot be made (walks failing, the pick-up or the
+  shelving refused) leaves the store that failed it alone for 60 s, and a cellar warmed by a hearth meanwhile is no
+  longer a destination.
+- **On the work board** as HAULING, source **Food stores** (`work/stores_work.gd`): "Move to a cooler store -- 9.0 U of
+  carrot: Covered store → Root cellar 1 (keeps 2.8× as long)". The board claims it for an idle carrier; the claim holds
+  the room at the cellar (the Pantry shows it Incoming there). The carrier walks to the store, picks the food up (1 WU),
+  carries it -- down the hatch to the cellar's middle when it can take a load below, else to the hatch -- and shelves it
+  (1 WU). Pause, Cancel and Reassign work before the pick-up and are refused with the food in hand.
+- **The lot moves, it is not re-made** (`farm/farm_pantry.gd` MOVING FOOD BETWEEN STORES): §5.8's "changing stores
+  never resets age" and REQ-SET-111's exact split. The food stays booked at its store until it is shelved; nobody else
+  may take from it on the way. Called away (another order, the night) the carrier's load goes back to its store and the
+  move waits again; a walk that fails three times closes it. The pantry's ledger never sees a move.
+- **The Pantry says why** (`farm/farm_pantry_rows.gd` `why_text`): under the stores, "Why food keeps longer in some
+  stores:", a line a store in its own words -- "Root cellar 1 — cool: deep, racked and away from any hearth: food keeps
+  2.8× as long as in the covered store", a warm one "warm: a hearth within 3 m of it warms it" -- and a row with food in
+  hand says "· 5.0 U being moved to a cooler store". The Stocks rows already give each lot's store and its days to spoil.
+- **For later stores** (`farm/farm_storage.gd` STORAGE CLASS): a store declares its §5.8 class (`storage_class`, open
+  pile 1500 / covered 1000 / pantry 750 / cellar 350) and its `why`; a ground pile or a stockpile zone that says OPEN_PILE
+  is hauled from by the same rule. A cool cellar is the CELLAR class, a warm one keeps like a PANTRY.
+
+## The Cellar building (decision 0612)
+
+Brendan's ruling on 0611's P7 was "Build both cellars": beside the dug root cellar stands the GDD's **Cellar** building
+(`stores/`), every figure read from the settlement's own tables (`scripts/core/building_definitions.gd`,
+`construction.gd`): wood 20 and stone 60, 900 WU, 1,000,000 g -- **2000 U** at the GDD's 500 g a unit -- and §5.8's
+cellar factor, 350 per mille.
+
+- **Placing**: the Pantry's Stocks tab has a **Cellar buildings** line and **Build a cellar…** (no key). It closes the
+  Pantry and arms the placing tool (`stores/cellar_place.gd`): a ghost of the library cellar follows the pointer, turned
+  to the square, brass where it may stand and clay with the reason where it may not (off the village, an obstacle, a
+  work spot or mouth, a building, the beds, the water, a tunnel or dug room, the other cellar). Click places it; Esc or a
+  right click puts the tool away. At most two stand. Placing deducts nothing.
+- **Building** (`stores/cellar_builders.gd`, REQ-SET-124/125/126): four places a cellar on the work board's **Food
+  stores** source, claimed for idle carriers. A builder walks to the open stockpile, lifts a load (2.4-4.8 U, its §5.2
+  carry at 5000 g a unit -- only now taken from the stores), carries it to the site and sets it down; once everything is
+  there they build it, their time summed (a WU is 0.15 s). Called away, a load goes back into the stores whole. The
+  Pantry's **Cancel** lets the builders go and returns what was delivered: all of it before the work, 80% after.
+- **The look**: the library cellar model pressed flat as a marked footprint, rising with the work, whole when built; a
+  plank stack and a heap of rubble at its site grow with the wood and stone; its name and percent over it. Its footprint
+  is an obstacle from the moment it is placed.
+- **Built, it is a store like any other**: the CELLAR class, filled by the haul, explained by the why note ("Cellar 1 —
+  a large store above ground: food keeps 2.8× as long as in the covered store").
+- **Brendan's rulings** (decision 0612, 2026-10-01): it is **open from the start** (`cellar_rules.gd UNLOCK`, one
+  constant; the GDD's M1 needs 12 residents); a unit is **500 g**, so it holds 2000 U; there are no job slots, so **any
+  idle carrier** hauls its food ("Hauler 2"); it is drawn as the **library cellar at its lookdev size**.
 
 ## The construction theatre and the warnings (decision 0211)
 

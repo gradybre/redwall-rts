@@ -1,5 +1,5 @@
 # 0791 — Group selection: control groups, a group section and a status registry
-Date: 2026-10-01 · Status: Accepted (the PROPOSALS below await Brendan's ruling)
+Date: 2026-10-01 · Status: Accepted (P1–P10 ruled by Brendan, 2026-10-01: as built)
 
 Numbered 0791 because the brief for feature #58 assigned 0791–0799. No record numbered 079x exists on any branch
 (`git log --all -- 'docs/decisions/079*'`) when this was written.
@@ -113,41 +113,44 @@ edited; the live harness checks a row added this way end to end.
   real placement (`_place`) after forcing `fit(4000)`. The forced fit set the inspector to its whole content height, which
   ran off the screen once the group section made a nine-resident inspector taller than the view.
 
-## PROPOSALS (the documents are silent; Brendan to rule)
+## Brendan's rulings on P1–P10 (2026-10-01)
+
+The documents were silent on these ten points, so each was built as the smallest sensible demo behaviour and proposed.
+**Brendan approved all ten as built on 2026-10-01.** The options considered are kept below for the record.
 
 - **P1 — a tile's click.** It centres the view on that resident and keeps the group. Shift+click drops the resident from
   the selection. The party panel's member rows still select one alone.
   - Options: (a) as built; (b) select alone, like the rows; (c) make it the "primary" resident (UI §5.2).
-  - **Recommend (a).**
+  - **Ruled: (a), as built.**
 - **P2 — Ctrl+digit with nobody selected** keeps the group as it was, and says so.
   - Option: clear the group.
-  - **Recommend: keep.** A stray Ctrl+digit should not wipe a group.
+  - **Ruled: keep, as built.** A stray Ctrl+digit should not wipe a group.
 - **P3 — recalling an empty group** leaves the selection alone and says how to fill it. Read literally, "replace
   selection" would clear it.
-  - **Recommend: keep.**
+  - **Ruled: keep, as built.**
 - **P4 — what "idle" means.** It is the Work screen's "available".
   - Option: the work board's narrower `idle()`, which also excludes residents underground, indoors, crossing, on a
     queued walk or at a meal.
-  - **Recommend "available"**: it is the word the player already sees.
+  - **Ruled: "available", as built.** It is the word the player already sees.
 - **P5 — Select idle** is a button with no key, because UI §5 has none.
   - Options: (a) as built; (b) also make UI-SET-006's "n idle" readout select them.
-  - **Recommend (a)** until the UI doc assigns a key.
+  - **Ruled: (a), as built**, until the UI doc assigns a key.
 - **P6 — need severities.**
   - Hungry and Can't get there are warnings. Peckish and No bed are notes.
-  - **Recommend as built.** "Peckish" is meal_rules' ordinary between-meals state.
+  - **Ruled: as built.** "Peckish" is meal_rules' ordinary between-meals state.
 - **P7 — Send to…** is a demo button. It arms the next left click as a move or work order, the same as right-click.
   UI §5 has only `command_context` (right-click or C).
   - Options: (a) keep, for discoverability; (b) drop it.
-  - **Recommend (a)** for the demo.
+  - **Ruled: (a), keep for the demo, as built.**
 - **P8 — placement.** The section sits in the left-column party panel, not bottom-centre or bottom-right (see Why).
-  - **Recommend: keep for the demo.** The game's UI-SET-026 and UI-SET-036 own it later.
+  - **Ruled: keep for the demo, as built.** The game's UI-SET-026 and UI-SET-036 own it later.
 - **P9 — Ctrl on macOS.** The UI doc and input map say Ctrl+0–9. macOS's "Switch to Desktop n" shortcuts use Ctrl+digit
   when they are turned on.
   - Option: Cmd via `command_or_control_autoremap`.
-  - **Recommend: keep Ctrl** per the doc. Decide when rebinding lands.
+  - **Ruled: keep Ctrl** per the doc, as built. Revisit when rebinding lands.
 - **P10 — crew moves apply at once**, with the change described in each button's tooltip (its action card). This
   matches the Work screen's ◀ Crew ▶. Presets are previewed, but they change every crew.
-  - **Recommend: keep.**
+  - **Ruled: keep, as built.**
 
 ## Source
 
@@ -158,4 +161,4 @@ edited; the live harness checks a row added this way end to end.
 - `work_crews.gd`: crews and "available".
 - `meal_rules.gd`: fed states.
 - `night_routine.gd`: beds.
-- Brendan approved feature #58 on 2026-10-01.
+- Brendan approved feature #58 on 2026-10-01, and ruled P1–P10 as built the same day.

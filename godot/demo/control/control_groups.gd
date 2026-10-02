@@ -33,7 +33,7 @@ static func is_slot(slot: int) -> bool:
 
 func assign(slot: int, members: PackedInt32Array) -> bool:
 	"""Keep these residents as group `slot`, replacing what it held. False (and nothing changed) for an unknown slot or
-	no residents: Ctrl+digit with nobody selected leaves the group as it was (decision 0791 PROPOSAL P2)."""
+	no residents: Ctrl+digit with nobody selected leaves the group as it was (decision 0791 P2, ruled as built)."""
 	if not is_slot(slot) or members.is_empty():
 		return false
 	var kept := members.duplicate()

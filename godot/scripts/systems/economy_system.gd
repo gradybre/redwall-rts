@@ -55,9 +55,13 @@ extends Node
 ## lot at the largest quantity whose per-lot ceiling charge still fits, and
 ## `seed_initial_inventory()` deposits §5.1's list food first and then by compiled item id.
 ##
-## THIS IS STILL A SEPARATE `inventory.gd` FROM THE SETTLEMENT'S (decision 0087). The owners and
-## anchors name the settlement's Building rows, but the lots live here. Merging the two stores is
-## not part of D3; decision 0533 records what that means for the demolition gate (D4).
+## THE STORES LIVE IN THE SETTLEMENT'S `inventory.gd` (decision 0534, closing decision 0087's
+## two-inventory split). `bind_inventory()` ADOPTS a borrowed store -- the settlement's -- before
+## the stores open, so the demolition gate, section 7 and the ground-pile composer see the very
+## lots this system deposits, and one inventory transaction can cover a demolition. The private
+## store remains the default, so a test-built instance touches no autoload state. `reset()` DROPS
+## a borrowed store rather than clearing it: the settlement owns those rows and clears them itself.
+## A store is adopted only when its item registry agrees, id for id, with this system's catalog.
 
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
@@ -114,6 +118,8 @@ const REFUSE_NO_RESIDENT_STORE: StringName = &"NO_RESIDENT_STORE"
 const REFUSE_STORES_NOT_OPEN: StringName = &"STORES_NOT_OPEN"
 const REFUSE_STORES_ALREADY_OPEN: StringName = &"STORES_ALREADY_OPEN"
 const REFUSE_INVALID_STORE_BINDING: StringName = &"INVALID_STORE_BINDING"
+const REFUSE_INVALID_INVENTORY: StringName = &"INVALID_INVENTORY_BINDING"
+const REFUSE_INVENTORY_CATALOG_MISMATCH: StringName = &"INVENTORY_CATALOG_MISMATCH"
 
 ## GDD §5.8 displays food-days to two decimals, so the integer figure is carried in hundredths.
 const FOOD_DAYS_SCALE: int = 100
@@ -130,7 +136,10 @@ const FUEL_DAYS_MISSING_INPUT: String = (
 signal stocks_changed()
 signal stock_depleted(item_key: StringName)
 
-var _inventory: InventoryScript = InventoryScript.new()
+## The private store, and the one in use: `_inventory` is either this or a borrowed store.
+var _own_inventory: InventoryScript = InventoryScript.new()
+var _inventory: InventoryScript = _own_inventory
+var _borrowed: bool = false
 var _definitions: ItemDefinitionsScript = ItemDefinitionsScript.new()
 ## The open stores as slot/generation columns, sized STORE_COUNT once; `_store_count` is 0 while
 ## closed and STORE_COUNT once `open_starter_stores()` has succeeded.
@@ -174,7 +183,11 @@ func reset(catalog_path: String = ItemDefinitionsScript.DEFAULT_JSON_PATH) -> vo
 	THE STORES ARE NOT REOPENED. Their owners are the previous settlement's buildings, so a reset
 	that reopened them would mint containers for rows that may no longer exist; the next
 	`open_starter_stores()` binds them to whichever settlement the caller composes next.
+
+	A BORROWED STORE IS DROPPED, NEVER CLEARED (decision 0087): the private store is reloaded.
 	"""
+	_inventory = _own_inventory
+	_borrowed = false
 	_inventory.clear()
 	_definitions = ItemDefinitionsScript.new()
 	_close_stores()
@@ -186,6 +199,46 @@ func reset(catalog_path: String = ItemDefinitionsScript.DEFAULT_JSON_PATH) -> vo
 	if load_result.ok:
 		_compose_filters()
 	_recompute_summary()
+
+
+func bind_inventory(store: InventoryScript) -> bool:
+	"""Adopt `store` -- the settlement's -- as the lot store, before the stores open (decision 0534).
+
+	Refuses STORES_ALREADY_OPEN once opened (call `reset()` first), INVALID_INVENTORY_BINDING for
+	null, CATALOG_UNAVAILABLE without a routable catalog, and INVENTORY_CATALOG_MISMATCH unless
+	every item id registers identically -- presence, mass and category -- in both stores, so a
+	compiled id here always names the same item there. Binding the private store unbinds.
+	"""
+	if _store_count != 0:
+		return _refuse(REFUSE_STORES_ALREADY_OPEN)
+	if store == null:
+		return _refuse(REFUSE_INVALID_INVENTORY)
+	if _catalog_error != "":
+		return _refuse(REFUSE_CATALOG_UNAVAILABLE)
+	if not _registry_agrees(store):
+		return _refuse(REFUSE_INVENTORY_CATALOG_MISMATCH)
+	_inventory = store
+	_borrowed = store != _own_inventory
+	_last_refusal = REFUSE_NONE
+	_recompute_summary()
+	return true
+
+
+func _registry_agrees(store: InventoryScript) -> bool:
+	"""True when every item id registers identically in `store` and in the private store."""
+	for item_id: int in InventoryScript.ITEM_CAPACITY:
+		var registered: bool = _own_inventory.is_item_registered(item_id)
+		if store.is_item_registered(item_id) != registered:
+			return false
+		if registered and (store.item_mass_g(item_id) != _own_inventory.item_mass_g(item_id)
+				or store.item_category(item_id) != _own_inventory.item_category(item_id)):
+			return false
+	return true
+
+
+func is_inventory_borrowed() -> bool:
+	"""True while a borrowed store -- the settlement's -- is adopted."""
+	return _borrowed
 
 
 func _close_stores() -> void:

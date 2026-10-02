@@ -2482,7 +2482,7 @@
     {
       "id": "DEMOLITION-D4",
       "title": "Demolition gate success path, preview/admit split and the BUILD-C4-R01 paid ledger",
-      "status": "blocked",
+      "status": "done",
       "depends_on": [
         "DEMOLITION-D2",
         "DEMOLITION-D3"
@@ -2490,13 +2490,32 @@
       "owns": [
         "godot/scripts/systems/settlement_system.gd",
         "godot/scripts/core/construction.gd",
+        "godot/scripts/core/demolition_admissions.gd",
+        "godot/scripts/systems/economy_system.gd",
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/scripts/main.gd",
         "godot/test/test_settlement_system.gd",
-        "godot/test/test_construction.gd"
+        "godot/test/test_settlement_demolition_admit.gd",
+        "godot/test/test_settlement_starter_colony.gd",
+        "godot/test/test_construction_paid_ledger.gd",
+        "godot/test/test_construction_retired_histories.gd",
+        "godot/test/test_demolition_admissions.gd",
+        "godot/test/test_economy_system.gd",
+        "godot/test/test_ui_manager.gd",
+        "docs/decisions/0534-demolition-admit-and-the-adopted-inventory.md",
+        "docs/tasks/lanes/06/2026-10-01-demolition-d4-admit.md",
+        "docs/rulings/2026-10-01_demolition_containment.md",
+        "docs/persistence_state_registry.md",
+        "docs/systems_architecture.md",
+        "docs/validation/ready07_arithmetic.py",
+        "docs/planning/registry_capacity_audit.json"
       ],
       "agent": "game-coder",
       "gate": "none",
       "ruling": "docs/rulings/2026-10-01_demolition_containment.md",
-      "acceptance": "Stage 5 reads the anchor query; owner and tile scans must agree; anchored NULL_REF or off-footprint building-owned containers refuse. Admit snapshots tier/paid packages, reserves output capacity, calls open_demolition and advances the destination revision before any write. Tier-2 basis per BUILD-C4-R01."
+      "acceptance": "Stage 5 reads the anchor query; owner and tile scans must agree; anchored NULL_REF or off-footprint building-owned containers refuse. Admit snapshots tier/paid packages, reserves output capacity, calls open_demolition and advances the destination revision before any write. Tier-2 basis per BUILD-C4-R01.",
+      "note": "Done with decision 0534. EconomySystem adopts the settlement's inventory (bind_inventory; reset drops a borrowed store), so the starter stores are visible to the gate. Proposals P1-P4 (output store choice, pile fallback reserving nothing, coordinator-owned destination revision, starter base package counted as paid) await Brendan. D5 must: release output_reserved_g_of() and place the return in one transaction; use a commit-time gate variant (stage 1 refuses DEMOLISHING); add a cancellation path that releases the reservation; advance the destination revision again at removal. The paid ledger and admission record are UNRESOLVED-classified, unsaved until CONSTRUCTION-SAVED-BINDINGS."
     },
     {
       "id": "DEMOLITION-D5",

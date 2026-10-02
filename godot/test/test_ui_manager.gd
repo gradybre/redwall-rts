@@ -849,6 +849,25 @@ func test_create_still_succeeds_in_a_running_game() -> void:
 	SettlementSystem.reset()
 
 
+func test_create_still_succeeds_while_a_demolition_is_admitted() -> void:
+	"""Decision 0534: admit publishes a KIND_CONSTRUCTION row, which the reset also clears.
+
+	Without KIND_CONSTRUCTION in `ui_world_session._caller_cleared_kinds` the generator's preflight
+	sees a live row it does not own and Create refuses WORLD_FOREIGN_LIVE_ROWS mid-demolition.
+	"""
+	_ui.register_hud(_hud)
+	assert_true(SettlementSystem.create_generated_settlement(EconomySystem.definitions()),
+		"a settlement boots with its colony")
+	var well: Vector2i = SettlementSystem.buildings().building_at_tile(54 * 128 + 64)
+	assert_true(SettlementSystem.request_demolition(well).ok, "the well's demolition is admitted")
+	assert_equal(SettlementSystem.directory().live_count(EntityDirectoryScript.KIND_CONSTRUCTION),
+		1, "so a construction row is live")
+	assert_true(_ui.create_world(), "and Create still succeeds")
+	assert_equal(SettlementSystem.directory().live_count(EntityDirectoryScript.KIND_CONSTRUCTION),
+		0, "the new settlement has no project")
+	SettlementSystem.reset()
+
+
 func test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve() -> void:
 	"""R-INIT-ID-001 through UI-SET-103's Create, not only through boot.
 

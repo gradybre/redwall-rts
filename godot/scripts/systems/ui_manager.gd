@@ -255,7 +255,8 @@ func _reconcile_economy_after_create(ok: bool) -> void:
 	Runs BEFORE the HUD repaint in `_report_generation()`, so the first figures the player sees
 	after Create are the new settlement's. A refused Create that never reached the session's reset
 	keeps the running settlement and its stores; one that did reset leaves stores owned by rows
-	that no longer exist, and #7 says stale ownership is rejected, so they are closed.
+	that no longer exist, and #7 says stale ownership is rejected, so they are closed. The stores
+	reopen in the settlement's own inventory, which EconomySystem adopts first (decision 0534).
 	"""
 	if EconomySystem == null:
 		return
@@ -263,6 +264,7 @@ func _reconcile_economy_after_create(ok: bool) -> void:
 		EconomySystem.reset()
 		var binding: StarterColonyScript.StoreBinding = StarterColonyScript.StoreBinding.new()
 		if not SettlementSystem.starter_store_binding_into(binding) \
+				or not EconomySystem.bind_inventory(SettlementSystem.inventory()) \
 				or not EconomySystem.open_and_seed_starter_stores(binding):
 			push_error("Create: the starter stores could not open: %s / %s"
 				% [SettlementSystem.last_refusal(), EconomySystem.last_refusal()])

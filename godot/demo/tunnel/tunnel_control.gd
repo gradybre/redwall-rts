@@ -545,6 +545,11 @@ func site_key() -> Vector2i:
 	return Vector2i(network.revision, _space.obstacle_builds)
 
 
+## `(bed: int) -> bool`: whether a bed is laid out (the farm's `is_laid`): a kitchen-garden site nobody has laid out keeps
+## no room off it (decision 0883). None: no garden site counts.
+var bed_laid: Callable = Callable()
+
+
 func room_site() -> RoomsScript.Site:
 	"""What a room must keep clear of now (underground_rooms.gd Site): the village, the obstacles, work spots and
 	mouths, the buildings, the crop beds and the water."""
@@ -555,8 +560,10 @@ func room_site() -> RoomsScript.Site:
 	site.spots_u = _spots_u.duplicate()
 	site.under_u = _under_u.duplicate()
 	for bed in FarmCatalog.BED_COUNT:
+		if FarmCatalog.is_garden(bed) and not (bed_laid.is_valid() and bool(bed_laid.call(bed))):
+			continue
 		var at: Vector2 = FarmCatalog.bed_centre_m(bed)
-		site.beds_u.append_array(PackedInt32Array([Rules.to_u(at.x), Rules.to_u(FarmCatalog.BED_HALF_M), Rules.to_u(at.y)]))
+		site.beds_u.append_array(PackedInt32Array([Rules.to_u(at.x), Rules.to_u(FarmCatalog.bed_half_m(bed)), Rules.to_u(at.y)]))
 	site.water = ext.works.water.crosses_water
 	return site
 

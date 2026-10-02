@@ -71,7 +71,7 @@ func _initialize() -> void:
 		_the_hud_workspace_keeps_the_keys, _the_workspace_covers_no_stop, _a_group_is_box_selected,
 		_a_member_row_selects_and_centres, _a_water_action_without_scrolling, _the_picker_opens_on_bed_1,
 		_the_picker_crosses_spring_5, _jobs_opens_the_work_screen, _work_tab_and_enter, _work_queue_a_fell,
-		_work_open_the_picker, _work_reassign_by_click, _work_show_residents, _work_scroll_to_resident, _work_edit_a_crew, _work_cancel_all_shows_its_scope,
+		_work_show_the_fell, _work_open_the_picker, _work_show_the_target, _work_reassign_by_click, _work_show_residents, _work_scroll_to_resident, _work_edit_a_crew, _work_cancel_all_shows_its_scope,
 		_work_keep_working, _work_closes_on_j, _shift_right_click_queues,
 		_scale_follows_the_choice, _work_at_the_chosen_scale, _work_close_scaled,
 		_restart_boots_again, _after_restart, _a_smaller_window_steps_the_scale_down]
@@ -810,6 +810,14 @@ func _fell_row() -> Control:
 	return null
 
 
+func _work_show_the_fell() -> void:
+	"""Scroll the felling's row into view again (the farm's sowing policy puts more tasks on the board from the first
+	hour -- decision 0886 -- so the list may have moved since it was queued)."""
+	var row: Control = _fell_row()
+	if row != null:
+		(_work_screen().get("_scroll") as ScrollContainer).ensure_control_visible(row)
+
+
 func _work_open_the_picker() -> void:
 	"""A click on the felling's Reassign… opens its picker: every resident, each with its eligibility."""
 	var row: Control = _fell_row()
@@ -824,6 +832,26 @@ func _work_open_the_picker() -> void:
 	_capture("work_picker")
 
 
+func _reassign_target(row: Control) -> int:
+	"""The first resident other than the felling's worker the board would let take it (-1: none)."""
+	var board: RefCounted = _board()
+	var source: int = int(row.get("task_source"))
+	var task_row: int = int(row.get("task_row"))
+	var before: int = int(board.call(&"source", source).call(&"worker", task_row))
+	for who: int in int(board.call(&"resident_count")):
+		if who != before and String(board.call(&"eligibility_words", source, task_row, who)).is_empty():
+			return who
+	return -1
+
+
+func _work_show_the_target() -> void:
+	"""Scroll the picker's button for the resident the felling goes to into view (the picker was scrolled to its last)."""
+	var row: Control = _fell_row()
+	var button: Button = row.call(&"resident_button", _reassign_target(row)) if row != null else null
+	if button != null:
+		(_work_screen().get("_scroll") as ScrollContainer).ensure_control_visible(button)
+
+
 func _work_reassign_by_click() -> void:
 	"""A click on a resident in the picker gives it the felling; the row says so."""
 	var row: Control = _fell_row()
@@ -834,11 +862,7 @@ func _work_reassign_by_click() -> void:
 	var source: int = int(row.get("task_source"))
 	var task_row: int = int(row.get("task_row"))
 	var before: int = int(board.call(&"source", source).call(&"worker", task_row))
-	var to: int = -1
-	for who: int in int(board.call(&"resident_count")):
-		if who != before and String(board.call(&"eligibility_words", source, task_row, who)).is_empty():
-			to = who
-			break
+	var to: int = _reassign_target(row)
 	var button: Button = row.call(&"resident_button", to)
 	_check("an eligible resident's button is enabled", button != null and not button.disabled)
 	_click(_centre(button))

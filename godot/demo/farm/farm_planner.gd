@@ -21,6 +21,12 @@ extends CanvasLayer
 ##                    (farm_soil_plans.gd). Presentation only; the bed's own buttons act.
 ##   Record           the after-action record (farm_record.gd): yesterday's line, this season's days as a table, the
 ##                    season's totals -- committed outcomes only; each closed day is also posted to the village news.
+## and THE CROP PLANS' THREE (decisions 0882, 0883, 0885; `set_plans`):
+##   Harvest plan     ECO-003: a strategy, every bed's sowing and ripening, each harvest day against the hands, the room
+##                    and the kitchen, suggestions, and "Book this plan" (farm_harvest_page.gd);
+##   Kitchen garden   ECO-004 and #48: the garden's sites and walking, its one plan, the cook's hours (farm_garden_page.gd;
+##                    a site's row opens its panel, as an overview row does);
+##   Tending          ECO-007: each group's standing policies, budget, next day and exceptions (farm_tending_page.gd).
 
 const FarmUi := preload("res://demo/farm/farm_ui.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
@@ -40,6 +46,12 @@ const RecordText := preload("res://demo/farm/farm_record_text.gd")
 const TableScript := preload("res://demo/farm/farm_planner_table.gd")
 const TimelineScript := preload("res://demo/farm/farm_timeline.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
+const HarvestPage := preload("res://demo/farm/farm_harvest_page.gd")
+const GardenPage := preload("res://demo/farm/farm_garden_page.gd")
+const TendingPage := preload("res://demo/farm/farm_tending_page.gd")
+const GardenScript := preload("res://demo/farm/farm_garden.gd")
+const TendingScript := preload("res://demo/farm/farm_tending.gd")
+const HarvestPlanScript := preload("res://demo/farm/farm_harvest_plan.gd")
 
 signal close_requested
 ## A bed's row (or a plan's "Open bed") was pressed: show that bed and centre the camera on it.
@@ -52,7 +64,11 @@ const TAB_OVERVIEW: int = 0
 const TAB_CALENDAR: int = 1
 const TAB_PLANS: int = 2
 const TAB_RECORD: int = 3
-const TAB_NAMES: Array[String] = ["Farm overview", "Season calendar", "Soil plans", "Record"]
+const TAB_HARVEST: int = 4
+const TAB_GARDEN: int = 5
+const TAB_TENDING: int = 6
+const TAB_NAMES: Array[String] = ["Farm overview", "Season calendar", "Soil plans", "Record", "Harvest plan",
+	"Kitchen garden", "Tending"]
 const LAYER: int = 2
 const REFRESH_S: float = 0.25
 const NOTE_PX: int = 14
@@ -118,6 +134,9 @@ var _read: IntMath.IntResult = IntMath.IntResult.new()
 var _cells: PackedStringArray = PackedStringArray()
 var _refresh_in: float = 0.0
 var _wide_lines: Array[Label] = []
+var _harvest_page: HarvestPage = HarvestPage.new()
+var _garden_page: GardenPage = GardenPage.new()
+var _tending_page: TendingPage = TendingPage.new()
 
 
 func configure(sim: SimScript, crew: CrewScript, record: RecordScript) -> void:
@@ -129,6 +148,28 @@ func configure(sim: SimScript, crew: CrewScript, record: RecordScript) -> void:
 	name = "FarmPlanner"
 	_build()
 	visible = false
+
+
+func set_plans(garden: GardenScript, tending: TendingScript, harvest_plan: HarvestPlanScript) -> void:
+	"""THE CROP PLANS' THREE tabs over these models."""
+	_harvest_page.bind(harvest_plan)
+	_garden_page.bind(garden, _sim)
+	_tending_page.bind(tending)
+
+
+func harvest_page() -> HarvestPage:
+	"""The Harvest plan tab (checks)."""
+	return _harvest_page
+
+
+func garden_page() -> GardenPage:
+	"""The Kitchen garden tab (checks)."""
+	return _garden_page
+
+
+func tending_page() -> TendingPage:
+	"""The Tending tab (checks)."""
+	return _tending_page
 
 
 func set_kitchen(kitchen: KitchenScript) -> void:
@@ -161,11 +202,15 @@ func _build() -> void:
 	var pages := VBoxContainer.new()
 	pages.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(pages)
-	for page: VBoxContainer in [_build_overview(), _build_calendar(), _build_plans(), _build_record()]:
+	_garden_page.bed_wanted.connect(func(bed: int) -> void: bed_wanted.emit(bed))
+	for page: VBoxContainer in [_build_overview(), _build_calendar(), _build_plans(), _build_record(), _harvest_page,
+			_garden_page, _tending_page]:
 		page.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		page.add_theme_constant_override(&"separation", 6)
 		pages.add_child(page)
 		_pages.append(page)
+	for wide: Array[Label] in [_harvest_page.wide, _garden_page.wide, _tending_page.wide]:
+		_wide_lines.append_array(wide)
 	_press(_tabs, view)
 
 
@@ -331,7 +376,7 @@ func close() -> void:
 
 func show_tab(which: int) -> void:
 	"""Show tab `which` (TAB_*)."""
-	view = clampi(which, TAB_OVERVIEW, TAB_RECORD)
+	view = clampi(which, TAB_OVERVIEW, TAB_TENDING)
 	_press(_tabs, view)
 	refresh()
 
@@ -391,6 +436,12 @@ func refresh() -> void:
 			_fill_plans()
 		TAB_RECORD:
 			_fill_record()
+		TAB_HARVEST:
+			_harvest_page.refresh()
+		TAB_GARDEN:
+			_garden_page.refresh()
+		TAB_TENDING:
+			_tending_page.refresh()
 
 
 # --- the tabs' contents -----------------------------------------------------------------------------------------------
@@ -449,7 +500,13 @@ func _fill_calendar_table() -> void:
 
 
 func _fill_plans() -> void:
-	"""The three plans for the chosen bed, redrawn only when the farm, the hour, the bed or the compost store changed."""
+	"""The three plans for the chosen bed, redrawn only when the farm, the hour, the bed or the compost store changed.
+	A kitchen-garden site's button shows only once a bed is laid out there."""
+	for bed: int in _bed_buttons.size():
+		_bed_buttons[bed].visible = _sim.is_laid(bed)
+	if not _sim.is_laid(plan_bed):
+		set_plan_bed(0)
+		return
 	_plans_now[0] = _sim.revision
 	_plans_now[1] = _sim.calendar.hour_index()
 	_plans_now[2] = plan_bed

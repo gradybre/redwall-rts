@@ -109,6 +109,8 @@ const RINGS: int = 4
 const RING_SPOTS: int = 12
 ## How far beyond a bed's edge (and a heap's) a worker stands first.
 const BED_STAND_M: float = 2.35
+## The same stand as a clearance from a bed's edge (a garden bed is narrower: farm_catalog.gd `bed_half_m`).
+const BED_CLEAR_M: float = BED_STAND_M - Catalog.BED_HALF_M
 const HEAP_STAND_M: float = 0.55
 const WELL_STAND_M: float = 1.6
 ## The routine crew looks at the board this often (cast time).
@@ -167,6 +169,9 @@ var _paused_serial: PackedInt64Array = PackedInt64Array()
 var _claimed_outside: bool = false
 ## The board's "who" for a job left on the board, for the action card (`func(activity, selected) -> String`).
 var _queue_words: Callable = Callable()
+## `(row: int, who: int) -> String`: why waiting job `row` is kept from `who` ("" when it is not) -- the kitchen garden
+## keeps its beds' jobs for the cook between meals (farm_garden.gd `kept_from`, decision 0883). None: nothing kept.
+var _keep_rule: Callable = Callable()
 
 
 func _init() -> void:
@@ -490,7 +495,8 @@ func _hand_out() -> void:
 		_idle.clear()
 		for who: int in _crew:
 			var brain: BrainScript = _brain(who)
-			if brain.order == BrainScript.ORDER_NONE and not brain.underground and not brain.resting:
+			if brain.order == BrainScript.ORDER_NONE and not brain.underground and not brain.resting \
+					and kept_from(row, who).is_empty():
 				_idle.append(who)
 		if _nearest_free_into(_idle, Catalog.bed_centre_m(jobs.bed[row]), _read):
 			_take_over(row, _read.value)
@@ -608,7 +614,7 @@ func _stand_of(row: int, code: int) -> float:
 			return _tunnels.rim_m(_network, jobs.heap[row]) + HEAP_STAND_M
 		JobsScript.STEP_CARRY_STORE:
 			return RING_GAP_M * jobs.tries[row]
-	return BED_STAND_M + RING_GAP_M * jobs.tries[row]
+	return Catalog.bed_half_m(jobs.bed[row]) + BED_CLEAR_M + RING_GAP_M * jobs.tries[row]
 
 
 func _spot_near(target: Vector2, first_ring: float, brain: BrainScript) -> bool:
@@ -713,6 +719,8 @@ func _end_work(row: int, work: int) -> String:
 			return _build(row, _sim.bank_bed(bed), "Bank")
 		JobsScript.WORK_DRAIN:
 			return _said(_sim.drain_bed(bed), "Drain")
+		JobsScript.WORK_FIT_OUTLET:
+			return _said(_sim.fit_outlet(bed), "Fit outlet")
 		JobsScript.WORK_DIG:
 			return _end_dig(row)
 	return ""
@@ -903,6 +911,19 @@ func set_claimer(queue_words: Callable) -> void:
 func claims_outside() -> bool:
 	"""Whether the work board claims the waiting jobs."""
 	return _claimed_outside
+
+
+func set_keep_rule(rule: Callable) -> void:
+	"""`rule(row, who) -> String`: why waiting job `row` is kept from `who` ("" when it is not; see _keep_rule)."""
+	_keep_rule = rule
+
+
+func kept_from(row: int, who: int) -> String:
+	"""Why waiting job `row` is kept from resident `who` ("" when anyone may take it): the keep rule's answer. A delivery
+	or an earth return is never kept: a load in hand is carried home by whoever can."""
+	if not _keep_rule.is_valid() or not jobs.is_live(row) or not _is_production(row):
+		return ""
+	return String(_keep_rule.call(row, who))
 
 
 func waiting(row: int) -> bool:
@@ -1281,6 +1302,11 @@ func _brain(who: int) -> BrainScript:
 func brain_of(who: int) -> BrainScript:
 	"""Resident `who`'s brain (the work board's read)."""
 	return _brain(who)
+
+
+func resident_name(who: int) -> String:
+	"""Resident `who`'s display name (the garden's keep rule says whom a job is kept for)."""
+	return _name_of(who)
 
 
 func _name_of(who: int) -> String:

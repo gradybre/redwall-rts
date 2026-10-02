@@ -955,7 +955,8 @@ library high-polys, into `assets/props/<key>__<part>.glb`; `stage_demo_assets.py
 
 ## Farming
 
-The six crop beds grow **individual pantry ingredients** -- radish, turnip, carrot, beetroot, parsnip,
+The twelve field beds -- the six world beds and the south field's six (decision 0886) -- and the kitchen garden's beds,
+once laid out (below), grow **individual pantry ingredients** -- radish, turnip, carrot, beetroot, parsnip,
 onion, cabbage, lettuce, spinach, leek, celery, pea, broad bean, wheat, barley, oats, each a LEAF of the
 content library's pantry -- by the settlement's **own crop arithmetic** (`scripts/core/farming.gd` and
 `crop_weather.gd`, GDD §5.6): each bed is a real FarmPlot row, and each ingredient grows by the §5.6 row
@@ -1004,7 +1005,7 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 |---|---|
 | Left click a bed | Its panel -- that bed only: a "Needs:" line naming its most pressing work and why (clay when urgent), crop, stage (and why growth stalled), moisture band, soil, what was done to the ground, expected yield, jobs, and the verbs |
 | Right click a bed (residents selected) | The nearest selected resident does its most pressing work: clear, harvest, drain a waterlogged bed, water a dry bed, cover once a frost is announced, sow |
-| Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window). It stays current while open (decision 0391, review F36): when the calendar or the bed changes, each crop is enabled or refused where it stands -- no row moves, the focus and the scroll stay -- and its title has today's date. Its title and Back stay in view; only the list scrolls |
+| Plant… (bed panel) | The crop picker: every ingredient, sowable ones first, with its ROLE (decision 0881: keeping root, fresh greens, soil restorer, flour crop -- its two differences and its uses, read from the kitchen's dishes), growth hours, yield, family and its rotation effect in this bed; the rest say why not (soil, planting window). It stays current while open (decision 0391, review F36): when the calendar or the bed changes, each crop is enabled or refused where it stands -- no row moves, the focus and the scroll stay -- and its title has today's date. Its title and Back stay in view; only the list scrolls |
 | Water / Harvest / Clear / Compost / Cover | Given to the selected residents, or queued for the field crew (the fieldworker and gatherer take queued work while wandering) |
 | Drain | A wet or waterlogged bed: a resident digs a ditch round it (6 WU); its moisture drops at once to the top of its crop's band, and the ditch sheds up to 1000 a day for good (decision 0205) |
 | Raise / Bank | A resident fetches 2 U of tunnel earth from the nearest spoil heap or the stores that hold it and carries it to the bed: a raised bed drains and is warmer at night; a banked bed keeps half of each dry day's loss. Earth adds no fertility. Cancelled (or unable to reach or work the bed) with the earth in hand, the resident carries it back to where it came from (decision 0401) |
@@ -1015,14 +1016,48 @@ opens the Pantry (decision 0292), whose headline is the pantry total:
 | Compare… (bed panel) | Every bed side by side, sortable, ringed and ranked on the map (below) |
 
 Threats: spring is wet (beds waterlog and stop growing -- Drain them, run a tunnel under them, or raise
-them; every bed sheds up to 500 a day above its band's top, so in the first spring only the Ideal spell
-waterlogs a roots bed, around spring 8), summer dry (water), frost nights are announced at noon the day
+them, or fit a drain outlet to a tunnel under them; every bed sheds up to 500 a day above its band's top, so in the
+first spring only the Ideal spell waterlogs a roots bed, around spring 8), summer dry (water), frost nights are announced at noon the day
 before (cover or raise; the first spring's is the night into spring 11), blight (first outbreak at the
 midnight opening spring 12 -- the first threats now fall about two days apart) spreads to
 the next beds at midnight unless the blighted bed is cleared, and a ripe crop starts losing yield after
-48 hours and withers at 120. A finished tunnel under a bed drains it; a tunnel with a mouth at the
-real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or at
-x 19.5 m, z 4) irrigates the beds it runs under. Details and every number's source: `farm/*.gd` headers.
+48 hours and withers at 120. A finished tunnel under a bed is TRANSPORT ONLY (decision 0884): fit an outlet (the bed
+panel's Tunnel outlet box, a 6 WU job) and set it to Drain -- the bed sheds into a dry tunnel -- or Feed -- a tunnel
+with a mouth at the real stream's edge (dry ground within 2.5 m of its waterline -- inside the square, by the ford or
+at x 19.5 m, z 4) waters it -- or Shut. Details and every number's source: `farm/*.gd` headers.
+
+## Crop plans: roles, the kitchen garden, harvest plans, tending and tunnel outlets (decisions 0881-0885)
+
+Review group X (ECO-001, ECO-003, ECO-004 with feature #48, ECO-006, ECO-007). Every crop number is still GDD §5.6's.
+
+- **Crop roles** (0881, `farm/farm_crop_roles.gd`): a crop's role is its §5.6 row's -- Keeping root (keeps 10 days,
+  ripens in 5), Fresh greens (sown summer and autumn, keeps 6 days), Soil restorer (gives the soil 800 fertility, keeps
+  20 days), Flour crop (10 U a bed, ripens in 8 days) -- with its uses read from the kitchen's dishes, the mill and the
+  raw-emergency table. Siblings of one row stay equal. Shown in the crop picker and the harvest plan.
+- **Twelve field beds** (0886, Brendan's balance ruling E5): the six world beds and the **south field**'s six 2 m tiles,
+  one 6 m x 4 m field on the grass south of the covered store, laid from the start, loam and clay.
+- **Sowing in season** (0886): the live village starts with the tending policy **Sow empty beds in season** on for the
+  field, so hands-off play sows: each empty bed gets the crop chosen for it, else its **rotation**'s next crop -- GDD
+  §5.6's grain → beans → roots (wheat, pea, carrot) on loam, grain → beans → grain on clay, roots only on sand; the bed
+  panel's **Rotation ▸** steps a bed through the cycles its soil can follow. A crop waiting for its window is said once.
+- **The kitchen garden** (0883, `farm/farm_garden.gd`): four 2 m garden sites round a cross of paths across the road
+  from the kitchen, between the square and the covered store, drawn as pegs and string. Click one and **Lay out a bed
+  here** (at once, free: a designation); **Take up** a bare bed again. The garden's beds are Bed 13-16 and share one plan
+  (Planner ▸ Kitchen garden: its crop and **Sow every empty garden bed**), a **work shelf** (GDD §5.9 Shelf: a 200 U
+  pantry store at the pantry's 750, up with the first bed) and the **well**; each bed's panel and the tab say the
+  walking to the shelf and the well. **Between meals (09:00-15:00) the cook tends it**: the routine crew and the work
+  board leave its jobs to the cook while the cook could take them, for up to a game hour (the tab turns it off).
+- **Harvest plan** (0882, Planner ▸ Harvest plan, `farm/farm_harvest_plan.gd`): Steady table, One preserving harvest or
+  Custom dates (pick a bed's row, Sow a day earlier / later) for the empty beds with a crop chosen; each bed's sowing,
+  ripening and harvest; each harvest day's work against the field crew's hands, its food against the stores' room and
+  what the kitchen eats before it spoils, in clay with a suggestion when overloaded (a later sowing, or leave a bed
+  empty); **Book this plan** orders today's sowings and books the rest for their days.
+- **Tending** (0885, Planner ▸ Tending, `farm/farm_tending.gd`): for the field beds and the kitchen garden, Protect from
+  forecast frost (Cover), Water below the suitable band (Water), Avoid waterlogging (open a fitted drain outlet, shut a
+  feeding one) and Sow empty beds in season (0886: on for the field at the start, the others off); a daily budget
+  (0-32 WU, 16 by default); the next day's most shown first; only what a policy could not do goes to the news.
+- **Tunnel outlets** (0884, the bed panel's Tunnel outlet box): see Farming's threats above. The weir's sluice and
+  leat (0441) are the closable inlet for Bed 2, 4 and 6.
 
 ## The seasonal planner (decision 0451)
 
@@ -1030,7 +1065,8 @@ Review group O (F45, UX-008, ECO-005's presentation, P1's "Seasonal forecast", P
 Farm panel's head, opens it (`farm/farm_planner.gd`): a modal of the input gate in the HUD's modal rectangle, like the
 Work screen -- T, Esc or its "×" close it, Tab stays inside, focus goes back where it was -- at the interface scale.
 (T is UI §5's calendar key, `open_calendar`; it was the Dig tool's alias for B until decision 0492 gave it back, and G
-went to "Run until…".) Open, it is a planning surface: with "Pause while planning" on it pauses the village. Four tabs:
+went to "Run until…".) Open, it is a planning surface: with "Pause while planning" on it pauses the village. Four tabs (and the crop plans'
+Harvest plan, Kitchen garden and Tending: decisions 0881-0885, above):
 
 - **Farm overview** (`farm/farm_plan_rows.gd`): one row a bed -- bed, crop, stage (and the verb when it needs attention:
   "Needs: Drain"), harvest when and how much, soil moisture in the bed panel's words ("Good · 66%"), the work on it and
@@ -1561,7 +1597,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `fishery/` | Water part B: the trips, jobs and stations (`fishery.gd`, its rows `fishery_tables.gd`, its task), the numbers (`fishery_rules.gd`), the real gear locker over gear.gd, the FISH skill, the pond's ice, the words, the drawing and the node wiring it into the village (`demo_fishery.gd`) |
 | `boats/` | The boat core: the jetty, berths and fixed routes (`boat_routes.gd`), the boats as integer rows (`boat_fleet.gd`), their drawing, and the boat as a rescue rank (`boat_rescue.gd`) |
 | `waterplay/` | Wading, swimming, diving, rescue and bridges: the rules, per-resident swim rows, the band and swim links, the crossings the router offers, the tasks, the bridge crew, their drawings and the Water panel; whose water range the map layer paints (`water_range.gd`) |
-| `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`) |
+| `farm/` | The farm: real FarmPlot rows, the pantry (and its ledger) and its storage providers, the Pantry's Stocks table (`farm_pantry_rows.gd`), the crew's jobs, beds, panels, alerts; the goods' models and icons, carrying and the stores' shelves; the seasonal planner -- its overview rows, season calendar and timeline, soil plans, the after-action record and its tables (`farm_planner*.gd`, `farm_plan_rows.gd`, `farm_season.gd`, `farm_timeline.gd`, `farm_soil_plan*.gd`, `farm_record*.gd`) -- and the bed panel's Compare view (`farm_compare_view.gd`); the crop plans -- crop roles (`farm_crop_roles.gd`), the kitchen garden (`farm_garden*.gd`), harvest plans (`farm_harvest_*.gd`), tending policies (`farm_tending*.gd`) and the tunnel outlet box (`farm_outlet_box.gd`) |
 | `kitchen/` | The meal loop: the dishes and numbers (`meal_rules.gd`), the portions (`meal_store.gd`), the ingredient holds (`ingredient_takes.gd`), nourishment, the kitchen and its places, task and words, the steam, bowls and carrying (`kitchen_view.gd`), the Pantry's Kitchen tab and the node with the kitchen pantry (`demo_kitchen.gd`) |
 | `forestry/` | The woods: the trees as real ResourceNode rows, zones, deadfall, skills, the job board and crew, the yard, the drawings (falls, stumps, trunks, particles, zone marks), the pick, the zone tool and the Woods panel |
 | `spoil/` | Selecting and clearing spoil heaps: the crew that digs and hauls, and the picking |

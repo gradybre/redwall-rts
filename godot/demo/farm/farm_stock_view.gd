@@ -7,6 +7,9 @@ extends Node3D
 ## racks, shelves, bin and hanging stores below ground instead (decision 0210: demo/burrow/fixture_view.gd, fed
 ## by demo_farm.gd `cellar_fill`), so its location here has no shelf.
 ##
+## OTHER SHELVES (decision 0883): a store that is a shelf standing in the open -- the kitchen garden's work shelf -- is
+## added with `add_shelf(id, transform)`: drawn there, stocked the same way, while a storage location of that id exists.
+##
 ## Refreshed at the panels' cadence (demo_farm.gd), not per frame: each shelf reads its location's
 ## load and the items there, into columns allocated once.
 
@@ -16,6 +19,7 @@ const GoodsScript := preload("res://demo/farm/farm_goods.gd")
 const ShelfScript := preload("res://demo/props/store_shelf.gd")
 const Layout := preload("res://demo/world/world_layout.gd")
 const PrewarmScript := preload("res://demo/tunnel/underground_prewarm.gd")
+const IntMath := preload("res://scripts/core/int_math.gd")
 
 const STORE_ID: StringName = &"store"
 ## The covered store's shelf, in the store's own frame (+Z its front, toward the square): just past
@@ -31,6 +35,10 @@ var _shelves: Array[ShelfScript] = []
 var _order: PackedInt32Array = PackedInt32Array()
 var _milli: PackedInt64Array = PackedInt64Array()
 var _keys: Array[StringName] = []
+## OTHER SHELVES: their storage ids and shelves.
+var _extra_ids: Array[StringName] = []
+var _extra_shelves: Array[ShelfScript] = []
+var _location_read: IntMath.IntResult = IntMath.IntResult.new()
 
 
 func configure(pantry: PantryScript, goods: GoodsScript) -> void:
@@ -78,10 +86,33 @@ func _shelf(location: int) -> ShelfScript:
 
 
 func refresh() -> void:
-	"""Stock the covered store's shelf. A cellar's location has none: its stock shows on its racks (see the header)."""
+	"""Stock the covered store's shelf, and every OTHER SHELF whose store exists. A cellar's location has none: its stock
+	shows on its racks (see the header)."""
 	var shelf: ShelfScript = _shelf(0)
 	shelf.visible = true
 	shelf.show_stock(fill_permille(0), _stock_keys(0))
+	for k: int in _extra_ids.size():
+		var there: bool = _pantry.storage.index_of_id_into(_extra_ids[k], _location_read)
+		_extra_shelves[k].visible = there
+		if there:
+			_extra_shelves[k].show_stock(fill_permille(_location_read.value), _stock_keys(_location_read.value))
+
+
+func add_shelf(id: StringName, xf: Transform3D) -> void:
+	"""Draw the store `id` as a shelf at `xf` while it exists (OTHER SHELVES)."""
+	var made := ShelfScript.new()
+	made.name = "Shelf_%s" % id
+	made.build(_goods.props)
+	made.transform = xf
+	made.visible = false
+	add_child(made)
+	_extra_ids.append(id)
+	_extra_shelves.append(made)
+
+
+func extra_shelf(k: int) -> ShelfScript:
+	"""The k-th OTHER SHELF (checks)."""
+	return _extra_shelves[k]
 
 
 func fill_permille(location: int) -> int:

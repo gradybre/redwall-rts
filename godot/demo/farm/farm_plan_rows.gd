@@ -279,7 +279,9 @@ static func harvest_soon(sim: SimScript, bed: int, read: IntMath.IntResult) -> b
 
 
 static func matches(sim: SimScript, crew: CrewScript, bed: int, filter: int, read: IntMath.IntResult) -> bool:
-	"""Whether the bed shows under FILTER_*."""
+	"""Whether the bed shows under FILTER_* (a kitchen-garden site not laid out never does: it is no bed yet)."""
+	if not sim.is_laid(bed):
+		return false
 	match filter:
 		FILTER_ATTENTION:
 			return needs_attention(sim, crew, bed, read)
@@ -348,6 +350,8 @@ static func sorted_beds(sim: SimScript, sort: int, read: IntMath.IntResult) -> P
 	var keys := PackedInt64Array()
 	var order := PackedInt32Array()
 	for bed: int in Catalog.BED_COUNT:
+		if not sim.is_laid(bed):
+			continue
 		var key: int = sort_key(sim, bed, sort, read)
 		var at: int = order.size()
 		while at > 0 and keys[at - 1] > key:

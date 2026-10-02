@@ -623,8 +623,9 @@ func test_compare_sorts_and_holds_its_order_until_sorted_again() -> void:
 	var view := panel.compare_view()
 	assert_true(view.visible and panel.comparing, "showing")
 	assert_equal(view.order[0], BED_WHEAT, "the wheat's 8.5 U first")
-	assert_equal(view.order.slice(3), PackedInt32Array([BED_LOAM, BED_CLAY, 4]), "the empty beds tied, in bed order")
-	assert_equal(view.table().shown_rows(), Catalog.BED_COUNT, "every bed")
+	assert_equal(view.order.slice(3), PackedInt32Array([BED_LOAM, BED_CLAY, 4, 6, 7, 8, 9, 10, 11]),
+		"the empty beds tied, in bed order (the south field's six included: decision 0886)")
+	assert_equal(view.table().shown_rows(), Catalog.FIELD_BED_COUNT, "every laid bed (no garden site is laid out)")
 	assert_true(view.table().row_texts(_row_of(view, BED_CARROTS))[0].contains("(this bed)"), "this bed marked")
 	view.sort_button(Rows.SORT_MOISTURE).pressed.emit()
 	var held: PackedInt32Array = view.order.duplicate()
@@ -699,7 +700,7 @@ func test_the_overview_rows_follow_the_filter_and_open_their_bed() -> void:
 	var farm: DemoFarmScript = _ui._farm()
 	var planner: PlannerScript = farm.planner
 	planner.toggle()
-	assert_equal(planner.overview().shown_rows(), Catalog.BED_COUNT, "every bed")
+	assert_equal(planner.overview().shown_rows(), Catalog.FIELD_BED_COUNT, "every laid bed (no garden site is laid out)")
 	assert_equal(planner.overview().header_texts(), PackedStringArray(Rows.COLUMN_TITLES), "the columns")
 	_ui._set_moisture(farm.sim, BED_RADISH, 9500)
 	planner.filter_button(Rows.FILTER_ATTENTION).pressed.emit()

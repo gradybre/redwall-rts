@@ -166,8 +166,8 @@ static func _grown_here(item: int) -> String:
 	"""Where it grows in this village: a bed that opens with it, else any bed sown with it."""
 	for bed: int in Catalog.BED_COUNT:
 		if Catalog.BED_START_ITEM[bed] == item:
-			return "Growing in bed %d at the start; any of the six beds can be sown with it." % (bed + 1)
-	return "Any of the six crop beds can be sown with it."
+			return "Growing in bed %d at the start; any field bed whose soil takes it can be sown with it." % (bed + 1)
+	return "Any field bed whose soil takes it can be sown with it."
 
 
 static func meal_of(dish: int) -> int:

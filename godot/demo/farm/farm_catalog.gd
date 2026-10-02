@@ -43,7 +43,8 @@ extends RefCounted
 ## PANTRY-005). The demo uses the leaf IDENTITY and label as a presentation name, takes every
 ## number from §5.6/§5.7, and shows library dishes only as candidates (pantry_index.json).
 ##
-## BEDS. The six world crop beds (world/world_layout.gd CROPS), one FarmPlot row each. §5.1's soil
+## BEDS. The six world crop beds (world/world_layout.gd CROPS), the south field's six (decision 0886) and the kitchen
+## garden's four sites (decision 0883), one FarmPlot row each. §5.1's soil
 ## bands belong to the unbuilt world generator, so each bed's soil is a DEMO value, varied so the
 ## soil filter means something: sand refuses the loam/clay rows, clay refuses roots.
 
@@ -209,21 +210,49 @@ const ITEM_SWATCH: Array[Color] = [
 	Color(0.56, 0.36, 0.22), Color(0.94, 0.9, 0.8),
 ]
 
-## The beds: world crop ids, one FarmPlot each, their demo soils.
+## The beds: the six first FIELD beds are world crop ids (BED_IDS); then the SOUTH FIELD's six (see THE SOUTH FIELD); then
+## the KITCHEN GARDEN's sites (see THE KITCHEN GARDEN'S SITES). One FarmPlot each, their demo soils.
 const BED_IDS: Array[StringName] = [
 	&"bed_cabbage_w", &"bed_cabbage_e", &"bed_roots_w", &"bed_roots_e", &"bed_grain_w", &"bed_grain_e",
 ]
-const BED_COUNT: int = 6
+const FIELD_BED_COUNT: int = 12
+const BED_COUNT: int = 16
 const BED_SOILS: Array[int] = [
 	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_SAND,
 	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_LOAM,
+	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_LOAM,
+	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_CLAY, FarmingScript.SOIL_LOAM,
+	FarmingScript.SOIL_LOAM, FarmingScript.SOIL_LOAM, FarmingScript.SOIL_LOAM, FarmingScript.SOIL_LOAM,
 ]
+## THE SOUTH FIELD (Brendan's balance ruling E5, 2026-10-01: "12-18 farm beds instead of 6"; decision 0886). Six more
+## field beds, laid from the start, as ONE rectangular field of six §5.6 tiles -- three across, two deep, 2 m x 2 m each
+## (GDD §5.6: "field designation is 4-256 tiles, rectangular or painted connected area") -- on the open grass south of
+## the covered store, east of the workbench and north of the boulder. Every tile has an outer edge to work it from; the
+## tiles are not walking obstacles (the six world beds are). Checked clear of every obstacle (test_demo_sowing.gd).
+const SOUTH_FIRST: int = 6
+const SOUTH_BEDS: int = 6
+const SOUTH_AT: Array[Vector2] = [Vector2(13.4, 12.3), Vector2(15.4, 12.3), Vector2(17.4, 12.3), Vector2(13.4, 14.3),
+	Vector2(15.4, 14.3), Vector2(17.4, 14.3)]
+## THE KITCHEN GARDEN'S SITES (review ECO-004 and feature #48; decision 0883). Four places for small garden beds on the
+## open ground across the east road from the kitchen, between the square and the covered store, around a cross of
+## garden paths: the player LAYS OUT a bed on any of them (farm_garden.gd), and a site nobody has laid out grows
+## nothing. A garden bed is ONE §5.6 tile, 2 m x 2 m (GDD §5.6: "Fields use 2 m x 2 m tiles"), drawn at that size -- a
+## field bed is the same one plot drawn 3 m wide (BED_HALF_M). The four are authored, BOUNDED modules (the review:
+## "bounded modules plus grouping before arbitrary polygon simulation"); where they stand is a demo layout, checked
+## clear of every obstacle and footprint (test_demo_garden.gd). Free placement is decision 0883's proposal.
+const GARDEN_FIRST: int = 12
+const GARDEN_SITES: int = 4
+const GARDEN_AT: Array[Vector2] = [Vector2(5.4, 5.4), Vector2(8.0, 5.4), Vector2(5.4, 8.0), Vector2(8.0, 8.0)]
+const GARDEN_HALF_M: float = 1.0
+## The garden's work shelf (GDD §5.9's Shelf furniture) stands at the north end of the middle path, toward the kitchen.
+const GARDEN_SHELF_AT: Vector2 = Vector2(6.7, 3.9)
 const SOIL_NAMES: Array[String] = ["loam", "clay", "sand"]
 ## The demo's opening history (demo values): what already stands in each bed at 06:00 of day 1,
 ## sown and grown that many hours at spring's baseline before the demo opens -- carrots near ripe,
 ## a young radish row and a wheat bed; the rest empty for the player.
-const BED_START_ITEM: Array[int] = [NO_ITEM, NO_ITEM, 2, 0, NO_ITEM, 13]
-const BED_START_HOURS: Array[int] = [0, 0, 96, 36, 0, 60]
+const BED_START_ITEM: Array[int] = [NO_ITEM, NO_ITEM, 2, 0, NO_ITEM, 13, NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM,
+	NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM]
+const BED_START_HOURS: Array[int] = [0, 0, 96, 36, 0, 60, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 ## Two beds are neighbours (blight spreads between them) when their centres are this close.
 const NEIGHBOUR_M: float = 4.0
 ## A bed's half-width on the ground: every bed is drawn 3 m wide (world_sizes.gd CROP_BED_WIDTH_M).
@@ -265,7 +294,7 @@ static func item_of_species(species_row: int) -> int:
 
 
 static func is_bed(bed: int) -> bool:
-	"""Whether `bed` names one of the six beds."""
+	"""Whether `bed` names one of the beds (the field's twelve and the kitchen garden's four sites)."""
 	return bed >= 0 and bed < BED_COUNT
 
 
@@ -286,9 +315,29 @@ static func shelf_hours_of(item: int) -> int:
 	return GOODS_SHELF_HOURS[item - ITEM_COUNT]
 
 
+static func is_garden(bed: int) -> bool:
+	"""Whether `bed` is one of the kitchen garden's sites (THE KITCHEN GARDEN'S SITES), not a field bed."""
+	return bed >= GARDEN_FIRST and bed < GARDEN_FIRST + GARDEN_SITES
+
+
+static func is_south_field(bed: int) -> bool:
+	"""Whether `bed` is one of the south field's beds (THE SOUTH FIELD)."""
+	return bed >= SOUTH_FIRST and bed < SOUTH_FIRST + SOUTH_BEDS
+
+
+static func bed_half_m(bed: int) -> float:
+	"""A bed's half-width on the ground: a garden or south-field bed's one 2 m tile, a first-field bed's 3 m drawing."""
+	return GARDEN_HALF_M if is_garden(bed) or is_south_field(bed) else BED_HALF_M
+
+
 static func bed_centre_m(bed: int) -> Vector2:
-	"""A bed's centre on the ground (x, z), in metres, from the world layout. Every BED_IDS entry is
-	a world crop id (test_demo_farm.gd checks), so an unknown one is a programming error."""
+	"""A bed's centre on the ground (x, z), in metres: a field bed's from the world layout, a garden site's from
+	GARDEN_AT. Every BED_IDS entry is a world crop id (test_demo_farm.gd checks), so an unknown one is a programming
+	error."""
+	if is_garden(bed):
+		return GARDEN_AT[bed - GARDEN_FIRST]
+	if is_south_field(bed):
+		return SOUTH_AT[bed - SOUTH_FIRST]
 	for entry: Dictionary in Layout.CROPS:
 		if entry["id"] == BED_IDS[bed]:
 			return entry["at"]
@@ -311,6 +360,7 @@ static func bed_at_into(point: Vector2, out: IntMath.IntResult) -> bool:
 	NO_BED_THERE when the point is on no bed. Presentation input: a click's ground point."""
 	for bed: int in BED_COUNT:
 		var d: Vector2 = (point - bed_centre_m(bed)).abs()
-		if d.x <= BED_HALF_M and d.y <= BED_HALF_M:
+		var half: float = bed_half_m(bed)
+		if d.x <= half and d.y <= half:
 			return out.succeed(bed)
 	return out.refuse(REFUSE_NO_BED)

@@ -1,5 +1,6 @@
 extends Node3D
-## The live demo's farm: individual pantry ingredients grown on the six crop beds by the settlement's
+## The live demo's farm: individual pantry ingredients grown on the crop beds (the field's twelve, the kitchen garden's four
+## sites) by the settlement's
 ## own crop arithmetic, worked by the residents, stored and spoiling in the pantry, and helped by the
 ## moles' tunnels. Decision 0196. Presentation-only: it writes nothing into the running settlement.
 ##
@@ -35,6 +36,12 @@ extends Node3D
 ## 2x / 4x speed it up. After each advance the demo's ONE weather (demo/weather/demo_weather.gd) is
 ## re-read from the farm's real §5.10 row -- the same rain that wets the beds slows the walkers -- and
 ## a change of weather is posted to the notice feed.
+##
+## THE CROP PLANS (decisions 0881-0885, review ECO-001/003/004/006/007 and feature #48): the KITCHEN GARDEN
+## (farm_garden.gd: sites laid out from their panels, one group plan, the work shelf as a store, the cook's garden hours),
+## the HARVEST PLAN (farm_harvest_plan.gd: strategies, the projection, bookings ordered hourly), the TENDING POLICIES
+## (farm_tending.gd: run hourly, exceptions to the news) and the TUNNEL OUTLETS (farm_sim.gd: fitted by a job, set from
+## the bed panel). The planner shows the first three as tabs; crop roles show in the crop picker.
 ##
 ## THE RECORD (farm_record.gd, decision 0451): at each farm hour the hour's lost crops are noted and every day that has
 ## ended is closed from the ledgers -- the pantry's stored, withdrawn and spoiled food, the kitchen's portions and meals
@@ -92,6 +99,12 @@ const GateScript := preload("res://demo/ui/demo_input_gate.gd")
 const RecordScript := preload("res://demo/farm/farm_record.gd")
 const RecordText := preload("res://demo/farm/farm_record_text.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
+const FarmingScript := preload("res://scripts/core/farming.gd")
+const FarmCard := preload("res://demo/farm/farm_card.gd")
+const GardenScript := preload("res://demo/farm/farm_garden.gd")
+const GardenViewScript := preload("res://demo/farm/farm_garden_view.gd")
+const TendingScript := preload("res://demo/farm/farm_tending.gd")
+const HarvestPlanScript := preload("res://demo/farm/farm_harvest_plan.gd")
 
 ## A bed was opened: the right column should show the farm's panel (demo/ui/demo_detail_zone.gd).
 signal panel_wanted
@@ -129,6 +142,11 @@ var carry_view: CarryViewScript = CarryViewScript.new()
 ## The seasonal planner and the after-action record it shows (decision 0451).
 var planner: PlannerScript = null
 var record: RecordScript = RecordScript.new()
+## The crop plans (see THE CROP PLANS).
+var garden: GardenScript = GardenScript.new()
+var garden_view: GardenViewScript = null
+var tending: TendingScript = TendingScript.new()
+var harvest_plan: HarvestPlanScript = HarvestPlanScript.new()
 
 var _cast: DemoCastScript = null
 var _command: DemoCommandScript = null
@@ -165,6 +183,7 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	pantry = PantryScript.new(storage)
 	crew.configure(cast, sim, pantry, tunnels, well_position(), services.notices.poster(
 		NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE))
+	_configure_plans(cast)
 	alerts.bind_incidents(services.incidents, remedy_on)
 	leat.configure(sim, services.incidents, services.notices)
 	crew.set_incidents(services.incidents)
@@ -180,6 +199,16 @@ func configure(manifest: Dictionary, world: DemoWorldScript, cast: DemoCastScrip
 	command.set_task_text(crew.task_text)
 	command.add_resume_rule(crew.resume_rule)
 	bed_panel.set_preview(command.selected, command.interrupt_text)
+
+
+func _configure_plans(cast: DemoCastScript) -> void:
+	"""THE CROP PLANS over this farm: the garden's shelf a store, its keep rule on the crew; tending and the harvest
+	plan posting to the farm's news."""
+	garden.configure(sim, crew, well_position())
+	storage.add_provider(garden.provider())
+	var farm_news: Callable = services.notices.poster(NoticesScript.SOURCE_FARM, NoticesScript.LEVEL_NOTE)
+	tending.configure(sim, crew, farm_news)
+	harvest_plan.configure(sim, crew, pantry, cast.actor_count if cast != null else func() -> int: return 0, farm_news)
 
 
 func _bind_services(shared: ServicesScript) -> void:
@@ -198,6 +227,11 @@ func _build_view(manifest: Dictionary, world: DemoWorldScript, command: DemoComm
 	add_child(view)
 	view.build(manifest, sim)
 	view.stock.configure(pantry, goods)
+	view.stock.add_shelf(GardenScript.SHELF_ID, Transform3D(Basis.IDENTITY,
+		Vector3(Catalog.GARDEN_SHELF_AT.x, 0.0, Catalog.GARDEN_SHELF_AT.y)))
+	garden_view = GardenViewScript.new()
+	garden_view.build(garden)
+	view.add_child(garden_view)
 	if _cast != null:
 		carry_view.configure(_cast, crew.jobs, goods)
 	var village: Node = world.get_node_or_null(^"Village") if world != null else null
@@ -223,6 +257,12 @@ func _build_panels() -> void:
 	bed_panel.sluice_requested.connect(show_weir)
 	bed_panel.sluice_chosen.connect(set_sluice)
 	bed_panel.set_leat(leat)
+	bed_panel.set_garden(garden)
+	bed_panel.lay_out_requested.connect(lay_out_garden_bed)
+	bed_panel.take_up_requested.connect(func() -> void: _answer(garden.take_up(selected_bed)))
+	bed_panel.outlet_chosen.connect(set_outlet)
+	bed_panel.set_sowing(tending.sowing)
+	bed_panel.rotation_step_requested.connect(func() -> void: _answer(tending.sowing.step_rotation(selected_bed)))
 	pantry_panel = PantryPanelScript.new()
 	pantry_panel.configure(sim, pantry, recipes)
 	pantry_panel.set_goods(goods)
@@ -240,6 +280,7 @@ func _build_planner() -> void:
 	record.start(services.calendar.hour_index())
 	planner = PlannerScript.new()
 	planner.configure(sim, crew, record)
+	planner.set_plans(garden, tending, harvest_plan)
 	add_child(planner)
 	planner.close_requested.connect(toggle_planner)
 	planner.bed_wanted.connect(open_bed_from_planner)
@@ -252,6 +293,7 @@ func bind_kitchen(kitchen: KitchenScript) -> void:
 	"""The kitchen whose portions and meals the record counts and whose plans the calendar shows."""
 	record.set_kitchen(kitchen)
 	planner.set_kitchen(kitchen)
+	garden.bind_cook(func() -> int: return kitchen.designated)
 
 
 func set_bed_jump(jump: Callable) -> void:
@@ -342,6 +384,7 @@ func _process(delta: float) -> void:
 		bed_panel.refresh()
 		pantry_panel.refresh()
 		view.stock.refresh()
+		garden_view.refresh()
 
 
 func _follow_fit_out() -> void:
@@ -395,6 +438,8 @@ func _hourly() -> void:
 		tunnels.water_of_into(network, bed, _water)
 		sim.set_tunnel_water(bed, _water[0] == 1, _water[1] == 1)
 	crew.raise_routine_jobs()
+	tending.run_hour()
+	harvest_plan.run_hour()
 	_events.clear()
 	sim.take_events_into(_events)
 	_spoiled.clear()
@@ -491,6 +536,30 @@ func show_weir() -> void:
 	panel_wanted.emit()
 
 
+func set_outlet(mode: int) -> String:
+	"""A bed's fitted outlet set (farm_sim.gd TUNNEL OUTLETS; decision 0884): a board moved, at once. Says what changed."""
+	var done: FarmingScript.OpResult = sim.set_outlet(selected_bed, mode)
+	var said: String = "Bed %d's outlet: %s" % [selected_bed + 1, SimScript.OUTLET_NAMES[mode].to_lower()] if done.ok \
+		else "Can't set the outlet: %s" % ("it is set so already" if done.error == SimScript.REFUSE_ALREADY
+			else FarmCard.reason_words(done.error))
+	return _answer(said)
+
+
+func lay_out_garden_bed() -> String:
+	"""The selected garden site laid out (farm_garden.gd); the pantry re-reads its stores at once, so the work shelf the
+	first bed puts up is a store from now, not from the next hour."""
+	var said: String = garden.lay_out(selected_bed)
+	pantry.refresh_locations()
+	return _answer(said)
+
+
+func _answer(said: String) -> String:
+	"""Show an answer on the bed panel's message line and repaint it; returns it."""
+	bed_panel.show_message(said)
+	bed_panel.refresh()
+	return said
+
+
 func set_sluice(setting: int) -> String:
 	"""THE SLUICE ORDER (farm_leat.gd `set_sluice`): its answer shows on the panel's message line."""
 	var said: String = leat.set_sluice(setting)
@@ -580,12 +649,21 @@ func on_ground_order(screen: Vector2) -> bool:
 	select_bed(bed)
 	var at: Vector2 = Catalog.bed_centre_m(bed)
 	if not pressing_kind_into(bed, _read):
-		bed_panel.show_message("Nothing to do on bed %d now — choose a crop with Plant…" % (bed + 1))
+		bed_panel.show_message(nothing_to_do_text(bed))
 		_command.mark(Vector3(at.x, 0.0, at.y), false)
 		return true
 	var said: String = order(_read.value, bed)
 	_command.mark(Vector3(at.x, 0.0, at.y), not said.begins_with("Can't"))
 	return true
+
+
+func nothing_to_do_text(bed: int) -> String:
+	"""What a right-click on a bed with nothing pressing says: lay a bare garden site out first (decision 0883), else
+	choose a crop."""
+	if not sim.is_laid(bed):
+		return "Nothing grows on %s yet — lay out a bed there first (its panel)" % (GardenScript.SITE_TITLE % (
+			bed - Catalog.GARDEN_FIRST + 1)).to_lower()
+	return "Nothing to do on bed %d now — choose a crop with Plant…" % (bed + 1)
 
 
 func _unhandled_input(event: InputEvent) -> void:

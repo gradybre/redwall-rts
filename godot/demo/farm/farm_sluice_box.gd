@@ -13,7 +13,7 @@ const CardScript := preload("res://demo/ui/action_card.gd")
 
 signal sluice_chosen(setting: int)
 
-const ZONE_TEXT: String = "The garden leat serves Bed 2, Bed 4 and Bed 6 (the east column), in that order. Tunnels under a bed still drain or water it while the leat runs dry."
+const ZONE_TEXT: String = "The garden leat serves Bed 2, Bed 4 and Bed 6 (the east column), in that order. A tunnel under a bed drains or waters it only through a fitted outlet."
 const NOW_TITLE: String = "Now:"
 const IF_TITLE: String = "If set to %s:"
 ## No setting under the pointer: the preview shows the setting now.

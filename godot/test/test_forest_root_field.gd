@@ -280,3 +280,21 @@ func test_a_model_is_baked_once() -> void:
 	var first: FieldScript = FieldScript.baked(a, a.transform, 0.0, 1.0, 4.5, 1.1)
 	assert_true(is_same(FieldScript.baked(b, b.transform, 0.0, 1.0, 4.5, 1.1), first), "the same mesh: the same field")
 	assert_false(is_same(FieldScript.baked(c, c.transform, 0.0, 1.0, 4.5, 1.1), first), "another mesh: its own")
+
+
+func test_a_model_reloaded_from_its_file_is_not_baked_again() -> void:
+	"""Decision 1048: a Restart demo loads the tree models afresh -- new mesh objects with the same resource path -- and
+	the cache keys the model by its path, so the restarted village finds its field and the cache does not grow (keyed by
+	instance id it kept two more fields every restart)."""
+	var p: Dictionary = {"key": &"oak_mature", "at": Vector2(3.0, 0.0), "yaw": 0.0, "size": 1.0}
+	var a: MeshInstance3D = _proud_piece("A", p)
+	var b: MeshInstance3D = _proud_piece("B", p)
+	assert_false(is_same(a.mesh, b.mesh), "two mesh objects")
+	a.mesh.set_path_cache("res://zz_test/oak_mature.glb::ArrayMesh_t1")
+	b.mesh.set_path_cache("res://zz_test/oak_mature.glb::ArrayMesh_t1")
+	var first: FieldScript = FieldScript.baked(a, a.transform, 0.0, 1.0, 4.5, 1.1)
+	var held: int = FieldScript._baked.size()
+	assert_true(is_same(FieldScript.baked(b, b.transform, 0.0, 1.0, 4.5, 1.1), first), "the same model: the same field")
+	assert_equal(FieldScript._baked.size(), held, "nothing more held")
+	b.mesh.set_path_cache("res://zz_test/beech_mature.glb::ArrayMesh_t2")
+	assert_false(is_same(FieldScript.baked(b, b.transform, 0.0, 1.0, 4.5, 1.1), first), "another file's model: its own")

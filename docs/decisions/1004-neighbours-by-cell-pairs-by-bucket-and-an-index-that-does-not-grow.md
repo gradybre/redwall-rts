@@ -62,6 +62,12 @@ gives the context and numbering.
 - `room_ahead`, `oncoming` and `mouth_clear` (residents in a bore) still scan everyone. Only residents in a tunnel ask
   them.
 
+
+## Brendan's rulings (2026-10-02)
+
+Brendan approved 1004 as recommended:
+- no revision-driven ("truly incremental") board rebuild for now (option (a)).
+
 ## Source
 
 Decision 0561's hot spots 4, 6 and 7 and recommendations 5–7; decisions 0196 (the cast space), 0491 (the people) and

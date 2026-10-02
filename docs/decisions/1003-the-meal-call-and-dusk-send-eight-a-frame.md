@@ -41,6 +41,12 @@ scale test's hot spot 2 (decision 0561): the moments that put the whole village 
 - The hall still has five door places (`hall_spot` steps them modulo 5). More places are a design call the scale test
   listed under "Limits that are not CPU".
 
+
+## Brendan's rulings (2026-10-02)
+
+Brendan approved 1003 as recommended:
+- 8 a frame for the kitchen's call and dusk (option (a)).
+
 ## Source
 
 Decision 0561's hot spot 2 and recommendation 3; decision 0381 (the kitchen) and 0210 (the night); Brendan's approval

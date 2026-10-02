@@ -961,6 +961,9 @@ to is kept to come back to. Nobody is credited work, a load or a delivery for a 
 - **Bursts spread.** The kitchen calls at most 8 diners a frame, and dusk sends at most 8 residents to bed a frame.
 - **Neighbours by cell.** A walker's step reads the residents in the cells round it, not everyone. The people's
   shared-work pairs and the work board's claim index no longer grow with the village.
+- **The cook serves as it cooks** (decision 1005). While a meal is served, the cook carries the pot out whenever
+  the table is empty, then cooks on. A diner with no seat waits on a ring beyond the seats, off the cook's spot. A
+  walk whose plan found no route waits 2 s before planning again.
 
 ## The camera and the trees
 

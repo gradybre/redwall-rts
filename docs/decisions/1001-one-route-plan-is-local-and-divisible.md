@@ -101,6 +101,12 @@ Brendan approved this work after the scale test (decision 0561; `docs/performanc
   are retried. That is the kitchen's and the night's capacity, the scale test's "Limits that are not CPU", and is left
   to those design calls.
 
+
+## Brendan's rulings (2026-10-02)
+
+Brendan approved 1001 as recommended:
+- a wanderer waiting for a carried plan keeps saying "finding a route" (the PROPOSAL's option (a)).
+
 ## Mutation testing (decisions 1001–1004)
 
 51 single-line mutants, one per run, on a copy of the branch, each restored and sha256-checked. The failure count was

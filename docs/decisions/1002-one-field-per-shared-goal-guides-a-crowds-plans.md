@@ -51,6 +51,12 @@ local plan near its start." Decision 1001 gives the context.
 - Dawn is covered by the same rule, though its goals (each resident's parked job) are rarely shared. The measured plan
   ends before dawn.
 
+
+## Brendan's rulings (2026-10-02)
+
+Brendan approved 1002 as recommended:
+- the shared-goal guidance stays, with guided routes up to 15% longer than the shortest (option (a)).
+
 ## Source
 
 Brendan's approval of 2026-10-02; decision 0561's recommendation 2; measurements in

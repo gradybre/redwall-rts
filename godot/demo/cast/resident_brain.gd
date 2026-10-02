@@ -138,6 +138,12 @@ extends RefCounted
 ## budget and every plan runs at once. A plan on the surface alone may be cut across frames by the desk (route_desk.gd
 ## THE JOB, decision 1001): `_plan_trip` then says it is not finished, and the resident stands in ROUTE until its turn
 ## brings the finished route -- a departure among them, which picks its spot first and keeps it to go to (`_route_poi`).
+## NO WAY YET (decision 1005): a plan that finds no route walks the straight line as ever, but the trip is not planned
+## again -- for someone standing across it, or held back -- until NO_ROUTE_RETRY_S has passed; meanwhile it walks on
+## into whoever stands across it (the per-frame constraint keeps it out of them), as it would through a gap. A failed plan used to
+## take tens of milliseconds and wait seconds at the desk in a crowd, which paced the retries; now it is found in a few
+## expansions, and MAX_REPLANS retries in a row gave a crowded trip up within a second (the kitchen's cook gave its
+## store up, and nobody was fed, at 256 residents).
 ##
 ## Yaw 0 faces +Z, the way the models face: forward is Vector2(sin(yaw), cos(yaw)) in (x, z).
 ## Deterministic: every random choice comes from this resident's own seeded generator. (In the live scene the FRAME a
@@ -230,6 +236,8 @@ const BLOCKED_FRACTION: float = 0.3         ## a frame moving less than this sha
 const STANDING_TOLERANCE_M: float = 0.08    ## how deep a leg may graze someone standing before replanning
 const STUCK_PROGRESS_M: float = 0.05
 const MAX_REPLANS: int = 4
+## A trip whose last plan found no route waits this long before it plans again (see ROUTING's NO WAY YET).
+const NO_ROUTE_RETRY_S: float = 2.0
 const MAX_FLIPS: int = 4                    ## walk -> stop-and-turn flips on one leg before replanning
 const IDLE_MIN_S: float = 1.2
 const IDLE_MAX_S: float = 3.2
@@ -334,6 +342,8 @@ var _goal: Vector2 = Vector2.ZERO
 var _best_distance: float = INF
 var _stuck_time: float = 0.0
 var _blocked_time: float = 0.0
+## Seconds since a plan of this trip found no route (-1: the last plan found one; see NO WAY YET).
+var _no_route_s: float = -1.0
 var _replans: int = 0
 var _flips: int = 0
 var _last_activity: StringName = &""
@@ -797,7 +807,10 @@ func _step_face(delta: float) -> void:
 
 func _step_walk(delta: float) -> void:
 	"""Steer toward the route (and away from neighbours) at a limited yaw rate, and step forward. Someone
-	who has stopped in the way of the current leg means a new plan round them, straight away."""
+	who has stopped in the way of the current leg means a new plan round them, straight away -- unless the last plan
+	found no way at all (NO WAY YET: it waits NO_ROUTE_RETRY_S first)."""
+	if _no_route_s >= 0.0:
+		_no_route_s += delta
 	if _leg_handled():
 		return
 	var to_target := path[path_index] - position
@@ -829,14 +842,16 @@ func _step_walk(delta: float) -> void:
 
 func _leg_handled() -> bool:
 	"""Pass the waypoints reached; then at a tunnel's mouth go down it, or with someone standing across
-	the leg plan round them. True when either happened, so this frame's walking is done."""
+	the leg plan round them -- unless the last plan found no way at all: then it walks on into them, the per-frame
+	constraint keeping it out, until NO_ROUTE_RETRY_S lets it plan again (NO WAY YET). True when either happened, so
+	this frame's walking is done."""
 	_advance_waypoint()
 	if _leg(path_index) != TunnelRouterScript.SURFACE_LEG:
 		_enter_tunnel_leg()
 		return true
 	if _nearing_mouth() and _wait_for_mouth():
 		return true
-	if _blocked_by_standing(path[path_index]):
+	if _no_route_s < 0.0 and _blocked_by_standing(path[path_index]):
 		_replan_or_abandon()
 		return true
 	return false
@@ -1030,6 +1045,8 @@ func _replan_or_abandon() -> void:
 	if order == ORDER_TASK and not underground and path_index == path.size() - 1 \
 			and position.distance_to(_goal) <= CROWDED_SITE_M:
 		_arrive()
+		return
+	if _no_route_s >= 0.0 and _no_route_s < NO_ROUTE_RETRY_S:
 		return
 	_replans += 1
 	if _replans > MAX_REPLANS:
@@ -1889,6 +1906,7 @@ func _plan_trip(allow_tunnels: bool, loaded: bool, divisible: bool = true) -> bo
 		loaded, _goal_node, divisible)
 	if done:
 		_route_topology = _space.tunnels.topology
+		_no_route_s = -1.0 if _space.nav.last_found else 0.0
 	_space.routes.charge(index, Time.get_ticks_usec() - began, done)
 	return done
 

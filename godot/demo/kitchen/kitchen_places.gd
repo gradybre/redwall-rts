@@ -5,8 +5,11 @@ extends RefCounted
 ##   the cauldron   the kitchen's outdoor hearth before the kitchen building (13.5, -6): where the cook puts the food
 ##                  down, cooks and the steam rises (the `cauldron` prop, 8.9, -3.9)
 ##   the table      the hall's east table (`table_e`, 5, -7): where the cook puts the portions out
-##   the seats      SEATS_PER_TABLE spots round each of the hall's two tables, where the diners gather (a diner
-##                  with no seat left stands by the table)
+##   the seats      SEATS_PER_TABLE spots round each of the hall's two tables, where the diners gather
+##   the wait spots WAIT_SPOTS_PER_TABLE spots on a ring WAIT_RING_GAP_M beyond each table's seats, clear of its serving
+##                  gap, where a diner with no seat left waits for a portion (`wait_spot`; decision 1005). It used to
+##                  stand at the cook's own spot by the table, and a crowd of them kept the cook from putting the pot
+##                  down.
 ##   the well       where water is drawn (the village well, the square)
 ##   the butt       the village's water butt, beside the well (the `bucket` prop, 2.35, 0.9): water is drawn "into the
 ##                  stores" (ruling 2) and taken from them by a batch, as its wood is (decision 0381)
@@ -26,6 +29,9 @@ const RING_SPOTS: int = 12
 const BODY_M: float = 0.3
 ## The arc of a table's ring kept clear of seats, toward the cauldron (radians: 70 degrees).
 const SERVING_GAP: float = 1.22
+## The wait spots (see the header): how many round each table, and how far beyond its seats' ring (m).
+const WAIT_SPOTS_PER_TABLE: int = 12
+const WAIT_RING_GAP_M: float = 1.0
 
 var cauldron: Vector2 = Vector2.ZERO
 var stand_cauldron: Vector2 = Vector2.ZERO
@@ -38,6 +44,9 @@ var stand_butt: Vector2 = Vector2.ZERO
 var seats: PackedVector2Array = PackedVector2Array()
 ## The table each seat faces.
 var seat_face: PackedVector2Array = PackedVector2Array()
+## The wait spots (see the header), and the table each faces.
+var wait_spots: PackedVector2Array = PackedVector2Array()
+var wait_face: PackedVector2Array = PackedVector2Array()
 
 
 func set_points(p_cauldron: Vector2, p_table: Vector2, p_well: Vector2, p_butt: Vector2) -> void:
@@ -61,6 +70,16 @@ func add_table_seats(centre: Vector2, count: int, ring_m: float = SEAT_RING_M) -
 		var angle: float = toward + SERVING_GAP / 2.0 + (TAU - SERVING_GAP) * (float(k) + 0.5) / float(count)
 		seats.append(centre + Vector2.from_angle(angle) * ring_m)
 		seat_face.append(centre)
+	for k: int in WAIT_SPOTS_PER_TABLE:
+		var angle: float = toward + SERVING_GAP / 2.0 + (TAU - SERVING_GAP) * (float(k) + 0.5) / float(WAIT_SPOTS_PER_TABLE)
+		wait_spots.append(centre + Vector2.from_angle(angle) * (ring_m + WAIT_RING_GAP_M))
+		wait_face.append(centre)
+
+
+func wait_spot(i: int) -> int:
+	"""The wait spot resident `i` waits at with no seat (its index into `wait_spots`; -1: none -- it stands by the
+	table, at the cook's spot, as before the wait spots)."""
+	return i % wait_spots.size() if not wait_spots.is_empty() else -1
 
 
 func find_spots(space: CastSpaceScript, bounds: Rect2, cauldron_poi: StringName, well_poi: StringName) -> void:
@@ -78,6 +97,8 @@ func find_spots(space: CastSpaceScript, bounds: Rect2, cauldron_poi: StringName,
 	stand_butt = spot_near(space, bounds, butt, butt, from)
 	for k: int in seats.size():
 		seats[k] = spot_near(space, bounds, seats[k], seats[k], from)
+	for k: int in wait_spots.size():
+		wait_spots[k] = spot_near(space, bounds, wait_spots[k], wait_spots[k], from)
 
 
 static func _poi_or(space: CastSpaceScript, poi: StringName, fallback: Vector2) -> Vector2:

@@ -37,6 +37,10 @@ extends RefCounted
 ##             finishes it, nothing is taken again); finished, its 2 portions go into the pot (meal_store.gd);
 ##   serve     each meal's pot carried to the hall's table as soon as it is cooked, and the portions put out (1 WU);
 ##   eat       before it sets off to fetch again, the cook eats today's meal waiting at the table.
+## SERVED AS IT IS COOKED (decision 1005, Brendan's ruling of 2026-10-02): once a meal is being served, the cook carries
+## what is in the pot to the table whenever the table has none of it left, between batches (`_serve_early`), and then
+## cooks on. A meal was cooked whole first, and one too big to cook in its window -- a village of fifty, or day 1's
+## breakfast -- went out only after its serving had ended.
 ## Breakfast is cooked from COOK_RISE_HOUR (05:00): the cook is up before the village to have it on the table by
 ## its call at 07:00 (night_routine.gd's early riser), then fetches the next day's food; supper is cooked from 15:00
 ## (meal_rules.gd COOK_FROM_HOUR: on the open table a portion ages at the open-pile factor, so a meal is cooked close
@@ -908,13 +912,22 @@ func _cook_work(i: int, ticks: int) -> void:
 
 
 func _pot_due() -> bool:
-	"""Whether the pot holds portions for the first meal still to be served while the next batch would be a later
-	meal's: those go out to the table before more is cooked (a late breakfast is not kept back by supper)."""
+	"""Whether the pot's portions go out to the table before another batch: SERVED AS IT IS COOKED (`_serve_early`); or
+	the pot holds portions for the first meal still to be served while the next batch would be a later meal's (a late
+	breakfast is not kept back by supper)."""
+	if _serve_early():
+		return true
 	var first: int = _first_key(_hour_seen)
 	if store.in_pot(first) == 0:
 		return false
 	var s: int = _cookable_slot()
 	return s >= 0 and _slot_key[s] > first
+
+
+func _serve_early() -> bool:
+	"""SERVED AS IT IS COOKED: whether the meal being served has portions in the pot and none left at the table -- they
+	go out now, not when the whole meal is done."""
+	return _serving != FREE and store.in_pot(_serving) > 0 and store.available(_serving) == 0
 
 
 func _finish_batch() -> void:
@@ -1360,7 +1373,7 @@ func _cook_eat(i: int, key: int) -> void:
 		_work(i, WORK_EAT, Rules.EAT_MWU, places.table)
 	else:
 		_seat[i] = _free_seat() if _seat[i] == FREE else _seat[i]
-		_walk(i, WALK_SEAT, places.seats[_seat[i]] if _seat[i] >= 0 else places.stand_table)
+		_walk(i, WALK_SEAT, _diner_spot(i))
 
 
 func _seat_for(i: int, key: int) -> void:
@@ -1368,9 +1381,16 @@ func _seat_for(i: int, key: int) -> void:
 	_meal[i] = key
 	if _seat[i] == FREE:
 		_seat[i] = _free_seat()
-	var at: Vector2 = places.seats[_seat[i]] if _seat[i] >= 0 else places.stand_table
-	var face: Vector2 = places.seat_face[_seat[i]] if _seat[i] >= 0 else places.table
-	_go_or_work(i, PLACE_SEAT, WALK_SEAT, at, WORK_WAIT, 0, face)
+	_go_or_work(i, PLACE_SEAT, WALK_SEAT, _diner_spot(i), WORK_WAIT, 0, _face_of_seat(i))
+
+
+func _diner_spot(i: int) -> Vector2:
+	"""Where resident `i` waits at the meal: its seat, or with none its wait spot (kitchen_places.gd; decision 1005), or
+	with no wait spots the cook's spot by the table."""
+	if _seat[i] >= 0:
+		return places.seats[_seat[i]]
+	var w: int = places.wait_spot(i)
+	return places.wait_spots[w] if w >= 0 else places.stand_table
 
 
 func _free_seat() -> int:
@@ -1406,8 +1426,11 @@ func _eat_next(i: int) -> void:
 
 
 func _face_of_seat(i: int) -> Vector2:
-	"""What resident `i` faces at its seat (or standing at the table): its table."""
-	return places.seat_face[_seat[i]] if _seat[i] >= 0 else places.table
+	"""What resident `i` faces at its seat or wait spot (or standing at the table): its table."""
+	if _seat[i] >= 0:
+		return places.seat_face[_seat[i]]
+	var w: int = places.wait_spot(i)
+	return places.wait_face[w] if w >= 0 else places.table
 
 
 # --- work done ----------------------------------------------------------------------------------------

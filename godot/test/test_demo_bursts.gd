@@ -207,3 +207,71 @@ func test_a_bedless_place_at_the_door_is_its_count_of_bedless_before_it() -> voi
 		assert_equal(night.hall_spot(i), spot, "resident %d: after %d bedless" % [i, before])
 	night.bed_of[0] = 10
 	assert_equal(night.hall_spot(2), HALL + Vector2(NightScript.HALL_SPACING_M * -2.0, 0.0), "a bed given: recounted")
+
+
+# --- SERVED AS IT IS COOKED and the wait spots (decision 1005) ------------------------------------------------------
+
+func test_the_pot_goes_out_while_its_meal_is_served_and_the_table_is_empty() -> void:
+	"""`_serve_early`: the meal being served with portions in the pot and none at the table: out now; with portions
+	still at the table, or between meals: not yet."""
+	var space := _space()
+	var brains := _residents(space)
+	var calendar := CalendarScript.new()
+	var kitchen := _kitchen_at_breakfast(brains, calendar)
+	assert_false(kitchen._serve_early(), "before the call: nothing is being served")
+	calendar.tick += 1
+	kitchen.update()
+	assert_true(kitchen._serving != KitchenScript.FREE and kitchen._serve_early(), "called, pot full, table empty: out")
+	kitchen.store.carry_out()
+	kitchen.store.add(Rules.DISH_PORRIDGE, 2, Rules.meal_key(1, Rules.MEAL_BREAKFAST))
+	assert_false(kitchen._serve_early(), "portions still at the table: the cook cooks on")
+
+
+func test_a_diner_without_a_seat_waits_off_the_cooks_spot() -> void:
+	"""The wait spots: every table has WAIT_SPOTS_PER_TABLE of them beyond its seats, none in its serving gap; a diner
+	with no seat waits at one, never at the cook's spot by the table."""
+	var places := PlacesScript.new()
+	places.set_points(Vector2(6.0, 0.0), Vector2(3.0, -3.0), Vector2(0.0, 4.0), Vector2(1.5, 4.5))
+	places.add_table_seats(Vector2(3.0, -3.0), PlacesScript.SEATS_PER_TABLE)
+	assert_equal(places.wait_spots.size(), PlacesScript.WAIT_SPOTS_PER_TABLE, "a ring of them")
+	var toward := (Vector2(6.0, 0.0) - Vector2(3.0, -3.0)).angle()
+	for spot in places.wait_spots:
+		assert_true(absf(angle_difference(toward, (spot - Vector2(3.0, -3.0)).angle())) >= PlacesScript.SERVING_GAP / 2.0 - 1e-3,
+			"out of the serving gap")
+		assert_almost_equal(spot.distance_to(Vector2(3.0, -3.0)), PlacesScript.SEAT_RING_M + PlacesScript.WAIT_RING_GAP_M,
+			"beyond the seats")
+	var space := _space()
+	var brains := _residents(space)
+	var calendar := CalendarScript.new()
+	var kitchen := _kitchen_at_breakfast(brains, calendar)
+	kitchen._seat.fill(0)
+	kitchen._seat[20] = -1
+	var w: int = kitchen.places.wait_spot(20)
+	assert_equal(kitchen._diner_spot(20), kitchen.places.wait_spots[w], "the seatless diner's wait spot")
+	assert_true(kitchen._diner_spot(20) != kitchen.places.stand_table, "not the cook's spot")
+	assert_equal(kitchen._face_of_seat(20), kitchen.places.wait_face[w], "facing its table")
+	var bare := PlacesScript.new()
+	assert_equal(bare.wait_spot(3), -1, "no wait spots: none (the cook's spot, as before)")
+
+
+func test_a_trip_with_no_route_waits_before_it_plans_again() -> void:
+	"""NO WAY YET: a walk whose plan found no route is not planned again until NO_ROUTE_RETRY_S has passed."""
+	var space := CastSpaceScript.new()
+	var circles: Array[Vector3] = []
+	for k in 12:
+		var angle := TAU * float(k) / 12.0
+		circles.append(Vector3(cos(angle) * 3.0, 0.9, sin(angle) * 3.0))
+	space.setup([], circles)
+	var lengths := {}
+	for clip in DemoActorScript.CLIPS:
+		lengths[clip] = 2.0
+	var brain := BrainScript.new()
+	brain.configure(space, 1.0, 0.25, 9, lengths)
+	brain.start_at(Vector2(-8.0, 0.0), 0.0, -1, -1)
+	_brains.append(brain)
+	brain.order_move(Vector2.ZERO)
+	assert_equal(brain._no_route_s, 0.0, "no way into the ring: waiting to plan again")
+	var replans := brain._replans
+	for f in roundi(BrainScript.NO_ROUTE_RETRY_S * 0.5 * 60.0):
+		brain.step(1.0 / 60.0)
+	assert_equal(brain._replans, replans, "no replan within the wait")

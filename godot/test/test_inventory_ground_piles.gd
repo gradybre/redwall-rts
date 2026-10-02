@@ -203,8 +203,11 @@ func test_create_container_refuses_the_reserved_pile_policy() -> void:
 	var made: InventoryScript.OpResult = _inv.create_container(WORLD, 400000, -1,
 		InventoryScript.POLICY_GROUND_PILE, true, TILE_A)
 	assert_equal(made.error, InventoryScript.REFUSE_GROUND_PILE_POLICY_RESERVED, "refused")
-	var ordinary: Vector2i = _inv.create_container(WORLD, 400000, -1, 2, true, TILE_A).ref
-	assert_true(_inv.is_container_valid(ordinary), "policy 2 is opaque")
+	# 2 became POLICY_SATCHEL (decision 1022), reserved to its own door like the pile; the next
+	# unnumbered value is still opaque.
+	var ordinary: Vector2i = _inv.create_container(WORLD, 400000, -1,
+		InventoryScript.POLICY_SATCHEL + 1, true, TILE_A).ref
+	assert_true(_inv.is_container_valid(ordinary), "an unnumbered policy is opaque")
 	assert_false(_inv.is_ground_pile(ordinary), "and is no pile")
 	assert_equal(_inv.ground_pile_at_tile(TILE_A), InventoryScript.NULL_REF,
 		"and an ordinary container on a tile is not a pile")

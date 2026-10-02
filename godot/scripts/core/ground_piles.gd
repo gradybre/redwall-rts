@@ -111,6 +111,11 @@ const REFUSE_SEED_SHAPE: StringName = &"GROUND_PILE_START_TILES_SHAPE"
 const REFUSE_DECLARE: StringName = &"GROUND_PILE_STORAGE_CLASS_REFUSED"
 ## Decision 0532's M4, refused by name: a building footprint may not cover a live ground pile.
 const REFUSE_BUILDING_OVER_PILE: StringName = &"BUILDING_FOOTPRINT_OVER_GROUND_PILE"
+## The mover (decision 1022) was handed a dead container, an empty one, or a ground pile.
+const REFUSE_MOVE_SOURCE: StringName = &"GROUND_PILE_MOVE_SOURCE_INVALID"
+## The mover's source still holds a claim: a reserved lot moves only with its claim, which only
+## the reservation pool can carry, so the caller releases (or carries) every claim first.
+const REFUSE_MOVE_SOURCE_RESERVED: StringName = &"GROUND_PILE_MOVE_SOURCE_RESERVED"
 
 ## N, E, S, W as (dx, dz) on the `z*128+x` grid. N is -Z.
 const NEIGHBOUR_DX: Array[int] = [0, 1, 0, -1]
@@ -173,6 +178,9 @@ var _single_seed: PackedInt32Array = PackedInt32Array()
 ## Placement cursor: the spec row being placed and the quantity of it still unplaced.
 var _spec_row: int = 0
 var _spec_remaining: int = 0
+## Task 06.4 H1 (decision 1022): the container whose EXISTING lots the mover is emptying into
+## piles, borrowed for one call. The null ref outside a move.
+var _move_source: Vector2i = InventoryScript.NULL_REF
 
 
 func _init() -> void:
@@ -640,6 +648,194 @@ func _declare_visited_piles() -> bool:
 		if not _stock_age.declare_storage_class(pile, StockAgeScript.STORAGE_OPEN_PILE):
 			return false
 	return true
+
+
+# --- moving existing goods into piles (task 06.4 H1, decision 1022) ----------------------------
+#
+# The placement above CREATES lots: it is how a refund or a demolition return comes into being.
+# A haul's goods already exist, and INV-GOODS-R01 forbids recreating them elsewhere, so a satchel
+# emptied onto the ground -- its hauler died or left (Brendan's 2026-10-02 ruling), or its haul's
+# destination is R2's ground-pile fallback -- MOVES its lots: the same breadth-first walk and site
+# rule, each tile's pile topped up by `move_lot()` (a whole lot, keeping its identity) or
+# `transfer()` (the part that fits), never `create_lot()`. Sourced and sunk totals do not move.
+
+func move_container_into_piles(source_ref: Vector2i, seeds: PackedInt32Array, seed_count: int,
+		excluded_mask: PackedByteArray, out: PlaceResult) -> bool:
+	"""Move every lot in `source_ref` into piles breadth-first from the seeds, all or nothing.
+
+	Refuses, changing nothing: an open transaction, an unbound composer, a bad mask or seed shape,
+	a source that is dead, empty or itself a pile (GROUND_PILE_MOVE_SOURCE_INVALID), a source
+	holding any reserved quantity or mass (GROUND_PILE_MOVE_SOURCE_RESERVED) and, after rolling
+	back, running out of eligible capacity (GROUND_PILE_NO_CAPACITY). `out.lots_created` counts
+	the lots or parts that arrived. New piles are declared storage class 1500 after the commit.
+	"""
+	return _run_move(source_ref, seeds, seed_count, excluded_mask, out, true)
+
+
+func preflight_container_into_piles(source_ref: Vector2i, seeds: PackedInt32Array,
+		seed_count: int, excluded_mask: PackedByteArray, out: PlaceResult) -> bool:
+	"""`move_container_into_piles()`, always rolled back: would the goods fit? Changes nothing.
+
+	CLAIMED GOODS ARE ASKED ABOUT AS IF RELEASED. A haul proves its pile fallback while its claim
+	still stands, so inside the rolled-back transaction every lot's reserved quantity is released
+	first -- the abort restores it byte for byte, and the pool's rows are never touched -- and the
+	walk then sees exactly what the real move will see once the caller has released the claims.
+	Reserved MASS on the source is not a lot claim and refuses here exactly as the move refuses it.
+	"""
+	return _run_move(source_ref, seeds, seed_count, excluded_mask, out, false)
+
+
+func _run_move(source_ref: Vector2i, seeds: PackedInt32Array, seed_count: int,
+		excluded_mask: PackedByteArray, out: PlaceResult, keep: bool) -> bool:
+	"""Validate, move inside one transaction, then commit or roll back."""
+	out.clear()
+	var ready: StringName = _move_refusal(source_ref, seeds, seed_count, excluded_mask, keep)
+	if ready != REFUSE_NONE:
+		return out.refuse(ready)
+	_excluded = excluded_mask
+	_move_source = source_ref
+	_inventory.begin()
+	var code: StringName = REFUSE_NONE if keep else _release_source_claims_for_preflight()
+	if code == REFUSE_NONE:
+		code = _move_breadth_first(seeds, seed_count, out)
+	_move_source = InventoryScript.NULL_REF
+	if code != REFUSE_NONE or not keep:
+		_inventory.abort()
+		_excluded = PackedByteArray()
+		return out.refuse(code) if code != REFUSE_NONE else _rolled_back_ok(out)
+	var committed: InventoryScript.OpResult = _inventory.commit()
+	_excluded = PackedByteArray()
+	if not committed.ok:
+		return out.refuse(committed.error)
+	out.ok = true
+	if not _declare_visited_piles():
+		out.error = REFUSE_DECLARE
+	return true
+
+
+func drop_seeds_into(tile: int, scratch_mask: PackedByteArray, out_seeds: PackedInt32Array,
+		out: IntMath.IntResult) -> bool:
+	"""Start tiles for goods dropped where a resident stands: `out.value` is their count.
+
+	Brendan's 2026-10-02 ruling drops a dead or departing hauler's satchel "at their tile under
+	the DEC-043 #9 rules". A tile on no footprint is its own one seed. A resident standing on a
+	STANDING building's footprint -- inside the hall, say -- is on a tile #9 never lets a pile
+	sit on, so the drop starts where that building's refunds start (`refund_seeds_into()`: the
+	hall's door, else the front-first ring) -- decision 1022's PROPOSAL. `scratch_mask` is
+	written with that footprint and is otherwise unused: the building still stands, so the
+	site rule already refuses its tiles. Refuses an off-grid tile and a short seed buffer.
+	"""
+	if _buildings == null:
+		return out.refuse(String(REFUSE_NOT_BOUND))
+	if tile < 0 or tile >= TILE_COUNT:
+		return out.refuse(String(REFUSE_OUT_OF_BOUNDS))
+	if out_seeds.size() < REFUND_SEED_CAPACITY:
+		return out.refuse(String(REFUSE_SEED_SHAPE))
+	var building: Vector2i = _buildings.building_at_tile(tile)
+	if building == EntityDirectory.NULL_REF:
+		out_seeds[0] = tile
+		return out.succeed(1)
+	return refund_seeds_into(building, scratch_mask, out_seeds, out)
+
+
+func _rolled_back_ok(out: PlaceResult) -> bool:
+	"""A preflight that fitted: report success with the counts it reached, nothing kept."""
+	out.ok = true
+	return true
+
+
+func _release_source_claims_for_preflight() -> StringName:
+	"""Inside the preflight's doomed transaction only: unreserve every source lot.
+
+	Headroom reserved on the SOURCE is left alone: no move out of a container reads it.
+	"""
+	var lot: Vector2i = _inventory.container_first_lot(_move_source)
+	while lot != InventoryScript.NULL_REF:
+		var reserved: int = _inventory.lot_reserved_milli(lot)
+		if reserved > 0:
+			var released: InventoryScript.OpResult = _inventory.release_reservation(lot, reserved)
+			if not released.ok:
+				return released.error
+		lot = _inventory.container_next_lot(lot)
+	return REFUSE_NONE
+
+
+func _move_refusal(source_ref: Vector2i, seeds: PackedInt32Array, seed_count: int,
+		excluded_mask: PackedByteArray, require_unreserved: bool) -> StringName:
+	"""Everything checkable before the mover's transaction opens."""
+	if _inventory == null or _buildings == null or _stock_age == null:
+		return REFUSE_NOT_BOUND
+	if _inventory.is_transaction_open():
+		return REFUSE_TRANSACTION_OPEN
+	if excluded_mask.size() != 0 and excluded_mask.size() != TILE_COUNT:
+		return REFUSE_MASK_SHAPE
+	if seed_count < 1 or seed_count > seeds.size():
+		return REFUSE_SEED_SHAPE
+	if not _inventory.is_container_valid(source_ref) or _inventory.is_ground_pile(source_ref) \
+			or _inventory.container_lot_count(source_ref) == 0:
+		return REFUSE_MOVE_SOURCE
+	if _inventory.container_reserved_mass_g(source_ref) != 0:
+		return REFUSE_MOVE_SOURCE_RESERVED
+	if not require_unreserved:
+		return REFUSE_NONE
+	var lot: Vector2i = _inventory.container_first_lot(source_ref)
+	while lot != InventoryScript.NULL_REF:
+		if _inventory.lot_reserved_milli(lot) != 0:
+			return REFUSE_MOVE_SOURCE_RESERVED
+		lot = _inventory.container_next_lot(lot)
+	return REFUSE_NONE
+
+
+func _move_breadth_first(seeds: PackedInt32Array, seed_count: int, out: PlaceResult) -> StringName:
+	"""Walk eligible tiles from the seeds, emptying the source into each before spilling on."""
+	var start: StringName = _enqueue_seeds(seeds, seed_count)
+	if start != REFUSE_NONE:
+		return start
+	var head: int = 0
+	while head < _queue_tail and _inventory.container_lot_count(_move_source) > 0 \
+			and head < SPILL_TILE_CAP:
+		var tile: int = _queue[head]
+		head += 1
+		out.tiles_visited += 1
+		var filled: StringName = _fill_tile_from_source(tile, out)
+		if filled != REFUSE_NONE:
+			return filled
+		_enqueue_neighbours(tile)
+	return REFUSE_NONE if _inventory.container_lot_count(_move_source) == 0 else REFUSE_NO_CAPACITY
+
+
+func _fill_tile_from_source(tile: int, out: PlaceResult) -> StringName:
+	"""Move as much of the source as this tile's pile can hold, creating the pile if needed."""
+	var pile: Vector2i = _inventory.ground_pile_at_tile(tile)
+	while _inventory.container_lot_count(_move_source) > 0:
+		var lot: Vector2i = _inventory.container_first_lot(_move_source)
+		var free_g: int = InventoryScript.GROUND_PILE_MAX_MASS_G
+		if pile != InventoryScript.NULL_REF:
+			free_g = _inventory.container_free_mass_g(pile)
+		var quantity: int = _inventory.lot_quantity_milli(lot)
+		var fit: int = _fitting_quantity(_inventory.lot_item_id(lot), quantity, free_g)
+		if fit <= 0:
+			return REFUSE_NONE
+		if pile == InventoryScript.NULL_REF:
+			var made: InventoryScript.OpResult = _inventory.create_ground_pile(tile)
+			if not made.ok:
+				return made.error
+			pile = made.ref
+			out.piles_created += 1
+		var moved: InventoryScript.OpResult = _inventory.move_lot(lot, pile) if fit == quantity \
+			else _inventory.transfer(lot, pile, fit)
+		if not moved.ok:
+			return moved.error
+		out.lots_created += 1
+	return REFUSE_NONE
+
+
+func _fitting_quantity(item_id: int, quantity: int, free_g: int) -> int:
+	"""How much of `quantity` fits `free_g` grams as a fresh lot: `_fitting_milli()`'s rule."""
+	var mass_g: int = _inventory.item_mass_g(item_id)
+	if mass_g <= 0:
+		return quantity
+	@warning_ignore("integer_division") return mini(quantity, free_g * InventoryScript.MILLI_PER_UNIT / mass_g)
 
 
 func last_queue_length() -> int:

@@ -84,6 +84,15 @@ unexpected diagnostics or leaks; its game tree is identical to that merge.
 The PR compares the hosted shards with this baseline separately from the pinned
 local calibration above.
 
+Hosted verification at code commit `21949121` passed in **9m04s** from first job
+start through the required aggregate, versus **54m38s** for the full baseline
+(run `37017561053`; 9m08s including the initial queue). All 275 files and 8,644
+methods ran once; test and diagnostic totals match the full baseline. The
+analyzer still reports zero warnings across 980 files. The observed wall-clock
+target is met without changing any existing gate. The evidence directory's
+`hosted-comparison.json` records the result, assertion-count variance and one
+public method-name redaction in the baseline's streamed log.
+
 ## Source
 
 Brendan's CI-sharding task; the existing runner contract and decision 0501;

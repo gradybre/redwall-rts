@@ -106,6 +106,43 @@ remain unchanged and occur once each. The allocation automatically includes all
 35 new B7 suite files, for 275 files total. No protected game/test file or existing
 decision changed. `rebased-validation.json` records those integration checks.
 
+## Hosted result
+
+[PR #218 run 37017561053](https://github.com/gradybre/redwall-rts/actions/runs/37017561053)
+at code commit `21949121cf2f2e2ffba655b6510db6b0df36fdcd` passed every job. From the
+first job starting to the required aggregate finishing, elapsed time was
+**9m04s**, versus the full baseline's **54m38s**. Including the four-second initial
+queue, the new run took **9m08s**. The eight suite wrappers took 226–453 seconds;
+the analyzer group was the longest prerequisite at 8m51s. The final required
+check verified:
+
+```text
+ok: 275 suite files executed exactly once across 8 shards
+```
+
+The downloaded manifests, raw logs and reports independently verified the same
+**8,644 test methods**, **268 expected** and **353 tolerated** diagnostics as the
+single full hosted run. Failures, unexpected errors/warnings and both leak
+counters were **0**. The original analyzer reported:
+
+```text
+0 GDScript warning(s) in 0 of 980 file(s)
+```
+
+All 17 sharding guard tests also passed on Linux. `hosted-comparison.json` retains
+the counters, per-job timings and links. The hosted assertion totals were
+589,136 full versus 589,132 sharded; equality is not claimed for the existing
+timing-dependent assertion count, and no gate was relaxed.
+
+The full hosted log masks one public method name as `test_bare_bou***`, while
+artifact logs retain its full name. The baseline's pinned source uniquely maps
+that prefix to `test_bare_boughs_keep_the_bark_triangles_and_the_material` in
+`test_demo_seasons.gd`. After this explicit source normalization, the identical
+sorted 8,644-method lists hash to
+`2c76a8fe693c7f192055e3040c11359b0565905ec518bf9a2b1fc67a74b75552`.
+Both the raw baseline digest and this mapping are retained; a masked log digest
+is not silently represented as an exact raw-text match.
+
 ## Reproduction and retained evidence
 
 Run each shard in its own checkout/import/user-data environment, as CI does:
@@ -126,5 +163,5 @@ Raw local logs and per-shard artifacts stay available locally but are ignored
 by this directory's `.gitignore`; the compact JSON records are committed. CI
 uploads raw logs, manifests and audited reports for 14 days, including failed
 shard logs. `hosted-before.json` records the original hosted job's step timings.
-Hosted wall-clock time for this change remains to be measured by its PR run;
-local timings are not a claim about hosted runners or queue latency.
+The hosted result above is a separate measurement from the local calibration;
+neither one guarantees future runner speed or queue latency.

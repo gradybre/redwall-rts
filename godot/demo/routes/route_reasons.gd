@@ -14,12 +14,15 @@ extends RefCounted
 ##   TOO_BIG         a segment ahead its body does not fit at all, at its entry
 ##   NO_ROUTE        its last trip found no route at all (resident_brain.gd REFUSED_NO_ROUTE), at the goal
 ##   GAVE_UP         its last trip stayed blocked and was given up (REFUSED_BLOCKED), at the goal
+##   WAITING_FERRY   on a ferry leg (water_crossings.gd FERRY_ROW) still ashore, waiting to board: where it waits
+##                   (decision 0437; the ferry's own refusal ends the leg, so a closed ferry is never waited on)
 ## The checks run in that order: the first that holds is the reason. A trip under way is looked along from the
 ## waypoint it is heading to; a trip that ended is not.
 
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const GraphScript := preload("res://demo/tunnel/underground_graph.gd")
 const RouterScript := preload("res://demo/tunnel/tunnel_router.gd")
+const CrossingsScript := preload("res://demo/waterplay/water_crossings.gd")
 const Rules := preload("res://demo/tunnel/tunnel_rules.gd")
 
 const NONE: int = 0
@@ -32,11 +35,12 @@ const LOAD_TOO_WIDE: int = 6
 const TOO_BIG: int = 7
 const NO_ROUTE: int = 8
 const GAVE_UP: int = 9
+const WAITING_FERRY: int = 10
 const WORDS: Array[String] = ["", "finding a route", "waiting for mouth", "no safe exit", "closed by flood",
 	"closed by a roof fall", "load too wide", "too big for the bore", "can't find a way there",
-	"gave up: the way stayed blocked"]
+	"gave up: the way stayed blocked", "waiting for the ferry"]
 ## Whether a reason is a wait that ends by itself (the overlay draws those brass, the rest clay).
-const WAITS: Array[bool] = [false, true, true, false, false, false, false, false, false, false]
+const WAITS: Array[bool] = [false, true, true, false, false, false, false, false, false, false, true]
 
 
 ## Where a reason applies (metres, x and z) -- the caller's, reused.
@@ -56,12 +60,23 @@ static func diagnose(brain: BrainScript, graph: GraphScript, where: Where) -> in
 	if brain.state == BrainScript.State.QUEUE:
 		where.at = brain.path[brain.path_index] if brain.path_index < brain.path.size() else brain.position
 		return WAITING_MOUTH
+	if _waiting_ferry(brain):
+		where.at = brain.position
+		return WAITING_FERRY
 	if brain.trip_outcome == BrainScript.TRIP_UNDERWAY:
 		return _ahead(brain, graph, where)
 	if brain.trip_failed():
 		where.at = brain.goal()
 		return GAVE_UP if brain.route_refusal() == BrainScript.REFUSED_BLOCKED else NO_ROUTE
 	return NONE
+
+
+static func _waiting_ferry(brain: BrainScript) -> bool:
+	"""Whether `brain` is on a ferry leg and still ashore (not yet held aboard)."""
+	if brain.state != BrainScript.State.CROSS or brain.water_hold or brain.path_index >= brain.path_tunnel.size():
+		return false
+	var code: int = brain.path_tunnel[brain.path_index]
+	return RouterScript.is_crossing_code(code) and RouterScript.crossing_row(code) == CrossingsScript.FERRY_ROW
 
 
 static func _ahead(brain: BrainScript, graph: GraphScript, where: Where) -> int:

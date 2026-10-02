@@ -161,7 +161,7 @@ func _swim_into(rescuer: BrainScript, swim: Tasks.SwimRescue, task: Tasks.Victim
 func _boat_into(rescuer: BrainScript, boat: BoatRescueScript.BoatRescue, out: Details) -> void:
 	"""A boat: the phase, the jetty it lands them at, and the walk, the row out and the row back at the boat's speed."""
 	out.phase = "%s: %s" % [name_of(rescuer.index), BOAT_PHASES[clampi(boat.phase, 0, BOAT_PHASES.size() - 1)]]
-	var jetty: Vector2 = BoatRoutes.m_of(BoatRoutes.JETTY_LAND_U)
+	var jetty: Vector2 = BoatRoutes.boat_jetty_land_m(boat.boat) if boat.boat >= 0 else BoatRoutes.m_of(BoatRoutes.JETTY_LAND_U)
 	out.landing = jetty
 	var speed: float = WaterRules.to_m(FleetScript.ROW_SPEED_U_S)
 	var fleet: FleetScript = _rescue.boats.fleet if _rescue.boats != null else null

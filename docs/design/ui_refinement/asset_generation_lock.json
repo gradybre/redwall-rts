@@ -5,6 +5,7 @@
   "authority": "SET-UX-VIS-002 revision3; DEC-036 reference permission",
   "design_status": "ASTRA_AUTHORED_IMPLEMENTATION_LOCK; USER_VISUAL_APPROVAL_PENDING",
   "paid_generation_authorized": false,
+  "paid_generation_policy": "BY_REQUEST: allowed per itemised, costed request once Brendan approves it (decision 0961); false above means no standing approval",
   "aesthetic": "storybook watercolor with controlled ink contours and grounded anatomy",
   "palette": [
     {

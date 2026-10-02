@@ -22,6 +22,7 @@ extends RefCounted
 const SimScript := preload("res://demo/farm/farm_sim.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const Palette := preload("res://demo/ui/woodland_palette.gd")
+const LensPalette := preload("res://demo/lenses/lens_palette.gd")
 
 const SEEDLING_SCALE: float = 0.14
 const WITHERED_SCALE: float = 0.72
@@ -64,20 +65,17 @@ const SHEEN_ROUGHNESS: Array[float] = [0.95, 0.9, 0.9, 0.38, 0.14]
 const PUDDLE_COLOR: Color = Color(0.15, 0.17, 0.19, 0.86)
 const PUDDLE_ROUGHNESS: float = 0.05
 const PUDDLE_SPECULAR: float = 0.9
-## Overlay disc colours: moisture bands, then ripeness (growing -> ripe -> past its grace). Wet and
-## waterlogged are muted slate blues at a lower alpha -- a map tint over the bed, not a blue slab.
-const BAND_OVERLAY: Array[Color] = [
-	Color(0.85, 0.45, 0.2, 0.55), Color(0.9, 0.72, 0.3, 0.5), Color(0.3, 0.62, 0.32, 0.45),
-	Color(0.36, 0.47, 0.58, 0.38), Color(0.24, 0.32, 0.47, 0.46),
-]
-const UNRIPE_OVERLAY: Color = Color(0.32, 0.6, 0.3, 0.45)
-const RIPE_OVERLAY: Color = Color(0.93, 0.74, 0.25, 0.6)
-const LATE_OVERLAY: Color = Color(0.85, 0.35, 0.2, 0.6)
-const NO_OVERLAY: Color = Color(0.4, 0.35, 0.3, 0.25)
+## Overlay disc colours: moisture bands, then ripeness (growing -> ripe -> past its grace), then the leat's service.
+## They are the map layers' colour tokens (demo/lenses/lens_palette.gd, decision 0581: colour-blind checked), so the
+## discs, their legends, the hover readout and the compare outlines agree. Waterlogged stays a calm tint, not a slab.
+const BAND_OVERLAY: Array[Color] = LensPalette.MOISTURE
+const UNRIPE_OVERLAY: Color = LensPalette.GROWING
+const RIPE_OVERLAY: Color = LensPalette.RIPE
+const LATE_OVERLAY: Color = LensPalette.LATE
+const NO_OVERLAY: Color = LensPalette.EMPTY
 ## The Water service layer (decision 0441), by the garden leat's service (weir_sluice.gd SERVICE_*): not served, dry
 ## (the leat empty), normal, wet.
-const SERVICE_OVERLAY: Array[Color] = [Color(0.4, 0.35, 0.3, 0.25), Color(0.86, 0.66, 0.3, 0.55),
-	Color(0.36, 0.64, 0.4, 0.55), Color(0.3, 0.46, 0.7, 0.58)]
+const SERVICE_OVERLAY: Array[Color] = LensPalette.SERVICE
 ## Label colours: calm, needs attention, urgent.
 const LABEL_CALM: Color = Palette.CREAM
 const LABEL_ATTENTION: Color = Color("#F2C46B")

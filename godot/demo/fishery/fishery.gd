@@ -474,10 +474,11 @@ func _gear_words(kind: int, code: String) -> String:
 
 
 func _boat_refusal() -> String:
-	"""A boat for a fishing trip: free (moored, nobody's) and holding a cycle's wear."""
+	"""A boat for a fishing trip: free (moored, nobody's) and holding a cycle's wear -- one of the boathouse's
+	(boat_routes.gd FISHING_BOATS; the ferry boat never fishes, decision 0437)."""
 	if _free_boat() >= 0:
 		return ""
-	for boat: int in fleet.count:
+	for boat: int in Routes.FISHING_BOATS:
 		if fleet.is_free(boat):
 			return _refuse("BOAT_WORN", "Rowboat %d is worn (%d/1000, below a cycle's %d)" % [boat + 1, fleet.durability[boat],
 				FleetScript.WEAR_PER_CYCLE], "Mend boat")
@@ -485,8 +486,8 @@ func _boat_refusal() -> String:
 
 
 func _free_boat() -> int:
-	"""The free boat that can fish, the lowest first (-1: none)."""
-	for boat: int in fleet.count:
+	"""The free fishing boat that can fish, the lowest first (-1: none)."""
+	for boat: int in Routes.FISHING_BOATS:
 		if fleet.is_free(boat) and fleet.can_fish(boat):
 			return boat
 	return -1

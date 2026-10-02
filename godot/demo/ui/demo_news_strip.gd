@@ -17,7 +17,8 @@ extends CanvasLayer
 ## narrow profile, 125 % on 1280x720) it takes the whole gap instead (decision 0391). The command strip moves left when the
 ## resident journal takes the right column; the strip follows it (`follow_journal`). Geometry is the
 ## HUD's own (`scripts/ui/ui_layout.gd`, read, never modified) in LOGICAL pixels at the HUD's scale.
-## It ignores the mouse, so a click through it still reaches the world; it draws below the HUD.
+## Only its buttons take the mouse (see TIERS, GO TO AND DISMISS), so a click anywhere else still reaches the world; it
+## draws below the HUD.
 ##
 ## Refreshed a few times a second on real time (it must read while the village is paused); it
 ## rebuilds nothing, only rewrites LINES labels.
@@ -32,6 +33,18 @@ extends CanvasLayer
 ##
 ## FEWER TOASTS (decision 0471, the Quiet focus preset): with `quiet` on the strip toasts warnings only, one at a
 ## time; notes are still in the history, and the count still shows.
+##
+## TIERS, GO TO AND DISMISS (decision 0591, feature #39). Each line is drawn at its tier's weight (demo_notices.gd
+## TIERS): URGENT in the heading face, clay, "Urgent:"; NORMAL clay, "Warning:"; INFO in ink, unworded --
+## and an urgent toast lasts URGENT_MSEC. Beside each line, Go to (the HUD's own centre-view crosshair, GO_TO_ICON,
+## with "Go to" as its tooltip and name: an icon keeps the narrow band's lines from wrapping; shown when the subject can
+## be found, it selects it and centres the camera, demo_news_jump.gd) and × (dismiss that one notice: off the strip,
+## kept in the history). The buttons are the only parts of the strip that take the mouse, and take no keyboard focus
+## (Space stays the HUD's).
+## A line the feed kept quiet -- held back by the toast budget at 4x, of a snoozed kind, dismissed -- is not drawn;
+## the title counts what was held back lately ("· 3 more (N)": N, the history's key). THE STRIP KEEPS TO ITS BAND: where its
+## lines (wrapped, with their 32 px buttons) would make it taller than the band (1280x720: it would cover the Map
+## layer picker), it draws fewer of them -- the most urgent kept, then the newest -- and the rest are in the history.
 
 const UiLayout := preload("res://scripts/ui/ui_layout.gd")
 const DemoUiScale := preload("res://demo/ui/demo_ui_scale.gd")
@@ -40,6 +53,8 @@ const Palette := preload("res://demo/ui/woodland_palette.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 const IncidentsScript := preload("res://demo/demo_incidents.gd")
 const NewsClockScript := preload("res://demo/demo_news_clock.gd")
+const JumpScript := preload("res://demo/ui/demo_news_jump.gd")
+const FarmUi := preload("res://demo/farm/farm_ui.gd")
 
 ## The strip's history button was pressed: open the village-news history.
 signal history_wanted
@@ -48,6 +63,15 @@ const TITLE: String = "Village news (demo)"
 const LINES: int = 3
 const NOTE_MSEC: int = 12000
 const WARNING_MSEC: int = 30000
+## An urgent toast's life (see TIERS, GO TO AND DISMISS).
+const URGENT_MSEC: int = 60000
+## The strip's urgent size: the body size (the heading face is the weight; a larger size wraps the narrow band more).
+const URGENT_PX: int = 14
+const GO_TO: String = "Go to"
+const GO_TO_ICON: String = "res://ui/icons/center_view.svg"
+const GO_TO_ICON_PX: int = 18
+const DISMISS: String = "×"
+const HELD_WORDS: String = "%s · %d more (N)"
 const MAX_W: float = 640.0
 ## Narrower than this about the commands' centre (the NARROW profile: 125 % on 1280x720, where the commands run
 ## under the right column), the band is the whole gap between the minimap and the right column (decision 0391).
@@ -64,6 +88,23 @@ const ATTENTION_WORDS: String = "%d need%s attention — Village news history (N
 var _notices: NoticesScript = null
 var _frame: PanelContainer = null
 var _lines: Array[Label] = []
+## Per line (see TIERS, GO TO AND DISMISS): its row, its Go to and ×, the entry id it shows and the tier it is drawn at.
+var _rows: Array[HBoxContainer] = []
+var _go: Array[Button] = []
+var _close: Array[Button] = []
+var _shown_id: PackedInt32Array = PackedInt32Array()
+var _drawn_tier: PackedInt32Array = PackedInt32Array()
+var _title: Label = null
+var _held: int = 0
+var _jump: JumpScript = null
+## How many lines fit the band (see THE STRIP KEEPS TO ITS BAND): LINES again whenever the news or the band changes.
+var _fit_lines: int = LINES
+## The entries the lines are chosen from (reused), and the news time they were last chosen at.
+var _candidates: PackedInt32Array = PackedInt32Array()
+var _last_now: int = 0
+## A line's width beside its × alone, and the Go to's share of it (logical px; set by `_place`).
+var _text_w: float = 0.0
+var _go_w: float = 0.0
 var _layout: UiLayout = UiLayout.new()
 var _geometry: UiLayout.Geometry = UiLayout.Geometry.new()
 var _refresh_in: float = 0.0
@@ -96,6 +137,11 @@ func bind_news(incidents: IncidentsScript, clock: NewsClockScript, paused: Calla
 	_paused_query = paused
 
 
+func bind_jump(jump: JumpScript) -> void:
+	"""Each line's Go to jumps through `jump` (none: no Go to)."""
+	_jump = jump
+
+
 func follow_journal(journal_open: Callable) -> void:
 	"""Follow the command strip when the right column yields to the resident journal (the HUD lays
 	its commands out for an open journal then): `journal_open` answers whether it does."""
@@ -116,7 +162,7 @@ func journal_followed() -> bool:
 func _ready() -> void:
 	"""Place, and follow the viewport's size."""
 	build()
-	get_viewport().size_changed.connect(_place)
+	get_viewport().size_changed.connect(_on_resized)
 	_place()
 
 
@@ -135,11 +181,50 @@ func build() -> void:
 	column.add_theme_constant_override(&"separation", 2)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_frame.add_child(column)
-	column.add_child(_label(TITLE, TITLE_PX, Palette.UMBER, Styles.heading_font()))
+	_title = _label(TITLE, TITLE_PX, Palette.UMBER, Styles.heading_font())
+	column.add_child(_title)
 	for k: int in LINES:
-		_lines.append(_label("", LINE_PX, Palette.INK, null))
-		column.add_child(_lines[k])
+		_build_line(column, k)
 	_build_history_button(column)
+
+
+func _build_line(column: VBoxContainer, slot: int) -> void:
+	"""Line `slot`: its words, its Go to and its × (see TIERS, GO TO AND DISMISS), hidden."""
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_theme_constant_override(&"separation", 6)
+	row.visible = false
+	column.add_child(row)
+	_lines.append(_label("", LINE_PX, Palette.INK, null))
+	_lines[slot].size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lines[slot].size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(_lines[slot])
+	_go.append(_line_button(row, "", "Go to what this notice is about and select it", go_to.bind(slot)))
+	_go[slot].name = "GoTo"
+	_go[slot].set(&"accessibility_name", GO_TO)
+	if ResourceLoader.exists(GO_TO_ICON):
+		_go[slot].icon = load(GO_TO_ICON) as Texture2D
+		_go[slot].add_theme_constant_override(&"icon_max_width", GO_TO_ICON_PX)
+	else:
+		_go[slot].text = GO_TO
+	_close.append(_line_button(row, DISMISS, "Dismiss this notice (it stays in the history)", dismiss.bind(slot)))
+	_rows.append(row)
+	_shown_id.append(0)
+	_drawn_tier.append(-1)
+
+
+func _line_button(row: HBoxContainer, words: String, tip: String, act: Callable) -> Button:
+	"""A line's wood button, at least 32×32 (UI §2.1's minimum hitbox): the mouse only, never the keyboard focus (Space
+	and Enter stay the HUD's)."""
+	var button: Button = FarmUi.button(words, LINE_PX)
+	button.custom_minimum_size = Vector2(FarmUi.BUTTON_H, FarmUi.BUTTON_H)
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_filter = Control.MOUSE_FILTER_STOP
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.tooltip_text = tip
+	button.pressed.connect(act)
+	row.add_child(button)
+	return button
 
 
 func _build_history_button(column: VBoxContainer) -> void:
@@ -154,6 +239,7 @@ func _build_history_button(column: VBoxContainer) -> void:
 	_history_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	_history_button.tooltip_text = "Every notice, filtered by place and severity, and what still needs attention"
 	_history_button.add_theme_font_size_override(&"font_size", HISTORY_PX)
+	_history_button.custom_minimum_size.y = FarmUi.BUTTON_H
 	_history_button.add_theme_color_override(&"font_color", Palette.UMBER)
 	_history_button.pressed.connect(_on_history_pressed)
 	column.add_child(_history_button)
@@ -205,27 +291,71 @@ func refresh(now_msec: int) -> int:
 		return 0
 	if _journal_is_open() != _journal_open:
 		_journal_open = not _journal_open
+		_fit_lines = LINES
 		_place.call_deferred()
-	var shown: int = 0
-	var most: int = 1 if quiet else LINES
-	for k: int in _notices.count():
-		if shown >= most:
-			break
-		var warning: bool = _notices.level(k) == NoticesScript.LEVEL_WARNING
-		if (quiet and not warning) or _notices.age_msec(k, now_msec) > (WARNING_MSEC if warning else NOTE_MSEC):
-			continue
-		_show_line(shown, k)
-		shown += 1
-	for rest: int in range(shown, LINES):
-		_lines[rest].visible = false
+	if _notices.revision != _seen_revision:
+		_fit_lines = LINES
+	var shown: int = _draw_lines(now_msec)
 	var attention: int = _incidents.unresolved_count() if _incidents != null else 0
-	if shown != _shown or _notices.revision != _seen_revision or attention != _attention:
+	var held: int = _notices.held_back(now_msec, NOTE_MSEC)
+	if shown != _shown or _notices.revision != _seen_revision or attention != _attention or held != _held:
 		_shown = shown
 		_seen_revision = _notices.revision
 		_show_attention(attention)
+		_show_held(held)
 		_frame.visible = shown > 0 or attention > 0
 		_place.call_deferred()
 	return shown
+
+
+func _draw_lines(now_msec: int) -> int:
+	"""Write the chosen entries into the lines, newest on top, and hide the rest; returns how many are drawn."""
+	_last_now = now_msec
+	_choose(now_msec, mini(1 if quiet else LINES, _fit_lines))
+	for slot: int in _candidates.size():
+		_show_line(slot, _candidates[slot])
+	for rest: int in range(_candidates.size(), LINES):
+		_rows[rest].visible = false
+		_lines[rest].visible = false
+	return _candidates.size()
+
+
+func _choose(now_msec: int, most: int) -> void:
+	"""The newest LINES fresh, unquiet entries (warnings only while `quiet`), newest first; past `most` of them, the
+	lowest tier goes first, the oldest of it first (see THE STRIP KEEPS TO ITS BAND)."""
+	_candidates.resize(0)
+	for k: int in _notices.count():
+		if _candidates.size() >= LINES:
+			break
+		var tier: int = _notices.tier(k)
+		if (quiet and tier == NoticesScript.TIER_INFO) or _notices.is_quiet(k) \
+				or _notices.age_msec(k, now_msec) > lifetime_msec(tier, _notices.level(k)):
+			continue
+		_candidates.append(k)
+	while _candidates.size() > most:
+		var drop: int = _candidates.size() - 1
+		for at: int in range(_candidates.size() - 2, -1, -1):
+			if _notices.tier(_candidates[at]) < _notices.tier(_candidates[drop]):
+				drop = at
+		_candidates.remove_at(drop)
+
+
+static func lifetime_msec(tier: int, level: int) -> int:
+	"""How long a toast stays (news-clock milliseconds): URGENT_MSEC urgent, WARNING_MSEC a warning, else NOTE_MSEC."""
+	if tier == NoticesScript.TIER_URGENT:
+		return URGENT_MSEC
+	return WARNING_MSEC if level == NoticesScript.LEVEL_WARNING else NOTE_MSEC
+
+
+func _show_held(held: int) -> void:
+	"""The title, with how many recent notices were held back (see TIERS, GO TO AND DISMISS)."""
+	_held = held
+	_title.text = TITLE if held == 0 else HELD_WORDS % [TITLE, held]
+
+
+func held_shown() -> int:
+	"""How many held-back notices the title last counted (checks)."""
+	return _held
 
 
 func _show_attention(attention: int) -> void:
@@ -242,14 +372,69 @@ func attention_shown() -> int:
 
 
 func _show_line(slot: int, k: int) -> void:
-	"""Write entry `k` into line `slot`: its short form, clay when it is a warning."""
+	"""Write entry `k` into line `slot`: its short form at its tier's weight, its Go to when its subject is found."""
 	var label: Label = _lines[slot]
 	var text: String = _notices.short_line(k)
 	if label.text != text:
 		label.text = text
-	var warning: bool = _notices.level(k) == NoticesScript.LEVEL_WARNING
-	label.add_theme_color_override(&"font_color", Palette.CLAY if warning else Palette.INK)
+	var tier: int = _notices.tier(k)
+	if _drawn_tier[slot] != tier:
+		_drawn_tier[slot] = tier
+		paint_tier(label, tier, LINE_PX, URGENT_PX)
+	_shown_id[slot] = _notices.entry_id(k)
+	_go[slot].visible = _jump != null and _jump.can_jump(_notices.target_kind(k), _notices.target_id(k))
+	_size_line(slot)
 	label.visible = true
+	_rows[slot].visible = true
+
+
+static func paint_tier(label: Label, tier: int, px: int, urgent_px: int) -> void:
+	"""A notice line at its tier's weight (see TIERS, GO TO AND DISMISS): urgent in the heading face at `urgent_px`
+	and clay; normal clay; info ink -- each at `px` but the urgent."""
+	var urgent: bool = tier == NoticesScript.TIER_URGENT
+	label.add_theme_color_override(&"font_color", Palette.INK if tier == NoticesScript.TIER_INFO else Palette.CLAY)
+	label.add_theme_font_size_override(&"font_size", urgent_px if urgent else px)
+	if urgent:
+		label.add_theme_font_override(&"font", Styles.heading_font())
+	else:
+		label.remove_theme_font_override(&"font")
+
+
+func go_to(slot: int) -> bool:
+	"""Line `slot`'s Go to: select what its notice is about and centre the camera on it (false: nothing found)."""
+	var k: int = _entry_at(slot)
+	return k >= 0 and _jump != null and _jump.jump(_notices.target_kind(k), _notices.target_id(k))
+
+
+func dismiss(slot: int) -> bool:
+	"""Line `slot`'s ×: dismiss its notice (kept in the history), and redraw."""
+	var k: int = _entry_at(slot)
+	if k < 0 or not _notices.dismiss(k):
+		return false
+	refresh(_notices.now_msec())
+	return true
+
+
+func _entry_at(slot: int) -> int:
+	"""The feed entry line `slot` shows now (-1: hidden, or its entry gone)."""
+	if _notices == null or slot < 0 or slot >= LINES or not _rows[slot].visible:
+		return -1
+	return _notices.index_of(_shown_id[slot])
+
+
+func line_can_go(slot: int) -> bool:
+	"""Whether line `slot` offers Go to (checks)."""
+	return _rows[slot].visible and _go[slot].visible
+
+
+func line_button(slot: int, close: bool) -> Button:
+	"""Line `slot`'s × (`close`) or Go to (checks)."""
+	return _close[slot] if close else _go[slot]
+
+
+func line_tier(slot: int) -> int:
+	"""The tier line `slot` is drawn at (-1: never drawn; checks)."""
+	return _drawn_tier[slot]
 
 
 func line_text(slot: int) -> String:
@@ -267,13 +452,50 @@ func _place() -> void:
 	if not is_inside_tree() or _frame == null:
 		return
 	var band: Rect2 = band_in(get_viewport().get_visible_rect().size)
-	for label: Label in _lines:
-		label.custom_minimum_size.x = band.size.x - CONTENT_MARGINS[0] - CONTENT_MARGINS[2]
-	var height: float = _frame.get_combined_minimum_size().y
+	_go_w = _go[0].get_combined_minimum_size().x + 6.0
+	_text_w = band.size.x - CONTENT_MARGINS[0] - CONTENT_MARGINS[2] - _close[0].get_combined_minimum_size().x - 6.0
+	for slot: int in LINES:
+		_size_line(slot)
+	var height: float = _fit(band.size.y)
 	_frame.scale = Vector2(_geometry.scale, _geometry.scale)
 	_frame.custom_minimum_size = Vector2(band.size.x, 0.0)
 	_frame.size = Vector2(band.size.x, 0.0)
 	_frame.position = Vector2(band.position.x, band.end.y - height) * _geometry.scale
+
+
+func _size_line(slot: int) -> void:
+	"""Line `slot` as wide as the band leaves beside its buttons (its Go to's room given back while it is hidden), and
+	that wide now, before its row is next laid out: a wrapped label is measured at the width it has, so the height `_fit`
+	measures is the height it is drawn at."""
+	var width: float = maxf(_text_w - (_go_w if _go[slot].visible else 0.0), 0.0)
+	if not is_equal_approx(_lines[slot].custom_minimum_size.x, width):
+		_lines[slot].custom_minimum_size.x = width
+	if not is_equal_approx(_lines[slot].size.x, width):
+		_lines[slot].size.x = width
+		_lines[slot].update_minimum_size()
+
+
+func _fit(band_h: float) -> float:
+	"""Hide the oldest drawn lines, never the first, while the strip is taller than `band_h` logical px (see THE STRIP
+	KEEPS TO ITS BAND), and remember how many fit; returns the strip's height."""
+	var height: float = _frame.get_combined_minimum_size().y
+	while height > band_h and _shown > 1 and _notices != null:
+		_fit_lines = _shown - 1
+		_shown = _draw_lines(_last_now)
+		height = _frame.get_combined_minimum_size().y
+	return height
+
+
+func _on_resized() -> void:
+	"""The window changed: every line may fit again; redraw and place."""
+	_fit_lines = LINES
+	_refresh_in = 0.0
+	_place()
+
+
+func lines_fitting() -> int:
+	"""How many lines the band holds now (checks)."""
+	return _fit_lines
 
 
 func band_in(viewport_size: Vector2) -> Rect2:

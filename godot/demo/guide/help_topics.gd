@@ -20,11 +20,14 @@ const ACTION_FIELD_GUIDE: StringName = &"field_guide"
 const ACTION_PROJECTS: StringName = &"projects"
 const ACTION_PRACTICE: StringName = &"practice"
 const ACTION_GUIDE: StringName = &"guide"
+## The playtest log's folder (decision 0562).
+const ACTION_LOGS: StringName = &"logs"
 const ACTION_LABELS: Dictionary = {
 	ACTION_PANTRY: "Open the Pantry (K)", ACTION_KITCHEN: "Open the Kitchen tab", ACTION_JOBS: "Open Work (J)",
 	ACTION_NEWS: "Open Village news (N)", ACTION_RESIDENTS: "Open Residents (L)", ACTION_WATER: "Open the Water panel",
 	ACTION_DIG: "Open the Dig tool (B)", ACTION_FIELD_GUIDE: "Open the field guide", ACTION_PROJECTS: "Open projects",
 	ACTION_PRACTICE: "Open practice stories", ACTION_GUIDE: "Show the guide card",
+	ACTION_LOGS: "Open the log folder",
 }
 
 ## [title, key(s), what it does, keywords, action]. The how-to topics first, then one per key.
@@ -36,6 +39,7 @@ const TOPICS: Array = [
 	["Go fishing", "Water panel, Fishing", "The Water panel's Fishing section chooses a trip -- its site, method and fish -- and shows the stock, quota, expected catch, gear and risk before Authorise trip sends the fishers out (a boat takes two). The catch goes into the pantry: fresh fish keeps two days, so the kitchen cooks it in the fish stew, or the drying rack keeps it as dried fish.", "fish fishing boat trip catch net trap ice jetty rack dried mill flour gear", ACTION_WATER],
 	["Why is a job waiting?", "J", "The Work screen lists every task, blocked first, and says why each waits: no store has room, nobody can reach it, nobody eligible is free. Reassign, prioritise, pause or cancel it there.", "job work task waiting blocked why crew priority", ACTION_JOBS],
 	["A button is greyed out", "Hover it", "Every action's button has a card: hover it (or focus it) to read what it will do, who will do it, what it costs -- and, when it can't be done now, why and what to do first (\"To fix:\").", "refused disabled greyed cannot why card fix", ACTION_NONE],
+	["Ferry and regatta", "Water panel, Ferry and Regatta; Feast", "The ferry rows the far copse's windfall across the run to the ferry stage on a timetable (Gather the far copse, then haulers stack it); anyone may ride it when it is the quicker way, and storms, floods or ice close it. The regatta is a race and a feast once a season, the first in summer: pick its day and host, check the preview (what the feast needs and leaves), and Hold it -- or skip the season at no cost.", "ferry boat cross far copse wood windfall timetable passenger regatta race feast host occasion chronicle", ACTION_WATER],
 	["Build a bridge", "Water panel", "The Water panel's Bridges section steps through the sites (◀ Site ▶, or Span two banks…) with each kind's cost: a plank footbridge (planks, sawn from wood) or a log bridge (one log). A loaded resident never swims, so a bridge is the dry way over for carriers.", "bridge cross stream water planks log ford", ACTION_WATER],
 	["Dig a tunnel", "B", "Press B (or the party panel's Dig tunnel) with a mouse, mole or squirrel selected, and drag from where it starts to where it ends (8 m at least). Tunnels are walked in any weather, drain the beds above them and lead to burrow homes and root cellars.", "dig tunnel mole route dry burrow cellar", ACTION_DIG],
 	["Protect beds from frost and wet", "Click a bed", "Frost nights are announced at noon the day before: Cover a bed with a crop (4 °C warmer for the night). A waterlogged bed stops growing: Drain it, raise it with tunnel earth, or run a tunnel under it.", "frost cover drain wet waterlogged raise bank bed weather", ACTION_NONE],
@@ -51,6 +55,7 @@ const TOPICS: Array = [
 	["Practise a situation", "Village guide (O), Practice", "Practice stories are short situations kept apart from your village -- a loaded crew at the stream, a delivery with nowhere to go, a winter pantry -- each with a restart and a debrief. Nothing they do touches the village.", "practice story lesson try scenario", ACTION_PRACTICE],
 	["The first-village guide", "Game menu, Objectives (O)", "One objective at a time, each done only by what really happens in the village. Hide it, or reopen it, from the game menu or Objectives (O): nothing is granted or lost either way.", "guide objective tutorial skip reopen first", ACTION_GUIDE],
 	["Saving", "", "The demo can't save yet: quitting or restarting loses this village.", "save load quit restart", ACTION_NONE],
+	["Something went wrong? Report it", "F12, Settings", "Press F12 (Fn+F12 on a Mac) the moment you see a bug, a crash or a freeze: it marks the playtest log with the time and what happened just before. The logs are in %APPDATA%\\Godot\\app_userdata\\Redwall Demo\\logs on Windows and ~/Library/Application Support/Godot/app_userdata/Redwall Demo/logs on a Mac (Redwall RTS in place of Redwall Demo when run from the project); send Brendan the newest playtest file. Settings, Playtest log, opens the folder and copies a report to paste.", "bug crash freeze report log problem error mark send playtest", ACTION_LOGS],
 ]
 ## The demo's keys and clicks, one topic each (they were the Controls page).
 const KEY_ROWS: Array = [
@@ -82,6 +87,7 @@ const KEY_ROWS: Array = [
 	["Enter / Space", "Press the focused button"],
 	["F8", "Demo Lab"],
 	["F11", "Full screen"],
+	["F12", "Mark a problem in the playtest log (for a bug report)"],
 ]
 
 var _entries: Array[SearchScript.Entry] = []

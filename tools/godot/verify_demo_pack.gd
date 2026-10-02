@@ -18,10 +18,13 @@ extends SceneTree
 ## information, the breadth's tilt from horizontal (not 0 wherever the tail swings sideways as it
 ## rises: "as level as a bone pointing that way allows"); the stall Resume -- a deliberate 1.2 s frame
 ## at 1x must put the clock into its CRITICAL diagnostic pause, show the stall banner, stay paused, and
-## an Enter press must resume it with ticks advancing again (demo/ui/demo_stall_banner.gd); and
-## screenshots of the opening view, the beaver's tail and the banner.
+## an Enter press must resume it with ticks advancing again (demo/ui/demo_stall_banner.gd); the build's
+## version file and whether the playtest log is running (decision 0562); and screenshots of the opening view, the
+## beaver's tail and the banner.
 
 const TailFlatRollScript := preload("res://scripts/presentation/tail_flat_roll.gd")
+const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
+const BUILD_INFO: String = "res://demo/build_info.json"
 
 const DEMO_SCENE: String = "res://demo/demo_village.tscn"
 const ASSETS: String = "res://demo/assets"
@@ -68,6 +71,7 @@ func _initialize() -> void:
 	_report["window_mode_setting"] = ProjectSettings.get_setting_with_override("display/window/size/mode")
 	_report["app_name"] = ProjectSettings.get_setting_with_override("application/config/name")
 	_report["pack"] = _inventory()
+	_report["build_info"] = FileAccess.get_file_as_string(BUILD_INFO) if FileAccess.file_exists(BUILD_INFO) else ""
 	if not ResourceLoader.exists(main_scene):
 		_finish("main scene missing from the pack: " + main_scene)
 		return
@@ -122,6 +126,7 @@ func _process(_delta: float) -> bool:
 		_report["video_mem_mb"] = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
 		_report["renderer"] = RenderingServer.get_current_rendering_driver_name()
 		_report["demo_root"] = str(_demo.name)
+		_report["playtest_log"] = PlaytestLog.session().file_name() if PlaytestLog.session() != null else ""
 		_bind_beaver()
 	elif _frame == WARM_FRAMES + 2:
 		_hold_clock(false)

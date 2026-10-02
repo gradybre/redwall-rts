@@ -134,6 +134,17 @@ extends Node3D
 ## (the button in the time cluster, G) runs the village to dawn, dusk, the next meal, a project, a harvest or a warning
 ## and pauses saying so. `_build_session()` wires it; the game menu holds its pause through the ledger.
 ##
+## THE FERRY (decision 0437, demo/ferry/; review ECO-041): one fixed two-landing cargo ferry from the ferry stage on the
+## run to the far stage at the stream's mouth -- the boat core's third boat on its fixed route, a staffed timetable, a
+## departure threshold, weather closure -- carrying the far copse's windfall to the log stack, with a passenger seat
+## the router may choose (water_crossings.gd FERRY_ROW). `_build_ferry()` wires it after the fishery, whose fleet,
+## skills and ice it shares; its section is the Water panel's, its jobs the work board's.
+##
+## THE REGATTA (decision 0438, demo/regatta/; review SOC-023, SOC-025, UX-028): once a season -- the first in summer -- a
+## boat race on the pond between the boathouse's two rowboats and the GDD's Hearth feast at the day's supper (the
+## kitchen's occasion), its day and host the player's, remembered in the chronicle. `_build_regatta()` wires it after the
+## people (the winners' deed, the feast's company); its section is the Water panel's, and the HUD's Feast command opens it.
+##
 ## ACCESSIBILITY (decision 0471, review UX-023, demo/access/): the four presets and their settings in the menu's
 ## Settings, applied live (`_on_access_changed`, access_effects.gd); the OBJECT LIST (F6) of every resident, bed, tree,
 ## bridge, tunnel mouth and room, and the rings that show them (village_targets.gd); the focus hints.
@@ -148,6 +159,9 @@ const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
 const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
 const FisheryNodeScript := preload("res://demo/fishery/demo_fishery.gd")
+const FerryNodeScript := preload("res://demo/ferry/demo_ferry.gd")
+const RegattaNodeScript := preload("res://demo/regatta/demo_regatta.gd")
+const CrossingsScript := preload("res://demo/waterplay/water_crossings.gd")
 const FarmCellars := preload("res://demo/farm/farm_cellars.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
@@ -187,6 +201,7 @@ const WaterPanelScript := preload("res://demo/waterplay/water_panel.gd")
 const CanopyScript := preload("res://demo/camera/canopy_clear.gd")
 const WeatherViewScript := preload("res://demo/weather/weather_view.gd")
 const LensPickerScript := preload("res://demo/ui/demo_lens_picker.gd")
+const LensKitScript := preload("res://demo/lenses/demo_lens_kit.gd")
 const TunnelControlScript := preload("res://demo/tunnel/tunnel_control.gd")
 const WaterOverlayScript := preload("res://demo/water/water_overlay.gd")
 const ForestMarks := preload("res://demo/forestry/forest_marks.gd")
@@ -224,6 +239,8 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
+const PlaytestTaps := preload("res://demo/playtest/playtest_taps.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -282,6 +299,8 @@ var _sound: SoundScript = SoundScript.new()
 ## opening pause is held only once per process).
 var _held_open: bool = false
 var _lens_picker: LensPickerScript = null
+## The map layers' hover readout and compare outlines (decision 0581).
+var _lens_kit: LensKitScript = null
 ## The Water range layer's row in the farm's lenses (its subject is set once the water's play is built).
 var _water_lens: int = 0
 var _history: NewsHistoryScript = null
@@ -306,11 +325,16 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+## Water part B lane 3 (decision 0437): the ferry. (Decision 0438): the regatta.
+var _ferry: FerryNodeScript = null
+var _regatta: RegattaNodeScript = null
 
 
 func _ready() -> void:
 	"""The game has booted (children ready first); build the demo over it. The village processes after
-	its children, so the HUD's date is painted after the farm has advanced the calendar this frame."""
+	its children, so the HUD's date is painted after the farm has advanced the calendar this frame. The playtest
+	log (decision 0562) starts first, so its logger hears the rest of the boot."""
+	PlaytestLog.ensure(get_tree())
 	process_priority = PROCESS_AFTER_CHILDREN
 	_quiet_game_presentation()
 	var manifest: Dictionary = DemoManifestScript.load_manifest()
@@ -334,10 +358,12 @@ func _ready() -> void:
 	_command.set_fed_text(_kitchen.kitchen.fed_text)
 	_build_waterplay()
 	_build_fishery()
+	_build_ferry()
 	_build_shared_ui()
 	_build_work()
 	_build_routes()
 	_build_people()
+	_build_regatta()
 	_build_sound()
 	_build_guide()
 	_skin_hud.call_deferred()
@@ -345,6 +371,8 @@ func _ready() -> void:
 	_hold_restart_open()
 	_warm_and_open()
 	_build_input()
+	PlaytestTaps.wire(self, _gate, _zone, _farm.lenses, _command as DemoCommandScript, _services.notices,
+		_services.calendar)
 
 
 func _warm_and_open() -> void:
@@ -556,6 +584,20 @@ func fishery() -> FisheryNodeScript:
 	return _fishery
 
 
+func _build_ferry() -> void:
+	"""THE FERRY (see the header), after the fishery: the boat core's ferry boat, the fishery's FISH skills and the pond's
+	ice, the water's crossings (its passenger row) and the Water panel's Ferry section; its jobs on the work board
+	(`_build_work`) and its line on the Routes layer (`_build_routes`)."""
+	_ferry = FerryNodeScript.new()
+	add_child(_ferry)
+	_ferry.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _fishery)
+
+
+func ferry() -> FerryNodeScript:
+	"""The village's ferry (demo/ferry/demo_ferry.gd)."""
+	return _ferry
+
+
 func _build_work() -> void:
 	"""The village's work (see WORK): the board over every owner built so far, its screen behind the HUD's Jobs command,
 	and Shift+right-click's queue -- after the shared UI, whose "Go to" its screen uses."""
@@ -565,6 +607,7 @@ func _build_work() -> void:
 	_work.configure(_cast as DemoCastScript, _farm, _forestry, _waterplay, _spoil, tool.ext, tool.is_digger)
 	_work.add_kitchen(_kitchen.kitchen)
 	_work.add_fishery(_fishery.fishery)
+	_work.add_ferry(_ferry.ferry)
 	var command: DemoCommandScript = _command as DemoCommandScript
 	_work.set_readouts(command.activity_text, (GameManager as GameManagerScript).is_paused, work_jump, command.selected)
 	command.set_queue_handler(_work.queue_at)
@@ -582,6 +625,9 @@ func _build_routes() -> void:
 		_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_farm.lenses.set_subject(_routes_lens, _routes.subject)
 	_routes.kinds.fleet = _fishery.fishery.fleet
+	_routes.kinds.ferry_row = CrossingsScript.FERRY_ROW
+	_routes.overlay.ferry_course = _ferry.course_m()
+	_routes.overlay.ferry_status = _ferry.status_text
 	_cards.add_details(RescueCardScript.KEY_PREFIX, _routes.rescue_card.card_into)
 	_cards.set_centre((_camera as DemoCameraScript).centre_on)
 
@@ -622,6 +668,7 @@ func _build_guide() -> void:
 		HelpTopics.ACTION_RESIDENTS: _open_residents,
 		HelpTopics.ACTION_WATER: _zone.show_panel.bind(DetailZoneScript.PANEL_WATER),
 		HelpTopics.ACTION_DIG: _open_dig_tool.bind(tool),
+		HelpTopics.ACTION_LOGS: PlaytestLog.open_folder,
 	}
 
 
@@ -651,6 +698,7 @@ func _guide_world() -> GuideWorldScript:
 	world.site_name = _waterplay.site_name
 	world.network = command.tunnels().network
 	world.calendar = _services.calendar
+	world.record = _farm.record
 	world.stores = _services.stores
 	world.focus = (_camera as DemoCameraScript).focus
 	world.selected_bed = func() -> int: return _farm.selected_bed
@@ -693,6 +741,22 @@ func _build_people() -> void:
 	_people_card.hide_while(_cards.is_shown)
 	_people_card.hide_while(_history.is_open)
 	_people_card.hide_while(_stall_banner.is_shown)
+
+
+func _build_regatta() -> void:
+	"""THE REGATTA (see the header), after the people: the fishery's boats and skills, the kitchen's occasion, the
+	people's deed and company hooks, the Water panel's section, and the HUD's Feast command."""
+	_regatta = RegattaNodeScript.new()
+	add_child(_regatta)
+	_regatta.configure(_cast as DemoCastScript, _command as DemoCommandScript, _services, _waterplay, _fishery,
+		_kitchen.kitchen)
+	_regatta.bind_people(_people.record_regatta, _people.share_feast)
+	_regatta.unlock_feast_command(_shell())
+
+
+func regatta() -> RegattaNodeScript:
+	"""The village's regatta (demo/regatta/demo_regatta.gd)."""
+	return _regatta
 
 
 func _bind_people_taps(ext: TunnelExtScript) -> void:
@@ -787,6 +851,7 @@ func _build_news() -> void:
 	"""The village news (see VILLAGE NEWS): the strip on the news clock with its count, the history window, the
 	incident card, every "Go to", and the HUD's history command routed to the window."""
 	_news.bind_news(_services.incidents, _services.news_clock, (GameManager as GameManagerScript).is_paused)
+	_news.bind_jump(_jump)
 	_jump.bind_camera(_camera as DemoCameraScript)
 	_register_jumps()
 	_farm.set_bed_jump(func(bed: int) -> bool: return _jump.jump(NoticesScript.TARGET_BED, bed))
@@ -920,6 +985,9 @@ func _build_lens_picker() -> void:
 	_farm.lenses.follow_state(under, func() -> bool: return tool.view.on)
 	_farm.lenses.set_legend(under, PackedColorArray([Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0)]),
 		PackedStringArray(["blue hatch: too wet to dig", "stone: building footings", "U: back to the surface"]))
+	_lens_kit = LensKitScript.new()
+	add_child(_lens_kit)
+	_lens_kit.attach(_farm.lenses, _farm.sim, _water.map(), _water.overlay(), _forestry.stand, _forestry.zones)
 	_lens_picker = LensPickerScript.new()
 	add_child(_lens_picker)
 	_lens_picker.configure(_farm.lenses, _zone.journal_open)
@@ -935,6 +1003,11 @@ func show_underground(on: bool) -> void:
 func lens_picker() -> LensPickerScript:
 	"""The Map layer picker (demo/ui/demo_lens_picker.gd)."""
 	return _lens_picker
+
+
+func lens_kit() -> LensKitScript:
+	"""The map layers' hover readout and compare outlines (demo/lenses/demo_lens_kit.gd)."""
+	return _lens_kit
 
 
 func _shell() -> UiShell:
@@ -972,6 +1045,7 @@ func _open_running() -> void:
 		_held_open = false
 		GameManager.resume_game()
 	_time.opened = true
+	PlaytestTaps.opened()
 
 
 func _hold_restart_open() -> void:
@@ -1012,6 +1086,7 @@ func _build_songs() -> void:
 	if _songs.configure(_cast as DemoCastScript, _camera.camera(), _services.calendar, _services.notices):
 		_songs.follow(_kitchen.kitchen, _work.board)
 		_songs.set_deeds(village_deeds)
+		_songs.add_work_reader(_regatta.regatta.rowing)
 
 
 func village_deeds() -> PackedStringArray:
@@ -1302,6 +1377,7 @@ func _swimmer_selected() -> bool:
 
 func restart() -> void:
 	"""The menu's confirmed Restart: the demo scene again from its first morning (nothing is saved)."""
+	PlaytestTaps.restarting()
 	get_tree().reload_current_scene.call_deferred()
 
 

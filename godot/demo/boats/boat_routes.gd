@@ -16,6 +16,14 @@ extends RefCounted
 ## points from its berth to a FISHING STATION and back the same way. Every point and every leg between them is water
 ## at least BOAT_DRAFT_U deep, sampled every SAMPLE_U (`validate`). A rescue rows a straight leg from the berth to a
 ## victim, but only one `leg_is_water` passes (rescue isn't fishing; decision 0432).
+##
+## THE FERRY (decision 0437, water part B lane 3). A THIRD BOAT, the ferry boat, is moored at its own berth off the
+## FERRY STAGE -- a second jetty on the run's west bank, 8 m below the fisher shelter -- and rows ONE FIXED ROUTE down the
+## run into the pond's north-east lobe to the FAR STAGE, a third jetty on the stream's far bank at its mouth, and back the
+## same way. Both stages are lane 1's jetty pattern: a land end on the bank top the planner reaches,
+## a deck over the water walked only by a boat's own steps, outside every building footprint. The fishing boats are the
+## boathouse's two (FISHING_BOATS); the ferry boat never fishes, and the fishing boats never ferry. Each berth's crew
+## boards from its own jetty (BERTH_JETTY), so a rescue in the ferry boat walks to the ferry stage, not the boathouse.
 
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const WaterRules := preload("res://demo/water/water_rules.gd")
@@ -32,24 +40,49 @@ const JETTY_LAND_U: Vector2i = Vector2i(20173, 29594)     # 19.7, 28.9
 const JETTY_END_U: Vector2i = Vector2i(23552, 29594)      # 23.0, 28.9
 const JETTY_DECK_Y_M: float = 0.04
 
+## The ferry's two stages (decision 0437): each a land end on the bank top and a deck end over the water, 3.3 m apart as
+## the boathouse jetty's are (the same staged jetty model, drawn by demo/ferry/ferry_view.gd).
+const FERRY_STAGE_NAME: String = "the ferry stage"
+const FAR_STAGE_NAME: String = "the far stage"
+const FERRY_STAGE_LAND_U: Vector2i = Vector2i(23450, 15565)     # 22.9, 15.2 -- the run's west bank top
+const FERRY_STAGE_END_U: Vector2i = Vector2i(26829, 15565)      # 26.2, 15.2 -- 1.9 m out over the run
+const FAR_STAGE_LAND_U: Vector2i = Vector2i(34816, 22323)       # 34.0, 21.8 -- the far bank at the stream's mouth
+const FAR_STAGE_END_U: Vector2i = Vector2i(32358, 24678)        # 31.6, 24.1 -- out south-west over the north-east lobe
+## The jetties in one table: the boathouse jetty (0), the ferry stage (1), the far stage (2).
+const JETTY_COUNT: int = 3
+const JETTY_NAMES: Array[String] = [JETTY_NAME, FERRY_STAGE_NAME, FAR_STAGE_NAME]
+const JETTY_LANDS_U: Array[Vector2i] = [JETTY_LAND_U, FERRY_STAGE_LAND_U, FAR_STAGE_LAND_U]
+const JETTY_ENDS_U: Array[Vector2i] = [JETTY_END_U, FERRY_STAGE_END_U, FAR_STAGE_END_U]
+
 ## The berths: where each boat lies moored (its centre; its bow points along its route's first leg), and the deck
-## point its crew steps aboard from.
-const BERTH_COUNT: int = 2
+## point its crew steps aboard from. The boathouse keeps the first FISHING_BOATS; the last is the ferry boat.
+const BERTH_COUNT: int = 3
+const FISHING_BOATS: int = 2
+const FERRY_BOAT: int = 2
 const BERTH_U: Array[Vector2i] = [
 	Vector2i(23142, 31386),      # 22.6, 30.65 -- along the jetty's south side, clear of its 1.7 m deck
 	Vector2i(25395, 29594),      # 24.8, 28.9  -- off the jetty's end
+	Vector2i(28262, 15974),      # 27.6, 15.6  -- the ferry boat, off the ferry stage's end, lying down the run
 ]
 const BERTH_STEP_U: Array[Vector2i] = [
 	Vector2i(23142, 30310),      # 22.6, 29.6  -- the deck's south edge beside it
 	Vector2i(23552, 29594),      # 23.0, 28.9  -- the deck's end
+	Vector2i(26829, 15565),      # 26.2, 15.2  -- the ferry stage's end
 ]
+## The jetty each berth's crew boards from: the boathouse jetty for the fishing boats, the ferry stage for the ferry boat.
+const BERTH_JETTY: Array[int] = [0, 0, 1]
+## Where a ferry crew or passenger steps between the far stage's deck and the ferry boat lying at its route's end: the
+## deck's end, the boat lying off it.
+const FAR_STEP_U: Vector2i = Vector2i(32358, 24678)             # 31.6, 24.1
 
 ## The fishing stations (on the pond: the lake habitat) and each berth's route to its station, (x, z) pairs from the
-## berth out. The return is the same route reversed.
-const STATION_NAMES: Array[String] = ["the pond's middle", "the pond's south reach"]
+## berth out. The return is the same route reversed. The ferry boat's "station" is the far stage: down the run and into
+## the north-east lobe, off the far stage's end.
+const STATION_NAMES: Array[String] = ["the pond's middle", "the pond's south reach", FAR_STAGE_NAME]
 const ROUTES: Array[Array] = [
 	[23142, 31386, 25190, 31949, 28262, 31130],    # 22.6,30.65 -> 24.6,31.2 -> 27.6,30.4
 	[25395, 29594, 27034, 31539, 28058, 33997],    # 24.8,28.9  -> 26.4,30.8 -> 27.4,33.2
+	[28262, 15974, 29286, 20070, 30310, 23757, 31027, 25958],    # 27.6,15.6 -> 28.6,19.6 -> 29.6,23.2 -> 30.3,25.35
 ]
 
 
@@ -105,11 +138,12 @@ static func leg_is_water(map: WaterMapScript, a: Vector2i, b: Vector2i) -> bool:
 
 
 static func validate(map: WaterMapScript) -> String:
-	""""" when every route and berth is boat water and the jetty's land end is dry ground; else what is wrong."""
-	if map.is_water(JETTY_LAND_U):
-		return "the jetty's land end is in the water"
-	if not map.is_water(JETTY_END_U):
-		return "the jetty's end is not over water"
+	""""" when every route and berth is boat water and every jetty's land end is dry ground; else what is wrong."""
+	for jetty: int in JETTY_COUNT:
+		if map.is_water(JETTY_LANDS_U[jetty]):
+			return "%s's land end is in the water" % JETTY_NAMES[jetty]
+		if not map.is_water(JETTY_ENDS_U[jetty]):
+			return "%s's end is not over water" % JETTY_NAMES[jetty]
 	for route_index: int in ROUTES.size():
 		if route_point(route_index, 0) != BERTH_U[route_index]:
 			return "route %d does not start at its berth" % route_index
@@ -127,3 +161,23 @@ static func m_of(at_u: Vector2i) -> Vector2:
 static func u_of(at_m: Vector2) -> Vector2i:
 	"""A point in metres as integer u (rounded)."""
 	return Vector2i(WaterRules.to_u(at_m.x), WaterRules.to_u(at_m.y))
+
+
+static func jetty_land_m(jetty: int) -> Vector2:
+	"""Jetty `jetty`'s land end (see the jetties' table), metres."""
+	return m_of(JETTY_LANDS_U[jetty])
+
+
+static func jetty_end_m(jetty: int) -> Vector2:
+	"""Jetty `jetty`'s deck end over the water, metres."""
+	return m_of(JETTY_ENDS_U[jetty])
+
+
+static func boat_jetty_land_m(boat: int) -> Vector2:
+	"""Where boat `boat`'s crew walks to board it: its own jetty's land end (BERTH_JETTY), metres."""
+	return jetty_land_m(BERTH_JETTY[boat])
+
+
+static func boat_name(boat: int) -> String:
+	"""'Rowboat 1', 'Rowboat 2', 'The ferry boat'."""
+	return "The ferry boat" if boat == FERRY_BOAT else "Rowboat %d" % (boat + 1)

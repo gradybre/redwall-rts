@@ -44,6 +44,13 @@ extends RefCounted
 ## portion goes back on the table. A CANCEL gives the meal's reservation back untouched; a batch in progress when it is
 ## cancelled is REQ-SET-094's: "yield 50% of food input mass as spoiled_food ... and no finished portions".
 ##
+## AN OCCASION (decision 0438, the regatta's feast): one planned meal may be an occasion's -- `set_occasion(key, dish,
+## batches, take)`: that meal is cooked as the occasion's dish (the feast's bean hotpot, never chosen by the alternation),
+## exactly its batches (the feast's, not one a resident less the leftovers), from the occasion's own reservation (its
+## `take`, made at the feast's confirmation), and served at the meal's call to everyone called as ever. Called off before
+## its first batch (`clear_occasion`), the meal goes back to the alternation and the occasion's food is let go; once a
+## batch is cooked it is served as planned (nothing cooked is undone). The kitchen never decides an occasion.
+##
 ## SHORTAGES are said exactly, with the way to fix them (action_card.gd's "Can't now: ... / To fix: ..."), from the
 ## SAME decision the Cook order and its card use (`decide_meal`); a meal called with nothing coming is the incident
 ## "kitchen:no_meal" ("No supper tonight: ..."), resolved when the village next eats.
@@ -262,6 +269,11 @@ var _ate_by_meal: Dictionary = {}
 var _raw_by_meal: Dictionary = {}
 ## The last meal whose serving has ended (FREE before the first).
 var _closed_key: int = FREE
+## AN OCCASION's meal (see the header): its key (FREE: none), dish, batches and the take holding its food.
+var occasion_key: int = FREE
+var occasion_dish: int = Rules.NO_DISH
+var occasion_batches: int = 0
+var occasion_take: int = 0
 ## Every milli-U the kitchen has taken or made, for the conservation checks and the ledger.
 var consumed_food_milli: int = 0
 var consumed_water_milli: int = 0
@@ -430,8 +442,63 @@ func _fill_slot(s: int, at_hour: int) -> void:
 	_slot_prefer[s] = Rules.dish_for_meal(_slot_key[s] % 2)
 	_slot_dish[s] = _choose_dish(_slot_prefer[s])
 	_resort_slots()
+	if _slot_key[s] == occasion_key:
+		_adopt_occasion(s)
 	_slot_wanted[s] = _wanted(s)
 	_top_up(s, at_hour)
+
+
+# --- an occasion (see AN OCCASION) ----------------------------------------------------------------------
+
+func set_occasion(key: int, dish: int, batches: int, take: int) -> void:
+	"""Meal `key` is an occasion's: `batches` of `dish` from `take`'s food (planned now if its slot already is)."""
+	occasion_key = key
+	occasion_dish = dish
+	occasion_batches = batches
+	occasion_take = take
+	var s: int = _slot_index_of(key)
+	if s >= 0:
+		_adopt_occasion(s)
+		_slot_wanted[s] = _wanted(s)
+		_top_up(s, _hour_seen)
+	revision += 1
+
+
+func _adopt_occasion(s: int) -> void:
+	"""Slot `s` becomes the occasion's meal -- its dish and its food -- unless a batch of it is already cooking or cooked
+	(nothing cooked is undone); the food the slot held for the ordinary meal is let go."""
+	if _slot_cooked[s] > 0 or _wip_key == _slot_key[s] or _slot_take[s] == occasion_take:
+		return
+	takes.keep_fetched(pantry, _slot_take[s], _larder_take)
+	takes.release(_slot_take[s])
+	_slot_take[s] = occasion_take
+	_slot_prefer[s] = occasion_dish
+	_slot_dish[s] = occasion_dish
+
+
+func occasion_adopted() -> bool:
+	"""Whether the occasion's meal is planned in a slot now (its food then the kitchen's to release)."""
+	var s: int = _slot_index_of(occasion_key) if occasion_key != FREE else -1
+	return s >= 0 and _slot_take[s] == occasion_take
+
+
+func clear_occasion() -> void:
+	"""No occasion any more: a meal planned for it that has no batch cooked goes back to the alternation, its occasion
+	food let go (see AN OCCASION)."""
+	var s: int = _slot_index_of(occasion_key) if occasion_key != FREE else -1
+	occasion_key = FREE
+	occasion_dish = Rules.NO_DISH
+	occasion_batches = 0
+	if s >= 0 and _slot_cooked[s] == 0 and _wip_key != _slot_key[s]:
+		takes.keep_fetched(pantry, _slot_take[s], _larder_take)
+		takes.release(_slot_take[s])
+		_slot_take[s] = takes.new_take()
+		_slot_prefer[s] = Rules.dish_for_meal(_slot_key[s] % 2)
+		_slot_dish[s] = _choose_dish(_slot_prefer[s])
+		_slot_wanted[s] = _wanted(s)
+		_top_up(s, _hour_seen)
+	occasion_take = 0
+	revision += 1
 
 
 func _choose_dish(prefer: int) -> int:
@@ -466,9 +533,12 @@ func _free_batches(dish: int) -> int:
 
 
 func _wanted(s: int) -> int:
-	"""Batches slot `s`'s meal wants: a portion each for every resident, less the LEFTOVERS -- portions of meals whose
-	serving is over that will still be good at its call (eaten first) -- when it is the earliest planned meal."""
+	"""Batches slot `s`'s meal wants: an occasion's own batches; else a portion each for every resident, less the
+	LEFTOVERS -- portions of meals whose serving is over that will still be good at its call (eaten first) -- when it is
+	the earliest planned meal."""
 	var key: int = _slot_key[s]
+	if key == occasion_key and _slot_dish[s] == occasion_dish:
+		return occasion_batches
 	@warning_ignore("integer_division") var call_at: int = (key / 2) * SimClock.HOURS_PER_DAY + Rules.CALL_HOUR[key % 2]
 	var spare: int = store.portions_lasting(_first_key(_hour_seen), maxi(0, call_at - _hour_seen),
 		PantryScript.season_of_hour(_hour_seen)) if key == _earliest_key() else 0
@@ -478,8 +548,9 @@ func _wanted(s: int) -> int:
 
 func _top_up(s: int, at_hour: int) -> void:
 	"""Reserve what slot `s` still lacks; with nothing yet reserved or cooked, turn to the other dish when only its
-	food is there."""
-	if _slot_cooked[s] == 0 and _wip_key != _slot_key[s] and takes.live_milli(pantry, _slot_take[s]) == 0:
+	food is there (never an occasion's meal: its dish is the occasion's)."""
+	var occasion: bool = _slot_key[s] == occasion_key and _slot_dish[s] == occasion_dish
+	if not occasion and _slot_cooked[s] == 0 and _wip_key != _slot_key[s] and takes.live_milli(pantry, _slot_take[s]) == 0:
 		_slot_dish[s] = _choose_dish(_slot_prefer[s])
 	var dish: int = _slot_dish[s]
 	_slot_wanted[s] = maxi(_slot_cooked[s] + _wip_on(s), _wanted(s))
@@ -2023,9 +2094,10 @@ func days_text() -> String:
 
 
 func cookable_text(item: int) -> String:
-	"""The Recipes tab's line for a pantry item that a cookable dish takes ("" for one no dish takes)."""
+	"""The Recipes tab's line for a pantry item that an everyday dish takes ("" for one none takes: the feast's bean
+	hotpot is cooked only for an occasion, so beans and cabbage are not marked by it)."""
 	for dish: int in Rules.DISH_COUNT:
-		if Rules.is_input(dish, item):
+		if dish != Rules.DISH_BEAN_HOTPOT and Rules.is_input(dish, item):
 			return Words.cookable_line(dish)
 	return ""
 

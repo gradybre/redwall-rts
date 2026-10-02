@@ -28,6 +28,7 @@ const WaterGridScript := preload("res://demo/water/water_grid.gd")
 const FishingDriverScript := preload("res://demo/water/fishing_driver.gd")
 const Fishing := preload("res://scripts/core/fishing.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const LensPalette := preload("res://demo/lenses/lens_palette.gd")
 
 const ZONE_SHADER_CODE: String = """
 shader_type spatial;
@@ -50,9 +51,10 @@ void fragment() {
 	ALPHA = v_depth > 0.0005 ? c.a : 0.0;
 }
 """
-const WADE_COLOUR: Color = Color(1.0, 0.86, 0.3, 0.55)
-const SWIM_COLOUR: Color = Color(0.3, 0.8, 1.0, 0.5)
-const DIVE_COLOUR: Color = Color(0.45, 0.25, 0.9, 0.55)
+## The zones' colours are the map layers' tokens (demo/lenses/lens_palette.gd, decision 0581: colour-blind checked).
+const WADE_COLOUR: Color = LensPalette.WADE
+const SWIM_COLOUR: Color = LensPalette.SWIM
+const DIVE_COLOUR: Color = LensPalette.DIVE
 const FORD_COLOUR: Color = Color(0.4, 0.95, 0.4)
 const BRIDGE_COLOUR: Color = Color(1.0, 0.55, 0.2)
 const LANDING_COLOUR: Color = Color(1.0, 1.0, 1.0)

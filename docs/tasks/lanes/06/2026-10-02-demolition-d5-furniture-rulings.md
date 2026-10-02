@@ -22,7 +22,7 @@ Decision: [0536](../../../decisions/0536-furniture-returns-half-by-type-and-piec
   `close_refund()` refuse a demolition by name; the pinned DEMOLISH fixtures use the
   coordinator's doors.
 
-**Readings awaiting confirmation** (0536): one admission per building; a piece's return never
+**Readings confirmed by Brendan on 2026-10-02 as rulings R1–R8** (0536), among them: one admission per building; a piece's return never
 goes to its own building's stores; a removal requires an ACTIVE building; the removal purpose sits
 outside ADR 0186's frozen enum until CONSTRUCTION-SAVED-BINDINGS revisits it.
 

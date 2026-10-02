@@ -1,5 +1,5 @@
 # 0536 — Furniture returns half by type, a piece can be removed alone, and only the coordinator completes a removal
-Date: 2026-10-02 · Status: Accepted (Brendan's rulings on decision 0535's P1–P3; the readings below await confirmation)
+Date: 2026-10-02 · Status: Accepted. Brendan's rulings on decision 0535's P1–P3, and his confirmation of this record's eight readings as rulings R1–R8 (2026-10-02)
 
 Numbered 0536 because the follow-up brief offered it. No record numbered 0536 exists on any
 branch (`git ls-tree` over every ref) or in any registered worktree when this was written;
@@ -103,7 +103,31 @@ furniture refusal it replaces.
      stranded-claim tests, which now strand a claim through `close_demolition_refund()` called
      around the coordinator.
 
-## Readings, stated so they can be overruled
+## Brendan's confirmation of the eight readings, 2026-10-02 (rulings R1–R8)
+
+The executor reported eight readings with this record; Brendan confirmed all eight on
+2026-10-02 (relayed by the coordinator). No behaviour changed when they were adopted. They are
+rulings R1–R8 of this record; each is stated in full where it lives below.
+
+- **R1 — #3b ignores room validity.** Any shelf in a PANTRY room carries its 50000 g of the
+  building's pantry store, valid or not yet (Decision item 4).
+- **R2 — one admission per building.** A piece's removal is recorded on its building's row; the
+  building's demolition and a second piece wait (Readings, first bullet).
+- **R3 — a piece's return never goes to its own building's stores.** R1 of decision 0534 applies
+  unchanged with the piece's building as subject (Readings).
+- **R4 — a removal requires an ACTIVE building** (Readings).
+- **R5 — the removal purpose sits outside ADR 0186's frozen enum** until
+  CONSTRUCTION-SAVED-BINDINGS revisits that contract (Readings).
+- **R6 — equal-charge furniture swaps are not detected** (Readings).
+- **R7 — shelf capacity is subtracted, never added here;** a future shelf-placement path must add
+  the 50000 g (Readings).
+- **R8 — a shelf removed around the coordinator and recovered through the stranded door keeps
+  its 50000 g in the pantry** (Decision item 3).
+
+The Readings section's "coordinator's own doors stay public" bullet was not among the eight
+presented; it stays a recorded consequence of ruling P3, not a separate ruling.
+
+## Readings (confirmed as rulings R1–R8 above, except where noted)
 
 - **One admission per building.** A piece's removal is recorded on its building's row in
   `demolition_admissions.gd`, so a building has at most one demolition OR one piece removal

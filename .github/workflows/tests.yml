@@ -263,3 +263,4 @@ jobs:
           python3 tools/test_build_demo_windows.py
           python3 tools/test_balance_report.py
           python3 tools/test_soak_report.py
+          python3 tools/test_stage_art_passes.py

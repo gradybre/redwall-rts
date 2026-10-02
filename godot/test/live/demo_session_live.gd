@@ -11,7 +11,11 @@ extends SceneTree
 ## resumes; G opens "Run until..." as a modal; clicking 4x and Next meal runs the village until the kitchen's 07:00 call
 ## and it pauses saying so; from 05:40, Dawn stops at 06:00 to the tick; F6 opens the object list and Enter on a row
 ## selects and centres that resident; in the menu's Settings, clicking Reduced motion, Large readable and Keyboard
-## planner applies each live, and Restore defaults asks and restores. Prints `LIVE <name>: PASS|FAIL <detail>` per check
+## planner applies each live, and Restore defaults asks and restores. While paused, the guide's card shown, hidden and
+## shown again: the pause card stays one or two rows tall, steps below the guide's card, and a click below it passes;
+## its words made tall and then one row again, it shrinks back (decision 0931: windowed, it once grew to some 435 px,
+## because its words were measured at 1 px, and swallowed the clicks there; this last step drives the same growth
+## headless). Prints `LIVE <name>: PASS|FAIL <detail>` per check
 ## and `LIVE-SUMMARY <checks> <failures>`; exits 1 on any failure.
 
 const SHELL_PATH: String = "res://scripts/ui/ui_shell.gd"
@@ -26,6 +30,12 @@ const BOOT_FRAMES: int = 12
 const STEP_FRAMES: int = 2
 ## How long a run may take to arrive before the check gives up (real milliseconds: a game hour is 6.25 s at 4x).
 const RUN_MSEC: int = 40000
+## The pause card at most this many rows of words tall (decision 0931).
+const CARD_ROWS: int = 2
+## How far below the pause card's most height the mouse must pass it (viewport px).
+const BELOW_CARD: float = 24.0
+## The words' height while the harness makes them tall (logical px), as the 1 px measuring did.
+const GROWN_WORDS: float = 400.0
 ## The run targets' indices (run_until.gd TARGET_*: the harness cannot preload it beside the autoloads).
 const TARGET_DAWN: int = 0
 const TARGET_MEAL: int = 2
@@ -63,7 +73,10 @@ func _initialize() -> void:
 	_village = (load("res://demo/demo_village.tscn") as PackedScene).instantiate()
 	root.add_child(_village)
 	current_scene = _village
-	_steps = [_wait_until_open, _running_shows_no_card, _space_pauses_and_the_card_says_so, _the_card_resumes_by_space,
+	_steps = [_wait_until_open, _running_shows_no_card, _space_pauses_and_the_card_says_so, _show_the_guide_card,
+		_the_card_fits_under_the_guide, _the_card_fits_with_the_guide_gone, _the_guide_card_returns,
+		_the_card_fits_under_the_guide_again, _a_click_below_the_card_passes, _the_card_grew, _the_card_shrank_back,
+		_the_card_resumes_by_space,
 		_planning_pauses_with_the_pantry, _the_pantry_paused, _closing_the_pantry_resumes, _g_opens_the_run_menu, _choose_4x_and_next_meal,
 		_wait_for_the_meal, _resume_after_the_meal, _jump_to_before_dawn, _run_until_dawn, _wait_for_dawn,
 		_space_resumes_after_dawn, _f6_opens_the_object_list, _enter_selects_and_centres, _open_the_settings,
@@ -224,6 +237,106 @@ func _space_pauses_and_the_card_says_so() -> void:
 	var resume: Button = _card().call(&"resume_button")
 	_check("its Resume is enabled", not resume.disabled)
 	_capture("pause_player")
+
+
+func _guide() -> Node:
+	"""The first-village guide."""
+	return _village.call(&"guide")
+
+
+func _guide_card_shown() -> bool:
+	"""Whether the guide's card is up."""
+	return bool(_guide().get(&"card").call(&"is_shown"))
+
+
+func _set_guide_card(shown: bool) -> void:
+	"""Show or hide the guide's card (the guide's own toggle), and let the pause card look at once."""
+	if _guide_card_shown() != shown:
+		_guide().call(&"toggle_guide")
+	_card().call(&"refresh")
+
+
+func _card_limit() -> float:
+	"""The pause card's most height in viewport px: CARD_ROWS lines of words (or Resume, if taller) and its margins."""
+	var card: CanvasLayer = _card()
+	var label: Label = card.call(&"text_label")
+	var margins: PackedFloat32Array = card.get_script().get_script_constant_map()["MARGINS"]
+	var row: float = maxf(CARD_ROWS * label.get_line_height(), (card.call(&"resume_button") as Button).size.y)
+	return (row + margins[1] + margins[3]) * (card.call(&"frame") as Control).scale.y + 1.0
+
+
+func _check_card_fits(when: String) -> void:
+	"""The pause card shown, as tall as its words, at most CARD_ROWS rows, and clear of the top card it steps below."""
+	var card: CanvasLayer = _card()
+	var frame: PanelContainer = card.call(&"frame")
+	var rect: Rect2 = card.call(&"frame_rect")
+	var limit: float = _card_limit()
+	_check("the pause card shows %s" % when, bool(card.call(&"is_shown")))
+	_check("the pause card fits its words %s" % when, frame.size.y <= frame.get_combined_minimum_size().y + 0.5,
+		"%.0f tall, its words %.0f" % [frame.size.y, frame.get_combined_minimum_size().y])
+	_check("the pause card at most %d rows %s" % [CARD_ROWS, when], rect.size.y <= limit,
+		"%.0f px, limit %.0f, %d line(s)" % [rect.size.y, limit, (card.call(&"text_label") as Label).get_line_count()])
+	var top: Rect2 = _village.call(&"_top_card_rect")
+	_check("the pause card clear of the top card %s" % when, not rect.intersects(top), "%s / %s" % [rect, top])
+
+
+func _show_the_guide_card() -> void:
+	"""Paused: the guide's card up (it is at the start; reopened if not)."""
+	_set_guide_card(true)
+
+
+func _the_card_fits_under_the_guide() -> void:
+	"""The guide's card up: the pause card one row, below it; then the guide's card hides."""
+	_check("the guide's card shows", _guide_card_shown())
+	_check_card_fits("under the guide's card")
+	_set_guide_card(false)
+
+
+func _the_card_fits_with_the_guide_gone() -> void:
+	"""The guide's card hidden: the pause card still one row, back at the top."""
+	_check("the guide's card hid", not _guide_card_shown())
+	_check_card_fits("with the guide's card gone")
+	_capture("pause_card_guide_gone")
+
+
+func _the_guide_card_returns() -> void:
+	"""The guide's card shown again (the frame above is saved first)."""
+	_set_guide_card(true)
+
+
+func _the_card_fits_under_the_guide_again() -> void:
+	"""The guide's card back: the pause card one row, below it again. The mouse goes to a point the card would cover
+	were it taller than its limit (from its top, not its bottom, so a tall card cannot move the point away)."""
+	_check_card_fits("under the guide's card again")
+	_capture("pause_card_under_guide")
+	var rect: Rect2 = _card().call(&"frame_rect")
+	var motion := InputEventMouseMotion.new()
+	motion.position = Vector2(rect.get_center().x, rect.position.y + _card_limit() + BELOW_CARD)
+	root.push_input(motion)
+
+
+func _a_click_below_the_card_passes() -> void:
+	"""Below the pause card's limit, the mouse is not on it (it takes the mouse only on itself). Then its words are
+	made tall, as the 1 px measuring made them."""
+	var over: Control = root.gui_get_hovered_control()
+	var frame: Control = _card().call(&"frame")
+	_check("the pause card does not take the mouse below its limit", over == null or not (over == frame
+		or frame.is_ancestor_of(over)), str(over))
+	(_card().call(&"text_label") as Label).custom_minimum_size.y = GROWN_WORDS
+
+
+func _the_card_grew() -> void:
+	"""Tall words, a tall card, placed while tall (as the windowed run placed it while its words measured 1 px wide:
+	the size set then is kept); then the words are one row again."""
+	var rect: Rect2 = _card().call(&"frame_rect")
+	_check("tall words make the pause card tall", rect.size.y > _card_limit(), "%.0f px" % rect.size.y)
+	_card().call(&"_place")
+	(_card().call(&"text_label") as Label).custom_minimum_size.y = 0.0
+
+
+func _the_card_shrank_back() -> void:
+	"""The words one row again: the card shrinks back to them (a Control alone would stay tall)."""
+	_check_card_fits("after its words shrank back")
 
 
 func _the_card_resumes_by_space() -> void:

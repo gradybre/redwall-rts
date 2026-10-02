@@ -163,7 +163,10 @@ Review UX-022 (`session/`). **Every pause says why, and there is one Resume.**
 - **The pause card** (`ui/demo_pause_card.gd`) stands in for the HUD's "Paused: PLAYER" line, top centre: "Paused —"
   and each reason in words, most urgent first, then **Resume (Space)**. Its tooltip says what Resume clears. While a
   pop-up is open (the Pantry, the Work screen, the object list) it sits bottom centre above it. Otherwise it steps below
-  the one card shown at the top centre under the alerts -- the incident card, else the first-village guide's card.
+  the one card shown at the top centre under the alerts -- the incident card, else the first-village guide's card, else
+  the people's offer card -- and steps back the frame that card goes or changes size. It is always one row (two when the
+  words wrap) and takes the mouse only on its own panel (decision 0931: windowed, it once grew to about 435 px at 1080p,
+  because its wrapping words were measured at their hidden 1 px width, and it swallowed the clicks there).
 - **The kinds** (`session/pause_ledger.gd`): *Critical* -- a critical incident (a resident in difficulty in the water, a
   tunnel threat), with "Pause on a critical incident" on (the default), or a stall (the stall banner's own, as before);
   *the game menu*, or *the village guide* (its window holds its own MENU hold, so neither releases the other's);

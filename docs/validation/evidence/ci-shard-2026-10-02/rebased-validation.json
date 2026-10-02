@@ -1,0 +1,41 @@
+{
+  "base_commit": "d75d9d89d7a7b08fc2dac1de2c50567ea66b0b77",
+  "contracts_job_byte_identical_to_base": true,
+  "original_engine_gate_commands_preserved_once": 24,
+  "protected_game_and_existing_decision_paths_unchanged": true,
+  "suite_files": 275,
+  "new_batch_7_files_automatically_included": 35,
+  "suite_counts_per_shard": [
+    32,
+    33,
+    35,
+    35,
+    35,
+    35,
+    35,
+    35
+  ],
+  "estimated_usec_per_shard": [
+    106680544,
+    106678529,
+    106680447,
+    106679895,
+    106680460,
+    106680546,
+    106679934,
+    106679629
+  ],
+  "batch_7_contracts": {
+    "python3 tools/test_balance_report.py": "18 tests, OK",
+    "python3 tools/test_soak_report.py": "28 tests, OK"
+  },
+  "decision_numbers": "PASS -- 286 records, 0 problem(s)",
+  "candidate_sha256": {
+    ".github/workflows/tests.yml": "39e2b32841fef9dd09da9ac3c9d7b3bb39d82b8a648565627a200a027cdde5df",
+    "tools/run_tests.sh": "9c6fa93648435aaf13a9be04667f438a709f7cc641df728782c42d8491f96d70",
+    "tools/ci_test_shard_runner.gd": "18e9a1c77dfa6a675e52d434704dfabbe4a7a8ed3707c0d00372f10f2a44b3c1",
+    "tools/ci_test_shards.py": "06006deab953ecce31dbde6bb411231b696eca540322ad912a0317de1a34f077",
+    "tools/test_ci_test_shards.py": "904d3f7b0156579e615fb4c8d8455e5c7f4036bf471dd74d8796ff8692995b06",
+    "tools/ci_test_shard_weights.json": "e5a6a812aad7f2b862750773fb9bb0d86bbccdb0ac130808ee2eed0f0c76c0eb"
+  }
+}

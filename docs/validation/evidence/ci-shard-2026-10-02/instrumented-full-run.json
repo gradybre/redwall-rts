@@ -1,0 +1,12 @@
+{
+  "command": [
+    "./tools/run_tests.sh",
+    "--shard",
+    "0/1",
+    "--output-dir",
+    "instrumented-full"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 797.284,
+  "runtime_setup_restored": true
+}

@@ -1,0 +1,393 @@
+[
+  {
+    "name": "Runner diagnostics self-test",
+    "command": "python3 tools/test_run_tests_diagnostics.py",
+    "exit_code": 0,
+    "wall_seconds": 0.478,
+    "tail": [
+      "test_run_tests_diagnostics: PASS -- expected, missing, unexpected, tolerated and leaked all classified"
+    ]
+  },
+  {
+    "name": "Component stream preflight fault injection",
+    "command": "python3 tools/test_component_stream_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 20.465,
+    "tail": [
+      "  \"schema_sha256\": \"3ba6151cac28c7d80d8c1a386dca394910ae3b7d16390207660f9b5eb6ca3cad\",",
+      "  \"native_big_endian_tested\": false",
+      "}"
+    ]
+  },
+  {
+    "name": "Needs metadata preflight fault injection",
+    "command": "python3 tools/test_needs_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 54.033,
+    "tail": [
+      "    \"godot/scripts/core/save_owner_needs.gd\": \"eb850b97bfe4fcc57d83fddce615af98b764f675c7561a96c2f8ed4db6540cf2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Priorities metadata preflight fault injection",
+    "command": "python3 tools/test_priorities_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 51.264,
+    "tail": [
+      "    \"godot/scripts/core/priorities.gd\": \"27b1bd69d315f822dc34ee59ab8e01c74cd23396f4228467a08171216605f3a4\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Schedule metadata preflight fault injection",
+    "command": "python3 tools/test_schedule_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 50.031,
+    "tail": [
+      "    \"godot/scripts/core/schedule.gd\": \"e6b3b67b00eb634009a33d7d0b54a08a6c6b110514266c859842d388e2108f4e\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Transforms metadata preflight fault injection",
+    "command": "python3 tools/test_transforms_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 48.973,
+    "tail": [
+      "    \"godot/scripts/core/transforms.gd\": \"7837023a446b4d7f1f76abfacd6feeb23ce903b7467aaa35f24d91cee7efcd36\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Fauna metadata preflight fault injection",
+    "command": "python3 tools/test_fauna_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 60.279,
+    "tail": [
+      "    \"godot/scripts/core/entity_directory.gd\": \"0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Work metadata preflight fault injection",
+    "command": "python3 tools/test_work_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 49.984,
+    "tail": [
+      "    \"godot/scripts/core/entity_directory.gd\": \"0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "ResourceNodes metadata preflight fault injection",
+    "command": "python3 tools/test_resource_nodes_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 49.365,
+    "tail": [
+      "    \"godot/scripts/core/entity_directory.gd\": \"0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Injury metadata preflight fault injection",
+    "command": "python3 tools/test_injury_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 49.808,
+    "tail": [
+      "    \"godot/scripts/core/entity_directory.gd\": \"0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Residents metadata preflight fault injection",
+    "command": "python3 tools/test_residents_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 73.987,
+    "tail": [
+      "    \"godot/scripts/core/entity_directory.gd\": \"0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "FieldPolicy metadata preflight fault injection",
+    "command": "python3 tools/test_field_policy_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 54.497,
+    "tail": [
+      "    \"godot/scripts/core/entity_directory.gd\": \"0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Farming metadata preflight fault injection",
+    "command": "python3 tools/test_farming_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 18.039,
+    "tail": [
+      "    \"godot/project.godot\": \"de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Fishing metadata preflight fault injection",
+    "command": "python3 tools/test_fishing_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 23.264,
+    "tail": [
+      "    \"godot/project.godot\": \"de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Movement metadata preflight fault injection",
+    "command": "python3 tools/test_movement_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 19.762,
+    "tail": [
+      "    \"godot/project.godot\": \"de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Buildings metadata preflight fault injection",
+    "command": "python3 tools/test_buildings_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 57.781,
+    "tail": [
+      "    \"godot/project.godot\": \"de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Buildings borrowed-buffer allocation discriminator",
+    "command": "python3 tools/test_buildings_allocation.py",
+    "exit_code": 0,
+    "wall_seconds": 2.552,
+    "tail": [
+      "    \"docs/validation/evidence/buildings-validation-planning-2026-09-20/parent-allocation-probe.gd\": \"98b3fc92b49bad67650964ea5867ad7e2ef5cb5ad48198e3555c4877591923dd\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Construction source and schema fault injection",
+    "command": "python3 tools/test_construction_metadata_preflights.py",
+    "exit_code": 0,
+    "wall_seconds": 41.922,
+    "tail": [
+      "{\"runs\": 62, \"fault_units\": 60, \"valid\": 62, \"passed\": 62, \"source_unchanged\": true, \"seconds\": 41.871}"
+    ]
+  },
+  {
+    "name": "Construction borrowed-buffer allocation discriminator",
+    "command": "python3 tools/test_construction_allocation.py",
+    "exit_code": 0,
+    "wall_seconds": 2.701,
+    "tail": [
+      "    \"docs/validation/evidence/construction-component-validation-2026-09-20/allocation-probe.gd\": \"632ca9618ca844a6777ede6c00d1c32d51fa6bdc916134b3368f5587c67aeaa6\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Starter structures metadata fault injection",
+    "command": "python3 tools/test_starter_structures_metadata.py",
+    "exit_code": 0,
+    "wall_seconds": 11.797,
+    "tail": [
+      "    \"godot/scripts/core/starter_structures.gd\": \"f8f7183a4e0d4a34aa31836b694591d34bae58d41a039406acb045d90671bf49\"",
+      "  }",
+      "}"
+    ]
+  },
+  {
+    "name": "Demo audio staging self-test",
+    "command": "python3 tools/test_stage_demo_audio.py",
+    "exit_code": 0,
+    "wall_seconds": 0.343,
+    "tail": [
+      "test_stage_demo_audio: PASS -- 206 check(s), 0 failure(s)"
+    ]
+  },
+  {
+    "name": "UI refinement contract",
+    "command": "python3 docs/validation/ui_refinement_contract.py",
+    "exit_code": 0,
+    "wall_seconds": 0.037,
+    "tail": [
+      "  \"runtime_UI\": \"NOT_RUN\",",
+      "  \"user_visual_approval\": \"PENDING\"",
+      "}"
+    ]
+  },
+  {
+    "name": "Check the copied hash kernel against the engine",
+    "command": "python3 docs/validation/ready07_addendum_checks.py --godot",
+    "exit_code": 0,
+    "wall_seconds": 0.203,
+    "tail": [
+      "  },",
+      "  \"kernel_output\": \"Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\\n\\nNAME_HASH_KERNEL_PASS: 7 vectors\"",
+      "}"
+    ]
+  },
+  {
+    "name": "Decision numbers are unique and match their headings",
+    "command": "python3 docs/validation/decision_numbers.py",
+    "exit_code": 0,
+    "wall_seconds": 0.035,
+    "tail": [
+      "decision_numbers: PASS -- 255 records, 0 problem(s)"
+    ]
+  },
+  {
+    "name": "Memory ledger arithmetic",
+    "command": "python3 docs/validation/ready07_arithmetic.py",
+    "exit_code": 0,
+    "wall_seconds": 0.045,
+    "tail": [
+      "{\"status\": \"PASS\", \"field_rows\": 145, \"allocation_rows\": 39, \"scheduler_total_bytes\": 8224, \"checked_local_links\": 129, \"runtime_tests\": \"NOT_RUN\"}"
+    ]
+  },
+  {
+    "name": "Merge gate (ledger chain, double budgets, row arithmetic)",
+    "command": "python3 docs/validation/merge_gate.py",
+    "exit_code": 0,
+    "wall_seconds": 0.034,
+    "tail": [
+      "merge_gate: PASS -- ledger only, 0 problem(s)"
+    ]
+  },
+  {
+    "name": "Dispatch graph is well formed",
+    "command": "python3 tools/dispatch_plan.py --validate",
+    "exit_code": 0,
+    "wall_seconds": 0.032,
+    "tail": [
+      "dispatch_plan: PASS -- 128 tasks, 0 problem(s)"
+    ]
+  },
+  {
+    "name": "Astra inbox index is current",
+    "command": "python3 tools/astra_inbox.py --check",
+    "exit_code": 0,
+    "wall_seconds": 0.031,
+    "tail": [
+      "astra_inbox: PASS -- OPEN.md matches open_items.json"
+    ]
+  },
+  {
+    "name": "Canonical registry matches the source it claims to describe",
+    "command": "python3 docs/validation/validate_save_registry_handoff.py --source-root .",
+    "exit_code": 0,
+    "wall_seconds": 0.262,
+    "tail": [
+      "state_registry_coverage: PASS -- 88 modules, 417 rows, 724 packed columns checked",
+      "PASS source membership/types: 555 persisted packed fields (not semantic adapter validation)",
+      "PASS registry structure: 52 owners, 604 canonical records"
+    ]
+  },
+  {
+    "name": "Compiled declaration table is regenerable from the registry",
+    "command": "python3 tools/generate_canonical_state_table.py --check",
+    "exit_code": 0,
+    "wall_seconds": 0.032,
+    "tail": [
+      "PASS generated declaration table matches canonical_state_registry.json"
+    ]
+  },
+  {
+    "name": "Astra cycle handoff contracts",
+    "command": "set -euo pipefail\npython3 docs/validation/validate_cycle01_handoff.py\npython3 docs/validation/validate_cycle02_handoff.py\npython3 docs/validation/validate_cycle03_handoff.py --source-root .\n",
+    "exit_code": 0,
+    "wall_seconds": 0.103,
+    "tail": [
+      "No production codec, body measurement, movement admission, visual approval or save-continuation result is inferred.",
+      "PASS Cycle3: 76 checks; design geometry/format/grammar/handoff only.",
+      "Observed registry: 604 canonical fields; 521 capacity strings = 474 exact + 47 upper bounds. Source proofs still owned by REGISTRY-CAPACITY-AUDIT."
+    ]
+  },
+  {
+    "name": "Registry capacity audit sidecar",
+    "command": "set -euo pipefail\npython3 tools/audit_registry_capacities.py --check\npython3 tools/test_registry_capacity_audit.py\n",
+    "exit_code": 0,
+    "wall_seconds": 4.613,
+    "tail": [
+      "  explained drift -- upper_bound: this audit 47, Astra Cycle 3 46 (+1) -- decisions 0142, 0157, 0167 and 0531: retire three deposit members; persist three dirty lists/counts, full Expedition claim slot and the container anchor tile",
+      "census differs from Astra Cycle 3 (388f4f4) only by recorded decisions: reconciled",
+      "test_registry_capacity_audit: PASS -- 190 check(s), 0 failure(s)"
+    ]
+  },
+  {
+    "name": "Component column schema matches source capacities",
+    "command": "set -euo pipefail\npython3 tools/generate_component_columns_schema.py --check\npython3 tools/test_component_columns_schema.py\n",
+    "exit_code": 0,
+    "wall_seconds": 18.338,
+    "tail": [
+      "PASS generated component column metadata matches component_columns_layout.json",
+      "test_component_columns_schema: PASS -- 58 checks"
+    ]
+  },
+  {
+    "name": "Lane records are one file each, not appended to a shared checklist",
+    "command": "python3 tools/lane_notes.py --check",
+    "exit_code": 0,
+    "wall_seconds": 0.036,
+    "tail": [
+      "lane_notes: PASS -- 59 lane record(s), 0 problem(s)"
+    ]
+  },
+  {
+    "name": "Movement envelope fit arithmetic",
+    "command": "python3 tools/test_movement_envelopes.py",
+    "exit_code": 0,
+    "wall_seconds": 0.512,
+    "tail": [
+      "test_movement_envelopes: PASS -- 191 check(s), 0 failure(s)"
+    ]
+  },
+  {
+    "name": "Movement profile policy register",
+    "command": "python3 tools/test_movement_profile_policy.py",
+    "exit_code": 0,
+    "wall_seconds": 0.079,
+    "tail": [
+      "test_movement_profile_policy: PASS -- 148 check(s), 0 failure(s)"
+    ]
+  },
+  {
+    "name": "State registry covers every packed column",
+    "command": "python3 docs/validation/state_registry_coverage.py",
+    "exit_code": 0,
+    "wall_seconds": 0.253,
+    "tail": [
+      "state_registry_coverage: PASS -- 88 modules, 417 rows, 724 packed columns checked"
+    ]
+  },
+  {
+    "name": "Validator self-tests",
+    "command": "set -euo pipefail\npython3 docs/validation/test_headless_runner.py\npython3 docs/validation/test_qualify.py\npython3 docs/validation/test_winter.py\npython3 docs/validation/test_merge_gate.py\npython3 tools/test_repair_meshy_rig.py\npython3 tools/test_rig_meshy_tail.py\npython3 tools/test_bake_meshy_tail.py\npython3 tools/test_ground_meshy_clips.py\npython3 tools/test_demo_texture_imports.py\npython3 tools/test_build_demo_windows.py\n",
+    "exit_code": 0,
+    "wall_seconds": 11.823,
+    "tail": [
+      "test_ground_meshy_clips: PASS -- 224 check(s), 0 failure(s)",
+      "test_demo_texture_imports: PASS -- 44 check(s), 0 failure(s)",
+      "test_build_demo_windows: PASS -- 76 check(s), 0 failure(s)"
+    ]
+  }
+]

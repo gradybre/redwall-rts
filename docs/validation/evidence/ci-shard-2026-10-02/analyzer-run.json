@@ -1,0 +1,17 @@
+{
+  "command": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--max",
+    "0",
+    "--port",
+    "59796",
+    "--editor-project",
+    "<temporary project copy>"
+  ],
+  "exit_code": 0,
+  "wall_seconds": 185.331,
+  "summary": [
+    "0 GDScript warning(s) in 0 of 816 file(s)"
+  ]
+}

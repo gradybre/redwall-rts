@@ -368,13 +368,16 @@ func nearest_capable_into(at: Vector2, victim: int, need: int, out: IntMath.IntR
 
 func may_go(who: int, victim: int, need: int) -> bool:
 	"""Whether resident `who` may go to `victim`'s rescue to meet `need` (NEED_*): on land, not held or in
-	difficulty, not in a tunnel, not already rescuing, not the one that last let this victim go -- and,
+	difficulty, not in a tunnel, not already rescuing, not the one that last let this victim go, well enough (health 70
+	and no untreated injury: swim_state.gd `fit`, for every role -- a patient is not drafted; decision 1045) -- and,
 	for a swimmer or a diver, one who may swim now (HAZ-001); for a diver, one whose air covers the
 	fetch (`has_fetch_air`)."""
 	var brain: BrainScript = brain_of(who)
 	if who == victim or brain.in_water or brain.water_hold or brain.underground or _is_rescuing(brain):
 		return false
 	if victim_task(victim) != null and victim_task(victim).let_go == who:
+		return false
+	if not _state.fit(who):
 		return false
 	if need == NEED_ANY:
 		return true

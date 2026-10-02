@@ -68,6 +68,10 @@ var exhausted_latch: PackedByteArray = PackedByteArray()
 var air_latch: PackedByteArray = PackedByteArray()
 ## Bumped whenever something a panel shows changes (a mode, a latch, a capability).
 var revision: int = 0
+## HAZ-001's health half of the entry test (decision 1045): `(who: int) -> bool`, whether `who` is well enough to go
+## into the water (health >= 70, no untreated injury). The infirmary sets it (demo_care.gd `fit_for_water`); unset --
+## a suite without one -- everyone is.
+var fitness: Callable = Callable()
 
 var _carry: PackedInt64Array = PackedInt64Array([0])
 
@@ -223,16 +227,23 @@ func take_events(who: int) -> int:
 
 func swim_refusal(who: int, loaded: bool) -> StringName:
 	"""Why `who` may not start a routine swim now (Rules.REFUSE_NONE: it may): capability, a load,
-	consent, rest (HAZ-001), or already in difficulty."""
+	consent, health and injury (HAZ-001, `fit`), rest (HAZ-001), or already in difficulty."""
 	if not can_swim(who):
 		return Rules.REFUSE_CANNOT_SWIM
 	if loaded:
 		return Rules.REFUSE_LOADED
 	if consent[who] == 0:
 		return Rules.REFUSE_NO_CONSENT
+	if not fit(who):
+		return Rules.REFUSE_HURT
 	if not Rules.admits_swim(rest[who]) or in_difficulty(who):
 		return Rules.REFUSE_TIRED
 	return Rules.REFUSE_NONE
+
+
+func fit(who: int) -> bool:
+	"""Whether `who` is well enough for the water now (`fitness`; true when nothing sets it)."""
+	return not fitness.is_valid() or bool(fitness.call(who))
 
 
 func rest_percent(who: int) -> int:

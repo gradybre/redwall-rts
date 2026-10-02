@@ -33,6 +33,8 @@ const ServicesScript := preload("res://demo/demo_services.gd")
 const NightScript := preload("res://demo/burrow/night_routine.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 const SwimStateScript := preload("res://demo/waterplay/swim_state.gd")
+const SwimRules := preload("res://demo/waterplay/swim_rules.gd")
+const CareStateScript := preload("res://demo/infirmary/care_state.gd")
 const NoticesScript := preload("res://demo/demo_notices.gd")
 
 @warning_ignore_start("integer_division")
@@ -84,6 +86,8 @@ func configure(cast: DemoCastScript, services: ServicesScript, night: NightScrip
 	_night = night
 	_fed = fed
 	_swim = swim
+	if swim != null:
+		swim.fitness = fit_for_water
 	_configure_desk(night, graph)
 	desk.bind_news(services.notices, services.incidents)
 	if pace != null:
@@ -222,6 +226,20 @@ func _on_section_pressed() -> void:
 func card_text(i: int, alone: bool) -> String:
 	"""The party panel's infirmary lines for resident `i` (care_desk.gd `card_text`)."""
 	return desk.card_text(i, alone)
+
+
+func fit_for_water(i: int) -> bool:
+	"""HAZ-001's health half of the water's entry test for resident `i` (decision 1045; `fitness_in`): the water's
+	`fitness` hook."""
+	return fitness_in(desk.state, i)
+
+
+static func fitness_in(care_state: CareStateScript, i: int) -> bool:
+	"""HAZ-001's health half of the water's entry test for resident `i` on `care_state`: health >= 70 and no untreated
+	injury -- every injury is untreated until its treatment clears it. One it holds no row for is not refused."""
+	if i < 0 or i >= care_state.resident_count():
+		return true
+	return SwimRules.admits_health(care_state.health(i), care_state.is_hurt(i))
 
 
 func lab_hurt(members: PackedInt32Array, serious: bool) -> int:

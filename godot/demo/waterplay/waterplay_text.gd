@@ -9,6 +9,8 @@ const WaterRules := preload("res://demo/water/water_rules.gd")
 const WaterLayout := preload("res://demo/water/water_layout.gd")
 const WaterMapScript := preload("res://demo/water/water_map.gd")
 const StateScript := preload("res://demo/waterplay/swim_state.gd")
+## Why a hurt resident may not go into the water (HAZ-001, decision 1045).
+const HURT_WORDS: String = "it needs health 70 and no untreated injury"
 const MotionScript := preload("res://demo/waterplay/swim_motion.gd")
 const BridgesScript := preload("res://demo/waterplay/bridges.gd")
 const CrewScript := preload("res://demo/waterplay/bridge_crew.gd")
@@ -89,6 +91,8 @@ func refusal_words(who: int, why: StringName, at: Vector2 = Vector2.ZERO) -> Str
 			return "too shallow for %s to dive here (%s)" % [name, depth_words(who, at)]
 		Rules.REFUSE_ICE:
 			return "%s can't swim there: ice covers the pond" % name
+		Rules.REFUSE_HURT:
+			return "%s isn't well enough to swim (%s)" % [name, HURT_WORDS]
 	return "%s can't go: %s" % [name, String(why).to_lower().replace("_", " ")]
 
 
@@ -112,6 +116,8 @@ func reason_words(who: int, why: StringName) -> String:
 			return "ice covers the pond"
 		Rules.REFUSE_CANNOT_SWIM:
 			return "it doesn't swim"
+		Rules.REFUSE_HURT:
+			return "not well enough (%s)" % HURT_WORDS
 	return String(why).to_lower().replace("_", " ")
 
 

@@ -145,6 +145,10 @@ const REFUSE_AIR: StringName = &"AIR_BUDGET"
 const REFUSE_TOO_SHALLOW: StringName = &"TOO_SHALLOW_TO_DIVE"
 ## Ice covers the water (water part B, decision 0433): nobody swims or dives under it.
 const REFUSE_ICE: StringName = &"ICE_COVERS_THE_WATER"
+## Hurt or not well enough (HAZ-001's entry test, decision 1045): health under ENTRY_HEALTH, or an untreated injury.
+const REFUSE_HURT: StringName = &"HURT"
+## HAZ-001: "New deliberate entry to dangerous travel requires health >=70 ... no active untreated injury".
+const ENTRY_HEALTH: int = 70
 
 
 static func has_species(species: String) -> bool:
@@ -257,6 +261,11 @@ static func must_return(air: int, back_ticks: int) -> bool:
 static func admits_swim(rest: int) -> bool:
 	"""HAZ-001: new entry to a dangerous swim needs rest >= 4000."""
 	return rest >= REST_ENTRY_MIN
+
+
+static func admits_health(health: int, untreated_injury: bool) -> bool:
+	"""HAZ-001: new entry to a dangerous swim needs health >= 70 and no active untreated injury (decision 1045)."""
+	return health >= ENTRY_HEALTH and not untreated_injury
 
 
 # --- bridges -------------------------------------------------------------------------------------

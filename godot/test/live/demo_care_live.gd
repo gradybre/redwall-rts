@@ -267,6 +267,8 @@ func _the_test_injury() -> void:
 	var state: RefCounted = _desk().get("state")
 	_check("the fisher is bitten", int(state.call(&"kind", fisher)) == Injury.KIND_BITE, str(state.call(&"kind", fisher)))
 	_check("health 80", int(state.call(&"health", fisher)) == 80, str(state.call(&"health", fisher)))
+	var swim: RefCounted = _village.get("_waterplay").get("state")
+	_check("kept out of the water while hurt (HAZ-001)", not bool(swim.call(&"fit", fisher)))
 	var notices: RefCounted = _village.get("_services").get("notices")
 	var name: String = String(_cast().call(&"actor", fisher).get("display_name"))
 	_check("said in the news", bool(notices.call(&"has_summary", "%s hurt (bite) — needs treatment" % name)))
@@ -311,6 +313,7 @@ func _treated() -> void:
 	_hold()
 	_check("treated", done >= 0, "%d frames" % done)
 	_check("health back up", int(state.call(&"health", fisher)) >= 90, str(state.call(&"health", fisher)))
+	_check("fit for the water again", bool(_village.get("_waterplay").get("state").call(&"fit", fisher)))
 	_check("herb and cloth paid once", int(state.get("herb_milli")) == 11000 and int(state.get("cloth_milli")) == 23500,
 		"%d %d" % [state.get("herb_milli"), state.get("cloth_milli")])
 	await _after_treatment(fisher, herbalist)

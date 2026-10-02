@@ -91,8 +91,13 @@ Options:
     and 70 with no injury as well as a bite;
   - `test_a_diver_hurt_on_the_way_is_refused_at_the_water` and
     `test_a_diver_hurt_at_the_surface_turns_for_home` (review H1).
-- Mutation testing: 11 mutants over the rule, the hook, the refusal order, every
-  role, the default and the wiring. All 11 killed.
+- Mutation testing: 15 mutants, all killed. They cover:
+  - the rule;
+  - the hook, its default and its wiring;
+  - the order of refusals;
+  - every rescue role;
+  - the health half of the hook;
+  - the dive's two rechecks and its feed line.
 - `demo_care_live.gd` at 1280x720 and 1920x1080 checks the real village's wiring:
   the bitten fisher is not fit, and is fit again once treated. The harness's
   minimum check count is raised from 31 to 33. `LIVE-SUMMARY 37 0` at both sizes.

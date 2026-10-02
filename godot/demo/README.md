@@ -507,8 +507,34 @@ Review group M (F22, F32, F44's remainder, SOC-004, UX-001, UX-002, UX-007). `wo
   eligibility; with residents selected, the group previewed member by member), **▲/▼ Priority** and **Urgent**. A
   command a task cannot take is disabled saying why. **Residents and crews**: each crew, its members' status, what each
   is doing now and its order list (▲ Sooner, ▼ Later, ✕ Remove), ◀ Crew / Crew ▶; the presets above. **Projects**: the
-  tasks grouped by where they are. **Cancel all work…** only shows its scope (counted per source; deliveries, paid
+  tasks grouped by where they are. **Standing orders**: the goals the village keeps (see Standing orders). **Cancel all
+  work…** only shows its scope (counted per source; deliveries, paid
   tunnel jobs and bridges go on) until Cancel them is pressed.
+
+## Standing orders (decision 0711)
+
+Goals rather than tasks: `orders/`, the Work screen's fourth tab, **Standing orders** (the HUD's Jobs command, **J** --
+no new key). A standing order keeps a good stocked; when it falls below the amount the village queues the work itself.
+
+- **What can be kept** (read from data: `orders/standing_kinds.gd goods_into` lists the stores' goods, then every crop
+  of the farm's catalog, so a new crop slots in): **planks** (by sawing at the sawhorse), **wood** (deadfall first,
+  else a fell in a forestry zone -- the winter's own Firewood rule, `forest_crew.gd raise_wood`), **days of meals** (the
+  HUD's Ready food: by harvesting the ripe beds of any crop a dish takes) and **a crop** (by harvesting its ripe beds).
+  Sowing stays the farm's. The **Add row**: − amount + of ◀ good ▶, **Add order**.
+- **Each game hour** every order is kept: its finished jobs let go, the good measured and **what its jobs will still
+  bring counted** (REQ-SET-098), then the **latch** -- it starts working below the amount and stops once the good is back
+  at the amount plus a band (a saw batch, a large deadfall pile, half a day of meals, a unit of a crop), so it never
+  starts and stops at the line. It opens at most 2 (woods) or 3 (farm) jobs at once through the owners' own boards,
+  which the work board lists and claims like any other (a harvest the farm already queued is adopted, not doubled); a
+  job takes the **order's priority** and is **Urgent** (bucket 2) while fuel-days (wood) or food-days (meals and food
+  crops) are under two -- but a priority or Urgent mark you set on a task yourself holds.
+- **Each order's row**: its target, priority and switch; its **state** -- Satisfied, Working, Off, or **Blocked: why**
+  ("not enough wood to saw: …", "no pea is growing — sow some from a bed's panel"); the good now and what is coming;
+  and every job it has queued with its worker. **− / + Amount**, **▲ / ▼ Priority**, **Switch off/on**, **✕ Remove**
+  (the work it queued goes on).
+- **Notices**: only a **blocked** order raises one (a Village warning, resolved when it is no longer blocked).
+- **The winter's Firewood** is the book's **built-in** order: kept by the winter on its own hour exactly as before
+  (decision 0571), listed first, only switched off or on.
 
 ## The first-village guide (decision 0481)
 
@@ -1147,7 +1173,9 @@ Brendan's rulings of 2026-10-01; `winter/`. Presentation only: the settlement si
 - **Beds** go to warm homes first (above). **The Firewood order**: while the stores hold less wood than the twelve-day
   winter projection -- in autumn and winter, or on any day heat is demanded -- one "Firewood" order stands on the woods'
   board (deadfall first, else the nearest fellable tree in a forestry zone; never a conservation zone), listed under
-  Woods on the Work screen, and **Urgent** (the work board's bucket 2) under 2 fuel-days or while a hearth is out.
+  Woods on the Work screen, and **Urgent** (the work board's bucket 2) under 2 fuel-days or while a hearth is out. It is
+  the standing orders' built-in order (decision 0711): listed on the Work screen's Standing orders tab, where it can be
+  switched off.
 - **Heating fuel** (the top bar's Fuel slot, UI-SET-003): "2.5 days", or "No demand" ("No current heat demand" in its
   tooltip and the ledger), in clay with the warning glyph under 2 days. **Its click opens the breakdown**
   (`winter/fuel_panel.gd`, a modal; Esc closes it): the wood, today's demand, the last heated hour, in autumn and winter
@@ -1636,6 +1664,7 @@ boot). First volumes were set by measured loudness, not by ear: they wait on Bre
 | `routes/` | Route and infrastructure previews (decision 0461): the estimate on copies of the network through the routing desk, the proposal's crossing, the stretches and hold-ups, the work places, a dig's stages, a bridge's project words, the Routes map layer and its subject, the rescue card's details, and the controller over the Water and Tunnels panels |
 | `winter/` | The winter (decision 0571): the rules (`winter_rules.gd`), the hearths' fuel and the rooms' warmth (`hearth_fuel.gd`), each resident's cold (`cold_exposure.gd`), the warm-up break (`warm_up_task.gd`), the words, the Heating fuel breakdown (`fuel_panel.gd`), the season skip (`season_skip.gd`) and the node wiring it into the village (`demo_winter.gd`) |
 | `guide/` | The first-village guide (decision 0481): the outcome ledger, the objectives' progress and words, the card and its world marker, the village guide window and its pages -- help, field guide, practice stories, projects |
+| `orders/` | The standing orders (decision 0711): the kinds and goods (`standing_kinds.gd`), the book with its latch and notices (`standing_orders.gd`), one goal per kind over the woods, the farm and the kitchen (`goal_*.gd`), the Work screen's section (`standing_view.gd`, `standing_row.gd`, `standing_text.gd`) and the node keeping it on the game hour (`demo_standing.gd`) |
 | `work/` | The work board over every job owner (one adapter each), the claim, the named crews and presets, the order lists' entries, Shift+right-click's queue and the Work screen (decision 0411) |
 | `session/` | The time controls: the pause ledger (the kinds, their words, the one Resume), "Run until…" (its targets read from the calendar, the kitchen, the projects, the beds and the news) and the frame-by-frame control (Space, G, the HUD's pause button, the planning surfaces, the critical incidents) (decision 0471) |
 | `access/` | Accessibility: the settings and presets, their effects on the village, reduced motion, the world's interactive targets (the object list, F6, and their rings), the focus hint, the Settings section (decision 0471) |

@@ -184,8 +184,8 @@ Sizes are`minimum→maximum`width×height. Fixed sizes repeat both ends. Contain
 | UI-SET-001 Resource cluster |TL, left/top |176×88→480×88 |PANEL |“Settlement resources” |ALWAYS; compact composition in narrow |
 | UI-SET-002 Food counter |TL, grid cell |104×36→144×40 |READOUT |“Ready food: ”+food_days.to_fixed(2)+“ days; ”+ready_NP+“ nutrition” |ALWAYS; opens food ledger; critical icon<1 day |
 | UI-SET-003 Fuel counter |TL, grid cell |104×36→144×40 |READOUT |“Heating fuel: ”+fuel_days+“ days” or no-demand state |ALWAYS except narrow ledger; opens fuel breakdown |
-| UI-SET-004 Wood counter |TL, grid cell |104×36→144×40 |READOUT |“Wood: ”+available in logs+“ available; ”+reserved in logs+“ reserved” (DEC-049; tooltip adds each weight) |ALWAYS except narrow ledger; opens item lots |
-| UI-SET-005 Stone counter |TL, grid cell |104×36→144×40 |READOUT |Same formatter for Stone, in blocks (DEC-049) |Same |
+| UI-SET-004 Wood counter |TL, grid cell |104×36→144×40 |READOUT |“Wood: ”+level+“ — ”+available in logs+“ available; ”+reserved in logs+“ reserved” (DEC-049; tooltip adds each weight). Level on available wood, first match: none (0); very low (fuel-days<2 with heating demand: GDD §5.8 fuel-days, §7 WARNING); running low (below REQ-SET-114's twelve-day winter fuel projection while winter is next or current, or heating demand>0); plenty (at or above that projection); else enough. Decision 1011 §4b |ALWAYS except narrow ledger; opens item lots |
+| UI-SET-005 Stone counter |TL, grid cell |104×36→144×40 |READOUT |Same counts for Stone, in blocks; no level (DEC-049) |Same |
 | UI-SET-006 Population counter |TL, grid cell |104×36→144×40 |READOUT |“Residents: ”+living+“ of 256; ”+idle+“ idle” |ALWAYS; opens roster |
 | UI-SET-007 Bed counter |TL, grid cell |104×36→144×40 |READOUT |“Beds: ”+used+“ assigned; ”+free+“ free; ”+warm+“ warm” |ALWAYS except narrow ledger; opens housing |
 | UI-SET-008 Expand resources |TL, cluster bottom/right |32×32→44×44 |BUTTON |“Open all resources” |ALWAYS; toggle 009 |
@@ -574,7 +574,7 @@ For the deterministic movement hazards in [HAZ-005](underground_economy_hazard_a
 [DEC-049](setting_decisions.md#dec-049--goods-are-shown-in-natural-measures-in-the-demo-and-in-the-game) (Brendan,
 2026-10-02) supersedes every “U” and “units” wording above for what a player reads. The engineering record is
 [decision 1011](decisions/1011-goods-are-counted-in-natural-measures.md). Its §1 holds the approved measures table,
-§1a the rest of the game catalogue (pending approval), and §2 the wording rules. This section binds the UI to them,
+§1a the rest of the game catalogue (approved, P9 (b)), §2 the wording rules, and §4b the Wood levels. This section binds the UI to them,
 and does not copy the table.
 
 - **Display only.** Every amount stays `quantity_milli:int64` in the simulation, saves and data (GDD §4.1,
@@ -592,4 +592,9 @@ and does not copy the table.
   in kg or g; liquids also in litres. A store's or room's capacity shows no weight, because capacity is counted in
   baskets of food.
 - **Days stay days.** UI-SET-002 Ready food and UI-SET-003 Heating fuel keep their day readouts.
+- **Wood also shows a plain-word level** (UI-SET-004): none / very low / running low / enough / plenty. It is judged
+  on the existing fuel thresholds: §5.8 fuel-days, §7's fuel WARNING, and REQ-SET-114's twelve-day winter projection
+  (decision 1011 §4b). Stone shows counts only.
+- **Every stated quantity has a measure.** P9 (b) added "a quarter log" (0.25 U of wood), "a piece of wax" and "a
+  handful of flax" (0.25 U each).
 - SET-UX-VIS-002's “Resources label units” is met by the measure noun (“180 logs”).

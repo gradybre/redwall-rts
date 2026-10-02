@@ -1193,8 +1193,7 @@ integration (decision 0902).
 
 ### DEC-049 — Goods are shown in natural measures, in the demo and in the game
 
-2026-10-02 · State: `USER_CONFIRMED` (the measures table and P1–P8). The game-catalogue rows added afterwards, and
-the settlement Wood counter's band, are open (P9, P10).
+2026-10-02 · State: `USER_CONFIRMED`: the measures table, P1–P8, and later the same day P9 (b) and P10 (b).
 
 Brendan, 2026-10-02, relayed through the settlement coordinator:
 
@@ -1219,6 +1218,21 @@ On decision 1011 the same day, he approved the following:
   - water tooltips show litres and kg.
 - **P7, changed: "Apply to demo and game spec".** The natural measures apply to the release game's UI as well as the
   live demo. `docs/ui_ux_controls.md` is amended to match (its "Amounts are shown in natural measures" section).
+
+Later the same day, on decision 1011, he ruled the following:
+
+- **P9 (b): the rest of the game catalogue's measures are approved** (decision 1011 §1a), with three smaller
+  measures, each 0.25 U:
+  - "a piece of wax";
+  - "a handful of flax";
+  - "a quarter log" of wood.
+- **P10 (b): the settlement HUD's Wood counter (UI-SET-004) also shows a plain-word level** (none / very low /
+  running low / enough / plenty), alongside its available and reserved counts. The level uses the game's existing
+  fuel thresholds:
+  - very low: fuel-days below 2 (GDD §5.8, UI §7 WARNING);
+  - running low and plenty: measured against REQ-SET-114's twelve-day winter projection.
+
+  Decision 1011 §4b gives the order the levels are checked in.
 
 What the ruling does not change:
 

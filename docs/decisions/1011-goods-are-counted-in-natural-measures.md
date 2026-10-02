@@ -5,8 +5,14 @@ Date: 2026-10-02 · Status: Accepted (Brendan's rulings, 2026-10-02; recorded as
 
 ## Rulings (Brendan, 2026-10-02, relayed by the coordinator)
 
-- **The measures table (§1): approved** as written below. The rows marked *game catalogue* in §1a were added
-  afterwards to cover the release game, and are **not yet approved** (see P9).
+- **The measures table (§1): approved** as written below.
+- **The game-catalogue rows (§1a): approved under P9 (b)**, with three smaller measures:
+  - "a piece of wax", 0.25 U;
+  - "a handful of flax", 0.25 U;
+  - "a quarter log", 0.25 U of wood.
+- **P10 (b):** the settlement HUD's Wood counter (UI-SET-004) **also** gets the plain-word levels (none / very low /
+  running low / enough / plenty), alongside its available and reserved counts. The levels use the game's existing
+  fuel thresholds (§4b).
 - **P1–P6 and P8: approved as recommended.** These are:
   - P1, Stone as a count in blocks;
   - P2, a plank is 5 kg;
@@ -66,7 +72,7 @@ next measure takes over. Below the smallest measure, the amount shows as its wei
 
 | Good (key) | GDD g/U | Measure (singular / plural) | U per measure | Weight of one | Below it |
 |---|---:|---|---:|---:|---|
-| Wood (`wood`) | 5000 | log / logs | 1 | 5 kg | bundle of kindling / bundles of kindling, 0.1 U = 500 g (the kitchen's 0.1 U a batch is "a bundle of kindling a batch") |
+| Wood (`wood`) | 5000 | log / logs | 1 | 5 kg | quarter log / quarter logs, 0.25 U = 1.25 kg (P9 (b); a torch's 6 hours); then bundle of kindling / bundles of kindling, 0.1 U = 500 g (the kitchen's 0.1 U a batch is "a bundle of kindling a batch") |
 | Planks (demo stock) | 5000 *(P2)* | plank / planks | 1 | 5 kg | weight |
 | Stone (`stone`) | 5000 | block / blocks (of stone) | 1 | 5 kg | weight (a rock quantum's 0.8 U is "4 kg of stone") |
 | Earth (`excavated_earth`, spoil) | 1000 | basket / baskets of earth | 2 | 2 kg | weight |
@@ -75,8 +81,8 @@ next measure takes over. Below the smallest measure, the amount shows as its wei
 | Cloth (`cloth`) | 250 | bolt / bolts, ½ | 8 | 2 kg | length / lengths, 0.5 U = 125 g, about an ell of linen (a treatment: "a length of cloth") |
 | Rope (`rope`) | 500 | coil / coils | 1 | 500 g | length / lengths, 0.25 U = 125 g (mending: "a length of rope") |
 | Iron (`iron`) | 2000 | bar / bars | 1 | 2 kg | weight |
-| Flax (`flax`) — *not shown in the demo* | 250 | bundle / bundles, ½ | 4 | 1 kg | weight |
-| Wax (`wax`) — *not shown in the demo* | 250 | cake / cakes, ½ | 1 | 250 g | weight |
+| Flax (`flax`) — *not shown in the demo* | 250 | bundle / bundles, ½ | 4 | 1 kg | handful / handfuls, 0.25 U = 62.5 g (P9 (b); a candle's flax) |
+| Wax (`wax`) — *not shown in the demo* | 250 | cake / cakes, ½ | 1 | 250 g | piece / pieces, 0.25 U = 62.5 g (P9 (b); a hive's daily wax) |
 | Mead (`mead`) — *not shown in the demo* | 1000 | cask / casks, from 2 | 20 | 20 kg (rolled, not carried) | jug / jugs, 1 U = 1 L |
 
 **Food (all 250 g/U)**
@@ -136,12 +142,12 @@ category's measure:
 
   So no rule ever has to show a weight.
 
-### 1a. The rest of the game catalogue (added after the ruling; awaiting approval, P9)
+### 1a. The rest of the game catalogue (approved under P9 (b))
 
 P7 extends the measures to the release game. Its catalogue (`gameplay_balance.md` §3.1, 61 items) has goods the
 demo never shows, so they need rows too. These rows follow the approved table's rules: one small resident can carry
-a measure, counted objects are counted, and anything below the smallest measure shows as its weight. **They are not
-yet approved.**
+a measure, counted objects are counted, and anything below the smallest measure shows as its weight. **Approved
+under P9 (b)** (Brendan, 2026-10-02), together with the three smaller measures added to §1's wood, flax and wax rows.
 
 | Good (key, g/U) | Measure | U each | Weight of one | Below it |
 |---|---|---:|---:|---|
@@ -169,12 +175,17 @@ How the game's fixed quantities land in these rows:
 - A tile is sown with a handful of seed (0.25 U).
 - The relief seed pouch holds 8 U, which is 2 pouches.
 
-Three of the game's stated quantities are not a whole number of any approved measure, so `exact` prints their
-weight. P9 offers smaller measures instead:
+The three game quantities that no earlier measure divided now have their own measure (P9 (b)):
 
-- a torch burns 0.25 U of wood every 6 hours: "1.25 kg of wood";
-- a hive makes 0.25 U of wax a day: "62.5 g of wax";
-- a candle takes 0.25 U of flax: "62.5 g of flax".
+- a torch burns "a quarter log" every 6 hours;
+- a hive makes "a piece of wax" a day;
+- a candle takes "a handful of flax".
+
+So no stated quantity in the game prints a weight either.
+
+**A side effect in the demo.** Wood's new quarter log sits between the log and the bundle of kindling. A wood stock
+of 0.25–0.99 U now reads in quarter logs ("3 quarter logs") rather than in bundles of kindling. The kitchen's 0.1 U a
+batch is still "a bundle of kindling".
 
 ### 2. How an amount is worded
 
@@ -340,7 +351,7 @@ changed now.
 
 | Where | Text now | Becomes (amended spec) |
 |---|---|---|
-| `godot/scripts/systems/ui_manager.gd:681` | `_hud.set_counter(&"Wood", EconomySystem.stock_units(&"wood"), "U")` → "Wood 180 U" | UI-SET-004: "Wood: 180 logs available; N reserved" |
+| `godot/scripts/systems/ui_manager.gd:681` | `_hud.set_counter(&"Wood", EconomySystem.stock_units(&"wood"), "U")` → "Wood 180 U" | UI-SET-004: "Wood: plenty — 180 logs available; N reserved" (the level per §4b) |
 | `godot/scripts/systems/ui_manager.gd:682` | the same for Stone → "Stone 100 U" | UI-SET-005: "Stone: 100 blocks available; N reserved" |
 | `godot/scripts/ui/hud.gd:97` `set_counter(label, value, unit)` | appends a bare unit string to a comma-grouped integer | takes the good and the milli-U, and words it through the module. The "NP" counter keeps its own unit. |
 | `godot/scripts/ui/ui_specimen.gd:38` `SYNTHETIC_COUNTER` | "1,234 U" (the specimen's synthetic counter) | "1,234 logs" |
@@ -364,7 +375,38 @@ The UI refinement's reference renders also say "180 U" / "100 U":
 - `docs/design/ui_refinement/woodland_art_prompt.txt:10`.
 
 They produce hashed reference visuals, so they are re-rendered under the art process, not hand-edited. That is
-flagged for the UI art owner. The settlement HUD's plain-words band for Wood is not part of the ruling (see P10).
+flagged for the UI art owner.
+
+### 4b. The settlement HUD's Wood levels (P10 (b))
+
+UI-SET-004 shows a plain-word level **alongside** its available and reserved counts:
+
+> "Wood: running low — 36 logs available; 4 reserved"
+
+Every threshold comes from the game's existing fuel rules. No number is new. The level is judged on **available**
+wood, which is what §5.8's fuel-days divides. The levels are checked in this order:
+
+1. **none**: no available wood.
+2. **very low**: fuel-days below 2 while there is heating demand. This is §5.8's
+   `available_wood_equivalent/daily_heating_demand`, and UI §7's WARNING row "fuel<2 cold-weather days".
+3. **running low**: available wood below the twelve-day winter fuel projection, while the next season is winter, it
+   is winter, or heating demand is above zero.
+   - The projection is REQ-SET-114's: winter demand of 4 wood a day per hearth (§5.8), plus §5.8's last-three-days
+     mean cooking use, over 12 days.
+4. **plenty**: available wood at or above that twelve-day winter projection.
+5. **enough**: everything else.
+
+*Reading, recorded:* REQ-SET-114 requires the projection to be *displayed* when the next season is winter. The level
+uses the same formula in every season, as the demo's Firewood order does (decision 0571), so "plenty" means the
+whole winter is stocked.
+
+Phase 2 work:
+
+- `scripts/systems/ui_manager.gd` reads fuel-days and the projection from the economy's owner of §5.8, with no new
+  formula in the UI.
+- `test_ui_manager.gd` asserts each level at its boundary.
+
+Stone (UI-SET-005) keeps counts only (P1).
 
 ### 5. "Underground" replaces "the U view"
 
@@ -434,9 +476,7 @@ Beyond the player's screen:
     art-size rulings on other branches.
 - **P8 — Liquids in tooltips.** Water shows litres and kg (**recommended**), or kg only. *Ruled as recommended.*
 
-P1–P6 were ruled as recommended.
-
-Two questions are still open:
+P1–P6 were ruled as recommended. P9 and P10 below were ruled the same day, both as option (b).
 
 - **P9 — The game-catalogue rows (§1a).** They were added after the ruling so that P7's spec amendment covers every
   good.
@@ -453,6 +493,8 @@ Two questions are still open:
   The game's fuel thresholds exist (UI §7 "fuel<2 cold-weather days" and REQ-SET-114's twelve-day projection), so (b)
   would need no new numbers. It would, though, change UI-SET-004's available/reserved readout, which the ruling did
   not ask for.
+  - **Ruled (b):** the levels go alongside the counts, on the game's existing thresholds (§4b).
+- **P9 ruled (b):** §1a is approved with "a piece of wax", "a handful of flax" and "a quarter log", each 0.25 U.
 
 ## Consequences
 
@@ -464,13 +506,21 @@ Two questions are still open:
   prints "U" contradicts the spec.
 - A good the demo begins to show needs a measures row first. Otherwise the module refuses it with an error, and the
   suite fails.
+- **A separate, pre-existing problem, not caused by this record:** `docs/validation/setting_contract.py` fails on
+  `origin/master` fd9b80a1, as it did before these commits:
+
+  > `assert list(counts.values()) == [60, 24, 12, 30, 9, 5]` → items 61
+
+  The catalogue gained `excavated_earth` (SET-MOVE-ECON-001, DEC-040) and the checker's expected count was never
+  raised. It needs its own fix: raise the count to 61, with the reason. It is not a measures change.
 - Decision 0222's "tenths of a U, floored" form is superseded for display. Its rules are kept: amounts round down,
   and nothing present ever reads zero.
 
 ## Source
 
 - Brendan's rulings, 2026-10-02 (via the coordinator's brief), and his ruling on this record the same day: the
-  table approved, P1–P6 and P8 as recommended, and P7 "Apply to demo and game spec" (`DEC-049`).
+  table approved, P1–P6 and P8 as recommended, and P7 "Apply to demo and game spec" (`DEC-049`). Later the same
+  day: P9 (b) and P10 (b).
 - GDD §4.1 (U), §5.1, §5.2 (carry), §5.6, §5.7 (masses, recipes), §5.8 (fuel-days), §5.9 (well), REQ-SET-114;
   `docs/gameplay_balance.md` §3.1, BAL-NUM-001, BAL-WORK-003, BAL-SUPPLY-004;
   `docs/ui_ux_controls.md` UI-SET-002…006, 050, 099, §7.

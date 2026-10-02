@@ -231,30 +231,31 @@ He took the recommended option on all eight questions:
 
 ## Gates
 
-Run on the tip (12e6d14d plus this record) as `.github/workflows/tests.yml` runs them, in both conditions:
+Run on the tip (f3aca5dc: the batch, Brendan's rulings 2, 3, 4 and 8, and origin/master) as
+`.github/workflows/tests.yml` runs them, in both conditions:
 
 ```text
 ./tools/run_tests.sh                                   # assets staged
-8522 test(s), 586669 assertion(s), 0 failure(s)
+8644 test(s), 589215 assertion(s), 0 failure(s)
 diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 268 expected, 290 tolerated; leaked at exit: 0 object(s), 0 resource(s)
 log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
 
 ./tools/run_tests.sh                                   # as CI: assets moved aside, godot/.godot deleted, re-imported
-8522 test(s), 586593 assertion(s), 0 failure(s)
+8644 test(s), 589145 assertion(s), 0 failure(s)
 diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 268 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
 log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
 
 python3 tools/gdscript_warnings.py --max 0
-0 GDScript warning(s) in 0 of 972 file(s)
+0 GDScript warning(s) in 0 of 980 file(s)
 
 python3 tools/test_run_tests_diagnostics.py
 test_run_tests_diagnostics: PASS -- expected, missing, unexpected, tolerated and leaked all classified
 ```
 
 The live harnesses run inside the suite. All sixteen that take a size passed at both 1280x720 and 1920x1080 (32 size
-runs): camera, care, chronicle, daylight, guide, hall, input, layout, lens, notices, people, planner, routes, select,
-session and winter. The playtest log's harness takes no size and draws no layout, so it runs once. Every other step of
-both CI jobs exits 0:
+runs in each condition): camera, care, chronicle, daylight, guide, hall, input, layout, lens, notices, people, planner,
+routes, select, session and winter. The playtest log's harness takes no size and draws no layout, so it runs once.
+Every other step of both CI jobs exits 0:
 
 - the twenty preflight fault injections and allocation discriminators;
 - the demo audio staging self-test;
@@ -263,9 +264,10 @@ both CI jobs exits 0:
 - every "Specification contracts" step: decision numbers, the ledger arithmetic, the merge gate, the dispatch graph, the
   Astra inbox, the registry against its source and its generated table, the three cycle handoffs, the component column
   schema, lane notes, the movement checks, state-registry coverage and the validator self-tests, including the balance
-  report's.
+  and soak reports'.
 
-The capacity audit (`--check`) passes unregenerated: no `scripts/core` source changed in this batch.
+The capacity audit (`--check`) passes unregenerated on the merged tip, with D4's `construction.gd` in it: master's own
+CI had regenerated it with that change, and no lane here touches `scripts/core`.
 
 ## Source
 

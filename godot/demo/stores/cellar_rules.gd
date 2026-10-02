@@ -8,13 +8,13 @@ extends RefCounted
 ## CAPACITY IN U. The demo counts stores in U, the GDD a cellar in grams. GRAMS_PER_U is 500: GDD §5.8's winter stock
 ## fixture sizes cellars at "500g/U ... 5 cellars of 1,000,000g each", the GDD's own reading of a cellar's capacity.
 ## (§5.5 weighs RAW food at 250 g a unit and prepared food and rations at 500; the demo's stores hold raw food, so by
-## mass a cellar would hold 4000 U of it. Decision 0612 P2 puts that to Brendan.) 1000000 / 500 = 2000 U.
+## mass a cellar would hold 4000 U of it; Brendan ruled 500 g, decision 0612 P2.) 1000000 / 500 = 2000 U.
 ##
 ## WHY IT KEEPS FOOD LONGER: it is §5.8's CELLAR class (350 per mille), like a cool root cellar, but built, not dug.
 ##
-## THE UNLOCK (decision 0612 P1, a PROPOSAL): UNLOCK is the one data constant. The GDD's M1 needs 12 residents, which
-## the nine-resident demo can never reach, so the options are: UNLOCK_START, available from the start (built and
-## recommended); UNLOCK_M1_SCALED, M1 with its resident count scaled to the demo's cast (day 4 or later, every resident
+## THE UNLOCK (decision 0612 P1, Brendan's ruling: from the start): UNLOCK is the one data constant. The GDD's M1 needs
+## 12 residents, which the nine-resident demo can never reach, so the options weighed were: UNLOCK_START, available from
+## the start (ruled); UNLOCK_M1_SCALED, M1 with its resident count scaled to the demo's cast (day 4 or later, every resident
 ## of the cast, 200 portions); UNLOCK_PORTIONS_AND_DAY, M1 without the resident count (200 portions and day 4).
 ##
 ## BUILDING IT (REQ-SET-124/125/126, matching the hall's flow, decision 0771): placing it deducts nothing; residents
@@ -94,7 +94,8 @@ static func max_builders() -> int:
 
 
 static func hauler_slots() -> int:
-	"""Its operational slots, "Hauler 2" (decision 0612 P3: the demo has no job slots)."""
+	"""Its operational slots, "Hauler 2" (decision 0612 P3, ruled: the demo has no job slots, so any idle carrier
+	hauls)."""
 	return defs().worker_slots_of(type_id())
 
 

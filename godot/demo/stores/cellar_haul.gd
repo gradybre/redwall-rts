@@ -50,7 +50,7 @@ const SMALL_CARRY_G: int = 12000
 const RAW_FOOD_G_PER_U: int = 250
 @warning_ignore("integer_division")  # whole milli-U by intent: 12000 * 1000 / 250 is exact
 const LOAD_MILLI: int = SMALL_CARRY_G * 1000 / RAW_FOOD_G_PER_U
-## Food that spoils within this many game hours where it is stays put (demo value: PROPOSAL, decision 0611).
+## Food that spoils within this many game hours where it is stays put (demo value; Brendan's ruling, decision 0611 P2).
 const MIN_HOURS_LEFT: int = 6
 ## The smallest PART of a lot a move takes (a whole lot of any size may move): a split row for less is not worth its
 ## walk or its lot row (demo value: one unit).

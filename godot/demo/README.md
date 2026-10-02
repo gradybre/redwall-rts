@@ -938,8 +938,9 @@ cellar factor, 350 per mille.
   is an obstacle from the moment it is placed.
 - **Built, it is a store like any other**: the CELLAR class, filled by the haul, explained by the why note ("Cellar 1 —
   a large store above ground: food keeps 2.8× as long as in the covered store").
-- **Open from the start** (`cellar_rules.gd UNLOCK`, one constant; the GDD's M1 needs 12 residents -- the options are in
-  decision 0612).
+- **Brendan's rulings** (decision 0612, 2026-10-01): it is **open from the start** (`cellar_rules.gd UNLOCK`, one
+  constant; the GDD's M1 needs 12 residents); a unit is **500 g**, so it holds 2000 U; there are no job slots, so **any
+  idle carrier** hauls its food ("Hauler 2"); it is drawn as the **library cellar at its lookdev size**.
 
 ## The construction theatre and the warnings (decision 0211)
 

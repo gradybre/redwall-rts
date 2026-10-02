@@ -1,6 +1,6 @@
 # 0612 — The Cellar building stands beside the dug root cellar
-Date: 2026-10-01 · Status: Accepted (Brendan's ruling on 0611 P7: "Build both cellars"). Proposals P1–P4 await his
-ruling.
+Date: 2026-10-01 · Status: Accepted (Brendan's ruling on 0611 P7: "Build both cellars"). P1–P4 ruled as built,
+2026-10-01.
 
 Numbered 0612, from feature #30's range 0611–0619. No record with this number exists on any branch (`git log --all`) or
 in any sibling worktree.
@@ -74,7 +74,17 @@ The demo now has **two kinds of cellar**.
    - From the moment it is placed, its footprint is an obstacle: `cast_space.gd set_structure`, a new additive slot of
      4 circles.
 
-## Proposals for Brendan
+## Brendan's rulings (2026-10-01, relayed by the coordinator)
+
+**P1–P4 are approved as built:**
+- **P1:** the Cellar building is available from the start (`UNLOCK_START`).
+- **P2:** 500 g a unit, so a cellar holds 2000 U.
+- **P3:** no staffing; any idle carrier hauls into and out of it.
+- **P4:** the library cellar model at its lookdev size.
+
+The proposals as they were put follow, kept as the record of what was weighed.
+
+## Proposals for Brendan (now ruled)
 
 - **P1. When it unlocks.** The rule is one data constant, `cellar_rules.gd UNLOCK`. The GDD's M1 needs day ≥ 4, at least
   12 residents and 200 portions, and the demo's nine residents can never reach it.

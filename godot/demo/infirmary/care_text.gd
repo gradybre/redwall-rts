@@ -102,8 +102,9 @@ static func treated_notice(healer: String, patient: String, kind: int, health: i
 
 
 static func supplies_line(herb_milli: int, cloth_milli: int) -> String:
-	"""The care supplies: "Herbs 11.0 U · cloth 23.5 U on the hall's shelf"."""
-	return "Herbs %s U · cloth %s U on the hall's shelf" % [units(herb_milli), units(cloth_milli)]
+	"""The care supplies: "Herbs 11.0 U on the hall's shelf · cloth 23.5 U in the village stores" (the one cloth the
+	buildings draw on too; decision 0993)."""
+	return "Herbs %s U on the hall's shelf · cloth %s U in the village stores" % [units(herb_milli), units(cloth_milli)]
 
 
 static func patch_line(patch_milli: int, floor_milli: int) -> String:

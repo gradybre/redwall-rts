@@ -17,8 +17,10 @@ extends RefCounted
 ##              FIRST harvest only.
 ##   skill      a skill's level rising (the woods', the tunnels' and the bridges' XP, read through `add_skill`); the
 ##              levels at `watch()` are the baseline, so a starting level is no deed.
-##   meal       a meal's serving ending with everyone fed (kitchen.gd `meal_without` 0): each cook of its batches'
-##              FIRST such meal; and at a supper's end, every pair who ate a portion of it shared a supper.
+##   meal       a meal FINALIZED with everyone fed (kitchen.gd THE MEAL FINALIZED: its event published once every bowl
+##              of it was eaten or given back, `without` 0; decision 0997, Brendan's ruling on review R05): each cook of
+##              its batches' FIRST such meal; and at a finalized supper, every pair of its committed diners (who ate a
+##              portion of it) shared a supper.
 ## Shared work: every SHARE_POLL_TICKS of calendar time, two residents of the same crew both on a task of the work board
 ## within NEAR_M of each other, or both at work on the same dig, worked those ticks together (affinity per whole hour).
 ## A board row holds one worker, so "the same job" side by side is the same crew's work at the same place.
@@ -41,7 +43,6 @@ const RoomsScript := preload("res://demo/burrow/underground_rooms.gd")
 const FarmCrewScript := preload("res://demo/farm/farm_crew.gd")
 const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
-const FedScript := preload("res://demo/kitchen/nourishment.gd")
 const KitchenWords := preload("res://demo/kitchen/kitchen_text.gd")
 const BoardScript := preload("res://demo/work/work_board.gd")
 const WorkIds := preload("res://demo/work/work_ids.gd")
@@ -93,7 +94,8 @@ var _seg_gen: PackedInt32Array = PackedInt32Array()
 var _graph_revision: int = -1
 var _assists: int = 0
 var _harvests: int = 0
-var _last_meal: int = -1
+## The kitchen's last meal-finalized event looked at (its serial; 0: none yet).
+var _last_final: int = 0
 var _share_tick: int = 0
 var _skill_tick: int = 0
 var _day: int = 0
@@ -141,7 +143,7 @@ func watch() -> void:
 	_watch_pieces()
 	_assists = rescue.assists if rescue != null else 0
 	_harvests = farm_crew.harvests if farm_crew != null else 0
-	_last_meal = kitchen.meal_keys[-1] if kitchen != null and not kitchen.meal_keys.is_empty() else -1
+	_last_final = kitchen.finals_published if kitchen != null else 0
 	_task_of.resize(n)
 	_site_of.resize(n)
 	_at.resize(n)
@@ -379,30 +381,27 @@ func _poll_harvests() -> void:
 
 
 func _poll_meals() -> void:
-	"""Each meal whose serving ended since the last look: shared suppers, and a cook's first meal for everyone."""
-	if kitchen == null or kitchen.meal_keys.is_empty() or kitchen.meal_keys[-1] == _last_meal:
+	"""Each meal the kitchen has finalized since the last look (its MEAL FINALIZED event): shared suppers, and a cook's
+	first meal for everyone -- from its committed diners, never the provisional tally at its serving's end."""
+	if kitchen == null or kitchen.finals_published == _last_final:
 		return
-	for k: int in kitchen.meal_keys.size():
-		var key: int = kitchen.meal_keys[k]
-		if key <= _last_meal:
+	for final: KitchenScript.MealFinal in kitchen.finals:
+		if final.serial <= _last_final:
 			continue
-		if posmod(key, 2) == 1:
-			_shared_supper(key)
-		if kitchen.meal_without[k] == 0 and kitchen.meal_ate[k] > 0:
-			_cooked_for_all(key)
-	_last_meal = kitchen.meal_keys[-1]
+		if posmod(final.key, 2) == 1:
+			_shared_supper(final.diners)
+		if final.without == 0 and not final.diners.is_empty():
+			_cooked_for_all(final.key)
+	_last_final = kitchen.finals_published
 
 
-func _shared_supper(key: int) -> void:
-	"""Every pair who ate a portion of supper `key` shared it."""
-	var fed: FedScript = kitchen.fed
-	var n: int = mini(residents(), fed.count())
-	for a: int in n:
-		if fed.last_meal[a] != key or fed.last_outcome[a] != FedScript.OUTCOME_ATE:
-			continue
-		for b: int in range(a + 1, n):
-			if fed.last_meal[b] == key and fed.last_outcome[b] == FedScript.OUTCOME_ATE:
-				ledger.add_supper(a, b, _day)
+func _shared_supper(diners: PackedInt32Array) -> void:
+	"""Every pair of a supper's committed diners (who ate a portion of it) shared it."""
+	var n: int = residents()
+	for x: int in diners.size():
+		for y: int in range(x + 1, diners.size()):
+			if diners[x] < n and diners[y] < n:
+				ledger.add_supper(mini(diners[x], diners[y]), maxi(diners[x], diners[y]), _day)
 
 
 func _cooked_for_all(key: int) -> void:

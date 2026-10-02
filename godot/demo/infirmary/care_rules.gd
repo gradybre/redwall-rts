@@ -82,7 +82,7 @@ const ROLL_DENOMINATOR: int = Forage.INJURY_ROLL_DENOMINATOR
 
 # --- cited: §5.1's starting stocks ----------------------------------------------------------------------------------
 const START_HERB_MILLI: int = 12000
-const START_CLOTH_MILLI: int = 24000
+## (§5.1's cloth 24 U is the village stores' one cloth, tunnel_stores.gd START_CLOTH_MILLI_U; decision 0993.)
 
 # --- demo values (decision 0622) ------------------------------------------------------------------------------------
 ## P1: the lowest health the demo lets anyone reach (the INJURED band's foot).

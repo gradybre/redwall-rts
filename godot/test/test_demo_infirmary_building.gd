@@ -23,6 +23,7 @@ const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
 const BrainScript := preload("res://demo/cast/resident_brain.gd")
 const CastSpaceScript := preload("res://demo/cast/cast_space.gd")
 const MealRules := preload("res://demo/kitchen/meal_rules.gd")
+const Injury := preload("res://scripts/core/injury.gd")
 
 const DT: float = 1.0 / 60.0
 const USEC: int = 16667
@@ -80,19 +81,21 @@ func _stores(wood_u: int, stone_u: int) -> StoresScript:
 	return stores
 
 
-func _care(cloth_u: int) -> StateScript:
-	"""A care state of 10 residents whose shelf holds this much cloth."""
+func _care(stores: StoresScript) -> StateScript:
+	"""A care state of 10 residents whose treatments draw on these stores' cloth."""
 	var care := StateScript.new()
 	var sizes := PackedByteArray()
 	sizes.resize(10)
 	care.configure(sizes, -1)
-	care.cloth_milli = cloth_u * 1000
+	care.use_cloth(stores)
 	return care
 
 
 func _project(wood_u: int, stone_u: int, cloth_u: int) -> ProjectsScript:
-	"""An infirmary's books over these stores and shelf, for 10 residents."""
-	return ProjectsScript.new(_stores(wood_u, stone_u), _care(cloth_u), 10)
+	"""An infirmary's books over stores holding this much wood, stone and cloth, for 10 residents."""
+	var stores := _stores(wood_u, stone_u)
+	stores.cloth_milli_u = cloth_u * 1000
+	return ProjectsScript.new(stores, 10)
 
 
 func _deliver_all(project: ProjectsScript) -> void:
@@ -280,7 +283,7 @@ func test_a_place_waits_only_while_something_can_be_fetched_or_built() -> void:
 	var project := _project(0, 0, 0)
 	var builders := _builders(project)
 	assert_false(builders.waiting(0), "nothing to fetch")
-	project._care.cloth_milli = 12000
+	project._stores.cloth_milli_u = 12000
 	assert_true(builders.waiting(0), "cloth to fetch")
 	builders.claim(0, 1)
 	assert_equal(builders.doing_text(1), "Going to fetch cloth for the infirmary", "its words")
@@ -390,7 +393,7 @@ func test_the_building_node_stands_as_an_obstacle_and_cancels() -> void:
 	_build_cast()
 	var building := BuildingScript.new()
 	_nodes.append(building)
-	building.configure(_cast, _stores(40, 30), _care(24), null, STORE_AT, SHELF_AT)
+	building.configure(_cast, _stores(40, 30), _care(StoresScript.new()), null, STORE_AT, SHELF_AT)
 	assert_true(building.project.plan_at(SITE, 0.0), "placed")
 	building.sync_footprint()
 	assert_equal(_cast.space().structure_circles().size(), 1, "an obstacle")
@@ -509,16 +512,22 @@ func test_every_placing_refusal_and_the_care_places_kept_clear() -> void:
 
 
 func test_cloth_kept_for_treatments_is_not_fetched_for_the_building() -> void:
-	"""One ledger: cloth the healers sent will take is kept back from the building's fetch."""
+	"""One store (decision 0993): cloth a treatment has reserved is kept back from the building's fetch, and cloth the
+	building has reserved is kept back from a second treatment."""
 	var project := _project(0, 0, 12)
+	var care := _care(project._stores)
 	project.plan_at(SITE, 0.0)
-	project.cloth_held = func() -> int: return 500
-	assert_equal(project.fetchable(Rules.MAT_CLOTH), 11500, "half a unit kept for a treatment")
-	project.reserve(Rules.MAT_CLOTH, 11500)
-	assert_equal(project.cloth_committed(), 11500, "committed to the building")
-	assert_true(project._care.affords(1, project.cloth_committed()), "the one kept back")
-	assert_false(project._care.affords(2, project.cloth_committed()), "no second on the building's cloth")
-	assert_true(project._care.affords(2, 0), "without the building, two")
+	care.hurt(0, Injury.KIND_BITE, Injury.SEVERITY_MINOR, 10)
+	care.hurt(1, Injury.KIND_BITE, Injury.SEVERITY_MINOR, 10)
+	assert_true(care.claim_cloth(0), "a treatment reserves its half unit")
+	assert_equal(project.fetchable(Rules.MAT_CLOTH), 11500, "half a unit kept for the treatment")
+	assert_equal(project.reserve(Rules.MAT_CLOTH, 12000), 11500, "the building reserves the rest")
+	assert_equal(project._stores.cloth_claim(StoresScript.CLOTH_INFIRMARY), 11500, "under the infirmary's claim")
+	assert_false(care.claim_cloth(1), "no second treatment on the building's cloth")
+	assert_equal(care.treatment_refusal(1), StateScript.REFUSE_NO_CLOTH, "and it says why")
+	assert_equal(care.treatment_refusal(0), StateScript.REFUSE_NONE, "the first holds its own")
+	project.unreserve(Rules.MAT_CLOTH, 11500)
+	assert_true(care.claim_cloth(1), "given back, the second may")
 
 
 func test_the_building_node_arms_after_putting_the_dig_tool_away() -> void:
@@ -526,7 +535,7 @@ func test_the_building_node_arms_after_putting_the_dig_tool_away() -> void:
 	_build_cast()
 	var building := BuildingScript.new()
 	_nodes.append(building)
-	building.configure(_cast, _stores(40, 30), _care(24), null, STORE_AT, SHELF_AT)
+	building.configure(_cast, _stores(40, 30), _care(StoresScript.new()), null, STORE_AT, SHELF_AT)
 	building.configure_place(_site, Callable(), GraphScript.new(), null, null, Callable(), PackedVector2Array())
 	var ran: Array[bool] = [false]
 	building.before_placing = func() -> void: ran[0] = true

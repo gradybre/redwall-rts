@@ -26,7 +26,7 @@ incomplete for adopted policies, not authority to remove them.
   *Adopted 2026-10-01 (DEC-044, decision 0521) with children kept inactive.* Built:
   the life-stage hunger and daily-demand multiplier in Needs/Residents (all-adult runs
   byte-identical to the base), and the household/care store `core/households.gd`
-  (46352 B, single-owner APIs, pure care arithmetic, column capture/validation/restore
+  (48400 B since decision 0996 added the bound resident slot column; 46352 B as 0521 built it; single-owner APIs, pure care arithmetic, column capture/validation/restore
   with schema-1 refuse-not-migrate). Activation stays behind the open gates:
   - [ ] Gate 1 — CHILL illness: Injury two-bit extension and joint hazard/CareHealth review.
   - [ ] Gate 2 — departure/separation: lifecycle transaction, chronicle-first ordering,

@@ -235,6 +235,13 @@ class RunnerTests(unittest.TestCase):
         out = soak_test.scan_lines(["ERROR: 41 resources still in use at exit (run with --verbose for details)."])
         self.assertEqual(len(out["exit_leaks"]), 1, "not verbose: the summary is the report")
 
+    def test_the_engines_singular_object_line_is_an_exit_report(self):
+        """Decision 0998, Brendan's P1: one leaked object is "1 ObjectDB instance was leaked at exit"."""
+        for line in ("WARNING: 1 ObjectDB instance was leaked at exit (run with --verbose for details).",
+                     "WARNING: 6 ObjectDB instances were leaked at exit (run with --verbose for details)."):
+            with self.subTest(line=line):
+                self.assertEqual(soak_test.scan_lines([line])["exit_leaks"], [line], "the summary is the report")
+
     def test_ps_cpu_time_parses(self):
         self.assertAlmostEqual(soak_test.cpu_seconds("0:17.33"), 17.33)
         self.assertAlmostEqual(soak_test.cpu_seconds("1:02:03"), 3723.0)

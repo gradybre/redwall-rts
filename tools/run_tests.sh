@@ -108,7 +108,8 @@ fi
 # classifying (or a leak report from the supervisor process itself) is still caught.
 unexpected_errors="$(grep -cE '^(USER )?ERROR:' "$output_file")"
 unexpected_warnings="$(grep -cE '^(USER )?WARNING:' "$output_file")"
-leaked_objects="$(grep -oE '[0-9]+ ObjectDB instances were leaked' "$output_file" \
+# The engine's singular for one object ("1 ObjectDB instance was leaked") counts too (decision 0998, Brendan's P1).
+leaked_objects="$(grep -oE '[0-9]+ ObjectDB instances? (were|was) leaked' "$output_file" \
     | awk '{ total += $1 } END { print total + 0 }')"
 leaked_resources="$(grep -oE '[0-9]+ resources still in use at exit' "$output_file" \
     | awk '{ total += $1 } END { print total + 0 }')"

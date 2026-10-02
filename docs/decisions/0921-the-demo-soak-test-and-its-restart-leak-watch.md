@@ -99,6 +99,9 @@ leaks and slowdown, before the Windows playtest build. Numbered 0921 from the ra
   - keep the top-up (recommended);
   - add a light-touch policy run (decision 0911's) as a second soak;
   - run both.
+
+  **Brendan's ruling (2026-10-01): keep the pantry top-up and the daily work party** -- approved as built. Nothing
+  changed in behaviour. Recorded at the batch 7 integration (decision 0902).
 - **The thresholds are first readings, not budgets.** REQ-SET-163's memory budget is for simulation-owned memory on
   the qualification floor; the demo is presentation and holds about 1.07 GB of staged assets. The thresholds catch
   growth and drift, and every one says why it sits where it does.

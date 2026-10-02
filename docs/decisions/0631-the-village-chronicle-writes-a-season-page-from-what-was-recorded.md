@@ -1,5 +1,5 @@
 # 0631 — The village chronicle writes a season's page from what was recorded
-Date: 2026-10-01 · Status: Accepted (feature approved by Brendan 2026-10-01); five PROPOSALS await his ruling (below)
+Date: 2026-10-01 · Status: Accepted (feature approved by Brendan 2026-10-01; his rulings on the five PROPOSALS, 2026-10-01, below)
 
 The number 0631 comes from the brief's range, 0631–0639. No record numbered 0630–0639 exists on any branch
 (`git log --all`) or in any sibling worktree.
@@ -132,6 +132,13 @@ built on `feat/demo-notices` (decision 0591), whose notice history it reads by e
     - (b) also post it to the news when the session is quit;
     - (c) drop it.
   - Recommendation: (a).
+
+### Brendan's rulings (2026-10-01)
+
+**P1–P5 are approved as built:** lapsed friendships told as "drifted apart" (P1 a); no arrivals-and-departures section
+until arrivals exist (P2); the keeper's voice unattributed (P3 a); pages last the session until the save work (P4);
+the season-so-far page kept as a tab (P5 a). Nothing changed in behaviour. Recorded at the batch 7 integration
+(decision 0902).
 
 ## Review
 

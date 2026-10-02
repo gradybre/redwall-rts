@@ -224,6 +224,9 @@ const ForestRules := preload("res://demo/forestry/forest_rules.gd")
 const ForestSkills := preload("res://demo/forestry/forest_skills.gd")
 const DigSkills := preload("res://demo/tunnel/dig_skills.gd")
 const BridgeCrew := preload("res://demo/waterplay/bridge_crew.gd")
+const DayNightScript := preload("res://demo/world/day_night.gd")
+const NightLightsScript := preload("res://demo/world/night_lights.gd")
+const WorldLayout := preload("res://demo/world/world_layout.gd")
 
 ## The game scene's own presentation, replaced by the demo's.
 const GAME_NODES_TO_HIDE: Array[NodePath] = [^"World/Ground", ^"World/Entities", ^"World/Sun"]
@@ -249,6 +252,8 @@ const MIN_LOGICAL_WIDTH: float = 1024.0
 ## (as the U view's, decision 0206).
 const CANOPY_PREWARM_FRAMES: int = 2
 const COVER_PREWARM_FRAMES: int = 2
+## Frames the night's look is drawn for at boot (decision 0541: the shadowless moon, the glow and the lit pool).
+const NIGHT_PREWARM_FRAMES: int = 2
 
 @onready var _game: Node = $Game
 
@@ -306,6 +311,9 @@ var _people: PeopleScript = null
 var _people_card: PeopleCardScript = null
 ## Water part B (decision 0431): fishing trips, boats, gear, ice, the drying rack and the mill.
 var _fishery: FisheryNodeScript = null
+## The day and the night (decision 0541): the light on the calendar, and the surface's pooled night lights.
+var _day_night: DayNightScript = null
+var _night_lights: NightLightsScript = null
 
 
 func _ready() -> void:
@@ -335,6 +343,7 @@ func _ready() -> void:
 	_build_waterplay()
 	_build_fishery()
 	_build_shared_ui()
+	_build_daylight()
 	_build_work()
 	_build_routes()
 	_build_people()
@@ -352,6 +361,7 @@ func _warm_and_open() -> void:
 	(demo_prewarm.gd, decision 0205) -- the rooms' pieces on the ground sampled (decision 0209), and the
 	underground view drawn once with a sample of everything it can show (decision 0206)."""
 	add_child(_prewarm)
+	_day_night.begin_day_prewarm()
 	_prewarm.add_step("props and icons", _services.props.warm_all)
 	_prewarm.add_step("plant atlases", _farm.view.assets.ensure_all_loaded)
 	_prewarm.add_step("woods: stumps, saplings, splits", _forestry.view.prewarm)
@@ -366,6 +376,7 @@ func _warm_and_open() -> void:
 	_prewarm.add_frame_step("canopy fade and silhouette", CANOPY_PREWARM_FRAMES, _canopy.begin_prewarm, _canopy.end_prewarm)
 	var weather_view: WeatherViewScript = (_command as DemoCommandScript).tunnels().ext.weather_view
 	_prewarm.add_frame_step("frost and snow overlay", COVER_PREWARM_FRAMES, weather_view.begin_prewarm, weather_view.end_prewarm)
+	_prewarm.add_frame_step("the night's light", NIGHT_PREWARM_FRAMES, _day_night.begin_prewarm, _day_night.end_prewarm)
 	_prewarm.warm()
 	_prewarm.release_after_frames(_open_running)
 
@@ -781,6 +792,34 @@ func _build_shared_ui() -> void:
 	_forestry.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WOODS))
 	_waterplay.panel_wanted.connect(_zone.show_panel.bind(DetailZoneScript.PANEL_WATER))
 	_build_news()
+
+
+func _build_daylight() -> void:
+	"""The day and the night (demo/world/day_night.gd, decision 0541): the world's sun, sky and haze on the demo calendar,
+	the weather on top, the surface's night lights at the homes and the tunnel mouths, and the date trigger's sun or
+	moon."""
+	var tunnels: TunnelControlScript = (_command as DemoCommandScript).tunnels()
+	_night_lights = NightLightsScript.new()
+	add_child(_night_lights)
+	_night_lights.configure(NightLightsScript.home_spots(WorldLayout.placements()), tunnels.overlay.lantern_spots_into,
+		(_camera as DemoCameraScript).focus, (_cast as DemoCastScript).clock)
+	_day_night = DayNightScript.new()
+	add_child(_day_night)
+	_day_night.configure(_services.calendar, _world, tunnels.ext.weather_view, _night_lights)
+	_day_night.set_smoke_tinter(tunnels.ext.fixture_view.set_smoke_tint)
+	var shell: UiShell = _shell()
+	if shell != null:
+		_day_night.set_date_button(shell.status_label())
+
+
+func day_night() -> DayNightScript:
+	"""The day and the night (demo/world/day_night.gd)."""
+	return _day_night
+
+
+func night_lights() -> NightLightsScript:
+	"""The surface's night lights (demo/world/night_lights.gd)."""
+	return _night_lights
 
 
 func _build_news() -> void:

@@ -19,6 +19,13 @@ extends Node3D
 ##
 ## Everything is built once; per frame it only moves the sky box and eases a few numbers (and, as a
 ## cover comes or goes, puts the overlay on or takes it off the village's meshes).
+##
+## THE WEATHER ON TOP OF THE HOUR (decision 0541, the day and night). The sky's GLOOM -- overcast, rain, a storm,
+## snow (`gloom_target`) -- eases here with the rest, and the lighting cycle (demo/world/day_night.gd) darkens and
+## greys the hour by it. While the cycle drives the light (`drives_light` false) this view writes neither the sun's
+## energy nor the haze: the cycle reads `sun_share`, `fog_add` and `gloom` and is the one writer of both, so the
+## weather multiplies the time of day rather than fighting it. Its falls, which are unshaded, take the cycle's tint
+## (`set_unlit_tint`), so rain and snow darken with the evening instead of glowing in the night.
 
 const WeatherScript := preload("res://demo/weather/demo_weather.gd")
 const DemoClockScript := preload("res://demo/demo_clock.gd")
@@ -32,6 +39,13 @@ const SUN_SHARE: Array[float] = [1.0, 0.75, 0.7, 0.85]
 const FOG_ADD: Array[float] = [0.0, 0.0024, 0.008, 0.002]
 const COVER: Array[float] = [0.0, 0.0, 1.0, 0.6]
 const FROSTY: Array[float] = [0.0, 0.0, 0.0, 1.0]
+## THE GLOOM a sky brings (see THE WEATHER ON TOP OF THE HOUR), 0..1: clear and frost none; an overcast hour -- a rainy
+## day's dry hours -- a little; rain more; a storm (rain on a day of the GDD's heavy rain, DOWNPOUR_RAIN or more) all;
+## falling snow most of rain's.
+const GLOOM_OVERCAST: float = 0.35
+const GLOOM_RAIN: float = 0.6
+const GLOOM_STORM: float = 1.0
+const GLOOM_SNOW: float = 0.45
 const EASE_S: float = 3.0
 const SKY_HALF_M: float = 18.0
 const SKY_HEIGHT_M: float = 9.0
@@ -74,6 +88,9 @@ var _share: float = 1.0
 var _fog_add: float = 0.0
 var _cover: float = 0.0
 var _frost: float = 0.0
+var _gloom: float = 0.0
+## Whether this view writes the sun's energy and the haze itself (see THE WEATHER ON TOP OF THE HOUR).
+var drives_light: bool = true
 
 
 func configure(weather: WeatherScript, clock: DemoClockScript, world: Node) -> void:
@@ -241,9 +258,10 @@ func _apply_targets(weight: float) -> void:
 	_fog_add = lerpf(_fog_add, FOG_ADD[condition], weight)
 	_cover = lerpf(_cover, COVER[condition], weight)
 	_frost = lerpf(_frost, FROSTY[condition], weight)
-	if _sun != null:
+	_gloom = lerpf(_gloom, gloom_target(_weather), weight)
+	if _sun != null and drives_light:
 		_sun.light_energy = _sun_energy * _share
-	if _environment != null:
+	if _environment != null and drives_light:
 		_environment.fog_density = _fog + _fog_add
 	for material: ShaderMaterial in _cover_materials:
 		material.set_shader_parameter(PARAM_COVER, _cover)
@@ -295,8 +313,45 @@ func _follow_view() -> void:
 
 
 func sun_share() -> float:
-	"""The sun's current energy as a share of the world's (for checks)."""
+	"""The sun's current energy as a share of the world's (the lighting cycle's multiplier, and checks)."""
 	return _share
+
+
+func fog_add() -> float:
+	"""The haze the weather adds now, on top of the hour's (the lighting cycle's, and checks)."""
+	return _fog_add
+
+
+func gloom() -> float:
+	"""How gloomy the sky is now, 0 (clear) .. 1 (a storm), eased (see THE WEATHER ON TOP OF THE HOUR)."""
+	return _gloom
+
+
+static func gloom_target(weather: WeatherScript) -> float:
+	"""The gloom this hour's weather brings (see GLOOM_*): a storm, rain, snow, an overcast dry hour of a rainy day, or
+	none."""
+	var condition := weather.condition()
+	if condition == WeatherScript.COND_RAIN:
+		return GLOOM_STORM if weather.rain() >= WeatherScript.DOWNPOUR_RAIN else GLOOM_RAIN
+	if condition == WeatherScript.COND_SNOW:
+		return GLOOM_SNOW
+	if condition == WeatherScript.COND_CLEAR and WeatherScript.falling_rain(weather.rain(), weather.season(),
+			weather.season_day()) > 0:
+		return GLOOM_OVERCAST
+	return 0.0
+
+
+func set_unlit_tint(tint: Color) -> void:
+	"""What lights the unshaded falls now (the lighting cycle's UNLIT_TINT): their own colours times `tint`."""
+	_tint_fall(_rain, RAIN_COLOUR, tint)
+	_tint_fall(_snow, SNOW_COLOUR, tint)
+
+
+static func _tint_fall(particles: CPUParticles3D, own: Color, tint: Color) -> void:
+	"""One fall's material at its own colour times `tint` (its alpha kept)."""
+	var material := (particles.mesh as PrimitiveMesh).material as StandardMaterial3D if particles != null else null
+	if material != null:
+		material.albedo_color = Color(own.r * tint.r, own.g * tint.g, own.b * tint.b, own.a)
 
 
 func cover() -> float:

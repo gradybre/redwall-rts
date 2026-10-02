@@ -29,9 +29,9 @@ const RESTORE_NONE: String = "Everything is at its default already."
 const RESTORE_OK: String = "Restore"
 const CANCEL_TEXT: String = "Cancel"
 const LINE_W: float = 500.0
-## The settings under "Accessibility" and under "Time" (SET_* order).
+## The settings under "Accessibility" and under "Time", in the order shown.
 const ACCESS_SETTINGS: PackedInt32Array = [Access.SET_TOOLTIPS, Access.SET_CONTRAST, Access.SET_FOCUS_HINTS,
-	Access.SET_TARGETS, Access.SET_MOTION, Access.SET_QUIET_TOASTS]
+	Access.SET_TARGETS, Access.SET_MOTION, Access.SET_BRIGHT_NIGHTS, Access.SET_QUIET_TOASTS]
 const TIME_SETTINGS: PackedInt32Array = [Access.SET_PAUSE_PLANNING, Access.SET_PAUSE_CRITICAL]
 
 var scale_to: Callable = Callable()

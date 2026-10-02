@@ -67,6 +67,8 @@ var _fill: Callable = Callable()
 var _below: Array[Node3D] = []
 var _ground: Array[Node3D] = []
 var _smoke: Array[CPUParticles3D] = []
+## What lights the (unshaded) smoke now: the lighting cycle's tint (decision 0541, `set_smoke_tint`), each chimney's own.
+var _smoke_tint: Color = Color.WHITE
 var _embers: Array[MeshInstance3D] = []
 ## Per place row: its node, the key it was built for, and its fill slots.
 var _pieces: Array[Node3D] = []
@@ -119,12 +121,26 @@ func _build_room_row() -> void:
 	add_child(ground)
 	KitScript.chimney(ground, _props)
 	var puffs := KitScript.smoke()
+	puffs.color = _smoke_tint
 	puffs.position = Vector3(0.0, KitScript.chimney_top_m(_props), 0.0)
 	ground.add_child(puffs)
 	Layers.set_layers(ground, Layers.SURFACE)
 	_ground.append(ground)
 	_smoke.append(puffs)
 	_embers.append(null)
+
+
+func set_smoke_tint(tint: Color) -> void:
+	"""What lights the chimneys' smoke now (the lighting cycle's UNLIT_TINT, decision 0541): every chimney's particles'
+	colour, which multiplies their ramp -- per chimney, never the shared puff material."""
+	_smoke_tint = tint
+	for puffs: CPUParticles3D in _smoke:
+		puffs.color = tint
+
+
+func smoke_tint() -> Color:
+	"""What lights the chimneys' smoke now (checks)."""
+	return _smoke_tint
 
 
 func set_lit(lit: Callable) -> void:

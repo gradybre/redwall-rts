@@ -63,6 +63,25 @@ func test_a_store_without_room_is_not_forced() -> void:
 	assert_equal(pantry.milli_of(_item(&"carrot")), 0, "no carrots forced in")
 
 
+func test_what_is_left_of_the_opening_stock_is_counted_by_the_ledger() -> void:
+	"""Decision 0902: the opening stock left is its milli-U less every withdrawal and spoiling of its items since, as
+	plain-dish portions -- 72 at the start; 2 U of wheat withdrawn leaves 70; never below 0."""
+	var pantry := PantryScript.new(StorageScript.new(Vector2.ZERO))
+	assert_equal(OpeningScript.portions_left(pantry), 0, "no stock, nothing left")
+	OpeningScript.stock(pantry, null, 6)
+	assert_equal(OpeningScript.portions_left(pantry), 72, "the whole opening stock")
+	var read := IntMath.IntResult.new()
+	var wheat: int = _item(&"wheat")
+	for lot: int in PantryScript.MAX_LOTS:
+		if pantry.lot_item(lot) == wheat:
+			assert_true(pantry.withdraw_into(lot, pantry.lot_serial(lot), 2000, read), "2 U of wheat withdrawn")
+			break
+	assert_equal(OpeningScript.left_milli(pantry, 0), WHEAT_MILLI - 2000, "38 U of wheat left")
+	assert_equal(OpeningScript.portions_left(pantry), 70, "a porridge batch fewer")
+	pantry.add_into(wheat, 80000, 0, read)
+	assert_equal(OpeningScript.portions_left(pantry), 70, "food brought in is not the opening stock")
+
+
 func test_the_real_village_opens_with_the_stock() -> void:
 	"""The booted village (its own process): the pantry holds the opening stock, the kitchen counts it as Ready food,
 	and the record's opening day has harvested nothing."""

@@ -377,11 +377,18 @@ func _check_late() -> void:
 
 
 func _check_home_lamps() -> void:
-	"""The homes' lamplight query is bound (decision 0902): the hall's lamp is its hearth's fuelled-and-demanded state,
-	and a residence, with no hearth in the winter's model, keeps the lamps' hours."""
-	var hall_hearth: bool = bool(_village.call(&"winter").fuel.call(&"hearth_lit", HearthFuel.HALL))
-	_check("23:00's hall lamp follows its hearth", bool(_village.call(&"home_lamp_lit", 0)) == hall_hearth,
-		"hearth %s" % hall_hearth)
+	"""The homes' lamplight query is bound (decision 0902): the hall's lamp is dark only while its hearth is out of fuel
+	or let go out -- lit on a night that wants no heat -- and a residence, with no hearth in the winter's model, keeps
+	the lamps' hours."""
+	var fuel: Object = _village.call(&"winter").fuel
+	var cold: bool = bool(fuel.call(&"hearth_cold", HearthFuel.HALL))
+	_check("23:00's hall lamp follows its hearth", bool(_village.call(&"home_lamp_lit", 0)) == not cold,
+		"hearth cold %s" % cold)
+	fuel.call(&"set_banked", HearthFuel.HALL, true)
+	fuel.call(&"pass_hour", int(fuel.get(&"hour_index")) + 1, int(fuel.get(&"season")), int(fuel.get(&"day_mean_tenths")),
+		int(fuel.get(&"air_tenths")))
+	_check("23:00's hall lamp dark with its hearth let go out", not bool(_village.call(&"home_lamp_lit", 0)))
+	fuel.call(&"set_banked", HearthFuel.HALL, false)
 	_check("23:00's residence lamp lit", bool(_village.call(&"home_lamp_lit", 1)))
 
 

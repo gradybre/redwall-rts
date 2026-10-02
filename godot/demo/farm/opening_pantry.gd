@@ -14,12 +14,15 @@ const Catalog := preload("res://demo/farm/farm_catalog.gd")
 const PantryScript := preload("res://demo/farm/farm_pantry.gd")
 const RecordScript := preload("res://demo/farm/farm_record.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const MealRules := preload("res://demo/kitchen/meal_rules.gd")
 
 ## The opening stock: pantry item keys and milli-U, in the order they are stored.
 const ITEMS: Array[StringName] = [&"wheat", &"carrot"]
 const MILLI: Array[int] = [40000, 50000]
 ## The covered store (farm_storage.gd: location 0).
 const LOCATION: int = 0
+## The plain dish each opening item cooks (porridge from the wheat, soup from the carrots: the 72 portions above).
+const DISHES: Array[int] = [MealRules.DISH_PORRIDGE, MealRules.DISH_SOUP]
 
 
 static func total_milli() -> int:
@@ -28,6 +31,29 @@ static func total_milli() -> int:
 	for milli: int in MILLI:
 		total += milli
 	return total
+
+
+static func left_milli(pantry: PantryScript, k: int) -> int:
+	"""How much of opening item `k` is still in `pantry`: its stock less every milli-U of that item withdrawn or spoiled
+	since, and never more than the pantry holds of it (none when it was never stocked). The pantry spends the lot that
+	spoils first first, and the opening lots are the oldest, so they go first."""
+	var item: int = Catalog.ITEM_KEYS.find(ITEMS[k])
+	if item < 0:
+		return 0
+	var left: int = MILLI[k] - pantry.withdrawn_total_milli(item) - pantry.spoiled_total_milli(item)
+	return clampi(left, 0, pantry.milli_of(item))
+
+
+static func portions_left(pantry: PantryScript) -> int:
+	"""The portions the opening stock still in `pantry` cooks, each item as its plain dish (DISHES) -- what "A full
+	larder" leaves out (decision 0902: the goal counts only food the village cooked or brought in)."""
+	var portions: int = 0
+	for k: int in ITEMS.size():
+		var dish: int = DISHES[k]
+		@warning_ignore("integer_division")
+		var batches: int = left_milli(pantry, k) / MealRules.INPUT_MILLI[dish]
+		portions += batches * MealRules.PORTIONS_PER_BATCH[dish]
+	return portions
 
 
 static func stock(pantry: PantryScript, record: RecordScript, hour_index: int) -> int:

@@ -9,7 +9,7 @@ const HARNESS: String = "res://test/live/demo_daylight_live.gd"
 const CHECK_PREFIX: String = "LIVE "
 const SUMMARY_PREFIX: String = "LIVE-SUMMARY "
 ## At least this many checks must run (fewer means it stopped early).
-const MIN_CHECKS: int = 40
+const MIN_CHECKS: int = 41
 
 
 func _run_harness(size: String) -> PackedStringArray:

@@ -249,6 +249,9 @@ func _weavers_bound() -> void:
 	_check("the goals reached are woven", (goals.get(&"also_reached") as Callable).is_valid())
 	var fuel: Object = goals.get(&"book").call(&"part_of", &"m4_hearth_charter", &"fuel")
 	_check("M4's fuel is measured by the winter", bool(fuel.call(&"is_measured")))
+	var larder: Object = goals.get(&"book").call(&"goal", &"full_larder")
+	_check("the opening stock alone does not fill the larder (decision 0902)", not bool(larder.get(&"done"))
+		and bool(_village.call(&"guide").get(&"goals").get(&"village").get(&"world").get(&"opening_stock")))
 	var gives: String = _hall().panel.gives_line()
 	_check("the Heat line says the hall's hearth", gives.contains("its hearth is"), gives)
 

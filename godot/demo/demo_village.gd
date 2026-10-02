@@ -1102,6 +1102,7 @@ func _guide_world() -> GuideWorldScript:
 	world.network = command.tunnels().network
 	world.calendar = _services.calendar
 	world.record = _farm.record
+	world.opening_stock = _farm.pantry.stored_total_milli(FarmCatalog.ITEM_KEYS.find(&"wheat")) > 0
 	world.stores = _services.stores
 	world.focus = (_camera as DemoCameraScript).focus
 	world.selected_bed = func() -> int: return _farm.selected_bed
@@ -1303,12 +1304,13 @@ func _build_daylight() -> void:
 
 func home_lamp_lit(k: int) -> bool:
 	"""THE HOMES' LAMPLIGHT (night_lights.gd `set_home_lit`, home `k` in daylight_curves.gd LIT_HOMES order): the hall's
-	follows its hearth, fuelled AND demanded (hearth_fuel.gd `hearth_lit(HALL)`, decision 0571), so an unfuelled hall
-	stands dark. The three surface residences and the kitchen have no hearth in the winter's model (its homes are the
-	burrow rows below), so they keep the lamps' hours (batch 7 integration, decision 0902)."""
+	stands dark only while its hearth is out of fuel or let go out (hearth_fuel.gd `hearth_cold(HALL)`, decision 0571):
+	lit at night when heated, and on a night that wants no heat (Brendan's ruling on decision 0902's question 3,
+	2026-10-02). The three surface residences and the kitchen have no hearth in the winter's model (its homes are the
+	burrow rows below), so they keep the lamps' hours."""
 	if _winter == null or k < 0 or k >= DaylightCurves.LIT_HOMES.size() or DaylightCurves.LIT_HOMES[k] != &"hall":
 		return true
-	return _winter.fuel.hearth_lit(HearthFuelScript.HALL)
+	return not _winter.fuel.hearth_cold(HearthFuelScript.HALL)
 
 
 func day_night() -> DayNightScript:

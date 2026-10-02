@@ -466,6 +466,21 @@ func test_the_owner_says_a_reached_goal_once_in_village_news() -> void:
 	assert_equal(notices.count(), 1, "said once")
 
 
+func test_a_full_larder_counts_only_the_village_s_own_food() -> void:
+	"""Decision 0902 (Brendan's ruling on question 2): the larder's part is the Ready food less what the opening stock
+	still in the pantry would cook; without opening stock it is the whole Ready food."""
+	assert_equal(VillageScript.own_days_milli(4000, 18, 72), 0, "the opening four days alone: nothing of its own")
+	assert_equal(VillageScript.own_days_milli(6222, 18, 72), 2222, "40 portions brought in beside it")
+	assert_equal(VillageScript.own_days_milli(1000, 18, 72), 0, "never below 0")
+	assert_equal(VillageScript.own_days_milli(4000, 0, 72), 0, "no one to feed")
+	var book := BookScript.new()
+	var village := VillageScript.new(_world(), LedgerScript.new(), null)
+	village.register_all(book)
+	assert_equal(book.part_of(&"full_larder", &"food_days").target, 4000, "four days")
+	assert_equal(village.value(VillageScript.M_OWN_FOOD_DAYS), village.value(VillageScript.M_FOOD_DAYS),
+		"no opening stock: the whole Ready food")
+
+
 func test_also_reached_is_told_each_goal_once_after_its_news() -> void:
 	"""The tapestry's hook (decision 0902): told the goal's id, title and words once, after its news line."""
 	var world := _world(9)

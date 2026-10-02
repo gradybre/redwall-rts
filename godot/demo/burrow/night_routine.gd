@@ -29,6 +29,12 @@ extends RefCounted
 ## that still finds someone bedless merges into it, counting the nights -- RESOLVED once everyone has a bed
 ## (`bed_state`, read at the allocation each dusk makes).
 ##
+## DUSK IS SPREAD (decision 1003): at dusk at most SENDS_PER_FRAME residents are sent a frame, in their order, the
+## rest on the frames after (`_send_at_dusk`); and through the night the free are sent at most SENDS_PER_FRAME a frame
+## too. So a village of a hundred is not put on the routing desk in the one frame (the scale test's bed-time burst,
+## decision 0561). Each bedless resident's place at the hall's door is counted once per allocation (`hall_spot`), not
+## by a count of those before it for each one.
+##
 ## THE ALARM: while a threat is under way (the works' events) sleepers stand up by their beds (sleep_task.gd).
 ##
 ## AN EARLY RISER (decision 0381, the kitchen): `set_early_riser(up_early)` -- `up_early(i: int) -> bool` -- names a
@@ -77,6 +83,8 @@ const DEFAULT_BED_TOP_M: float = 0.45
 ## minutes: the 1.25 s it was before decision 0421, to the next whole tick), so one whose way home fails is not planned
 ## again and again; an attempt that finds nowhere to send it counts too.
 const RESEND_TICKS: int = 38
+## DUSK IS SPREAD: at most this many residents sent to bed a frame.
+const SENDS_PER_FRAME: int = 8
 ## The bedless go in at the hall's door side by side, this far apart (m), so none waits on another.
 const HALL_SPACING_M: float = 0.9
 const DUSK_NOTE: String = "Dusk: the village goes home to bed"
@@ -112,6 +120,11 @@ var _warm: Callable = Callable()
 var _lit: Callable = Callable()
 var _words: Callable = Callable()
 var _bed_warm: PackedByteArray = PackedByteArray()
+## DUSK IS SPREAD: the next resident dusk sends (-1: dusk's sending done).
+var _dusk_next: int = -1
+## Each resident's place among the bedless (`hall_spot`), and the beds it was counted from.
+var _hall_rank: PackedInt32Array = PackedInt32Array()
+var _ranked_beds: PackedInt32Array = PackedInt32Array()
 
 
 func configure(graph: RefCounted, brains: Array[BrainScript], names: PackedStringArray, heights_u: PackedInt32Array,
@@ -246,16 +259,24 @@ func step() -> void:
 	elif dawn:
 		_at_dawn()
 	elif night:
-		_send_the_free()
+		if _dusk_next >= 0:
+			_send_at_dusk()
+		else:
+			_send_the_free()
 		_turn_back_early_risers()
 
 
 func _send_the_free() -> void:
-	"""At night, anyone wandering on its own and not sent in the last RESEND_TICKS goes to bed."""
+	"""At night, anyone wandering on its own and not sent in the last RESEND_TICKS goes to bed -- at most
+	SENDS_PER_FRAME a frame (DUSK IS SPREAD)."""
+	var sent := 0
 	for i in _brains.size():
+		if sent == SENDS_PER_FRAME:
+			return
 		if _brains[i].order == BrainScript.ORDER_NONE and _calendar.tick - _sent_tick[i] >= RESEND_TICKS and may_send(i) \
 				and not up_early(i):
 			send(i)
+			sent += 1
 
 
 func _turn_back_early_risers() -> void:
@@ -269,11 +290,11 @@ func _turn_back_early_risers() -> void:
 
 
 func _at_dusk() -> void:
-	"""Beds allocated afresh; everyone who may go, to bed (their work parked); the feed told."""
+	"""Beds allocated afresh; everyone who may go, to bed (their work parked), SENDS_PER_FRAME a frame from now (DUSK
+	IS SPREAD); the feed told."""
 	allocate()
-	for i in _brains.size():
-		if may_send(i):
-			send(i)
+	_dusk_next = 0
+	_send_at_dusk()
 	if _notices == null:
 		return
 	_notices.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_NOTE, DUSK_NOTE)
@@ -287,8 +308,23 @@ func _at_dusk() -> void:
 		_notices.post(NoticesScript.SOURCE_CREW, NoticesScript.LEVEL_WARNING, NO_BED_WARNING % bedless)
 
 
+func _send_at_dusk() -> void:
+	"""Dusk's sending carried on (DUSK IS SPREAD): the next residents in order who may go, at most SENDS_PER_FRAME."""
+	var sent := 0
+	while _dusk_next < _brains.size() and sent < SENDS_PER_FRAME:
+		var i := _dusk_next
+		_dusk_next += 1
+		if may_send(i):
+			send(i)
+			sent += 1
+	if _dusk_next >= _brains.size():
+		_dusk_next = -1
+
+
 func _at_dawn() -> void:
-	"""Anyone still on the way to bed turns back to the job it parked (or its own routine): its night is over."""
+	"""Anyone still on the way to bed turns back to the job it parked (or its own routine): its night is over (dusk's
+	sending too, were it still going)."""
+	_dusk_next = -1
 	for b in _brains:
 		var task := b.task as SleepTaskScript
 		if task != null and task.stage == SleepTaskScript.STAGE_GOING:
@@ -419,11 +455,21 @@ func bed_task_at(i: int, bed: int, task: SleepTaskScript) -> bool:
 
 func hall_spot(i: int) -> Vector2:
 	"""Where resident `i` goes in at the hall: the door, stepped along it by its place among the bedless (see
-	HALL_SPACING_M)."""
-	var k := 0
-	for j in i:
-		k += 1 if bed_of[j] == AllocationScript.NO_BED else 0
+	HALL_SPACING_M) -- counted once for all, again only when the beds change (see DUSK IS SPREAD)."""
+	if _ranked_beds != bed_of:
+		_rank_bedless()
+	var k := _hall_rank[i]
 	return _hall + Vector2(HALL_SPACING_M * float(k % 5 - 2), 0.0)
+
+
+func _rank_bedless() -> void:
+	"""Each resident's place among the bedless: how many before it have no bed."""
+	_ranked_beds = bed_of.duplicate()
+	_hall_rank.resize(bed_of.size())
+	var k := 0
+	for j in bed_of.size():
+		_hall_rank[j] = k
+		k += 1 if bed_of[j] == AllocationScript.NO_BED else 0
 
 
 static func room_name(r: int) -> String:

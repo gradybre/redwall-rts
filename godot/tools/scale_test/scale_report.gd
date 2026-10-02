@@ -41,6 +41,7 @@ static func build(run: Object) -> Dictionary:
 	report["stocked"] = run.get("stocked")
 	report["plans_by_kind"] = run.get("plans_by_kind")
 	report["off_poi_starts"] = run.get("off_poi_starts")
+	report["desk"] = run.call(&"desk_counts")
 	report["scripts"] = _top_scripts((run.get("driver") as Object).call(&"script_totals"), record.row_count())
 	return report
 

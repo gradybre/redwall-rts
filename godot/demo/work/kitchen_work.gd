@@ -32,6 +32,11 @@ func capacity() -> int:
 	return _brains.size()
 
 
+func may_wait() -> bool:
+	"""Never: the kitchen hands its parts out itself (see the header), so the board reads none of its rows for claims."""
+	return false
+
+
 func live(row: int) -> bool:
 	"""The resident is on the cook's round or drawing water."""
 	var role: int = _kitchen.role_of(row)

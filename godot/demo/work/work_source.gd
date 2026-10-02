@@ -51,6 +51,12 @@ func point(_row: int) -> Vector2:
 	return Vector2.ZERO
 
 
+func may_wait() -> bool:
+	"""Whether any row of this source can ever hold a task waiting to be claimed (work_board.gd THE INDEX DOES NOT GROW
+	WITH THE VILLAGE): the board reads no row of one that cannot."""
+	return true
+
+
 func waiting(_row: int) -> bool:
 	"""Whether the task waits for a worker and may be claimed now."""
 	return false

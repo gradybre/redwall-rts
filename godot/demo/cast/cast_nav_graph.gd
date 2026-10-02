@@ -31,8 +31,6 @@ var nodes: PackedVector2Array = PackedVector2Array()
 var adj_first: PackedInt32Array = PackedInt32Array()
 var adj_to: PackedInt32Array = PackedInt32Array()
 var grid: CastGridScript = CastGridScript.new()
-## Per-plan scratch owned by the planner: which nodes a standing resident may be near.
-var near_stamp: PackedInt32Array = PackedInt32Array()
 
 var _hits: PackedInt32Array = PackedInt32Array()
 ## Whether the graph is built through (see BUILT IN SLICES), and where a sliced build has got to.
@@ -106,8 +104,6 @@ func _start_join() -> void:
 	_joining = true
 	grid.build(nodes, NODE_CELL_M)
 	_hits.resize(nodes.size())
-	near_stamp.resize(nodes.size())
-	near_stamp.fill(0)
 	_lists.resize(nodes.size())
 	for u in nodes.size():
 		_lists[u] = PackedInt32Array()

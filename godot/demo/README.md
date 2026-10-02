@@ -951,6 +951,22 @@ says **"finding a route"** in the panel (paused too; it sets off once planned). 
 ("holding — can't find a way there", "holding — gave up: the way there stayed blocked"); a job it was walking
 to is kept to come back to. Nobody is credited work, a load or a delivery for a walk it did not finish.
 
+**Route planning at scale** (decisions 1001, 1003 and 1004; measured in
+`docs/performance/2026-10-02-route-planning.md`). A plan is local and can be cut across frames.
+- **Local.** A plan rings only the standing residents its search comes near, tests each link against the residents
+  near it, and links each node to the plan's nodes in the cells round it. A goal ringed by a crowd, or tucked where no
+  route reaches, is found shut in from its own side in a few expansions, without reading the whole village.
+- **Cut across frames.** The routing desk plans a resident's surface trip a few expansions at a time. A plan the frame
+  cannot finish is carried to the next frames, and its resident says "finding a route" until it is done. A wanderer
+  keeps the spot it picked. The routes are the ones the planner found before (`test_demo_route_planning.gd` checks
+  this against the old planner, kept in `test/fixtures/`).
+- **Bursts spread.** The kitchen calls at most 8 diners a frame, and dusk sends at most 8 residents to bed a frame.
+- **Neighbours by cell.** A walker's step reads the residents in the cells round it, not everyone. The people's
+  shared-work pairs and the work board's claim index no longer grow with the village.
+- **The cook serves as it cooks** (decision 1005). While a meal is served, the cook carries the pot out whenever
+  the table is empty, then cooks on. A diner with no seat waits on a ring beyond the seats, off the cook's spot. A
+  walk whose plan found no route waits 2 s before planning again.
+
 ## The camera and the trees
 
 The woods are dense, and the orbit camera used to sit inside a crown (review F53: the NW oak at 11 m,

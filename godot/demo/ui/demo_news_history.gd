@@ -9,7 +9,8 @@ extends CanvasLayer
 ## incident still open, and is what N and the HUD's history trigger open in the demo.
 ##
 ## WHAT, top to bottom:
-##   * the title, "Settlement notices" (the shell's own history, for the HUD's settlement conditions) and ×;
+##   * the title, "Settlement notices" (the shell's own history, for the HUD's settlement conditions), "Chronicle" (the
+##     village chronicle's book, decision 0631) and ×;
 ##   * the FILTERS: by place (All, or any of Farm, Woods, Tunnels, Water, Village -- demo_notices.gd GROUP_*;
 ##     the first place chosen from All shows that place alone, later ones add to it, the last one taken off
 ##     shows All again) and by tier (All, Urgent, Normal, Info: see TIERS, SNOOZE AND DISMISS);
@@ -72,6 +73,8 @@ var _notices: NoticesScript = null
 var _incidents: IncidentsScript = null
 var _jump: JumpScript = null
 var _settlement: Callable = Callable()
+## What "Chronicle" opens: the village chronicle's book (decision 0631; unset: the button is hidden).
+var _chronicle: Callable = Callable()
 var _defer_to: Array[Callable] = []
 ## The history's rows: what each shows (target kind and id, two per row; the level drawn), and how many may be
 ## drawn (PAGE more each "Show older").
@@ -125,6 +128,13 @@ func set_settlement(open_settlement: Callable) -> void:
 		_frame.find_child("Settlement", true, false).visible = open_settlement.is_valid()
 
 
+func set_chronicle(open_chronicle: Callable) -> void:
+	"""What "Chronicle" opens: the village chronicle (decision 0631; none: the button is hidden)."""
+	_chronicle = open_chronicle
+	if _frame != null:
+		_frame.find_child("Chronicle", true, false).visible = open_chronicle.is_valid()
+
+
 func _ready() -> void:
 	"""Place, and follow the viewport's size."""
 	build()
@@ -170,6 +180,12 @@ func _build_header(column: VBoxContainer) -> void:
 	settlement.visible = false
 	settlement.pressed.connect(_on_settlement)
 	row.add_child(settlement)
+	var chronicle: Button = FarmUi.button("Chronicle", BUTTON_PX)
+	chronicle.name = "Chronicle"
+	chronicle.tooltip_text = "The village chronicle: a page for each season, from what the village recorded"
+	chronicle.visible = _chronicle.is_valid()
+	chronicle.pressed.connect(_on_chronicle)
+	row.add_child(chronicle)
 	var close: Button = FarmUi.button("×", BUTTON_PX + 2)
 	close.name = "Close"
 	close.tooltip_text = "Close the village news (Esc or N)"
@@ -312,6 +328,13 @@ func _on_settlement() -> void:
 	close_window()
 	if _settlement.is_valid():
 		_settlement.call()
+
+
+func _on_chronicle() -> void:
+	"""Close, and open the village chronicle (decision 0631)."""
+	close_window()
+	if _chronicle.is_valid():
+		_chronicle.call()
 
 
 func _input(event: InputEvent) -> void:

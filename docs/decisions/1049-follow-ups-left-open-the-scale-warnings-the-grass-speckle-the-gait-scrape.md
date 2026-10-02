@@ -1,47 +1,42 @@
 # 1049 — Follow-ups this lane left open: the scale subprocess's warnings, the grass speckle, the gait scrape
 
-Date: 2026-10-02 · Status: Proposed (written up, not built)
+Date: 2026-10-02 · Status: Accepted for the scale warnings (built); Proposed for the grass speckle and the gait scrape (written up, not built)
 
-## The scale subprocess's other `WARNING:` lines (decision 0998's P2)
+## The scale subprocess's other `WARNING:` lines (decision 0998's P2): built
 
-**Why it is not built here.** P2 is a follow-up to decision 0998. Decision 0998
-and the code P2 changes (`test_scale_stress.gd`'s `_errors_in` and
-`_run_harness`, and `scale_test.gd`'s close) exist only on `fix/codex-review`
-(PR #221). That PR was still open when this lane finished. The brief said to
-merge `origin/master` before starting this item, so that the item lands on
-#221's code. Building it on master's older `test_scale_stress.gd` would conflict
-with #221 throughout the same functions. So the exact change is recorded here,
-to apply once #221 has merged.
+PR #221 merged, which put decision 0998 and its code on master. This item was
+then built on that code, after merging `origin/master` into this branch.
 
-**The change, on #221's `godot/test/test_scale_stress.gd`:**
+**`godot/test/test_scale_stress.gd`:**
 
-- **A named tolerance list.** `const TOLERATED_WARNINGS: PackedStringArray`
-  holds the machine-dependent fragments: today only
-  `"it plays silent until they are staged"`, the sound cues' warning where the
-  demo's assets are not staged, as in CI. Each entry gets a comment saying why
-  it depends on the machine and not the code, as `tolerate_diagnostic` requires
-  (`test/framework/test_case.gd`).
-- **`_errors_in` becomes `_findings_in(lines)`.** As now, it adds `SCRIPT
-  ERROR`, `ERROR:` and `SCALE-ERROR` lines, the exit report apart. It also adds
-  every line that `begins_with("WARNING:")`, is not an exit-report line, and
-  contains none of `TOLERATED_WARNINGS`. Both live tests use it. The fault run
-  must stay free of findings, so a warning in it fails too.
-- **A pure test of the filter**, `test_the_subprocess_fails_an_unnamed_warning`,
-  in the style of `test_the_exit_check_allows_no_count`. It checks that:
-  - a "plays silent" warning is no finding;
-  - any other `WARNING:` line is;
-  - the exit report's object warning is still counted only by `exit_report`,
-    not twice.
-- **Before the tolerance list is fixed**, run the live test once with the
-  assets moved aside and once staged, and list every `WARNING:` it prints. The
-  list must name only what those runs show. The outer suite log does not carry
-  the subprocess's other lines, so this needs the run itself.
-- **The scale tool** (`godot/tools/scale_test/scale_test.gd`) needs no change.
-  It prints the engine's lines as they come; only the test reads them.
+- `TOLERATED_WARNINGS` names two machine-dependent fragments:
+  - `"demo assets are not staged (tools/stage_demo_assets.py); running on
+    placeholders"` (`demo_village.gd`);
+  - `"it plays silent until they are staged"` (each sound cue).
 
-**Mutation targets once built:** the `WARNING:` branch removed; a tolerance
-widened to match everything; the exit-report exclusion dropped.
+  Both are printed only where the demo's assets are not staged, as in CI. They
+  depend on the machine, not the code, which is the rule
+  `tolerate_diagnostic` uses.
+- **Measured before the list was fixed.** The real 25-resident run and the
+  fault run were each run with the assets staged and with them moved aside.
+  - Staged, neither printed any `WARNING:` line apart from the fault run's
+    injected exit report.
+  - Bare, both printed exactly these two kinds of line, and nothing else apart
+    from the exit report.
+- `_errors_in` (now static) also returns every line that begins `WARNING:`,
+  is not an exit-report line, and contains no named fragment. Both live tests
+  already use it, so the real run and the fault run fail on any other warning.
+  The exit report's object warning is still counted only by `exit_report`.
+- New test `test_the_subprocess_fails_an_unnamed_warning`. It checks that:
+  - the named fragments pass;
+  - an unnamed warning is a finding;
+  - the exit report's warning is not counted twice;
+  - only the engine's own `WARNING:` prefix counts.
+- `godot/tools/scale_test/scale_test.gd` is unchanged. It prints the engine's
+  lines, and only the test reads them.
 
+**Mutation testing:** 3 mutants, all killed. They removed the `WARNING:` branch,
+tolerated every fragment, and dropped the exit-report exclusion.
 
 ## The grass speckle (visual polish)
 

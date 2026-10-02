@@ -195,6 +195,7 @@ const WoodlandSkinScript := preload("res://demo/ui/woodland_skin.gd")
 const DemoCommandScript := preload("res://demo/control/demo_command.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const DemoFarmScript := preload("res://demo/farm/demo_farm.gd")
+const TendingScript := preload("res://demo/farm/farm_tending.gd")
 const KitchenNodeScript := preload("res://demo/kitchen/demo_kitchen.gd")
 const FisheryNodeScript := preload("res://demo/fishery/demo_fishery.gd")
 const FerryNodeScript := preload("res://demo/ferry/demo_ferry.gd")
@@ -544,6 +545,8 @@ func _build_farm(manifest: Dictionary) -> void:
 	_farm.configure(manifest, _world as DemoWorldScript, _cast as DemoCastScript, _command as DemoCommandScript,
 		_camera.camera(), _shell(), storage_providers(), _services)
 	_farm.follow_rooms(rooms())
+	_farm.tending.set_policy(TendingScript.GROUP_FIELD, TendingScript.POLICY_SOW, true)
+	_command.tunnels().bed_laid = _farm.sim.is_laid
 	_build_weir_view()
 	_command.tunnels().ext.fixture_view.set_fill(_farm.cellar_fill)
 	_command.tunnels().ext.set_stored(_farm.cellar_stored_u)

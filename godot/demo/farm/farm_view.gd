@@ -1,5 +1,5 @@
 extends Node3D
-## The farm as drawn: the six beds at their stages, the map overlays, and the tunnel
+## The farm as drawn: the beds at their stages, the map overlays, and the tunnel
 ## spoil heaps shrinking as spoil is carried off. Decision 0196. Presentation only.
 ##
 ## The world's own crop pieces (world/world_layout.gd CROPS, always drawn ripe) are hidden and the
@@ -36,6 +36,9 @@ const OVERLAY_WATER: int = 3
 const OVERLAY_NAMES: Array[String] = ["off", "moisture", "ripeness", "water service"]
 ## The world pieces this close to a bed centre are the bed (hidden).
 const WORLD_PIECE_MATCH_M: float = 0.05
+## A kitchen-garden site not laid out is labelled so (decision 0883).
+const SITE_TITLE: String = "Garden site"
+const SITE_STATUS: String = "click to lay out a bed"
 
 var assets: AssetsScript = AssetsScript.new()
 var beds: Array[BedVisualScript] = []
@@ -65,7 +68,7 @@ func _init() -> void:
 
 
 func build(manifest: Dictionary, sim: SimScript) -> void:
-	"""Load the staged bed art and build the six beds and the pond."""
+	"""Load the staged bed art and build every bed (and site) and the pond."""
 	name = "FarmView"
 	_sim = sim
 	assets.load_from(manifest)
@@ -143,7 +146,8 @@ func _state_key(bed: int) -> int:
 	var works: int = (1 if _sim.is_covered(bed) else 0) + (2 if _sim.is_raised(bed) else 0) \
 		+ (4 if _sim.is_banked(bed) else 0) + (8 if _sim.is_ditched(bed) else 0)
 	var key: int = (((((stage * 32 + item) * 32 + chosen) * 64 + growth) * 8 + _sim.band_of(bed)) * 16 + ripe)
-	return ((key * 16 + works) * 4 + _sim.leat_service_of(bed)) * 8 + marks
+	var laid: int = 1 if _sim.is_laid(bed) else 0
+	return (((key * 16 + works) * 4 + _sim.leat_service_of(bed)) * 2 + laid) * 8 + marks
 
 
 func _draw(bed: int) -> void:
@@ -156,11 +160,17 @@ func _draw(bed: int) -> void:
 	var visual: BedVisualScript = beds[bed]
 	var status: String = Look.status(stage, _sim.chosen_of(bed), growth, band, ripe_hours)
 	var mark: String = _compare[bed] if bed < _compare.size() else ""
-	visual.show_state(stage, item, growth, band, ripe_hours, Look.title(item, _sim.chosen_of(bed), stage),
-		status if mark.is_empty() else "%s\n%s" % [status, mark])
+	var title: String = Look.title(item, _sim.chosen_of(bed), stage)
+	if not _sim.is_laid(bed):
+		title = SITE_TITLE
+		status = SITE_STATUS
+	visual.show_state(stage, item, growth, band, ripe_hours, title, status if mark.is_empty() else "%s\n%s" % [status, mark])
+	visual.show_site(not _sim.is_laid(bed))
 	visual.set_selected(_selected == bed)
 	visual.set_compared(not mark.is_empty())
-	visual.show_works(_sim.is_covered(bed), _sim.is_raised(bed), _sim.is_banked(bed), _sim.is_ditched(bed))
+	var laid: bool = _sim.is_laid(bed)
+	visual.show_works(_sim.is_covered(bed) and laid, _sim.is_raised(bed) and laid, _sim.is_banked(bed) and laid,
+		_sim.is_ditched(bed) and laid)
 	visual.show_overlay(_overlay_colour(stage, band, ripe_hours, _sim.leat_service_of(bed)))
 
 

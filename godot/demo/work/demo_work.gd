@@ -24,6 +24,7 @@ const ForageWork := preload("res://demo/work/forage_work.gd")
 const KitchenWork := preload("res://demo/work/kitchen_work.gd")
 const StoresWork := preload("res://demo/work/stores_work.gd")
 const CareWork := preload("res://demo/work/care_work.gd")
+const WorkIds := preload("res://demo/work/work_ids.gd")
 const KitchenScript := preload("res://demo/kitchen/kitchen.gd")
 const DemoCastScript := preload("res://demo/cast/demo_cast.gd")
 const DemoActorScript := preload("res://demo/cast/demo_actor.gd")
@@ -74,6 +75,7 @@ func _add_owners(farm: FarmScript, forestry: ForestryScript, waterplay: Waterpla
 	if farm != null:
 		board.add_source(FarmWork.new(farm.crew))
 		farm.crew.set_claimer(board.queue_words)
+		farm.garden.bind_claim_check(farm_claimable)
 	if forestry != null:
 		board.add_source(WoodsWork.new(forestry.crew))
 		forestry.crew.set_claimer(board.queue_words)
@@ -85,6 +87,12 @@ func _add_owners(farm: FarmScript, forestry: ForestryScript, waterplay: Waterpla
 		board.add_source(FitOutWork.new(_cast.space().tunnels, ext.fixture_crew, brains, board.name_of))
 	if spoil != null:
 		board.add_source(SpoilWork.new(spoil.crew, _cast.space().tunnels, brains))
+
+
+func farm_claimable(who: int) -> bool:
+	"""Whether the board could give `who` farm work now: idle by its own test, and farm work not forbidden to its crew
+	(the kitchen garden keeps its jobs for the cook only while this holds: farm_garden.gd `can_tend`, decision 0883)."""
+	return board.idle(who) and board.crews.priority_of(who, WorkIds.ACT_FARM) != WorkIds.PRIORITY_FORBIDDEN
 
 
 func add_fishery(fishery: RefCounted) -> void:

@@ -292,7 +292,7 @@ func test_sowing_is_gated_by_fallow_soil_and_window() -> void:
 	assert_false(sim.sow_start(BED_EMPTY_CLAY).ok, "nothing chosen")
 	assert_equal(sim.sow_start(BED_EMPTY_CLAY).error, SimScript.REFUSE_NO_ITEM, "says so")
 	assert_false(sim.choose(BED_EMPTY_CLAY, 16).ok, "not an item")
-	assert_false(sim.choose(6, WHEAT).ok, "not a bed")
+	assert_false(sim.choose(Catalog.BED_COUNT, WHEAT).ok, "not a bed")
 
 
 func test_sowing_starts_and_finishes() -> void:
@@ -389,11 +389,13 @@ func test_compost_takes_two_units_once_a_season() -> void:
 
 
 func test_tunnels_drain_irrigate_and_spoil_raises() -> void:
-	"""After the first midnight (+600 to 6600): drained -> 6600 - 1500 = 5100 (toward 4500); irrigated
-	-> pulled to the 6000 middle; raised -> 6600 - 800 = 5800; plain 6600."""
+	"""After the first midnight (+600 to 6600), through outlets set to Drain and Feed (decision 0884): drained -> 6600 -
+	1500 = 5100 (toward 4500); irrigated -> pulled to the 6000 middle; raised -> 6600 - 800 = 5800; plain 6600."""
 	var sim := SimScript.new()
 	sim.set_tunnel_water(BED_EMPTY_LOAM, true, false)
 	sim.set_tunnel_water(BED_EMPTY_CLAY, false, true)
+	_outlet(sim, BED_EMPTY_LOAM, SimScript.OUTLET_DRAIN)
+	_outlet(sim, BED_EMPTY_CLAY, SimScript.OUTLET_FEED)
 	sim.raise_bed(BED_EMPTY_CLAY_2)
 	_hours(sim, 18)
 	assert_equal(sim.moisture_of(BED_EMPTY_LOAM), 5100, "drained")
@@ -415,11 +417,19 @@ func test_drainage_stops_at_the_low_side_and_irrigation_lifts_a_dry_bed() -> voi
 	sim.set_tunnel_water(BED_EMPTY_LOAM, true, false)
 	sim.set_tunnel_water(BED_EMPTY_CLAY, false, true)
 	sim.set_tunnel_water(BED_EMPTY_CLAY_2, false, true)
+	_outlet(sim, BED_EMPTY_LOAM, SimScript.OUTLET_DRAIN)
+	_outlet(sim, BED_EMPTY_CLAY, SimScript.OUTLET_FEED)
+	_outlet(sim, BED_EMPTY_CLAY_2, SimScript.OUTLET_FEED)
 	sim.raise_bed(BED_EMPTY_CLAY_2)
 	_hours(sim, 18)
 	assert_equal(sim.moisture_of(BED_EMPTY_LOAM), 4500, "drained to the low side")
 	assert_equal(sim.moisture_of(BED_EMPTY_CLAY), 4100, "irrigated up")
 	assert_equal(sim.moisture_of(BED_EMPTY_CLAY_2), 6000, "held at the middle")
+
+
+func _outlet(sim: SimScript, bed: int, mode: int) -> void:
+	"""Fit an outlet to `bed` (a tunnel already under it) and set it (farm_sim.gd TUNNEL OUTLETS)."""
+	assert_true(sim.fit_outlet(bed).ok and sim.set_outlet(bed, mode).ok, "outlet fitted and set on bed %d" % (bed + 1))
 
 
 func test_an_empty_bed_rests_back_its_fertility() -> void:
@@ -490,7 +500,7 @@ func test_draining_drops_a_wet_bed_to_its_band_s_top_and_ditches_it() -> void:
 	assert_equal(sim.drain_refusal(BED_RADISH), SimScript.REFUSE_NOT_TOO_WET, "6000 is good")
 	assert_false(sim.drain_bed(BED_RADISH).ok, "refused")
 	assert_false(sim.is_ditched(BED_RADISH), "no ditch")
-	assert_equal(sim.drain_refusal(6), SimScript.REFUSE_NOT_A_BED, "not a bed")
+	assert_equal(sim.drain_refusal(Catalog.BED_COUNT), SimScript.REFUSE_NOT_A_BED, "not a bed")
 	_set_moisture(sim, BED_RADISH, 7001)
 	assert_equal(sim.drain_refusal(BED_RADISH), SimScript.REFUSE_NONE, "7001 is wet")
 	_set_moisture(sim, BED_RADISH, 7500)
@@ -518,6 +528,7 @@ func test_a_ditched_bed_sheds_toward_its_low_side_at_midnight() -> void:
 	_set_moisture(sim, BED_WHEAT, 7600)
 	sim.drain_bed(BED_WHEAT)
 	sim.set_tunnel_water(BED_WHEAT, false, true)
+	_outlet(sim, BED_WHEAT, SimScript.OUTLET_FEED)
 	_hours(sim, 18)
 	assert_equal(sim.moisture_of(BED_RADISH), 6600, "ditched: 1000 shed")
 	assert_equal(sim.moisture_of(BED_CARROTS), 7100, "plain: the natural 500")
@@ -904,7 +915,7 @@ func test_jobs_open_once_per_kind_and_bed() -> void:
 	assert_equal(jobs.live_count(), 24, "full")
 	assert_false(jobs.open_into(JobsScript.KIND_COVER, 5, JobsScript.ORIGIN_PLAYER, _read), "full")
 	assert_equal(_read.error, JobsScript.REFUSE_BOARD_FULL, "says so")
-	assert_equal(JobsScript.KIND_COUNT, 9, "nine kinds: Drain is the ninth")
+	assert_equal(JobsScript.KIND_COUNT, 10, "ten kinds: Fit outlet is the tenth (decision 0884)")
 	assert_equal(JobsScript.KIND_DELIVER, JobsScript.KIND_COUNT, "the delivery after the orderable kinds")
 	assert_equal(JobsScript.KIND_RETURN_EARTH, JobsScript.KIND_COUNT + 1, "then the earth return")
 	assert_equal(JobsScript.KIND_NAMES.size(), JobsScript.KIND_COUNT + 2, "a name each, the delivery's and return's too")

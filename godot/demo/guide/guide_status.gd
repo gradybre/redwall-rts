@@ -213,9 +213,9 @@ static func _growing(world: WorldScript, out: Status) -> bool:
 
 
 static func _first_bed(sim: SimScript, stages: Array[int]) -> int:
-	"""The first bed at one of `stages` (NO_BED for none)."""
+	"""The first bed at one of `stages` (NO_BED for none); a kitchen-garden site not laid out is no bed (decision 0883)."""
 	for bed: int in Catalog.BED_COUNT:
-		if stages.has(sim.stage_of(bed)):
+		if sim.is_laid(bed) and stages.has(sim.stage_of(bed)):
 			return bed
 	return NO_BED
 

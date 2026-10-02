@@ -223,7 +223,7 @@ func _bed_lines(sim: SimScript, bed: int, day: int, out: PackedStringArray) -> v
 		"%s is too dry to grow — water it" % what, WARNING)
 	_condition(out, bed, COND_WET, growing, growing and band == SimScript.BAND_WATERLOGGED, hour,
 		"%s is waterlogged and has stopped growing — Drain it" % what, WARNING)
-	var empty: bool = stage == SimScript.STAGE_EMPTY
+	var empty: bool = stage == SimScript.STAGE_EMPTY and sim.is_laid(bed)
 	@warning_ignore("integer_division") _condition(out, bed, COND_WORN, empty, empty and sim.fertility_of(bed) < LOW_FERTILITY, hour,
 		"Bed %d is worn out (fertility %d%%) — compost it or rest it fallow" % [bed + 1, sim.fertility_of(bed) / 100],
 		NOTE)

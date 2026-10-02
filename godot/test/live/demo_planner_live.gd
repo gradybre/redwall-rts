@@ -158,7 +158,9 @@ func _g_opens_the_planner_as_a_modal() -> void:
 	_check("the planner is the top modal", _gate().top_layer() == _planner())
 	_check("focus lands inside the planner", _gate().in_top_modal(_focus()), str(_focus()))
 	_check("the planner fits the window", _fits(_planner().call(&"frame_rect")), str(_planner().call(&"frame_rect")))
-	_check("six beds listed", int(_planner().call(&"overview").call(&"shown_rows")) == 6)
+	_check("twelve beds listed", int(_planner().call(&"overview").call(&"shown_rows")) == 12)
+	var tending: RefCounted = _village.get("_farm").get("tending")
+	_check("the field sows in season by default (decision 0886)", bool(tending.call(&"is_on", 0, 3)))
 	_capture("planner_overview")
 
 
@@ -281,7 +283,9 @@ func _compare_rings_the_beds() -> void:
 	_click(_centre(button))
 	_check("Compare… shows the beds", bool(panel.get("comparing")))
 	var marks: PackedStringArray = panel.call(&"compare_marks")
-	_check("every bed is ranked", marks.size() == 6 and not marks.has(""), str(marks))
+	# Sixteen beds: the twelve field beds ranked, the kitchen garden's four sites bare and unranked (decisions 0883, 0886).
+	_check("every bed is ranked", marks.size() == 16 and not marks.slice(0, 12).has("")
+		and marks.slice(12) == PackedStringArray(["", "", "", ""]), str(marks))
 	_capture("bed_compare")
 
 

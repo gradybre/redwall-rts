@@ -23,6 +23,12 @@ extends RefCounted
 ## so a resident's resume (resident_brain.gd RESUMING) comes back to the very job it left; its HOLD is the
 ## pantry reservation its harvest keeps (farm_pantry.gd RESERVATIONS), and BLOCKED says why it waits.
 ##
+## FITTING AN OUTLET (KIND_FIT_OUTLET, decision 0884; review ECO-006): spade-work at the bed, down to the tunnel under
+## it, fitting a boarded outlet (farm_sim.gd TUNNEL OUTLETS). Its work is a demo value, a ditch's (6 WU). Once fitted,
+## setting the outlet -- shut, drain, feed -- is a board moved in its mouth, with no job.
+##
+## A SITE NOT LAID OUT (decision 0883) takes no job at all: `refusal_for` refuses every kind NOT_LAID_OUT.
+##
 ## AN EARTH RETURN (KIND_RETURN_EARTH, decision 0401) is what a Raise or a Bank becomes when it ends with earth in
 ## hand -- cancelled, or unable to reach or work its bed: the carrier walks the earth back to the heap (or the stores)
 ## it came from and tips it there, as a cancelled sawing carries its logs back (0222). Like a delivery it is not an
@@ -41,14 +47,16 @@ const KIND_COVER: int = 5
 const KIND_RAISE: int = 6
 const KIND_BANK: int = 7
 const KIND_DRAIN: int = 8
+const KIND_FIT_OUTLET: int = 9
 ## The kinds the player (or the farm's routine) orders; KIND_DELIVER comes after them.
-const KIND_COUNT: int = 9
-const KIND_DELIVER: int = 9
-const KIND_RETURN_EARTH: int = 10
+const KIND_COUNT: int = 10
+const KIND_DELIVER: int = 10
+const KIND_RETURN_EARTH: int = 11
 const KIND_NAMES: Array[String] = ["Sow", "Water", "Harvest", "Clear", "Compost", "Cover", "Raise", "Bank",
-	"Drain", "Carry harvest", "Carry earth back"]
+	"Drain", "Fit outlet", "Carry harvest", "Carry earth back"]
 const KIND_DOING: Array[String] = ["Sowing", "Watering", "Harvesting", "Clearing", "Composting",
-	"Covering", "Raising", "Banking", "Draining", "Carrying the harvest from", "Carrying earth back from"]
+	"Covering", "Raising", "Banking", "Draining", "Fitting an outlet on", "Carrying the harvest from",
+	"Carrying earth back from"]
 
 ## Steps: walks (< STEP_WORK) and works (STEP_WORK + a WORK_* kind).
 const STEP_GO_BED: int = 0
@@ -70,9 +78,10 @@ const WORK_FETCH: int = 8
 const WORK_DIG: int = 9
 const WORK_DROP: int = 10
 const WORK_DRAIN: int = 11
+const WORK_FIT_OUTLET: int = 12
 ## WU per work kind: §5.6 / REQ-SET-085 for sow 4, tend 1, harvest 6, clear 10, compost 8; the rest
-## are demo values -- a ditch (drain) is 6, the same spade-work as raising or banking a bed.
-const WORK_WU: Array[int] = [4, 1, 6, 10, 8, 2, 6, 6, 1, 2, 1, 6]
+## are demo values -- a ditch (drain) is 6, the same spade-work as raising or banking a bed, and so is fitting an outlet.
+const WORK_WU: Array[int] = [4, 1, 6, 10, 8, 2, 6, 6, 1, 2, 1, 6, 6]
 const DEMO_USEC_PER_WU: int = 1500000
 
 const PLANS: Array[Array] = [
@@ -85,6 +94,7 @@ const PLANS: Array[Array] = [
 	[STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED, STEP_WORK + WORK_RAISE],
 	[STEP_GO_HEAP, STEP_WORK + WORK_DIG, STEP_CARRY_BED, STEP_WORK + WORK_BANK],
 	[STEP_GO_BED, STEP_WORK + WORK_DRAIN],
+	[STEP_GO_BED, STEP_WORK + WORK_FIT_OUTLET],
 	[STEP_CARRY_STORE, STEP_WORK + WORK_DROP],
 	[STEP_CARRY_HEAP, STEP_WORK + WORK_DROP],
 ]
@@ -331,6 +341,8 @@ static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, earth_milli
 	most earth any one source holds (farm_tunnels.gd `most_earth`): Raise and Bank need it, nothing else does."""
 	if not Catalog.is_bed(job_bed) or job_kind < 0 or job_kind >= KIND_COUNT:
 		return StringName(REFUSE_BAD_KIND)
+	if not sim.is_laid(job_bed):
+		return SimScript.REFUSE_NOT_LAID
 	var stage: int = sim.stage_of(job_bed)
 	match job_kind:
 		KIND_SOW:
@@ -346,14 +358,21 @@ static func refusal_for(sim: SimScript, job_kind: int, job_bed: int, earth_milli
 		KIND_COMPOST:
 			return sim.compost_refusal(job_bed)
 		KIND_COVER:
-			if sim.is_covered(job_bed):
-				return SimScript.REFUSE_ALREADY
-			return &"" if stage != SimScript.STAGE_EMPTY else SimScript.REFUSE_NO_CROP
+			return _cover_refusal(sim, job_bed, stage)
 		KIND_DRAIN:
 			return sim.drain_refusal(job_bed)
+		KIND_FIT_OUTLET:
+			return sim.outlet_refusal(job_bed)
 	if (job_kind == KIND_RAISE and sim.is_raised(job_bed)) or (job_kind == KIND_BANK and sim.is_banked(job_bed)):
 		return SimScript.REFUSE_ALREADY
 	return &"" if earth_milli >= EARTH_PER_JOB_MILLI else StringName(REFUSE_NO_EARTH)
+
+
+static func _cover_refusal(sim: SimScript, job_bed: int, stage: int) -> StringName:
+	"""Why a bed cannot be covered: covered already, or nothing standing to cover."""
+	if sim.is_covered(job_bed):
+		return SimScript.REFUSE_ALREADY
+	return &"" if stage != SimScript.STAGE_EMPTY else SimScript.REFUSE_NO_CROP
 
 
 static func _is_growing_stage(stage: int) -> bool:

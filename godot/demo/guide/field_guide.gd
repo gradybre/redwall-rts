@@ -175,8 +175,8 @@ static func _grown_here(item: int) -> String:
 	"""Where it grows in this village: a bed that opens with it, else any bed sown with it."""
 	for bed: int in Catalog.BED_COUNT:
 		if Catalog.BED_START_ITEM[bed] == item:
-			return "Growing in bed %d at the start; any of the six beds can be sown with it." % (bed + 1)
-	return "Any of the six crop beds can be sown with it."
+			return "Growing in bed %d at the start; any field bed whose soil takes it can be sown with it." % (bed + 1)
+	return "Any field bed whose soil takes it can be sown with it."
 
 
 static func _static_init() -> void:
@@ -557,7 +557,7 @@ static func _station_cellar() -> Entry:
 static func _station_tunnels() -> Entry:
 	"""The station tunnels entry."""
 	return make(&"station_tunnels", KIND_STATION, "Tunnels", "Dug ways below", PackedStringArray([
-		"Routes in any weather (rain and snow do not slow walkers below); draining the beds above; reaching homes and cellars.",
+		"Routes in any weather (rain and snow do not slow walkers below); draining or watering a bed above through an outlet fitted to it; reaching homes and cellars.",
 		"A digger who fits the bore (mice, moles, squirrels); 8 m at least, mouth to mouth.",
 		"A bridge or the ford over the stream.", "Wherever you dig them (B); they cannot pass under water."]),
 		[&"skill_digging", &"material_earth", &"station_bridges"])

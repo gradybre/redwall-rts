@@ -715,7 +715,11 @@ func test_the_view_hides_the_world_beds_and_redraws_on_change() -> void:
 	var view := ViewScript.new()
 	_nodes.append(view)
 	view.build({}, sim)
-	assert_equal(view.beds.size(), 6, "six beds drawn")
+	assert_equal(view.beds.size(), Catalog.BED_COUNT, "six beds and the four kitchen-garden sites drawn")
+	assert_true(view.beds[Catalog.GARDEN_FIRST].showing_site(), "a garden site not laid out: pegs only")
+	assert_equal(view.beds[Catalog.GARDEN_FIRST].label.text, "%s\n%s" % [ViewScript.SITE_TITLE, ViewScript.SITE_STATUS],
+		"labelled as a site")
+	assert_false(view.beds[BED_CARROTS].showing_site(), "a field bed is a bed")
 	assert_equal(view.beds[BED_CARROTS].label.text, "Carrot\n80%", "carrots at 80%")
 	sim.advance_usec(24 * HOUR_USEC)
 	view.refresh()
@@ -1086,8 +1090,8 @@ func test_a_waterlogged_bed_s_most_pressing_work_is_drain() -> void:
 
 
 func test_a_farm_hour_ages_the_pantry_and_reads_the_tunnels() -> void:
-	"""A step of one farm hour ages every lot 1000 milli-hours and marks beds a finished tunnel runs
-	under as drained."""
+	"""A step of one farm hour ages every lot 1000 milli-hours and records a finished tunnel under the beds it runs
+	under -- transport only until an outlet is fitted and set to Drain (decision 0884)."""
 	var farm := _farm()
 	farm.pantry.add_into(CARROT, 1000, 0, _read)
 	var network: GraphScript = farm._cast.space().tunnels
@@ -1095,9 +1099,14 @@ func test_a_farm_hour_ages_the_pantry_and_reads_the_tunnels() -> void:
 	_dig_tunnel(network, Vector2(-6.9, 12.8), Vector2(-14.9, 12.8))
 	farm.step(HOUR_USEC)
 	assert_equal(farm.pantry.lot_age(0), 1000, "an hour older")
-	assert_true(farm.sim.is_drained(BED_CARROTS), "drained")
-	assert_true(farm.sim.is_drained(BED_RADISH), "drained")
-	assert_false(farm.sim.is_drained(BED_LOAM), "not under")
+	assert_true(farm.sim.dry_tunnel_under(BED_CARROTS), "a dry tunnel under the carrots")
+	assert_true(farm.sim.dry_tunnel_under(BED_RADISH), "and under the radish")
+	assert_false(farm.sim.is_drained(BED_CARROTS), "transport only: not drained")
+	assert_true(farm.sim.fit_outlet(BED_CARROTS).ok and farm.sim.set_outlet(BED_CARROTS, SimScript.OUTLET_DRAIN).ok,
+		"a Drain outlet fitted")
+	assert_true(farm.sim.is_drained(BED_CARROTS), "drained through it")
+	assert_false(farm.sim.is_drained(BED_RADISH), "the radish has no outlet")
+	assert_false(farm.sim.dry_tunnel_under(BED_LOAM), "not under")
 
 
 func test_keys_cycle_the_overlay_and_open_the_pantry() -> void:

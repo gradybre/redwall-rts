@@ -140,6 +140,28 @@ const BUTT_FULL: String = "BUTT_FULL"
 const NO_DRAWER: String = "NO_DRAWER"
 
 
+## A cook's round or a drawer's trip to come back to (resident_brain.gd RESUMING), holding the kitchen WEAKLY. The job
+## record (unfinished_job.gd) keeps its take-back's object alive and the brain keeps the record, while the kitchen keeps
+## every brain: had the record held the kitchen itself, the cycle brain -> job -> kitchen -> brain would have outlived
+## a Restart, with the whole cast behind it (decision 0922; found by the soak test). A method Callable does not keep its
+## object alive, and is no longer valid once the kitchen is gone: the round is then stale and is dropped, as
+## kitchen_task.gd's own WeakRef does.
+class RoundBack extends RefCounted:
+	var _method: Callable = Callable()
+
+	func _init(method: Callable) -> void:
+		"""The round `method` (the kitchen's own `_take_back_cook` or `_take_back_draw`)."""
+		_method = method
+
+	func take_back(brain: RefCounted) -> bool:
+		"""Give the round back to `brain` (false once the kitchen is gone, or as the kitchen answers)."""
+		return _method.is_valid() and bool(_method.call(brain))
+
+	func method_name() -> StringName:
+		"""The kitchen's method this round calls (checks)."""
+		return _method.get_method()
+
+
 ## What an order would do and why not: the Cook and Draw water orders, their cards and the routine's shortage
 ## reports all read one of these (decide_meal, decide_cook, decide_draw).
 class Decision extends RefCounted:
@@ -921,11 +943,12 @@ func part_over(i: int, task: TaskScript) -> void:
 
 
 func unfinished_of(i: int, role: int) -> RefCounted:
-	"""What resident `i` comes back to once its other work is done: its cook's round, or its trip with water."""
+	"""What resident `i` comes back to once its other work is done: its cook's round, or its trip with water (each
+	holding the kitchen weakly: RoundBack)."""
 	if role == ROLE_COOK:
-		return UnfinishedScript.new(_take_back_cook, Words.ROUND_LABEL)
+		return UnfinishedScript.new(RoundBack.new(_take_back_cook).take_back, Words.ROUND_LABEL)
 	if role == ROLE_DRAW and (_water[i] > 0 or _draw_amount[i] > 0):
-		return UnfinishedScript.new(_take_back_draw, Words.DRAW_LABEL)
+		return UnfinishedScript.new(RoundBack.new(_take_back_draw).take_back, Words.DRAW_LABEL)
 	return null
 
 

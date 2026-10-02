@@ -256,3 +256,20 @@ He approved all nine recommendations:
 The batch-8 integration brief and the coordinator's additions (2026-10-02: merge `art/flax-icons`; restage from the
 shared library and verify every mapping key); Brendan's orchard rulings (0671); decisions 0501, 0901, 0902, 0941, 0951,
 0971, 0972, 0981 and DEC-047, DEC-048.
+
+## Gates on the final tip (9e31d2e5, the rulings built)
+
+As the sharded CI runs them -- the demo's assets moved aside, `godot/.godot` deleted and re-imported:
+
+```text
+./tools/run_tests.sh --shard N/8 --output-dir <dir>      # N = 0..7, each exit 0
+python3 tools/ci_test_shards.py verify --reports <dir> --count 8
+ok: 286 suite files executed exactly once across 8 shards
+tests 8925, assertions 603021, failures 0, expected 272, tolerated 353, unexpected errors 0, unexpected warnings 0,
+leaked objects 0, leaked resources 0
+python3 tools/test_ci_test_shards.py --godot              # Ran 17 tests ... OK
+python3 tools/gdscript_warnings.py --max 0
+0 GDScript warning(s) in 0 of 1008 file(s)
+```
+
+Every other Python step of `.github/workflows/tests.yml` exits 0.

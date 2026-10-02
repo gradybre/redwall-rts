@@ -542,7 +542,7 @@ One map layer shows at a time (`map_lenses.gd`), each answering one question wit
 | Growing: Water service | Which beds does the weir's garden leat water? | not served, dry (leat empty), normal, wet (decision 0441) |
 | Getting there: Water range | Where can they wade, swim, dive or cross? | wade, swim, dive, ford, bridge site, swim link, landing |
 | Getting there: Routes | How do they get there, and what holds them up? | surface, wading, underground, bridge, swimming (optional), by boat, by ferry (decision 0437), the posts (waiting, blocked); public ways never swim (decision 0461) |
-| Woods: Zones and trees | Which trees may be felled, which must stay? | forestry and conservation zones; mature, young, stump, cleared |
+| Woods: Zones and trees | Which trees may be felled, which must stay? | forestry (brass) and conservation (sage) zones; mature (leaf green), young (spring green), stump (dark umber), cleared (clay) -- the six pass the colour-blind check (decision 1044) |
 | Underground: Tunnels | What lies under the village? | the U view's cut (U switches it too) |
 
 - **The Map layer picker** (`ui/demo_lens_picker.gd`) names the shown layer on its header button ("Getting
@@ -1830,7 +1830,8 @@ Residents work trees within 30 m of the square (`forestry/forest_rules.gd` REACH
   `world/world_sizes.gd SINK_M`: oak 1.2 m, beech 0.5, residence 0.42, store 0.12, kitchen 0.11,
   workbench 0.07), so roots run into the ground and walls rise out of it. Residents stand on the roots
   where the roots are (decision 0301, review F40): each staged model's own support heightfield is baked
-  from its mesh at boot (`forest_root_field.gd`, 12.5 cm cells, about 8 ms a model) and read in the
+  from its mesh at boot (`forest_root_field.gd`, 12.5 cm cells, about 8 ms a model; kept by the mesh's resource path,
+  so a Restart demo bakes nothing again and keeps nothing more, decision 1048) and read in the
   tree's own frame -- its spot, its yaw, its size, a young tree's share -- so a walker rises onto a root
   and stays on the ground in the hollow beside it (`forest_lift.gd`). Roots standing more than 0.45 m
   proud are walked round instead: a flare circle about each staged trunk and up to fifteen lobe circles
@@ -2167,7 +2168,8 @@ wheel: a demo simplification); the beds' water changes at midnight.
   ones into it, and the feed says so.
 - **Drawn**: a three-plank board in the weir's gate bay (the model's baked board is taken out) winds up on the demo
   clock -- half its lift at Half -- with broken white water below the bay while it is up; the leat head's water stands
-  empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop.
+  empty, half full or brim full. The stream keeps its one level (decision 0301), so the pool does not drop. The head
+  is a 0.55 m walking obstacle (`weir_gate_view.gd land_obstacles`, a circle as (x, radius, z): decision 1043).
 - **The Water service map layer** colours each bed by its service.
 
 ## Day and night (decision 0541)

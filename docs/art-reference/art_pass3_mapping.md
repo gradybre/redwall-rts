@@ -245,3 +245,23 @@ To integrate:
 - Add the rows to the manifest's top-level `icons` section, `{key: {"icon": res://...}}`, as pass 1's staging does.
   `tools/demo_texture_imports.py` already finds images anywhere in the manifest.
 - The panels draw them as they draw the pantry's.
+
+## Flax, linen and beeswax icons (decision 0972)
+
+The sheet is `assets/library/icon/sheet_flax_linen_wax/sheet.png` (task `01a0fce6-bbf4-75f2-92a6-c99baf0c1a38`). It
+is in the same 3D-render style and the same cut as the nine above, and `make_art_pass3.py --icons` writes it to
+`godot/demo/assets/icons/<key>.png`. Each row of the sheet is one good: the main key first, then two alternates.
+
+| Key | Cell | Serves |
+|---|---|---|
+| `item_flax` | 0,0 | The flax crop's harvest (`farm_catalog.gd`; `plant_flax`, decision 0951): a tied sheaf with seed bolls |
+| `item_flax_fibre` | 1,0 | Alternate: combed fibre, if the fibre-to-cloth chain shows a stage between straw and cloth |
+| `item_flax_seed` | 2,0 | Alternate: seed, for the seed store (sowing next year's flax) |
+| `item_linen` | 0,1 | Linen cloth: the infirmary care shelf's cloth (the infirmary work, decision 0621 on its branch) and the fibre-to-cloth chain's product |
+| `item_linen_bolt` | 1,1 | Alternate: a tied bolt (a trade or store quantity) |
+| `item_linen_thread` | 2,1 | Alternate: thread, if spinning becomes its own stage |
+| `item_wax` | 0,2 | Hives (group Y): beeswax, beside `item_honey` |
+| `item_wax_candles` | 1,2 | Alternate: candles, if wax is made into lights |
+| `item_wax_comb` | 2,2 | Alternate: empty comb, as wax comes from the skep |
+
+Add the rows to the manifest's top-level `icons` section, as for the nine above.

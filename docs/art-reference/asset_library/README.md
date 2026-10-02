@@ -266,6 +266,13 @@ after Brendan's ruling (item and dish icons stay in the 3D-render style), from o
 
 Their briefs and prompts are in [`../art_pass3_icon_prompts.md`](../art_pass3_icon_prompts.md).
 
+**Follow-up: flax, linen and beeswax icons** (decision [0972](../../decisions/0972-flax-linen-and-beeswax-icons.md),
+cap 12):
+
+| Sheet | Task | Model |
+|---|---|---|
+| `icon/sheet_flax_linen_wax/sheet.png` (flax, linen and beeswax, each with two alternates) | `01a0fce6-bbf4-75f2-92a6-c99baf0c1a38` | nano-banana-2, 6, conditioned on `sheet_foods_a` |
+
 **3D models.** Each uses the library recipe: a concept from the style reference (nano-banana-2, 6), then a meshy-7
 high-poly (PBR, 2K, triangles, no remesh; 30). That is 36 a model. All are in the `prop/` family.
 

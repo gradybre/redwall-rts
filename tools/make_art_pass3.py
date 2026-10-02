@@ -21,7 +21,7 @@ The keys, sizes and the code each file serves are in docs/art-reference/art_pass
 
 	python3 tools/make_art_pass3.py [--only KEY ...]
 	python3 tools/make_art_pass3.py --check-ice     # water_iced.gdshader is still water.gdshader plus its ICE lines
-	python3 tools/make_art_pass3.py --icons         # cut the nine icons (no Blender; needs Pillow)
+	python3 tools/make_art_pass3.py --icons         # cut every icon sheet (no Blender; needs Pillow)
 
 ICONS (Brendan's ruling, 2026-10-02: item and dish icons stay in the 3D-render style of the pantry icons). One
 nano-banana-2 3x3 sheet conditioned on pass 1's sheet_foods_a, cut here exactly as pass 1 cut its sheets
@@ -249,11 +249,16 @@ SHEET_GRID = 3
 BACKGROUND_TOLERANCE = 18.0
 EDGE_SOFT = 22.0
 ICON_SHEET = "icon/sheet_preserves_finds/sheet.png"
-## icon key: (column, row) in ICON_SHEET. The keys are proposed; the features that use them name the final ones.
+## The flax, linen and beeswax sheet (decision 0972): a row per good, the main form first and two alternates after.
+FLAX_SHEET = "icon/sheet_flax_linen_wax/sheet.png"
+## icon key: (sheet, column, row). The keys are proposed; the features that use them name the final ones.
 ICONS = {
-	"item_jam": (0, 0), "item_pickles": (1, 0), "item_dried_fruit": (2, 0),
-	"item_cheese": (0, 1), "item_ale": (1, 1), "item_cider": (2, 1),
-	"find_coins": (0, 2), "find_old_map": (1, 2), "find_spring": (2, 2),
+	"item_jam": (ICON_SHEET, 0, 0), "item_pickles": (ICON_SHEET, 1, 0), "item_dried_fruit": (ICON_SHEET, 2, 0),
+	"item_cheese": (ICON_SHEET, 0, 1), "item_ale": (ICON_SHEET, 1, 1), "item_cider": (ICON_SHEET, 2, 1),
+	"find_coins": (ICON_SHEET, 0, 2), "find_old_map": (ICON_SHEET, 1, 2), "find_spring": (ICON_SHEET, 2, 2),
+	"item_flax": (FLAX_SHEET, 0, 0), "item_flax_fibre": (FLAX_SHEET, 1, 0), "item_flax_seed": (FLAX_SHEET, 2, 0),
+	"item_linen": (FLAX_SHEET, 0, 1), "item_linen_bolt": (FLAX_SHEET, 1, 1), "item_linen_thread": (FLAX_SHEET, 2, 1),
+	"item_wax": (FLAX_SHEET, 0, 2), "item_wax_candles": (FLAX_SHEET, 1, 2), "item_wax_comb": (FLAX_SHEET, 2, 2),
 }
 
 
@@ -308,18 +313,20 @@ def fit_icon(cut):
 
 
 def make_icons(lib: pathlib.Path) -> int:
-	"""Cut every icon of ICON_SHEET into OUT/icons/; write their rows to OUT/art_pass3_icons.json."""
+	"""Cut every icon of every sheet in ICONS into OUT/icons/; write their rows to OUT/art_pass3_icons.json."""
 	from PIL import Image
-	sheet = Image.open(lib / ICON_SHEET)
+	sheets = {}
 	(OUT / "icons").mkdir(parents=True, exist_ok=True)
 	rows = {}
-	for key, (column, row) in ICONS.items():
+	for key, (sheet_path, column, row) in ICONS.items():
+		if sheet_path not in sheets:
+			sheets[sheet_path] = Image.open(lib / sheet_path)
 		target = OUT / "icons" / f"{key}.png"
-		fit_icon(cut_cell(sheet, column, row)).save(target)
-		rows[key] = {"icon": f"{RES}/icons/{key}.png", "px": ICON_PX, "sheet": ICON_SHEET, "cell": [column, row],
-			"sheet_sha256": sha256(lib / ICON_SHEET), "sha256": sha256(target), "tool": "tools/make_art_pass3.py",
-			"decision": "0971"}
-		print(f"  {key:18} {ICON_SHEET} {column},{row}", flush=True)
+		fit_icon(cut_cell(sheets[sheet_path], column, row)).save(target)
+		rows[key] = {"icon": f"{RES}/icons/{key}.png", "px": ICON_PX, "sheet": sheet_path, "cell": [column, row],
+			"sheet_sha256": sha256(lib / sheet_path), "sha256": sha256(target), "tool": "tools/make_art_pass3.py",
+			"decision": "0972" if sheet_path == FLAX_SHEET else "0971"}
+		print(f"  {key:18} {sheet_path} {column},{row}", flush=True)
 	(OUT / "art_pass3_icons.json").write_text(json.dumps(rows, indent=1, sort_keys=True) + "\n")
 	return 0
 

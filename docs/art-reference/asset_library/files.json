@@ -1,7 +1,7 @@
 {
  "root": "assets/library/ (gitignored; binaries are local only)",
- "count": 1749,
- "total_bytes": 21859966396,
+ "count": 1750,
+ "total_bytes": 21860919340,
  "files": [
   {
    "family": "building",
@@ -15679,6 +15679,15 @@
    "path": "assets/library/style_probe/icon_mouse/l0.glb",
    "bytes": 5712344,
    "sha256": "8cbf989213fd4bef8f0cf8444dea21e335853205876b90bfd707601cffe03cbe"
+  },
+  {
+   "family": "icon",
+   "key": "sheet_flax_linen_wax",
+   "stage": "concept",
+   "task_id": "01a0fce6-bbf4-75f2-92a6-c99baf0c1a38",
+   "path": "assets/library/icon/sheet_flax_linen_wax/sheet.png",
+   "bytes": 952944,
+   "sha256": "d916a5780359a6e1fdb3c2e3c39823178597c47a66d391650ac9826e8de6b73a"
   }
  ]
 }

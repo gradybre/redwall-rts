@@ -422,13 +422,18 @@ func _open_the_goals_tab() -> void:
 
 func _the_goals_tab_shows_the_book() -> void:
 	"""The goals page is shown with the book as evaluated at the hour: the milestones' heading first, M1 with the
-	village's nine residents of twelve, the village goals' heading, a part not in this demo."""
+	village's residents of twelve, the village goals' heading, a part not in this demo.
+
+	The residents are counted off the scene's own cast, not written in: nine when the demo's assets are staged, the
+	cast's placeholders (demo_cast.gd PLACEHOLDER_COUNT, six) when they are not -- as in CI, which stages nothing."""
 	var page: Control = _window().get("goals")
 	var book: RefCounted = _guide().get("goals").get("book")
 	_check("the Goals tab is shown", page.is_visible_in_tree() and _window().call(&"tab") == WindowScript.TAB_GOALS)
 	_check("the book was evaluated at the hour", int(book.get("evaluations")) > 0, str(book.get("evaluations")))
 	var m1: String = page.call(&"goal_text", &"m1_settled_hearth")
-	_check("M1 reads the village's residents", m1.contains("Residents: 9 of 12"), m1.replace("\n", " | "))
+	var residents: int = int(_village.get("_cast").call(&"actor_count"))
+	_check("M1 reads the village's residents", residents > 0 and m1.contains("Residents: %d of 12" % residents),
+		"%d in the cast; %s" % [residents, m1.replace("\n", " | ")])
 	_check("the village goals' heading", String(page.call(&"heading_text", 1)).begins_with("Village goals:"))
 	_check("an unmodelled part says so", String(page.call(&"goal_text", &"m4_hearth_charter")).contains("not in this demo yet"))
 	var frame: Rect2 = (_window().call(&"frame") as Control).get_global_rect()

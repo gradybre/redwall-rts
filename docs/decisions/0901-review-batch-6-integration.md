@@ -68,6 +68,16 @@ The ferry's work-board source stays `SOURCE_FERRY = 8`, with `SOURCE_WALK = 9` (
    `kitchen.gd cookable_text` already treats the hotpot apart. Recommendation: (a), since a regatta is a goal worth
    having.
 
+4. **The guide harness counted nine residents where CI has six.** CI failed on PR #212 (run 36960572929): `7854
+   test(s), 574805 assertion(s), 2 failure(s)`, both `test_demo_guide_live.gd`, at 1280x720 and 1920x1080. The
+   milestones lane's Goals-tab check required `Residents: 9 of 12`, the staged manifest's nine. With no assets staged,
+   as in CI, `demo_cast.gd` spawns `PLACEHOLDER_COUNT` (six) placeholders, and M1 reads `Residents: 6 of 12`. The
+   integration's local run had assets staged, so it passed. The check now takes the count from the scene's cast
+   (`actor_count()`, which must be above 0) rather than a literal. It was rerun with no assets and a fresh import, as
+   in the CI workflow. `gh run view --log` cuts this job's log at the 502,700-character tuple marker
+   `test_construction_columns.gd` prints, so its copy ends there with no summary line. The job's full log
+   (`gh api repos/{owner}/{repo}/actions/jobs/<id>/logs`) holds the summary and the failures.
+
 No lane added an analyzer warning after these resolutions.
 
 ## Overlaps checked, and left as they are
@@ -107,6 +117,19 @@ log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s)
 python3 tools/gdscript_warnings.py --max 0
 0 GDScript warning(s) in 0 of 808 file(s)
 ```
+
+That run had the demo's assets staged. After fix 4 the suite was rerun as CI runs it: `godot/demo/assets` moved
+aside, `godot/.godot` removed and re-imported with `godot --headless --path godot --editor --quit`:
+
+```text
+./tools/run_tests.sh
+7854 test(s), 574813 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 268 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+The 353 tolerated diagnostics match CI's run 36960572929, which a staged run (290) does not. With the assets back,
+the guide harness reads `Residents: 9 of 12` and passes.
 
 The live harnesses run inside the suite. Each one that draws the village (guide, input, layout, map layers, notices,
 people, planner, routes, session) runs at 1280x720 and 1920x1080. The playtest log's capture harness takes no size

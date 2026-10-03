@@ -835,10 +835,35 @@ func _prepare_room_geometry() -> StringName:
 	code = _space.stage_room_admission(_stage_token, _room_candidate, _room_plan.room_type, self)
 	if code != &"":
 		return code
-	return _stage_room_runs(descriptor.bounds_u)
+	var section: SpaceOwner.Result = _stage_room_section(descriptor.bounds_u)
+	return section.error if section.error != &"" else _stage_room_runs(descriptor.bounds_u, section.handle)
 
 
-func _stage_room_runs(bounds: PackedInt32Array) -> StringName:
+func _stage_room_section(bounds: PackedInt32Array) -> SpaceOwner.Result:
+	"""One metadata envelope identifies this authored section; it grants no occupied or usable floor."""
+	var box: PackedInt32Array = _room_section_box()
+	if not RoomSpace.contains_box(bounds, box):
+		return SpaceOwner.Result.new(REFUSE_PLAN)
+	var region: SpaceOwner.Region = SpaceOwner.Region.new()
+	region.owner = _stage_room
+	region.level = _room_plan.level
+	region.role = RoomSpace.FLOOR_DATUM
+	region.box = box
+	region.box[4] = region.box[1] + 1
+	return _space.stage_add(_stage_token, region)
+
+
+func _room_section_box() -> PackedInt32Array:
+	"""Canonical row ordering gives Z endpoints; scan only X extrema without copying or filling holes."""
+	var left: int = _room_plan.cells[0]
+	var right: int = left
+	for index: int in range(2, _room_plan.cells.size(), 2):
+		left = mini(left, _room_plan.cells[index])
+		right = maxi(right, _room_plan.cells[index])
+	return _room_cell_box(left, _room_plan.cells[1], right + 1, _room_plan.cells[-1] + 1)
+
+
+func _stage_room_runs(bounds: PackedInt32Array, section: Vector2i) -> StringName:
 	"""Claim contiguous canonical X runs; absent cells remain absent even inside the outer bounds."""
 	var start: int = 0
 	while start < _room_plan.cells.size():
@@ -846,19 +871,19 @@ func _stage_room_runs(bounds: PackedInt32Array) -> StringName:
 		while end < _room_plan.cells.size() and _room_plan.cells[end + 1] == _room_plan.cells[start + 1] \
 				and _room_plan.cells[end] == _room_plan.cells[end - 2] + 1:
 			end += 2
-		var code: StringName = _stage_room_run(start, end, bounds)
+		var code: StringName = _stage_room_run(start, end, bounds, section)
 		if code != &"":
 			return code
 		start = end
 	return &""
 
 
-func _room_run_box(start: int, end: int) -> PackedInt32Array:
+func _room_cell_box(left: int, near: int, right: int, far: int) -> PackedInt32Array:
 	"""Use int64 transforms and refuse int32 overflow before packing; never round a painted edge."""
-	var low_x: int = int(_room_plan.origin_u.x) + int(_room_plan.cells[start]) * _room_plan.cell_size_u
-	var low_z: int = int(_room_plan.origin_u.z) + int(_room_plan.cells[start + 1]) * _room_plan.cell_size_u
-	var high_x: int = int(_room_plan.origin_u.x) + (int(_room_plan.cells[end - 2]) + 1) * _room_plan.cell_size_u
-	var high_z: int = low_z + _room_plan.cell_size_u
+	var low_x: int = int(_room_plan.origin_u.x) + left * _room_plan.cell_size_u
+	var low_z: int = int(_room_plan.origin_u.z) + near * _room_plan.cell_size_u
+	var high_x: int = int(_room_plan.origin_u.x) + right * _room_plan.cell_size_u
+	var high_z: int = int(_room_plan.origin_u.z) + far * _room_plan.cell_size_u
 	if not RoomSpace.int32(low_x) or not RoomSpace.int32(low_z) \
 			or not RoomSpace.int32(high_x) or not RoomSpace.int32(high_z):
 		return PackedInt32Array()
@@ -866,23 +891,18 @@ func _room_run_box(start: int, end: int) -> PackedInt32Array:
 		int(_room_plan.origin_u.y) + _room_plan.height_u, high_z])
 
 
-func _stage_room_run(start: int, end: int, bounds: PackedInt32Array) -> StringName:
-	"""Add floor metadata and its exact Room marker; neither is supported void or an unpaid physical cut."""
-	var box: PackedInt32Array = _room_run_box(start, end)
+func _stage_room_run(start: int, end: int, bounds: PackedInt32Array, section: Vector2i) -> StringName:
+	"""Link each exact blocking Room claim to shared metadata without inflating its physical footprint."""
+	var box: PackedInt32Array = _room_cell_box(_room_plan.cells[start], _room_plan.cells[start + 1],
+		_room_plan.cells[end - 2] + 1, _room_plan.cells[start + 1] + 1)
 	if not RoomSpace.contains_box(bounds, box):
 		return REFUSE_PLAN
 	var region: SpaceOwner.Region = SpaceOwner.Region.new()
 	region.owner = _stage_room
 	region.level = _room_plan.level
-	region.role = RoomSpace.FLOOR_DATUM
-	region.box = box.duplicate()
-	region.box[4] = region.box[1] + 1
-	var floor_result: SpaceOwner.Result = _space.stage_add(_stage_token, region)
-	if floor_result.error != &"":
-		return floor_result.error
 	region.role = RoomSpace.OBSTACLE
 	region.box = box
-	region.section = floor_result.handle
+	region.section = section
 	region.claim_kind = SpaceOwner.CLAIM_ROOM
 	region.claim_ref = _stage_room
 	return _space.stage_add(_stage_token, region).error

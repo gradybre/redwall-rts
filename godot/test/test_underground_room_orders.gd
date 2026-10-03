@@ -304,6 +304,46 @@ func _claims_at(room: Vector2i, box: PackedInt32Array) -> int:
 	return count
 
 
+func _section_record(room: Vector2i, expected_box: PackedInt32Array, level: int) -> SpaceOwner.Region:
+	"""Only metadata spans the bounds; every actual fine claim retains the one full section identity."""
+	var section: SpaceOwner.Region = null
+	var rows: Array[SpaceOwner.Region] = _owned_regions(room)
+	for region: SpaceOwner.Region in rows:
+		if region.role == Space.FLOOR_DATUM:
+			assert_null(section, "exactly one metadata section for this confirmation")
+			section = region
+	assert_true(section != null, "actual metadata section exists")
+	if section == null:
+		return null
+	assert_equal(section.box, expected_box, "metadata bounds are exact and one unit high")
+	assert_true(_f.space.is_live_region(section.section), "floor self-link is full generation-qualified handle")
+	assert_equal(section.owner, room, "actual full Room owns metadata")
+	assert_equal(section.claim_kind, SpaceOwner.CLAIM_NONE, "metadata is not an occupied reservation")
+	assert_equal(section.claim_ref, NULL_REF, "no implicit claim over envelope or holes")
+	assert_equal(section.level, level, "authored level retained")
+	for region: SpaceOwner.Region in rows:
+		assert_equal(region.section, section.section, "every exact claim links this full section")
+		assert_equal(region.level, level, "claim and section level agree")
+	return section
+
+
+func _assert_exact_concave_claims(room: Vector2i, level: int) -> void:
+	"""Metadata bounds and exact claim boxes deliberately have different occupancy meanings."""
+	var rows: Array[SpaceOwner.Region] = _owned_regions(room)
+	assert_equal(rows.size(), 3, "one metadata section plus two unchanged exact row runs")
+	var boxes: Array[PackedInt32Array] = []
+	for region: SpaceOwner.Region in rows:
+		assert_true(region.role == Space.FLOOR_DATUM or region.role == Space.OBSTACLE, "never supported void or unfinished physical cut")
+		if region.role == Space.OBSTACLE:
+			assert_equal(region.claim_ref, room, "marker belongs to exact real Room")
+			assert_equal(region.claim_kind, SpaceOwner.CLAIM_ROOM, "explicit typed reservation")
+			boxes.append(region.box)
+	assert_true(boxes.has(PackedInt32Array([512, -4096, 1024, 1024, -3200, 1280])), "first exact256u row run")
+	assert_true(boxes.has(PackedInt32Array([512, -4096, 1280, 768, -3200, 1536])), "concave second row is not inflated")
+	_section_record(room, PackedInt32Array([512, -4096, 1024, 1024, -4095, 1536]), level)
+	assert_equal(_claims_at(room, PackedInt32Array([768, -4095, 1280, 1024, -4094, 1536])), 0, "absent concave corner remains absent")
+
+
 func test_fine_concave_plan_creates_exact_room_claims_without_physical_cut_or_service() -> void:
 	"""256u drawing survives byte-exactly; plan markers never count as completed1024u physical cubes."""
 	var plan: RoomOrders.RoomPlan = _plan()
@@ -322,18 +362,7 @@ func test_fine_concave_plan_creates_exact_room_claims_without_physical_cut_or_se
 	assert_equal(_f.construction.live_project_count(), 0, "confirmation creates no fake paid phase")
 	assert_true(_f.sites.state_bytes() == physical, "no physical cut/history changed")
 	assert_true(_f.inventory.state_bytes() == inventory and _f.funding.state_bytes() == funding, "no goods generated or consumed")
-	var rows: Array[SpaceOwner.Region] = _owned_regions(made.ref)
-	assert_equal(rows.size(), 4, "two exact row runs each have metadata plus one marker")
-	var boxes: Array[PackedInt32Array] = []
-	for region: SpaceOwner.Region in rows:
-		assert_true(region.role == Space.FLOOR_DATUM or region.role == Space.OBSTACLE, "never supported void or unfinished physical cut")
-		if region.role == Space.OBSTACLE:
-			assert_equal(region.claim_ref, made.ref, "marker belongs to exact real Room")
-			assert_equal(region.claim_kind, SpaceOwner.CLAIM_ROOM, "explicit typed reservation")
-			boxes.append(region.box)
-	assert_true(boxes.has(PackedInt32Array([512, -4096, 1024, 1024, -3200, 1280])), "first exact256u row run")
-	assert_true(boxes.has(PackedInt32Array([512, -4096, 1280, 768, -3200, 1536])), "concave second row is not inflated")
-	assert_equal(_claims_at(made.ref, PackedInt32Array([768, -4095, 1280, 1024, -4094, 1536])), 0, "absent concave corner remains absent")
+	_assert_exact_concave_claims(made.ref, plan.level)
 	assert_equal(_room_bindings.exact_room_windows, PackedByteArray([0, 1]), "preparation closed, actual publication open")
 	assert_equal(_room_bindings.wrong_room_windows, PackedByteArray([0, 0]), "wrong generation and purpose never qualify")
 	assert_false(_f.orders.is_publishing_room_admission(made.ref, plan.room_type), "window closes after callback")
@@ -345,9 +374,59 @@ func test_hole_is_preserved_by_fine_row_runs_instead_of_claiming_outer_rectangle
 	var plan: RoomOrders.RoomPlan = _plan(PackedInt32Array([0, 0, 1, 0, 2, 0, 0, 1, 2, 1, 0, 2, 1, 2, 2, 2]), 512)
 	var made: Buildings.OpResult = _f.orders.confirm_room(plan)
 	assert_true(made.ok, "exact ring confirms under explicit synthetic policy: %s" % made.error)
-	assert_equal(_owned_regions(made.ref).size(), 8, "four runs preserve inner boundary")
+	assert_equal(_owned_regions(made.ref).size(), 5, "one metadata section and four runs preserve inner boundary")
+	_section_record(made.ref, PackedInt32Array([512, -4096, 1024, 2048, -4095, 2560]), plan.level)
 	assert_equal(_claims_at(made.ref, PackedInt32Array([1024, -4095, 1536, 1536, -4094, 2048])), 0, "middle cell unclaimed")
 	assert_equal(_claims_at(made.ref, PackedInt32Array([512, -4095, 1536, 1024, -4094, 2048])), 1, "adjacent actual ring cell claimed")
+
+
+func test_metadata_envelope_does_not_reserve_hole_or_grant_void_to_either_room() -> void:
+	"""A distinct real Room can reserve the unclaimed ring hole; metadata overlap grants no physical work."""
+	var ring: RoomOrders.RoomPlan = _plan(PackedInt32Array([0, 0, 1, 0, 2, 0, 0, 1, 2, 1, 0, 2, 1, 2, 2, 2]), 512)
+	var outer: Buildings.OpResult = _f.orders.confirm_room(ring)
+	assert_true(outer.ok, "outer exact ring")
+	var inner: RoomOrders.RoomPlan = _plan(PackedInt32Array([0, 0]), 512)
+	inner.origin_u = Vector3i(1024, -4096, 1536)
+	inner.room_type = Buildings.ROOM_TYPE_DORMITORY
+	var made: Buildings.OpResult = _f.orders.confirm_room(inner)
+	assert_true(made.ok, "actual different Room inside unclaimed hole: %s" % made.error)
+	var section: SpaceOwner.Region = _section_record(made.ref,
+		PackedInt32Array([1024, -4096, 1536, 1536, -4095, 2048]), inner.level)
+	assert_true(section != null, "inner Room has its own actual section")
+	assert_equal(_claims_at(outer.ref, PackedInt32Array([1024, -4095, 1536, 1536, -4094, 2048])), 0, "outer bounds never become a claim")
+	assert_equal(_claims_at(made.ref, PackedInt32Array([1024, -4095, 1536, 1536, -4094, 2048])), 1, "inner exact outline alone is claimed")
+	assert_false(_f.buildings.room_is_valid(outer.ref), "ring has no physical completion")
+	assert_false(_f.buildings.room_is_valid(made.ref), "hole Room has no physical completion")
+	for room: Vector2i in [outer.ref, made.ref]:
+		for region: SpaceOwner.Region in _owned_regions(room):
+			assert_true(region.role == Space.FLOOR_DATUM or region.role == Space.OBSTACLE, "neither bounds nor claims create physical void")
+	assert_equal(_f.construction.live_project_count(), 0, "metadata admission does not create unpaid phases")
+
+
+func test_section_bounds_scan_all_rows_and_preserve_negative_painted_indices() -> void:
+	"""Nonrectangular extrema need all canonical rows, without changing the exact picked world transform."""
+	var plan: RoomOrders.RoomPlan = _plan(PackedInt32Array([-2, -1, -1, -1, 0, -1, -1, 0, 0, 0, -1, 1]), 256)
+	plan.origin_u = Vector3i(5120, -4096, 5120)
+	var made: Buildings.OpResult = _f.orders.confirm_room(plan)
+	assert_true(made.ok, "negative-index exact plan: %s" % made.error)
+	_section_record(made.ref, PackedInt32Array([4608, -4096, 4864, 5376, -4095, 5632]), plan.level)
+	assert_equal(_owned_regions(made.ref).size(), 4, "one section plus three fine runs")
+	assert_equal(_claims_at(made.ref, PackedInt32Array([4608, -4095, 5376, 4864, -4094, 5632])), 0, "absent lower-left corner stays absent")
+	assert_equal(_claims_at(made.ref, PackedInt32Array([4864, -4095, 5376, 5120, -4094, 5632])), 1, "actual final row remains claimed")
+
+
+func test_exact_sparse_capacity_accepts_one_section_plus_all_claims() -> void:
+	"""The shared datum avoids allocating one redundant section per row without changing finite capacity."""
+	var cells: PackedInt32Array = PackedInt32Array()
+	for z: int in 63:
+		cells.append_array(PackedInt32Array([0, z]))
+	var plan: RoomOrders.RoomPlan = _plan(cells)
+	plan.origin_u = Vector3i(0, -4096, 0)
+	var made: Buildings.OpResult = _f.orders.confirm_room(plan)
+	assert_true(made.ok, "63 exact runs plus one section fit actual64-row owner: %s" % made.error)
+	assert_equal(_owned_regions(made.ref).size(), 64, "all real sparse rows are present")
+	_section_record(made.ref, PackedInt32Array([0, -4096, 0, 256, -4095, 16128]), plan.level)
+	assert_false(_f.buildings.room_is_valid(made.ref), "more economical metadata does not complete shell")
 
 
 func test_same_xz_different_actual_heights_do_not_alias_but_level_label_cannot_hide_overlap() -> void:
@@ -550,7 +629,7 @@ func test_sparse_capacity_failure_after_partial_staging_leaves_all_live_state_un
 	var plan: RoomOrders.RoomPlan = _plan(cells)
 	plan.origin_u = Vector3i(0, -4096, 0)
 	var before: PackedByteArray = _admission_image()
-	assert_false(_f.orders.confirm_room(plan).ok, "128 planned marker/metadata rows exceed actual64-row owner")
+	assert_false(_f.orders.confirm_room(plan).ok, "64 exact claim rows plus one metadata section exceed actual64-row owner")
 	assert_true(_admission_image() == before, "no truncated plan or allocator rollback")
 	assert_false(_f.space.has_prepared(), "finite failed candidate is dropped")
 	assert_equal(_f.buildings.live_room_count(), 0, "no Room allocated before spatial capacity proof")

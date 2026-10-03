@@ -1244,3 +1244,12 @@ Local row/generation handles are qualified by the bound actual World.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Shared synchronous cold allocation admission | -- | -- | -- | Token0, used0 at quiescence | 3 | -- | Decision1072. Four numeric I64 controls (32 logical bytes) within the bindings/growth envelope. One actual World instance serializes physical phases, wire capture and generic survey scratch; every nested allocation charges its simultaneous peak before allocation. Token equality across two arenas grants no authority; bindings attest the exact arena instance. No persistent gameplay state or measured native allocation claim. |
+
+### `godot/scripts/core/underground_locations.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Live local endpoint Bank | -- | -- | -- | Explicit full local generations; absent payload canonical | 1 | §1 WORLD | Decision1075. Nested Bank retains header I64[16], field-major i32 I32[22N], i64 I64[2N], present B8[N], retired B8[N]: 106N+128 bytes. Fields are generation, XYZ, full Room/section refs, level/role, six envelope and six support bounds; payload/proof revisions. Exact local wire schema1 is not composed UG16 activation. Nested packed columns are explicitly counted here although the current coverage regex enumerates top-level columns only. |
+| Prepared local endpoint Bank | -- | -- | -- | Invisible until sealed actual publication | 3 | -- | Same 106N+128 payload, preallocated separately, no alias with live. Failed preparations and loads preserve the current bank. |
+| Both banked derived allocation/order indexes | -- | -- | -- | Unused index tails -1 | 2 | §1 WORLD | Each Bank has free_rows and ordered I32[N], two banks total16N. Derived from presence/generation/retired; rebuild on load. Total packed owner228N+256. |
+| Caller packets, exclusive cold lease and copied survey | -- | -- | -- | No outstanding operation at save | 3 | -- | One typed Record/Region scratch and side-effect-free weak Inventory adapter. Shared ColdLease enforces a finite admitted simultaneous operation before copies; capture retains its lease until caller consumption. One raw wire106N+128 beside banks; cold snapshot and bounded union scratch are separately charged. No per-resident objects. Route/actor/contact columns remain implementation work inside the reserved provider envelope. |

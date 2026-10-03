@@ -160,6 +160,47 @@ class SyntheticRoomCommands extends Buildings.SpatialAuthority:
 		value = next_value
 		rotation = next_rotation
 
+class SyntheticAdmission extends Buildings.SpatialAuthority:
+	## Actual identity publication; geometry/support/contact authoring remains an explicit component fixture.
+	var owner: WeakRef = null
+	var candidate: Directory.CreateCandidate = null
+	var room_type: int = Buildings.ROOM_TYPE_KITCHEN
+	var publishing: bool = false
+	var admitted: bool = true
+	var geometry: Owner = null
+	var token: int = 0
+	var attack_phase: int = 0
+	var change_packet: bool = false
+	var abort_succeeded: bool = false
+	var rebegin_error: StringName = &""
+
+	func buildings_owner() -> RefCounted:
+		"""Attest the exact actual Buildings store without retaining a reference cycle."""
+		_attack(3)
+		return owner.get_ref() if owner != null else null
+
+	func room_candidate_refusal(next: Directory.CreateCandidate, next_type: int) -> StringName:
+		"""Attest only this retained packet and permanent purpose, without recursive Space validation."""
+		_attack(1)
+		return &"" if admitted and next == candidate and next_type == room_type else &"SYNTHETIC_ROOM_NOT_PREPARED"
+
+	func is_publishing_room_admission(ref: Vector2i, next_type: int) -> bool:
+		"""Explicit synthetic same-stack bracket; production confirmation must supply actual prepared proofs."""
+		_attack(2)
+		return publishing and candidate != null and ref == candidate.ref and next_type == room_type
+
+	func _attack(phase: int) -> void:
+		"""Adversarial test-only callback attempts must never steal or repurpose SpaceOwner's stage."""
+		if attack_phase != phase or geometry == null:
+			return
+		if change_packet:
+			candidate.persistent_id += 1
+			return
+		abort_succeeded = geometry.abort(token)
+		rebegin_error = geometry.begin_stage(geometry.revision()).error
+		geometry.publish(token)
+
+
 class SyntheticSpatial extends Contract.SpatialAuthority:
 	## Actual Rooms, but only synthetic geometry admission for claim-lifetime/identity tests.
 	var buildings: Buildings = null
@@ -1140,3 +1181,261 @@ func test_furniture_install_before_facts_reject_type_room_rotation_and_generatio
 		assert_true(fitting.geometry.abort(token), "abort owns only transient source")
 		assert_equal(fitting.geometry.state_bytes(), before, "live bytes unchanged after %s" % field)
 	_release_installation_fixture(harness)
+
+
+func _admission_fixture() -> SyntheticAdmission:
+	"""Observe the actual next Room without spending an allocator or inventing a live reference."""
+	var commands: SyntheticAdmission = SyntheticAdmission.new()
+	commands.owner = weakref(_buildings)
+	commands.geometry = _owner
+	commands.candidate = Directory.CreateCandidate.new()
+	assert_equal(_buildings.directory().peek_create_into(Directory.KIND_ROOM, commands.candidate), &"", "actual future Room")
+	assert_true(_buildings.bind_spatial_authority(commands).ok, "one real authority binding")
+	return commands
+
+
+func _stage_room_markers(commands: SyntheticAdmission) -> int:
+	"""Fine256u planned shape is exact and remains an obstruction rather than free physical excavation."""
+	var token: int = _begin()
+	commands.token = token
+	assert_equal(_owner.stage_room_admission(token, commands.candidate, commands.room_type, commands), &"", "typed future source")
+	var future: Vector2i = commands.candidate.ref
+	var floor_region: Owner.Region = _region([-768, 0, -256, 768, 1, 512], Space.FLOOR_DATUM, future)
+	var section: Vector2i = _put(token, floor_region)
+	var marker: Owner.Region = _region([-768, 0, -256, 768, 1536, 512], Space.OBSTACLE, future)
+	marker.section = section
+	marker.claim_kind = Owner.CLAIM_ROOM
+	marker.claim_ref = future
+	_put(token, marker)
+	return token
+
+
+func test_room_admission_keeps_exact_fine_plan_unpublished_until_real_identity() -> void:
+	"""Only actual typed Room creation in its exact authority window can publish matching planned blockers."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var candidate: Directory.CreateCandidate = commands.candidate
+	var before_pid: int = _buildings.directory().next_persistent_id()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "fine plan seals without a paid cut")
+	assert_equal(_owner.prepared_refusal(token), &"", "exact observed allocator still current")
+	assert_false(_buildings.is_live_room(candidate.ref), "observation is not a Room")
+	assert_equal(_buildings.directory().next_persistent_id(), before_pid, "no PID spent")
+	_owner.publish(token)
+	assert_true(_owner.has_prepared(), "generic publication cannot bypass Room authority")
+	assert_equal(_owner.publish_room_admission(token, candidate, commands.room_type, commands),
+		&"SPACE_ROOM_ADMISSION_PUBLICATION", "no direct caller publication")
+	commands.publishing = true
+	assert_equal(_owner.publish_room_admission(token, candidate, commands.room_type, commands),
+		&"SPACE_ROOM_AFTER_IDENTITY", "authority window alone is not a live Room")
+	assert_true(_buildings.designate_spatial_room_candidate(commands.room_type, candidate).ok, "actual Room allocation")
+	assert_equal(_owner.publish_room_admission(token, candidate, commands.room_type, commands), &"", "exact after-facts")
+	commands.publishing = false
+	assert_equal(_buildings.directory().next_persistent_id(), before_pid + 1, "one PID consumed")
+	assert_equal(_owner.source_refusal(candidate.ref), &"", "ordinary source reader now accepts real Room")
+	var survey: Space.Snapshot = _snapshot()
+	assert_equal(survey.volumes.role, PackedInt32Array([Space.FLOOR_DATUM, Space.OBSTACLE]), "no void or support created")
+	assert_equal(survey.volumes.box_at(1), PackedInt32Array([-768, 0, -256, 768, 1536, 512]), "fine exact shape not rounded")
+	assert_equal(_owner.publish_room_admission(token, candidate, commands.room_type, commands),
+		&"SPACE_ROOM_ADMISSION_TOKEN", "same identity cannot republish")
+
+
+func test_room_admission_mutable_candidate_fields_and_authority_are_rechecked() -> void:
+	"""Mutating any observed allocator fact after preparation cannot rewrite the private pinned identity."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var before: PackedByteArray = _owner.state_bytes()
+	for field: StringName in [&"ref", &"kind", &"typed_row", &"persistent_id"]:
+		var token: int = _stage_room_markers(commands)
+		assert_equal(_owner.seal(token), &"", "sealed original tuple")
+		var saved: Variant = commands.candidate.get(field)
+		if field == &"ref":
+			commands.candidate.ref.y += 1
+		else:
+			commands.candidate.set(field, saved + 1)
+		assert_equal(_owner.prepared_refusal(token), &"SPACE_ROOM_CANDIDATE", "changed %s" % field)
+		assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands),
+			&"SPACE_ROOM_ADMISSION_TOKEN", "changed publication tuple")
+		commands.candidate.set(field, saved)
+		commands.admitted = false
+		assert_equal(_owner.prepared_refusal(token), &"SYNTHETIC_ROOM_NOT_PREPARED", "lost actual coordinator proof")
+		commands.admitted = true
+		assert_equal(_owner.prepared_refusal(token), &"", "exact prior state still valid")
+		assert_true(_owner.abort(token), "abort staged source only")
+		assert_equal(_owner.state_bytes(), before, "live source/geometry identical")
+
+
+func test_room_admission_wrong_owner_type_candidate_and_stale_allocator_refuse() -> void:
+	"""Coincident foreign numbers, changed purpose and consumed allocator observations never qualify."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _begin()
+	assert_equal(_owner.stage_room_admission(token, commands.candidate, commands.room_type, SyntheticAdmission.new()),
+		&"SPACE_ROOM_ADMISSION_BINDING", "foreign authority")
+	assert_equal(_owner.stage_room_admission(token, commands.candidate, -1, commands),
+		Buildings.REFUSE_UNKNOWN_ROOM_TYPE, "unknown purpose")
+	assert_equal(_owner.stage_room_admission(token, commands.candidate, Buildings.ROOM_TYPE_DORMITORY, commands),
+		&"SYNTHETIC_ROOM_NOT_PREPARED", "changed permanent purpose")
+	var other: Directory = Directory.new()
+	var original_directory: WeakRef = commands.candidate._directory
+	commands.candidate._directory = weakref(other)
+	assert_true(_owner.stage_room_admission(token, commands.candidate, commands.room_type, commands) != &"", "foreign Directory")
+	commands.candidate._directory = original_directory
+	assert_equal(_owner.stage_source(token, commands.candidate.ref), &"SPACE_SOURCE_STALE", "ordinary reader rejects future facts")
+	assert_true(_owner.abort(token), "preparation discarded")
+	token = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "sealed unspent observation")
+	var other_ref: Vector2i = _buildings.directory().create(Directory.KIND_JOB)
+	assert_true(other_ref != NULL_REF, "another real allocation consumes the global root and PID")
+	assert_true(_owner.prepared_refusal(token) != &"", "allocator changed after seal")
+	assert_true(_owner.abort(token), "no rollback of another owner's real allocation")
+	assert_true(_buildings.directory().is_valid(other_ref), "unrelated allocation remains real")
+	assert_false(_buildings.is_live_room(commands.candidate.ref), "no accidental Room source")
+
+
+func test_room_admission_all_physical_roles_and_unclaimed_geometry_refuse() -> void:
+	"""Confirming a plan never provides support, a paid solid removal, unfinished work or walkable void."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _begin()
+	assert_equal(_owner.stage_room_admission(token, commands.candidate, commands.room_type, commands), &"", "future Room")
+	assert_equal(_owner.seal(token), &"SPACE_ROOM_ADMISSION_FOOTPRINT", "empty identity is not an admitted floor plan")
+	for role: int in Space.WORLD_ROLE_COUNT:
+		if role == Space.FLOOR_DATUM:
+			continue
+		var region: Owner.Region = _region([0, 0, 0, 256, 1024, 256], role, commands.candidate.ref)
+		assert_equal(_owner.stage_add(token, region).error, &"SPACE_ROOM_ADMISSION_REGION", "unclaimed/physical role %d" % role)
+	var marker: Owner.Region = _region([0, 0, 0, 256, 1024, 256], Space.OBSTACLE, commands.candidate.ref)
+	marker.claim_kind = Owner.CLAIM_ROOM
+	marker.claim_ref = commands.candidate.ref
+	assert_equal(_owner.stage_add(token, marker).error, &"SPACE_ROOM_ADMISSION_REGION", "missing actual planned section")
+	assert_true(_owner.abort(token), "all rejected forms preserve live geometry")
+
+
+func test_room_admission_after_facts_and_exact_publication_arguments_are_guarded() -> void:
+	"""Actual allocation must retain exact Room purpose/domain and the same sealed invocation identity."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "sealed")
+	commands.publishing = true
+	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(commands.room_type, commands.candidate)
+	assert_true(made.ok, "actual Room")
+	assert_equal(_owner.publish_room_admission(token + 1, commands.candidate, commands.room_type, commands),
+		&"SPACE_ROOM_ADMISSION_TOKEN", "wrong token")
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type + 1, commands),
+		&"SPACE_ROOM_ADMISSION_TOKEN", "wrong purpose")
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, SyntheticAdmission.new()),
+		&"SPACE_ROOM_ADMISSION_TOKEN", "wrong owner")
+	for field: StringName in [&"_r_type", &"_r_spatial_kind"]:
+		var saved: Variant = _buildings.get(field).duplicate()
+		var changed: Variant = saved.duplicate()
+		changed[_buildings.directory().get_typed_row(made.ref)] += 1
+		_buildings.set(field, changed)
+		assert_true(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands) != &"", "changed %s" % field)
+		_buildings.set(field, saved)
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands), &"", "exact real after-facts")
+
+
+func test_room_admission_abort_retries_identical_future_identity_and_keeps_prior_claims() -> void:
+	"""A rejected confirmation consumes no Room, source, region generation or PID, and does not erase prior space."""
+	var initial: int = _begin()
+	assert_equal(_owner.stage_source(initial, _room), &"", "existing actual Room")
+	_put(initial, _region([2048, 0, 2048, 4096, 1, 4096], Space.FLOOR_DATUM, _room))
+	_publish(initial)
+	var commands: SyntheticAdmission = _admission_fixture()
+	var ref: Vector2i = commands.candidate.ref
+	var pid: int = commands.candidate.persistent_id
+	var before: PackedByteArray = _owner.state_bytes()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "sealed candidate")
+	assert_true(_owner.abort(token), "discard before actual identity allocation")
+	assert_equal(_owner.state_bytes(), before, "every prior source and region unchanged")
+	assert_equal(_buildings.directory().candidate_refusal(commands.candidate), &"", "same observed allocator still current")
+	token = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "same plan can retry")
+	commands.publishing = true
+	assert_true(_buildings.designate_spatial_room_candidate(commands.room_type, commands.candidate).ok, "one actual allocation")
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands), &"", "one publication")
+	assert_equal(_buildings.directory().get_persistent_id(ref), pid, "original exact persistent identity")
+	assert_equal(_owner.source_refusal(_room), &"", "previous actual Room source retained")
+
+
+func test_room_admission_callbacks_cannot_abort_rebegin_or_publish_the_stage() -> void:
+	"""A reentrant attestation fails closed while preserving a clean abort/retry path and actual identity."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var before: PackedByteArray = _owner.state_bytes()
+	var pid: int = _buildings.directory().next_persistent_id()
+	for phase: int in [1, 3]:
+		var token: int = _begin()
+		commands.token = token
+		commands.attack_phase = phase
+		assert_equal(_owner.stage_room_admission(token, commands.candidate, commands.room_type, commands),
+			&"SPACE_ROOM_ADMISSION_REENTRY", "candidate or owner callback mutation")
+		assert_false(commands.abort_succeeded, "callback cannot drop caller stage")
+		assert_equal(commands.rebegin_error, &"SPACE_ROOM_ADMISSION_REENTRY", "callback cannot start another stage")
+		assert_true(_owner.has_prepared(), "original stage still belongs to caller")
+		commands.attack_phase = 0
+		assert_true(_owner.abort(token), "abort after callback releases all transient controls")
+		assert_equal(_owner.state_bytes(), before, "all prior live bytes retained")
+		assert_equal(_buildings.directory().next_persistent_id(), pid, "no identity consumed")
+		token = _stage_room_markers(commands)
+		assert_equal(_owner.seal(token), &"", "same plan retries without stale busy latch")
+		assert_true(_owner.abort(token), "retry discarded cleanly")
+
+
+func test_room_admission_seal_and_prepared_callbacks_guard_transaction_identity() -> void:
+	"""The before-facts path is protected at sealing and final preflight, not only the first preparation."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var before: PackedByteArray = _owner.state_bytes()
+	var token: int = _stage_room_markers(commands)
+	commands.attack_phase = 1
+	assert_equal(_owner.seal(token), &"SPACE_ROOM_ADMISSION_REENTRY", "seal callback abort attempt")
+	assert_false(commands.abort_succeeded, "original unsealed stage retained")
+	commands.attack_phase = 0
+	assert_equal(_owner.seal(token), &"", "same exact geometry can seal after refusal")
+	commands.attack_phase = 1
+	assert_equal(_owner.prepared_refusal(token), &"SPACE_ROOM_ADMISSION_REENTRY", "sealed callback abort attempt")
+	commands.attack_phase = 0
+	assert_equal(_owner.prepared_refusal(token), &"", "refusal did not alter sealed geometry")
+	assert_true(_owner.abort(token), "caller still owns cleanup")
+	assert_equal(_owner.state_bytes(), before, "no live mutation")
+
+
+func test_room_admission_publication_callback_cannot_destroy_the_sealed_candidate() -> void:
+	"""A bad publication attestation cannot erase its stage even after actual identity publication."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "sealed")
+	commands.publishing = true
+	assert_true(_buildings.designate_spatial_room_candidate(commands.room_type, commands.candidate).ok, "actual Room allocated")
+	commands.attack_phase = 2
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands),
+		&"SPACE_ROOM_ADMISSION_REENTRY", "mutation cannot masquerade as pure publication proof")
+	assert_false(commands.abort_succeeded, "sealed claim retained")
+	assert_true(_owner.has_prepared(), "no half-published source")
+	assert_equal(_owner.source_revision(commands.candidate.ref), 0, "future source not live")
+	commands.attack_phase = 0
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands), &"", "same retained candidate publishes")
+	assert_equal(_owner.source_refusal(commands.candidate.ref), &"", "exact actual after-facts")
+
+
+func test_room_admission_callbacks_cannot_rewrite_the_pinned_allocator_packet() -> void:
+	"""The private observation predates callbacks; mutating the supplied candidate never changes it."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var before: PackedByteArray = _owner.state_bytes()
+	var pid: int = commands.candidate.persistent_id
+	var token: int = _begin()
+	commands.token = token
+	commands.attack_phase = 1
+	commands.change_packet = true
+	assert_true(_owner.stage_room_admission(token, commands.candidate, commands.room_type, commands) != &"", "changed tuple refuses")
+	commands.attack_phase = 0
+	commands.candidate.persistent_id = pid
+	assert_true(_owner.abort(token), "mutation refusal remains abortable")
+	assert_equal(_owner.state_bytes(), before, "no future source or live change")
+	token = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "original observation remains usable")
+	commands.publishing = true
+	assert_true(_buildings.designate_spatial_room_candidate(commands.room_type, commands.candidate).ok, "actual Room")
+	commands.attack_phase = 2
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands),
+		&"SPACE_ROOM_CANDIDATE", "post-callback packet is rechecked")
+	commands.attack_phase = 0
+	commands.candidate.persistent_id = pid
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands), &"", "exact candidate retained")

@@ -431,3 +431,67 @@ warnings, expected/tolerated diagnostics and leaks. The analyzer reported
 `0 GDScript warning(s) in 0 of 2 file(s)`. Raw logs and source pins are retained
 under the1075 evidence directory's `prepared-endpoint/` child. Actual topology
 and World composition remain implementation work.
+
+## Exact future Room source bridge for atomic plan confirmation
+
+Decision 1083 supplies a real Directory `CreateCandidate` observation and guarded
+Buildings Room publication. SpaceOwner now exposes
+`stage_room_admission(token, candidate, room_type, authority)` and
+`publish_room_admission` with the same arguments. The actual `CoreSources`,
+Directory, Construction/Buildings and its one bound `Buildings.SpatialAuthority`
+must agree. A caller-provided future `Facts` record never qualifies.
+
+Preparation independently observes and pins the next global full reference,
+typed Room row and persistent ID. It retains the original packet and authority
+weakly; seal and final preflight compare every scalar and recheck the actual
+Directory roots/PID and the coordinator's exact retained packet. Changing or
+losing the original packet, consuming either allocator, changing purpose, or
+using another actual owner refuses. Preparation spends no Directory identity.
+
+The only anticipated source is an actual future underground Room with permanent
+type, NULL surface parent and no TileLinks. Its geometry may contain only
+FLOOR_DATUM metadata and OBSTACLE markers carrying that exact full Room claim.
+The claim must refer to its own Room-owned planned floor; both floor and claim
+must exist before sealing. These are planned blockers, not physical UNFINISHED,
+support, dry matter or supported void. Fine painted boundaries remain exact:
+this bridge adds no 1m drawing or height restriction. The production confirmer's
+actual provider separately owes dry terrain/support, access and fully priced
+1024-cube coverage before admission. It may not interpret a fine claim as a free
+partial excavation.
+
+Ordinary publication refuses a pending Room admission. The special publication
+requires the same token, candidate object, type and authority, its exact
+synchronous Room-admission window, and actual Buildings/Directory after-facts:
+full Room generation, typed row, persistent ID, permanent type and underground
+domain. Every other source and claim is still revalidated normally. Furniture
+installation and Room admission cannot share the special source slot. Abort
+clears only transient controls and preserves all live geometry, claims and
+unspent identity. The coordinator must finish all fallible proof before it calls
+Buildings; publication follows synchronously without another fallible rebuild.
+
+No packed or canonical wire field changes. One reusable `CreateCandidate`
+contains 32 logical numeric bytes (full ref 8; kind/typed row/PID 24); row/type
+controls add 16 and two callback guard bools add 2, for **50 logical bytes** inside the previously declared binding
+reservation. Three weak handles (the candidate's Directory, original packet and
+actual authority) and their native headers are charged to that same reservation.
+The candidate cannot coexist with another future Room source, and does not
+allocate per resident, per room or per productive Work tick.
+
+All virtual Room authority attestations are guarded. Attempts to abort, rebegin,
+edit, restore or publish SpaceOwner inside the callback refuse and invalidate that
+attestation. The guard is cleared when the callback returns, so normal caller
+cleanup and an exact retry remain possible. The original candidate is pinned
+before callbacks; its actual allocator/current scalars are checked afterward,
+including after the publication attestation. No sticky busy latch survives a
+refusal. These controls do not replace the actual coordinator's required pure
+callback contract or its pre-allocation proofs.
+
+Independent source review accepted the final correction. Clean CI import and
+strict tests reported **49 tests /812 assertions** for SpaceOwner and
+**24 tests /3,010 assertions** for the unchanged paid adapter, with zero failures,
+strict/raw errors, warnings, expected/tolerated diagnostics and leaks. The analyzer
+reported `0 GDScript warning(s) in 0 of 2 file(s)`. Final raw logs, source pins and
+historical rejected fixture/analyzer results are preserved under the1075 evidence
+directory's `room-admission/` child. This is actual identity/atomic-marker component
+evidence; production terrain, contacts and the actual Room confirmer are separate
+composition work.

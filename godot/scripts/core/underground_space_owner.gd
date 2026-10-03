@@ -289,6 +289,14 @@ var _install_project: Vector2i = NULL_REF
 var _install_router: WeakRef = null
 var _install_owner: WeakRef = null
 var _install_number: IntMath.IntResult = IntMath.IntResult.new()
+## One exact future Room observation; its mutable caller packet is never the pinned identity.
+var _room_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
+var _room_input: WeakRef = null
+var _room_authority: WeakRef = null
+var _room_row: int = -1
+var _room_type: int = -1
+var _room_callback: bool = false
+var _room_reentered: bool = false
 
 
 func _init(sources: Sources) -> void:
@@ -398,6 +406,8 @@ func has_prepared() -> bool:
 
 func begin_stage(expected_revision: int) -> Result:
 	"""Copy only after every finite/counter preflight; failed preparation leaves live bytes intact."""
+	if _reject_room_reentry():
+		return Result.new(&"SPACE_ROOM_ADMISSION_REENTRY")
 	if _ready_error != &"":
 		return Result.new(_ready_error)
 	if has_prepared():
@@ -420,11 +430,12 @@ func begin_stage(expected_revision: int) -> Result:
 
 func abort(token: int) -> bool:
 	"""Drop only transient preparation; confirmed live reservations and geometry are untouched."""
-	if token == 0 or token != _stage_token:
+	if _reject_room_reentry() or token == 0 or token != _stage_token:
 		return false
 	_stage_token = 0
 	_sealed = false
 	_clear_installation()
+	_clear_room_admission()
 	return true
 
 
@@ -434,7 +445,7 @@ func stage_furniture_install(token: int, project: Vector2i, router: ModularContr
 	var code: StringName = _editable(token)
 	if code != &"":
 		return code
-	if _install_row != -1:
+	if _install_row != -1 or _room_row != -1:
 		return &"SPACE_INSTALLATION_BUSY"
 	code = _installation_project_refusal(project, router, owner)
 	if code != &"":
@@ -505,6 +516,172 @@ func _clear_installation() -> void:
 	_install_project = NULL_REF
 	_install_router = null
 	_install_owner = null
+
+
+func stage_room_admission(token: int, candidate: Directory.CreateCandidate, room_type: int,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Stage only the actual next Room identity and permanent purpose, never caller-created source facts."""
+	var code: StringName = _editable(token)
+	if code != &"":
+		return code
+	if _install_row >= 0 or _room_row >= 0:
+		return &"SPACE_ROOM_ADMISSION_BUSY"
+	code = _observe_room_candidate(candidate)
+	if code == &"":
+		code = _prepare_room_authority(candidate, room_type, authority)
+	if code != &"":
+		return code
+	code = _editable(token)
+	if code != &"":
+		return code
+	if not _spend(_source_capacity * 2):
+		return &"SPACE_OPERATION_BUDGET"
+	if _find_source(candidate.ref, true) >= 0 or _find_source(candidate.ref, false) >= 0:
+		return &"SPACE_ROOM_SOURCE_EXISTS"
+	if _s_source_free_count == 0:
+		return &"SPACE_SOURCE_CAPACITY"
+	_room_input = weakref(candidate)
+	_room_authority = weakref(authority)
+	_room_type = room_type
+	_stage_room_source()
+	return &""
+
+
+func _observe_room_candidate(candidate: Directory.CreateCandidate) -> StringName:
+	"""Pin the actual current tuple before invoking any virtual authority attestation."""
+	if not _sources is CoreSources:
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	var code: StringName = _sources.directory().candidate_refusal(candidate)
+	if code != &"":
+		return code
+	code = _sources.directory().peek_create_into(Directory.KIND_ROOM, _room_candidate)
+	return &"" if code == &"" and _same_room_candidate(candidate) else &"SPACE_ROOM_CANDIDATE"
+
+
+func _prepare_room_authority(candidate: Directory.CreateCandidate, room_type: int,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""No callback can replace the previously pinned observation or quietly change the stage token."""
+	var code: StringName = _room_binding_refusal(authority)
+	if code == &"":
+		code = _room_authority_refusal(candidate, room_type)
+	if code == &"" and not _same_room_candidate(candidate):
+		return &"SPACE_ROOM_CANDIDATE"
+	return code
+
+
+func _room_binding_refusal(authority: Buildings.SpatialAuthority) -> StringName:
+	"""A future source belongs to this actual World, Directory, Buildings and its one bound authority."""
+	if not _sources is CoreSources or authority == null or _sources.construction_owner() == null:
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	var buildings: Buildings = _sources.construction_owner().buildings()
+	if buildings.directory() != _sources.directory() or buildings.spatial_authority() != authority:
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	var actual: RefCounted = authority.buildings_owner()
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if actual != buildings or buildings.spatial_authority() != authority:
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	return &"" if _read_source(_domain._world) == &"" and _facts.kind == Directory.KIND_WORLD \
+		else &"SPACE_WORLD_IDENTITY"
+
+
+func _reject_room_reentry() -> bool:
+	"""Virtual authority proofs may read owners, but cannot mutate this transaction on the same call stack."""
+	if _room_callback:
+		_room_reentered = true
+	return _room_callback
+
+
+func _begin_room_callback() -> bool:
+	"""Guard exactly one side-effect-free authority call; recursive proofs poison the outer result."""
+	if _reject_room_reentry():
+		return false
+	_room_callback = true
+	_room_reentered = false
+	return true
+
+
+func _end_room_callback() -> bool:
+	"""Return the attempted-reentry flag and leave no persistent busy/poison latch after refusal."""
+	var refused: bool = _room_reentered
+	_room_callback = false
+	_room_reentered = false
+	return refused
+
+
+func _room_authority_refusal(candidate: Directory.CreateCandidate, room_type: int) -> StringName:
+	"""Protect both Buildings callbacks, then recheck the actual allocator after their return."""
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	var code: StringName = _sources.construction_owner().buildings().spatial_room_candidate_refusal(room_type, candidate)
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	return _sources.directory().candidate_refusal(candidate) if code == &"" else code
+
+
+func _same_room_candidate(candidate: Directory.CreateCandidate) -> bool:
+	"""Every observed scalar and the exact Directory must equal the privately rederived observation."""
+	return candidate != null and candidate.directory_owner() == _sources.directory() \
+		and _room_candidate.directory_owner() == _sources.directory() \
+		and candidate.ref == _room_candidate.ref and candidate.kind == Directory.KIND_ROOM \
+		and candidate.kind == _room_candidate.kind and candidate.typed_row == _room_candidate.typed_row \
+		and candidate.persistent_id == _room_candidate.persistent_id
+
+
+func _stage_room_source() -> void:
+	"""Publish a source only in the inactive bank after every finite capacity/identity preflight."""
+	_room_row = _heap_pop(_s_source_free_heap, _s_source_free_count)
+	_s_source_free_count -= 1
+	_s_o_present[_room_row] = 1
+	_s_o_slot[_room_row] = _room_candidate.ref.x
+	_s_o_generation[_room_row] = _room_candidate.ref.y
+	_s_o_revision[_room_row] = 1
+	_room_facts_into()
+	_write_source_facts(_room_row)
+
+
+func _room_facts_into() -> void:
+	"""Only permanent purpose and the actual underground domain differ from empty Room defaults."""
+	_facts.clear()
+	_facts.kind = Directory.KIND_ROOM
+	_facts.a = _room_type
+	_facts.d = Buildings.ROOM_SPACE_UNDERGROUND
+
+
+func _room_before_refusal() -> StringName:
+	"""Seal and immediate preflight recheck the same retained mutable packet without reserving an ID."""
+	var candidate: Directory.CreateCandidate = _room_input.get_ref() as Directory.CreateCandidate \
+		if _room_input != null else null
+	var authority: Buildings.SpatialAuthority = _room_authority.get_ref() as Buildings.SpatialAuthority \
+		if _room_authority != null else null
+	if _room_row < 0 or not _same_room_candidate(candidate):
+		return &"SPACE_ROOM_CANDIDATE"
+	var code: StringName = _room_binding_refusal(authority)
+	if code == &"":
+		code = _room_authority_refusal(candidate, _room_type)
+	if code == &"" and not _same_room_candidate(candidate):
+		return &"SPACE_ROOM_CANDIDATE"
+	return code
+
+
+func _room_source_refusal() -> StringName:
+	"""The only future source row retains the exact observed full identity and derived Room facts."""
+	if _room_row < 0 or _room_row >= _source_capacity or _s_o_present[_room_row] != 1 \
+			or Vector2i(_s_o_slot[_room_row], _s_o_generation[_room_row]) != _room_candidate.ref:
+		return &"SPACE_ROOM_CANDIDATE"
+	_room_facts_into()
+	return &"" if _facts_match(_room_row, true) else &"SPACE_ROOM_CANDIDATE"
+
+
+func _clear_room_admission() -> void:
+	"""Abort/publication erases only transient observations; no Directory generation or PID is spent."""
+	_room_candidate.reset()
+	_room_input = null
+	_room_authority = null
+	_room_row = -1
+	_room_type = -1
 
 
 func stage_source(token: int, ref: Vector2i) -> StringName:
@@ -703,8 +880,10 @@ func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 
 func publish(token: int) -> void:
 	"""A coordinator calls this synchronously after successful payment; there are no fallible callbacks."""
-	if _install_row >= 0:
-		return # Installation requires its exact actual Router callback, even with the sealed token.
+	if _reject_room_reentry():
+		return
+	if _install_row >= 0 or _room_row >= 0:
+		return # Future source publication requires its exact actual owner callback, even with a sealed token.
 	assert(token != 0 and token == _stage_token and _sealed, "only a preflighted transaction may publish")
 	_swap_banks()
 	_stage_token = 0
@@ -714,6 +893,8 @@ func publish(token: int) -> void:
 func publish_furniture_install(token: int, project: Vector2i, router: ModularContract,
 		owner: ModularContract.Owner) -> StringName:
 	"""Publish only after the real installed flag changed inside the exact paid Router COMMIT callback."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
 	if token == 0 or token != _stage_token or not _sealed or _install_row < 0 \
 			or project != _install_project or _install_router == null or _install_router.get_ref() != router \
 			or _install_owner == null or _install_owner.get_ref() != owner:
@@ -735,6 +916,54 @@ func publish_furniture_install(token: int, project: Vector2i, router: ModularCon
 	_sealed = false
 	_clear_installation()
 	return &""
+
+
+func publish_room_admission(token: int, candidate: Directory.CreateCandidate, room_type: int,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Publish the already-sealed claim only after exact real Room allocation inside its authority window."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if token == 0 or token != _stage_token or not _sealed or _room_row < 0 \
+			or _room_input == null or _room_input.get_ref() != candidate or not _same_room_candidate(candidate) \
+			or room_type != _room_type or _room_authority == null or _room_authority.get_ref() != authority:
+		return &"SPACE_ROOM_ADMISSION_TOKEN"
+	var code: StringName = _room_after_refusal(authority)
+	if code != &"":
+		return code
+	if not _same_room_candidate(candidate):
+		return &"SPACE_ROOM_CANDIDATE"
+	if _s_header[17] != revision() + 1:
+		return &"SPACE_REVISION_STALE"
+	code = _sources_refusal(true, false)
+	if code == &"":
+		code = _claims_refusal(true, false)
+	if code != &"":
+		return code
+	_swap_banks()
+	_stage_token = 0
+	_sealed = false
+	_clear_room_admission()
+	return &""
+
+
+func _room_after_refusal(authority: Buildings.SpatialAuthority) -> StringName:
+	"""Allocation must have consumed the exact observed row and PID; an ordinary live Room is insufficient."""
+	var code: StringName = _room_binding_refusal(authority)
+	if code != &"":
+		return code
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	var publishing: bool = authority.is_publishing_room_admission(_room_candidate.ref, _room_type)
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if not publishing:
+		return &"SPACE_ROOM_ADMISSION_PUBLICATION"
+	var ids: Directory = _sources.directory()
+	if not ids.is_valid_of_kind(_room_candidate.ref, Directory.KIND_ROOM) \
+			or ids.get_typed_row(_room_candidate.ref) != _room_candidate.typed_row \
+			or ids.get_persistent_id(_room_candidate.ref) != _room_candidate.persistent_id:
+		return &"SPACE_ROOM_AFTER_IDENTITY"
+	return _room_source_refusal()
 
 
 func is_live_region(handle: Vector2i) -> bool:
@@ -894,6 +1123,8 @@ func state_bytes() -> PackedByteArray:
 
 func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 	"""Validate a complete same-schema/domain image in the staging bank; refusal preserves live bytes."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
 	if _ready_error != &"" or has_prepared():
 		return &"SPACE_LOAD_BOUNDARY"
 	var code: StringName = _wire_header_refusal(bytes)
@@ -1051,6 +1282,8 @@ func _rebuild_stage_heaps() -> void:
 
 func _editable(token: int) -> StringName:
 	"""Never mutate a sealed publication candidate or another operation's staging image."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
 	if token == 0 or token != _stage_token:
 		return &"SPACE_TRANSACTION_STALE"
 	return &"SPACE_TRANSACTION_SEALED" if _sealed else &""
@@ -1105,7 +1338,9 @@ func _region_input_error(region: Region) -> StringName:
 		return &"SPACE_REGION_FORMAT"
 	if not Space.valid_ref(region.owner) or not _nullable_ref(region.section):
 		return &"SPACE_REGION_FORMAT"
-	return _claim_refusal(region.claim_kind, region.claim_ref, region.owner)
+	var code: StringName = _room_region_refusal(region.role, region.owner, region.claim_kind,
+		region.claim_ref, region.section)
+	return _claim_refusal(region.claim_kind, region.claim_ref, region.owner, true) if code == &"" else code
 
 
 
@@ -1142,7 +1377,7 @@ func _snapshot_refusal() -> StringName:
 	return _claims_refusal(false)
 
 
-func _claims_refusal(staged: bool) -> StringName:
+func _claims_refusal(staged: bool, allow_prepared: bool = true) -> StringName:
 	"""Long-lived Room and temporary Construction claim identities retain distinct exact namespaces."""
 	for row: int in _region_capacity:
 		if staged and (_s_r_present[row] == 0 or _s_r_claim_kind[row] == CLAIM_NONE):
@@ -1154,13 +1389,13 @@ func _claims_refusal(staged: bool) -> StringName:
 		var owner: Vector2i = Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]) if staged \
 			else Vector2i(_r_owner_slot[row], _r_owner_generation[row])
 		var kind: int = _s_r_claim_kind[row] if staged else _r_claim_kind[row]
-		var code: StringName = _claim_refusal(kind, ref, owner)
+		var code: StringName = _claim_refusal(kind, ref, owner, staged and allow_prepared)
 		if code != &"":
 			return code
 	return &""
 
 
-func _claim_refusal(kind: int, ref: Vector2i, owner: Vector2i) -> StringName:
+func _claim_refusal(kind: int, ref: Vector2i, owner: Vector2i, staged: bool = false) -> StringName:
 	"""Check kind before narrowing; a confirmed Room claim must name that same actual Room owner."""
 	if kind == CLAIM_NONE:
 		return &"" if ref == NULL_REF else &"SPACE_RESERVATION_FORMAT"
@@ -1168,6 +1403,8 @@ func _claim_refusal(kind: int, ref: Vector2i, owner: Vector2i) -> StringName:
 		return _project_refusal(ref)
 	if kind != CLAIM_ROOM:
 		return &"SPACE_RESERVATION_FORMAT"
+	if staged and _room_row >= 0 and ref == _room_candidate.ref and owner == ref:
+		return _room_before_refusal()
 	var code: StringName = _read_source(ref)
 	if code != &"":
 		return code
@@ -1243,31 +1480,51 @@ func _facts_match(row: int, staged: bool) -> bool:
 		and _facts.a == _o_a[row] and _facts.b == _o_b[row] and _facts.c == _o_c[row] and _facts.d == _o_d[row]
 
 
-func _sources_refusal(staged: bool, allow_prepared_install: bool = true) -> StringName:
-	"""Check every actual external owner before trusting the complete spatial survey."""
+func _sources_refusal(staged: bool, allow_prepared: bool = true) -> StringName:
+	"""Check every actual external owner, allowing only the one typed staged transition before publication."""
 	if staged and _install_row >= 0:
-		var router: ModularContract = _install_router.get_ref() as ModularContract if _install_router != null else null
-		var owner: ModularContract.Owner = _install_owner.get_ref() as ModularContract.Owner if _install_owner != null else null
-		var context: StringName = _installation_project_refusal(_install_project, router, owner)
-		if context != &"":
-			return context
-		if _install_row >= _source_capacity or _s_o_present[_install_row] != 1 \
-				or Vector2i(_s_o_slot[_install_row], _s_o_generation[_install_row]) \
-				!= _sources.construction_owner().subject_ref_of(_install_project):
-			return &"SPACE_INSTALLATION_SOURCE"
+		var code: StringName = _installation_source_refusal()
+		if code != &"":
+			return code
+	if staged and allow_prepared and _room_row >= 0:
+		var code: StringName = _room_before_refusal()
+		if code != &"":
+			return code
 	for row: int in _source_capacity:
 		if (staged and _s_o_present[row] == 0) or (not staged and _o_present[row] == 0):
 			continue
-		var ref: Vector2i = Vector2i(_s_o_slot[row], _s_o_generation[row]) if staged else Vector2i(_o_slot[row], _o_generation[row])
-		var code: StringName = _read_source(ref)
+		var code: StringName = _source_row_refusal(row, staged, allow_prepared)
 		if code != &"":
 			return code
-		if staged and allow_prepared_install and row == _install_row:
-			if not _installation_before_matches(row):
-				return &"SPACE_INSTALLATION_BEFORE_FACTS"
-		elif not _facts_match(row, staged):
-			return &"SPACE_SOURCE_DRIFT"
+	return _room_source_refusal() if staged and allow_prepared and _room_row >= 0 else &""
+
+
+func _installation_source_refusal() -> StringName:
+	"""Keep the reviewed paid Furniture owner/subject preflight separate from the future Room path."""
+	var router: ModularContract = _install_router.get_ref() as ModularContract if _install_router != null else null
+	var owner: ModularContract.Owner = _install_owner.get_ref() as ModularContract.Owner if _install_owner != null else null
+	var code: StringName = _installation_project_refusal(_install_project, router, owner)
+	if code != &"":
+		return code
+	if _install_row >= _source_capacity or _s_o_present[_install_row] != 1 \
+			or Vector2i(_s_o_slot[_install_row], _s_o_generation[_install_row]) \
+			!= _sources.construction_owner().subject_ref_of(_install_project):
+		return &"SPACE_INSTALLATION_SOURCE"
 	return &""
+
+
+func _source_row_refusal(row: int, staged: bool, allow_prepared: bool) -> StringName:
+	"""Ordinary rows always read real current facts; only exact typed transition rows have before-facts."""
+	if staged and allow_prepared and row == _room_row:
+		return _room_source_refusal()
+	var ref: Vector2i = Vector2i(_s_o_slot[row], _s_o_generation[row]) if staged \
+		else Vector2i(_o_slot[row], _o_generation[row])
+	var code: StringName = _read_source(ref)
+	if code != &"":
+		return code
+	if staged and allow_prepared and row == _install_row:
+		return &"" if _installation_before_matches(row) else &"SPACE_INSTALLATION_BEFORE_FACTS"
+	return &"" if _facts_match(row, staged) else &"SPACE_SOURCE_DRIFT"
 
 
 func _installation_before_matches(row: int) -> bool:
@@ -1292,7 +1549,34 @@ func _validate_stage() -> StringName:
 			code = _staged_region_refusal(row)
 			if code != &"":
 				return code
-	return _overlap_refusal()
+	code = _room_markers_refusal()
+	return _overlap_refusal() if code == &"" else code
+
+
+func _room_region_refusal(role: int, ref: Vector2i, kind: int, claim: Vector2i, section: Vector2i) -> StringName:
+	"""Confirmation reserves only Room metadata and blocking claims; it grants no excavation or usable void."""
+	if _room_row < 0 or ref != _room_candidate.ref:
+		return &""
+	if role == Space.FLOOR_DATUM and kind == CLAIM_NONE and claim == NULL_REF:
+		return &""
+	return &"" if role == Space.OBSTACLE and kind == CLAIM_ROOM and claim == ref and section != NULL_REF \
+		else &"SPACE_ROOM_ADMISSION_REGION"
+
+
+func _room_markers_refusal() -> StringName:
+	"""A confirmed future Room needs both datum metadata and a blocking footprint, never an empty source."""
+	if _room_row < 0:
+		return &""
+	if not _spend(_region_capacity):
+		return &"SPACE_OPERATION_BUDGET"
+	var floor_found: bool = false
+	var claim_found: bool = false
+	for row: int in _region_capacity:
+		if _s_r_present[row] == 0 or Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]) != _room_candidate.ref:
+			continue
+		floor_found = floor_found or _s_r_role[row] == Space.FLOOR_DATUM
+		claim_found = claim_found or _s_r_claim_kind[row] == CLAIM_ROOM
+	return &"" if floor_found and claim_found else &"SPACE_ROOM_ADMISSION_FOOTPRINT"
 
 
 func _staged_region_refusal(row: int) -> StringName:
@@ -1306,7 +1590,11 @@ func _staged_region_refusal(row: int) -> StringName:
 	var owner: int = _find_source(Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), true)
 	if owner < 0 or _s_r_owner_revision[row] != _s_o_revision[owner]:
 		return &"SPACE_SOURCE_STALE"
-	return _section_refusal(row, owner)
+	var code: StringName = _room_region_refusal(_s_r_role[row],
+		Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), _s_r_claim_kind[row],
+		Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row]),
+		Vector2i(_s_r_section_slot[row], _s_r_section_generation[row]))
+	return _section_refusal(row, owner) if code == &"" else code
 
 
 func _section_refusal(row: int, owner: int) -> StringName:
@@ -1336,9 +1624,12 @@ func _section_owner_refusal(row: int, owner: int, section: Vector2i) -> StringNa
 		var code: StringName = _resident_region_refusal(row, owner, section)
 		if code != &"":
 			return code
+	if owner == _room_row and section != NULL_REF and Vector2i(_s_r_owner_slot[section.x],
+			_s_r_owner_generation[section.x]) != _room_candidate.ref:
+		return &"SPACE_SECTION_OWNER"
 	if _s_r_claim_kind[row] != 0:
 		return _claim_refusal(_s_r_claim_kind[row], Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row]),
-			Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]))
+			Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), true)
 	return &""
 
 

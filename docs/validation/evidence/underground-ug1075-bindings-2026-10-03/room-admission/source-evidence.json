@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-03",
+  "scope": "Exact future Room source and marker publication using actual Directory/Buildings, synthetic component geometry/authority only.",
+  "source_sha256": {
+    "godot/scripts/core/underground_space_owner.gd": "089b91a660f4ed1643806685c6929005b1e90e3c9c66d7b5d07bf48018093918",
+    "godot/test/test_underground_space_owner.gd": "7a2fcf6f3bfc1a9191d7941744a061f6b7bb013fc7f88b55f112cb1e7e4be244",
+    "godot/scripts/core/underground_space_authority.gd": "728145e37386ba252c7b25d2dc37acf8a6b297f69a92a749f2ea01dd5ca4ae41",
+    "godot/test/test_underground_space_authority.gd": "19eb4cd63e6a31f7c5569388022948f89420241218ca1e6dd853ba628cd257d8",
+    "godot/scripts/core/entity_directory.gd": "322b3222e812057394297f2be1867ddfb4fc7bbce906a494e1bf125448953a5a",
+    "godot/scripts/core/buildings.gd": "178517ba5fca64734db69e7a3e64cd738b8b24d4b45f55a6dc1e13e1371cd1cc"
+  },
+  "logs_sha256": {
+    "test_underground_space_authority.log": "c06e86577d72b34ad4d1600175cd4300a5d1ca1d0acf6fb414ec233336456047",
+    "historical-rejected-test-ternary.log": "0292b671a56d5c42f9709e53ed90d314f69b58cab7e169c91ec779c7dfb2ef03",
+    "analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "clean-import.log": "230945e18fe7303dc7409f4d931c8f3d74329be4209299d68092b613757cb84c",
+    "historical-rejected-fixture-types.log": "cfcff236ec18ab533743991560cbc01c1948347fc85a8a65c62b363781144f1c",
+    "test_underground_space_owner.log": "916a353694850019e0c762e76211cf08ac60f0975a33f3f9df1f136ff36df5b9"
+  },
+  "commands": [
+    "Move demo assets aside, delete godot/.godot, godot --headless --path godot --editor --quit; restore assets afterwards",
+    "./tools/run_tests.sh --shard INDEX/COUNT --output-dir DIR (actual singleton file shards)",
+    "python3 tools/gdscript_warnings.py --port 6153 --max 0 godot/scripts/core/underground_space_owner.gd godot/test/test_underground_space_owner.gd"
+  ],
+  "results": {
+    "owner_tests": 49,
+    "owner_assertions": 812,
+    "authority_tests": 24,
+    "authority_assertions": 3010,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected_diagnostics": 0,
+    "tolerated_diagnostics": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 2
+  },
+  "independent_review": "Accepted exact final source/test after fixing the callback reentrancy finding; no duplicate engine run by reviewer."
+}

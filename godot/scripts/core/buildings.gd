@@ -28,8 +28,9 @@ extends RefCounted
 ##   * two beds still yield bit value 1, and removing one cannot clear it while the other lives;
 ##   * a reused room slot starts at 0 and can never inherit the previous room's bits, because the
 ##     generation on the reference no longer resolves;
-##   * an uncommitted placement contributes nothing, because this store has no uncommitted rows:
-##     `place_furniture()` either publishes a row or refuses, and a refusal writes nothing.
+##   * a pending spatial placement contributes nothing: its actual Furniture identity reserves
+##     membership capacity, but `_f_installed` remains zero until the coordinator's paid commit.
+##     Legacy `place_furniture()` still publishes an installed surface row or refuses atomically.
 ## The mask is RECOMPUTED from the room's own bounded furniture chain on every structural edit
 ## (`_recompute_mask_row()`), never incrementally cleared -- an incremental clear is exactly the
 ## bug where removing one of two beds drops the bed bit. No per-room nine-counter arena is
@@ -116,6 +117,23 @@ const MAX_ROOMS_PER_BUILDING: int = 16
 
 ## GDD §4.2: "rotation 0-3"; §5.9: "rotation in 90 degree steps".
 const ROTATION_COUNT: int = 4
+## Decision 1069: explicit storage domain, never inferred from a null parent or flat tile number.
+const ROOM_SPACE_SURFACE: int = 0
+const ROOM_SPACE_UNDERGROUND: int = 1
+const ROOM_SPACE_COUNT: int = 2
+const TILE_AREA_UNITS_SQUARED: int = 2048 * 2048
+
+## Cold coordinator actions, not saved gameplay ordinals. Values follow these ASCII names.
+const SPATIAL_FURNITURE_CONDITION: int = 0
+const SPATIAL_FURNITURE_CREATE: int = 1
+const SPATIAL_FURNITURE_INSTALL: int = 2
+const SPATIAL_FURNITURE_REMOVE: int = 3
+const SPATIAL_FURNITURE_USER: int = 4
+const SPATIAL_ROOM_CREATE: int = 5
+const SPATIAL_ROOM_OCCUPANTS: int = 6
+const SPATIAL_ROOM_REMOVE: int = 7
+const SPATIAL_ROOM_TEMPERATURE: int = 8
+const SPATIAL_ROOM_VALID: int = 9
 
 ## The nine FurnitureDefinition kinds, for the per-kind live counters.
 const FURNITURE_KIND_COUNT: int = BuildingDefinitions.FURNITURE_DEFINITION_COUNT
@@ -210,6 +228,17 @@ const REFUSE_MASK_MISMATCH: StringName = &"ROOM_FURNITURE_MASK_MISMATCH"
 const REFUSE_SAME_ROOM: StringName = &"FURNITURE_ALREADY_IN_ROOM"
 const REFUSE_DIFFERENT_BUILDING: StringName = &"DIFFERENT_BUILDING"
 const REFUSE_INVALID_PLACEMENT_AUTHORITY: StringName = &"INVALID_PLACEMENT_AUTHORITY"
+const REFUSE_SPATIAL_AUTHORITY: StringName = &"ROOM_SPATIAL_AUTHORITY"
+const REFUSE_SPATIAL_BINDING: StringName = &"ROOM_SPATIAL_BINDING"
+const REFUSE_SPATIAL_COMMAND: StringName = &"ROOM_SPATIAL_COORDINATOR_REQUIRED"
+const REFUSE_SPATIAL_COORDINATE: StringName = &"ROOM_HAS_NO_SURFACE_TILE_COORDINATE"
+const REFUSE_SPATIAL_KIND: StringName = &"ROOM_SPATIAL_KIND"
+const REFUSE_SPATIAL_AREA: StringName = &"ROOM_SPATIAL_AREA_UNPROVED"
+const REFUSE_NOT_INSTALLED: StringName = &"FURNITURE_NOT_INSTALLED"
+const REFUSE_ALREADY_INSTALLED: StringName = &"FURNITURE_ALREADY_INSTALLED"
+const REFUSE_INSTALL_FLAG: StringName = &"FURNITURE_INSTALL_FLAG"
+const REFUSE_ROOM_OCCUPIED: StringName = &"ROOM_OCCUPANTS_NOT_RELEASED"
+const REFUSE_VERSIONED_CODEC: StringName = &"BUILDINGS_SPATIAL_VERSIONED_CODEC_REQUIRED"
 
 ## The one method a placement authority publishes: `building_tile_refusal(tile) -> StringName`,
 ## REFUSE_NONE for a tile a footprint may cover, else the authority's own refusal code.
@@ -237,6 +266,27 @@ class OpResult:
 		ref = p_ref
 
 
+class SpatialAuthority extends RefCounted:
+	## The concrete coordinator must prove actual geometry, economy and owner state. This
+	## default refuses; it provides no live demo fallback or trusted completion argument.
+	func buildings_owner() -> RefCounted:
+		"""Name the exact Buildings object, not another store with equal numeric identities."""
+		return null
+
+	func mutation_refusal(_action: int, _subject: Vector2i, _related: Vector2i,
+			_value: int, _rotation: int) -> StringName:
+		"""Permit only a synchronous proved coordinator operation, including its exact arguments."""
+		return &"ROOM_SPATIAL_AUTHORITY"
+
+	func area_of_room(_room: Vector2i) -> OpResult:
+		"""Read actual owned floor area in squared fixed units, never a TileLinks approximation."""
+		return OpResult.new(false, &"ROOM_SPATIAL_AREA_UNPROVED", 0, Vector2i(-1, 0))
+
+	func service_refusal(_room: Vector2i) -> StringName:
+		"""Revalidate the completed shell and actual service prerequisites before use."""
+		return &"ROOM_SPATIAL_AUTHORITY"
+
+
 # --- collaborators ------------------------------------------------------------------------------
 
 var _directory: EntityDirectory = null
@@ -244,6 +294,8 @@ var _owns_directory: bool = false
 ## Wiring, not state (decision 0533): the authority every footprint tile is shown to, held weakly
 ## because `ground_piles.gd`'s composer holds this store strongly. Not cleared by `clear()`.
 var _placement_authority: WeakRef = null
+## Wiring only. The concrete coordinator holds this bridge strongly; no reference cycle.
+var _spatial_authority: WeakRef = null
 var _definitions: BuildingDefinitions = null
 
 # --- Building columns (GDD §4.2, architecture §2.2) ---------------------------------------------
@@ -276,6 +328,7 @@ var _r_temperature_tenths: PackedInt32Array = PackedInt32Array()
 var _r_furniture_mask: PackedInt32Array = PackedInt32Array()
 var _r_occupants: PackedInt32Array = PackedInt32Array()
 var _r_valid: PackedByteArray = PackedByteArray()
+var _r_spatial_kind: PackedByteArray = PackedByteArray()
 
 ## Occupancy, the owning directory reference, the building chain links and the furniture chain.
 var _r_present: PackedByteArray = PackedByteArray()
@@ -299,6 +352,7 @@ var _f_condition: PackedInt32Array = PackedInt32Array()
 
 ## Occupancy, the owning directory reference, and the room chain links.
 var _f_present: PackedByteArray = PackedByteArray()
+var _f_installed: PackedByteArray = PackedByteArray()
 var _f_ref_slot: PackedInt32Array = PackedInt32Array()
 var _f_ref_generation: PackedInt32Array = PackedInt32Array()
 var _f_room_next: PackedInt32Array = PackedInt32Array()
@@ -395,6 +449,7 @@ func _allocate_room_columns() -> void:
 	_r_furniture_mask.resize(ROOM_CAPACITY)
 	_r_occupants.resize(ROOM_CAPACITY)
 	_r_valid.resize(ROOM_CAPACITY)
+	_r_spatial_kind.resize(ROOM_CAPACITY)
 	_r_present.resize(ROOM_CAPACITY)
 	_r_ref_slot.resize(ROOM_CAPACITY)
 	_r_ref_generation.resize(ROOM_CAPACITY)
@@ -419,6 +474,7 @@ func _allocate_furniture_columns() -> void:
 	_f_user_generation.resize(FURNITURE_CAPACITY)
 	_f_condition.resize(FURNITURE_CAPACITY)
 	_f_present.resize(FURNITURE_CAPACITY)
+	_f_installed.resize(FURNITURE_CAPACITY)
 	_f_ref_slot.resize(FURNITURE_CAPACITY)
 	_f_ref_generation.resize(FURNITURE_CAPACITY)
 	_f_room_next.resize(FURNITURE_CAPACITY)
@@ -487,6 +543,7 @@ func _clear_room_columns() -> void:
 	_r_furniture_mask.fill(0)
 	_r_occupants.fill(0)
 	_r_valid.fill(0)
+	_r_spatial_kind.fill(ROOM_SPACE_SURFACE)
 	_r_present.fill(0)
 	_r_ref_slot.fill(EntityDirectory.NULL_SLOT)
 	_r_ref_generation.fill(EntityDirectory.NULL_GENERATION)
@@ -507,6 +564,7 @@ func _clear_furniture_columns() -> void:
 	_f_user_generation.fill(EntityDirectory.NULL_GENERATION)
 	_f_condition.fill(0)
 	_f_present.fill(0)
+	_f_installed.fill(0)
 	_f_ref_slot.fill(EntityDirectory.NULL_SLOT)
 	_f_ref_generation.fill(EntityDirectory.NULL_GENERATION)
 	_f_room_next.fill(NO_LINK)
@@ -521,6 +579,55 @@ func directory() -> EntityDirectory:
 func definitions() -> BuildingDefinitions:
 	"""The immutable §4.1-§4.3 catalog facts this store validates and measures against."""
 	return _definitions
+
+
+func bind_spatial_authority(authority: SpatialAuthority) -> OpResult:
+	"""Bind one actual coordinator once; an expired or different binding cannot be replaced."""
+	if authority == null or authority.buildings_owner() != self:
+		return _refuse(REFUSE_SPATIAL_BINDING)
+	if _spatial_authority != null and _spatial_authority.get_ref() != authority:
+		return _refuse(REFUSE_SPATIAL_BINDING)
+	_spatial_authority = weakref(authority)
+	return OpResult.new(true, REFUSE_NONE, 0, NULL_REF)
+
+
+func spatial_authority() -> SpatialAuthority:
+	"""Read the live bridge; callers still need its operation-specific qualification."""
+	return _spatial_authority.get_ref() as SpatialAuthority if _spatial_authority != null else null
+
+
+func _spatial_mutation_refusal(action: int, subject: Vector2i, related: Vector2i,
+		value: int, rotation: int = 0) -> StringName:
+	"""Require exact current wiring before asking the coordinator about this one operation."""
+	var authority: SpatialAuthority = spatial_authority()
+	if authority == null or authority.buildings_owner() != self:
+		return REFUSE_SPATIAL_AUTHORITY
+	return authority.mutation_refusal(action, subject, related, value, rotation)
+
+
+func _room_mutation_refusal(row: int, action: int, value: int) -> StringName:
+	"""Surface mutators retain their existing contract; spatial rows require their owner."""
+	if _r_spatial_kind[row] == ROOM_SPACE_SURFACE:
+		return REFUSE_NONE
+	if _r_spatial_kind[row] != ROOM_SPACE_UNDERGROUND:
+		return REFUSE_SPATIAL_KIND
+	return _spatial_mutation_refusal(action, room_ref_of_row(row), NULL_REF, value)
+
+
+func _furniture_mutation_refusal(row: int, action: int, related: Vector2i,
+		value: int) -> StringName:
+	"""A pending or spatial identity cannot use a legacy setter to bypass its coordinator."""
+	if _f_installed[row] > 1:
+		return REFUSE_INSTALL_FLAG
+	var room: Vector2i = Vector2i(_f_room_slot[row], _f_room_generation[row])
+	var room_row: int = _room_row_of(room)
+	if room_row == NO_ROW:
+		return REFUSE_STALE_ROOM_REF
+	if _r_spatial_kind[room_row] == ROOM_SPACE_SURFACE:
+		return REFUSE_NONE if _f_installed[row] == 1 else REFUSE_NOT_INSTALLED
+	if _r_spatial_kind[room_row] != ROOM_SPACE_UNDERGROUND:
+		return REFUSE_SPATIAL_KIND
+	return _spatial_mutation_refusal(action, furniture_ref_of_row(row), related, value)
 
 
 # --- exterior tile geometry -----------------------------------------------------------------------
@@ -894,6 +1001,30 @@ func live_building_count() -> int:
 
 # --- Room lifecycle -------------------------------------------------------------------------------
 
+func spatial_room_admission_refusal(room_type: int) -> StringName:
+	"""Read-only preflight for a real Room identity; geometry admission belongs to the bridge."""
+	if room_type < 0 or room_type >= ROOM_TYPE_COUNT:
+		return REFUSE_UNKNOWN_ROOM_TYPE
+	var code: StringName = _spatial_mutation_refusal(SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, room_type)
+	return code if code != REFUSE_NONE else _directory.create_refusal(EntityDirectory.KIND_ROOM)
+
+
+func designate_spatial_room(room_type: int) -> OpResult:
+	"""Publish a proved underground Room identity without allocating a surface parent or TileLinks."""
+	var code: StringName = spatial_room_admission_refusal(room_type)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var ref: Vector2i = _directory.create(EntityDirectory.KIND_ROOM)
+	if ref == NULL_REF:
+		return _refuse(_directory.last_refusal())
+	var row: int = _directory.get_typed_row(ref)
+	_write_room_row(row, ref, NULL_REF, room_type, PackedInt32Array())
+	_r_spatial_kind[row] = ROOM_SPACE_UNDERGROUND
+	_r_tile_offset[row] = 0
+	_r_live_count += 1
+	return OpResult.new(true, REFUSE_NONE, row, ref)
+
+
 func designate_room(building_ref: Vector2i, room_type: int, tiles: PackedInt32Array) -> OpResult:
 	"""Publish one Room over a set of interior tiles of a managed building.
 
@@ -981,11 +1112,14 @@ func _write_room_row(row: int, ref: Vector2i, building_ref: Vector2i, room_type:
 	_r_furniture_mask[row] = 0
 	_r_occupants[row] = 0
 	_r_valid[row] = 0
+	_r_spatial_kind[row] = ROOM_SPACE_SURFACE
 	_r_present[row] = 1
 	_r_ref_slot[row] = ref.x
 	_r_ref_generation[row] = ref.y
 	_r_furniture_head[row] = NO_LINK
 	_r_furniture_count[row] = 0
+	_r_building_next[row] = NO_LINK
+	_r_building_prev[row] = NO_LINK
 	for index: int in tiles.size():
 		_room_tile_id[_room_tile_used + index] = tiles[index]
 		_room_slot[tiles[index]] = row
@@ -1002,21 +1136,37 @@ func remove_room(room_ref: Vector2i) -> OpResult:
 	var row: int = _room_row_of(room_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_ROOM_REF)
+	var code: StringName = _room_mutation_refusal(row, SPATIAL_ROOM_REMOVE, 0)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if _r_spatial_kind[row] == ROOM_SPACE_UNDERGROUND and _r_occupants[row] != 0:
+		return _refuse(REFUSE_ROOM_OCCUPIED)
 	if _r_furniture_count[row] != 0:
 		return _refuse(REFUSE_ROOM_HAS_FURNITURE)
+	_retire_room_row(row, room_ref)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _retire_room_row(row: int, room_ref: Vector2i) -> void:
+	"""Retire the checked Room identity without retaining a spatial flag on a free row."""
 	var building_row: int = _building_row_of(
 		Vector2i(_r_building_slot[row], _r_building_generation[row]))
 	if building_row != NO_ROW:
 		_unlink_room(building_row, row)
 	_r_present[row] = 0
-	_release_room_tiles(row)
+	if _r_spatial_kind[row] == ROOM_SPACE_SURFACE:
+		_release_room_tiles(row)
 	_r_furniture_mask[row] = 0
 	_r_valid[row] = 0
 	_r_ref_slot[row] = EntityDirectory.NULL_SLOT
 	_r_ref_generation[row] = EntityDirectory.NULL_GENERATION
+	if _r_spatial_kind[row] == ROOM_SPACE_UNDERGROUND:
+		_r_type[row] = 0
+		_r_temperature_tenths[row] = 0
+		_r_occupants[row] = 0
+	_r_spatial_kind[row] = ROOM_SPACE_SURFACE
 	_r_live_count -= 1
 	_directory.destroy(room_ref)
-	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
 
 func _release_room_tiles(row: int) -> void:
@@ -1102,14 +1252,50 @@ func type_of_room(room_ref: Vector2i) -> OpResult:
 	return _room_field(room_ref, _r_type)
 
 
+func spatial_kind_of_room(room_ref: Vector2i) -> OpResult:
+	"""Read a generation-checked domain tag; an unknown byte cannot become a surface room."""
+	var row: int = _room_row_of(room_ref)
+	if row == NO_ROW:
+		return _refuse(REFUSE_STALE_ROOM_REF)
+	if _r_spatial_kind[row] >= ROOM_SPACE_COUNT:
+		return _refuse(REFUSE_SPATIAL_KIND)
+	return OpResult.new(true, REFUSE_NONE, _r_spatial_kind[row], room_ref)
+
+
+func area_units_squared_of_room(room_ref: Vector2i) -> OpResult:
+	"""Surface area uses exact GDD tiles; spatial area must come from its actual geometry owner."""
+	var kind: OpResult = spatial_kind_of_room(room_ref)
+	if not kind.ok:
+		return kind
+	if kind.value == ROOM_SPACE_SURFACE:
+		return OpResult.new(true, REFUSE_NONE,
+			_r_tile_count[_room_row_of(room_ref)] * TILE_AREA_UNITS_SQUARED, room_ref)
+	var authority: SpatialAuthority = spatial_authority()
+	if authority == null or authority.buildings_owner() != self:
+		return _refuse(REFUSE_SPATIAL_AUTHORITY)
+	var area: OpResult = authority.area_of_room(room_ref)
+	if area == null or not area.ok or area.value <= 0 or area.ref != room_ref:
+		return _refuse(REFUSE_SPATIAL_AREA)
+	return OpResult.new(true, REFUSE_NONE, area.value, room_ref)
+
+
+func _surface_room_field(room_ref: Vector2i, column: PackedInt32Array) -> OpResult:
+	"""A TileLinks offset/count has no meaning on an underground floor section."""
+	var kind: OpResult = spatial_kind_of_room(room_ref)
+	if not kind.ok:
+		return kind
+	return _room_field(room_ref, column) if kind.value == ROOM_SPACE_SURFACE \
+		else _refuse(REFUSE_SPATIAL_COORDINATE)
+
+
 func tile_count_of_room(room_ref: Vector2i) -> OpResult:
 	"""`Room.tile_count`: how many interior tiles this room owns."""
-	return _room_field(room_ref, _r_tile_count)
+	return _surface_room_field(room_ref, _r_tile_count)
 
 
 func tile_offset_of_room(room_ref: Vector2i) -> OpResult:
 	"""`Room.tile_offset`: where this room's run starts in the RoomTileLinks arena."""
-	return _room_field(room_ref, _r_tile_offset)
+	return _surface_room_field(room_ref, _r_tile_offset)
 
 
 func occupants_of_room(room_ref: Vector2i) -> OpResult:
@@ -1143,7 +1329,20 @@ func room_building_ref_of(room_ref: Vector2i) -> Vector2i:
 func room_is_valid(room_ref: Vector2i) -> bool:
 	"""`Room.valid`. False for a stale reference, which is also the safe reading of "unknown"."""
 	var row: int = _room_row_of(room_ref)
-	return row != NO_ROW and _r_valid[row] == 1
+	return row != NO_ROW and _room_services_valid(row)
+
+
+func _room_services_valid(row: int) -> bool:
+	"""Spatial service reads recheck the actual owner; a retained flag is not live access proof."""
+	if _r_valid[row] != 1:
+		return false
+	if _r_spatial_kind[row] == ROOM_SPACE_SURFACE:
+		return true
+	if _r_spatial_kind[row] != ROOM_SPACE_UNDERGROUND:
+		return false
+	var authority: SpatialAuthority = spatial_authority()
+	return authority != null and authority.buildings_owner() == self \
+		and authority.service_refusal(room_ref_of_row(row)) == REFUSE_NONE
 
 
 func set_room_valid(room_ref: Vector2i, valid: bool) -> OpResult:
@@ -1156,6 +1355,9 @@ func set_room_valid(room_ref: Vector2i, valid: bool) -> OpResult:
 	var row: int = _room_row_of(room_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_ROOM_REF)
+	var code: StringName = _room_mutation_refusal(row, SPATIAL_ROOM_VALID, 1 if valid else 0)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	_r_valid[row] = 1 if valid else 0
 	return OpResult.new(true, REFUSE_NONE, _r_valid[row], room_ref)
 
@@ -1167,6 +1369,9 @@ func set_room_occupants(room_ref: Vector2i, occupants: int) -> OpResult:
 		return _refuse(REFUSE_STALE_ROOM_REF)
 	if occupants < 0 or occupants > EntityDirectory.RESIDENT_LIVING_CAP:
 		return _refuse(REFUSE_INVALID_OCCUPANTS)
+	var code: StringName = _room_mutation_refusal(row, SPATIAL_ROOM_OCCUPANTS, occupants)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	_r_occupants[row] = occupants
 	return OpResult.new(true, REFUSE_NONE, occupants, room_ref)
 
@@ -1178,6 +1383,9 @@ func set_room_temperature_tenths(room_ref: Vector2i, tenths: int) -> OpResult:
 		return _refuse(REFUSE_STALE_ROOM_REF)
 	if tenths < INT32_MIN or tenths > INT32_MAX:
 		return _refuse(REFUSE_INVALID_TEMPERATURE)
+	var code: StringName = _room_mutation_refusal(row, SPATIAL_ROOM_TEMPERATURE, tenths)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	_r_temperature_tenths[row] = tenths
 	return OpResult.new(true, REFUSE_NONE, tenths, room_ref)
 
@@ -1194,6 +1402,8 @@ func room_tile_at(room_ref: Vector2i, index: int) -> OpResult:
 	var row: int = _room_row_of(room_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_ROOM_REF)
+	if _r_spatial_kind[row] != ROOM_SPACE_SURFACE:
+		return _refuse(REFUSE_SPATIAL_COORDINATE)
 	if index < 0 or index >= _r_tile_count[row]:
 		return _refuse(REFUSE_INVALID_TILE)
 	return OpResult.new(true, REFUSE_NONE, _room_tile_id[_r_tile_offset[row] + index], room_ref)
@@ -1232,6 +1442,58 @@ func room_tile_links_used() -> int:
 
 # --- Furniture lifecycle --------------------------------------------------------------------------
 
+func spatial_furniture_admission_refusal(room_ref: Vector2i, type_id: int,
+		rotation: int) -> StringName:
+	"""Prove the pending identity's exact owner/type/orientation before any Directory write."""
+	var kind: OpResult = spatial_kind_of_room(room_ref)
+	if not kind.ok:
+		return kind.error
+	if kind.value != ROOM_SPACE_UNDERGROUND:
+		return REFUSE_SPATIAL_COMMAND
+	if not _definitions.is_furniture_id(type_id):
+		return REFUSE_UNKNOWN_FURNITURE_TYPE
+	if rotation < 0 or rotation >= ROTATION_COUNT:
+		return REFUSE_INVALID_ROTATION
+	var code: StringName = _spatial_mutation_refusal(SPATIAL_FURNITURE_CREATE,
+		NULL_REF, room_ref, type_id, rotation)
+	return code if code != REFUSE_NONE else _directory.create_refusal(EntityDirectory.KIND_FURNITURE)
+
+
+func stage_spatial_furniture(room_ref: Vector2i, type_id: int, rotation: int) -> OpResult:
+	"""Reserve a real pending piece; only the spatial owner retains its actual pose and contacts."""
+	var code: StringName = spatial_furniture_admission_refusal(room_ref, type_id, rotation)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var ref: Vector2i = _directory.create(EntityDirectory.KIND_FURNITURE)
+	if ref == NULL_REF:
+		return _refuse(_directory.last_refusal())
+	var row: int = _directory.get_typed_row(ref)
+	_write_furniture_row(row, ref, room_ref, type_id, NO_LINK, rotation)
+	_f_installed[row] = 0
+	_link_furniture(_room_row_of(room_ref), row)
+	_f_live_count += 1
+	return OpResult.new(true, REFUSE_NONE, row, ref)
+
+
+func install_spatial_furniture(furniture_ref: Vector2i) -> OpResult:
+	"""Publish service presence only inside the proved paid-completion coordinator operation."""
+	var row: int = _furniture_row_of(furniture_ref)
+	if row == NO_ROW:
+		return _refuse(REFUSE_STALE_FURNITURE_REF)
+	if _f_installed[row] == 1:
+		return _refuse(REFUSE_ALREADY_INSTALLED)
+	var code: StringName = _furniture_mutation_refusal(row, SPATIAL_FURNITURE_INSTALL, NULL_REF, 0)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var room_row: int = _room_row_of(room_ref_of_furniture(furniture_ref))
+	if _r_spatial_kind[room_row] != ROOM_SPACE_UNDERGROUND:
+		return _refuse(REFUSE_SPATIAL_COMMAND)
+	_f_installed[row] = 1
+	_f_kind_count[_f_type_id[row]] += 1
+	_r_furniture_mask[room_row] = _recompute_mask_row(room_row)
+	return OpResult.new(true, REFUSE_NONE, row, furniture_ref)
+
+
 func place_furniture(room_ref: Vector2i, type_id: int, origin_tile: int,
 		rotation: int) -> OpResult:
 	"""Publish one committed Furniture row into a room and fold its bit into that room's mask.
@@ -1263,6 +1525,8 @@ func place_furniture(room_ref: Vector2i, type_id: int, origin_tile: int,
 func _refuse_place_furniture(room_row: int, type_id: int, origin_tile: int,
 		rotation: int) -> StringName:
 	"""The code blocking a furniture placement, or REFUSE_NONE when every argument is storable."""
+	if _r_spatial_kind[room_row] != ROOM_SPACE_SURFACE:
+		return REFUSE_SPATIAL_COMMAND
 	if not _definitions.is_furniture_id(type_id):
 		return REFUSE_UNKNOWN_FURNITURE_TYPE
 	if rotation < 0 or rotation >= ROTATION_COUNT:
@@ -1305,6 +1569,7 @@ func _write_furniture_row(row: int, ref: Vector2i, room_ref: Vector2i, type_id: 
 	_f_user_generation[row] = EntityDirectory.NULL_GENERATION
 	_f_condition[row] = 0
 	_f_present[row] = 1
+	_f_installed[row] = 1
 	_f_ref_slot[row] = ref.x
 	_f_ref_generation[row] = ref.y
 
@@ -1315,6 +1580,8 @@ func _stamp_furniture_tiles(row: int, value: int) -> void:
 	Edge furniture occupies no floor tile (§4.3's "0/0 means edge placement"), so its loop runs
 	zero times and it never claims a tile another piece could want.
 	"""
+	if _f_origin_tile[row] == NO_LINK:
+		return
 	var type_id: int = _f_type_id[row]
 	var rotation: int = _f_rotation[row]
 	var origin_tile: int = _f_origin_tile[row]
@@ -1336,13 +1603,24 @@ func remove_furniture(furniture_ref: Vector2i) -> OpResult:
 	var row: int = _furniture_row_of(furniture_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_FURNITURE_REF)
+	var code: StringName = _furniture_mutation_refusal(row, SPATIAL_FURNITURE_REMOVE, NULL_REF, 0)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	if _f_user_slot[row] != EntityDirectory.NULL_SLOT:
 		return _refuse(REFUSE_FURNITURE_IN_USE)
+	_retire_furniture_row(row, furniture_ref)
+	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _retire_furniture_row(row: int, furniture_ref: Vector2i) -> void:
+	"""Remove the checked row, updating installed counts and room membership together."""
 	var room_row: int = _room_row_of(Vector2i(_f_room_slot[row], _f_room_generation[row]))
 	_stamp_furniture_tiles(row, NO_LINK)
 	if room_row != NO_ROW:
 		_unlink_furniture(room_row, row)
-	_f_kind_count[_f_type_id[row]] -= 1
+	if _f_installed[row] == 1:
+		_f_kind_count[_f_type_id[row]] -= 1
+	_f_installed[row] = 0
 	_f_present[row] = 0
 	_f_ref_slot[row] = EntityDirectory.NULL_SLOT
 	_f_ref_generation[row] = EntityDirectory.NULL_GENERATION
@@ -1350,7 +1628,6 @@ func remove_furniture(furniture_ref: Vector2i) -> OpResult:
 	_directory.destroy(furniture_ref)
 	if room_row != NO_ROW:
 		_r_furniture_mask[room_row] = _recompute_mask_row(room_row)
-	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
 
 
 func reassign_furniture(furniture_ref: Vector2i, room_ref: Vector2i) -> OpResult:
@@ -1367,6 +1644,10 @@ func reassign_furniture(furniture_ref: Vector2i, room_ref: Vector2i) -> OpResult
 	if target_row == NO_ROW:
 		return _refuse(REFUSE_STALE_ROOM_REF)
 	var source_row: int = _room_row_of(Vector2i(_f_room_slot[row], _f_room_generation[row]))
+	if source_row == NO_ROW:
+		return _refuse(REFUSE_STALE_ROOM_REF)
+	if _r_spatial_kind[source_row] != ROOM_SPACE_SURFACE or _r_spatial_kind[target_row] != ROOM_SPACE_SURFACE:
+		return _refuse(REFUSE_SPATIAL_COMMAND)
 	if source_row == target_row:
 		return _refuse(REFUSE_SAME_ROOM)
 	var code: StringName = _refuse_reassign(row, source_row, target_row)
@@ -1474,6 +1755,12 @@ func is_live_furniture(furniture_ref: Vector2i) -> bool:
 	return _furniture_row_of(furniture_ref) != NO_ROW
 
 
+func is_furniture_installed(furniture_ref: Vector2i) -> bool:
+	"""A live pending identity reserves capacity but is never an installed service object."""
+	var row: int = _furniture_row_of(furniture_ref)
+	return row != NO_ROW and _f_installed[row] == 1
+
+
 func _furniture_field(furniture_ref: Vector2i, column: PackedInt32Array) -> OpResult:
 	"""One Furniture column's value for a live reference, or a stale-reference refusal."""
 	var row: int = _furniture_row_of(furniture_ref)
@@ -1489,7 +1776,8 @@ func type_id_of_furniture(furniture_ref: Vector2i) -> OpResult:
 
 func origin_tile_of_furniture(furniture_ref: Vector2i) -> OpResult:
 	"""`Furniture.origin_tile`: the interior tile this piece starts at."""
-	return _furniture_field(furniture_ref, _f_origin_tile)
+	var found: OpResult = _furniture_field(furniture_ref, _f_origin_tile)
+	return _refuse(REFUSE_SPATIAL_COORDINATE) if found.ok and found.value == NO_LINK else found
 
 
 func rotation_of_furniture(furniture_ref: Vector2i) -> OpResult:
@@ -1531,6 +1819,11 @@ func set_furniture_user(furniture_ref: Vector2i, user_ref: Vector2i) -> OpResult
 	if user_ref != NULL_REF and not _directory.is_valid_of_kind(
 			user_ref, EntityDirectory.KIND_RESIDENT):
 		return _refuse(REFUSE_STALE_USER_REF)
+	if _f_installed[row] != 1:
+		return _refuse(REFUSE_NOT_INSTALLED)
+	var code: StringName = _furniture_mutation_refusal(row, SPATIAL_FURNITURE_USER, user_ref, 0)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	_f_user_slot[row] = user_ref.x
 	_f_user_generation[row] = user_ref.y
 	return OpResult.new(true, REFUSE_NONE, user_ref.x, furniture_ref)
@@ -1543,6 +1836,9 @@ func set_furniture_condition(furniture_ref: Vector2i, condition: int) -> OpResul
 		return _refuse(REFUSE_STALE_FURNITURE_REF)
 	if condition < 0 or condition > INT32_MAX:
 		return _refuse(REFUSE_INVALID_CONDITION)
+	var code: StringName = _furniture_mutation_refusal(row, SPATIAL_FURNITURE_CONDITION, NULL_REF, condition)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	_f_condition[row] = condition
 	return OpResult.new(true, REFUSE_NONE, condition, furniture_ref)
 
@@ -1568,12 +1864,12 @@ func furniture_rows_in_room(room_ref: Vector2i) -> PackedInt32Array:
 
 
 func live_furniture_count() -> int:
-	"""How many furniture rows are live across every room."""
+	"""Allocated identities, including pending spatial orders; this is not installed service capacity."""
 	return _f_live_count
 
 
 func live_furniture_of_kind(type_id: int) -> int:
-	"""How many live rows of one FurnitureDefinition kind exist, across every room.
+	"""How many installed rows of one FurnitureDefinition kind exist, across every room.
 
 	A maintained counter, not a scan: a HUD bed count must not walk 81920 rows per frame.
 	"""
@@ -1592,7 +1888,8 @@ func _recompute_mask_row(room_row: int) -> int:
 	var mask: int = 0
 	var row: int = _r_furniture_head[room_row]
 	while row != NO_LINK:
-		mask |= _definitions.furniture_bit_of(_f_type_id[row])
+		if _f_installed[row] == 1:
+			mask |= _definitions.furniture_bit_of(_f_type_id[row])
 		row = _f_room_next[row]
 	return mask
 
@@ -1627,7 +1924,7 @@ func verify_room_masks() -> OpResult:
 
 
 func count_furniture_of_kind(room_ref: Vector2i, type_id: int) -> OpResult:
-	"""How many live rows of one kind this room holds. Counts rows; never reads the mask.
+	"""How many installed rows of one kind this room holds. Counts rows; never reads the mask.
 
 	The mask says "at least one"; this says how many. R-BUILD-DOM-003 is explicit that the first
 	can never be used to answer the second.
@@ -1640,7 +1937,7 @@ func count_furniture_of_kind(room_ref: Vector2i, type_id: int) -> OpResult:
 	var total: int = 0
 	var row: int = _r_furniture_head[room_row]
 	while row != NO_LINK:
-		if _f_type_id[row] == type_id:
+		if _f_installed[row] == 1 and _f_type_id[row] == type_id:
 			total += 1
 		row = _f_room_next[row]
 	return OpResult.new(true, REFUSE_NONE, total, room_ref)
@@ -1661,12 +1958,13 @@ func pantry_capacity_g_of_room(room_ref: Vector2i) -> OpResult:
 		return _refuse(REFUSE_STALE_ROOM_REF)
 	if _r_type[room_row] != ROOM_TYPE_PANTRY:
 		return _refuse(REFUSE_NOT_A_PANTRY)
-	if _r_valid[room_row] != 1:
+	if not _room_services_valid(room_row):
 		return _refuse(REFUSE_ROOM_NOT_VALID)
 	var total: int = 0
 	var row: int = _r_furniture_head[room_row]
 	while row != NO_LINK:
-		total += _definitions.shelf_capacity_g_of(_f_type_id[row])
+		if _f_installed[row] == 1:
+			total += _definitions.shelf_capacity_g_of(_f_type_id[row])
 		row = _f_room_next[row]
 	return OpResult.new(true, REFUSE_NONE, total, room_ref)
 
@@ -1684,12 +1982,13 @@ func kitchen_bench_slots_of_room(room_ref: Vector2i) -> OpResult:
 		return _refuse(REFUSE_STALE_ROOM_REF)
 	if _r_type[room_row] != ROOM_TYPE_KITCHEN:
 		return _refuse(REFUSE_NOT_A_KITCHEN)
-	if _r_valid[room_row] != 1:
+	if not _room_services_valid(room_row):
 		return _refuse(REFUSE_ROOM_NOT_VALID)
 	var total: int = 0
 	var row: int = _r_furniture_head[room_row]
 	while row != NO_LINK:
-		total += _definitions.furniture_station_slots_of(_f_type_id[row])
+		if _f_installed[row] == 1:
+			total += _definitions.furniture_station_slots_of(_f_type_id[row])
 		row = _f_room_next[row]
 	return OpResult.new(true, REFUSE_NONE, total, room_ref)
 
@@ -1717,12 +2016,12 @@ func station_slots_in_building(building_ref: Vector2i, station_id: int) -> OpRes
 
 func _interior_station_slots(room_row: int, station_id: int) -> int:
 	"""Slots one VALID room's furniture contributes to a station. An invalid room contributes 0."""
-	if _r_valid[room_row] != 1:
+	if not _room_services_valid(room_row):
 		return 0
 	var total: int = 0
 	var row: int = _r_furniture_head[room_row]
 	while row != NO_LINK:
-		if _definitions.station_of_furniture(_f_type_id[row]) == station_id:
+		if _f_installed[row] == 1 and _definitions.station_of_furniture(_f_type_id[row]) == station_id:
 			total += _definitions.furniture_station_slots_of(_f_type_id[row])
 		row = _f_room_next[row]
 	return total
@@ -1740,13 +2039,16 @@ func room_meets_countable_rules(room_ref: Vector2i) -> OpResult:
 	var room_row: int = _room_row_of(room_ref)
 	if room_row == NO_ROW:
 		return _refuse(REFUSE_STALE_ROOM_REF)
-	var passes: bool = _countable_rules_pass(room_row)
+	var area: OpResult = area_units_squared_of_room(room_ref)
+	if not area.ok:
+		return area
+	@warning_ignore("integer_division") var tiles: int = area.value / TILE_AREA_UNITS_SQUARED
+	var passes: bool = _countable_rules_pass(room_row, tiles)
 	return OpResult.new(true, REFUSE_NONE, 1 if passes else 0, room_ref)
 
 
-func _countable_rules_pass(room_row: int) -> bool:
+func _countable_rules_pass(room_row: int, tiles: int) -> bool:
 	"""Dispatch §5.9's countable validity rule for this room's type."""
-	var tiles: int = _r_tile_count[room_row]
 	match _r_type[room_row]:
 		ROOM_TYPE_DORMITORY:
 			var beds: int = _count_kind(room_row, "bed")
@@ -1782,12 +2084,12 @@ func _infirmary_rules_pass(room_row: int, tiles: int) -> bool:
 
 
 func _count_kind(room_row: int, key: String) -> int:
-	"""How many live rows of one furniture KEY this room holds, resolved through the catalog."""
+	"""How many installed rows of one furniture KEY this room holds, resolved through the catalog."""
 	var type_id: int = int(Catalog.FURNITURE_DEFINITION[key])
 	var total: int = 0
 	var row: int = _r_furniture_head[room_row]
 	while row != NO_LINK:
-		if _f_type_id[row] == type_id:
+		if _f_installed[row] == 1 and _f_type_id[row] == type_id:
 			total += 1
 		row = _f_room_next[row]
 	return total
@@ -1844,9 +2146,49 @@ func section_1_detail() -> String:
 	return _section_1_detail
 
 
+func spatial_state_bytes() -> PackedByteArray:
+	"""Cold diagnostic image of both fixed-width flags; not a composed or versioned save codec."""
+	var out: PackedByteArray = _r_spatial_kind.duplicate()
+	out.append_array(_f_installed)
+	return out
+
+
+func legacy_save_refusal() -> StringName:
+	"""A surface-only image may never silently omit spatial rooms or pending installations."""
+	return _legacy_discriminator_refusal(false)
+
+
+func _legacy_discriminator_refusal(loading_surface: bool) -> StringName:
+	"""Validate all flags before cold legacy capture/load; no unknown or free-row bits survive."""
+	if _r_spatial_kind.size() != ROOM_CAPACITY or _f_installed.size() != FURNITURE_CAPACITY:
+		return COLUMN_REFUSE_SHAPE
+	for kind: int in _r_spatial_kind:
+		if kind != ROOM_SPACE_SURFACE:
+			return REFUSE_VERSIONED_CODEC
+	for row: int in FURNITURE_CAPACITY:
+		var installed: int = _f_installed[row]
+		if _f_origin_tile[row] == NO_LINK and _f_room_slot[row] != EntityDirectory.NULL_SLOT:
+			return REFUSE_VERSIONED_CODEC
+		if installed > 1 or (_f_present[row] == 0 and installed != 0):
+			return REFUSE_VERSIONED_CODEC
+		if not loading_surface and _f_present[row] == 1 and installed != 1:
+			return REFUSE_VERSIONED_CODEC
+	return REFUSE_NONE
+
+
+func _legacy_section_1_refusal(loading_surface: bool) -> StringName:
+	"""Preserve an explicit diagnostic when the frozen ground-grid image cannot carry live state."""
+	var code: StringName = _legacy_discriminator_refusal(loading_surface)
+	if code != REFUSE_NONE:
+		return _refuse_section_1_code(code, "spatial/pending or unknown flags require the composed versioned codec")
+	return REFUSE_NONE
+
+
 func copy_section_1_columns_into(out_building_slot: PackedInt32Array,
 		out_room_slot: PackedInt32Array, out_furniture_slot: PackedInt32Array) -> bool:
 	"""Snapshot the three tile maps into caller-owned buffers already TILE_COUNT long."""
+	if _legacy_section_1_refusal(false) != REFUSE_NONE:
+		return false
 	if not _section_1_sized(_building_slot, _room_slot, _furniture_slot, "the live tile maps"):
 		return false
 	if not _section_1_sized(out_building_slot, out_room_slot, out_furniture_slot,
@@ -1896,6 +2238,9 @@ func section_1_local_refusal(building_slot: PackedInt32Array, room_slot: PackedI
 
 func section_1_cross_check_refusal() -> StringName:
 	"""Every live building, room and furniture footprint against the LIVE tile maps, both ways."""
+	var legacy: StringName = _legacy_section_1_refusal(false)
+	if legacy != REFUSE_NONE:
+		return legacy
 	var buildings: StringName = _section_1_building_refusal()
 	if buildings != COLUMN_REFUSE_NONE:
 		return buildings
@@ -2033,9 +2378,14 @@ func restore_section_1_columns(building_slot: PackedInt32Array, room_slot: Packe
 	"""Install three validated tile maps. Validates first, so a refusal changes nothing."""
 	if section_1_local_refusal(building_slot, room_slot, furniture_slot) != COLUMN_REFUSE_NONE:
 		return false
+	if _legacy_section_1_refusal(true) != REFUSE_NONE:
+		return false
 	_building_slot = building_slot.duplicate()
 	_room_slot = room_slot.duplicate()
 	_furniture_slot = furniture_slot.duplicate()
+	_r_spatial_kind.fill(ROOM_SPACE_SURFACE)
+	for row: int in FURNITURE_CAPACITY:
+		_f_installed[row] = _f_present[row]
 	_section_1_detail = ""
 	return true
 

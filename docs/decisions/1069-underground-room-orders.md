@@ -77,8 +77,8 @@ composition without reading private columns.
 
 ## Remaining increments
 
-The Buildings state extension and room-order coordinator are being built
-under this decision; the readers alone do not implement them. A following
+The Buildings identity/service-gate extension is implemented as increment A
+below. The room-order coordinator is the following increment. A following
 paid-furniture increment must reuse the existing consumed-input receipt
 owner, preserve exact Inventory metadata/refunds, and gate real Work and
 Construction mutations. It must not allocate a duplicate 2.3 MB project-WIP
@@ -135,3 +135,72 @@ tests / 22404 assertions with zero failures, unexpected diagnostics and leaks;
 the two-file analyzer reported zero warnings. The exact independently reviewed
 sources, clean-import log and test output are in
 `docs/validation/evidence/underground-ug07-publication-window-2026-10-03/`.
+
+## Implemented increment A: spatial Rooms and pending furniture
+
+`Buildings` now owns the approved two packed discriminator columns. An
+underground Room allocates a real KIND_ROOM generation with its permanent
+protected RoomType, null exterior Building parent and no ground TileLinks.
+The ordinary sixteen-room managed-building limit does not apply. A pending
+piece allocates real KIND_FURNITURE membership without any installed mask,
+kind count, resident use, pantry capacity or work slot. An exact coordinator
+installation publishes those presence facts once. Both directions of slot
+reuse reset every new flag; removal and whole-world reset retire Directory
+identities and preserve their generation rules.
+
+`SpatialAuthority` is typed and bound weakly once to the exact Buildings
+object. Unbound, expired, replaced and later foreign-rewired authorities
+refuse. Mutations carry exact action, full subject/related identities and
+values, and the default authority supplies no permission. Installation,
+removal, reassignment, room validity/occupancy/heat and furniture condition/use
+cannot use a legacy surface door to bypass the coordinator. Pending membership
+still prevents room removal. Occupants and furniture users must be released
+before approved removal. The authority must eventually prove actual physical
+retirement, payment, fit and services; its test fixtures establish no such
+production qualifications.
+
+`spatial_kind_of_room` and `is_furniture_installed` are the generation-checked
+readers for other owners. Underground tile offset/count and furniture origin
+readers explicitly refuse; ordinary rotation remains its real authored value.
+`area_units_squared_of_room` reads actual owner-qualified area under that exact
+Room generation. GDD whole-tile count thresholds use integer floor division
+by 2048², never rounding a short area upward. Service reads freshly check the
+actual authority, so retaining a valid bit after owner expiration does not
+supply access or capacity.
+
+The fixed flags consume 98304 persistent logical bytes. A cold exact
+`spatial_state_bytes` image copies another 98304 bytes when requested; it is a
+diagnostic image, not a load codec. There is no new geometric arena or
+per-room object. The weak authority is nonpersistent composition wiring.
+The aggregate canonical and memory updates belong to the integration owner.
+
+The existing S1 surface tile-map capture and cross-check call
+`legacy_save_refusal` before copying. Legacy restore validates before writing
+and explicitly initializes surface kinds and installed live legacy furniture.
+Unknown flags, current spatial/pending rows, and retained spatial furniture
+with a non-null parent and NO_LINK origin all refuse. A retired spatial pose
+is preserved rather than normalized into an apparent surface save. The frozen
+29-column S4 validator remains unchanged. Buildings never had a full live
+component capture/restore implementation; these guards do not claim to add
+one. UG16 must provide the actual versioned spatial codec, all-row validation,
+owner rebinding and canonical hash coverage before live save support.
+
+The independent review covered the actual diff and the fifteen adversarial
+boundary tests. Final focused evidence totals **211 tests / 43554 assertions /
+0 failures** across new spatial Buildings, legacy Buildings, frozen Buildings
+save validator, S1 world columns, Construction and the actual physical owner.
+Each strict suite reports:
+
+```text
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+The final two-file analyzer reports `0 GDScript warning(s) in 0 of 2 file(s)`.
+The tests followed an asset-free clean cache/import; that import had no
+error/warning lines. Exact per-suite counts, source hashes and raw evidence
+are retained at
+`docs/validation/evidence/underground-ug07-buildings-a-2026-10-03/`.
+This is the isolated identity/service boundary. It does not claim the actual
+room-order coordinator, paid furnishings, UG10 service-consumer integration,
+production geometry, full suite, save/load or hardware performance complete.

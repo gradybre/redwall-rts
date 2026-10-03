@@ -563,3 +563,49 @@ warnings in five files. Python records 58 envelope and 12 reproducer tests, all
 passing. `world-basis/world-proof-v1/` pins the complete evidence. Production
 profile, state-union, productive-contact and animated quality gates remain
 separate; this is zero production qualifications.
+
+### Compact actual mole-worker content
+
+The next component compiles the exact reviewed finite mole body and held pick
+into an immutable presentation image, and a loader gives that same image to
+the accepted Actor. Original meshes/materials remain borrowed from the actual
+asset owner; body vertices, all skin influences, compression metadata and bind
+counts must match their source fingerprint before an Actor is configured.
+The compiler verifies complete required source-state lists and emits conservative
+role unions; it does not set production certificate flags or infer missing
+grips, cargo, life stages or climbing clips. Genuine active-tool geometry remains
+in its work-stroke union, including its below-root extent.
+
+The initial technical limits are eight parts, sixteen source clips, 2,048 frames,
+and 1,048,576 combined matrix/grounding float32 scalars. Decode staging and the
+Palette's immutable copy overlap once. A bounded mesh-fingerprint pass admits
+at most 32,768 vertices and six indices per vertex in one surface before asking
+the engine for its arrays. Its explicit 256-byte/vertex logical allowance covers
+the original vertex/normal/tangent/color/UV/custom/skin/index packed fields.
+The peak is retained palette bytes plus the larger of decode staging or one
+mesh-array allowance, plus packed part/clip/hash tables and a 2 MiB reserved
+reader/native-control allowance. The latter is not a native allocator measurement.
+The shared WorldBasis is charged separately once. Original borrowed mesh/texture
+storage, actor instance RIDs and the complete client/presentation pool remain
+separate qualification obligations; the simulation memory ledger is not reused.
+
+Root's independent visual inspection found an open source-quality issue in the
+held-pick walk witness: the shaft appears behind the forearm and stops above the
+hanging paw. Native matrix fidelity does not settle animated grip quality. The
+compact loader's actual idle, walk and hammer sequence must be inspected from
+close views; any corrected fit must explicitly regenerate its source matrices,
+state unions and world envelopes. Existing source-faithful output remains
+evidence of its previous fit, not a qualified final handling animation.
+
+The compact compiler/loader component is independently accepted, with its exact
+pins and scope in `mole-worker/evidence/frozen-v1/`. Clean validation reports
+29 tests/334 assertions/0 failures, all strict/raw diagnostics and leaks zero,
+and analyzer0/2. Eleven compiler tests pass. The actual native loader renders
+all seven states and positive blends:731 poses/1,575 assertions/0 failures and
+analyzer0/1. The final 426,888-byte source image retains426,216 palette bytes;
+its explicit presentation admission is6,920,048 bytes plus one shared WorldBasis.
+The observed428,476-byte live allocation increase does not establish a loading
+peak or complete client budget. A separate reviewed wrapper fix and four mocked
+regressions ensure zero exit cannot hide final-command diagnostics. The original
+open-paw grip remains rejected visual quality; no production Profiles flags or
+new worker capability are created by this accepted content owner.

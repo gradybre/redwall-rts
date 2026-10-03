@@ -1,0 +1,12 @@
+{
+  "godot/data/underground/mole-worker/evidence/run_native.py": "c30a14463c89bd15a07f5cbac8398f86a915d41fa94847dbce1f0fae3e5cbfff",
+  "godot/data/underground/mole-worker/v2/compilation.json": "5058ab7598387cab3a357285e3f40a6182777e850bdf14358c572f7faeb03e55",
+  "godot/data/underground/mole-worker/v2/mole-worker.ugactor": "8a2718034943c7398f99a07511bcd4c3e655f9ec538f304f36c375333c9a8bb5",
+  "godot/data/underground/mole-worker/evidence/native_sequence.gd": "b67a7ef615760a5e9cd5a118badcd6a37a04d624a039a8be33b82e6b2da5849e",
+  "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+  "godot/demo/cast/underground_actor.gd": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+  "godot/demo/cast/demo_actor.gd": "1dd127464e7a9853b307af20d8f34bdd2606e7dad64910b685a810eaa93b5fb0",
+  "godot/demo/props/demo_props.gd": "28eebe56851286d2718a89c8c5085ed3ee6e8a817bd5cf821a5dd9e76c2568da",
+  "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "godot/demo/assets/manifest.json": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37"
+}

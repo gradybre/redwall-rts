@@ -1,0 +1,16 @@
+test_clip_timing_has_exact_complete_source_span (__main__.CompactContent.test_clip_timing_has_exact_complete_source_span) ... ok
+test_existing_bundle_is_untouched_before_any_source_read (__main__.CompactContent.test_existing_bundle_is_untouched_before_any_source_read) ... ok
+test_extract_consumes_complete_hash_and_exact_identity_after_labeled_synthetic_backend (__main__.CompactContent.test_extract_consumes_complete_hash_and_exact_identity_after_labeled_synthetic_backend) ... ok
+test_full_scalar_and_mesh_capacities_refuse_before_output (__main__.CompactContent.test_full_scalar_and_mesh_capacities_refuse_before_output) ... ok
+test_json_hash_and_file_capacity_never_accept_a_refreshed_claim (__main__.CompactContent.test_json_hash_and_file_capacity_never_accept_a_refreshed_claim) ... ok
+test_mesh_fingerprint_includes_every_influence_and_original_format (__main__.CompactContent.test_mesh_fingerprint_includes_every_influence_and_original_format) ... ok
+test_missing_reordered_or_incomplete_proof_parts_refuse (__main__.CompactContent.test_missing_reordered_or_incomplete_proof_parts_refuse) ... ok
+test_plan_requires_every_source_state_without_neighbor_fallback (__main__.CompactContent.test_plan_requires_every_source_state_without_neighbor_fallback) ... ok
+test_source_labels_cannot_rename_idle_as_productive_work (__main__.CompactContent.test_source_labels_cannot_rename_idle_as_productive_work) ... ok
+test_tool_stroke_and_recovery_keep_genuine_below_floor_geometry (__main__.CompactContent.test_tool_stroke_and_recovery_keep_genuine_below_floor_geometry) ... ok
+test_wire_has_one_complete_frame_stream_and_exact_source_digests (__main__.CompactContent.test_wire_has_one_complete_frame_stream_and_exact_source_digests) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.008s
+
+OK

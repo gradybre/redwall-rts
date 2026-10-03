@@ -1,0 +1,5 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_phase_structure.gd:398: (CONFUSABLE_LOCAL_DECLARATION): The variable "code" is declared below in the parent block.
+scripts/core/underground_phase_structure.gd:404: (CONFUSABLE_LOCAL_DECLARATION): The variable "code" is declared below in the parent block.
+scripts/core/underground_phase_structure.gd:510: (CONFUSABLE_LOCAL_DECLARATION): The variable "code" is declared below in the parent block.
+3 GDScript warning(s) in 1 of 2 file(s)

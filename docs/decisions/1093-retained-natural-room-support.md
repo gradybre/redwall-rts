@@ -1,6 +1,6 @@
 # 1093 — Retain actual natural support with paid room phases
 
-Date: 2026-10-03. Status: approved engineering packet; implementation and validation in progress.
+Date: 2026-10-03. Status: independently reviewed and tested component; actual first-entry/contact composition remains open.
 
 ## Decision and scope
 
@@ -40,15 +40,33 @@ image outside the single shared Budget token.
 
 ## Provider budget and obligations
 
-At the admitted R6144/O2048/K8192 pack, structural staging can retain the original
-425,984-byte survey, two Plan images totaling at most 145,872 bytes, an 8R handle
-image, two flat 6-I32 fragment banks totaling 48R, and at most 1,024 logical fixed
-controls: **916,944 bytes**. A later sealed verification drops handle/fragment
-images before its 327,680-byte future snapshot, for **900,560 bytes**. These are
-logical ceilings within the existing 1,048,960-byte cold lease, not native-memory
-measurements. Final source census and refusal-path evidence are required before
-acceptance. Per-fragment objects and a second full composed terrain survey are
-excluded.
+At the admitted R6144/O2048/K8192/P1013 pack, the actual three call lifetimes are:
+
+| Operation | Simultaneous logical payload | Peak bytes |
+|---|---|---:|
+| CHECK | Two 425,984-byte survey images during qualification, two Plan images totaling 145,872 bytes, an 8R handle image, 1,536 controls | 1,048,528 |
+| STAGE | Original survey 425,984, two Plans 145,872, handles 8R, two flat six-I32 fragment banks 48R, 1,536 controls | 917,456 |
+| PREPARED | One isolated future snapshot 48R+16O, two Plans 145,872, handles 8R, 1,536 controls; original survey and fragment banks have gone | 524,240 |
+
+CHECK leaves 432 logical bytes within the unchanged 1,048,960-byte shared lease.
+The provider checks the actual configured region capacity and exact full lease
+before any allocating Scope callback, handle image, fragment bank or future
+snapshot. It drops its images before returning and never releases the caller's
+token. The caller may not retain uncharged aliases, duplicate a survey, or overlap
+the STAGE and PREPARED lifetimes. Per-fragment objects and another full composed
+terrain survey are excluded.
+
+The source-counted retained/reused provider packet is 772 logical bytes: copied
+Domain 92; six six-I32 boxes 144; three Region packets 216; two Level records 178;
+IntResult 9; thirteen I64 controls, five booleans and three full refs 133. A future
+Snapshot contributes 24 scalar bytes. The concrete WorldStructureScope callback's
+Level binding descriptor, 84-byte identity packet and local arguments add a
+bounded temporary packet; the 1,536-byte ceiling also covers the simultaneous
+scalar helper frames and strong borrowed references' logical controls. Its 102
+retained Scope bytes are counted separately in the existing bindings reservation.
+Native object/packed headers, allocator growth and whole-process memory remain
+separately obligated and unmeasured. These are logical admission ceilings, not
+native-memory measurements or permission to enlarge any arena.
 
 Both original natural Terrain truth and retained paid geometry must be checked.
 A previous paid cavity cannot pass merely because the original map was dirt.
@@ -62,6 +80,43 @@ This slice does not grant traversal, work contacts, profile capabilities, servic
 installed connector identity, or connector recipe permission. Those actual owners
 remain mandatory for the first playable room.
 
+## Actual provider contract
+
+`configure(scope, owner, terrain, levels, sites, budget)` binds the exact actual
+instances once at quiescence. Scope, Owner, Terrain and Sites are weak permanent
+links, borrowed strongly for the complete synchronous query. `scope_owner()` and
+`is_bound_to(...)` expose identity for reciprocal World composition; they grant no
+structural permission. The base Scope refuses. Its actual implementation must
+attest the retained Site, Room, operation, stage and exact shared cold token before
+and after callbacks. Reentry poisons the entire outer operation.
+
+`structure_refusal(site, operation, stage, room, cold_token)` proves original dry
+earth, fresh exclusions, retained geometry, the same immutable authored Level
+section, exact fine claims and any already-required Room protections.
+`stage_geometry(owner_token, ...)` adds natural SUPPORT only for a real BRACE
+COMMIT whose actual Construction work is complete. It subtracts existing matching
+Room protections using two flat bounded banks and stages only the disjoint missing
+pieces. It does not remove support. A failed staging pass aborts the candidate it
+joined, preserving live geometry and all actual paid state.
+
+`prepared_refusal(owner_token, ...)` rechecks the sealed future. It requires the
+exact original floor metadata and each contributing claim, plus complete
+disjoint coverage of the required bands. Positive overlap between support pieces
+is refused, so equal total volume cannot hide a hole. Original Terrain dirt is
+never used to fill a retained UNFINISHED or SUPPORTED_VOID cavity. Neighboring
+confirmed section bands also block an opening before their own brace completes.
+
+All observations recheck full identities, immutable content revisions, geometry,
+current physical/Construction phase and exact lease. START requires actual READY;
+COMMIT requires actual WORK_DONE with zero remaining work and a current real Job.
+Operation and fragment budgets refuse before extra allocation or mutation. These
+are technical finite-work refusals, not new room-size rules.
+
+This provider requires an already-live actual Room and Site. Prospective Room
+confirmation still needs its separate first-work/entry contact proof before
+identity allocation. Successful structural qualification alone cannot supply
+that missing proof or qualify an installed stair, ramp or other connector.
+
 ## Validation
 
 The Authority lifetime prerequisite passed the clean assets-aside import and
@@ -71,7 +126,26 @@ and raw-log footers. Analyzer reported **0 warnings in 0 of 2 files**. Independe
 source review accepted the unchanged final preflights and actual paid retry test.
 [Raw evidence](../validation/evidence/underground-phase-structure-2026-10-03/survey-lifetime/README.md)
 retains source hashes, import/runner logs, analyzer output and the rejected initial
-invocation. The natural-support provider remains the next implementation slice.
+invocation.
+
+The natural-support provider passed clean import and the strict focused runner:
+**19 tests / 240 assertions / 0 failures**, with every strict/raw diagnostic and
+object/resource-leak count zero. Analyzer reported **0 warnings in 0 of 2 files**.
+The actual paid BRACE→CUT→fine FINISH path checks preserved materials and one-time
+earth output. Adversarial cases include shared column protection, a retained
+footing cavity, a neighboring unbraced section, exact authored height, sparse
+capacity exhaustion after a partial candidate, replaced tokens before allocation,
+removed future claims/support, duplicate coverage hiding a hole, current paid
+phase, reentry and collaborator lifetime. The nested actual fixture propagates
+its failure list; 240 is the runner's outer assertion count, not a summed count.
+[Provider evidence](../validation/evidence/underground-phase-structure-2026-10-03/natural-support/README.md)
+records raw logs, exact source pins and corrected intermediate refusals. Body,
+profile, contact and service/topology companion permissions in this component
+fixture remain explicitly synthetic. Native whole-process memory, whole-tick
+performance, actual prospective entry and live demo integration remain open.
+Independent root review accepted the final exact source/test pins, including the
+preallocation callback gate and strong synchronous collaborator lifetime. It
+read the retained results without running a duplicate engine suite.
 
 
 ## Actual Room identity scratch prerequisite

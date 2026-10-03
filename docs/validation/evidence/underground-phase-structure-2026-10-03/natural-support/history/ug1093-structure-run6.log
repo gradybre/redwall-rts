@@ -1,0 +1,9 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-15m20gsf
+import exit 0 diagnostics []
+test_underground_phase_structure.gd exit 1
+  FAIL  test_original_token_replaced_after_handles_prevents_bank_allocation_and_payment
+CI_SUITE_TIME {"assertions":144,"failures":1,"suite":"test_underground_phase_structure.gd","tests":11,"usec":3518376}
+11 test(s), 144 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 1 failing test(s).
+assets restored True

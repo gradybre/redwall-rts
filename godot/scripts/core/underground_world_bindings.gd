@@ -7,6 +7,9 @@ const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
+const Authority := preload("res://scripts/core/underground_space_authority.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NATURAL_ROW_LIMIT: int = 512
 const COMPOSED_ROW_LIMIT: int = Budget.PHASE_VOLUME_CAPACITY
@@ -18,6 +21,10 @@ const SNAPSHOT_SCAN_CHECKS: int = 3 * (Budget.REGION_CAPACITY + Budget.SOURCE_CA
 const WORLD_LOOKUP_CHECKS: int = 10 * Budget.SOURCE_CAPACITY
 const COMPOSITION_BYTES: int = SNAPSHOT_BYTES + 48 * NATURAL_ROW_LIMIT + OUTPUT_BYTES \
 	+ 48 * FRAGMENT_LIMIT + CONTROL_BYTES
+const PHASE_CONTROL_BYTES: int = 512
+const PHASE_ROW_BYTES: int = 72 # 48 per volume plus conservatively charged contact metadata.
+@warning_ignore("integer_division")
+const PHASE_ROW_LIMIT: int = (Budget.COLD_BYTES - COMPOSITION_BYTES - PHASE_CONTROL_BYTES) / PHASE_ROW_BYTES
 const REFUSE_BINDING: StringName = &"WORLD_COMPOSITION_BINDING"
 const REFUSE_BOUNDS: StringName = &"WORLD_COMPOSITION_BOUNDS"
 const REFUSE_CAPACITY: StringName = &"WORLD_COMPOSITION_CAPACITY"
@@ -101,6 +108,20 @@ func composition_peak_bytes() -> int:
 
 func composed_snapshot_into(bounds: PackedInt32Array, out: Space.Snapshot, token: int) -> StringName:
 	"""Compose under a retained lease; admitted failures clear output and reentry preserves the active output."""
+	return _snapshot_query(bounds, out, token, null, NULL_REF)
+
+
+func composed_snapshot_for_site_into(bounds: PackedInt32Array, out: Space.Snapshot,
+		token: int, sites: Sites, site: Vector2i) -> StringName:
+	"""Only actual Sites may omit their own typed Room/project markers; all physical blockers remain."""
+	if sites == null or site == NULL_REF:
+		var code: StringName = _begin_query(out)
+		return code if code != &"" else _finish_query(out, &"WORLD_COMPOSITION_SITE_SCOPE")
+	return _snapshot_query(bounds, out, token, sites, site)
+
+
+func _begin_query(out: Space.Snapshot) -> StringName:
+	"""Establish exclusivity before any provider callback; a refused nested call cannot clear active output."""
 	if _composing:
 		return REFUSE_BUSY
 	if out == null:
@@ -110,15 +131,91 @@ func composed_snapshot_into(bounds: PackedInt32Array, out: Space.Snapshot, token
 		return &"WORLD_COMPOSITION_OUTPUT"
 	_composing = true
 	_clear_snapshot(out)
-	var code: StringName = _query_refusal(bounds, token)
-	if code == &"":
-		code = _compose(bounds, out, token)
+	return &""
+
+
+func _finish_query(out: Space.Snapshot, code: StringName) -> StringName:
+	"""Drop every fragment before returning the caller-owned observation under its existing lease."""
 	_fragments.clear()
 	_next_fragments.clear()
 	if code != &"":
 		_clear_snapshot(out)
 	_composing = false
 	return code
+
+
+func _snapshot_query(bounds: PackedInt32Array, out: Space.Snapshot, token: int,
+		sites: Sites, site: Vector2i) -> StringName:
+	"""Use a single actual retained image for both generic and exact site-scoped composition."""
+	var code: StringName = _begin_query(out)
+	if code != &"":
+		return code
+	code = _query_refusal(bounds, token)
+	if code == &"" and ((sites == null) != (site == NULL_REF)):
+		code = &"WORLD_COMPOSITION_SITE_SCOPE"
+	if code == &"":
+		code = _compose(bounds, out, token, sites, site)
+	return _finish_query(out, code)
+
+
+func phase_plan_row_limit(owner: Owner, token: int) -> int:
+	"""Reserve the entire simultaneous contact-plan and composed-survey peak before creating a plan."""
+	return mini(PHASE_ROW_LIMIT, _domain._regions) if owner == _actual_owner() \
+		and binding_refusal() == &"" and _budget.covers(token, Budget.COLD_BYTES) else 0
+
+
+func phase_snapshot_into(owner: Owner, sites: Sites, site: Vector2i, operation: int,
+		stage: int, room: Vector2i, plan: Space.Plan, out: Space.Snapshot, token: int) -> StringName:
+	"""Survey the full actual cube and checked contact extents without retaining immutable base dirt."""
+	var code: StringName = _begin_query(out)
+	if code != &"":
+		return code
+	var limit: int = phase_plan_row_limit(owner, token)
+	if limit < 1:
+		return _finish_query(out, REFUSE_BUDGET)
+	code = _phase_scope_refusal(sites, site, operation, stage, room, plan)
+	if code == &"":
+		code = Authority.phase_plan_bounds_refusal(_domain, plan, limit)
+	if code == &"" and not _budget.covers(token, Budget.COLD_BYTES):
+		code = REFUSE_BUDGET
+	if code == &"":
+		var bounds: PackedInt32Array = _phase_bounds(sites, site, plan)
+		code = _query_refusal(bounds, token)
+		if code == &"" and not _spend(2 * limit):
+			code = REFUSE_CAPACITY
+		if code == &"":
+			code = _compose(bounds, out, token, sites, site)
+	if code == &"" and not _budget.covers(token, Budget.COLD_BYTES):
+		code = REFUSE_BUDGET
+	return _finish_query(out, code)
+
+
+func _phase_scope_refusal(sites: Sites, site: Vector2i, operation: int, stage: int,
+		room: Vector2i, plan: Space.Plan) -> StringName:
+	"""Caller Room/revision/operation cannot enlarge the actual physical owner's claim exemption."""
+	if sites == null or not sites.is_live_site(site) or sites.room_of(site) != room \
+			or sources().construction_owner() != sites.construction_owner() \
+			or sites.construction_owner().excavation_authority() != sites \
+			or not Contract.valid_operation(operation) or stage < Contract.STAGE_ADMIT \
+			or stage > Contract.STAGE_WORK or plan == null or plan.owner_ref != room \
+			or plan.expected_revision != _actual_owner().revision() \
+			or plan.owner_revision < 1 or plan.owner_revision != _actual_owner().source_revision(room):
+		return &"WORLD_COMPOSITION_SITE_SCOPE"
+	return &""
+
+
+func _phase_bounds(sites: Sites, site: Vector2i, plan: Space.Plan) -> PackedInt32Array:
+	"""Union target, support, body approach and productive reach bounds after complete table validation."""
+	var bounds: PackedInt32Array = Space.quantum_box(_domain, sites.origin_of(site))
+	if bounds.is_empty():
+		return bounds
+	for rows: Space.Volumes in [plan.volumes, plan.contacts.approach, plan.contacts.reach]:
+		for row: int in rows.role.size():
+			var box: PackedInt32Array = rows.box_at(row)
+			for axis: int in 3:
+				bounds[axis] = mini(bounds[axis], box[axis])
+				bounds[axis + 3] = maxi(bounds[axis + 3], box[axis + 3])
+	return bounds
 
 
 func _query_refusal(bounds: PackedInt32Array, token: int) -> StringName:
@@ -136,11 +233,15 @@ func _query_refusal(bounds: PackedInt32Array, token: int) -> StringName:
 		+ Terrain.natural_survey_checks(bounds)) else REFUSE_CAPACITY
 
 
-func _compose(bounds: PackedInt32Array, out: Space.Snapshot, token: int) -> StringName:
+func _compose(bounds: PackedInt32Array, out: Space.Snapshot, token: int,
+		sites: Sites = null, site: Vector2i = NULL_REF) -> StringName:
 	"""Keep one real source image, one finite natural image and the output; no hidden third snapshot."""
 	var retained: Space.Snapshot = Space.Snapshot.new()
 	var natural: Space.Volumes = Space.Volumes.new()
-	var code: StringName = _actual_owner().snapshot_into(retained)
+	var room: Vector2i = sites.room_of(site) if sites != null else NULL_REF
+	var project: Vector2i = sites.project_of(site) if sites != null else NULL_REF
+	var code: StringName = _actual_owner().snapshot_into(retained) if sites == null \
+		else _actual_owner().snapshot_for_site_into(retained, sites, site)
 	if code == &"" and not _budget.covers(token, COMPOSITION_BYTES):
 		return REFUSE_BUDGET
 	if code == &"":
@@ -153,6 +254,8 @@ func _compose(bounds: PackedInt32Array, out: Space.Snapshot, token: int) -> Stri
 		code = _append_natural(natural, out.volumes)
 	if code == &"":
 		code = _current_sources_refusal(retained)
+	if code == &"" and sites != null:
+		code = _site_still_current(sites, site, room, project)
 	if code == &"" and not _budget.covers(token, COMPOSITION_BYTES):
 		return REFUSE_BUDGET
 	if code == &"":
@@ -162,6 +265,14 @@ func _compose(bounds: PackedInt32Array, out: Space.Snapshot, token: int) -> Stri
 		out.live_refs = retained.live_refs.duplicate()
 		out.live_revisions = retained.live_revisions.duplicate()
 	return code
+
+
+func _site_still_current(sites: Sites, site: Vector2i, room: Vector2i, project: Vector2i) -> StringName:
+	"""Site retirement, Room ownership or project replacement cannot reuse an earlier marker exemption."""
+	return &"" if sites.construction_owner() == sources().construction_owner() \
+		and sites.construction_owner().excavation_authority() == sites and sites.is_live_site(site) \
+		and sites.room_of(site) == room and sites.project_of(site) == project \
+		else &"WORLD_COMPOSITION_SITE_CHANGED"
 
 
 func _copy_retained(bounds: PackedInt32Array, retained: Space.Snapshot, out: Space.Snapshot) -> StringName:

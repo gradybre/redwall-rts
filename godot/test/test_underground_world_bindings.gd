@@ -19,9 +19,58 @@ const Construction := preload("res://scripts/core/construction.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
+const Authority := preload("res://scripts/core/underground_space_authority.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Work := preload("res://scripts/core/work.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Reservations := preload("res://scripts/core/reservations.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const X: int = 60 * 2048
 const Z: int = 50 * 2048
+
+
+class SyntheticRoomCommands extends Buildings.SpatialAuthority:
+	## Test-only identity registration; terrain/paid work permissions are not supplied here.
+	var actual: WeakRef = null
+	var registering: bool = false
+
+	func buildings_owner() -> RefCounted:
+		"""Use the actual Buildings store, including its actual Directory namespace."""
+		return actual.get_ref()
+
+	func mutation_refusal(action: int, subject: Vector2i, related: Vector2i,
+			value: int, rotation: int) -> StringName:
+		"""Register only a fixture Kitchen; no installed item or service is authorized."""
+		return &"" if registering and action == Buildings.SPATIAL_ROOM_CREATE and subject == NULL_REF \
+			and related == NULL_REF and value == Buildings.ROOM_TYPE_KITCHEN and rotation == 0 \
+			else Buildings.REFUSE_SPATIAL_COMMAND
+
+
+class SyntheticSpatial extends Contract.SpatialAuthority:
+	## Explicitly synthetic admission allows an actual unstarted physical site, never paid completion.
+	var domain: Space.Domain = null
+	var buildings: Buildings = null
+
+	func domain_into(out: Contract.Domain) -> bool:
+		"""Match the real finite terrain Domain exactly, preserving the physical key namespace."""
+		out.world_ref = domain._world
+		out.datum_u = domain._datum
+		out.minimum_quantum = domain._min_quantum
+		out.size_quanta = domain._size_quanta
+		return true
+
+	func room_refusal(room: Vector2i) -> StringName:
+		"""Require an actual living Room generation even in the synthetic registration fixture."""
+		return &"" if buildings.is_live_room(room) else &"SYNTHETIC_ROOM_STALE"
+
+	func retirement_refusal(room: Vector2i) -> StringName:
+		"""Only the fixture's unstarted claim is released; no actual evacuation permission is claimed."""
+		return room_refusal(room)
+
+	func operation_refusal(_origin: Vector3i, _operation: int, _stage: int, room: Vector2i) -> StringName:
+		"""Open a real unfunded project for a scope-drift test, without simulating completed work."""
+		return room_refusal(room)
 
 
 class LeaseAttack extends RefCounted:
@@ -57,6 +106,12 @@ class ObservedOwner extends Owner:
 	var refusal_reads: int = 0
 	var lease_attack: LeaseAttack = null
 	var expire_on_validation: bool = false
+	var scoped_reads: int = 0
+
+	func snapshot_for_site_into(out: Space.Snapshot, sites: Sites, site: Vector2i) -> StringName:
+		"""Observe the real exact-scope reader; never approximate its exemption in a copied image."""
+		scoped_reads += 1
+		return super.snapshot_for_site_into(out, sites, site)
 
 	func snapshot_into(out: Space.Snapshot) -> StringName:
 		"""A refused lease must not even enter this real allocating reader."""
@@ -93,6 +148,9 @@ class ObservedTerrain extends Terrain:
 	var reentrant: WeakRef = null
 	var reentry_code: StringName = &""
 	var reentry_output: Space.Snapshot = null
+	var scope_sites: Sites = null
+	var scope_site: Vector2i = NULL_REF
+	var open_project: bool = false
 
 	func natural_survey_into(bounds: PackedInt32Array, rows: int, out: Space.Volumes,
 			token: int) -> StringName:
@@ -104,6 +162,10 @@ class ObservedTerrain extends Terrain:
 			reentry_code = provider.composed_snapshot_into(bounds, reentry_output, token)
 		if lease_attack != null:
 			lease_attack.trigger()
+		if scope_sites != null:
+			var changed: Construction.OpResult = scope_sites.open_phase(scope_site, Contract.OP_BRACE) \
+				if open_project else scope_sites.release_room_claim(scope_site)
+			assert(changed.ok, "actual fixture scope changed during survey")
 		if publish_geometry:
 			_publish_test_geometry()
 		if retire_world:
@@ -140,6 +202,9 @@ var _terrain: ObservedTerrain = null
 var _bindings: ObservedBindings = null
 var _lease: int = 0
 var _world_ref: Vector2i = NULL_REF
+var _site_spatial: SyntheticSpatial = null
+var _room_commands: SyntheticRoomCommands = null
+var _sites: Sites = null
 
 
 func before_each() -> void:
@@ -173,6 +238,10 @@ func after_each() -> void:
 	"""Release all output lifetimes before the single arena and all actual owner references."""
 	_terrain.reentry_output = null
 	_terrain.reentrant = null
+	_terrain.scope_sites = null
+	_sites = null
+	_site_spatial = null
+	_room_commands = null
 	_bindings = null
 	if _lease != 0:
 		assert_equal(_budget.release(_lease), &"", "fixture output lifetime ended")
@@ -535,3 +604,188 @@ func test_restored_world_source_lookup_is_fixed_per_survey_not_per_tile() -> voi
 	assert_equal(Terrain.natural_survey_checks(bounds), 8192, "both512-tile walks explicitly charged")
 	assert_equal(Terrain.natural_survey_checks(PackedInt32Array()), 0, "malformed bounds grant no probe budget")
 	assert_equal(Terrain.natural_survey_checks(PackedInt32Array([-1, -1, 0, 2, 2, 2])), 0, "outside-map bounds grant no probe budget")
+
+
+func _site_fixture() -> Vector2i:
+	"""Compose actual Sites/Work/Gear against this same World's Jobs, Inventory and physical Domain."""
+	_room_commands = SyntheticRoomCommands.new()
+	_room_commands.actual = weakref(_buildings)
+	assert_true(_buildings.bind_spatial_authority(_room_commands).ok, "actual Room owner")
+	var room: Vector2i = _fixture_room()
+	var work: Work = Work.new(_jobs)
+	var gear: Gear = Gear.new(8)
+	assert_true(gear.bind_equipment(_inventory, _jobs.directory(), _residents).ok, "actual equipment owners")
+	assert_true(work.bind_gear(gear).ok, "actual Work Gear")
+	_site_spatial = SyntheticSpatial.new()
+	_site_spatial.domain = _domain()
+	_site_spatial.buildings = _buildings
+	_sites = Sites.new(_construction, _inventory, Reservations.new(), _items, _jobs, work, _site_spatial, 32, 8)
+	assert_equal(_sites.initialization_refusal(), &"", "actual physical owner")
+	var result: Construction.OpResult = _sites.claim_quantum(Vector3i(X, -1536, Z), room)
+	assert_true(result.ok, "actual single unstarted site")
+	return result.ref
+
+
+func _fixture_room() -> Vector2i:
+	"""Allocate only a real fixture identity; no floor, route or usable room is fabricated."""
+	_room_commands.registering = true
+	var made: Buildings.OpResult = _buildings.designate_spatial_room(Buildings.ROOM_TYPE_KITCHEN)
+	_room_commands.registering = false
+	assert_true(made.ok, "actual permanent Kitchen identity")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_source(token, made.ref), &"", "actual Room source")
+	assert_equal(_owner.seal(token), &"", "source-only transaction")
+	_owner.publish(token)
+	return made.ref
+
+
+func _room_marker(room: Vector2i, box: PackedInt32Array, claim: bool) -> void:
+	"""Keep physical obstacle and Room claim markers distinct in the real retained columns."""
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	var region: Owner.Region = Owner.Region.new()
+	region.box = box
+	region.role = Space.OBSTACLE
+	region.level = 1
+	region.owner = room
+	if claim:
+		region.claim_kind = Owner.CLAIM_ROOM
+		region.claim_ref = room
+	assert_equal(_owner.stage_add(token, region).error, &"", "actual typed region")
+	assert_equal(_owner.seal(token), &"", "actual marker/obstacle validation")
+	_owner.publish(token)
+
+
+func _phase_plan(room: Vector2i) -> Space.Plan:
+	"""Synthetic contact dimensions exercise query coverage, without a qualified profile certificate."""
+	var plan: Space.Plan = Space.Plan.new()
+	plan.owner_ref = room
+	plan.owner_revision = _owner.source_revision(room)
+	plan.expected_revision = _owner.revision()
+	plan.contacts.approach.append(PackedInt32Array([X - 512, -1536, Z, X, -512, Z + 1024]),
+		Space.ENVELOPE, 1, room, plan.owner_revision)
+	plan.contacts.reach.append(PackedInt32Array([X - 512, -1536, Z, X + 1, -512, Z + 1024]),
+		Space.ENVELOPE, 1, room, plan.owner_revision)
+	plan.contacts.work_xyz = PackedInt32Array([X, -1024, Z + 512])
+	plan.contacts.profile_id = PackedInt32Array([7])
+	plan.contacts.profile_revision = PackedInt64Array([1])
+	return plan
+
+
+func test_exact_site_scope_preserves_physical_obstacles_and_neighbour_room_markers() -> void:
+	"""An own Room exemption removes only its typed claim, never everything with the same owner ref."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	_room_marker(room, PackedInt32Array([X, -1536, Z, X + 1024, -512, Z + 1024]), true)
+	_room_marker(room, PackedInt32Array([X, -1536, Z, X + 64, -1472, Z + 64]), false)
+	var neighbour: Vector2i = _fixture_room()
+	_room_marker(neighbour, PackedInt32Array([X + 1024, -1536, Z, X + 2048, -512, Z + 1024]), true)
+	var ordinary: Space.Snapshot = _query(_box())
+	assert_equal(ordinary.volumes.role.count(Space.OBSTACLE), 3, "generic view preserves all three blockers")
+	ordinary = null
+	var scoped: Space.Snapshot = Space.Snapshot.new()
+	var before: PackedByteArray = _owner.state_bytes()
+	assert_equal(_bindings.composed_snapshot_for_site_into(_box(), scoped, _lease, _sites, site), &"", "actual exact site survey")
+	assert_equal(scoped.volumes.role.count(Space.OBSTACLE), 2, "only this exact Room's marker is exempt")
+	assert_equal(_role_volume(scoped.volumes, Space.OBSTACLE), 1024 * 1024 * 1024 + 64 * 64 * 64, "physical obstacle and neighbour survive")
+	assert_equal(_owner.scoped_reads, 1, "actual scoped reader was used")
+	assert_equal(_owner.state_bytes(), before, "observation changes no retained history")
+
+
+func test_phase_bounds_include_actual_target_and_all_checked_contact_extents() -> void:
+	"""A contact outside the paid cube is fully surveyed, never silently clipped to its target."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	var plan: Space.Plan = _phase_plan(room)
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_bindings.phase_plan_row_limit(_owner, _lease), 1013, "derived full simultaneous allowance")
+	assert_equal(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE,
+		Contract.STAGE_ADMIT, room, plan, out, _lease), &"", "exact composed phase query")
+	assert_equal(_role_volume(out.volumes, Space.DRY_SOLID), 1536 * 1024 * 1024, "entire target plus left approach covered")
+	assert_equal(_owner.scoped_reads, 1, "one retained exact-scope image only")
+	assert_equal(Bindings.COMPOSITION_BYTES + Bindings.PHASE_CONTROL_BYTES + 72 * 1013,
+		Budget.COLD_BYTES - 24, "simultaneous logical peak is below unchanged cold ceiling")
+
+
+func test_phase_scope_and_malformed_plan_refuse_before_any_scoped_snapshot() -> void:
+	"""Bad namespaces, truncated columns, extra cut payload and foreign Room cannot reach the allocating reader."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	var out: Space.Snapshot = Space.Snapshot.new()
+	for fault: int in 7:
+		var plan: Space.Plan = _phase_plan(room)
+		var selected_room: Vector2i = room
+		match fault:
+			0: plan.contacts.reach.hi_x.clear()
+			1: plan.contacts = null
+			2: plan.cuts_xyz = PackedInt32Array([1, 2, 3])
+			3: plan.contacts.approach.lo_x[0] = -1
+			4: selected_room = _world_ref
+			5: plan.expected_revision -= 1
+			6: plan.contacts.work_xyz.clear()
+		assert_true(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE,
+			Contract.STAGE_ADMIT, selected_room, plan, out, _lease) != &"", "malformed full phase input refuses")
+		_assert_empty(out)
+	assert_equal(_owner.scoped_reads, 0, "nothing allocates a scoped retained image")
+	assert_equal(_bindings.composed_snapshot_for_site_into(_box(), out, _lease, null, NULL_REF),
+		&"WORLD_COMPOSITION_SITE_SCOPE", "missing Sites never becomes a generic permission")
+	_assert_empty(out)
+
+
+func test_phase_plan_and_snapshot_require_full_joint_cold_peak() -> void:
+	"""Funding only the compositor cannot permit its coexisting phase plan to escape accounting."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	var plan: Space.Plan = _phase_plan(room)
+	assert_equal(_budget.release(_lease), &"", "previous fixture operation ended")
+	_lease = _budget.acquire(Bindings.COMPOSITION_BYTES)
+	assert_equal(_bindings.phase_plan_row_limit(_owner, _lease), 0, "allowance denied before plan builder")
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE,
+		Contract.STAGE_ADMIT, room, plan, out, _lease), Bindings.REFUSE_BUDGET, "full joint peak mandatory")
+	assert_equal(_owner.scoped_reads, 0, "no retained image copied")
+	_assert_empty(out)
+
+
+func test_room_claim_release_during_natural_survey_invalidates_exact_scope() -> void:
+	"""A still-live physical key cannot keep the exemption of its previously claiming Room."""
+	var site: Vector2i = _site_fixture()
+	_terrain.scope_sites = _sites
+	_terrain.scope_site = site
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_bindings.composed_snapshot_for_site_into(_box(), out, _lease, _sites, site),
+		&"WORLD_COMPOSITION_SITE_CHANGED", "actual claim release invalidates survey")
+	assert_equal(_sites.room_of(site), NULL_REF, "actual claim changed through its owner")
+	assert_true(_sites.is_live_site(site), "physical history key remains, so generation alone is insufficient")
+	_assert_empty(out)
+
+
+func test_project_opened_during_natural_survey_invalidates_exact_scope() -> void:
+	"""The next actual phase project cannot borrow a survey scoped to the preceding no-project state."""
+	var site: Vector2i = _site_fixture()
+	_terrain.scope_sites = _sites
+	_terrain.scope_site = site
+	_terrain.open_project = true
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_bindings.composed_snapshot_for_site_into(_box(), out, _lease, _sites, site),
+		&"WORLD_COMPOSITION_SITE_CHANGED", "actual project identity change invalidates survey")
+	assert_true(_construction.is_live_project(_sites.project_of(site)), "real phase project exists after callback")
+	_assert_empty(out)
+
+
+func test_cold_work_stage_composes_refresh_survey_without_productive_mutation() -> void:
+	"""Authority's explicit cold proof refresh uses WORK; observation cannot refuse that legitimate stage."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	assert_true(_sites.open_phase(site, Contract.OP_BRACE).ok, "actual active phase project")
+	var plan: Space.Plan = _phase_plan(room)
+	var geometry_before: PackedByteArray = _owner.state_bytes()
+	var paid_before: PackedByteArray = _sites.state_bytes()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE,
+		Contract.STAGE_WORK, room, plan, out, _lease), &"", "cold WORK survey is the same actual composed path")
+	assert_equal(_role_volume(out.volumes, Space.DRY_SOLID), 1536 * 1024 * 1024, "complete current target and contact extent")
+	assert_equal(_owner.state_bytes(), geometry_before, "refresh observation publishes no geometry")
+	assert_equal(_sites.state_bytes(), paid_before, "refresh observation earns no work or material")
+	assert_equal(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE,
+		Contract.STAGE_WORK + 1, room, plan, out, _lease), &"WORLD_COMPOSITION_SITE_SCOPE", "unknown stage still refuses")
+	_assert_empty(out)

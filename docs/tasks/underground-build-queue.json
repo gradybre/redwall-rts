@@ -2124,6 +2124,20 @@
       "reason": "Two stale independent schema/loss/memory expectations after1102; no production behavior change needed. Full analyzer skipped after test failure.",
       "correction": "Independent construction review accepted exact four-line expectation correction. Fresh strict focused110tests28650assertions0;strict/raw all0. New full checkpoint pending.",
       "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-60f22f11"
+    },
+    {
+      "commit": "499bfd737cb25f444f44f581be3cd11e6fe537cd",
+      "outcome": "passed-local-full",
+      "full_suite": "10321 test(s), 956322 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 GDScript warning(s) in 0 of 1148 file(s)",
+      "procedure": "assets aside if present; delete own .godot; clean editor import; no-argument ./tools/run_tests.sh; zero-warning analyzer; assets restored",
+      "seconds": 1292.48,
+      "analyzer_seconds": 226.757,
+      "source_unchanged": true,
+      "head_unchanged": true,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-499bfd73/README.md",
+      "remote_ci": "37149792747 specification Memory ledger arithmetic gate failed; diagnosis/correction pending, no all-gates pass claimed"
     }
   ],
   "crosscut_fixes": [

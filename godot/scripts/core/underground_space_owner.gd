@@ -1017,13 +1017,35 @@ func region_into(handle: Vector2i, out: Region) -> StringName:
 		return &"SPACE_REGION_STALE"
 	var row: int = handle.x
 	out.box = _box(row, false)
+	_copy_region_metadata(row, out)
+	return &""
+
+
+func region_into_reused(handle: Vector2i, out: Region) -> StringName:
+	"""Overwrite a caller's fixed six-int scratch, including aliases; duplicate explicitly to retain a prior box."""
+	if out == null or not is_live_region(handle):
+		return &"SPACE_REGION_STALE"
+	if out.box.size() != 6:
+		return &"SPACE_REGION_OUTPUT_SHAPE"
+	var row: int = handle.x
+	out.box[0] = _r_lo_x[row]
+	out.box[1] = _r_lo_y[row]
+	out.box[2] = _r_lo_z[row]
+	out.box[3] = _r_hi_x[row]
+	out.box[4] = _r_hi_y[row]
+	out.box[5] = _r_hi_z[row]
+	_copy_region_metadata(row, out)
+	return &""
+
+
+func _copy_region_metadata(row: int, out: Region) -> void:
+	"""Copy fixed fields only after either allocating or reusable reader validates the full local handle."""
 	out.role = _r_role[row]
 	out.level = _r_level[row]
 	out.owner = Vector2i(_r_owner_slot[row], _r_owner_generation[row])
 	out.section = Vector2i(_r_section_slot[row], _r_section_generation[row])
 	out.claim_ref = Vector2i(_r_claim_slot[row], _r_claim_generation[row])
 	out.claim_kind = _r_claim_kind[row]
-	return &""
 
 
 func source_revision(ref: Vector2i) -> int:

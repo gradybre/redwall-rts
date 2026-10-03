@@ -626,3 +626,26 @@ leaks in both strict/raw reports. Analyzer warnings were zero in both files.
 Raw evidence and rejected fixture history are retained under the 1075 evidence
 folder's `route-retention/` child. The test observer is explicitly synthetic;
 actual connected movement remains the next Routes implementation increment.
+
+
+## Explicit reusable live section reader
+
+Routes' fixed-tick section observations use `SpaceOwner.region_into_reused` with
+an already sized six-int caller buffer. This separate API validates the full
+region generation and output shape before writing, copies all six authoritative
+bounds and the same fixed metadata, and allocates no new box for this hot use.
+It grants identity/geometry observation only; support and profile qualification
+remain separate real bindings.
+
+The existing `region_into` keeps its allocating behavior. A runtime regression
+proved that a GDScript `PackedInt32Array` alias observes in-place edits, contrary
+to the initial static COW assumption. Reused scratch is explicitly borrowed and
+overwrites its aliases; callers duplicate values they need to retain. No packed
+column, wire field or new persistent/control byte is introduced.
+
+Independent review accepted the corrected boundary. Clean import and strict
+Owner tests reported **61 tests / 3,041 assertions / 0 failures**; both strict
+and raw footers reported zero unexpected diagnostics and object/resource leaks,
+with zero expected/tolerated diagnostics. Analyzer: **0 GDScript warning(s) in
+0 of 2 file(s)**. Exact source pins, final logs and the rejected alias-regression
+run are retained in the 1075 evidence folder's `reusable-region-reader/` child.

@@ -1702,3 +1702,42 @@ func test_snapshot_revision_reader_revalidates_source_and_claim_lifetimes() -> v
 	assert_equal(_owner.snapshot_revision_refusal(expected), &"SPACE_SOURCE_STALE", "claim generation rechecked")
 	assert_true(_buildings.directory().destroy(_world), "retire actual World")
 	assert_equal(_owner.snapshot_revision_refusal(expected), &"SPACE_SOURCE_STALE", "world lifetime rechecked")
+
+
+func test_reusable_region_reader_has_explicit_borrowed_output_contract() -> void:
+	"""Hot readers overwrite borrowed scratch; explicit duplicates and the old allocating reader remain stable."""
+	var token: int = _begin()
+	var first: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	var second: Vector2i = _put(token, _region([2048, 0, 0, 3072, 1024, 1024], Space.DRY_SOLID, _world))
+	_publish(token)
+	var out: Owner.Region = Owner.Region.new()
+	out.box.resize(6)
+	assert_equal(_owner.region_into_reused(first, out), &"", "preallocated scratch accepted")
+	var retained: PackedInt32Array = out.box.duplicate()
+	assert_equal(_owner.region_into_reused(second, out), &"", "next read reuses caller shape")
+	assert_equal(retained, PackedInt32Array([0, 0, 0, 1024, 1024, 1024]), "retained prior value unchanged")
+	assert_equal(out.box, PackedInt32Array([2048, 0, 0, 3072, 1024, 1024]), "complete second physical box")
+	out.box[0] = 99
+	assert_equal(_owner.region_into_reused(second, out), &"", "caller mutation is not authority")
+	assert_equal(out.box[0], 2048, "source column copied again")
+	var previous: PackedInt32Array = out.box.duplicate()
+	assert_equal(_owner.region_into_reused(Vector2i(second.x, second.y + 1), out), &"SPACE_REGION_STALE", "full generation required")
+	assert_equal(out.box, previous, "refused output unchanged")
+
+
+func test_region_reader_keeps_allocating_contract_and_reused_reader_refuses_wrong_shape() -> void:
+	"""Existing reads replace their output array; the explicit hot reader never allocates missing scratch."""
+	var token: int = _begin()
+	var first: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	var second: Vector2i = _put(token, _region([2048, 0, 0, 3072, 1024, 1024], Space.DRY_SOLID, _world))
+	_publish(token)
+	var out: Owner.Region = Owner.Region.new()
+	assert_equal(_owner.region_into_reused(first, out), &"SPACE_REGION_OUTPUT_SHAPE", "no hidden hot allocation")
+	assert_true(out.box.is_empty(), "refused scratch remains untouched")
+	assert_equal(_owner.region_into(first, out), &"", "original allocating reader")
+	var prior: PackedInt32Array = out.box
+	assert_equal(_owner.region_into(second, out), &"", "original replaces array")
+	assert_equal(prior[0], 0, "prior old-reader array remains isolated")
+	var borrowed: PackedInt32Array = out.box
+	assert_equal(_owner.region_into_reused(first, out), &"", "explicit borrowed-scratch call")
+	assert_equal(borrowed[0], 0, "borrowed alias visibly overwritten by contract")

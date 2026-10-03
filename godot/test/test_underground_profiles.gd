@@ -109,7 +109,8 @@ func _boxes() -> Array[PackedInt32Array]:
 		PackedInt32Array([-128, -20, -128, 128, 900, 128, 2])]
 
 
-func _image(rows: Array[Dictionary], boxes: Array[PackedInt32Array], revision: int = 1) -> PackedByteArray:
+func _image(rows: Array[Dictionary], boxes: Array[PackedInt32Array], revision: int = 1,
+		sources: int = 1) -> PackedByteArray:
 	"""Independent row-wire writer; loader owns column indexing, count validation and atomicity."""
 	var bytes: PackedByteArray = "UGPROF01".to_ascii_buffer()
 	bytes.resize(32)
@@ -117,9 +118,10 @@ func _image(rows: Array[Dictionary], boxes: Array[PackedInt32Array], revision: i
 	bytes.encode_s64(12, revision)
 	bytes.encode_u32(20, rows.size())
 	bytes.encode_u32(24, boxes.size())
-	bytes.encode_u32(28, 1)
-	for index: int in 32:
-		bytes.append(7) # Synthetic digest, never a production source.
+	bytes.encode_u32(28, sources)
+	for source: int in sources:
+		for index: int in 32:
+			bytes.append(7 + source) # Synthetic digest, never a production source.
 	for row: Dictionary in rows:
 		var base: int = bytes.size()
 		bytes.resize(base + 98)
@@ -598,3 +600,132 @@ func test_cold_body_extent_refusal_never_resizes_or_overwrites_scratch() -> void
 	var short_out: PackedInt32Array = PackedInt32Array([7])
 	assert_equal(_profiles.body_extent_into(1, short_out), &"PROFILE_EXTENT_FORMAT", "exact six required")
 	assert_equal(short_out, PackedInt32Array([7]), "wrong-shaped output not resized")
+
+
+func _work_choices() -> Dictionary:
+	"""Two independently pinned synthetic WORK sources and the unchanged actual-tool movement key."""
+	var moving: Dictionary = _row()
+	moving.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+	moving.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+	var first: Dictionary = _patch_case(1)
+	var second: Dictionary = _patch_case(2)
+	first.row.fields[Profiles.F_FIRST_BOX] = 3
+	first.row.longs[Profiles.L_REVISION] = 3
+	second.row.fields[Profiles.F_FIRST_BOX] = 10
+	second.row.fields[Profiles.F_SOURCE] = 1
+	second.row.longs[Profiles.L_REVISION] = 7
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append_array(first.boxes)
+	boxes.append_array(second.boxes)
+	var rows: Array[Dictionary] = [moving, first.row, second.row]
+	return {"rows": rows, "boxes": boxes}
+
+
+func test_exact_work_choice_uses_each_source_and_ordinary_query_refuses_ambiguity() -> void:
+	"""The same actual worker/Job/tool may fit two contacts; row order cannot choose the intended face."""
+	var tool: Vector2i = _equip()
+	var job: Jobs.OpResult = _actual_work_job()
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "actual assigned tool claim")
+	var fixture: Dictionary = _work_choices()
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 1, 2)), &"", "both WORK sources admitted")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_query(out, tool), &"", "ordinary movement remains unique")
+	assert_equal(out.profile_id, 0, "same movement row")
+	assert_equal(_profiles.query_into(_worker, job.ref, 3, 0, -1, tool, out), &"PROFILE_SELECTION_AMBIGUOUS", "no first-match work")
+	assert_equal(out.profile_id, 0, "ambiguous refusal preserves prior movement output")
+	_assert_exact_work_choice(job.ref, 1, 3, 0, tool, out)
+	_assert_exact_work_choice(job.ref, 2, 7, 1, tool, out)
+	var patch: Profiles.Box = Profiles.Box.new()
+	assert_equal(_profiles.box_into(2, 7, 1, 6, patch), &"", "selected source owns its contact")
+	assert_equal(patch.low.z, patch.high.z, "second contact has its own plane")
+	assert_equal(_profiles.query_into(_worker, job.ref, 3, 0, -1, tool, out), &"PROFILE_SELECTION_AMBIGUOUS", "prior explicit choice is not cached")
+	assert_equal(out.profile_id, 2, "refusal preserves exact prior source")
+	assert_true(_work.release_tool_claim(_slot).ok, "release actual claim")
+
+
+func _assert_exact_work_choice(job: Vector2i, row: int, version: int, source: int,
+		tool: Vector2i, out: Profiles.Selection) -> void:
+	"""Full source/worker/job/tool identity is preserved by a successful explicit match."""
+	assert_equal(_profiles.query_work_profile_into(_worker, job, row, version, 1, 0, -1, NULL_REF, out), &"", "explicit work source")
+	assert_equal(out.profile_id, row, "exact row")
+	assert_equal(out.profile_revision, version, "exact source row revision")
+	assert_equal(out.content_revision, 1, "exact enclosing source revision")
+	assert_equal(out.source_id, source, "distinct source digest identity")
+	assert_equal(out.worker, _worker, "actual resident full reference")
+	assert_equal(out.job, job, "actual assigned job")
+	assert_equal(out.tool, tool, "actual equipped claimed tool")
+
+
+func test_explicit_work_selection_refuses_stale_pins_wrong_mode_and_actual_pose() -> void:
+	"""An explicit selection is an exact additional constraint, never a bypass or automatic fallback."""
+	var tool: Vector2i = _equip()
+	var job: Jobs.OpResult = _actual_work_job()
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "actual claim")
+	var fixture: Dictionary = _work_choices()
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 1, 2)), &"", "two sources")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	_assert_exact_work_choice(job.ref, 1, 3, 0, tool, out)
+	for pins: Vector3i in [Vector3i(-1, 3, 1), Vector3i(3, 3, 1), Vector3i(1, 7, 1), Vector3i(1, 3, 2)]:
+		assert_equal(_profiles.query_work_profile_into(_worker, job.ref, pins.x, pins.y, pins.z, 0, -1, tool, out),
+			&"PROFILE_SELECTION_STALE", "wrong exact source tuple")
+		assert_equal(out.profile_id, 1, "stale refusal preserves selection")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 0, 1, 1, 0, -1, tool, out),
+		&"PROFILE_WORK_SELECTION_REQUIRED", "movement cannot impersonate productive contact")
+	assert_true(_transforms.set_yaw(_worker, 1), "actual nonmatching yaw")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 2, 7, 1, 0, -1, tool, out),
+		&"PROFILE_VARIANT_UNAUTHORED", "explicit row cannot round current yaw")
+	assert_equal(out.yaw, 0, "refused actual-pose read did not overwrite output")
+	assert_equal(_query(out, tool), &"", "ordinary all-yaw movement still matches")
+	assert_equal(out.yaw, 1, "movement keeps exact current yaw")
+	assert_true(_work.release_tool_claim(_slot).ok, "release actual claim")
+
+
+func test_selected_work_retains_real_job_claim_and_physical_variant_checks() -> void:
+	"""A different source cannot hide real manufacture, stale equipment or removed assignment."""
+	var tool: Vector2i = _equip()
+	var job: Jobs.OpResult = _actual_work_job()
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "actual claim")
+	var fixture: Dictionary = _work_choices()
+	fixture.rows[2].fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_IRON
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 1, 2)), &"", "distinct authored physical sources")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	_assert_exact_work_choice(job.ref, 1, 3, 0, tool, out)
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 2, 7, 1, 0, -1, tool, out),
+		&"PROFILE_VARIANT_UNAUTHORED", "iron source cannot fit actual basic tool or choose another row")
+	assert_equal(out.profile_id, 1, "refused source leaves previous choice")
+	assert_true(_work.release_tool_claim(_slot).ok, "remove actual equipped work claim")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 1, 3, 1, 0, -1, tool, out),
+		&"PROFILE_TOOL_CLAIM", "exact source does not replace Gear authority")
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "restore actual claim")
+	assert_true(_jobs.release_worker(_slot).ok, "remove actual Job assignment")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 1, 3, 1, 0, -1, tool, out),
+		&"PROFILE_JOB_STALE", "selected source does not replace Work authority")
+	assert_equal(out.job, job.ref, "refusal preserves prior output")
+	assert_true(_work.release_tool_claim(_slot).ok, "release retained actual tool claim")
+
+
+func test_work_choices_keep_certificate_state_capacity_and_replacement_guards() -> void:
+	"""Allowing contact alternatives does not weaken source qualification or finite key admission."""
+	var fixture: Dictionary = _work_choices()
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 1, 2)), &"", "initial exact sources")
+	fixture.rows[2].flags[0] = Profiles.CERT_SOURCE
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 2, 2), 2), &"PROFILE_CERTIFICATE_REQUIRED", "second source still needs full proof")
+	fixture.rows[2].flags[0] = Profiles.CERT_REQUIRED
+	fixture.rows[2].fields[Profiles.F_STATES] = Profiles.STATE_WORK
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 2, 2), 2), &"PROFILE_STATE_MISSING", "second source still needs complete states")
+	fixture.rows[2].fields[Profiles.F_STATES] = 511
+	assert_equal(_load(_image(fixture.rows, fixture.boxes, 2, 2), 2), &"", "new immutable source version")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	out.source_id = 77
+	assert_equal(_profiles.query_work_profile_into(_worker, NULL_REF, 1, 3, 1, 0, -1, NULL_REF, out),
+		&"PROFILE_SELECTION_STALE", "old exact row cannot survive replacement")
+	assert_equal(out.source_id, 77, "stale source refuses before output writes")
+	var rows: Array[Dictionary] = []
+	var boxes: Array[PackedInt32Array] = []
+	for index: int in Profiles.MAX_KEY_VARIANTS + 1:
+		var variant: Dictionary = _patch_case()
+		variant.row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+		rows.append(variant.row)
+		boxes.append_array(variant.boxes)
+	assert_equal(_load(_image(rows, boxes, 3), 3), &"PROFILE_KEY_CAPACITY", "no hidden unbounded WORK scan")
+	assert_equal(_profiles.content_revision(), 2, "refused overcapacity preserves live source")

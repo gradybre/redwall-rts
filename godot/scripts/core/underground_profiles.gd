@@ -348,7 +348,7 @@ func _long(bank: Bank, row: int, field: int) -> int:
 
 
 func _validate_stage() -> StringName:
-	"""Cold O(P²) ambiguity admission is bounded at 256; no hot search can select two profiles."""
+	"""Cold O(P²) admission keeps movement unique; WORK contacts require an explicit choice if ambiguous."""
 	var next_box: int = 0
 	var same_key_count: int = 0
 	for row: int in _stage.header[1]:
@@ -363,7 +363,7 @@ func _validate_stage() -> StringName:
 		if same_key_count > MAX_KEY_VARIANTS:
 			return &"PROFILE_KEY_CAPACITY"
 		for previous: int in row:
-			if _overlap_keys(previous, row):
+			if _field(_stage, row, F_MODE) != MODE_WORK and _overlap_keys(previous, row):
 				return &"PROFILE_AMBIGUOUS_KEY"
 	return &"" if next_box == _stage.header[2] else &"PROFILE_BOX_CENSUS"
 
@@ -499,7 +499,46 @@ func _overlap_keys(a: int, b: int) -> bool:
 
 func query_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, connector_family: int,
 		equipped_tool_hint: Vector2i, out: Selection) -> StringName:
-	"""Read exact current equipment/load/state; immutable content alone cannot authorize a route."""
+	"""Read the unique current match; multiple WORK contacts never select by file order."""
+	var code: StringName = _prepare_query(worker, job, mode, posture, connector_family, equipped_tool_hint, out)
+	if code != &"":
+		return code
+	var first: int = _lower_bound(mode, posture)
+	var row: int = first
+	var end: int = mini(first + MAX_KEY_VARIANTS, _live.header[1])
+	var selected: int = -1
+	while row < end:
+		if _matches(row, mode, posture, connector_family):
+			if selected >= 0:
+				return &"PROFILE_SELECTION_AMBIGUOUS"
+			selected = row
+		row += 1
+	if selected < 0:
+		return &"PROFILE_VARIANT_UNAUTHORED"
+	_write_selection(selected, worker, job, out)
+	return &""
+
+
+func query_work_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+		revision: int, posture: int, connector_family: int, equipped_tool_hint: Vector2i, out: Selection) -> StringName:
+	"""Choose an exact authored WORK contact while rechecking the actual assigned Job, tool, load and yaw."""
+	if revision <= 0 or revision != content_revision() or profile_id < 0 \
+			or profile_id >= _live.header[1] or profile_revision != _long(_live, profile_id, L_REVISION):
+		return &"PROFILE_SELECTION_STALE"
+	if _field(_live, profile_id, F_MODE) != MODE_WORK:
+		return &"PROFILE_WORK_SELECTION_REQUIRED"
+	var code: StringName = _prepare_query(worker, job, MODE_WORK, posture, connector_family, equipped_tool_hint, out)
+	if code != &"":
+		return code
+	if not _matches(profile_id, MODE_WORK, posture, connector_family):
+		return &"PROFILE_VARIANT_UNAUTHORED"
+	_write_selection(profile_id, worker, job, out)
+	return &""
+
+
+func _prepare_query(worker: Vector2i, job: Vector2i, mode: int, posture: int, connector_family: int,
+		equipped_tool_hint: Vector2i, out: Selection) -> StringName:
+	"""Both selection paths use the same actual owners and reusable scratch; no output writes on refusal."""
 	if out == null or _residents == null or content_revision() == 0 or not _owners_current():
 		return &"PROFILE_OWNER_UNBOUND"
 	if mode < MODE_STAND or mode > MODE_CLIMB or posture < 0 or posture > POSTURE_STOOPED \
@@ -513,18 +552,7 @@ func query_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, connec
 		return &"PROFILE_WORKER_STALE"
 	if _pose.yaw < 0 or _pose.yaw >= 65536:
 		return &"PROFILE_ORIENTATION"
-	var code: StringName = _read_dynamic(worker, job, mode, equipped_tool_hint)
-	if code != &"":
-		return code
-	var first: int = _lower_bound(mode, posture)
-	var row: int = first
-	var end: int = mini(first + MAX_KEY_VARIANTS, _live.header[1])
-	while row < end:
-		if _matches(row, mode, posture, connector_family):
-			_write_selection(row, worker, job, out)
-			return &""
-		row += 1
-	return &"PROFILE_VARIANT_UNAUTHORED"
+	return _read_dynamic(worker, job, mode, equipped_tool_hint)
 
 
 func _read_dynamic(worker: Vector2i, job: Vector2i, mode: int, hint: Vector2i) -> StringName:

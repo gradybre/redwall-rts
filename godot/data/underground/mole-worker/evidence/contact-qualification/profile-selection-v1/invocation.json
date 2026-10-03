@@ -1,0 +1,40 @@
+{
+  "commands": [
+    [
+      "/opt/homebrew/bin/godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/scripts/core/underground_profiles.gd",
+      "godot/test/test_underground_profiles.gd"
+    ]
+  ],
+  "selector": [
+    "test_underground_profiles.gd"
+  ],
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "assets_aside_outside_godot_scan": true,
+  "diagnostic_failure": false,
+  "source_unchanged": true,
+  "source_after": {
+    "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "godot/test/test_underground_profiles.gd": "1d50d92f731b9c9c7686682f4ebc6a4c1bd90943b20b27521cb46b16ffd6df39"
+  }
+}

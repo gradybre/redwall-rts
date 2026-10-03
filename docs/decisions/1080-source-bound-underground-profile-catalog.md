@@ -795,3 +795,43 @@ the lower approach, bench, retreat, complete role union and actual paid frontier
 remain separate owner obligations. Neither this candidate nor the downward
 component enables a production profile until its remaining source/state,
 contact, world and memory gates are closed.
+
+### Exact productive contact selection
+
+One actual adult mole with one BASIC tool and BUILD assignment can have distinct
+downward and upper-wall contact sources. Their logical worker/tool keys are the
+same; silently selecting the first file row would lose the contact selected by
+the actual work-face owner. The bounded immutable catalog therefore permits
+overlapping MODE_WORK keys, still within the existing16-variant per-key limit.
+All movement modes retain the prior cold ambiguity rejection. Ordinary
+`query_into` returns `PROFILE_SELECTION_AMBIGUOUS` if more than one current row
+matches, without writing the caller's previous selection.
+
+`query_work_profile_into(worker, job, profile_id, profile_revision, revision,
+posture, connector_family, equipped_tool_hint, out)` adds exact current content
+and profile identity to the existing real-owner checks. It accepts only a WORK
+row, reads the same full Resident/assigned Job/Work/Gear/Inventory/Haul identities,
+and matches the actual manufacture, load, posture, yaw and connector family.
+Wrong or stale chosen content refuses without falling back to a different row.
+Every row still passes the same source digest, certificate, required-state,
+role/contact and bounded input validation. No source is qualified by this API.
+
+The change adds no packed columns, retained scalar fields, banks, wire bytes or
+capacity. It adds only bounded scalar selection/dispatch locals and call frames,
+conservatively covered by256 logical bytes inside the existing32768 control/native
+reservation; that reservation remains unmeasured. The exact query performs one
+row match, while the ordinary query retains its bounded binary search and at
+most16 matches. The geometric source/state driver must bind the same chosen
+profile/content identity. Routes owns its corresponding consumer change; its
+actual committed actor identity must supply those pins rather than choosing a
+new work source at contact time. WorkFace continues to select prospective
+geometry from exact static descriptors before a Job exists.
+
+Independent root review accepts the exact selector source/test component at
+the hashes preserved in `profile-selection-v1/source-sha256.json`. Its clean
+selected strict suite reports25 tests/601 assertions/zero failures, both
+diagnostics and raw log counts entirely zero including leaks, and analyzer0
+warnings over2 files. That run used the existing CI selector through a temporary
+PATH shim with unchanged strict guards; it is not a full no-argument suite.
+The evidence records that scope and the future direct singleton-shard invocation
+improvement. Actual production source/state and geometry qualification stay open.

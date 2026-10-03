@@ -270,3 +270,33 @@ This proves actual endpoint identity, bounded local persistence and Inventory
 retention/promotion against synthetic geometric fixtures. Actual terrain,
 movement, profile qualification and shared cold-budget composition remain work
 in this same lane.
+
+## Exact pending Furniture installation source
+
+UG07's room coordinator remains the sole Buildings SpatialAuthority. Its
+Furniture purpose owner prepares `stage_furniture_install(token, project,
+router, owner)` before Funding commits; ordinary `seal`/`prepared_refusal` then
+check exact actual before-facts. The sparse owner derives the Furniture from the
+actual completed Construction, validates full Room/type/rotation/generation and
+pending status, and anticipates only installed d=0 to d=1 in its existing staged
+source bank. Ordinary source registration still reads only current facts.
+
+`publish_furniture_install` requires the same actual Router, purpose owner, full
+project and exact synchronous COMMIT bracket, plus actual Buildings installed=1
+facts. Generic publication cannot publish this special candidate. Aborting
+retains all old geometry and claims. No fallible geometric rebuild occurs after
+payment. Publication revalidates identity guards and swaps the prebuilt bank;
+the correct immediately preflighted callback has no remaining physical decision.
+
+There are no new packed columns or wire fields. One source-row integer (8), full
+project ref (8), and existing-shape IntResult numeric controls (9) add 25 logical
+control bytes. Two weak bindings and scratch/native handles are separately
+covered by the admitted binding/control reservation. This state is transient,
+cleared on abort/publication and excluded from canonical save/hash.
+
+Independent review and the final clean strict run accepted 39 tests / 570
+assertions / 0 failures, zero strict/raw diagnostics and leaks, and analyzer
+`0 GDScript warning(s) in 0 of 4 file(s)`.
+[Raw installation-source evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/furniture-source/README.md)
+pins the actual source and rejected fixture iteration. Physical placement and
+contact/profile truth remain the real coordinator/bindings owners' responsibility.

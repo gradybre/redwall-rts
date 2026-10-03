@@ -19,10 +19,118 @@ const Gear := preload("res://scripts/core/gear.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
+const ModularFixture := preload("res://test/test_modular_projects.gd")
+const SparseSpace := preload("res://scripts/core/underground_space_owner.gd")
 
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const R: int = 32
 const O: int = 8
+
+
+class InstallationOwner extends ModularFixture.SyntheticOwner:
+	## Actual Router/Work/Inventory/Buildings; only contact/shape authoring is this explicit fixture.
+	var geometry: SparseSpace = null
+	var token: int = 0
+	var refuse_after_seal: bool = false
+	var before_install_refusal: StringName = &""
+	var foreign_project_refusal: StringName = &""
+	var foreign_owner_refusal: StringName = &""
+	var published_refusal: StringName = &""
+
+	func transition_refusal(candidate: Vector2i, action: int) -> StringName:
+		"""All source preparation occurs in the actual Router's pre-payment completion check."""
+		var code: StringName = super.transition_refusal(candidate, action)
+		if code != &"" or action != ModularContract.COMMIT:
+			return code
+		var begun: SparseSpace.Result = geometry.begin_stage(geometry.revision())
+		token = begun.token
+		if begun.error != &"":
+			return begun.error
+		code = geometry.stage_furniture_install(token, candidate, route.get_ref(), self)
+		if code == &"":
+			code = geometry.seal(token)
+		if code == &"" and refuse_after_seal:
+			code = &"SYNTHETIC_INSTALLATION_REFUSAL"
+		return code
+
+
+	func discard_transition(candidate: Vector2i, action: int) -> void:
+		"""Actual refusal drops the future source while retaining pending Furniture and all geometry."""
+		if candidate == stage_project and action == ModularContract.COMMIT and token != 0:
+			geometry.abort(token)
+			token = 0
+		super.discard_transition(candidate, action)
+
+
+	func publish_completion(candidate: Vector2i) -> void:
+		"""Observe exact source guards inside the real same-stack post-Inventory callback."""
+		if not _authorized(candidate, ModularContract.COMMIT) or stage != ModularContract.COMMIT:
+			return
+		var router: ModularContract = route.get_ref() as ModularContract
+		completion_saw_paid_clear = not funding.is_funded(candidate)
+		before_install_refusal = geometry.publish_furniture_install(token, candidate, router, self)
+		foreign_project_refusal = geometry.publish_furniture_install(token,
+			Vector2i(candidate.x, candidate.y + 1), router, self)
+		foreign_owner_refusal = geometry.publish_furniture_install(token, candidate, router, ModularContract.Owner.new())
+		geometry.publish(token) # Generic publication cannot bypass the special actual installation check.
+		assert(geometry.has_prepared(), "generic publication must leave the future installation staged")
+		spatial.allow(Buildings.SPATIAL_FURNITURE_INSTALL, subject, NULL_REF)
+		var installed: Buildings.OpResult = construction.buildings().install_spatial_furniture(subject)
+		assert(installed.ok, "actual pending Furniture installs only after its bill and labor")
+		spatial.reset()
+		published_refusal = geometry.publish_furniture_install(token, candidate, router, self)
+		assert(published_refusal == &"", "preflighted source publication must match actual installed facts")
+		token = 0
+		completed += 1
+		retained = 0
+		discard_transition(candidate, ModularContract.COMMIT)
+		project = NULL_REF
+
+
+class InstallationHarness extends ModularFixture:
+	## Reuse reviewed actual payment/worker fixture helpers, carrying their assertion failures outward.
+	func _new_owner() -> ModularFixture.SyntheticOwner:
+		"""Both the tip fixture and later Furniture fixture use the exact actual Router object."""
+		var owner: InstallationOwner = InstallationOwner.new()
+		owner.construction = _construction
+		owner.world = _world
+		owner.route = weakref(_router)
+		owner.funding = _funding
+		return owner
+
+
+	func furniture_with_geometry() -> InstallationOwner:
+		"""Retain actual Room/Furniture identities with expressly synthetic component-test extents."""
+		var fitting: InstallationOwner = _furniture_owner() as InstallationOwner
+		var source: SparseSpace.CoreSources = SparseSpace.CoreSources.new(_construction.directory(),
+			_construction.buildings(), _construction)
+		var domain: Space.Domain = Space.Domain.new()
+		assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
+			Vector3i(16, 16, 16), 64, 64, 100000), &"", "bounded installation fixture domain")
+		fitting.geometry = SparseSpace.new(source)
+		assert_equal(fitting.geometry.configure(domain, 16, 8), &"", "actual source owner")
+		var room: Vector2i = _construction.buildings().room_ref_of_furniture(fitting.subject)
+		var prepared: SparseSpace.Result = fitting.geometry.begin_stage(fitting.geometry.revision())
+		assert_equal(fitting.geometry.stage_source(prepared.token, room), &"", "actual Room source")
+		assert_equal(fitting.geometry.stage_source(prepared.token, fitting.subject), &"", "actual pending Furniture source")
+		var floor_region: SparseSpace.Region = SparseSpace.Region.new()
+		floor_region.box = PackedInt32Array([-2048, 0, -2048, 4096, 1, 4096])
+		floor_region.role = Space.FLOOR_DATUM
+		floor_region.level = 1
+		floor_region.owner = room
+		var added: SparseSpace.Result = fitting.geometry.stage_add(prepared.token, floor_region)
+		assert_equal(added.error, &"", "actual Room floor identity")
+		var piece: SparseSpace.Region = SparseSpace.Region.new()
+		piece.box = PackedInt32Array([0, 0, 0, 1024, 1024, 1024])
+		piece.role = Space.OBSTACLE
+		piece.level = 1
+		piece.owner = fitting.subject
+		piece.section = added.handle
+		assert_equal(fitting.geometry.stage_add(prepared.token, piece).error, &"", "retained pending fitting envelope")
+		assert_equal(fitting.geometry.seal(prepared.token), &"", "strict actual before-facts")
+		fitting.geometry.publish(prepared.token)
+		return fitting
 
 class SyntheticRoomCommands extends Buildings.SpatialAuthority:
 	## Exact one-command test permit; production geometry and paid fitting installation are separate.
@@ -916,3 +1024,119 @@ func test_prepared_change_query_distinguishes_noop_and_source_only_changes() -> 
 	assert_equal(_owner.seal(token), &"", "source stage seals")
 	assert_true(_owner.prepared_has_changes(token), "source facts are real state changes")
 	assert_true(_owner.abort(token), "source-only abort")
+
+
+func _installation_fixture() -> InstallationHarness:
+	"""Build actual payment/worker stores; every nested helper failure is checked by the outer test."""
+	var harness: InstallationHarness = InstallationHarness.new()
+	harness.before_each()
+	return harness
+
+
+func _release_installation_fixture(harness: InstallationHarness) -> void:
+	"""Audit shared actual goods and report helper failures before borrowed owners are released."""
+	harness.after_each()
+	assert_true(harness.failures.is_empty(), "actual installation fixture checks: %s" % harness.failures)
+
+
+func test_furniture_future_source_requires_actual_completed_project() -> void:
+	"""Foreign purpose owners, stale projects and unpaid work cannot prepare installed source facts."""
+	var harness: InstallationHarness = _installation_fixture()
+	var fitting: InstallationOwner = harness.furniture_with_geometry()
+	var project: Vector2i = harness._open(fitting)
+	var before: PackedByteArray = fitting.geometry.state_bytes()
+	var token: int = fitting.geometry.begin_stage(fitting.geometry.revision()).token
+	assert_equal(fitting.geometry.stage_furniture_install(token, project, harness._router, fitting),
+		&"SPACE_INSTALLATION_NOT_COMPLETED", "unpaid pending project")
+	assert_equal(fitting.geometry.stage_furniture_install(token, Vector2i(project.x, project.y + 1),
+		harness._router, fitting), &"SPACE_INSTALLATION_PROJECT", "full project generation")
+	assert_equal(fitting.geometry.stage_furniture_install(token, project, ModularContract.new(), fitting),
+		&"SPACE_INSTALLATION_BINDING", "actual router required")
+	assert_equal(fitting.geometry.stage_furniture_install(token, project, harness._router, harness._new_owner()),
+		&"SPACE_INSTALLATION_BINDING", "exact bound purpose owner required")
+	assert_true(fitting.geometry.abort(token), "discard preparation")
+	assert_equal(fitting.geometry.state_bytes(), before, "no source or geometry changes")
+	assert_false(harness._construction.buildings().is_furniture_installed(fitting.subject), "still pending")
+	_release_installation_fixture(harness)
+
+
+func test_furniture_install_source_publishes_only_after_actual_paid_installation() -> void:
+	"""Actual Work/receipts/Buildings complete one fitting while source geometry retains the same envelope."""
+	var harness: InstallationHarness = _installation_fixture()
+	var fitting: InstallationOwner = harness.furniture_with_geometry()
+	var piece: Vector2i = fitting.subject
+	var project: Vector2i = harness._open(fitting)
+	var job: Vector2i = harness._job(project)
+	var before: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(fitting.geometry.snapshot_into(before), &"", "actual pending source survey")
+	var revision: int = fitting.geometry.source_revision(piece)
+	harness._start(project)
+	harness._finish_labor(project, job)
+	assert_true(harness._router.complete_order(project).ok, "actual completed paid publication")
+	assert_equal(fitting.before_install_refusal, &"SPACE_SOURCE_DRIFT", "COMMIT alone is not installed truth")
+	assert_equal(fitting.foreign_project_refusal, &"SPACE_INSTALLATION_TOKEN", "exact project in callback")
+	assert_equal(fitting.foreign_owner_refusal, &"SPACE_INSTALLATION_TOKEN", "exact purpose owner in callback")
+	assert_equal(fitting.published_refusal, &"", "actual after-facts published")
+	assert_true(fitting.completion_saw_paid_clear, "all actual inputs committed before installation")
+	assert_true(harness._construction.buildings().is_furniture_installed(piece), "actual installed flag")
+	assert_false(harness._construction.is_live_project(project), "completed actual project retired")
+	assert_false(fitting.geometry.has_prepared(), "no abandoned future source")
+	assert_equal(fitting.geometry.source_revision(piece), revision + 1, "one source revision change")
+	var after: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(fitting.geometry.snapshot_into(after), &"", "normal source guard accepts actual installed facts")
+	assert_equal(after.volumes.role.size(), before.volumes.role.size(), "same number of actual regions")
+	for index: int in before.volumes.role.size():
+		assert_equal(after.volumes.box_at(index), before.volumes.box_at(index), "unchanged exact fitting/floor geometry")
+	assert_equal(fitting.completed, 1, "one physical installation")
+	_release_installation_fixture(harness)
+
+
+func test_refused_furniture_completion_aborts_future_source_and_retries_once() -> void:
+	"""A sealed-source refusal preserves live geometry and paid receipts, then the same real work retries."""
+	var harness: InstallationHarness = _installation_fixture()
+	var fitting: InstallationOwner = harness.furniture_with_geometry()
+	var project: Vector2i = harness._open(fitting)
+	var job: Vector2i = harness._job(project)
+	harness._start(project)
+	harness._finish_labor(project, job)
+	var before: PackedByteArray = fitting.geometry.state_bytes()
+	var paid: PackedByteArray = harness._image()
+	fitting.refuse_after_seal = true
+	assert_equal(harness._router.complete_order(project).error, &"SYNTHETIC_INSTALLATION_REFUSAL", "pre-payment companion refusal")
+	assert_equal(fitting.geometry.state_bytes(), before, "abort retains previous source/regions")
+	assert_equal(harness._image(), paid, "actual paid WIP retained unchanged")
+	assert_false(harness._construction.buildings().is_furniture_installed(fitting.subject), "pending identity remains")
+	fitting.refuse_after_seal = false
+	assert_true(harness._router.complete_order(project).ok, "same paid work retries without repayment")
+	assert_equal(fitting.completed, 1, "exactly one installation")
+	_release_installation_fixture(harness)
+
+
+func test_furniture_install_before_facts_reject_type_room_rotation_and_generation_drift() -> void:
+	"""The sole installation exception never masks a changed real source identity or Room."""
+	var harness: InstallationHarness = _installation_fixture()
+	var fitting: InstallationOwner = harness.furniture_with_geometry()
+	var project: Vector2i = harness._open(fitting)
+	var job: Vector2i = harness._job(project)
+	harness._start(project)
+	harness._finish_labor(project, job)
+	var buildings: Buildings = harness._construction.buildings()
+	var row: int = buildings.directory().get_typed_row(fitting.subject)
+	var before: PackedByteArray = fitting.geometry.state_bytes()
+	for field: StringName in [&"_f_type_id", &"_f_room_generation", &"_f_rotation", &"_f_ref_generation"]:
+		var token: int = fitting.geometry.begin_stage(fitting.geometry.revision()).token
+		assert_equal(fitting.geometry.stage_furniture_install(token, project, harness._router, fitting), &"", "actual pending before-facts")
+		assert_equal(fitting.geometry.seal(token), &"", "sealed exact d=1 candidate")
+		assert_equal(fitting.geometry.prepared_refusal(token), &"", "fresh before-facts")
+		assert_equal(fitting.geometry.publish_furniture_install(token, project, harness._router, fitting),
+			&"SPACE_INSTALLATION_PUBLICATION", "no caller can manufacture a paid callback")
+		var saved: PackedInt32Array = buildings.get(field).duplicate()
+		var changed: PackedInt32Array = saved.duplicate()
+		changed[row] += 1
+		buildings.set(field, changed)
+		assert_true(fitting.geometry.prepared_refusal(token) != &"", "changed actual %s refuses" % field)
+		buildings.set(field, saved)
+		assert_equal(fitting.geometry.prepared_refusal(token), &"", "restored exact actual facts")
+		assert_true(fitting.geometry.abort(token), "abort owns only transient source")
+		assert_equal(fitting.geometry.state_bytes(), before, "live bytes unchanged after %s" % field)
+	_release_installation_fixture(harness)

@@ -9,6 +9,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Construction := preload("res://scripts/core/construction.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const MAX_REGIONS: int = Space.MAX_REGIONS
 const HEADER_FIELDS: int = 18
@@ -282,6 +283,13 @@ var _s_o_b: PackedInt32Array = PackedInt32Array()
 var _s_o_c: PackedInt32Array = PackedInt32Array()
 var _s_o_d: PackedInt32Array = PackedInt32Array()
 
+## One synchronous pending->installed source candidate, never per-Furniture persistent state.
+var _install_row: int = -1
+var _install_project: Vector2i = NULL_REF
+var _install_router: WeakRef = null
+var _install_owner: WeakRef = null
+var _install_number: IntMath.IntResult = IntMath.IntResult.new()
+
 
 func _init(sources: Sources) -> void:
 	"""Borrow one trusted source reader; configuration performs every finite allocation."""
@@ -416,7 +424,87 @@ func abort(token: int) -> bool:
 		return false
 	_stage_token = 0
 	_sealed = false
+	_clear_installation()
 	return true
+
+
+func stage_furniture_install(token: int, project: Vector2i, router: ModularContract,
+		owner: ModularContract.Owner) -> StringName:
+	"""Anticipate exactly one actual pending Furniture's paid installation, never caller-supplied facts."""
+	var code: StringName = _editable(token)
+	if code != &"":
+		return code
+	if _install_row != -1:
+		return &"SPACE_INSTALLATION_BUSY"
+	code = _installation_project_refusal(project, router, owner)
+	if code != &"":
+		return code
+	code = _pending_installation_source_into(project, _install_number)
+	if code != &"":
+		return code
+	var row: int = _install_number.value
+	code = _bump_source(row)
+	if code != &"":
+		return code
+	_s_o_d[row] = 1
+	_install_row = row
+	_install_project = project
+	_install_router = weakref(router)
+	_install_owner = weakref(owner)
+	return &""
+
+
+func _pending_installation_source_into(project: Vector2i, out: IntMath.IntResult) -> StringName:
+	"""Read the exact still-pending actual source row into existing caller scratch before staging d=1."""
+	if not _spend(_source_capacity * 2):
+		return &"SPACE_OPERATION_BUDGET"
+	var piece: Vector2i = _sources.construction_owner().subject_ref_of(project)
+	var row: int = _find_source(piece, true)
+	if row < 0 or _find_source(piece, false) != row:
+		return &"SPACE_INSTALLATION_SOURCE"
+	var code: StringName = _read_source(piece)
+	if code != &"":
+		return code
+	if _facts.kind != Directory.KIND_FURNITURE or _facts.d != 0 or _facts.b != Buildings.NO_LINK \
+			or not _facts_match(row, false) or not _facts_match(row, true):
+		return &"SPACE_INSTALLATION_BEFORE_FACTS"
+	var domain: Buildings.OpResult = _sources.construction_owner().buildings().spatial_kind_of_room(_facts.parent)
+	if not domain.ok or domain.value != Buildings.ROOM_SPACE_UNDERGROUND:
+		return &"SPACE_INSTALLATION_ROOM"
+	out.succeed(row)
+	return &""
+
+
+func _installation_project_refusal(project: Vector2i, router: ModularContract,
+		owner: ModularContract.Owner) -> StringName:
+	"""Only the actual completed paid Furniture project can prepare its exact bound purpose owner."""
+	if not _sources is CoreSources or router == null or owner == null:
+		return &"SPACE_INSTALLATION_BINDING"
+	var construction: Construction = _sources.construction_owner()
+	if construction == null or construction.modular_authority() != router \
+			or router.construction_owner() != construction or not router.is_bound_owner(owner) \
+			or router.world_ref() != _domain._world or owner.purpose() != Construction.PURPOSE_SPATIAL_FURNITURE:
+		return &"SPACE_INSTALLATION_BINDING"
+	if not construction.purpose_into(project, _install_number) \
+			or _install_number.value != Construction.PURPOSE_SPATIAL_FURNITURE:
+		return &"SPACE_INSTALLATION_PROJECT"
+	var piece: Vector2i = construction.subject_ref_of(project)
+	if not construction.buildings().is_live_furniture(piece) \
+			or not construction.type_id_into(project, _install_number) \
+			or _install_number.value != construction.buildings().type_id_of_furniture(piece).value:
+		return &"SPACE_INSTALLATION_PROJECT"
+	if not construction.phase_into(project, _install_number) or _install_number.value != Construction.PHASE_WORK_DONE \
+			or not construction.remaining_mwu_into(project, _install_number) or _install_number.value != 0:
+		return &"SPACE_INSTALLATION_NOT_COMPLETED"
+	return &""
+
+
+func _clear_installation() -> void:
+	"""Release only transient binding controls, leaving both packed source images untouched."""
+	_install_row = -1
+	_install_project = NULL_REF
+	_install_router = null
+	_install_owner = null
 
 
 func stage_source(token: int, ref: Vector2i) -> StringName:
@@ -615,10 +703,38 @@ func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 
 func publish(token: int) -> void:
 	"""A coordinator calls this synchronously after successful payment; there are no fallible callbacks."""
+	if _install_row >= 0:
+		return # Installation requires its exact actual Router callback, even with the sealed token.
 	assert(token != 0 and token == _stage_token and _sealed, "only a preflighted transaction may publish")
 	_swap_banks()
 	_stage_token = 0
 	_sealed = false
+
+
+func publish_furniture_install(token: int, project: Vector2i, router: ModularContract,
+		owner: ModularContract.Owner) -> StringName:
+	"""Publish only after the real installed flag changed inside the exact paid Router COMMIT callback."""
+	if token == 0 or token != _stage_token or not _sealed or _install_row < 0 \
+			or project != _install_project or _install_router == null or _install_router.get_ref() != router \
+			or _install_owner == null or _install_owner.get_ref() != owner:
+		return &"SPACE_INSTALLATION_TOKEN"
+	var code: StringName = _installation_project_refusal(project, router, owner)
+	if code != &"":
+		return code
+	if not router.is_publishing(project, ModularContract.COMMIT, owner):
+		return &"SPACE_INSTALLATION_PUBLICATION"
+	if _s_header[17] != revision() + 1:
+		return &"SPACE_REVISION_STALE"
+	code = _sources_refusal(true, false)
+	if code == &"":
+		code = _claims_refusal(true)
+	if code != &"":
+		return code
+	_swap_banks()
+	_stage_token = 0
+	_sealed = false
+	_clear_installation()
+	return &""
 
 
 func is_live_region(handle: Vector2i) -> bool:
@@ -1127,8 +1243,18 @@ func _facts_match(row: int, staged: bool) -> bool:
 		and _facts.a == _o_a[row] and _facts.b == _o_b[row] and _facts.c == _o_c[row] and _facts.d == _o_d[row]
 
 
-func _sources_refusal(staged: bool) -> StringName:
+func _sources_refusal(staged: bool, allow_prepared_install: bool = true) -> StringName:
 	"""Check every actual external owner before trusting the complete spatial survey."""
+	if staged and _install_row >= 0:
+		var router: ModularContract = _install_router.get_ref() as ModularContract if _install_router != null else null
+		var owner: ModularContract.Owner = _install_owner.get_ref() as ModularContract.Owner if _install_owner != null else null
+		var context: StringName = _installation_project_refusal(_install_project, router, owner)
+		if context != &"":
+			return context
+		if _install_row >= _source_capacity or _s_o_present[_install_row] != 1 \
+				or Vector2i(_s_o_slot[_install_row], _s_o_generation[_install_row]) \
+				!= _sources.construction_owner().subject_ref_of(_install_project):
+			return &"SPACE_INSTALLATION_SOURCE"
 	for row: int in _source_capacity:
 		if (staged and _s_o_present[row] == 0) or (not staged and _o_present[row] == 0):
 			continue
@@ -1136,9 +1262,22 @@ func _sources_refusal(staged: bool) -> StringName:
 		var code: StringName = _read_source(ref)
 		if code != &"":
 			return code
-		if not _facts_match(row, staged):
+		if staged and allow_prepared_install and row == _install_row:
+			if not _installation_before_matches(row):
+				return &"SPACE_INSTALLATION_BEFORE_FACTS"
+		elif not _facts_match(row, staged):
 			return &"SPACE_SOURCE_DRIFT"
 	return &""
+
+
+func _installation_before_matches(row: int) -> bool:
+	"""Only d=0->1 differs: actual full identity, Room, type and rotation still match live before-facts."""
+	return _o_present[row] == 1 and _s_o_present[row] == 1 \
+		and _o_slot[row] == _s_o_slot[row] and _o_generation[row] == _s_o_generation[row] \
+		and _o_kind[row] == Directory.KIND_FURNITURE and _s_o_kind[row] == _o_kind[row] \
+		and _o_parent_slot[row] == _s_o_parent_slot[row] and _o_parent_generation[row] == _s_o_parent_generation[row] \
+		and _o_a[row] == _s_o_a[row] and _o_b[row] == _s_o_b[row] and _o_c[row] == _s_o_c[row] \
+		and _o_d[row] == 0 and _s_o_d[row] == 1 and _facts_match(row, false)
 
 
 func _validate_stage() -> StringName:

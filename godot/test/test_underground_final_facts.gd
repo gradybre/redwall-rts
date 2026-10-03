@@ -12,8 +12,21 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const Orders := preload("res://scripts/core/underground_room_orders.gd")
+const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+const EntryTests := preload("res://test/test_underground_entry_orders.gd")
+const PhysicalTests := preload("res://test/test_excavation_physical.gd")
+const Router := preload("res://scripts/core/modular_projects.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 var _fixture: RouteFixture = null
+var _orders: Orders = null
+var _entry_bindings: EntryTests.EntryBindings = null
+var _router: Router = null
+var _sites: Sites = null
+var _physical: PhysicalTests.SpatialFixture = null
 
 
 func before_each() -> void:
@@ -25,9 +38,236 @@ func before_each() -> void:
 
 func after_each() -> void:
 	"""Carry setup/helper/cleanup failures outward and drop every real fixture retainer."""
+	if _orders != null:
+		_orders._discard_room(_entry_bindings)
+	_orders = null
+	_entry_bindings = null
+	_router = null
+	_sites = null
+	_physical = null
 	_fixture.after_each()
 	assert_true(_fixture.failures.is_empty(), "real fixture helpers: %s" % _fixture.failures)
 	_fixture = null
+
+
+func _prepare_actual_entry() -> void:
+	"""Use the actual coordinator's plan-before-seal/prepared-after-seal flow; only frontier permission is synthetic."""
+	_physical = PhysicalTests.SpatialFixture.new()
+	_physical.world = _fixture._world
+	_sites = Sites.new(_fixture._construction, _fixture._inventory, _fixture._pool,
+		_fixture._items, _fixture._jobs, _fixture._work, _physical, 64, 8)
+	assert_equal(_sites.initialization_refusal(), &"", "actual Sites/Funding")
+	_router = Router.new(_fixture._construction, _fixture._inventory, _fixture._pool,
+		_fixture._items, _fixture._jobs, _fixture._work, _sites)
+	assert_equal(_router.initialization_refusal(), &"", "actual Router")
+	_orders = Orders.new()
+	_entry_bindings = EntryTests.EntryBindings.new()
+	_entry_bindings.arena = _fixture._budget
+	_entry_bindings.construction = _fixture._construction
+	_entry_bindings.space = _fixture._owner
+	_entry_bindings.world = _fixture._world
+	_entry_bindings.inventory = _fixture._inventory
+	_entry_bindings.orders = weakref(_orders)
+	assert_equal(_orders.configure(_router, _fixture._owner, _fixture._sources,
+		RoomCatalog.new(), _entry_bindings), &"", "actual sole Room coordinator")
+	_start_entry_preparation()
+
+
+func _start_entry_preparation() -> void:
+	"""Keep this exact synchronous packet open for adversarial final-check and direct kernel probes."""
+	var plan: EntryPlan.Request = _entry_plan()
+	_orders._stage_action = Orders.ROOM_ADMISSION_STAGE
+	_orders._entry_mode = true
+	_orders._entry_request = plan
+	assert_equal(_orders._begin_entry_cold(_entry_bindings, plan), &"", "original complete lease")
+	_orders._entry_plan = EntryPlan.Request.new()
+	EntryPlan.copy_into(plan, _orders._entry_plan)
+	assert_equal(_orders._prepare_room(_entry_bindings), &"", "actual Room source and markers seal")
+	assert_true(_fixture._owner._sealed, "proof follows actual seal")
+	assert_false(_fixture._buildings.is_live_room(_orders._stage_room), "identity still unallocated")
+
+
+func _entry_plan() -> EntryPlan.Request:
+	"""A fixed metadata-only claim fixture does not supply construction, support or profile permission."""
+	var plan: EntryPlan.Request = EntryPlan.Request.new()
+	plan.world = _fixture._world
+	plan.space_revision = _fixture._owner.revision()
+	plan.base_level = 1
+	plan.origin_u = Vector3i(0, -2048, 0)
+	plan.rotation = 0
+	plan.anchor = Vector2i(0, 1)
+	plan.catalog_row = 0
+	plan.catalog_revision = 1
+	plan.variant_revision = 1
+	plan.grouping_revision = 1
+	plan.recipe_revision = 1
+	plan.frontier_revision = 1
+	plan.source_digests.resize(128)
+	plan.source_digests.fill(17)
+	plan.claims = PackedInt32Array([0, -2048, 0, 1024, -1024, 1024])
+	plan.opening_targets = PackedInt32Array([-1, 0, -1, 0])
+	return plan
+
+
+func _room_final(checks: int = Space.MAX_CHECKS) -> StringName:
+	"""Call only the public typed static final proof with the actual prepared stores and original tokens."""
+	return FinalFacts.prepared_room_refusal(_fixture._owner, _fixture._routes, _fixture._locations,
+		_orders, _orders._room_candidate, _orders._stage_token, _fixture._budget,
+		_orders._room_cold_token, checks)
+
+
+func test_room_final_is_pure_and_ordinary_snapshot_remains_live_only() -> void:
+	"""The typed future exception never leaks into the ordinary live-source API or callback adapters."""
+	_prepare_actual_entry()
+	var source: RouteFixture.CountedSources = _fixture._sources as RouteFixture.CountedSources
+	source.reads = 0
+	var observed: int = _entry_bindings.binding_reads
+	assert_equal(_room_final(), &"", "exact prepared source/claim census")
+	assert_equal(source.reads, 0, "no source observation callback")
+	assert_equal(_entry_bindings.binding_reads, observed, "no binding callback")
+	assert_equal(_final(), FinalFacts.REFUSE_BUSY, "ordinary reader refuses future Room")
+	assert_false(_fixture._buildings.is_live_room(_orders._stage_room), "no identity or source publication")
+
+
+func test_room_final_precharges_whole_census_and_mutable_input_comparison() -> void:
+	"""Insufficient work stops before any fact read or input scan and leaves the reusable fact scratch untouched."""
+	_prepare_actual_entry()
+	_fixture._owner._facts.a = 987654
+	assert_equal(_room_final(FinalFacts.BINDING_CHECKS), FinalFacts.REFUSE_BUDGET, "entire scan must be affordable")
+	assert_equal(_fixture._owner._facts.a, 987654, "no early source work")
+	_orders._entry_request.claims[0] += 1
+	assert_equal(_room_final(), EntryPlan.REFUSE, "exact original claim tuple")
+	_orders._entry_request.claims[0] -= 1
+	assert_equal(_room_final(), &"", "unchanged request can retry")
+
+
+func test_room_final_rejects_replaced_original_lease_and_foreign_same_number_budget() -> void:
+	"""An equal-size replacement token cannot authorize prepared Room identity or geometry."""
+	_prepare_actual_entry()
+	var original: int = _orders._room_cold_token
+	var other: Budget = Budget.new()
+	assert_equal(other.acquire(Budget.COLD_BYTES), original, "foreign arena has same first numeric token")
+	assert_true(FinalFacts.prepared_room_refusal(_fixture._owner, _fixture._routes, _fixture._locations,
+		_orders, _orders._room_candidate, _orders._stage_token, other, original, Space.MAX_CHECKS) != &"", "exact arena identity")
+	assert_equal(other.release(original), &"", "foreign lease remains ours")
+	assert_equal(_fixture._budget.release(original), &"", "release original")
+	var replacement: int = _fixture._budget.acquire(Budget.COLD_BYTES)
+	assert_true(_room_final() != &"", "original token expired")
+	assert_true(_fixture._budget.covers(replacement, Budget.COLD_BYTES), "replacement preserved")
+	assert_equal(_fixture._budget.release(replacement), &"", "release test-owned replacement")
+
+
+func test_room_final_rederives_actual_free_identity_and_whole_candidate() -> void:
+	"""A candidate is an observation, never a reusable permit when a different allocation consumed its PID/slot."""
+	_prepare_actual_entry()
+	_orders._room_candidate.persistent_id += 1
+	assert_true(_room_final() != &"", "mutable packet change")
+	_orders._room_candidate.persistent_id -= 1
+	var taken: Vector2i = _fixture._residents.directory().create(Directory.KIND_BUILDING)
+	assert_true(taken != NULL_REF, "actual intervening allocation")
+	assert_equal(_room_final(), Directory.REFUSAL_CANDIDATE, "actual heap/PID tuple moved")
+
+
+func test_room_final_catches_late_actual_source_drift_without_observation() -> void:
+	"""The source change that defeated an earlier Room observer is checked by actual kind-specific leaves."""
+	var hall: Vector2i = _hall()
+	_source(hall)
+	_prepare_actual_entry()
+	var row: int = _fixture._residents.directory().get_typed_row(hall)
+	_fixture._buildings._b_rotation[row] = 1
+	var source: RouteFixture.CountedSources = _fixture._sources as RouteFixture.CountedSources
+	source.reads = 0
+	assert_equal(_room_final(), &"SPACE_SOURCE_DRIFT", "late Building facts fail before identity")
+	assert_equal(source.reads, 0, "no final external source observer")
+	_fixture._buildings._b_rotation[row] = 0
+	assert_equal(_room_final(), &"", "restored current facts retry")
+
+
+func test_room_final_future_exception_is_only_own_metadata_and_claims() -> void:
+	"""A changed sealed row cannot smuggle physical void or a foreign full section under a future Room."""
+	_prepare_actual_entry()
+	var row: int = _orders._entry_section.x
+	_fixture._owner._s_r_role[row] = Space.SUPPORTED_VOID
+	assert_equal(_room_final(), &"SPACE_ROOM_ADMISSION_REGION", "no future physical permission")
+	_fixture._owner._s_r_role[row] = Space.FLOOR_DATUM
+	for claim_row: int in _fixture._owner._region_capacity:
+		if _fixture._owner._s_r_claim_kind[claim_row] == Owner.CLAIM_ROOM:
+			_fixture._owner._s_r_section_generation[claim_row] += 1
+			assert_equal(_room_final(), &"SPACE_ROOM_ADMISSION_REGION", "full section generation")
+			_fixture._owner._s_r_section_generation[claim_row] -= 1
+			break
+	assert_equal(_room_final(), &"", "exact markers retry")
+
+
+func test_room_final_rejects_foreign_companion_and_active_observer_states() -> void:
+	"""A sealed unrelated graph or endpoint transaction cannot piggyback on the Room's final proof."""
+	_prepare_actual_entry()
+	_fixture._routes._in_callback = true
+	assert_equal(_room_final(), FinalFacts.REFUSE_BUSY, "route callback active")
+	_fixture._routes._in_callback = false
+	_fixture._locations._in_retention = true
+	assert_equal(_room_final(), FinalFacts.REFUSE_BUSY, "retention callback active")
+	_fixture._locations._in_retention = false
+	_fixture._locations._token = 991
+	assert_equal(_room_final(), FinalFacts.REFUSE_BUSY, "unrelated endpoint candidate")
+	_fixture._locations._token = 0
+	assert_equal(_room_final(), &"", "matching idle companions")
+
+
+func _allocate_entry_room() -> void:
+	"""Publish through real Buildings under the actual Orders bracket; the source bank remains sealed."""
+	assert_equal(_room_final(), &"", "all original facts qualify before identity")
+	_orders._publishing = true
+	assert_true(_fixture._buildings.designate_spatial_room_candidate(Buildings.ROOM_TYPE_CORRIDOR,
+		_orders._room_candidate).ok, "exact actual future identity consumed")
+
+
+func _room_swap(budget: Budget, token: int) -> bool:
+	"""Only the static production kernel sees the actual retained candidate and caller-supplied arena."""
+	return Owner.room_commit_preflighted(_fixture._owner, _orders._stage_token, _orders._room_candidate,
+		Buildings.ROOM_TYPE_CORRIDOR, _orders, budget, token)
+
+
+func test_room_commit_requires_actual_publishing_bracket_and_original_budget() -> void:
+	"""Matching after-facts cannot borrow a foreign arena or skip the actual coordinator publication interval."""
+	_prepare_actual_entry()
+	assert_false(_room_swap(_fixture._budget, _orders._room_cold_token), "identity still future")
+	_allocate_entry_room()
+	var other: Budget = Budget.new()
+	var other_token: int = other.acquire(Budget.COLD_BYTES)
+	assert_equal(other_token, _orders._room_cold_token, "coincident token")
+	assert_false(_room_swap(other, other_token), "foreign actual Budget refused")
+	assert_equal(other.release(other_token), &"", "foreign lease untouched")
+	_orders._publishing = false
+	assert_false(_room_swap(_fixture._budget, _orders._room_cold_token), "outside actual publication bracket")
+	_orders._publishing = true
+	var source: RouteFixture.CountedSources = _fixture._sources as RouteFixture.CountedSources
+	source.reads = 0
+	var observations: int = _entry_bindings.binding_reads
+	assert_true(_room_swap(_fixture._budget, _orders._room_cold_token), "exact actual pure tail")
+	assert_equal(source.reads, 0, "no source observer after identity")
+	assert_equal(_entry_bindings.binding_reads, observations, "no binding observer after identity")
+	assert_equal(_fixture._owner.last_published_token(), _orders._stage_token, "exact success receipt")
+	assert_false(_room_swap(_fixture._budget, _orders._room_cold_token), "consumed token cannot replay")
+	_orders._publishing = false
+
+
+func test_room_commit_does_not_borrow_replacement_lease_or_changed_after_facts() -> void:
+	"""The exact original token and mirrored Room purpose remain required even after real allocation."""
+	_prepare_actual_entry()
+	_allocate_entry_room()
+	var original: int = _orders._room_cold_token
+	var row: int = _orders._room_candidate.typed_row
+	_fixture._buildings._r_type[row] += 1
+	assert_false(_room_swap(_fixture._budget, original), "wrong actual purpose")
+	_fixture._buildings._r_type[row] -= 1
+	assert_equal(_fixture._budget.release(original), &"", "test revokes original")
+	var replacement: int = _fixture._budget.acquire(Budget.COLD_BYTES)
+	assert_false(_room_swap(_fixture._budget, original), "expired original")
+	assert_false(_room_swap(_fixture._budget, replacement), "replacement is not retained original")
+	assert_true(_fixture._budget.covers(replacement, Budget.COLD_BYTES), "replacement not released")
+	assert_equal(_fixture._budget.release(replacement), &"", "test releases its replacement")
+	_orders._publishing = false
 
 
 func _final(checks: int = Space.MAX_CHECKS) -> StringName:

@@ -3049,3 +3049,21 @@ func test_static_generic_kernel_never_accepts_special_future_source_context() ->
 	fitting.discard_transition(project, ModularContract.COMMIT)
 	assert_true(harness._router.complete_order(project).ok, "actual paid special publication remains available")
 	_release_installation_fixture(harness)
+
+
+func test_static_room_kernel_never_borrows_synthetic_authority_publication() -> void:
+	"""An interface success flag and actual after-facts cannot substitute for the concrete entry issuer."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "sealed future Room")
+	var budget: Budget = Budget.new()
+	var cold: int = budget.acquire(Budget.COLD_BYTES)
+	assert_equal(Owner.room_prepared_leaf_refusal(_owner, token, commands.candidate,
+		commands.room_type, commands), &"", "local identity alone is not entry permission")
+	commands.publishing = true
+	assert_true(_buildings.designate_spatial_room_candidate(commands.room_type, commands.candidate).ok, "actual scoped identity")
+	assert_false(Owner.room_commit_preflighted(_owner, token, commands.candidate,
+		commands.room_type, commands, budget, cold), "synthetic publishing flag is insufficient")
+	assert_true(_owner.has_prepared(), "no bank swap")
+	assert_true(_owner.abort(token), "caller can discard")
+	assert_equal(budget.release(cold), &"", "original lease retained")

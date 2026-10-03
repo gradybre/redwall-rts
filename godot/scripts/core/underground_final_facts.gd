@@ -7,6 +7,10 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
+const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const BINDING_CHECKS: int = 128
 const SOURCE_CHECKS: int = 64
@@ -33,6 +37,18 @@ static func snapshot_refusal(owner: Owner, routes: Routes, locations: Locations,
 
 
 static func _binding_refusal(owner: Owner, routes: Routes, locations: Locations, revision: int) -> StringName:
+	"""Ordinary final snapshots remain live-only even though Room admission has its own typed sealed proof."""
+	var code: StringName = _stores_refusal(owner, routes, locations)
+	if code != &"":
+		return code
+	if owner._stage_token != 0 or owner._validation_sources >= 0 or owner._validation_regions >= 0 or owner._room_callback \
+			or routes._token != 0 or routes._in_callback or routes._advancing or routes._searching \
+			or routes._occupancy_reading or locations._token != 0 or locations._in_retention:
+		return REFUSE_BUSY
+	return &"" if revision > 0 and owner._header[17] == revision else &"SPACE_REVISION_STALE"
+
+
+static func _stores_refusal(owner: Owner, routes: Routes, locations: Locations) -> StringName:
 	"""Borrow exact real stores; numerical ref equality in another World is insufficient."""
 	if owner == null or routes == null or locations == null or owner._ready_error != &"" \
 			or owner._domain == null or not owner._sources is Owner.CoreSources:
@@ -50,11 +66,180 @@ static func _binding_refusal(owner: Owner, routes: Routes, locations: Locations,
 	if not _location_binding(locations, owner) or not _same_domain(owner._domain, routes._domain) \
 			or not _same_domain(owner._domain, locations._domain) or routes._world != owner._domain._world:
 		return REFUSE_BINDING
-	if owner._stage_token != 0 or owner._validation_sources >= 0 or owner._validation_regions >= 0 or owner._room_callback \
-			or routes._token != 0 or routes._in_callback or routes._advancing or routes._searching \
-			or routes._occupancy_reading or locations._token != 0 or locations._in_retention:
+	return &""
+
+
+static func prepared_room_refusal(owner: Owner, routes: Routes, locations: Locations, orders: RoomOrders,
+		candidate: Directory.CreateCandidate, space_token: int, budget: Budget, cold_token: int, max_checks: int) -> StringName:
+	"""Final actual EntryPlan/allocator/source proof, after all observers and before any Room or Site identity write."""
+	if max_checks < BINDING_CHECKS or max_checks > Space.MAX_CHECKS:
+		return REFUSE_BUDGET
+	var code: StringName = _stores_refusal(owner, routes, locations)
+	if code != &"":
+		return code
+	code = _room_scope_refusal(owner, orders, candidate, space_token, budget, cold_token)
+	if code == &"":
+		code = _room_companion_scope(owner, routes, locations, orders, space_token, cold_token)
+	if code != &"":
+		return code
+	var initial: int = BINDING_CHECKS + 2 * (owner._source_capacity + owner._region_capacity) \
+		+ EntryPlan.SOURCE_BYTES + orders._entry_plan.claims.size() + orders._entry_plan.opening_targets.size()
+	if max_checks > owner._domain._checks or initial > max_checks or _room_required_checks(owner, initial) > max_checks:
+		return REFUSE_BUDGET
+	if not EntryPlan.same(orders._entry_plan, orders._entry_request):
+		return EntryPlan.REFUSE
+	code = _room_source_rows(owner, routes, locations, candidate.ref)
+	return _room_claim_rows(owner, candidate.ref) if code == &"" else code
+
+
+static func _room_scope_refusal(owner: Owner, orders: RoomOrders, candidate: Directory.CreateCandidate,
+		space_token: int, budget: Budget, cold_token: int) -> StringName:
+	"""Read the concrete coordinator's private candidate and original arena directly, never an authority override."""
+	if orders == null or orders._ready_error != &"" or not orders._entry_mode or orders._publishing \
+			or orders._stage_action != RoomOrders.ROOM_ADMISSION_STAGE or orders._space != owner \
+			or orders._stage_token != space_token or orders._room_candidate != candidate \
+			or candidate == null or orders._stage_room != candidate.ref or orders._entry_plan == null \
+			or orders._entry_request == null or orders._room_budget != budget or not orders._cold_held \
+			or cold_token <= 0 or orders._room_cold_token != cold_token or budget == null \
+			or not budget.covers(cold_token, Budget.COLD_BYTES):
+		return RoomOrders.REFUSE_ROOM_COLD
+	var sources: Owner.CoreSources = owner._sources as Owner.CoreSources
+	if orders._world != owner._domain._world or not sources._directory.is_valid_of_kind(orders._world, Directory.KIND_WORLD) \
+			or orders._sources != sources \
+			or not _same_domain(owner._domain, orders._room_domain) \
+			or orders._construction != sources._construction or orders._buildings != sources._buildings \
+			or orders._buildings._spatial_authority == null or orders._buildings._spatial_authority.get_ref() != orders \
+			or orders._router == null or orders._router.get_ref() == null or orders._construction._modular_authority == null \
+			or orders._router.get_ref() != orders._construction._modular_authority.get_ref() \
+			or orders._bindings == null or not orders._bindings.get_ref() is RoomOrders.Bindings \
+			or orders._entry_plan.world != orders._world or orders._entry_plan.space_revision != owner._header[17]:
+		return REFUSE_BINDING
+	var code: StringName = Owner.room_prepared_leaf_refusal(owner, space_token, candidate, Buildings.ROOM_TYPE_CORRIDOR, orders)
+	return _room_candidate_leaf(sources._directory, candidate) if code == &"" else code
+
+
+static func _room_candidate_leaf(ids: Directory, candidate: Directory.CreateCandidate) -> StringName:
+	"""Rederive the exact free slot/typed row/PID from actual heaps without calling mutable packet methods."""
+	if ids._free_count <= 0 or ids._kind_free_count[Directory.KIND_ROOM] <= 0 \
+			or ids._next_persistent_id >= Directory.PERSISTENT_ID_EXHAUSTED:
+		return Directory.REFUSAL_CANDIDATE
+	var slot: int = ids._free_heap[0]
+	return &"" if candidate.ref == Vector2i(slot, ids._generation[slot] + 1) \
+		and candidate.kind == Directory.KIND_ROOM and candidate.typed_row == ids._heap_index[ids._kind_base[Directory.KIND_ROOM]] \
+		and candidate.persistent_id == ids._next_persistent_id else Directory.REFUSAL_CANDIDATE
+
+
+static func _room_companion_scope(owner: Owner, routes: Routes, locations: Locations, orders: RoomOrders,
+		space_token: int, cold_token: int) -> StringName:
+	"""Only idle or this exact sealed Room companions may coexist with the final current-source census."""
+	if routes._in_callback or routes._callback_reentered or routes._advancing or routes._searching \
+			or routes._occupancy_reading or locations._in_retention or locations._retention_reentered \
+			or routes._cold != orders._room_budget:
 		return REFUSE_BUSY
-	return &"" if revision > 0 and owner._header[17] == revision else &"SPACE_REVISION_STALE"
+	if locations._token != 0 and (not locations._sealed or not locations._room_admission \
+			or locations._room_orders == null or locations._room_orders.get_ref() != orders \
+			or locations._cold_token != cold_token or locations._owner_token != space_token \
+			or locations._admission_room != orders._stage_room or locations._admission_type != Buildings.ROOM_TYPE_CORRIDOR \
+			or locations._base_geometry_revision != owner._header[17] \
+			or locations._target_geometry_revision != owner._s_header[17]):
+		return REFUSE_BUSY
+	if routes._token != 0 and (not routes._sealed or routes._space_token != space_token \
+			or routes._location_token != locations._token or routes._cold_token != cold_token \
+			or routes._operation_error != &"" or routes._base_geometry_revision != owner._header[17] \
+			or routes._target_geometry_revision != owner._s_header[17]):
+		return REFUSE_BUSY
+	return &""
+
+
+static func _room_required_checks(owner: Owner, required: int) -> int:
+	"""Precharge every actual staged source/claim leaf before the first fact reader runs."""
+	for row: int in owner._source_capacity:
+		if owner._s_o_present[row] != 0:
+			required += RESIDENT_CHECKS if owner._s_o_kind[row] == Directory.KIND_RESIDENT else SOURCE_CHECKS
+	for row: int in owner._region_capacity:
+		if owner._s_r_present[row] != 0 and owner._s_r_claim_kind[row] != Owner.CLAIM_NONE:
+			required += SOURCE_CHECKS
+	return required
+
+
+static func _room_source_rows(owner: Owner, routes: Routes, locations: Locations, future: Vector2i) -> StringName:
+	"""Only the exact already-pinned future Room row bypasses a live Directory identity; all other facts stay strict."""
+	var sources: Owner.CoreSources = owner._sources as Owner.CoreSources
+	for row: int in owner._source_capacity:
+		if owner._s_o_present[row] == 0 or row == owner._room_row:
+			continue
+		var ref: Vector2i = Vector2i(owner._s_o_slot[row], owner._s_o_generation[row])
+		if owner._s_o_present[row] != 1 or ref == future or not sources._directory.is_valid_of_kind(ref, owner._s_o_kind[row]):
+			return &"SPACE_SOURCE_STALE"
+		var code: StringName = _resident_into(routes, locations, ref, owner._facts) \
+			if owner._s_o_kind[row] == Directory.KIND_RESIDENT else Owner.CoreSources.read_leaf_into(sources, ref, owner._facts)
+		if code == &"":
+			code = _facts_refusal(sources, ref, owner._facts)
+		if code != &"":
+			return code
+		if not _staged_facts_match(owner, row):
+			return &"SPACE_SOURCE_DRIFT"
+	return &""
+
+
+static func _staged_facts_match(owner: Owner, row: int) -> bool:
+	"""Compare current reusable facts directly so a public Owner override cannot replace the final answer."""
+	return owner._facts.kind == owner._s_o_kind[row] \
+		and owner._facts.parent == Vector2i(owner._s_o_parent_slot[row], owner._s_o_parent_generation[row]) \
+		and owner._facts.a == owner._s_o_a[row] and owner._facts.b == owner._s_o_b[row] \
+		and owner._facts.c == owner._s_o_c[row] and owner._facts.d == owner._s_o_d[row]
+
+
+static func _room_claim_rows(owner: Owner, future: Vector2i) -> StringName:
+	"""Future Room markers stay exact; every retained Room/Construction claim gets its ordinary live source proof."""
+	for row: int in owner._region_capacity:
+		if owner._s_r_present[row] == 0:
+			continue
+		if owner._s_r_present[row] != 1:
+			return &"SPACE_REGION_FORMAT"
+		var ref: Vector2i = Vector2i(owner._s_r_owner_slot[row], owner._s_r_owner_generation[row])
+		var claim: Vector2i = Vector2i(owner._s_r_claim_slot[row], owner._s_r_claim_generation[row])
+		if ref == future or claim == future:
+			var code: StringName = _future_marker_refusal(owner, row, future)
+			if code != &"":
+				return code
+		elif owner._s_r_claim_kind[row] != Owner.CLAIM_NONE:
+			var code: StringName = _staged_claim_refusal(owner, row, ref, claim)
+			if code != &"":
+				return code
+	return &""
+
+
+static func _future_marker_refusal(owner: Owner, row: int, future: Vector2i) -> StringName:
+	"""A future Room owns only metadata and exact blocking claims linked to its own complete staged section."""
+	if owner._s_r_owner_slot[row] != future.x or owner._s_r_owner_generation[row] != future.y \
+			or owner._s_r_owner_revision[row] != owner._s_o_revision[owner._room_row]:
+		return &"SPACE_ROOM_ADMISSION_REGION"
+	if owner._s_r_role[row] == Space.FLOOR_DATUM and owner._s_r_claim_kind[row] == Owner.CLAIM_NONE \
+			and Vector2i(owner._s_r_claim_slot[row], owner._s_r_claim_generation[row]) == NULL_REF:
+		return &""
+	var section: Vector2i = Vector2i(owner._s_r_section_slot[row], owner._s_r_section_generation[row])
+	return &"" if owner._s_r_role[row] == Space.OBSTACLE and owner._s_r_claim_kind[row] == Owner.CLAIM_ROOM \
+		and Vector2i(owner._s_r_claim_slot[row], owner._s_r_claim_generation[row]) == future \
+		and section.x >= 0 and section.x < owner._region_capacity and owner._s_r_present[section.x] == 1 \
+		and owner._s_r_generation[section.x] == section.y and owner._s_r_role[section.x] == Space.FLOOR_DATUM \
+		and owner._s_r_owner_slot[section.x] == future.x and owner._s_r_owner_generation[section.x] == future.y \
+		and owner._s_r_level[row] == owner._s_r_level[section.x] else &"SPACE_ROOM_ADMISSION_REGION"
+
+
+static func _staged_claim_refusal(owner: Owner, row: int, ref: Vector2i, claim: Vector2i) -> StringName:
+	"""Actual full source facts remain required for claims that do not belong to the sole future Room."""
+	var kind: int = owner._s_r_claim_kind[row]
+	if kind != Owner.CLAIM_ROOM and kind != Owner.CLAIM_CONSTRUCTION:
+		return &"SPACE_RESERVATION_FORMAT"
+	var sources: Owner.CoreSources = owner._sources as Owner.CoreSources
+	var expected: int = Directory.KIND_ROOM if kind == Owner.CLAIM_ROOM else Directory.KIND_CONSTRUCTION
+	if not sources._directory.is_valid_of_kind(claim, expected):
+		return &"SPACE_SOURCE_STALE"
+	var code: StringName = Owner.CoreSources.read_leaf_into(sources, claim, owner._facts)
+	if code == &"":
+		code = _facts_refusal(sources, claim, owner._facts)
+	return &"SPACE_ROOM_CLAIM_IDENTITY" if code == &"" and kind == Owner.CLAIM_ROOM and claim != ref else code
 
 
 static func _same_domain(first: Space.Domain, second: Space.Domain) -> bool:

@@ -1146,6 +1146,12 @@ static func commit_preflighted(actual: RefCounted, token: int, base_revision: in
 		return false
 	if _installation_owns_token(actual, token) and installation_commit_refusal(actual, token) != &"":
 		return false
+	_commit_preflighted_columns(actual, token)
+	return true
+
+
+static func _commit_preflighted_columns(actual: RefCounted, token: int) -> void:
+	"""Only a fully preflighted concrete publication path enters the shared callback-free bank swap."""
 	_commit_columns_0(actual)
 	_commit_columns_1(actual)
 	_commit_columns_2(actual)
@@ -1160,7 +1166,6 @@ static func commit_preflighted(actual: RefCounted, token: int, base_revision: in
 	actual._last_published_token = token
 	actual._stage_token = 0
 	actual._sealed = false
-	return true
 
 
 static func installation_binding_refusal(actual: RefCounted, context: RefCounted) -> StringName:
@@ -1259,6 +1264,101 @@ func publish_room_admission(token: int, candidate: Directory.CreateCandidate, ro
 	_sealed = false
 	_clear_room_admission()
 	return &""
+
+
+static func room_prepared_leaf_refusal(actual: RefCounted, token: int, candidate: Directory.CreateCandidate,
+		room_type: int, authority: Buildings.SpatialAuthority) -> StringName:
+	"""Local sealed future-Room identity only; typed Orders/source/lease preflight remains mandatory before allocation."""
+	if actual == null or actual._ready_error != &"" or token <= 0 or actual._stage_token != token \
+			or not actual._sealed or actual._room_callback or actual._room_reentered \
+			or actual._validation_sources >= 0 or actual._validation_regions >= 0 \
+			or actual._install_row >= 0 or actual._furniture_count != 0:
+		return &"SPACE_ROOM_ADMISSION_TOKEN"
+	if candidate == null or authority == null or actual._room_input == null or actual._room_authority == null \
+			or actual._room_input.get_ref() != candidate or actual._room_authority.get_ref() != authority \
+			or room_type != actual._room_type or not actual._sources is CoreSources:
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	var sources: CoreSources = actual._sources as CoreSources
+	var pinned: Directory.CreateCandidate = actual._room_candidate
+	if candidate._directory == null or pinned._directory == null or sources._directory == null \
+			or candidate._directory.get_ref() != sources._directory or pinned._directory.get_ref() != sources._directory \
+			or candidate.ref != pinned.ref or candidate.kind != Directory.KIND_ROOM or candidate.kind != pinned.kind \
+			or candidate.typed_row != pinned.typed_row or candidate.persistent_id != pinned.persistent_id:
+		return &"SPACE_ROOM_CANDIDATE"
+	if actual._header[17] <= 0 or actual._header[17] == I64_MAX or actual._s_header[17] != actual._header[17] + 1:
+		return &"SPACE_REVISION_STALE"
+	return _room_source_leaf_refusal(actual, candidate, room_type)
+
+
+static func _room_source_leaf_refusal(actual: RefCounted, candidate: Directory.CreateCandidate, room_type: int) -> StringName:
+	"""The only future row has exact derived Room facts; no public source reader or mutable Facts is consulted."""
+	var row: int = actual._room_row
+	if row < 0 or row >= actual._source_capacity or actual._s_o_present[row] != 1 \
+			or actual._s_o_kind[row] != Directory.KIND_ROOM or actual._s_o_slot[row] != candidate.ref.x \
+			or actual._s_o_generation[row] != candidate.ref.y or actual._s_o_revision[row] <= 0 \
+			or actual._s_o_parent_slot[row] != NULL_REF.x or actual._s_o_parent_generation[row] != NULL_REF.y \
+			or actual._s_o_a[row] != room_type or actual._s_o_b[row] != 0 or actual._s_o_c[row] != 0 \
+			or actual._s_o_d[row] != Buildings.ROOM_SPACE_UNDERGROUND:
+		return &"SPACE_ROOM_CANDIDATE"
+	return &""
+
+
+static func room_commit_preflighted(actual: RefCounted, token: int, candidate: Directory.CreateCandidate,
+		room_type: int, authority: Buildings.SpatialAuthority, budget: Budget, cold_token: int) -> bool:
+	"""Actual Orders must prove its pure publication scope; only the exact after-allocation receipt can swap here."""
+	if budget == null or not budget.covers(cold_token, Budget.COLD_BYTES) \
+			or room_prepared_leaf_refusal(actual, token, candidate, room_type, authority) != &"" \
+			or not _room_issuer_leaf_matches(actual, token, candidate, authority, budget, cold_token) \
+			or not _room_after_leaf_matches(actual, candidate, room_type, authority):
+		return false
+	_commit_preflighted_columns(actual, token)
+	actual._room_candidate.ref = NULL_REF
+	actual._room_candidate.kind = Directory.KIND_ANY
+	actual._room_candidate.typed_row = -1
+	actual._room_candidate.persistent_id = 0
+	actual._room_candidate._directory = null
+	actual._room_input = null
+	actual._room_authority = null
+	actual._room_row = -1
+	actual._room_type = -1
+	return true
+
+
+static func _room_issuer_leaf_matches(actual: RefCounted, token: int, candidate: Directory.CreateCandidate,
+		issuer: RefCounted, budget: Budget, cold_token: int) -> bool:
+	"""Only the concrete retained entry publication bracket can consume the bank; interface overrides grant nothing."""
+	if not "_entry_mode" in issuer or not "_room_candidate" in issuer or not "_room_budget" in issuer \
+			or not "_room_cold_token" in issuer or not "_entry_plan" in issuer:
+		return false
+	return issuer._entry_mode and issuer._publishing and issuer._cold_held \
+		and issuer._stage_action == issuer.ROOM_ADMISSION_STAGE and issuer._stage_room == candidate.ref \
+		and issuer._stage_token == token and issuer._room_candidate == candidate and issuer._space == actual \
+		and issuer._room_budget == budget and issuer._room_cold_token == cold_token \
+		and issuer._world == actual._domain._world and issuer._entry_plan != null \
+		and issuer._entry_plan.world == actual._domain._world \
+		and issuer._sources == actual._sources and issuer._construction == actual._sources._construction \
+		and issuer._buildings == actual._sources._buildings
+
+
+static func _room_after_leaf_matches(actual: RefCounted, candidate: Directory.CreateCandidate,
+		room_type: int, authority: Buildings.SpatialAuthority) -> bool:
+	"""Read exact actual Directory/Buildings identity after allocation, without dispatching authority callbacks."""
+	var sources: CoreSources = actual._sources as CoreSources
+	var ids: Directory = sources._directory
+	var buildings: Buildings = sources._buildings
+	if buildings == null or buildings._directory != ids or buildings._spatial_authority == null \
+			or buildings._spatial_authority.get_ref() != authority \
+			or not ids.is_valid_of_kind(actual._domain._world, Directory.KIND_WORLD) \
+			or not ids.is_valid_of_kind(candidate.ref, Directory.KIND_ROOM) \
+			or ids.get_typed_row(candidate.ref) != candidate.typed_row \
+			or ids.get_persistent_id(candidate.ref) != candidate.persistent_id:
+		return false
+	var row: int = candidate.typed_row
+	return row >= 0 and row < buildings._r_present.size() and buildings._r_present[row] == 1 \
+		and buildings._r_ref_slot[row] == candidate.ref.x and buildings._r_ref_generation[row] == candidate.ref.y \
+		and buildings._r_type[row] == room_type and buildings._r_spatial_kind[row] == Buildings.ROOM_SPACE_UNDERGROUND \
+		and buildings._r_building_slot[row] == NULL_REF.x and buildings._r_building_generation[row] == NULL_REF.y \
+		and buildings._r_tile_offset[row] == 0 and buildings._r_tile_count[row] == 0
 
 
 func _room_after_refusal(authority: Buildings.SpatialAuthority) -> StringName:

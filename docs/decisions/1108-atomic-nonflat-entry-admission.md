@@ -77,3 +77,45 @@ were0, and the analyzer reported0 warnings in3 files. The new entry suite has
 arena leases with explicitly synthetic frontier/Placement permission. They do
 not close UG07, UG09 or any playable requirement. Exact commands, rejected
 registry-check attempt and source/asset restoration checks are retained.
+
+
+## Reviewed actual Room leaf and Space publication kernel
+
+`FinalFacts.prepared_room_refusal(owner, routes, locations, orders, candidate,
+space_token, budget, cold_token, max_checks)` reads the actual typed RoomOrders
+private EntryPlan/candidate and original lease before any identity publication.
+It checks current Directory allocator choices and World lifetime, the exact
+sealed future source/markers, and every retained real source and claim through
+the existing nonvirtual leaf readers. The sole future exception is the exact
+Corridor candidate; its metadata and blocking claims grant no physical space.
+Ordinary final snapshots remain live-only.
+
+The matching `Owner.room_commit_preflighted` consumes only that exact actual
+RoomOrders entry publication bracket and original Budget/token after the real
+Directory/Buildings receipt exists. Its after-facts use direct mirrored rows,
+not the overridable Room identity reader. Foreign equal-valued tokens, replaced
+leases, another issuer, a wrong publication bracket or changed candidate/Room
+facts cannot swap. The shared static bank swap preserves the original column
+assignment order and success-only token receipt. Ordinary Room publication is
+unchanged. Root's entry-only Directory/Buildings/Sites tail and the prepared
+Placement companions must compose with these methods before atomic entrance
+admission is complete.
+
+This prerequisite adds no retained fields, arrays, wire columns or snapshots.
+The precharged work is128 fixed checks, two capacity scans `2*(R+O)`, the128
+EntryPlan digest bytes plus its actual claim/target integer counts,64 checks
+per present nonresident source or claim, and256 per Resident source. The full
+count must fit the unchanged actual Domain limit before leaf traversal. The
+prepared query's longest logical numeric frame chain is272 bytes:32 for its
+entry parameters/count,24 for the future-source loop, and the existing216-byte
+Resident/Location/transit/integer-length chain. This fits the existing512-byte
+Placement helper allowance; native stack/object representation remains
+separately obligated and unmeasured.
+
+Root independently accepted all four exact source/test pins in the retained
+`room-leaves-2` evidence. Clean focused suites passed152 tests /7195 assertions
+/0 failures (Owner110/5397, FinalFacts25/1077, EntryOrders17/721), with every
+strict/raw unexpected diagnostic and leak count0 and analyzer0/4. The earlier
+green `room-leaves-1` is retained as rejected by source review because its
+kernel lacked the direct original issuer/arena check. No production frontier,
+profile, route or first-entry permission is established by this component.

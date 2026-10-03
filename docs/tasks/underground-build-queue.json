@@ -1466,6 +1466,18 @@
       "analyzer_seconds": 212.474,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-00573c3e/README.md",
       "limits": "Predates RoomOrders confirmation, WorldBindings, real-capacity validation correction and playable demo activation."
+    },
+    {
+      "commit": "9126ba2be796c09cfbe27fe474bf0ed3bf0f733d",
+      "outcome": "passed",
+      "full_suite": "9827 test(s), 692679 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources;raw log all zero",
+      "analyzer": "0 warnings in 0 of1100 files",
+      "procedure": "assets aside if present;delete own .godot;clean editor import;full no-argument runner;restore assets;source and HEAD unchanged",
+      "suite_seconds": 1219.787,
+      "analyzer_seconds": 215.118,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-9126ba2b/README.md",
+      "limits": "Predates1088 phase surveys,1087 Layout lifetime,Locations retention observer and extra Profiles extent reader; playable workflow remains in progress."
     }
   ],
   "crosscut_fixes": [

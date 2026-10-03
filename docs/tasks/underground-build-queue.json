@@ -420,6 +420,13 @@
             "scope": "Ledger correction only: live snapshot owner2*I32+I64=16bytes; no runtime code",
             "review": "root independently found/corrected arithmetic against actual source",
             "integration": "unchanged additive docs cherry-pick"
+          },
+          {
+            "commit": "688514c2",
+            "scope": "B1 offline22source clip measurements;0 production-qualified profiles",
+            "tests": "22newPython tests plus191existing envelopechecks;zero failures; source manifest/toolhashesverified",
+            "review": "root independent mathematical/source review; normalized-integer exactness and manifest-overwrite findingsfixed, regressionspass",
+            "integration": "unchanged source/evidence cherry-pick; wholeUG08 stays running"
           }
         ]
       },

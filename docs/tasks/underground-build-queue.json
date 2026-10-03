@@ -80,7 +80,7 @@
     {
       "id": "UG03",
       "title": "Furniture layout drafts and placement rules",
-      "status": "running",
+      "status": "verified",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/room_layout.gd",
@@ -104,9 +104,16 @@
       ],
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-furnishing",
-      "evidence": {},
+      "evidence": {
+        "commit": "1898b3e85820a3d010396f19f7d092c9940d28de",
+        "tests": "39 test(s), 264 assertion(s), 0 failure(s); cleanimport strictsingletonshard",
+        "diagnostics": "0 unexpectederror/warning;0expected/tolerated;0leakedobjects/resources; fullanalyzer0warnings/1030files; finalchangedfileanalyzer0/2",
+        "review": "Separate integration-owner readupdatedcode; finiteinputs/overflow/reentrancy/ambiguousreceipt findingsfixed. Ownedroomcells separatedfromwalkcontextwithcrossroomcontact/spillregression. Actualprofiles, ordercoordinator, services andpersistenceexplicitlyqueued.",
+        "integration": "Cherry-picked unchanged implementation; appendedownregistrysection; fullcombinedsuitecheckpointnext."
+      },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "ug_furnishing finalresponse, commits1898b3e8/bf9ab160 andcleanworktree"
       }
     },
     {
@@ -154,7 +161,11 @@
       "owns": [
         "godot/demo/burrow/modular_shell.gd",
         "godot/demo/burrow/modular_materials.gd",
-        "godot/test/test_modular_shell.gd"
+        "godot/test/test_modular_shell.gd",
+        "godot/demo/burrow/modular_surface.gdshader",
+        "godot/test/live/modular_shell_live.gd",
+        "docs/decisions/1057-canonical-room-shells.md",
+        "docs/design/underground-planning/evidence/modular-build/shell/"
       ],
       "requirements": [
         "UG-SURFACE-001",
@@ -196,7 +207,8 @@
         "godot/scripts/core/excavation_work.gd",
         "godot/scripts/core/excavation_inventory.gd",
         "docs/decisions/1056-physical-excavation-phases.md",
-        "godot/scripts/core/excavation_contract.gd"
+        "godot/scripts/core/excavation_contract.gd",
+        "godot/scripts/core/reservations.gd"
       ],
       "requirements": [
         "UG-BUILD-001",

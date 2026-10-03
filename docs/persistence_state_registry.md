@@ -1055,3 +1055,21 @@ interpretation is retained as superseded evidence in the dated ruling.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---|---|---|---|---|---|
 | Cold room-footprint geometry | -- | -- | -- | Empty result on refusal | 3 | -- | Decision 1052. Stateless integer helpers only; caller-owned packed cell/edge/loop values and temporary bounded membership scratch. No module-level mutable columns, room identity, spatial publication, material account or paid-cut state. Confirmed footprint and grid identity remain the integrating owner's persistence obligation. |
+
+
+### `godot/scripts/core/room_layout.gd`
+
+[Decision 1054](decisions/1054-grid-furniture-layouts.md): bounded packed furniture
+drafts and project receipts. Independent foundation, not yet composed into a
+live world. It performs no inventory, construction work, furniture installation
+or service mutation. The approved draft-retention/save workflow makes these
+future-affecting once integrated; no codec assignment is invented here.
+
+| Column group | Members | Width (bytes) | Count | Sentinel / default | Category | Save section | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Room binding and immutable type | `_room_slots`, `_room_generations`, `_room_types` | 4 | `_room_capacity` <= 16384 | null slot/generation `(-1, 0)`; free type 0 | UNRESOLVED | §4 COMPONENT_COLUMNS | Whole room EntityRef, never a slot-only association. QUESTION: which owner/schema and ordinals serialize the approved per-room furnishing interaction and drafts? |
+| Per-room furnishing mode | `_room_modes` | 1 | `_room_capacity` <= 16384 | 0 = Plan layout; 1 = Place individually | UNRESOLVED | §4 COMPONENT_COLUMNS | Switching affects subsequent clicks and preserves existing drafts/orders. QUESTION: which owner/schema stores this preference together with its exact room binding? |
+| Placement lifecycle | `_state` | 1 | `_placement_capacity` <= 81920 | 0 = free; 1 = draft; 2 = accepted receipt | UNRESOLVED | §4 COMPONENT_COLUMNS | Receipts grant no services and own no world occupancy. QUESTION: which owner/schema stores retained drafts and reconciles accepted receipts against real construction projects on load? |
+| Local placement identities, room binding and geometry | `_generation`, `_room_row`, `_type`, `_x`, `_z`, `_rotation` | 4 | `_placement_capacity` <= 81920 | inactive payload 0; generation retained and never wraps; rotation 0..3 | UNRESOLVED | §4 COMPONENT_COLUMNS | Local draft/receipt namespace, distinct from EntityDirectory. INT32_MAX free slots remain retired. QUESTION: which owner/schema and ordinals retain these draft identities and canonical room-relative coordinates? |
+| Accepted project references | `_project_slot`, `_project_generation` | 4 | `_placement_capacity` <= 81920 | `(-1, 0)` outside accepted rows | UNRESOLVED | §4 COMPONENT_COLUMNS | References belong to the bound construction owner and require full generation validation. QUESTION: which saved construction owner/schema can reconstruct these receipts without installing unfinished furniture? |
+| Capacities and runtime adapters | -- | -- | -- | -- | UNRESOLVED | §4 COMPONENT_COLUMNS | `_room_capacity`, `_placement_capacity`, `_geometry_capacity` are bounded constructor inputs; `_submitting` is false at every legal save boundary. Snapshot/profile/validation/result/batch classes are ephemeral copied owner inputs or cold-operation scratch. Callables and the immutable definition object rebind after load. QUESTION: which owner declaration records capacity and rebinding requirements when this foundation is composed? |

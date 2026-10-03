@@ -28,15 +28,17 @@ python3 tools/underground_build_queue.py ready
 | UG18 | Room-purpose catalog and furnishing compatibility | UG01, UG03 |
 | UG07 | Real room/equipment order coordinator | UG01, UG03, UG06, UG18 |
 | UG08 | Multilevel occupancy, support, fixed connector catalog | UG01; compose with UG06 at UG09 |
+| UG21 | Actual sparse underground geometry and phase preflight | UG01; uses integrated UG08A helpers |
 | UG19 | Direct terrain painting and in-world preview | UG04, UG05 |
-| UG09 | **First playable checkpoint: blueprint → workers → empty Kitchen** | UG04–08, UG19 |
+| UG09 | **First playable checkpoint: blueprint → workers → empty Kitchen** | UG04–08, UG19, UG21 |
 | UG10 | Furnishing modes, real services and optional example guides | UG07, UG09 |
 | UG11 | Two-level rooms, section painting, stairs and extra entrances | UG08, UG09 |
 | UG12 | Safe structural amendments and Apply/Discard/Keep editing | UG02, UG06, UG09 |
 | UG13 | Permanent room types, removal, backfill and replacement | UG06, UG08, UG10 |
 | UG14 | Worker relocation, storage draining and restocking | UG08, UG10 |
 | UG15 | Whole-surface renovation and coordinated item returns | UG05, UG13, UG14 |
-| UG16 | Composed save/load and deterministic continuation | UG11–15 |
+| UG20 | Paid spoil-tip preparation, compaction and reclamation | UG06 |
+| UG16 | Composed save/load and deterministic continuation | UG11–15, UG20 |
 | UG17 | Complete catalog, visual polish, regression and scale qualification | UG16 |
 
 ## Automatic continuation
@@ -97,3 +99,11 @@ actual test summary and diagnostic/leak lines, plus the zero-warning analyzer.
 Capture native 1280×720 input/visual evidence and test saving during work,
 relocation, closure and revision. Measure the 256-resident workload and retain
 any unmeasured Windows/qualification-floor limitations explicitly.
+
+The next frozen source `bb557d1b` passed **9,304 tests /620,633 assertions**,
+zero failures and zero unexpected diagnostics/leaks (272 expected,353 tolerated).
+The analyzer reported zero warnings across1,048 files. Full exact logs are in
+[checkpoint-bb557d1b](../design/underground-planning/evidence/modular-build/checkpoint-bb557d1b/).
+Subsequently integrated geometry and WIP increments require their own assembled
+checkpoint. UG20 explicitly owns spoil-tip preparation/compaction/reclamation;
+UG06's local cut-output publication does not complete those ECON operations.

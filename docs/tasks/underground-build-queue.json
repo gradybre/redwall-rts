@@ -226,7 +226,8 @@
         "docs/decisions/1056-physical-excavation-phases.md",
         "godot/scripts/core/excavation_contract.gd",
         "godot/scripts/core/reservations.gd",
-        "godot/scripts/core/inventory.gd"
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_excavation_physical.gd"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -259,6 +260,13 @@
             "scope": "Atomic claimed input consumption and output reservation",
             "tests": "77 tests,4322assertions acrossnewandrelatedstrict suites; diagnostics/leaks0; analyzer0/2",
             "review": "ug_furnishing independent source review approved; commit-time pile rollback and same-lot other-job isolation regressions added; concrete Sites/WIP still in progress"
+          },
+          {
+            "commit": "aa52fd5ffa72f3dd5ca9322a0ca685d0b9c6bd4b",
+            "scope": "Paid WIP, real staging container and atomic local output; concrete Sites still developing",
+            "tests": "206 tests /5143 assertions, zero failures; strict diagnostics/raw/leaks0; analyzer0/6",
+            "review": "ug_geometry independent review and fixed cancellation/output adversarial cases approved",
+            "integration": "cb10f2a1 source;7be405d5 additive registry"
           }
         ]
       },
@@ -361,7 +369,11 @@
         "godot/scripts/core/room_connectors.gd",
         "godot/test/test_room_space.gd",
         "godot/test/test_room_connectors.gd",
-        "docs/decisions/1058-multilevel-room-space.md"
+        "docs/decisions/1058-multilevel-room-space.md",
+        "tools/measure_underground_profiles.py",
+        "tools/test_measure_underground_profiles.py",
+        "docs/design/underground-planning/evidence/modular-build/profiles/",
+        "docs/decisions/1063-underground-source-profile-measurements.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -395,7 +407,59 @@
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-space",
       "evidence": {
-        "in_progress": "IncrementA geometry/connector validation can run independently; UG09 composes06+08. Missing production authoring/profile binding remains explicit and is not satisfied by synthetic tests."
+        "in_progress": "IncrementA geometry/connector validation can run independently; UG09 composes06+08. Missing production authoring/profile binding remains explicit and is not satisfied by synthetic tests.",
+        "increments": [
+          {
+            "commit": "efadbab9",
+            "integration": "89aa974c +44e3717f registry +de265e3e packet",
+            "tests": "27 space tests/249 assertions;16 connector tests/179 assertions; zero failures, diagnostics/raw/leaks; analyzer0/4",
+            "review": "root independent source/test review; helpers only, production qualification remains open"
+          }
+        ]
+      },
+      "lease": {
+        "state": "held"
+      }
+    },
+    {
+      "id": "UG21",
+      "title": "Actual sparse underground geometry and phase preflight",
+      "status": "running",
+      "depends_on": [
+        "UG01"
+      ],
+      "owns": [
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/scripts/core/underground_space_authority.gd",
+        "godot/test/test_underground_space_owner.gd",
+        "godot/test/test_underground_space_authority.gd",
+        "docs/decisions/1064-underground-spatial-owner.md"
+      ],
+      "requirements": [
+        "UG-LEVEL-001",
+        "UG-LEVEL-008",
+        "UG-LEVEL-011",
+        "UG-LEVEL-012",
+        "UG-LEVEL-013",
+        "UG-LEVEL-014",
+        "UG-LEVEL-015",
+        "UG-LEVEL-016",
+        "UG-LEVEL-017",
+        "UG-BUILD-001",
+        "UG-BUILD-002",
+        "UG-BUILD-003"
+      ],
+      "acceptance": [
+        "Typed sparse permanent geometry/section/reservation schema and measured byte ledger; full generation/revision validation with deterministic exhaustion",
+        "Actual owner snapshot and stage/preflight/publish/abort seam bound to immutable map truth; no synthetic permission in production",
+        "Real worker/material/output geometry authority composed with UG06, Buildings/Furniture and qualified UG08 profiles; cross-floor conflicts and last-exit protection",
+        "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
+      ],
+      "agent": "/root/ug_geometry",
+      "branch": "codex/underground-spatial-owner",
+      "evidence": {
+        "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
+        "in_progress": "Start schema/ledger and actual sparse owner; then concrete phase adapter after identity/contact binding. UG09 requires both this lane andUG08."
       },
       "lease": {
         "state": "held"
@@ -416,7 +480,9 @@
         "godot/test/test_modular_world_tool.gd",
         "godot/test/live/modular_world_live.gd",
         "docs/decisions/1061-in-world-room-painting.md",
-        "docs/design/underground-planning/evidence/modular-build/world/"
+        "docs/design/underground-planning/evidence/modular-build/world/",
+        "godot/demo/burrow/modular_draft.gd",
+        "godot/demo/burrow/modular_plan.gdshader"
       ],
       "requirements": [
         "UG-SHAPE-001",
@@ -451,7 +517,8 @@
         "UG06",
         "UG07",
         "UG08",
-        "UG19"
+        "UG19",
+        "UG21"
       ],
       "owns": [
         "godot/demo/burrow/modular_runtime.gd",
@@ -754,6 +821,38 @@
       }
     },
     {
+      "id": "UG20",
+      "title": "Paid spoil-tip preparation, compaction and reclamation",
+      "status": "queued",
+      "depends_on": [
+        "UG06"
+      ],
+      "owns": [
+        "godot/scripts/core/spoil_tips.gd",
+        "godot/scripts/core/spoil_work.gd",
+        "godot/test/test_spoil_tips.gd",
+        "godot/test/test_spoil_work.gd",
+        "godot/demo/burrow/modular_spoil.gd",
+        "docs/decisions/1065-paid-spoil-tip-lifecycle.md"
+      ],
+      "requirements": [
+        "UG-BUILD-001",
+        "UG-BUILD-004",
+        "UG-BUILD-007"
+      ],
+      "acceptance": [
+        "ECON002/004/006 actual tip footprint preparation, paid KEEP compaction and BUILD reclamation with real adjacent containers",
+        "Conserved earth/provenance/capacity and deterministic interruption; no designation reset or teleport",
+        "Concrete Work/Jobs/Inventory integration and save-owner metadata; no claim that cut output alone implements these operations"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
       "id": "UG16",
       "title": "Composed persistence and deterministic resume",
       "status": "queued",
@@ -762,7 +861,9 @@
         "UG12",
         "UG13",
         "UG14",
-        "UG15"
+        "UG15",
+        "UG20",
+        "UG21"
       ],
       "owns": [
         "godot/scripts/core/save_owner_rooms.gd",
@@ -953,6 +1054,15 @@
       "procedure": "assets aside;delete .godot;cleaneditorimport;fullnoargumentrunner;restoreassets",
       "seconds": 1183.9,
       "fix": "ReservationPurpose explicitoldcount3\u21924 plus appendedID3 pinned in6dd9e529;focused33tests178assertallzero. Canonicalmembership CI gap fixed29f78a3c; exact11newfields, no gateweakening."
+    },
+    {
+      "commit": "bb557d1b6bc3a97fe8bd566dbc114a8dbf0965fc",
+      "outcome": "passed",
+      "full_suite": "9304 test(s), 620633 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources;raw log allzero",
+      "analyzer": "0 warnings in 0 of1048 files",
+      "procedure": "assets aside;delete .godot;clean editor import;full no-argument runner;restore assets",
+      "seconds": 1191.7
     }
   ],
   "crosscut_fixes": [
@@ -962,6 +1072,14 @@
       "review": "ug_geometry independent review,no blockers",
       "tests": "52 canonical tests/3678assertions and20projecttests/301assertions allzero;190capacitychecks0fail;31framingfixtures;566fields53owners615records;zeroanalyzerwarnings/2files",
       "integration": "unchanged ff; declarationonly, real save binding remainsUG16"
+    },
+    {
+      "commit": "8b6e589f",
+      "integration": "60673dc9",
+      "scope": "RoomProjects packed and canonical metadata bytes, unchanged memory limit",
+      "review": "root independent review approved",
+      "tests": "all32 specification commands passed;7 corruption probes refused",
+      "limits": "logical ledger only; new underground owners still require additional accounting and whole runtime qualification"
     }
   ]
 }

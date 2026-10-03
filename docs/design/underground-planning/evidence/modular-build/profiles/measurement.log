@@ -1,0 +1,23 @@
+measuring mouse_keeper/anim_walk
+measuring mouse_keeper/anim_idle
+measuring mouse_keeper/anim_cautious_crouch_walk_forward
+measuring mouse_keeper/anim_carry_heavy_object_walk
+measuring mole_digger/anim_walk
+measuring mole_digger/anim_idle
+measuring mole_digger/anim_cautious_crouch_walk_forward
+measuring mole_digger/anim_carry_heavy_object_walk
+measuring mole_digger/anim_heavy_hammer_swing
+measuring squirrel_gatherer/anim_walk
+measuring squirrel_gatherer/anim_idle
+measuring squirrel_gatherer/anim_cautious_crouch_walk_forward
+measuring squirrel_gatherer/anim_carry_heavy_object_walk
+measuring otter_boatwright/anim_walk
+measuring otter_boatwright/anim_idle
+measuring otter_boatwright/anim_cautious_crouch_walk_forward
+measuring otter_boatwright/anim_carry_heavy_object_walk
+measuring badger_quarryman/anim_walk
+measuring badger_quarryman/anim_idle
+measuring badger_quarryman/anim_cautious_crouch_walk_forward
+measuring badger_quarryman/anim_carry_heavy_object_walk
+measuring badger_quarryman/anim_heavy_hammer_swing
+measurement: 22 source(s), 0 production-qualified profile(s); 3 missing optional source(s)

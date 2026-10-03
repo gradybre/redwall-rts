@@ -1604,3 +1604,16 @@ does not mint physical-space or work permission, or initialize a missing binding
 |---|---|---:|---|---|:-:|---|---|
 | Actual natural-surface creation scope | -- | -- | -- | No operation, candidate or cold token at save/frame boundary | 3 | -- | Decision1103. One once-bound provider holds actual World/Terrain/Space/CoreSources/Locations/Routes/Budget references; Locations borrows it weakly. Fixed World/seed and transient full handles/tokens/flags are reconstructed composition controls, not independent saved authority. Actual published natural floor/air/support and endpoint records belong to the existing Space/Locations canonical banks. |
 | Fixed input and observation scratch | -- | -- | -- | Arrays stay empty until the2048-byte logical binding admission | 3 | -- | One Locations.Record116 logical bytes (48 packed), one Region72 (24 packed), provider numeric controls92 and returned result16, total296 before nested helper frames. The2048 reservation is within the shared bindings reserve, not a new arena; native references/headers remain unmeasured. No per-anchor object, profile certificate, physical cut ledger, material receipt or Room record. Cold preparation borrows the same actual full Budget lease, with Locations cold peak plus2048 admitted before creation. |
+
+### Underground Profiles exact work selection amendment (decision1080)
+
+`query_work_profile_into` adds current profile/content-pinned selection for an
+authored WORK contact while reusing the same actual-owner query scratch. The
+immutable catalog may retain multiple WORK rows with the same physical key,
+within the unchanged16-variant limit; an ordinary ambiguous read refuses.
+There are no new retained fields, packed columns, banks, source-image copies,
+wire bytes or capacities. Additional selection/dispatch scalar locals and call
+frames are conservatively bounded by256 logical bytes within the existing32768
+control/native reservation, which remains unmeasured. The query performs no
+per-worker heap allocation or saved selection cache. Source/content identity,
+complete-state certificate and actual Job/Work/Gear obligations remain unchanged.

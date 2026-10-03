@@ -1,5 +1,17 @@
 # Underground implementation status
 
+## Concurrent full-build continuation
+
+Brendan subsequently authorized concurrent subagents and automatic release of
+dependent work until all approved scope is built. The integration now continues
+on `codex/underground-modular-integration`; see the
+[17-lane build queue](../../tasks/underground-modular-build.md) for current
+ownership, dependencies and evidence. The first wave implements canonical
+footprints, project editing holds and grid furniture layout validation in
+isolated worktrees. The first project-hold module is integrated; excavation
+accounting has started. These helper milestones do not complete D20 or make the
+full workflow playable yet. The evidence below remains the prior PR229 baseline.
+
 2026-10-02. Implementation authorized by Brendan's instruction to start
 building this into the other work. Branch: `codex/underground-build-2026-10-02`.
 Started at `origin/master` commit `223eb586`, including the merged hauling and

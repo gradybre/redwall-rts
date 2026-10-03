@@ -1,0 +1,798 @@
+{
+  "schema": 1,
+  "updated": "2026-10-02",
+  "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+  "integration_branch": "codex/underground-modular-integration",
+  "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
+  "foundation_commit": "09beda25a93f29da15b3b761f3b41bdfc4ea9faa",
+  "completion": "Every lane verified with integrated evidence; no player-facing requirement is complete from a standalone helper alone.",
+  "lanes": [
+    {
+      "id": "UG01",
+      "title": "Canonical integer footprints",
+      "status": "running",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/room_footprint.gd",
+        "godot/test/test_room_footprint.gd",
+        "docs/decisions/1052-canonical-room-footprints.md"
+      ],
+      "requirements": [
+        "UG-SHAPE-001",
+        "UG-SHAPE-002",
+        "UG-SHAPE-003",
+        "UG-SHAPE-004",
+        "UG-SHAPE-005",
+        "UG-SURFACE-001"
+      ],
+      "acceptance": [
+        "Deterministic shapes, concave boundaries, openings and full rotated containment; adversarial tests",
+        "No physical paid-cut identity derived from graph segments"
+      ],
+      "agent": "/root/ug_geometry",
+      "branch": "codex/underground-geometry",
+      "evidence": {},
+      "lease": {
+        "state": "held"
+      }
+    },
+    {
+      "id": "UG02",
+      "title": "Project identity and revision holds",
+      "status": "verified",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/room_projects.gd",
+        "godot/test/test_room_projects.gd",
+        "docs/decisions/1053-room-project-lifecycle.md"
+      ],
+      "requirements": [
+        "UG-BUILD-013",
+        "UG-BUILD-014",
+        "UG-BUILD-015",
+        "UG-BUILD-016"
+      ],
+      "acceptance": [
+        "Generation validation and real worker/claim inspection",
+        "Independent player pauses preserved; no fake excavation completion"
+      ],
+      "agent": "/root/ug_construction",
+      "branch": "codex/underground-construction",
+      "evidence": {
+        "commit": "02e98b7cc636271f7e3752c23b51ed9473fc8cf4",
+        "tests": "20 test(s), 301 assertion(s), 0 failure(s); decision1053 records focused clean-import strict single-suite shard",
+        "diagnostics": "0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s); analyzer 0 warnings in 2 files",
+        "review": "Independent integration-owner source review; coordinator membership, late jobs, claim release, stale generations and pause preservation checked. Cold safe-stop 5.55ms scan must not be polled per frame; actual callsite/save integration remains queued.",
+        "integration": "Cherry-picked unchanged into integration as a244755e + a93a5a34; registry 93 modules/441 rows/758 columns passes. Full integrated suite pending next assembled checkpoint."
+      },
+      "lease": {
+        "state": "released",
+        "stop_evidence": "ug_construction final response and clean worktree after commits02e98b7c/16159538; no further UG02 writes"
+      }
+    },
+    {
+      "id": "UG03",
+      "title": "Furniture layout drafts and placement rules",
+      "status": "running",
+      "depends_on": [],
+      "owns": [
+        "godot/scripts/core/room_layout.gd",
+        "godot/test/test_room_layout.gd",
+        "docs/decisions/1054-grid-furniture-layouts.md"
+      ],
+      "requirements": [
+        "UG-FURN-002",
+        "UG-FURN-003",
+        "UG-FURN-004",
+        "UG-FURN-005",
+        "UG-FURN-008",
+        "UG-FURN-009",
+        "UG-FURN-010",
+        "UG-FURN-011",
+        "UG-FURN-012"
+      ],
+      "acceptance": [
+        "Real catalog footprint scale, whole footprint and required approach validation",
+        "Atomic layout/individual order boundary; no preview charges/services"
+      ],
+      "agent": "/root/ug_furnishing",
+      "branch": "codex/underground-furnishing",
+      "evidence": {},
+      "lease": {
+        "state": "held"
+      }
+    },
+    {
+      "id": "UG04",
+      "title": "Interactive room drawing and blueprint controls",
+      "status": "queued",
+      "depends_on": [
+        "UG01"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_draft.gd",
+        "godot/demo/burrow/modular_editor.gd",
+        "godot/test/test_modular_draft.gd",
+        "godot/test/test_modular_editor.gd"
+      ],
+      "requirements": [
+        "UG-SHAPE-001",
+        "UG-SHAPE-002",
+        "UG-SHAPE-003",
+        "UG-SHAPE-004",
+        "UG-SHAPE-005",
+        "UG-VIEW-001",
+        "UG-VIEW-002",
+        "UG-VIEW-003",
+        "UG-VIEW-004"
+      ],
+      "acceptance": [
+        "Paint/add/erase rectangle, rounded, ellipse and path tools; explicit confirm/discard",
+        "Visible invalid geometry reasons and 1280x720 interaction checks"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG05",
+      "title": "Canonical room shell and surface rendering",
+      "status": "queued",
+      "depends_on": [
+        "UG01"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_shell.gd",
+        "godot/demo/burrow/modular_materials.gd",
+        "godot/test/test_modular_shell.gd"
+      ],
+      "requirements": [
+        "UG-SURFACE-001",
+        "UG-SURFACE-002",
+        "UG-SURFACE-003",
+        "UG-SURFACE-004",
+        "UG-SURFACE-005",
+        "UG-SURFACE-006",
+        "UG-SURFACE-007",
+        "UG-SURFACE-008",
+        "UG-SURFACE-013",
+        "UG-LEVEL-013",
+        "UG-LEVEL-020"
+      ],
+      "acceptance": [
+        "One boundary for floors/walls/ceilings/openings and split levels",
+        "World-scale textures; no gaps/overshoot at concave edges; native visual review"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG06",
+      "title": "Physical excavation and closure economy",
+      "status": "running",
+      "depends_on": [
+        "UG02"
+      ],
+      "owns": [
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/scripts/core/construction.gd",
+        "godot/scripts/core/work.gd",
+        "godot/test/test_excavation_sites.gd",
+        "godot/test/test_construction_excavation.gd",
+        "godot/scripts/core/excavation_work.gd",
+        "godot/scripts/core/excavation_inventory.gd",
+        "docs/decisions/1056-physical-excavation-phases.md"
+      ],
+      "requirements": [
+        "UG-BUILD-001",
+        "UG-BUILD-002",
+        "UG-BUILD-003",
+        "UG-BUILD-004",
+        "UG-BUILD-005",
+        "UG-BUILD-006",
+        "UG-BUILD-007",
+        "UG-BUILD-008",
+        "UG-BUILD-012"
+      ],
+      "acceptance": [
+        "ECON immutable 1m3 ledger with brace/cut/finish and delivered resources",
+        "Finite real spoil hauling; safe support/backfill commit; no repeated virgin yield",
+        "Construction/Work/Gear/Inventory integration; deterministic interruption and conservation"
+      ],
+      "agent": "/root/ug_construction",
+      "branch": "codex/underground-construction",
+      "evidence": {},
+      "lease": {
+        "state": "held"
+      }
+    },
+    {
+      "id": "UG07",
+      "title": "Room catalog, equipment profiles and real order acceptance",
+      "status": "queued",
+      "depends_on": [
+        "UG01",
+        "UG03",
+        "UG06"
+      ],
+      "owns": [
+        "godot/scripts/core/room_catalog.gd",
+        "godot/scripts/core/room_order_coordinator.gd",
+        "godot/test/test_room_catalog.gd",
+        "godot/test/test_room_order_coordinator.gd"
+      ],
+      "requirements": [
+        "UG-FURN-002",
+        "UG-FURN-003",
+        "UG-FURN-004",
+        "UG-FURN-005",
+        "UG-FURN-010",
+        "UG-FURN-012",
+        "UG-FURN-013",
+        "UG-FURN-024",
+        "UG-FURN-027",
+        "UG-VIEW-006",
+        "UG-VIEW-008"
+      ],
+      "acceptance": [
+        "Author GDD room/furniture compatibility, actual geometry and installation/use contacts",
+        "No unfinished furniture service grant; whole-room validity enforced",
+        "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG08",
+      "title": "Multilevel occupancy, support and fixed connector catalog",
+      "status": "queued",
+      "depends_on": [
+        "UG01",
+        "UG06"
+      ],
+      "owns": [
+        "godot/scripts/core/room_space.gd",
+        "godot/scripts/core/room_connectors.gd",
+        "godot/test/test_room_space.gd",
+        "godot/test/test_room_connectors.gd"
+      ],
+      "requirements": [
+        "UG-LEVEL-001",
+        "UG-LEVEL-002",
+        "UG-LEVEL-003",
+        "UG-LEVEL-004",
+        "UG-LEVEL-005",
+        "UG-LEVEL-006",
+        "UG-LEVEL-007",
+        "UG-LEVEL-008",
+        "UG-LEVEL-009",
+        "UG-LEVEL-010",
+        "UG-LEVEL-011",
+        "UG-LEVEL-012",
+        "UG-LEVEL-013",
+        "UG-LEVEL-014",
+        "UG-LEVEL-015",
+        "UG-LEVEL-016",
+        "UG-LEVEL-017",
+        "UG-LEVEL-018",
+        "UG-LEVEL-019",
+        "UG-LEVEL-020",
+        "UG-LEVEL-021"
+      ],
+      "acceptance": [
+        "Full 3D envelopes across all intersected levels and protected landings",
+        "Fixed earth/timber, stone, ramp, spiral, ladder/hatch and short-step variants",
+        "Real worker/load movement profile and occupied traversal safety; no stretching",
+        "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG09",
+      "title": "First playable blueprint to empty Kitchen",
+      "status": "queued",
+      "depends_on": [
+        "UG04",
+        "UG05",
+        "UG06",
+        "UG07",
+        "UG08"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_runtime.gd",
+        "godot/demo/burrow/room_tool.gd",
+        "godot/demo/tunnel/tunnel_control.gd",
+        "godot/demo/tunnel/tunnel_ext.gd",
+        "godot/demo/tunnel/tunnel_panel.gd",
+        "godot/test/test_modular_runtime.gd",
+        "godot/test/live/modular_kitchen_live.gd"
+      ],
+      "requirements": [
+        "UG-BUILD-001",
+        "UG-BUILD-002",
+        "UG-BUILD-003",
+        "UG-LEVEL-022",
+        "UG-LEVEL-023",
+        "UG-LEVEL-024",
+        "UG-LEVEL-025",
+        "UG-VIEW-001",
+        "UG-VIEW-002",
+        "UG-VIEW-003",
+        "UG-VIEW-004"
+      ],
+      "acceptance": [
+        "D20 first checkpoint: user can paint/confirm Kitchen; real workers dig and finish an EMPTY shell",
+        "Entrance suggestion and manual adjustment; no template/silent passage fallback",
+        "Actual native 1280x720 input and before/during/after screenshots reviewed",
+        "Activate no production cut until the physical-space owner supplies real dry/support/contact and canonical paid-volume bindings"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG10",
+      "title": "Grid furniture UI, services and example guides",
+      "status": "queued",
+      "depends_on": [
+        "UG07",
+        "UG09"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_furnishing.gd",
+        "godot/demo/burrow/modular_examples.gd",
+        "godot/demo/burrow/modular_services.gd",
+        "godot/test/test_modular_furnishing.gd",
+        "godot/test/live/modular_furnishing_live.gd"
+      ],
+      "requirements": [
+        "UG-FURN-001",
+        "UG-FURN-002",
+        "UG-FURN-003",
+        "UG-FURN-004",
+        "UG-FURN-005",
+        "UG-FURN-006",
+        "UG-FURN-007",
+        "UG-FURN-008",
+        "UG-FURN-009",
+        "UG-FURN-010",
+        "UG-FURN-011",
+        "UG-FURN-012",
+        "UG-FURN-013",
+        "UG-VIEW-005",
+        "UG-VIEW-006",
+        "UG-VIEW-007",
+        "UG-VIEW-008"
+      ],
+      "acceptance": [
+        "Both modes exposed per room; real material delivery/installation/use around obstacles",
+        "Kitchen cooking and Bedroom beds functional only when entire room valid",
+        "Sizing examples use actual profiles with no orders/charges/services"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG11",
+      "title": "Two-level rooms, section editor and additional entrances",
+      "status": "queued",
+      "depends_on": [
+        "UG08",
+        "UG09"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_levels.gd",
+        "godot/demo/burrow/modular_connector_tool.gd",
+        "godot/demo/burrow/modular_entrances.gd",
+        "godot/test/test_modular_levels.gd",
+        "godot/test/live/modular_levels_live.gd"
+      ],
+      "requirements": [
+        "UG-LEVEL-001",
+        "UG-LEVEL-002",
+        "UG-LEVEL-003",
+        "UG-LEVEL-004",
+        "UG-LEVEL-005",
+        "UG-LEVEL-006",
+        "UG-LEVEL-007",
+        "UG-LEVEL-008",
+        "UG-LEVEL-009",
+        "UG-LEVEL-010",
+        "UG-LEVEL-011",
+        "UG-LEVEL-012",
+        "UG-LEVEL-013",
+        "UG-LEVEL-014",
+        "UG-LEVEL-015",
+        "UG-LEVEL-016",
+        "UG-LEVEL-017",
+        "UG-LEVEL-018",
+        "UG-LEVEL-019",
+        "UG-LEVEL-020",
+        "UG-LEVEL-021",
+        "UG-LEVEL-022",
+        "UG-LEVEL-023",
+        "UG-LEVEL-024",
+        "UG-LEVEL-025",
+        "UG-LEVEL-026",
+        "UG-LEVEL-027",
+        "UG-LEVEL-028",
+        "UG-LEVEL-029",
+        "UG-LEVEL-030"
+      ],
+      "acceptance": [
+        "Main levels and painted raised/sunken sections with fixed short steps",
+        "Both additional entrance workflows; shared stair passage; upper-level furniture protected",
+        "Workers and goods reach lower rooms through real finished access; native walkthrough"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG12",
+      "title": "Live revision UI and safe amendment transactions",
+      "status": "queued",
+      "depends_on": [
+        "UG02",
+        "UG06",
+        "UG09"
+      ],
+      "owns": [
+        "godot/scripts/core/room_amendments.gd",
+        "godot/demo/burrow/modular_revision.gd",
+        "godot/test/test_room_amendments.gd",
+        "godot/test/live/modular_revision_live.gd"
+      ],
+      "requirements": [
+        "UG-BUILD-009",
+        "UG-BUILD-010",
+        "UG-BUILD-011",
+        "UG-BUILD-012",
+        "UG-BUILD-013",
+        "UG-BUILD-014",
+        "UG-BUILD-015",
+        "UG-BUILD-016",
+        "UG-BUILD-017",
+        "UG-BUILD-018",
+        "UG-BUILD-019"
+      ],
+      "acceptance": [
+        "Only unstarted work editable; actual started work/claims/materials survive",
+        "Apply/Discard/Keep editing semantics on every exit path; rejection retains hold",
+        "Revision save restore and independent pause tests"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG13",
+      "title": "Room removal, backfill and replacement",
+      "status": "queued",
+      "depends_on": [
+        "UG06",
+        "UG08",
+        "UG10"
+      ],
+      "owns": [
+        "godot/scripts/core/room_removal.gd",
+        "godot/demo/burrow/modular_removal.gd",
+        "godot/test/test_room_removal.gd",
+        "godot/test/live/modular_replacement_live.gd"
+      ],
+      "requirements": [
+        "UG-BUILD-004",
+        "UG-BUILD-005",
+        "UG-BUILD-006",
+        "UG-BUILD-007",
+        "UG-BUILD-008",
+        "UG-FURN-024",
+        "UG-FURN-025",
+        "UG-FURN-026",
+        "UG-FURN-027",
+        "UG-LEVEL-012",
+        "UG-LEVEL-028",
+        "UG-LEVEL-029",
+        "UG-LEVEL-030"
+      ],
+      "acceptance": [
+        "Empty Kitchen remains Kitchen; room removal requires actual safe backfill",
+        "Replacement requires new blueprint and full worker construction; old refs/services retired",
+        "Shared passages/stairs and adjacent levels preserved; real earth and salvage accounting"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG14",
+      "title": "Portable furniture relocation and storage draining",
+      "status": "queued",
+      "depends_on": [
+        "UG08",
+        "UG10"
+      ],
+      "owns": [
+        "godot/scripts/core/furniture_relocation.gd",
+        "godot/demo/burrow/modular_relocation.gd",
+        "godot/test/test_furniture_relocation.gd",
+        "godot/test/live/modular_relocation_live.gd"
+      ],
+      "requirements": [
+        "UG-FURN-014",
+        "UG-FURN-015",
+        "UG-FURN-016",
+        "UG-FURN-017",
+        "UG-FURN-018",
+        "UG-FURN-019",
+        "UG-FURN-020",
+        "UG-FURN-021",
+        "UG-FURN-022",
+        "UG-FURN-023"
+      ],
+      "acceptance": [
+        "Real worker transport, compatible cargo routes and safe interruption recovery",
+        "Unload with real hauling; shared pantry capacity/claims conserved",
+        "Fixed installations dismantle/rebuild deliberately; no teleport or Move salvage"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG15",
+      "title": "Whole-surface renovation and coordinated item returns",
+      "status": "queued",
+      "depends_on": [
+        "UG05",
+        "UG13",
+        "UG14"
+      ],
+      "owns": [
+        "godot/scripts/core/room_renovation.gd",
+        "godot/demo/burrow/modular_renovation.gd",
+        "godot/test/test_room_renovation.gd",
+        "godot/test/live/modular_renovation_live.gd"
+      ],
+      "requirements": [
+        "UG-SURFACE-009",
+        "UG-SURFACE-010",
+        "UG-SURFACE-011",
+        "UG-SURFACE-012",
+        "UG-SURFACE-013",
+        "UG-SURFACE-014",
+        "UG-FURN-028",
+        "UG-FURN-029",
+        "UG-FURN-030",
+        "UG-FURN-031"
+      ],
+      "acceptance": [
+        "Reviewed temporary and return destinations; real unload/move/finish/return work",
+        "One finish per surface; unchanged surfaces and room purpose/shape preserved",
+        "Cancellation keeps physical progress; fixed obstructions require explicit removal"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG16",
+      "title": "Composed persistence and deterministic resume",
+      "status": "queued",
+      "depends_on": [
+        "UG11",
+        "UG12",
+        "UG13",
+        "UG14",
+        "UG15"
+      ],
+      "owns": [
+        "godot/scripts/core/save_owner_rooms.gd",
+        "godot/scripts/core/save_section_rooms.gd",
+        "godot/scripts/core/save_owner_construction.gd",
+        "godot/scripts/core/save_section_construction.gd",
+        "godot/demo/burrow/modular_save.gd",
+        "godot/test/test_room_persistence.gd",
+        "godot/test/live/modular_save_live.gd"
+      ],
+      "requirements": [
+        "UG-BUILD-007",
+        "UG-BUILD-012",
+        "UG-BUILD-016",
+        "UG-SURFACE-012",
+        "UG-SURFACE-014",
+        "UG-FURN-019",
+        "UG-FURN-024",
+        "UG-FURN-031",
+        "UG-LEVEL-001",
+        "UG-LEVEL-017"
+      ],
+      "acceptance": [
+        "Real demo save path composes all owners, drafts, refs, claims, physical ledger and edit holds",
+        "Save at each delivery/cut/closure/transport/revision stage; deterministic next-tick continuation",
+        "Corrupt/stale refs fail atomically; no goods/history reset"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "lease": {
+        "state": "free"
+      }
+    },
+    {
+      "id": "UG17",
+      "title": "Full catalog, setting presentation and regression qualification",
+      "status": "queued",
+      "depends_on": [
+        "UG16"
+      ],
+      "owns": [
+        "godot/demo/burrow/",
+        "godot/test/test_underground_256.gd",
+        "godot/test/live/modular_full_lifecycle_live.gd",
+        "docs/design/underground-planning/evidence/modular-build/"
+      ],
+      "requirements": [
+        "UG-SHAPE-001",
+        "UG-SHAPE-002",
+        "UG-SHAPE-003",
+        "UG-SHAPE-004",
+        "UG-SHAPE-005",
+        "UG-SURFACE-001",
+        "UG-SURFACE-002",
+        "UG-SURFACE-003",
+        "UG-SURFACE-004",
+        "UG-SURFACE-005",
+        "UG-SURFACE-006",
+        "UG-SURFACE-007",
+        "UG-SURFACE-008",
+        "UG-SURFACE-013",
+        "UG-SURFACE-014",
+        "UG-SURFACE-009",
+        "UG-SURFACE-010",
+        "UG-SURFACE-011",
+        "UG-SURFACE-012",
+        "UG-BUILD-001",
+        "UG-BUILD-002",
+        "UG-BUILD-003",
+        "UG-BUILD-009",
+        "UG-BUILD-010",
+        "UG-BUILD-011",
+        "UG-BUILD-012",
+        "UG-BUILD-013",
+        "UG-BUILD-014",
+        "UG-BUILD-015",
+        "UG-BUILD-016",
+        "UG-BUILD-017",
+        "UG-BUILD-018",
+        "UG-BUILD-019",
+        "UG-BUILD-004",
+        "UG-BUILD-005",
+        "UG-BUILD-006",
+        "UG-BUILD-007",
+        "UG-BUILD-008",
+        "UG-VIEW-001",
+        "UG-VIEW-002",
+        "UG-VIEW-003",
+        "UG-VIEW-004",
+        "UG-VIEW-005",
+        "UG-VIEW-006",
+        "UG-VIEW-007",
+        "UG-VIEW-008",
+        "UG-LEVEL-001",
+        "UG-LEVEL-002",
+        "UG-LEVEL-003",
+        "UG-LEVEL-004",
+        "UG-LEVEL-005",
+        "UG-LEVEL-006",
+        "UG-LEVEL-007",
+        "UG-LEVEL-008",
+        "UG-LEVEL-009",
+        "UG-LEVEL-010",
+        "UG-LEVEL-011",
+        "UG-LEVEL-012",
+        "UG-LEVEL-013",
+        "UG-LEVEL-014",
+        "UG-LEVEL-015",
+        "UG-LEVEL-016",
+        "UG-LEVEL-017",
+        "UG-LEVEL-018",
+        "UG-LEVEL-019",
+        "UG-LEVEL-020",
+        "UG-LEVEL-021",
+        "UG-LEVEL-022",
+        "UG-LEVEL-023",
+        "UG-LEVEL-024",
+        "UG-LEVEL-025",
+        "UG-LEVEL-026",
+        "UG-LEVEL-027",
+        "UG-LEVEL-028",
+        "UG-LEVEL-029",
+        "UG-LEVEL-030",
+        "UG-FURN-001",
+        "UG-FURN-002",
+        "UG-FURN-003",
+        "UG-FURN-004",
+        "UG-FURN-005",
+        "UG-FURN-006",
+        "UG-FURN-007",
+        "UG-FURN-008",
+        "UG-FURN-009",
+        "UG-FURN-010",
+        "UG-FURN-011",
+        "UG-FURN-012",
+        "UG-FURN-013",
+        "UG-FURN-014",
+        "UG-FURN-015",
+        "UG-FURN-016",
+        "UG-FURN-017",
+        "UG-FURN-018",
+        "UG-FURN-019",
+        "UG-FURN-020",
+        "UG-FURN-021",
+        "UG-FURN-022",
+        "UG-FURN-023",
+        "UG-FURN-024",
+        "UG-FURN-025",
+        "UG-FURN-026",
+        "UG-FURN-027",
+        "UG-FURN-028",
+        "UG-FURN-029",
+        "UG-FURN-030",
+        "UG-FURN-031"
+      ],
+      "acceptance": [
+        "ALL 107 criteria exercised in actual demo, including tunnels/cellars/burrows and complete connectors",
+        "Native 1280x720 visuals and keyboard/camera/multiselect/readability; grounded expressive art direction",
+        "256 residents, scale/memory/route timing evidence and honest target-hardware limitations",
+        "Clean assets/cache import, full no-argument strict suite, zero-warning analyzer, no unexpected diagnostics/leaks"
+      ],
+      "agent": null,
+      "branch": null,
+      "evidence": {},
+      "kind": "qualification",
+      "lease": {
+        "state": "free"
+      }
+    }
+  ],
+  "automation_id": "finish-underground-building"
+}

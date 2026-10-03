@@ -1,0 +1,322 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-00.log",
+    "seconds": 0.033
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-01.log",
+    "seconds": 0.55
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-02.log",
+    "seconds": 0.028
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      "docs/validation/setting_contract.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-joint-budget/docs/validation/evidence/underground-joint-budget-2026-10-03/setting-contract.json"
+    ],
+    "exit_code": 0,
+    "log": "spec-03.log",
+    "seconds": 0.03
+  },
+  {
+    "command": [
+      "python3",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "log": "spec-04.log",
+    "seconds": 0.027
+  },
+  {
+    "command": [
+      "python3",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-05.log",
+    "seconds": 0.026
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "log": "spec-06.log",
+    "seconds": 0.288
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-07.log",
+    "seconds": 0.028
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-08.log",
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "exit_code": 1,
+    "log": "spec-09.log",
+    "seconds": 0.027
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "log": "spec-10.log",
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-11.log",
+    "seconds": 1.562
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-12.log",
+    "seconds": 3.029
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-13.log",
+    "seconds": 1.556
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_component_columns_schema.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-14.log",
+    "seconds": 17.247
+  },
+  {
+    "command": [
+      "python3",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-15.log",
+    "seconds": 0.028
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-16.log",
+    "seconds": 0.418
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-17.log",
+    "seconds": 0.066
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-18.log",
+    "seconds": 0.274
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_headless_runner.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-19.log",
+    "seconds": 0.034
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_qualify.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-20.log",
+    "seconds": 0.427
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_winter.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-21.log",
+    "seconds": 8.243
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-22.log",
+    "seconds": 0.373
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_repair_meshy_rig.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-23.log",
+    "seconds": 0.041
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_rig_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-24.log",
+    "seconds": 0.074
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_bake_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-25.log",
+    "seconds": 0.17
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_ground_meshy_clips.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-26.log",
+    "seconds": 1.385
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_demo_texture_imports.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-27.log",
+    "seconds": 0.323
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_build_demo_windows.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-28.log",
+    "seconds": 0.044
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_balance_report.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-29.log",
+    "seconds": 0.038
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_soak_report.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-30.log",
+    "seconds": 0.045
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_stage_art_passes.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-31.log",
+    "seconds": 0.037
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-32.log",
+    "seconds": 0.313
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-33.log",
+    "seconds": 1.84
+  }
+]

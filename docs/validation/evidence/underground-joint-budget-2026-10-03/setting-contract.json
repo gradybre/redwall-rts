@@ -1,0 +1,150 @@
+{
+  "status": "PASS_STATIC_SPEC_AND_REFERENCE_ONLY",
+  "catalog_counts": {
+    "items": 61,
+    "recipes": 24,
+    "ancillary": 12,
+    "buildings": 30,
+    "furniture": 9,
+    "crops": 5
+  },
+  "resolved_dependency_edges": 183,
+  "roast_levels": [
+    {
+      "cook_level": 0,
+      "quantities_milli": [
+        3000,
+        2000,
+        1000,
+        250
+      ],
+      "mass_g": 1563
+    },
+    {
+      "cook_level": 1,
+      "quantities_milli": [
+        2970,
+        1980,
+        1000,
+        250
+      ],
+      "mass_g": 1551
+    },
+    {
+      "cook_level": 2,
+      "quantities_milli": [
+        2940,
+        1960,
+        1000,
+        250
+      ],
+      "mass_g": 1538
+    },
+    {
+      "cook_level": 3,
+      "quantities_milli": [
+        2910,
+        1940,
+        1000,
+        250
+      ],
+      "mass_g": 1526
+    },
+    {
+      "cook_level": 4,
+      "quantities_milli": [
+        2880,
+        1920,
+        1000,
+        250
+      ],
+      "mass_g": 1513
+    },
+    {
+      "cook_level": 5,
+      "quantities_milli": [
+        2850,
+        1900,
+        1000,
+        250
+      ],
+      "mass_g": 1501
+    },
+    {
+      "cook_level": 6,
+      "quantities_milli": [
+        2820,
+        1880,
+        1000,
+        250
+      ],
+      "mass_g": 1488
+    },
+    {
+      "cook_level": 7,
+      "quantities_milli": [
+        2790,
+        1860,
+        1000,
+        250
+      ],
+      "mass_g": 1476
+    },
+    {
+      "cook_level": 8,
+      "quantities_milli": [
+        2760,
+        1840,
+        1000,
+        250
+      ],
+      "mass_g": 1463
+    },
+    {
+      "cook_level": 9,
+      "quantities_milli": [
+        2730,
+        1820,
+        1000,
+        250
+      ],
+      "mass_g": 1451
+    },
+    {
+      "cook_level": 10,
+      "quantities_milli": [
+        2700,
+        1800,
+        1000,
+        250
+      ],
+      "mass_g": 1438
+    }
+  ],
+  "admission_reference_fixtures": {
+    "4": [
+      "mole",
+      "otter"
+    ],
+    "7": [
+      "otter",
+      "squirrel"
+    ],
+    "10": [
+      "squirrel",
+      "rat"
+    ],
+    "13": [
+      "shrew",
+      "hedgehog"
+    ]
+  },
+  "source_sha256": {
+    "game_gdd.md": "d4e5f7dee1e5af913fb23730bf8e3f33a9869c0a3e8d789f19025fc44e033600",
+    "gameplay_balance.md": "8c01df320b84cdcff218bfd1ce993fadfdd8c98dcaa4dd54eb14e9dbb7afb84d",
+    "systems_architecture.md": "ae54eb8fffb0df5d80259fa72b8fee68811b15168b4a02ad61a78eddd7862433",
+    "ui_ux_controls.md": "2117b278968e618caf0d0a46446116caed88c3b41e7cc38a469ece31bcc669ed",
+    "setting_rules_amendment.md": "ede2b0508f8428b7216c3b831d5ea54d1db3a868d903224b192d56b61cf1db10"
+  },
+  "limitations": "Checks catalog definitions and independent arithmetic fixtures. Does not run admission, UI, saves, ecology, or full settlement survival in Godot."
+}

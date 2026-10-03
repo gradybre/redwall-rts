@@ -1,0 +1,935 @@
+{
+  "schema": 1,
+  "scope": "source-derived logical allocation pack; runtime qualification remains open",
+  "runtime_qualified": false,
+  "pack": {
+    "REGION_CAPACITY": 6144,
+    "SOURCE_CAPACITY": 2048,
+    "PROOF_CAPACITY": 256,
+    "PHASE_VOLUME_CAPACITY": 8192,
+    "TIP_CAPACITY": 256,
+    "LAYOUT_ROOM_CAPACITY": 256,
+    "LAYOUT_PLACEMENT_CAPACITY": 1024,
+    "LOCATION_CAPACITY": 1024,
+    "INVENTORY_ENDPOINT_CAPACITY": 1024
+  },
+  "columns": {
+    "underground_space_owner": {
+      "_changed_mask": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1348
+      },
+      "_changed_rows": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1347
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 18,
+        "bytes": 144,
+        "resize_expression": "HEADER_FIELDS",
+        "line": 1345
+      },
+      "_o_a": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1413
+      },
+      "_o_b": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1414
+      },
+      "_o_c": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1415
+      },
+      "_o_d": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1416
+      },
+      "_o_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1409
+      },
+      "_o_kind": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 1407
+      },
+      "_o_parent_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1412
+      },
+      "_o_parent_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1411
+      },
+      "_o_present": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 1406
+      },
+      "_o_revision": {
+        "width": 8,
+        "capacity": 2048,
+        "bytes": 16384,
+        "resize_expression": "_source_capacity",
+        "line": 1410
+      },
+      "_o_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1408
+      },
+      "_r_claim_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1377
+      },
+      "_r_claim_kind": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1362
+      },
+      "_r_claim_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1376
+      },
+      "_r_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1363
+      },
+      "_r_hi_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1367
+      },
+      "_r_hi_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1368
+      },
+      "_r_hi_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1369
+      },
+      "_r_level": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1370
+      },
+      "_r_lo_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1364
+      },
+      "_r_lo_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1365
+      },
+      "_r_lo_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1366
+      },
+      "_r_owner_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1374
+      },
+      "_r_owner_revision": {
+        "width": 8,
+        "capacity": 6144,
+        "bytes": 49152,
+        "resize_expression": "_region_capacity",
+        "line": 1375
+      },
+      "_r_owner_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1373
+      },
+      "_r_present": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1359
+      },
+      "_r_retired": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1360
+      },
+      "_r_role": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1361
+      },
+      "_r_section_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1372
+      },
+      "_r_section_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1371
+      },
+      "_region_free_heap": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1349
+      },
+      "_s_header": {
+        "width": 8,
+        "capacity": 18,
+        "bytes": 144,
+        "resize_expression": "HEADER_FIELDS",
+        "line": 1346
+      },
+      "_s_o_a": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1429
+      },
+      "_s_o_b": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1430
+      },
+      "_s_o_c": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1431
+      },
+      "_s_o_d": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1432
+      },
+      "_s_o_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1425
+      },
+      "_s_o_kind": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 1423
+      },
+      "_s_o_parent_generation": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1428
+      },
+      "_s_o_parent_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1427
+      },
+      "_s_o_present": {
+        "width": 1,
+        "capacity": 2048,
+        "bytes": 2048,
+        "resize_expression": "_source_capacity",
+        "line": 1422
+      },
+      "_s_o_revision": {
+        "width": 8,
+        "capacity": 2048,
+        "bytes": 16384,
+        "resize_expression": "_source_capacity",
+        "line": 1426
+      },
+      "_s_o_slot": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1424
+      },
+      "_s_r_claim_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1401
+      },
+      "_s_r_claim_kind": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1386
+      },
+      "_s_r_claim_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1400
+      },
+      "_s_r_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1387
+      },
+      "_s_r_hi_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1391
+      },
+      "_s_r_hi_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1392
+      },
+      "_s_r_hi_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1393
+      },
+      "_s_r_level": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1394
+      },
+      "_s_r_lo_x": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1388
+      },
+      "_s_r_lo_y": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1389
+      },
+      "_s_r_lo_z": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1390
+      },
+      "_s_r_owner_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1398
+      },
+      "_s_r_owner_revision": {
+        "width": 8,
+        "capacity": 6144,
+        "bytes": 49152,
+        "resize_expression": "_region_capacity",
+        "line": 1399
+      },
+      "_s_r_owner_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1397
+      },
+      "_s_r_present": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1383
+      },
+      "_s_r_retired": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1384
+      },
+      "_s_r_role": {
+        "width": 1,
+        "capacity": 6144,
+        "bytes": 6144,
+        "resize_expression": "_region_capacity",
+        "line": 1385
+      },
+      "_s_r_section_generation": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1396
+      },
+      "_s_r_section_slot": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1395
+      },
+      "_s_region_free_heap": {
+        "width": 4,
+        "capacity": 6144,
+        "bytes": 24576,
+        "resize_expression": "_region_capacity",
+        "line": 1350
+      },
+      "_s_source_free_heap": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1352
+      },
+      "_source_free_heap": {
+        "width": 4,
+        "capacity": 2048,
+        "bytes": 8192,
+        "resize_expression": "_source_capacity",
+        "line": 1351
+      }
+    },
+    "underground_space_authority": {
+      "_free": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 203
+      },
+      "_next_i32": {
+        "width": 4,
+        "capacity": 11,
+        "bytes": 44,
+        "resize_expression": "I32_FIELDS",
+        "line": 204
+      },
+      "_next_i64": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "I64_FIELDS",
+        "line": 205
+      },
+      "_ordered": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 202
+      },
+      "_present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 199
+      },
+      "_proof_i32": {
+        "width": 4,
+        "capacity": 2816,
+        "bytes": 11264,
+        "resize_expression": "_capacity * I32_FIELDS",
+        "line": 200
+      },
+      "_proof_i64": {
+        "width": 8,
+        "capacity": 512,
+        "bytes": 4096,
+        "resize_expression": "_capacity * I64_FIELDS",
+        "line": 201
+      }
+    },
+    "spoil_tips": {
+      "_earned_mwu": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "_capacity * OP_COUNT",
+        "line": 113
+      },
+      "_embedded_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 109
+      },
+      "_free_heap": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 115
+      },
+      "_generation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 104
+      },
+      "_incoming_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 112
+      },
+      "_locked_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 111
+      },
+      "_operation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 108
+      },
+      "_prepared": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 103
+      },
+      "_present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 101
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 107
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 106
+      },
+      "_quantity_milli": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 110
+      },
+      "_retained_quantity": {
+        "width": 8,
+        "capacity": 512,
+        "bytes": 4096,
+        "resize_expression": "_capacity * 2",
+        "line": 114
+      },
+      "_retired": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_capacity",
+        "line": 102
+      },
+      "_tile": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 105
+      },
+      "_tile_row": {
+        "width": 4,
+        "capacity": 16384,
+        "bytes": 65536,
+        "resize_expression": "MAX_CAPACITY",
+        "line": 116
+      }
+    },
+    "room_layout": {
+      "_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 160
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 167
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 166
+      },
+      "_room_generations": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 151
+      },
+      "_room_modes": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "_room_capacity",
+        "line": 153
+      },
+      "_room_row": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 161
+      },
+      "_room_slots": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 149
+      },
+      "_room_types": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_room_capacity",
+        "line": 152
+      },
+      "_rotation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 165
+      },
+      "_state": {
+        "width": 1,
+        "capacity": 1024,
+        "bytes": 1024,
+        "resize_expression": "_placement_capacity",
+        "line": 159
+      },
+      "_type": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 162
+      },
+      "_x": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 163
+      },
+      "_z": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_placement_capacity",
+        "line": 164
+      }
+    },
+    "modular_projects": {
+      "_delivery_totals": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "DELIVERY_CAPACITY",
+        "line": 76
+      },
+      "_job_generation": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 72
+      },
+      "_job_slot": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 72
+      },
+      "_project_generation": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 72
+      },
+      "_project_slot": {
+        "width": 4,
+        "capacity": 8192,
+        "bytes": 32768,
+        "resize_expression": "JOB_CAPACITY",
+        "line": 72
+      }
+    },
+    "inventory_spatial": {
+      "_spatial_container_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4886
+      },
+      "_spatial_container_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4885
+      },
+      "_spatial_location_generation": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4888
+      },
+      "_spatial_location_revision": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "capacity",
+        "line": 4889
+      },
+      "_spatial_location_slot": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "capacity",
+        "line": 4887
+      }
+    }
+  },
+  "quote": {
+    "columns": {
+      "input_milli": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "INPUT_CAPACITY"
+      },
+      "output_item": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_milli": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_quality": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_provenance": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_recipe": {
+        "width": 4,
+        "capacity": 2,
+        "bytes": 8,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_age": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      },
+      "output_remainder": {
+        "width": 8,
+        "capacity": 2,
+        "bytes": 16,
+        "resize_expression": "OUTPUT_CAPACITY"
+      }
+    },
+    "numeric_control_bytes": 72,
+    "consumers": [
+      [
+        "construction",
+        "_modular_quote"
+      ],
+      [
+        "excavation_inventory",
+        "_quote"
+      ],
+      [
+        "modular_projects",
+        "_quote"
+      ]
+    ]
+  },
+  "contributions": {
+    "space_banks_and_indexes": 1104160,
+    "phase_proof_cache_and_candidate": 17724,
+    "shared_geometry_cold_peak": 1048960,
+    "space_known_numeric_controls": 686,
+    "tips_live_and_cold_image_peak": 123440,
+    "layout_retained_columns": 37120,
+    "shared_router_and_funding_increment": 271003,
+    "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
+    "INVENTORY_EXTENSION_BYTES": 131072,
+    "PROFILE_BYTES": 262144,
+    "TERRAIN_BYTES": 131072,
+    "LAYOUT_COLD_BYTES": 262144,
+    "BINDINGS_AND_GROWTH_BYTES": 524288
+  },
+  "new_mutable_and_reserved_bytes": 4962389,
+  "declaration_bytes": 23573,
+  "declaration_delta_bytes": 2388,
+  "live_with_reserve_bytes": 99955154,
+  "headroom_bytes": 44846,
+  "source_sha256": {
+    "godot/scripts/core/construction.gd": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+    "godot/scripts/core/excavation_inventory.gd": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
+    "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+    "godot/scripts/core/modular_project_contract.gd": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+    "godot/scripts/core/modular_projects.gd": "f0f0af6f713d2819ec6260d0bd06ea1e54457e931bd06143e35876572fbd63b3",
+    "godot/scripts/core/room_layout.gd": "33ff91234526617fd814034c710e37b1774ee829ad92a9e2b5c784511b8e288a",
+    "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
+    "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/scripts/core/underground_space_authority.gd": "cb3cb02cf56cc9779e9de1e48f1647335ff44fedf709247f5d9e4e6c03fb7edf",
+    "godot/scripts/core/underground_space_owner.gd": "51e065b3bef01490000aacfcebfee9687164ab94961e4ec21b82f0cbf8dc95c8"
+  },
+  "registry_sha256": "e0f9278bec43386af0a59cd4b2a81b9143c9c907cbcf16cdd2da8975b197d17c",
+  "limitations": [
+    "Constructor limits alone are not joint runtime admission.",
+    "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",
+    "Location/topology, profile, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
+    "All native headers, Variant/Array capacity growth, restored copies and omitted future fields must fit measured reserves before activation.",
+    "Physical phase, generic three-survey validation and wire capture are mutually exclusive cold operations unless their combined actual charge fits."
+  ]
+}

@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-03-UG3",
- "registry_version": 10,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-03-UG4",
+ "registry_version": 11,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -22,7 +22,7 @@
   "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
   "injury": "a0932b0c2fddd8ea32f460d1ca4d88977fa759391fcac6f845957fff433184c2",
   "int_math": "fba44816a36e9a2d88e090ae80d8e95229adaa7ed131bceef2df9b34247452ca",
-  "inventory": "f74a3b67fc0e6df37ebf725abb480aac0760065357e12c5080cded671e28d41a",
+  "inventory": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
   "item_definitions": "4e745577260b8cbb7b16370ebb6f5be05c9441eb8b6976e5022f734814175551",
   "job_planner": "183845e20d22efc2c35263324089284008a20b02d3884b2d19a0a877507ee29b",
   "jobs": "873ae548eac451f7342186afaff5e0f24e2e759da2a3d9e580f937ba520d727c",
@@ -52,15 +52,22 @@
   "stock_age": "339b85a374bdabe1242474f25fbbf4b16ffd42e077c52156d49db1fe5fecd557",
   "transforms": "c5432aa63dcbd774bfca9b1aaa2fdbbe5908a4159a3ce42f7fc30fbca0e62188",
   "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
-  "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
+  "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
   "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a",
   "room_projects": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184",
-  "excavation_inventory": "f64f0da1e5f975aa78dfaa82b0bc625a47a18fa3e2edfa658e41fdb24b0e6ef6",
-  "excavation_sites": "1b5d7d4d56c005517ea404d6635cc22f282a6d3a74b08ce0217f399f83eb861a"
+  "excavation_inventory": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
+  "excavation_sites": "72d2a5a2c795ffe9afcf6c9bd55a88276c1534d7da363aaf3c8b9a325a27de93",
+  "underground_space_owner": "51e065b3bef01490000aacfcebfee9687164ab94961e4ec21b82f0cbf8dc95c8",
+  "modular_projects": "f0f0af6f713d2819ec6260d0bd06ea1e54457e931bd06143e35876572fbd63b3",
+  "spoil_tips": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
+  "spoil_work": "1bfa2b36df3c7b41e16609cf27e110e92b86716b99174cf3a38927f19beddcde",
+  "inventory_spatial_contract": "0919427cbe6ea08ca7caa0f759775f5b1536373e5e174fa739bc0f420725aa0a",
+  "room_layout": "33ff91234526617fd814034c710e37b1774ee829ad92a9e2b5c784511b8e288a",
+  "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 675,
- "packed_source_field_count": 604,
+ "record_count": 756,
+ "packed_source_field_count": 671,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -406,6 +413,475 @@
      },
      "ordinal": 4,
      "source_contract": "C009"
+    }
+   ]
+  },
+  {
+   "section_id": 1,
+   "owner_key": "underground_space_owner",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_region_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_region_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 0,
+     "scalar": true
+    },
+    {
+     "field_key": "_source_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_source_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 1,
+     "scalar": true
+    },
+    {
+     "field_key": "_header",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_header",
+     "shape": {
+      "declared_capacity": "`HEADER_FIELDS` = 18",
+      "order": "schema_domain_capacities_revision"
+     },
+     "ordinal": 2,
+     "source_contract": "C186"
+    },
+    {
+     "field_key": "_r_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_present",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_retired",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_retired",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_role",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_role",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_claim_kind",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_claim_kind",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_generation",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_lo_x",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_lo_x",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 8,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_lo_y",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_lo_y",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 9,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_lo_z",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_lo_z",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 10,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_hi_x",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_hi_x",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 11,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_hi_y",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_hi_y",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 12,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_hi_z",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_hi_z",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 13,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_level",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_level",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 14,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_section_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_section_slot",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 15,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_section_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_section_generation",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 16,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_owner_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_owner_slot",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 17,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_owner_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_owner_generation",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 18,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_claim_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_claim_slot",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 19,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_claim_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_claim_generation",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 20,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_r_owner_revision",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_r_owner_revision",
+     "shape": {
+      "count_field": "_region_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 21,
+     "source_contract": "C187"
+    },
+    {
+     "field_key": "_o_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_present",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 22,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_kind",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_kind",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 23,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_slot",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 24,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_generation",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 25,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_parent_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_parent_slot",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 26,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_parent_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_parent_generation",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 27,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_a",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_a",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 28,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_b",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_b",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 29,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_c",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_c",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 30,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_d",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_d",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 31,
+     "source_contract": "C188"
+    },
+    {
+     "field_key": "_o_revision",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "underground_space_owner",
+     "source_member": "_o_revision",
+     "shape": {
+      "count_field": "_source_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 32,
+     "source_contract": "C188"
     }
    ]
   },
@@ -5815,7 +6291,7 @@
   {
    "section_id": 6,
    "owner_key": "excavation_inventory",
-   "owner_schema_version": 1,
+   "owner_schema_version": 2,
    "fields": [
     {
      "field_key": "_capacity",
@@ -6064,8 +6540,8 @@
      "source_module": "excavation_inventory",
      "source_member": "_lost_milli",
      "shape": {
-      "declared_capacity": "`Inventory.ITEM_CAPACITY` = 256",
-      "order": "ascending_item_id"
+      "declared_capacity": "`LOSS_CELL_CAPACITY` = 768",
+      "order": "purpose_domain_then_ascending_item_id"
      },
      "ordinal": 17,
      "source_contract": "C180"
@@ -6641,6 +7117,432 @@
   },
   {
    "section_id": 6,
+   "owner_key": "inventory",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_spatial_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_container_slot.size()",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 0,
+     "scalar": true
+    },
+    {
+     "field_key": "_spatial_world_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_world.x",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 1,
+     "scalar": true
+    },
+    {
+     "field_key": "_spatial_world_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_world.y",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 2,
+     "scalar": true
+    },
+    {
+     "field_key": "_spatial_container_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_container_slot",
+     "shape": {
+      "count_field": "_spatial_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C193"
+    },
+    {
+     "field_key": "_spatial_container_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_container_generation",
+     "shape": {
+      "count_field": "_spatial_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C193"
+    },
+    {
+     "field_key": "_spatial_location_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_location_slot",
+     "shape": {
+      "count_field": "_spatial_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5,
+     "source_contract": "C193"
+    },
+    {
+     "field_key": "_spatial_location_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_location_generation",
+     "shape": {
+      "count_field": "_spatial_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C193"
+    },
+    {
+     "field_key": "_spatial_location_revision",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "inventory",
+     "source_member": "_spatial_location_revision",
+     "shape": {
+      "count_field": "_spatial_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7,
+     "source_contract": "C193"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "modular_projects",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_job_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "modular_projects",
+     "source_member": "_job_slot",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_actual_job_row"
+     },
+     "ordinal": 0,
+     "source_contract": "C189"
+    },
+    {
+     "field_key": "_job_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "modular_projects",
+     "source_member": "_job_generation",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_actual_job_row"
+     },
+     "ordinal": 1,
+     "source_contract": "C189"
+    },
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "modular_projects",
+     "source_member": "_project_slot",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_actual_job_row"
+     },
+     "ordinal": 2,
+     "source_contract": "C189"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "modular_projects",
+     "source_member": "_project_generation",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_actual_job_row"
+     },
+     "ordinal": 3,
+     "source_contract": "C189"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "room_layout",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_room_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_room_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 0,
+     "scalar": true
+    },
+    {
+     "field_key": "_placement_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_placement_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 1,
+     "scalar": true
+    },
+    {
+     "field_key": "_geometry_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_geometry_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 2,
+     "scalar": true
+    },
+    {
+     "field_key": "_room_slots",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_room_slots",
+     "shape": {
+      "declared_capacity": "`_room_capacity` <= 16384",
+      "count_field": "_room_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 3,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_room_generations",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_room_generations",
+     "shape": {
+      "declared_capacity": "`_room_capacity` <= 16384",
+      "count_field": "_room_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 4,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_room_types",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_room_types",
+     "shape": {
+      "declared_capacity": "`_room_capacity` <= 16384",
+      "count_field": "_room_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 5,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_room_modes",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_room_modes",
+     "shape": {
+      "declared_capacity": "`_room_capacity` <= 16384",
+      "count_field": "_room_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 6,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_state",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_state",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 7,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_generation",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 8,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_room_row",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_room_row",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 9,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_type",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_type",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 10,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_x",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_x",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 11,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_z",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_z",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 12,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_rotation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_rotation",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 13,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_project_slot",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 14,
+     "source_contract": "C194"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_layout",
+     "source_member": "_project_generation",
+     "shape": {
+      "declared_capacity": "`_placement_capacity` <= 81920",
+      "count_field": "_placement_capacity",
+      "order": "ascending_local_row"
+     },
+     "ordinal": 15,
+     "source_contract": "C194"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
    "owner_key": "room_projects",
    "owner_schema_version": 1,
    "fields": [
@@ -6797,6 +7699,295 @@
      },
      "ordinal": 10,
      "source_contract": "C177"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "spoil_tips",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_world_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_world.x",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 0,
+     "scalar": true
+    },
+    {
+     "field_key": "_world_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_world.y",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 1,
+     "scalar": true
+    },
+    {
+     "field_key": "_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 2,
+     "scalar": true
+    },
+    {
+     "field_key": "_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_count",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 3,
+     "scalar": true
+    },
+    {
+     "field_key": "_compacted_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_compacted_milli",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 4,
+     "scalar": true
+    },
+    {
+     "field_key": "_reclaimed_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_reclaimed_milli",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 5,
+     "scalar": true
+    },
+    {
+     "field_key": "_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_present",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_retired",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_retired",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_prepared",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_prepared",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 8,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_generation",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 9,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_tile",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_tile",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 10,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_project_slot",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 11,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_project_generation",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 12,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_operation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_operation",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 13,
+     "source_contract": "C190"
+    },
+    {
+     "field_key": "_embedded_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_embedded_milli",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 14,
+     "source_contract": "C191"
+    },
+    {
+     "field_key": "_quantity_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_quantity_milli",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 15,
+     "source_contract": "C191"
+    },
+    {
+     "field_key": "_locked_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_locked_milli",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 16,
+     "source_contract": "C191"
+    },
+    {
+     "field_key": "_incoming_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_incoming_milli",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 17,
+     "source_contract": "C191"
+    },
+    {
+     "field_key": "_earned_mwu",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_earned_mwu",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot",
+      "stride": 4
+     },
+     "ordinal": 18,
+     "source_contract": "C192"
+    },
+    {
+     "field_key": "_retained_quantity",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "spoil_tips",
+     "source_member": "_retained_quantity",
+     "shape": {
+      "count_field": "_capacity",
+      "order": "ascending_physical_slot",
+      "stride": 2
+     },
+     "ordinal": 19,
+     "source_contract": "C192"
     }
    ]
   },
@@ -7258,7 +8449,7 @@
   {
    "section_id": 7,
    "owner_key": "inventory",
-   "owner_schema_version": 4,
+   "owner_schema_version": 5,
    "fields": [
     {
      "field_key": "_c_free_count",
@@ -10077,9 +11268,10 @@
   "Implement all required save section bodies and restore orchestration; this is a logical record registry, not a claim those bodies exist.",
   "Register progression, community, economy/hazard and other future authoritative state at implementation arrival; reserved undeclared state must not be fabricated as zeros.",
   "Produce complete rules and lookup manifests and prove section15 plus cross-process continuation parity; no subset digest qualifies release.",
-  "UG16: bind and validate all11 room_projects fields, independent pause reasons and revision tokens in actual composed save/load before activation. RoomLayout draft/mode/receipt serialization remains explicitly UNRESOLVED in the source registry. Decision1060 registers declarations, not release save parity.",
+  "UG16: bind and validate all11 room_projects fields, independent pause reasons and revision tokens in actual composed save/load before activation. Decision1072 declares mandatory RoomLayout draft/mode/receipt state; its actual codec remains required. Decision1060 registers declarations, not release save parity.",
   "UG16: implement and validate the actual excavation_inventory and excavation_sites codecs, immutable world/domain binding, physical phase/WIP/output/worker ownership, receipt free order and conservation; rebuild derived key/Job indexes. Decision1066 declares state and bounds, not save completion. No partial digest qualifies release.",
-  "UG16: mandatory section6 buildings extension must capture/validate Room spatial kind and Furniture installed state atomically with existing section4/5 and actual spatial/construction owners. Frozen legacy capture refuses unsupported live or retained identities. Decision1071 is not a composed codec or release parity."
+  "UG16: mandatory section6 buildings extension must capture/validate Room spatial kind and Furniture installed state atomically with existing section4/5 and actual spatial/construction owners. Frozen legacy capture refuses unsupported live or retained identities. Decision1071 is not a composed codec or release parity.",
+  "UG16: bind every decision1072 owner (sparse space, accepted modular Jobs, physical tips, Inventory spatial endpoints and retained RoomLayout state) into one bounded rollback-safe save/load. Validate exact dynamic capacities/strides and full cross-owner references before publishing. No registry declaration, sampled movement evidence or logical allocation reserve qualifies release or grants spatial authority."
  ],
  "source_contracts": {
   "C001": {
@@ -10773,7 +11965,7 @@
   },
   "C174": {
    "unused": "`-1` (`UNPLACED_TILE`) is a container on no tile -- a satchel, an expedition pack -- and the canonical value of every inactive row",
-   "notes": "DEMO-CONTAIN-R01 #1/#2/#8 (decision 0531): one placement cell per InventoryContainer, 0..16383 = GDD 5.1's z*128+x, interiors on the same grid. Container -> tile, so one tile may carry a store, a project container and one ground pile. Authoritative and not rebuildable: Buildings holds no Inventory ref and owner equality proves ownership, not placement (decision 0145). Appended as inventory ordinal 30 under owner schema 4 / section schema 5; older bodies are refused, not migrated (FISH-ID-R01 precedent). A placement CELL so MOVE-G02's level encoding may later widen its meaning without widening the column."
+   "notes": "DEMO-CONTAIN-R01 #1/#2/#8 (decision 0531): one placement cell per InventoryContainer, 0..16383 = GDD 5.1's z*128+x, interiors on the same grid. Container -> tile, so one tile may carry a store, a project container and one ground pile. Authoritative and not rebuildable: Buildings holds no Inventory ref and owner equality proves ownership, not placement (decision 0145). Appended as inventory ordinal 30 under owner schema 4 / section schema 5; older bodies are refused, not migrated (FISH-ID-R01 precedent). A placement CELL so MOVE-G02's level encoding may later widen its meaning without widening the column. Decision1072 schema5 additionally requires the mandatory section6 Inventory spatial extension for negative -2-row endpoint tokens; old owner4 remains frozen and refuses them."
   },
   "C175": {
    "unused": "Absent project: slot/type -1, generation/epoch 0; present project uses full live Construction reference and a protected RoomType.",
@@ -10797,7 +11989,7 @@
   },
   "C180": {
    "unused": "Zero loss for untouched compiled item.",
-   "notes": "Decision1066. Authoritative cumulative cancellation loss per compiled item, separate from embedded stock and inventory source/sink totals; checked integer nonnegative accumulation."
+   "notes": "Decisions1073/1072. Three protected cancellation-loss domains (excavation, modular furniture, spoil tip), each256 compiled item totals. Preserve exact purpose attribution and aggregate checked nonnegative conservation; schema2 retains the existing field ordinal and widens its shape."
   },
   "C181": {
    "unused": "Absent physical rows: key/identity slots/operation/promotion tile -1; generations/quantities/flags0; phase and closure_before SOLID(7).",
@@ -10818,16 +12010,52 @@
   "C185": {
    "unused": "0 on free/pending Furniture rows;1 only after actual paid installation, including legacy live surface furniture",
    "notes": "Decisions1069/1071. Pending Directory identities own room membership but no services, users or presence bits. Section6 is mandatory with section4/5; derive service masks from installed state and reject inconsistent projects or room generations. Retained non-surface identities cannot silently downgrade through a legacy codec."
+  },
+  "C186": {
+   "unused": "All eighteen header fields are mandatory; schema1, capacities, full World, datum, finite domain and positive geometry revision.",
+   "notes": "Decision1072. Scalar capacity records must equal the header and the actual allocated arrays. Stage tokens and alternate banks are not canonical. Dynamic arrays serialize every admitted row, including retained generations, and may never select their own capacity on load."
+  },
+  "C187": {
+   "unused": "Absent rows use the exact owner schema sentinels; preserve retired flags and generation.",
+   "notes": "Decision1072. Actual integer bounds, role/level, full Room/section/Construction refs and pinned source revision. Capacity comes from the immutable header and matching scalar, not live count. Rebuild free heaps; reject unsupported/stale source facts before publishing."
+  },
+  "C188": {
+   "unused": "Absent source rows use the exact owner schema sentinels.",
+   "notes": "Decision1072. Full external identity, kind, parent, facts and revision are mandatory. Validate against actual World/Buildings/Construction/Locations after all participating sections decode. Header capacity and scalar must match; no generic source-fact override."
+  },
+  "C189": {
+   "unused": "Unbound accepted Job/project refs are (-1,0).",
+   "notes": "Decision1072. Four full identities keyed by actual Job typed row. Validate exact shared Router/purpose, primary/member ownership and Construction generation. These cannot be reconstructed from mutable requester refs. No live callback permit persists."
+  },
+  "C190": {
+   "unused": "Absent payload is cleared; retained generation/retired state is preserved.",
+   "notes": "Decision1072. Finite configured Tips capacity1..16384 with full actual World binding. Count must equal presence. Active project ref, purpose/operation and paid preparation must agree with actual Construction. Rebuild tile lookup and lowest-free heap; never reset closed history."
+  },
+  "C191": {
+   "unused": "Untouched quantities are zero.",
+   "notes": "Decision1072. Embedded stock, immutable q, locked source and incoming headroom are nonnegative bounded integers. Validate conservation compacted-reclaimed=sum embedded and exact active claims with paid WIP before publication."
+  },
+  "C192": {
+   "unused": "Zero work/quantity for untouched operations.",
+   "notes": "Decision1072. Shape stride is protected: four operation work entries per tip, two retained q entries in COMPACT/RECLAIM order. Exact q cancellation history remains authoritative. Count multiplied by stride must match actual allocated length; decoder cannot truncate."
+  },
+  "C193": {
+   "unused": "Unused endpoint refs are (-1,0) and revision0; capacity0 has null spatial World.",
+   "notes": "Decisions1076/1072. Mandatory section6 extension of the same actual Inventory. Capacity0..1024 and <=container capacity; full location identity and immutable positive payload revision. Section7 anchor=-2-row must reciprocally identify this exact container. Validate same actual World/floor section, unique storage cell and support; never interpret a negative endpoint token as a surface tile. Frozen legacy owner4 cannot encode this extension."
+  },
+  "C194": {
+   "unused": "Free room binding (-1,0), type0, mode0; placement inactive payload0, project(-1,0), generation retained without wrap.",
+   "notes": "Decisions1054/1072. Mandatory retained player draft/mode/accepted receipt state. Capacities are exact saved configuration bounded by the source constructor and joint allocation pack. Accepted rows validate full live projects, Room type and purpose; they grant no installed services or occupancy. Save only outside synchronous submission. Rebind immutable catalog and actual owner callbacks after all state validates."
   }
  },
  "section_schema_versions": [
-  3,
-  2,
-  1,
-  2,
-  1,
   4,
+  2,
+  1,
+  2,
+  1,
   5,
+  6,
   2,
   2,
   1,

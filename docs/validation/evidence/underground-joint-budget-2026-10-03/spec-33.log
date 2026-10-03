@@ -1,0 +1,18 @@
+test_negative_inadequate_endpoint_reserve (__main__.JointPackTests) ... ok
+test_negative_inadequate_location_reserve (__main__.JointPackTests) ... ok
+test_negative_joint_limit_even_when_individual_formulas_agree (__main__.JointPackTests) ... ok
+test_negative_larger_quote_dimension (__main__.JointPackTests) ... ok
+test_negative_loss_domain_count (__main__.JointPackTests) ... ok
+test_negative_quote_ambiguous_resize (__main__.JointPackTests) ... ok
+test_negative_quote_missing_resize (__main__.JointPackTests) ... ok
+test_negative_quote_width_change (__main__.JointPackTests) ... ok
+test_negative_runtime_input_is_not_a_source_constant (__main__.JointPackTests) ... ok
+test_negative_unaccounted_endpoint_column (__main__.JointPackTests) ... ok
+test_negative_unaccounted_owner_column (__main__.JointPackTests) ... ok
+test_negative_unaccounted_retained_quote (__main__.JointPackTests) ... ok
+test_positive_current_joint_pack_is_not_runtime_qualification (__main__.JointPackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 1.808s
+
+OK

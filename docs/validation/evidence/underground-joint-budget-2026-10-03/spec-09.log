@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-joint-budget/docs/validation/validate_cycle02_handoff.py", line 115, in <module>
+    if __name__=='__main__':main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-joint-budget/docs/validation/validate_cycle02_handoff.py", line 49, in main
+    check(declared[:len(snapshot)]==snapshot)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-joint-budget/docs/validation/validate_cycle02_handoff.py", line 10, in check
+    assert value
+AssertionError

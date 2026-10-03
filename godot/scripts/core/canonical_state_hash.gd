@@ -1079,41 +1079,42 @@ static func production_walker() -> Walker:
 # Generated from docs/planning/canonical_state_registry.json by
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
-#   registry_id RWL-CANONICAL-REGISTRY-2026-10-03-UG3, registry_version 10
-#   56 owners, 683 declared fields, 675 canonical records, 604 persisted packed fields.
+#   registry_id RWL-CANONICAL-REGISTRY-2026-10-03-UG4, registry_version 11
+#   61 owners, 764 declared fields, 756 canonical records, 671 persisted packed fields.
 
-const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-03-UG3"
-const DECLARATION_VERSION: int = 10
-const CANONICAL_OWNER_COUNT: int = 56
-const CANONICAL_FIELD_COUNT: int = 683
-const CANONICAL_RECORD_COUNT: int = 675
+const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-03-UG4"
+const DECLARATION_VERSION: int = 11
+const CANONICAL_OWNER_COUNT: int = 61
+const CANONICAL_FIELD_COUNT: int = 764
+const CANONICAL_RECORD_COUNT: int = 756
 
 const OWNER_SECTIONS: Array = [
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5,
-	5, 5, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5,
+	5, 5, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
 ]
 
 const OWNER_KEYS: Array = [
 	"buildings", "entity_directory", "farming", "forage", "resource_nodes", "spatial_world",
-	"weather", "world_init", "world_runtime", "movement", "entity_directory", "buildings",
-	"construction", "farming", "field_policy", "fishing", "forage", "injury", "jobs", "movement",
-	"needs", "orchard_hive", "priorities", "residents", "resource_nodes", "schedule", "transforms",
-	"work", "world_init", "buildings", "construction", "forage", "jobs", "orchard_hive",
-	"buildings", "command_dispatch", "crop_weather", "ecology", "excavation_inventory",
-	"excavation_sites", "room_projects", "fishing", "forage", "gear", "inventory", "reservations",
+	"underground_space_owner", "weather", "world_init", "world_runtime", "movement",
+	"entity_directory", "buildings", "construction", "farming", "field_policy", "fishing", "forage",
+	"injury", "jobs", "movement", "needs", "orchard_hive", "priorities", "residents",
+	"resource_nodes", "schedule", "transforms", "work", "world_init", "buildings", "construction",
+	"forage", "jobs", "orchard_hive", "buildings", "command_dispatch", "crop_weather", "ecology",
+	"excavation_inventory", "excavation_sites", "inventory", "modular_projects", "room_layout",
+	"room_projects", "spoil_tips", "fishing", "forage", "gear", "inventory", "reservations",
 	"stock_age", "job_planner", "movement", "navigation", "rng", "event_schedule", "commands",
 	"scheduler_events", "chronicle", "residents"
 ]
 
 const OWNER_VERSIONS: Array = [
-	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 4, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
+	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 2, 1, 1, 5, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
 ]
 
 const OWNER_FIELD_COUNTS: Array = [
-	3, 1, 10, 1, 1, 5, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9,
-	9, 9, 15, 1, 10, 4, 2, 2, 4, 2, 1, 18, 40, 11, 8, 11, 12, 31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2,
-	1
+	3, 1, 10, 1, 1, 5, 33, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6,
+	9, 9, 9, 15, 1, 10, 4, 2, 2, 4, 2, 1, 18, 40, 8, 4, 16, 11, 20, 8, 11, 12, 31, 8, 6, 35, 9, 57,
+	2, 8, 20, 14, 2, 1
 ]
 
 const FIELD_KEYS: Array = [
@@ -1121,30 +1122,35 @@ const FIELD_KEYS: Array = [
 	"_tile_last_family", "_tile_family_streak", "_tile_last_legume_day", "_tile_compost_season",
 	"_tile_active_plot_row", "_tile_orchard_row", "_tile_ripe_tick", "_tile_growth_remainder",
 	"_tile_tended_today", "_tile_link_head", "_resource_slot", "_map_revision", "_walkable",
-	"_layer", "_terrain", "_height_units", "_row", "_row64", "_published", "_published_seed",
-	"_terrain", "_soil", "_basin", "_cleared", "_basin_ref_slot", "_basin_ref_generation",
-	"_basin_danger", "_completed_tick", "_world_seed", "_seeded", "_requested_speed", "_pause_mask",
-	"_debt", "_fallback_count", "_diagnostic_pause_count", "_acknowledged_catchup_resets",
-	"_acknowledged_ticks_discarded", "_subtick_debt_discards", "_day_boundaries_crossed",
-	"_profile_revision", "_active", "_generation", "_retired", "_persistent_id", "_kind",
-	"_typed_row", "_b_present", "_r_present", "_f_present", "_b_type_id", "_b_tier",
-	"_b_origin_tile", "_b_rotation", "_b_state", "_b_condition", "_b_construction_slot",
-	"_b_construction_generation", "_b_interior_id", "_r_type", "_r_building_slot",
-	"_r_building_generation", "_r_tile_offset", "_r_tile_count", "_r_temperature_tenths",
-	"_r_furniture_mask", "_r_occupants", "_r_valid", "_f_type_id", "_f_room_slot",
-	"_f_room_generation", "_f_origin_tile", "_f_rotation", "_f_user_slot", "_f_user_generation",
-	"_f_condition", "_present", "_material_container_slot", "_material_container_generation",
-	"_assigned_count", "_max_workers", "_refund_policy", "_remaining_mwu", "_paused", "_work_begun",
-	"_ref_slot", "_ref_generation", "_subject_slot", "_subject_generation", "_purpose", "_type_id",
-	"_phase", "_present", "_crop_id", "_state", "_soil", "_fertility", "_moisture",
-	"_growth_milli_hours", "_health", "_last_family", "_family_streak", "_compost_milli",
-	"_sow_day", "_tile", "_ref_slot", "_ref_generation", "_field_present", "_zone_slot",
-	"_zone_generation", "_rotation_ids", "_rotation_cursor", "_auto_rotation", "_seed_reserve",
-	"_cycle_ordinal", "_participants", "_resolved", "_withdrawn", "_completed_cycles",
-	"_cancelled_cycles", "_requested_crop", "_cycle_state", "_close_reason", "_request_state",
-	"_plot_field_slot", "_plot_cycle", "_plot_outcome", "_habitat_present", "_stock_present",
-	"_habitat_type", "_habitat_zone_slot", "_habitat_zone_generation", "_habitat_effort_slots",
-	"_habitat_pollution", "_habitat_danger", "_habitat_protected_fraction",
+	"_layer", "_terrain", "_height_units", "_region_capacity", "_source_capacity", "_header",
+	"_r_present", "_r_retired", "_r_role", "_r_claim_kind", "_r_generation", "_r_lo_x", "_r_lo_y",
+	"_r_lo_z", "_r_hi_x", "_r_hi_y", "_r_hi_z", "_r_level", "_r_section_slot",
+	"_r_section_generation", "_r_owner_slot", "_r_owner_generation", "_r_claim_slot",
+	"_r_claim_generation", "_r_owner_revision", "_o_present", "_o_kind", "_o_slot", "_o_generation",
+	"_o_parent_slot", "_o_parent_generation", "_o_a", "_o_b", "_o_c", "_o_d", "_o_revision", "_row",
+	"_row64", "_published", "_published_seed", "_terrain", "_soil", "_basin", "_cleared",
+	"_basin_ref_slot", "_basin_ref_generation", "_basin_danger", "_completed_tick", "_world_seed",
+	"_seeded", "_requested_speed", "_pause_mask", "_debt", "_fallback_count",
+	"_diagnostic_pause_count", "_acknowledged_catchup_resets", "_acknowledged_ticks_discarded",
+	"_subtick_debt_discards", "_day_boundaries_crossed", "_profile_revision", "_active",
+	"_generation", "_retired", "_persistent_id", "_kind", "_typed_row", "_b_present", "_r_present",
+	"_f_present", "_b_type_id", "_b_tier", "_b_origin_tile", "_b_rotation", "_b_state",
+	"_b_condition", "_b_construction_slot", "_b_construction_generation", "_b_interior_id",
+	"_r_type", "_r_building_slot", "_r_building_generation", "_r_tile_offset", "_r_tile_count",
+	"_r_temperature_tenths", "_r_furniture_mask", "_r_occupants", "_r_valid", "_f_type_id",
+	"_f_room_slot", "_f_room_generation", "_f_origin_tile", "_f_rotation", "_f_user_slot",
+	"_f_user_generation", "_f_condition", "_present", "_material_container_slot",
+	"_material_container_generation", "_assigned_count", "_max_workers", "_refund_policy",
+	"_remaining_mwu", "_paused", "_work_begun", "_ref_slot", "_ref_generation", "_subject_slot",
+	"_subject_generation", "_purpose", "_type_id", "_phase", "_present", "_crop_id", "_state",
+	"_soil", "_fertility", "_moisture", "_growth_milli_hours", "_health", "_last_family",
+	"_family_streak", "_compost_milli", "_sow_day", "_tile", "_ref_slot", "_ref_generation",
+	"_field_present", "_zone_slot", "_zone_generation", "_rotation_ids", "_rotation_cursor",
+	"_auto_rotation", "_seed_reserve", "_cycle_ordinal", "_participants", "_resolved", "_withdrawn",
+	"_completed_cycles", "_cancelled_cycles", "_requested_crop", "_cycle_state", "_close_reason",
+	"_request_state", "_plot_field_slot", "_plot_cycle", "_plot_outcome", "_habitat_present",
+	"_stock_present", "_habitat_type", "_habitat_zone_slot", "_habitat_zone_generation",
+	"_habitat_effort_slots", "_habitat_pollution", "_habitat_danger", "_habitat_protected_fraction",
 	"_habitat_capacity_milli", "_habitat_ref_slot", "_habitat_ref_generation",
 	"_habitat_effort_used", "_habitat_intensive", "_stock_habitat_slot",
 	"_stock_habitat_generation", "_stock_species_id", "_stock_population_milli",
@@ -1209,27 +1215,36 @@ const FIELD_KEYS: Array = [
 	"_closure_before", "_embedded_milli", "_earned_mwu", "_room_slot", "_room_generation",
 	"_project_slot", "_project_generation", "_operation", "_job_slot", "_job_generation",
 	"_output_slot", "_output_generation", "_promotion_tile", "_worker_site", "_worker_generation",
-	"_present", "_project_slot", "_project_generation", "_room_type", "_pause_reasons",
-	"_revision_state", "_revision_epoch", "_job_slot", "_job_generation", "_job_project_slot",
-	"_job_project_generation", "_effort_claim_active", "_effort_claim_expedition_generation",
-	"_effort_claim_habitat_slot", "_effort_claim_habitat_generation", "_effort_claim_job_slot",
-	"_effort_claim_job_generation", "_effort_claim_slot_count", "_effort_claim_expedition_slot",
-	"_claim_active", "_claim_job_slot", "_claim_job_generation", "_claim_designation_slot",
-	"_claim_designation_generation", "_claim_basin_slot", "_claim_basin_generation",
-	"_claim_patch_kind", "_claim_remaining_milli", "_claim_created_tick", "_claim_persistent_id",
-	"_occupied", "_lot_slot", "_lot_generation", "_item_id", "_durability", "_durability_cap",
-	"_owner_slot", "_owner_generation", "_manufacture_recipe", "_equipped", "_claim_job_slot",
-	"_claim_job_generation", "_c_free_count", "_l_free_count", "_c_live", "_l_live",
-	"_c_generation", "_l_generation", "_c_owner_slot", "_c_owner_generation", "_c_policy",
-	"_c_lot_count", "_c_first_lot", "_c_max_mass_g", "_c_filters", "_c_reserved_mass_g",
-	"_c_used_mass_g", "_c_reachable", "_l_item_id", "_l_quality", "_l_provenance", "_l_recipe_id",
-	"_l_container_slot", "_l_container_generation", "_l_next", "_l_prev", "_l_quantity_milli",
-	"_l_reserved_milli", "_l_age_milli_hours", "_l_age_remainder", "_c_free", "_l_free",
-	"_c_anchor_tile", "_occupied", "_r_job_slot", "_r_job_generation", "_r_lot_slot",
-	"_r_lot_generation", "_r_purpose", "_r_quantity_milli", "_r_expiry", "_declared_count",
-	"_last_hour_tick", "_c_storage_class", "_c_heated_interior", "_c_declared_generation",
-	"_declared_slots", "_owner_slot", "_owner_generation", "_service_day", "_job_slot",
-	"_job_generation", "_serviced_day", "_status", "_requires_water", "_field_cycle",
+	"_spatial_capacity", "_spatial_world_slot", "_spatial_world_generation",
+	"_spatial_container_slot", "_spatial_container_generation", "_spatial_location_slot",
+	"_spatial_location_generation", "_spatial_location_revision", "_job_slot", "_job_generation",
+	"_project_slot", "_project_generation", "_room_capacity", "_placement_capacity",
+	"_geometry_capacity", "_room_slots", "_room_generations", "_room_types", "_room_modes",
+	"_state", "_generation", "_room_row", "_type", "_x", "_z", "_rotation", "_project_slot",
+	"_project_generation", "_present", "_project_slot", "_project_generation", "_room_type",
+	"_pause_reasons", "_revision_state", "_revision_epoch", "_job_slot", "_job_generation",
+	"_job_project_slot", "_job_project_generation", "_world_slot", "_world_generation", "_capacity",
+	"_count", "_compacted_milli", "_reclaimed_milli", "_present", "_retired", "_prepared",
+	"_generation", "_tile", "_project_slot", "_project_generation", "_operation", "_embedded_milli",
+	"_quantity_milli", "_locked_milli", "_incoming_milli", "_earned_mwu", "_retained_quantity",
+	"_effort_claim_active", "_effort_claim_expedition_generation", "_effort_claim_habitat_slot",
+	"_effort_claim_habitat_generation", "_effort_claim_job_slot", "_effort_claim_job_generation",
+	"_effort_claim_slot_count", "_effort_claim_expedition_slot", "_claim_active", "_claim_job_slot",
+	"_claim_job_generation", "_claim_designation_slot", "_claim_designation_generation",
+	"_claim_basin_slot", "_claim_basin_generation", "_claim_patch_kind", "_claim_remaining_milli",
+	"_claim_created_tick", "_claim_persistent_id", "_occupied", "_lot_slot", "_lot_generation",
+	"_item_id", "_durability", "_durability_cap", "_owner_slot", "_owner_generation",
+	"_manufacture_recipe", "_equipped", "_claim_job_slot", "_claim_job_generation", "_c_free_count",
+	"_l_free_count", "_c_live", "_l_live", "_c_generation", "_l_generation", "_c_owner_slot",
+	"_c_owner_generation", "_c_policy", "_c_lot_count", "_c_first_lot", "_c_max_mass_g",
+	"_c_filters", "_c_reserved_mass_g", "_c_used_mass_g", "_c_reachable", "_l_item_id",
+	"_l_quality", "_l_provenance", "_l_recipe_id", "_l_container_slot", "_l_container_generation",
+	"_l_next", "_l_prev", "_l_quantity_milli", "_l_reserved_milli", "_l_age_milli_hours",
+	"_l_age_remainder", "_c_free", "_l_free", "_c_anchor_tile", "_occupied", "_r_job_slot",
+	"_r_job_generation", "_r_lot_slot", "_r_lot_generation", "_r_purpose", "_r_quantity_milli",
+	"_r_expiry", "_declared_count", "_last_hour_tick", "_c_storage_class", "_c_heated_interior",
+	"_c_declared_generation", "_declared_slots", "_owner_slot", "_owner_generation", "_service_day",
+	"_job_slot", "_job_generation", "_serviced_day", "_status", "_requires_water", "_field_cycle",
 	"_requested_crop", "_gate_reason", "_cycle_cursor", "_completed_cycle", "_demand_enabled",
 	"_demand_owner_slot", "_demand_owner_generation", "_demand_status", "_demand_blocker",
 	"_demand_job_slot", "_demand_job_generation", "_demand_quantified_milli", "_hive_owner_slot",
@@ -1261,51 +1276,54 @@ const FIELD_KEYS: Array = [
 ]
 
 const FIELD_TYPES: Array = [
-	2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 0, 0, 2, 2, 2, 4, 0, 2, 0, 0, 0, 0, 2, 2, 2,
-	4, 2, 0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2,
-	0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0, 0,
-	2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0, 0,
-	2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 0,
-	2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2,
-	0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2,
-	2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 4, 4, 4, 4, 4, 4,
-	4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2,
-	2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2,
-	2, 2, 4, 4, 4, 4, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2,
-	2, 0, 2, 2, 0, 2, 2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1,
-	2, 2, 2, 2, 4, 4, 1, 1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1,
-	4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
+	2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 4, 0, 0, 0, 0, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 4, 0, 2, 0, 0, 0, 0, 2, 2,
+	2, 4, 2, 0, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2, 0, 2, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2,
+	2, 0, 2, 2, 2, 2, 2, 4, 2, 2, 2, 4, 2, 2, 2, 2, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+	0, 2, 2, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 2, 2, 4, 0,
+	0, 2, 2, 2, 2, 4, 4, 0, 2, 2, 2, 4, 4, 4, 0, 0, 0, 0, 0, 2, 2, 2, 4, 4, 4, 0, 0, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 4, 4, 2, 2, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 0, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 4, 2, 4, 4, 4, 4, 2, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 2, 2, 2, 2, 2, 2, 0, 0, 0, 0,
+	0, 2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2,
+	2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0,
+	2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 4, 4, 4, 4, 4,
+	4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2,
+	2, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 0, 0, 0, 2, 2, 2, 2, 2, 4, 4, 4, 4, 4, 4, 0, 2, 2, 2,
+	2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 1, 1, 0, 0, 2,
+	2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 0, 2, 2, 2, 2, 2,
+	4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 0, 2, 2, 4, 2, 2, 2,
+	2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1, 1, 3, 1, 4, 2, 1, 1, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
 ]
 
 ## Field indexes the registry marks hash=false: emitted by no record. See hash_location.
 const FIELD_EXCLUDED_INDEXES: Array = [
-	32, 37, 38, 39, 40, 41, 42, 43
+	65, 70, 71, 72, 73, 74, 75, 76
 ]
 
 ## Sparse (index, value) pairs for fields whose shape declares an exact element count.
 const FIELD_COUNT_INDEXES: Array = [
-	3, 16, 23, 24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 365, 366, 367, 387, 388, 389,
-	390, 391, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422, 423, 424,
-	425, 426, 427, 490, 491, 529, 530, 565, 567, 569, 579, 580, 581, 582, 583, 584, 585, 586, 587,
-	588, 589, 590, 591, 638, 639, 646, 647, 648, 649, 666, 667, 668, 669, 670, 671, 672, 680, 681
+	3, 16, 21, 22, 56, 57, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 398, 399, 400, 420, 421,
+	422, 423, 424, 441, 442, 443, 444, 445, 446, 447, 448, 449, 450, 451, 452, 453, 454, 455, 456,
+	457, 458, 459, 460, 481, 482, 483, 493, 494, 495, 520, 521, 522, 523, 524, 525, 571, 572, 610,
+	611, 646, 648, 650, 660, 661, 662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 719, 720,
+	727, 728, 729, 730, 747, 748, 749, 750, 751, 752, 753, 761, 762
 ]
 const FIELD_COUNT_VALUES: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 32
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 32
 ]
 
 ## Sparse (index, value) pairs for type-5 fields' declared UTF-8 byte cap (SAVE-R09-002).
 const FIELD_MAX_UTF8_INDEXES: Array = [
-	682
+	763
 ]
 const FIELD_MAX_UTF8_VALUES: Array = [
 	128

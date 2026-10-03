@@ -139,3 +139,47 @@ hashes and found no high or medium finding. Evidence is retained in
 Untracked WorldRoutes work was explicitly outside the Godot project during this
 focused delta check and restored afterwards; none of its behavior is certified
 by these results. Actual productive contacts and demo activation remain open.
+
+
+## Exact room-provider composition (2026-10-03)
+
+WorldBindings now delegates the physical phase's floor identity and exact fine
+FINISH mask to the configured RoomOrders binding. The reciprocal connection is
+weak and accepted only once at actual arena quiescence. It requires the same
+actual Buildings, Construction, sparse owner, World, Budget and the exact phase
+composer object; another composer over identical stores cannot lend its scope.
+The narrow terrain identity reader similarly borrows the existing source and
+grants no terrain, clearance or lifetime permission.
+
+Each query checks the full retained Site/Room and actual operation token before
+and after provider calls. Callback lease replacement clears the mask or returns
+no floor; stale cleanup cannot release the replacement operation. A shared
+guard rejects nested mask, metadata and compositor reads without clearing the
+outer caller's output. No second composed snapshot can coexist with the mask.
+The physical Authority still independently validates exact actual claims before
+publishing usable space; this wiring does not qualify productive contacts.
+
+One reused Region contains24 packed box bytes plus48 numeric metadata bytes;
+one boolean adds1, for73 additional logical retained bytes. The reciprocal
+WeakRef, typed base-class preload and native headers stay within1072's existing
+shared bindings/growth reservation. WorldBindings' logical retained/reused total
+becomes271 bytes. There are no new canonical columns, saved ordinals, per-Site
+objects, independent arenas or copied mask banks. UG16 must restore the wiring
+at quiescence after actual world validation. Focused evidence and independent
+review are recorded with this increment; playable construction remains open.
+
+The focused final iteration3 check reports62 tests,1515 assertions and0 failures
+across the new World/Room seam and both existing owner suites. Every strict and
+raw footer reports0 unexpected errors/warnings and0 leaked objects/resources;
+expected/tolerated counts are0. Analyzer reports0 warnings across2 files.
+Rejected wrapper and test-alias iterations are retained with the corrected
+evidence under `docs/validation/evidence/underground-world-room-bindings-2026-10-03/`.
+
+Independent geometry review accepted exact WorldBindings source
+`299ff1a38870edf88c05fca4b6a345aebac1daf702459c3f3cd705be96b9a7ec`
+and new test source
+`1f879c04ae642b4d0ad25e783e0c2ab24e46414683019ff16c66d489c7f97cfd`
+with no high/medium finding. Review checked exact composer identity, weak
+once-only wiring, real quiescence and scope, callback expiry/reentry, output
+lifetime and the73-byte logical census. It did not repeat the engine run or
+qualify productive work.

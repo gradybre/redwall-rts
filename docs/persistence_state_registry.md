@@ -1421,3 +1421,10 @@ readers introduce no new authoritative, derived or transient retained state.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Successful local publication token | -- | -- | -- | Zero before the first publication and after successful restore | 3 | -- | Decision1075. `_last_published_token` adds 8 logical numeric bytes inside the existing 2,112-byte whole-topology fixed-control ceiling, changing its actual census 2,060→2,068. Combined Locations/Routes reservation remains 1,041,728 with 6,848 unallocated bytes inside1MiB; the receipt is included once. Only actual bank swap publishes it, failed operations preserve, successful restore clears. Existing packed banks and wire format remain unchanged. Routes compares exact Space/Location receipts before and after provider callbacks; future Locations requires exact Space receipt plus its real Sites publication window. No extra Route state or multi-owner atomicity permission is introduced. |
+
+
+### `godot/scripts/core/underground_world_bindings.gd` — exact room-provider composition
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact floor metadata and reciprocal query guard | -- | -- | -- | No active query at input/frame/save boundary | 3 | -- | Decision1088. One reused Region has24 packed box bytes and48 numeric metadata bytes; `_room_reading` adds1, for73 additional logical retained bytes and271 total WorldBindings retained/reused bytes. One once-bound weak RoomOrders link prevents a cycle. The exact configured composer, actual owners and arena must match; full phase scope is checked before and after callbacks. The output mask is caller-owned within the existing shared cold lease, with no second copy or concurrent compositor. Native weak-ref/Region headers and callback frames remain in1072's existing bindings/growth reservation. No authoritative state or wire ordinal is introduced. |

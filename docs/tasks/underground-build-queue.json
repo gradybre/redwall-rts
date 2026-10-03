@@ -472,7 +472,13 @@
           "review": "root accepted exact three final source pins; exact fine claims and holes retained; no physical FINISH publication claimed",
           "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/iteration-1/"
         },
-        "admission_packet": "Actual Level/Terrain/retained-geometry plan preflight and direct RoomOrders Budget/token handshakes before copied plans and identity publication. Root provides exact terrain_owner identity reader; missing prospective entry/work companions explicitly refuse. No additional success callback or free entrance."
+        "admission_packet": "Actual Level/Terrain/retained-geometry plan preflight and direct RoomOrders Budget/token handshakes before copied plans and identity publication. Root provides exact terrain_owner identity reader; missing prospective entry/work companions explicitly refuse. No additional success callback or free entrance.",
+        "phase_composer_identity": {
+          "source": "3989c4e7",
+          "integration": "26122832",
+          "tests": "42 tests/1960 assertions/0 failures; all strict/raw diagnostics/leaks0; analyzer0/3",
+          "review": "root accepted exact weak composer identity reader; no state/allocation delta"
+        }
       },
       "lease": {
         "state": "held"
@@ -667,6 +673,13 @@
           "review": "Root independently accepted c067c3e0/3a09b629 exact source/test and compiler; actual finite World/domain identity and unchanged output on refusals.",
           "memory": "2292 bytes within Profiles+Levels261428/262144 unchanged arena; native reservation unmeasured; no geometry/traversal permission.",
           "evidence_path": "godot/data/underground/evidence/levels-v1/"
+        },
+        "actor_world_binding": {
+          "source": "bfe00d8e",
+          "integration": "eddf9027",
+          "tests": "strict20/213, native actual table21 assertions and full native lifecycle256 assertions; all failures/diagnostics/leaks0; analyzer0/4 and0/3",
+          "review": "root accepted exact Actor64ce1492/test0ccb5088/native0aeb578d; world physical enclosure and isolated loading peak remain unqualified",
+          "evidence_path": "godot/data/underground/evidence/matrix-presentation/world-basis/ACTOR_BINDING.md"
         }
       },
       "lease": {
@@ -704,7 +717,8 @@
         "docs/decisions/1085-actual-underground-world-composition.md",
         "godot/scripts/core/underground_world_routes.gd",
         "godot/test/test_underground_world_routes.gd",
-        "docs/decisions/1090-actual-route-clearance-certificates.md"
+        "docs/decisions/1090-actual-route-clearance-certificates.md",
+        "godot/test/test_underground_world_room_bindings.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -875,7 +889,21 @@
           "tests": "157 tests/15000 assertions/0 failures;strict/raw diagnostics/leaks0;analyzer0/6",
           "review": "ug_furnishing accepted exact successful Owner/Locations identities before/after callbacks; restore invalidation; equal revision and reused handle regressions"
         },
-        "next_root": "Bind actual RoomOrders.Bindings weakly into WorldBindings; delegate exact floor_section/finish_mask under retained Site/Room cold token. Geometry owns the Authority exact-mask/residual stage and construction owns RoomPlan admission. Terrain hot range-loop cleanup remains before256 qualification."
+        "next_root": "Connect real room registration, productive contact/profile qualification and actual phase support/topology publication; no playable activation or completion claimed.",
+        "exact_finish_partition": {
+          "source": "1bd7bcfc",
+          "integration": "317d9962",
+          "registry_source": "da3be953",
+          "tests": "139 tests/10413 assertions/0 failures; all strict/raw diagnostic/leak counts0; analyzer0/4",
+          "review": "construction independently accepted bidirectional exact claim union and residual partition after correction of post-handle-read real lease replacement",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/finish-partition/"
+        },
+        "world_room_delegation": {
+          "source_sha256": "299ff1a38870edf88c05fca4b6a345aebac1daf702459c3f3cd705be96b9a7ec",
+          "tests": "62 tests/1515 assertions/0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "geometry independently accepted exact weak composer delegation, actual phase lifetime/reentry and73-byte census",
+          "evidence_path": "docs/validation/evidence/underground-world-room-bindings-2026-10-03/"
+        }
       },
       "lease": {
         "state": "held",
@@ -892,10 +920,11 @@
               "docs/decisions/1088-scoped-composed-phase-surveys.md",
               "godot/scripts/core/underground_world_routes.gd",
               "godot/test/test_underground_world_routes.gd",
-              "docs/decisions/1090-actual-route-clearance-certificates.md"
+              "docs/decisions/1090-actual-route-clearance-certificates.md",
+              "godot/test/test_underground_world_room_bindings.gd"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
-            "branch": "codex/underground-world-composition"
+            "branch": "codex/underground-modular-integration"
           }
         ]
       }

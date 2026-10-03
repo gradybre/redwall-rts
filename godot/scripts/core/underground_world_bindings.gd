@@ -10,6 +10,8 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const Authority := preload("res://scripts/core/underground_space_authority.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Construction := preload("res://scripts/core/construction.gd")
+const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NATURAL_ROW_LIMIT: int = 512
 const COMPOSED_ROW_LIMIT: int = Budget.PHASE_VOLUME_CAPACITY
@@ -50,6 +52,9 @@ var _phase_site: Vector2i = NULL_REF
 var _phase_room: Vector2i = NULL_REF
 var _phase_project: Vector2i = NULL_REF
 var _phase_geometry_revision: int = 0
+var _room_bindings: WeakRef = null
+var _room_region: Owner.Region = null
+var _room_reading: bool = false
 
 
 func configure(world: World, terrain: Terrain, owner: Owner, reader: Owner.CoreSources,
@@ -87,6 +92,94 @@ func space_owner() -> Owner:
 	return _actual_owner()
 
 
+func terrain_owner() -> Terrain:
+	"""Borrow configured identity only; callers must still prove actual World, Budget and current exclusions."""
+	return _terrain
+
+
+func bind_room_bindings(reader: RoomOrders.Bindings) -> StringName:
+	"""Wire one actual room provider at quiescence without a concrete-provider preload or reference cycle."""
+	if _room_reading or _composing or _cold_opening or _phase_token != 0 or _room_bindings != null \
+			or (_budget != null and not _budget.is_quiescent()):
+		return REFUSE_BUSY
+	_room_reading = true
+	var code: StringName = _room_binding_refusal(reader)
+	if code == &"" and not _budget.is_quiescent():
+		code = REFUSE_BUSY
+	if code == &"":
+		_room_bindings = weakref(reader)
+		_room_region = Owner.Region.new()
+		_room_region.box.resize(6)
+	_room_reading = false
+	return code
+
+
+func _room_binding_refusal(reader: RoomOrders.Bindings) -> StringName:
+	"""Equal numeric references never substitute for the actual Buildings, Construction, Space and arena."""
+	if reader == null or binding_refusal() != &"":
+		return REFUSE_BINDING
+	var actual: Owner.CoreSources = sources()
+	var owner: Owner = _actual_owner()
+	var construction: Construction = actual.construction_owner() if actual != null else null
+	if construction == null or owner == null \
+			or not reader.exact_binding(construction.buildings(), owner, construction, world_ref()) \
+			or reader.layout_budget_owner() != _budget or reader.phase_world_owner() != self:
+		return REFUSE_BINDING
+	return binding_refusal()
+
+
+func _actual_room_bindings() -> RoomOrders.Bindings:
+	"""Keep a strong borrow only for a synchronous observation; expired wiring cannot recreate authority."""
+	return _room_bindings.get_ref() as RoomOrders.Bindings if _room_bindings != null else null
+
+
+func _room_phase_refusal(reader: RoomOrders.Bindings, site: Vector2i, room: Vector2i,
+		token: int) -> StringName:
+	"""Recheck exact phase scope after binding callbacks and after the actual provider fills its result."""
+	var code: StringName = cold_site_refusal(token, site, room)
+	if code == &"":
+		code = _room_binding_refusal(reader)
+	return cold_site_refusal(token, site, room) if code == &"" else code
+
+
+func floor_section(site: Vector2i, room: Vector2i) -> Vector2i:
+	"""Delegate exact Room-owned metadata under the retained actual Site lease; never infer floor from cut Y."""
+	if _room_reading or _composing or _cold_opening:
+		return NULL_REF
+	_room_reading = true
+	var token: int = _phase_token
+	var reader: RoomOrders.Bindings = _actual_room_bindings()
+	var code: StringName = _room_phase_refusal(reader, site, room, token)
+	if code == &"" and _room_region != null:
+		code = reader.phase_section_into(site, room, token, _room_region)
+	elif code == &"":
+		code = REFUSE_BINDING
+	if code == &"":
+		code = _room_phase_refusal(reader, site, room, token)
+	var result: Vector2i = _room_region.section if code == &"" else NULL_REF
+	_room_reading = false
+	return result
+
+
+func finish_mask_into(site: Vector2i, room: Vector2i, cold_token: int,
+		row_limit: int, out: PackedInt32Array) -> StringName:
+	"""Borrow exact fine claims; the physical Authority independently proves and publishes the returned mask."""
+	if _room_reading or _composing or _cold_opening:
+		return REFUSE_BUSY
+	_room_reading = true
+	out.clear()
+	var reader: RoomOrders.Bindings = _actual_room_bindings()
+	var code: StringName = _room_phase_refusal(reader, site, room, cold_token)
+	if code == &"":
+		code = reader.finish_mask_into(site, room, cold_token, row_limit, out)
+	if code == &"":
+		code = _room_phase_refusal(reader, site, room, cold_token)
+	if code != &"":
+		out.clear()
+	_room_reading = false
+	return code
+
+
 func world_ref() -> Vector2i:
 	"""Read the immutable configured World generation without allocating a Domain descriptor."""
 	return _domain._world if _domain != null else NULL_REF
@@ -119,7 +212,7 @@ func is_bound_budget(candidate: Budget) -> bool:
 
 func begin_cold_operation(owner: Owner, site: Vector2i, operation: int, stage: int) -> int:
 	"""Acquire this actual world's complete synchronous phase peak; the lease grants no work permission."""
-	if _cold_opening or _composing or _phase_token != 0:
+	if _cold_opening or _composing or _room_reading or _phase_token != 0:
 		return 0
 	_cold_opening = true
 	var valid: bool = owner == _actual_owner() and owner != null and binding_refusal() == &"" \
@@ -210,7 +303,7 @@ func composed_snapshot_for_site_into(bounds: PackedInt32Array, out: Space.Snapsh
 
 func _begin_query(out: Space.Snapshot) -> StringName:
 	"""Establish exclusivity before any provider callback; a refused nested call cannot clear active output."""
-	if _composing:
+	if _composing or _room_reading:
 		return REFUSE_BUSY
 	if out == null:
 		return &"WORLD_COMPOSITION_OUTPUT"

@@ -17,6 +17,10 @@ const Work := preload("res://scripts/core/work.gd")
 const Gear := preload("res://scripts/core/gear.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const RoomSpace := preload("res://scripts/core/room_space.gd")
+const CutMap := preload("res://scripts/core/underground_room_cut_map.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const NO_ROW: int = -1
 const SITE_GENERATION: int = 1
 ## Engineering envelope only: caller chooses a qualified smaller budget; history never evicts.
@@ -47,6 +51,94 @@ const REFUSE_CHILD: StringName = &"EXCAVATION_CHILD_FORBIDDEN"
 const REFUSE_BUILDER_CAP: StringName = &"EXCAVATION_PROJECT_BUILDER_CAP"
 const REFUSE_OUTPUT: StringName = &"SPOIL_OUTPUT_BLOCKED"
 const REFUSE_DELIVERY: StringName = &"EXCAVATION_DELIVERY_OWNERSHIP"
+const REFUSE_CLAIM_BATCH: StringName = &"ROOM_CUT_BATCH_SCOPE"
+const REFUSE_CLAIM_HISTORY: StringName = &"ROOM_RETAINED_CUT_MAPPING_UNBOUND"
+const CLAIM_SEARCH_CHECKS: int = 17 # Covers the entire73909-row binary-search domain.
+
+class RoomClaimInput extends RefCounted:
+	## Caller-admitted borrowed input. The physical owner pins a separate private image.
+	var world: Vector2i = NULL_REF
+	var room_type: int = -1
+	var level: int = -1
+	var space_revision: int = 0
+	var origin_u: Vector3i = Vector3i.ZERO
+	var cell_size_u: int = 0
+	var height_u: int = 0
+	var cells: PackedInt32Array = PackedInt32Array()
+
+class RoomClaimBatch extends RefCounted:
+	## Synchronous cold observation only. No Site, Room, paid work or reservation exists before publish.
+	var _owner: WeakRef = null
+	var _authority: WeakRef = null
+	var _budget: Budget = null
+	var _input: RoomClaimInput = null
+	var _candidate: Directory.CreateCandidate = null
+	var _cursor: CutMap = null
+	var _cells: PackedInt32Array = PackedInt32Array()
+	var _room_facts: PackedInt32Array = PackedInt32Array()
+	var _world: Vector2i = NULL_REF
+	var _room_type: int = -1
+	var _level: int = -1
+	var _space_revision: int = 0
+	var _origin: Vector3i = Vector3i.ZERO
+	var _pitch: int = 0
+	var _height: int = 0
+	var _room: Vector2i = NULL_REF
+	var _kind: int = -1
+	var _typed_row: int = -1
+	var _persistent_id: int = 0
+	var _datum: Vector3i = Vector3i.ZERO
+	var _minimum: Vector3i = Vector3i.ZERO
+	var _size: Vector3i = Vector3i.ZERO
+	var _cold_token: int = 0
+	var _base_count: int = 0
+	var _count: int = 0
+	var _phase: int = 0 # EMPTY0, PREPARED1, PUBLISHED2, DISCARDED3; not a gameplay phase.
+
+	func _copy_input(request: RoomClaimInput, candidate: Directory.CreateCandidate) -> void:
+		"""Copy only after the actual shared World arena admits every simultaneous plan/cursor image."""
+		_input = request
+		_candidate = candidate
+		_world = request.world
+		_room_type = request.room_type
+		_level = request.level
+		_space_revision = request.space_revision
+		_origin = request.origin_u
+		_pitch = request.cell_size_u
+		_height = request.height_u
+		_cells = request.cells.duplicate()
+		_room = candidate.ref
+		_kind = candidate.kind
+		_typed_row = candidate.typed_row
+		_persistent_id = candidate.persistent_id
+		_room_facts.resize(Buildings.ROOM_IDENTITY_FIELDS)
+
+	func _unchanged() -> bool:
+		"""Every exposed scalar/tuple and cell must still match its independently retained observation."""
+		return _input != null and _candidate != null and _input.world == _world \
+			and _input.room_type == _room_type and _input.level == _level and _input.space_revision == _space_revision \
+			and _input.origin_u == _origin and _input.cell_size_u == _pitch and _input.height_u == _height \
+			and _input.cells == _cells and _candidate.ref == _room and _candidate.kind == _kind \
+			and _candidate.typed_row == _typed_row and _candidate.persistent_id == _persistent_id
+
+	func _drop_scratch() -> void:
+		"""Drop the private image and borrowed handles before the coordinator releases its exact cold token."""
+		if _cursor != null:
+			_cursor.clear()
+		_cursor = null
+		_cells = PackedInt32Array()
+		_room_facts = PackedInt32Array()
+		_input = null
+		_candidate = null
+		_budget = null
+
+	func count() -> int:
+		"""Diagnostic accepted quantum count; it is neither a construction Job nor permission to dig."""
+		return _count
+
+	func matches_input(request: RoomClaimInput, candidate: Directory.CreateCandidate) -> bool:
+		"""Compare exact borrowed objects without lending private arrays or granting publication."""
+		return request != null and request == _input and candidate != null and candidate == _candidate
 
 var _construction: Construction = null
 var _inventory: Inventory = null
@@ -56,6 +148,7 @@ var _jobs: Jobs = null
 var _work: Work = null
 var _funding: Funding = null
 var _space: WeakRef = null
+var _claim_batch: WeakRef = null # Exact synchronous cold packet; no persisted reservation or epoch.
 var _domain: Domain = Domain.new()
 var _ready_error: StringName = REFUSE_DOMAIN
 var _capacity: int = 0
@@ -249,6 +342,214 @@ func remaining_history_capacity() -> int:
 			or _construction.excavation_authority() != self or _composition_refusal() != &"":
 		return -1
 	return _capacity - _count
+
+
+func domain_matches(world: Vector2i, datum: Vector3i, minimum: Vector3i, size: Vector3i) -> bool:
+	"""Compare the actual immutable physical key namespace without callbacks or a copied descriptor."""
+	return remaining_history_capacity() >= 0 and world == _domain.world_ref and datum == _domain.datum_u \
+		and minimum == _domain.minimum_quantum and size == _domain.size_quanta
+
+
+static func room_claim_cold_bytes(cell_count: int) -> int:
+	"""Four full fine images plus one interval bank; all prior companion surveys must already have dropped."""
+	return 40 * cell_count + 2048 if cell_count > 0 and cell_count <= RoomSpace.MAX_CELLS else 0
+
+
+func prepare_room_claim_batch_into(request: RoomClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, domain: RoomSpace.Domain, budget: Budget,
+		cold_token: int, out: RoomClaimBatch) -> StringName:
+	"""After companion surveys have dropped, prove every virgin key and prepaid replay without live writes."""
+	var code: StringName = _claim_prepare_refusal(request, candidate, authority, budget, cold_token, out)
+	if code != &"" or domain == null:
+		return code if code != &"" else REFUSE_DOMAIN
+	var descriptor: Dictionary = domain.descriptor()
+	if not domain_matches(request.world, descriptor.datum_u, descriptor.min_quantum, descriptor.size_quanta) \
+			or descriptor.world_ref != request.world or not budget.covers(cold_token, Budget.COLD_BYTES):
+		return REFUSE_DOMAIN
+	if not _claim_input_bounded(request) or _current_claim_batch() != null or out._phase != 0:
+		return REFUSE_CLAIM_BATCH
+	_pin_claim_batch(request, candidate, authority, budget, cold_token, descriptor, out)
+	code = _prepare_claim_cursor(out, domain, descriptor.max_checks)
+	if code == CutMap.REFUSE_CAPACITY:
+		code = REFUSE_SITE_CAPACITY
+	if code != &"":
+		out._drop_scratch()
+		out._phase = 3
+		return code
+	_claim_batch = weakref(out)
+	out._phase = 1
+	code = room_claim_batch_refusal(out)
+	if code != &"":
+		discard_room_claim_batch(out)
+	return code
+
+
+func _claim_prepare_refusal(request: RoomClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int, out: RoomClaimBatch) -> StringName:
+	"""No candidate, input image or cursor is copied before full actual owner/token preflight."""
+	if remaining_history_capacity() < 0 or not _claim_input_bounded(request) or candidate == null or out == null \
+			or out._phase != 0 or _current_claim_batch() != null or budget == null \
+			or not budget.covers(token, Budget.COLD_BYTES) or authority == null \
+			or authority != _construction.buildings().spatial_authority() or request.world != _domain.world_ref \
+			or request.room_type < 0 or request.room_type >= Buildings.ROOM_TYPE_COUNT \
+			or candidate.kind != Directory.KIND_ROOM:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _construction.directory().candidate_refusal(candidate)
+	if code == &"":
+		code = authority.room_claim_scope_refusal(candidate, request.room_type, budget, token)
+	if code != &"":
+		return code
+	return &"" if budget.covers(token, Budget.COLD_BYTES) and remaining_history_capacity() >= 0 \
+		and authority == _construction.buildings().spatial_authority() else REFUSE_CLAIM_BATCH
+
+
+func _claim_input_bounded(request: RoomClaimInput) -> bool:
+	"""Bound the private cell copy before allocation, including changes made by a prior scope callback."""
+	return request != null and request.cells.size() >= 2 and request.cells.size() % 2 == 0 \
+		and request.cells.size() <= RoomSpace.MAX_CELLS * 2 and request.level >= 0 \
+		and request.level <= RoomSpace.I32_MAX and request.space_revision > 0 \
+		and request.cell_size_u > 0 and request.cell_size_u <= RoomSpace.I32_MAX \
+		and request.height_u > 0 and request.height_u <= RoomSpace.I32_MAX
+
+
+func _pin_claim_batch(request: RoomClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int,
+		descriptor: Dictionary, out: RoomClaimBatch) -> void:
+	"""The cold packet has one private fine input and one borrowed exact live-owner scope."""
+	out._owner = weakref(self)
+	out._authority = weakref(authority)
+	out._budget = budget
+	out._cold_token = token
+	out._base_count = _count
+	out._datum = descriptor.datum_u
+	out._minimum = descriptor.min_quantum
+	out._size = descriptor.size_quanta
+	out._copy_input(request, candidate)
+	out._cursor = CutMap.new()
+
+
+func _prepare_claim_cursor(batch: RoomClaimBatch, domain: RoomSpace.Domain, checks: int) -> StringName:
+	"""Unique preflight and later replay share one finite allowance; index merge is prepaid too."""
+	var code: StringName = batch._cursor.configure(batch._cells, batch._origin, batch._pitch,
+		batch._height, domain, checks, _capacity - _count)
+	if code != &"":
+		return code
+	while batch._cursor.advance():
+		code = batch._cursor.charge_checks(CLAIM_SEARCH_CHECKS)
+		if code != &"":
+			return code
+		var key: int = batch._cursor.current_key()
+		var index: int = _key_lower_bound(key)
+		if index < _count and _ordered_key[index] == key:
+			return REFUSE_CLAIM_HISTORY
+	if batch._cursor.refusal() != &"":
+		return batch._cursor.refusal()
+	batch._count = batch._cursor.emitted_count()
+	var replay: int = checks - batch._cursor.remaining_checks() - CLAIM_SEARCH_CHECKS * batch._count
+	code = batch._cursor.charge_checks(_count + 2 * batch._count)
+	return code if code != &"" else batch._cursor.rewind_prepaid(replay)
+
+
+func room_claim_batch_refusal(batch: RoomClaimBatch) -> StringName:
+	"""Last callback-free guard: run immediately before actual Directory Room creation, after every provider."""
+	var code: StringName = _claim_batch_current_refusal(batch)
+	return code if code != &"" else _construction.directory().candidate_refusal(batch._candidate)
+
+
+func _claim_batch_current_refusal(batch: RoomClaimBatch) -> StringName:
+	"""No source/geometry/authority callback may occur in the final physical-history observation."""
+	if batch == null or _current_claim_batch() != batch or batch._owner == null \
+			or batch._owner.get_ref() != self or batch._phase != 1 or not batch._unchanged() \
+			or batch._authority == null or batch._authority.get_ref() == null \
+			or batch._authority.get_ref() != _construction.buildings().spatial_authority() \
+			or batch._candidate.directory_owner() != _construction.directory() \
+			or batch._budget == null or not batch._budget.covers(batch._cold_token, Budget.COLD_BYTES):
+		return REFUSE_CLAIM_BATCH
+	if not domain_matches(batch._world, batch._datum, batch._minimum, batch._size) \
+			or _count != batch._base_count or batch._count < 1 or batch._count > _capacity - _count:
+		return REFUSE_CLAIM_BATCH
+	return &"" if batch._cursor != null and batch._cursor.refusal() == &"" \
+		and batch._cursor.emitted_count() == 0 else REFUSE_CLAIM_BATCH
+
+
+func publish_room_claim_batch(batch: RoomClaimBatch) -> StringName:
+	"""Publish only directly after actual Room allocation, before any spatial/source companion callback."""
+	var code: StringName = _claim_batch_current_refusal(batch)
+	if code != &"":
+		return code
+	var authority: Buildings.SpatialAuthority = batch._authority.get_ref() as Buildings.SpatialAuthority
+	if not authority.is_publishing_room_admission(batch._room, batch._room_type):
+		return REFUSE_CLAIM_BATCH
+	code = _claim_batch_current_refusal(batch)
+	if code == &"":
+		code = _claim_created_room_refusal(batch)
+	if code != &"":
+		return code
+	_publish_claim_rows(batch)
+	batch._phase = 2
+	_claim_batch = null
+	batch._drop_scratch()
+	return &""
+
+
+func _claim_created_room_refusal(batch: RoomClaimBatch) -> StringName:
+	"""Read full real Directory/Buildings after-facts into preallocated scratch; no future-facts shortcut."""
+	var ids: Directory = _construction.directory()
+	if not ids.is_valid_of_kind(batch._room, Directory.KIND_ROOM) \
+			or ids.get_typed_row(batch._room) != batch._typed_row \
+			or ids.get_persistent_id(batch._room) != batch._persistent_id:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _construction.buildings().room_identity_into(batch._room, batch._room_facts)
+	if code != &"":
+		return code
+	return &"" if batch._room_facts[0] == Buildings.ROOM_SPACE_UNDERGROUND \
+		and batch._room_facts[1] == batch._room_type and batch._room_facts[2] == -1 \
+		and batch._room_facts[3] == 0 and batch._room_facts[5] == 0 else REFUSE_CLAIM_BATCH
+
+
+func _publish_claim_rows(batch: RoomClaimBatch) -> void:
+	"""Replay private proven input into preallocated permanent SOLID rows; no price or physical cut occurs."""
+	var row: int = _count
+	while batch._cursor.advance():
+		_site_key[row] = batch._cursor.current_key()
+		_present[row] = 1
+		_room_slot[row] = batch._room.x
+		_room_generation[row] = batch._room.y
+		row += 1
+	assert(batch._cursor.refusal() == &"" and row == _count + batch._count, "prepaid private replay cannot fail")
+	_merge_claim_rows(_count, row)
+	_count = row
+
+
+func _merge_claim_rows(first_new: int, last_new: int) -> void:
+	"""Merge sorted new physical keys backward, never inserting every key through a quadratic shift."""
+	var old: int = first_new - 1
+	var added: int = last_new - 1
+	var target: int = last_new - 1
+	while added >= first_new:
+		if old >= 0 and _ordered_key[old] > _site_key[added]:
+			_ordered_key[target] = _ordered_key[old]
+			_ordered_row[target] = _ordered_row[old]
+			old -= 1
+		else:
+			_ordered_key[target] = _site_key[added]
+			_ordered_row[target] = added
+			added -= 1
+		target -= 1
+
+
+func discard_room_claim_batch(batch: RoomClaimBatch) -> void:
+	"""Drop only this owner's exact unpublished packet; no capacity/history/other lease is released."""
+	if batch == null or _current_claim_batch() != batch or batch._owner == null or batch._owner.get_ref() != self:
+		return
+	_claim_batch = null
+	batch._phase = 3
+	batch._drop_scratch()
+
+
+func _current_claim_batch() -> RoomClaimBatch:
+	"""Abandoning a cold packet cannot leave a phantom physical reservation or permanent owner cycle."""
+	return _claim_batch.get_ref() as RoomClaimBatch if _claim_batch != null else null
 
 
 func funding_owner(construction: Construction, inventory: Inventory, pool: Reservations,

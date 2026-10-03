@@ -95,6 +95,7 @@ const Catalog := preload("res://scripts/core/catalog.gd")
 const EntityDirectory := preload("res://scripts/core/entity_directory.gd")
 const BuildingDefinitions := preload("res://scripts/core/building_definitions.gd")
 const Milestones := preload("res://scripts/core/milestones.gd")
+const UndergroundBudget := preload("res://scripts/core/underground_budget.gd")
 
 ## systems_architecture.md §2.2 and entity_directory.gd's KIND_CAPACITY, which must agree.
 const BUILDING_CAPACITY: int = 1024
@@ -281,6 +282,11 @@ class SpatialAuthority extends RefCounted:
 
 	func room_candidate_refusal(_candidate: EntityDirectory.CreateCandidate, _room_type: int) -> StringName:
 		"""Prove one exact currently prepared future Room; this read alone never permits allocation."""
+		return REFUSE_SPATIAL_COMMAND
+
+	func room_claim_scope_refusal(_candidate: EntityDirectory.CreateCandidate, _room_type: int,
+			_budget: UndergroundBudget, _cold_token: int) -> StringName:
+		"""Attest exact physical batch cold ownership before copies; this base grants no reservation permission."""
 		return REFUSE_SPATIAL_COMMAND
 
 	func is_publishing_room_admission(_room: Vector2i, _room_type: int) -> bool:

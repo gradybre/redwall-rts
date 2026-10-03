@@ -1,0 +1,57 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1095-claim-batch-h9s_yj9d
+import 0 []
+test_underground_room_cut_map.gd
+11 test(s), 40215 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 11 tests, 40215 assertions, 0 failures.
+test_excavation_claim_batch.gd
+10 test(s), 329 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 329 assertions, 0 failures.
+test_underground_room_orders.gd
+31 test(s), 1574 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 31 tests, 1574 assertions, 0 failures.
+test_underground_furniture_work.gd
+15 test(s), 4628 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 15 tests, 4628 assertions, 0 failures.
+test_underground_furniture_batches.gd
+14 test(s), 1364 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 14 tests, 1364 assertions, 0 failures.
+test_buildings_spatial.gd
+21 test(s), 434 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 21 tests, 434 assertions, 0 failures.
+test_excavation_physical.gd
+UG06_WORK_256 mean_usec=9757 max_usec=9936 sparse_owner_image_bytes=2419120
+UG06_STAGES_256 preflight_usec=5626 publication_usec=1294 commit_usec=528
+UG06_PACKED S=256 R=512 sites_bytes=65808 funding_bytes=2379776 total_bytes=2445584
+UG06_GATE_BOUND_256 mean_usec=1358 max_usec=1401
+UG06_GATE_SPACE_256 mean_usec=344 max_usec=350
+UG06_GATE_OUTPUT_256 mean_usec=90 max_usec=95
+UG06_GATE_WORKER_256 mean_usec=1431 max_usec=1447
+UG06_GATE_PRODUCTIVE_256 mean_usec=3218 max_usec=3266
+UG06_CANCEL_8192 mean_usec=4026 max_usec=4103
+UG06_BASELINE_WORK_256 mean_usec=2510 max_usec=2553
+50 test(s), 23926 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 50 tests, 23926 assertions, 0 failures.
+test_underground_room_admission.gd
+24 test(s), 821 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 24 tests, 821 assertions, 0 failures.
+test_underground_room_bindings.gd
+17 test(s), 604 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 17 tests, 604 assertions, 0 failures.

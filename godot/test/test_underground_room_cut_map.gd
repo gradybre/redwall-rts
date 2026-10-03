@@ -66,6 +66,36 @@ func _read(cuts: CutMap) -> Array[Vector3i]:
 	return out
 
 
+func test_completed_private_cursor_replays_without_a_second_bank_or_new_allowance() -> void:
+	"""The atomic Sites publisher can replay its already proved immutable input without allocation."""
+	var domain: Space.Domain = _domain()
+	var cuts: CutMap = CutMap.new()
+	assert_equal(cuts.configure(_cells(495), Vector3i(17, -33, 91), 769, 1500, domain, 100000, 512), &"", "bounded private cursor")
+	var first: Array[Vector3i] = _read(cuts)
+	var work: int = 100000 - cuts.remaining_checks()
+	var bank_size: int = cuts._intervals.size()
+	assert_equal(cuts.rewind_prepaid(work), &"", "replay consumes only an already unused allowance")
+	assert_equal(cuts._intervals.size(), bank_size, "same bank capacity retained")
+	assert_equal(_read(cuts), first, "same full unique Y/Z/X stream")
+	assert_true(cuts.remaining_checks() <= work, "no fresh Domain budget granted")
+	assert_equal(cuts._intervals.size(), bank_size, "no second output-key list or interval allocation")
+
+
+func test_unfinished_or_underfunded_replay_refuses_without_changing_cursor() -> void:
+	"""A partial/error cursor is never a replay proof, and an excessive allowance cannot be minted."""
+	var cuts: CutMap = CutMap.new()
+	assert_equal(cuts.configure(_cells(1), Vector3i(17, -33, 91), 256, 1, _domain(), 1000, 16), &"", "actual cursor")
+	var before: int = cuts.remaining_checks()
+	assert_equal(cuts.rewind_prepaid(1), CutMap.REFUSE_CLOSED, "unfinished stream refuses")
+	assert_equal(cuts.remaining_checks(), before, "refusal retains allowance")
+	_read(cuts)
+	before = cuts.remaining_checks()
+	assert_equal(cuts.rewind_prepaid(before + 1), CutMap.REFUSE_WORK, "cannot grant extra work")
+	assert_equal(cuts.remaining_checks(), before, "invalid replay leaves cursor unchanged")
+	cuts.clear()
+	assert_equal(cuts.rewind_prepaid(1), CutMap.REFUSE_CLOSED, "dropped input cannot replay")
+
+
 func test_every_three_by_three_union_matches_independent_cube_intersection() -> void:
 	"""All511 nonempty patterns at three pitches cover overlapping rows, true holes and nonaligned boundaries."""
 	var domain: Space.Domain = _domain()

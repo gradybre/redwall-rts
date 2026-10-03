@@ -31,6 +31,17 @@ const ModularFixture := preload("res://test/test_modular_projects.gd")
 const TestCase := preload("res://test/framework/test_case.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
+class ExactPhysicalDomain extends PhysicalFixture.SpatialFixture:
+	## SYNTHETIC permissions retain the exact actual fixture Space key namespace.
+	func domain_into(out: Sites.Domain) -> bool:
+		"""Room and physical owners must agree even in a geometry-permission fixture."""
+		out.world_ref = world
+		out.datum_u = Vector3i(0, -8192, 0)
+		out.minimum_quantum = Vector3i.ZERO
+		out.size_quanta = Vector3i(16, 16, 16)
+		retained_descriptor = out
+		return true
+
 class SyntheticRegistration extends RoomOrders:
 	## Only initial registration uses a synthetic scoped permit; paid installation uses production super.
 	var permit_action: int = -1
@@ -197,7 +208,7 @@ class Fixture extends RefCounted:
 	var gear: Gear = Gear.new(8)
 	var buildings: Buildings = null
 	var construction: Construction = null
-	var physical: PhysicalFixture.SpatialFixture = PhysicalFixture.SpatialFixture.new()
+	var physical: PhysicalFixture.SpatialFixture = ExactPhysicalDomain.new()
 	var sites: Sites = null
 	var funding: Funding = null
 	var router: Router = null
@@ -231,7 +242,7 @@ class Fixture extends RefCounted:
 		buildings = Buildings.new(residents.directory())
 		construction = Construction.new(buildings)
 		physical.world = world
-		sites = Sites.new(construction, inventory, pool, items, jobs, work, physical, 64, 8)
+		sites = Sites.new(construction, inventory, pool, items, jobs, work, physical, 64, 64)
 		check(sites.initialization_refusal() == &"", "actual Sites shared Funding")
 		funding = sites.funding_owner(construction, inventory, pool, items, jobs, work)
 		router = Router.new(construction, inventory, pool, items, jobs, work, sites)

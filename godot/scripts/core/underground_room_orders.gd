@@ -14,6 +14,7 @@ const Layout := preload("res://scripts/core/room_layout.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"UNDERGROUND_ROOM_OWNER_UNBOUND"
 const REFUSE_FURNITURE: StringName = &"UNDERGROUND_PENDING_FURNITURE_REQUIRED"
@@ -317,6 +318,10 @@ var _room_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
 var _room_request: RoomPlan = null
 var _room_budget: Budget = null
 var _room_cold_token: int = 0
+var _room_domain: RoomSpace.Domain = null
+var _room_sites: Sites = null
+var _room_claim_input: Sites.RoomClaimInput = null
+var _room_claim_batch: Sites.RoomClaimBatch = null
 var _layout_token: int = 0
 var _layout_planner_bytes: int = 0
 var _layout_geometry_limit: int = 0
@@ -804,6 +809,8 @@ func confirm_room(plan: RoomPlan) -> Buildings.OpResult:
 		code = _prepare_room(bindings)
 	if code == &"" and not _same_room_plan(plan):
 		code = REFUSE_PLAN
+	if code == &"":
+		code = _prepare_room_claims()
 	if code != &"":
 		_discard_room(bindings)
 		return Buildings.OpResult.new(false, code, 0, NULL_REF)
@@ -909,6 +916,7 @@ func _prepare_room_geometry() -> StringName:
 	var descriptor: Dictionary = domain.descriptor()
 	if descriptor.world_ref != _world or not _room_budget_covers():
 		return REFUSE_BINDING
+	_room_domain = domain
 	var code: StringName = Footprint.validation_error(_room_plan.cells, descriptor.max_cells, true)
 	if code != &"":
 		return code
@@ -1007,6 +1015,14 @@ func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int
 	return &""
 
 
+func room_claim_scope_refusal(candidate: Directory.CreateCandidate, room_type: int,
+		budget: Budget, cold_token: int) -> StringName:
+	"""Pure exact-owner admission for Sites; another arena with the same numeric token never qualifies."""
+	if budget == null or budget != _room_budget or cold_token <= 0 or cold_token != _room_cold_token:
+		return REFUSE_ROOM_COLD
+	return room_candidate_refusal(candidate, room_type)
+
+
 func room_companion_refusal(room: Vector2i, room_type: int, space_token: int,
 		cold_token: int, space: SpaceOwner, budget: Budget) -> StringName:
 	"""Attest only this exact local preparation/publication scope; allocator/source proofs remain separate."""
@@ -1030,21 +1046,64 @@ func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
 
 func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 	"""Publish actual Room then its sealed exact future source, without fallible reconstruction afterward."""
-	if not _room_budget_covers():
+	var refusal: StringName = _room_claims_final_refusal()
+	if refusal != &"":
 		_discard_room(bindings)
-		return Buildings.OpResult.new(false, REFUSE_ROOM_COLD, 0, NULL_REF)
+		return Buildings.OpResult.new(false, refusal, 0, NULL_REF)
 	_publishing = true
 	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(_room_plan.room_type, _room_candidate)
 	if not made.ok:
 		_publishing = false
 		_discard_room(bindings)
 		return made
+	var reserved: StringName = _room_sites.publish_room_claim_batch(_room_claim_batch)
+	assert(reserved == &"", "preflighted exact Room cuts publish before the first spatial/source callback")
 	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _room_plan.room_type, self)
 	assert(code == &"", "preflighted exact future Room geometry must publish after identity")
 	bindings.publish_room_plan(_stage_room, _stage_token)
 	_publishing = false
 	_finish_room_cold(bindings)
 	return made
+
+
+func _prepare_room_claims() -> StringName:
+	"""All allocating companion surveys must already be sealed/dropped before the fourth input/cursor image."""
+	if not _room_budget_covers() or _room_domain == null:
+		return REFUSE_ROOM_COLD
+	_room_sites = _construction.excavation_authority() as Sites
+	if _room_sites == null or _room_sites.construction_owner() != _construction:
+		return REFUSE_BINDING
+	_room_claim_input = Sites.RoomClaimInput.new()
+	_room_claim_input.world = _room_plan.world
+	_room_claim_input.room_type = _room_plan.room_type
+	_room_claim_input.level = _room_plan.level
+	_room_claim_input.space_revision = _room_plan.space_revision
+	_room_claim_input.origin_u = _room_plan.origin_u
+	_room_claim_input.cell_size_u = _room_plan.cell_size_u
+	_room_claim_input.height_u = _room_plan.height_u
+	_room_claim_input.cells = _room_plan.cells
+	_room_claim_batch = Sites.RoomClaimBatch.new()
+	return _room_sites.prepare_room_claim_batch_into(_room_claim_input, _room_candidate,
+		self, _room_domain, _room_budget, _room_cold_token, _room_claim_batch)
+
+
+func _room_claims_final_refusal() -> StringName:
+	"""No provider callback separates this complete local/Sites guard from real Directory creation."""
+	if not _room_budget_covers():
+		return REFUSE_ROOM_COLD
+	if not _same_room_plan(_room_request) or _room_claim_input == null \
+			or _room_claim_input.world != _room_plan.world or _room_claim_input.room_type != _room_plan.room_type \
+			or _room_claim_input.level != _room_plan.level or _room_claim_input.space_revision != _room_plan.space_revision \
+			or _room_claim_input.origin_u != _room_plan.origin_u or _room_claim_input.cell_size_u != _room_plan.cell_size_u \
+			or _room_claim_input.height_u != _room_plan.height_u or _room_claim_input.cells != _room_plan.cells:
+		return REFUSE_PLAN
+	if _room_sites == null or _construction.excavation_authority() != _room_sites \
+			or _room_claim_batch == null or not _room_claim_batch.matches_input(_room_claim_input, _room_candidate):
+		return REFUSE_BINDING
+	var code: StringName = room_candidate_refusal(_room_candidate, _room_plan.room_type)
+	if code != &"":
+		return code
+	return _room_sites.room_claim_batch_refusal(_room_claim_batch)
 
 
 func _discard_room(bindings: Bindings) -> void:
@@ -1057,10 +1116,16 @@ func _discard_room(bindings: Bindings) -> void:
 
 func _finish_room_cold(bindings: Bindings) -> void:
 	"""Drop owned copied cells and candidate observations before releasing the exact shared peak."""
+	if _room_sites != null:
+		_room_sites.discard_room_claim_batch(_room_claim_batch)
+	_room_claim_batch = null
+	_room_claim_input = null
+	_room_domain = null
 	_room_plan.reset()
 	_room_candidate.reset()
 	if _cold_held:
 		bindings.end_room_cold()
+	_room_sites = null
 	_clear_stage()
 
 

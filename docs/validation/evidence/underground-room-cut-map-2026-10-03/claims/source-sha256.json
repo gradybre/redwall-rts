@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/buildings.gd": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
+  "godot/scripts/core/excavation_sites.gd": "e7b78cca952a5a87cc7715d86a44dca01e9a6a9b98e642a03cd80130167f6712",
+  "godot/scripts/core/underground_room_cut_map.gd": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5",
+  "godot/scripts/core/underground_room_orders.gd": "233f2014852bb281efa4346de6813eb190e01e33295aa75deda16fbdbbcf3c7b",
+  "godot/test/test_excavation_claim_batch.gd": "0054068f201561cfde8113acddb08a8dae327b180d15c88c7f6b0e3b9f07e20c",
+  "godot/test/test_underground_furniture_work.gd": "9b946767245307d2c514888b81091e3b9488803b589605d0e30472ab4dbd47fd",
+  "godot/test/test_underground_room_cut_map.gd": "90e24fbc882fc6ee35b6b43dd1f460669d95fc4997c458453ef6f9cd75f60438",
+  "godot/test/test_underground_room_orders.gd": "902afe7355aadc81203f09cf7ab91b1fa1066eb567a9e0646554ff03d7a300be"
+}

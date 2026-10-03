@@ -294,6 +294,25 @@ func remaining_checks() -> int:
 	return _remaining
 
 
+func rewind_prepaid(checks: int) -> StringName:
+	"""Replay a completed private input without allocating; the new allowance comes from unused work."""
+	if not _ready or _error != &"" or _y != _y_end or _current_key != -1:
+		return REFUSE_CLOSED
+	if checks < 1 or checks > _remaining:
+		return REFUSE_WORK
+	_remaining = checks
+	_y = _quantum(_origin.y, 1)
+	_next_z = _first_z
+	_first = 0
+	_interval_count = 0
+	_interval_at = 0
+	_x = 0
+	_x_end = 0
+	_emitted = 0
+	_current = Vector3i.ZERO
+	return &""
+
+
 func charge_checks(checks: int) -> StringName:
 	"""Let the synchronous consumer charge real owner observations against this same finite work envelope."""
 	if not _ready or _error != &"":

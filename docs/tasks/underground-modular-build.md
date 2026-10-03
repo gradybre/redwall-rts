@@ -132,3 +132,25 @@ exceeds the whole-tick budget; UG17 retains that qualification work. UG07 actual
 Room/Furniture orders, UG08 qualified movement/connectors and UG21 spatial
 composition remain active. None of these component results is a claim that the
 complete playable underground lifecycle has been delivered.
+
+
+## Integrated checkpoint 8334ce3a
+
+The exact clean-assets/cache/import/no-argument suite passed 10,194 tests,
+912,108 assertions and zero failures. Strict and raw unexpected errors/warnings
+and object/resource leaks are zero; 272 expected and 353 tolerated diagnostics
+remain unchanged. The full analyzer found zero warnings across 1,131 scripts.
+[Complete source-pinned evidence](../design/underground-planning/evidence/modular-build/checkpoint-8334ce3a/README.md)
+includes timings, restoration and unchanged HEAD/source checks.
+
+Completed-passage admission, the paid surface-to-level construction frontier,
+real work/contact profile content and preservation of existing Locations/Routes
+during new Room confirmation remain active owner work. Full-size painted
+geometry now has actual Level/Terrain/history observations, but no entry is
+fabricated to make confirmation succeed. The next cursor/companion increments
+have separate focused evidence and are not retroactively part of this run.
+
+Native grip inspection selected the firmer authored grasp for a source-bound
+rebake. The room-shell study still shows stepped curved walls; coherent organic
+geometry and the complete 720p playthrough remain open. These are acceptance
+obligations within the approved design, not new gameplay approvals.

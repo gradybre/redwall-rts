@@ -207,7 +207,13 @@
         "integration": "unchanged cherry-pick; next full checkpoint pending",
         "tests": "19 tests,298assertions,0failures; native SHELL-LIVE-SUMMARY33 0",
         "diagnostics": "0unexpectederrors/warnings;0expected/tolerated;0leakedobjects/resources; analyzer0warnings/4files",
-        "review": "root independent source and all3PNG review; cached mesh ownership clarified; exact opening-height conversion regression added. Synthetic geometry study, not playable village. Cold4096cells46.630ms,16384cells181.636ms; budget and curve polish remain UG09/17."
+        "review": "root independent source and all3PNG review; cached mesh ownership clarified; exact opening-height conversion regression added. Synthetic geometry study, not playable village. Cold4096cells46.630ms,16384cells181.636ms; budget and curve polish remain UG09/17.",
+        "organic_silhouette_followup": {
+          "status": "open visual qualification",
+          "evidence": "docs/design/underground-planning/evidence/modular-build/shell/01-gallery-cutaway.png",
+          "finding": "Material coverage matches fine-cell boundaries, but rounded burrow and bent passage walls remain visibly stepped. Organic silhouette quality is not accepted.",
+          "constraint": "Smooth geometry must stay consistent with authoritative solid/usable space, collision, placement and openings; renderer-only corner clipping cannot grant uncut floor."
+        }
       },
       "lease": {
         "state": "released",
@@ -418,9 +424,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-room-cut-map",
+      "branch": "codex/underground-room-companion-scope",
       "evidence": {
-        "in_progress": "Approved1095 derived unique paid-cube cursor and actual Sites remaining-capacity preflight; cold-only packed interval bank, no duplicate persistent ledger. Batch-claim publication and actual prospective entry remain required.",
+        "in_progress": "Reviewed1095 cut cursor committedc7ffd972/518114cb awaiting integration; reviewed pure RoomOrders companion readerad0a8b48; next actual Sites ClaimBatch final guard and shared lifetime packet under design. No entry/profile authority yet.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -605,7 +611,9 @@
         "tools/test_compile_underground_actor_content.py",
         "godot/demo/cast/underground_actor_content.gd",
         "godot/test/test_underground_actor_content.gd",
-        ".gitattributes"
+        ".gitattributes",
+        "godot/test/test_mole_grip_source.gd",
+        "tools/bake_mole_grip_content.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -776,6 +784,16 @@
           "tests": "29 tests /334 assertions /0 failures, strict/raw0; analyzer0/2;11 compiler Python and4 wrapper regressions; native731poses1575assertions0, analyzer0/1",
           "review": "Root accepted exact compiler/reader/sequence pins and diagnostic-failure wrapper correction. Source-faithful wrist/open-paw grip rejected; no production profile permission.",
           "evidence_path": "godot/data/underground/mole-worker/evidence/frozen-v1/"
+        },
+        "grip_correction_in_progress": {
+          "agent": "/root/ug_furnishing",
+          "scope": "Root visually selected firmer grasp from front, side and rear samples; source-bound derivative, mole-only rebake and regenerated exact source identities remain under independent review. No movement/profile production qualification from this choice.",
+          "paths": [
+            "godot/data/underground/mole-worker/mole_grip_source.gd",
+            "godot/test/test_mole_grip_source.gd",
+            "tools/bake_mole_grip_content.gd"
+          ],
+          "witnesses": "grip-closed-v4 and grip-angles-v1 in agent worktree; original source fingerprint unchanged"
         }
       },
       "lease": {
@@ -818,7 +836,9 @@
         "godot/scripts/core/underground_phase_structure.gd",
         "godot/test/test_underground_phase_structure.gd",
         "docs/decisions/1093-retained-natural-room-support.md",
-        "godot/test/test_underground_world_identities.gd"
+        "godot/test/test_underground_world_identities.gd",
+        "docs/decisions/1096-room-admission-location-companions.md",
+        "docs/decisions/1097-static-profile-route-admission.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -841,7 +861,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-phase-structure",
+      "branch": "codex/underground-room-locations",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -1047,6 +1067,18 @@
           "tests": "88 tests /1451 assertions /0 failures; all strict/raw diagnostics and leaks0; analyzer0/4",
           "review": "ug_geometry independently accepted four iteration5 pins after Owner lifetime, cross-operation scratch exclusivity and exact preallocation lease fixes. Qualification remains0.",
           "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/structure-scope-iteration-5/"
+        },
+        "room_locations_in_progress": {
+          "agent": "/root/ug_geometry",
+          "scope": "Actual post-Space-seal RoomOrders companion context, existing completed Location refresh only; no free future-room endpoint or surface anchor. Exact Space/Budget/token/publication checks;2068 to2085 logical controls within existing2112 reserve.",
+          "branch": "codex/underground-room-locations",
+          "decision": "docs/decisions/1096-room-admission-location-companions.md"
+        },
+        "static_profile_route_in_progress": {
+          "owner": "/root",
+          "branch": "codex/underground-static-route-admission",
+          "scope": "Read-only actual full-profile committed-edge eligibility without fake Selection/Job, no retained state delta. Independent geometry review pending. This is not a complete path/face proof.",
+          "tests": "65 tests10736 assertions0 failures; strict/raw unexpected/leaks0; analyzer0/2"
         }
       },
       "lease": {
@@ -1069,10 +1101,11 @@
               "godot/test/test_underground_world_identities.gd",
               "godot/scripts/core/underground_world_structure_scope.gd",
               "godot/test/test_underground_world_structure_scope.gd",
-              "godot/test/test_underground_world_structure.gd"
+              "godot/test/test_underground_world_structure.gd",
+              "docs/decisions/1097-static-profile-route-admission.md"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
-            "branch": "codex/underground-world-identities"
+            "branch": "codex/underground-static-route-admission"
           }
         ]
       }
@@ -1844,6 +1877,18 @@
       "analyzer_seconds": 219.907,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-1ea96be7/README.md",
       "limits": "Component integration checkpoint; later Room identity/admission/support and native envelope packets excluded. Playable107-requirement delivery remains in progress."
+    },
+    {
+      "commit": "8334ce3aef25276660c5de7abf166e70297884d9",
+      "outcome": "passed",
+      "full_suite": "10194 test(s), 912108 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 GDScript warning(s) in 0 of 1131 file(s)",
+      "procedure": "Assets absent; delete own .godot; exact clean editor import; full no-argument runner; source and HEAD unchanged; original asset state restored",
+      "suite_seconds": 1267.896,
+      "analyzer_seconds": 225.937,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-8334ce3a/README.md",
+      "limits": "Assembled component checkpoint;1095 cut map, room companion scope,1097 static query and authored grip correction are subsequent focused increments. All player workflows and256-resident qualification remain in progress."
     }
   ],
   "crosscut_fixes": [
@@ -1937,6 +1982,16 @@
       ],
       "scope": "Reviewed exact fine Room phase observations, exact successful spatial publication receipts and concrete ground route clearance. Playable demo remains in progress.",
       "metadata": "122 modules/605 rows/969 packed columns; regenerated capacity/memory source pins;unchanged admitted logical memory limit, runtime unqualified."
+    },
+    {
+      "id": "organic-room-silhouette-acceptance-followup-2026-10-03",
+      "scope": "Open visual obligation for later UG17; no queued lane has started or acquired files.",
+      "finding": {
+        "status": "open visual qualification",
+        "evidence": "docs/design/underground-planning/evidence/modular-build/shell/01-gallery-cutaway.png",
+        "finding": "Material coverage matches fine-cell boundaries, but rounded burrow and bent passage walls remain visibly stepped. Organic silhouette quality is not accepted.",
+        "constraint": "Smooth geometry must stay consistent with authoritative solid/usable space, collision, placement and openings; renderer-only corner clipping cannot grant uncut floor."
+      }
     }
   ]
 }

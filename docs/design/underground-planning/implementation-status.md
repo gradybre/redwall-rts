@@ -15,37 +15,34 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `1ea96be7` passed **10,099 tests / 712,989
+The latest full frozen source `8334ce3a` passed **10,194 tests / 912,108
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
-zero analyzer warnings across1,119 scripts. The
-[checkpoint logs](evidence/modular-build/checkpoint-1ea96be7/README.md)
+zero analyzer warnings across 1,131 scripts. The
+[checkpoint logs](evidence/modular-build/checkpoint-8334ce3a/README.md)
 record the exact clean-assets/cache/import and no-argument suite procedure:
 
 ```text
-10099 test(s), 712989 assertion(s), 0 failure(s)
+10194 test(s), 912108 assertion(s), 0 failure(s)
 diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
 log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
 ```
 
-Later independently reviewed increments include actual Room/Job identity
-readers, operation/stage-scoped cold leases, geometric Room admission against
-actual Levels/Terrain/retained obstacles, exact held-tool presentation bounds,
-and packed footprint validation preserving the existing shape policy. Their
-focused evidence remains separately scoped; the full checkpoint does not
-cover these later changes. Packed footprint and caller verification passed
-144 tests/203,330 assertions with zero failures, unexpected diagnostics, leaks
-or analyzer warnings.
+This includes full-size painted-room admission, packed footprint validation,
+actual World structural phase observations and compact native actor content.
+Subsequent cut-map, entry/route companion and grip changes retain separate
+focused source evidence until a later assembled checkpoint.
 
-The admission memory follow-up preserves the full existing16,384-cell ceiling
-(66 tests/2,750 assertions). Actual Room-lifetime structural support and its
-World coordinator are integrated (88 tests/1,451 assertions). The shared worker
-animation reader passes29 tests/334 assertions and a native731-pose source
-check. All have zero unexpected diagnostics/leaks and analyzer warnings.
-The source-faithful tool grip failed visual review and is being corrected.
+The shell study proves boundary coverage and material scale, but its rounded
+walls are visibly stepped. Organic silhouettes remain part of visual
+qualification; a renderer-only change cannot cut through authoritative solid
+corners or silently change usable room space. Front, side and rear native
+inspection selected a firmer authored worker grip; its source-bound rebake
+and physical contact/profile qualification remain in progress.
 
-Active work now derives unique physical cut claims and resolves the actual
-first-entry/worker-contact bootstrap. First entrance/connector construction
-and the first playable Kitchen remain open.
+Active work derives unique physical cut claims, preserves existing circulation
+during room confirmation, and resolves the actual first-entry/worker-contact
+bootstrap. First entrance/connector construction and the first playable Kitchen
+remain open.
 Furniture/removal/renovation demo integration, composed save/resume, native
 1280×720 end-to-end acceptance and256-resident qualification follow those gates.
 These verified components do not complete D20 or make the full workflow

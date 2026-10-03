@@ -10,11 +10,17 @@ const SpaceOwner := preload("res://scripts/core/underground_space_owner.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Space := preload("res://scripts/core/room_space.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const FixtureScript := preload("res://test/test_underground_furniture_work.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
 class RoomBindings extends FixtureScript.SyntheticBindings:
-	## Actual identity/Space publication, with explicitly SYNTHETIC terrain/profile/cut-map/budget proof.
+	## Actual identity/Space/Budget publication, with explicitly SYNTHETIC terrain/profile/cut-map proof.
+	var arena: Budget = Budget.new()
+	var arena_token: int = 0
+	var replacement_token: int = 0
+	var replace_at: int = 0
+	var original_plan: RoomOrders.RoomPlan = null
 	var deny_room_cold: bool = false
 	var room_cold_held: bool = false
 	var room_cold_foreign_stage: bool = false
@@ -58,18 +64,47 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 				and coordinator._stage_action == RoomOrders.ROOM_ADMISSION_STAGE:
 			publication_binding_calls += 1
 			coordinator._room_plan.cells[0] += 1
+		if room_cold_held:
+			_replace_lease(1)
 		return super.exact_binding(buildings, candidate, actual, world_ref)
 
-	func begin_room_cold(_plan: RoomOrders.RoomPlan) -> StringName:
-		"""Synthetic peak admission occurs before copied cells, Domain, Footprint dictionaries or Space bank."""
+	func layout_budget_owner() -> Budget:
+		"""The synthetic permission fixture still uses the real exact-token memory owner."""
+		return arena
+
+	func begin_room_cold(plan: RoomOrders.RoomPlan) -> StringName:
+		"""Real peak admission precedes copied cells; only geometric permission remains synthetic."""
 		if deny_room_cold:
 			return &"SYNTHETIC_ROOM_COLD_DENIED"
 		if room_cold_held or cold_action != -1:
 			return &"SYNTHETIC_ROOM_COLD_BUSY"
+		arena_token = arena.acquire(Budget.COLD_BYTES)
+		if arena_token == 0:
+			return Budget.REFUSE_BUSY
+		original_plan = plan
 		room_cold_held = true
 		room_cold_foreign_stage = space.has_prepared()
 		room_begins += 1
 		return &""
+
+	func room_cold_token() -> int:
+		"""Borrow only the retained token, not a replacement acquired by an adversarial callback."""
+		return arena_token
+
+	func room_cold_refusal(plan: RoomOrders.RoomPlan, token: int) -> StringName:
+		"""Actual arena, exact request and full token must remain current throughout confirmation."""
+		_replace_lease(2)
+		return &"" if room_cold_held and plan == original_plan and token == arena_token \
+			and arena.covers(token, Budget.COLD_BYTES) else RoomOrders.REFUSE_ROOM_COLD
+
+	func _replace_lease(boundary: int) -> void:
+		"""A fresh token from the same real arena cannot authorize an already admitted copy or commit."""
+		if replace_at != boundary:
+			return
+		replace_at = 0
+		assert(arena.release(arena_token) == &"", "exact old token released")
+		replacement_token = arena.acquire(Budget.COLD_BYTES)
+		assert(replacement_token != arena_token and replacement_token > 0, "new lease is distinct")
 
 	func room_plan_refusal(plan: RoomOrders.RoomPlan, room: Vector2i, token: int) -> StringName:
 		"""Scope the synthetic actual-geometry proof; it is deliberately not a production cut-map provider."""
@@ -88,6 +123,7 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 	func room_prepared_refusal(plan: RoomOrders.RoomPlan, _room: Vector2i, _token: int) -> StringName:
 		"""Inject real stale-candidate and request-drift cases after the spatial candidate was sealed."""
 		var actual: RoomOrders = orders.get_ref() as RoomOrders
+		_replace_lease(3)
 		if tamper_candidate:
 			actual._room_candidate.persistent_id += 1
 		if tamper_snapshot:
@@ -130,6 +166,10 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 		assert(not space.has_prepared() or room_cold_foreign_stage, "own geometry scratch dropped before release")
 		assert(actual._room_plan.cells.is_empty() and actual._room_candidate.ref == NULL_REF, "plan/identity scratch dropped")
 		room_cold_held = false
+		if arena.covers(arena_token, Budget.COLD_BYTES):
+			assert(arena.release(arena_token) == &"", "only retained exact lease releases")
+		arena_token = 0
+		original_plan = null
 		room_ends += 1
 
 class ForeignPurpose extends Contract.Owner:
@@ -461,6 +501,42 @@ func test_room_cold_denial_occurs_before_any_domain_or_space_copy() -> void:
 	assert_equal(_f.space.domain_calls, domain_calls, "no Domain copy attempted")
 	assert_equal(_room_bindings.room_begins, 0, "denied lease held nothing")
 	assert_true(_admission_image() == before, "no actual state changed")
+
+
+func test_successful_admission_cannot_lose_its_actual_lease_before_plan_copy() -> void:
+	"""The first post-admission exact-binding callback replaces a real lease with identical capacity."""
+	var before: PackedByteArray = _admission_image()
+	var domain_calls: int = _f.space.domain_calls
+	_room_bindings.replace_at = 1
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_ROOM_COLD, "replacement refuses before copying")
+	assert_equal(_f.space.domain_calls, domain_calls, "no Domain/geometry copy after lease loss")
+	assert_true(_admission_image() == before, "no actual identity or geometry changed")
+	assert_true(_room_bindings.arena.covers(_room_bindings.replacement_token, Budget.COLD_BYTES), "foreign replacement is retained")
+	assert_equal(_room_bindings.arena.release(_room_bindings.replacement_token), &"", "test releases its own replacement")
+	assert_true(_f.orders.confirm_room(_plan()).ok, "valid retry succeeds once")
+
+
+func test_successful_cold_callback_cannot_lend_a_replaced_token_to_room_creation() -> void:
+	"""The provider's fresh scope proof is checked against the actual pinned arena after callbacks."""
+	var before: PackedByteArray = _admission_image()
+	_room_bindings.replace_at = 2
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_ROOM_COLD, "scope callback replacement refuses")
+	assert_true(_admission_image() == before, "no actual row or generation spent")
+	assert_false(_f.space.has_prepared(), "no staged companion stranded")
+	assert_true(_room_bindings.arena.covers(_room_bindings.replacement_token, Budget.COLD_BYTES), "foreign scope remains owned")
+	assert_equal(_room_bindings.arena.release(_room_bindings.replacement_token), &"", "release test-owned replacement")
+
+
+func test_sealed_room_cannot_publish_after_exact_lease_replacement() -> void:
+	"""Late replacement aborts the staged marker image before any actual Directory allocation."""
+	var before: PackedByteArray = _admission_image()
+	_room_bindings.replace_at = 3
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_ROOM_COLD, "late replaced lease refuses")
+	assert_true(_admission_image() == before, "sealed refusal preserves every live row")
+	assert_false(_f.space.has_prepared(), "own staged rows discarded")
+	assert_equal(_room_bindings.room_publications, 0, "no publication or misleading accepted receipt")
+	assert_true(_room_bindings.arena.covers(_room_bindings.replacement_token, Budget.COLD_BYTES), "replacement lease preserved")
+	assert_equal(_room_bindings.arena.release(_room_bindings.replacement_token), &"", "release test-owned replacement")
 
 
 func test_room_cold_busy_and_foreign_space_stage_keep_their_existing_owners() -> void:

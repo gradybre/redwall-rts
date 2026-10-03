@@ -380,7 +380,7 @@ func test_actual_binding_is_once_only_and_unqualified_gates_still_refuse() -> vo
 	assert_false(_masks.exact_binding(Buildings.new(), _owner, _construction, _world_ref), "foreign same-ref Buildings")
 	assert_false(_masks.exact_binding(_buildings, _owner, _construction, Vector2i(_world_ref.x, _world_ref.y + 1)), "full World")
 	assert_true(_masks.layout_budget_owner() == _budget, "actual shared arena")
-	assert_equal(_masks.begin_room_cold(Orders.RoomPlan.new()), Orders.REFUSE_BINDING, "unqualified room admission")
+	assert_equal(_masks.begin_room_cold(Orders.RoomPlan.new()), Masks.REFUSE_ADMISSION, "unqualified room admission")
 	assert_equal(_masks.begin_layout_cold(_room, 1, 1, 1, 1), 0, "unqualified furnishing contacts")
 
 

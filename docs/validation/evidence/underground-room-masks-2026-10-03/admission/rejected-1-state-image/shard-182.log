@@ -1,0 +1,425 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_admission.gd
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_clear_actual_dirt_reaches_missing_entry_without_publishing_a_free_room (res://test/test_underground_room_admission.gd:291)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_clear_actual_dirt_reaches_missing_entry_without_publishing_a_free_room (res://test/test_underground_room_admission.gd:291)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_clear_actual_dirt_reaches_missing_entry_without_publishing_a_free_room
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_oversize_and_busy_refuse_before_domain_plan_or_snapshot_copy (res://test/test_underground_room_admission.gd:308)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_oversize_and_busy_refuse_before_domain_plan_or_snapshot_copy (res://test/test_underground_room_admission.gd:308)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_oversize_and_busy_refuse_before_domain_plan_or_snapshot_copy
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:323)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:323)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:326)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:326)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:329)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:329)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:330)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_level_label_height_and_floor_must_match_actual_catalog (res://test/test_underground_room_admission.gd:330)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_level_label_height_and_floor_must_match_actual_catalog
+        ABORTED: 8 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_full_paid_cube_rejects_wall_outside_fine_shape_and_other_depth_stays_separate (res://test/test_underground_room_admission.gd:338)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_full_paid_cube_rejects_wall_outside_fine_shape_and_other_depth_stays_separate (res://test/test_underground_room_admission.gd:338)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_full_paid_cube_rejects_wall_outside_fine_shape_and_other_depth_stays_separate (res://test/test_underground_room_admission.gd:339)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_full_paid_cube_rejects_wall_outside_fine_shape_and_other_depth_stays_separate (res://test/test_underground_room_admission.gd:339)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_full_paid_cube_rejects_wall_outside_fine_shape_and_other_depth_stays_separate
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_existing_room_claims_and_actual_pending_items_remain_blockers (res://test/test_underground_room_admission.gd:349)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_existing_room_claims_and_actual_pending_items_remain_blockers (res://test/test_underground_room_admission.gd:349)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_existing_room_claims_and_actual_pending_items_remain_blockers (res://test/test_underground_room_admission.gd:350)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_existing_room_claims_and_actual_pending_items_remain_blockers (res://test/test_underground_room_admission.gd:350)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_existing_room_claims_and_actual_pending_items_remain_blockers (res://test/test_underground_room_admission.gd:363)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_existing_room_claims_and_actual_pending_items_remain_blockers (res://test/test_underground_room_admission.gd:363)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_existing_room_claims_and_actual_pending_items_remain_blockers
+        ABORTED: 6 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_protected_above_and_required_footing_use_actual_xyz_bands (res://test/test_underground_room_admission.gd:371)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_protected_above_and_required_footing_use_actual_xyz_bands (res://test/test_underground_room_admission.gd:371)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_protected_above_and_required_footing_use_actual_xyz_bands (res://test/test_underground_room_admission.gd:378)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_protected_above_and_required_footing_use_actual_xyz_bands (res://test/test_underground_room_admission.gd:378)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_protected_above_and_required_footing_use_actual_xyz_bands
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_hole_occupancy_is_not_filled_by_metadata_or_room_bounds (res://test/test_underground_room_admission.gd:387)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_hole_occupancy_is_not_filled_by_metadata_or_room_bounds (res://test/test_underground_room_admission.gd:387)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_hole_occupancy_is_not_filled_by_metadata_or_room_bounds
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_retained_physical_history_cannot_be_reclassified_as_virgin_by_a_new_plan (res://test/test_underground_room_admission.gd:394)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_retained_physical_history_cannot_be_reclassified_as_virgin_by_a_new_plan (res://test/test_underground_room_admission.gd:394)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_retained_physical_history_cannot_be_reclassified_as_virgin_by_a_new_plan
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_snapshot_callback_lease_replacement_clears_owned_scratch_and_preserves_foreign_lease (res://test/test_underground_room_admission.gd:400)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_snapshot_callback_lease_replacement_clears_owned_scratch_and_preserves_foreign_lease (res://test/test_underground_room_admission.gd:400)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_snapshot_callback_lease_replacement_clears_owned_scratch_and_preserves_foreign_lease
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:226)
+              [2] test_source_callback_reentry_refuses_before_any_nested_cold_acquisition (res://test/test_underground_room_admission.gd:409)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (buildings.gd)'.
+          at: _state (res://test/test_underground_room_admission.gd:216)
+          GDScript backtrace (most recent call first):
+              [0] _state (res://test/test_underground_room_admission.gd:216)
+              [1] _assert_refusal (res://test/test_underground_room_admission.gd:230)
+              [2] test_source_callback_reentry_refuses_before_any_nested_cold_acquisition (res://test/test_underground_room_admission.gd:409)
+              [3] _run_test (res://test/run_tests.gd:194)
+              [4] _run_suite (res://test/run_tests.gd:168)
+              [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-orders/tools/ci_test_shard_runner.gd:30)
+              [6] _run_worker (res://test/run_tests.gd:121)
+              [7] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_source_callback_reentry_refuses_before_any_nested_cold_acquisition
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_unscoped_direct_begin_and_wrong_catalog_world_have_no_permission
+CI_SUITE_TIME {"assertions":371,"failures":0,"suite":"test_underground_room_admission.gd","tests":11,"usec":3381609}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 371 assertion(s), 10 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

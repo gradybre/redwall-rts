@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_room_bindings.gd": "2525671bd3b23c8cfed7a2c652c8429e63460bc972b03af1e78628a4bbb09326",
+  "godot/scripts/core/underground_room_orders.gd": "56ea66631ec4bd4673bcd62abc6882219419d977c88e965d58854a1a46e2e28f",
+  "godot/test/test_underground_room_admission.gd": "ce72cc14f5362bbd28992cd11932ffa6f7dd0433c82e5f87ef1286b93c6b7391",
+  "godot/test/test_underground_room_orders.gd": "359878de70e9ba8e6aea3ec10f41788747e2fc129babf79ae30a99dfec14ab64",
+  "godot/test/test_underground_room_bindings.gd": "9843b0b6659655d7828231a176deea55e87b59c1525cb262877d0a30fc47993f"
+}

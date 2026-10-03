@@ -190,3 +190,131 @@ files. The initial test-constructor error and complete final evidence are retain
 at `docs/validation/evidence/underground-room-masks-2026-10-03/physical-identity-readers/`.
 Independent root review matched both frozen source pins and accepted the exact
 paid-state/identity checks and tests with no high/medium finding.
+
+
+## Actual Room admission: lease handshake and geometric preflight
+
+This increment implements the existing `begin_room_cold` path for one exact
+player RoomPlan. It is an actual geometric preflight, not completed admission.
+The same concrete RoomBindings remains the one RoomOrders authority; no second
+Room registry, purpose owner, geometry store, budget or economic ledger appears.
+The once-bound actual LevelCatalog supplies section heights and local footing/
+protected-above intervals. Its actual Directory and complete Domain must match;
+a numerically equal World from another Directory cannot substitute.
+
+The provider obtains the actual World cold lease before copying a plan, Domain,
+Footprint map or snapshot. The original request object, exact coordinator,
+World/Space revision, Building/Construction/Sites identities and actual Budget
+remain conjunctive. Strong synchronous borrows keep the World composer, Room
+coordinator, LevelCatalog and Sites alive through final cleanup. The Sites borrow
+matches its configured weak target and the actual Construction owner. Actual
+scope is rechecked after callbacks, including callbacks that release the outer
+Router/Sites composition. Nested requests refuse before another allocation.
+
+RoomOrders no longer treats a successful provider return as memory permission
+by itself. It pins the actual Budget before acquisition and requires the exact
+positive `room_cold_token`, actual `Budget.covers` and
+`room_cold_refusal(original_plan, token)` before copying. It rechecks that exact
+scope after every preparatory callback, before further geometry copies and
+before Directory publication. Refused cleanup drops owned plan/identity and
+companion scratch before ending the lease; it never releases a newly reacquired
+foreign token. The successful confirmation fixtures use the real Budget while
+remaining explicitly synthetic for physical admission permission.
+
+The current actual provider checks these facts before naming the remaining
+entry dependency:
+
+- The requested level, floor Y and clear height match an exact authored
+  LevelCatalog record, including an authored section offset. This is the current
+  pack's qualified subset; shorter ceilings or additional packs require their
+  own authored contracts, not inferred numeric permissions.
+- Canonical cardinal connectivity, holes and pinch rules remain the existing
+  Footprint contract. Fine pitch, concavity and holes are preserved unchanged.
+- Each exact painted X run is surveyed against original real Terrain and an
+  unfiltered composed snapshot. The separate whole touched1024u physical cut
+  span must be dry and unoccupied; an obstacle just outside a fine outline but
+  inside its economic cube still blocks the cut. The fine confirmed Room shape
+  is never replaced with that expanded survey span.
+- Every intersecting actual claim, wall, pending item or other non-dry physical
+  role remains visible. Actual retained Sites history refuses with
+  `ROOM_RETAINED_CUT_MAPPING_UNBOUND`; a new request cannot mint virgin yield
+  over an old physical quantum. Reuse needs the later real cut-map companion.
+- Required footing and protected-above bands are checked only over the exact
+  painted runs, including their actual XYZ depths. A bounding envelope or a
+  depth label never fills a hole or grants support. Fresh source/revision and
+  scope checks finish the observation.
+
+A clear plan currently returns `PROSPECTIVE_ENTRY_CONTACT_UNBOUND`. It creates no
+Room, Construction project, Site, support, route, material claim or usable void.
+Actual prospective entry/first-work feasibility, qualified profiles, connector
+installation, structural publication, paid cut-map companion and final staged
+admission are required follow-ups. Later assigned-worker/tool/load checks remain
+separate from prospective admission, which has no actual Job yet. There is no
+caller success flag or fake entrance/corridor in this increment. The demo cannot
+activate this unfinished path as completed construction.
+
+### Cold peak and required packed-validator follow-up
+
+The entire synchronous operation reserves the existing1048960-byte World arena.
+With N painted cells, the conservative admission request is
+`max(975488 + 16N + 2048, 2192N + 2048)`: the reviewed World compositor peak plus
+both possible8N plan images, or128N conservative Footprint packed buffers,
+16N plan images and2048N native Dictionary/growth allowance. The latter reserves
+512 bytes for each of at most4N outgoing entries, including growth/header
+allowance.2048 fixed bytes additionally cover the sequential Domain/descriptor,
+helper frames, temporary RoomPlan metadata and borrowed native references. The
+reservation is engineering accounting, not measured allocator/RAM evidence.
+The existing region/source and per-run/cube comparisons spend explicit bounded
+cold work; no per-worker or per-frame full survey is added.
+
+This deliberately conservative intermediate accepts at most477 cells in one
+preflight and refuses478 **before copying**.477 is not a gameplay room-size
+policy, a new paint limit or permission to truncate the approved footprint.
+**Production activation is blocked until the existing16384-cell footprint
+operation contract and simultaneous Room/compositor lifetime are reconciled.**
+The queued validation-only follow-up replaces Dictionary connectivity/loop
+scratch with bounded packed adjacency/queue/flags while preserving all current
+validation errors and contour behavior. Actual compositor capacity or sequential
+plan lifetimes must also be proved; simply replacing477 with another hidden
+limit is not sufficient.
+
+The retained/reused logical delta is105 bytes: one LevelCatalog.Record89, one
+provider I64 token8 and one RoomOrders I64 token8. The provider's private
+RoomPlan is cold-only60-byte numeric metadata plus8N cells; its lifetime is
+inside the above2048/16N reservation. Two extra weak links and strong synchronous
+request/Budget/owner references have native headers/control costs inside the
+existing shared bindings/growth reservation. Existing129-byte mask scratch is
+reused. There are no authoritative columns, saved ordinals, per-Site maps or
+separate arenas; UG16 reconstructs this category3 wiring only at quiescence.
+
+### Admission verification
+
+Tests use actual generated World, LevelCatalog, Terrain, SpaceOwner, Buildings,
+Construction, Directory, Inventory, Work/Gear, Sites, Router and Budget. Only
+initial obstacle Room/Furniture registration and unstarted historical-Site
+qualification are explicitly synthetic fixture setup. The target confirmation
+always uses actual RoomBindings and never receives productive permission.
+
+The final clean seven-suite baseline passes127 tests,8416 assertions,0 failures.
+The final two-source lifetime correction reruns actual admission at15 tests,
+504 assertions,0 failures; combining that changed suite with the six unchanged
+baseline suites gives128 tests,8444 assertions. These are component checks,
+not a claim that the whole game suite was rerun. Every final strict and raw
+footer has zero unexpected errors/warnings and zero object/resource leaks;
+expected/tolerated diagnostics are zero. Analyzer evidence covers all five
+files in the baseline and the two changed files in the final correction.
+
+Retained evidence includes rejected test-only setup iterations: a wrong
+Buildings state-image method, a foreign World fixture that did not yet alias
+both ref fields, and one wrong test preload alias. The actual cold-handshake
+regression also tightened the coordinator's immediate post-callback check so a
+replaced lease reports its scope failure before another candidate callback.
+No gate was weakened. Full raw logs, manifests, exact pins and review notes live
+under `docs/validation/evidence/underground-room-masks-2026-10-03/admission/`.
+
+Independent root review accepted the final five source pins, including the
+strong Sites borrow and callback-time outer-owner release regression. It found
+no critical/high/medium issue within this static preflight and exact lease
+handshake scope. Final correction analyzer reports0 warnings in0 of2 files;
+no runtime/source change followed that evidence. Playable admission, the
+packed-validator replacement and large-plan coexistence remain explicitly open.

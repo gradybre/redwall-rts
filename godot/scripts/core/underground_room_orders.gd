@@ -19,6 +19,7 @@ const REFUSE_BINDING: StringName = &"UNDERGROUND_ROOM_OWNER_UNBOUND"
 const REFUSE_FURNITURE: StringName = &"UNDERGROUND_PENDING_FURNITURE_REQUIRED"
 const REFUSE_TRANSITION: StringName = &"UNDERGROUND_ROOM_TRANSITION_NOT_PREPARED"
 const REFUSE_PLAN: StringName = &"UNDERGROUND_ROOM_PLAN_INVALID"
+const REFUSE_ROOM_COLD: StringName = &"UNDERGROUND_ROOM_COLD_SCOPE"
 ## Local RoomOrders stage only; never passed as a ModularContract operation/action ordinal.
 const ROOM_ADMISSION_STAGE: int = 100
 const LAYOUT_OPERATION_STAGE: int = 101
@@ -215,6 +216,14 @@ class Bindings extends RefCounted:
 		"""Acquire plan-copy, Footprint dictionary/native and spatial/companion peak before any copies."""
 		return REFUSE_BINDING
 
+	func room_cold_token() -> int:
+		"""Return only the exact currently retained synchronous admission lease; zero grants nothing."""
+		return 0
+
+	func room_cold_refusal(_plan: RoomPlan, _token: int) -> StringName:
+		"""Revalidate the original request, actual World and retained complete cold peak without copying."""
+		return REFUSE_BINDING
+
 	func room_plan_refusal(_plan: RoomPlan, _room: Vector2i, _space_token: int) -> StringName:
 		"""Prove current actual terrain/level/support/profile and separate whole paid-cut coverage; stage companions."""
 		return REFUSE_BINDING
@@ -305,6 +314,9 @@ var _publishing: bool = false
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _room_plan: RoomPlan = RoomPlan.new()
 var _room_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
+var _room_request: RoomPlan = null
+var _room_budget: Budget = null
+var _room_cold_token: int = 0
 var _layout_token: int = 0
 var _layout_planner_bytes: int = 0
 var _layout_geometry_limit: int = 0
@@ -420,6 +432,17 @@ static func layout_batch_cold_bytes(placement_limit: int) -> int:
 func layout_binding_refusal() -> StringName:
 	"""Typed Sources can check exact local composition without calling a physical provider outside a guard."""
 	return _identity_binding_refusal()
+
+
+func is_bound_room_bindings(candidate: Bindings) -> bool:
+	"""Read the exact actual provider identity without calling it or granting geometric permission."""
+	return candidate != null and _identity_binding_refusal() == &"" and _bindings.get_ref() == candidate
+
+
+func room_admission_refusal(plan: RoomPlan, candidate: Bindings) -> StringName:
+	"""Only the original synchronous confirmation request may acquire its provider's cold arena."""
+	return &"" if is_bound_room_bindings(candidate) and _stage_action == ROOM_ADMISSION_STAGE \
+		and plan != null and plan == _room_request and not _publishing else REFUSE_TRANSITION
 
 
 func begin_layout_operation(room: Vector2i, planner_bytes: int, geometry_limit: int,
@@ -763,17 +786,19 @@ func confirm_room(plan: RoomPlan) -> Buildings.OpResult:
 	if _stage_action != -1:
 		return Buildings.OpResult.new(false, REFUSE_TRANSITION, 0, NULL_REF)
 	_stage_action = ROOM_ADMISSION_STAGE
+	_room_request = plan
 	var code: StringName = _room_input_refusal(plan)
 	var bindings: Bindings = _actual_bindings() if code == &"" else null
 	if code != &"" or bindings == null:
 		_clear_stage()
 		return Buildings.OpResult.new(false, code if code != &"" else REFUSE_BINDING, 0, NULL_REF)
-	code = bindings.begin_room_cold(plan)
+	code = _begin_room_cold(bindings, plan)
 	if code != &"":
 		_clear_stage()
 		return Buildings.OpResult.new(false, code, 0, NULL_REF)
-	_cold_held = true
 	code = _room_input_refusal(plan)
+	if code == &"":
+		code = _room_scope_refusal(bindings)
 	if code == &"":
 		_room_plan.copy_from(plan)
 		code = _prepare_room(bindings)
@@ -783,6 +808,42 @@ func confirm_room(plan: RoomPlan) -> Buildings.OpResult:
 		_discard_room(bindings)
 		return Buildings.OpResult.new(false, code, 0, NULL_REF)
 	return _publish_room(bindings)
+
+
+func _begin_room_cold(bindings: Bindings, plan: RoomPlan) -> StringName:
+	"""Pin the actual arena before acquisition; a positive token from a replacement arena never qualifies."""
+	_room_budget = bindings.layout_budget_owner()
+	if _room_budget == null:
+		return REFUSE_ROOM_COLD
+	var code: StringName = bindings.begin_room_cold(plan)
+	if code != &"":
+		return code
+	_cold_held = true
+	_room_cold_token = bindings.room_cold_token()
+	code = _room_scope_refusal(bindings)
+	if code != &"":
+		_discard_room(bindings)
+	return code
+
+
+func _room_budget_covers() -> bool:
+	"""This pure exact-token check runs immediately before copied scratch or live identity publication."""
+	return _cold_held and _room_budget != null and _room_budget.covers(_room_cold_token, Budget.COLD_BYTES)
+
+
+func _room_scope_refusal(bindings: Bindings) -> StringName:
+	"""Bracket provider callbacks with actual arena proof and immutable request checks."""
+	if not _room_budget_covers() or room_admission_refusal(_room_request, bindings) != &"":
+		return REFUSE_ROOM_COLD
+	var code: StringName = bindings.room_cold_refusal(_room_request, _room_cold_token)
+	if code != &"":
+		return code
+	if bindings.layout_budget_owner() != _room_budget or bindings.room_cold_token() != _room_cold_token \
+			or not _room_budget_covers():
+		return REFUSE_ROOM_COLD
+	if not _room_plan.cells.is_empty() and not _same_room_plan(_room_request):
+		return REFUSE_PLAN
+	return &""
 
 
 func _room_input_refusal(plan: RoomPlan) -> StringName:
@@ -816,28 +877,37 @@ func _prepare_room(bindings: Bindings) -> StringName:
 		return code
 	_stage_room = _room_candidate.ref
 	code = _prepare_room_geometry()
+	code = _room_step_refusal(bindings, code)
 	if code == &"":
 		code = bindings.room_plan_refusal(_room_plan, _stage_room, _stage_token)
+	code = _room_step_refusal(bindings, code)
 	if code == &"":
 		code = _space.seal(_stage_token)
+	code = _room_step_refusal(bindings, code)
 	if code == &"":
 		code = bindings.room_prepared_refusal(_room_plan, _stage_room, _stage_token)
+	code = _room_step_refusal(bindings, code)
 	if code == &"":
 		code = binding_refusal()
 	if code == &"":
 		code = _space.prepared_refusal(_stage_token)
 	if code == &"":
 		code = _buildings.spatial_room_candidate_refusal(_room_plan.room_type, _room_candidate)
-	return code
+	return _room_step_refusal(bindings, code)
+
+
+func _room_step_refusal(bindings: Bindings, code: StringName) -> StringName:
+	"""Do not mask an earlier refusal or enter the next allocating stage under a replaced cold token."""
+	return code if code != &"" else _room_scope_refusal(bindings)
 
 
 func _prepare_room_geometry() -> StringName:
 	"""Preserve finer painted cells and holes; actual cut coverage is a separate mandatory provider proof."""
 	var domain: RoomSpace.Domain = _space.domain_copy()
-	if domain == null:
+	if domain == null or not _room_budget_covers():
 		return REFUSE_BINDING
 	var descriptor: Dictionary = domain.descriptor()
-	if descriptor.world_ref != _world:
+	if descriptor.world_ref != _world or not _room_budget_covers():
 		return REFUSE_BINDING
 	var code: StringName = Footprint.validation_error(_room_plan.cells, descriptor.max_cells, true)
 	if code != &"":
@@ -849,12 +919,16 @@ func _prepare_room_geometry() -> StringName:
 	code = _space.stage_room_admission(_stage_token, _room_candidate, _room_plan.room_type, self)
 	if code != &"":
 		return code
+	if not _room_budget_covers():
+		return REFUSE_ROOM_COLD
 	var section: SpaceOwner.Result = _stage_room_section(descriptor.bounds_u)
 	return section.error if section.error != &"" else _stage_room_runs(descriptor.bounds_u, section.handle)
 
 
 func _stage_room_section(bounds: PackedInt32Array) -> SpaceOwner.Result:
 	"""One metadata envelope identifies this authored section; it grants no occupied or usable floor."""
+	if not _room_budget_covers():
+		return SpaceOwner.Result.new(REFUSE_ROOM_COLD)
 	var box: PackedInt32Array = _room_section_box()
 	if not RoomSpace.contains_box(bounds, box):
 		return SpaceOwner.Result.new(REFUSE_PLAN)
@@ -907,6 +981,8 @@ func _room_cell_box(left: int, near: int, right: int, far: int) -> PackedInt32Ar
 
 func _stage_room_run(start: int, end: int, bounds: PackedInt32Array, section: Vector2i) -> StringName:
 	"""Link each exact blocking Room claim to shared metadata without inflating its physical footprint."""
+	if not _room_budget_covers():
+		return REFUSE_ROOM_COLD
 	var box: PackedInt32Array = _room_cell_box(_room_plan.cells[start], _room_plan.cells[start + 1],
 		_room_plan.cells[end - 2] + 1, _room_plan.cells[start + 1] + 1)
 	if not RoomSpace.contains_box(bounds, box):
@@ -924,7 +1000,7 @@ func _stage_room_run(start: int, end: int, bounds: PackedInt32Array, section: Ve
 
 func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int) -> StringName:
 	"""Attest retained identity without provider/Space callbacks; fresh physical proof precedes publication."""
-	if _identity_binding_refusal() != &"" or _stage_action != ROOM_ADMISSION_STAGE or not _cold_held \
+	if _identity_binding_refusal() != &"" or _stage_action != ROOM_ADMISSION_STAGE or not _room_budget_covers() \
 			or candidate == null or candidate != _room_candidate or candidate.ref != _stage_room \
 			or room_type != _room_plan.room_type or _room_plan.world != _world:
 		return REFUSE_TRANSITION
@@ -938,6 +1014,9 @@ func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
 
 func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 	"""Publish actual Room then its sealed exact future source, without fallible reconstruction afterward."""
+	if not _room_budget_covers():
+		_discard_room(bindings)
+		return Buildings.OpResult.new(false, REFUSE_ROOM_COLD, 0, NULL_REF)
 	_publishing = true
 	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(_room_plan.room_type, _room_candidate)
 	if not made.ok:
@@ -1226,3 +1305,6 @@ func _clear_stage() -> void:
 	_stage_action = -1
 	_stage_token = 0
 	_cold_held = false
+	_room_request = null
+	_room_budget = null
+	_room_cold_token = 0

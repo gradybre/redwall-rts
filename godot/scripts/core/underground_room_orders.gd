@@ -146,6 +146,16 @@ class RoomPlan extends RefCounted:
 
 class Bindings extends RefCounted:
 
+	func phase_section_into(_site: Vector2i, _room: Vector2i, _cold_token: int,
+			_out: SpaceOwner.Region) -> StringName:
+		"""Observe the exact claimed section under the actual phase lease; metadata grants no usable floor."""
+		return REFUSE_BINDING
+
+	func finish_mask_into(_site: Vector2i, _room: Vector2i, _cold_token: int,
+			_row_limit: int, _out: PackedInt32Array) -> StringName:
+		"""Return disjoint six-int claim intersections; the physical authority still proves and publishes them."""
+		return REFUSE_BINDING
+
 	func exact_binding(_buildings: Buildings, _space: SpaceOwner, _construction: Construction,
 			_world: Vector2i) -> bool:
 		"""Prove actual World owners and the admitted joint live/cold budget; base grants nothing."""

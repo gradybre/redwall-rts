@@ -121,6 +121,7 @@ const ROTATION_COUNT: int = 4
 const ROOM_SPACE_SURFACE: int = 0
 const ROOM_SPACE_UNDERGROUND: int = 1
 const ROOM_SPACE_COUNT: int = 2
+const ROOM_IDENTITY_FIELDS: int = 6
 const TILE_AREA_UNITS_SQUARED: int = 2048 * 2048
 
 ## Cold coordinator actions, not saved gameplay ordinals. Values follow these ASCII names.
@@ -1325,6 +1326,26 @@ func spatial_kind_of_room(room_ref: Vector2i) -> OpResult:
 	if _r_spatial_kind[row] >= ROOM_SPACE_COUNT:
 		return _refuse(REFUSE_SPATIAL_KIND)
 	return OpResult.new(true, REFUSE_NONE, _r_spatial_kind[row], room_ref)
+
+
+func room_identity_into(room_ref: Vector2i, out: PackedInt32Array) -> StringName:
+	"""Copy domain, purpose, parent ref and tile-link extent into fixed caller scratch; grants no room service."""
+	if out.size() != ROOM_IDENTITY_FIELDS:
+		return &"ROOM_IDENTITY_OUTPUT"
+	var row: int = _room_row_of(room_ref)
+	if row == NO_ROW:
+		return REFUSE_STALE_ROOM_REF
+	if _r_spatial_kind[row] >= ROOM_SPACE_COUNT:
+		return REFUSE_SPATIAL_KIND
+	if _r_type[row] < 0 or _r_type[row] >= ROOM_TYPE_COUNT:
+		return REFUSE_UNKNOWN_ROOM_TYPE
+	out[0] = _r_spatial_kind[row]
+	out[1] = _r_type[row]
+	out[2] = _r_building_slot[row]
+	out[3] = _r_building_generation[row]
+	out[4] = _r_tile_offset[row]
+	out[5] = _r_tile_count[row]
+	return &""
 
 
 func area_units_squared_of_room(room_ref: Vector2i) -> OpResult:

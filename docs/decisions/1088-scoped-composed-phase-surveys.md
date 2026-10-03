@@ -183,3 +183,30 @@ with no high/medium finding. Review checked exact composer identity, weak
 once-only wiring, real quiescence and scope, callback expiry/reentry, output
 lifetime and the73-byte logical census. It did not repeat the engine run or
 qualify productive work.
+
+
+## Fixed actual Room identity reader prerequisite
+
+The World phase composition needs live Room purpose/domain and parent facts on
+repeated worker checks. `Buildings.room_identity_into` supplies those facts in
+six pre-sized caller I32 values: spatial domain, permanent purpose, parent slot,
+parent generation, TileLinks offset and count. It validates the actual full
+Room reference, domain and purpose before writing any value. Every refusal
+preserves caller output. It allocates no result object, resizes no array and adds
+no stored column or control. The caller owns its24-byte scratch and must record
+that allocation when the consumer lands.
+
+These are identity facts. An underground Room retains zero flat TileLinks and
+its own immutable purpose while empty or unfinished. A surface Room still names
+its actual exterior Building and tile run. Neither path grants supported area,
+access, completed-shell status or furniture service. Existing allocation-returning
+readers retain their API and behavior. The prospective CoreSources consumer and
+World worker identity binding are separate integration increments.
+
+The clean focused prerequisite run passed89 tests and1379 assertions, with0
+failures. All strict/raw unexpected diagnostics and leaked object/resource
+counts are0; expected/tolerated are0. The analyzer reports0 warnings in2 files.
+Independent construction review accepted the exact production/test hashes
+recorded in `docs/validation/evidence/underground-world-identities-2026-10-03/iteration-1/review.json`. The actual live wrong-kind regression closes its
+initial low test-coverage note. Sources remained unchanged through testing and
+assets were absent; these checks do not qualify the prospective consumers.

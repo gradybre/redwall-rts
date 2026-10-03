@@ -177,3 +177,37 @@ The clean import and strict focused run passed 153 tests / 15295 assertions /
 raw diagnostics and all object/resource leaks were zero; analyzer reported
 `0 GDScript warning(s) in 0 of 2 file(s)`. The exact source pins and raw evidence
 are retained under `docs/validation/evidence/underground-final-facts-2026-10-03/snapshot-lease/`.
+
+
+## Prepared traversal and exact Site copies for paid companions (1105)
+
+`prepared_snapshot_for_traversal_leased_into(token, out, budget, cold_token)`
+and `prepared_snapshot_for_site_leased_into(token, out, sites, site, budget,
+cold_token)` apply the same original-lease allocation gate to an already sealed
+candidate. The former omits only the existing typed nonphysical Room claim
+markers. The latter reuses the actual Sites/Construction/Room/domain proof and
+omits only that exact operation's markers. Physical walls, unfinished matter,
+foreign construction claims and all remaining source identities stay present.
+Ordinary prepared/live snapshot entry points are unchanged.
+
+Prepared source/claim observations run inside the existing mutation poison
+bracket. The Site reader pins full Room and Project refs, rechecks the actual
+CoreSources/Construction and immutable Site/domain tuple, then checks the same
+sealed token, revision and original Budget immediately before allocating the
+image. Prior output is recounted at that last gate. Null/foreign owners, stale
+Site generations, revoked/replaced tokens and reentry refuse without a copy or
+output mutation. No callback follows the final original-token image gate.
+
+The reservation remains `48R + 16O + 256 + prior_output_payload`. The largest
+numeric image-copy frame is 217 bytes: the earlier 185-byte live-copy census plus
+32 bytes for prepared-token and exact Site/Room/Project pinning. Existing source
+callback/native obligations remain separately charged; neither new method
+retains state, adds a bank, extends/releases the lease, or grants traversal or
+paid installation. Caller-retained other images still require their own charge.
+The enclosing operation must count its Site/source validation work as before.
+
+The final strict Owner run passed 107 tests / 5359 assertions / 0 failures, with all
+strict/raw diagnostic and leak counts zero. Analyzer was 0/4 on the pinned
+Owner/Routes source and test pair. Exact evidence and the explicitly rejected
+intermediate test batches are under
+`docs/validation/evidence/underground-connector-placements-2026-10-03/scoped-copy-4/`.

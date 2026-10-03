@@ -986,6 +986,84 @@ func _prepared_copy_refusal(token: int, out: Space.Snapshot, budget: Budget, col
 	return &""
 
 
+func prepared_snapshot_for_traversal_leased_into(token: int, out: Space.Snapshot,
+		budget: Budget, cold_token: int) -> StringName:
+	"""Copy sealed traversal truth with the original lease checked after every source observer, before allocation."""
+	var bytes: int = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	var code: StringName = _prepared_copy_refusal(token, out, budget, cold_token, bytes)
+	if code != &"":
+		return code
+	var expected: int = revision()
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	code = prepared_refusal(token)
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if code == &"":
+		code = _prepared_lease_tail(token, expected, out, budget, cold_token)
+	return _copy_prepared_snapshot_into(out, NULL_REF, NULL_REF, true) if code == &"" else code
+
+
+func prepared_snapshot_for_site_leased_into(token: int, out: Space.Snapshot, sites: Sites,
+		site: Vector2i, budget: Budget, cold_token: int) -> StringName:
+	"""Keep exact actual Site marker scope; no callback can replace the admitted original copy lease."""
+	var bytes: int = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	var code: StringName = _prepared_copy_refusal(token, out, budget, cold_token, bytes)
+	if code != &"":
+		return code
+	if sites == null or sites._construction == null or sites._ready_error != &"" \
+			or site.x < 0 or site.x >= sites._count or site.y != Sites.SITE_GENERATION or sites._present[site.x] != 1:
+		return &"SPACE_SITE_STALE"
+	var room: Vector2i = Vector2i(sites._room_slot[site.x], sites._room_generation[site.x])
+	var project: Vector2i = Vector2i(sites._project_slot[site.x], sites._project_generation[site.x])
+	var expected: int = revision()
+	code = _prepared_site_observers(token, sites, site)
+	if code == &"" and not _prepared_site_pins(sites, site, room, project):
+		code = &"SPACE_SITE_STALE"
+	if code == &"":
+		code = _prepared_lease_tail(token, expected, out, budget, cold_token)
+	return _copy_prepared_snapshot_into(out, room, project) if code == &"" else code
+
+
+func _prepared_site_observers(token: int, sites: Sites, site: Vector2i) -> StringName:
+	"""Complete existing source/claim/actual Site observations inside the mutation poison bracket."""
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	var code: StringName = _site_scope_refusal(sites, site)
+	if code == &"":
+		code = prepared_refusal(token)
+	if code == &"":
+		code = _site_scope_refusal(sites, site)
+	return &"SPACE_ROOM_ADMISSION_REENTRY" if _end_room_callback() else code
+
+
+func _prepared_site_pins(sites: Sites, site: Vector2i, room: Vector2i, project: Vector2i) -> bool:
+	"""Only actual CoreSources/Construction and the same immutable physical key may omit these markers."""
+	var actual: CoreSources = _sources as CoreSources
+	if actual == null or actual._construction == null or sites._construction == null or sites._domain == null \
+			or actual._construction != sites._construction or actual._directory == null \
+			or sites._construction._excavation_authority == null \
+			or sites._construction._excavation_authority.get_ref() != sites or sites._ready_error != &"" \
+			or site.x < 0 or site.x >= sites._count or site.y != Sites.SITE_GENERATION or sites._present[site.x] != 1:
+		return false
+	if sites._domain.world_ref != _domain._world or sites._domain.datum_u != _domain._datum \
+			or sites._domain.minimum_quantum != _domain._min_quantum or sites._domain.size_quanta != _domain._size_quanta:
+		return false
+	return Vector2i(sites._room_slot[site.x], sites._room_generation[site.x]) == room \
+		and Vector2i(sites._project_slot[site.x], sites._project_generation[site.x]) == project \
+		and actual._directory.is_valid_of_kind(room, Directory.KIND_ROOM) \
+		and actual._directory.is_valid_of_kind(_domain._world, Directory.KIND_WORLD) \
+		and (project == NULL_REF or actual._construction.is_live_project(project))
+
+
+func _prepared_lease_tail(token: int, expected: int, out: Space.Snapshot, budget: Budget, cold_token: int) -> StringName:
+	"""No observer lies between this original-token/output coexistence check and the caller's image allocation."""
+	if revision() != expected or token != _stage_token or not _sealed or _validation_sources >= 0:
+		return &"SPACE_REVISION_STALE"
+	var bytes: int = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	return &"" if budget.covers(cold_token, bytes) else Budget.REFUSE_TOKEN
+
+
 func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 		project: Vector2i, traversal: bool = false) -> StringName:
 	"""Build one isolated complete survey; only already-proved exact reservation markers may omit."""

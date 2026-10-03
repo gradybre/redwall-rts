@@ -1,0 +1,6 @@
+error: more than the allowed 0 warning(s)
+test/test_underground_space_owner.gd:1163: Identifier "out" not declared in the current scope.
+test/test_underground_space_owner.gd:1163: Identifier "probe" not declared in the current scope.
+test/test_underground_space_owner.gd:1163: Identifier "probe" not declared in the current scope.
+test/test_underground_space_owner.gd:1163: Identifier "counted" not declared in the current scope.
+4 GDScript warning(s) in 1 of 4 file(s)

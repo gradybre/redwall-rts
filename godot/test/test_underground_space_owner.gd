@@ -2921,3 +2921,95 @@ func test_prepared_leased_snapshot_recounts_existing_and_callback_added_output()
 	assert_equal(counted.copies, 1, "exactly one valid image")
 	assert_true(counted.abort(token), "no implied publication")
 	assert_equal(probe.budget.release(probe.token), &"", "caller releases after image use")
+
+
+func test_prepared_traversal_leased_copy_keeps_all_physical_rows() -> void:
+	"""The added copy gate preserves the exact existing typed traversal predicate, including same-Room walls."""
+	var counted: PreparedCopyOwner = _prepared_copy_owner(_sources)
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	assert_equal(counted.seal(token), &"", "sealed exact candidate")
+	var ordinary: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_for_traversal_into(token, ordinary), &"", "ordinary reference image")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.token), &"", "admitted copy")
+	assert_equal(out.volumes.role, ordinary.volumes.role, "physical wall/unfinished/access/project rows unchanged")
+	assert_equal(out.volumes.role.size(), 5, "only own typed Room marker omitted")
+	assert_equal(out.live_refs, ordinary.live_refs, "full source identity retained")
+	assert_true(counted.abort(token), "observation did not publish")
+	assert_equal(probe.budget.release(probe.token), &"", "release original lease")
+
+
+func test_prepared_traversal_lease_replacement_never_reaches_copy() -> void:
+	"""Same-sized real lease replacement inside a source observer cannot inherit the original token."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var token: int = _begin()
+	assert_equal(counted.seal(token), &"", "sealed actual source")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 331
+	sources.target = _world
+	sources.probe = probe.replace
+	assert_equal(counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.token), Budget.REFUSE_TOKEN, "original expired")
+	assert_equal(counted.copies, 0, "zero allocating copy calls")
+	assert_equal(out.revision, 331, "refused output preserved")
+	assert_true(probe.budget.covers(probe.replacement, probe.bytes), "replacement lease preserved")
+	assert_equal(counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.replacement), &"", "valid retry")
+	assert_equal(counted.copies, 1, "one admitted copy")
+	assert_true(counted.abort(token), "caller retains candidate")
+	assert_equal(probe.budget.release(probe.replacement), &"", "caller releases its replacement")
+
+
+func test_prepared_site_leased_copy_omits_only_exact_paid_phase_markers() -> void:
+	"""Foreign projects and same-Room physical walls never acquire the leased scope exemption."""
+	var counted: PreparedCopyOwner = _prepared_copy_owner(_sources)
+	var fixture: SiteFixture = SiteFixture.new(_construction, _buildings, _domain)
+	var site: Vector2i = fixture.sites.claim_quantum(Vector3i.ZERO, _room).ref
+	assert_true(fixture.sites.open_phase(site, Contract.OP_BRACE).ok, "real first phase")
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	assert_equal(counted.seal(token), &"", "sealed physical/claim candidate")
+	var ordinary: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_for_site_into(token, ordinary, fixture.sites, site), &"", "exact ordinary Site scope")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_for_site_leased_into(token, out, fixture.sites, site, probe.budget, probe.token), &"", "exact leased Site")
+	assert_equal(out.volumes.role, ordinary.volumes.role, "same physical and foreign-project blockers")
+	assert_equal(out.volumes.role.size(), 4, "own Room markers only are omitted")
+	assert_equal(probe.budget.extend(probe.token, counted._snapshot_output_bytes(out)), &"", "retained image coexists on next query")
+	assert_equal(counted.prepared_snapshot_for_site_leased_into(token, out, fixture.sites,
+		Vector2i(site.x, site.y + 1), probe.budget, probe.token), &"SPACE_SITE_STALE", "full Site generation")
+	assert_true(counted.abort(token), "discard observed candidate")
+	assert_equal(probe.budget.release(probe.token), &"", "release exact token")
+
+
+func test_prepared_site_copy_refuses_replaced_lease_and_foreign_owner() -> void:
+	"""All Site/source observations precede the original-token allocation guard."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var fixture: SiteFixture = SiteFixture.new(_construction, _buildings, _domain)
+	var site: Vector2i = fixture.sites.claim_quantum(Vector3i.ZERO, _room).ref
+	var token: int = _begin()
+	_room_claim(token)
+	assert_equal(counted.seal(token), &"", "actual claims sealed")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	sources.target = _world
+	sources.probe = probe.replace
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 991
+	assert_equal(counted.prepared_snapshot_for_site_leased_into(token, out, fixture.sites, site, probe.budget, probe.token), Budget.REFUSE_TOKEN, "source revoked original lease")
+	assert_equal(counted.copies, 0, "no snapshot allocation")
+	assert_equal(out.revision, 991, "old output remains")
+	fixture.sites._construction = null
+	assert_equal(counted.prepared_snapshot_for_site_leased_into(token, out, fixture.sites, site, probe.budget, probe.replacement), &"SPACE_SITE_STALE", "missing actual Construction refuses before row reads")
+	fixture.sites._construction = _construction
+	var other: Construction = Construction.new()
+	other.directory().create(Directory.KIND_WORLD)
+	var foreign: SiteFixture = SiteFixture.new(other, other.buildings(), _domain)
+	assert_equal(counted.prepared_snapshot_for_site_leased_into(token, out, foreign.sites, site, probe.budget, probe.replacement), &"SPACE_SITE_STALE", "foreign empty store")
+	assert_equal(counted.prepared_snapshot_for_site_leased_into(token, out, fixture.sites, site, probe.budget, probe.replacement), &"", "valid independent retry")
+	assert_equal(counted.copies, 1, "one actual copy")
+	assert_true(counted.abort(token), "normal abort still works")
+	assert_equal(probe.budget.release(probe.replacement), &"", "replacement lease not stolen")

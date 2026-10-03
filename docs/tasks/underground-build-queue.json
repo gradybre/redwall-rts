@@ -344,7 +344,14 @@
       "owns": [
         "godot/scripts/core/room_order_coordinator.gd",
         "godot/test/test_room_order_coordinator.gd",
-        "docs/decisions/1069-underground-room-orders.md"
+        "docs/decisions/1069-underground-room-orders.md",
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/test/test_excavation_physical.gd",
+        "godot/scripts/core/buildings.gd",
+        "godot/test/test_buildings.gd",
+        "godot/test/test_buildings_spatial.gd",
+        "godot/scripts/core/underground_room_orders.gd",
+        "godot/test/test_underground_room_orders.gd"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -367,7 +374,7 @@
       "agent": "/root/ug_construction",
       "branch": "codex/underground-orders",
       "evidence": {
-        "in_progress": "Own worktree prepared from fetched origin/master82d60ba8 then advanced to56595fe5. After independent1067review, author actual Room/Furniture spatial lifecycle schema and memory delta before implementation. Buildings extension lease requires root schema review; no fake managed surface parent or unfinished service grants."
+        "in_progress": "UG07A schema approved: actual Buildings room_spatial_kindB8[16384] and furniture_installedB8[81920],98304persistentbytes. Three read-only Sites owner-identity methods narrow-reviewed; focused/analyzer underway. Coordinator/spatial Room/Furniture typed contract leased; shared funded-receipt/Work bridge awaits exact follow-up engineering review. No fake parent, tile alias or unfinished service grant."
       },
       "lease": {
         "state": "held"
@@ -392,7 +399,15 @@
         "docs/decisions/1063-source-bound-underground-profile-measurements.md",
         "tools/measure_underground_variants.py",
         "tools/test_measure_underground_variants.py",
-        "docs/decisions/1067-combined-underground-profile-variants.md"
+        "docs/decisions/1067-combined-underground-profile-variants.md",
+        "godot/scripts/core/connector_geometry.gd",
+        "godot/demo/burrow/connector_view.gd",
+        "godot/test/test_connector_geometry.gd",
+        "godot/test/test_connector_view.gd",
+        "docs/decisions/1070-fixed-connector-geometry.md",
+        "tools/capture_underground_profiles.gd",
+        "tools/test_underground_profile_capture.py",
+        "docs/design/underground-planning/evidence/modular-build/profiles/runtime/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -453,7 +468,13 @@
             "review": "root read and matched assigned source/identity boundaries",
             "integration": "3f1e5a5e"
           }
-        ]
+        ],
+        "combined_variants": {
+          "commit": "a09958455ea9903b904a195096a4ef87f705d893",
+          "review": "ug_construction independently accepted after exact transformed-vertex fit denominator and transitive source-hash drift fixes",
+          "tests": "25variant+22B1testsOK;191envelopechecks0failures",
+          "scope": "67sourcevariants/12props/28explicitgaps,zero production-qualified; integration pending frozen full checkpoint"
+        }
       },
       "lease": {
         "state": "held"

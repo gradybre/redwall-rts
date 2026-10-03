@@ -531,3 +531,35 @@ source handle; it belongs to future presentation-pool admission, never the
 simulation arenas. The exact evidence and rejected import/warning iterations are
 in `matrix-presentation/world-basis/ACTOR_BINDING.md`. World enclosure, production
 profiles, tight original-frame culling and full presentation budget remain open.
+
+### Source-complete held-pick travel and world-model enclosure
+
+The finite baker now has an explicit `held_tool_binding=set_work_tool` source
+variant. It calls the existing DemoActor persistent right-hand tool API through
+actual idle, walk and crouch clips for rigs that already have the actual hammer
+source. Original raw/imported meshes, hand mapping and fitting remain unchanged.
+The accepted live-capture harness is not edited, and no fake DIG state is used
+to keep a travel tool visible. The source manifest and binary case record retain
+this distinction. Carrying cargo and another tool together is not inferred;
+unsupported combinations still need their actual source and grip contract.
+This closes a measurable geometry gap without granting a new species, stage,
+work, load or movement permission.
+
+The next exporter consumes the whole native heading stream, computes its maximum
+squared norm with exact fractions, and carries the real norm overshoot into the
+all-heading envelope. Explicit binary64 composition, binary32 stores and native
+pre-view model arithmetic add source- and Domain-derived outward residuals.
+No arbitrary safety margin or sampled heading substitutes for that proof. The
+renderer binds the full actual Domain descriptor; the mathematical output is
+parameterized by its finite coordinate bounds and still requires whole-body
+translated admission by the actual spatial owner. View/projection/rasterization
+error is not physical deformation and is not covered by this world-model claim.
+Independent root review accepted this exact numerical/source increment. The
+54-case report covers 4,158 finite frames and 188 parts, verifies 530 source
+pins, and computes the exact native maximum norm squared as
+281475000105385/281474976710656. The clean suite reports 21 tests, 225 assertions,
+zero failures and zero unexpected diagnostics/leaks; the analyzer reports zero
+warnings in five files. Python records 58 envelope and 12 reproducer tests, all
+passing. `world-basis/world-proof-v1/` pins the complete evidence. Production
+profile, state-union, productive-contact and animated quality gates remain
+separate; this is zero production qualifications.

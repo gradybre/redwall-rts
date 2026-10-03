@@ -1,0 +1,24 @@
+{
+  "commands": [
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "tools/test_export_underground_envelopes.py"
+    ],
+    [
+      "python3",
+      "-m",
+      "unittest",
+      "godot/data/underground/evidence/matrix-presentation/test_reproduce.py"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0
+  ],
+  "sources": {
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "tools/test_export_underground_envelopes.py": "9e5e5199221169509b3df4caa6ed96fd708366dde23ba8c72607827276263041",
+    "godot/data/underground/evidence/matrix-presentation/reproduce.py": "460af20d367438aa0b238037cd27349988e4cdd7f7ef35487e92de678da7bc39",
+    "godot/data/underground/evidence/matrix-presentation/test_reproduce.py": "fadc4f358ee82f2c2dd3a505072faeda5809ef130bf11a7a416489fac16c0dee"
+  }
+}

@@ -41,12 +41,31 @@ def archive_imports(spec, destination):
     return {"path": str(destination), "files": len(unique), "bytes": sum(unique.values())}
 
 
+def with_held_pick_states(cases):
+    """Actual hammer-capable source rigs also need tool-present travel/idle/recovery geometry, not permission."""
+    capable = {row["cast"] for row in cases if row.get("clip") == "heavy_hammer_swing"
+               and row.get("attachments") == ["mole_pick"]}
+    extra = []
+    for row in cases:
+        if row.get("cast") in capable and row.get("clip") in ("idle", "walk", "cautious_crouch_walk_forward"):
+            if row.get("attachments") or row.get("held_tool_binding"):
+                raise ValueError("PALETTE_HELD_TOOL_STATE_CONFLICT")
+            extra.append(dict(row, id=row["id"]+".held_pick", attachments=["mole_pick"], held_tool_binding="set_work_tool"))
+    if not extra:
+        raise ValueError("PALETTE_HELD_TOOL_SOURCE_MISSING")
+    ids = [row["id"] for row in [*cases, *extra]]
+    if len(ids) != len(set(ids)) or len(ids) > 128:
+        raise ValueError("PALETTE_HELD_TOOL_CENSUS")
+    return [*cases, *extra]
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("directory", type=Path)
     parser.add_argument("--case", action="append", default=[])
     parser.add_argument("--raw-name", required=True, help="unique filename in this own worktree's ignored matrix assets")
     parser.add_argument("--preview", action="store_true", help="also capture native original/affine comparison images")
+    parser.add_argument("--held-pick-states", action="store_true", help="explicit actual persistent-tool source variants for hammer-capable rigs")
     args = parser.parse_args()
     # Test the lexical path before resolve() can hide a dangling output symlink.
     if args.directory.exists() or args.directory.is_symlink():
@@ -82,6 +101,8 @@ def main():
     module = importlib.util.module_from_spec(specification)
     specification.loader.exec_module(module)
     spec = module.build()
+    if args.held_pick_states:
+        spec["cases"] = with_held_pick_states(spec["cases"])
     if args.case:
         selected = set(args.case)
         spec["cases"] = [row for row in spec["cases"] if row["id"] in selected]
@@ -93,6 +114,7 @@ def main():
     for relative in ("tools/bake_underground_matrices.gd", "godot/demo/cast/underground_actor.gd"):
         path = ROOT / relative
         spec["sources"].append({"path": str(path), "sha256": digest(path)})
+    spec["sources"].append({"path": str(Path(__file__).resolve()), "sha256": digest(Path(__file__))})
     entry = ROOT / "tools/bake_underground_matrices.gd"
     if args.preview:
         entry = Path(__file__).with_name("native_compare.gd")

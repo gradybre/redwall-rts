@@ -870,6 +870,12 @@ class PaletteSource(NativeSource):
             require(type(length) in (int, float) and math.isfinite(length) and 0 < length <= 40, "PALETTE_DURATION")
             require(case["frames"] == math.ceil(length * 30) + 1, "PALETTE_FRAME_CENSUS")
             require(case.get("attachments") == expected.get("attachments"), "PALETTE_ATTACHMENT_CENSUS")
+            binding = case.get("held_tool_binding", "demo_clip_specific")
+            require(binding == expected.get("held_tool_binding", "demo_clip_specific") and
+                    binding in ("demo_clip_specific", "set_work_tool"), "PALETTE_HELD_TOOL_BINDING")
+            if binding == "set_work_tool":
+                require(case["attachments"] == ["mole_pick"] and case["clip"] in
+                        ("idle", "walk", "cautious_crouch_walk_forward"), "PALETTE_HELD_TOOL_BINDING")
             case["geometry"] = [self.part() for _ in range(case["parts"])]
             require(sum(len(s["points"]) for p in case["geometry"] for s in p["geometry"]) <= MAX_VERTICES, "PALETTE_VERTEX_CAPACITY")
             require(all(p["kind"] == "body" for p in case["geometry"][:case["body_parts"]]), "PALETTE_BODY_CENSUS")
@@ -1026,6 +1032,166 @@ def palette_part_envelope(part: dict, matrices, grounding=None) -> tuple[list[In
     return [Interval(v.low-pad, v.high+pad) for v in bounds], residual
 
 
+class WorldBasisSource:
+    """Complete native heading source. The exact maximum norm includes every binary32 row."""
+
+    def __init__(self, stream: BinaryIO, expected_sha256: str, producer_sha256: str):
+        for digest in (expected_sha256, producer_sha256):
+            require(type(digest) is str and len(digest) == 64 and all(c in "0123456789abcdef" for c in digest),
+                    "WORLD_BASIS_SOURCE_HASH")
+        self.stream, self.hash = stream, hashlib.sha256()
+        header = self.read(20)
+        require(header[:8] == b"UGYAW001", "WORLD_BASIS_SCHEMA")
+        version, count, metadata_bytes = struct.unpack("<III", header[8:])
+        require(version == 1 and count == 65536 and 1 <= metadata_bytes <= 1024, "WORLD_BASIS_CAPACITY")
+        try:
+            self.metadata = json.loads(self.read(metadata_bytes))
+        except (ValueError, UnicodeError) as error:
+            raise Refused("WORLD_BASIS_METADATA") from error
+        require(type(self.metadata) is dict and type(self.metadata.get("source")) is dict and
+                self.metadata["source"].get("sha256") == producer_sha256, "WORLD_BASIS_PRODUCER")
+        self.backend = palette_backend_certificate(self.metadata)
+        self.norm_squared = Fraction(0)
+        self.max_component = Fraction(0)
+        self.max_norm_yaw = 0
+        for yaw in range(count):
+            c, s = struct.unpack("<ff", self.read(8))
+            require(math.isfinite(c) and math.isfinite(s) and abs(c) <= 1 and abs(s) <= 1, "WORLD_BASIS_COEFFICIENT")
+            c, s = Fraction(c), Fraction(s)
+            norm = c*c + s*s
+            if norm > self.norm_squared:
+                self.norm_squared, self.max_norm_yaw = norm, yaw
+            self.max_component = max(self.max_component, abs(c), abs(s))
+        require(self.read(8) == b"UGYEND01" and self.stream.read(1) == b"", "WORLD_BASIS_FOOTER")
+        require(self.hash.hexdigest() == expected_sha256, "WORLD_BASIS_DIGEST")
+        require(self.norm_squared > 0, "WORLD_BASIS_DEGENERATE")
+        self.digest, self.producer_digest = expected_sha256, producer_sha256
+
+    def read(self, count: int) -> bytes:
+        data = self.stream.read(count)
+        require(len(data) == count, "WORLD_BASIS_TRUNCATED")
+        self.hash.update(data)
+        return data
+
+    def certificate(self) -> dict:
+        return {"sha256": self.digest, "producer_sha256": self.producer_digest,
+                "heading_count": 65536, "exact_norm_squared": fraction_record(self.norm_squared),
+                "max_norm_yaw": self.max_norm_yaw, "max_component": fraction_record(self.max_component),
+                "metadata": self.metadata, "backend_certificate": self.backend}
+
+
+def fraction_record(value: Fraction) -> dict:
+    return {"numerator": value.numerator, "denominator": value.denominator}
+
+
+def world_root_bounds(values: object) -> tuple[Fraction, Fraction, Fraction]:
+    """The caller binds the full actual Domain identity; this math admits only exact binary32 roots."""
+    require(type(values) is list and len(values) == 6 and all(integer(v, -(1 << 24), 1 << 24) for v in values),
+            "WORLD_ROOT_PRECISION")
+    require(all(values[a] < values[a+3] for a in range(3)), "WORLD_ROOT_BOUNDS")
+    return tuple(Fraction(max(abs(values[a]), abs(values[a+3])), 1024) for a in range(3))
+
+
+def native_all_yaw(bounds: list[Interval], norm_squared: Fraction) -> list[Interval]:
+    """Cauchy-Schwarz over the entire finite table, including native coefficient norm overshoot."""
+    require(Fraction(0) < norm_squared <= 2, "WORLD_BASIS_NORM")
+    radius = ((bounds[0].square() + bounds[2].square()) * Interval.exact(norm_squared)).sqrt().high
+    return [Interval(-radius, radius), bounds[1], Interval(-radius, radius)]
+
+
+def _blend_coefficient_error(magnitude: Fraction) -> Fraction:
+    cpu = magnitude * Fraction(12, (1 << 52)-12)
+    return cpu + (magnitude+cpu) / (1 << 23) + Fraction(1, 1 << 126)
+
+
+def _world_store_error(magnitude: Fraction) -> Fraction:
+    """Eight double operations dominate either explicit Actor expression; one directed-or-nearest F32 store."""
+    cpu = magnitude * Fraction(8, (1 << 52)-8)
+    return cpu + gamma32(1)*(magnitude+cpu) + Fraction(1, 1 << 126)
+
+
+def _surface_input_bound(part: dict, surface: dict, format_value: int) -> Fraction:
+    """Conservative actual decoded vertex L1, retaining the original compressed-attribute decode difference."""
+    import numpy as np
+    points = surface["points"]
+    l1 = Fraction(int(np.ceil(np.abs(points.astype(np.float64))*(1 << 24)).sum(axis=1).max()), 1 << 24)
+    if format_value & (1 << 29):
+        bounds = part.get("mesh_aabb")
+        require(type(bounds) is list and len(bounds) == 6 and
+                all(type(v) in (int, float) and math.isfinite(v) and abs(v) <= 1024 for v in bounds) and
+                all(v >= 0 for v in bounds[3:]), "PALETTE_COMPRESSED_BOUND_MISSING")
+        decode_magnitude = max(Fraction(abs(v)) for v in bounds[:3]) + max(Fraction(v) for v in bounds[3:]) + 1
+        l1 += 3 * (2*gamma32(4)*decode_magnitude + 8*Fraction(1, 1 << 126))
+    return l1
+
+
+def world_residual(part: dict, matrices, grounding, local_bounds: list[Interval], roots: list[int]) -> tuple[Fraction, ...]:
+    """Additional error of the explicit top-level world model, before view/projection/rasterization.
+
+    Local bounds already include skin/decode/blend error. Static parts additionally
+    compose the stored local matrix with finite yaw in binary64 then binary32.
+    The body model has an exact table basis; only its common origin is newly stored.
+    All coordinates retain full source geometry. No camera transform is a physical
+    animation or contact input, and no screen-space numerical claim is made here.
+    """
+    import numpy as np
+    root = world_root_bounds(roots)
+    require(grounding is not None and len(grounding) == len(matrices), "WORLD_GROUNDING_REQUIRED")
+    require(np.isfinite(grounding).all() and np.max(np.abs(grounding)) <= 1024, "PALETTE_GROUNDING")
+    g = Fraction(float(np.max(np.abs(grounding))))
+    g += _blend_coefficient_error(g)
+    tiny = Fraction(1, 1 << 126)
+    residual = [Fraction(0)]*3
+    if part["binds"]:
+        # Skin output omits the common Y. Subtracting grounding can enlarge its
+        # absolute value by at most g; local bounds contain the actual skin error.
+        local = [Fraction(max(abs(v.low), abs(v.high)), FIXED) for v in local_bounds]
+        local[1] += g
+        for a in range(3):
+            origin_error = _world_store_error(root[a] + g)
+            dot_bound = local[0]+local[2] if a != 1 else local[1]
+            residual[a] = origin_error + gamma32(16)*(dot_bound+root[a]+g+origin_error) + 16*tiny
+        return tuple(residual)
+    m = Fraction(float(np.max(np.abs(matrices))))
+    m += _blend_coefficient_error(m)
+    coefficient_error = _world_store_error(2*m)
+    for surface, format_value in zip(part["geometry"], part["surface_formats"]):
+        l1 = _surface_input_bound(part, surface, format_value)
+        for a in range(3):
+            origin_bound = 2*m+g+root[a]
+            origin_error = _world_store_error(origin_bound)
+            error = coefficient_error*l1 + origin_error
+            error += gamma32(16)*((2*m+coefficient_error)*l1+origin_bound+origin_error) + 16*tiny
+            residual[a] = max(residual[a], error)
+    return tuple(residual)
+
+
+def world_part_envelope(part: dict, matrices, grounding, basis: WorldBasisSource,
+                        root_bounds_u: list[int]) -> tuple[list[Interval], list[dict]]:
+    """One bound covers every source blend, every native table heading and every admitted integer root."""
+    local, _ = palette_part_envelope(part, matrices, grounding)
+    return world_from_local(part, matrices, grounding, local, basis, root_bounds_u)
+
+
+def world_from_local(part: dict, matrices, grounding, local: list[Interval], basis: WorldBasisSource,
+                     root_bounds_u: list[int]) -> tuple[list[Interval], list[dict]]:
+    """Reuse one already computed local enclosure without another complete source-vertex pass."""
+    additional = world_residual(part, matrices, grounding, local, root_bounds_u)
+    bounds = native_all_yaw(local, basis.norm_squared)
+    result = [Interval(v.low-Interval.exact(r).high, v.high+Interval.exact(r).high) for v, r in zip(bounds, additional)]
+    return result, [fraction_record(r) for r in additional]
+
+
+def verify_world_basis_binding(metadata: dict, basis: WorldBasisSource, root_bounds_u: list[int]) -> None:
+    """Same exact source backend and reviewed actual producer are mandatory before writing a world report."""
+    world_root_bounds(root_bounds_u)
+    for key in ("rendering_driver", "rendering_method", "display_server", "api_version"):
+        require(metadata.get(key) == basis.metadata.get(key), "WORLD_BASIS_BACKEND_MISMATCH")
+    producer = Path(__file__).resolve().with_name("bake_underground_world_basis.gd")
+    require(producer.is_file() and producer.stat().st_size <= MAX_TEXT, "WORLD_BASIS_PRODUCER_MISSING")
+    require(hashlib.sha256(producer.read_bytes()).hexdigest() == basis.producer_digest, "WORLD_BASIS_PRODUCER_DRIFT")
+
+
 def palette_backend_certificate(metadata: dict) -> dict:
     """This numerical proof is for the pinned desktop GL path, not silently for mediump ES/Vulkan."""
     engine = metadata.get("engine", {})
@@ -1082,13 +1248,16 @@ def verify_palette_sources(metadata: dict, project_root: Path | None = None, imp
     return len(seen)
 
 
-def build_palette_report(path: Path, sha256: str, import_archive: Path | None = None) -> dict:
+def build_palette_report(path: Path, sha256: str, import_archive: Path | None = None,
+                         world_basis: WorldBasisSource | None = None, root_bounds_u: list[int] | None = None) -> dict:
     """A local renderer certificate, with world identity/contact/level qualification explicitly separate."""
     rows = []
     with path.open("rb") as stream:
         source = PaletteSource(stream, sha256)
         backend = palette_backend_certificate(source.metadata)
         pins = verify_palette_sources(source.metadata, import_archive=import_archive)
+        if world_basis is not None:
+            verify_world_basis_binding(source.metadata, world_basis, root_bounds_u)
         for case in source.cases():
             offset = 0
             parts = []
@@ -1099,15 +1268,30 @@ def build_palette_report(path: Path, sha256: str, import_archive: Path | None = 
                 parts.append({"kind": part["kind"], "name": part["name"], "bounds_u": units(bounds),
                               "all_yaw_bounds_u": units(all_yaw(bounds)),
                               "residual_m": {"numerator": residual.numerator, "denominator": residual.denominator}})
+                if world_basis is not None:
+                    world_bounds, errors = world_from_local(part, case["matrices"][:, offset-count:offset],
+                        case["grounding"], bounds, world_basis, root_bounds_u)
+                    parts[-1].update(world_all_headings_bounds_u=units(world_bounds), world_additional_residual_m=errors)
             rows.append({k: case[k] for k in ("id", "cast", "species", "life_stage", "clip", "scenario", "frames")})
             rows[-1].update({"parts": parts, "local_representation_enclosed": True, "production_qualified": False,
+                            "held_tool_binding": case.get("held_tool_binding", "demo_clip_specific"),
                             "common_post_skin_grounding": case["grounding"] is not None,
                             "remaining": ["ACTUAL_RENDERER_SOURCE_BINDING", "NATIVE_VISUAL_GATE", "WORLD_ROOT_TRANSFORM", "STANCE_CONTACT_AND_POLICY"]})
+            if world_basis is not None:
+                rows[-1]["world_model_representation_enclosed"] = True
+                rows[-1]["remaining"] = ["EXACT_ACTOR_CONTENT_AND_DOMAIN_BINDING", "NATIVE_ANIMATED_QUALITY",
+                    "COMPLETE_REQUIRED_STATE_UNIONS", "STANCE_WORK_CONTACT_AND_POLICY"]
             print(case["id"], parts[0]["bounds_u"], flush=True)
-    return {"schema": 1, "source_sha256": sha256, "profiles": rows, "qualified_profile_count": 0,
+    report = {"schema": 1, "source_sha256": sha256, "profiles": rows, "qualified_profile_count": 0,
             "backend_certificate": backend, "verified_source_files": pins,
             "import_archive": str(import_archive) if import_archive is not None else None,
             "method": "finite final binary32 matrices plus common post-skin Y; outward Q24 endpoint hull; identical convex positive interpolation; explicit IEEE/UNORM/decode residual"}
+    if world_basis is not None:
+        report.update(world_basis=world_basis.certificate(), world_root_bounds_u=root_bounds_u,
+            world_method="complete native table norm; explicit top-level binary64 composition, binary32 stores and pre-view model arithmetic",
+            binding_requirement="actual immutable Domain descriptor and complete palette/table digests; full translated body admission remains authoritative owner work",
+            excluded="view/projection/rasterization error is not physical deformation; no arbitrary parent, pitch, scale or extra shader")
+    return report
 
 
 def main() -> None:
@@ -1117,10 +1301,21 @@ def main() -> None:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--palette", action="store_true", help="bound the specified finite native matrix presentation")
     parser.add_argument("--import-archive", type=Path, help="exact content-addressed imported images preserved by the baker")
+    parser.add_argument("--world-basis", type=Path, help="complete source-bound finite native heading stream")
+    parser.add_argument("--world-basis-sha256")
+    parser.add_argument("--world-basis-producer-sha256")
+    parser.add_argument("--world-root-bounds", nargs=6, type=int, help="exact finite half-open actual Domain XYZ bounds in 1/1024m units")
     args = parser.parse_args()
     require(not args.out.exists() and args.out.resolve() != args.source.resolve(), "OUTPUT_EXISTS_OR_OVERWRITES_SOURCE")
     require(args.palette or args.import_archive is None, "IMPORT_ARCHIVE_REQUIRES_PALETTE")
-    report = build_palette_report(args.source, args.sha256, args.import_archive) if args.palette else build_report(args.source, args.sha256)
+    world_args = [args.world_basis, args.world_basis_sha256, args.world_basis_producer_sha256, args.world_root_bounds]
+    require(not any(v is not None for v in world_args) or (args.palette and all(v is not None for v in world_args)), "WORLD_ARGUMENTS_INCOMPLETE")
+    basis = None
+    if args.world_basis is not None:
+        require(args.out.resolve() != args.world_basis.resolve(), "OUTPUT_OVERWRITES_WORLD_SOURCE")
+        with args.world_basis.open("rb") as stream:
+            basis = WorldBasisSource(stream, args.world_basis_sha256, args.world_basis_producer_sha256)
+    report = build_palette_report(args.source, args.sha256, args.import_archive, basis, args.world_root_bounds) if args.palette else build_report(args.source, args.sha256)
     with args.out.open("x") as stream:
         json.dump(report, stream, indent=2)
         stream.write("\n")

@@ -16,6 +16,45 @@ var _baked_scalars: int = 0
 var _grounding_y: float = 0.0
 
 
+func _case_error(request: Variant, pins: Dictionary, ids: Dictionary) -> String:
+	"""An explicit existing work-tool binding extends measured states without altering the accepted live harness."""
+	if not request is Dictionary or not request.has("held_tool_binding"):
+		return super._case_error(request, pins, ids)
+	var code: String = persistent_tool_error(request)
+	if code != "":
+		return code
+	var source_request: Dictionary = request.duplicate()
+	source_request.attachments = []
+	code = super._case_error(source_request, pins, ids)
+	if code != "":
+		return code
+	var prop: Variant = _manifest.world.get("mole_pick")
+	if not prop is Dictionary or not prop.get("path") is String or not pins.has(prop.path):
+		return "PALETTE_WORK_TOOL_SOURCE_UNPINNED"
+	return _import_error(prop.path, pins)
+
+
+static func persistent_tool_error(request: Dictionary) -> String:
+	"""Only one explicitly measured existing right-hand tool may accompany these real source clips."""
+	if request.get("held_tool_binding") != "set_work_tool" or request.get("attachments") != ["mole_pick"]:
+		return "PALETTE_WORK_TOOL_BINDING"
+	var clip: Variant = request.get("clip")
+	if clip != "idle" and clip != "walk" and clip != "cautious_crouch_walk_forward":
+		return "PALETTE_WORK_TOOL_CLIP"
+	return ""
+
+
+func _item_instance(item: Dictionary) -> MeshInstance3D:
+	"""The actual persistent tool method retains the mesh/socket through travel; no fake digging state hides it."""
+	if _cases[_case_index].get("held_tool_binding", "") != "set_work_tool":
+		return super._item_instance(item)
+	_actor.brain.clip = StringName(_cases[_case_index].clip)
+	_actor.brain.carrying = false
+	_actor.set_work_tool(item.mesh, item.fit)
+	_actor.call("_place_tool")
+	return _actor.get("_work_tool") as MeshInstance3D
+
+
 func _initialize() -> void:
 	"""Refuse a pre-existing binary or report before the inherited reader can write anything."""
 	var args: PackedStringArray = OS.get_cmdline_user_args()
@@ -85,7 +124,8 @@ func _begin_case(request: Dictionary) -> void:
 		"sample_hz": SAMPLE_HZ, "source_duration_s": _row.clip_duration_s,
 		"source_loop_mode": _row.clip_loop_mode, "parts": _body.size() + _items.size(),
 		"frames": _steps, "body_parts": _body.size(), "attachments": request.attachments,
-		"warm_steps": WARM_STEPS, "world_permissions": "absent"}))
+		"warm_steps": WARM_STEPS, "world_permissions": "absent",
+		"held_tool_binding": request.get("held_tool_binding", "demo_clip_specific")}))
 	_baked_scalars = 0
 	for part: Dictionary in _body:
 		_write_body_part(part)

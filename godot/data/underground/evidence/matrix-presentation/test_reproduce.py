@@ -173,6 +173,30 @@ def validate_report(spec, report, log):
         self.assertFalse((self.bundle / "bake-spec.json").exists())
         self.assertFalse(self.raw.exists())
 
+    def test_held_pick_variants_keep_actual_rig_clip_and_all_original_cases(self):
+        rows = [dict(id="mole.hammer", cast="mole", clip="heavy_hammer_swing", attachments=["mole_pick"]),
+                dict(id="mole.walk", cast="mole", clip="walk", attachments=[], scenario="plain"),
+                dict(id="mouse.walk", cast="mouse", clip="walk", attachments=[], scenario="plain")]
+        before = json.loads(json.dumps(rows))
+        result = WRAPPER.with_held_pick_states(rows)
+        self.assertEqual(rows, before)
+        self.assertEqual(result[:-1], rows)
+        self.assertEqual(result[-1], dict(rows[1], id="mole.walk.held_pick", attachments=["mole_pick"],
+                                         held_tool_binding="set_work_tool"))
+        self.assertNotIn("mouse.walk.held_pick", [row["id"] for row in result])
+        self.assertIsNot(result[-1]["attachments"], rows[0]["attachments"])
+
+    def test_absent_tool_source_or_conflicting_and_duplicate_state_cannot_be_relabelled(self):
+        with self.assertRaisesRegex(ValueError, "SOURCE_MISSING"):
+            WRAPPER.with_held_pick_states([dict(id="mouse.walk", cast="mouse", clip="walk", attachments=[])])
+        hammer = dict(id="mole.hammer", cast="mole", clip="heavy_hammer_swing", attachments=["mole_pick"])
+        walk = dict(id="mole.walk", cast="mole", clip="walk", attachments=[])
+        for extra in (dict(walk, attachments=["log"]), dict(walk, held_tool_binding="other")):
+            with self.assertRaisesRegex(ValueError, "STATE_CONFLICT"):
+                WRAPPER.with_held_pick_states([hammer, extra])
+        with self.assertRaisesRegex(ValueError, "CENSUS"):
+            WRAPPER.with_held_pick_states([hammer, walk, dict(walk)])
+
 
 if __name__ == "__main__":
     unittest.main()

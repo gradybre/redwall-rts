@@ -14,7 +14,8 @@ import export_underground_envelopes as e
 
 
 def palette_fixture(attachment=False, bad_frame=False, footer=True, weight=1.0, matrix_value=None,
-                    compressed=False, bounds=True, omitted_attachment=False, format_override=None, grounding=None):
+                    compressed=False, bounds=True, omitted_attachment=False, format_override=None, grounding=None,
+                    attachment_key="fruit", held_binding=None, reported_binding=None, clip="walk"):
     """Tiny synthetic finite representation; no native source state or policy is implied."""
     out = io.BytesIO()
     def u(value): out.write(struct.pack("<I", value))
@@ -22,16 +23,21 @@ def palette_fixture(attachment=False, bad_frame=False, footer=True, weight=1.0, 
         data = json.dumps(value).encode(); u(len(data)); out.write(data)
     identity = [1., 0., 0., 0., 1., 0., 0., 0., 1., 0., 0., 0.]
     case = dict(id="synthetic", cast="fixture", species="mouse", life_stage="synthetic",
-                clip="walk", scenario="plain", attachments=["fruit"] if attachment else [])
+                clip=clip, scenario="plain", attachments=[attachment_key] if attachment else [])
+    if held_binding is not None:
+        case["held_tool_binding"] = held_binding
     out.write(b"UGPAL001"); u(2 if grounding is not None else 1); text({"cases": [case], "grounding_schema": 1}); u(1)
     u(0x43415345)
-    text(dict(case, parts=1+int(attachment and not omitted_attachment), body_parts=1,
-              frames=2, sample_hz=30, source_duration_s=1/30))
+    actual = dict(case, parts=1+int(attachment and not omitted_attachment), body_parts=1,
+                  frames=2, sample_hz=30, source_duration_s=1/30)
+    if reported_binding is not None:
+        actual["held_tool_binding"] = reported_binding
+    text(actual)
     for index in range(1+int(attachment and not omitted_attachment)):
         format_value = (1 << 35) | 1 | ((3 << 10) if index == 0 else 0)
         if compressed and index > 0: format_value |= 1 << 29
         if format_override is not None: format_value = format_override
-        part = dict(kind="body" if index == 0 else "attachment", name="Body" if index == 0 else "fruit",
+        part = dict(kind="body" if index == 0 else "attachment", name="Body" if index == 0 else attachment_key,
                     binds=1 if index == 0 else 0, surfaces=1, surface_formats=[format_value])
         if bounds: part["mesh_aabb"] = [-1., -1., -1., 2., 2., 2.]
         text(part); u(1); u(4 if index == 0 else 0)
@@ -74,6 +80,22 @@ class FinitePalette(unittest.TestCase):
     def test_omitted_attachment_is_not_a_successful_body_only_certificate(self):
         with self.assertRaisesRegex(e.Refused, "PALETTE_ATTACHMENT_CENSUS"):
             self.read(palette_fixture(attachment=True, omitted_attachment=True))
+
+    def test_persistent_tool_has_exact_explicit_clip_and_attachment_source_binding(self):
+        for clip in ("idle", "walk", "cautious_crouch_walk_forward"):
+            case = self.read(palette_fixture(attachment=True, attachment_key="mole_pick",
+                held_binding="set_work_tool", clip=clip))[0]
+            self.assertEqual(case["held_tool_binding"], "set_work_tool")
+            self.assertEqual(case["geometry"][1]["name"], "mole_pick")
+        for override in ({"attachment_key": "fruit"}, {"clip": "carry_heavy_object_walk"},
+                         {"clip": "heavy_hammer_swing"}, {"held_binding": "different"},
+                         {"reported_binding": "demo_clip_specific"}):
+            kwargs = dict(attachment=True, attachment_key="mole_pick", held_binding="set_work_tool")
+            kwargs.update(override)
+            with self.assertRaisesRegex(e.Refused, "HELD_TOOL_BINDING"):
+                self.read(palette_fixture(**kwargs))
+        with self.assertRaisesRegex(e.Refused, "HELD_TOOL_BINDING"):
+            self.read(palette_fixture(reported_binding="set_work_tool"))
 
     def test_nonfinite_and_zero_weight_cannot_enter_the_convex_proof(self):
         for weight in (-.1, 0., math.inf, math.nan):
@@ -252,6 +274,139 @@ class FinitePalette(unittest.TestCase):
             (archive / (raw_pin["sha256"] + ".input")).write_bytes(raw.read_bytes())
             raw.write_bytes(b"different actual mesh")
             with self.assertRaisesRegex(e.Refused, "SOURCE_DRIFT"): e.verify_palette_sources(metadata, root, archive)
+
+
+def world_basis_fixture(override=None, footer=True, producer="a"*64, backend="opengl3"):
+    """Complete synthetic finite coefficient source; source-math tests do not claim native provenance."""
+    metadata = {"engine": {"major": 4, "minor": 7, "patch": 2, "hash": e.GODOT_SOURCE_HASH,
+        "build": "official", "status": "stable"}, "rendering_driver": backend,
+        "rendering_method": "gl_compatibility", "display_server": "macOS", "api_version": "4.1 fixture",
+        "source": {"sha256": producer}, "claimed_max_norm_squared": 1}
+    raw = json.dumps(metadata).encode()
+    out = io.BytesIO()
+    out.write(b"UGYAW001" + struct.pack("<III", 1, 65536, len(raw)) + raw)
+    for yaw in range(65536):
+        values = (math.cos(yaw*math.tau/65536), math.sin(yaw*math.tau/65536))
+        if override is not None and yaw == 32769:
+            values = override
+        out.write(struct.pack("<ff", *values))
+    if footer:
+        out.write(b"UGYEND01")
+    return out.getvalue()
+
+
+class FiniteWorldModel(unittest.TestCase):
+    ROOTS = [0, -32256, 0, 262144, 16896, 262144]
+
+    @staticmethod
+    def source(data=None, digest=None):
+        data = data if data is not None else world_basis_fixture()
+        return e.WorldBasisSource(io.BytesIO(data), digest or hashlib.sha256(data).hexdigest(), "a"*64)
+
+    def test_entire_native_table_not_the_reported_norm_controls_the_radial_bound(self):
+        # The source's deliberately false diagnostic norm=1 cannot overwrite the exact row proof.
+        basis = self.source(world_basis_fixture(override=(1, 0.5)))
+        self.assertEqual(basis.norm_squared, Fraction(5, 4))
+        self.assertEqual(basis.max_norm_yaw, 32769)
+        self.assertEqual(basis.certificate()["heading_count"], 65536)
+        bound = e.native_all_yaw(e.vector([3., -.01, 4.]), basis.norm_squared)
+        self.assertGreater(bound[0].high, 5*e.FIXED)
+        self.assertEqual(bound[1], e.Interval.exact(-.01))
+        self.assertGreaterEqual(Fraction(bound[0].high, e.FIXED)**2, Fraction(125, 4))
+
+    def test_complete_hash_footer_rows_backend_and_producer_are_mandatory(self):
+        data = world_basis_fixture()
+        with self.assertRaisesRegex(e.Refused, "WORLD_BASIS_DIGEST"):
+            self.source(data, "0"*64)
+        for raw in (data[:-1], data+b"hidden", world_basis_fixture(footer=False)):
+            with self.assertRaises(e.Refused):
+                self.source(raw)
+        for pair in ((math.nan, 0), (math.inf, 0), (1.001, 0), (0, -1.001)):
+            with self.assertRaisesRegex(e.Refused, "COEFFICIENT"):
+                self.source(world_basis_fixture(override=pair))
+        with self.assertRaisesRegex(e.Refused, "PRODUCER"):
+            self.source(world_basis_fixture(producer="b"*64))
+        with self.assertRaisesRegex(e.Refused, "BACKEND"):
+            self.source(world_basis_fixture(backend="vulkan"))
+
+    def test_only_finite_exact_root_domain_and_explicit_grounding_can_receive_a_certificate(self):
+        self.assertEqual(e.world_root_bounds(self.ROOTS), (Fraction(256), Fraction(63, 2), Fraction(256)))
+        for values in (None, [0]*6, [False, 0, 0, 1, 1, 1], [0, 0, 0, (1 << 24)+1, 1, 1]):
+            with self.assertRaises(e.Refused):
+                e.world_root_bounds(values)
+        raw = palette_fixture()
+        case = list(e.PaletteSource(io.BytesIO(raw), hashlib.sha256(raw).hexdigest()).cases())[0]
+        local, _ = e.palette_part_envelope(case["geometry"][0], case["matrices"])
+        with self.assertRaisesRegex(e.Refused, "GROUNDING_REQUIRED"):
+            e.world_residual(case["geometry"][0], case["matrices"], None, local, self.ROOTS)
+
+    @staticmethod
+    def draw(matrix, point):
+        """Independent scalar float32 affine emulation; no exporter interval operations are reused."""
+        import numpy as np
+        result = []
+        for axis in range(3):
+            value = np.float32(matrix[axis]*point[0])
+            value = np.float32(value + np.float32(matrix[axis+3]*point[1]))
+            value = np.float32(value + np.float32(matrix[axis+6]*point[2]))
+            result.append(np.float32(value+matrix[axis+9]))
+        return np.array(result, dtype=np.float32)
+
+    @staticmethod
+    def compose(matrix, g, root, c, s):
+        """The reviewed Actor uses these double scalar operations followed by a native Vector3 store."""
+        import numpy as np
+        out = matrix.astype(np.float64).copy()
+        for column in range(4):
+            x, y, z = out[3*column:3*column+3].copy()
+            out[3*column:3*column+3] = [c*x+s*z, y, -s*x+c*z]
+        out[9:] += root.astype(np.float64)/1024
+        out[10] += float(g)
+        return out.astype(np.float32)
+
+    def test_actual_scalar_world_paths_fit_for_all_root_corners_blends_body_and_attachment(self):
+        import itertools
+        import numpy as np
+        basis = self.source()
+        raw = palette_fixture(attachment=True, grounding=(.25, -.5), weight=.5)
+        case = list(e.PaletteSource(io.BytesIO(raw), hashlib.sha256(raw).hexdigest()).cases())[0]
+        roots = list(itertools.product((0, 262143), (-32256, 16895), (0, 262143)))
+        for index, part in enumerate(case["geometry"]):
+            matrices = case["matrices"][:, index:index+1]
+            bounds, errors = e.world_part_envelope(part, matrices, case["grounding"], basis, self.ROOTS)
+            self.assertTrue(all(value["numerator"] > 0 for value in errors))
+            point = part["geometry"][0]["points"][0]
+            for weight, yaw, origin in itertools.product((0, 1, 16384, 32768, 65535, 65536),
+                                                         (0, 1, 16384, 32769, 65535), roots):
+                t = weight/65536
+                matrix = (matrices[0, 0].astype(np.float64)*(1-t)+matrices[1, 0].astype(np.float64)*t).astype(np.float32)
+                grounding = np.float32(float(case["grounding"][0])*(1-t)+float(case["grounding"][1])*t)
+                c, s = (float(v) for v in np.array([math.cos(yaw*math.tau/65536), math.sin(yaw*math.tau/65536)], dtype=np.float32))
+                root = np.array(origin, dtype=np.int32)
+                if part["binds"]:
+                    local = self.draw((matrix*np.float32(.5)).astype(np.float32), point)
+                    identity = np.array([1,0,0,0,1,0,0,0,1,0,0,0], dtype=np.float32)
+                    actual = self.draw(self.compose(identity, grounding, root, c, s), local)
+                else:
+                    actual = self.draw(self.compose(matrix, grounding, root, c, s), point)
+                for axis in range(3):
+                    relative = Fraction(float(actual[axis])) - Fraction(int(root[axis]), 1024)
+                    self.assertLessEqual(Fraction(bounds[axis].low, e.FIXED), relative)
+                    self.assertGreaterEqual(Fraction(bounds[axis].high, e.FIXED), relative)
+
+    def test_world_residual_is_source_and_root_derived_never_a_claimed_margin(self):
+        raw = palette_fixture(attachment=True, compressed=True, grounding=(.25, .5))
+        case = list(e.PaletteSource(io.BytesIO(raw), hashlib.sha256(raw).hexdigest()).cases())[0]
+        part, matrices = case["geometry"][1], case["matrices"][:, 1:]
+        local, _ = e.palette_part_envelope(part, matrices, case["grounding"])
+        first = e.world_residual(part, matrices, case["grounding"], local, [-1, -1, -1, 1, 1, 1])
+        second = e.world_residual(part, matrices, case["grounding"], local, self.ROOTS)
+        self.assertTrue(all(b > a for a, b in zip(first, second)))
+        part["claimed_world_error_m"] = 0
+        self.assertEqual(second, e.world_residual(part, matrices, case["grounding"], local, self.ROOTS))
+        del part["mesh_aabb"]
+        with self.assertRaises(e.Refused):
+            e.world_residual(part, matrices, case["grounding"], local, self.ROOTS)
 
 
 def fixture(attachments=(), native_items=(), tracks=1, weight=None, footer=True, schema=1,

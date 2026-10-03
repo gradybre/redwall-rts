@@ -340,6 +340,26 @@ func test_finite_baker_refuses_unrecorded_attachment_surface_overrides() -> void
 	instance.free()
 
 
+func test_finite_baker_requires_explicit_persistent_pick_binding_and_separate_carry_states() -> void:
+	"""Recording actual source geometry does not give a held tool implicit clips, cargo or work permissions."""
+	var path: String = ProjectSettings.globalize_path("res://").path_join("../tools/bake_underground_matrices.gd").simplify_path()
+	var baker: GDScript = load(path) as GDScript
+	var request: Dictionary = {"held_tool_binding": "set_work_tool", "attachments": ["mole_pick"], "clip": "walk"}
+	for clip: String in ["idle", "walk", "cautious_crouch_walk_forward"]:
+		request.clip = clip
+		assert_equal(baker.persistent_tool_error(request), "", "explicit existing source clip")
+	for clip: String in ["carry_heavy_object_walk", "heavy_hammer_swing", "ladder", "missing"]:
+		request.clip = clip
+		assert_equal(baker.persistent_tool_error(request), "PALETTE_WORK_TOOL_CLIP", "no implicit clip or combined load")
+	request.clip = "walk"
+	for items: Array in [[], ["mole_pick", "log"], ["mole_pick", "mole_pick"], ["other_tool"]]:
+		request.attachments = items
+		assert_equal(baker.persistent_tool_error(request), "PALETTE_WORK_TOOL_BINDING", "complete exact attachment state")
+	request.attachments = ["mole_pick"]
+	request.held_tool_binding = "invented"
+	assert_equal(baker.persistent_tool_error(request), "PALETTE_WORK_TOOL_BINDING", "actual method binding only")
+
+
 func test_skin_validation_rejects_missing_eighth_influence_and_zero_weight() -> void:
 	"""No omitted influences, undeformed fallback or normalization changes the real geometry."""
 	var arrays: Array = _surface()

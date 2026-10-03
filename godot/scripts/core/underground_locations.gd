@@ -172,6 +172,7 @@ var _stage: Bank = Bank.new()
 var _world: Vector2i = NULL_REF
 var _token: int = 0
 var _next_token: int = 1
+var _last_published_token: int = 0
 var _cold_token: int = 0
 var _owner_token: int = 0
 var _site: Vector2i = NULL_REF
@@ -317,6 +318,11 @@ func _route_retention_refusal(location: Vector2i) -> StringName:
 func packed_memory_bytes() -> int:
 	"""Both banks and their own heap/index arrays; caller cold outputs are separate."""
 	return 228 * _capacity + 256 if _capacity > 0 else 0
+
+
+func last_published_token() -> int:
+	"""An exact successful bank swap has this unsaved receipt; a successful load clears it."""
+	return _last_published_token
 
 
 func wire_bytes() -> int:
@@ -533,7 +539,8 @@ func publish(token: int) -> bool:
 		var physical: Sites = _physical()
 		if physical == null or not physical.is_publishing_spatial_transition(physical.origin_of(_site),
 				_operation, _phase_stage, physical.room_of(_site), physical.bound_spatial_authority()) \
-				or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
+				or _owner.has_prepared() or _owner.revision() != _target_geometry_revision \
+				or _owner.last_published_token() != _owner_token:
 			return false
 	else:
 		if _geometry_current_refusal() != &"":
@@ -543,6 +550,7 @@ func publish(token: int) -> bool:
 	var previous: Bank = _live
 	_live = _stage
 	_stage = previous
+	_last_published_token = token
 	_reset_preparation()
 	return true
 
@@ -916,6 +924,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	var previous: Bank = _live
 	_live = _stage
 	_stage = previous
+	_last_published_token = 0
 	return &""
 
 

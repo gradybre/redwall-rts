@@ -215,6 +215,7 @@ var _s_region_free_count: int = 0
 var _s_source_free_count: int = 0
 var _next_token: int = 1
 var _stage_token: int = 0
+var _last_published_token: int = 0
 var _sealed: bool = false
 var _remaining: int = 0
 var _changed_count: int = 0
@@ -422,6 +423,11 @@ func _bind_initial_world(ref: Vector2i) -> void:
 func revision() -> int:
 	"""A proof token compares the world revision, never a frame or elapsed wall time."""
 	return _header[17] if _ready_error == &"" else 0
+
+
+func last_published_token() -> int:
+	"""Identify this owner's exact completed candidate; a successful load invalidates this unsaved receipt."""
+	return _last_published_token
 
 
 func has_prepared() -> bool:
@@ -1361,6 +1367,7 @@ func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 		return code
 	_sealed = true
 	publish(begun.token)
+	_last_published_token = 0
 	return &""
 
 
@@ -2353,6 +2360,7 @@ func _swap_banks() -> void:
 	count = _source_free_count
 	_source_free_count = _s_source_free_count
 	_s_source_free_count = count
+	_last_published_token = _stage_token
 
 
 func _swap_columns_0() -> void:

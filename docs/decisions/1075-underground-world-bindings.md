@@ -898,3 +898,46 @@ zero strict/raw unexpected diagnostics or leaks and zero expected/tolerated
 counts; analyzer zero in two files. Independent source review accepted the exact
 pins. [Raw logs and scope](../validation/evidence/underground-ug1075-bindings-2026-10-03/paid-cube-section/README.md)
 include the unchanged actual 6,144/2,048 capacity regression.
+
+
+## Exact successful companion publication receipts
+
+A sealed route may observe Space candidate A, then see A aborted and another
+candidate B published at the same target numeric revision. Unborn local endpoint
+handles can likewise be reused without a committed generation change. Numeric
+revision and full handle checks alone therefore cannot attest which prepared
+geometry or endpoint bank actually published.
+
+SpaceOwner and Locations each retain one unsaved `last_published_token()` integer.
+Only the successful bank swap changes it, with all four specialized Space source
+publication paths sharing that swap point. Successful restore invalidates the
+receipt to zero; refused restore, abort, staging, sealing and publication refusal
+leave the previous successful receipt unchanged. Tokens stay local to the exact
+bound owner instance and are never reused by a later preparation. They supply
+no physical, source, payment or multi-owner atomicity permission by themselves.
+
+Routes compares its exact prepared Space/Locations tokens before the provider
+callback and again immediately before swapping the graph. Future Locations also
+requires the actual Space receipt, alongside its existing exact real Sites
+publication window. All previous generation, source, geometry, profile, endpoint
+and shared-lease checks remain. The generic SpaceOwner caller assertion contract
+is unchanged; actual coordinators still owe complete preflight and same-stack
+non-failing physical publication. A discarded no-op geometry stage must not be
+presented as a successfully published companion.
+
+The Locations scalar adds 8 logical bytes to the existing 2,112-byte topology fixed
+control ceiling: actual census 2,068, with 44 bytes remaining inside that ceiling.
+The complete enforced topology reservation remains 1,041,728 bytes, leaving 6,848
+within 1 MiB. The Owner scalar adds 8 bytes within the separately admitted shared
+bindings/control reserve. No packed/canonical/wire field, retained image or
+per-row column changes. Loading a save cannot resurrect old runtime receipts.
+
+Clean focused checks report **157 tests / 15,000 assertions / 0 failures** across
+Owner 87/5,017, Locations 30/808 and Routes 40/9,175. All strict/raw unexpected errors,
+warnings and object/resource leaks are zero, as are expected/tolerated counts.
+The analyzer reports zero warnings in all six changed files. Independent read-only
+review accepted all six exact source/test pins with no high/medium finding. Actual bank/source
+and paired payment identities are tested with explicitly synthetic physical
+certificates; full paid Sites/endpoint/route composition remains a separate gate.
+[Exact pins and raw evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/publication-receipts/README.md)
+retain the rejected test-only no-op assumption separately from final passing checks.

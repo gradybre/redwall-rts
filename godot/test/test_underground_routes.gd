@@ -60,6 +60,9 @@ class SyntheticWorld extends Routes.Bindings:
 	var alternate_paces: PackedInt32Array = PackedInt32Array()
 	var motion_closed_edge: Vector2i = Vector2i(-1, 0)
 	var actual_occupancy: bool = false
+	var restore_on_publication: int = 0
+	var publication_cold_token: int = 0
+	var publication_restore_code: StringName = &"NOT_CALLED"
 
 	func exact_binding(candidate: RefCounted, endpoints: Locations, space: Owner, arena: Budget) -> bool:
 		"""Numeric identity coincidence in a foreign owner is never accepted."""
@@ -87,6 +90,13 @@ class SyntheticWorld extends Routes.Bindings:
 
 	func publication_refusal(_route_token: int, _space_token: int, _location_token: int) -> StringName:
 		"""Explicitly synthetic callback, never a replacement for actual paid publication."""
+		if restore_on_publication == 1:
+			publication_restore_code = owner.restore_state_bytes(owner.state_bytes())
+		elif restore_on_publication == 2:
+			var image: PackedByteArray = PackedByteArray()
+			publication_restore_code = locations.capture_state_into(publication_cold_token, image)
+			if publication_restore_code == &"":
+				publication_restore_code = locations.restore_state_bytes(publication_cold_token, image)
 		return refusal
 
 	func travel_refusal(edge: Vector2i, _selection: Profiles.Selection) -> StringName:
@@ -257,6 +267,18 @@ func _region(token: int, box: Array[int], role: int) -> Vector2i:
 
 func _location(point: Vector3i) -> Vector2i:
 	"""Publish a supported exact endpoint through the real immutable location owner."""
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, _location_record(point))
+	assert_equal(added.error, &"", "actual endpoint coverage")
+	assert_equal(_locations.seal(token), &"", "endpoint sealed")
+	assert_true(_locations.publish(token), "endpoint published")
+	_budget.release(cold)
+	return added.location
+
+
+func _location_record(point: Vector3i) -> Locations.Record:
+	"""The same explicit fixture footprint serves live and unpublished endpoint cases."""
 	var record: Locations.Record = Locations.Record.new()
 	record.point = point
 	record.section = _floor
@@ -264,14 +286,7 @@ func _location(point: Vector3i) -> Vector2i:
 	record.role = Locations.ROLE_TRANSIT
 	record.envelope = PackedInt32Array([point.x - 128, point.y, point.z - 128, point.x + 128, point.y + 1024, point.z + 128])
 	record.support = PackedInt32Array([point.x - 128, point.y - 128, point.z - 128, point.x + 128, point.y, point.z + 128])
-	var cold: int = _budget.acquire(COLD_BYTES)
-	var token: int = _locations.begin_prepare(cold).token
-	var added: Locations.Result = _locations.stage_add(token, record)
-	assert_equal(added.error, &"", "actual endpoint coverage")
-	assert_equal(_locations.seal(token), &"", "endpoint sealed")
-	assert_true(_locations.publish(token), "endpoint published")
-	_budget.release(cold)
-	return added.location
+	return record
 
 
 func _edge(first: Vector2i, last: Vector2i, points: Array[Vector3i]) -> Routes.Edge:
@@ -1042,3 +1057,136 @@ func test_prepared_metadata_observation_requires_current_tokens_lease_and_full_r
 	assert_equal(out.level, 913, "stale lease leaves metadata unchanged")
 	assert_true(_routes.abort(token), "discard original graph preparation")
 	assert_equal(_budget.release(replacement), &"", "release replacement operation")
+
+
+func _stage_receipt_geometry(x: int = 3000) -> int:
+	"""An actual distant obstacle distinguishes two candidates sharing one target geometry revision."""
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	_region(token, [x, 0, 3000, x + 64, 128, 3100], Space.OBSTACLE)
+	assert_equal(_owner.seal(token), &"", "sealed actual space candidate")
+	return token
+
+
+func _stage_receipt_refresh(cold: int, edge: Vector2i, space_token: int) -> int:
+	"""Refresh actual retained metadata against one exact prepared Space transaction."""
+	var result: Routes.Result = _routes.begin_prepare(cold, space_token)
+	assert_equal(result.error, &"", "actual companion preparation")
+	assert_equal(_routes.stage_refresh(result.token, edge), &"", "future geometry proof")
+	assert_equal(_routes.seal(result.token), &"", "exact future graph sealed")
+	return result.token
+
+
+func test_routes_reject_replacement_space_candidate_at_the_same_numeric_revision() -> void:
+	"""Aborted A and published B may share revision/handles but cannot share A's static route proof."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var previous: int = _routes.last_published_token()
+	var first: int = _stage_receipt_geometry()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var route_token: int = _stage_receipt_refresh(cold, refs[2], first)
+	var target_revision: int = _owner.revision() + 1
+	assert_true(_owner.abort(first), "A never publishes")
+	var replacement: int = _stage_receipt_geometry(3200)
+	_owner.publish(replacement)
+	assert_equal(_owner.revision(), target_revision, "same target numeric revision")
+	assert_equal(_owner.last_published_token(), replacement, "actual B receipt")
+	assert_equal(_routes.publish(route_token), &"ROUTE_SPACE_PUBLICATION", "A proof cannot describe B")
+	assert_equal(_routes.last_published_token(), previous, "old live graph preserved")
+	assert_true(_routes.abort(route_token), "discard stale companion")
+	assert_equal(_budget.release(cold), &"", "release actual cold lease")
+
+
+func test_exact_published_space_candidate_allows_its_prepared_route() -> void:
+	"""The receipt is necessary alongside unchanged geometry, full endpoints and provider permission."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var first: int = _stage_receipt_geometry()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var route_token: int = _stage_receipt_refresh(cold, refs[2], first)
+	_owner.publish(first)
+	assert_equal(_owner.last_published_token(), first, "exact Space candidate published")
+	assert_equal(_routes.publish(route_token), &"", "matching actual companion succeeds")
+	assert_equal(_routes.last_published_token(), route_token, "new graph receipt only after swap")
+	assert_equal(_budget.release(cold), &"", "shared operation ends")
+
+
+func test_route_publication_rechecks_space_receipt_after_provider_callback() -> void:
+	"""An actual same-image restore inside the callback invalidates the earlier candidate receipt."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var previous: int = _routes.last_published_token()
+	var first: int = _stage_receipt_geometry()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var route_token: int = _stage_receipt_refresh(cold, refs[2], first)
+	_owner.publish(first)
+	_binding.restore_on_publication = 1
+	assert_equal(_routes.publish(route_token), &"ROUTE_SPACE_PUBLICATION", "final exact receipt check")
+	assert_equal(_binding.publication_restore_code, &"", "actual restore, not fake receipt mutation")
+	assert_equal(_owner.last_published_token(), 0, "restored bank has no runtime receipt")
+	assert_equal(_routes.last_published_token(), previous, "graph remains unchanged")
+	assert_true(_routes.abort(route_token), "discard stale graph proof")
+	assert_equal(_budget.release(cold), &"", "release actual cold lease")
+
+
+func _stage_receipt_location(cold: int) -> Locations.Result:
+	"""Return an actual sealed future full handle which an aborted candidate may later reuse."""
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, _location_record(Vector3i(512, 0, 512)))
+	assert_equal(added.error, &"", "exact future endpoint")
+	assert_equal(_locations.seal(token), &"", "actual endpoint candidate")
+	return added
+
+
+func _stage_receipt_location_edge(cold: int, first: Vector2i, endpoint: Locations.Result) -> Routes.Result:
+	"""Keep one future endpoint candidate identity throughout actual graph preparation."""
+	var token: int = _routes.begin_prepare(cold, 0, endpoint.token).token
+	var added: Routes.Result = _routes.stage_add(token, _edge(first, endpoint.location,
+		[Vector3i(-512, 0, 512), Vector3i(512, 0, 512)]))
+	assert_equal(added.error, &"", "future endpoint span")
+	assert_equal(_routes.seal(token), &"", "exact future endpoint graph")
+	return added
+
+
+func test_routes_reject_replacement_location_candidate_with_identical_full_handle() -> void:
+	"""An unpublished endpoint generation can be reused; its candidate receipt cannot."""
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint: Locations.Result = _stage_receipt_location(cold)
+	var route: Routes.Result = _stage_receipt_location_edge(cold, first, endpoint)
+	assert_true(_locations.abort(endpoint.token), "discard endpoint A")
+	var replacement: Locations.Result = _stage_receipt_location(cold)
+	assert_equal(replacement.location, endpoint.location, "actual unspent handle reused")
+	assert_true(_locations.publish(replacement.token), "actual endpoint B published")
+	assert_equal(_routes.publish(route.token), &"ROUTE_LOCATION_PUBLICATION", "same handle is insufficient")
+	assert_false(_routes.is_live_edge(route.ref), "no stale graph prefix")
+	assert_equal(_routes.last_published_token(), 0, "no graph swap")
+	assert_true(_routes.abort(route.token), "discard dependent proof")
+	assert_equal(_budget.release(cold), &"", "actual operation released")
+
+
+func test_exact_published_location_candidate_allows_its_prepared_route() -> void:
+	"""A matching immutable endpoint bank and graph can publish in one held operation."""
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint: Locations.Result = _stage_receipt_location(cold)
+	var route: Routes.Result = _stage_receipt_location_edge(cold, first, endpoint)
+	assert_true(_locations.publish(endpoint.token), "actual matching endpoint")
+	assert_equal(_locations.last_published_token(), endpoint.token, "exact endpoint receipt")
+	assert_equal(_routes.publish(route.token), &"", "matching endpoint graph")
+	assert_true(_routes.is_live_edge(route.ref), "only now graph is actual")
+	assert_equal(_routes.last_published_token(), route.token, "exact graph receipt")
+	assert_equal(_budget.release(cold), &"", "release held operation")
+
+
+func test_route_publication_rechecks_location_receipt_after_provider_callback() -> void:
+	"""A provider cannot replace a published bank with a restored image while retaining its old receipt."""
+	var first: Vector2i = _location(Vector3i(-512, 0, 512))
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var endpoint: Locations.Result = _stage_receipt_location(cold)
+	var route: Routes.Result = _stage_receipt_location_edge(cold, first, endpoint)
+	assert_true(_locations.publish(endpoint.token), "original actual endpoint publication")
+	_binding.restore_on_publication = 2
+	_binding.publication_cold_token = cold
+	assert_equal(_routes.publish(route.token), &"ROUTE_LOCATION_PUBLICATION", "final endpoint receipt check")
+	assert_equal(_binding.publication_restore_code, &"", "actual callback restores unchanged endpoint wire")
+	assert_equal(_locations.last_published_token(), 0, "restored endpoint has no runtime receipt")
+	assert_false(_routes.is_live_edge(route.ref), "restored identity does not publish an old proof")
+	assert_true(_routes.abort(route.token), "discard prepared graph")
+	assert_equal(_budget.release(cold), &"", "release operation after copies dropped")

@@ -750,3 +750,30 @@ func test_transit_pending_neighbour_claim_does_not_create_clear_volume() -> void
 	assert_equal(_owner.seal(token), &"", "planned claim and metadata remain")
 	_owner.publish(token)
 	assert_equal(_endpoint_refusal(_doorway_record(fixture, 0)), &"LOCATION_COVERAGE_MISSING", "unpaid/unbuilt half cannot pass")
+
+
+func test_location_receipt_requires_exact_success_and_load_never_restores_it() -> void:
+	"""Unsealed, refused or aborted candidates cannot stand in for a published immutable endpoint bank."""
+	assert_equal(_locations.last_published_token(), 0, "unpublished owner")
+	var lease: int = _cold.acquire(COLD_BYTES)
+	var first: int = _locations.begin_prepare(lease).token
+	assert_equal(_locations.stage_add(first, _record()).error, &"", "candidate endpoint")
+	assert_false(_locations.publish(first), "unsealed refuses")
+	assert_equal(_locations.last_published_token(), 0, "no partial receipt")
+	assert_equal(_locations.seal(first), &"", "sealed first candidate")
+	assert_true(_locations.publish(first), "actual bank swap")
+	assert_equal(_locations.last_published_token(), first, "exact completed candidate")
+	var second: int = _locations.begin_prepare(lease).token
+	assert_equal(_locations.seal(second), &"", "sealed no-op candidate")
+	assert_false(_locations.publish(second + 1), "wrong exact token")
+	assert_equal(_locations.last_published_token(), first, "wrong token earns nothing")
+	assert_true(_locations.abort(second), "discard invisible candidate")
+	assert_equal(_locations.last_published_token(), first, "abort preserves last success")
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_locations.capture_state_into(lease, image), &"", "actual wire capture")
+	assert_equal(_locations.restore_state_bytes(lease, PackedByteArray()), &"LOCATION_IMAGE_SHAPE", "refused load")
+	assert_equal(_locations.last_published_token(), first, "refused load preserves receipt")
+	assert_equal(_locations.restore_state_bytes(lease, image), &"", "actual same-image restore")
+	assert_equal(_locations.last_published_token(), 0, "load invalidates unsaved receipt")
+	image.clear()
+	assert_equal(_cold.release(lease), &"", "all charged output discarded")

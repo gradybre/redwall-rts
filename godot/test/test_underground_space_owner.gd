@@ -2418,3 +2418,75 @@ func test_paid_cube_section_resolves_under_the_unchanged_actual_joint_capacities
 	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(-1024, 0, -1024),
 		_owner.revision(), out), &"", "bounded scans fit existing MAX_CHECKS")
 	assert_equal(out.section, floor_ref, "exact full section, no slot-only result")
+
+
+func test_publication_receipt_changes_only_after_swap_and_successful_load_clears_it() -> void:
+	"""Equal revisions are not exact candidates; abort/refusal never earns a publication receipt."""
+	assert_equal(_owner.last_published_token(), 0, "no publication on configure")
+	var first: int = _begin()
+	_put(first, _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _world))
+	_publish(first)
+	assert_equal(_owner.last_published_token(), first, "actual first bank swap")
+	var revision: int = _owner.revision()
+	var second: int = _begin()
+	assert_equal(_owner.seal(second), &"", "valid no-op candidate")
+	assert_equal(_owner.last_published_token(), first, "seal is not publication")
+	assert_true(_owner.abort(second), "discard exact second candidate")
+	assert_equal(_owner.last_published_token(), first, "abort retains previous receipt")
+	var third: int = _begin()
+	_publish(third)
+	assert_equal(_owner.revision(), revision + 1, "every actual swap advances the current owner revision")
+	assert_equal(_owner.last_published_token(), third, "exact new no-op publication")
+	var image: PackedByteArray = _owner.state_bytes()
+	assert_equal(_owner.restore_state_bytes(PackedByteArray()), &"SPACE_LOAD_SIZE", "refused restore")
+	assert_equal(_owner.last_published_token(), third, "failed restore preserves prior receipt")
+	assert_equal(_owner.restore_state_bytes(image), &"", "actual same-image restore")
+	assert_equal(_owner.last_published_token(), 0, "load never resurrects a runtime candidate")
+	assert_equal(_owner.state_bytes(), image, "receipt is not canonical state")
+
+
+func test_room_source_publication_receipt_requires_actual_after_identity() -> void:
+	"""Every specialized Room publication shares the same success-only bank-swap receipt."""
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(_owner.seal(token), &"", "exact future Room seals")
+	_owner.publish(token)
+	assert_equal(_owner.last_published_token(), 0, "generic path cannot publish future source")
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands),
+		&"SPACE_ROOM_ADMISSION_PUBLICATION", "outside actual authority window")
+	assert_equal(_owner.last_published_token(), 0, "refusal earns no receipt")
+	commands.publishing = true
+	assert_true(_buildings.designate_spatial_room_candidate(commands.room_type, commands.candidate).ok, "actual Room")
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands), &"", "actual after facts")
+	commands.publishing = false
+	assert_equal(_owner.last_published_token(), token, "exact published candidate")
+	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands),
+		&"SPACE_ROOM_ADMISSION_TOKEN", "duplicate publication refuses")
+	assert_equal(_owner.last_published_token(), token, "duplicate refusal preserves receipt")
+
+
+func test_actual_paid_furniture_installation_publishes_exact_space_receipt() -> void:
+	"""The installed-fact special path earns its receipt only after real receipts/Work/Buildings publication."""
+	var harness: InstallationHarness = _installation_fixture()
+	var fitting: InstallationOwner = harness.furniture_with_geometry()
+	var project: Vector2i = harness._open(fitting)
+	var job: Vector2i = harness._job(project)
+	harness._start(project)
+	harness._finish_labor(project, job)
+	var expected: int = fitting.geometry._next_token
+	assert_true(harness._router.complete_order(project).ok, "actual paid installation")
+	assert_equal(fitting.published_refusal, &"", "real after-facts accepted")
+	assert_equal(fitting.geometry.last_published_token(), expected, "exact installation candidate receipt")
+	_release_installation_fixture(harness)
+
+
+func test_actual_furniture_admissions_publish_exact_space_receipt() -> void:
+	"""Paired future Furniture sources cannot skip the common successful publication receipt."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var expected: int = fitting.geometry._next_token
+	assert_true(harness._router.open_furniture_batch(fitting, harness._room, harness._batch, harness._entries).ok,
+		"actual paired allocation and publication")
+	assert_equal(fitting.published_code, &"", "exact actual pending after-facts")
+	assert_equal(fitting.geometry.last_published_token(), expected, "one exact batch source receipt")
+	_release_batch_fixture(harness)

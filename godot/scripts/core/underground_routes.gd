@@ -1293,7 +1293,9 @@ func publish(token: int) -> StringName:
 		return &"ROUTE_TRANSACTION_STALE"
 	if _binding_refusal() != &"" or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
 		return &"ROUTE_GEOMETRY_STALE"
-	var code: StringName = _publication_refusal()
+	var code: StringName = _companion_publications_refusal()
+	if code == &"":
+		code = _publication_refusal()
 	if code != &"":
 		return code
 	code = _published_endpoints_refusal()
@@ -1301,11 +1303,23 @@ func publish(token: int) -> StringName:
 		return code
 	if not _cold.covers(_cold_token, 1) or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
 		return &"ROUTE_PUBLICATION_STALE"
+	code = _companion_publications_refusal()
+	if code != &"":
+		return code
 	var previous: EdgeBank = _live
 	_live = _stage
 	_stage = previous
 	_last_published_token = token
 	_reset_preparation()
+	return &""
+
+
+func _companion_publications_refusal() -> StringName:
+	"""Equal future revisions or recycled absent handles cannot replace the exact prepared companion."""
+	if _space_token != 0 and _owner.last_published_token() != _space_token:
+		return &"ROUTE_SPACE_PUBLICATION"
+	if _location_token != 0 and _locations.last_published_token() != _location_token:
+		return &"ROUTE_LOCATION_PUBLICATION"
 	return &""
 
 

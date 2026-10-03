@@ -1,6 +1,6 @@
 # 1073 — Shared modular receipts and actual worker routing
 
-Date: 2026-10-03 · Status: B2 receipt implementation; router schema approved
+Date: 2026-10-03 · Status: B2 receipts and B3 actual worker router implemented; production adapters remain open
 
 ## Decision
 
@@ -81,7 +81,7 @@ its bill/refund reads before actual Furniture installation changes source
 facts or tip closure retires a subject. No deferred callback, direct call or
 previous window may authorize that publication.
 
-## Approved next router schema
+## B3 accepted Job schema
 
 Jobs' requester field is neither unique nor an immutable authorization to
 advance a project. Add four packed I32 columns to `ModularProjects`, keyed by
@@ -90,7 +90,8 @@ project slot/generation. Full references are retained; a typed row is never
 mistaken for a Directory slot. Their fixed extent is Jobs.JOB_CAPACITY=8192,
 for **131072 persistent bytes** and another **131072 per simultaneous cold
 image**. These bindings cannot honestly be derived from all requester refs,
-because only the actual owner's accepted primary Job is authorized.
+because only the actual owner's accepted primary and explicitly accepted party
+Jobs are authorized.
 
 Binding checks uniqueness on a cold finite scan, then productive lookup is
 O(1). A primary Job may be solo or the real existing party coordinator.
@@ -102,9 +103,9 @@ No per-worker objects or cold bill/Buildings result allocations are introduced
 into the productive path. Pause/cancellation must inspect relevant members,
 late requester Jobs and unfinished claims before a safe retirement.
 
-The router and Work adapter are the next increment and are **not implemented
-by B2**. UG16 must validate these cross-owner references atomically in the
-versioned codec, and legacy capture must explicitly refuse retained bindings.
+B3 implements this router and Work adapter; B2 alone did not. UG16 must
+validate these cross-owner references atomically in the versioned codec.
+The router explicitly refuses legacy capture rather than dropping its bindings.
 Root's decision 1072 owns the complete simultaneous memory/canonical ledger.
 These bounds are engineering allocation ceilings, never room or level policy.
 
@@ -133,3 +134,142 @@ record live under
 The clean import preceded the focused runs; it had no diagnostic lines.
 No full-suite, hardware performance, production geometry or composed
 save/load qualification is inferred from these tests.
+
+
+## B3 actual payment, worker and retirement implementation
+
+`ModularProjects.new` borrows the actual Sites Funding arena and preflights
+Construction and Work before either binds. Inventory, Reservations, catalog,
+Jobs, Work, equipment and the live full World reference must belong to that
+same composition. A later catalog/equipment rewiring is rechecked through
+O(1) owner readers. Purpose owners are weak, bind once, and cannot be replaced
+after expiry to reset physical history. There is no per-order owner object.
+
+`open_order(owner, subject, operation)` reads the physical owner's already
+prepared immutable quote. Callers do not supply prices, completed work or
+adopted quantity. Actual Construction allocates the project and its exact
+synchronous callback attaches that identity to the physical owner. A tip
+handle remains in the tip purpose and actual World; it is never reinterpreted
+as a Building, Room or excavation operation.
+
+`bind_job` accepts one real solo Job or existing party coordinator. `bind_member`
+accepts each actual zero-work member explicitly, retaining its full Job and
+project reference in the same four columns. No fifth member can be accepted.
+A worker may leave and a replacement occupy that still-owned member role
+without losing the coordinator's single remaining-work counter. A stale,
+detached or externally destroyed accepted Job refuses until its ownership
+is resolved; it cannot be silently overwritten or promoted to a primary.
+
+`bind_material_container` requires actual reachable contact.
+`record_deliveries` derives every credit from actual modular-input claims
+and the entire current bill. `start_work` prepares current contacts, verifies
+actual worker/tool bindings and invokes real Funding consumption before
+Construction or Jobs become productive. Positive outputs reserve finite
+real capacity. Existing first-pile staging remains a World-owned surface
+contact with the existing 400000 g policy; a deeper endpoint cannot alias a
+surface tile. The actual spatial Inventory/Haul endpoint is a subsequent
+integration. An ordinary unlimited container is not proof of such a pile.
+
+Every productive tick uses real Work for capped labor, XP, integer carries
+and equipped tool wear. Its successful owner gate retains an exact transient
+Job bracket. Any subsequent tool, skill, carry or other Work refusal invokes
+`discard_work_tick` for that Job. Zero accepted work also discards the physical
+candidate. Only Work's synchronous post-commit callback can apply its real
+Job-counter difference to Construction and publish PRODUCTIVE. Direct Work
+calls, manually edited Job counters and direct publication attempts grant
+no paid work. The router performs O(1) binding lookup and an at-most-four
+member walk, with no Quote/Buildings reads or allocation of worker objects.
+An unrelated ordinary Job keeps its existing Work behavior.
+
+`set_paused` first holds actual Construction, then checks every relevant
+accepted or late requester/member Job and actual Inventory/Work/Gear claim
+before releasing claims and workers. Paid WIP and integer carry survive.
+`resume_work` verifies real reassignment, matching remaining work and fresh
+contacts without consuming a second bill. A safe refused pause may remain
+held; this prevents an unsafe worker from continuing during reconciliation.
+
+`complete_order` finishes fallible source/contact/output and worker-release
+preflights, commits the real Funding outputs, releases actual workers, then
+opens the exact physical COMMIT callback. `cancel_order` freezes accounting
+and either releases unstarted claims in place or refunds actual WIP. A blocked
+refund retains project/receipts and source claims for retry. Physical CANCEL
+publishes only after settlement. Cancellation may have safely released workers
+or some unstarted claims before a later refusal; this is explicit resumable
+state, not a claim of byte-atomic cancellation across all owners.
+
+Completion/cancellation destroys accepted member Jobs before the primary and
+then retires Construction. No post-publication bill read occurs: actual
+Furniture installation or tip closure may intentionally invalidate the former
+subject facts. Retained zero-work operations still repay the full bill and
+then complete through fresh COMMIT without a fabricated productive tick.
+Legacy surface Construction and ordinary Work contracts are unchanged.
+
+## B3 simultaneous allocations and persistence obligations
+
+The four I32 Job columns total 131072 persistent live bytes. Each actual
+simultaneous cold image adds another 131072; `_delivery_totals` adds 32 bytes
+of packed cold scratch. There is no extra project receipt arena. Router
+initialization refusal leaves its columns empty. The existing source coverage
+gate proves the exact fixed Job capacity and four-line delivery capacity.
+
+Construction, Funding and Router each own one reusable Quote: **three times
+112 = 336 packed scratch bytes** in the assembled implementation. Per Quote,
+eight integer facts add 64 logical bytes and its full subject reference adds
+8, for **72 numeric control bytes**. Its four StringName keys, Array/object
+headers, packed-array handles, references and other native overhead are
+separate and consume the composition's explicit native/control reservation.
+These are component scratch objects, never one Quote per project or worker.
+
+Router itself adds 49 numeric control bytes: derived World ref 8, crew count
+8, busy flag 1, mutation project/action 16 and publication project/action 16.
+Its two reusable IntResults add 18 numeric bytes (one bool plus one I64 each),
+plus their String/native overhead. Its exact owner references, weak purpose
+and admission bindings, refusal StringName and strong callback-only owner
+reference are wiring/native controls, not persisted or canonicalized pointers.
+Work adds two transient full Job brackets (16 bytes) plus a weak router target.
+The callback owner is assigned only during publication; this avoids allocating
+a WeakRef on every productive tick.
+
+Relative to the already counted B2 arena/Quote, B3 therefore adds 131072 live
+plus 131072 cold-image bytes, 32 delivery scratch, 112 Quote packed scratch,
+72 Quote numeric controls, 67 Router numeric controls and 16 Work bracket
+bytes: **262443 logical bytes**, before explicit native/declaration overhead.
+Root's joint decision 1072 must count the complete simultaneous lifetimes;
+independent maxima are not production admission. No target-hardware runtime
+or memory-budget pass is claimed here.
+
+UG16 must capture and validate all four binding columns with actual Job,
+Construction, party, receipt and physical-owner identities, rebind exact
+live owners, and clear transient windows on load. An old codec must not
+silently omit retained bindings or reinterpret new purposes. This increment
+supplies local state images/refusals, not the composed release codec.
+
+## B3 verification scope
+
+The Router tests use actual Construction, Inventory, Reservations, Items,
+Jobs, Work, Residents, Gear, Buildings and the one actual Sites Funding arena.
+Only physical contact/geometry and purpose source publication permission are
+explicitly synthetic. The tests include actual paid Kitchen-bench installation,
+which invalidates the pending quote before safe retirement, real party limits
+and replacement, byte-identical refusal comparisons, expired/foreign wiring,
+late requesters, stale generations, orphan equipment, blocked refund retry,
+retained zero work/full repayment, post-gate abort and zero accepted work.
+They do not claim actual tip stock, production room dispatch, measured worker
+clearance or the staged pending-to-installed geometry/service bridge. Those
+remain the responsibilities of their concrete adapters.
+
+Initial B3 validation caught an incorrect fixture reader name and a child
+fixture left in a nonproductive Job state. Both tests were corrected; the
+second now explicitly attempts productive child work. The unchanged strict
+runner caught both failures. Final frozen-source test/analyzer evidence is
+recorded with the source checkpoint under the B3 evidence directory.
+
+
+The final unchanged B3 candidate passed a fresh asset-free cache/import, then
+**293 tests / 48339 assertions / 0 failures** across eight strict singleton
+suites. Every suite reports zero unexpected errors/warnings, zero expected or
+tolerated diagnostics, zero raw unexpected errors/warnings and zero leaked
+objects/resources. The five-file analyzer reports `0 GDScript warning(s) in
+0 of 5 file(s)`. Independent review accepted all five matching frozen source
+hashes with no unresolved finding in this scope. Exact logs and source pins:
+`docs/validation/evidence/underground-ug07-shared-router-2026-10-03/`.

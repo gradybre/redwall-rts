@@ -227,6 +227,7 @@ const JobsScript := preload("res://scripts/core/jobs.gd")
 const GearScript := preload("res://scripts/core/gear.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 # --- capacities -----------------------------------------------------------------------------
 
@@ -512,6 +513,9 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 ## refuses GEAR_STORE_UNAVAILABLE rather than silently doing nothing.
 var _excavation_authority: WeakRef = null
 var _publishing_excavation_job: Vector2i = Vector2i(-1, 0)
+var _modular_authority: WeakRef = null
+var _publishing_modular_job: Vector2i = Vector2i(-1, 0)
+var _pending_modular_job: Vector2i = Vector2i(-1, 0)
 var _gear: GearScript = null
 ## Reused outcome for the wear debit, so a settlement tick allocates nothing. Consumed immediately
 ## inside `_charge_tool()` and never handed to a caller.
@@ -599,6 +603,7 @@ func _refuse_into(out: TickResult, code: StringName) -> bool:
 	out.remaining_mwu = 0
 	out.contributor_count = 0
 	out.completed = false
+	_discard_modular_tick()
 	return false
 
 
@@ -678,6 +683,66 @@ func _notify_excavation(job_slot: int) -> void:
 func is_publishing_excavation_tick(job: Vector2i) -> bool:
 	"""Attest only this synchronous post-commit callback, never a manually adjusted Job counter."""
 	return job != Vector2i(-1, 0) and _publishing_excavation_job == job
+
+
+func modular_binding_refusal(authority: ModularContract) -> StringName:
+	"""Preflight the optional shared paid owner before Construction and Work bind together."""
+	return ModularContract.REFUSE_AUTHORITY if authority == null or _modular_authority != null \
+		else REFUSE_NONE
+
+
+func bind_modular_authority(authority: ModularContract) -> OpResult:
+	"""Bind once and weakly; an expired paid owner cannot be replaced to reset old authorization."""
+	var code: StringName = modular_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_modular_authority = weakref(authority)
+	return _succeed(1)
+
+
+func modular_authority() -> ModularContract:
+	"""Expose only the actual live weak target; the router additionally validates world composition."""
+	return _modular_authority.get_ref() as ModularContract if _modular_authority != null else null
+
+
+func _work_owner_refusal(job_slot: int) -> StringName:
+	"""Resolve every paid-owner gate before any work carry, XP, remaining work or wear changes."""
+	var code: StringName = _excavation_refusal(job_slot)
+	if code != REFUSE_NONE or _modular_authority == null:
+		return code
+	var authority: ModularContract = modular_authority()
+	if authority == null:
+		return ModularContract.REFUSE_AUTHORITY
+	code = authority.work_tick_refusal(_jobs.ref_of(job_slot))
+	if code == REFUSE_NONE:
+		_pending_modular_job = _jobs.ref_of(job_slot)
+	return code
+
+
+func _notify_work_owners(job_slot: int) -> void:
+	"""Only actual successful Work commits open their exact synchronous paid-owner callbacks."""
+	_notify_excavation(job_slot)
+	if _modular_authority != null:
+		var authority: ModularContract = modular_authority()
+		_publishing_modular_job = _jobs.ref_of(job_slot)
+		authority.accept_work_tick(_publishing_modular_job)
+		_publishing_modular_job = Vector2i(-1, 0)
+		_pending_modular_job = Vector2i(-1, 0)
+
+
+func _discard_modular_tick() -> void:
+	"""Every refusal after a successful gate closes only that Job's prepared productive proof."""
+	if _pending_modular_job == Vector2i(-1, 0):
+		return
+	var authority: ModularContract = modular_authority()
+	if authority != null:
+		authority.discard_work_tick(_pending_modular_job)
+	_pending_modular_job = Vector2i(-1, 0)
+
+
+func is_publishing_modular_tick(job: Vector2i) -> bool:
+	"""A manually changed Job counter or a direct owner call is never accepted as labor."""
+	return job != Vector2i(-1, 0) and _publishing_modular_job == job
 
 
 func bind_gear(store: GearScript) -> OpResult:
@@ -994,7 +1059,7 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	"""
 	if out == null:
 		return false
-	var owner_refusal: StringName = _excavation_refusal(job_slot)
+	var owner_refusal: StringName = _work_owner_refusal(job_slot)
 	if owner_refusal != REFUSE_NONE:
 		return _refuse_into(out, owner_refusal)
 	if _jobs.is_coordinator(job_slot):
@@ -1012,7 +1077,7 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
 	if not _commit_into(job_slot, out):
 		return false
-	_notify_excavation(job_slot)
+	_notify_work_owners(job_slot)
 	return true
 
 
@@ -1038,7 +1103,7 @@ func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 	"""
 	if out == null:
 		return false
-	var owner_refusal: StringName = _excavation_refusal(coordinator_slot)
+	var owner_refusal: StringName = _work_owner_refusal(coordinator_slot)
 	if owner_refusal != REFUSE_NONE:
 		return _refuse_into(out, owner_refusal)
 	if not _jobs.is_coordinator(coordinator_slot):
@@ -1053,7 +1118,7 @@ func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
 	if not _commit_into(coordinator_slot, out):
 		return false
-	_notify_excavation(coordinator_slot)
+	_notify_work_owners(coordinator_slot)
 	return true
 
 

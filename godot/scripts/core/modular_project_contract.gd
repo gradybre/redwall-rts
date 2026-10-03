@@ -269,6 +269,11 @@ func accept_work_tick(_job: Vector2i) -> void:
 	assert(false, "Unbound modular router cannot accept work")
 
 
+func discard_work_tick(_job: Vector2i) -> void:
+	"""Drop only the exact prepared productive candidate when real Work refuses or accepts zero."""
+	pass
+
+
 func embedded_earth_milli() -> int:
 	"""Read actual typed source stock for whole-world conservation; unavailable refuses."""
 	return -1

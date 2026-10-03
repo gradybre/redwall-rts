@@ -638,6 +638,11 @@ func output_container(project: Vector2i) -> Vector2i:
 	return Vector2i(_output_slot[row], _output_generation[row])
 
 
+func reserved_output_mass_g(project: Vector2i) -> int:
+	"""Read this paid owner's retained mass in O(1); unavailable is never assumed zero output."""
+	return _output_mass_g[_project_row(project)] if is_funded(project) else -1
+
+
 func _clear_wip(project: Vector2i) -> void:
 	"""Retire receipt rows only after their physical transition or returned goods committed."""
 	var row: int = _project_row(project)

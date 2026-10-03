@@ -55,11 +55,12 @@ func before_each() -> void:
 # --- the purpose domain --------------------------------------------------------------------
 
 func test_the_purpose_domain_is_numbered_explicitly() -> void:
-	"""Decision 1023: UNSPECIFIED 0, HAUL_SOURCE 1, HAUL_DESTINATION 2, three members."""
+	"""Decisions 1023/1056: preserve haul IDs 0–2 and append excavation input at 3."""
 	assert_equal(ReservationsScript.PURPOSE_UNSPECIFIED, 0, "unspecified")
 	assert_equal(ReservationsScript.PURPOSE_HAUL_SOURCE, 1, "haul source")
 	assert_equal(ReservationsScript.PURPOSE_HAUL_DESTINATION, 2, "haul destination")
-	assert_equal(ReservationsScript.PURPOSE_NUMBERED_COUNT, 3, "three numbered members")
+	assert_equal(ReservationsScript.PURPOSE_EXCAVATION_INPUT, 3, "excavation input appended")
+	assert_equal(ReservationsScript.PURPOSE_NUMBERED_COUNT, 4, "four numbered members")
 
 
 # --- sizing --------------------------------------------------------------------------------

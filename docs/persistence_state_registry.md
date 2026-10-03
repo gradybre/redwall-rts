@@ -1436,3 +1436,10 @@ readers introduce no new authoritative, derived or transient retained state.
 |---|---|---:|---|---|:-:|---|---|
 | Cold exact mask, full handles and residual banks | -- | -- | -- | Synchronous FinishPartition exists only inside the already-held phase lease | 3 | -- | Decision1075 FINISH appendix. Four variable packed buffers: mask at most24R bytes, actual region handles8R, and two fixed flat residual banks48R. Actual `Owner.region_capacity()` supplies R before allocation; no per-fragment object or array. Provider handles and copied qualification arguments have already dropped; this packet drops before physical/companion plan copies. No persistent/wire/canonical columns. |
 | Fixed partition packet and helper controls | -- | -- | -- | No retained packet or unsaved gameplay state after the call | 3 | -- | Three six-I32 scratch boxes plus two Region boxes120 packed bytes, Region metadata96 logical bytes, three integer counters24 and one boolean =241 known logical bytes inside512 controls. Simultaneous original snapshot48K+16O, original plan72P, variable buffers80R and512 controls peak at990952 for R6144/O2048/K8192/P1013, sequential within unchanged1048960 shared cold arena. Native object/packed headers and growth remain separately obligated in existing bindings reserve; no measured-RAM claim. Productive WORK allocates none of these buffers. |
+
+
+### `godot/scripts/core/underground_space_owner.gd` — actual Room identity scratch
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact actual Room facts | -- | -- | -- | Scratch is initialized once and never grants source permission | 3 | -- | Decision1093. Nested CoreSources `_room_identity` is one six-I32 packet, 24 bytes, inside the unchanged shared bindings reservation. The actual Buildings helper reads full generation, purpose, spatial kind, parent and surface TileLinks without allocating OpResult. Public source output is still cleared before refusal; underground b/c stay zero. No authoritative column, canonical ordinal or wire field changes; source lookup remains bounded linear. |

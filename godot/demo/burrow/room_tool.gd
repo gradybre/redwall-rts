@@ -132,6 +132,12 @@ func configure(control: Node3D) -> void:
 		_rings.append(_ring(Layers.UNDERGROUND_MARKS, Layers.FLOOR_Y_M))
 	_label = _words_label(Layers.SURFACE_MARKS, 0.6)
 	_label_below = _words_label(Layers.UNDERGROUND_MARKS, Layers.FLOOR_Y_M + 0.6)
+	_build_fill()
+	_control.ext.panel.action.connect(_panel_action)
+
+
+func _build_fill() -> void:
+	"""Share a clipped, world-scaled blueprint fill between the surface and underground views."""
 	_fill_material = ShaderMaterial.new()
 	_fill_material.shader = BlueprintShader
 	_fill_material.set_shader_parameter(&"grid_m", Rules.to_m(LATTICE_U))
@@ -140,7 +146,6 @@ func configure(control: Node3D) -> void:
 	_fill_below.mesh = _fill.mesh
 	for node: MeshInstance3D in [_fill, _fill_below]:
 		node.material_override = _fill_material
-	_control.ext.panel.action.connect(_panel_action)
 
 
 static func _on_top(colour: Color) -> StandardMaterial3D:
@@ -281,7 +286,11 @@ func handle_input(event: InputEvent) -> bool:
 	if button != null and button.pressed and button.button_index == MOUSE_BUTTON_RIGHT:
 		_cancel_or_close()
 		return true
-	var key := event as InputEventKey
+	return _handle_key(event as InputEventKey)
+
+
+func _handle_key(key: InputEventKey) -> bool:
+	"""Apply unmodified blueprint commands and shifted rotation, ignoring repeats and editor shortcuts."""
 	if key == null or not key.pressed or key.echo:
 		return false
 	if key.ctrl_pressed or key.alt_pressed or key.meta_pressed:

@@ -3,8 +3,9 @@
 2026-10-02. Implementation authorized by Brendan's instruction to start
 building this into the other work. Branch: `codex/underground-build-2026-10-02`.
 Started at `origin/master` commit `223eb586`, including the merged hauling and
-review fixes. The other development checkout and open route-performance PR
-are not modified.
+review fixes. Integrated `origin/master` at `82d60ba8` after PR #228 merged the
+new route planner and kitchen-serving work. Only this Codex branch was rebased;
+the other development checkout and its branches were not modified.
 
 ## First integration: review before ordering a room
 
@@ -35,7 +36,8 @@ remain; this change does not qualify those owners as production-ready.
 
 The earlier [review](../../reviews/2026-10-02-underground-building-review.md)
 remains evidence against `d9941bd9`, not a claim about the new baseline.
-The following dependencies were checked again at `223eb586`:
+The following dependencies were checked again at `223eb586`; the integration
+at `82d60ba8` retains these owners and adds the route-performance changes:
 
 | Current owner | Finding and next integration obligation |
 | --- | --- |

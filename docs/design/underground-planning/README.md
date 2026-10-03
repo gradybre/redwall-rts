@@ -6,7 +6,8 @@ implementation progress. It does not replace the owning game contracts.
 **Implementation authorized, 2026-10-02:** Brendan asked, “Ok- please start
 building this in now to the other work I’ve been doing.” Work has begun from
 `origin/master` at `223eb586` on `codex/underground-build-2026-10-02`, in an
-isolated worktree. See [implementation status](implementation-status.md) for
+isolated worktree, then integrated `origin/master` at `82d60ba8` (PR #228).
+See [implementation status](implementation-status.md) for
 the exact delivered slice and the outstanding parts of the first milestone.
 
 The [initial review](../../reviews/2026-10-02-underground-building-review.md)

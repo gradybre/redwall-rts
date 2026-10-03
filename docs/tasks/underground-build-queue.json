@@ -501,7 +501,9 @@
         "godot/test/test_demo_actor_underground_heading.gd",
         "godot/demo/cast/underground_actor.gd",
         "godot/test/test_underground_actor.gd",
-        "tools/bake_underground_matrices.gd"
+        "tools/bake_underground_matrices.gd",
+        "godot/scripts/core/underground_level_catalog.gd",
+        "godot/test/test_underground_level_catalog.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -617,7 +619,8 @@
           "tests": "Strict15/279 all failures/diagnostics/leaks0;analyzer0/2",
           "review": "ug_geometry accepted exact current-catalog body/turn extent reader; output unchanged on refusal, no persistent allocation or new movement permission.",
           "evidence_path": "godot/data/underground/evidence/catalog-extent-v1/"
-        }
+        },
+        "finite_level_pack": "Furnishing owns the additive LevelCatalog module/test and existing data/underground pack: surface datum512; proposed six5m-spaced levels with4m clear shells and local footing/protection obligations. Exact body/contact/family proofs and actual placed Terrain/Space checks remain required; pack alone creates no support or route."
       },
       "lease": {
         "state": "held"
@@ -766,6 +769,14 @@
           "tests": "Strict25/591 all failures/diagnostics/leaks0;analyzer0/2",
           "review": "ug_furnishing accepted weak actual route observer with final callback-free Inventory, Budget and geometry rechecks; no retained cycle or wire change.",
           "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/route-retention/"
+        },
+        "phase_leases": {
+          "status": "independently reviewed component; productive lane remains running",
+          "tests": "WorldBindings34/766 and Budget6/58;40 tests824 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/2",
+          "release": "Actual Godot macOS release8 checks0 failures with assert_ran=false; rejected assert-side-effect variant8 checks4 failures",
+          "review": "ug_geometry accepted exact final8510288b/af06d057 pins and real exported-entry hash; HIGH release-only cleanup defect fixed and independently closed",
+          "evidence_path": "docs/validation/evidence/underground-phase-leases-2026-10-03/",
+          "scope": "Actual same-Budget synchronous phase lease, Site/Room/project/geometry pins and invalidation cleanup only; no new productive permission or persistent state"
         }
       },
       "lease": {

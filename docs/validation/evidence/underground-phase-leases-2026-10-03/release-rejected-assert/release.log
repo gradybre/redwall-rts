@@ -1,0 +1,7 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+PHASE-LEASE-FAIL real cleanup releases with assertions disabled
+PHASE-LEASE-FAIL next dig operation can acquire
+PHASE-LEASE-FAIL old cleanup preserves next operation
+PHASE-LEASE-FAIL final arena quiescent
+PHASE-LEASE-RELEASE checks=8 failures=4 assert_ran=false

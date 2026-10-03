@@ -6,17 +6,30 @@ Brendan subsequently authorized concurrent subagents and automatic release of
 dependent work until all approved scope is built. The integration now continues
 on `codex/underground-modular-integration`; see the
 [build queue](../../tasks/underground-modular-build.md) for current
-ownership, dependencies and evidence. The first wave's canonical footprints,
-project editing holds and grid furniture layout validation are now integrated.
-Source `26283981` passed **9,233 tests / 616,737 assertions / zero failures**,
-with zero unexpected diagnostics or leaks and zero analyzer warnings across
-1,034 scripts. [Checkpoint logs](evidence/modular-build/checkpoint-26283981/)
-record the complete clean-import, no-argument suite procedure.
+ownership, dependencies and evidence. The reviewed components now include
+canonical footprints, direct dirt painting, fitted room surfaces, permanent
+room purposes, furniture layouts, paid physical excavation, actual finite
+terrain, sparse retained geometry, atomic room confirmation and native actor
+presentation. D29 clarifies that the player paints the footprint on the dirt
+in its actual selected level, never on a separate drawing canvas. The
+[native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
+shows that interaction; ordinary village activation remains in progress.
 
-Drawing controls, fitted shells, physical excavation and multilevel geometry
-are advancing in independent lanes. These helper milestones do not complete
-D20 or make the full workflow playable yet. The evidence in the following
-historical sections remains the prior PR229 baseline.
+The latest full frozen source `9126ba2b` passed **9,827 tests / 692,679
+assertions / zero failures**, with zero unexpected diagnostics or leaks and
+zero analyzer warnings across 1,100 scripts. Its
+[checkpoint logs](evidence/modular-build/checkpoint-9126ba2b/README.md)
+record the exact clean-import, no-argument suite procedure. Later site-scoped
+phase surveys, Layout lifetime corrections, route endpoint retention and
+profile descriptor additions have separately scoped focused evidence. They
+must not be attributed to that earlier full checkpoint.
+
+Actual productive contact bindings, qualified movement/profile content,
+complete furniture batches and the first playable Kitchen remain active work.
+These verified components do not complete D20 or make the full workflow
+playable yet. The [draft implementation PR](https://github.com/gradybre/redwall-rts/pull/230)
+and repository queue retain the remaining requirements. The evidence in the
+following historical sections remains the prior PR229 baseline.
 
 2026-10-02. Implementation authorized by Brendan's instruction to start
 building this into the other work. Branch: `codex/underground-build-2026-10-02`.

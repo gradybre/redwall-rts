@@ -1,0 +1,61 @@
+{
+  "assets_present_before": false,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 3.668,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "102/334",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-phase-leases-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.13,
+      "log": "test_underground_world_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "257/334",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-phase-leases-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 2.565,
+      "log": "test_underground_budget.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6198",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-phase-leases-2026-10-03/iteration-1/analyzer.json",
+        "godot/scripts/core/underground_world_bindings.gd",
+        "godot/test/test_underground_world_bindings.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 9.662,
+      "log": "analyzer.log"
+    }
+  ]
+}

@@ -72,3 +72,45 @@ unchanged afterward:99955154 logical live-plus-reserve bytes,44846 headroom,
 `runtime_qualified=false`. Schema, arithmetic, parser and diagnostic gates were
 not relaxed. This evidence is separate from the earlier full9126ba2b checkpoint
 and does not claim actual playable construction or production movement complete.
+
+## Actual provider lease follow-through
+
+WorldBindings now implements the phase authority's existing cold-operation
+lifecycle against its actual single World-owned Budget. Opening is exclusive
+before the first owner/provider read. A valid actual Sites key, its exact Room
+and current Construction project, the geometry revision, operation domain and
+stage domain are checked before acquiring the full unchanged cold allocation.
+ADMIT and explicit cold WORK refresh use the same allocation rule. This does
+not bypass the authority's separate physical-phase or productive profile gates.
+
+The provider retains the exact token and actual Site/Room/project/geometry pins
+until the authority has dropped original survey/plan images and published or
+discarded its companions. Revalidation refuses an expired/replaced token,
+retired World, changed Room claim, new project or changed geometry. Cleanup is
+deliberately independent of now-invalid gameplay owners, so world teardown or
+a correctly refused stale candidate cannot strand the one cold arena. Foreign
+or duplicate cleanup cannot release another operation's lease; an equally
+funded replacement token remains foreign. Calls during a composition/opening
+callback cannot end or replace the active operation.
+
+Two I64 controls, three full two-I32 refs and one boolean add41 logical transient
+control bytes within the existing bindings/growth envelope. No packed state,
+canonical record, save ordinal, new arena or changed capacity is introduced.
+The actual qualification revision remains zero until real authored profiles,
+support, routes and productive contact bindings are connected. Allocation
+admission is not physical admission. Source review and focused evidence for
+this follow-through are recorded separately from the earlier survey increment.
+
+Independent review caught a HIGH release-only defect in the first lease
+implementation: placing `Budget.release` inside an assertion omits the release
+when assertions are compiled out. The corrected code executes the release
+first, then asserts on its result. The repeated clean strict suites report
+34/766 and6/58, with all unexpected diagnostics and leaks zero; analyzer0/2.
+An actual macOS release export passes8 checks with `assert_ran=false`. Restoring
+only the rejected call expression in the temporary exported source produces4
+failures, including the blocked next acquisition. Exact logs/source closure are
+retained with the focused phase-lease evidence. This release probe tests the
+cleanup method and actual arena, not a playable room or performance budget.
+Independent geometry re-review matched the corrected production/test pins and
+exported source hash, accepted the correction and closed the HIGH finding with
+no other high/medium issue in the bounded lifecycle review.

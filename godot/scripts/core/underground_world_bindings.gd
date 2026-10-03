@@ -44,6 +44,12 @@ var _fragments: Array[PackedInt32Array] = []
 var _next_fragments: Array[PackedInt32Array] = []
 var _clip: PackedInt32Array = PackedInt32Array()
 var _intersection: PackedInt32Array = PackedInt32Array()
+var _cold_opening: bool = false
+var _phase_token: int = 0
+var _phase_site: Vector2i = NULL_REF
+var _phase_room: Vector2i = NULL_REF
+var _phase_project: Vector2i = NULL_REF
+var _phase_geometry_revision: int = 0
 
 
 func configure(world: World, terrain: Terrain, owner: Owner, reader: Owner.CoreSources,
@@ -99,6 +105,71 @@ func allocation_refusal(owner: Owner, proof_rows: int, cache_bytes: int) -> Stri
 func is_bound_budget(candidate: Budget) -> bool:
 	"""Only the configured World-owned cold arena can fund this provider's output lifetime."""
 	return _budget != null and candidate == _budget
+
+
+func begin_cold_operation(owner: Owner, site: Vector2i, operation: int, stage: int) -> int:
+	"""Acquire this actual world's complete synchronous phase peak; the lease grants no work permission."""
+	if _cold_opening or _composing or _phase_token != 0:
+		return 0
+	_cold_opening = true
+	var valid: bool = owner == _actual_owner() and owner != null and binding_refusal() == &"" \
+		and Contract.valid_operation(operation) and stage >= Contract.STAGE_ADMIT and stage <= Contract.STAGE_WORK
+	var sites: Sites = _actual_sites() if valid else null
+	if sites != null and sites.is_live_site(site) and sites.room_of(site) != NULL_REF:
+		_phase_site = site
+		_phase_room = sites.room_of(site)
+		_phase_project = sites.project_of(site)
+		_phase_geometry_revision = owner.revision()
+		_phase_token = _budget.acquire(Budget.COLD_BYTES)
+	var token: int = _phase_token
+	_cold_opening = false
+	if token == 0:
+		_clear_phase_lease()
+	return token
+
+
+func cold_operation_refusal(token: int) -> StringName:
+	"""Attest the exact retained lease and unchanged actual site scope before any allocating boundary."""
+	if _cold_opening or token <= 0 or token != _phase_token or _budget == null \
+			or not _budget.covers(token, Budget.COLD_BYTES):
+		return REFUSE_BUDGET
+	var code: StringName = binding_refusal()
+	if code != &"":
+		return code
+	var sites: Sites = _actual_sites()
+	if sites == null or not sites.is_live_site(_phase_site) or sites.room_of(_phase_site) != _phase_room \
+			or sites.project_of(_phase_site) != _phase_project \
+			or _actual_owner().revision() != _phase_geometry_revision:
+		return &"WORLD_COMPOSITION_COLD_CONTEXT"
+	return &"" if _budget.covers(token, Budget.COLD_BYTES) else REFUSE_BUDGET
+
+
+func end_cold_operation(token: int) -> void:
+	"""Drop only our exact lease after caller scratch/companions; cleanup cannot release a replacement lease."""
+	if _cold_opening or _composing or token <= 0 or token != _phase_token:
+		return
+	if _budget.covers(token, Budget.COLD_BYTES):
+		var released: StringName = _budget.release(token)
+		assert(released == &"", "Exact completed phase lease releases once")
+	_clear_phase_lease()
+
+
+func _clear_phase_lease() -> void:
+	"""Transient site pins are not gameplay state and do not outlive an operation's allocated scratch."""
+	_phase_token = 0
+	_phase_site = NULL_REF
+	_phase_room = NULL_REF
+	_phase_project = NULL_REF
+	_phase_geometry_revision = 0
+
+
+func _actual_sites() -> Sites:
+	"""Borrow the actual once-bound physical store; numeric site references cannot select another world."""
+	var reader: Owner.CoreSources = sources()
+	if reader == null or reader.construction_owner() == null:
+		return null
+	var sites: Sites = reader.construction_owner().excavation_authority() as Sites
+	return sites if sites != null and sites.construction_owner() == reader.construction_owner() else null
 
 
 func composition_peak_bytes() -> int:

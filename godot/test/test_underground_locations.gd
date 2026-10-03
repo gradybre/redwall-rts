@@ -14,6 +14,10 @@ const Inventory := preload("res://scripts/core/inventory.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const OwnerFixture := preload("res://test/test_underground_space_owner.gd")
+const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
+const RoomOrderTests := preload("res://test/test_underground_room_orders.gd")
+const RoomFixture := preload("res://test/test_underground_furniture_work.gd")
+const TestCase := preload("res://test/framework/test_case.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CAPACITY: int = 4
 const COLD_BYTES: int = 1048576
@@ -777,3 +781,339 @@ func test_location_receipt_requires_exact_success_and_load_never_restores_it() -
 	assert_equal(_locations.last_published_token(), 0, "load invalidates unsaved receipt")
 	image.clear()
 	assert_equal(_cold.release(lease), &"", "all charged output discarded")
+
+
+class ObservedRoomOrders extends RoomFixture.SyntheticRegistration:
+	## Real pure admission reader with adversarial callback effects, never synthetic identity success.
+	var endpoints: WeakRef = null
+	var reenter: bool = false
+	var replace: bool = false
+	var replacement: int = 0
+	var nested_refused: bool = false
+
+	func room_companion_refusal(room: Vector2i, room_type: int, space_token: int,
+			cold_token: int, space: Owner, budget: Budget) -> StringName:
+		"""Preserve the real scope check while probing mutation and replacement inside its caller guard."""
+		var code: StringName = super.room_companion_refusal(room, room_type, space_token, cold_token, space, budget)
+		if reenter:
+			reenter = false
+			nested_refused = (endpoints.get_ref() as Locations).begin_prepare(cold_token).error != &""
+		if replace:
+			replace = false
+			var released: StringName = budget.release(cold_token)
+			assert(released == &"", "replace the real originally held lease")
+			replacement = budget.acquire(Budget.COLD_BYTES)
+		return code
+
+
+class RoomLocationBindings extends RoomOrderTests.RoomBindings:
+	## Real Orders/Space/Locations publication; the inherited terrain/profile admission is synthetic.
+	var endpoints: Locations = null
+	var endpoint_refs: Array[Vector2i] = []
+	var candidate: int = 0
+	var before_seal_refused: bool = false
+	var outside_publish_refused: bool = false
+	var publication_ok: bool = false
+	var restricted_mutations: bool = false
+	var fail_after_seal: bool = false
+	var skip_last: bool = false
+	var probe_arguments: bool = false
+	var arguments_refused: bool = false
+	var probe_receipt: bool = false
+	var receipt_refused: bool = false
+	var mutate_request: bool = false
+	var reenter_after_seal: bool = false
+	var replace_after_seal: bool = false
+	var remove_support: Vector2i = NULL_REF
+
+	func room_plan_refusal(plan: RoomOrders.RoomPlan, room: Vector2i, token: int) -> StringName:
+		"""The actual coordinator calls this BEFORE sealing; endpoint preparation must refuse here."""
+		var code: StringName = super.room_plan_refusal(plan, room, token)
+		before_seal_refused = endpoints.begin_room_prepare(arena_token, token, room, plan.room_type).error != &""
+		if code == &"" and remove_support != NULL_REF:
+			code = space.stage_remove(token, remove_support)
+		return code
+
+	func room_prepared_refusal(plan: RoomOrders.RoomPlan, room: Vector2i, token: int) -> StringName:
+		"""Refresh completed endpoints in the real post-seal callback and retain the candidate to publication."""
+		var code: StringName = super.room_prepared_refusal(plan, room, token)
+		if code != &"":
+			return code
+		if probe_arguments:
+			_probe_arguments(plan, room, token)
+		_arm_callback_probe()
+		var begun: Locations.Result = endpoints.begin_room_prepare(arena_token, token, room, plan.room_type)
+		if begun.error != &"":
+			return begun.error
+		candidate = begun.token
+		code = _refresh_endpoints()
+		if code == &"":
+			code = endpoints.seal(candidate)
+		if code != &"":
+			return code
+		outside_publish_refused = not endpoints.publish(candidate)
+		if mutate_request:
+			original_plan.origin_u.x += 256
+		return &"SYNTHETIC_LATE_ADMISSION_REFUSAL" if fail_after_seal else endpoints.prepared_refusal(candidate)
+
+	func _arm_callback_probe() -> void:
+		"""Arm only the post-seal attempt; the intentionally refused pre-seal observation is a separate probe."""
+		var observed: ObservedRoomOrders = orders.get_ref() as ObservedRoomOrders
+		observed.reenter = reenter_after_seal
+		observed.replace = replace_after_seal
+		reenter_after_seal = false
+		replace_after_seal = false
+
+	func _probe_arguments(plan: RoomOrders.RoomPlan, room: Vector2i, token: int) -> void:
+		"""Every candidate parameter belongs to this exact real operation, not merely this World."""
+		arguments_refused = endpoints.begin_room_prepare(arena_token + 1, token, room, plan.room_type).error != &"" \
+			and endpoints.begin_room_prepare(arena_token, token + 1, room, plan.room_type).error != &"" \
+			and endpoints.begin_room_prepare(arena_token, token, Vector2i(room.x, room.y + 1), plan.room_type).error != &"" \
+			and endpoints.begin_room_prepare(arena_token, token, room, (plan.room_type + 1) % Buildings.ROOM_TYPE_COUNT).error != &""
+
+	func _refresh_endpoints() -> StringName:
+		"""Only proof refresh is legal; adding/removing even an otherwise valid existing contact is refused."""
+		var record: Locations.Record = Locations.Record.new()
+		record.envelope.resize(6)
+		record.support.resize(6)
+		var code: StringName = endpoints.read_location_into(endpoint_refs[0], record)
+		if code != &"":
+			return code
+		restricted_mutations = endpoints.stage_add(candidate, record).error == &"LOCATION_ROOM_REFRESH_ONLY" \
+			and endpoints.stage_remove(candidate, endpoint_refs[0]) == &"LOCATION_ROOM_REFRESH_ONLY" \
+			and endpoints.restore_state_bytes(arena_token, PackedByteArray()) != &""
+		for index: int in endpoint_refs.size() - (1 if skip_last else 0):
+			code = endpoints.stage_refresh(candidate, endpoint_refs[index])
+			if code != &"":
+				return code
+		return &""
+
+	func discard_room_plan(room: Vector2i, token: int) -> void:
+		"""The actual Room refusal discards its Location companion before the original lease is released."""
+		if candidate != 0:
+			var aborted: bool = endpoints.abort(candidate)
+			assert(aborted, "actual retained Location candidate discarded")
+			candidate = 0
+		super.discard_room_plan(room, token)
+
+	func publish_room_plan(room: Vector2i, token: int) -> void:
+		"""Actual Room and exact Space already exist; only this real same-stack callback may swap endpoints."""
+		if probe_receipt:
+			var actual_receipt: int = space._last_published_token
+			space._last_published_token = actual_receipt + 1
+			receipt_refused = not endpoints.publish(candidate)
+			space._last_published_token = actual_receipt
+		publication_ok = endpoints.publish(candidate)
+		candidate = 0
+		super.publish_room_plan(room, token)
+
+
+class RoomLocationFixture extends RoomFixture.Fixture:
+	## Real stores and the actual confirmation callback order; initial surface geometry is synthetic.
+	var locations: Locations = null
+	var ground_floor: Vector2i = NULL_REF
+	var ground_support: Vector2i = NULL_REF
+	var transforms: Transforms = null
+	var adapter: Locations.InventoryLocations = null
+	var refs: Array[Vector2i] = []
+
+	func _init(test_case: TestCase) -> void:
+		"""Bind the shared real arena and create only pre-existing completed endpoint fixtures."""
+		super(test_case, false, RoomLocationBindings.new())
+		_seed_ground()
+		transforms = Transforms.new(buildings.directory())
+		locations = Locations.new()
+		var rooms: RoomLocationBindings = bindings as RoomLocationBindings
+		check(locations.configure(buildings.directory(), buildings, transforms, inventory,
+			space, sources, rooms.arena, 4, 228 * 4 + 256) == &"", "actual endpoint composition")
+		check(locations.bind_room_orders(orders) == &"", "actual sole Room authority")
+		adapter = Locations.InventoryLocations.new(locations)
+		check(inventory.bind_spatial_locations(adapter, 4).ok, "actual retained Inventory namespace")
+		rooms.endpoints = locations
+		(orders as ObservedRoomOrders).endpoints = weakref(locations)
+		_seed_endpoints(rooms)
+
+	func _configure_space() -> void:
+		"""Replace only the fixture's authority with a real-reader observation subclass before actual binding."""
+		orders = ObservedRoomOrders.new()
+		super._configure_space()
+
+	func _ground_region(token: int, box: PackedInt32Array, role: int) -> Vector2i:
+		"""Explicit fixture World-owned geometry is not a production natural-surface qualification."""
+		var region: Owner.Region = Owner.Region.new()
+		region.owner = world
+		region.level = 0
+		region.role = role
+		region.box = box
+		var added: Owner.Result = space.stage_add(token, region)
+		check(added.error == &"", "actual surface fixture region")
+		return added.handle
+
+	func _seed_ground() -> void:
+		"""A completed World floor is already real before the virgin lower Room is confirmed."""
+		var token: int = space.begin_stage(space.revision()).token
+		ground_floor = _ground_region(token, PackedInt32Array([0, 0, 0, 4096, 1, 4096]), Space.FLOOR_DATUM)
+		_ground_region(token, PackedInt32Array([0, 0, 0, 4096, 2048, 4096]), Space.SUPPORTED_VOID)
+		ground_support = _ground_region(token, PackedInt32Array([0, -256, 0, 4096, 0, 4096]), Space.SUPPORT)
+		check(space.seal(token) == &"", "actual completed surface fixture")
+		space.publish(token)
+
+	func _seed_endpoints(rooms: RoomLocationBindings) -> void:
+		"""Publish actual local handles before starting any Room request; no unborn contact is borrowed."""
+		var cold: int = rooms.arena.acquire(Budget.COLD_BYTES)
+		var token: int = locations.begin_prepare(cold).token
+		for x: int in [512, 2560]:
+			var row: Locations.Record = Locations.Record.new()
+			row.point = Vector3i(x, 0, 512)
+			row.section = ground_floor
+			row.role = Locations.ROLE_STORAGE
+			row.level = 0
+			row.envelope = PackedInt32Array([x - 128, 0, 384, x + 128, 512, 640])
+			row.support = PackedInt32Array([x - 128, -128, 384, x + 128, 0, 640])
+			var added: Locations.Result = locations.stage_add(token, row)
+			check(added.error == &"", "existing completed endpoint")
+			refs.append(added.location)
+		check(locations.seal(token) == &"", "existing endpoint proof")
+		check(locations.publish(token), "actual endpoint publication")
+		check(rooms.arena.release(cold) == &"", "seed images dropped")
+		rooms.endpoint_refs = refs
+
+	func plan() -> RoomOrders.RoomPlan:
+		"""The pending lower Room is separate from the already completed surface contacts."""
+		var out: RoomOrders.RoomPlan = RoomOrders.RoomPlan.new()
+		out.world = world
+		out.space_revision = space.revision()
+		out.room_type = Buildings.ROOM_TYPE_KITCHEN
+		out.level = 1
+		out.origin_u = Vector3i(512, -4096, 1024)
+		out.cell_size_u = 256
+		out.height_u = 1024
+		out.cells = PackedInt32Array([0, 0, 1, 0, 0, 1])
+		return out
+
+	func location_image() -> PackedByteArray:
+		"""An explicit test-only retained image supports byte-exact refusal assertions."""
+		var arena: Budget = (bindings as RoomLocationBindings).arena
+		var token: int = arena.acquire(Budget.COLD_BYTES)
+		var out: PackedByteArray = PackedByteArray()
+		check(locations.capture_state_into(token, out) == &"", "actual location wire")
+		check(arena.release(token) == &"", "test image lifetime is separate from production admission")
+		return out
+
+	func close() -> void:
+		"""Release outer test references after every actual owner and arena was checked."""
+		audit()
+		check((bindings as RoomLocationBindings).arena.is_quiescent(), "actual room arena released")
+		(bindings as RoomLocationBindings).endpoints = null
+		locations = null
+		adapter = null
+		transforms = null
+
+
+func test_room_confirmation_refreshes_existing_contacts_in_actual_callback_order() -> void:
+	"""Actual Room publication preserves real retained Inventory endpoints while lower claims remain only plans."""
+	var fixture: RoomLocationFixture = RoomLocationFixture.new(self)
+	var rooms: RoomLocationBindings = fixture.bindings as RoomLocationBindings
+	rooms.probe_arguments = true
+	rooms.probe_receipt = true
+	var container: Inventory.OpResult = fixture.inventory.create_spatial_ground_staging(fixture.refs[0])
+	assert_true(container.ok, "actual goods endpoint retained before room confirmation")
+	var result: Buildings.OpResult = fixture.orders.confirm_room(fixture.plan())
+	assert_true(result.ok, "actual pending Room and companions: %s" % result.error)
+	assert_true(rooms.before_seal_refused, "pre-seal callback cannot allocate future endpoint proof")
+	assert_true(rooms.arguments_refused, "original token, source token, full Room and permanent purpose exact")
+	assert_true(rooms.restricted_mutations, "refresh cannot create or retire endpoints")
+	assert_true(rooms.outside_publish_refused and rooms.receipt_refused, "window and exact publication receipt required")
+	assert_true(rooms.publication_ok, "matching same-stack publication succeeds")
+	for ref: Vector2i in fixture.refs:
+		assert_equal(fixture.locations.storage_endpoint_refusal(ref), &"", "current proof after marker revision")
+		assert_equal(fixture.locations.location_revision(ref), 1, "immutable payload remains")
+	assert_true(fixture.inventory.has_spatial_location(fixture.refs[0], 1), "real retained endpoint unchanged")
+	assert_true(fixture.inventory.audit().ok, "actual retained container audit")
+	fixture.close()
+
+
+func test_room_companion_requires_every_existing_endpoint_refresh_before_identity() -> void:
+	"""An omitted endpoint refuses the whole Room before Directory allocation; a complete retry succeeds."""
+	var fixture: RoomLocationFixture = RoomLocationFixture.new(self)
+	var rooms: RoomLocationBindings = fixture.bindings as RoomLocationBindings
+	var before: PackedByteArray = fixture.image()
+	var endpoints_before: PackedByteArray = fixture.location_image()
+	rooms.skip_last = true
+	var refused: Buildings.OpResult = fixture.orders.confirm_room(fixture.plan())
+	assert_equal(refused.error, &"LOCATION_ROOM_REFRESH_REQUIRED", "all live contacts need current proofs")
+	assert_true(fixture.image() == before, "no physical, material or identity mutation")
+	assert_true(fixture.location_image() == endpoints_before, "no partial endpoint publication")
+	rooms.skip_last = false
+	assert_true(fixture.orders.confirm_room(fixture.plan()).ok, "same real owners retry complete refresh")
+	assert_true(rooms.publication_ok, "actual retry published")
+	fixture.close()
+
+
+func test_room_companion_late_refusal_and_request_drift_preserve_live_state() -> void:
+	"""Late proof failures discard sealed companions and retain the prior exact endpoint receipt."""
+	var fixture: RoomLocationFixture = RoomLocationFixture.new(self)
+	var rooms: RoomLocationBindings = fixture.bindings as RoomLocationBindings
+	var before: PackedByteArray = fixture.image()
+	var endpoints_before: PackedByteArray = fixture.location_image()
+	var receipt: int = fixture.locations.last_published_token()
+	rooms.fail_after_seal = true
+	assert_false(fixture.orders.confirm_room(fixture.plan()).ok, "post-seal refusal")
+	rooms.fail_after_seal = false
+	rooms.mutate_request = true
+	assert_false(fixture.orders.confirm_room(fixture.plan()).ok, "original request changed after Location seal")
+	assert_true(fixture.image() == before, "all actual physical/economic state unchanged")
+	assert_true(fixture.location_image() == endpoints_before, "both refused endpoint candidates invisible")
+	assert_equal(fixture.locations.last_published_token(), receipt, "no receipt from refused confirmation")
+	rooms.mutate_request = false
+	assert_true(fixture.orders.confirm_room(fixture.plan()).ok, "exact retry after both refusals")
+	fixture.close()
+
+
+func test_room_companion_reentry_and_replaced_lease_cannot_publish() -> void:
+	"""A pure identity callback cannot smuggle another transaction or replacement budget into this operation."""
+	var fixture: RoomLocationFixture = RoomLocationFixture.new(self)
+	var orders: ObservedRoomOrders = fixture.orders as ObservedRoomOrders
+	var rooms: RoomLocationBindings = fixture.bindings as RoomLocationBindings
+	var before: PackedByteArray = fixture.image()
+	var endpoints_before: PackedByteArray = fixture.location_image()
+	rooms.reenter_after_seal = true
+	assert_false(fixture.orders.confirm_room(fixture.plan()).ok, "callback reentry poisons preparation")
+	assert_true(orders.nested_refused, "nested endpoint preparation refused")
+	rooms.replace_after_seal = true
+	assert_false(fixture.orders.confirm_room(fixture.plan()).ok, "replaced actual lease refuses")
+	assert_true(rooms.arena.covers(orders.replacement, Budget.COLD_BYTES), "unrelated replacement remains held")
+	assert_equal(rooms.arena.release(orders.replacement), &"", "external test owner releases replacement")
+	assert_true(fixture.image() == before, "actual owners unchanged across callback refusals")
+	assert_true(fixture.location_image() == endpoints_before, "neither callback copied usable endpoint state")
+	assert_true(fixture.orders.confirm_room(fixture.plan()).ok, "clean exact request retries")
+	fixture.close()
+
+
+func test_room_companion_rechecks_complete_support_in_sealed_future() -> void:
+	"""A room marker transaction cannot erase the real existing floor and refresh a contact by revision alone."""
+	var fixture: RoomLocationFixture = RoomLocationFixture.new(self)
+	var rooms: RoomLocationBindings = fixture.bindings as RoomLocationBindings
+	var before: PackedByteArray = fixture.image()
+	var endpoints_before: PackedByteArray = fixture.location_image()
+	rooms.remove_support = fixture.ground_support
+	assert_false(fixture.orders.confirm_room(fixture.plan()).ok, "complete future footing is still mandatory")
+	assert_true(fixture.image() == before, "failed future support removal never publishes")
+	assert_true(fixture.location_image() == endpoints_before, "old endpoint proof preserved")
+	rooms.remove_support = NULL_REF
+	assert_true(fixture.orders.confirm_room(fixture.plan()).ok, "unchanged complete footing permits retry")
+	fixture.close()
+
+
+func test_room_endpoint_binding_refuses_unbound_foreign_and_active_owners() -> void:
+	"""Only the once-bound actual authority can later supply an exact Room confirmation scope."""
+	assert_equal(_locations.bind_room_orders(null), &"LOCATION_ROOM_OWNER", "null authority")
+	assert_equal(_locations.bind_room_orders(RoomOrders.new()), &"LOCATION_ROOM_OWNER", "unconfigured authority")
+	var fixture: RoomLocationFixture = RoomLocationFixture.new(self)
+	assert_equal(_locations.bind_room_orders(fixture.orders), &"LOCATION_ROOM_OWNER", "foreign actual Buildings authority")
+	assert_equal(fixture.locations.bind_room_orders(fixture.orders), &"LOCATION_ROOM_OWNER", "one-time binding")
+	var rooms: RoomLocationBindings = fixture.bindings as RoomLocationBindings
+	var cold: int = rooms.arena.acquire(Budget.COLD_BYTES)
+	assert_true(fixture.locations.begin_room_prepare(cold, 1, Vector2i(1, 1), Buildings.ROOM_TYPE_KITCHEN).error != &"", "no retained Room admission")
+	assert_equal(rooms.arena.release(cold), &"", "failed attempt retains caller lease")
+	fixture.close()

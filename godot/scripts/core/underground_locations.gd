@@ -13,6 +13,7 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const InventoryContract := preload("res://scripts/core/inventory_spatial_contract.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SCHEMA: int = 1
 const HEADER_FIELDS: int = 16
@@ -189,6 +190,10 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _retention: WeakRef = null
 var _in_retention: bool = false
 var _retention_reentered: bool = false
+var _room_orders: WeakRef = null
+var _room_admission: bool = false
+var _admission_room: Vector2i = NULL_REF
+var _admission_type: int = -1
 
 
 func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
@@ -233,6 +238,23 @@ func bind_sites(sites: Sites) -> StringName:
 	if _sites != null and _sites.get_ref() != sites:
 		return &"LOCATION_SITE_OWNER"
 	_sites = weakref(sites)
+	return &""
+
+
+func bind_room_orders(orders: RoomOrders) -> StringName:
+	"""Bind the sole actual Room authority at quiescence; no candidate or endpoint is created."""
+	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _room_orders != null \
+			or orders == null or not _cold.is_quiescent() or _owner.has_prepared():
+		return &"LOCATION_ROOM_OWNER"
+	_in_retention = true
+	_retention_reentered = false
+	var matches: bool = orders == _buildings.spatial_authority() and orders.buildings_owner() == _buildings \
+		and orders.construction_owner() == _sources.construction_owner() and orders.world_ref() == world_ref()
+	_in_retention = false
+	if not matches or _retention_reentered or world_ref() == NULL_REF \
+			or not _cold.is_quiescent() or _owner.has_prepared():
+		return &"LOCATION_ROOM_OWNER"
+	_room_orders = weakref(orders)
 	return &""
 
 
@@ -405,6 +427,12 @@ func begin_prepare(cold_token: int, owner_token: int = 0, site: Vector2i = NULL_
 		var code: StringName = _future_context_refusal(owner_token, site, operation, phase_stage)
 		if code != &"":
 			return Result.new(code)
+	return _start_preparation(cold_token, owner_token, site, operation, phase_stage)
+
+
+func _start_preparation(cold_token: int, owner_token: int, site: Vector2i,
+		operation: int, phase_stage: int) -> Result:
+	"""Reuse the two admitted banks only after the caller's exact publication context is proved."""
 	_stage.copy_from(_live)
 	_stage.header[13] += 1
 	if _stage.header[13] <= _live.header[13]:
@@ -420,6 +448,50 @@ func begin_prepare(cold_token: int, owner_token: int = 0, site: Vector2i = NULL_
 	_target_geometry_revision = _owner.revision() + (1 if owner_token != 0 and _owner.prepared_has_changes(owner_token) else 0)
 	_remaining = _domain._checks
 	return Result.new(&"", _token)
+
+
+func begin_room_prepare(cold_token: int, owner_token: int, room: Vector2i,
+		room_type: int) -> Result:
+	"""Refresh completed endpoints after Room geometry seals, never create first-entry space or a Site."""
+	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 \
+			or _next_token == 9223372036854775807 or owner_token <= 0:
+		return Result.new(&"LOCATION_PREPARATION_BUSY")
+	var orders: RoomOrders = _actual_orders()
+	var code: StringName = _room_preflight(orders, cold_token, owner_token, room, room_type)
+	if code != &"":
+		return Result.new(code)
+	var result: Result = _start_preparation(cold_token, owner_token, NULL_REF, -1, -1)
+	if result.error == &"":
+		_room_admission = true
+		_admission_room = room
+		_admission_type = room_type
+	return result
+
+
+func _actual_orders() -> RoomOrders:
+	"""Borrow the once-bound actual coordinator strongly for a complete synchronous observation."""
+	return _room_orders.get_ref() as RoomOrders if _room_orders != null else null
+
+
+func _room_preflight(orders: RoomOrders, cold_token: int, owner_token: int,
+		room: Vector2i, room_type: int, check_geometry: bool = true) -> StringName:
+	"""The original actual lease precedes callbacks and covers Room copies plus one sequential survey."""
+	if orders == null or orders != _buildings.spatial_authority() or world_ref() == NULL_REF \
+			or not _cold.covers(cold_token, Budget.COLD_BYTES) \
+			or not _owner.allocation_within(Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY) \
+			or _domain._regions > Budget.PHASE_VOLUME_CAPACITY:
+		return &"LOCATION_ROOM_SCOPE"
+	_in_retention = true
+	_retention_reentered = false
+	var code: StringName = orders.room_companion_refusal(room, room_type, owner_token, cold_token, _owner, _cold)
+	if code == &"" and check_geometry:
+		code = _owner.prepared_refusal(owner_token)
+	if code == &"":
+		code = orders.room_companion_refusal(room, room_type, owner_token, cold_token, _owner, _cold)
+	_in_retention = false
+	if _retention_reentered or not _cold.covers(cold_token, Budget.COLD_BYTES) or world_ref() == NULL_REF:
+		return &"LOCATION_ROOM_SCOPE"
+	return code
 
 
 func _future_context_refusal(owner_token: int, site: Vector2i, operation: int,
@@ -438,6 +510,8 @@ func _future_context_refusal(owner_token: int, site: Vector2i, operation: int,
 func stage_add(token: int, record: Record) -> Result:
 	"""Register only fully covered actual void and support, never a guessed point in empty dirt."""
 	var code: StringName = _editable(token)
+	if code == &"" and _room_admission:
+		code = &"LOCATION_ROOM_REFRESH_ONLY"
 	if code == &"":
 		code = _validate_record(record)
 	if code != &"":
@@ -471,6 +545,8 @@ func stage_remove(token: int, location: Vector2i) -> StringName:
 	var code: StringName = _editable(token)
 	if code != &"" or not _live_ref(_stage, location):
 		return code if code != &"" else &"LOCATION_STALE"
+	if _room_admission:
+		return &"LOCATION_ROOM_REFRESH_ONLY"
 	if _inventory.has_spatial_location(location, _get64(_stage, PAYLOAD_REVISION, location.x)):
 		return &"LOCATION_INVENTORY_RETAINED"
 	code = _route_retention_refusal(location)
@@ -518,7 +594,20 @@ func _prepared_retention_refusal() -> StringName:
 	var code: StringName = _current_retention_refusal()
 	if code == &"":
 		code = _geometry_current_refusal()
+	if code == &"" and _room_admission:
+		code = _refreshed_room_rows_refusal()
 	return _final_inventory_refusal(_cold_token, cold_peak_bytes()) if code == &"" else code
+
+
+func _refreshed_room_rows_refusal() -> StringName:
+	"""A Room confirmation preserves every existing immutable endpoint with its new complete proof."""
+	for row: int in _capacity:
+		if _live.present[row] != _stage.present[row] or not _row_payload_unchanged(row):
+			return &"LOCATION_ROOM_REFRESH_ONLY"
+		if _live.present[row] != 0 and (_get64(_stage, PAYLOAD_REVISION, row) != _get64(_live, PAYLOAD_REVISION, row) \
+				or _get64(_stage, GEOMETRY_REVISION, row) != _target_geometry_revision):
+			return &"LOCATION_ROOM_REFRESH_REQUIRED"
+	return &""
 
 
 func abort(token: int) -> bool:
@@ -530,21 +619,13 @@ func abort(token: int) -> bool:
 
 
 func publish(token: int) -> bool:
-	"""Swap validated banks only; future geometry requires its exact real Sites publication window."""
+	"""Swap only in the prepared actual Sites or Room callback, after the exact Space publication."""
 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return false
 	if _current_retention_refusal() != &"":
 		return false
-	if _owner_token != 0:
-		var physical: Sites = _physical()
-		if physical == null or not physical.is_publishing_spatial_transition(physical.origin_of(_site),
-				_operation, _phase_stage, physical.room_of(_site), physical.bound_spatial_authority()) \
-				or _owner.has_prepared() or _owner.revision() != _target_geometry_revision \
-				or _owner.last_published_token() != _owner_token:
-			return false
-	else:
-		if _geometry_current_refusal() != &"":
-			return false
+	if _publication_geometry_refusal() != &"":
+		return false
 	if _final_inventory_refusal(_cold_token, cold_peak_bytes()) != &"":
 		return false
 	var previous: Bank = _live
@@ -553,6 +634,44 @@ func publish(token: int) -> bool:
 	_last_published_token = token
 	_reset_preparation()
 	return true
+
+
+func _publication_geometry_refusal() -> StringName:
+	"""Future numeric revisions cannot substitute another transaction's actual owner receipt."""
+	if _room_admission:
+		return _room_publication_refusal()
+	if _owner_token == 0:
+		return _geometry_current_refusal()
+	var physical: Sites = _physical()
+	if physical == null or not physical.is_publishing_spatial_transition(physical.origin_of(_site),
+			_operation, _phase_stage, physical.room_of(_site), physical.bound_spatial_authority()):
+		return &"LOCATION_SITE_PHASE"
+	return _published_owner_refusal()
+
+
+func _published_owner_refusal() -> StringName:
+	"""Final callback-free exact receipt and generation checks precede either candidate bank swap."""
+	return &"" if not _owner.has_prepared() and _owner.revision() == _target_geometry_revision \
+		and _owner.last_published_token() == _owner_token and world_ref() != NULL_REF else &"LOCATION_GEOMETRY_STALE"
+
+
+func _room_publication_refusal() -> StringName:
+	"""No direct call or old Room callback may publish a retained endpoint proof."""
+	var orders: RoomOrders = _actual_orders()
+	if orders == null or orders != _buildings.spatial_authority() or not _cold.covers(_cold_token, Budget.COLD_BYTES):
+		return &"LOCATION_ROOM_SCOPE"
+	_in_retention = true
+	_retention_reentered = false
+	var code: StringName = orders.room_companion_refusal(_admission_room, _admission_type,
+		_owner_token, _cold_token, _owner, _cold)
+	if code == &"" and not orders.is_publishing_room_admission(_admission_room, _admission_type):
+		code = &"LOCATION_ROOM_SCOPE"
+	_in_retention = false
+	if _retention_reentered or not _cold.covers(_cold_token, Budget.COLD_BYTES):
+		return &"LOCATION_ROOM_SCOPE"
+	if code == &"":
+		code = _refreshed_room_rows_refusal()
+	return _published_owner_refusal() if code == &"" else code
 
 
 func _reset_preparation() -> void:
@@ -567,18 +686,25 @@ func _reset_preparation() -> void:
 	_target_geometry_revision = 0
 	_sealed = false
 	_snapshot = null
+	_room_admission = false
+	_admission_room = NULL_REF
+	_admission_type = -1
 
 
 func _editable(token: int) -> StringName:
 	"""Every mutable operation belongs to this actual owner and one active cold candidate."""
 	if _reject_retention_callback():
 		return &"LOCATION_RETENTION_REENTRY"
-	return &"" if token > 0 and token == _token and not _sealed \
-		and _cold.covers(_cold_token, cold_peak_bytes()) else &"LOCATION_TOKEN_STALE"
+	if token <= 0 or token != _token or _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
+		return &"LOCATION_TOKEN_STALE"
+	return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room,
+		_admission_type, false) if _room_admission else &""
 
 
 func _geometry_current_refusal() -> StringName:
 	"""Prepared spatial truth is immutable; live preparations retain their starting world revision."""
+	if _room_admission:
+		return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room, _admission_type)
 	if _owner_token != 0:
 		return _owner.prepared_refusal(_owner_token)
 	if _owner.has_prepared() or _base_geometry_revision != _owner.revision():

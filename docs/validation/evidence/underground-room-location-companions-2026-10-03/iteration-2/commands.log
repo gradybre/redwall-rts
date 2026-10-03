@@ -1,0 +1,22 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-mr7ufm53
+import exit 0 diagnostics []
+test_underground_locations.gd exit 0
+CI_SUITE_TIME {"assertions":1148,"failures":0,"suite":"test_underground_locations.gd","tests":36,"usec":1550558}
+36 test(s), 1148 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 36 tests, 1148 assertions, 0 failures.
+test_underground_room_orders.gd exit 0
+  PASS  test_sparse_capacity_failure_after_partial_staging_leaves_all_live_state_unchanged
+CI_SUITE_TIME {"assertions":1533,"failures":0,"suite":"test_underground_room_orders.gd","tests":30,"usec":2430788}
+30 test(s), 1533 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 30 tests, 1533 assertions, 0 failures.
+test_underground_routes.gd exit 0
+CI_SUITE_TIME {"assertions":9175,"failures":0,"suite":"test_underground_routes.gd","tests":40,"usec":2695341}
+40 test(s), 9175 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 40 tests, 9175 assertions, 0 failures.
+assets restored True

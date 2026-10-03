@@ -247,3 +247,61 @@ Independent root review accepted this narrow correction and source-identical
 unexpected diagnostics/leaks. Analyzer: **0 GDScript warning(s) in 0 of 2 file(s)**.
 This supersedes the earlier descriptor import-condition claim without changing
 the accepted Profiles source or claiming production clearance qualification.
+
+
+## Finite engineering level catalog
+
+`underground_level_catalog.gd` is the sole authored level-height source for the
+initial estuary pack. Its exact root-approved Domain is datum `(0,512,0)`, minimum
+quantum `(0,-32,0)`, size `(256,48,256)` at 1024 units/metre; the vertical range is
+`[-32256,16896)`. The initial clear room shell is 4096u high, base floors are 5120u
+apart, and the 1024u band above each roof remains a local structural obligation.
+The choice fits the measured upright cast and current work envelopes while
+retaining separation; it does not qualify every posture, load or connector. The
+parent accepted these as engineering dimensions within approved D06/D07, pending
+complete continuous physical/profile/contact and fixed-family evidence.
+
+The number of levels is derived from the actual depth and complete 1024u footing,
+not an old four-level demo assumption. Levels 1..6 have base floorY values
+`-4608,-9728,-14848,-19968,-25088,-30208`. Surface ID0 is the actual 512u datum,
+with no invented roof or completed floor. The optional section offsets are
+`-1024,0,+1024u`; the roof stays fixed while headroom and footing change. The
+fixed short-rise menu is 1024/2048u. A listed rise only identifies an exact height
+match; the five-family catalog must still supply a complete fixed piece with
+valid openings, landings, support, motion and contact. There is no stretch-to-fit.
+
+Each lookup returns an exact world/content identity and floor/roof plus local
+protected and required-footing Y intervals. The consuming room owner intersects
+these with its actual XZ footprint and validates actual terrain/support facts.
+No whole-map support layer, lower-level void, route, free excavation or completed
+structure is published by this metadata. Sunken floors that interfere with a
+lower room's protected band must be refused by the actual spatial owner, even
+when both catalog heights individually fit. An intentional connector opening
+must deliberately edit its exact local band and clear all affected room/item
+obstacles. The first room also needs an actual reachable surface/access contact.
+
+The tiny reviewable integer JSON source compiles to a 108-byte immutable image.
+The runtime loader checks a bounded exact-length wire image and SHA256 over the
+same decoded bytes; no JSON float affects authority. It binds the full actual
+Directory/World generation, Domain shape, capacities and RoomSpace version.
+A refused load/bind leaves no usable content/binding; stale generations and
+out-of-domain full footing refuse without changing caller output. Local arithmetic
+uses int64 and validates resulting int32 ranges before publication.
+
+At the source maxima, retained arrays use 236 bytes plus one 8-byte revision.
+The separate 2048-byte control/loading/native allowance includes the decode peak:
+wire 156 + staged config/offset/rise 120 + digest 32 + published immutable content 152
+=460 packed bytes simultaneously before temporary release (plus the8-byte
+revision), with small header/footer slices, descriptor/identity arrays, hash/file
+objects, strings and other transient controls charged inside that allowance.
+This is a bounded reservation, not a measured native allocation. The level
+catalog's 2292 bytes plus Profiles' 259136 reserve total 261428, leaving 716 inside
+the unchanged 262144 arena. The caller's Record is 89 logical bytes and is charged
+by its consuming owner, never allocated once per level or resident.
+
+Independent root review accepted the exact source, tests, compiler and storage
+arithmetic. `levels-v1/` records exact assets-outside-project clean import,
+**10 tests / 179 assertions / 0 failures**, zero strict/raw unexpected diagnostics
+and leaks, and **0 GDScript warning(s) in 0 of 2 file(s)**. Six Python compiler
+checks also passed. This verifies the metadata component; continuous profiles,
+contacts, all five connector families and gameplay/save integration remain open.

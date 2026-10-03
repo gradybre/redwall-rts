@@ -790,6 +790,35 @@ func test_site_scoped_snapshot_keeps_actual_geometry_and_other_phase_claims() ->
 	assert_equal(scoped.volumes.role.size(), 3, "other phase's marker remains blocking")
 
 
+func test_prepared_site_scope_uses_actual_phase_and_keeps_same_room_obstacles() -> void:
+	"""Future supported space cannot erase physical blockers under an own-Room reservation exemption."""
+	var fixture: SiteFixture = SiteFixture.new(_construction, _buildings, _domain)
+	var site: Vector2i = fixture.sites.claim_quantum(Vector3i.ZERO, _room).ref
+	var project: Vector2i = fixture.sites.open_phase(site, Contract.OP_BRACE).ref
+	var token: int = _begin()
+	_room_claim(token)
+	var phase: Owner.Region = _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _room)
+	phase.claim_kind = Owner.CLAIM_CONSTRUCTION
+	phase.claim_ref = project
+	_put(token, phase)
+	_put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _room))
+	_put(token, _region([1024, 0, 0, 2048, 1024, 1024], Space.SUPPORTED_VOID, _room))
+	assert_equal(_owner.seal(token), &"", "actual future candidate")
+	var image: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_owner.prepared_snapshot_for_site_into(token, image, fixture.sites, site), &"", "typed future scope")
+	assert_equal(image.volumes.role, PackedInt32Array([Space.OBSTACLE, Space.SUPPORTED_VOID]), "only exact own markers omitted")
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"", "unscoped remains complete")
+	assert_equal(image.volumes.role.size(), 4, "all claims and physical facts retained")
+	assert_equal(_owner.prepared_snapshot_for_site_into(token, image, fixture.sites,
+		Vector2i(site.x, site.y + 1)), &"SPACE_SITE_STALE", "full site generation")
+	var other: Construction = Construction.new()
+	other.directory().create(Directory.KIND_WORLD)
+	var foreign: SiteFixture = SiteFixture.new(other, other.buildings(), _domain)
+	assert_equal(_owner.prepared_snapshot_for_site_into(token, image, foreign.sites, site),
+		&"SPACE_SITE_OWNER_MISMATCH", "foreign owner with coincident ref cannot filter")
+	assert_true(_owner.abort(token), "no public space was changed by scoped reads")
+
+
 func test_room_claim_kind_is_typed_and_corrupt_load_refuses() -> void:
 	"""A Room cannot impersonate a paid project or lend its claim to another geometric owner."""
 	var token: int = _begin()

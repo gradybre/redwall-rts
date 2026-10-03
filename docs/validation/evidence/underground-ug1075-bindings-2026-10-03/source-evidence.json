@@ -1,0 +1,30 @@
+{
+  "scope": "Additive exact source readers, sealed snapshots, and pre-seal physical geometry hook. Actual Locations/terrain/profile/route binding remains in progress.",
+  "base_reader_commit": "7f19e089",
+  "source_sha256": {
+    "godot/scripts/core/underground_space_owner.gd": "51e065b3bef01490000aacfcebfee9687164ab94961e4ec21b82f0cbf8dc95c8",
+    "godot/scripts/core/underground_space_authority.gd": "cb3cb02cf56cc9779e9de1e48f1647335ff44fedf709247f5d9e4e6c03fb7edf",
+    "godot/test/test_underground_space_owner.gd": "4c9bf7315b5a2fa3a831b5d5004ccc216b76b36a4f22b6ab66f7622f88627b1a",
+    "godot/test/test_underground_space_authority.gd": "a1c942d7017afeba869b38f57f3c52fbaa12f2e8754365b427673546718b011b"
+  },
+  "strict_commands": [
+    "move own godot/demo/assets aside when present",
+    "delete own godot/.godot",
+    "godot --headless --path godot --editor --quit",
+    "./tools/run_tests.sh --shard-index <manifest index> --shard-count <discovered test file count> --output-dir <matching shard evidence directory>",
+    "restore own godot/demo/assets in finally"
+  ],
+  "analyzer_command": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--port",
+    "6153",
+    "--max",
+    "0",
+    "godot/scripts/core/underground_space_owner.gd",
+    "godot/scripts/core/underground_space_authority.gd",
+    "godot/test/test_underground_space_owner.gd",
+    "godot/test/test_underground_space_authority.gd"
+  ],
+  "run_source_note": "The physical-stage strict run preceded only a local fixture identifier rename floor to floor_region. The four-file final analyzer and independent delta review use the pinned final source."
+}

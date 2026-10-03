@@ -568,6 +568,23 @@ func prepared_snapshot_into(token: int, out: Space.Snapshot) -> StringName:
 	var code: StringName = prepared_refusal(token)
 	if code != &"":
 		return code
+	return _copy_prepared_snapshot_into(out, NULL_REF, NULL_REF)
+
+
+func prepared_snapshot_for_site_into(token: int, out: Space.Snapshot,
+		sites: Sites, site: Vector2i) -> StringName:
+	"""Apply the same exact actual Sites/Room/phase proof to sealed future geometry, not a fake plan."""
+	var code: StringName = prepared_refusal(token)
+	if code == &"":
+		code = _site_scope_refusal(sites, site)
+	if code != &"":
+		return code
+	return _copy_prepared_snapshot_into(out, sites.room_of(site), sites.project_of(site))
+
+
+func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
+		project: Vector2i) -> StringName:
+	"""Build one isolated complete survey; only already-proved exact reservation markers may omit."""
 	if out == null:
 		return &"SPACE_WORLD_UNBOUND"
 	var image: Space.Snapshot = Space.Snapshot.new()
@@ -579,6 +596,10 @@ func prepared_snapshot_into(token: int, out: Space.Snapshot) -> StringName:
 			image.live_revisions.append(_s_o_revision[row])
 	for row: int in _region_capacity:
 		if _s_r_present[row] == 0:
+			continue
+		var claim: Vector2i = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row])
+		if (_s_r_claim_kind[row] == CLAIM_ROOM and room != NULL_REF and claim == room) \
+				or (_s_r_claim_kind[row] == CLAIM_CONSTRUCTION and project != NULL_REF and claim == project):
 			continue
 		var role: int = Space.OBSTACLE if _s_r_claim_kind[row] != CLAIM_NONE else _s_r_role[row]
 		image.volumes.append(_box(row, true), role, _s_r_level[row],

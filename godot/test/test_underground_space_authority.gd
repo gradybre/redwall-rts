@@ -49,6 +49,7 @@ class SyntheticBindings extends Authority.Bindings:
 	var owner: Owner = null
 	var buildings: Buildings = null
 	var jobs: Jobs = null
+	var sites: Sites = null
 	var inventory: Inventory = null
 	var floor_ref: Vector2i = NULL_REF
 	var qualified_revision: int = 1
@@ -62,6 +63,11 @@ class SyntheticBindings extends Authority.Bindings:
 	var output_blocked: bool = false
 	var drift_during_qualification: bool = false
 	var fail_preparation: bool = false
+	var physical_refusal: StringName = &""
+	var stage_entry_geometry: bool = false
+	var staged_floor: Vector2i = NULL_REF
+	var staged_support: Vector2i = NULL_REF
+	var saw_sealed_candidate: bool = false
 
 	func sources() -> Owner.CoreSources:
 		"""Use the actual reader that owns this fixture's directory and structural facts."""
@@ -147,10 +153,39 @@ class SyntheticBindings extends Authority.Bindings:
 		"""Inject a changed real-contact dependency while actual Inventory still proves capacity."""
 		return &"" if inventory.container_reachable(container) and not output_blocked else &"SYNTHETIC_OUTPUT_BLOCKED"
 
-	func prepare_companions(_owner_token: int, _site: Vector2i, _operation: int,
+	func stage_physical_geometry(store: Owner, token: int, site: Vector2i,
+			operation: int, stage: int, room: Vector2i, _plan: Space.Plan) -> StringName:
+		"""Synthetic dimensions only; actual owner/token/site/Room checks and publication are real."""
+		if store != owner or sites == null or sites.room_of(site) != room \
+				or sites.construction_owner() != source_reader.construction_owner():
+			return &"SYNTHETIC_PHYSICAL_OWNER"
+		var code: StringName = owner.stage_source(token, room)
+		if code != &"":
+			return code
+		if stage_entry_geometry and operation == Contract.OP_CUT and stage == Contract.STAGE_COMMIT:
+			var floor_region: Owner.Region = Owner.Region.new()
+			floor_region.owner = room
+			floor_region.level = 1
+			floor_region.role = Space.FLOOR_DATUM
+			floor_region.box = PackedInt32Array([0, 0, 0, 1024, 1, 1024])
+			var added: Owner.Result = owner.stage_add(token, floor_region)
+			if not added.ok():
+				return added.error
+			staged_floor = added.handle
+			floor_region.role = Space.SUPPORT
+			floor_region.box = PackedInt32Array([0, -128, 0, 1024, 0, 1024])
+			added = owner.stage_add(token, floor_region)
+			if not added.ok():
+				return added.error
+			staged_support = added.handle
+		return physical_refusal
+
+	func prepare_companions(owner_token: int, site: Vector2i, _operation: int,
 			_stage: int, _room: Vector2i, _plan: Space.Plan) -> int:
 		"""No service/navigation is published here; the synthetic companion only exercises atomic scope."""
-		pending = not fail_preparation
+		var candidate: Space.Snapshot = Space.Snapshot.new()
+		saw_sealed_candidate = owner.prepared_snapshot_for_site_into(owner_token, candidate, sites, site) == &""
+		pending = not fail_preparation and saw_sealed_candidate
 		return 1 if pending else 0
 
 	func prepared_refusal(token: int) -> StringName:
@@ -275,6 +310,7 @@ func _bind_space() -> void:
 	_authority = Authority.new()
 	assert_equal(_authority.configure(_owner, _bindings, 1), &"", "explicit single-proof capacity fixture")
 	_sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, _authority, 512, 8)
+	_bindings.sites = _sites
 	assert_equal(_sites.initialization_refusal(), &"", "actual paid physical owners")
 	assert_equal(_authority.bind_sites(_sites), &"", "exact actual Sites instance")
 	_site = _sites.claim_quantum(ORIGIN, _room).ref
@@ -283,6 +319,7 @@ func _bind_space() -> void:
 
 func after_each() -> void:
 	"""Release shared actual stores and synthetic qualification without ownership cycles."""
+	_bindings.sites = null
 	_sites = null
 	_authority = null
 	_bindings = null
@@ -355,6 +392,54 @@ func test_direct_publication_and_failed_companion_preserve_geometry_and_payment(
 	assert_equal(_inventory.state_bytes(), goods, "failed preparation consumed no inputs")
 	_bindings.fail_preparation = false
 	assert_true(_sites.begin_phase_work(_site, 0).ok, "fresh exact retry succeeds")
+
+
+func test_actual_cut_stages_floor_support_then_sealed_companions_and_rolls_back_both_failures() -> void:
+	"""Explicit synthetic entry geometry publishes with real paid output, never on a refused retry."""
+	_complete(Contract.OP_BRACE)
+	var job: int = _start(Contract.OP_CUT)
+	_finish_work(job)
+	_bindings.stage_entry_geometry = true
+	var geometry: PackedByteArray = _owner.state_bytes()
+	var goods: PackedByteArray = _inventory.state_bytes()
+	var physical: PackedByteArray = _sites.state_bytes()
+	_bindings.physical_refusal = &"SYNTHETIC_SUPPORT_REFUSED"
+	assert_false(_sites.settle_phase(_site).ok, "pre-seal support refusal")
+	assert_false(_owner.has_prepared(), "partial support geometry discarded")
+	assert_equal(_owner.state_bytes(), geometry, "first refusal preserves geometry bytes")
+	assert_equal(_inventory.state_bytes(), goods, "first refusal creates no earth")
+	assert_equal(_sites.state_bytes(), physical, "paid work/history retained for retry")
+	assert_false(_owner.is_live_region(_bindings.staged_floor), "floor remains unpublished")
+	_bindings.physical_refusal = &""
+	_bindings.fail_preparation = true
+	assert_false(_sites.settle_phase(_site).ok, "post-seal companion refusal")
+	assert_true(_bindings.saw_sealed_candidate, "companion reads actual sealed future geometry")
+	assert_equal(_owner.state_bytes(), geometry, "second refusal preserves geometry bytes")
+	assert_equal(_inventory.state_bytes(), goods, "second refusal creates no earth")
+	assert_equal(_sites.state_bytes(), physical, "no repeat charge or lost completed work")
+	_bindings.fail_preparation = false
+	assert_true(_sites.settle_phase(_site).ok, "same actual funded work can publish once")
+	assert_true(_owner.is_live_region(_bindings.staged_floor), "floor published atomically")
+	assert_true(_owner.is_live_region(_bindings.staged_support), "support published atomically")
+	assert_equal(_target_role(), Space.UNFINISHED, "cut is still unavailable for travel")
+	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"excavated_earth")), 2000, "one paid cube output")
+
+
+func test_physical_geometry_hook_refuses_unbound_foreign_token_and_wrong_room() -> void:
+	"""Additional floor/support editing cannot borrow a coincident token or another physical room."""
+	var plan: Space.Plan = Space.Plan.new()
+	var base: Authority.Bindings = Authority.Bindings.new()
+	assert_equal(base.stage_physical_geometry(_owner, 1, _site, Contract.OP_BRACE,
+		Contract.STAGE_START, _room, plan), &"SPACE_PHYSICAL_GEOMETRY_UNBOUND", "base never assumes no edits")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	var foreign: Owner = Owner.new(_sources)
+	assert_equal(_bindings.stage_physical_geometry(foreign, token, _site, Contract.OP_BRACE,
+		Contract.STAGE_START, _room, plan), &"SYNTHETIC_PHYSICAL_OWNER", "actual geometry owner")
+	assert_equal(_bindings.stage_physical_geometry(_owner, token + 1, _site, Contract.OP_BRACE,
+		Contract.STAGE_START, _room, plan), &"SPACE_TRANSACTION_STALE", "actual editable token")
+	assert_equal(_bindings.stage_physical_geometry(_owner, token, _site, Contract.OP_BRACE,
+		Contract.STAGE_START, _world, plan), &"SYNTHETIC_PHYSICAL_OWNER", "actual Room identity")
+	assert_true(_owner.abort(token), "no live geometry changed")
 
 
 func test_productive_work_uses_static_proof_and_fresh_dynamic_checks() -> void:

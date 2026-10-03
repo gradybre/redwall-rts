@@ -171,3 +171,28 @@ or storage composition.
   access and all approved construction families.
 - Read-only actual-owner investigation and parent-approved packet/leases,
   2026-10-03. Strict execution evidence will be added for the implemented scope.
+
+## Paid physical geometry seam verification
+
+The actual adapter stages derived floor/support/shell geometry after its paid
+matter patch and before sealing the spatial candidate. Companion topology and
+services then prepare against that sealed candidate. The concrete provider must
+derive actual source content; the base refuses. Prepared site snapshots require
+the same real Sites/Room/phase proof as live snapshots and omit only exact
+reservation markers. Actual same-Room obstacles remain blockers.
+
+Independent review accepted this additive four-file delta. Clean strict runs:
+
+```text
+35 test(s), 493 assertion(s), 0 failure(s)
+21 test(s), 2805 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+0 GDScript warning(s) in 0 of 4 file(s)
+```
+
+Both suites emitted the same zero footers. The analyzer initially rejected one
+fixture identifier shadow; it was renamed with no behavior change and the final
+analyzer passed. [Raw logs and exact source evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/README.md)
+retain that rejection and the accepted runs. This verifies transaction seams;
+it does not qualify actual terrain, support content, profiles or navigation.

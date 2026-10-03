@@ -89,6 +89,11 @@ class Bindings extends Space.Authority:
 		"""Prove actual finite output contact ownership, including held first-pile promotion leases."""
 		return &"SPACE_OUTPUT_CONTACT_UNBOUND"
 
+	func stage_physical_geometry(_owner: Owner, _owner_token: int, _site: Vector2i,
+			_operation: int, _stage: int, _room: Vector2i, _plan: Space.Plan) -> StringName:
+		"""Derive actual support/floor/shell edits before sealing; missing concrete content refuses."""
+		return &"SPACE_PHYSICAL_GEOMETRY_UNBOUND"
+
 	func prepare_companions(_owner_token: int, _site: Vector2i, _operation: int,
 			_stage: int, _room: Vector2i, _plan: Space.Plan) -> int:
 		"""Stage measured support and real service/topology owners; zero supplies no publishable token."""
@@ -646,14 +651,17 @@ func _prepare(check: ColdCheck, site: Vector2i, operation: int, stage: int, room
 		return _failed_prepare(started.error)
 	_owner_token = started.token
 	code = _stage_geometry(check, site, operation, stage, room)
+	if code == &"":
+		code = _bindings.stage_physical_geometry(_owner, _owner_token, site, operation,
+			stage, room, check.plan.copy())
+	if code != &"":
+		return _failed_prepare(code)
+	code = _owner.seal(_owner_token)
 	if code != &"":
 		return _failed_prepare(code)
 	_companion_token = _bindings.prepare_companions(_owner_token, site, operation, stage, room, check.plan.copy())
 	if _companion_token <= 0:
 		return _failed_prepare(&"SPACE_COMPANION_PREPARATION_REFUSED")
-	code = _owner.seal(_owner_token)
-	if code != &"":
-		return _failed_prepare(code)
 	_geometry_changed = _owner.prepared_has_changes(_owner_token)
 	_next_i64[GEOMETRY_REVISION] = _owner.revision() + int(_geometry_changed)
 	_next_i64[QUALIFICATION_REVISION] = _bindings.revision_after(_companion_token)

@@ -10,7 +10,7 @@
     {
       "id": "UG01",
       "title": "Canonical integer footprints",
-      "status": "running",
+      "status": "verified",
       "depends_on": [],
       "owns": [
         "godot/scripts/core/room_footprint.gd",
@@ -31,9 +31,16 @@
       ],
       "agent": "/root/ug_geometry",
       "branch": "codex/underground-geometry",
-      "evidence": {},
+      "evidence": {
+        "commit": "d3c2d786",
+        "tests": "36 test(s), 4038 assertion(s), 0 failure(s); strict focused suite after cleanimport",
+        "diagnostics": "0unexpectederrors/warnings;0expected/tolerated;0leakedobjects/resources; analyzer0warnings/2files",
+        "review": "Separate integration-owner source review; radius/coordinate overflowcases corrected andtested; membershipoptimization preservescanonicaloutput. All511nonempty3x3masks checked. 16k validation51.6ms coldonly, cacheperrevision.",
+        "integration": "c1a697e5 unchanged source; statelessregistryreconciled separately. Fullcombinedsuitependingcheckpoint."
+      },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "ug_geometry finalresponse, commitsd3c2d786/a5fcaa1d, cleanworktree; nofurtherUG01edits"
       }
     },
     {
@@ -105,7 +112,7 @@
     {
       "id": "UG04",
       "title": "Interactive room drawing and blueprint controls",
-      "status": "queued",
+      "status": "running",
       "depends_on": [
         "UG01"
       ],
@@ -130,17 +137,17 @@
         "Paint/add/erase rectangle, rounded, ellipse and path tools; explicit confirm/discard",
         "Visible invalid geometry reasons and 1280x720 interaction checks"
       ],
-      "agent": null,
-      "branch": null,
+      "agent": "/root",
+      "branch": "codex/underground-editor",
       "evidence": {},
       "lease": {
-        "state": "free"
+        "state": "held"
       }
     },
     {
       "id": "UG05",
       "title": "Canonical room shell and surface rendering",
-      "status": "queued",
+      "status": "running",
       "depends_on": [
         "UG01"
       ],
@@ -166,11 +173,11 @@
         "One boundary for floors/walls/ceilings/openings and split levels",
         "World-scale textures; no gaps/overshoot at concave edges; native visual review"
       ],
-      "agent": null,
-      "branch": null,
+      "agent": "/root/ug_geometry",
+      "branch": "codex/underground-geometry",
       "evidence": {},
       "lease": {
-        "state": "free"
+        "state": "held"
       }
     },
     {
@@ -188,7 +195,8 @@
         "godot/test/test_construction_excavation.gd",
         "godot/scripts/core/excavation_work.gd",
         "godot/scripts/core/excavation_inventory.gd",
-        "docs/decisions/1056-physical-excavation-phases.md"
+        "docs/decisions/1056-physical-excavation-phases.md",
+        "godot/scripts/core/excavation_contract.gd"
       ],
       "requirements": [
         "UG-BUILD-001",

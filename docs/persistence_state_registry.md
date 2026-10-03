@@ -1048,3 +1048,10 @@ interpretation is retained as superseded evidence in the dated ruling.
 | Registration and independent pause holds | `_present`, `_pause_reasons`, `_revision_state` | 1 | `PROJECT_CAPACITY` = 82944 | 0 means absent/no pause/no revision | 1 | §6 AUXILIARY_STATE | Player and revision bits are independent. Request and acknowledged release are distinct, with acknowledgement revalidated against Jobs/Reservations. An absent UI panel cannot reconstruct or discard these holds. |
 | Actual Job/project identity bindings | `_job_slot`, `_job_generation`, `_job_project_slot`, `_job_project_generation` | 4 | `JOB_CAPACITY` = 8192 | Slot -1 plus generation 0 is null | 1 | §6 AUXILIARY_STATE | Each real Jobs requester must name its Construction identity. Old Job generations may remain until actual claims are resolved; no automatic alias on slot reuse. |
 | Owner wiring and scratch result | -- | -- | -- | -- | 3 | -- | Construction, Jobs, Reservations and directory references; `_owners_match` is derived from wiring and `_math` is transient output. Packed payload is 1707008 bytes. No save codec or live demo integration is claimed by the local evidence image. |
+
+
+### `godot/scripts/core/room_footprint.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---|---|---|---|---|---|
+| Cold room-footprint geometry | -- | -- | -- | Empty result on refusal | 3 | -- | Decision 1052. Stateless integer helpers only; caller-owned packed cell/edge/loop values and temporary bounded membership scratch. No module-level mutable columns, room identity, spatial publication, material account or paid-cut state. Confirmed footprint and grid identity remain the integrating owner's persistence obligation. |

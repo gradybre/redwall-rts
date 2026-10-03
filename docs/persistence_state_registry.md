@@ -1502,3 +1502,16 @@ readers introduce no new authoritative, derived or transient retained state.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Private immutable profile/path observation | -- | -- | -- | Call-local ProfilePath drops before the synchronous query returns | 3 | -- | Decision1098. Descriptor23I64=184 plus two full endpoint pairs16 and four integer pins32 gives232 logical bytes; Result adds24 numeric bytes. Enforced512-byte cold allowance covers the packet and bounded helper controls before allocation and after callbacks, within an invoking Room's existing2048 controls. Exact actual Catalog/Bindings/Owner/Profiles/Locations/CoreSources are borrowed strongly for the call; native headers remain in existing bindings/growth allowance. No new retained field, SoA, canonical/wire state, graph bank or path scratch. Existing Dijkstra arrays are reused exclusively. Caller output storage is separately admitted and never resized. |
+### Underground Profiles planar contact amendment (decision1080)
+
+`underground_profiles.gd` additionally admits CONTACT_PATCH role6 in the existing
+seven-int immutable box record. Contact kind2 requires exactly one planar patch
+and one contained coplanar anchor; kind1 remains the legacy anchor-only contract.
+The schema adds no packed columns, retained control fields, banks, wire bytes or
+capacity. The cold role/shape/anchor validator's additional nested scalar locals
+are bounded by128 logical bytes within the existing32768-byte control/native
+reservation (reserved, not measured). Source digest/content revision obligations
+and the Profiles+Level arena ceiling are unchanged. Contact metadata is excluded
+from body/turn broadphase; actual face consumers must separately validate its
+complete translated patch. This registry entry records storage semantics only,
+not source geometry or gameplay qualification.

@@ -103,7 +103,8 @@ const NAME_CAP_BYTES: int = 128
 ## 7's descriptor schema, both 2 -> 3, pinned separately below.
 ## SAVE-J2-R01 adds three packed lists and three scalar counts: +6 records, +3 packed.
 ## DEMO-CONTAIN-R01 (decision 0531) declares inventory's `_c_anchor_tile`: +1 record, +1 packed.
-const REGISTRY_PACKED_FIELD_COUNT: int = 555
+## Decision1060 adds RoomProjects' eleven packed project-control fields, one new owner.
+const REGISTRY_PACKED_FIELD_COUNT: int = 566
 
 ## Pinned as LITERALS, deliberately not read from the JSON or from `Digest.*`. Every other
 ## assertion in this suite compares the compiled table against the registry it was generated
@@ -116,14 +117,15 @@ const REGISTRY_PACKED_FIELD_COUNT: int = 555
 ## that normalizes its inactive payload accepts a strictly smaller set of states than schema 2
 ## did, and leaving the name still would let a stricter codec ship under the old identity while
 ## every self-referential check in this file stayed green.
-const REGISTRY_RECORD_COUNT: int = 604
-const REGISTRY_FIELD_COUNT: int = 612
-const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-09-15-3"
+const REGISTRY_RECORD_COUNT: int = 615
+const REGISTRY_FIELD_COUNT: int = 623
+const REGISTRY_DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-02-UG1"
 ## SAVE-SEQ-R01 v2 advances declaration version to 4 while retaining this exact namespace.
 ## The version is independent of the opaque identity suffix; commands owner becomes 2.
 ## SAVE-J2-R01 advances version5; FISH-ID-R01 advances registry6 and Fishing owner2/section7schema4.
 ## DEMO-CONTAIN-R01 advances registry7 and Inventory owner4/section7schema5, same namespace.
-const REGISTRY_DECLARATION_VERSION: int = 7
+## Decision1060 advances registry8, changes its identity and adds section6 owner room_projects.
+const REGISTRY_DECLARATION_VERSION: int = 8
 
 ## INV-CANON-R01's two version numbers, pinned as literals and read back from BOTH the registry
 ## JSON and the compiled table. They live in different namespaces -- one is the owner block's
@@ -438,7 +440,7 @@ func _assert_field_shape(declaration: Digest.Declaration, field: Dictionary, ind
 
 
 func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
-	"""604 canonical records over 52 owners, 555 persisted packed fields, release_save_ready false."""
+	"""615 canonical records over 53 owners, 566 persisted packed fields, release_save_ready false."""
 	var data: Dictionary = _registry()
 	assert_equal(int(data["record_count"]), Digest.CANONICAL_RECORD_COUNT, "registry record_count")
 	assert_equal(int(data["packed_source_field_count"]), REGISTRY_PACKED_FIELD_COUNT,
@@ -446,7 +448,7 @@ func test_registry_counts_are_the_ones_the_ruling_reconciled() -> void:
 	assert_equal(String(data["registry_id"]), Digest.DECLARATION_ID, "registry id")
 	assert_false(bool(data["release_save_ready"]), "release_save_ready stays false")
 	assert_equal(Digest.production_declaration().record_count(), Digest.CANONICAL_RECORD_COUNT,
-		"the compiled declaration counts the same 604 records")
+		"the compiled declaration counts the same615 records")
 
 
 func test_the_active_rules_identity_and_counts_match_their_independent_pins() -> void:
@@ -603,10 +605,29 @@ func test_construction_delivered_arena_is_its_own_section_five_owner() -> void:
 	assert_equal(found[1], "4", "quantity_milli is i64 (type code 4), never i32")
 
 
+func test_room_revision_holds_and_job_generations_have_explicit_canonical_fields() -> void:
+	"""Decision1060 pins all11 live fields independently; dropping both declarations must fail."""
+	var keys: String = "_present, _project_slot, _project_generation, _room_type, _pause_reasons, " \
+		+ "_revision_state, _revision_epoch, _job_slot, _job_generation, _job_project_slot, _job_project_generation"
+	var found: PackedStringArray = _owner_keys_and_types(6, "room_projects")
+	assert_equal(found[0], keys, "room purpose, independent pause bits, token and full Job bindings are retained")
+	assert_equal(found[1], "0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2", "bytes and int32 refs/tokens remain distinct")
+	var data: Dictionary = _registry()
+	var owner: Dictionary = _owner_of(data, 6, "room_projects")
+	assert_equal(int(owner["owner_schema_version"]), 1, "new owner begins at schema1")
+	assert_equal(int((data["section_schema_versions"] as Array)[5]), 2, "auxiliary section version changes")
+	var fields: Array = owner["fields"]
+	for index: int in fields.size():
+		var field: Dictionary = fields[index]
+		var capacity: String = "`PROJECT_CAPACITY` = 82944" if index < 7 else "`JOB_CAPACITY` = 8192"
+		assert_equal(String(field["shape"]["declared_capacity"]), capacity, "exact owning arena, no resident-count guess")
+		assert_true(bool(field["hash"]), "every persistent field affects the canonical digest")
+
+
 # --- 3. refusals ----------------------------------------------------------------------------------
 
 func test_production_walker_refuses_because_no_owner_has_an_adapter() -> void:
-	"""The deliverable refusal: 52 declared owners, 0 adapters, no digest and no subset."""
+	"""The deliverable refusal: 53 declared owners, 0 adapters, no digest and no subset."""
 	var walker: Digest.Walker = Digest.production_walker()
 	assert_false(walker.adapter_coverage_complete(), "no adapter exists yet")
 	assert_equal(walker.missing_adapter_owners().size(), Digest.CANONICAL_OWNER_COUNT,

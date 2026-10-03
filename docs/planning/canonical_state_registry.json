@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-09-15-3",
- "registry_version": 7,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-02-UG1",
+ "registry_version": 8,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -53,11 +53,12 @@
   "transforms": "c5432aa63dcbd774bfca9b1aaa2fdbbe5908a4159a3ce42f7fc30fbca0e62188",
   "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
   "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
-  "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a"
+  "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a",
+  "room_projects": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 604,
- "packed_source_field_count": 555,
+ "record_count": 615,
+ "packed_source_field_count": 566,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -5775,6 +5776,167 @@
    ]
   },
   {
+   "section_id": 6,
+   "owner_key": "room_projects",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_present",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 0,
+     "source_contract": "C176"
+    },
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_project_slot",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 1,
+     "source_contract": "C175"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_project_generation",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 2,
+     "source_contract": "C175"
+    },
+    {
+     "field_key": "_room_type",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_room_type",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C175"
+    },
+    {
+     "field_key": "_pause_reasons",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_pause_reasons",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C176"
+    },
+    {
+     "field_key": "_revision_state",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_revision_state",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5,
+     "source_contract": "C176"
+    },
+    {
+     "field_key": "_revision_epoch",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_revision_epoch",
+     "shape": {
+      "declared_capacity": "`PROJECT_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C175"
+    },
+    {
+     "field_key": "_job_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_job_slot",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7,
+     "source_contract": "C177"
+    },
+    {
+     "field_key": "_job_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_job_generation",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 8,
+     "source_contract": "C177"
+    },
+    {
+     "field_key": "_job_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_job_project_slot",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 9,
+     "source_contract": "C177"
+    },
+    {
+     "field_key": "_job_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "room_projects",
+     "source_member": "_job_project_generation",
+     "shape": {
+      "declared_capacity": "`JOB_CAPACITY` = 8192",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 10,
+     "source_contract": "C177"
+    }
+   ]
+  },
+  {
    "section_id": 7,
    "owner_key": "fishing",
    "owner_schema_version": 2,
@@ -9050,7 +9212,8 @@
   "Validate every owner value adapter, unused-slot normalization, reference namespace and dynamic count against owning contracts; prose null rules are not executable validation.",
   "Implement all required save section bodies and restore orchestration; this is a logical record registry, not a claim those bodies exist.",
   "Register progression, community, economy/hazard and other future authoritative state at implementation arrival; reserved undeclared state must not be fabricated as zeros.",
-  "Produce complete rules and lookup manifests and prove section15 plus cross-process continuation parity; no subset digest qualifies release."
+  "Produce complete rules and lookup manifests and prove section15 plus cross-process continuation parity; no subset digest qualifies release.",
+  "UG16: bind and validate all11 room_projects fields, independent pause reasons and revision tokens in actual composed save/load before activation. RoomLayout draft/mode/receipt serialization remains explicitly UNRESOLVED in the source registry. Decision1060 registers declarations, not release save parity."
  ],
  "source_contracts": {
   "C001": {
@@ -9745,6 +9908,18 @@
   "C174": {
    "unused": "`-1` (`UNPLACED_TILE`) is a container on no tile -- a satchel, an expedition pack -- and the canonical value of every inactive row",
    "notes": "DEMO-CONTAIN-R01 #1/#2/#8 (decision 0531): one placement cell per InventoryContainer, 0..16383 = GDD 5.1's z*128+x, interiors on the same grid. Container -> tile, so one tile may carry a store, a project container and one ground pile. Authoritative and not rebuildable: Buildings holds no Inventory ref and owner equality proves ownership, not placement (decision 0145). Appended as inventory ordinal 30 under owner schema 4 / section schema 5; older bodies are refused, not migrated (FISH-ID-R01 precedent). A placement CELL so MOVE-G02's level encoding may later widen its meaning without widening the column."
+  },
+  "C175": {
+   "unused": "Absent project: slot/type -1, generation/epoch 0; present project uses full live Construction reference and a protected RoomType.",
+   "notes": "Decision1060 reconciles decision1053. Integer project identity, permanent purpose and revision token; real live owner validation/revision-hold restoration is still an UG16 prerequisite. Values are not guessed from a UI panel."
+  },
+  "C176": {
+   "unused": "Absent row: present/pause-reasons/revision-state all0.",
+   "notes": "Decision1053/1060: independent player/edit pause bits and REQUESTED/ACKNOWLEDGED revision lifecycle affect future work. Preserve these bytes; do not infer a safe acknowledgment or drop an edit hold during restore."
+  },
+  "C177": {
+   "unused": "Unused binding: Job and Construction slot -1, generation0.",
+   "notes": "Decision1053/1060: full real Job and Construction identities, including old Job generations awaiting claim resolution. Namespace and generation validation belongs to the composed adapter, not slot-only interpretation."
   }
  },
  "section_schema_versions": [
@@ -9753,7 +9928,7 @@
   1,
   2,
   1,
-  1,
+  2,
   5,
   2,
   2,

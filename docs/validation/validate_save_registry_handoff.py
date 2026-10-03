@@ -55,7 +55,8 @@ def validate_registry(data):
     # SAVE-J2-R01 adds three packed dirty lists and three scalar counts.
     # FISH-ID-R01 adds one full Expedition-slot identity field.
     # DEMO-CONTAIN-R01 (decision 0531) adds inventory's `_c_anchor_tile`: 603 -> 604.
-    assert records == data['record_count'] == 604
+    # Decisions1053/1060 add exactly11 packed project-control records.
+    assert records == data['record_count'] == 615
     directory = next(o for o in owners if (o['section_id'],o['owner_key']) == (3,'entity_directory'))
     assert [f['field_key'] for f in directory['fields']] == ['_active','_generation','_retired','_persistent_id','_kind','_typed_row']
     allocator = next(o for o in owners if (o['section_id'],o['owner_key']) == (1,'entity_directory'))
@@ -105,7 +106,8 @@ def validate_source(data, source):
     # SAVE-J2-R01 promotes exactly three packed dirty-list arrays.
     # FISH-ID-R01 adds the canonical Expedition-slot array.
     # DEMO-CONTAIN-R01 (decision 0531) adds inventory.gd's category-1 `_c_anchor_tile`: 555.
-    assert len(actual)==data['packed_source_field_count']==555
+    # Eleven new RoomProjects packed fields, no reclassification or omissions.
+    assert len(actual)==data['packed_source_field_count']==566
     print(f"PASS source membership/types: {len(actual)} persisted packed fields (not semantic adapter validation)")
 
 def valid_name(present, named, raw):

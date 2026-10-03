@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/underground_space_owner.gd": "59c4f6a323409f502e598bc29540b8985133a50698f8318140c58ca595b50d92",
+  "godot/test/test_underground_space_owner.gd": "48b3f4ee349d53850e6b1bca44490e8cb79e2a18c48d684439c724cde82d7010",
+  "godot/scripts/core/underground_space_authority.gd": "728145e37386ba252c7b25d2dc37acf8a6b297f69a92a749f2ea01dd5ca4ae41",
+  "godot/test/test_underground_space_authority.gd": "19eb4cd63e6a31f7c5569388022948f89420241218ca1e6dd853ba628cd257d8",
+  "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+  "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624"
+}

@@ -22,6 +22,7 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const ModularFixture := preload("res://test/test_modular_projects.gd")
 const SparseSpace := preload("res://scripts/core/underground_space_owner.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const R: int = 32
@@ -287,6 +288,25 @@ class SyntheticLocations extends Owner.ResidentLocations:
 		out.c = pose.z
 		out.d = mode
 		return &""
+
+
+class ReentrantSources extends Owner.CoreSources:
+	## Attack only the validation callback boundary; all source identities still come from actual stores.
+	var geometry: WeakRef = null
+	var token: int = 0
+	var attack: bool = false
+	var abort_succeeded: bool = false
+	var edit_error: StringName = &""
+	var begin_error: StringName = &""
+
+	func read_into(ref: Vector2i, out: Owner.Facts) -> StringName:
+		"""Borrowed heaps must never be consumed by edits hidden in a trusted-boundary callback."""
+		if attack:
+			var owner: Owner = geometry.get_ref() as Owner
+			abort_succeeded = owner.abort(token)
+			edit_error = owner.stage_source(token, ref)
+			begin_error = owner.begin_stage(owner.revision()).error
+		return super.read_into(ref, out)
 
 
 var _buildings: Buildings = null
@@ -867,7 +887,7 @@ func _erase_saved_region(bytes: PackedByteArray, row: int) -> void:
 func test_empty_source_retirement_spends_its_real_scan_budget() -> void:
 	"""Repeated empty-source retirement cannot bypass the declared cold transaction work ceiling."""
 	var tiny: Owner = Owner.new(_sources)
-	assert_equal(tiny.configure(_new_domain(19), 1, 4), &"", "one source edit fits exactly")
+	assert_equal(tiny.configure(_new_domain(256), 1, 4), &"", "finite cold transaction ceiling")
 	var bed: Vector2i = _buildings.place_furniture(_room, int(Catalog.FURNITURE_DEFINITION["bed"]), 60 * 128 + 59, 0).ref
 	for source: Vector2i in [_hall, _room, bed]:
 		var source_token: int = tiny.begin_stage(tiny.revision()).token
@@ -876,6 +896,8 @@ func test_empty_source_retirement_spends_its_real_scan_budget() -> void:
 		tiny.publish(source_token)
 	var before: PackedByteArray = tiny.state_bytes()
 	var token: int = tiny.begin_stage(tiny.revision()).token
+	while tiny._remaining > 11:
+		assert_equal(tiny.stage_source(token, _world), &"", "charge repeated actual one-row lookup")
 	assert_equal(tiny.stage_forget_source(token, _hall), &"", "first retirement")
 	assert_equal(tiny.stage_forget_source(token, _room), &"", "second retirement")
 	assert_equal(tiny.stage_forget_source(token, bed), &"SPACE_OPERATION_BUDGET", "third scan refuses before mutation")
@@ -1439,3 +1461,201 @@ func test_room_admission_callbacks_cannot_rewrite_the_pinned_allocator_packet() 
 	commands.attack_phase = 0
 	commands.candidate.persistent_id = pid
 	assert_equal(_owner.publish_room_admission(token, commands.candidate, commands.room_type, commands), &"", "exact candidate retained")
+
+
+func test_actual_allocation_and_resident_location_readers_do_not_change_state() -> void:
+	"""Composition must attest the actual capacities and actual location object before copying anything."""
+	var absent: Owner = Owner.new(_sources)
+	assert_false(absent.allocation_within(R, O), "unconfigured is not a zero-cost bound owner")
+	var before: PackedByteArray = _owner.state_bytes()
+	assert_true(_owner.allocation_within(R, O), "exact actual capacities")
+	assert_true(_owner.allocation_within(Owner.I64_MAX, Owner.I64_MAX), "comparisons cannot overflow")
+	for limits: Vector2i in [Vector2i(R - 1, O), Vector2i(R, O - 1), Vector2i(0, O), Vector2i(R, -1)]:
+		assert_false(_owner.allocation_within(limits.x, limits.y), "undersized/nonpositive bound")
+	assert_equal(_sources.resident_locations_owner(), null, "no implicit flat fallback")
+	assert_equal(_owner.state_bytes(), before, "readers do not touch geometry")
+	var actual: SyntheticLocations = _resident_locations()
+	assert_true(_sources.resident_locations_owner() == actual, "exact actual containment provider")
+	var foreign: SyntheticLocations = SyntheticLocations.new()
+	foreign.residents = Residents.new()
+	foreign.transforms = Transforms.new(foreign.residents.directory())
+	var refused: Owner.CoreSources = Owner.CoreSources.new(_buildings.directory(), _buildings, _construction, foreign)
+	assert_equal(refused.resident_locations_owner(), null, "foreign Directory cannot bind")
+
+
+func _production_capacity_owner(sources: Owner.CoreSources = null) -> Owner:
+	"""The exact admitted technical pack uses synthetic extents, never synthetic entity identities."""
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8), Vector3i(1024, 16, 16),
+		Space.MAX_CELLS, Space.MAX_REGIONS, Space.MAX_CHECKS), &"", "actual maximum work ceiling")
+	var owner: Owner = Owner.new(_sources if sources == null else sources)
+	assert_equal(owner.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "real joint pack")
+	assert_equal(owner.packed_memory_bytes(), Budget.SPACE_BANK_BYTES, "no new packed allocation")
+	return owner
+
+
+func test_joint_capacity_minimal_stage_and_restore_fit_the_unchanged_work_limit() -> void:
+	"""An empty R6144/O2048 arena can seal and restore one exact row without a capacity product."""
+	var large: Owner = _production_capacity_owner()
+	var token: int = large.begin_stage(large.revision()).token
+	var added: Owner.Result = large.stage_add(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	assert_equal(added.error, &"", "minimal actual row")
+	assert_equal(large.seal(token), &"", "capacity alone does not consume quadratic work")
+	print("SPACE-CAPACITY minimal seal checks=", Space.MAX_CHECKS - large._remaining)
+	large.publish(token)
+	var saved: PackedByteArray = large.state_bytes()
+	var restored: Owner = _production_capacity_owner()
+	assert_equal(restored.restore_state_bytes(saved), &"", "minimal actual-pack load")
+	print("SPACE-CAPACITY minimal restore checks=", Space.MAX_CHECKS - restored._remaining)
+	assert_equal(restored.state_bytes(), saved, "all saved source revisions preserved")
+	assert_true(restored.is_live_region(added.handle), "same exact region generation")
+
+
+func _large_occupant_batch(large: Owner, fixture: SyntheticLocations) -> PackedInt32Array:
+	"""Create 256 real living Residents/Transforms and explicit synthetic extent packets in one transaction."""
+	var token: int = large.begin_stage(large.revision()).token
+	var refs: PackedInt32Array = PackedInt32Array()
+	for index: int in Residents.RESIDENT_LIVING_CAP:
+		var resident: Vector2i = fixture.residents.spawn(&"mouse").ref
+		var x: int = index * 1024
+		assert_true(fixture.transforms.place(resident, x + 64, 64, 64, 0), "actual body anchor")
+		assert_equal(large.stage_source(token, resident), &"", "actual source generation")
+		var added: Owner.Result = large.stage_add(token,
+			_region([x, 0, 0, x + 512, 1024, 512], Space.OCCUPANT, resident))
+		assert_equal(added.error, &"", "actual resident extent")
+		refs.append(resident.x)
+		refs.append(resident.y)
+	assert_equal(large.seal(token), &"", "all 256 sources, bounds and overlap checks fit")
+	print("SPACE-CAPACITY 256 residents seal checks=", Space.MAX_CHECKS - large._remaining)
+	large.publish(token)
+	return refs
+
+
+func test_joint_capacity_256_actual_residents_batch_edit_and_restore() -> void:
+	"""All living residents fit one cold source/geometry transaction without a per-capacity nested scan."""
+	var fixture: SyntheticLocations = _resident_locations()
+	fixture.containing_room = NULL_REF
+	var large: Owner = _production_capacity_owner(_sources)
+	var refs: PackedInt32Array = _large_occupant_batch(large, fixture)
+	assert_equal(refs.size(), Residents.RESIDENT_LIVING_CAP * 2, "the actual living cap only")
+	var saved: PackedByteArray = large.state_bytes()
+	var restored: Owner = _production_capacity_owner(_sources)
+	assert_equal(restored.restore_state_bytes(saved), &"", "all 256 actual residents restore")
+	print("SPACE-CAPACITY 256 residents restore checks=", Space.MAX_CHECKS - restored._remaining)
+	assert_equal(restored.state_bytes(), saved, "byte-exact identity/geometry image")
+	var token: int = restored.begin_stage(restored.revision()).token
+	assert_equal(restored.stage_remove(token, Vector2i(127, 1)), &"", "one actual resident moves within its envelope")
+	var resident: Vector2i = Vector2i(refs[254], refs[255])
+	var x: int = 127 * 1024
+	var next: Owner.Result = restored.stage_add(token, _region([x, 0, 0, x + 768, 1024, 512], Space.OCCUPANT, resident))
+	assert_equal(next.handle, Vector2i(127, 2), "only exact freed row reused")
+	assert_equal(restored.seal(token), &"", "one changed body still checks every retained source")
+	print("SPACE-CAPACITY 256 residents single edit checks=", Space.MAX_CHECKS - restored._remaining)
+	restored.publish(token)
+	assert_false(restored.is_live_region(Vector2i(127, 1)), "old generation cannot alias edited body")
+
+
+func test_failed_seal_restores_heaps_for_edit_retry_and_source_revision_propagation() -> void:
+	"""A contradictory candidate can be edited after refusal; retained same-source rows receive one new revision."""
+	var token: int = _begin()
+	var kept: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	_publish(token)
+	var previous: int = _owner.source_revision(_world)
+	token = _begin()
+	var bad: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.SUPPORTED_VOID, _world))
+	assert_equal(_owner.seal(token), &"SPACE_SURVEY_CONTRADICTION", "strict overlap gate remains")
+	assert_equal(_owner.stage_remove(token, bad), &"", "failed seal restored allocators before editing")
+	var good: Vector2i = _put(token, _region([1024, 0, 0, 2048, 1024, 1024], Space.SUPPORTED_VOID, _world))
+	assert_equal(good, Vector2i(bad.x, bad.y + 1), "same minimum free row, fresh generation")
+	_publish(token)
+	assert_equal(_owner.source_revision(_world), previous + 1, "one source revision per transaction")
+	var retained: Owner.Region = Owner.Region.new()
+	assert_equal(_owner.region_into(kept, retained), &"", "unchanged extent stays live")
+	var image: Space.Snapshot = _snapshot()
+	assert_equal(image.volumes.owner_revision, PackedInt64Array([previous + 1, previous + 1]), "retained and new revisions agree")
+
+
+func test_indexed_validation_preserves_mixed_remove_reuse_and_strict_loaded_revisions() -> void:
+	"""Source index order differs from slot order; a load never repairs an invalid saved geometry revision."""
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _room), &"", "later global slot registers first")
+	assert_equal(_owner.stage_source(token, _hall), &"", "earlier global slot registers second")
+	var removed: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _world))
+	_put(token, _region([1024, 0, 0, 2048, 1024, 1024], Space.OBSTACLE, _world))
+	_publish(token)
+	token = _begin()
+	assert_equal(_owner.stage_remove(token, removed), &"", "retire one geometry row")
+	assert_equal(_owner.stage_forget_source(token, _hall), &"", "retire nonlast source slot")
+	var bed: Vector2i = _buildings.place_furniture(_room, int(Catalog.FURNITURE_DEFINITION["bed"]), 60 * 128 + 59, 0).ref
+	assert_equal(_owner.stage_source(token, bed), &"", "reuse source row with a different actual full ref")
+	var next: Vector2i = _put(token, _region([2048, 0, 0, 3072, 1024, 1024], Space.OBSTACLE, _world))
+	assert_equal(next, Vector2i(removed.x, removed.y + 1), "reuse region row")
+	_publish(token)
+	var saved: PackedByteArray = _owner.state_bytes()
+	var broken: PackedByteArray = saved.duplicate()
+	broken.encode_s64(144 + 52 * R, _owner.source_revision(_world) - 1)
+	assert_equal(_owner.restore_state_bytes(broken), &"SPACE_SOURCE_STALE", "load does not normalize a stale region revision")
+	assert_equal(_owner.state_bytes(), saved, "failed indexed load preserves live rows and allocators")
+	assert_equal(_owner.restore_state_bytes(saved), &"", "valid image succeeds after failed indexed load")
+	assert_equal(_owner.state_bytes(), saved, "exact schema remains unchanged")
+	assert_equal(_owner.source_refusal(bed), &"", "new source retains exact facts")
+	assert_equal(_owner.source_refusal(_hall), &"SPACE_SOURCE_NOT_REGISTERED", "old source cannot return through sorted scratch")
+
+
+func test_validation_callbacks_cannot_mutate_borrowed_heap_indexes() -> void:
+	"""Even a hostile source reader cannot abort/rebegin or allocate while staged heaps hold indexes."""
+	var source: ReentrantSources = ReentrantSources.new(_buildings.directory(), _buildings, _construction)
+	var owner: Owner = Owner.new(source)
+	assert_equal(owner.configure(_domain, R, O), &"", "same actual owners")
+	source.geometry = weakref(owner)
+	source.token = owner.begin_stage(owner.revision()).token
+	assert_equal(owner.stage_source(source.token, _room), &"", "register outside callback")
+	source.attack = true
+	assert_equal(owner.seal(source.token), &"", "pure evidence still validates while rejected writes cannot run")
+	assert_false(source.abort_succeeded, "callback could not discard borrowed arrays")
+	assert_equal(source.edit_error, &"SPACE_VALIDATION_BUSY", "callback cannot pop an index as a free slot")
+	assert_equal(source.begin_error, &"SPACE_TRANSACTION_BUSY", "callback cannot replace either bank")
+	source.attack = false
+	assert_true(owner.abort(source.token), "normal cleanup works after indexes became heaps again")
+	var token: int = owner.begin_stage(owner.revision()).token
+	var added: Owner.Result = owner.stage_add(token, _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _world))
+	assert_equal(added.handle, Vector2i(0, 1), "retry gets the actual minimum free slot")
+	assert_equal(owner.seal(token), &"", "retry retains a valid source index")
+	owner.publish(token)
+
+
+func test_true_pair_work_exhaustion_refuses_without_expanding_the_budget() -> void:
+	"""1024 static world extents are geometry, not residents; genuinely excessive pair work still refuses."""
+	var owner: Owner = _production_capacity_owner()
+	var before: PackedByteArray = owner.state_bytes()
+	var token: int = owner.begin_stage(owner.revision()).token
+	var region: Owner.Region = _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _world)
+	for index: int in 1024:
+		assert_equal(owner.stage_add(token, region).error, &"", "finite rows fit before expensive validation")
+	assert_equal(owner.seal(token), &"SPACE_OPERATION_BUDGET", "the original 1048576-check ceiling remains")
+	assert_equal(owner._remaining, 0, "actual checks exhaust the finite budget")
+	assert_equal(owner._validation_regions, -1, "failed validation released region-index borrowing")
+	assert_equal(owner._validation_sources, -1, "failed validation released source-index borrowing")
+	assert_true(owner.abort(token), "caller can release the refused candidate")
+	assert_equal(owner.state_bytes(), before, "no partial source or geometry publication")
+	token = owner.begin_stage(owner.revision()).token
+	var next: Owner.Result = owner.stage_add(token, region)
+	assert_equal(next.handle, Vector2i(0, 1), "aborted history cannot consume a live generation")
+	assert_equal(owner.seal(token), &"", "small retry at unchanged capacity succeeds")
+	owner.publish(token)
+
+
+func test_same_source_forget_and_reregister_never_resets_its_revision() -> void:
+	"""Source-row relocation within one transaction preserves monotonic full-identity revisions."""
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _room), &"", "source row one")
+	assert_equal(_owner.stage_source(token, _hall), &"", "source row two")
+	_publish(token)
+	var old: int = _owner.source_revision(_hall)
+	token = _begin()
+	assert_equal(_owner.stage_forget_source(token, _room), &"", "make earlier source row free")
+	assert_equal(_owner.stage_forget_source(token, _hall), &"", "release same actual source")
+	assert_equal(_owner.stage_source(token, _hall), &"", "same full identity moves to minimum row")
+	_publish(token)
+	assert_equal(_owner.source_revision(_hall), old + 1, "identity revision never returns to one")
+	assert_equal(_owner.source_refusal(_hall), &"", "relocated source facts still read actual Buildings")

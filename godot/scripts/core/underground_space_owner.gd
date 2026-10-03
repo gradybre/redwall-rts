@@ -22,6 +22,7 @@ const SOURCE_BYTES: int = 42
 const CLAIM_NONE: int = 0
 const CLAIM_CONSTRUCTION: int = 1
 const CLAIM_ROOM: int = 2
+const LOOKUP_BUDGET: int = -2
 
 class Facts extends RefCounted:
 	## Exact source-kind facts; one caller-owned scratch object, not one object per entity.
@@ -93,6 +94,10 @@ class CoreSources extends Sources:
 	func construction_owner() -> Construction:
 		"""Borrow the actual Construction instance, never infer it from coincident ref numbers."""
 		return _construction
+
+	func resident_locations_owner() -> ResidentLocations:
+		"""Borrow the exact multilevel location owner; an absent or rejected binding remains null."""
+		return _locations
 
 	func read_into(ref: Vector2i, out: Facts) -> StringName:
 		"""Pin structural identity facts, excluding temperature, stock and paid-work progress."""
@@ -213,6 +218,9 @@ var _stage_token: int = 0
 var _sealed: bool = false
 var _remaining: int = 0
 var _changed_count: int = 0
+## During cold validation only, staged heap storage holds compact region/source indexes.
+var _validation_regions: int = -1
+var _validation_sources: int = -1
 var _changed_rows: PackedInt32Array = PackedInt32Array()
 var _changed_mask: PackedByteArray = PackedByteArray()
 var _facts: Facts = Facts.new()
@@ -333,6 +341,12 @@ func initialization_refusal() -> StringName:
 	return _ready_error
 
 
+func allocation_within(region_limit: int, source_limit: int) -> bool:
+	"""Attest actual finite allocations before a composer reserves any capacity-dependent cold copy."""
+	return _ready_error == &"" and _region_capacity > 0 and _source_capacity > 0 \
+		and _region_capacity <= region_limit and _source_capacity <= source_limit
+
+
 func is_bound_sources(candidate: Sources) -> bool:
 	"""An adapter must share this exact source reader, not merely coincident numeric references."""
 	return candidate != null and candidate == _sources and _ready_error == &""
@@ -410,7 +424,7 @@ func begin_stage(expected_revision: int) -> Result:
 		return Result.new(&"SPACE_ROOM_ADMISSION_REENTRY")
 	if _ready_error != &"":
 		return Result.new(_ready_error)
-	if has_prepared():
+	if has_prepared() or _validation_sources >= 0:
 		return Result.new(&"SPACE_TRANSACTION_BUSY")
 	if expected_revision != revision():
 		return Result.new(&"SPACE_REVISION_STALE")
@@ -430,7 +444,7 @@ func begin_stage(expected_revision: int) -> Result:
 
 func abort(token: int) -> bool:
 	"""Drop only transient preparation; confirmed live reservations and geometry are untouched."""
-	if _reject_room_reentry() or token == 0 or token != _stage_token:
+	if _reject_room_reentry() or _validation_sources >= 0 or token == 0 or token != _stage_token:
 		return false
 	_stage_token = 0
 	_sealed = false
@@ -467,11 +481,12 @@ func stage_furniture_install(token: int, project: Vector2i, router: ModularContr
 
 func _pending_installation_source_into(project: Vector2i, out: IntMath.IntResult) -> StringName:
 	"""Read the exact still-pending actual source row into existing caller scratch before staging d=1."""
-	if not _spend(_source_capacity * 2):
-		return &"SPACE_OPERATION_BUDGET"
 	var piece: Vector2i = _sources.construction_owner().subject_ref_of(project)
-	var row: int = _find_source(piece, true)
-	if row < 0 or _find_source(piece, false) != row:
+	var row: int = _find_source(piece, true, true)
+	var live: int = _find_source(piece, false, true)
+	if row == LOOKUP_BUDGET or live == LOOKUP_BUDGET:
+		return &"SPACE_OPERATION_BUDGET"
+	if row < 0 or live != row:
 		return &"SPACE_INSTALLATION_SOURCE"
 	var code: StringName = _read_source(piece)
 	if code != &"":
@@ -534,9 +549,11 @@ func stage_room_admission(token: int, candidate: Directory.CreateCandidate, room
 	code = _editable(token)
 	if code != &"":
 		return code
-	if not _spend(_source_capacity * 2):
+	var staged: int = _find_source(candidate.ref, true, true)
+	var live: int = _find_source(candidate.ref, false, true)
+	if staged == LOOKUP_BUDGET or live == LOOKUP_BUDGET:
 		return &"SPACE_OPERATION_BUDGET"
-	if _find_source(candidate.ref, true) >= 0 or _find_source(candidate.ref, false) >= 0:
+	if staged >= 0 or live >= 0:
 		return &"SPACE_ROOM_SOURCE_EXISTS"
 	if _s_source_free_count == 0:
 		return &"SPACE_SOURCE_CAPACITY"
@@ -689,29 +706,48 @@ func stage_source(token: int, ref: Vector2i) -> StringName:
 	var code: StringName = _editable(token)
 	if code != &"":
 		return code
-	if not _spend(_source_capacity + _region_capacity):
-		return &"SPACE_OPERATION_BUDGET"
 	code = _read_source(ref)
 	if code != &"":
 		return code
-	var row: int = _find_source(ref, true)
+	var row: int = _find_source(ref, true, true)
+	if row == LOOKUP_BUDGET:
+		return &"SPACE_OPERATION_BUDGET"
 	if row >= 0:
 		if _facts_match(row, true):
 			return &""
-		if _has_regions(ref) or _s_o_revision[row] == I64_MAX:
-			return &"SPACE_SOURCE_REBUILD_REQUIRED"
-		_s_o_revision[row] += 1
-	elif _s_source_free_count == 0:
-		return &"SPACE_SOURCE_CAPACITY"
+		code = _source_unused_refusal(ref)
+		if code != &"":
+			return code
+		code = _bump_source(row)
+		if code != &"":
+			return code
 	else:
-		row = _heap_pop(_s_source_free_heap, _s_source_free_count)
-		_s_source_free_count -= 1
-		_s_o_present[row] = 1
-		_s_o_slot[row] = ref.x
-		_s_o_generation[row] = ref.y
-		_s_o_revision[row] = 1
+		row = _allocate_source(ref)
+		if row == LOOKUP_BUDGET:
+			return &"SPACE_OPERATION_BUDGET"
+		if row < 0:
+			return &"SPACE_SOURCE_CAPACITY" if _s_source_free_count == 0 else &"SPACE_REVISION_EXHAUSTED"
 	_write_source_facts(row)
 	return &""
+
+func _allocate_source(ref: Vector2i) -> int:
+	"""Re-registering the same live identity cannot reset its revision by forgetting and reallocating it."""
+	if _s_source_free_count == 0:
+		return -1
+	var previous: int = -1
+	if _source_free_count < _source_capacity - 1:
+		previous = _find_source(ref, false, true)
+	if previous == LOOKUP_BUDGET:
+		return LOOKUP_BUDGET
+	if previous >= 0 and _o_revision[previous] == I64_MAX:
+		return -1
+	var row: int = _heap_pop(_s_source_free_heap, _s_source_free_count)
+	_s_source_free_count -= 1
+	_s_o_present[row] = 1
+	_s_o_slot[row] = ref.x
+	_s_o_generation[row] = ref.y
+	_s_o_revision[row] = _o_revision[previous] + 1 if previous >= 0 else 1
+	return row
 
 
 func stage_add(token: int, region: Region) -> Result:
@@ -723,7 +759,9 @@ func stage_add(token: int, region: Region) -> Result:
 		return Result.new(code)
 	if _s_region_free_count == 0:
 		return Result.new(&"SPACE_REGION_CAPACITY")
-	var owner: int = _find_source(region.owner, true)
+	var owner: int = _find_source(region.owner, true, true)
+	if owner == LOOKUP_BUDGET:
+		return Result.new(&"SPACE_OPERATION_BUDGET")
 	if owner < 0:
 		return Result.new(&"SPACE_SOURCE_NOT_REGISTERED")
 	code = _bump_source(owner)
@@ -745,7 +783,9 @@ func stage_remove(token: int, handle: Vector2i) -> StringName:
 	if not _region_live(handle, true):
 		return &"SPACE_REGION_STALE"
 	var row: int = handle.x
-	var source: int = _find_source(Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), true)
+	var source: int = _find_source(Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), true, true)
+	if source == LOOKUP_BUDGET:
+		return &"SPACE_OPERATION_BUDGET"
 	code = _bump_source(source)
 	if code != &"":
 		return code
@@ -764,25 +804,25 @@ func stage_forget_source(token: int, ref: Vector2i) -> StringName:
 	var code: StringName = _editable(token)
 	if code != &"":
 		return code
-	if not _spend(_source_capacity + _region_capacity):
+	var row: int = _find_source(ref, true, true)
+	if row == LOOKUP_BUDGET:
 		return &"SPACE_OPERATION_BUDGET"
-	var row: int = _find_source(ref, true)
 	if row < 0 or ref == Vector2i(_header[3], _header[4]):
 		return &"SPACE_SOURCE_STALE"
-	if _has_regions(ref):
-		return &"SPACE_SOURCE_IN_USE"
+	code = _source_unused_refusal(ref)
+	if code != &"":
+		return &"SPACE_SOURCE_IN_USE" if code == &"SPACE_SOURCE_REBUILD_REQUIRED" else code
 	_clear_source(row, true)
 	_heap_push(_s_source_free_heap, _s_source_free_count, row)
 	_s_source_free_count += 1
 	return &""
-
 
 func seal(token: int) -> StringName:
 	"""Prove all staged facts, references and exact extents before any physical payment commits."""
 	var code: StringName = _editable(token)
 	if code != &"":
 		return code
-	code = _validate_stage()
+	code = _validate_stage(true)
 	if code != &"":
 		return code
 	_s_header[17] = revision() + 1
@@ -880,7 +920,7 @@ func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 
 func publish(token: int) -> void:
 	"""A coordinator calls this synchronously after successful payment; there are no fallible callbacks."""
-	if _reject_room_reentry():
+	if _reject_room_reentry() or _validation_sources >= 0:
 		return
 	if _install_row >= 0 or _room_row >= 0:
 		return # Future source publication requires its exact actual owner callback, even with a sealed token.
@@ -1125,7 +1165,7 @@ func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 	"""Validate a complete same-schema/domain image in the staging bank; refusal preserves live bytes."""
 	if _reject_room_reentry():
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
-	if _ready_error != &"" or has_prepared():
+	if _ready_error != &"" or has_prepared() or _validation_sources >= 0:
 		return &"SPACE_LOAD_BOUNDARY"
 	var code: StringName = _wire_header_refusal(bytes)
 	if code != &"":
@@ -1133,6 +1173,9 @@ func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 	var begun: Result = begin_stage(revision())
 	if not begun.ok():
 		return begun.error
+	if not _spend(_region_capacity):
+		abort(begun.token)
+		return &"SPACE_OPERATION_BUDGET"
 	_read_wire(bytes, _wire_columns(true))
 	_mark_loaded_changes()
 	code = _loaded_columns_refusal()
@@ -1141,7 +1184,6 @@ func restore_state_bytes(bytes: PackedByteArray) -> StringName:
 	if code != &"":
 		abort(begun.token)
 		return code
-	_rebuild_stage_heaps()
 	_sealed = true
 	publish(begun.token)
 	return &""
@@ -1213,7 +1255,7 @@ func _wire_columns(staged: bool) -> Array:
 
 func _loaded_columns_refusal() -> StringName:
 	"""Presence, retirement and canonical free data are part of the saved deterministic allocator."""
-	if not _spend(_region_capacity + _source_capacity * _source_capacity):
+	if not _spend(_region_capacity + _source_capacity):
 		return &"SPACE_OPERATION_BUDGET"
 	for row: int in _region_capacity:
 		if _s_r_present[row] > 1 or _s_r_retired[row] > 1 or _s_r_generation[row] < 0:
@@ -1229,8 +1271,7 @@ func _loaded_columns_refusal() -> StringName:
 		var code: StringName = _loaded_source_refusal(row)
 		if code != &"":
 			return code
-	var world: int = _find_source(Vector2i(_header[3], _header[4]), true)
-	return &"" if world >= 0 else &"SPACE_LOAD_WORLD"
+	return &"" # Exact World presence and duplicate source slots are checked through the sealed index.
 
 
 func _unused_region_canonical(row: int) -> bool:
@@ -1251,9 +1292,6 @@ func _loaded_source_refusal(row: int) -> StringName:
 		return &"" if _unused_source_canonical(row) else &"SPACE_LOAD_UNUSED"
 	if _s_o_revision[row] < 1 or not Space.valid_ref(Vector2i(_s_o_slot[row], _s_o_generation[row])):
 		return &"SPACE_LOAD_SOURCE"
-	for other: int in range(row):
-		if _s_o_present[other] != 0 and _s_o_slot[other] == _s_o_slot[row]:
-			return &"SPACE_LOAD_SOURCE_DUPLICATE"
 	return &""
 
 
@@ -1284,6 +1322,8 @@ func _editable(token: int) -> StringName:
 	"""Never mutate a sealed publication candidate or another operation's staging image."""
 	if _reject_room_reentry():
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if _validation_sources >= 0:
+		return &"SPACE_VALIDATION_BUSY"
 	if token == 0 or token != _stage_token:
 		return &"SPACE_TRANSACTION_STALE"
 	return &"SPACE_TRANSACTION_SEALED" if _sealed else &""
@@ -1297,23 +1337,25 @@ func _spend(amount: int) -> bool:
 	return true
 
 
-func _find_source(ref: Vector2i, staged: bool) -> int:
-	"""Bounded cold lookup; there is no dense allocation over the full global entity directory."""
+func _find_source(ref: Vector2i, staged: bool, charged: bool = false) -> int:
+	"""A mutating cold lookup charges each visited row; public readers do not consume a transaction."""
 	for row: int in _source_capacity:
+		if charged and not _spend(1):
+			return LOOKUP_BUDGET
 		if staged and _s_o_present[row] != 0 and _s_o_slot[row] == ref.x and _s_o_generation[row] == ref.y:
 			return row
 		if not staged and _o_present[row] != 0 and _o_slot[row] == ref.x and _o_generation[row] == ref.y:
 			return row
 	return -1
 
-
-func _has_regions(ref: Vector2i) -> bool:
-	"""Source retirement/rebinding cannot orphan physical extents or confirmed reservations."""
+func _source_unused_refusal(ref: Vector2i) -> StringName:
+	"""Charge actual visited rows before retirement/rebinding can orphan retained extents."""
 	for row: int in _region_capacity:
+		if not _spend(1):
+			return &"SPACE_OPERATION_BUDGET"
 		if _s_r_present[row] != 0 and _s_r_owner_slot[row] == ref.x and _s_r_owner_generation[row] == ref.y:
-			return true
-	return false
-
+			return &"SPACE_SOURCE_REBUILD_REQUIRED"
+	return &""
 
 func _region_live(ref: Vector2i, staged: bool) -> bool:
 	"""Every floor link and region result uses the exact live internal generation."""
@@ -1425,18 +1467,18 @@ static func _nullable_ref(ref: Vector2i) -> bool:
 
 
 func _bump_source(row: int) -> StringName:
-	"""Every remaining region of one source receives the same new geometry revision."""
-	if row < 0 or _s_o_revision[row] == I64_MAX:
-		return &"SPACE_REVISION_EXHAUSTED"
-	if not _spend(_region_capacity + _source_capacity):
+	"""One changed source gets one transaction revision; seal updates all its retained rows together."""
+	if not _spend(1):
 		return &"SPACE_OPERATION_BUDGET"
+	if row < 0:
+		return &"SPACE_REVISION_EXHAUSTED"
+	if _o_present[row] == 0 or _o_slot[row] != _s_o_slot[row] \
+			or _o_generation[row] != _s_o_generation[row] or _o_revision[row] != _s_o_revision[row]:
+		return &""
+	if _s_o_revision[row] == I64_MAX:
+		return &"SPACE_REVISION_EXHAUSTED"
 	_s_o_revision[row] += 1
-	for region: int in _region_capacity:
-		if _s_r_present[region] != 0 and _s_r_owner_slot[region] == _s_o_slot[row] \
-				and _s_r_owner_generation[region] == _s_o_generation[row]:
-			_s_r_owner_revision[region] = _s_o_revision[row]
 	return &""
-
 
 func _write_region(row: int, region: Region, owner_revision: int) -> void:
 	"""All fields are initialized before presence is published, including a new floor's self-link."""
@@ -1537,21 +1579,117 @@ func _installation_before_matches(row: int) -> bool:
 		and _o_d[row] == 0 and _s_o_d[row] == 1 and _facts_match(row, false)
 
 
-func _validate_stage() -> StringName:
-	"""Validate all source and section links before scanning overlapping physical evidence."""
-	if not _spend(_region_capacity * (_source_capacity + 1) + _source_capacity):
+func _validate_stage(refresh_revisions: bool = false) -> StringName:
+	"""Borrow staged heaps only while edits are locked, reserving their unconditional reconstruction."""
+	if not _spend(_region_capacity + _source_capacity):
 		return &"SPACE_OPERATION_BUDGET"
+	_validation_regions = 0
+	_validation_sources = 0
+	var code: StringName = _index_validation_rows()
+	if code == &"":
+		code = _sort_validation_sources()
+	if code == &"":
+		code = _validate_indexed_stage(refresh_revisions)
+	_rebuild_stage_heaps()
+	_validation_regions = -1
+	_validation_sources = -1
+	return code
+
+
+func _index_validation_rows() -> StringName:
+	"""Compact present rows in existing scratch without charging capacity products or allocating."""
+	if not _spend(_region_capacity + _source_capacity):
+		return &"SPACE_OPERATION_BUDGET"
+	for row: int in _region_capacity:
+		if _s_r_present[row] != 0:
+			_s_region_free_heap[_validation_regions] = row
+			_validation_regions += 1
+	for row: int in _source_capacity:
+		if _s_o_present[row] != 0:
+			_s_source_free_heap[_validation_sources] = row
+			_validation_sources += 1
+	return &""
+
+
+func _sort_validation_sources() -> StringName:
+	"""Deterministic in-place heapsort joins sparse rows by exact global slot, including hole/reuse cases."""
+	@warning_ignore("integer_division") var root: int = _validation_sources / 2 - 1
+	while root >= 0:
+		if not _sift_validation_sources(root, _validation_sources):
+			return &"SPACE_OPERATION_BUDGET"
+		root -= 1
+	var end: int = _validation_sources - 1
+	while end > 0:
+		var old: int = _s_source_free_heap[end]
+		_s_source_free_heap[end] = _s_source_free_heap[0]
+		_s_source_free_heap[0] = old
+		if not _sift_validation_sources(0, end):
+			return &"SPACE_OPERATION_BUDGET"
+		end -= 1
+	for index: int in _validation_sources:
+		if not _spend(1):
+			return &"SPACE_OPERATION_BUDGET"
+		if index > 0 and _s_o_slot[_s_source_free_heap[index - 1]] == _s_o_slot[_s_source_free_heap[index]]:
+			return &"SPACE_LOAD_SOURCE_DUPLICATE"
+	return &""
+
+
+func _sift_validation_sources(root: int, count: int) -> bool:
+	"""Charge every slot comparison before advancing the bounded source-index heap."""
+	while root * 2 + 1 < count:
+		var child: int = root * 2 + 1
+		if child + 1 < count:
+			if not _spend(1):
+				return false
+			if _s_o_slot[_s_source_free_heap[child]] < _s_o_slot[_s_source_free_heap[child + 1]]:
+				child += 1
+		if not _spend(1):
+			return false
+		if _s_o_slot[_s_source_free_heap[root]] >= _s_o_slot[_s_source_free_heap[child]]:
+			break
+		var old: int = _s_source_free_heap[root]
+		_s_source_free_heap[root] = _s_source_free_heap[child]
+		_s_source_free_heap[child] = old
+		root = child
+	return true
+
+
+func _indexed_source(ref: Vector2i) -> int:
+	"""Only the locked validation interval can use the sorted scratch, with full generation checking."""
+	var first: int = 0
+	var limit: int = _validation_sources
+	while first < limit:
+		if not _spend(1):
+			return LOOKUP_BUDGET
+		@warning_ignore("integer_division") var middle: int = (first + limit) / 2
+		var row: int = _s_source_free_heap[middle]
+		if _s_o_slot[row] == ref.x:
+			return row if _s_o_generation[row] == ref.y else -1
+		if _s_o_slot[row] < ref.x:
+			first = middle + 1
+		else:
+			limit = middle
+	return -1
+
+
+func _validate_indexed_stage(refresh_revisions: bool) -> StringName:
+	"""All source/section evidence remains mandatory; only trusted staged edits propagate revisions."""
+	var world: int = _indexed_source(Vector2i(_header[3], _header[4]))
+	if world == LOOKUP_BUDGET or not _spend(_source_capacity):
+		return &"SPACE_OPERATION_BUDGET"
+	if world < 0:
+		return &"SPACE_LOAD_WORLD"
 	var code: StringName = _sources_refusal(true)
 	if code != &"":
 		return code
-	for row: int in _region_capacity:
-		if _s_r_present[row] != 0:
-			code = _staged_region_refusal(row)
-			if code != &"":
-				return code
+	for index: int in _validation_regions:
+		if not _spend(1):
+			return &"SPACE_OPERATION_BUDGET"
+		code = _staged_region_refusal(_s_region_free_heap[index], refresh_revisions)
+		if code != &"":
+			return code
 	code = _room_markers_refusal()
 	return _overlap_refusal() if code == &"" else code
-
 
 func _room_region_refusal(role: int, ref: Vector2i, kind: int, claim: Vector2i, section: Vector2i) -> StringName:
 	"""Confirmation reserves only Room metadata and blocking claims; it grants no excavation or usable void."""
@@ -1567,19 +1705,20 @@ func _room_markers_refusal() -> StringName:
 	"""A confirmed future Room needs both datum metadata and a blocking footprint, never an empty source."""
 	if _room_row < 0:
 		return &""
-	if not _spend(_region_capacity):
+	if not _spend(_validation_regions):
 		return &"SPACE_OPERATION_BUDGET"
 	var floor_found: bool = false
 	var claim_found: bool = false
-	for row: int in _region_capacity:
-		if _s_r_present[row] == 0 or Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]) != _room_candidate.ref:
+	for index: int in _validation_regions:
+		var row: int = _s_region_free_heap[index]
+		if Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]) != _room_candidate.ref:
 			continue
 		floor_found = floor_found or _s_r_role[row] == Space.FLOOR_DATUM
 		claim_found = claim_found or _s_r_claim_kind[row] == CLAIM_ROOM
 	return &"" if floor_found and claim_found else &"SPACE_ROOM_ADMISSION_FOOTPRINT"
 
 
-func _staged_region_refusal(row: int) -> StringName:
+func _staged_region_refusal(row: int, refresh_revisions: bool) -> StringName:
 	"""Actual extents retain complete owner, section and project generations at every height."""
 	if not Space.valid_box(_box(row, true)) or not Space.contains_box(_domain._bounds, _box(row, true)):
 		return &"SPACE_REGION_BOUNDS"
@@ -1587,8 +1726,14 @@ func _staged_region_refusal(row: int) -> StringName:
 		return &"SPACE_REGION_FORMAT"
 	if _s_r_claim_kind[row] == 0 and Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row]) != NULL_REF:
 		return &"SPACE_RESERVATION_FORMAT"
-	var owner: int = _find_source(Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), true)
-	if owner < 0 or _s_r_owner_revision[row] != _s_o_revision[owner]:
+	var owner: int = _indexed_source(Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]))
+	if owner == LOOKUP_BUDGET:
+		return &"SPACE_OPERATION_BUDGET"
+	if owner < 0:
+		return &"SPACE_SOURCE_STALE"
+	if refresh_revisions:
+		_s_r_owner_revision[row] = _s_o_revision[owner]
+	if _s_r_owner_revision[row] != _s_o_revision[owner]:
 		return &"SPACE_SOURCE_STALE"
 	var code: StringName = _room_region_refusal(_s_r_role[row],
 		Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), _s_r_claim_kind[row],
@@ -1676,15 +1821,18 @@ func _same_spatial_row(row: int) -> bool:
 
 
 func _overlap_refusal() -> StringName:
-	"""Only changed-vs-present pairs can invalidate an already validated live image; no box allocations."""
-	if not _spend(_changed_count * _region_capacity):
-		return &"SPACE_OPERATION_BUDGET"
+	"""Only changed-versus-present pairs need checks; empty capacity rows never multiply the charge."""
 	for index: int in _changed_count:
+		if not _spend(1):
+			return &"SPACE_OPERATION_BUDGET"
 		var first: int = _changed_rows[index]
 		if _s_r_present[first] == 0:
 			continue
-		for second: int in _region_capacity:
-			if _s_r_present[second] == 0 or second == first or (_changed_mask[second] != 0 and second < first):
+		for other: int in _validation_regions:
+			if not _spend(1):
+				return &"SPACE_OPERATION_BUDGET"
+			var second: int = _s_region_free_heap[other]
+			if second == first or (_changed_mask[second] != 0 and second < first):
 				continue
 			if not _rows_overlap(first, second):
 				continue
@@ -1692,7 +1840,6 @@ func _overlap_refusal() -> StringName:
 			if code != &"":
 				return code
 	return &""
-
 
 func _rows_overlap(first: int, second: int) -> bool:
 	"""Exact half-open scalar overlap avoids allocating two six-column boxes for every pair."""

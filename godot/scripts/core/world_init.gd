@@ -1159,6 +1159,11 @@ func directory() -> EntityDirectory:
 	return _directory
 
 
+func resource_nodes() -> ResourceNodesScript:
+	"""Expose the actual generated resource owner for exact spatial composition, without copying."""
+	return _nodes
+
+
 func clear() -> void:
 	"""Discard the published map so this generator reports no world, reallocating nothing.
 
@@ -1197,6 +1202,17 @@ func published_seed() -> IntMath.IntResult:
 func terrain_at(tile: int) -> IntMath.IntResult:
 	"""The published terrain kind of one tile, or an explicit refusal."""
 	return _read_tile(tile, _terrain)
+
+
+func terrain_into(tile: int, out: IntMath.IntResult) -> bool:
+	"""Read current published terrain into reused scratch; refusal erases an earlier success."""
+	if out == null:
+		return false
+	if not _published:
+		return out.refuse(String(REFUSE_NOT_PUBLISHED))
+	if not is_tile_index(tile):
+		return out.refuse(String(REFUSE_INVALID_TILE))
+	return out.succeed(_terrain[tile])
 
 
 func soil_at(tile: int) -> IntMath.IntResult:

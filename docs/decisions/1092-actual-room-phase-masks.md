@@ -318,3 +318,92 @@ no critical/high/medium issue within this static preflight and exact lease
 handshake scope. Final correction analyzer reports0 warnings in0 of2 files;
 no runtime/source change followed that evidence. Playable admission, the
 packed-validator replacement and large-plan coexistence remain explicitly open.
+
+## Admission follow-up: packed validation and one retained image
+
+Decision 1094 now provides exact packed validation while preserving the existing
+16,384-cell operation ceiling and all shape/refusal semantics. This follow-up
+removes the temporary 477-cell admission bound; it introduces no replacement
+room size, drawing pitch, material or level policy.
+
+Virgin-room admission already requires actual `Terrain.dig_refusal` for every
+whole paid-cut run and every exact painted footing/protected-above band. Those
+checks prove original dryness and current water/resource/Building exclusions.
+Admission also rejects every overlapping retained physical role except original
+`DRY_SOLID` and metadata `FLOOR_DATUM`, and separately rejects all retained Sites
+history. It therefore needs one complete, unfiltered actual SpaceOwner snapshot,
+not the additional original-natural/subtracted/composed output image used by
+physical phase validation. Physical phases keep their existing compositor.
+Every claim, wall, pending item, support, void, unfinished cavity and foreign
+reservation remains visible; no site-specific or traversal exemption is used.
+
+The actual source image and its full World/revision are checked around the
+operation. Exact owner composition, original input, source liveness, exclusive
+entry and the actual World Budget token remain mandatory. A source or token
+change cannot publish a Room or retain an accepted result. Existing actual
+retained-history refusal and `PROSPECTIVE_ENTRY_CONTACT_UNBOUND` remain explicit:
+this is static admission evidence, not a free corridor, installed entrance,
+excavation permission or playable construction claim.
+
+### Simultaneous memory and work
+
+Let N be the unchanged admitted footprint count, R the configured joint region
+ceiling of 6144, and O the source ceiling of 2048. One actual snapshot requires
+at most `48R + 16O = 327680` logical packed bytes. Charge 24N for the incoming
+plan and both possible protected plan copies, even though the current static
+preflight retains fewer simultaneously. With the existing 2048-byte helper,
+Domain/descriptor and scalar allowance, the complete cold envelope is:
+
+```text
+max(327680, Footprint.validation_scratch_bytes(N)) + 24N + 2048
+```
+
+At N=16384 this is 722944 bytes, below the unchanged shared World arena of
+1048960 bytes. No original-shape image is silently omitted, no second arena is
+created and no input is truncated. The actual full arena is still acquired
+before the first copy and held synchronously through cleanup. Native packed
+headers, strong/weak references and allocation growth remain in the existing
+joint bindings/native reservation; this formula is not measured native RAM.
+There are no new persistent or reused member columns. Window bounds reuse the
+existing six-I32 Region box; scalar helper frames fit the declared allowance.
+
+Packed footprint validation and its surrounding linear cell/run passes are
+conservatively precharged at 32N operations, in addition to the unchanged owner
+scan allowance. Canonical checks, linear adjacent-row joins, once-enqueued BFS,
+pinch/Euler checks and run discovery have bounded linear loop examinations.
+Retained-row comparisons and immutable Sites lookups spend their actual nested
+work. Terrain checks split each original requested box into clipped, tile-aligned
+windows of at most 8×8 actual tiles, within Terrain's existing 64-tile read cap.
+Each window charges `16 * actual_tile_count + 1` before the real terrain call.
+Both window endpoints are pinned before callbacks and the exact arena token is
+checked before and after every call. This changes query granularity only; full
+cut volume and exact fine painted bands stay unchanged, including holes.
+
+### Verification scope
+
+The focused tests use the same actual owners as the earlier admission packet.
+The fixture Domain now permits the already-approved full Footprint ceiling.
+New cases cover a complete 16384-cell rectangle, a 130m run spanning 66 terrain
+tiles, a 508-cell outline around an occupied hole, both horizontal window axes,
+a real river reached only after the first dry window, and a replaced actual
+Budget token immediately after one genuine terrain query. Existing depth,
+pending Furniture, claim, wall, original request mutation, reentry, World
+identity, authored height and retained paid-history refusals remain covered.
+
+Final clean strict checks pass actual admission 21 tests / 689 assertions,
+RoomOrders 28 / 1457 and RoomBindings masks 17 / 604: 66 tests, 2750 assertions
+and zero failures. Each suite reports:
+
+```text
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+The final analyzer reports `0 GDScript warning(s) in 0 of 2 file(s)`. Independent
+root review accepts the exact source/test pins with no high or medium finding
+in the complete retained snapshot, actual Terrain windows, lifetime checks or
+memory calculation. Logs, full shard manifests, exact hashes and commands are
+retained under `docs/validation/evidence/underground-room-masks-2026-10-03/admission-scale/`.
+No full game suite or native allocation qualification is claimed by these
+component checks. Actual first-work contact, qualified profile, entry/connector
+and prepared support companions remain required before confirmation can succeed.

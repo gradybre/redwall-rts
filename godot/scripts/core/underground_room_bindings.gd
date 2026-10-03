@@ -15,6 +15,7 @@ const Orders := preload("res://scripts/core/underground_room_orders.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Footprint := preload("res://scripts/core/room_footprint.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const World := preload("res://scripts/core/world_init.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_MASK_BINDING: StringName = &"ROOM_MASK_WORLD_BINDING"
 const REFUSE_MASK_BUSY: StringName = &"ROOM_MASK_REENTRY"
@@ -34,8 +35,9 @@ const REFUSE_ABOVE: StringName = &"ROOM_PROTECTED_ABOVE_OCCUPIED"
 const REFUSE_FOOTING: StringName = &"ROOM_REQUIRED_FOOTING_OCCUPIED"
 const REFUSE_ENTRY: StringName = &"PROSPECTIVE_ENTRY_CONTACT_UNBOUND"
 const ROOM_CONTROL_BYTES: int = 2048
-const ROOM_FOOTPRINT_BYTES_PER_CELL: int = 2192 #128 packed +16 plan copies +2048 native/growth.
-const ROOM_TERRAIN_RUN_CHECKS: int = 3 * 16 * Terrain.LOCAL_TILE_LIMIT
+const ROOM_PLAN_BYTES_PER_CELL: int = 24 # Incoming plan plus both possible protected copies.
+const ROOM_SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY
+const ROOM_TERRAIN_WINDOW_TILES: int = 8 # At most64 actual tiles; never a room size limit.
 
 var _provider: WeakRef = null
 var _sites: WeakRef = null
@@ -126,11 +128,11 @@ func configure_room_admission(orders: Orders, levels: Levels) -> StringName:
 
 
 static func room_admission_cold_bytes(cell_count: int) -> int:
-	"""Conservative temporary operation envelope, never a gameplay room-size or drawing-grid policy."""
+	"""One retained image and packed validation have separate peaks; all existing cell counts fit."""
 	if cell_count < 1 or cell_count > Footprint.MAX_OPERATION_CELLS:
 		return 0
-	return maxi(WorldBindings.COMPOSITION_BYTES + 16 * cell_count + ROOM_CONTROL_BYTES,
-		ROOM_FOOTPRINT_BYTES_PER_CELL * cell_count + ROOM_CONTROL_BYTES)
+	return maxi(ROOM_SNAPSHOT_BYTES, Footprint.validation_scratch_bytes(cell_count)) \
+		+ ROOM_PLAN_BYTES_PER_CELL * cell_count + ROOM_CONTROL_BYTES
 
 
 func begin_room_cold(plan: Orders.RoomPlan) -> StringName:
@@ -158,7 +160,7 @@ func begin_room_cold(plan: Orders.RoomPlan) -> StringName:
 
 func _admission_input_refusal(plan: Orders.RoomPlan, orders: Orders, provider: WorldBindings,
 		levels: Levels, sites: Sites) -> StringName:
-	"""Bound every caller dimension and capacity before one plan, Domain or Dictionary is copied."""
+	"""Bound every caller dimension and capacity before one plan, Domain or packed packet is copied."""
 	if orders == null or provider == null or levels == null or sites == null or _budget == null \
 			or sites != _actual_sites() or sites.construction_owner() != orders.construction_owner() \
 			or orders.room_admission_refusal(plan, self) != &"" or plan == null \
@@ -232,14 +234,14 @@ static func _same_admission_plan(first: Orders.RoomPlan, second: Orders.RoomPlan
 
 
 func _admission_preflight(provider: WorldBindings, levels: Levels) -> StringName:
-	"""Run sequential Footprint and compositor peaks under one exact admitted synchronous lifetime."""
+	"""Run sequential packed Footprint and actual retained-image peaks under the same exact lease."""
 	var domain: Space.Domain = provider.space_owner().domain_copy()
 	var code: StringName = _current_room_refusal()
 	if code != &"" or domain == null:
 		return code if code != &"" else REFUSE_ADMISSION
 	var descriptor: Dictionary = domain.descriptor()
 	_remaining = descriptor.max_checks
-	if not _spend(SCAN_CHECKS + _room_pin.cells.size() * 32):
+	if not _spend(SCAN_CHECKS + _room_pin.cells.size() * 16):
 		return REFUSE_MASK_BUDGET
 	code = _level_refusal(levels, domain, provider.sources().directory())
 	if code == &"":
@@ -286,11 +288,18 @@ func _admission_bounds(datum: Vector3i) -> PackedInt32Array:
 
 
 func _observe_room(provider: WorldBindings, datum: Vector3i, bounds: PackedInt32Array) -> StringName:
-	"""The one unfiltered actual snapshot keeps every foreign claim, wall, item and paid cavity visible."""
+	"""Original dryness is proved separately; one unfiltered image retains every actual claim and cavity."""
+	var code: StringName = _current_room_refusal()
+	if code != &"" or not Space.valid_box(bounds):
+		return code if code != &"" else Orders.REFUSE_PLAN
 	var snapshot: Space.Snapshot = Space.Snapshot.new()
-	var code: StringName = provider.composed_snapshot_into(bounds, snapshot, _room_token)
+	code = provider.space_owner().snapshot_into(snapshot)
 	if code == &"":
 		code = _current_room_refusal()
+	if code == &"" and (snapshot.world_ref != _room_pin.world or snapshot.revision != _room_pin.space_revision \
+			or snapshot.volumes == null or snapshot.volumes.role.size() > Budget.REGION_CAPACITY \
+			or snapshot.live_revisions.size() > Budget.SOURCE_CAPACITY):
+		code = REFUSE_ADMISSION
 	if code == &"":
 		code = _all_room_runs(snapshot, datum)
 	if code == &"":
@@ -321,11 +330,9 @@ func _all_room_runs(snapshot: Space.Snapshot, datum: Vector3i) -> StringName:
 
 func _room_run_refusal(snapshot: Space.Snapshot, datum: Vector3i) -> StringName:
 	"""Original dry soil is necessary; retained geometry can still block the entire economic cut volume."""
-	if not _spend(ROOM_TERRAIN_RUN_CHECKS):
-		return REFUSE_MASK_BUDGET
 	if not _write_cut_span(datum):
 		return Orders.REFUSE_PLAN
-	var code: StringName = _actual_provider().terrain_owner().dig_refusal(_clip)
+	var code: StringName = _terrain_dry_refusal()
 	if code == &"":
 		code = _retained_volume_refusal(snapshot.volumes, _clip, REFUSE_CUT)
 	if code == &"":
@@ -343,8 +350,54 @@ func _room_band_refusal(snapshot: Space.Snapshot, low: int, high: int, code: Str
 		_clip[axis] = _cube[axis]
 	_clip[1] = low
 	_clip[4] = high
-	var terrain_code: StringName = _actual_provider().terrain_owner().dig_refusal(_clip)
+	var terrain_code: StringName = _terrain_dry_refusal()
 	return terrain_code if terrain_code != &"" else _retained_volume_refusal(snapshot.volumes, _clip, code)
+
+
+func _terrain_dry_refusal() -> StringName:
+	"""Tile-aligned windows preserve the exact requested volume while respecting Terrain's local query cap."""
+	var terrain: Terrain = _actual_provider().terrain_owner()
+	var z: int = _clip[2]
+	while z < _clip[5]:
+		var x: int = _clip[0]
+		var next_z: int = z
+		while x < _clip[3]:
+			_write_terrain_window(x, z)
+			var next_x: int = _region.box[3]
+			next_z = _region.box[5]
+			var code: StringName = _terrain_window_refusal(terrain)
+			if code != &"":
+				return code
+			x = next_x
+		z = next_z
+	return &""
+
+
+func _write_terrain_window(x: int, z: int) -> void:
+	"""Reuse the existing six-I32 Region box; no per-window array or additional retained state is created."""
+	@warning_ignore("integer_division") var tile_x: int = x / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var tile_z: int = z / World.TILE_SIZE_UNITS
+	_region.box[0] = x
+	_region.box[1] = _clip[1]
+	_region.box[2] = z
+	_region.box[3] = mini(_clip[3], (tile_x + ROOM_TERRAIN_WINDOW_TILES) * World.TILE_SIZE_UNITS)
+	_region.box[4] = _clip[4]
+	_region.box[5] = mini(_clip[5], (tile_z + ROOM_TERRAIN_WINDOW_TILES) * World.TILE_SIZE_UNITS)
+
+
+func _terrain_window_refusal(terrain: Terrain) -> StringName:
+	"""Charge exact tile work and check the real token around every nonallocating terrain callback."""
+	@warning_ignore("integer_division") var first_x: int = _region.box[0] / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var last_x: int = (_region.box[3] - 1) / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var first_z: int = _region.box[2] / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var last_z: int = (_region.box[5] - 1) / World.TILE_SIZE_UNITS
+	var tiles: int = (last_x - first_x + 1) * (last_z - first_z + 1)
+	if not _spend(16 * tiles + 1):
+		return REFUSE_MASK_BUDGET
+	if not _room_lease_current():
+		return Orders.REFUSE_ROOM_COLD
+	var code: StringName = terrain.dig_refusal(_region.box)
+	return code if code != &"" or _room_lease_current() else Orders.REFUSE_ROOM_COLD
 
 
 func _retained_volume_refusal(volumes: Space.Volumes, box: PackedInt32Array, blocked: StringName) -> StringName:

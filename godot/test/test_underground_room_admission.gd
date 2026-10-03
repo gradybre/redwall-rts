@@ -29,6 +29,7 @@ const Router := preload("res://scripts/core/modular_projects.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
+const Footprint := preload("res://scripts/core/room_footprint.gd")
 const MaskFixture := preload("res://test/test_underground_room_bindings.gd")
 const RoomFixture := preload("res://test/test_underground_furniture_work.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -51,32 +52,38 @@ class ReleaseProbe extends RefCounted:
 		retained_after_release = observed.get_ref() != null
 
 class ObservedWorld extends WorldBindings:
-	## All observations use real composition; callbacks only inject lease loss and nested calls.
-	var surveys: int = 0
+	## Exact composer wiring remains real; callbacks inject only caller growth and outer-owner release.
 	var arena: Budget = null
-	var expire: bool = false
-	var replacement: int = 0
-	var orders: WeakRef = null
-	var nested_plan: Orders.RoomPlan = null
-	var nested_error: StringName = &""
 	var grow_before_copy: Orders.RoomPlan = null
-	var mutate_after_copy: Orders.RoomPlan = null
 	var release_probe: ReleaseProbe = null
 
 	func binding_refusal() -> StringName:
-		"""Grow the caller input only after its real cold lease exists, before the provider's first copy."""
+		"""Grow only after real lease admission, before the provider's first copy."""
 		var code: StringName = super.binding_refusal()
 		if grow_before_copy != null and arena != null and not arena.is_quiescent():
-			grow_before_copy.cells.resize(478 * 2)
+			grow_before_copy.cells.resize((Footprint.MAX_OPERATION_CELLS + 1) * 2)
 			grow_before_copy = null
 		if release_probe != null and arena != null and not arena.is_quiescent():
 			release_probe.drop_outer_owners()
 		return code
 
-	func composed_snapshot_into(bounds: PackedInt32Array, out: Space.Snapshot, token: int) -> StringName:
-		"""The actual snapshot completes before an adversarial callback changes its continued lease."""
+class ObservedSpace extends RoomFixture.WatchedSpace:
+	## The full actual retained owner supplies the image; callbacks inject adversarial lifetime changes.
+	var surveys: int = 0
+	var arena: Budget = null
+	var expire: bool = false
+	var replacement: int = 0
+	var orders: WeakRef = null
+	var rooms: WeakRef = null
+	var nested_plan: Orders.RoomPlan = null
+	var nested_error: StringName = &""
+	var mutate_after_copy: Orders.RoomPlan = null
+
+	func snapshot_into(out: Space.Snapshot) -> StringName:
+		"""Observe the actual source image before changing a caller input or the exact held token."""
 		surveys += 1
-		var code: StringName = super.composed_snapshot_into(bounds, out, token)
+		var token: int = (rooms.get_ref() as Bindings).room_cold_token()
+		var code: StringName = super.snapshot_into(out)
 		if mutate_after_copy != null:
 			mutate_after_copy.cells[0] += 1
 			mutate_after_copy = null
@@ -87,6 +94,29 @@ class ObservedWorld extends WorldBindings:
 		if expire:
 			expire = false
 			assert(arena.release(token) == &"", "exact originally admitted lease")
+			replacement = arena.acquire(Budget.COLD_BYTES)
+		return code
+
+class ObservedTerrain extends Terrain:
+	## Exact original terrain checks run in every observed window; no synthetic dry-soil permission.
+	var calls: int = 0
+	var maximum_tiles: int = 0
+	var expire: bool = false
+	var replacement: int = 0
+	var arena: Budget = null
+	var rooms: WeakRef = null
+
+	func dig_refusal(bounds: PackedInt32Array) -> StringName:
+		"""Count actual tile spans and optionally replace the lease after one genuine terrain query."""
+		calls += 1
+		@warning_ignore("integer_division") var width: int = (bounds[3] - 1) / World.TILE_SIZE_UNITS - bounds[0] / World.TILE_SIZE_UNITS + 1
+		@warning_ignore("integer_division") var depth: int = (bounds[5] - 1) / World.TILE_SIZE_UNITS - bounds[2] / World.TILE_SIZE_UNITS + 1
+		maximum_tiles = maxi(maximum_tiles, width * depth)
+		var code: StringName = super.dig_refusal(bounds)
+		if expire:
+			expire = false
+			var token: int = (rooms.get_ref() as Bindings).room_cold_token()
+			assert(arena.release(token) == &"", "actual query held the original token")
 			replacement = arena.acquire(Budget.COLD_BYTES)
 		return code
 
@@ -108,8 +138,8 @@ var _items: Items = null
 var _buildings: Buildings = null
 var _construction: Construction = null
 var _sources: Owner.CoreSources = null
-var _space: RoomFixture.WatchedSpace = null
-var _terrain: Terrain = null
+var _space: ObservedSpace = null
+var _terrain: ObservedTerrain = null
 var _provider: ObservedWorld = null
 var _budget: Budget = null
 var _levels: Levels = null
@@ -147,15 +177,17 @@ func _domain() -> Space.Domain:
 	"""Exact actual level-pack domain and paid datum; painted cells keep a separate pitch."""
 	var domain: Space.Domain = Space.Domain.new()
 	assert_equal(domain.configure(_world_ref, Vector3i(0, 512, 0), Vector3i(0, -32, 0),
-		Vector3i(256, 48, 256), 8192, 8192, Space.MAX_CHECKS), &"", "actual content domain")
+		Vector3i(256, 48, 256), Footprint.MAX_OPERATION_CELLS, 8192, Space.MAX_CHECKS), &"", "actual content domain")
 	return domain
 
 
 func _bind_space() -> void:
 	"""No existing completed void or free entrance is supplied by this real untouched terrain fixture."""
-	_space = RoomFixture.WatchedSpace.new(_sources)
+	_space = ObservedSpace.new(_sources)
+	_space.arena = _budget
 	assert_equal(_space.configure(_domain(), Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "actual sparse arena")
-	_terrain = Terrain.new()
+	_terrain = ObservedTerrain.new()
+	_terrain.arena = _budget
 	assert_equal(_terrain.configure(_world, _nodes, _space, _sources, _items, _budget), &"", "actual geology/exclusions")
 	_provider = ObservedWorld.new()
 	_provider.arena = _budget
@@ -189,18 +221,22 @@ func _bind_rooms() -> void:
 	_orders = RoomFixture.SyntheticRegistration.new()
 	assert_equal(_orders.configure(_router, _space, _sources, RoomCatalog.new(), _rooms), &"", "actual sole Room authority")
 	assert_equal(_rooms.configure_room_admission(_orders, _levels), &"", "actual admission owner and level catalog")
-	_provider.orders = weakref(_orders)
+	_space.orders = weakref(_orders)
+	_space.rooms = weakref(_rooms)
+	_terrain.rooms = weakref(_rooms)
 
 
 func after_each() -> void:
 	"""Every refusal releases all original cold buffers and no authoritative owner leaks through callbacks."""
-	if _provider.replacement > 0:
-		assert_equal(_budget.release(_provider.replacement), &"", "test owns the replacement lease")
+	if _space.replacement > 0:
+		assert_equal(_budget.release(_space.replacement), &"", "test owns the replacement lease")
+	if _terrain.replacement > 0:
+		assert_equal(_budget.release(_terrain.replacement), &"", "test owns the terrain replacement lease")
 	assert_true(_budget.is_quiescent(), "no cross-frame room lease")
 	assert_false(_space.has_prepared(), "no leaked future source candidate")
 	assert_true(_orders._room_plan.cells.is_empty(), "coordinator plan cleared")
 	assert_null(_rooms._room_pin, "provider copied plan dropped before release")
-	_provider.nested_plan = null
+	_space.nested_plan = null
 	_rooms = null
 	_orders = null
 	_router = null
@@ -257,7 +293,7 @@ func _assert_refusal(plan: Orders.RoomPlan, expected: StringName) -> void:
 	assert_false(result.ok, "static observation alone never completes admission")
 	assert_equal(result.error, expected, "exact actual refusal")
 	assert_equal(_state(), before, "every authoritative byte remains unchanged")
-	assert_true(_budget.is_quiescent() or _provider.replacement > 0, "own synchronous lease is released")
+	assert_true(_budget.is_quiescent() or _space.replacement > 0 or _terrain.replacement > 0, "own synchronous lease is released")
 
 
 func _room(level: int = 1) -> Vector2i:
@@ -318,7 +354,7 @@ func test_clear_actual_dirt_reaches_missing_entry_without_publishing_a_free_room
 	var plan: Orders.RoomPlan = _plan()
 	var cells: PackedInt32Array = plan.cells.duplicate()
 	_assert_refusal(plan, Bindings.REFUSE_ENTRY)
-	assert_equal(_provider.surveys, 1, "one actual unfiltered composed survey")
+	assert_equal(_space.surveys, 1, "one actual unfiltered retained owner image")
 	assert_equal(plan.cells, cells, "exact fine concave input is untouched")
 	assert_equal(_buildings.live_room_count(), 0, "no prematurely accepted Room")
 	assert_equal(_construction.live_project_count(), 0, "no fake entry or work project")
@@ -326,18 +362,19 @@ func test_clear_actual_dirt_reaches_missing_entry_without_publishing_a_free_room
 
 
 func test_oversize_and_busy_refuse_before_domain_plan_or_snapshot_copy() -> void:
-	"""477 is a temporary reserved-memory bound, never shape truncation or a player room policy."""
-	assert_true(Bindings.room_admission_cold_bytes(477) <= Budget.COLD_BYTES, "last admitted engineering count")
-	assert_true(Bindings.room_admission_cold_bytes(478) > Budget.COLD_BYTES, "next count refuses")
+	"""The complete existing footprint ceiling fits; a larger caller shape refuses before any owned copy."""
+	assert_equal(Bindings.room_admission_cold_bytes(Footprint.MAX_OPERATION_CELLS), 722944, "complete simultaneous envelope")
+	assert_true(Bindings.room_admission_cold_bytes(478) < Budget.COLD_BYTES, "no inherited477-cell cap")
+	assert_equal(Bindings.room_admission_cold_bytes(Footprint.MAX_OPERATION_CELLS + 1), 0, "existing public ceiling preserved")
 	var cells: PackedInt32Array = PackedInt32Array()
-	for x: int in 478:
+	for x: int in Footprint.MAX_OPERATION_CELLS + 1:
 		cells.append_array(PackedInt32Array([x, 0]))
 	var plan: Orders.RoomPlan = _plan(1, cells)
 	var copies: int = _space.domain_calls
-	_assert_refusal(plan, Budget.REFUSE_BYTES)
+	_assert_refusal(plan, Orders.REFUSE_PLAN)
 	assert_equal(_rooms.preflights, 0, "no provider copy or Footprint validation")
 	assert_equal(_space.domain_calls, copies, "no Domain copy")
-	assert_equal(_provider.surveys, 0, "no spatial copy")
+	assert_equal(_space.surveys, 0, "no spatial copy")
 	assert_equal(plan.cells, cells, "oversize input not trimmed")
 	var token: int = _budget.acquire(Budget.COLD_BYTES)
 	assert_equal(_orders.confirm_room(_plan()).error, Budget.REFUSE_BUSY, "another real owner holds the arena")
@@ -425,19 +462,19 @@ func test_retained_physical_history_cannot_be_reclassified_as_virgin_by_a_new_pl
 
 func test_snapshot_callback_lease_replacement_clears_owned_scratch_and_preserves_foreign_lease() -> void:
 	"""A full returned snapshot cannot substitute for the exact current cold reservation."""
-	_provider.expire = true
+	_space.expire = true
 	_assert_refusal(_plan(), Orders.REFUSE_ROOM_COLD)
-	assert_true(_budget.covers(_provider.replacement, Budget.COLD_BYTES), "cleanup did not steal replacement")
+	assert_true(_budget.covers(_space.replacement, Budget.COLD_BYTES), "cleanup did not steal replacement")
 	assert_null(_rooms._room_pin, "copied plan dropped on lifetime refusal")
 	assert_true(_orders._room_plan.cells.is_empty(), "coordinator never copied after false admission")
 
 
 func test_source_callback_reentry_refuses_before_any_nested_cold_acquisition() -> void:
 	"""The real outer observer keeps exclusivity before every provider callback."""
-	_provider.nested_plan = _plan()
+	_space.nested_plan = _plan()
 	_assert_refusal(_plan(), Bindings.REFUSE_ENTRY)
-	assert_equal(_provider.nested_error, Orders.REFUSE_TRANSITION, "nested Room confirmation refused immediately")
-	assert_equal(_provider.surveys, 1, "only the outer actual snapshot exists")
+	assert_equal(_space.nested_error, Orders.REFUSE_TRANSITION, "nested Room confirmation refused immediately")
+	assert_equal(_space.surveys, 1, "only the outer actual snapshot exists")
 
 
 func test_unscoped_direct_begin_and_refused_rebinding_have_no_permission() -> void:
@@ -454,17 +491,17 @@ func test_callback_grown_input_refuses_before_any_owned_copy() -> void:
 	_provider.grow_before_copy = plan
 	var copies: int = _space.domain_calls
 	_assert_refusal(plan, Budget.REFUSE_BYTES)
-	assert_equal(plan.cells.size(), 956, "adversarial caller mutation remains visible, never silently truncated")
+	assert_equal(plan.cells.size(), (Footprint.MAX_OPERATION_CELLS + 1) * 2, "adversarial caller mutation remains visible, never silently truncated")
 	assert_equal(_rooms.preflights, 0, "no provider plan/Footprint/Domain allocation entered")
 	assert_equal(_space.domain_calls, copies, "no Domain copy after false size qualification")
-	assert_equal(_provider.surveys, 0, "no actual whole-space copy")
+	assert_equal(_space.surveys, 0, "no actual whole-space copy")
 	_assert_refusal(_plan(), Bindings.REFUSE_ENTRY)
 
 
 func test_snapshot_callback_cannot_change_the_exact_copied_shape() -> void:
 	"""Current terrain evidence never qualifies a different player outline after the original was pinned."""
 	var plan: Orders.RoomPlan = _plan()
-	_provider.mutate_after_copy = plan
+	_space.mutate_after_copy = plan
 	_assert_refusal(plan, Orders.REFUSE_ROOM_COLD)
 	assert_equal(plan.cells[0], 1, "caller mutation is not overwritten as a fake rollback")
 	assert_null(_rooms._room_pin, "only the owned copy is dropped")
@@ -491,7 +528,7 @@ func test_equal_numbered_foreign_level_binding_and_expired_catalog_refuse() -> v
 	var plan: Orders.RoomPlan = _plan()
 	_levels = null
 	_assert_refusal(plan, Bindings.REFUSE_ADMISSION)
-	assert_equal(_provider.surveys, 0, "neither false catalog reaches a whole-space survey")
+	assert_equal(_space.surveys, 0, "neither false catalog reaches a whole-space survey")
 
 
 func test_actual_sites_survives_callback_outer_release_until_scope_cleanup() -> void:
@@ -514,3 +551,93 @@ func test_actual_sites_survives_callback_outer_release_until_scope_cleanup() -> 
 	var after: Array[PackedByteArray] = [_jobs.directory().state_bytes(), _space.state_bytes(),
 		_construction.state_bytes(), _inventory.state_bytes()]
 	assert_equal(after, before, "no actual identity, geometry, payment or inventory changes")
+
+
+func test_full_existing_cell_ceiling_reaches_entry_refusal_under_one_actual_lease() -> void:
+	"""A complete16,384-cell plan fits real admission scratch without replacing477 with another room-size policy."""
+	var cells: PackedInt32Array = Footprint.rectangle(0, 0, 128, 128, Footprint.MAX_OPERATION_CELLS).cells
+	var plan: Orders.RoomPlan = _plan(2, cells)
+	plan.origin_u.x = 20 * World.TILE_SIZE_UNITS
+	plan.origin_u.z = 20 * World.TILE_SIZE_UNITS
+	_assert_refusal(plan, Bindings.REFUSE_ENTRY)
+	assert_equal(plan.cells, cells, "full exact outline remains unchanged")
+	assert_equal(_space.surveys, 1, "one complete actual retained image")
+	assert_true(_terrain.calls > 3, "every fine run and authored band is observed")
+	assert_true(_terrain.maximum_tiles <= Terrain.LOCAL_TILE_LIMIT, "all actual local queries stay bounded")
+	assert_equal(_budget.peak_reserved_bytes(), Budget.COLD_BYTES, "all copies share the actual arena")
+
+
+func _long_plan() -> Orders.RoomPlan:
+	"""A single fine run spans66 actual surface tiles while remaining entirely in authored dry land."""
+	var cells: PackedInt32Array = Footprint.rectangle(0, 0, 130, 1, Footprint.MAX_OPERATION_CELLS).cells
+	var plan: Orders.RoomPlan = _plan(2, cells, 1024)
+	plan.origin_u.x = 4 * World.TILE_SIZE_UNITS + 1024
+	return plan
+
+
+func test_long_run_is_exactly_windowed_instead_of_inheriting_local_terrain_capacity() -> void:
+	"""A local read limit is not a Room width limit; clipped windows cover the same full physical extent."""
+	var plan: Orders.RoomPlan = _long_plan()
+	var bounds: PackedInt32Array = PackedInt32Array([plan.origin_u.x, plan.origin_u.y, plan.origin_u.z,
+		plan.origin_u.x + 130 * 1024, plan.origin_u.y + plan.height_u, plan.origin_u.z + 1024])
+	assert_equal(_terrain.dig_refusal(bounds), &"TERRAIN_LOCAL_CAPACITY", "same complete run exceeds one local read")
+	_terrain.maximum_tiles = 0
+	_terrain.calls = 0
+	_assert_refusal(plan, Bindings.REFUSE_ENTRY)
+	assert_true(_terrain.calls >= 27, "cut, footing and roof each require multiple exact windows")
+	assert_true(_terrain.maximum_tiles <= Terrain.LOCAL_TILE_LIMIT, "no enlarged local query bypass")
+	assert_equal(_space.surveys, 1, "long plan does not duplicate retained images")
+
+
+func test_large_hole_keeps_retained_occupancy_outside_exact_room_runs() -> void:
+	"""One full source image cannot turn its bounding envelope into an occupied or usable room area."""
+	var origin: int = 20 * World.TILE_SIZE_UNITS
+	var token: int = _space.begin_stage(_space.revision()).token
+	_put(token, PackedInt32Array([origin + 8192, -9000, origin + 8192,
+		origin + 9216, -8000, origin + 9216]), Space.OBSTACLE, _world_ref, 2)
+	_publish(token)
+	var ring: PackedInt32Array = PackedInt32Array()
+	for z: int in 128:
+		for x: int in 128:
+			if x == 0 or z == 0 or x == 127 or z == 127:
+				ring.append_array(PackedInt32Array([x, z]))
+	assert_equal(ring.size(), 508 * 2, "holey outline already exceeds the removed temporary cap")
+	var plan: Orders.RoomPlan = _plan(2, ring)
+	plan.origin_u.x = origin
+	plan.origin_u.z = origin
+	_assert_refusal(plan, Bindings.REFUSE_ENTRY)
+	assert_equal(plan.cells, ring, "no bounding-box fill or hole deletion")
+	plan.cells = Footprint.rectangle(0, 0, 128, 128, Footprint.MAX_OPERATION_CELLS).cells
+	_assert_refusal(plan, Bindings.REFUSE_CUT)
+
+
+func test_window_callback_losing_lease_stops_before_next_read_and_preserves_replacement() -> void:
+	"""After one actual terrain window returns, lost lifetime cannot fund another query or any publication."""
+	_terrain.expire = true
+	_assert_refusal(_long_plan(), Orders.REFUSE_ROOM_COLD)
+	assert_equal(_terrain.calls, 1, "no second window entered after original lease loss")
+	assert_equal(_space.surveys, 1, "the original retained image was observed only once")
+	assert_true(_budget.covers(_terrain.replacement, Budget.COLD_BYTES), "cleanup preserves another exact token")
+	assert_null(_rooms._room_pin, "owned plan dropped before cleanup")
+	assert_true(_orders._room_plan.cells.is_empty(), "no downstream candidate copy after refusal")
+
+
+func test_wide_and_deep_cell_checks_all_actual_eight_by_eight_tile_windows() -> void:
+	"""The engineering window bounds both horizontal axes without changing the caller's exact cell pitch."""
+	var plan: Orders.RoomPlan = _plan(2, PackedInt32Array([0, 0]), 32768)
+	plan.origin_u.x = 20 * World.TILE_SIZE_UNITS
+	plan.origin_u.z = 20 * World.TILE_SIZE_UNITS
+	_assert_refusal(plan, Bindings.REFUSE_ENTRY)
+	assert_equal(_terrain.calls, 12, "four windows for each of cut, footing and roof")
+	assert_equal(_terrain.maximum_tiles, Terrain.LOCAL_TILE_LIMIT, "actual full64-tile windows")
+	assert_equal(plan.cell_size_u, 32768, "no cell-size snapping or truncation")
+
+
+func test_later_terrain_window_observes_actual_river_instead_of_accepting_first_dry_window() -> void:
+	"""Original water remains a blocker beyond the first local window, without any sparse obstacle fixture."""
+	var plan: Orders.RoomPlan = _plan(2, PackedInt32Array([0, 0]), 32768)
+	plan.origin_u.x = World.RIVER_FIRST_X * World.TILE_SIZE_UNITS - 17 * 1024
+	plan.origin_u.z = 60 * World.TILE_SIZE_UNITS
+	_assert_refusal(plan, Terrain.REFUSE_WATER)
+	assert_equal(_terrain.calls, 2, "first exact dry window passes and second observes live river")
+	assert_true(_terrain.maximum_tiles <= Terrain.LOCAL_TILE_LIMIT, "late refusal used bounded actual reads")

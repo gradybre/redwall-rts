@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03T22:23:29.817790+00:00",
+  "updated": "2026-10-03T22:32:38.894068+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -674,7 +674,13 @@
           ],
           "tests": "148 tests /12554 assertions /0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/7"
         },
-        "first_entry_feasibility": "Downward530x647u stance cannot fit512u tread; fractional roots do not share cube top contacts; landing excavation must retain real footing, material/output access and retreat. Source-backed low/front-wall variant and actual ordered cut/assembly frontier remain open."
+        "first_entry_feasibility": "Downward530x647u stance cannot fit512u tread; fractional roots do not share cube top contacts; landing excavation must retain real footing, material/output access and retreat. Source-backed low/front-wall variant and actual ordered cut/assembly frontier remain open.",
+        "first_entry_assessment": {
+          "source_commit": "460e4053",
+          "integration_commit": "e797b15b",
+          "evidence_path": "docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/first-module-assessment.md",
+          "scope": "Read-only constructibility handoff; arithmetic first-cut and T2 front-wall witnesses, actual footprint/footing/retreat gaps, unique cut-union/EntryPlan seam. No motion or playable certificate."
+        }
       },
       "lease": {
         "state": "held",
@@ -693,13 +699,14 @@
         "subleases": [
           {
             "agent": "/root",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-paid-cut-contact",
             "files": [
               "godot/scripts/core/excavation_sites.gd",
               "godot/test/test_excavation_claim_batch.gd"
             ],
-            "handoff": "Construction explicitly stopped writes and granted1107 narrow EntryClaimInput/batch adaptation; root preserves ordinary flat RoomPlan/CutMap. No per-Site columns or caller-supplied replay cursor."
+            "handoff": "Construction explicitly stopped writes and granted1107 narrow EntryClaimInput/batch adaptation; root preserves ordinary flat RoomPlan/CutMap. No per-Site columns or caller-supplied replay cursor.",
+            "stop_evidence": "Root stopped all Sites/flat-claim-test writes after reviewed87452dbd, integratedf914a55d. Returned to Construction2026-10-03; no further source edits."
           }
         ]
       }
@@ -1441,9 +1448,14 @@
           "evidence": "docs/validation/evidence/underground-connector-placements-2026-10-03/work-choice-1/"
         },
         "entry_claims_1107": {
-          "status": "implementation in progress",
+          "status": "independently reviewed scoped component integrated",
           "owner": "/root",
-          "scope": "Distinct union-of-varying-height world boxes, exact unique Domain physical cut keys and typed actual Sites claim publication. Future Corridor/Placement/Space admission remains required; no free completed entry or playable claim."
+          "source_commit": "87452dbd",
+          "integration_commit": "f914a55d",
+          "review": "Construction accepted exact final cursor/Sites/tests after the real repeated-Domain callback defect was reproduced and corrected. All five final source hashes unchanged.",
+          "tests": "119 tests /28414 assertions /0 failures; all strict/raw unexpected diagnostics and object/resource leaks0; analyzer0 warnings in5 files; clean assets/cache/import and restored state.",
+          "evidence_path": "docs/validation/evidence/underground-entry-claims-2026-10-03/README.md",
+          "scope": "Distinct varying-height box union; exact unique Domain physical keys and typed actual Sites claims. Future Corridor/Placement/Space atomic admission and paid physical construction remain required."
         }
       },
       "lease": {

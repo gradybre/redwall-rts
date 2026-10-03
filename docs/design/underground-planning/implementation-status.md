@@ -71,6 +71,16 @@ not compared with a same-head full-run baseline. The later local combined
 checkpoint at`a33ff093` passed the clean no-argument procedure above; the new
 1107 entry-claim work remains outside that checkpoint.
 
+The reviewed entry-claim component at`f914a55d` now maps overlapping,
+varying-height entry prisms to unique physical cut keys without adding a second
+excavation ledger. Independent review reproduced and corrected a repeated
+Domain callback that could reserve the wrong map cell on both entry and flat
+room paths. The final focused run passed119 tests/28,414 assertions, all strict
+and raw unexpected diagnostics/leaks zero, and zero warnings across five files.
+[Exact source, rejected reproducer and final logs](../../validation/evidence/underground-entry-claims-2026-10-03/README.md)
+are retained. Future Corridor/Placement atomic confirmation and physical entry
+construction remain open; this later component is outside the a33 full run.
+
 The source-local upper-wall worker increment at`a33ff093` also passed independent
 source and native visual review:537 poses/1,283 assertions, seven Python checks
 and zero analyzer warnings. Its production qualification remains false. The

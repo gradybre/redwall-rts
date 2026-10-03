@@ -1206,6 +1206,8 @@ service mutation; accepted receipts must resolve actual live projects on load.
 | Cold phase check target | -- | -- | -- | Empty until bounded quantum resolves | 3 | -- | One exact six-I32 target. Snapshot/Plan inputs, qualification copies and union fragments are bounded caller-owned scratch; not authoritative state. |
 | Binding, candidate and cold controls | -- | -- | -- | No active candidate at save | 3 | -- | Actual source/space/physical/qualification references, weak Sites binding, cache counts, candidate tokens, booleans, refusal and math scratch. Declared separately in decision 1064; no production qualification is claimed. |
 
+| Shared cold-operation token | -- | -- | -- | 0 outside the exact synchronous operation | 3 | -- | Decision1075. `_cold_token` adds 8 logical numeric bytes inside the existing binding/control reservation. Acquire and attest before the first ColdCheck/survey/plan allocation; retain through exact paid preparation; release only after charged original copies and companions are discarded. No packed, authoritative or wire state; actual WorldBindings must use the single decision1072 Budget instance. |
+
 ### `godot/scripts/core/inventory_spatial_contract.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

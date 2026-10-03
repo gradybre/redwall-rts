@@ -896,7 +896,7 @@
     {
       "id": "UG20",
       "title": "Paid spoil-tip preparation, compaction and reclamation",
-      "status": "queued",
+      "status": "running",
       "depends_on": [
         "UG06"
       ],
@@ -918,11 +918,13 @@
         "Conserved earth/provenance/capacity and deterministic interruption; no designation reset or teleport",
         "Concrete Work/Jobs/Inventory integration and save-owner metadata; no claim that cut output alone implements these operations"
       ],
-      "agent": null,
-      "branch": null,
-      "evidence": {},
+      "agent": "/root",
+      "branch": "codex/underground-spoil",
+      "evidence": {
+        "in_progress": "Root owns new tip/work/demo files. Decision1065 records adopted prices and proposed103C persistent tip schema; shared typed modular operation/router/one-Funding seam agreed with UG07. Schema and exact shared signatures before source; no duplicate receipt arena."
+      },
       "lease": {
-        "state": "free"
+        "state": "held"
       }
     },
     {

@@ -1586,3 +1586,14 @@ does not mint physical-space or work permission, or initialize a missing binding
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Exact sealed full-claim copy gate | -- | -- | -- | Caller owns and budgets every output lifetime | 3 | -- | Decision1103. Stateless prepared_snapshot_leased_into requires exact sealed Space token and original actual Budget token before source/claim observers and immediately before the allocating helper. It charges48R+16O+256 plus any retained prior output, recounting after observers. Work admission requires2(R+O) within the existing immutable operation ceiling. All claims remain present; no ordinary snapshot behavior, retained field, wire or schema changes. Same-owner reentry poisons the copy; replacement leases and refused output are preserved. |
+
+### `godot/scripts/core/underground_connector_assemblies.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable group/source/variant census | `_header` | 8 | `7` = 7 | Zero before successful load | 2 | §1 WORLD | Decision1104. Group/Catalog/Recipe revisions, actual Catalog row/variant revision, group and exact actual part counts. Single immutable source bank, no placement/cut/work state. Composed content/source binding is required before activation/save release. |
+| Exact immutable source digests | `_digests` | 1 | `96` = 96 | Zero before successful load | 2 | §1 WORLD | Grouping/Catalog/Recipe SHA256. Acyclic file pins; actual Recipe frontier hash names this billable grouping, not physical construction permission. |
+| Complete billable part partition | `_kind`, `_first_part`, `_part_count`, `_recipe_anchor` | 4 | `_capacity` <= 256 | Kind/first/anchor -1, count0 | 2 | §1 WORLD | Exactly one group per nonempty contiguous Catalog part range and exactly one actual Recipe anchor per group. Complete unique coverage, no second included-part bill. Four I32 columns16G plus152 fixed immutable bytes. |
+| Reused source hash | `_hash` | 1 | `32` = 32 | Empty before admitted configure | 3 | -- | Within512 logical reader controls; not another immutable source image. |
+| Reused actual Catalog part facts | `_part` | 4 | `9` = 9 | Empty before admitted configure | 3 | -- | Same fixed allowance. Caller-owned AssemblyRecord adds32 bytes outside this reader. |
+| Bound owners, capacity and synchronous controls | -- | -- | -- | Busy false at frame/save boundary | 3 | -- | Actual Catalog/Recipes/Items/Inventory object references; one capacity I64 and three bools11 logical bytes. No serialized pointer, escrow, installed prefix or physical frontier. Maximum required4760 bytes plus unmeasured native overhead; joint Placement/content/control admission remains open. |

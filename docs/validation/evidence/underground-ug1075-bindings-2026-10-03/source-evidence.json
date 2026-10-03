@@ -11,7 +11,7 @@
     "move own godot/demo/assets aside when present",
     "delete own godot/.godot",
     "godot --headless --path godot --editor --quit",
-    "./tools/run_tests.sh --shard-index <manifest index> --shard-count <discovered test file count> --output-dir <matching shard evidence directory>",
+    "./tools/run_tests.sh --shard INDEX/COUNT --output-dir DIR; exact index/count/suite membership recorded in each retained manifest",
     "restore own godot/demo/assets in finally"
   ],
   "analyzer_command": [

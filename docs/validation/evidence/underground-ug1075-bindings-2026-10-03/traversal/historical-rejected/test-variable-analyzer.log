@@ -1,0 +1,3 @@
+error: more than the allowed 0 warning(s)
+test/test_underground_locations.gd:728: (CONFUSABLE_LOCAL_DECLARATION): The variable "token" is declared below in the parent block.
+1 GDScript warning(s) in 1 of 4 file(s)

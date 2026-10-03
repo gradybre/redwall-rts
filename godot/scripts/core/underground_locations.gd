@@ -623,6 +623,9 @@ func _section_refusal(record: Record) -> StringName:
 		var kind: Buildings.OpResult = _buildings.spatial_kind_of_room(record.room)
 		if not kind.ok or kind.value != Buildings.ROOM_SPACE_UNDERGROUND or _region.owner != record.room:
 			return &"LOCATION_ROOM_STALE"
+	if record.role == ROLE_TRANSIT:
+		return &"" if record.point.x >= _region.box[0] and record.point.x < _region.box[3] \
+			and record.point.z >= _region.box[2] and record.point.z < _region.box[5] else &"LOCATION_SECTION_CONTAINMENT"
 	if record.envelope[0] < _region.box[0] or record.envelope[2] < _region.box[2] \
 			or record.envelope[3] > _region.box[3] or record.envelope[5] > _region.box[5]:
 		return &"LOCATION_SECTION_CONTAINMENT"
@@ -630,17 +633,25 @@ func _section_refusal(record: Record) -> StringName:
 
 
 func _survey_for(record: Record) -> StringName:
-	"""Claim exemption requires the actual permanent Sites key; no broad same-room filtering exists."""
+	"""Transit omits only nonphysical Room markers; underground endpoints still need their actual Sites/Room key."""
 	_snapshot = null # Release a prior survey before requesting the next isolated image.
-	var image: Space.Snapshot = Space.Snapshot.new()
-	var code: StringName = &""
-	if record.room == NULL_REF:
-		code = _owner.prepared_snapshot_into(_owner_token, image) if _owner_token != 0 else _owner.snapshot_into(image)
-	else:
-		var physical: Sites = _physical()
-		var site: Vector2i = physical.site_at(_cube_origin(record.point)) if physical != null else NULL_REF
+	var physical: Sites = _physical()
+	var site: Vector2i = NULL_REF
+	if record.room != NULL_REF:
+		site = physical.site_at(_cube_origin(record.point)) if physical != null else NULL_REF
 		if site == NULL_REF or physical.room_of(site) != record.room:
 			return &"LOCATION_PAID_SITE_MISSING"
+		var scope: StringName = _owner.site_scope_refusal(physical, site)
+		if scope != &"":
+			return scope
+	var image: Space.Snapshot = Space.Snapshot.new()
+	var code: StringName = &""
+	if record.role == ROLE_TRANSIT:
+		code = _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
+			if _owner_token != 0 else _owner.snapshot_for_traversal_into(image)
+	elif record.room == NULL_REF:
+		code = _owner.prepared_snapshot_into(_owner_token, image) if _owner_token != 0 else _owner.snapshot_into(image)
+	else:
 		code = _owner.prepared_snapshot_for_site_into(_owner_token, image, physical, site) \
 			if _owner_token != 0 else _owner.snapshot_for_site_into(image, physical, site)
 	if code == &"":

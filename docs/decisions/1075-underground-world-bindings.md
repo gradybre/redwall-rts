@@ -741,3 +741,31 @@ R6144/O2048 pack spends59668 Owner checks within MAX_CHECKS1048576.
 [Exact source pins and raw logs](../validation/evidence/underground-ug1075-bindings-2026-10-03/furniture-batch-source/README.md)
 preserve rejected development attempts separately. Independent root review accepted the exact frozen source and tests before commit; these component fixtures do not close
 actual world/layout/contact or complete save/load qualification.
+
+
+## Traversal observations preserve physical doorway truth
+
+`snapshot_for_traversal_into` and `prepared_snapshot_for_traversal_into` apply
+ordinary full source/claim freshness checks, then omit only typed CLAIM_ROOM
+rows with stored OBSTACLE role and matching full owner/claim identity. This is
+observation for traversal, not excavation or placement permission. The physical
+same-Room wall, unfinished volume, furniture, protected access and every
+Construction claim remain. Ordinary and exact site-scoped snapshots are unchanged.
+
+ROLE_TRANSIT retains its root within its exact full Room/FLOOR_DATUM and requires
+the actual root Sites key, Room and complete immutable domain proof through
+`site_scope_refusal`. Its complete envelope and support must qualify against
+actual clear/supported physical union across adjacent Rooms. Root containment
+cannot stand in for body clearance or footing. STORAGE and WORK keep the prior
+whole-envelope single-section containment rule. A pending neighbour supplies no
+void simply because its reservation marker is omitted.
+
+No authoritative column, wire/schema, buffer count or retained snapshot changes.
+The clean focused run reports **75 tests / 3,280 assertions** for Owner and
+**29 tests / 780 assertions** for Locations, with zero failures, unexpected,
+expected or tolerated diagnostics, and zero strict/raw object/resource leaks.
+The analyzer reports zero warnings in all four files. Independent source review
+accepted the bounded slice. Exact source pins and raw evidence are retained under
+`underground-ug1075-bindings-2026-10-03/traversal/`. This qualifies the observation
+and endpoint boundary only; actual paid profile/traversal production binding
+remains a separate gate.

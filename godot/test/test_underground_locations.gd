@@ -13,6 +13,7 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
+const OwnerFixture := preload("res://test/test_underground_space_owner.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CAPACITY: int = 4
 const COLD_BYTES: int = 1048576
@@ -600,3 +601,152 @@ func test_restore_rechecks_actual_inventory_and_lease_after_observer_callbacks()
 	assert_true(graph.released, "callback ran")
 	assert_true(_locations.is_live_location(location), "load still preserves location")
 	assert_true(_inventory.audit().ok, "retained container remains valid")
+
+
+class DoorwayFixture extends RefCounted:
+	## Real Room/Sites identities with explicitly synthetic adjacent finished shell geometry.
+	var commands: OwnerFixture.SyntheticRoomCommands = null
+	var physical: OwnerFixture.SiteFixture = null
+	var rooms: Array[Vector2i] = []
+	var floors: Array[Vector2i] = []
+	var voids: Array[Vector2i] = []
+	var supports: Array[Vector2i] = []
+
+
+func _doorway(claim_sites: bool = true) -> DoorwayFixture:
+	"""Each root belongs to one exact Room while its complete body can straddle the shared doorway."""
+	var fixture: DoorwayFixture = DoorwayFixture.new()
+	fixture.commands = OwnerFixture.SyntheticRoomCommands.new()
+	fixture.commands.owner = weakref(_buildings)
+	assert_true(_buildings.bind_spatial_authority(fixture.commands).ok, "actual Buildings authority")
+	for room_type: int in [Buildings.ROOM_TYPE_KITCHEN, Buildings.ROOM_TYPE_DORMITORY]:
+		fixture.commands.permit(Buildings.SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, room_type)
+		fixture.rooms.append(_buildings.designate_spatial_room(room_type).ref)
+	fixture.physical = OwnerFixture.SiteFixture.new(_construction, _buildings, _domain)
+	assert_equal(_locations.bind_sites(fixture.physical.sites), &"", "same actual paid-key owner")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	for index: int in 2:
+		var x: int = (index - 1) * 1024
+		if claim_sites:
+			assert_true(fixture.physical.sites.claim_quantum(Vector3i(x, -2048, 0), fixture.rooms[index]).ok, "actual Room key")
+		_doorway_room_rows(token, fixture, index, x)
+	assert_equal(_owner.seal(token), &"", "separate actual synthetic finished shells")
+	_owner.publish(token)
+	return fixture
+
+
+func _doorway_room_rows(token: int, fixture: DoorwayFixture, index: int, x: int) -> void:
+	"""The fixture explicitly publishes support and clear volume; metadata or Sites keys alone grant neither."""
+	var room: Vector2i = fixture.rooms[index]
+	assert_equal(_owner.stage_source(token, room), &"", "actual underground source")
+	var floor_ref: Vector2i = _doorway_piece(token, room, NULL_REF,
+		[x, -2048, 0, x + 1024, -2047, 1024], Space.FLOOR_DATUM)
+	fixture.floors.append(floor_ref)
+	fixture.voids.append(_doorway_piece(token, room, floor_ref,
+		[x, -2048, 0, x + 1024, -1024, 1024], Space.SUPPORTED_VOID))
+	fixture.supports.append(_doorway_piece(token, room, floor_ref,
+		[x, -2304, 0, x + 1024, -2048, 1024], Space.SUPPORT))
+	_doorway_piece(token, room, floor_ref, [x, -2048, 0, x + 1024, -1024, 1024], Space.OBSTACLE, true)
+
+
+func _doorway_piece(token: int, room: Vector2i, section: Vector2i, box: Array[int], role: int,
+		claim: bool = false) -> Vector2i:
+	"""No test geometry bypasses the production source/section validation or substitutes an invented ref."""
+	var row: Owner.Region = Owner.Region.new()
+	row.box = PackedInt32Array(box)
+	row.role = role
+	row.owner = room
+	row.section = section
+	row.level = 1
+	row.claim_kind = Owner.CLAIM_ROOM if claim else Owner.CLAIM_NONE
+	row.claim_ref = room if claim else NULL_REF
+	var result: Owner.Result = _owner.stage_add(token, row)
+	assert_equal(result.error, &"", "actual typed room region")
+	return result.handle
+
+
+func _doorway_record(fixture: DoorwayFixture, side: int) -> Locations.Record:
+	"""The root is64u inside its own Room while a512u body/support footprint spans both sides."""
+	var record: Locations.Record = _record(-64 if side == 0 else 64, -2048, 512)
+	record.room = fixture.rooms[side]
+	record.section = fixture.floors[side]
+	record.level = 1
+	record.role = Locations.ROLE_TRANSIT
+	return record
+
+
+func _endpoint_refusal(record: Locations.Record) -> StringName:
+	"""One bounded refused or accepted candidate is always discarded without changing endpoint state."""
+	var cold: int = _cold.acquire(COLD_BYTES)
+	var prepared: Locations.Result = _locations.begin_prepare(cold)
+	assert_equal(prepared.error, &"", "current geometry and actual lease")
+	var code: StringName = _locations.stage_add(prepared.token, record).error
+	assert_true(_locations.abort(prepared.token), "discard test candidate")
+	assert_equal(_cold.release(cold), &"", "release only after discarded survey")
+	return code
+
+
+func test_transit_doorway_spans_adjacent_rooms_but_placement_keeps_whole_section_rule() -> void:
+	"""Only a transit body's boundary crossing uses complete supported physical union across Room markers."""
+	var fixture: DoorwayFixture = _doorway()
+	for side: int in 2:
+		var record: Locations.Record = _doorway_record(fixture, side)
+		assert_true(_locations.is_live_location(_add(record)), "both directions have a real supported endpoint")
+		for role: int in [Locations.ROLE_STORAGE, Locations.ROLE_WORK]:
+			record.role = role
+			assert_equal(_endpoint_refusal(record), &"LOCATION_SECTION_CONTAINMENT", "placement still wholly fits own section")
+	var outside: Locations.Record = _doorway_record(fixture, 1)
+	outside.point.x = -1
+	assert_equal(_endpoint_refusal(outside), &"LOCATION_SECTION_CONTAINMENT", "root cannot borrow adjacent Room identity")
+	outside = _doorway_record(fixture, 0)
+	outside.room = fixture.rooms[1]
+	assert_equal(_endpoint_refusal(outside), &"LOCATION_ROOM_STALE", "full owning section/Room pair remains exact")
+
+
+func test_transit_without_actual_site_or_with_changed_paid_domain_refuses() -> void:
+	"""A doorway survey never replaces the full real Sites owner, root key and immutable domain proof."""
+	var fixture: DoorwayFixture = _doorway(false)
+	var record: Locations.Record = _doorway_record(fixture, 0)
+	assert_equal(_endpoint_refusal(record), &"LOCATION_PAID_SITE_MISSING", "metadata and void do not invent a key")
+	assert_true(fixture.physical.sites.claim_quantum(Vector3i(-1024, -2048, 0), fixture.rooms[1]).ok, "actual foreign Room owns key")
+	assert_equal(_endpoint_refusal(record), &"LOCATION_PAID_SITE_MISSING", "same coordinates are not the correct Room")
+	var other: Locations.Record = _doorway_record(fixture, 1)
+	assert_true(fixture.physical.sites.claim_quantum(Vector3i(0, -2048, 0), fixture.rooms[1]).ok, "actual matching key")
+	assert_equal(_endpoint_refusal(other), &"", "exact real source and domain")
+	var shifted: Space.Domain = Space.Domain.new()
+	assert_equal(shifted.configure(_world, Vector3i(1024, 0, 0), Vector3i(-8, -8, -8),
+		Vector3i(16, 16, 16), 64, 64, 100000), &"", "different synthetic paid datum")
+	fixture.physical.spatial.domain = shifted
+	assert_equal(_endpoint_refusal(other), &"SPACE_SITE_DOMAIN", "complete real domain proof remains mandatory")
+
+
+func test_transit_doorway_retains_actual_walls_unfinished_and_support_holes() -> void:
+	"""Room markers alone may omit; same-Room physical blockers and missing footing must still refuse."""
+	var fixture: DoorwayFixture = _doorway()
+	var record: Locations.Record = _doorway_record(fixture, 0)
+	for role: int in [Space.OBSTACLE, Space.UNFINISHED, Space.PROTECTED_ACCESS]:
+		var token: int = _owner.begin_stage(_owner.revision()).token
+		var blocker: Vector2i = _doorway_piece(token, fixture.rooms[0], fixture.floors[0],
+			[-128, -2048, 400, -1, -1536, 624], role)
+		assert_equal(_owner.seal(token), &"", "actual physical blocker")
+		_owner.publish(token)
+		assert_equal(_endpoint_refusal(record), &"LOCATION_ENVELOPE_BLOCKED", "physical role%d remains" % role)
+		token = _owner.begin_stage(_owner.revision()).token
+		assert_equal(_owner.stage_remove(token, blocker), &"", "remove actual fixture obstruction")
+		assert_equal(_owner.seal(token), &"", "restore doorway")
+		_owner.publish(token)
+	var support_token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_remove(support_token, fixture.supports[1]), &"", "neighbouring side loses support")
+	assert_equal(_owner.seal(support_token), &"", "publish actual support loss")
+	_owner.publish(support_token)
+	assert_equal(_endpoint_refusal(record), &"LOCATION_COVERAGE_MISSING", "root footing alone is insufficient")
+
+
+func test_transit_pending_neighbour_claim_does_not_create_clear_volume() -> void:
+	"""A still-planned neighbouring Room stays physically unavailable even when its reservation is omitted."""
+	var fixture: DoorwayFixture = _doorway()
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_remove(token, fixture.voids[1]), &"", "actual neighbour has no completed cut")
+	assert_equal(_owner.seal(token), &"", "planned claim and metadata remain")
+	_owner.publish(token)
+	assert_equal(_endpoint_refusal(_doorway_record(fixture, 0)), &"LOCATION_COVERAGE_MISSING", "unpaid/unbuilt half cannot pass")

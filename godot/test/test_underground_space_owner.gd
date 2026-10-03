@@ -2159,3 +2159,71 @@ func test_future_furniture_batch_seals_under_real_joint_sparse_capacities() -> v
 	assert_true(fitting.geometry._remaining > 0, "bounded comparisons did not raise MAX_CHECKS")
 	print("UG1075_FURNITURE full_pack_checks=", Space.MAX_CHECKS - fitting.geometry._remaining)
 	_release_batch_fixture(harness)
+
+
+func _traversal_fixture_rows(token: int) -> void:
+	"""Room ownership markers and actual physical matter remain separate typed records."""
+	assert_equal(_owner.stage_source(token, _room), &"", "actual Room source")
+	var marker: Owner.Region = _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _room)
+	marker.claim_kind = Owner.CLAIM_ROOM
+	marker.claim_ref = _room
+	_put(token, marker)
+	_room_claim(token) # A legacy UNFINISHED-typed claim is deliberately not a traversal marker.
+	_put(token, _region([0, 0, 0, 256, 1024, 256], Space.OBSTACLE, _room))
+	_put(token, _region([256, 0, 0, 512, 1024, 256], Space.UNFINISHED, _room))
+	_put(token, _region([512, 0, 0, 768, 1024, 256], Space.PROTECTED_ACCESS, _room))
+	var project: Vector2i = _construction.open_build(_hall).ref
+	var phase: Owner.Region = _region([2048, 0, 0, 2304, 1024, 256], Space.OBSTACLE, _room)
+	phase.claim_kind = Owner.CLAIM_CONSTRUCTION
+	phase.claim_ref = project
+	_put(token, phase)
+
+
+func test_traversal_snapshot_omits_only_typed_room_owned_obstacle_markers() -> void:
+	"""An accepted outline cannot block a finished doorway or erase the actual same-Room wall beside it."""
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	_publish(token)
+	var before: PackedByteArray = _owner.state_bytes()
+	var image: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_owner.snapshot_for_traversal_into(image), &"", "source-validated traversal observation")
+	assert_equal(image.volumes.role, PackedInt32Array([Space.OBSTACLE, Space.OBSTACLE,
+		Space.UNFINISHED, Space.PROTECTED_ACCESS, Space.OBSTACLE]), "only typed reservation omitted")
+	assert_equal(image.volumes.box_at(1), PackedInt32Array([0, 0, 0, 256, 1024, 256]), "actual wall retained")
+	assert_equal(image.volumes.box_at(2), PackedInt32Array([256, 0, 0, 512, 1024, 256]), "unfinished cut retained")
+	assert_equal(_snapshot().volumes.role.size(), 6, "ordinary placement survey remains complete")
+	assert_equal(_owner.state_bytes(), before, "observation changes no physical or claim state")
+
+
+func test_prepared_traversal_snapshot_keeps_physical_rows_and_exact_token() -> void:
+	"""The same narrow predicate observes sealed geometry without publishing it or bypassing stale sources."""
+	var before: PackedByteArray = _owner.state_bytes()
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	var image: Space.Snapshot = Space.Snapshot.new()
+	image.revision = 901
+	assert_equal(_owner.prepared_snapshot_for_traversal_into(token, image), &"SPACE_TRANSACTION_UNSEALED", "no unsealed facts")
+	assert_equal(image.revision, 901, "refusal preserves output")
+	assert_equal(_owner.seal(token), &"", "exact actual candidate")
+	assert_equal(_owner.prepared_snapshot_for_traversal_into(token + 1, image), &"SPACE_TRANSACTION_UNSEALED", "full token")
+	assert_equal(_owner.prepared_snapshot_for_traversal_into(token, image), &"", "sealed traversal truth")
+	assert_equal(image.volumes.role.size(), 5, "same exact physical retention as live view")
+	image.volumes.hi_x[0] = 777
+	assert_equal(_owner.prepared_snapshot_for_traversal_into(token, image), &"", "independent copied output")
+	assert_equal(image.volumes.hi_x[0], 1024, "caller cannot mutate claim geometry")
+	assert_equal(_snapshot().volumes.role.size(), 0, "no live geometry publication")
+	assert_true(_owner.abort(token), "discard candidate")
+	assert_equal(_owner.prepared_snapshot_for_traversal_into(token, image), &"SPACE_TRANSACTION_UNSEALED", "expired token")
+	assert_equal(_owner.state_bytes(), before, "abort restores unchanged live bytes")
+
+
+func test_traversal_source_and_claim_lifetime_are_not_exempted() -> void:
+	"""The omitted shape still requires its actual full Room identity and exact source facts."""
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	_publish(token)
+	var image: Space.Snapshot = Space.Snapshot.new()
+	image.revision = 901
+	assert_true(_buildings.directory().destroy(_room), "actual Room generation retired")
+	assert_equal(_owner.snapshot_for_traversal_into(image), &"SPACE_SOURCE_STALE", "room marker cannot outlive owner")
+	assert_equal(image.revision, 901, "failed lifetime proof does not replace caller's prior survey")

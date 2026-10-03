@@ -888,6 +888,14 @@ func prepared_snapshot_into(token: int, out: Space.Snapshot) -> StringName:
 	return _copy_prepared_snapshot_into(out, NULL_REF, NULL_REF)
 
 
+func prepared_snapshot_for_traversal_into(token: int, out: Space.Snapshot) -> StringName:
+	"""Observe sealed physical traversal truth; omit only typed Room-owned OBSTACLE reservation markers."""
+	var code: StringName = prepared_refusal(token)
+	if code != &"":
+		return code
+	return _copy_prepared_snapshot_into(out, NULL_REF, NULL_REF, true)
+
+
 func prepared_snapshot_for_site_into(token: int, out: Space.Snapshot,
 		sites: Sites, site: Vector2i) -> StringName:
 	"""Apply the same exact actual Sites/Room/phase proof to sealed future geometry, not a fake plan."""
@@ -900,7 +908,7 @@ func prepared_snapshot_for_site_into(token: int, out: Space.Snapshot,
 
 
 func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
-		project: Vector2i) -> StringName:
+		project: Vector2i, traversal: bool = false) -> StringName:
 	"""Build one isolated complete survey; only already-proved exact reservation markers may omit."""
 	if out == null:
 		return &"SPACE_WORLD_UNBOUND"
@@ -912,11 +920,8 @@ func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 			image.live_refs.append_array(PackedInt32Array([_s_o_slot[row], _s_o_generation[row]]))
 			image.live_revisions.append(_s_o_revision[row])
 	for row: int in _region_capacity:
-		if _s_r_present[row] == 0:
-			continue
-		var claim: Vector2i = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row])
-		if (_s_r_claim_kind[row] == CLAIM_ROOM and room != NULL_REF and claim == room) \
-				or (_s_r_claim_kind[row] == CLAIM_CONSTRUCTION and project != NULL_REF and claim == project):
+		if _s_r_present[row] == 0 or _exempt_prepared_claim(row, room, project) \
+				or (traversal and _traversal_marker(row, true)):
 			continue
 		var role: int = Space.OBSTACLE if _s_r_claim_kind[row] != CLAIM_NONE else _s_r_role[row]
 		image.volumes.append(_box(row, true), role, _s_r_level[row],
@@ -928,6 +933,23 @@ func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 	out.live_revisions = image.live_revisions
 	out.volumes = image.volumes
 	return &""
+
+
+func _exempt_prepared_claim(row: int, room: Vector2i, project: Vector2i) -> bool:
+	"""Existing exact Sites scope never grants a general traversal or placement exemption."""
+	var claim: Vector2i = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row])
+	return (_s_r_claim_kind[row] == CLAIM_ROOM and room != NULL_REF and claim == room) \
+		or (_s_r_claim_kind[row] == CLAIM_CONSTRUCTION and project != NULL_REF and claim == project)
+
+
+func _traversal_marker(row: int, staged: bool) -> bool:
+	"""Only a Room's own typed reservation is nonphysical; same-Room walls and unfinished matter remain."""
+	if staged:
+		return _s_r_claim_kind[row] == CLAIM_ROOM and _s_r_role[row] == Space.OBSTACLE \
+			and _s_r_owner_slot[row] == _s_r_claim_slot[row] \
+			and _s_r_owner_generation[row] == _s_r_claim_generation[row]
+	return _r_claim_kind[row] == CLAIM_ROOM and _r_role[row] == Space.OBSTACLE \
+		and _r_owner_slot[row] == _r_claim_slot[row] and _r_owner_generation[row] == _r_claim_generation[row]
 
 
 func publish(token: int) -> void:
@@ -1096,6 +1118,11 @@ func snapshot_into(out: Space.Snapshot) -> StringName:
 	return _copy_snapshot_into(out, NULL_REF, NULL_REF)
 
 
+func snapshot_for_traversal_into(out: Space.Snapshot) -> StringName:
+	"""Observe actual physical traversal truth; this does not authorize digging, placement or unsupported travel."""
+	return _copy_snapshot_into(out, NULL_REF, NULL_REF, true)
+
+
 func snapshot_revision_refusal(expected_revision: int) -> StringName:
 	"""Revalidate retained live survey evidence without allocating another snapshot or repeated owner lookups."""
 	if _ready_error != &"":
@@ -1111,6 +1138,11 @@ func snapshot_for_site_into(out: Space.Snapshot, sites: Sites, site: Vector2i) -
 	if code != &"":
 		return code
 	return _copy_snapshot_into(out, sites.room_of(site), sites.project_of(site))
+
+
+func site_scope_refusal(sites: Sites, site: Vector2i) -> StringName:
+	"""Validate the complete actual Sites/Room/domain scope without allocating an unused snapshot."""
+	return _site_scope_refusal(sites, site)
 
 
 func _site_scope_refusal(sites: Sites, site: Vector2i) -> StringName:
@@ -1141,14 +1173,15 @@ func _site_domain_refusal(sites: Sites) -> StringName:
 		else &"SPACE_SITE_DOMAIN"
 
 
-func _copy_snapshot_into(out: Space.Snapshot, room: Vector2i, project: Vector2i) -> StringName:
+func _copy_snapshot_into(out: Space.Snapshot, room: Vector2i, project: Vector2i,
+		traversal: bool = false) -> StringName:
 	"""Allocate only after all source/claim truth is checked; actual geometry is never filtered."""
 	if out == null or _ready_error != &"":
 		return &"SPACE_WORLD_UNBOUND"
 	var code: StringName = _snapshot_refusal()
 	if code != &"":
 		return code
-	var image: Space.Snapshot = _snapshot_image(room, project)
+	var image: Space.Snapshot = _snapshot_image(room, project, traversal)
 	out.version = Space.VERSION
 	out.world_ref = image.world_ref
 	out.revision = image.revision
@@ -1158,7 +1191,7 @@ func _copy_snapshot_into(out: Space.Snapshot, room: Vector2i, project: Vector2i)
 	return &""
 
 
-func _snapshot_image(room: Vector2i, project: Vector2i) -> Space.Snapshot:
+func _snapshot_image(room: Vector2i, project: Vector2i, traversal: bool) -> Space.Snapshot:
 	"""Build one finite image; only markers with a proven exact kind/ref pair may be omitted."""
 	var image: Space.Snapshot = Space.Snapshot.new()
 	image.world_ref = Vector2i(_header[3], _header[4])
@@ -1168,7 +1201,7 @@ func _snapshot_image(room: Vector2i, project: Vector2i) -> Space.Snapshot:
 			image.live_refs.append_array(PackedInt32Array([_o_slot[row], _o_generation[row]]))
 			image.live_revisions.append(_o_revision[row])
 	for row: int in _region_capacity:
-		if _r_present[row] == 0 or _exempt_claim(row, room, project):
+		if _r_present[row] == 0 or _exempt_claim(row, room, project) or (traversal and _traversal_marker(row, false)):
 			continue
 		var role: int = Space.OBSTACLE if _r_claim_kind[row] != CLAIM_NONE else _r_role[row]
 		image.volumes.append(_box(row, false), role, _r_level[row],

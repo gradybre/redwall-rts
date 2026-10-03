@@ -33,6 +33,15 @@ It also includes unique cut mapping, endpoint preservation, the static profile-e
 query and reviewed mole grip. Subsequent profile-path search and atomic
 Room/Sites reservation retain separate focused evidence.
 
+The subsequent pushed head `2f29ffd1` passed all remote CI gates in9minutes37seconds.
+The strict aggregate verified355 suite files executed exactly once across8 shards:
+10,249 tests,953,898 assertions,0 failures,0 unexpected errors/warnings and0
+object/resource leaks; the analyzer reported0 warnings in1,141 scripts.
+[Remote evidence](../../validation/evidence/underground-ci-2f29ffd1/README.md)
+retains the exact merge/head identities and diagnostic totals. This later CI
+run has no same-head local single-run comparison artifact and does not replace
+the separately pinned local full checkpoint above.
+
 The shell study proves boundary coverage and material scale, but its rounded
 walls are visibly stepped. Organic silhouettes remain part of visual
 qualification; a renderer-only change cannot cut through authoritative solid

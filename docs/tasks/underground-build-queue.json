@@ -2025,6 +2025,18 @@
       "analyzer_seconds": 227.491,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-3e891a41/README.md",
       "limits": "Component integration checkpoint includes1095 mapping,1096 preservation,1097 static edge query and reviewed grip. Subsequent1098, ClaimBatch and1099 remain separately tested; first playable Kitchen and full workflow open."
+    },
+    {
+      "head": "2f29ffd121658a047e1887c1aff4eac9342bd8d7",
+      "ci_merge": "9dc8ac5091aa86e9d754019ee0c7e4b9ebba944b",
+      "run": "https://github.com/gradybre/redwall-rts/actions/runs/37143315382",
+      "type": "remote_strict_matrix",
+      "tests": "10249 tests /953898 assertions /0 failures;355 suites exactly once across8 shards",
+      "diagnostics": "0 unexpected errors,0 unexpected warnings,272 expected,353 tolerated;0 leaked objects,0 leaked resources",
+      "analyzer": "0 GDScript warning(s) in0 of1141 file(s)",
+      "required_job_wall_seconds": 577,
+      "evidence": "docs/validation/evidence/underground-ci-2f29ffd1/",
+      "scope": "All CI gates succeeded. No same-head single-run comparison artifact supplied; prior local no-argument full run remains pinned3e891a41. No playable completion inferred."
     }
   ],
   "crosscut_fixes": [

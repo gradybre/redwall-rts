@@ -251,3 +251,27 @@ Independent geometry review accepted exact source `f466e8726244bdd7d20f09a8705e8
 with no high/medium finding. It traced actual source drift, both assignment
 mirrors, living identity, callback guards and absence of the Sites recursion;
 it did not repeat the engine run or qualify contacts.
+
+
+## Exact structural phase scope
+
+The retained World cold scope now pins the observed operation and stage as well
+as the full Site, Room, Project and geometry revision. A structural companion
+borrowing that lease must present the same operation and stage; an admission
+scope cannot be reused for paid completion or a different operation. Every
+failed acquisition and normal cleanup resets both pins. `cold_phase_refusal`
+only attests context and grants no structure, movement or work qualification.
+
+Two transient int64 controls add16 logical bytes inside the existing1072
+bindings reservation, taking retained/reused WorldBindings controls from297
+to313 bytes. There are no canonical columns or save ordinals. Independent
+review and strict focused evidence are required before this increment is
+accepted.
+
+Strict component verification passed54 tests and1042 assertions with0
+failures,0 unexpected strict/raw errors and warnings,0 expected/tolerated
+diagnostics, and0 leaked objects/resources. Analyzer reports0 warnings in2
+files. Independent furnishing review accepted exact source156f59e5 and
+test2d34e2b5; full hashes, raw logs and review are recorded under
+`docs/validation/evidence/underground-world-identities-2026-10-03/phase-scope-iteration-1/`.
+This is an exact-context prerequisite, not full structural or work qualification.

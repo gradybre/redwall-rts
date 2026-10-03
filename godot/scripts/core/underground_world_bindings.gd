@@ -55,6 +55,8 @@ var _phase_site: Vector2i = NULL_REF
 var _phase_room: Vector2i = NULL_REF
 var _phase_project: Vector2i = NULL_REF
 var _phase_geometry_revision: int = 0
+var _phase_operation: int = -1
+var _phase_stage: int = -1
 var _room_bindings: WeakRef = null
 var _room_region: Owner.Region = null
 var _room_reading: bool = false
@@ -295,6 +297,8 @@ func begin_cold_operation(owner: Owner, site: Vector2i, operation: int, stage: i
 		_phase_room = sites.room_of(site)
 		_phase_project = sites.project_of(site)
 		_phase_geometry_revision = owner.revision()
+		_phase_operation = operation
+		_phase_stage = stage
 		_phase_token = _budget.acquire(Budget.COLD_BYTES)
 	var token: int = _phase_token
 	_cold_opening = false
@@ -326,6 +330,14 @@ func cold_site_refusal(token: int, site: Vector2i, room: Vector2i) -> StringName
 	return cold_operation_refusal(token)
 
 
+func cold_phase_refusal(token: int, site: Vector2i, operation: int, stage: int,
+		room: Vector2i) -> StringName:
+	"""An actual structural companion may borrow only this exact observed operation and phase boundary."""
+	if operation != _phase_operation or stage != _phase_stage:
+		return &"WORLD_COMPOSITION_COLD_CONTEXT"
+	return cold_site_refusal(token, site, room)
+
+
 func end_cold_operation(token: int) -> void:
 	"""Drop only our exact lease after caller scratch/companions; cleanup cannot release a replacement lease."""
 	if _cold_opening or _composing or token <= 0 or token != _phase_token:
@@ -343,6 +355,8 @@ func _clear_phase_lease() -> void:
 	_phase_room = NULL_REF
 	_phase_project = NULL_REF
 	_phase_geometry_revision = 0
+	_phase_operation = -1
+	_phase_stage = -1
 
 
 func _actual_sites() -> Sites:

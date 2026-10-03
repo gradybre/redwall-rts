@@ -151,3 +151,45 @@ func test_retired_world_and_unbound_composer_never_return_room_or_worker_identit
 	var unbound: Bindings = Bindings.new()
 	assert_true(unbound.room_refusal(_actual._room) != &"", "unconfigured Room reader")
 	assert_equal(unbound.assigned_worker(_actual._site, _actual._jobs.ref_of(job)), NULL_REF, "unconfigured Job reader")
+
+
+func test_structural_scope_requires_the_exact_operation_stage_and_full_site_room() -> void:
+	"""One retained actual cold arena cannot be borrowed for another physical operation or completion boundary."""
+	_actual._open_scope()
+	var world: Bindings = _actual._world_bindings
+	var token: int = _actual._lease
+	assert_equal(world.cold_phase_refusal(token, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_ADMIT, _actual._room), &"", "exact observed operation")
+	assert_true(world.cold_phase_refusal(token, _actual._site, Contract.OP_CUT,
+		Contract.STAGE_ADMIT, _actual._room) != &"", "another operation cannot borrow scope")
+	assert_true(world.cold_phase_refusal(token, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_COMMIT, _actual._room) != &"", "admission is not paid completion")
+	assert_true(world.cold_phase_refusal(token, Vector2i(_actual._site.x, _actual._site.y + 1),
+		Contract.OP_BRACE, Contract.STAGE_ADMIT, _actual._room) != &"", "full Site generation")
+	assert_true(world.cold_phase_refusal(token, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_ADMIT, Vector2i(_actual._room.x, _actual._room.y + 1)) != &"", "full Room generation")
+	world.end_cold_operation(token)
+	_actual._lease = 0
+	assert_true(world.cold_phase_refusal(token, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_ADMIT, _actual._room) != &"", "closed phase no longer has a scope")
+	assert_equal(world._phase_operation, -1, "operation pin clears")
+	assert_equal(world._phase_stage, -1, "stage pin clears")
+
+
+func test_replacement_cold_scope_cannot_reuse_old_operation_or_token() -> void:
+	"""The same Site may later be observed for another boundary; every old token and tuple still refuses."""
+	_actual._open_scope()
+	var old: int = _actual._lease
+	var world: Bindings = _actual._world_bindings
+	world.end_cold_operation(old)
+	var token: int = world.begin_cold_operation(_actual._owner, _actual._site,
+		Contract.OP_BRACE, Contract.STAGE_START)
+	_actual._lease = token
+	assert_true(token > 0 and token != old, "new actual cold lifetime")
+	assert_true(world.cold_phase_refusal(old, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_START, _actual._room) != &"", "previous exact token rejected")
+	assert_true(world.cold_phase_refusal(token, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_ADMIT, _actual._room) != &"", "previous stage rejected")
+	assert_equal(world.cold_phase_refusal(token, _actual._site, Contract.OP_BRACE,
+		Contract.STAGE_START, _actual._room), &"", "exact new observed boundary")
+	assert_equal(world.qualification_revision(), 0, "scope identity does not qualify a physical operation")

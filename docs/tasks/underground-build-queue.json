@@ -385,7 +385,8 @@
         "docs/decisions/1091-room-section-metadata.md",
         "godot/scripts/core/underground_room_bindings.gd",
         "godot/test/test_underground_room_bindings.gd",
-        "docs/decisions/1092-actual-room-phase-masks.md"
+        "docs/decisions/1092-actual-room-phase-masks.md",
+        "godot/test/test_underground_room_admission.gd"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -406,9 +407,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-furniture-batches",
+      "branch": "codex/underground-room-admission-bindings",
       "evidence": {
-        "in_progress": "Reviewed B2 atomic pending Furniture/Construction batches and one exact Room section are integrated. Next actual RoomBindings provides source-bound phase sections and exact fine finish masks; inherited unqualified work contacts remain closed.",
+        "in_progress": "Exact source-bound Room/Site masks are independently reviewed and integrated. Next: actual RoomPlan geometric admission and direct token handshake; productive first-work/entry companions remain required.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -463,7 +464,15 @@
           "tests": "121 tests /7916 assertions /0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/5",
           "review": "Root independently accepted exact final five source pins; MEDIUM committed receipt lifetime defect corrected by pinning count/ref before callback cleanup. Actual room coordinator remains in progress.",
           "evidence_path": "docs/validation/evidence/underground-furniture-batches-2026-10-03/core/"
-        }
+        },
+        "phase_masks": {
+          "source": "3f1ca19d",
+          "integration": "d0eabec7/a6a47cd1",
+          "tests": "101 tests/7725 assertions/0 failures;strict/raw diagnostics/leaks0;analyzer0/3",
+          "review": "root accepted exact three final source pins; exact fine claims and holes retained; no physical FINISH publication claimed",
+          "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/iteration-1/"
+        },
+        "admission_packet": "Actual Level/Terrain/retained-geometry plan preflight and direct RoomOrders Budget/token handshakes before copied plans and identity publication. Root provides exact terrain_owner identity reader; missing prospective entry/work companions explicitly refuse. No additional success callback or free entrance."
       },
       "lease": {
         "state": "held"
@@ -557,7 +566,7 @@
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-profiles",
       "evidence": {
-        "in_progress": "Profile API reviewed/integrated. Exact native matrix presentation/source qualification proceeds under1080; new adapter retains original meshes/materials with native skin palettes. No broad diagnostic radius becomes corridor policy, no paid asset generation.",
+        "in_progress": "Reviewed local finite matrix proof and all65536 native heading coefficients integrated. Next exact finite World-domain/heading binding in Actor; zero production-qualified profiles so far.",
         "increments": [
           {
             "commit": "efadbab9",
@@ -793,7 +802,7 @@
           "scope": "Read-only original terrain plus retained sparse history; source scans and exact callback lease freshness corrected after two independent MEDIUM findings; productive bindings still refuse.",
           "review": "ug_construction accepted all four corrected iteration3 pins; both MEDIUM source-scan and callback-lease findings fixed; no remaining high/medium finding; all34 CI Specification contracts commands pass."
         },
-        "routes_allocation": "Reviewed Routes and Locations total1041728 of1048576 bytes;6848 headroom; fixed numeric/query census2060 within2112. Actual runtime qualification remains open.",
+        "routes_allocation": "Reviewed Routes/Locations total1041728 of1048576 bytes;6848 headroom;fixed numeric/query census2068 within2112 including new8-byte Locations receipt. Actual runtime qualification remains open.",
         "phase_surveys": {
           "status": "independently reviewed scoped-survey component; productive lane remains running",
           "tests": "WorldBindings26/585 and Authority26/3090;52 tests3675 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/4",
@@ -836,7 +845,7 @@
           "review": "ug_furnishing independently accepted all writer coverage, failed-write preservation and permanent saturation poison; reset completes. Future in-place restore must invalidate runtime cache.",
           "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/transform-freshness/"
         },
-        "world_routes_in_progress": "Root owns actual typed Routes.Bindings adapter: source-bound profile eligibility prepared under exact graph token and published only after actual graph commit; continuous paid-void/support unions, live exclusions and shared actor occupancy. Geometry adds live/prepared traversal-only typed Room-marker observation; physical blockers remain. No duplicate resident index or hot full-world survey.",
+        "world_routes_in_progress": "Concrete ground WorldRoutes provider is integrated and independently reviewed; actual resident motion, continuous physical coverage, exact successful Space companion identity and live local exclusions tested. Installed fixed connectors and productive contacts remain required.",
         "mixed_height_exclusions": {
           "source": "0ae9cc6d",
           "integration": "36441064",
@@ -851,7 +860,22 @@
           "tests": "Owner77/4845 and Routes34/8935;111 tests13780 assertions0 failures; strict/raw diagnostics/leaks all0; analyzer0/4",
           "review": "ug_construction independently accepted exact frozen source. Each actual1536-row live/staged loop performs zero source callbacks; mandatory whole-loop pre/post prepared_refusal catches real drift.",
           "scope": "Observation-only fixed caller scratch; no new state or allocation, no geometry permission."
-        }
+        },
+        "ground_routes": {
+          "source": "1173814e",
+          "integration": "15fa7a4a",
+          "tests": "22 tests/1397 assertions/0 failures;strict/raw diagnostics/leaks0;analyzer0/2",
+          "review": "ug_furnishing accepted full source, structural SUPPORT collision correction and final actual Space companion regression",
+          "scope": "Test-only profile certificates and explicit fixture void/support; actual World/stores/Routes provider. No paid digging, installed stairs, composed save or256 runtime assertion.",
+          "evidence_path": "docs/validation/evidence/underground-world-routes-2026-10-03/"
+        },
+        "publication_receipts": {
+          "source": "8d3b130a",
+          "integration": "0a5121e5/62bc84de",
+          "tests": "157 tests/15000 assertions/0 failures;strict/raw diagnostics/leaks0;analyzer0/6",
+          "review": "ug_furnishing accepted exact successful Owner/Locations identities before/after callbacks; restore invalidation; equal revision and reused handle regressions"
+        },
+        "next_root": "Bind actual RoomOrders.Bindings weakly into WorldBindings; delegate exact floor_section/finish_mask under retained Site/Room cold token. Geometry owns the Authority exact-mask/residual stage and construction owns RoomPlan admission. Terrain hot range-loop cleanup remains before256 qualification."
       },
       "lease": {
         "state": "held",
@@ -1712,6 +1736,18 @@
         "world_basis_source": "65536 native headings;6 tests/35 assertions;strict/raw diagnostics/leaks0;analyzer0/2;source capture only"
       },
       "metadata": "120 modules/596 rows/962 packed columns;501 equalities+86 upper bounds;capacity/memory artifacts refreshed for source hashes and locations only;unchanged99955154 logical bytes and44846 headroom, runtime unqualified"
+    },
+    {
+      "id": "ground-routes-and-phase-mask-integration-2026-10-03",
+      "commits": [
+        "d0eabec7",
+        "a6a47cd1",
+        "0a5121e5",
+        "62bc84de",
+        "15fa7a4a"
+      ],
+      "scope": "Reviewed exact fine Room phase observations, exact successful spatial publication receipts and concrete ground route clearance. Playable demo remains in progress.",
+      "metadata": "122 modules/605 rows/969 packed columns; regenerated capacity/memory source pins;unchanged admitted logical memory limit, runtime unqualified."
     }
   ]
 }

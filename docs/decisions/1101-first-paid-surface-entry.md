@@ -90,3 +90,38 @@ output/contact cases, pause/cancel with legal retreat, save/resume and protected
 approach removal. Native720p presentation/input and256-resident qualification
 remain downstream gates. A source module or synthetic fixture closes none of
 those playable requirements.
+
+
+## Proposed timber recipe balance — awaiting Brendan
+
+No adopted timber stair/entrance installation row was found. ECON-001 expressly
+requires separate recipes. Its wood1/rope2/cloth1U and40WU protected-climb
+assistance row prices rescue equipment, not stair treads. Existing GDD timber
+analogues include an interior door wood2U/12WU, shelf wood2U/16WU, fence
+wood1U/12WU, and gate wood6U+iron1U/90WU. Demo stair multipliers do not supply
+production installation prices.
+
+The following concrete starting balance was presented to Brendan for approval
+on2026-10-03. It is **proposed, not active content** until answered:
+
+| Installed assembly | Wood milli-U | Rope milli-U | BUILD milli-WU |
+|---|---:|---:|---:|
+| 2m-wide ×0.5m timber tread, authored bearer/lashings included | 1000 | 250 | 12000 |
+| 2×2m timber landing assembly | 4000 | 1000 | 32000 |
+
+The candidate20 treads and6 timber landings total wood44000milli-U,
+rope11000milli-U and432000milli-WU. Five four-tread/lower-landing modules are
+wood8000/rope2000/80000milli-WU each; the top landing adds4000/1000/32000.
+These values are game balance, not claims about biological timber density.
+
+Excavation/bracing, entrance portal/roof/shell, rail/edge protection and any
+additional separately installed structural parts remain explicit extra rows.
+The bearer/lashing wording is not permission to omit physical support geometry.
+A genuinely retained natural landing can omit its timber assembly only after
+actual geometry proof; material inside a completed cut cube is not natural dirt.
+Existing cancellation rules continue to apply.
+
+The pending choices are these starting costs (recommended), all these costs20%
+lower, or all20% higher. No response has been received or inferred here. Recipe
+loader, construction plumbing and geometry/motion qualification continue while
+this authoring decision is pending; the proposed costs will not activate silently.

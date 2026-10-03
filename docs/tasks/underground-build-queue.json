@@ -591,6 +591,21 @@
           "scope": "Immutable source-bound recipe bank and narrow append-only purpose/Funding/Router plumbing; actual placement adapter awaits matching owner contract. Existing Construction, modular_projects, excavation_inventory and associated tests remain within UG07 lease.",
           "budget_proposal": "64P+128 immutable bytes, P<=256;512 controls; Funding fourth loss domain2048 live plus each simultaneous cold image; adapter controls and native/Placement coexistence still require source census.",
           "authoring": "Absent recipe rows refuse. No new prices or work amounts silently activated."
+        },
+        "timber_recipe_authoring": {
+          "status": "awaiting_user_answer",
+          "proposal": "docs/decisions/1101-first-paid-surface-entry.md#proposed-timber-recipe-balance--awaiting-brendan",
+          "proposed_tread_milli": {
+            "wood": 1000,
+            "rope": 250,
+            "work": 12000
+          },
+          "proposed_landing_milli": {
+            "wood": 4000,
+            "rope": 1000,
+            "work": 32000
+          },
+          "scope": "Starting in-game balance only; not active content. Excavation and entrance/shell/rail geometry recipes remain separate. Independent reader/plumbing/motion work continues."
         }
       },
       "lease": {
@@ -1173,12 +1188,10 @@
           "evidence_path": "docs/validation/evidence/underground-static-routes-2026-10-03/"
         },
         "solid_work_face_in_progress": {
-          "owner": "/root",
           "branch": "codex/underground-work-face",
-          "scope": "Cold actual completed-endpoint/source-bound work-profile geometry at an exact solid cube face; no actual claim, Job or productive permission. Real source profile qualification remains complementary UG08.",
-          "decision": "docs/decisions/1099-source-bound-solid-work-face.md",
-          "memory": "One traversal snapshot327680 + two exact-union banks49152 +2048 controls =378880; sequential with Room24N images gives772096 atN16384, no new persistent arena.",
-          "review": "ug_construction found2MEDIUM: lease must be rechecked before target copy after first Location callback; final actual source/local exclusions need leaf attestation after mutable observations. Fixes in progress, current11tests117assertions do not close these review findings."
+          "review": "ug_geometry closes previous first-read/final-state findings but identifies one remaining snapshot source-callback lease window before output allocation; narrow owned SpaceOwner guard in progress. No acceptance yet.",
+          "tests": "Iteration8:57 tests/2110 assertions/0 failures; strict/raw0 unexpected diagnostics/leaks, analyzer0/7. Test-only Catalog alias parse failure retained initeration7.",
+          "source_pins": "Face dd8c421703ed497dbfe65e11d1d0c56cebf8d717f7b25da0d6fd878d6ae76d2a;test04a846c49ce7fdb076bca53ed6fcbe20a2e770ec5c485ed099a444cfea5708d8;Terrainaa5c54017f49d79d3a2d17deb244aaeffea0c225e572d03605726d62054e2a5c;teste9fcdb193efdcc5bd4905f81cfe0dcbbe8168b894d5453969ec29f12c6e115bc"
         },
         "static_profile_paths": {
           "source": "306c2f15",

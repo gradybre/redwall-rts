@@ -1,0 +1,17 @@
+[
+  [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  [
+    "./tools/run_tests.sh",
+    "--shard",
+    "206/331",
+    "--output-dir",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/driver-check-v1/shard"
+  ]
+]

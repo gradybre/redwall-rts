@@ -894,3 +894,35 @@ diagnostics/leaks. The9 tip points and26+30 finite intervals were checked agains
 the stated source equations. Visual witnesses cover the selected upper strike
 and corrected entry only. Complete state unions, actual support and the first
 paid construction frontier remain required; no production flag is emitted.
+
+### Finite presentation driver component
+
+`mole-worker/mole_profile_driver.gd` now owns an integer source clock with ready,
+idle, walk, fixed fade, entry, productive, recovery and partial-entry retrace
+phases. It reads actual Profiles/Job/Work/Gear/Transforms identities on every
+step and preserves its prior output/state on refusal. A work interruption
+retains the exact Job, tool, selected profile and spatial observation through
+the return motion. A lost claim or displaced worker refuses the update; the
+runtime host must explicitly retire the visible Actor before relinquishing an
+uncompleted source observation. Readiness never grants productivity or travel.
+
+The source program's fixed profile roles are stand0, ground-walk1, down2 and
+high3. Independent review caught that exchanging two otherwise valid WORK
+tuples could pair the wrong clip and contact. Binding now rejects any changed
+role order before lookup. Source catalogs with another arrangement require an
+explicit new program version. The complete eight-clip source/proof compiler
+and native state composition remain separate qualification work.
+
+The retained component has360 packed bytes plus168 logical Selection bytes,
+16 handle bytes and one boolean. Caller Frame adds28 packed and77 logical
+numeric bytes. Its cold nested reader peak includes two184-byte Descriptors
+and32 digest bytes, plus18 IntResult bytes;8-byte timing scratch is sequential.
+Scalar stack and native object/allocator costs remain unmeasured presentation
+costs. No simulation arena or whole-client memory qualification is borrowed.
+
+The construction lane independently accepted the corrected source/test pins.
+`contact-qualification/driver-check-v3` records clean import,6 tests/117
+assertions/0 failures, strict/raw diagnostics and leaks all0, and analyzer0/2.
+Tests use actual identity/equipment owners and deliberately synthetic source
+geometry; rejected parser and role-binding evidence remain in v1/v2. No
+production profile flag, Work credit or actual construction is created here.

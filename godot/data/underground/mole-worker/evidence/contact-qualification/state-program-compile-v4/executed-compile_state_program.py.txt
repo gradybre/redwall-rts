@@ -1,0 +1,327 @@
+#!/usr/bin/env python3
+"""Assemble exact accepted mole sources and complete role candidates; never manufacture a qualification flag."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import importlib.util
+import json
+import math
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("mole_handoffs", HERE / "prove_state_handoffs.py")
+H = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(H)
+W, S, P = H.W, H.S, H.P
+READY_FRAME = 8
+CLIPS = ("idle", "ground_walk", "down_work", "down_entry", "down_recovery",
+         "high_work", "high_entry", "high_recovery")
+DOWN_SHA = "f5f7c985b08df561956f6e057ff4acaee18948393125a9c41c6bce9c2e8e3433"
+HIGH_SHA = "f46626f6181fa8f79d664d91154fe5db7fbd7009ac84501b8221c651cdb08d1b"
+DOWN_TIP_SHA = "a2013bb81af272e29b348cdfb2506713ed20807f6a6a9d0e93bade5259e1f1ff"
+
+
+def same_pose(left: dict, a: int, right: dict, b: int) -> bool:
+    """A phase handoff must be byte-identical, including grounding and signed native coefficients."""
+    return (left["matrices"][a].tobytes() == right["matrices"][b].tobytes() and
+            left["grounding"][a:a+1].tobytes() == right["grounding"][b:b+1].tobytes())
+
+
+def check_program(cases: list[dict]) -> None:
+    """Exactly the driver protocol, including every source-identical entry/recovery/loop endpoint."""
+    P.require(len(cases) == 8 and cases[0]["frames"] > READY_FRAME, "PROGRAM_CLIP_CENSUS")
+    P.require(sum(case["frames"] for case in cases) <= P.content.MAX_FRAMES, "PROGRAM_FRAME_CAPACITY")
+    for index, case in enumerate(cases):
+        loop, duration = P.rendered_timing(case)
+        P.require(loop == int(index in (0, 1, 2, 5)) and duration > 0, "PROGRAM_TIMING")
+    for work, entry, recovery in ((2, 3, 4), (5, 6, 7)):
+        P.require(same_pose(cases[0], READY_FRAME, cases[entry], 0) and
+                  same_pose(cases[entry], cases[entry]["frames"] - 1, cases[work], 0) and
+                  same_pose(cases[work], 0, cases[work], cases[work]["frames"] - 1), "PROGRAM_ENDPOINT")
+        P.require(S.reusable_timing(cases[recovery], cases[entry], True) and
+                  cases[recovery]["matrices"].tobytes() == cases[entry]["matrices"][::-1].tobytes() and
+                  cases[recovery]["grounding"].tobytes() == cases[entry]["grounding"][::-1].tobytes(),
+                  "PROGRAM_RECOVERY")
+
+
+def assemble(down: list[dict], high: list[dict], parts: list[dict]) -> list[dict]:
+    """Only the eight explicitly required clips survive; crouch/ramp permissions are absent."""
+    P.require(len(down) == len(high) == 9 and 1 <= len(parts) <= P.content.MAX_PARTS, "PROGRAM_SOURCE_CENSUS")
+    selected = [down[0], down[1], down[6], down[7], down[8], high[6], high[7], high[8]]
+    result = [dict(case, id="mole_worker.firm_ready_v1." + name, geometry=parts)
+              for case, name in zip(selected, CLIPS)]
+    check_program(result)
+    return result
+
+
+def union(boxes: list[list[int] | None]) -> list[int] | None:
+    """An outward union never clips real body or active-tool geometry to a desired floor/face."""
+    present = [box for box in boxes if box is not None]
+    if not present:
+        return None
+    P.require(len(present) <= 64 and all(len(box) == 6 and all(type(x) is int for x in box)
+              and all(box[axis] <= box[axis+3] for axis in range(3)) for box in present), "PROGRAM_BOX")
+    return [min(box[axis] for box in present) for axis in range(3)] + \
+           [max(box[axis] for box in present) for axis in range(3, 6)]
+
+
+def rotated_box(box: list[int], norm_squared: Fraction) -> list[int]:
+    """Enclose every admitted finite heading with its proved non-unit norm, using exact integer square roots."""
+    P.require(len(box) == 6 and all(type(x) is int and abs(x) <= 2097152 for x in box) and
+              all(box[axis] <= box[axis+3] for axis in range(3)) and 0 < norm_squared <= 2,
+              "PROGRAM_ROTATION_ARGUMENT")
+    xx, zz = max(abs(box[0]), abs(box[3])), max(abs(box[2]), abs(box[5]))
+    square = (xx * xx + zz * zz) * norm_squared
+    radius = math.isqrt(square.numerator // square.denominator)
+    if radius * radius * square.denominator < square.numerator:
+        radius += 1
+    return [-radius, box[1], -radius, radius, box[4], radius]
+
+
+def foot_projection(part: dict, topology: list, low: np.ndarray, high: np.ndarray,
+                    floor: list[int] | None, left_palm_brace: bool = False) -> dict:
+    """Require flat support below every complete triangle influenced by an actual foot/toe bind.
+
+    This conservative authored stance is distinct from the tiny numerical
+    intersection with Y=0. It never licenses arbitrary body/tool penetration.
+    All actual below-plane body bounds must fit this independently derived
+    foot projection; otherwise the source requires correction.
+    """
+    P.require(part["binds"] == 24 and len(part["geometry"]) == len(topology) == 1 and
+              floor is not None and floor[1] < floor[4] == 0 and low.shape == high.shape and low.ndim == 3,
+              "PROGRAM_FOOT_SOURCE")
+    geometry, triangles = part["geometry"][0], topology[0]
+    ids, weights = geometry["ids"], geometry["weights"]
+    P.require(ids.shape == weights.shape and len(ids) == low.shape[1], "PROGRAM_FOOT_CENSUS")
+    influenced = np.any(np.isin(ids, [3, 4, 7, 8]) & (weights > 0), axis=1)
+    chosen = triangles[np.any(influenced[triangles], axis=1)]
+    P.require(len(chosen) > 0, "PROGRAM_FOOT_CENSUS")
+    vertices = chosen.reshape(-1)
+    bounds = P.outward_units(low[:, vertices].min(axis=(0, 1)), high[:, vertices].max(axis=(0, 1)))
+    support = [bounds[0], floor[1], bounds[2], bounds[3], 0, bounds[5]]
+    if left_palm_brace:
+        # The actual downward source rests the left palm on the same plane.
+        # Verify every possible below-plane vertex belongs solely to the
+        # measured legs/feet or that explicitly authored hand. No head, torso
+        # or active-tool contact is relabelled as a foot.
+        touched = np.any(low[:, :, 1] <= 0, axis=0)
+        contact_binds = ids[touched][weights[touched] > 0]
+        P.require(np.all(np.isin(contact_binds, [1, 2, 3, 4, 5, 6, 7, 8, 15])), "PROGRAM_UNAUTHORED_BODY_CONTACT")
+        support = union([support, floor])
+    P.require(all(support[a] <= floor[a] <= floor[a+3] <= support[a+3] for a in range(3)),
+              "PROGRAM_NONFOOT_FLOOR")
+    return {"support_u": support, "source_foot_bounds_u": bounds, "triangles": len(chosen),
+            "binds": [3, 4, 7, 8], "left_palm_brace": left_palm_brace,
+            "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"}
+
+
+def carry_bounds(cases: list[dict], parts: list[dict], topology: list, roots: list[int], basis: H.InverseHeading) -> list[dict]:
+    """Full idle/walk/handoff convex hull plus whole-triangle floor contact and all finite-heading residuals."""
+    complete = H.case_union(cases, (0, 1))
+    result, offset = [], 0
+    for part, surfaces in zip(parts, topology):
+        low, high, errors, padding = H.vertex_corners(complete, part, offset, roots, basis.inverse_norm)
+        P.require(len(surfaces) == 1, "PROGRAM_SURFACE_CENSUS")
+        # Independent min/max corners relax the whole source convex hull.
+        # The accepted triangle/plane proof includes every interior point.
+        clipped = P.clipped_triangle_floor(np.stack([low.min(axis=0)] * 2),
+                                          np.stack([high.max(axis=0)] * 2), surfaces[0])
+        body = P.outward_units(low.min(axis=(0, 1)), high.max(axis=(0, 1)))
+        floor = None if clipped is None else P.outward_units(np.array(clipped[:3]), np.array(clipped[3:]))
+        feet = foot_projection(part, surfaces, low, high, floor) if part["kind"] == "body" else None
+        P.require(part["kind"] == "body" or floor is None, "PROGRAM_CARRY_TOOL_FLOOR")
+        result.append({"kind": part["kind"], "source_full_u": body, "source_floor_u": floor,
+                       "full_u": rotated_box(body, basis.norm_squared),
+                       "floor_u": None if floor is None else rotated_box(floor, basis.norm_squared),
+                       "stance": feet, "support_u": None if feet is None else rotated_box(feet["support_u"], basis.norm_squared),
+                       "native_residual_m": errors, "source_padding_q24": [int(x) for x in padding]})
+        offset += max(1, part["binds"])
+    return result
+
+
+def body_boxes(row: dict) -> list[list[int]]:
+    """Partition on the exact proved plane: keep every negative primitive portion instead of a whole-box waiver."""
+    full, floor = row["full_bounds_u"], row["floor_intersection_u"]
+    P.require(full[4] > 0 and floor is not None and floor[1] < floor[4] == 0, "PROGRAM_BODY_PLANE")
+    return [[full[0], 0, full[2], *full[3:]], floor]
+
+
+def positive_box(box: list[int] | None) -> list[int] | None:
+    """The complementary exact below-plane primitive portion must be retained by the caller."""
+    if box is None or box[4] <= 0:
+        return None
+    return [box[0], max(0, box[1]), box[2], *box[3:]]
+
+
+def partitions_complete(parts: list[list[int] | None], full: list[int]) -> list[list[int]]:
+    """Refuse an omitted primitive-side record even if another role would happen to hide its absence."""
+    P.require(len(parts) == 2 and union(parts) is not None, "PROGRAM_PARTITION_CENSUS")
+    joined = union(parts)
+    P.require(all(joined[a] <= full[a] <= full[a+3] <= joined[a+3] for a in range(3)),
+              "PROGRAM_PARTITION_MISSING")
+    return [box for box in parts if box is not None]
+
+
+def work_roles(work: list[dict], entry: list[dict], ready: list[dict], tip: dict,
+               support: list[int], wall: dict | None = None) -> dict:
+    """Every phase has an explicit complete role; only productive active pick enters WORK_STROKE.
+
+    BODY covers the productive body. TURN_RECOVERY covers the entire entry
+    and its exact retrace, including the held pick. WORK_APPROACH covers the
+    actual ready arrival pose. A consumer must check all these roles in
+    complete space; the productive pick alone can overlap the paid target.
+    """
+    P.require(len(work) == len(entry) == len(ready) == 2 and
+              all(rows[0]["kind"] == "body" and rows[1]["kind"] == "attachment"
+                  for rows in (work, entry, ready)), "PROGRAM_ACTIVE_TOOL_CENSUS")
+    P.require(entry[1]["floor_intersection_u"] is None and ready[1]["floor_intersection_u"] is None,
+              "PROGRAM_RECOVERY_TOOL_FLOOR")
+    body, entry_body, ready_body = body_boxes(work[0]), body_boxes(entry[0]), body_boxes(ready[0])
+    approach = [union([ready_body[0], ready[1]["full_bounds_u"]]), ready_body[1]]
+    if wall is None:
+        recovery = [union([entry_body[0], entry[1]["full_bounds_u"]]), entry_body[1]]
+        stroke = partitions_complete([work[1]["above_floor_u"], work[1]["floor_intersection_u"]],
+                                     work[1]["full_bounds_u"])
+    else:
+        P.require(set(wall) == {"work", "entry"} and len(wall["entry"]) == 2,
+                  "PROGRAM_PARTITION_CENSUS")
+        for index in range(2):
+            partitions_complete(wall["entry"][index], entry[index]["full_bounds_u"])
+        recovery = [union([positive_box(row[side]) for row in wall["entry"]]) for side in range(2)]
+        recovery = [box for box in recovery if box is not None] + [entry_body[1]]
+        stroke = partitions_complete(wall["work"], work[1]["full_bounds_u"])
+    floor = union([work[0]["floor_intersection_u"], entry[0]["floor_intersection_u"]])
+    P.require(floor is not None and union([support]) == support and support[1] < support[4] == 0 and
+              all(support[a] <= floor[a] <= floor[a+3] <= support[a+3] for a in range(3)), "PROGRAM_STANCE")
+    anchor, patch = tip["anchor_u"], tip["patch_u"]
+    P.require(len(anchor) == 3 and len(patch) == 6 and all(type(x) is int for x in anchor + patch) and
+              sum(patch[a] == patch[a+3] for a in range(3)) == 1 and
+              all(patch[a] <= anchor[a] <= patch[a+3] for a in range(3)), "PROGRAM_CONTACT_PATCH")
+    result = {"BODY_HELD_LOAD": body, "STANCE_SUPPORT": [support], "TURN_RECOVERY": recovery,
+              "WORK_APPROACH": approach, "WORK_STROKE": stroke,
+              "CONTACT_POINT": [anchor + anchor], "CONTACT_PATCH": [patch]}
+    P.require(sum(map(len, result.values())) <= 12, "PROGRAM_PROFILE_BOX_CAPACITY")
+    return result
+
+
+def source_cases(original: list[dict], down: list[dict], high: list[dict], rig: dict, wall_recipe: dict) -> None:
+    """Reconstruct actual authoring equations before combining any already accepted source clips."""
+    corrected = P.correct_work_pick(original[-1], rig["pick_binding"])
+    carry = [P.correct_carry_arm(case, corrected, 48, rig) for case in original[:-1]]
+    frames = list(range(30, 49)) + list(range(47, 29, -1))
+    work = P.correct_work_pick(P.indexed_sequence(original[-1], frames, "mole_ready.down", True), rig["pick_binding"])
+    entry = P.rig_transition(carry[0], READY_FRAME, work, 0, rig)
+    recovery = P.indexed_sequence(entry, list(range(entry["frames"] - 1, -1, -1)), "mole_ready.recovery", False)
+    expected = carry + [work, entry, recovery]
+    P.require(len(down) == len(expected) == 9, "PROGRAM_SOURCE_CENSUS")
+    for actual, wanted in zip(down, expected):
+        P.require(P.rendered_timing(actual) == P.rendered_timing(wanted) and
+                  actual["matrices"].tobytes() == wanted["matrices"].tobytes() and
+                  actual["grounding"].tobytes() == wanted["grounding"].tobytes(), "PROGRAM_SOURCE_MOTION_DRIFT")
+    W.source_cases_refusal(high, down, rig["rig_binding"], wall_recipe)
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("analysis", type=Path)
+    parser.add_argument("wall", type=Path)
+    parser.add_argument("handoffs", type=Path)
+    parser.add_argument("handoffs_sha256")
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "PROGRAM_OUTPUT_EXISTS")
+    producers = dict(H.producer_pins(), **{str(Path(__file__).relative_to(P.ROOT)): P.content.file_hash(Path(__file__))})
+    invocation = W.read_record(args.analysis / "invocation.json")["command"]
+    def value(key):
+        return invocation[invocation.index("--" + key) + 1]
+    proof = P.content.read_json(Path(value("proof")), value("proof-sha256"))
+    plan = P.content.read_json(Path(value("plan")), value("plan-sha256"), 65536)
+    original, sources, historical = W.extract_original(Path(value("source")), value("source-sha256"), proof, plan,
+                                                       Path(value("import-archive")))
+    parts = original[0]["geometry"]
+    topology = P.read_topology(Path(value("topology")), value("topology-sha256"), value("content-sha256"), parts)
+    rig = P.content.read_json(Path(value("topology")), value("topology-sha256"), P.MAX_TOPOLOGY_BYTES)
+    down = S.read_image(args.analysis / "result/mole-worker.ugactor", DOWN_SHA, parts)
+    high = S.read_image(args.wall / "mole-worker.ugactor", HIGH_SHA, parts)
+    source_cases(original, down, high, rig, W.read_record(args.wall / "candidate.json")["entry_recipe"])
+    cases = assemble(down, high, parts)
+    with Path(value("world-basis")).open("rb") as stream:
+        basis = H.InverseHeading(stream, proof["world_basis"]["sha256"], proof["world_basis"]["producer_sha256"])
+    handoffs = P.content.read_json(args.handoffs, args.handoffs_sha256, 1048576)
+    P.require(handoffs.get("image_sha256") == DOWN_SHA and handoffs.get("world_basis_sha256") == basis.digest and
+              handoffs.get("hull", {}).get("clear") is True and handoffs["hull"]["unresolved"] == [] and
+              [{k: row[k] for k in ("from", "interval", "to", "corners")} for row in handoffs["hull"]["checked"]]
+              == H.handoff_sets(down), "PROGRAM_HANDOFF_PROOF")
+    for path, digest in handoffs["producer_sources"].items():
+        P.require(P.content.file_hash(P.ROOT / path) == digest, "PROGRAM_HANDOFF_SOURCE_DRIFT")
+    roots = plan["world_root_bounds_u"]
+    carry = carry_bounds(cases, parts, topology, roots, basis)
+    local = {str(clip): P.continuous_floor(cases[clip], topology, roots) for clip in (2, 3, 5, 6)}
+    ready_case = P.indexed_sequence(cases[0], [READY_FRAME, READY_FRAME], "mole_worker.ready_exact", False)
+    ready = P.continuous_floor(ready_case, topology, roots)
+    feet = {}
+    for clip in (2, 3, 5, 6):
+        low, high, _, _ = H.vertex_corners(cases[clip], parts[0], 0, roots, Fraction(1))
+        feet[str(clip)] = foot_projection(parts[0], topology[0], low, high, local[str(clip)][0]["floor_intersection_u"], clip == 2)
+    down_record = P.content.read_json(HERE / "downward-tip-witness-v3.json", DOWN_TIP_SHA, 1048576)
+    down_tip = {"anchor_u": down_record["witness"]["authored_anchor_u"], "patch_u": down_record["contact_patch_u"],
+                "accepted_witness_sha256": DOWN_TIP_SHA}
+    wall_tip = W.H.point_crossing(cases[5], parts[1], roots, -536)
+    wall_parts = {"work": [W.H.plane_portion(cases[5], parts[1], topology[1], 24, roots, -536, side)
+                           for side in (False, True)],
+                  "entry": [[W.H.plane_portion(cases[6], part, topology[index], 0 if index == 0 else 24,
+                                               roots, -536, side) for side in (False, True)]
+                            for index, part in enumerate(parts)]}
+    # Preserve the exact native-verified downward witness with its immutable input image.
+    P.require(down_record.get("content_sha256") == DOWN_SHA, "PROGRAM_DOWN_TIP_SOURCE")
+    carry_body = carry[0]["full_u"]
+    carry_boxes = [[carry_body[0], 0, carry_body[2], *carry_body[3:]], carry[0]["floor_u"], carry[1]["full_u"]]
+    roles = {"stand": {"BODY_HELD_LOAD": carry_boxes,
+                        "STANCE_SUPPORT": [union([row["support_u"] for row in carry])],
+                        "TURN_RECOVERY": carry_boxes},
+             "down": work_roles(local["2"], local["3"], ready, down_tip, union([feet["2"]["support_u"], feet["3"]["support_u"]])),
+             "high": work_roles(local["5"], local["6"], ready, wall_tip, union([feet["5"]["support_u"], feet["6"]["support_u"]]), wall_parts)}
+    roles["ground_walk"] = roles["stand"]
+    program = {"schema": 1, "clips": list(CLIPS), "ready_clip": 0, "ready_time_q16": READY_FRAME * 65536,
+               "profile_roles": {"stand": 0, "ground_walk": 1, "down": 2, "high": 3},
+               "fade_time_q16": 15 * 32768, "handoffs": H.handoff_sets(down), "productive_source": [2, 5],
+               "entry_source": [3, 6], "recovery_source": [4, 7], "work_heading": 0,
+               "ground_heading": "all65536 finite WorldBasis rows", "active_tool": "mole_pick",
+               "manufacture": "BASIC", "cargo": "none", "production_qualified": False}
+    report = {"schema": 1, "source_images": [DOWN_SHA, HIGH_SHA], "verified_source_files": sources,
+              "historical_source_snapshot": historical, "source_matrices_timing_grounding_rederived": True,
+              "carry": carry, "work_constituents": local, "ready": ready, "wall_partitions": wall_parts,
+              "foot_support": feet, "roles": roles,
+              "role_contract": {"BODY_HELD_LOAD": "productive body; no active pick omitted from WORK_STROKE",
+                  "WORK_APPROACH": "exact ready arrival pose, including whole held pick",
+                  "TURN_RECOVERY": "every entry and exact retrace body/pick primitive in complete space",
+                  "WORK_STROKE": "every productive active-pick primitive, split at the exact contact plane",
+                  "STANCE_SUPPORT": "complete foot/toe projection and measured down left-palm contact; independently required support"},
+              "contact": {"down": down_tip, "high": wall_tip}, "handoffs_sha256": args.handoffs_sha256,
+              "producer_sources": producers, "production_qualified": False,
+              "remaining": ["INDEPENDENT_STATE_PROGRAM_REVIEW", "NATIVE_COMPLETE_STATE_DRIVER",
+                            "PROFILE_CERTIFICATE_BINDING", "ACTUAL_SUPPORT_AND_WORK_FACE", "PRESENTATION_PEAK"]}
+    plan = dict(plan, revision=plan["revision"] + 3, clips=[case["id"] for case in cases])
+    raw_program = (json.dumps(program, indent=2) + "\n").encode()
+    raw_report = (json.dumps(report, indent=2) + "\n").encode()
+    raw_plan = (json.dumps(plan, indent=2) + "\n").encode()
+    image, budget = P.content.encode(cases, plan, proof, hashlib.sha256(raw_program).hexdigest(),
+                                     hashlib.sha256(raw_report).hexdigest(), hashlib.sha256(raw_plan).hexdigest())
+    P.require(all(P.content.file_hash(P.ROOT / path) == digest for path, digest in producers.items()), "PROGRAM_SOURCE_DRIFT")
+    args.out.mkdir(parents=True)
+    for name, data in (("program.json", raw_program), ("roles.json", raw_report), ("plan.json", raw_plan),
+                       ("mole-worker.ugactor", image)):
+        with (args.out / name).open("xb") as stream:
+            stream.write(data)
+    (args.out / "compilation.json").write_text(json.dumps({"content_sha256": hashlib.sha256(image).hexdigest(),
+        "content_bytes": len(image), "frames": sum(case["frames"] for case in cases),
+        "presentation_budget": budget, "production_qualified": False}, indent=2) + "\n")
+    print(json.dumps({"roles": roles, "budget": budget, "production_qualified": False}, indent=2))
+
+
+if __name__ == "__main__":
+    main()

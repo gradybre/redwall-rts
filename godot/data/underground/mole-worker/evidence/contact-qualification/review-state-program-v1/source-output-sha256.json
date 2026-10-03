@@ -1,0 +1,15 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_state_program.py": "b401b9c0ec2e63c4e9fc74ad016c3187bbc5ac5b31682b1f0582dfa680f043ee",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-state-program-v1/python-tests.log": "74202dc09a3347400de94f86db7081b0c92ff6270bca74570c143aa53888e576",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/compiler.log": "0822064ac0c5dcd34091c209e09cf8c135d0ead39e659bd426cda16df727c224",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/executed-test_state_program.py.txt": "b401b9c0ec2e63c4e9fc74ad016c3187bbc5ac5b31682b1f0582dfa680f043ee",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/command.json": "d56fbc22e063526ab24e655e7b795992513f6e136cdf3e2e3fbced8f7811a0ab",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/.gdignore": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/executed-compile_state_program.py.txt": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/result/roles.json": "f0cec84cc99792ac818b6b71a669f88193ad076bd6a7e7f6610975c86d363585",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/result/plan.json": "582cbe1d633c70d0fdbe01fe096f47e757959b9b2fa12f43d1531fabb4803871",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/result/program.json": "7153c3c815504ad093611074e147361ec712d94a64cbe5f40c0c955382520e9b",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/result/mole-worker.ugactor": "3c949abf502b21940e085cf388d9dd3351870d740ac0d59379ba496de63e1e63",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-program-compile-v4/result/compilation.json": "2ccf6a502028786d4891d8b5869b36ca8ceaef7d7cd5a173c673251dd3a9c74c"
+}

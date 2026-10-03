@@ -1,0 +1,144 @@
+"""Synthetic adversarial assembly checks; no fixture creates a real contact or production profile."""
+import copy
+from fractions import Fraction
+import importlib.util
+from pathlib import Path
+import unittest
+
+import numpy as np
+
+SPEC = importlib.util.spec_from_file_location("mole_program", Path(__file__).with_name("compile_state_program.py"))
+C = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(C)
+
+
+def clip(count, loop):
+    matrices = np.zeros((count, 25, 12), dtype=np.float32)
+    matrices[:, :, [0, 4, 8]] = 1
+    return {"frames": count, "matrices": matrices, "grounding": np.zeros(count, dtype=np.float32),
+            "source_loop_mode": int(loop), "source_duration_s": Fraction(count - 1, 30)}
+
+
+def program():
+    result = [clip(11 if index == 0 else 3, index in (0, 1, 2, 5)) for index in range(8)]
+    for entry, recovery in ((3, 4), (6, 7)):
+        result[entry]["matrices"][1, 19, 9] = 0.125
+        result[recovery]["matrices"] = result[entry]["matrices"][::-1].copy()
+    return result
+
+
+def parts():
+    return [{"kind": "body", "full_bounds_u": [-20, -1, -30, 20, 100, 40],
+             "floor_intersection_u": [-5, -1, -5, 5, 0, 5]},
+            {"kind": "attachment", "full_bounds_u": [-5, 20, -60, 5, 100, 20], "floor_intersection_u": None}]
+
+
+class Program(unittest.TestCase):
+    def test_full_foot_projection_cannot_be_replaced_by_one_lowest_toe_or_nonfoot_contact(self):
+        points = np.array([[-4, 0, -10], [4, 0, -10], [0, 12, 20],
+                           [-40, 20, 0], [40, 20, 0], [0, 100, 0]], dtype=np.int64) * (C.P.SCALE // 1024)
+        low, high = np.stack([points, points]), np.stack([points, points])
+        low[:, 0, 1] = -(C.P.SCALE // 1024)
+        part = {"binds": 24, "geometry": [{"ids": np.array([[3], [0], [0], [0], [0], [0]]),
+                                           "weights": np.ones((6, 1))}]}
+        triangles = [np.array([[0, 1, 2], [3, 4, 5]])]
+        result = C.foot_projection(part, triangles, low, high, [-4, -1, -10, -3, 0, -9])
+        self.assertEqual(result["support_u"], [-4, -1, -10, 4, 0, 20])
+        self.assertEqual(result["triangles"], 1)
+        with self.assertRaisesRegex(C.P.envelope.Refused, "NONFOOT_FLOOR"):
+            C.foot_projection(part, triangles, low, high, [-40, -1, -10, 4, 0, 20])
+        low[:, 3, 1] = -(C.P.SCALE // 1024)
+        part["geometry"][0]["ids"][1, 0] = 3
+        part["geometry"][0]["ids"][3, 0] = 15
+        braced = C.foot_projection(part, triangles, low, high, [-40, -1, -10, 4, 0, 20], True)
+        self.assertEqual(braced["support_u"], [-40, -1, -10, 4, 0, 20])
+        self.assertTrue(braced["left_palm_brace"])
+        part["geometry"][0]["ids"][3, 0] = 21
+        with self.assertRaisesRegex(C.P.envelope.Refused, "UNAUTHORED_BODY_CONTACT"):
+            C.foot_projection(part, triangles, low, high, [-40, -1, -10, 4, 0, 20], True)
+        part["geometry"][0]["weights"][0, 0] = 0
+        part["geometry"][0]["weights"][1, 0] = 0
+        with self.assertRaisesRegex(C.P.envelope.Refused, "FOOT_CENSUS"):
+            C.foot_projection(part, triangles, low, high, [-4, -1, -10, -3, 0, -9])
+
+    def test_complete_protocol_preserves_exact_entry_retrace_and_distinct_roles(self):
+        source = program()
+        C.check_program(source)
+        down = [source[0], source[1]] + [clip(3, True) for _ in range(4)] + source[2:5]
+        high = down[:6] + source[5:8]
+        before = source[3]["matrices"].copy()
+        result = C.assemble(down, high, [{"kind": "body"}])
+        self.assertEqual(len(result), 8)
+        self.assertEqual(result[2]["id"], "mole_worker.firm_ready_v1.down_work")
+        self.assertEqual(result[5]["id"], "mole_worker.firm_ready_v1.high_work")
+        np.testing.assert_array_equal(source[3]["matrices"], before)
+        with self.assertRaisesRegex(C.P.envelope.Refused, "CENSUS"):
+            C.assemble(down[:-1], high, [{"kind": "body"}])
+
+    def test_changed_entry_endpoint_or_grounding_cannot_hide_behind_a_source_label(self):
+        for at in (0, 2):
+            source = program()
+            source[3]["matrices"][at, 19, 9] = 1
+            with self.assertRaisesRegex(C.P.envelope.Refused, "ENDPOINT"):
+                C.check_program(source)
+        source = program()
+        source[6]["grounding"][0] = np.float32(0.0001)
+        with self.assertRaisesRegex(C.P.envelope.Refused, "ENDPOINT"):
+            C.check_program(source)
+        source = program()
+        source[6]["matrices"][0, 0, 1] = np.float32(-0.0)
+        with self.assertRaisesRegex(C.P.envelope.Refused, "ENDPOINT"):
+            C.check_program(source)
+
+    def test_partial_or_different_recovery_and_wrong_loop_rules_refuse(self):
+        for clip_id in (3, 4, 6, 7):
+            source = program()
+            source[clip_id]["source_loop_mode"] = 1
+            with self.assertRaisesRegex(C.P.envelope.Refused, "TIMING"):
+                C.check_program(source)
+        source = program()
+        source[4]["matrices"][1, 19, 9] = 2
+        with self.assertRaisesRegex(C.P.envelope.Refused, "RECOVERY"):
+            C.check_program(source)
+        source = program()
+        source[7]["source_duration_s"] = Fraction(3, 60)
+        with self.assertRaisesRegex(C.P.envelope.Refused, "RECOVERY"):
+            C.check_program(source)
+
+    def test_world_heading_radius_uses_exact_nonunit_norm_and_outward_rounding(self):
+        self.assertEqual(C.rotated_box([-3, -1, -4, 3, 8, 4], Fraction(1)), [-5, -1, -5, 5, 8, 5])
+        self.assertEqual(C.rotated_box([-3, -1, -4, 3, 8, 4], Fraction(1000001, 1000000)), [-6, -1, -6, 6, 8, 6])
+        self.assertEqual(C.rotated_box([-1, -1, -1, 1, 8, 1], Fraction(1)), [-2, -1, -2, 2, 8, 2])
+        for norm in (Fraction(0), Fraction(3)):
+            with self.assertRaises(C.P.envelope.Refused):
+                C.rotated_box([-3, -1, -4, 3, 8, 4], norm)
+
+    def test_work_body_and_recovery_never_clip_the_active_tool_to_force_a_fit(self):
+        work, entry = parts(), parts()
+        work[1]["full_bounds_u"] = [-5, -60, -90, 5, 100, 20]
+        entry[1]["full_bounds_u"] = [-5, 20, -200, 5, 120, 20]
+        tip = {"anchor_u": [0, 0, -80], "patch_u": [-2, 0, -90, 2, 0, -70]}
+        result = C.work_roles(work, entry, tip, [-5, -1, -5, 5, 0, 5])
+        self.assertEqual(result["BODY_HELD_LOAD"], [[-20, 0, -30, 20, 100, 40], [-5, -1, -5, 5, 0, 5]])
+        self.assertEqual(result["WORK_STROKE"], [work[1]["full_bounds_u"]])
+        self.assertEqual(result["TURN_RECOVERY"], [[-20, 0, -30, 20, 100, 40], [-5, -1, -5, 5, 0, 5], [-5, 20, -200, 5, 120, 20]])
+        self.assertEqual(result["WORK_APPROACH"], [[-20, 0, -200, 20, 120, 40], [-5, -1, -5, 5, 0, 5]])
+        self.assertEqual(result["STANCE_SUPPORT"], [[-5, -1, -5, 5, 0, 5]])
+        self.assertEqual(sum(map(len, result.values())), 11)
+        entry[1]["floor_intersection_u"] = [-5, -1, -10, 5, 0, 0]
+        with self.assertRaisesRegex(C.P.envelope.Refused, "TOOL_FLOOR"):
+            C.work_roles(work, entry, tip, [-5, -1, -5, 5, 0, 5])
+
+    def test_missing_or_nonplanar_contact_and_inverted_union_refuse(self):
+        tip = {"anchor_u": [0, 0, -80], "patch_u": [-2, 0, -90, 2, 0, -70]}
+        for change in ([0, 0, -80, 0, 0, -80], [-2, -1, -90, 2, 1, -70], [-2, 0, -40, 2, 0, -20]):
+            with self.assertRaisesRegex(C.P.envelope.Refused, "CONTACT_PATCH"):
+                C.work_roles(parts(), parts(), dict(tip, patch_u=change), [-5, -1, -5, 5, 0, 5])
+        with self.assertRaisesRegex(C.P.envelope.Refused, "PROGRAM_BOX"):
+            C.union([[0, 0, 0, -1, 1, 1]])
+        self.assertIsNone(C.union([None]))
+        self.assertEqual(C.union([[0, -1, 2, 3, 0, 4], [-2, -4, 0, 2, 0, 8]]), [-2, -4, 0, 3, 0, 8])
+
+
+if __name__ == "__main__":
+    unittest.main()

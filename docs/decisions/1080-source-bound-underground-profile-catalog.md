@@ -948,3 +948,34 @@ all8 adversarial tests successfully. This qualifies the finite offline source
 proof only: native complete-state replay, immutable physical-profile binding,
 actual support/target/approach and presentation peak remain open; production
 profiles stay0.
+
+### Eight-clip physical-role source compiler accepted
+
+The exact idle, ground-walk, down work/entry/recovery and high work/entry/recovery
+are now assembled into one344-frame image after reconstruction from the pinned
+original source and exact endpoint/retrace/loop verification. Its four role IDs
+match the finite driver. The accepted carry-handoff proof is rechecked against
+the full producer closure; a changed source refuses compilation.
+
+Every primitive retains an explicit phase role. BODY covers the productive
+body; TURN_RECOVERY covers the whole entry and retrace with the held pick;
+WORK_APPROACH covers the ready arrival pose; only the complete productive pick
+is separated into WORK_STROKE. Exact whole-triangle partitions at Y0 or the
+source contact plane remove empty AABB corners without discarding geometry.
+Down11 and high12 rows fit the existing ceiling. Actual WorkFace checks every
+complete-space role; ground route proof cannot replace that work-face proof.
+
+Stance is the full foot/toe triangle projection. The measured downward source
+also braces its left palm, explicitly restricted to that actual source influence
+and contact; it is not called a foot or generalized to another body/tool part.
+Down requires759u support depth and high625u. The separately authored planted
+variant must close narrower512u tread work; no implicit step or scaffold exists.
+
+Root independently reviewed compiler/test3e223cde/b401b9c0, all13 packet and9
+producer pins, and reran all8 adversarial tests successfully. The exact v4
+source, outputs and earlier refused/over-conservative versions are retained in
+`contact-qualification/review-state-program-v1` and linked folders. Its logical
+presentation load reservation is6,908,056 bytes plus shared WorldBasis544,768;
+this is not a measured native/whole-client peak and uses no simulation reserve.
+Native complete-state quality, production-profile binding, actual terrain/work
+contact and the paid frontier remain open. The compiler emits0 qualified flags.

@@ -1211,3 +1211,22 @@ future-affecting once integrated; no codec assignment is invented here.
 |---|---|---:|---|---|:-:|---|---|
 | Typed actual location attestation | -- | -- | -- | -- | 3 | -- | Decision 1076: fail-closed interface; actual Locations owns coordinates and support, actual Inventory owns sparse endpoint refs/transactions. No packed state or per-entity objects. |
 
+
+
+### `godot/scripts/core/spoil_tips.gd`
+
+Decision 1065. Explicit finite physical tip ledger; the shared paid operation
+coordinator, actual ground siting and versioned save integration remain pending.
+Local row/generation handles are qualified by the bound actual World.
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Presence, retired identity and paid preparation | `_present`, `_retired`, `_prepared` | 1 | `_capacity` runtime | 0 | 1 | §6 AUXILIARY_STATE | No generation wrap; paid closure alone releases the actual tile. |
+| Local identity, tile and active full Construction operation | `_generation`, `_tile`, `_project_slot`, `_project_generation`, `_operation` | 4 | `_capacity` runtime | Slots/tile/operation -1; generations 0 | 1 | §6 AUXILIARY_STATE | Actual project purpose/subject/q must agree with the exact typed operation owner. |
+| Embedded source and current quantity claims | `_embedded_milli`, `_quantity_milli`, `_locked_milli`, `_incoming_milli` | 8 | `_capacity` runtime | 0 | 1 | §6 AUXILIARY_STATE | Pending source withdrawal never creates free capacity; claims cover the whole exact q. |
+| Retained operation work | `_earned_mwu` | 8 | `_capacity * OP_COUNT` runtime | 0 | 1 | §6 AUXILIARY_STATE | Four separate fixed/exact-q work records per tip. Cancellation cannot erase earned labor. |
+| Retained variable quantities | `_retained_quantity` | 8 | `_capacity * 2` runtime | 0 | 1 | §6 AUXILIARY_STATE | Separate COMPACT/RECLAIM q contracts; mismatches refuse. |
+| Lowest-free row heap | `_free_heap` | 4 | `_capacity` runtime | Only populated prefix matters | 2 | §6 AUXILIARY_STATE | Rebuildable from present/retired; lowest-free deterministic admission and cold bijection audit. |
+| Exterior tile lookup | `_tile_row` | 4 | `MAX_CAPACITY` = 16384 | -1 | 2 | §6 AUXILIARY_STATE | Reverse lookup audited against actual live tile owner; no slot-only identity permission. |
+| Persistent owner header | -- | -- | -- | -- | 1 | §6 AUXILIARY_STATE | World slot/generation, configured capacity, live count and lifetime compacted/reclaimed counters. Closed generations and lifetime conservation require a versioned codec even when no tip is live. |
+| Wiring, allocator control and cold scratch | -- | -- | -- | -- | 3 | -- | Exact Construction/Directory and once-bound weak Publisher, free count, initialization refusal and IntResult. Audit uses a temporary C-byte visited buffer; diagnostic image has 48+103C output bytes and peaks at 48+119C logical packed scratch while output coexists with a column conversion. Audit and image are cold and sequential. Native headers/references and composed validation/restore are separate budget obligations; independent C=16384 is not a production allocation pack. |

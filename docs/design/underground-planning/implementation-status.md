@@ -42,6 +42,21 @@ retains the exact merge/head identities and diagnostic totals. This later CI
 run has no same-head local single-run comparison artifact and does not replace
 the separately pinned local full checkpoint above.
 
+The next integrated source increment adds final actual-source attestation and
+solid work-face checks. The latter passed 58 tests / 2,124 assertions with zero
+failures, unexpected diagnostics, leaks or analyzer warnings in its seven files;
+[focused evidence](../../validation/evidence/underground-work-face-2026-10-03/README.md)
+records the independent review and exact scope. Source and lease changes during
+validation now refuse before a geometry image can be allocated or accepted.
+These commits are newer than the remote CI checkpoint above.
+
+Brendan approved wood-only timber stair assemblies: 1 U of wood and 12 WU per
+tread including bearer/joinery, 4 U and 32 WU per 2×2 m landing. The current
+20-tread/six-landing candidate totals 44 U wood and 432 WU, with no rope.
+[Decision1101](../../decisions/1101-first-paid-surface-entry.md) separates that
+approved balance from the still-required paid excavation, structural geometry,
+worker contact and route qualification.
+
 The shell study proves boundary coverage and material scale, but its rounded
 walls are visibly stepped. Organic silhouettes remain part of visual
 qualification; a renderer-only change cannot cut through authoritative solid

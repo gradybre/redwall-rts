@@ -976,7 +976,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-final-attestation",
+      "branch": "codex/underground-snapshot-lease",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -1206,10 +1206,14 @@
           "evidence_path": "docs/validation/evidence/underground-static-routes-2026-10-03/"
         },
         "solid_work_face_in_progress": {
-          "branch": "codex/underground-work-face",
-          "review": "ug_geometry closes previous first-read/final-state findings but identifies one remaining snapshot source-callback lease window before output allocation; narrow owned SpaceOwner guard in progress. No acceptance yet.",
-          "tests": "Iteration8:57 tests/2110 assertions/0 failures; strict/raw0 unexpected diagnostics/leaks, analyzer0/7. Test-only Catalog alias parse failure retained initeration7.",
-          "source_pins": "Face dd8c421703ed497dbfe65e11d1d0c56cebf8d717f7b25da0d6fd878d6ae76d2a;test04a846c49ce7fdb076bca53ed6fcbe20a2e770ec5c485ed099a444cfea5708d8;Terrainaa5c54017f49d79d3a2d17deb244aaeffea0c225e572d03605726d62054e2a5c;teste9fcdb193efdcc5bd4905f81cfe0dcbbe8168b894d5453969ec29f12c6e115bc"
+          "status": "independently reviewed and integrated component",
+          "source": "c2ea76a6",
+          "registry": "12e8cbd6",
+          "integration": "be4143db/a3817376",
+          "tests": "58 tests /2124 assertions /0 failures; all strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/7; pins unchanged, assets restored",
+          "review": "ug_geometry accepted WorkFace e138d653 and test8da942eb; prior Terrain aa5c5401/e9fcdb19 unchanged. Final original-lease snapshot race corrected with real source callback and allocation counter; no remaining high/medium for this scope.",
+          "evidence_path": "docs/validation/evidence/underground-work-face-2026-10-03/README.md",
+          "scope": "Actual completed-endpoint/profile/solid-target geometry observation, not Room/Site ownership, productive worker permission or production profile qualification. First surface entry remains open."
         },
         "static_profile_paths": {
           "source": "306c2f15",
@@ -1238,6 +1242,13 @@
           "tests": "300 tests /86082 assertions /0 failures; strict/raw diagnostics and leaks all0; analyzer0/19;7 metadata gates pass",
           "evidence_path": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/README.md",
           "scope": "Twelve combined strict suites after separately reviewed claims/routes integration; not full-suite replacement or playable acceptance."
+        },
+        "leased_snapshot_copy": {
+          "source": "51f65d4f",
+          "integration": "2261a945",
+          "tests": "153 tests /15295 assertions /0 failures; strict/raw all0, analyzer0/2",
+          "review": "Root independently accepted exact Owner aeaed08c and testbb9a1480; token rechecked after callbacks immediately before image allocation, prior output counted twice; no retained state added.",
+          "evidence_path": "docs/validation/evidence/underground-final-facts-2026-10-03/snapshot-lease/README.md"
         }
       },
       "lease": {

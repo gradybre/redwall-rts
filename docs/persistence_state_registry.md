@@ -1079,3 +1079,10 @@ future-affecting once integrated; no codec assignment is invented here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Immutable excavation operation facts and owner contract | -- | -- | -- | -- | 3 | -- | Decision 1056. ECON-001/002/005 constants and a typed abstract authority; no instance state or packed columns. The base authority refuses admission. Concrete physical state belongs to excavation_sites, not this interface. |
+
+
+### `godot/scripts/core/room_catalog.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---|---|---|---|---|---|
+| Read-only room-purpose and furniture queries | -- | -- | -- | Refused query has no usable ID or palette | 3 | -- | Decision 1059. No module-level packed columns or live room/furniture/project state. One immutable BuildingDefinitions reference; caller-owned cold query records copy existing catalog footprints, bills, purpose compatibility and necessary service prerequisites. Actual room type, construction, installed services, material selections and placement profiles remain their existing owners' state and persistence obligations. |

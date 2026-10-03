@@ -368,7 +368,7 @@
         "godot/test/test_underground_furniture_work.gd",
         "godot/test/test_modular_spatial_outputs.gd",
         "docs/decisions/1079-paid-spatial-output-dispatch.md",
-        "docs/decisions/1081-paid-spatial-furniture-installation.md"
+        "docs/decisions/1081-paid-underground-furniture-and-room-authority.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -632,6 +632,14 @@
           "tests": "39 tests,570 assertions,0failures; strict/raw all0;analyzer0/4",
           "review": "root independently accepted exact completed actual Project/Router/World d0-to1 source exception; generic publish refuses it",
           "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/furniture-source/"
+        },
+        "cold_lifecycle": {
+          "commits": "4e97b41b/00305498",
+          "sources": "7c78555e/e7bc2457",
+          "tests": "24 tests,3010 assertions,0 failures; strict/raw diagnostic/leaksall0;analyzer0/2",
+          "review": "ug_furnishing independent source accepted; acquire before first copy; discard originals/companions before release; productive WORK has no acquire",
+          "controls": "one8-byte token in existing bindings envelope, no new packed state",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/cold-operation/"
         }
       },
       "lease": {

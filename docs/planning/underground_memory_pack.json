@@ -498,49 +498,49 @@
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_capacity",
-        "line": 203
+        "line": 216
       },
       "_next_i32": {
         "width": 4,
         "capacity": 11,
         "bytes": 44,
         "resize_expression": "I32_FIELDS",
-        "line": 204
+        "line": 217
       },
       "_next_i64": {
         "width": 8,
         "capacity": 2,
         "bytes": 16,
         "resize_expression": "I64_FIELDS",
-        "line": 205
+        "line": 218
       },
       "_ordered": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_capacity",
-        "line": 202
+        "line": 215
       },
       "_present": {
         "width": 1,
         "capacity": 256,
         "bytes": 256,
         "resize_expression": "_capacity",
-        "line": 199
+        "line": 212
       },
       "_proof_i32": {
         "width": 4,
         "capacity": 2816,
         "bytes": 11264,
         "resize_expression": "_capacity * I32_FIELDS",
-        "line": 200
+        "line": 213
       },
       "_proof_i64": {
         "width": 8,
         "capacity": 512,
         "bytes": 4096,
         "resize_expression": "_capacity * I64_FIELDS",
-        "line": 201
+        "line": 214
       }
     },
     "spoil_tips": {
@@ -921,7 +921,7 @@
     "godot/scripts/core/room_layout.gd": "33ff91234526617fd814034c710e37b1774ee829ad92a9e2b5c784511b8e288a",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
-    "godot/scripts/core/underground_space_authority.gd": "cb3cb02cf56cc9779e9de1e48f1647335ff44fedf709247f5d9e4e6c03fb7edf",
+    "godot/scripts/core/underground_space_authority.gd": "728145e37386ba252c7b25d2dc37acf8a6b297f69a92a749f2ea01dd5ca4ae41",
     "godot/scripts/core/underground_space_owner.gd": "938522471c5fed1691ad229f4bf47a9c743890d14a7cc4502d163d3cda6380e9"
   },
   "registry_sha256": "e0f9278bec43386af0a59cd4b2a81b9143c9c907cbcf16cdd2da8975b197d17c",

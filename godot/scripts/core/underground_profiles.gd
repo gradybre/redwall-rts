@@ -604,6 +604,32 @@ func source_hash_into(source_id: int, revision: int, out: PackedByteArray) -> bo
 	return true
 
 
+func body_extent_into(revision: int, out: PackedInt32Array) -> StringName:
+	"""Cold broadphase union of every body/load and recovery variant; this grants no selection permission."""
+	if out.size() != 6:
+		return &"PROFILE_EXTENT_FORMAT"
+	if revision <= 0 or revision != content_revision():
+		return &"PROFILE_SELECTION_STALE"
+	var low: Vector3i = Vector3i(2147483647, 2147483647, 2147483647)
+	var high: Vector3i = Vector3i(-2147483648, -2147483648, -2147483648)
+	var found: bool = false
+	var row: int = 0
+	while row < _live.header[2]:
+		var role: int = _live.boxes[6 * _box_capacity + row]
+		if role == BODY_HELD_LOAD or role == TURN_RECOVERY:
+			found = true
+			for axis: int in 3:
+				low[axis] = mini(low[axis], _live.boxes[axis * _box_capacity + row])
+				high[axis] = maxi(high[axis], _live.boxes[(axis + 3) * _box_capacity + row])
+		row += 1
+	if not found:
+		return &"PROFILE_ROLE_MISSING"
+	for axis: int in 3:
+		out[axis] = low[axis]
+		out[axis + 3] = high[axis]
+	return &""
+
+
 func _owners_current() -> bool:
 	"""Refuse collaborator rebinding immediately, including worlds with equal reference numbers."""
 	return _transforms.is_bound_directory(_residents.directory()) \

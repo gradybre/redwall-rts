@@ -189,3 +189,19 @@ zero failures and the expected displaced pixels on both lifecycle cycles.
 This verifies the bounded presentation component only. Source extraction,
 continuous bounds, shared presentation-palette admission, original-cast visual
 quality and the production profile binding remain separate content gates.
+
+## Catalog broadphase extent reader
+
+The allocation-free `body_extent_into(content_revision, out_six_ints)` performs
+a bounded cold scan over all admitted body/held-load and turn/recovery boxes.
+Routes can size a conservative spatial search before indexing actors, even when
+an actor later changes to a larger already-authored tool/load variant. It is not
+a selected movement or work profile; candidates still require actual identity
+queries. Stance/support-only boxes do not inflate collision search. Replacement
+invalidates the old extent by exact content revision. Every refusal preserves
+output; no persistent columns or additional profile image are added.
+
+Independent review accepted the reader and replacement/refusal tests. Evidence
+`catalog-extent-v1/` records the exact source hashes, clean import, 15 tests,
+279 assertions, zero failures, zero unexpected diagnostics/leaks and analyzer
+zero warnings in two files. Fixture bounds remain explicitly synthetic.

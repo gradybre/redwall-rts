@@ -402,3 +402,34 @@ func test_actual_claimed_work_query_refuses_after_tool_or_job_changes() -> void:
 	assert_true(_jobs.release_worker(_slot).ok, "actual Job assignment removed")
 	assert_equal(_profiles.query_into(_worker, job.ref, 3, 0, -1, tool, out), &"PROFILE_JOB_STALE", "old Job cannot authorize new work")
 	assert_true(_work.release_tool_claim(_slot).ok, "release actual retained tool claim")
+
+
+func test_cold_body_extent_includes_all_load_and_recovery_variants_only() -> void:
+	"""A broadphase cannot index only the currently equipped smaller actor variant."""
+	var first: Dictionary = _row(Profiles.MODE_STAND)
+	var second: Dictionary = _row(Profiles.MODE_WALK)
+	second.fields[14] = 3
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes[1] = PackedInt32Array([-999, -500, -999, 999, 0, 999, Profiles.STANCE_SUPPORT])
+	boxes.append_array(_boxes())
+	boxes[3] = PackedInt32Array([-400, -30, -350, 800, 1700, 350, Profiles.BODY_HELD_LOAD])
+	boxes[5] = PackedInt32Array([-500, -40, -450, 900, 1800, 450, Profiles.TURN_RECOVERY])
+	assert_equal(_load(_image([first, second], boxes)), &"", "two exact source variants")
+	var extent: PackedInt32Array = PackedInt32Array([9, 9, 9, 9, 9, 9])
+	assert_equal(_profiles.body_extent_into(1, extent), &"", "cold exact catalog extent")
+	assert_equal(extent, PackedInt32Array([-500, -40, -450, 900, 1800, 450]), "all collision roles, no support inflation")
+	assert_equal(_load(_image([first], _boxes(), 2), 2), &"", "new immutable content")
+	assert_equal(_profiles.body_extent_into(1, extent), &"PROFILE_SELECTION_STALE", "old hash-grid needs refresh")
+	assert_equal(extent, PackedInt32Array([-500, -40, -450, 900, 1800, 450]), "stale refusal preserves result")
+	assert_equal(_profiles.body_extent_into(2, extent), &"", "fresh replacement extent")
+	assert_equal(extent, PackedInt32Array([-128, -20, -128, 128, 900, 128]), "replacement does not retain old bounds")
+
+
+func test_cold_body_extent_refusal_never_resizes_or_overwrites_scratch() -> void:
+	"""Absent content and malformed output cannot masquerade as a zero-sized resident."""
+	var extent: PackedInt32Array = PackedInt32Array([1, 2, 3, 4, 5, 6])
+	assert_equal(_profiles.body_extent_into(0, extent), &"PROFILE_SELECTION_STALE", "unloaded")
+	assert_equal(extent, PackedInt32Array([1, 2, 3, 4, 5, 6]), "unloaded output unchanged")
+	var short_out: PackedInt32Array = PackedInt32Array([7])
+	assert_equal(_profiles.body_extent_into(1, short_out), &"PROFILE_EXTENT_FORMAT", "exact six required")
+	assert_equal(short_out, PackedInt32Array([7]), "wrong-shaped output not resized")

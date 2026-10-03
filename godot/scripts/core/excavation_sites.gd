@@ -10,6 +10,7 @@ const Inventory := preload("res://scripts/core/inventory.gd")
 const Reservations := preload("res://scripts/core/reservations.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
 const Funding := preload("res://scripts/core/excavation_inventory.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Work := preload("res://scripts/core/work.gd")
@@ -235,6 +236,18 @@ func initialization_refusal() -> StringName:
 func construction_owner() -> Construction:
 	"""Return the exact successfully bound owner, never an equal-numbered foreign world."""
 	return _construction if _ready_error == &"" else null
+
+
+func funding_owner(construction: Construction, inventory: Inventory, pool: Reservations,
+		items: Items, jobs: Jobs, work: Work) -> Funding:
+	"""Share this one receipt arena only with the exact still-valid composed world owners."""
+	if _ready_error != &"" or construction != _construction or inventory != _inventory \
+			or pool != _pool or items != _items or jobs != _jobs or work != _work:
+		return null
+	if _composition_refusal() != &"" or not _world_is_live() \
+			or not _funding.composition_matches(construction, inventory, pool, items):
+		return null
+	return _funding
 
 
 func bound_spatial_authority() -> Contract.SpatialAuthority:
@@ -1103,7 +1116,18 @@ func earth_conservation_refusal() -> StringName:
 		return REFUSE_AUTHORITY
 	var item: int = _items.compiled_id(&"excavated_earth")
 	var retained: int = _inventory.total_live_milli(item) + _funding.total_wip_milli(item)
-	retained += _funding.cancellation_loss_milli(item)
+	var loss: int = _funding.cancellation_loss_milli(item)
+	if loss < 0:
+		return REFUSE_AUTHORITY
+	retained += loss
+	var modular: ModularContract = _construction.modular_authority()
+	if _construction.has_modular_binding() and modular == null:
+		return REFUSE_AUTHORITY
+	if modular != null:
+		var tip_earth: int = modular.embedded_earth_milli()
+		if tip_earth < 0:
+			return REFUSE_AUTHORITY
+		retained += tip_earth
 	for quantity: int in _embedded_milli:
 		retained += quantity
 	return &"" if _initial_earth_milli + _virgin_sourced_milli == retained else &"EXCAVATION_EARTH_CONSERVATION"
@@ -1120,8 +1144,12 @@ func support_conservation_refusal() -> StringName:
 		return &"EXCAVATION_SUPPORT_CONSERVATION"
 	for key: StringName in [&"wood", &"stone"]:
 		var item: int = _items.compiled_id(key)
-		var accounted: int = _funding.total_wip_milli(item) + _returned_brace_milli
-		accounted += _funding.cancellation_loss_milli(item) + installed * BRACE_WOOD_MILLI
+		var wip: int = _funding.purpose_wip_milli(Construction.PURPOSE_EXCAVATION, item)
+		var loss: int = _funding.purpose_cancellation_loss_milli(Construction.PURPOSE_EXCAVATION, item)
+		if wip < 0 or loss < 0:
+			return &"EXCAVATION_SUPPORT_CONSERVATION"
+		var accounted: int = wip + _returned_brace_milli
+		accounted += loss + installed * BRACE_WOOD_MILLI
 		# Each settled closure returns 125 and declares the other 125 structurally unrecoverable.
 		accounted += _salvaged_braces * (SALVAGE_WOOD_MILLI + BRACE_WOOD_MILLI - SALVAGE_WOOD_MILLI)
 		if _funded_braces * BRACE_WOOD_MILLI != accounted:

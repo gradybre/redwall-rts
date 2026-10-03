@@ -343,6 +343,8 @@ func test_changed_subject_foreign_world_expiration_and_rebinding_refuse() -> voi
 	assert_false(_construction.project_bill_size_into(project, _out), "changed full subject refuses")
 	_router.facts_subject = NULL_REF
 	var foreign: Construction = Construction.new()
+	assert_false(foreign.has_modular_binding(), "never-bound world remains distinguishable")
+	assert_true(_construction.has_modular_binding(), "actual owner binding is retained")
 	var foreign_world: Vector2i = foreign.directory().create(Directory.KIND_WORLD)
 	assert_equal(foreign_world, _router.world, "fixture creates coincident World numbers")
 	_router.owner = weakref(foreign)
@@ -352,6 +354,7 @@ func test_changed_subject_foreign_world_expiration_and_rebinding_refuse() -> voi
 	assert_true(_construction.directory().destroy(_router.world), "actual World retires")
 	assert_equal(_construction.modular_authority(), null, "stale World refuses")
 	_router = null
+	assert_true(_construction.has_modular_binding(), "expiry cannot erase old owner state")
 	var replacement: SyntheticRouter = SyntheticRouter.new()
 	replacement.owner = weakref(_construction)
 	replacement.world = _construction.directory().create(Directory.KIND_WORLD)
@@ -371,3 +374,20 @@ func test_quote_shape_and_unused_metadata_are_validated_before_use() -> void:
 	assert_equal(quote.refusal(), Contract.REFUSE_QUOTE, "widened scratch shape refuses")
 	var base: Contract.Owner = Contract.Owner.new()
 	assert_equal(base.prepared_order_into(Vector2i(0, 1), 0, quote), Contract.REFUSE_AUTHORITY, "base owner never prices operation")
+
+
+func test_base_binding_and_publication_queries_refuse_without_actual_router() -> void:
+	"""The typed adapter seam grants no publication or world permission by itself."""
+	var base: Contract = Contract.new()
+	var owner: Contract.Owner = Contract.Owner.new()
+	assert_equal(Contract.ADMIT, 0, "tip admission ID preserved")
+	assert_equal(Contract.CANCEL, 1, "tip cancellation ID preserved")
+	assert_equal(Contract.COMMIT, 2, "tip completion ID preserved")
+	assert_equal(Contract.PRODUCTIVE, 3, "tip labor publication ID preserved")
+	assert_equal(Contract.START, 4, "new contact preparation has its own action")
+	assert_equal(base.owner_binding_refusal(owner), Contract.REFUSE_AUTHORITY, "base cannot bind")
+	assert_false(base.is_bound_owner(owner), "typed owner alone grants nothing")
+	assert_false(base.is_bound_owner(null), "null does not match")
+	assert_false(base.is_publishing(Vector2i(1, 1), Contract.COMMIT, owner), "no direct publication")
+	assert_equal(base.item_definitions_owner(), null, "base has no actual catalog")
+	assert_equal(owner.transition_refusal(Vector2i(1, 1), Contract.START), Contract.REFUSE_AUTHORITY, "start requires actual contact proof")

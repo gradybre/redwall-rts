@@ -18,10 +18,16 @@ const Gear := preload("res://scripts/core/gear.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const AccountingFixture := preload("res://test/test_construction_modular.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const ROOM: Vector2i = Vector2i(70000, 1)
 const OTHER_ROOM: Vector2i = Vector2i(70001, 1)
 const ORIGIN: Vector3i = Vector3i(0, -4096, 0)
+
+class SharedStock extends AccountingFixture.SyntheticRouter:
+	func embedded_earth_milli() -> int:
+		"""Explicit empty synthetic stock for checking actual weak-owner conservation wiring."""
+		return 0
 
 class SpatialFixture extends Contract.SpatialAuthority:
 	## This fixture is never bound into production. Real UG08/09 must supply all these proofs.
@@ -1016,7 +1022,7 @@ func _assert_measured_packed_storage() -> void:
 	var site_bytes: int = _packed_payload_bytes(_sites)
 	var funding_bytes: int = _packed_payload_bytes(_sites.get("_funding"))
 	assert_equal(site_bytes, 36880 + 113 * 256, "all sparse Sites columns and fixed scratch measured")
-	assert_equal(funding_bytes, 2330624 + 88 * 512, "all actual Funding live and scratch arrays measured")
+	assert_equal(funding_bytes, 2334720 + 88 * 512, "all actual Funding arrays, including three loss domains, measured")
 	print("UG06_PACKED S=256 R=512 sites_bytes=%d funding_bytes=%d total_bytes=%d" %
 		[site_bytes, funding_bytes, site_bytes + funding_bytes])
 
@@ -1114,3 +1120,31 @@ func test_late_work_gear_rebinding_stops_funded_phase_without_state_changes() ->
 		"foreign Gear uses same numeric resident namespace but different actual Inventory")
 	assert_true(_work.bind_gear(foreign_gear).ok, "generic Work allows replacement after claims release")
 	_assert_late_wiring_stops_paid_work(job)
+
+
+func test_shared_funding_reader_requires_exact_live_world_composition() -> void:
+	"""The modular router reuses one actual receipt arena and cannot borrow a foreign world's rows."""
+	var actual := _sites.funding_owner(_construction, _inventory, _pool, _items, _jobs, _work)
+	assert_true(actual != null, "actual shared receipt owner reads")
+	assert_true(actual == _sites.funding_owner(_construction, _inventory, _pool, _items, _jobs, _work),
+		"repeated read returns the same arena")
+	var foreign: Inventory = Inventory.new(16, 64)
+	assert_true(_sites.funding_owner(_construction, foreign, _pool, _items, _jobs, _work) == null,
+		"matching numeric containers cannot substitute a foreign owner")
+	assert_true(_sites.funding_owner(null, _inventory, _pool, _items, _jobs, _work) == null,
+		"null accounting owner refuses")
+	assert_true(_items.load_default(foreign).ok, "legitimate late catalog registration elsewhere")
+	assert_true(_sites.funding_owner(_construction, _inventory, _pool, _items, _jobs, _work) == null,
+		"late owner rewire does not expose the old arena")
+
+
+func test_expired_shared_earth_owner_cannot_be_interpreted_as_zero_stock() -> void:
+	"""Conservation distinguishes absent modular work from an expired previously bound owner."""
+	assert_equal(_sites.earth_conservation_refusal(), &"", "never-bound world has no modular stock")
+	var router: SharedStock = SharedStock.new()
+	router.owner = weakref(_construction)
+	router.world = _world
+	assert_true(_construction.bind_modular_authority(router).ok, "exact empty shared owner binds")
+	assert_equal(_sites.earth_conservation_refusal(), &"", "actual explicit zero stock qualifies")
+	router = null
+	assert_equal(_sites.earth_conservation_refusal(), Sites.REFUSE_AUTHORITY, "expired owner cannot become assumed zero")

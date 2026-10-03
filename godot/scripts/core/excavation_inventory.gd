@@ -1,10 +1,11 @@
 extends RefCounted
-## Paid excavation WIP receipts. Inventory owns loose goods; these columns own consumed inputs.
+## Shared paid-operation WIP receipts (excavation, spatial furniture, spoil tips). Inventory owns loose goods; these columns own consumed inputs.
 ## Receipt capacity is an explicit world budget, never a room-size or input-lot truncation rule.
 ## All cold transactions either publish the entire receipt/account change or none of it.
 
 const Construction := preload("res://scripts/core/construction.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Reservations := preload("res://scripts/core/reservations.gd")
 const Items := preload("res://scripts/core/item_definitions.gd")
@@ -14,6 +15,8 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NO_ROW: int = -1
 ## Explicit concurrent-receipt engineering envelope, not a per-room or historical-input limit.
 const MAX_RECEIPT_CAPACITY: int = Reservations.ROW_CAPACITY
+const LOSS_DOMAIN_COUNT: int = 3
+const LOSS_CELL_CAPACITY: int = LOSS_DOMAIN_COUNT * Inventory.ITEM_CAPACITY
 const REFUSE_WIP: StringName = &"EXCAVATION_WIP_STATE"
 const REFUSE_RECEIPTS: StringName = &"CAPACITY_EXCAVATION_RECEIPTS"
 const REFUSE_INPUTS: StringName = &"EXCAVATION_INPUT_OWNERSHIP"
@@ -55,6 +58,7 @@ var _s_totals: PackedInt64Array = PackedInt64Array()
 var _s_returned: PackedInt64Array = PackedInt64Array()
 var _s_carry: PackedInt64Array = PackedInt64Array()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+var _quote: ModularContract.Quote = ModularContract.Quote.new()
 
 
 func _init(construction: Construction, inventory: Inventory, pool: Reservations,
@@ -72,7 +76,7 @@ func _init(construction: Construction, inventory: Inventory, pool: Reservations,
 	_allocate_projects()
 	_allocate_receipts()
 	_allocate_scratch()
-	_lost_milli.resize(Inventory.ITEM_CAPACITY)
+	_lost_milli.resize(LOSS_CELL_CAPACITY)
 	for row: int in _capacity:
 		_free[row] = _capacity - row - 1
 
@@ -86,6 +90,51 @@ static func valid_receipt_budget(requested: int, pool: Reservations) -> bool:
 func initialization_refusal() -> StringName:
 	"""Report refused capacity explicitly; callers cannot mistake empty storage for funded work."""
 	return _ready_error
+
+
+func composition_matches(construction: Construction, inventory: Inventory,
+		pool: Reservations, items: Items) -> bool:
+	"""Expose existing arena ownership without allowing a second or foreign receipt account."""
+	return _ready_error == &"" and construction == _construction and inventory == _inventory \
+		and pool == _pool and items == _items and items != null and items.registered_into(inventory) \
+		and pool != null and pool.composition_refusal(inventory) == &""
+
+
+func _owner_mutation_refusal(project: Vector2i, action: int) -> StringName:
+	"""Both paid purposes retain their own exact coordinator permit and live composition checks."""
+	if not composition_matches(_construction, _inventory, _pool, _items) or _construction == null \
+			or not _construction.purpose_into(project, _math):
+		return Construction.REFUSE_COORDINATOR_ONLY
+	if _math.value == Construction.PURPOSE_EXCAVATION:
+		var site: Contract = _construction.excavation_authority()
+		return site.mutation_refusal(project, action) if site != null else Construction.REFUSE_COORDINATOR_ONLY
+	if Construction.is_modular(_math.value):
+		var modular: ModularContract = _construction.modular_authority()
+		return modular.mutation_refusal(project, action) if modular != null else Construction.REFUSE_COORDINATOR_ONLY
+	return Construction.REFUSE_COORDINATOR_ONLY
+
+
+func _claim_purpose(project: Vector2i) -> int:
+	"""Never reinterpret another Construction purpose's material claims as a paid phase."""
+	if not _construction.purpose_into(project, _math):
+		return -1
+	if _math.value == Construction.PURPOSE_EXCAVATION:
+		return Reservations.PURPOSE_EXCAVATION_INPUT
+	return Reservations.PURPOSE_MODULAR_INPUT if Construction.is_modular(_math.value) else -1
+
+
+static func _loss_domain(purpose: int) -> int:
+	"""Historical loss domains survive project retirement; excavation support counts only its own."""
+	if purpose == Construction.PURPOSE_EXCAVATION:
+		return 0
+	if purpose == Construction.PURPOSE_SPATIAL_FURNITURE:
+		return 1
+	return 2 if purpose == Construction.PURPOSE_SPOIL_TIP else -1
+
+
+func _loss_domain_of(project: Vector2i) -> int:
+	"""Resolve a live project's purpose before any loss entry is read or written."""
+	return _loss_domain(_math.value) if _construction.purpose_into(project, _math) else -1
 
 
 func _allocate_projects() -> void:
@@ -134,15 +183,15 @@ func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 	var refusal: StringName = _start_refusal(project, job)
 	if refusal != &"":
 		return _refuse(refusal)
-	var operation: int = _operation(project)
-	refusal = _stage_inputs(project, job, operation)
+	var purpose: int = _claim_purpose(project)
+	refusal = _stage_inputs(project, job, purpose)
 	if refusal != &"":
 		return _refuse(refusal)
-	var mass: int = output_mass_g(operation)
+	var mass: int = project_output_mass_g(project)
 	if mass < 0:
 		return _refuse(REFUSE_ITEM)
 	var consumed: Inventory.OpResult = _pool.consume_job_inputs(job,
-		Reservations.PURPOSE_EXCAVATION_INPUT, now_tick, output, mass, _inventory)
+		purpose, now_tick, output, mass, _inventory)
 	if not consumed.ok:
 		return consumed
 	_publish_wip(project, output, mass)
@@ -153,12 +202,11 @@ func _start_refusal(project: Vector2i, job: Vector2i) -> StringName:
 	"""Do not publish receipts against a wrong phase, reused owner, or external transaction."""
 	if _ready_error != &"":
 		return REFUSE_RECEIPTS
-	var authority: Contract = _construction.excavation_authority()
-	if authority == null or authority.mutation_refusal(project, Contract.ACTION_WIP) != &"":
+	if _owner_mutation_refusal(project, Contract.ACTION_WIP) != &"":
 		return Construction.REFUSE_COORDINATOR_ONLY
 	if _inventory.is_transaction_open():
 		return Inventory.REFUSE_TRANSACTION_OPEN
-	if _project_row(project) == NO_ROW or _operation(project) < 0 or is_funded(project):
+	if _project_row(project) == NO_ROW or _claim_purpose(project) < 0 or is_funded(project):
 		return REFUSE_WIP
 	if not _construction.phase_into(project, _math) or _math.value != Construction.PHASE_READY:
 		return REFUSE_WIP
@@ -169,7 +217,7 @@ func _start_refusal(project: Vector2i, job: Vector2i) -> StringName:
 	return &""
 
 
-func _stage_inputs(project: Vector2i, job: Vector2i, operation: int) -> StringName:
+func _stage_inputs(project: Vector2i, job: Vector2i, purpose: int) -> StringName:
 	"""Read all matching claims in their canonical pool order and prove the exact full bill."""
 	_s_count = 0
 	_s_totals.fill(0)
@@ -178,13 +226,13 @@ func _stage_inputs(project: Vector2i, job: Vector2i, operation: int) -> StringNa
 	while row != Reservations.NULL_ROW:
 		if not _pool.row_purpose_into(row, _math):
 			return REFUSE_INPUTS
-		if _math.value != Reservations.PURPOSE_EXCAVATION_INPUT:
+		if _math.value != purpose:
 			return REFUSE_INPUTS
 		var code: StringName = _stage_one(row, container)
 		if code != &"":
 			return code
 		row = _pool.next_job_row(row)
-	return _exact_bill_refusal(project, operation)
+	return _exact_bill_refusal(project)
 
 
 func _stage_one(claim: int, container: Vector2i) -> StringName:
@@ -210,24 +258,23 @@ func _stage_one(claim: int, container: Vector2i) -> StringName:
 	return &""
 
 
-func _exact_bill_refusal(project: Vector2i, operation: int) -> StringName:
-	"""The physical claim totals must equal both the authored bill and Construction deliveries."""
-	var first: int = -1
-	var second: int = -1
-	for line: int in Contract.input_count(operation):
-		var item: int = _items.compiled_id(Contract.input_key(operation, line))
+func _exact_bill_refusal(project: Vector2i) -> StringName:
+	"""Every physical claim equals the immutable full bill and delivered ledger, including extras."""
+	_s_returned.fill(0)
+	if not _construction.project_bill_size_into(project, _math):
+		return REFUSE_WIP
+	var count: int = _math.value
+	for line: int in count:
+		var item: int = _items.compiled_id(_construction.project_material_key_at(project, line))
 		if item < 0 or not _inventory.is_item_registered(item):
 			return REFUSE_ITEM
-		if _s_totals[item] != Contract.input_milli(operation, line):
-			return REFUSE_INPUTS
+		if not _construction.project_required_milli_into(project, line, _math):
+			return REFUSE_WIP
+		_s_returned[item] = _math.value
 		if not _construction.delivered_milli_into(project, line, _math) or _math.value != _s_totals[item]:
 			return REFUSE_INPUTS
-		if first == -1:
-			first = item
-		else:
-			second = item
 	for item: int in Inventory.ITEM_CAPACITY:
-		if item != first and item != second and _s_totals[item] != 0:
+		if _s_totals[item] != _s_returned[item]:
 			return REFUSE_INPUTS
 	return &""
 
@@ -275,6 +322,52 @@ func output_mass_g(operation: int) -> int:
 	return 0 if Contract.valid_operation(operation) else -1
 
 
+func project_output_mass_g(project: Vector2i) -> int:
+	"""Reserve per-lot rounded real output mass from this exact immutable project contract."""
+	if not _construction.purpose_into(project, _math):
+		return -1
+	if _math.value == Construction.PURPOSE_EXCAVATION:
+		return output_mass_g(_operation(project))
+	if _read_modular_quote(project) != &"":
+		return -1
+	var total: int = 0
+	for index: int in _quote.output_count:
+		var item: int = _quote.output_item[index]
+		if not IntMath.checked_mul_into(_quote.output_milli[index], _inventory.item_mass_g(item), _math) \
+				or not IntMath.ceil_div_into(_math.value, 1000, _math):
+			return -1
+		if not IntMath.checked_add_into(total, _math.value, _math):
+			return -1
+		total = _math.value
+	return total
+
+
+func _read_modular_quote(project: Vector2i) -> StringName:
+	"""Fresh owner facts must match actual purpose/subject/op and the registered output catalog."""
+	if not _construction.purpose_into(project, _math) or not Construction.is_modular(_math.value):
+		return REFUSE_WIP
+	var authority: ModularContract = _construction.modular_authority()
+	if authority == null:
+		return Construction.REFUSE_COORDINATOR_ONLY
+	_quote.reset()
+	var code: StringName = authority.project_facts_into(project, _quote)
+	if code != &"" or _quote.refusal() != &"" or _quote.subject != _construction.subject_ref_of(project) \
+			or not _construction.type_id_into(project, _math) or _math.value != _quote.operation:
+		return REFUSE_WIP
+	for index: int in _quote.output_count:
+		var item: int = _quote.output_item[index]
+		if not _inventory.is_item_registered(item) or _quote.output_age[index] > Inventory.MAX_AGE_MILLI_HOURS:
+			return REFUSE_ITEM
+		var provenance: Catalog.EnumLookup = Catalog.inventory_provenance_key_of(_quote.output_provenance[index])
+		if not provenance.ok:
+			return Inventory.REFUSE_INVALID_PROVENANCE
+		if Catalog.PROVENANCE_REQUIRED_ITEM_KEY.has(String(provenance.key)):
+			var key: StringName = StringName(Catalog.PROVENANCE_REQUIRED_ITEM_KEY[String(provenance.key)])
+			if item != _items.compiled_id(key):
+				return Inventory.REFUSE_INVALID_PROVENANCE
+	return &""
+
+
 func _mass(key: StringName, quantity: int) -> int:
 	"""Resolve current authored item mass rather than duplicating the material catalog."""
 	var item: int = _items.compiled_id(key)
@@ -314,8 +407,7 @@ func wip_milli(project: Vector2i, item: int) -> int:
 
 func refund_wip(project: Vector2i, destination: Vector2i, promotion_tile: int = -1) -> Inventory.OpResult:
 	"""Return exact metadata-preserving refunds; blocked capacity retains every WIP receipt."""
-	var authority: Contract = _construction.excavation_authority()
-	if authority == null or authority.mutation_refusal(project, Contract.ACTION_REFUND) != &"":
+	if _owner_mutation_refusal(project, Contract.ACTION_REFUND) != &"":
 		return _refuse(Construction.REFUSE_COORDINATOR_ONLY)
 	if not is_funded(project) or not _construction.phase_into(project, _math) \
 			or _math.value != Construction.PHASE_REFUNDING:
@@ -354,9 +446,14 @@ func _prepare_refund(project: Vector2i) -> StringName:
 	_s_totals.fill(0)
 	_s_returned.fill(0)
 	_s_carry.fill(0)
-	var operation: int = _operation(project)
-	for line: int in Contract.input_count(operation):
-		var item: int = _items.compiled_id(Contract.input_key(operation, line))
+	var domain: int = _loss_domain_of(project)
+	if domain < 0 or not _construction.project_bill_size_into(project, _math):
+		return REFUSE_WIP
+	var count: int = _math.value
+	for line: int in count:
+		var item: int = _items.compiled_id(_construction.project_material_key_at(project, line))
+		if item < 0 or not _inventory.is_item_registered(item):
+			return REFUSE_ITEM
 		if not _construction.cancellation_refund_milli_into(project, line, _math):
 			return REFUSE_WIP
 		_s_returned[item] = _math.value
@@ -364,7 +461,11 @@ func _prepare_refund(project: Vector2i) -> StringName:
 		if not _construction.delivered_milli_into(project, line, _math) \
 				or _math.value != _s_totals[item] or _s_returned[item] > _s_totals[item]:
 			return REFUSE_WIP
-		if not IntMath.checked_add_into(_lost_milli[item], _s_totals[item] - _s_returned[item], _math):
+		var loss: int = _s_totals[item] - _s_returned[item]
+		var previous: int = cancellation_loss_milli(item)
+		if previous < 0 or not IntMath.checked_add_into(previous, loss, _math):
+			return Inventory.REFUSE_OVERFLOW
+		if not IntMath.checked_add_into(_lost_milli[domain * Inventory.ITEM_CAPACITY + item], loss, _math):
 			return Inventory.REFUSE_OVERFLOW
 	return &""
 
@@ -403,11 +504,13 @@ func _return_receipt(row: int, destination: Vector2i, numerator: int) -> StringN
 
 func _publish_refund(project: Vector2i) -> void:
 	"""Book cancellation loss only once, after exact returned goods committed."""
-	var operation: int = _operation(project)
-	for line: int in Contract.input_count(operation):
-		var item: int = _items.compiled_id(Contract.input_key(operation, line))
+	var domain: int = _loss_domain_of(project)
+	_construction.project_bill_size_into(project, _math)
+	var count: int = _math.value
+	for line: int in count:
+		var item: int = _items.compiled_id(_construction.project_material_key_at(project, line))
 		_construction.cancellation_refund_milli_into(project, line, _math)
-		_lost_milli[item] += _s_totals[item] - _math.value
+		_lost_milli[domain * Inventory.ITEM_CAPACITY + item] += _s_totals[item] - _math.value
 	_clear_wip(project)
 
 
@@ -429,6 +532,8 @@ func commit_outputs(project: Vector2i, cut_provenance: int,
 			or _math.value != Construction.PHASE_WORK_DONE:
 		return _refuse(REFUSE_WIP)
 	var operation: int = _operation(project)
+	if operation < 0:
+		return _refuse(REFUSE_WIP)
 	if operation == Contract.OP_CUT and cut_provenance != Catalog.PROVENANCE_EXCAVATION \
 			and cut_provenance != Catalog.PROVENANCE_BACKFILL_RECLAIM:
 		return _refuse(Inventory.REFUSE_INVALID_PROVENANCE)
@@ -444,6 +549,51 @@ func commit_outputs(project: Vector2i, cut_provenance: int,
 		return committed
 	_clear_wip(project)
 	return Inventory.OpResult.new(true, &"", project, 0)
+
+
+func commit_modular_outputs(project: Vector2i, promotion_tile: int = -1) -> Inventory.OpResult:
+	"""Atomically settle actual router-priced outputs; blocked publication retains all paid WIP."""
+	if _owner_mutation_refusal(project, ModularContract.ACTION_OUTPUT) != &"":
+		return _refuse(Construction.REFUSE_COORDINATOR_ONLY)
+	if not is_funded(project) or not _construction.phase_into(project, _math) \
+			or _math.value != Construction.PHASE_WORK_DONE or _construction.is_paused(project):
+		return _refuse(REFUSE_WIP)
+	var code: StringName = _read_modular_quote(project)
+	if code != &"":
+		return _refuse(code)
+	var mass: int = project_output_mass_g(project)
+	if mass < 0 or mass != _output_mass_g[_project_row(project)] \
+			or promotion_tile >= 0 and _quote.output_count == 0:
+		return _refuse(REFUSE_WIP)
+	var opened: Inventory.OpResult = _inventory.begin()
+	if not opened.ok:
+		return opened
+	code = _modular_output_inventory(project, promotion_tile)
+	if code != &"":
+		_inventory.abort()
+		return _refuse(code)
+	var committed: Inventory.OpResult = _inventory.commit()
+	if not committed.ok:
+		return committed
+	_clear_wip(project)
+	return Inventory.OpResult.new(true, &"", project, 0)
+
+
+func _modular_output_inventory(project: Vector2i, promotion_tile: int) -> StringName:
+	"""Post the bounded owner candidate inside the active Inventory journal, without clearing WIP."""
+	var code: StringName = _release_output(project)
+	for index: int in _quote.output_count:
+		if code != &"":
+			break
+		var made: Inventory.OpResult = _inventory.create_lot(output_container(project),
+			_quote.output_item[index], _quote.output_milli[index], _quote.output_quality[index],
+			_quote.output_provenance[index], _quote.output_recipe[index], _quote.output_age[index],
+			_quote.output_remainder[index])
+		code = &"" if made.ok else made.error
+	if code == &"" and promotion_tile >= 0:
+		var promoted: Inventory.OpResult = _inventory.promote_to_ground_pile(output_container(project), promotion_tile)
+		code = &"" if promoted.ok else promoted.error
+	return code
 
 
 func _output_inventory(project: Vector2i, operation: int, provenance: int, tile: int) -> StringName:
@@ -520,7 +670,40 @@ func _clear_receipt(row: int) -> void:
 
 func cancellation_loss_milli(item: int) -> int:
 	"""Physical per-item loss, independent of generic Inventory source/sink bookkeeping."""
-	return _lost_milli[item] if item >= 0 and item < _lost_milli.size() else 0
+	if item < 0 or item >= Inventory.ITEM_CAPACITY or _ready_error != &"":
+		return 0
+	var total: int = 0
+	for domain: int in LOSS_DOMAIN_COUNT:
+		if not IntMath.checked_add_into(total, _lost_milli[domain * Inventory.ITEM_CAPACITY + item], _math):
+			return -1
+		total = _math.value
+	return total
+
+
+func purpose_cancellation_loss_milli(purpose: int, item: int) -> int:
+	"""Cold purpose-qualified historical sink, independent of retired Construction rows."""
+	var domain: int = _loss_domain(purpose)
+	if _ready_error != &"" or domain < 0 or item < 0 or item >= Inventory.ITEM_CAPACITY:
+		return -1
+	return _lost_milli[domain * Inventory.ITEM_CAPACITY + item]
+
+
+func purpose_wip_milli(purpose: int, item: int) -> int:
+	"""Cold conservation query over actual full project generations, never a tick-path scan."""
+	if _ready_error != &"" or _loss_domain(purpose) < 0 or item < 0 or item >= Inventory.ITEM_CAPACITY:
+		return -1
+	var total: int = 0
+	for row: int in Construction.CONSTRUCTION_CAPACITY:
+		if _project_slot[row] < 0:
+			continue
+		var project: Vector2i = Vector2i(_project_slot[row], _project_generation[row])
+		if not _construction.purpose_into(project, _math):
+			return -1
+		if _math.value == purpose:
+			if not IntMath.checked_add_into(total, wip_milli(project, item), _math):
+				return -1
+			total = _math.value
+	return total
 
 
 func total_wip_milli(item: int) -> int:

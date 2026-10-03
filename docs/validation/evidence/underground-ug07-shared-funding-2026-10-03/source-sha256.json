@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/construction.gd": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+  "godot/scripts/core/excavation_inventory.gd": "63632e12b4474eb52c47bcf833a33ea8917f8a399d645da39c2ba0bc58c77346",
+  "godot/scripts/core/excavation_sites.gd": "97559c5e220fd2ea67996f80f209b3c32865da64409701bc253103e52a853973",
+  "godot/scripts/core/modular_project_contract.gd": "ac05acc14ee2a6f08d404163ea56a50b0f3ad46bbd0df7bb957d4967ae2b6f24",
+  "godot/test/test_construction_modular.gd": "03d4930d9031cb7ed165bee1b3d1b1e052e0966b39381c507b8846aa6407dabc",
+  "godot/test/test_modular_inventory.gd": "800becd1967e63c35ede857ad16441f1fd7904f679e36353f858a41c745e0f02",
+  "godot/test/test_excavation_physical.gd": "d9bd50ec26e2f028d56ab854d6e62ca47ca9df2150648bb0ea2aa6f79f8e8a5a"
+}

@@ -767,6 +767,11 @@ func bind_modular_authority(authority: ModularContract) -> OpResult:
 	return OpResult.new(true, REFUSE_NONE, 0, NULL_REF)
 
 
+func has_modular_binding() -> bool:
+	"""Distinguish a never-bound world from expired ownership that must not erase retained stock."""
+	return _modular_authority != null
+
+
 func modular_authority() -> ModularContract:
 	"""Return only the still-live exact owner composition, not merely a typed weak target."""
 	var authority: ModularContract = _modular_authority.get_ref() as ModularContract \

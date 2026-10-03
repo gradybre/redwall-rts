@@ -3,6 +3,7 @@ extends RefCounted
 ## Quotes are finite cold scratch, never authoritative per-project storage or caller prices.
 ## The base router and operation owner refuse every admission and publication.
 
+const ItemDefinitions := preload("res://scripts/core/item_definitions.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const INPUT_CAPACITY: int = 4
 const OUTPUT_CAPACITY: int = 2
@@ -25,6 +26,8 @@ const ADMIT: int = 0
 const CANCEL: int = 1
 const COMMIT: int = 2
 const PRODUCTIVE: int = 3
+## Contact/material preparation before payment; no physical source/installation publication.
+const START: int = 4
 
 class Quote extends RefCounted:
 	## Two or three component-owned reusable quotes suffice; no entity owns one.
@@ -163,7 +166,7 @@ class Owner extends RefCounted:
 		return REFUSE_AUTHORITY
 
 	func transition_refusal(_project: Vector2i, _action: int) -> StringName:
-		"""Prepare a no-fail transition before the actual accounting/Inventory commit."""
+		"""Prepare ADMIT/CANCEL/COMMIT/PRODUCTIVE or START, never Construction ACTION_* values."""
 		return REFUSE_AUTHORITY
 
 	func material_refusal(_project: Vector2i, _container: Vector2i, _job: Vector2i) -> StringName:
@@ -212,6 +215,26 @@ func construction_owner() -> RefCounted:
 func world_ref() -> Vector2i:
 	"""The router belongs to one actual live World generation."""
 	return NULL_REF
+
+
+func item_definitions_owner() -> ItemDefinitions:
+	"""The actual shared catalog instance, never a coincident item-number namespace."""
+	return null
+
+
+func owner_binding_refusal(_owner: Owner) -> StringName:
+	"""Preflight exact purpose/world ownership without binding either collaborating owner."""
+	return REFUSE_AUTHORITY
+
+
+func is_bound_owner(_owner: Owner) -> bool:
+	"""Only the real router may attest its current exact purpose owner."""
+	return false
+
+
+func is_publishing(_project: Vector2i, _action: int, _owner: Owner) -> bool:
+	"""Only the exact synchronous physical publication window qualifies; base refuses."""
+	return false
 
 
 func project_open_into(_purpose: int, _subject: Vector2i, _operation: int,

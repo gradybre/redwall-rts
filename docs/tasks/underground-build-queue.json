@@ -227,7 +227,12 @@
         "godot/scripts/core/excavation_contract.gd",
         "godot/scripts/core/reservations.gd",
         "godot/scripts/core/inventory.gd",
-        "godot/test/test_excavation_physical.gd"
+        "godot/test/test_excavation_physical.gd",
+        "godot/scripts/core/gear.gd",
+        "godot/test/test_gear.gd",
+        "godot/scripts/core/item_definitions.gd",
+        "godot/test/test_item_definitions.gd",
+        "godot/test/test_reservations.gd"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -268,7 +273,8 @@
             "review": "ug_geometry independent review and fixed cancellation/output adversarial cases approved",
             "integration": "cb10f2a1 source;7be405d5 additive registry"
           }
-        ]
+        ],
+        "in_progress": "Physical owner under final independent review. Narrow Gear combined-read performance and Items/Reservations/Gear composition-identity fixes explicitly leased; existing numerical IDs never prove same-world ownership. Canonical/source capacity and memory reconciliation1066 owned by root after source freeze."
       },
       "lease": {
         "state": "held"

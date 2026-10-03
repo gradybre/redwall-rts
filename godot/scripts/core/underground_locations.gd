@@ -112,6 +112,17 @@ class Bank extends RefCounted:
 		count = other.count
 
 
+class Retention extends RefCounted:
+	## Optional weakly borrowed actual graph owner; once bound, expiration refuses retirement.
+	func exact_binding(_locations: RefCounted) -> bool:
+		"""A coincident local ref in another graph is not this endpoint namespace."""
+		return false
+
+	func retains(_location: Vector2i) -> bool:
+		"""The actual graph must include live edges, occupied actors and retained path links."""
+		return true
+
+
 class InventoryLocations extends InventoryContract:
 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
 	var _locations: WeakRef = null
@@ -174,13 +185,16 @@ var _snapshot: Space.Snapshot = null
 var _region: Owner.Region = Owner.Region.new()
 var _record: Record = Record.new()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+var _retention: WeakRef = null
+var _in_retention: bool = false
+var _retention_reentered: bool = false
 
 
 func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
 		inventory: Inventory, owner: Owner, sources: Owner.CoreSources,
 		cold: Budget, capacity: int, arena_bytes: int) -> StringName:
 	"""Bind exact real stores and admit both banks before any allocation."""
-	if _capacity > 0:
+	if _reject_retention_callback() or _capacity > 0:
 		return &"LOCATION_ALREADY_BOUND"
 	if capacity < 1 or capacity > MAX_LOCATIONS or arena_bytes < 228 * capacity + 256:
 		return &"LOCATION_ARENA_CAPACITY"
@@ -211,7 +225,7 @@ func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
 
 func bind_sites(sites: Sites) -> StringName:
 	"""Bind the actual permanent paid-key namespace after its same-world owner composition exists."""
-	if _capacity == 0 or _token != 0 or sites == null or sites.initialization_refusal() != &"" \
+	if _reject_retention_callback() or _capacity == 0 or _token != 0 or sites == null or sites.initialization_refusal() != &"" \
 			or sites.construction_owner() != _sources.construction_owner() \
 			or sites != _sources.construction_owner().excavation_authority():
 		return &"LOCATION_SITE_OWNER"
@@ -254,6 +268,50 @@ func is_bound_world(ids: Directory, world: Vector2i, owner: Owner) -> bool:
 func is_bound_budget(candidate: Budget) -> bool:
 	"""The actual World composer must give every cold consumer this same exact Budget instance."""
 	return candidate != null and _capacity > 0 and candidate == _cold
+
+
+func allocation_within(limit: int) -> bool:
+	"""Compare actual endpoint capacity before a graph sizes its finite local-ref lookup namespace."""
+	return _capacity > 0 and limit >= _capacity
+
+
+func bind_retention(retention: Retention) -> StringName:
+	"""Bind once without creating the Locations/Space/Routes ownership cycle."""
+	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _retention != null or retention == null:
+		return &"LOCATION_RETENTION_BINDING"
+	_in_retention = true
+	_retention_reentered = false
+	var matches: bool = retention.exact_binding(self)
+	_in_retention = false
+	if not matches or _retention_reentered:
+		return &"LOCATION_RETENTION_BINDING"
+	_retention = weakref(retention)
+	return &""
+
+
+func _reject_retention_callback() -> bool:
+	"""Trusted retention callbacks inspect state; attempted reentrant mutations invalidate their answer."""
+	if _in_retention:
+		_retention_reentered = true
+		return true
+	return false
+
+
+func _route_retention_refusal(location: Vector2i) -> StringName:
+	"""An expired or foreign bound observer must never release an occupied endpoint."""
+	if _retention == null:
+		return &""
+	var retention: Retention = _retention.get_ref() as Retention
+	if retention == null or _in_retention:
+		return &"LOCATION_RETENTION_BINDING"
+	_in_retention = true
+	_retention_reentered = false
+	var matches: bool = retention.exact_binding(self)
+	var retained: bool = retention.retains(location) if matches and not _retention_reentered else true
+	_in_retention = false
+	if not matches or _retention_reentered:
+		return &"LOCATION_RETENTION_BINDING"
+	return &"LOCATION_ROUTE_RETAINED" if retained else &""
 
 
 func packed_memory_bytes() -> int:
@@ -331,7 +389,7 @@ func same_storage_cell(first: Vector2i, second: Vector2i) -> bool:
 func begin_prepare(cold_token: int, owner_token: int = 0, site: Vector2i = NULL_REF,
 		operation: int = -1, phase_stage: int = -1) -> Result:
 	"""Borrow the already-reserved shared cold arena; no live endpoint changes before publication."""
-	if _capacity == 0 or world_ref() == NULL_REF or _token != 0 or _next_token == 9223372036854775807:
+	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 or _next_token == 9223372036854775807:
 		return Result.new(&"LOCATION_PREPARATION_BUSY")
 	if not _cold.covers(cold_token, cold_peak_bytes()):
 		return Result.new(&"LOCATION_COLD_CAPACITY")
@@ -409,6 +467,13 @@ func stage_remove(token: int, location: Vector2i) -> StringName:
 		return code if code != &"" else &"LOCATION_STALE"
 	if _inventory.has_spatial_location(location, _get64(_stage, PAYLOAD_REVISION, location.x)):
 		return &"LOCATION_INVENTORY_RETAINED"
+	code = _route_retention_refusal(location)
+	if code == &"":
+		code = _editable(token)
+	if code != &"":
+		return code
+	if _inventory.has_spatial_location(location, _get64(_stage, PAYLOAD_REVISION, location.x)):
+		return &"LOCATION_INVENTORY_RETAINED"
 	_clear_row(_stage, location.x)
 	_stage.count -= 1
 	if _get32(_stage, GENERATION, location.x) == Space.I32_MAX:
@@ -426,7 +491,7 @@ func seal(token: int) -> StringName:
 	code = _geometry_current_refusal()
 	if code != &"":
 		return code
-	code = _current_retention_refusal()
+	code = _prepared_retention_refusal()
 	if code != &"":
 		return code
 	_rebuild_order(_stage)
@@ -437,15 +502,22 @@ func seal(token: int) -> StringName:
 
 func prepared_refusal(token: int) -> StringName:
 	"""Validate this receiver's exact sealed candidate and retained cold lease."""
-	if token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
+	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return &"LOCATION_TOKEN_STALE"
-	var code: StringName = _geometry_current_refusal()
-	return _current_retention_refusal() if code == &"" else code
+	return _prepared_retention_refusal()
+
+
+func _prepared_retention_refusal() -> StringName:
+	"""All observer callbacks precede fresh actual geometry, Inventory and lease checks."""
+	var code: StringName = _current_retention_refusal()
+	if code == &"":
+		code = _geometry_current_refusal()
+	return _final_inventory_refusal(_cold_token, cold_peak_bytes()) if code == &"" else code
 
 
 func abort(token: int) -> bool:
 	"""Drop only the transient candidate; the composition owner still holds its shared cold lease."""
-	if token == 0 or token != _token:
+	if _reject_retention_callback() or token == 0 or token != _token:
 		return false
 	_reset_preparation()
 	return true
@@ -453,7 +525,7 @@ func abort(token: int) -> bool:
 
 func publish(token: int) -> bool:
 	"""Swap validated banks only; future geometry requires its exact real Sites publication window."""
-	if token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
+	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return false
 	if _current_retention_refusal() != &"":
 		return false
@@ -466,6 +538,8 @@ func publish(token: int) -> bool:
 	else:
 		if _geometry_current_refusal() != &"":
 			return false
+	if _final_inventory_refusal(_cold_token, cold_peak_bytes()) != &"":
+		return false
 	var previous: Bank = _live
 	_live = _stage
 	_stage = previous
@@ -489,6 +563,8 @@ func _reset_preparation() -> void:
 
 func _editable(token: int) -> StringName:
 	"""Every mutable operation belongs to this actual owner and one active cold candidate."""
+	if _reject_retention_callback():
+		return &"LOCATION_RETENTION_REENTRY"
 	return &"" if token > 0 and token == _token and not _sealed \
 		and _cold.covers(_cold_token, cold_peak_bytes()) else &"LOCATION_TOKEN_STALE"
 
@@ -803,7 +879,7 @@ func capture_state_into(cold_token: int, out: PackedByteArray) -> StringName:
 
 func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	"""Decode into the inactive bank; malformed, stale or retained-ref changes leave live bytes intact."""
-	if _capacity == 0 or _token != 0 or _owner.has_prepared() or bytes.size() != wire_bytes():
+	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _owner.has_prepared() or bytes.size() != wire_bytes():
 		return &"LOCATION_IMAGE_SHAPE"
 	if not _cold.covers(cold_token, wire_bytes() + cold_peak_bytes()):
 		return &"LOCATION_COLD_CAPACITY"
@@ -817,8 +893,12 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	_base_geometry_revision = _owner.revision()
 	var code: StringName = _loaded_rows_refusal()
 	_snapshot = null
-	if code == &"" and (_owner.revision() != _base_geometry_revision or world_ref() == NULL_REF):
+	if code == &"":
+		code = _current_retention_refusal()
+	if code == &"" and (_owner.has_prepared() or _owner.revision() != _base_geometry_revision or world_ref() == NULL_REF):
 		code = &"LOCATION_GEOMETRY_STALE"
+	if code == &"":
+		code = _final_inventory_refusal(cold_token, wire_bytes() + cold_peak_bytes())
 	if code != &"":
 		return code
 	_rebuild_allocation(_stage)
@@ -875,20 +955,39 @@ func _loaded_rows_refusal() -> StringName:
 	return &""
 
 
+func _row_payload_unchanged(row: int) -> bool:
+	"""Compare all immutable live payload fields; proof revision refresh alone never repoints a handle."""
+	if _live.present[row] == 0:
+		return true
+	if _stage.present[row] == 0:
+		return false
+	for field: int in I32_FIELDS:
+		if _get32(_live, field, row) != _get32(_stage, field, row):
+			return false
+	return true
+
+
 func _loaded_retention_refusal(row: int) -> StringName:
 	"""Never repoint an existing full handle; cold load cannot erase a retained real endpoint."""
-	if _live.present[row] == 0:
-		return &""
-	var same: bool = _stage.present[row] == 1
-	for field: int in I32_FIELDS:
-		same = same and _get32(_live, field, row) == _get32(_stage, field, row)
-	if same:
+	if _row_payload_unchanged(row):
 		return &""
 	if _stage.present[row] == 1 and _get32(_live, GENERATION, row) == _get32(_stage, GENERATION, row):
 		return &"LOCATION_IMMUTABLE_PAYLOAD"
 	var location: Vector2i = Vector2i(row, _get32(_live, GENERATION, row))
-	return &"LOCATION_INVENTORY_RETAINED" if _inventory.has_spatial_location(location,
-		_get64(_live, PAYLOAD_REVISION, row)) else &""
+	return _route_retention_refusal(location)
+
+
+func _final_inventory_refusal(cold_token: int, bytes: int) -> StringName:
+	"""No observer executes after this final pass, including one that retained an earlier changed row."""
+	if not _cold.covers(cold_token, bytes):
+		return &"LOCATION_COLD_CAPACITY"
+	for row: int in _capacity:
+		if _row_payload_unchanged(row):
+			continue
+		var location: Vector2i = Vector2i(row, _get32(_live, GENERATION, row))
+		if _inventory.has_spatial_location(location, _get64(_live, PAYLOAD_REVISION, row)):
+			return &"LOCATION_INVENTORY_RETAINED"
+	return &""
 
 
 func _current_retention_refusal() -> StringName:

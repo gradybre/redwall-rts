@@ -380,17 +380,18 @@ must be exercised at 256 living residents before claiming workload qualification
 | Store | Exact proposed columns | Retained bytes at this pack |
 |---|---|---:|
 | Existing Locations banks | Reviewed 228N+256 | 233,728 |
-| Two directed-edge banks | Each has14 I32: generation, from slot/generation, to slot/generation, owning Room slot/generation, family, variant, rotation, path start/count, mode, posture; 3 I64: content revision, geometry revision, path length; 2 B8: present, exhausted; plus I32 free heap and deterministic order index. 180E total | 276,480 |
+| Two directed-edge banks | Each has14 I32: generation, from slot/generation, to slot/generation, full containment FLOOR_DATUM section slot/generation, family, variant, rotation, path start/count, mode, posture; 3 I64: content revision, geometry revision, path length; 2 B8: present, exhausted; plus I32 free heap and deterministic order index. 180E total | 276,480 |
 | Two authored polyline banks | X/Y/Z I32 columns; compact occupied prefix with per-edge start/count. 24V total | 98,304 |
-| Resident state plus simultaneous load image | 26 I32: full Resident ref, current Location ref, current edge ref, actual Job ref, route head/tail, mode/posture/phase, profile ID/connector family, full tool/cargo/satchel refs, segment index, committed next Location ref, requested goal Location ref. 6 I64: profile/content revisions, committed cargo quantity, edge progress, displacement remainder, request tick. 304S total | 155,648 |
+| Resident state plus simultaneous load image | 27 I32: full Resident ref, current Location ref, current edge ref, actual Job ref, route head/tail, mode/posture/phase, profile ID/connector family, full tool/cargo/satchel refs, segment index, retained actual Room and FLOOR_DATUM full refs, actual level. Next/goal endpoints derive from existing edge/tail refs. 6 I64: profile/content revisions, committed cargo quantity, edge progress, displacement remainder, request tick. 312S total | 159,744 |
 | Pooled route state plus simultaneous load image and both derived heaps | Four I32: full edge ref, next link, owning Resident typed row. Actual Resident identity is validated through that row's full stored ref. Both heaps are preflighted before load publication. 40L total | 163,840 |
 | One reused Dijkstra scratch | Per Location: I64 distance, I32 predecessor edge/heap node/heap position, B8 search state. 21N | 21,504 |
 | One proposed route result | Full local edge ref per node, 8N | 8,192 |
 | Derived local occupancy lookup | I32 hash heads[N], next[S], cell XYZ[3S], query visit[S], complete actual body/held-load envelope[6S], I64 profile revision[S] | 28,672 |
+| Reused complete edge/query and compaction packet | XYZ I32[3V], shared sequentially by callbacks, actual edge reads and vertex compaction; no per-call copy | 49,152 |
 | Bounded numeric/header reservation | Source-defined fixed headers and operation controls, charged before final implementation; native objects/handles remain in the separately declared bindings reserve | 1,024 |
-| Combined proposed provider peak | Including existing Locations and simultaneous route/resident load images | **987,392** |
+| Combined proposed provider peak | Including existing Locations and simultaneous route/resident load images | **1,040,640** |
 
-The remaining **61,184 bytes** inside the existing1,048,576-byte provider reserve
+The remaining **7,936 bytes** inside the existing1,048,576-byte provider reserve
 are unallocated headroom, not a permission to omit later columns. The final source
 will recalculate exact scalar/header counts. Cold survey/profile copies still
 borrow the actual shared decision1072 Budget; no third graph bank or per-resident
@@ -399,6 +400,16 @@ not overlap uncharged.
 
 Edges are generation-checked, directed, and split at real Room/domain boundaries;
 all five approved connector families refer to their actual source-bound content.
+Each graph edge is one actual containment span, split at section/Room boundaries.
+The full section handle replaces the provisional owning-Room columns with no
+extra edge bytes; Room and level derive from that exact section. Endpoint
+Locations may belong to different sections at a boundary. Actor containment is
+written once into its packed committed record, never inferred from the last
+endpoint or rebuilt by a per-actor scan of all spatial rows. The one added level
+column costs4,096 bytes including its simultaneous load image. The provider
+receives the exact section, current segment and integer point for any needed
+actual connector query; no profile/entry recursion is permitted. FLOOR_DATUM
+identity alone never supplies a ramp/stair slope, headroom or eligibility.
 Each segment retains its authored positions, never stretched between arbitrary
 floors. The graph is admitted only against complete supported geometry and exact
 profile requirements, including turns/recovery and protected landing reservations.
@@ -412,8 +423,8 @@ owners once per movement boundary, not by a whole-geometry scan on each Work
 call. A changed profile or geometry invalidates future entry; interruption must
 retain the occupied edge, progress and safe exit. The next implementation packet
 must settle deterministic landing queues/retreat, exact pace provenance and
-legacy-Movement handoff before movement activation. Ground caps can be read from
-Residents; connector pace is an explicit authored input rather than an invented
+legacy-Movement handoff before movement activation. Ground speed caps must use the actual Movement profile catalog (Residents owns
+identity, not a speed getter); connector pace is an explicit authored input rather than an invented
 copy of a ground-only speed. This schema proposal grants no traversal permission.
 
 ## Prepared endpoint read for atomic topology companions
@@ -581,3 +592,37 @@ Owner validation reported **59 tests / 3,010 assertions / 0 failures**, with
 `0 GDScript warning(s) in 0 of 2 file(s)`. Exact source pins, raw final logs and
 the earlier rejected test-fixture log are retained under the 1075 evidence
 folder's `snapshot-revision/` child. No additional full suite was duplicated.
+
+
+## Current endpoint retention for actual route owners
+
+Locations now accepts one typed weak `Retention` observer. The actual Routes
+owner will report live edges, occupied actors and retained paths against this
+exact endpoint object. Missing/foreign/expired binding cannot authorize removal
+once an observer was attached. Current graph retention is checked during removal,
+seal, prepared validity, publication and load, alongside the existing real
+Inventory retention. Full local generation and immutable payload rules remain.
+The allocation-free `allocation_within(limit)` reader prevents a graph from
+silently sizing its lookup namespace below the actual configured endpoint arena.
+
+Observer callbacks are side-effect-free by contract; attempted Locations
+mutation during a callback refuses and invalidates that answer. Final checks
+also defend concrete cross-owner mutations: after all observer callbacks, the
+owner rechecks geometry and runs a callback-free actual Inventory pass over
+**every changed live row**, then checks the exact shared cold lease. A callback
+for a later row cannot strand a container created at an earlier row. A callback
+that releases the lease cannot publish or load an unreserved image. The final
+physical-publication checks still require the exact actual Sites window.
+
+No packed, canonical or wire fields change. Two bool controls add **2 logical
+bytes** in the existing binding/control reservation; one weak native handle and
+the fixed observer object belong in that same native envelope. These observers
+are not saved and must be rebound to the actual restored owner composition.
+
+Independent review accepted the corrected boundary. Clean CI import and strict
+Locations tests reported **25 tests / 591 assertions / 0 failures**, with zero
+unexpected errors/warnings, expected/tolerated diagnostics and object/resource
+leaks in both strict/raw reports. Analyzer warnings were zero in both files.
+Raw evidence and rejected fixture history are retained under the 1075 evidence
+folder's `route-retention/` child. The test observer is explicitly synthetic;
+actual connected movement remains the next Routes implementation increment.

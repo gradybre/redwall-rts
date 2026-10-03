@@ -436,3 +436,167 @@ func test_post_seal_inventory_retention_prevents_location_retirement() -> void:
 	assert_true(_locations.abort(prepared.token), "discard refused candidate only")
 	_cold.release(lease)
 	assert_equal(_image(), before, "live endpoint bytes unchanged")
+
+
+class RetainedGraph extends Locations.Retention:
+	## Synthetic retention-only observer; full Routes composition is tested in its own suite.
+	var actual: Locations = null
+	var retained: Vector2i = NULL_REF
+	var reenter: bool = false
+	var token: int = 0
+	var inventory: Inventory = null
+	var trigger: Vector2i = NULL_REF
+	var create_at: Vector2i = NULL_REF
+	var created: Vector2i = NULL_REF
+	var cold: Budget = null
+	var cold_token: int = 0
+	var released: bool = false
+
+	func exact_binding(locations: RefCounted) -> bool:
+		"""The actual endpoint object remains part of the local-ref namespace."""
+		return locations == actual
+
+	func retains(location: Vector2i) -> bool:
+		"""Attempted observer-side abort must not destroy an otherwise valid candidate."""
+		if reenter:
+			actual.abort(token)
+		if location == trigger and inventory != null and created == NULL_REF:
+			created = inventory.create_spatial_ground_staging(create_at).ref
+		if location == trigger and cold != null and not released:
+			released = cold.release(cold_token) == &""
+		return location == retained
+
+
+func test_graph_retention_preserves_live_endpoints_at_all_publication_boundaries() -> void:
+	"""An edge or resident retained after sealing prevents removal without modifying live bytes."""
+	var location: Vector2i = _add()
+	var before: PackedByteArray = _image()
+	var graph: RetainedGraph = RetainedGraph.new()
+	graph.actual = _locations
+	assert_equal(_locations.bind_retention(graph), &"", "exact weak graph binding")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	graph.retained = location
+	assert_equal(_locations.stage_remove(token, location), &"LOCATION_ROUTE_RETAINED", "live edge keeps endpoint")
+	graph.retained = NULL_REF
+	assert_equal(_locations.stage_remove(token, location), &"", "unretained candidate removal")
+	assert_equal(_locations.seal(token), &"", "exact prepared removal")
+	graph.retained = location
+	assert_equal(_locations.prepared_refusal(token), &"LOCATION_ROUTE_RETAINED", "post-seal edge checked")
+	assert_false(_locations.publish(token), "cannot strand an actor or retained path")
+	assert_true(_locations.abort(token), "normal caller abort remains usable")
+	_cold.release(cold)
+	assert_equal(_image(), before, "all live bytes retained")
+
+
+func test_graph_retention_refuses_load_that_removes_or_recycles_a_live_location() -> void:
+	"""A prior canonical image cannot erase graph references even with no Inventory pile."""
+	var empty: PackedByteArray = _image()
+	var location: Vector2i = _add()
+	var before: PackedByteArray = _image()
+	var graph: RetainedGraph = RetainedGraph.new()
+	graph.actual = _locations
+	graph.retained = location
+	assert_equal(_locations.bind_retention(graph), &"", "actual endpoint namespace")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	assert_equal(_locations.restore_state_bytes(cold, empty), &"LOCATION_ROUTE_RETAINED", "canonical absence still retained")
+	_cold.release(cold)
+	assert_equal(_image(), before, "load preserves actual retained identity")
+
+
+func test_expired_foreign_and_reentrant_graph_observers_fail_closed() -> void:
+	"""Weak observer expiration never silently grants retirement, and reentry cannot consume a token."""
+	var location: Vector2i = _add()
+	var foreign: RetainedGraph = RetainedGraph.new()
+	assert_equal(_locations.bind_retention(foreign), &"LOCATION_RETENTION_BINDING", "wrong namespace")
+	foreign.actual = _locations
+	assert_equal(_locations.bind_retention(foreign), &"", "same actual owner")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	foreign.token = _locations.begin_prepare(cold).token
+	foreign.reenter = true
+	assert_equal(_locations.stage_remove(foreign.token, location), &"LOCATION_RETENTION_BINDING", "callback abort poisoned")
+	foreign.reenter = false
+	assert_equal(_locations.stage_remove(foreign.token, location), &"", "same caller token survives")
+	assert_equal(_locations.seal(foreign.token), &"", "retry remains possible")
+	var token: int = foreign.token
+	foreign = null
+	assert_equal(_locations.prepared_refusal(token), &"LOCATION_RETENTION_BINDING", "expired required observer")
+	assert_false(_locations.publish(token), "cannot publish after owner disappears")
+	assert_true(_locations.abort(token), "caller can discard incomplete candidate")
+	_cold.release(cold)
+	assert_true(_locations.is_live_location(location), "original endpoint still lives")
+
+
+func test_actual_endpoint_capacity_reader_never_infers_a_smaller_namespace() -> void:
+	"""Graph scratch must cover every full Location row before any allocation."""
+	assert_false(Locations.new().allocation_within(CAPACITY), "unbound has no admitted arena")
+	assert_false(_locations.allocation_within(-1), "negative bound")
+	assert_false(_locations.allocation_within(CAPACITY - 1), "undersized graph lookup")
+	assert_true(_locations.allocation_within(CAPACITY), "exact capacity")
+	assert_true(_locations.allocation_within(CAPACITY + 1), "conservative larger lookup")
+
+
+func test_later_retention_callback_cannot_strand_earlier_actual_inventory_endpoint() -> void:
+	"""The last pure Inventory pass follows every observer, including a callback for a later row."""
+	var first: Vector2i = _add(_record(-512))
+	var second: Vector2i = _add(_record(512))
+	var before: PackedByteArray = _image()
+	var graph: RetainedGraph = RetainedGraph.new()
+	graph.actual = _locations
+	assert_equal(_locations.bind_retention(graph), &"", "real namespace")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	assert_equal(_locations.stage_remove(token, first), &"", "first initially unretained")
+	assert_equal(_locations.stage_remove(token, second), &"", "second initially unretained")
+	assert_equal(_locations.seal(token), &"", "both initially removable")
+	graph.inventory = _inventory
+	graph.trigger = second
+	graph.create_at = first
+	assert_equal(_locations.prepared_refusal(token), &"LOCATION_INVENTORY_RETAINED", "later callback retained earlier row")
+	assert_true(_inventory.is_container_valid(graph.created), "actual container was created")
+	assert_false(_locations.publish(token), "no orphaned actual container")
+	assert_true(_locations.abort(token), "discard")
+	_cold.release(cold)
+	assert_equal(_image(), before, "both full endpoints preserved")
+	assert_true(_inventory.audit().ok, "actual Inventory still resolves endpoint")
+
+
+func test_observer_released_cold_lease_refuses_final_publication() -> void:
+	"""A callback cannot spend another operation's now-unreserved preparation image."""
+	var location: Vector2i = _add()
+	var graph: RetainedGraph = RetainedGraph.new()
+	graph.actual = _locations
+	assert_equal(_locations.bind_retention(graph), &"", "exact graph")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	assert_equal(_locations.stage_remove(token, location), &"", "initially removable")
+	assert_equal(_locations.seal(token), &"", "ready candidate")
+	graph.cold = _cold
+	graph.cold_token = cold
+	graph.trigger = location
+	assert_false(_locations.publish(token), "released lease cannot publish")
+	assert_true(graph.released, "adversarial observer reached actual Budget")
+	assert_true(_locations.is_live_location(location), "live identity remains")
+	assert_true(_locations.abort(token), "caller cleanup is still possible")
+
+
+func test_restore_rechecks_actual_inventory_and_lease_after_observer_callbacks() -> void:
+	"""A load cannot discard real goods or publish after a callback releases its reserved image."""
+	var empty: PackedByteArray = _image()
+	var location: Vector2i = _add()
+	var graph: RetainedGraph = RetainedGraph.new()
+	graph.actual = _locations
+	graph.trigger = location
+	graph.inventory = _inventory
+	graph.create_at = location
+	assert_equal(_locations.bind_retention(graph), &"", "exact graph")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	assert_equal(_locations.restore_state_bytes(cold, empty), &"LOCATION_INVENTORY_RETAINED", "load callback creates real retention")
+	assert_true(_inventory.is_container_valid(graph.created), "actual retained staging container")
+	assert_true(_locations.is_live_location(location), "load never dropped it")
+	graph.cold = _cold
+	graph.cold_token = cold
+	assert_equal(_locations.restore_state_bytes(cold, empty), &"LOCATION_COLD_CAPACITY", "observer releases actual lease")
+	assert_true(graph.released, "callback ran")
+	assert_true(_locations.is_live_location(location), "load still preserves location")
+	assert_true(_inventory.audit().ok, "retained container remains valid")

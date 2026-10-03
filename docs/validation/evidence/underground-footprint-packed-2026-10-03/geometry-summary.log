@@ -1,0 +1,17 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1094-packed-2p5lcydg
+import 0 []
+test_room_footprint_packed.gd
+8 test(s), 196768 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 196768 assertions, 0 failures.
+test_room_footprint.gd
+36 test(s), 4038 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 36 tests, 4038 assertions, 0 failures.
+test_room_layout.gd
+57 test(s), 563 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 57 tests, 563 assertions, 0 failures.

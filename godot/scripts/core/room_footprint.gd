@@ -25,6 +25,119 @@ const REFUSE_OPENING: StringName = &"FOOTPRINT_OPENING_NOT_BOUNDARY"
 const REFUSE_WORLD: StringName = &"FOOTPRINT_WORLD_RANGE"
 
 
+class ValidationScratch extends RefCounted:
+	## One caller-admitted cold validation, not per-cell objects or persistent geometry.
+	const VISITED: int = 1
+	const DIAGONAL_LEFT: int = 2
+	const DIAGONAL_RIGHT: int = 4
+	var _validation_capacity: int = 0
+	var _validation_up: PackedInt32Array = PackedInt32Array()
+	var _validation_down: PackedInt32Array = PackedInt32Array()
+	var _validation_queue: PackedInt32Array = PackedInt32Array()
+	var _validation_flags: PackedByteArray = PackedByteArray()
+
+	func _init(requested: int) -> void:
+		"""Refuse invalid sizes before allocation; four exact arrays occupy13N packed bytes."""
+		_validation_capacity = clampi(requested, 0, MAX_OPERATION_CELLS)
+		if requested < 1 or requested > MAX_OPERATION_CELLS:
+			return
+		_validation_up.resize(_validation_capacity)
+		_validation_down.resize(_validation_capacity)
+		_validation_queue.resize(_validation_capacity)
+		_validation_flags.resize(_validation_capacity)
+		_validation_up.fill(-1)
+		_validation_down.fill(-1)
+
+	func link_vertical_rows(cells: PackedInt32Array) -> void:
+		"""Merge only adjacent occupied Z rows; enormous absent coordinate spans allocate nothing."""
+		var start: int = 0
+		var previous_start: int = 0
+		var previous_end: int = 0
+		while start < _validation_capacity:
+			var end: int = start + 1
+			while end < _validation_capacity and cells[end * 2 + 1] == cells[start * 2 + 1]:
+				end += 1
+			if previous_end > 0 and cells[start * 2 + 1] == int(cells[previous_start * 2 + 1]) + 1:
+				_link_row_pair(cells, previous_start, previous_end, start, end)
+			previous_start = start
+			previous_end = end
+			start = end
+
+	func _link_row_pair(cells: PackedInt32Array, prior_start: int, prior_end: int,
+			current_start: int, current_end: int) -> void:
+		"""A monotone lower bound plus at most three adjacent X cells keeps all joins linear."""
+		var near: int = current_start
+		for previous: int in range(prior_start, prior_end):
+			var x: int = cells[previous * 2]
+			while near < current_end and cells[near * 2] < x - 1:
+				near += 1
+			var current: int = near
+			while current < current_end and cells[current * 2] <= x + 1:
+				var delta: int = cells[current * 2] - x
+				if delta == -1:
+					_validation_flags[previous] |= DIAGONAL_LEFT
+				elif delta == 0:
+					_validation_down[previous] = current
+					_validation_up[current] = previous
+				else:
+					_validation_flags[previous] |= DIAGONAL_RIGHT
+				current += 1
+
+	func connected(cells: PackedInt32Array) -> bool:
+		"""Each canonical cell enters the exact-sized queue once; no Dictionary or coordinate grid exists."""
+		_validation_flags[0] |= VISITED
+		_validation_queue[0] = 0
+		var head: int = 0
+		var tail: int = 1
+		while head < tail:
+			var row: int = _validation_queue[head]
+			head += 1
+			tail = _enqueue(_left(cells, row), tail)
+			tail = _enqueue(_right(cells, row), tail)
+			tail = _enqueue(_validation_up[row], tail)
+			tail = _enqueue(_validation_down[row], tail)
+		return tail == _validation_capacity
+
+	func _enqueue(row: int, tail: int) -> int:
+		"""The visited bit marks enqueue, so later neighbors never duplicate a queue entry."""
+		if row < 0 or (_validation_flags[row] & VISITED) != 0:
+			return tail
+		_validation_flags[row] |= VISITED
+		_validation_queue[tail] = row
+		return tail + 1
+
+	func _left(cells: PackedInt32Array, row: int) -> int:
+		"""Canonical adjacency yields the horizontal neighbor without a search or packed coordinate cast."""
+		return row - 1 if row > 0 and cells[row * 2 - 1] == cells[row * 2 + 1] \
+			and int(cells[row * 2 - 2]) + 1 == cells[row * 2] else -1
+
+	func _right(cells: PackedInt32Array, row: int) -> int:
+		"""Signed int64 comparison preserves both authored int32 extremes."""
+		return row + 1 if row + 1 < _validation_capacity and cells[row * 2 + 3] == cells[row * 2 + 1] \
+			and int(cells[row * 2]) + 1 == cells[row * 2 + 2] else -1
+
+	func topology_refusal(cells: PackedInt32Array, allow_holes: bool) -> StringName:
+		"""After connectivity and diagonal-pinch checks, integer Euler characteristic counts holes exactly."""
+		var edges: int = 0
+		var filled_squares: int = 0
+		for row: int in _validation_capacity:
+			var left: bool = _left(cells, row) >= 0
+			var right: bool = _right(cells, row) >= 0
+			var down: bool = _validation_down[row] >= 0
+			if not down and (((_validation_flags[row] & DIAGONAL_LEFT) != 0 and not left) \
+					or ((_validation_flags[row] & DIAGONAL_RIGHT) != 0 and not right)):
+				return REFUSE_PINCH
+			edges += int(right) + int(down)
+			if right and down and (_validation_flags[row] & DIAGONAL_RIGHT) != 0:
+				filled_squares += 1
+		return REFUSE_NONE if allow_holes or _validation_capacity - edges + filled_squares == 1 else REFUSE_HOLES
+
+
+static func validation_scratch_bytes(cell_count: int) -> int:
+	"""Logical packed payload plus capacity scalar; callers separately admit native headers and helper frames."""
+	return 13 * cell_count + 8 if cell_count > 0 and cell_count <= MAX_OPERATION_CELLS else 0
+
+
 static func canonicalize(cells: PackedInt32Array, max_cells: int) -> Dictionary:
 	"""Sort and deduplicate packed pairs without modifying the input; reject oversize input."""
 	var error: StringName = _input_error(cells, max_cells)
@@ -48,14 +161,12 @@ static func validation_error(cells: PackedInt32Array, max_cells: int, allow_hole
 		return error
 	if cells.is_empty():
 		return REFUSE_EMPTY
-	if not _connected(cells):
+	@warning_ignore("integer_division") var count: int = cells.size() / 2
+	var scratch: ValidationScratch = ValidationScratch.new(count)
+	scratch.link_vertical_rows(cells)
+	if not scratch.connected(cells):
 		return REFUSE_DISCONNECTED
-	var loops: Array[PackedInt32Array] = _trace_loops(_boundary_edges_unchecked(cells))
-	if loops.is_empty():
-		return REFUSE_PINCH
-	if not allow_holes and loops.size() > 1:
-		return REFUSE_HOLES
-	return REFUSE_NONE
+	return scratch.topology_refusal(cells, allow_holes)
 
 
 static func rectangle(min_x: int, min_z: int, width: int, depth: int, max_cells: int) -> Dictionary:

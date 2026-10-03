@@ -15,18 +15,18 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `cc2ffbac` passed **10,383 tests / 957,996
+The latest full frozen source `a33ff093` passed **10,405 tests / 958,819
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
-zero analyzer warnings across1,152 scripts. The
-[checkpoint logs](evidence/modular-build/checkpoint-cc2ffbac/README.md)
+zero analyzer warnings across1,157 scripts. The
+[checkpoint logs](evidence/modular-build/checkpoint-a33ff093/README.md)
 record the exact clean-assets/cache/import and no-argument suite procedure;
 source and HEAD stayed unchanged and the original assets state was restored:
 
 ```text
-10383 test(s), 957996 assertion(s), 0 failure(s)
+10405 test(s), 958819 assertion(s), 0 failure(s)
 diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
 log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
-0 GDScript warning(s) in 0 of 1152 file(s)
+0 GDScript warning(s) in 0 of 1157 file(s)
 ```
 
 This checkpoint includes actual natural surface anchors, World-owned Locations,
@@ -49,15 +49,35 @@ and native sampling evidence. Exact WORK selection`e134818f` lets distinct
 contact sources share the same worker/tool/BUILD key without silently taking
 the first file row. Its25 tests/601 assertions, strict diagnostic/leak guards
 and two-file analyzer passed. The ordinary ambiguous query refuses; committed
-Routes consumers are being updated separately. Neither component constitutes
+Routes consumers subsequently integrated at`10585921` preserve the exact
+selected WORK profile and content revision. Neither component constitutes
 production profile or first-entry qualification.
 
-Independent review of the next connector Funding increment found a late
-Inventory callback after its proposed final START guard. The corrected typed
-Reservations boundary is under test and remains outside the accepted source.
-All observers must finish while Inventory can still roll back; installed
-geometry and material settlement must then publish without another fallible
-observation. The rejected iteration and review are retained.
+Independent review found and corrected a late Inventory callback after the
+proposed final START guard. The accepted Funding/Reservations boundary at
+`e40a55a3` runs the final check after actual Inventory staging and before commit,
+and refuses reentrant claim metadata edits in that same transaction. Its148
+tests/12,554 assertions passed with zero strict/raw diagnostics or leaks and
+zero analyzer warnings across seven files. Two temporary identity controls
+consume16 logical bytes in the existing binding reserve; the reviewed census
+has44 passing Python tests. Actual paid connector installation remains open.
+
+The subsequent [remote CI checkpoint at1f5b1e4d](../../validation/evidence/underground-ci-1f5b1e4d/README.md)
+passed every gate:360 suite files exactly once across eight shards,10,387 tests,
+958,137 assertions, zero failures,272 expected and353 tolerated diagnostics,
+zero unexpected diagnostics/leaks, and zero analyzer warnings across1,156
+scripts. The complete workflow took9 minutes26 seconds. This remote source was
+not compared with a same-head full-run baseline. The later local combined
+checkpoint at`a33ff093` passed the clean no-argument procedure above; the new
+1107 entry-claim work remains outside that checkpoint.
+
+The source-local upper-wall worker increment at`a33ff093` also passed independent
+source and native visual review:537 poses/1,283 assertions, seven Python checks
+and zero analyzer warnings. Its production qualification remains false. The
+complete animation state transitions, idle/travel envelopes and actual support
+must still be proved. The current downward stance cannot fit a512u tread, and
+a landing cut must not remove the worker's only footing or retreat. The
+construction and motion lanes are resolving that real first-entry sequence.
 
 Brendan approved wood-only timber stair assemblies: 1 U of wood and 12 WU per
 tread including bearer/joinery, 4 U and 32 WU per 2×2 m landing. The current

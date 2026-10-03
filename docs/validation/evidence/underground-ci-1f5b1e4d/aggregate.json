@@ -1,0 +1,27 @@
+{
+  "baseline_matches": false,
+  "counts": {
+    "assertions": 958137,
+    "expected": 272,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 10387,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "shard_count": 8,
+  "suite_count": 360,
+  "version": 1,
+  "wall_seconds": [
+    276,
+    300,
+    322,
+    177,
+    199,
+    428,
+    318,
+    203
+  ]
+}

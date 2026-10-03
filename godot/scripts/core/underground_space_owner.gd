@@ -75,6 +75,7 @@ class CoreSources extends Sources:
 	var _construction: Construction = null
 	var _locations: ResidentLocations = null
 	var _number: IntMath.IntResult = IntMath.IntResult.new()
+	var _room_identity: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
 
 	func _init(ids: Directory, buildings: Buildings, construction: Construction = null,
 			locations: ResidentLocations = null) -> void:
@@ -134,19 +135,14 @@ class CoreSources extends Sources:
 		"""Preserve immutable purpose/domain; underground identity never borrows a flat tile address."""
 		if not _buildings.is_live_room(ref):
 			return &"SPACE_SOURCE_STALE"
-		var domain: Buildings.OpResult = _buildings.spatial_kind_of_room(ref)
-		if not domain.ok:
+		if _buildings.room_identity_into(ref, _room_identity) != &"":
 			return &"SPACE_SOURCE_FACTS"
-		out.parent = _buildings.room_building_ref_of(ref)
-		out.a = _buildings.type_of_room(ref).value
-		out.d = domain.value
-		if domain.value == Buildings.ROOM_SPACE_SURFACE:
-			var offset: Buildings.OpResult = _buildings.tile_offset_of_room(ref)
-			var count: Buildings.OpResult = _buildings.tile_count_of_room(ref)
-			if not offset.ok or not count.ok:
-				return &"SPACE_SOURCE_FACTS"
-			out.b = offset.value
-			out.c = count.value
+		out.parent = Vector2i(_room_identity[2], _room_identity[3])
+		out.a = _room_identity[1]
+		out.d = _room_identity[0]
+		if out.d == Buildings.ROOM_SPACE_SURFACE:
+			out.b = _room_identity[4]
+			out.c = _room_identity[5]
 		return &""
 
 	func _furniture(ref: Vector2i, out: Facts) -> StringName:

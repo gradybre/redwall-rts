@@ -72,3 +72,16 @@ source review accepted the unchanged final preflights and actual paid retry test
 [Raw evidence](../validation/evidence/underground-phase-structure-2026-10-03/survey-lifetime/README.md)
 retains source hashes, import/runner logs, analyzer output and the rejected initial
 invocation. The natural-support provider remains the next implementation slice.
+
+
+## Actual Room identity scratch prerequisite
+
+CoreSources now consumes the reviewed `Buildings.room_identity_into` helper using
+one fixed six-I32 packet (24 bytes). It preserves the complete parent, purpose and
+spatial kind; surface rooms retain exact TileLink offset/count and underground
+rooms retain cleared zero b/c facts. This removes per-read Room OpResult objects,
+not the Owner's bounded linear source lookup. No authoritative/wire field changes.
+The 24 bytes join the existing bindings reservation once. The existing complete
+Owner suite passed 88 tests / 5,024 assertions with both diagnostic/leak footers
+zero; analyzer reported 0 warnings in 0 of 1 file. Root accepted the frozen source.
+[Raw evidence](../validation/evidence/underground-phase-structure-2026-10-03/room-identity/README.md).

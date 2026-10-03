@@ -782,6 +782,71 @@ func modular_authority() -> ModularContract:
 	return authority
 
 
+func spatial_furniture_batch_refusal(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Preflight paired actual project rows and adopted catalog work before any identity publication."""
+	var authority: ModularContract = modular_authority()
+	if authority == null or authority.furniture_batch_preparation_refusal(room, batch) != &"":
+		return ModularContract.REFUSE_AUTHORITY
+	var code: StringName = _furniture_batch_shape_refusal(batch, entries)
+	if code != REFUSE_NONE:
+		return code
+	# Every future Furniture generation is currently unallocated: no valid live project can
+	# already name it. Rechecking the actual allocator avoids an N*82944 subject-table scan.
+	return _directory.batch_candidate_refusal(batch)
+
+
+func _furniture_batch_shape_refusal(batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Exact alternating namespaces and whole adopted recipes prevent caller-priced future subjects."""
+	if batch == null or batch.directory_owner() != _directory or batch.storage_refusal() != &"" \
+			or batch.count < 2 or batch.count > batch.capacity() or batch.count % 2 != 0 \
+			or entries.size() != batch.count * 2:
+		return ModularContract.REFUSE_QUOTE
+	for index: int in range(0, batch.count, 2):
+		var row: int = batch.typed_rows[index + 1]
+		if batch.kinds[index] != EntityDirectory.KIND_FURNITURE \
+				or batch.kinds[index + 1] != EntityDirectory.KIND_CONSTRUCTION \
+				or row < 0 or row >= CONSTRUCTION_CAPACITY or _present[row] != 0:
+			return ModularContract.REFUSE_QUOTE
+		var type_id: int = entries[index * 2]
+		if not _definitions.is_furniture_id(type_id) or _definitions.is_edge_furniture(type_id) \
+				or _definitions.furniture_work_mwu_of(type_id) <= 0 \
+				or _furniture_count[type_id] < 0 or _furniture_count[type_id] > MATERIAL_SLOTS_PER_PROJECT:
+			return ModularContract.REFUSE_QUOTE
+		for line: int in _furniture_count[type_id]:
+			if material_key_at(PURPOSE_FURNITURE, type_id, line) == &"" \
+					or _required_milli_at(PURPOSE_FURNITURE, type_id, line) <= 0:
+				return ModularContract.REFUSE_QUOTE
+	return REFUSE_NONE
+
+
+func publish_spatial_furniture_batch(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Initialize only preallocated actual project rows inside the Router's exact batch window."""
+	var authority: ModularContract = modular_authority()
+	if authority == null or authority.furniture_batch_publication_refusal(room, batch) != &"":
+		return ModularContract.REFUSE_AUTHORITY
+	var code: StringName = _furniture_batch_shape_refusal(batch, entries)
+	if code != REFUSE_NONE:
+		return code
+	for index: int in batch.count:
+		var ref: Vector2i = batch.ref_at(index)
+		if not _directory.is_valid_of_kind(ref, batch.kinds[index]) \
+				or _directory.get_typed_row(ref) != batch.typed_rows[index] \
+				or _directory.get_persistent_id(ref) != batch.persistent_ids[index]:
+			return ModularContract.REFUSE_AUTHORITY
+	for index: int in range(0, batch.count, 2):
+		var row: int = batch.typed_rows[index + 1]
+		var type_id: int = entries[index * 2]
+		_write_row(row, batch.ref_at(index + 1), PURPOSE_SPATIAL_FURNITURE, batch.ref_at(index),
+			type_id, _definitions.furniture_work_mwu_of(type_id), MAX_BUILDERS, _furniture_count[type_id])
+		_paid_base_type[row] = NO_PAID_PACKAGE
+		_paid_upgrade_mask[row] = 0
+		_live_count += 1
+	return REFUSE_NONE
+
+
 func open_modular_phase(purpose: int, subject: Vector2i, operation: int) -> OpResult:
 	"""Allocate a real project only from the router's prepared immutable purpose-specific order."""
 	if not is_modular(purpose):

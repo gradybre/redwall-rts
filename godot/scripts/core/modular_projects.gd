@@ -49,6 +49,9 @@ var _other: IntMath.IntResult = IntMath.IntResult.new()
 var _crew_count: int = 0
 var _busy: bool = false
 var _admitting: WeakRef = null
+var _batch_candidates: Directory.CreateBatch = null
+var _batch_room: Vector2i = NULL_REF
+var _batch_publishing: bool = false
 var _permit_project: Vector2i = NULL_REF
 var _permit_action: int = -1
 var _publishing_project: Vector2i = NULL_REF
@@ -185,6 +188,79 @@ func _project_owner(project: Vector2i) -> Owner:
 	if not _construction.purpose_into(project, _math):
 		return null
 	return _owner_for(_math.value)
+
+
+func open_furniture_batch(owner: Owner, room: Vector2i, batch: Directory.CreateBatch,
+		entries: PackedInt32Array) -> Construction.OpResult:
+	"""Accept exact paired Furniture/projects only after every actual owner preflights the whole batch."""
+	if _busy:
+		return _refuse(REFUSE_BUSY)
+	_busy = true
+	if not is_bound_owner(owner) or owner.purpose() != Construction.PURPOSE_SPATIAL_FURNITURE:
+		_busy = false
+		return _refuse(REFUSE_AUTHORITY)
+	_admitting = weakref(owner)
+	_batch_candidates = batch
+	_batch_room = room
+	var code: StringName = _furniture_batch_refusal(owner, room, batch, entries)
+	var accepted: Construction.OpResult = null
+	if code == &"":
+		code = _construction.directory().create_batch(batch)
+	if code == &"":
+		accepted = _publish_furniture_batch(owner, room, batch, entries)
+	else:
+		owner.discard_furniture_batch(room, batch)
+	_batch_candidates = null
+	_batch_room = NULL_REF
+	_admitting = null
+	_busy = false
+	return accepted if code == &"" else _refuse(code)
+
+
+func _furniture_batch_refusal(owner: Owner, room: Vector2i, batch: Directory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Run the final provider proof after finite actual row/catalog checks and before Directory publication."""
+	var code: StringName = _construction.buildings().spatial_furniture_batch_refusal(room, batch, entries)
+	if code == &"":
+		code = _construction.spatial_furniture_batch_refusal(room, batch, entries)
+	if code == &"":
+		code = owner.furniture_batch_refusal(room, batch, entries)
+	return code
+
+
+func furniture_batch_preparation_refusal(room: Vector2i, batch: Directory.CreateBatch) -> StringName:
+	"""Pure exact in-flight packet comparison; only the actual bound Router opens this context."""
+	return &"" if _busy and not _batch_publishing and batch != null \
+		and batch == _batch_candidates and room == _batch_room and _admitting != null \
+		and _admitting.get_ref() != null else REFUSE_AUTHORITY
+
+
+func furniture_batch_publication_refusal(room: Vector2i, batch: Directory.CreateBatch) -> StringName:
+	"""No post-identity external requalification can make prepared typed-row publication fallible."""
+	return &"" if _busy and _batch_publishing and batch != null \
+		and batch == _batch_candidates and room == _batch_room and _admitting != null \
+		and _admitting.get_ref() != null else REFUSE_AUTHORITY
+
+
+func is_publishing_furniture_admissions(room: Vector2i, batch: Directory.CreateBatch, owner: Owner) -> bool:
+	"""Attest exact purpose-owner identity inside the same synchronous paired publication only."""
+	return owner != null and furniture_batch_publication_refusal(room, batch) == &"" \
+		and _admitting.get_ref() == owner
+
+
+func _publish_furniture_batch(owner: Owner, room: Vector2i, batch: Directory.CreateBatch,
+		entries: PackedInt32Array) -> Construction.OpResult:
+	"""After the actual identity commit only preallocated typed rows and sealed companions publish."""
+	@warning_ignore("integer_division") var accepted_count: int = batch.count / 2
+	var first_project: Vector2i = batch.ref_at(1)
+	_batch_publishing = true
+	var placed: StringName = _construction.buildings().publish_spatial_furniture_batch(room, batch, entries)
+	assert(placed == &"", "preflighted pending Furniture rows cannot fail after identity publication")
+	var projects: StringName = _construction.publish_spatial_furniture_batch(room, batch, entries)
+	assert(projects == &"", "preflighted paired project rows cannot fail after identity publication")
+	owner.publish_furniture_batch(room, batch, entries)
+	_batch_publishing = false
+	return Construction.OpResult.new(true, &"", accepted_count, first_project)
 
 
 func open_order(owner: Owner, subject: Vector2i, operation: int) -> Construction.OpResult:

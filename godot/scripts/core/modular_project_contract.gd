@@ -3,6 +3,7 @@ extends RefCounted
 ## Quotes are finite cold scratch, never authoritative per-project storage or caller prices.
 ## The base router and operation owner refuse every admission and publication.
 
+const BatchDirectory := preload("res://scripts/core/entity_directory.gd")
 const ItemDefinitions := preload("res://scripts/core/item_definitions.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const INPUT_CAPACITY: int = 4
@@ -161,6 +162,20 @@ class Owner extends RefCounted:
 		"""Read a cold, owner-validated pending order; no caller supplies a bill or q here."""
 		return REFUSE_AUTHORITY
 
+	func furniture_batch_refusal(_room: Vector2i, _batch: BatchDirectory.CreateBatch,
+			_entries: PackedInt32Array) -> StringName:
+		"""Finish all current token/source/catalog/tuple proof before the one paired identity allocation."""
+		return REFUSE_AUTHORITY
+
+	func publish_furniture_batch(_room: Vector2i, _batch: BatchDirectory.CreateBatch,
+			_entries: PackedInt32Array) -> void:
+		"""Publish only the sealed prepared physical companion after actual pending/project rows exist."""
+		assert(false, "Unbound owner cannot publish a furniture batch")
+
+	func discard_furniture_batch(_room: Vector2i, _batch: BatchDirectory.CreateBatch) -> void:
+		"""The refusing base owns no candidate; unsupported batch cleanup cannot grant permission or mutate state."""
+		pass
+
 	func project_facts_into(_project: Vector2i, _out: Quote) -> StringName:
 		"""Read immutable full-generation project facts and its actual retained work."""
 		return REFUSE_AUTHORITY
@@ -234,6 +249,21 @@ func is_bound_owner(_owner: Owner) -> bool:
 
 func is_publishing(_project: Vector2i, _action: int, _owner: Owner) -> bool:
 	"""Only the exact synchronous physical publication window qualifies; base refuses."""
+	return false
+
+
+func furniture_batch_preparation_refusal(_room: Vector2i, _batch: BatchDirectory.CreateBatch) -> StringName:
+	"""The actual Router alone owns the exclusive furniture-specific preallocation context."""
+	return REFUSE_AUTHORITY
+
+
+func furniture_batch_publication_refusal(_room: Vector2i, _batch: BatchDirectory.CreateBatch) -> StringName:
+	"""Pure publication-window comparison after identity commit; no new physical proof callback."""
+	return REFUSE_AUTHORITY
+
+
+func is_publishing_furniture_admissions(_room: Vector2i, _batch: BatchDirectory.CreateBatch, _owner: Owner) -> bool:
+	"""Expose exact actual batch/room/purpose-owner identity only during its synchronous publication."""
 	return false
 
 

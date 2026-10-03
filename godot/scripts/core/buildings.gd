@@ -286,6 +286,15 @@ class SpatialAuthority extends RefCounted:
 		"""True only in the actual coordinator's synchronous sealed Room publication window."""
 		return false
 
+	func furniture_candidates_refusal(_room: Vector2i, _batch: EntityDirectory.CreateBatch,
+			_entries: PackedInt32Array) -> StringName:
+		"""Prove the exact private mixed-kind observation and pinned player layout before allocation."""
+		return REFUSE_SPATIAL_COMMAND
+
+	func is_publishing_furniture_admissions(_room: Vector2i, _batch: EntityDirectory.CreateBatch) -> bool:
+		"""Pure same-stack publication comparison; no physical callback or future-facts fallback."""
+		return false
+
 	func area_of_room(_room: Vector2i) -> OpResult:
 		"""Read actual owned floor area in squared fixed units, never a TileLinks approximation."""
 		return OpResult.new(false, &"ROOM_SPATIAL_AREA_UNPROVED", 0, Vector2i(-1, 0))
@@ -1513,6 +1522,70 @@ func spatial_furniture_admission_refusal(room_ref: Vector2i, type_id: int,
 	var code: StringName = _spatial_mutation_refusal(SPATIAL_FURNITURE_CREATE,
 		NULL_REF, room_ref, type_id, rotation)
 	return code if code != REFUSE_NONE else _directory.create_refusal(EntityDirectory.KIND_FURNITURE)
+
+
+func spatial_furniture_batch_refusal(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Preflight every actual pending typed row before the single mixed Directory allocation."""
+	var code: StringName = _spatial_batch_shape_refusal(room, batch, entries)
+	if code != REFUSE_NONE:
+		return code
+	code = _directory.batch_candidate_refusal(batch)
+	if code != REFUSE_NONE:
+		return code
+	var authority: SpatialAuthority = spatial_authority()
+	return authority.furniture_candidates_refusal(room, batch, entries) \
+		if authority != null else REFUSE_SPATIAL_AUTHORITY
+
+
+func _spatial_batch_shape_refusal(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""No tile coordinate, immediate installed presence or foreign observation is a pending room layout."""
+	var room_row: int = _room_row_of(room)
+	if room_row < 0 or _r_spatial_kind[room_row] != ROOM_SPACE_UNDERGROUND:
+		return REFUSE_SPATIAL_COMMAND
+	if batch == null or batch.directory_owner() != _directory or batch.storage_refusal() != &"" \
+			or batch.count < 2 or batch.count > batch.capacity() or batch.count % 2 != 0 \
+			or entries.size() != batch.count * 2:
+		return REFUSE_SPATIAL_COMMAND
+	for index: int in range(0, batch.count, 2):
+		var row: int = batch.typed_rows[index]
+		if batch.kinds[index] != EntityDirectory.KIND_FURNITURE \
+				or batch.kinds[index + 1] != EntityDirectory.KIND_CONSTRUCTION \
+				or row < 0 or row >= FURNITURE_CAPACITY or _f_present[row] != 0:
+			return REFUSE_SPATIAL_COMMAND
+		if not _definitions.is_furniture_id(entries[index * 2]):
+			return REFUSE_UNKNOWN_FURNITURE_TYPE
+		if _definitions.is_edge_furniture(entries[index * 2]):
+			return &"EDGE_FURNITURE_REQUIRES_OPENING_OWNER"
+		if entries[index * 2 + 3] < 0 or entries[index * 2 + 3] >= ROTATION_COUNT:
+			return REFUSE_INVALID_ROTATION
+	return REFUSE_NONE
+
+
+func publish_spatial_furniture_batch(room: Vector2i, batch: EntityDirectory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Fill preallocated actual rows only inside the sealed Router/RoomOrders batch publication call."""
+	var code: StringName = _spatial_batch_shape_refusal(room, batch, entries)
+	if code != REFUSE_NONE:
+		return code
+	var authority: SpatialAuthority = spatial_authority()
+	if authority == null or not authority.is_publishing_furniture_admissions(room, batch):
+		return REFUSE_SPATIAL_COMMAND
+	for index: int in batch.count:
+		var ref: Vector2i = batch.ref_at(index)
+		if not _directory.is_valid_of_kind(ref, batch.kinds[index]) \
+				or _directory.get_typed_row(ref) != batch.typed_rows[index] \
+				or _directory.get_persistent_id(ref) != batch.persistent_ids[index]:
+			return REFUSE_SPATIAL_COMMAND
+	var room_row: int = _room_row_of(room)
+	for index: int in range(0, batch.count, 2):
+		var row: int = batch.typed_rows[index]
+		_write_furniture_row(row, batch.ref_at(index), room, entries[index * 2], NO_LINK, entries[index * 2 + 3])
+		_f_installed[row] = 0
+		_link_furniture(room_row, row)
+		_f_live_count += 1
+	return REFUSE_NONE
 
 
 func stage_spatial_furniture(room_ref: Vector2i, type_id: int, rotation: int) -> OpResult:

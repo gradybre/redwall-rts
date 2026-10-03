@@ -1,0 +1,21 @@
+{
+  "godot/scripts/core/buildings.gd": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
+  "godot/scripts/core/excavation_sites.gd": "e7b78cca952a5a87cc7715d86a44dca01e9a6a9b98e642a03cd80130167f6712",
+  "godot/scripts/core/underground_room_cut_map.gd": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5",
+  "godot/scripts/core/underground_room_orders.gd": "233f2014852bb281efa4346de6813eb190e01e33295aa75deda16fbdbbcf3c7b",
+  "godot/scripts/core/underground_routes.gd": "0c597ff73989360488fef68d45120402942cec9ed32e9eee13cb54b201847d95",
+  "godot/scripts/core/underground_world_routes.gd": "874742a3c6daa23a97571c51a14fab4309a894dc91f15b22d4e3ad45424c138a",
+  "godot/scripts/core/underground_locations.gd": "1728868ff50b8c5be8351aa4e5a43221df8b67c180b2bc255b3ca29b67c2ec31",
+  "godot/test/test_buildings_spatial.gd": "df20527f780a8def8e00469163ba897f93de1bbe984cb02d6327da688ee037a4",
+  "godot/test/test_excavation_physical.gd": "ff00c2bd277db6cc68a9d277be7d3930939d9653906ca086d2fdb5c7f34238c8",
+  "godot/test/test_excavation_claim_batch.gd": "0054068f201561cfde8113acddb08a8dae327b180d15c88c7f6b0e3b9f07e20c",
+  "godot/test/test_underground_room_cut_map.gd": "90e24fbc882fc6ee35b6b43dd1f460669d95fc4997c458453ef6f9cd75f60438",
+  "godot/test/test_underground_room_orders.gd": "902afe7355aadc81203f09cf7ab91b1fa1066eb567a9e0646554ff03d7a300be",
+  "godot/test/test_underground_room_bindings.gd": "9843b0b6659655d7828231a176deea55e87b59c1525cb262877d0a30fc47993f",
+  "godot/test/test_underground_room_admission.gd": "00b05b18cf8fd5c07b3f031120cb04d827de41ea1a878dac9ca973fbfccb7246",
+  "godot/test/test_underground_furniture_work.gd": "9b946767245307d2c514888b81091e3b9488803b589605d0e30472ab4dbd47fd",
+  "godot/test/test_underground_furniture_batches.gd": "efbd98950a70fdde613b01a10322ba88cde1d6e1ca05969b70034c3ade4f7afd",
+  "godot/test/test_underground_routes.gd": "57a6542f8598f3a02f912879e3b36cb76142546e5e5e4e95859c8b1106a3e5ee",
+  "godot/test/test_underground_world_routes.gd": "d8b126a8dcbe9bfb91d55b3a90dfa88c23394c3058cf23f68fd4131efdc0d320",
+  "godot/test/test_underground_locations.gd": "9fce82633309b3c77afc2fba6034c9f3bd5b0ac63c4e2217a0b7462e97eddc6d"
+}

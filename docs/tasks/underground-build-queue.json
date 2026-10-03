@@ -554,10 +554,10 @@
           "memory": "Sequential static854016, Locations919936, WorldRoutes773120 and post-seal batch657408 logical bytes including2048 controls; exact census and peak tests required. No cursor bank overlaps companion snapshots.",
           "owner": "/root/ug_construction",
           "tests": "193 tests /73895 assertions /0 failures; all strict/raw diagnostics/leaks0; analyzer0/8.",
-          "review": "ug_geometry independently accepted all8 frozen source pins; candidate commits packaging, integration waits for pinned full-suite checkpoint.",
+          "review": "ug_geometry independently accepted all8 final source pins; integrated after full checkpoint3e891.",
           "source": "4188f6f9078b26c77aeac95a7c4e21b0b2f9660d",
           "registry": "8cdc2bdc0affa992131e0d508581d5550d105a56",
-          "integration": "pending"
+          "integration": "53885cfb/4f44fae6"
         },
         "derived_cut_mapping": {
           "source": "c7ffd972",
@@ -573,6 +573,12 @@
           "tests": "30 tests/1533 assertions/0 failures; strict/raw diagnostics/leaks0; analyzer0/2",
           "review": "Root accepted pure exact RoomOrders/Space/Budget/plan/candidate identity proof before and after actual Room creation. No permission or callback granted.",
           "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/companion-scope/"
+        },
+        "claims_paths_integration": {
+          "source": "4f44fae6",
+          "tests": "300 tests /86082 assertions /0 failures; strict/raw diagnostics and leaks all0; analyzer0/19;7 metadata gates pass",
+          "evidence_path": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/README.md",
+          "scope": "Twelve combined strict suites after separately reviewed claims/routes integration; not full-suite replacement or playable acceptance."
         }
       },
       "lease": {
@@ -887,7 +893,10 @@
         "docs/decisions/1098-profile-filtered-route-search.md",
         "godot/scripts/core/underground_work_face.gd",
         "godot/test/test_underground_work_face.gd",
-        "docs/decisions/1099-source-bound-solid-work-face.md"
+        "docs/decisions/1099-source-bound-solid-work-face.md",
+        "godot/scripts/core/underground_final_facts.gd",
+        "godot/test/test_underground_final_facts.gd",
+        "docs/decisions/1100-final-actual-source-attestation.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -910,7 +919,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-profile-search",
+      "branch": "codex/underground-final-attestation",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -1144,15 +1153,29 @@
           "branch": "codex/underground-work-face",
           "scope": "Cold actual completed-endpoint/source-bound work-profile geometry at an exact solid cube face; no actual claim, Job or productive permission. Real source profile qualification remains complementary UG08.",
           "decision": "docs/decisions/1099-source-bound-solid-work-face.md",
-          "memory": "One traversal snapshot327680 + two exact-union banks49152 +2048 controls =378880; sequential with Room24N images gives772096 atN16384, no new persistent arena."
+          "memory": "One traversal snapshot327680 + two exact-union banks49152 +2048 controls =378880; sequential with Room24N images gives772096 atN16384, no new persistent arena.",
+          "review": "ug_construction found2MEDIUM: lease must be rechecked before target copy after first Location callback; final actual source/local exclusions need leaf attestation after mutable observations. Fixes in progress, current11tests117assertions do not close these review findings."
         },
         "static_profile_paths": {
           "source": "306c2f15",
           "registry": "4ed742d8",
-          "integration": "pending frozen full-suite checkpoint",
+          "integration": "a642b14f/c142d85f",
           "tests": "71 tests /11039 assertions /0 failures; all strict/raw diagnostics/leaks0; analyzer0/3.",
           "review": "ug_furnishing independently accepted corrected sticky operation-fault refusal and exact8-int-output regression; source0c597ff7, WorldRoutes874742a3, test57a6542f.",
           "evidence_path": "docs/validation/evidence/underground-profile-paths-2026-10-03/iteration-3/"
+        },
+        "final_source_attestation": {
+          "owner": "/root/ug_geometry",
+          "branch": "codex/underground-final-attestation",
+          "scope": "Stateless actual source/claim/actor/Location leaf attestation after public callbacks; no new arrays, epochs, or authoritative fields. Actual unchanged-Space-revision Building/source drift must refuse.",
+          "status": "implementation in progress; no verification claimed",
+          "controls": "256B temporary ceiling proposed within1099 existing2048; source-counted work and census required."
+        },
+        "claims_paths_integration": {
+          "source": "4f44fae6",
+          "tests": "300 tests /86082 assertions /0 failures; strict/raw diagnostics and leaks all0; analyzer0/19;7 metadata gates pass",
+          "evidence_path": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/README.md",
+          "scope": "Twelve combined strict suites after separately reviewed claims/routes integration; not full-suite replacement or playable acceptance."
         }
       },
       "lease": {

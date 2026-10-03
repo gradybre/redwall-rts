@@ -1522,3 +1522,22 @@ not source geometry or gameplay qualification.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Stateless final actual-source and endpoint attestation | -- | -- | -- | No instance, retained field, array, epoch or saved state | 3 | -- | Decision1100. Static helpers borrow actual Space/CoreSources/Routes/Locations and reuse existing Facts/Pose scratch. Final nonresident facts use the exact CoreSources leaf schemas; Resident containment reads committed packed actor/endpoint/span data without observation hooks. Two capacity scans and each actual leaf have explicit precharged work. A256-byte logical helper-frame ceiling is inside the invoking1099 existing2048 controls; native getter result/reference headers remain in the existing bindings/growth obligation. No new snapshot, buffer or canonical/save field. |
+
+### `godot/scripts/core/underground_work_face.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Guarded synchronous observation | -- | -- | -- | No read active at save/frame/input boundary | 3 | -- | Decision1099. Two boolean guards add2 logical retained bytes within the existing bindings reserve. No authoritative columns, per-worker object, saved state, Room/Site claim or productive permission. Actual owners and original request are borrowed strongly only for this synchronous read. |
+| Leased exact work-face packet | -- | -- | -- | All private geometry drops before the original actual Budget lease is returned | 3 | -- | One traversal Snapshot327680 plus two1024-fragment banks49152 and2048 logical numeric/control bytes total378880. With existing Room copies24N atN16384 the sequential peak is772096 within1048960. Private input68, query scalars31, Domain92, Descriptor184, two Boxes64, two Locations232, Region72, four six-I32 boxes96, Clearance scratch/control120 and Snapshot controls24 total983 fixed logical bytes. The original caller Request adds68, leaving997 of the2048 allowance for bounded simultaneous helper numeric frames. Actual owner references, native headers, packed capacity and stack/native growth remain separately obligated in the unchanged shared bindings reserve; no measured-runtime qualification is asserted. |
+
+
+### Underground Terrain final local observation (decision1099)
+
+The callback-free `local_facts_refusal` borrows the same exact World/Nodes/Items/
+Buildings/Space/Source/Budget owners and reuses all existing boxes/facts columns.
+It adds no packed storage or persistent control fields. Its bounded scalar helper
+frames remain within the shared WorkFace control envelope when called there.
+`LOCAL_QUERY_CHECKS=1025` charges up to64 tile reads at16 tile/leaf checks each
+plus one finite-query guard; the caller pays that budget before local work. The
+query checks actual current local protections after observation callbacks; it
+does not mint physical-space or work permission, or initialize a missing binding.

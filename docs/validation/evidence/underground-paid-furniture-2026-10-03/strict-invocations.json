@@ -1,0 +1,7 @@
+{
+  "test_underground_furniture_work.gd": "./tools/run_tests.sh --shard 114/326 --output-dir /tmp/ug1081-final",
+  "test_underground_room_orders.gd": "./tools/run_tests.sh --shard 229/326 --output-dir /tmp/ug1081-final",
+  "test_underground_space_owner.gd": "./tools/run_tests.sh --shard 86/326 --output-dir /tmp/ug1081-final",
+  "test_modular_projects.gd": "./tools/run_tests.sh --shard 108/326 --output-dir /tmp/ug1081-final",
+  "test_buildings_spatial.gd": "./tools/run_tests.sh --shard 154/326 --output-dir /tmp/ug1081-final"
+}

@@ -1,0 +1,78 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "log": "00-ready07_arithmetic.log",
+    "seconds": 0.225
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "log": "01-merge_gate.log",
+    "seconds": 0.027
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "exit_code": 0,
+    "log": "02-test_merge_gate.log",
+    "seconds": 0.35
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "log": "03-validate_save_registry_handoff.log",
+    "seconds": 0.252
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "04-audit_registry_capacities.log",
+    "seconds": 1.448
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "05-generate_canonical_state_table.log",
+    "seconds": 0.027
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "log": "06-test_registry_capacity_audit.log",
+    "seconds": 2.976
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "log": "07-state_registry_coverage.log",
+    "seconds": 0.248
+  }
+]

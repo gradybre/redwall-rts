@@ -137,11 +137,11 @@ registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in regi
 # Decision 0531 appended `_c_anchor_tile`: 52 owners, 612 fields and 9065 key bytes.
 # Decisions 1053/1060 add one RoomProjects owner and eleven fields: +16 owner bytes,
 # +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(55,681,10008)
-assert (registry['record_count'],registry['packed_source_field_count'])==(673,602)
-assert sum(bool(field['hash']) for field in registry_fields)==673
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(56,683,10044)
+assert (registry['record_count'],registry['packed_source_field_count'])==(675,604)
+assert sum(bool(field['hash']) for field in registry_fields)==675
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
-assert DECISION_0127_ADDED==21103 and DECISION_0127_ADDED-19429==1674
+assert DECISION_0127_ADDED==21185 and DECISION_0127_ADDED-21103==82
 # RoomProjects is additional mutable state, not a replacement for Construction's paid ledger.
 # Read all eleven source declarations and allocation expressions, then require exact agreement
 # with both the canonical owner's widths/capacities and the three printed auxiliary rows.
@@ -274,6 +274,27 @@ assert '| Gear restore index staging | 16384 | 4 | 65536 |' in s
 assert not any(f.get('source_module')=='gear' and f.get('source_member')=='_lot_row' for f in registry_fields)
 DECISION_1068_ADDED=2*4*gear_index_bound.value
 assert DECISION_1068_ADDED==131072
+# Decision1071 registers mandatory Room/Furniture extension flags and counts both
+# actual live bytes and the conservative cold image. The Sites publication bool
+# is transient, not a new hashed field. No legacy section4 layout is weakened.
+buildings_source=source_index['buildings'].text
+spatial_flag_shapes={}
+for name,expected in [('_r_spatial_kind',16384),('_f_installed',81920)]:
+ assert f'var {name}: PackedByteArray' in buildings_source
+ binding=audit_module.resize_binding(source_index,'buildings',name)
+ assert isinstance(binding,audit_module.Binding)
+ relation,bound=audit_module.classify_from_source(source_index,'buildings',binding.expression)
+ assert relation=='eq' and isinstance(bound,audit_module.Proved) and bound.value==expected
+ spatial_flag_shapes[name]=bound.value
+ extension=next(o for o in registry_owners if (o['section_id'],o['owner_key'])==(6,'buildings'))
+ assert [(f['field_key'],f['type']) for f in extension['fields']]==[('_r_spatial_kind','u8'),('_f_installed','u8')]
+assert set(re.findall(r'^var (_\w+): bool\b',site_source,re.M))=={'_publishing_spatial'}
+assert 'var out: PackedByteArray = _r_spatial_kind.duplicate()' in buildings_source
+assert 'out.append_array(_f_installed)' in buildings_source
+DECISION_1071_MUTABLE=2*sum(spatial_flag_shapes.values())+1
+assert DECISION_1071_MUTABLE==196609
+assert '| Spatial Room/Furniture flag image | 98304 | 1 | 98304 |' in s
+assert '| Sites spatial publication guard | 1 | 1 | 1 |' in s
 # 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
 DECISION_0167_CLAIM_SLOT=512*4
 assert DECISION_0167_CLAIM_SLOT==2048
@@ -385,10 +406,10 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
-assert len(allocations)==42 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED
+assert len(allocations)==44 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==86405078
-assert live==94793686 and candidate==80157855 and live+candidate==174951541
+assert payload==86601769
+assert live==94990377 and candidate==80354464 and live+candidate==175344841
 assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
 # A valid internal trail can still omit its final step. Require its endpoint to reach the
 # independently summed allocation table; merge_gate.py separately checks every intervening row.

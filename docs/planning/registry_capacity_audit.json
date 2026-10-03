@@ -4,18 +4,18 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "8980e4f04e95fb5c4c10e224561fd4a1d654267da619d0053d97399583bfad45",
-    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-02-UG2",
-    "registry_version": 9
+    "registry_canonical_json_sha256": "d79344a0210f25f558b453c04c813393523a68eaab2ed64351973f826dd23824",
+    "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-03-UG3",
+    "registry_version": 10
   },
   "audited_source": {
     "module_sha256": {
-      "buildings": "31efd43988070519f4c77ca5224ff1a2ab21e598c694c6eacadb935c7d7c4b4b",
+      "buildings": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
       "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
       "construction": "e48c66184f168b6ad99939fc95f758813ddd6d62d40e4887458089376fbc8b8a",
       "entity_directory": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
       "excavation_inventory": "f64f0da1e5f975aa78dfaa82b0bc625a47a18fa3e2edfa658e41fdb24b0e6ef6",
-      "excavation_sites": "60cd8e0780fc20a5f969f988fef0b00bb2b534d643a02a15100b08f1ef1fce19",
+      "excavation_sites": "1b5d7d4d56c005517ea404d6635cc22f282a6d3a74b08ce0217f399f83eb861a",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
       "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
       "fishing": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
@@ -60,27 +60,27 @@
     "astra_cycle_03_taken_at": "388f4f4",
     "disagreements": [],
     "explained_since_census": [
-      "canonical_records: this audit 673, Astra Cycle 3 599 (+74) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "distinct_expressions: this audit 62, Astra Cycle 3 56 (+6) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "equality: this audit 494, Astra Cycle 3 473 (+21) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "other_canonical_shapes: this audit 106, Astra Cycle 3 80 (+26) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "owners: this audit 55, Astra Cycle 3 52 (+3) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "packed_source_fields: this audit 602, Astra Cycle 3 553 (+49) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "prose_records: this audit 567, Astra Cycle 3 519 (+48) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars",
-      "upper_bound: this audit 73, Astra Cycle 3 46 (+27) -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars"
+      "canonical_records: this audit 675, Astra Cycle 3 599 (+76) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "distinct_expressions: this audit 62, Astra Cycle 3 56 (+6) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "equality: this audit 496, Astra Cycle 3 473 (+23) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "other_canonical_shapes: this audit 106, Astra Cycle 3 80 (+26) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "owners: this audit 56, Astra Cycle 3 52 (+4) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "packed_source_fields: this audit 604, Astra Cycle 3 553 (+51) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "prose_records: this audit 569, Astra Cycle 3 519 (+50) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags",
+      "upper_bound: this audit 73, Astra Cycle 3 46 (+27) -- decisions 0142, 0157, 0167, 0531, 1060, 1066 and 1071: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags"
     ],
     "observed": {
-      "canonical_records": 673,
+      "canonical_records": 675,
       "distinct_expressions": 62,
-      "equality": 494,
+      "equality": 496,
       "non_hash_fields": 8,
       "non_hash_fields_admitted_to_audit": 0,
       "non_hash_fields_carrying_declared_capacity": 0,
       "other_canonical_shapes": 106,
-      "owners": 55,
-      "packed_source_fields": 602,
-      "prose_records": 567,
-      "registry_listed_fields": 681,
+      "owners": 56,
+      "packed_source_fields": 604,
+      "prose_records": 569,
+      "registry_listed_fields": 683,
       "upper_bound": 73
     }
   },
@@ -1167,9 +1167,9 @@
       "owner_key": "buildings",
       "parsed_expression": "TILE_COUNT",
       "proof_chain": [
-        "MAP_TILES_X -> godot/scripts/core/buildings.gd:107 `const MAP_TILES_X = 128` = 128",
-        "MAP_TILES_Z -> godot/scripts/core/buildings.gd:108 `const MAP_TILES_Z = 128` = 128",
-        "TILE_COUNT -> godot/scripts/core/buildings.gd:109 `const TILE_COUNT = MAP_TILES_X * MAP_TILES_Z` = 16384"
+        "MAP_TILES_X -> godot/scripts/core/buildings.gd:108 `const MAP_TILES_X = 128` = 128",
+        "MAP_TILES_Z -> godot/scripts/core/buildings.gd:109 `const MAP_TILES_Z = 128` = 128",
+        "TILE_COUNT -> godot/scripts/core/buildings.gd:110 `const TILE_COUNT = MAP_TILES_X * MAP_TILES_Z` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -1181,7 +1181,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 405,
+      "source_resize_line": 460,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1192,9 +1192,9 @@
       "owner_key": "buildings",
       "parsed_expression": "TILE_COUNT",
       "proof_chain": [
-        "MAP_TILES_X -> godot/scripts/core/buildings.gd:107 `const MAP_TILES_X = 128` = 128",
-        "MAP_TILES_Z -> godot/scripts/core/buildings.gd:108 `const MAP_TILES_Z = 128` = 128",
-        "TILE_COUNT -> godot/scripts/core/buildings.gd:109 `const TILE_COUNT = MAP_TILES_X * MAP_TILES_Z` = 16384"
+        "MAP_TILES_X -> godot/scripts/core/buildings.gd:108 `const MAP_TILES_X = 128` = 128",
+        "MAP_TILES_Z -> godot/scripts/core/buildings.gd:109 `const MAP_TILES_Z = 128` = 128",
+        "TILE_COUNT -> godot/scripts/core/buildings.gd:110 `const TILE_COUNT = MAP_TILES_X * MAP_TILES_Z` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -1206,7 +1206,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 406,
+      "source_resize_line": 461,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1217,9 +1217,9 @@
       "owner_key": "buildings",
       "parsed_expression": "TILE_COUNT",
       "proof_chain": [
-        "MAP_TILES_X -> godot/scripts/core/buildings.gd:107 `const MAP_TILES_X = 128` = 128",
-        "MAP_TILES_Z -> godot/scripts/core/buildings.gd:108 `const MAP_TILES_Z = 128` = 128",
-        "TILE_COUNT -> godot/scripts/core/buildings.gd:109 `const TILE_COUNT = MAP_TILES_X * MAP_TILES_Z` = 16384"
+        "MAP_TILES_X -> godot/scripts/core/buildings.gd:108 `const MAP_TILES_X = 128` = 128",
+        "MAP_TILES_Z -> godot/scripts/core/buildings.gd:109 `const MAP_TILES_Z = 128` = 128",
+        "TILE_COUNT -> godot/scripts/core/buildings.gd:110 `const TILE_COUNT = MAP_TILES_X * MAP_TILES_Z` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -1231,7 +1231,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 407,
+      "source_resize_line": 462,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1998,7 +1998,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2010,7 +2010,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 378,
+      "source_resize_line": 432,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2021,7 +2021,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2033,7 +2033,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 398,
+      "source_resize_line": 453,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2044,7 +2044,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2056,7 +2056,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 421,
+      "source_resize_line": 476,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2067,7 +2067,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2079,7 +2079,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 369,
+      "source_resize_line": 423,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2090,7 +2090,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2102,7 +2102,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 370,
+      "source_resize_line": 424,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2113,7 +2113,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2125,7 +2125,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 371,
+      "source_resize_line": 425,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2136,7 +2136,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2148,7 +2148,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 372,
+      "source_resize_line": 426,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2159,7 +2159,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2171,7 +2171,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 373,
+      "source_resize_line": 427,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2182,7 +2182,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2194,7 +2194,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 374,
+      "source_resize_line": 428,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2205,7 +2205,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2217,7 +2217,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 375,
+      "source_resize_line": 429,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2228,7 +2228,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2240,7 +2240,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 376,
+      "source_resize_line": 430,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2251,7 +2251,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2263,7 +2263,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 377,
+      "source_resize_line": 431,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2274,7 +2274,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2286,7 +2286,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 389,
+      "source_resize_line": 443,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2297,7 +2297,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2309,7 +2309,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 390,
+      "source_resize_line": 444,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2320,7 +2320,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2332,7 +2332,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 391,
+      "source_resize_line": 445,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2343,7 +2343,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2355,7 +2355,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 392,
+      "source_resize_line": 446,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2366,7 +2366,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2378,7 +2378,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 393,
+      "source_resize_line": 447,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2389,7 +2389,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2401,7 +2401,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 394,
+      "source_resize_line": 448,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2412,7 +2412,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2424,7 +2424,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 395,
+      "source_resize_line": 449,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2435,7 +2435,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2447,7 +2447,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 396,
+      "source_resize_line": 450,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2458,7 +2458,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2470,7 +2470,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 397,
+      "source_resize_line": 451,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2481,7 +2481,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2493,7 +2493,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 413,
+      "source_resize_line": 468,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2504,7 +2504,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2516,7 +2516,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 414,
+      "source_resize_line": 469,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2527,7 +2527,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2539,7 +2539,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 415,
+      "source_resize_line": 470,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2550,7 +2550,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2562,7 +2562,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 416,
+      "source_resize_line": 471,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2573,7 +2573,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2585,7 +2585,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 417,
+      "source_resize_line": 472,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2596,7 +2596,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2608,7 +2608,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 418,
+      "source_resize_line": 473,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2619,7 +2619,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2631,7 +2631,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 419,
+      "source_resize_line": 474,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2642,7 +2642,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2654,7 +2654,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 420,
+      "source_resize_line": 475,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -8938,7 +8938,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -8950,7 +8950,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 379,
+      "source_resize_line": 433,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -8961,7 +8961,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -8973,7 +8973,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 380,
+      "source_resize_line": 434,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -8984,7 +8984,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -8996,7 +8996,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 381,
+      "source_resize_line": 435,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -9007,7 +9007,7 @@
       "owner_key": "buildings",
       "parsed_expression": "BUILDING_CAPACITY",
       "proof_chain": [
-        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:99 `const BUILDING_CAPACITY = 1024` = 1024"
+        "BUILDING_CAPACITY -> godot/scripts/core/buildings.gd:100 `const BUILDING_CAPACITY = 1024` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9019,7 +9019,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 382,
+      "source_resize_line": 436,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -9030,7 +9030,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9042,7 +9042,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 399,
+      "source_resize_line": 454,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9053,7 +9053,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9065,7 +9065,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 400,
+      "source_resize_line": 455,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9076,7 +9076,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9088,7 +9088,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 401,
+      "source_resize_line": 456,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9099,7 +9099,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9111,7 +9111,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 402,
+      "source_resize_line": 457,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9122,7 +9122,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9134,7 +9134,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 403,
+      "source_resize_line": 458,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9145,7 +9145,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_CAPACITY",
       "proof_chain": [
-        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:100 `const ROOM_CAPACITY = 16384` = 16384"
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9157,7 +9157,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 404,
+      "source_resize_line": 459,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9168,7 +9168,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9180,7 +9180,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 422,
+      "source_resize_line": 478,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9191,7 +9191,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9203,7 +9203,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 423,
+      "source_resize_line": 479,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9214,7 +9214,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9226,7 +9226,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 424,
+      "source_resize_line": 480,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9237,7 +9237,7 @@
       "owner_key": "buildings",
       "parsed_expression": "FURNITURE_CAPACITY",
       "proof_chain": [
-        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:101 `const FURNITURE_CAPACITY = 81920` = 81920"
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9249,7 +9249,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 425,
+      "source_resize_line": 481,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9260,7 +9260,7 @@
       "owner_key": "buildings",
       "parsed_expression": "ROOM_TILE_LINK_CAPACITY",
       "proof_chain": [
-        "ROOM_TILE_LINK_CAPACITY -> godot/scripts/core/buildings.gd:112 `const ROOM_TILE_LINK_CAPACITY = 16384` = 16384"
+        "ROOM_TILE_LINK_CAPACITY -> godot/scripts/core/buildings.gd:113 `const ROOM_TILE_LINK_CAPACITY = 16384` = 16384"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -9272,7 +9272,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_TILE_LINK_CAPACITY",
-      "source_resize_line": 408,
+      "source_resize_line": 463,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9608,6 +9608,52 @@
       "source_resize_expression": "LINK_CAPACITY",
       "source_resize_line": 675,
       "source_value": 30720,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`ROOM_CAPACITY` = 16384",
+      "field_key": "_r_spatial_kind",
+      "ordinal": 0,
+      "owner_key": "buildings",
+      "parsed_expression": "ROOM_CAPACITY",
+      "proof_chain": [
+        "ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 16384,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/buildings.gd",
+      "source_member": "_r_spatial_kind",
+      "source_module": "buildings",
+      "source_relation": "eq",
+      "source_resize_expression": "ROOM_CAPACITY",
+      "source_resize_line": 452,
+      "source_value": 16384,
+      "status": "proved_equality"
+    },
+    {
+      "declared_capacity_prose": "`FURNITURE_CAPACITY` = 81920",
+      "field_key": "_f_installed",
+      "ordinal": 1,
+      "owner_key": "buildings",
+      "parsed_expression": "FURNITURE_CAPACITY",
+      "proof_chain": [
+        "FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920"
+      ],
+      "proof_kind": "compiled_constant",
+      "prose_relation": "eq",
+      "prose_value": 81920,
+      "quarantine_reason": "",
+      "section_id": 6,
+      "source_file": "godot/scripts/core/buildings.gd",
+      "source_member": "_f_installed",
+      "source_module": "buildings",
+      "source_relation": "eq",
+      "source_resize_expression": "FURNITURE_CAPACITY",
+      "source_resize_line": 477,
+      "source_value": 81920,
       "status": "proved_equality"
     },
     {
@@ -10075,7 +10121,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10087,7 +10133,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 220,
+      "source_resize_line": 222,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10099,7 +10145,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10111,7 +10157,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 201,
+      "source_resize_line": 203,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10123,7 +10169,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10135,7 +10181,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 201,
+      "source_resize_line": 203,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10147,7 +10193,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10159,7 +10205,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 201,
+      "source_resize_line": 203,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10171,7 +10217,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10183,7 +10229,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 201,
+      "source_resize_line": 203,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10195,7 +10241,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10207,7 +10253,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 201,
+      "source_resize_line": 203,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10219,7 +10265,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10231,7 +10277,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 212,
+      "source_resize_line": 214,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10245,7 +10291,7 @@
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
         "Contract.OP_COUNT -> godot/scripts/core/excavation_contract.gd:93 `const OP_COUNT = 5` = 5",
         "MAX_EARNED_CAPACITY -> godot/scripts/core/excavation_sites.gd:27 `const MAX_EARNED_CAPACITY = MAX_SITE_CAPACITY * Contract.OP_COUNT` = 369545",
-        "_earned_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(earned_request, 0, MAX_EARNED_CAPACITY)` max = 369545"
+        "_earned_capacity -> godot/scripts/core/excavation_sites.gd:115 `clampi(earned_request, 0, MAX_EARNED_CAPACITY)` max = 369545"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10257,7 +10303,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_earned_capacity",
-      "source_resize_line": 213,
+      "source_resize_line": 215,
       "source_value": 369545,
       "status": "proved_upper_bound"
     },
@@ -10269,7 +10315,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10281,7 +10327,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10293,7 +10339,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10305,7 +10351,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10317,7 +10363,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10329,7 +10375,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10341,7 +10387,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10353,7 +10399,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10365,7 +10411,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10377,7 +10423,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10389,7 +10435,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10401,7 +10447,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10413,7 +10459,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10425,7 +10471,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10437,7 +10483,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10449,7 +10495,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10461,7 +10507,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10473,7 +10519,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10485,7 +10531,7 @@
       "parsed_expression": "_capacity",
       "proof_chain": [
         "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:26 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:111 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "_capacity -> godot/scripts/core/excavation_sites.gd:113 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10497,7 +10543,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 203,
+      "source_resize_line": 205,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10521,7 +10567,7 @@
       "source_module": "excavation_sites",
       "source_relation": "eq",
       "source_resize_expression": "Work.RESIDENT_CAPACITY",
-      "source_resize_line": 216,
+      "source_resize_line": 218,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -10545,7 +10591,7 @@
       "source_module": "excavation_sites",
       "source_relation": "eq",
       "source_resize_expression": "Work.RESIDENT_CAPACITY",
-      "source_resize_line": 218,
+      "source_resize_line": 220,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -14550,7 +14596,7 @@
     }
   ],
   "status_counts": {
-    "proved_equality": 494,
+    "proved_equality": 496,
     "proved_upper_bound": 73
   },
   "unproved_or_contradicted": []

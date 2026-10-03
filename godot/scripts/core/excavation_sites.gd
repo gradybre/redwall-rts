@@ -95,6 +95,8 @@ var _permit_project: Vector2i = NULL_REF
 var _permit_action: int = -1
 var _candidate_row: int = -1
 var _candidate_stage: int = -1
+## Same-call-stack attestation only; never saved or sufficient before physical commit.
+var _publishing_spatial: bool = false
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _other_math: IntMath.IntResult = IntMath.IntResult.new()
 var _delivery_totals: PackedInt64Array = PackedInt64Array()
@@ -243,6 +245,17 @@ func bound_spatial_authority() -> Contract.SpatialAuthority:
 func is_bound_spatial(candidate: Contract.SpatialAuthority) -> bool:
 	"""Prove actual live owner identity; null, refused initialization and expired wiring fail closed."""
 	return candidate != null and bound_spatial_authority() == candidate
+
+
+func is_publishing_spatial_transition(origin_u: Vector3i, operation: int, stage: int,
+		room: Vector2i, candidate: Contract.SpatialAuthority) -> bool:
+	"""Attest this exact synchronous committed callback; a prepared candidate alone is insufficient."""
+	if not _publishing_spatial or not is_bound_spatial(candidate):
+		return false
+	if _candidate_row < 0 or _candidate_row >= _count or _candidate_stage != stage:
+		return false
+	return _operation[_candidate_row] == operation and _room(_candidate_row) == room \
+		and origin_of(Vector2i(_candidate_row, SITE_GENERATION)) == origin_u
 
 
 func _spatial() -> SpatialAuthority:
@@ -1205,7 +1218,9 @@ func _discard_candidate() -> void:
 func _publish_candidate(row: int, stage: int) -> void:
 	"""Install only the immediately prepared candidate after physical payment/output commits."""
 	assert(_candidate_row == row and _candidate_stage == stage, "publication requires its exact prepared transition")
+	_publishing_spatial = true
 	_spatial().publish_transition(origin_of(Vector2i(row, SITE_GENERATION)), _operation[row], stage, _room(row))
+	_publishing_spatial = false
 	_candidate_row = NO_ROW
 	_candidate_stage = -1
 

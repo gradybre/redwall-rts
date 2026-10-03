@@ -35,6 +35,10 @@ class SpatialFixture extends Contract.SpatialAuthority:
 	var discard_count: int = 0
 	var work_checks: int = 0
 	var size: Vector3i = Vector3i(16, 1, 1)
+	var publication_probe: WeakRef = null
+	var accepted_publications: PackedByteArray = PackedByteArray()
+	var false_publications: PackedByteArray = PackedByteArray()
+	var premature_publications: PackedByteArray = PackedByteArray()
 
 	func domain_into(out: Contract.Domain) -> bool:
 		"""Describe a small exact world domain while retaining the output to test defensive copying."""
@@ -53,8 +57,11 @@ class SpatialFixture extends Contract.SpatialAuthority:
 		"""No actual room or route is erased by this isolated economy fixture."""
 		return room_refusal(room)
 
-	func operation_refusal(_origin: Vector3i, _operation: int, stage: int, room: Vector2i) -> StringName:
+	func operation_refusal(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> StringName:
 		"""Inject a geometry refusal; successful results are synthetic accounting inputs only."""
+		if publication_probe != null:
+			var owner: Sites = publication_probe.get_ref() as Sites
+			premature_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage, room, self)))
 		if stage == Contract.STAGE_WORK:
 			work_checks += 1
 		elif stage != Contract.STAGE_ADMIT:
@@ -75,10 +82,24 @@ class SpatialFixture extends Contract.SpatialAuthority:
 		"""Real Jobs/Work/Gear prove the worker; this isolated contact remains synthetic."""
 		return block_worker if block_worker != &"" else room_refusal(room)
 
-	func publish_transition(_origin: Vector3i, _operation: int, _stage: int, _room: Vector2i) -> void:
+	func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
 		"""Count publication, without making any actual map cell navigable."""
+		if publication_probe != null:
+			_probe_publication(origin, operation, stage, room)
 		publications += 1
 		pending_stage = -1
+
+	func _probe_publication(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
+		"""Adversarial callback observations; this test-only probe never changes actual owner state."""
+		var owner: Sites = publication_probe.get_ref() as Sites
+		accepted_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage, room, self)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin + Vector3i(1, 0, 0), operation, stage, room, self)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin, operation + 1, stage, room, self)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage + 1, room, self)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage, Vector2i(room.x, room.y + 1), self)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage, OTHER_ROOM, self)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage, room, null)))
+		false_publications.append(int(owner.is_publishing_spatial_transition(origin, operation, stage, room, SpatialFixture.new())))
 
 	func discard_transition(_origin: Vector3i, _operation: int, _stage: int, _room: Vector2i) -> void:
 		"""Discard only a staged synthetic candidate; real material/output ownership stays untouched."""
@@ -916,6 +937,27 @@ func test_owner_identity_readers_refuse_numeric_aliases_null_and_expired_space()
 	assert_true(_sites.bound_spatial_authority() == null, "expired weak target reads null")
 	assert_false(_sites.is_bound_spatial(other_space), "expired owner never falls back to a matching descriptor")
 	assert_false(_sites.is_bound_spatial(null), "expired weak reference and null are not a binding")
+	assert_false(_sites.is_publishing_spatial_transition(ORIGIN, Contract.OP_BRACE,
+		Contract.STAGE_START, ROOM, null), "expired spatial owner cannot attest a callback")
+
+
+func test_spatial_publication_attests_only_the_exact_committed_callback() -> void:
+	"""A real paid transition opens one callback window; direct calls and preparation do not."""
+	_space.publication_probe = weakref(_sites)
+	_space.publish_transition(ORIGIN, Contract.OP_BRACE, Contract.STAGE_START, ROOM)
+	assert_equal(_space.accepted_publications, PackedByteArray([0]), "a direct public callback has no proof")
+	_space.accepted_publications.clear()
+	_complete(Contract.OP_BRACE)
+	var job: int = _start(Contract.OP_CUT)
+	assert_true(_sites.set_paused(_site, true).ok, "actual worker and phase are held before cancellation")
+	assert_true(_sites.cancel_phase(_site, NULL_REF).ok, "material-free cut cancels through its actual owner")
+	assert_equal(_space.accepted_publications, PackedByteArray([1, 1, 1, 1]),
+		"brace start/commit and cut start/cancel each open their exact window")
+	assert_equal(_space.false_publications.count(1), 0, "wrong datum, operation, stage, Room generation or authority refuses")
+	assert_equal(_space.premature_publications.count(1), 0, "operation preparation is never publication permission")
+	assert_false(_sites.is_publishing_spatial_transition(ORIGIN, Contract.OP_CUT,
+		Contract.STAGE_CANCEL, ROOM, _space), "the completed callback's permission has ended")
+	assert_equal(_jobs.ref_of(job), NULL_REF, "cancellation completed the actual phase lifecycle")
 
 
 func test_256_resident_existing_work_baseline_microbenchmark_without_excavation() -> void:

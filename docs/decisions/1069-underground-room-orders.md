@@ -115,3 +115,23 @@ are retained under
 `docs/validation/evidence/underground-ug07-identity-readers-2026-10-03/`.
 This is a focused prerequisite result, not UG07 completion or a full-suite,
 save/load, production-clearance or performance qualification claim.
+
+## Implemented prerequisite A0b: synchronous spatial publication
+
+`ExcavationSites.is_publishing_spatial_transition(origin_u, operation, stage,
+room, candidate)` attests only the exact synchronous `_publish_candidate`
+callback after the actual physical payment, output or cancellation has
+committed. It checks the actual live weak authority, candidate row range,
+exact origin, operation, stage and full Room generation. Preparing a spatial
+candidate, calling the adapter directly, or retaining a previous callback's
+arguments grants no publication permission. The adapter must still validate
+its own prepared revision before installing its non-failing candidate.
+
+A single `_publishing_spatial` logical bool byte is transient category 3
+call-stack control, never saved or hashed. It brackets only that callback
+and is false again before phase retirement. There is no new packed column,
+receipt arena or steady-state tick work. The focused strict run passed 36
+tests / 22404 assertions with zero failures, unexpected diagnostics and leaks;
+the two-file analyzer reported zero warnings. The exact independently reviewed
+sources, clean-import log and test output are in
+`docs/validation/evidence/underground-ug07-publication-window-2026-10-03/`.

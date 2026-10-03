@@ -866,3 +866,35 @@ expected/tolerated diagnostics. The analyzer reports zero warnings in four
 files. The 1,536-row regressions observe zero source callbacks inside the loop.
 [Source pins and raw logs](../validation/evidence/underground-ug1075-bindings-2026-10-03/prepared-observations/README.md)
 qualify only this observation boundary, not the whole production movement cost.
+
+
+## Resolve a physical paid cube through its actual Room claims
+
+`section_for_paid_cube_into(room, origin_u, expected_revision, out)` is a cold,
+metadata-only query. It validates exact immutable 1024u alignment/domain and
+int32 far endpoints, then examines every actual full-Room CLAIM_ROOM row
+intersecting that cube. Every matching row must retain the same full live
+Room-owned FLOOR_DATUM, source revision and level. The query refuses absent markers,
+missing/foreign floors, stale generations or multiple distinct sections.
+An upper cube retains the actual lower floor Y; cube origin Y is never treated
+as a floor datum. Physical rows cannot stand in for accepted plan markers.
+
+The caller supplies fixed six-I32 Region scratch. Output changes only after
+full source/claim validation before and after the scalar scan, and a final exact
+geometry/Room identity check. No new retained member, packed array, per-Site map,
+wire field or snapshot is created. The conservative work admission is 4R+3O:
+two complete source/claim checks, one source lookup, a complete region scan and
+one constant-time full-section check for every possible matching row. Existing
+source OpResult/native allocations remain cold costs; the scalar scan itself
+creates no per-row boxes. The consumer must include this work and its call frames
+in the enclosing physical operation's finite admission.
+
+This implements decision 1091's resolver only. The metadata envelope and a partial
+fine claim intersection do not prove complete paid excavation, support, usable
+floor area, finishing or a route. Decision 1092's mask provider and Authority must
+independently validate exact claim-union coverage before any physical publication.
+The clean focused result is **83 tests / 4,961 assertions / 0 failures**, with
+zero strict/raw unexpected diagnostics or leaks and zero expected/tolerated
+counts; analyzer zero in two files. Independent source review accepted the exact
+pins. [Raw logs and scope](../validation/evidence/underground-ug1075-bindings-2026-10-03/paid-cube-section/README.md)
+include the unchanged actual 6,144/2,048 capacity regression.

@@ -1140,6 +1140,78 @@ func overlapping_regions_into(box: PackedInt32Array, out: PackedInt32Array) -> S
 	return &""
 
 
+func section_for_paid_cube_into(room: Vector2i, origin_u: Vector3i,
+		expected_revision: int, out: Region) -> StringName:
+	"""Resolve actual claim metadata, never cut/clearance permission; overwrite only fixed unaliased scratch."""
+	var code: StringName = _section_query_input_refusal(origin_u, out)
+	if code == &"":
+		code = snapshot_revision_refusal(expected_revision)
+	if code != &"":
+		return code
+	var source: int = _find_source(room, false)
+	if source < 0 or _o_kind[source] != Directory.KIND_ROOM:
+		return &"SPACE_SECTION_ROOM"
+	var row: int = _claimed_floor_row(room, origin_u, _o_revision[source])
+	match row:
+		-1: return &"SPACE_SECTION_MISSING"
+		-2: return &"SPACE_SECTION_AMBIGUOUS"
+		-3: return &"SPACE_SECTION_STALE"
+	var section: Vector2i = Vector2i(row, _r_generation[row])
+	code = snapshot_revision_refusal(expected_revision)
+	if code != &"":
+		return code
+	if revision() != expected_revision or not _sources.directory().is_valid_of_kind(room, Directory.KIND_ROOM):
+		return &"SPACE_REVISION_STALE"
+	return region_into_reused(section, out)
+
+
+func _section_query_input_refusal(origin_u: Vector3i, out: Region) -> StringName:
+	"""Admit both complete validations and scalar scans before reading or allocating any candidate output."""
+	if _ready_error != &"":
+		return _ready_error
+	if out == null or out.box.size() != 6:
+		return &"SPACE_REGION_OUTPUT_SHAPE"
+	if 4 * _region_capacity + 3 * _source_capacity > _header[16]:
+		return &"SPACE_OPERATION_BUDGET"
+	for axis: int in 3:
+		var far: int = int(origin_u[axis]) + Space.QUANTUM_U
+		if (int(origin_u[axis]) - _header[5 + axis]) % Space.QUANTUM_U != 0 \
+				or not Space.int32(far) or origin_u[axis] < _domain._bounds[axis] \
+				or far > _domain._bounds[axis + 3]:
+			return &"SPACE_SITE_DOMAIN"
+	return &""
+
+
+func _claimed_floor_row(room: Vector2i, origin_u: Vector3i, source_revision_value: int) -> int:
+	"""All intersecting exact Room claims must retain one full section, regardless of the cube's height."""
+	var found: int = -1
+	for row: int in _region_capacity:
+		if not _room_claim_intersects_cube(row, room, origin_u):
+			continue
+		var section: Vector2i = Vector2i(_r_section_slot[row], _r_section_generation[row])
+		if not _region_live(section, false) or _r_role[section.x] != Space.FLOOR_DATUM \
+				or _r_claim_kind[section.x] != CLAIM_NONE or _r_level[section.x] != _r_level[row] \
+				or Vector2i(_r_owner_slot[section.x], _r_owner_generation[section.x]) != room \
+				or Vector2i(_r_section_slot[section.x], _r_section_generation[section.x]) != section \
+				or _r_owner_revision[row] != source_revision_value \
+				or _r_owner_revision[section.x] != source_revision_value:
+			return -3
+		if found >= 0 and found != section.x:
+			return -2
+		found = section.x
+	return found
+
+
+func _room_claim_intersects_cube(row: int, room: Vector2i, origin_u: Vector3i) -> bool:
+	"""Half-open full 3D overlap excludes touching claims and every physical/non-Room row without box copies."""
+	return _r_present[row] == 1 and _r_claim_kind[row] == CLAIM_ROOM \
+		and Vector2i(_r_claim_slot[row], _r_claim_generation[row]) == room \
+		and Vector2i(_r_owner_slot[row], _r_owner_generation[row]) == room \
+		and _r_lo_x[row] < int(origin_u.x) + Space.QUANTUM_U and origin_u.x < _r_hi_x[row] \
+		and _r_lo_y[row] < int(origin_u.y) + Space.QUANTUM_U and origin_u.y < _r_hi_y[row] \
+		and _r_lo_z[row] < int(origin_u.z) + Space.QUANTUM_U and origin_u.z < _r_hi_z[row]
+
+
 func snapshot_into(out: Space.Snapshot) -> StringName:
 	"""Copy the complete survey including every confirmed claim as an obstacle; no generic exemption."""
 	return _copy_snapshot_into(out, NULL_REF, NULL_REF)

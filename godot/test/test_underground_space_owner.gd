@@ -2280,3 +2280,141 @@ func test_prepared_region_observation_refusals_preserve_exact_caller_scratch() -
 	assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"SPACE_REGION_OUTPUT_SHAPE", "no implicit allocation")
 	assert_true(_owner.abort(token), "expire exact observation")
 	assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"SPACE_TRANSACTION_UNSEALED", "aborted candidate")
+
+
+func _section_claim(token: int, floor_ref: Vector2i, bounds: Array[int]) -> Vector2i:
+	"""Retain an exact fine synthetic Room claim, distinct from the enclosing floor metadata."""
+	var claim: Owner.Region = _region(bounds, Space.OBSTACLE, _room)
+	claim.section = floor_ref
+	claim.claim_kind = Owner.CLAIM_ROOM
+	claim.claim_ref = _room
+	return _put(token, claim)
+
+
+func _section_query_fixture() -> Vector2i:
+	"""One actual Room source owns a synthetic concave plan four metres high, with a negative floor."""
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _room), &"", "actual Room")
+	assert_equal(_owner.stage_source(token, _hall), &"", "actual source for drift regression")
+	var floor_ref: Vector2i = _put(token, _region([-1024, -2048, -1024, 1024, -2047, 1024],
+		Space.FLOOR_DATUM, _room))
+	_section_claim(token, floor_ref, [-1024, -2048, -1024, 0, 2048, -768])
+	_section_claim(token, floor_ref, [-1024, -2048, -768, -768, 2048, 0])
+	_section_claim(token, floor_ref, [0, -2048, 0, 256, 2048, 256])
+	_put(token, _region([1024, 0, 0, 2048, 1024, 1024], Space.UNFINISHED, _room))
+	_publish(token)
+	return floor_ref
+
+
+func test_paid_cube_section_resolves_fine_claims_without_inventing_floor_or_void() -> void:
+	"""An upper paid cube keeps the actual lower floor; partial claims grant metadata only."""
+	var floor_ref: Vector2i = _section_query_fixture()
+	var before: PackedByteArray = _owner.state_bytes()
+	var out: Owner.Region = _region([77, 78, 79, 80, 81, 82], Space.WATER, _world)
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(-1024, 0, -1024),
+		_owner.revision(), out), &"", "two fine strips intersect the same exact cube")
+	assert_equal(out.section, floor_ref, "full actual section generation")
+	assert_equal(out.box, PackedInt32Array([-1024, -2048, -1024, 1024, -2047, 1024]), "no upper-Y floor inference")
+	assert_equal(out.owner, _room, "actual Room")
+	assert_equal(out.role, Space.FLOOR_DATUM, "metadata only")
+	assert_equal(out.level, 1, "actual stored level")
+	var prior: PackedInt32Array = out.box.duplicate()
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(0, 2048, 0), _owner.revision(), out),
+		&"SPACE_SECTION_MISSING", "touching upper boundary is not an intersection")
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(1024, 0, 0), _owner.revision(), out),
+		&"SPACE_SECTION_MISSING", "physical unfinished row cannot impersonate a Room claim")
+	assert_equal(out.box, prior, "refused reads preserve prior scratch")
+	assert_equal(_owner.state_bytes(), before, "no physical, claim or allocator mutation")
+	assert_false(_snapshot().volumes.role.has(Space.SUPPORTED_VOID), "metadata never creates free void")
+
+
+func test_paid_cube_section_refuses_ambiguous_or_missing_full_section_links() -> void:
+	"""Adjacent older sections within one paid cube cannot be collapsed to the first matching row."""
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _room), &"", "actual Room")
+	var first: Vector2i = _put(token, _region([0, 0, 0, 512, 1, 1024], Space.FLOOR_DATUM, _room))
+	var second: Vector2i = _put(token, _region([512, 0, 0, 1024, 1, 1024], Space.FLOOR_DATUM, _room))
+	_section_claim(token, first, [0, 0, 0, 512, 1024, 1024])
+	_section_claim(token, second, [512, 0, 0, 1024, 1024, 1024])
+	_publish(token)
+	var out: Owner.Region = _region([77, 78, 79, 80, 81, 82], Space.WATER, _world)
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i.ZERO, _owner.revision(), out),
+		&"SPACE_SECTION_AMBIGUOUS", "all intersecting claims must share one full section")
+	assert_equal(out.box[0], 77, "ambiguous output untouched")
+	token = _begin()
+	_section_claim(token, NULL_REF, [1024, 0, 0, 1280, 1024, 256])
+	_publish(token)
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(1024, 0, 0), _owner.revision(), out),
+		&"SPACE_SECTION_STALE", "legacy claim without actual floor cannot supply guessed metadata")
+	assert_equal(out.role, Space.WATER, "all refused output fields survive")
+
+
+func test_paid_cube_section_rechecks_revision_room_generation_and_actual_source_facts() -> void:
+	"""The query cannot cache metadata across geometry, actual source drift or Room retirement."""
+	_section_query_fixture()
+	var out: Owner.Region = _region([77, 78, 79, 80, 81, 82], Space.WATER, _world)
+	var origin: Vector3i = Vector3i(-1024, 0, -1024)
+	var revision: int = _owner.revision()
+	assert_equal(_owner.section_for_paid_cube_into(_room, origin, revision - 1, out),
+		&"SPACE_REVISION_STALE", "exact retained image revision")
+	assert_equal(_owner.section_for_paid_cube_into(Vector2i(_room.x, _room.y + 1), origin, revision, out),
+		&"SPACE_SECTION_ROOM", "foreign Room generation")
+	assert_true(_buildings.set_building_interior_id(_hall, 91).ok, "real structural source changed")
+	assert_equal(_owner.section_for_paid_cube_into(_room, origin, revision, out),
+		&"SPACE_SOURCE_DRIFT", "same geometry revision is insufficient")
+	assert_true(_buildings.set_building_interior_id(_hall, 1).ok, "restore original source")
+	assert_true(_buildings.directory().destroy(_room), "actual Room retirement")
+	assert_equal(_owner.section_for_paid_cube_into(_room, origin, revision, out),
+		&"SPACE_SOURCE_STALE", "full actual Room lifetime is rechecked")
+	assert_equal(out.box, PackedInt32Array([77, 78, 79, 80, 81, 82]), "no refused mutation")
+
+
+func test_paid_cube_section_domain_overflow_scratch_and_work_ceiling_refuse() -> void:
+	"""No fine-grid rounding, overflowing far corner or uncharged scan is accepted."""
+	_section_query_fixture()
+	var out: Owner.Region = _region([77, 78, 79, 80, 81, 82], Space.WATER, _world)
+	for origin: Vector3i in [Vector3i(1, 0, 0), Vector3i(8192, 0, 0), Vector3i(2147483136, 0, 0)]:
+		assert_equal(_owner.section_for_paid_cube_into(_room, origin, _owner.revision(), out),
+			&"SPACE_SITE_DOMAIN", "exact finite paid quantum only")
+	out.box.resize(5)
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i.ZERO, _owner.revision(), out),
+		&"SPACE_REGION_OUTPUT_SHAPE", "caller owns exact scratch")
+	out.box.resize(6)
+	var small: Owner = Owner.new(_sources)
+	assert_equal(small.configure(_new_domain(64), R, O), &"", "small actual cold work allowance")
+	assert_equal(small.section_for_paid_cube_into(_room, Vector3i.ZERO, small.revision(), out),
+		&"SPACE_OPERATION_BUDGET", "both source scans and complete scalar scan admitted before use")
+
+
+func test_paid_cube_section_uses_actual_immutable_datum_and_rejects_foreign_floor_owner() -> void:
+	"""The economic grid translates explicitly, while Room section ownership stays generation-qualified."""
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(_world, Vector3i(0, 512, 0), Vector3i(-8, -8, -8),
+		Vector3i(16, 16, 16), 64, 64, 100000), &"", "actual translated domain")
+	_owner = Owner.new(_sources)
+	assert_equal(_owner.configure(domain, R, O), &"", "new owner keeps explicit immutable datum")
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _room), &"", "actual Room")
+	var floor_ref: Vector2i = _put(token, _region([0, -1536, 0, 1024, -1535, 1024], Space.FLOOR_DATUM, _world))
+	_section_claim(token, floor_ref, [0, -1536, 0, 256, 2560, 256])
+	_publish(token)
+	var out: Owner.Region = _region([77, 78, 79, 80, 81, 82], Space.WATER, _world)
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i.ZERO, _owner.revision(), out),
+		&"SPACE_SITE_DOMAIN", "do not silently shift cube to512")
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(0, 512, 0), _owner.revision(), out),
+		&"SPACE_SECTION_STALE", "a World floor cannot stand in for the actual Room floor")
+	assert_equal(out.owner, _world, "refusal leaves prior owner untouched")
+
+
+func test_paid_cube_section_resolves_under_the_unchanged_actual_joint_capacities() -> void:
+	"""R6144/O2048 must support a real small claim query without increasing the cold work ceiling."""
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
+		Vector3i(16, 16, 16), 8192, 8192, Space.MAX_CHECKS), &"", "actual joint limits")
+	_owner = Owner.new(_sources)
+	assert_equal(_owner.configure(domain, 6144, 2048), &"", "joint finite allocation")
+	var floor_ref: Vector2i = _section_query_fixture()
+	var out: Owner.Region = _region([77, 78, 79, 80, 81, 82], Space.WATER, _world)
+	assert_equal(_owner.section_for_paid_cube_into(_room, Vector3i(-1024, 0, -1024),
+		_owner.revision(), out), &"", "bounded scans fit existing MAX_CHECKS")
+	assert_equal(out.section, floor_ref, "exact full section, no slot-only result")

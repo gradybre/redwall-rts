@@ -15,6 +15,8 @@ const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
+const Structure := preload("res://scripts/core/underground_phase_structure.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NATURAL_ROW_LIMIT: int = 512
 const COMPOSED_ROW_LIMIT: int = Budget.PHASE_VOLUME_CAPACITY
@@ -63,6 +65,10 @@ var _room_reading: bool = false
 var _room_identity: PackedInt32Array = PackedInt32Array()
 var _identity_reading: bool = false
 var _worker_reading: bool = false
+var _structure: WeakRef = null
+var _structure_levels: WeakRef = null
+var _structure_reading: bool = false
+var _structure_poisoned: bool = false
 
 
 func configure(world: World, terrain: Terrain, owner: Owner, reader: Owner.CoreSources,
@@ -173,6 +179,8 @@ func _assigned_worker(site: Vector2i, job: Vector2i) -> Vector2i:
 
 func bind_room_bindings(reader: RoomOrders.Bindings) -> StringName:
 	"""Wire one actual room provider at quiescence without a concrete-provider preload or reference cycle."""
+	if _structural_reentry():
+		return REFUSE_BUSY
 	if _room_reading or _composing or _cold_opening or _phase_token != 0 or _room_bindings != null \
 			or (_budget != null and not _budget.is_quiescent()):
 		return REFUSE_BUSY
@@ -207,6 +215,118 @@ func _actual_room_bindings() -> RoomOrders.Bindings:
 	return _room_bindings.get_ref() as RoomOrders.Bindings if _room_bindings != null else null
 
 
+func bind_phase_structure(reader: Structure, levels: Levels) -> StringName:
+	"""Bind one actual structural observer at quiescence; productive contact qualification stays separate."""
+	if _structure_reading:
+		_structure_poisoned = true
+		return REFUSE_BUSY
+	if _structure != null or _composing or _room_reading or _cold_opening or _phase_token != 0 \
+			or _budget == null or not _budget.is_quiescent():
+		return REFUSE_BUSY
+	_structure_reading = true
+	_structure_poisoned = false
+	var owner: Owner = _actual_owner()
+	var code: StringName = _structure_binding_refusal(reader, levels)
+	if code == &"" and (owner == null or not _budget.is_quiescent() or owner.has_prepared()):
+		code = REFUSE_BUSY
+	if code == &"" and not _structure_poisoned:
+		_structure = weakref(reader)
+		_structure_levels = weakref(levels)
+	_structure_reading = false
+	return REFUSE_BUSY if _structure_poisoned else code
+
+
+func _structure_binding_refusal(reader: Structure, levels: Levels, cold_token: int = 0) -> StringName:
+	"""Require the provider's reciprocal Scope to name this exact composer and every real collaborator."""
+	if reader == null or levels == null or binding_refusal() != &"":
+		return REFUSE_BINDING
+	var scope: Structure.Scope = reader.scope_owner()
+	var owner: Owner = _actual_owner()
+	var sites: Sites = _actual_sites()
+	if scope == null or owner == null or sites == null or scope.phase_world_owner() != self \
+			or not reader.is_bound_to(owner, _terrain, levels, sites, _budget):
+		return REFUSE_BINDING
+	if not _structure_lease_current(cold_token):
+		return REFUSE_BUDGET
+	if not scope.exact_binding(owner, _terrain, levels, sites, _budget):
+		return REFUSE_BINDING
+	return binding_refusal() if not _structure_poisoned else REFUSE_BUSY
+
+
+func _structure_lease_current(token: int) -> bool:
+	"""Callback-free admission immediately precedes the reciprocal Scope's bounded identity allocation."""
+	return _budget != null and ((_phase_token == 0 and token == 0 and _budget.is_quiescent()) \
+		or (token > 0 and token == _phase_token and _budget.covers(token, Budget.COLD_BYTES)))
+
+
+func retained_cold_token() -> int:
+	"""Identity observation only; a copied number grants no cold lease or phase permission."""
+	return _phase_token
+
+
+func _structural_reentry() -> bool:
+	"""Another allocating operation cannot borrow the arena while a structural observer retains its packet."""
+	if not _structure_reading:
+		return false
+	_structure_poisoned = true
+	return true
+
+
+func structural_refusal(site: Vector2i, operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Observe exact natural bearing earth; success never substitutes for body, work, input or output contacts."""
+	return _read_structure(Structure.CHECK, 0, site, operation, stage, room)
+
+
+func stage_physical_geometry(owner: Owner, owner_token: int, site: Vector2i,
+		operation: int, stage: int, room: Vector2i, _plan: Space.Plan) -> StringName:
+	"""Derive paid structural rows from actual owners only; caller plan geometry supplies no support authority."""
+	if owner == null or owner != _actual_owner():
+		return REFUSE_BINDING
+	return _read_structure(Structure.STAGE, owner_token, site, operation, stage, room)
+
+
+func prepared_structure_refusal(owner_token: int, site: Vector2i, operation: int,
+		stage: int, room: Vector2i) -> StringName:
+	"""Observe the exact sealed structural future, without claiming all service/topology companions are ready."""
+	return _read_structure(Structure.PREPARED, owner_token, site, operation, stage, room)
+
+
+func _read_structure(mode: int, owner_token: int, site: Vector2i, operation: int,
+		stage: int, room: Vector2i) -> StringName:
+	"""Strong synchronous borrows surround every callback; expired or reentrant wiring cannot grant success."""
+	if _structure_reading:
+		_structure_poisoned = true
+		return REFUSE_BUSY
+	if _composing or _room_reading or _cold_opening:
+		return REFUSE_BUSY
+	_structure_reading = true
+	_structure_poisoned = false
+	var reader: Structure = _structure.get_ref() as Structure if _structure != null else null
+	var levels: Levels = _structure_levels.get_ref() as Levels if _structure_levels != null else null
+	var token: int = _phase_token
+	var code: StringName = _structure_phase_refusal(reader, levels, token, site, operation, stage, room)
+	if code == &"":
+		if mode == Structure.CHECK:
+			code = reader.structure_refusal(site, operation, stage, room, token)
+		elif mode == Structure.STAGE:
+			code = reader.stage_geometry(owner_token, site, operation, stage, room, token)
+		else:
+			code = reader.prepared_refusal(owner_token, site, operation, stage, room, token)
+	if code == &"":
+		code = _structure_phase_refusal(reader, levels, token, site, operation, stage, room)
+	_structure_reading = false
+	return REFUSE_BUSY if _structure_poisoned else code
+
+
+func _structure_phase_refusal(reader: Structure, levels: Levels, token: int, site: Vector2i,
+		operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Identity checks may call other owners; exact original lease and phase are rechecked after them."""
+	var code: StringName = cold_phase_refusal(token, site, operation, stage, room)
+	if code == &"":
+		code = _structure_binding_refusal(reader, levels, token)
+	return cold_phase_refusal(token, site, operation, stage, room) if code == &"" else code
+
+
 func _room_phase_refusal(reader: RoomOrders.Bindings, site: Vector2i, room: Vector2i,
 		token: int) -> StringName:
 	"""Recheck exact phase scope after binding callbacks and after the actual provider fills its result."""
@@ -218,6 +338,8 @@ func _room_phase_refusal(reader: RoomOrders.Bindings, site: Vector2i, room: Vect
 
 func floor_section(site: Vector2i, room: Vector2i) -> Vector2i:
 	"""Delegate exact Room-owned metadata under the retained actual Site lease; never infer floor from cut Y."""
+	if _structural_reentry():
+		return NULL_REF
 	if _room_reading or _composing or _cold_opening:
 		return NULL_REF
 	_room_reading = true
@@ -238,6 +360,8 @@ func floor_section(site: Vector2i, room: Vector2i) -> Vector2i:
 func finish_mask_into(site: Vector2i, room: Vector2i, cold_token: int,
 		row_limit: int, out: PackedInt32Array) -> StringName:
 	"""Borrow exact fine claims; the physical Authority independently proves and publishes the returned mask."""
+	if _structural_reentry():
+		return REFUSE_BUSY
 	if _room_reading or _composing or _cold_opening:
 		return REFUSE_BUSY
 	_room_reading = true
@@ -286,6 +410,8 @@ func is_bound_budget(candidate: Budget) -> bool:
 
 func begin_cold_operation(owner: Owner, site: Vector2i, operation: int, stage: int) -> int:
 	"""Acquire this actual world's complete synchronous phase peak; the lease grants no work permission."""
+	if _structural_reentry():
+		return 0
 	if _cold_opening or _composing or _room_reading or _phase_token != 0:
 		return 0
 	_cold_opening = true
@@ -389,6 +515,8 @@ func composed_snapshot_for_site_into(bounds: PackedInt32Array, out: Space.Snapsh
 
 func _begin_query(out: Space.Snapshot) -> StringName:
 	"""Establish exclusivity before any provider callback; a refused nested call cannot clear active output."""
+	if _structural_reentry():
+		return REFUSE_BUSY
 	if _composing or _room_reading:
 		return REFUSE_BUSY
 	if out == null:

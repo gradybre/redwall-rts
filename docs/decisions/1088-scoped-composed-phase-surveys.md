@@ -275,3 +275,56 @@ files. Independent furnishing review accepted exact source156f59e5 and
 test2d34e2b5; full hashes, raw logs and review are recorded under
 `docs/validation/evidence/underground-world-identities-2026-10-03/phase-scope-iteration-1/`.
 This is an exact-context prerequisite, not full structural or work qualification.
+
+
+## Concrete World structural scope and dispatch
+
+The actual WorldStructureScope binds once at quiescence to one WorldBindings,
+its immutable authored LevelCatalog and the same Budget. Its World reference
+is weak; a synchronous call borrows that owner strongly. Exact bindings require
+the actual SpaceOwner, Terrain, Sites, Directory, level content revision and
+complete Domain. A phase observation checks the exact World cold token and
+operation/stage/Site/Room/Project/revision before allocating Level identity
+scratch and again after callbacks. Nested configuration or observation poisons
+the outer read; rejected cleanup cannot release another owner's token.
+
+WorldBindings binds the real structural provider reciprocally through that
+Scope. It delegates natural bearing-earth observation, paid structural staging
+and sealed-future structural checks under the original phase lease. Its weak
+provider/Level links cannot substitute equal numeric identities after expiry.
+A direct reentrant delegate invalidates the outer structural read. The concrete
+provider reads actual Room claims, authored bands and physical accounting; the
+caller plan does not nominate support geometry.
+
+The Scope retains102 logical bytes: a92-byte immutable Domain copy, one8-byte
+Level revision and two boolean guards. WorldBindings adds two boolean guards,
+taking its retained/reused logical total to315 bytes. These category3 controls
+fit the existing shared bindings reservation and add no authoritative/save
+columns. Cold Level descriptor/identity callback scratch is included in
+1093's1536-byte simultaneous control envelope; the same1048960-byte World
+arena and row capacities remain unchanged. Native header/growth and runtime
+measurement obligations remain open.
+
+This structural composition does not implement full qualification, worker
+contact, material/output contact or service/topology companions. The production
+qualification revision remains0. The composed paid test explicitly retains
+synthetic body/reach/service fixture inputs while replacing the former
+structural scope and dispatcher with actual owners. Source review and strict
+verification must be recorded before acceptance.
+
+Independent geometry review accepted the final four iteration5 source hashes
+after closing three medium findings. The public bind now holds its actual
+Owner for the entire callback lifetime. Cross-operation survey, floor, mask,
+lease and room-binding entries refuse before output clearing or allocation
+while structure holds the arena, and poison the outer structural read. Exact
+original tokens (or initial configuration quiescence) are checked directly
+before Level identity allocation and after callbacks. These fixes introduce
+no additional retained fields.
+
+Clean focused verification passed88 tests and1451 assertions with0 failures.
+Every strict/raw unexpected error, warning, expected/tolerated diagnostic and
+object/resource leak count is0; analyzer reports0 warnings in4 files. Exact
+source pins, reproducible invocation, original logs and independent review
+are in `docs/validation/evidence/underground-world-identities-2026-10-03/structure-scope-iteration-5/`.
+This is structural integration evidence, not playable or whole-world runtime
+qualification. Earlier rejected/intermediate iterations are retained.

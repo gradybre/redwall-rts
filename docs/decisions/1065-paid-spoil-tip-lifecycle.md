@@ -144,3 +144,31 @@ Independent review of the exact source/test hashes found no functional blocker
 and corrected the capture-peak accounting above. Source publication remains
 inert until the exact typed paid operation owner binds. UG20 remains running;
 its actual shared modular coordinator and world integration are still required.
+
+
+## Actual operation adapter increment
+
+The tip store exposes read-only physical admission checks before Construction
+allocates a project. These validate the candidate tile/handle, preparation state,
+source or incoming capacity, idle ownership and exact retained-q contract. They
+do not reserve stock, allocate an identity, or attest geometry or payment. The
+existing real-project checks repeat those conditions before publication and
+then validate the exact remaining-work/accounting identity. This keeps a
+rejected order from consuming a Directory generation.
+
+The concrete `SpoilWork` owner supplies the shared modular router's immutable
+quote from that ledger, the actual catalog and adopted Work prices. One cold
+pending admission carries the requested tile/operation/q until the router has
+allocated the real project. A nested weak Publisher proves actual Construction
+purpose, local subject, operation and same-call-stack owner publication; it
+never recursively prices a project through its own facts callback. Later facts
+come from the live tip/project relationship, not a second per-project table.
+
+Physical siting/contact/support/route checks are a separately typed composition
+with the actual World and existing owners. Each admission/transition stages all
+fallible work before an Inventory or owner mutation. Publication is synchronous
+and non-failing; source/contact facts are captured before closing a tip can
+retire its handle. A refused, missing or expired binding supplies no permission.
+This interface is not a replacement terrain store or an approval of fabricated
+worker clearance. Actual ground binding and village haul dispatch remain in
+the final UG20 integration packet.

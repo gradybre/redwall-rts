@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/spoil_tips.gd": "655f55407d1eb62e6aa36f300d25b97d1cec8d166fd9175d4b4aa60510814d88",
+  "godot/test/test_spoil_tips.gd": "8db9bff59d516ad6084270c9c2a2e3b1c9fb35d45b90297ad2028599d63b4152",
+  "docs/decisions/1065-paid-spoil-tip-lifecycle.md": "1c5079ec4edf37119322ca589e0d12a70c11a35b824118e74e52b067e2e9f2f4"
+}

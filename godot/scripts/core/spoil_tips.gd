@@ -193,14 +193,21 @@ static func total_work_mwu(operation: int, quantity: int) -> int:
 	return (quantity * numerator + denominator - 1) / denominator
 
 
-func prepare_order_refusal(tile: int, project: Vector2i) -> StringName:
-	"""Prove allocation, unchanged candidate identity and genuine project before first designation."""
+func candidate_prepare_refusal(tile: int) -> StringName:
+	"""Check physical admission before allocating Construction; this grants no publication permission."""
 	var tip: Vector2i = candidate_tip_ref()
 	if tip == NULL_REF:
 		return REFUSE_CAPACITY if _bound_publisher() != null else REFUSE_BINDING
 	if tile < 0 or tile >= MAX_CAPACITY or _tile_row[tile] != -1:
 		return REFUSE_TIP
-	var code: StringName = _project_refusal(tip, project, PREPARE, 0)
+	return &""
+
+
+func prepare_order_refusal(tile: int, project: Vector2i) -> StringName:
+	"""Revalidate physical admission and the actual allocated project before first designation."""
+	var code: StringName = candidate_prepare_refusal(tile)
+	if code == &"":
+		code = _project_refusal(candidate_tip_ref(), project, PREPARE, 0)
 	return _admission_progress_refusal(project, FIXED_WORK_MWU, 0) if code == &"" else code
 
 
@@ -224,13 +231,20 @@ func publish_prepare_order(tile: int, project: Vector2i) -> StringName:
 	return &""
 
 
-func order_refusal(tip: Vector2i, project: Vector2i, operation: int, quantity: int) -> StringName:
-	"""Reserve only real free capacity/source stock, with immutable retained quantity contracts."""
+func candidate_order_refusal(tip: Vector2i, operation: int, quantity: int) -> StringName:
+	"""Validate phase, source and retained q before a real project exists, without reserving stock."""
+	if _bound_publisher() == null:
+		return REFUSE_BINDING
 	if not is_live_tip(tip):
 		return REFUSE_TIP
 	if _project(tip.x) != NULL_REF:
 		return REFUSE_BUSY
-	var code: StringName = _operation_refusal(tip.x, operation, quantity)
+	return _operation_refusal(tip.x, operation, quantity)
+
+
+func order_refusal(tip: Vector2i, project: Vector2i, operation: int, quantity: int) -> StringName:
+	"""Revalidate physical claims and the exact real project before any source reservation."""
+	var code: StringName = candidate_order_refusal(tip, operation, quantity)
 	if code == &"":
 		code = _project_refusal(tip, project, operation, quantity)
 	if code != &"":

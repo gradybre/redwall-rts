@@ -190,6 +190,43 @@ func test_explicit_capacity_and_live_world_are_required_before_any_allocation() 
 	assert_equal(wrong.legacy_save_refusal(), Tips.REFUSE_BINDING, "invalid owner cannot save")
 
 
+func test_candidate_preparation_is_read_only_and_does_not_mint_a_project() -> void:
+	"""The paid router can reject physical allocation before spending any Directory identity."""
+	var before: PackedByteArray = _tips.state_bytes()
+	var directory: PackedByteArray = _construction.directory().state_bytes()
+	assert_equal(_tips.candidate_prepare_refusal(30), &"", "vacant tile is a physical candidate")
+	assert_equal(_tips.candidate_prepare_refusal(-1), Tips.REFUSE_TIP, "negative tile refuses")
+	assert_equal(_tips.candidate_prepare_refusal(Tips.MAX_CAPACITY), Tips.REFUSE_TIP, "outside world refuses")
+	assert_equal(_tips.state_bytes(), before, "physical preview changes no history")
+	assert_equal(_construction.directory().state_bytes(), directory, "preview allocates no project")
+	_designate(30)
+	assert_equal(_tips.candidate_prepare_refusal(30), Tips.REFUSE_TIP, "existing designation occupies tile")
+	_publisher.live = false
+	assert_equal(_tips.candidate_prepare_refusal(31), Tips.REFUSE_BINDING, "expired composition refuses")
+
+
+func test_candidate_orders_prove_phase_source_capacity_and_exact_retained_contract() -> void:
+	"""An impossible or changed-q order refuses before Construction allocation or source claims."""
+	var tip: Vector2i = _prepared()
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.PREPARE, 0), Tips.REFUSE_PHASE, "already prepared")
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.RECLAIM, 1), Tips.REFUSE_QUANTITY, "empty source")
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.COMPACT, 400001), Tips.REFUSE_QUANTITY, "over capacity")
+	assert_equal(_tips.candidate_order_refusal(Vector2i(tip.x, tip.y + 1), Tips.CLOSE, 0), Tips.REFUSE_TIP, "full identity")
+	_order(tip, Tips.COMPACT, 5)
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.CLOSE, 0), Tips.REFUSE_BUSY, "current project holds source")
+	_begin(tip)
+	_work(tip, 1)
+	_cancel(tip)
+	var before: PackedByteArray = _tips.state_bytes()
+	var directory: PackedByteArray = _construction.directory().state_bytes()
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.COMPACT, 6), Tips.REFUSE_CONTRACT, "changed q cannot inherit work")
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.COMPACT, 5), &"", "exact retained q may resume")
+	assert_equal(_tips.state_bytes(), before, "no source or incoming capacity is claimed by a preview")
+	assert_equal(_construction.directory().state_bytes(), directory, "no project is allocated by a preview")
+	_publisher.live = false
+	assert_equal(_tips.candidate_order_refusal(tip, Tips.CLOSE, 0), Tips.REFUSE_BINDING, "expired owner refuses")
+
+
 func test_direct_admission_or_foreign_composition_cannot_designate_a_tip() -> void:
 	"""Valid-looking refs alone cannot write physical state without the exact typed publication."""
 	var tip: Vector2i = _tips.candidate_tip_ref()

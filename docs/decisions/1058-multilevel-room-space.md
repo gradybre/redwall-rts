@@ -155,6 +155,139 @@ This is focused evidence, not a full-suite claim or measured production
 clearance/performance qualification. The test dimensions and accepting
 authorities are synthetic.
 
+## Follow-on implementation packet — surveyed after increment A
+
+This is the bounded next packet, not a declaration that the following stores
+or profiles already exist. File leases, schema adoption and independent review
+must precede implementing each part. The parent is separately building UG19's
+selected-level world input; that presentation work does not own world rules.
+
+### Existing real inputs and their limits
+
+| Input available now | Exact authority/source | Safe use and limit |
+| --- | --- | --- |
+| Adult anatomical heights: mouse 1024u, mole 922u, squirrel 1178u, otter 1526u, badger 2611u | `setting_decisions.md` DEC-039; `planning/asset_dimensions_and_budgets.md` GAP-01/02 | Normalize and compare the actual bare adult anatomy. These are not width, posture, work reach, step height or equipment clearance. Beaver 1434u remains explicitly proposed under DEC-041. Child and elder dimensions cannot be obtained by silently scaling the adult. |
+| Real local walk clips for those five species | `art-reference/asset_library/grounded.json`; `assets/library/creature/<cast key>/grounded/anim_walk.glb` in the main checkout | Read-only existence and SHA256 checks on 2026-10-02 matched all five rows for `mouse_keeper`, `mole_digger`, `squirrel_gatherer`, `otter_boatwright`, `badger_quarryman`. These are provisional assets with traceable source, not accepted complete body/gear sweeps. The binaries are absent from this isolated worktree; reference/read them without modifying the other checkout. |
+| Idle/walk/carry and some crouch/dig clips; raw bed, pick, arch and door sources | `tools/stage_demo_assets.py` CAST/CLIPS/OPTIONAL_CLIPS; library README and repair/ground/bake manifests | Measurable inputs, with known grounding/tail/loop limitations. The staged mouse crouch has an additional repin, so measure the actual bound version and preserve its derivation/hash. Do not label raw generated source as the runtime asset. No paid generation is necessary to start. |
+| Integer 2m furniture floor footprints | `building_definitions.gd:137`, `floor_x_of()`/`floor_z_of()`; GDD §5.9, balance §4.3 | Bed, patient bed, seat, shelf and decoration: 1×1 tiles = 2048×2048u. Hearth and kitchen bench: 2×1 = 4096×2048u. Partition/door: edge placement, not a zero-volume object. Heights, usable approach, door swing and work reach remain separately authored/measured. UG18 owns the catalog mapping. |
+| Existing room identity and countable validity | `buildings.gd` `is_live_room`, `type_of_room`, `room_tile_at`, `room_building_ref_of`, `furniture_rows_in_room`, and full furniture readers; GDD §5.9 | Preserve full Room/Furniture EntityRefs, immutable purpose and countable requirements. Tile rows contain no generalized underground height or body-fit proof. Do not reinterpret their flat tile index as a new underground location. |
+| Surface model briefs | `planning/asset_dimensions_and_budgets.md` GAP-03 | 3072u minimum clear internal height and 1536×3072u ordinary doorway are authored surface-model briefs. They are useful comparison fixtures, not an underground rule or proof all residents and cargo fit. The cellar's 2048u maximum aboveground height does not specify its depth. |
+| Inherited movement/load ceilings | `residents.gd:193`–`:194`; MOVE-C3-R01 §4 | Small/medium/large: 3277/4096/3072u per second and 12000/16000/24000g. Connected profiles must bind their own applicable speeds and any tighter loads; changing mode cannot enlarge the satchel or add a guessed ladder capability. |
+| Measurement schema and exact conversion | `planning/movement_envelope_schema.json` schema 2; `tools/validate_movement_envelopes.py`; MOVE-C2/C3 | Reuse source hashes, actual gear/cargo variant, outward integer micrometre conversion, seven legal states, full continuous sweep and explicit residual error/margins. Ground class derivation is anchored; it is not a general 3D connector-fit algorithm. |
+
+The existing diagnostic
+`validation/evidence/ground-access-planning-2026-09-20/mouse-rigid-yaw-diagnostic.json`
+already measures a **439u static rigid-yaw radius**, excluding animated body,
+gear and cargo. It fails containment at the baseline (+256,+256) ground root
+offset. Its alternative (+768,+768) is explicitly diagnostic. Re-centering all
+actors would change position/anchor/save semantics and is not an incidental
+way to pass underground clearance tests. `movement.gd:565` correctly continues
+to refuse unspecified clearance; the packet must preserve that guard until
+real owner-qualified profiles replace it.
+
+### B1 — Source-bound measurements that can start immediately
+
+Lease a new offline measurement tool, its Python tests and a repository-owned
+evidence directory. Read existing manifests and local source assets without
+staging or editing the main checkout. For each selected asset/clip, bind source
+SHA256, anatomical normalization transform, axes/root, attachments, clip name,
+legal pose states and exact output version. Begin with the five checked adult
+walk sources plus matching idle/crouch/carry/dig inputs where present.
+
+Produce independently inspectable source measurements and missing-state
+reports. Include all skinning influences, tail/gear/load extents and the
+continuous interpolation between poses; sampled frame minima/maxima alone
+must not assert zero residual. Use conservative bounds with a documented
+residual proof, then exact outward integer conversion. Do not fill absent
+entry/hold/turn/reversal/retreat/exit mappings with assumed capabilities, use a
+height-ratio width, or tag partial diagnostics as production-ready schema-2
+profiles. Unit tests mutate source hash, omit an attachment/state, shrink an
+extremum inward, and understate error/margin; each must refuse qualification.
+
+This work needs measurement/engineering, not another approval of DEC-039 or
+a paid asset request. A profile that cannot yet qualify still supplies useful
+actual geometric evidence for the next authored connector iteration.
+
+### B2 — Actual spatial owner and phase preflight
+
+First record a complete typed schema and byte ledger for a **sparse**, bounded
+underground geometry owner: immutable world domain/datum; actual floor-section
+identity and height; packed physical-region rows with owner generation and
+revision; finished versus unfinished extent; supporting solids; protected
+approaches/openings; and confirmed-project reservations. Include allocators,
+scratch, load peak, revision exhaustion and save/hash ownership. Do not copy a
+proposed capacity or allocate a dense world by multiplying the surface grid
+by an invented floor count. All required bounds are explicit configuration
+until the production parameter pack is adopted.
+
+Then implement a complete snapshot producer and revisioned staged changes
+behind the existing RoomSpace API. Bind actual Buildings/Furniture and phase
+project identities; use UG18's supported catalog dimensions and B1's measured
+profiles when qualified. Existing underground demo room slots have no
+generation namespace and cannot be substituted for those core references.
+The original surface `SpatialWorld.Location`/`Contact` remains ground-only;
+any expanded location/connection namespace and migration needs its own adopted
+schema instead of fabricated ground cells.
+
+Map truth must explicitly provide dry solid, water/resource extents and
+support. A surface terrain tile or a visible cap is not a subsurface survey.
+Missing geometry must refuse. Connect UG06 `SpatialAuthority` admission/start/
+commit preflight using exact absolute cubes; bind actual Jobs, workers,
+material contacts and reserved local output containers. Stage prospective
+geometry/service/topology changes, revalidate revisions immediately before the
+real Inventory commit, and publish through the non-failing owner seam. Preserve
+the site's paid ledger across room removal/replacement. No duplicate terrain,
+inventory or service authority may be maintained by the preview widget.
+
+Required tests use the **actual stores** for a next reachable cut, stale/reused
+room and furniture refs, worker on another floor, newly blocked landing,
+missing support/water survey, output-capacity refusal, retained unfinished
+void, only-exit closure and save/reload between every physical phase. Synthetic
+subclasses alone cannot close this increment.
+
+### B3 — Fixed production families and qualification
+
+Use the five-family candidate list above to author versioned concrete pieces,
+starting with reusable straight/turn/landing primitives but preserving each
+family's full solid/clearance/support/sweep distinctions. Fit measured bodies
+and supported loads to the **actual** start/end floors and openings; keep
+selected-level terrain picking and ghost transforms on this same datum.
+Publish a connector only when its real profile, geometry, support, recipe,
+phase dependencies and movement cost rows all exist. A family enum or shared
+synthetic box is not a completed catalog. Spirals and ladders stay in this lane
+until their turns, grip, hatch sweep and safe step-off are qualified.
+
+The packet's physical tests cover every piece/rotation, upward and downward
+planning, two heights within one room, intermediate-floor conflicts, pending
+work and carried loads. Add source/mesh boundary comparison and 1280×720
+in-world preview captures. Finally qualify deterministic live movement,
+interruption/retreat, save/load and 256-resident resource/time budgets before
+closing the corresponding MOVE gates. UG06/UG09 integration tests must show
+that paid completion, usable geometry and services become visible together.
+
+### Which choices need player input, and which do not
+
+No new user answer is necessary to begin B1, schema/ledger design or the fixed
+piece authoring tools. Finite bounds, representation, authored level spacing,
+offset catalogs, variant dimensions and tested contact/support envelopes are
+engineering outputs explicitly left open by D03–07; record their evidence and
+present concrete tradeoffs if needed rather than asking the player to guess
+body widths or safe support spans. Missing measurements are engineering work,
+not evidence a species cannot use a route.
+
+Seek a targeted product decision only if the implementation proposes a change
+to the approved experience: excluding an approved family/construction method,
+adding species/age bans, reducing ordinary access to particular room types,
+making formerly ordinary access deliberately hazardous, or choosing visual
+anatomy/scale not already approved. New player-visible material/labor recipes,
+connected-mode speeds and load rules need explicit owning numerical authoring
+and review; neither existing economic constants nor a successful fit test
+supplies them. Unresolved adult/elder **unprotected** climbing permissions must
+not be silently replaced with a blanket ladder permission. Protected ordinary
+infrastructure policy is already adopted; its real safety/grip qualification
+still has to be built. These boundaries do not reopen the user's five-family,
+free-shape, multilevel or in-world drawing approvals.
+
 ## Source
 
 - `AGENTS.md`, `CLAUDE.md`, `docs/systems_architecture.md` and decision 0006.

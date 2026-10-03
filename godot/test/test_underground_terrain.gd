@@ -565,3 +565,52 @@ func test_final_local_facts_require_current_attested_wiring_and_exact_finite_bou
 	assert_equal(_terrain.local_facts_refusal(bounds, 99, revision), Terrain.REFUSE_BOUNDS, "unknown purpose")
 	bounds[3] = bounds[0]
 	assert_equal(_terrain.local_facts_refusal(bounds, Terrain.DIG, revision), Terrain.REFUSE_BOUNDS, "degenerate target")
+
+
+func test_prepared_local_facts_require_the_exact_sealed_candidate_and_original_lease() -> void:
+	"""The live-only reader stays closed while a narrow prepared reader checks original natural ground."""
+	var bounds: PackedInt32Array = _box(CLEAR_TILE, 512, 1536)
+	var revision: int = _owner.revision()
+	var token: int = _owner.begin_stage(revision).token
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, _lease),
+		Terrain.REFUSE_BINDING, "unsealed candidate refuses")
+	assert_equal(_owner.seal(token), &"", "actual candidate seals")
+	assert_equal(_terrain.local_facts_refusal(bounds, Terrain.EXTERIOR, revision), Terrain.REFUSE_BINDING, "ordinary reader remains live-only")
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, _lease), &"", "exact sealed scope")
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token + 1, _lease), Terrain.REFUSE_BINDING, "foreign Space token")
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, _lease + 1), Terrain.REFUSE_BINDING, "foreign cold token")
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, 99, revision, token, _lease), Terrain.REFUSE_BOUNDS, "unknown purpose")
+	assert_true(_owner.abort(token), "candidate aborted")
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, _lease), Terrain.REFUSE_BINDING, "expired scope")
+
+
+func test_prepared_local_facts_see_late_actual_obstacles_without_public_observers() -> void:
+	"""A newly placed real Building after sealing prevents the final natural-anchor publication."""
+	var reader: ObservedBindingTerrain = ObservedBindingTerrain.new()
+	assert_equal(reader.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual reader")
+	var bounds: PackedInt32Array = _box(CLEAR_TILE, 512, 1536)
+	var revision: int = _owner.revision()
+	var calls: int = reader.calls
+	var token: int = _owner.begin_stage(revision).token
+	assert_equal(_owner.seal(token), &"", "actual sealed scope")
+	assert_equal(reader.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, _lease), &"", "clear surface")
+	var well: Vector2i = _place("well")
+	assert_true(_buildings.is_live_building(well), "actual late Building")
+	assert_equal(reader.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, _lease), Terrain.REFUSE_BODY, "live upper obstacle")
+	assert_equal(reader.calls, calls, "no public observation callback")
+	assert_true(_owner.abort(token), "test candidate discarded")
+
+
+func test_prepared_local_facts_never_adopt_a_replacement_cold_lease() -> void:
+	"""Numerically valid new capacity cannot extend the old operation that its caller still names."""
+	var bounds: PackedInt32Array = _box(CLEAR_TILE, 512, 1536)
+	var revision: int = _owner.revision()
+	var token: int = _owner.begin_stage(revision).token
+	assert_equal(_owner.seal(token), &"", "actual sealed scope")
+	var old: int = _lease
+	assert_equal(_budget.release(old), &"", "original operation expired")
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	assert_true(_lease > old, "replacement identity differs")
+	assert_equal(_terrain.prepared_local_facts_refusal(bounds, Terrain.EXTERIOR, revision, token, old), Terrain.REFUSE_BINDING, "old exact lease refused")
+	assert_true(_budget.covers(_lease, Budget.COLD_BYTES), "foreign replacement was not released")
+	assert_true(_owner.abort(token), "test candidate discarded")

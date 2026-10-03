@@ -2,8 +2,8 @@
 
 Date: 2026-10-03
 
-Status: accepted narrow engineering contract; implementation and composed
-verification remain open. This does not qualify the full1101 stair frontier.
+Status: scoped component implemented, independently reviewed and strict-tested;
+full1101 stair frontier and playable composition remain open.
 
 ## Need and source of truth
 
@@ -69,3 +69,62 @@ Installed fractional treads do not become workstations by assertion. The full
 entry needs a physically executable cut/install sequence, assembly grouping,
 paid dependencies, legal retreat and qualified high-wall work for the Kitchen
 upper course. This anchor closes none of those obligations by itself.
+
+## Implementation candidate on the owned surface branch
+
+The concrete create API takes an integer root, complete exterior envelope,
+complete natural footing and Location role. It copies caller data into fixed
+scratch, proves real current Terrain and all retained geometry/claim exclusions,
+and stages precisely the three World rows. Existing full Location payloads are
+refreshed without repointing. A new Room, Site, timber part, recipe, worker/tool
+permission or graph edge is never an effect of this operation.
+
+The prepared natural-facts reader names the original Space revision, exact
+sealed Space token and original actual Budget token. Ordinary final terrain
+reads stay live-only. It reads current World/resources/Building leaves without
+another source observation and adds no persistent state or packed allocation.
+The root provider checks the exact three prepared rows, then repeats pure natural
+and retained source/claim facts after the last external observer. The publication
+window contains only the two prepared swaps and pure window/receipt checks.
+
+Fixed logical storage is one Location record116, Region72, provider numeric
+controls92 and returned result16=296 bytes before bounded helper frames.
+A2048-byte reservation covers these controls within the existing binding
+reserve; native overhead is still unqualified. Variable packed scratch remains
+empty until configure admission. Locations cold peak plus2048 must fit the
+original shared cold Budget before any anchor is created. There is no new
+canonical field or live arena; saving requires the coordinator quiescent.
+
+The corrected candidate passed126 strict tests/4420 assertions with no failures,
+unexpected diagnostics or leaks, and a zero-warning analyzer over eight affected
+files. Independent Geometry re-review accepted the corrected frozen source with
+all four findings closed. Complete
+first-entry, playable workflow and native memory acceptance remain open.
+
+## Review correction boundaries
+
+Independent review found one high atomicity issue and three medium issues. The
+final World Location candidate is now checked by pure exact original-token,
+sealed-mode, target-revision and complete payload/old-row guards before Space
+publishes. A late abort or replacement cannot leave orphan natural-space rows.
+Cleanup preserves independently replaced candidate tokens and cold leases.
+
+Configure holds a poisoned reentry guard over every initial observer before any
+public creation can touch unsized scratch. The provider retains the original
+concrete Directory, Buildings, Construction, Inventory, Transforms, Residents,
+Jobs, Work, Profiles, route binding and Profile collaborators. Prepared checks
+compare those same instances even when there are no Resident source rows.
+These extra references add native composition overhead, not saved authority.
+
+One integer work counter covers the entire create, including every repeated
+World scope callback needed to refresh prior endpoints. The source-count scan
+is charged before it runs, followed by the complete source/claim, three Terrain
+queries and retained-row scan. Final endpoint comparisons are also precharged.
+Exhaustion refuses atomically; it is an operation budget, not a new gameplay
+endpoint limit. Real low-budget and multiple-endpoint regressions verify this.
+
+The World Locations prerequisite and its conservative full-claim refresh limit
+are recorded in `docs/validation/evidence/underground-world-locations-2026-10-03`.
+An underground endpoint covered by a Room reservation can refuse this bootstrap
+path; no traversal exemption is silently borrowed.
+

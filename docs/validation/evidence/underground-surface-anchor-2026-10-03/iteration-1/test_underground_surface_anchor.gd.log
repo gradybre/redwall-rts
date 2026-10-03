@@ -1,0 +1,35 @@
+state_registry_coverage: PASS -- 130 modules, 646 rows, 990 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_surface_anchor.gd
+  PASS  test_real_natural_ground_publishes_complete_endpoint_without_construction_or_room
+  PASS  test_anchor_cannot_create_air_in_dirt_or_footing_above_ground
+  PASS  test_interior_support_gap_and_root_plane_mismatch_refuse
+  PASS  test_actual_building_and_resource_footprints_refuse_without_sparse_registration
+  PASS  test_removed_matter_cannot_be_republished_as_natural_footing
+  PASS  test_late_building_after_final_locations_observer_refuses_before_both_swaps
+  PASS  test_expired_original_lease_never_consumes_a_replacement_or_publishes_either_bank
+  PASS  test_reentrant_creation_poisons_outer_observation_and_allows_clean_retry
+  PASS  test_existing_endpoint_keeps_full_identity_and_payload_after_new_anchor
+  PASS  test_location_capacity_refusal_leaves_existing_space_and_endpoint_unchanged
+  PASS  test_binding_is_once_only_and_foreign_budget_does_not_alias_owner
+  PASS  test_busy_cold_owner_refuses_before_any_geometry_transaction
+CI_SUITE_TIME {"assertions":121,"failures":0,"suite":"test_underground_surface_anchor.gd","tests":12,"usec":3449793}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+12 test(s), 121 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 12 tests, 121 assertions, 0 failures.

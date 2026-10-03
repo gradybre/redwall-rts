@@ -469,13 +469,28 @@ func local_facts_refusal(bounds: PackedInt32Array, purpose: int, expected_revisi
 	return _local_tiles_refusal(bounds, purpose)
 
 
-func _leaf_binding_refusal(expected_revision: int) -> StringName:
+func prepared_local_facts_refusal(bounds: PackedInt32Array, purpose: int, expected_revision: int,
+		owner_token: int, cold_token: int) -> StringName:
+	"""Observe original natural facts within one exact sealed geometry candidate and original cold lease."""
+	_reset_query()
+	if owner_token <= 0 or _budget == null or not _budget.covers(cold_token, Budget.COLD_BYTES):
+		return REFUSE_BINDING
+	var code: StringName = _leaf_binding_refusal(expected_revision, owner_token)
+	if code != &"":
+		return code
+	if purpose < DIG or purpose > EXCLUSIONS or not Space.valid_box(bounds) \
+			or not Space.contains_box(_domain_bounds, bounds):
+		return REFUSE_BOUNDS
+	return _local_tiles_refusal(bounds, purpose)
+
+
+func _leaf_binding_refusal(expected_revision: int, owner_token: int = 0) -> StringName:
 	"""Recheck the already-attested exact actual wiring from leaf facts, with no source-provider read."""
 	var space: Owner = _space.get_ref() as Owner if _space != null else null
 	var reader: Owner.CoreSources = _sources.get_ref() as Owner.CoreSources if _sources != null else null
 	if not _ready or space == null or reader == null or expected_revision < 1 \
 			or space.revision() != expected_revision or _checked_geometry_revision != expected_revision \
-			or space.has_prepared() or not space.is_bound_sources(reader):
+			or not _leaf_geometry_context(space, expected_revision, owner_token) or not space.is_bound_sources(reader):
 		return REFUSE_BINDING
 	if not _world.is_published() or _world.section_1_published_seed() != _seed \
 			or _world.resource_nodes() != _nodes or reader.directory() != _world.directory() \
@@ -483,6 +498,14 @@ func _leaf_binding_refusal(expected_revision: int) -> StringName:
 			or not reader.directory().is_valid_of_kind(_world_ref, Directory.KIND_WORLD):
 		return REFUSE_BINDING
 	return &""
+
+
+func _leaf_geometry_context(space: Owner, revision: int, token: int) -> bool:
+	"""A prepared observation names the exact sealed token; ordinary leaf reads remain live-only."""
+	if token == 0:
+		return not space.has_prepared()
+	return token > 0 and space._stage_token == token and space._sealed \
+		and space._validation_sources < 0 and space._s_header[17] == revision + 1
 
 
 func _local_tiles_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:

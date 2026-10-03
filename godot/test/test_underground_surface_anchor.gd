@@ -1,0 +1,494 @@
+extends "res://test/framework/test_case.gd"
+## Actual generated World and owner composition. No fixture grants surface air, footing, cut or Room.
+## The borrowed movement-profile files are synthetic; these tests qualify no productive animation.
+
+const Anchor := preload("res://scripts/core/underground_surface_anchor.gd")
+const Fixture := preload("res://test/test_underground_world_routes.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Catalog := preload("res://scripts/core/catalog.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const X: int = Fixture.X
+const Z: int = Fixture.Z
+
+class WatchedLocations extends Fixture.RefusingLocations:
+	## A negative-only late observation changes actual owners after the normal final preflight.
+	var probe: Callable = Callable()
+	var fired: int = 0
+
+	func prepared_refusal(token: int) -> StringName:
+		"""Run at the coordinator's last external observer, never fabricate a permissive source result."""
+		var code: StringName = super.prepared_refusal(token)
+		if probe.is_valid():
+			var action: Callable = probe
+			probe = Callable()
+			fired += 1
+			action.call()
+		return code
+
+class CountedTerrain extends Fixture.ReenteringTerrain:
+	## Observe the real query boundary without replacing its geometry decision.
+	var exterior_calls: int = 0
+
+	func exterior_refusal(bounds: PackedInt32Array) -> StringName:
+		"""A rejected whole-operation admission must happen before this external observation."""
+		exterior_calls += 1
+		return super.exterior_refusal(bounds)
+
+class ActualGround extends Fixture:
+	## Keep all real stores and source bindings while removing the parent fixture's invented surface boxes.
+	var location_capacity: int = 8
+	var check_budget: int = Space.MAX_CHECKS
+
+	func _actual_space(_obstruction: int) -> void:
+		"""An empty sparse owner initially knows only the actual World; Terrain supplies natural facts."""
+		_routes = Routes.new(_residents, _transforms)
+		_sources = Owner.CoreSources.new(_residents.directory(), _buildings, _construction, _routes)
+		var domain: Space.Domain = Space.Domain.new()
+		assert_equal(domain.configure(_world_ref, Vector3i(0, 512, 0), Vector3i(0, -32, 0),
+			Vector3i(256, 48, 256), 8192, 6144, check_budget), &"", "actual finite Domain")
+		_owner = Owner.new(_sources)
+		assert_equal(_owner.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "empty sparse owner")
+		_locations = WatchedLocations.new()
+		assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+			_owner, _sources, _budget, location_capacity, 228 * location_capacity + 256), &"", "actual endpoints")
+		_terrain = CountedTerrain.new()
+		assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual natural terrain")
+		_actual_catalog(domain)
+
+	func _location(_point: Vector3i) -> Vector2i:
+		"""The parent's setup cannot create fixture endpoints; only the tested real Anchor may do so."""
+		return NULL_REF
+
+var _actual: ActualGround = null
+var _anchor: Anchor = null
+var _replacement: int = 0
+var _nested_error: StringName = &""
+var _tuple_case: int = -1
+var _foreign_location: int = 0
+var _foreign_space: int = 0
+var _rebegin_error: StringName = &""
+
+
+func _setup(capacity: int = 8, checks: int = Space.MAX_CHECKS) -> void:
+	"""Bind the real provider after the actual movement and retention composition is complete."""
+	_ground_fixture(capacity, checks)
+	_anchor = Anchor.new()
+	assert_equal(_configure(_anchor), &"", "actual once-bound surface provider")
+
+
+func _ground_fixture(capacity: int = 8, checks: int = Space.MAX_CHECKS) -> void:
+	"""Create real collaborators without exposing a ready or pre-bound SurfaceAnchor."""
+	_actual = ActualGround.new()
+	_actual.location_capacity = capacity
+	_actual.check_budget = checks
+	_actual._actual_fixture()
+	assert_true(_actual.failures.is_empty(), "actual fixture: %s" % _actual.failures)
+	assert_equal(_actual._owner._r_present.count(1), 0, "no fixture physical rows")
+
+
+func _configure(candidate: Anchor, budget: Budget = null, bytes: int = Anchor.RESERVED_BYTES) -> StringName:
+	"""Use explicit actual collaborator objects; a foreign matching token never substitutes for the World Budget."""
+	return candidate.configure(_actual._world, _actual._terrain, _actual._owner, _actual._sources,
+		_actual._locations, _actual._budget if budget == null else budget, bytes)
+
+
+func _body(offset: int = 0, y: int = 512) -> PackedInt32Array:
+	"""The exact requested512u square work space lies in a known real dry grass tile."""
+	return PackedInt32Array([X + 256 + offset, y, Z + 256, X + 768 + offset, y + 1536, Z + 768])
+
+
+func _foot(offset: int = 0, y: int = 512) -> PackedInt32Array:
+	"""A full128u layer of actual retained ground supports every point of the body footprint."""
+	return PackedInt32Array([X + 256 + offset, y - 128, Z + 256, X + 768 + offset, y, Z + 768])
+
+
+func _create(offset: int = 0, y: int = 512) -> Anchor.Result:
+	"""Request actual existing ground, without a Site, Room, paid part, tool or movement certificate."""
+	return _anchor.create(Vector3i(X + 512 + offset, y, Z + 512), _body(offset, y), _foot(offset, y))
+
+
+func _record(location: Vector2i) -> Locations.Record:
+	"""Read the actual published endpoint into fixed caller scratch."""
+	var record: Locations.Record = Locations.Record.new()
+	record.envelope.resize(6)
+	record.support.resize(6)
+	assert_equal(_actual._locations.read_location_into(location, record), &"", "published endpoint")
+	return record
+
+
+func after_each() -> void:
+	"""Drop this scope before its weakly borrowing Locations and return only the test-owned replacement lease."""
+	if _actual == null:
+		return
+	if _foreign_location > 0:
+		assert_true(_actual._locations.abort(_foreign_location), "test owns replacement endpoint candidate")
+	if _foreign_space > 0:
+		assert_true(_actual._owner.abort(_foreign_space), "test owns replacement spatial candidate")
+	_foreign_location = 0
+	_foreign_space = 0
+	if _replacement > 0:
+		assert_equal(_actual._budget.release(_replacement), &"", "test replacement lease returned")
+	_replacement = 0
+	_anchor = null
+	_actual.after_each()
+	assert_true(_actual.failures.is_empty(), "fixture teardown: %s" % _actual.failures)
+	_actual = null
+
+
+func test_real_natural_ground_publishes_complete_endpoint_without_construction_or_room() -> void:
+	"""The actual first surface position is created by terrain evidence, not a prebuilt fixture floor."""
+	_setup()
+	var inventory: PackedByteArray = _actual._inventory.state_bytes()
+	var result: Anchor.Result = _create()
+	assert_equal(result.error, &"", "existing natural ground admitted")
+	assert_true(result.location != NULL_REF and result.section != NULL_REF, "only committed identities returned")
+	var record: Locations.Record = _record(result.location)
+	assert_equal(record.point, Vector3i(X + 512, 512, Z + 512), "exact natural root")
+	assert_equal(record.section, result.section, "exact published floor namespace")
+	assert_equal(record.envelope, _body(), "complete unchanged requested body")
+	assert_equal(record.support, _foot(), "complete retained footing")
+	assert_equal(record.room, NULL_REF, "no artificial Room")
+	assert_equal(record.world, _actual._world_ref, "full actual World identity")
+	assert_equal(_actual._owner._r_present.count(1), 3, "floor metadata, natural air, protected natural support")
+	assert_equal(_actual._buildings.live_room_count(), 0, "no Room creation")
+	assert_equal(_actual._construction.live_project_count(), 0, "no fake paid project")
+	assert_equal(_actual._inventory.state_bytes(), inventory, "no materials or free excavation yield")
+	assert_true(_actual._budget.is_quiescent(), "all transient preparation released")
+
+
+func test_anchor_cannot_create_air_in_dirt_or_footing_above_ground() -> void:
+	"""An arbitrary requested floor height never turns natural solid into an excavated room."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	assert_equal(_create(0, -512).error, Terrain.REFUSE_EXTERIOR, "underground target is still dirt")
+	assert_equal(_create(0, 1536).error, Terrain.REFUSE_DRY, "unsupported floating floor refuses")
+	assert_equal(_actual._owner.state_bytes(), before, "no live geometry on either refusal")
+	assert_equal(_actual._locations._live.count, 0, "no partly registered endpoint")
+
+
+func test_interior_support_gap_and_root_plane_mismatch_refuse() -> void:
+	"""Even a one-unit uncovered footing strip cannot be hidden by a valid center point."""
+	_setup()
+	var support: PackedInt32Array = _foot()
+	support[0] += 1
+	assert_equal(_anchor.create(Vector3i(X + 512, 512, Z + 512), _body(), support).error, Anchor.REFUSE_SHAPE, "footing strip absent")
+	assert_equal(_anchor.create(Vector3i(X + 512, 513, Z + 512), _body(), _foot()).error, Anchor.REFUSE_SHAPE, "wrong root plane")
+	assert_true(_actual._budget.is_quiescent(), "invalid shape never holds a cold operation")
+
+
+func test_actual_building_and_resource_footprints_refuse_without_sparse_registration() -> void:
+	"""The current visible world wins even when no sparse region has been published for the obstacle."""
+	_setup()
+	var made: Fixture.Buildings.OpResult = _actual._buildings.place_building(int(Catalog.BUILDING_DEFINITION["well"]), 50 * 128 + 60, 0, 31)
+	assert_true(made.ok, "actual well blueprint")
+	assert_equal(_create().error, Terrain.REFUSE_BODY, "current above-ground Building blocks")
+	assert_true(_actual._buildings.demolish_building(made.ref).ok, "actual cancellation")
+	var tree: Fixture.Nodes.OpResult = _actual._nodes.create_at_tile(50 * 128 + 60, _actual._items.compiled_id(&"wood"), 1000, 4, 1)
+	assert_true(tree.ok, "actual resource")
+	assert_equal(_create().error, Terrain.REFUSE_RESOURCE, "current canopy/root footprint blocks")
+	assert_equal(_actual._owner._r_present.count(1), 0, "no false natural rows survived")
+
+
+func test_removed_matter_cannot_be_republished_as_natural_footing() -> void:
+	"""A retained actual clear-space row below the ground rules out original-terrain support there."""
+	_setup()
+	var begun: Owner.Result = _actual._owner.begin_stage(_actual._owner.revision())
+	_actual._region(begun.token, _foot(), Space.SUPPORTED_VOID)
+	assert_equal(_actual._owner.seal(begun.token), &"", "explicit removed-space test fact")
+	_actual._owner.publish(begun.token)
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	assert_equal(_create().error, Anchor.REFUSE_RETAINED, "historical empty matter is not natural footing")
+	assert_equal(_actual._owner.state_bytes(), before, "retained history unchanged")
+
+
+func test_late_building_after_final_locations_observer_refuses_before_both_swaps() -> void:
+	"""A real late world edit must not sneak past earlier natural-ground observations."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _place_late_well
+	assert_equal(_create().error, Terrain.REFUSE_BODY, "last-observer actual obstruction")
+	assert_equal((_actual._locations as WatchedLocations).fired, 1, "actual final observer fired")
+	assert_equal(_actual._owner.state_bytes(), before, "Space unchanged")
+	assert_equal(_actual._locations._live.count, 0, "Locations unchanged")
+
+
+func _place_late_well() -> void:
+	"""The negative callback mutates the actual Building owner, not a synthetic refusal flag."""
+	assert_true(_actual._buildings.place_building(int(Catalog.BUILDING_DEFINITION["well"]), 50 * 128 + 60, 0, 31).ok, "actual late well")
+
+
+func test_expired_original_lease_never_consumes_a_replacement_or_publishes_either_bank() -> void:
+	"""The outer transaction retains its original token after an observer obtains a new valid lease."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _replace_lease
+	assert_equal(_create().error, Anchor.REFUSE_STALE, "original lease revoked")
+	assert_equal(_actual._owner.state_bytes(), before, "no partial Space publication")
+	assert_equal(_actual._locations._live.count, 0, "no partial Locations publication")
+	assert_true(_actual._budget.covers(_replacement, Budget.COLD_BYTES), "replacement untouched")
+
+
+func _replace_lease() -> void:
+	"""Release the actual active original operation and immediately begin a different one."""
+	assert_equal(_actual._budget.release(_anchor._cold_token), &"", "old actual lease revoked")
+	_replacement = _actual._budget.acquire(Budget.COLD_BYTES)
+	assert_true(_replacement > 0, "new actual lease")
+
+
+func test_reentrant_creation_poisons_outer_observation_and_allows_clean_retry() -> void:
+	"""A nested attempt cannot overwrite fixed scratch and silently validate the outer anchor."""
+	_setup()
+	(_actual._locations as WatchedLocations).probe = _reenter
+	assert_equal(_create().error, Anchor.REFUSE_STALE, "outer observation poisoned")
+	assert_equal(_nested_error, Anchor.REFUSE_BUSY, "nested request refused")
+	assert_equal(_actual._owner._r_present.count(1), 0, "neither created geometry")
+	assert_equal(_create().error, &"", "next independent explicit retry works")
+
+
+func _reenter() -> void:
+	"""Call the public creation API through the actual late observer boundary."""
+	_nested_error = _create(1024).error
+
+
+func test_existing_endpoint_keeps_full_identity_and_payload_after_new_anchor() -> void:
+	"""A later truthful surface anchor updates geometry proofs without relocating an earlier endpoint."""
+	_setup()
+	var first: Anchor.Result = _create()
+	assert_equal(first.error, &"", "first actual anchor")
+	var original: Locations.Record = _record(first.location)
+	assert_equal(_create(1024).error, &"", "second actual anchor")
+	var retained: Locations.Record = _record(first.location)
+	assert_equal(retained.point, original.point, "existing position preserved")
+	assert_equal(retained.section, first.section, "existing section preserved")
+	assert_equal(retained.payload_revision, original.payload_revision, "Inventory/Routes payload identity preserved")
+	assert_equal(retained.geometry_revision, _actual._owner.revision(), "explicitly refreshed actual proof")
+	assert_equal(_actual._locations._live.count, 2, "both full endpoints live")
+
+
+func test_location_capacity_refusal_leaves_existing_space_and_endpoint_unchanged() -> void:
+	"""Exhausting the independent endpoint arena cannot leave newly published natural rows behind."""
+	_setup(1)
+	var first: Anchor.Result = _create()
+	assert_equal(first.error, &"", "one admitted endpoint")
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	var original: Locations.Record = _record(first.location)
+	assert_equal(_create(1024).error, &"LOCATION_ARENA_FULL", "finite endpoint capacity refusal")
+	assert_equal(_actual._owner.state_bytes(), before, "Space live bytes unchanged")
+	assert_equal(_record(first.location).geometry_revision, original.geometry_revision, "old proof unchanged")
+	assert_equal(_actual._locations._live.count, 1, "original endpoint only")
+
+
+func test_binding_is_once_only_and_foreign_budget_does_not_alias_owner() -> void:
+	"""Actual object ownership survives coincident revision/token values in another Budget."""
+	_setup()
+	assert_equal(_configure(_anchor), Anchor.REFUSE_BINDING, "same provider cannot reconfigure")
+	assert_equal(_configure(Anchor.new(), Budget.new()), Anchor.REFUSE_BINDING, "foreign Budget")
+	assert_equal(_configure(Anchor.new(), null, Anchor.RESERVED_BYTES - 1), Anchor.REFUSE_BINDING, "short logical admission")
+	assert_false(_anchor.is_publishing(1, 1), "numbers alone never enter a publication window")
+	assert_equal(_anchor.prepared_refusal(1, 1), Anchor.REFUSE_STALE, "no guessed prepared context")
+
+
+func test_busy_cold_owner_refuses_before_any_geometry_transaction() -> void:
+	"""Existing independent cold work keeps its lease and both live banks unchanged."""
+	_setup()
+	_replacement = _actual._budget.acquire(Budget.COLD_BYTES)
+	assert_true(_replacement > 0, "other actual cold operation")
+	assert_equal(_create().error, Anchor.REFUSE_BUSY, "busy exact Budget")
+	assert_false(_actual._owner.has_prepared(), "no Space candidate")
+	assert_equal(_actual._locations._live.count, 0, "no Location candidate")
+	assert_true(_actual._budget.covers(_replacement, Budget.COLD_BYTES), "other lease remains")
+
+
+func test_late_endpoint_inventory_replacement_refuses_both_swaps() -> void:
+	"""A different Inventory with matching ordinals never receives the original endpoint namespace."""
+	_assert_tuple_refusal(0)
+
+
+func test_late_endpoint_transforms_replacement_refuses_both_swaps() -> void:
+	"""An empty replacement Transform store in the same Directory is still a disconnected actual world."""
+	_assert_tuple_refusal(1)
+
+
+func test_late_routes_residents_replacement_refuses_both_swaps() -> void:
+	"""A replacement Residents store is invalid even when there are no retained resident source rows."""
+	_assert_tuple_refusal(2)
+
+
+func test_late_routes_jobs_replacement_refuses_both_swaps() -> void:
+	"""Coincident Job ordinals cannot replace the Jobs actually bound to Work."""
+	_assert_tuple_refusal(3)
+
+
+func test_late_profile_inventory_replacement_refuses_both_swaps() -> void:
+	"""Unchanged Profile content does not permit a new Inventory registration target."""
+	_assert_tuple_refusal(4)
+
+
+func test_late_construction_owner_replacement_refuses_both_swaps() -> void:
+	"""The same Buildings owner does not make a new Construction instance the existing one."""
+	_assert_tuple_refusal(5)
+
+
+func _assert_tuple_refusal(kind: int) -> void:
+	"""Replace real typed collaborators after all earlier observers, then retry only after restoring them."""
+	_setup()
+	_tuple_case = kind
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _replace_tuple
+	var result: Anchor.Result = _create()
+	_restore_tuple()
+	assert_equal(result.error, Anchor.REFUSE_STALE, "late actual owner tuple changed")
+	assert_equal(_actual._owner.state_bytes(), before, "Space unchanged on tuple refusal")
+	assert_equal(_actual._locations._live.count, 0, "Locations unchanged on tuple refusal")
+	assert_true(_actual._budget.is_quiescent(), "original operation cleaned up")
+	assert_equal(_create().error, &"", "original exact tuple permits an explicit fresh retry")
+
+
+func _replace_tuple() -> void:
+	"""Negative probes change concrete owners, never just a synthetic refusal flag."""
+	match _tuple_case:
+		0: _actual._locations._inventory = Fixture.Inventory.new(16, 32)
+		1: _actual._locations._transforms = Fixture.Transforms.new(_actual._residents.directory())
+		2: _actual._routes._residents = Fixture.Residents.new(_actual._residents.directory())
+		3: _actual._routes._jobs = Fixture.Jobs.new(_actual._residents)
+		4: _actual._profiles._inventory = Fixture.Inventory.new(16, 32)
+		5: _actual._sources._construction = Fixture.Construction.new(_actual._buildings)
+
+
+func _restore_tuple() -> void:
+	"""Restore only the collaborator changed by this test before teardown or an explicit new transaction."""
+	match _tuple_case:
+		0: _actual._locations._inventory = _actual._inventory
+		1: _actual._locations._transforms = _actual._transforms
+		2: _actual._routes._residents = _actual._residents
+		3: _actual._routes._jobs = _actual._jobs
+		4: _actual._profiles._inventory = _actual._inventory
+		5: _actual._sources._construction = _actual._construction
+	_tuple_case = -1
+
+
+func test_initial_binding_observer_cannot_enter_uninitialized_create() -> void:
+	"""Binding callbacks see a busy scope before any public operation can touch unsized scratch."""
+	_ground_fixture()
+	_anchor = Anchor.new()
+	_actual._terrain.binding_countdown = 1
+	_actual._terrain.binding_probe = _reenter
+	assert_equal(_configure(_anchor), Anchor.REFUSE_BINDING, "reentry poisons initial observation")
+	assert_equal(_nested_error, Anchor.REFUSE_BUSY, "nested create refused before scratch")
+	assert_equal(_anchor._record.envelope.size(), 0, "no premature packed allocation")
+	assert_equal(_actual._owner._r_present.count(1), 0, "no partial geometry")
+	assert_equal(_actual._locations._live.count, 0, "no partial endpoint")
+	assert_true(_actual._locations._world_scope == null, "failed configure did not consume binding")
+	assert_true(_actual._budget.is_quiescent(), "no leaked lease")
+	assert_equal(_configure(_anchor), &"", "fresh independent binding retry")
+	assert_equal(_create().error, &"", "fully initialized scope can create normally")
+
+
+func test_low_operation_budget_refuses_before_terrain_observer() -> void:
+	"""A valid small Domain budget may bind but cannot begin an unaffordable compound observation."""
+	_setup(8, 20000)
+	var terrain: CountedTerrain = _actual._terrain as CountedTerrain
+	var before: int = terrain.exterior_calls
+	assert_equal(_create().error, Anchor.REFUSE_CHECKS, "complete live pass precharged")
+	assert_equal(terrain.exterior_calls, before, "no terrain observer before budget refusal")
+	assert_false(_actual._owner.has_prepared(), "no spatial candidate")
+	assert_equal(_actual._locations._live.count, 0, "no endpoint")
+	assert_true(_actual._budget.is_quiescent(), "cold lease returned")
+
+
+func test_repeated_scope_checks_share_one_budget_across_existing_endpoints() -> void:
+	"""Refreshing more existing endpoints cannot restart the same whole-operation comparison allowance."""
+	_setup(8, 520000)
+	assert_equal(_create().error, &"", "first complete anchor within budget")
+	assert_equal(_create(1024).error, &"", "second complete anchor within budget")
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	assert_equal(_create(2048).error, Anchor.REFUSE_CHECKS, "cumulative scope work exhausted")
+	assert_equal(_actual._owner.state_bytes(), before, "no partial geometry when repeated scopes exhaust")
+	assert_equal(_actual._locations._live.count, 2, "all existing endpoints remain")
+	assert_true(_actual._budget.is_quiescent(), "exhausted transaction cleaned up")
+
+
+func test_last_locations_observer_abort_refuses_before_space_publication() -> void:
+	"""The exact prepared endpoint must still exist after its final virtual observer returns."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _abort_endpoint
+	assert_equal(_create().error, Anchor.REFUSE_STALE, "aborted companion refuses")
+	assert_equal(_actual._owner.state_bytes(), before, "no orphan natural geometry")
+	assert_equal(_actual._locations._live.count, 0, "no endpoint")
+	assert_true(_actual._budget.is_quiescent(), "original lease cleaned up")
+
+
+func _abort_endpoint() -> void:
+	"""Use the actual public abort while the outer final observer is returning."""
+	assert_true(_actual._locations.abort(_anchor._location_token), "actual original companion aborted")
+
+
+func test_aborted_world_endpoint_cannot_rebegin_in_original_scope() -> void:
+	"""An equal target geometry revision cannot lend another endpoint transaction the caller's World scope."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _abort_and_rebegin
+	assert_equal(_create().error, Anchor.REFUSE_STALE, "changed exact companion refuses")
+	assert_true(_rebegin_error != &"", "original World scope cannot mint a substitute transaction")
+	assert_equal(_actual._owner.state_bytes(), before, "Space unchanged")
+	assert_equal(_actual._locations._live.count, 0, "Locations unchanged")
+
+
+func _abort_and_rebegin() -> void:
+	"""Retain the same Space token, revision and cold token while trying to obtain a different Location token."""
+	_abort_endpoint()
+	_rebegin_error = _actual._locations.begin_world_prepare(_anchor._cold_token, _anchor._space_token).error
+
+
+func test_last_observer_independent_candidates_and_lease_survive_outer_cleanup() -> void:
+	"""Cleanup never aborts a new transaction or spends its new cold token after the original pair is gone."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _replace_candidates
+	assert_equal(_create().error, Anchor.REFUSE_STALE, "original context expired")
+	assert_equal(_actual._locations._token, _foreign_location, "replacement endpoint candidate retained")
+	assert_equal(_actual._owner._stage_token, _foreign_space, "replacement Space candidate retained")
+	assert_equal(_actual._owner._s_header[17], _actual._owner.revision() + 1, "same numeric target revision")
+	assert_true(_actual._budget.covers(_replacement, Budget.COLD_BYTES), "replacement cold lease retained")
+
+	assert_true(_actual._locations.abort(_foreign_location), "test discards its own new endpoint candidate")
+	assert_true(_actual._owner.abort(_foreign_space), "test discards its own new spatial candidate")
+	_foreign_location = 0
+	_foreign_space = 0
+	assert_equal(_actual._owner.state_bytes(), before, "quiescent live geometry unchanged")
+
+func _replace_candidates() -> void:
+	"""Begin independently owned real preparations after discarding both originals and their lease."""
+	_abort_endpoint()
+	assert_true(_actual._owner.abort(_anchor._space_token), "discard original Space")
+	_replace_lease()
+	var endpoint: Locations.Result = _actual._locations.begin_prepare(_replacement)
+	assert_equal(endpoint.error, &"", "new ordinary live endpoint candidate")
+	_foreign_location = endpoint.token
+	var geometry: Owner.Result = _actual._owner.begin_stage(_actual._owner.revision())
+	assert_equal(geometry.error, &"", "new Space candidate")
+	_foreign_space = geometry.token
+	assert_equal(_actual._owner.seal(_foreign_space), &"", "same future numeric revision")
+
+
+func test_last_observer_changed_new_payload_refuses_before_both_swaps() -> void:
+	"""Sealed status alone cannot attest an endpoint whose actual staged payload no longer matches the request."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _change_endpoint_payload
+	assert_equal(_create().error, Anchor.REFUSE_STALE, "new endpoint changed after observation")
+	assert_equal(_actual._owner.state_bytes(), before, "Space unchanged")
+	assert_equal(_actual._locations._live.count, 0, "Locations unchanged")
+
+
+func _change_endpoint_payload() -> void:
+	"""Negative probe touches only the new candidate's packed root, leaving all original token numbers equal."""
+	var locations: Locations = _actual._locations
+	var row: int = _anchor._endpoint.x
+	locations._set32(locations._stage, Locations.X, row, locations._get32(locations._stage, Locations.X, row) + 1)

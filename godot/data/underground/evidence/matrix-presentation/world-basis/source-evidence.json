@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "review": "independent root source/evidence review accepted",
+  "meaning": "complete finite native heading source only",
+  "production_qualified_profiles": 0,
+  "planned_presentation_bytes": 544768,
+  "native_memory_measured": false,
+  "files": [
+    {
+      "path": "tools/bake_underground_world_basis.gd",
+      "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+    },
+    {
+      "path": "tools/bake_underground_world_basis.gd.uid",
+      "sha256": "2c8b71a8567ee64dd23f4f4d4259df537bd6b0c9442edc3afcaf3d7085192e78"
+    },
+    {
+      "path": "godot/test/test_underground_world_basis.gd",
+      "sha256": "e0bcc6d42b1f257e18a7009ea6480112819a72addc197db7826914e37db6616c"
+    },
+    {
+      "path": "godot/test/test_underground_world_basis.gd.uid",
+      "sha256": "0c6c23c5df3f63a3fa412c951b1f6d9bdf871fe5c95f2272d528e44cf531c707"
+    },
+    {
+      "path": "docs/decisions/1080-source-bound-underground-profile-catalog.md",
+      "sha256": "59f6ba57f92954b29c1d7c4366600b0484406f21c0d7ca54682e6003c1c814ce"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/README.md",
+      "sha256": "cb9a017d2d32ee1b9d3f18dd451b5ff2bf640846afa3d05343c5ad51b2c01ef1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/checks-v1/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/checks-v1/import.log",
+      "sha256": "f8e8cbda0e6be26c9c485015ee90b19d913efa9157083d9bc253c8b2cb58f739"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/checks-v1/invocation.json",
+      "sha256": "354b6c2c67f5d7fa431048d14b95f6c199fb3d9a78b5765bfdc3a2d5c30fd658"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/checks-v1/strict.log",
+      "sha256": "f653fadd155f334d41f1fc8ed711516621581a49d1302dc801cc625f1d2a539a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/native-v1/invocation.json",
+      "sha256": "7420512ee4109d073c4e27644192c1339a519cab7baf28f1bb7d72b6956a595f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/native-v1/native.log",
+      "sha256": "2e97962486f996e5396133afa0adafbca0bf711e0e178ebce83e918b5548b535"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/native-v1/report.json",
+      "sha256": "fdd9fd7c1b8dd5e35f32d33e7d60cbe88be122e001f97b12614e862563a37ddb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/run_checks.py",
+      "sha256": "d6332eefdbd7d8324be00197c67bd7d3bdcd4982f39c38f6baa508ad0d4d0c1e"
+    }
+  ]
+}

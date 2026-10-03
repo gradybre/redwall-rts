@@ -446,6 +446,14 @@ display index to1/65536 turn does not alter authoritative yaw, routes or progres
 Source metadata pins the actual Godot build/backend and the complete baker and
 consumer. Native renderer acceptance and source hash binding remain required.
 
+The complete native table has now been captured and independently reviewed as
+source only:65536 entries,525013 stream bytes, no native diagnostics/leaks;
+clean strict6 tests/35 assertions/0 failures, all strict/raw diagnostics/leaks0,
+and analyzer0 warnings in0 of2 files. The observed diagnostic maximum squared
+norm is1.00000008311477, so its consumer must retain the real finite coefficient
+overshoot. `matrix-presentation/world-basis/` records exact source and output
+hashes, engine/backend, commands and raw logs. No world clearance is yet claimed.
+
 The65536×2×4=524288-byte table is shared presentation content, not simulation
 storage. Its planned streaming load needs one retained524288-byte image, a
 4096-byte bounded metadata/row/control budget and a16384-byte explicit unmeasured

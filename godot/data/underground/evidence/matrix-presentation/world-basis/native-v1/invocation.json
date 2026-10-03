@@ -1,0 +1,25 @@
+{
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "../tools/bake_underground_world_basis.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/world-basis/native-v1/report.json"
+  ],
+  "exit_code": 0,
+  "diagnostics": {
+    "ERROR:": 0,
+    "WARNING:": 0,
+    "SCRIPT ERROR:": 0,
+    "leaked at exit": 0,
+    "resources still in use": 0
+  },
+  "source_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+}

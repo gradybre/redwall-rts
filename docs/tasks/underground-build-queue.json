@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03T23:36:21.625447+00:00",
+  "updated": "2026-10-03T23:54:27.962342+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -661,9 +661,9 @@
           "evidence_path": "docs/validation/evidence/underground-ug1102-ledger-2026-10-03/"
         },
         "connector_work_next": {
-          "state": "authorized; concrete Placement API agreed before coding",
-          "scope": "Purpose8 full local PlacementRef/assembly operation; actual Funding/Jobs/Work/Gear; bill each approved wood-only assembly once; exact final leaf after final recipe observation; paid companions before prefix advance; cancellation retains committed prefix and blocked refund receipt",
-          "dependencies": "Actual Placement/companion/pure publication context and installation Contacts; base refusals do not establish playable completion"
+          "state": "adapter scoped review completed; final self-audit found reachable START paid-state/publication issue, so commit held pending correction",
+          "scope": "Actual purpose8 ConnectorWork tested94/6904/all diagnostics0; source-frozen adapter review is superseded by late pause/phase and postpayment Construction begin_work observer findings. Construction owns narrow connector-only pure START kernel; ordinary begin_work unchanged. New exact packet and independent review required.",
+          "dependencies": "Actual Placement source integrated; physical Contacts/frontier remain synthetic in tests. Complete first-entry source, terrain, movement and demo integration remain open."
         },
         "funding_final_boundary_2026_10_03": {
           "status": "independently reviewed and integrated",
@@ -747,9 +747,10 @@
             "state": "held",
             "branch": "codex/underground-entry-admission",
             "files": [
-              "godot/scripts/core/excavation_sites.gd"
+              "godot/scripts/core/excavation_sites.gd",
+              "godot/test/test_underground_furniture_work.gd"
             ],
-            "handoff": "Construction explicitly granted narrow entry-only preflighted publication kernel after confirming no Sites edits. Preserve flat API/test ownership. Root and Geometry coordinate pure receipt publication before actual entry activation."
+            "handoff": "Construction explicitly granted narrow entry-only preflighted publication kernel after confirming no Sites edits. Preserve flat API/test ownership. Root and Geometry coordinate pure receipt publication before actual entry activation. Construction additionally granted a tiny shared test Fixture Buildings factory for the actual late receipt-observer regression; default constructor behavior stays unchanged."
           }
         ]
       }
@@ -1072,6 +1073,22 @@
           "tests": "Root independently reran8 Python adversarial tests: all pass. 155 actual driver handoffs,7962301 checks,0 unresolved.",
           "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-state-handoffs-v1/",
           "limits": "Source self-contact only.0 production-qualified profiles; compact planted variant, world contact and native full driver remain separate."
+        },
+        "mole_source_program": {
+          "source_commit": "29f5d456",
+          "integration_commit": "10f2c07f",
+          "review": "Root accepted compiler3e223cde/testb401b9c0: exact endpoint/retrace/source reconstruction, full primitive partitions, feet/palm support and bounded role census. All13 review and9 producer pins matched.",
+          "tests": "Root independently reran8 Python tests; all pass. Exact image344 frames/414896 bytes.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-state-program-v1/",
+          "limits": "0 production-qualified profiles. Original down/high full support759/625u remains too deep for512u tread; compact source and varying-height traversal require separate qualification."
+        },
+        "mole_native_state_program": {
+          "source_commit": "410cd394",
+          "integration_commit": "065366ac",
+          "review": "Root accepted capturea4b6a110/runnerff2f220e/test58335463, verified108 input/output pins and retained553-file pre/post closure equality, reran6 adversarial tests. Viewed side-walk-024/opposite-down-work-024/rts-high-work-048.",
+          "native": "1536 poses/6358 assertions/0 failures; all9 driver phases; zero native/import diagnostics/leaks; analyzer0/2.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-native-state-v1/",
+          "limits": "Actual Job/Work/Gear/Profile readers and renderer, explicitly synthetic profile flags. No terrain, paid support, traversal, production peak or whole-demo720p acceptance. Compact11-clip shared-hub source now in progress; never an instant posture switch."
         }
       },
       "lease": {

@@ -164,7 +164,7 @@
     {
       "id": "UG05",
       "title": "Canonical room shell and surface rendering",
-      "status": "running",
+      "status": "verified",
       "depends_on": [
         "UG01"
       ],
@@ -196,9 +196,16 @@
       ],
       "agent": "/root/ug_geometry",
       "branch": "codex/underground-geometry",
-      "evidence": {},
+      "evidence": {
+        "commit": "30ca84a7",
+        "integration": "unchanged cherry-pick; next full checkpoint pending",
+        "tests": "19 tests,298assertions,0failures; native SHELL-LIVE-SUMMARY33 0",
+        "diagnostics": "0unexpectederrors/warnings;0expected/tolerated;0leakedobjects/resources; analyzer0warnings/4files",
+        "review": "root independent source and all3PNG review; cached mesh ownership clarified; exact opening-height conversion regression added. Synthetic geometry study, not playable village. Cold4096cells46.630ms,16384cells181.636ms; budget and curve polish remain UG09/17."
+      },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "ug_geometry final response, commit30ca84a7, clean worktree; no further UG05 edits"
       }
     },
     {

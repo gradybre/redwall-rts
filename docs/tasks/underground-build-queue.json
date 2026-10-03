@@ -374,7 +374,13 @@
       "agent": "/root/ug_construction",
       "branch": "codex/underground-orders",
       "evidence": {
-        "in_progress": "UG07A schema approved: actual Buildings room_spatial_kindB8[16384] and furniture_installedB8[81920],98304persistentbytes. Three read-only Sites owner-identity methods narrow-reviewed; focused/analyzer underway. Coordinator/spatial Room/Furniture typed contract leased; shared funded-receipt/Work bridge awaits exact follow-up engineering review. No fake parent, tile alias or unfinished service grant."
+        "in_progress": "UG07A schema approved: actual Buildings room_spatial_kindB8[16384] and furniture_installedB8[81920],98304persistentbytes. Three read-only Sites owner-identity methods narrow-reviewed; focused/analyzer underway. Coordinator/spatial Room/Furniture typed contract leased; shared funded-receipt/Work bridge awaits exact follow-up engineering review. No fake parent, tile alias or unfinished service grant.",
+        "identity_prerequisite": {
+          "commit": "0bef602b",
+          "integration": "a16c16ba",
+          "tests": "35 tests / 22325 assertions, 0 failures; all diagnostic/raw leak counts 0; analyzer 0/2.",
+          "review": "Root independently accepted actual-owner getters; no extra authoritative state or implied clearance proof."
+        }
       },
       "lease": {
         "state": "held"
@@ -1105,7 +1111,7 @@
     {
       "id": "UG22",
       "title": "Bounded Gear lookup and excavation work performance",
-      "status": "running",
+      "status": "verified",
       "depends_on": [
         "UG06"
       ],
@@ -1115,7 +1121,7 @@
         "godot/test/test_gear_columns.gd",
         "godot/test/test_save_owner_gear.gd",
         "docs/decisions/1068-gear-lot-index.md",
-        "docs/validation/evidence/underground-gear-index/"
+        "docs/validation/evidence/underground-ug22-gear-index-2026-10-03/"
       ],
       "requirements": [],
       "kind": "qualification",
@@ -1127,10 +1133,17 @@
       "agent": "/root",
       "branch": "codex/underground-work-index",
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "Root committed 6935e88d; work-index worktree clean and all UG22 source writes stopped."
       },
       "evidence": {
-        "in_progress": "MeasuredUG06worker gate and genericGear wear both scan live rows. Own branchcreated from fetched origin/master and advanced to56595fe5;root will budget derived index and load staging before code;no reduced safety gates."
+        "commit": "6935e88d740116f256ddd0714ca65ce599994fd4",
+        "integration": "a30c0a7c",
+        "tests": "217 focused tests / 34020 assertions across Gear, Gear columns, Work and physical excavation; zero failures after clean import. Exact logs and reviewed hashes retained.",
+        "diagnostics": "Every strict and raw footer: 0 unexpected errors/warnings and 0 object/resource leaks; changed-source analyzer 0 warnings in 0 of 3 files.",
+        "review": "ug_geometry independently reviewed frozen source, row/lot reuse, both restore paths, refusal atomicity, full generation checks, capture/audit and memory; no blockers. Only requested prose cleanup followed.",
+        "evidence_path": "docs/validation/evidence/underground-ug22-gear-index-2026-10-03/README.md",
+        "performance": "Bounded allocation-free O(1) lookup. Local paid 256-worker pass mean 9728us/max9953us still exceeds whole-tick target. Concurrent runs are not controlled speedup/p99 evidence; UG17 owns complete qualification."
       }
     }
   ],
@@ -1162,6 +1175,16 @@
       "analyzer": "0 warnings in 0 of1048 files",
       "procedure": "assets aside;delete .godot;clean editor import;full no-argument runner;restore assets",
       "seconds": 1191.7
+    },
+    {
+      "commit": "5d2d8eca7c2f25d75fe5ef98bbd1e96b70a7c29e",
+      "outcome": "passed",
+      "full_suite": "9418 test(s), 645308 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 warnings in 0 of 1059 files",
+      "procedure": "assets aside, delete own .godot, clean editor import, full no-argument runner, restore assets; source unchanged",
+      "seconds": 1409.83,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-5d2d8eca/README.md"
     }
   ],
   "crosscut_fixes": [

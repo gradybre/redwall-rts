@@ -116,3 +116,19 @@ unexpected diagnostics or leaks. All 32 assembled specification gates pass.
 UG07 is automatically released for actual Room/Furniture order composition.
 UG22 addresses measured Gear lookup costs separately; its addition does not
 mark the 256-resident whole-tick target achieved.
+
+The frozen integrated source `5d2d8eca` passed **9,418 tests / 645,308
+assertions**, zero failures, zero unexpected diagnostics, and zero object or
+resource leaks (272 expected diagnostics, 353 tolerated). The all-source analyzer
+reported zero warnings across 1,059 files. This checkpoint includes UG06 physical
+ownership, UG19 direct dirt painting and the 1066 canonical/memory reconciliation.
+Its [exact evidence](../design/underground-planning/evidence/modular-build/checkpoint-5d2d8eca/README.md)
+identifies later increments that were not part of that run.
+
+UG22's private Gear lot index is implemented, independently reviewed and
+integrated at `a30c0a7c`. It passed 217 focused tests / 34,020 assertions and the
+zero-diagnostic/leak/analyzer gates. The recorded 256-worker workload still
+exceeds the whole-tick budget; UG17 retains that qualification work. UG07 actual
+Room/Furniture orders, UG08 qualified movement/connectors and UG21 spatial
+composition remain active. None of these component results is a claim that the
+complete playable underground lifecycle has been delivered.

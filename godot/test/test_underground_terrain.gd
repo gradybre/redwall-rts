@@ -21,6 +21,35 @@ const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const CLEAR_TILE: int = 50 * 128 + 60
 
+
+class ObservedOwner extends Owner:
+	## Count real World-source lookups without replacing geometry or source validation.
+	var revision_reads: int = 0
+	var source_reads: int = 0
+	var advance_on_source_read: bool = false
+
+	func source_revision(ref: Vector2i) -> int:
+		"""An unchanged immutable World needs no repeated source-capacity scan per moving resident."""
+		revision_reads += 1
+		return super.source_revision(ref)
+
+	func source_refusal(ref: Vector2i) -> StringName:
+		"""The first query after actual geometry publication still performs the real source proof."""
+		source_reads += 1
+		var code: StringName = super.source_refusal(ref)
+		if code == &"" and advance_on_source_read:
+			advance_on_source_read = false
+			var begun: Owner.Result = begin_stage(revision())
+			if begun.error != &"":
+				return begun.error
+			code = seal(begun.token)
+			if code != &"":
+				abort(begun.token)
+				return code
+			publish(begun.token)
+		return code
+
+
 var _residents: Residents = null
 var _jobs: Jobs = null
 var _nodes: Nodes = null
@@ -397,3 +426,104 @@ func test_natural_survey_preserves_clipping_capacity_and_exact_budget_contract()
 	assert_equal(_terrain.natural_survey_into(box, 2, out, _lease), Terrain.REFUSE_CAPACITY, "count pass refuses before partial append")
 	assert_equal(out.role.size() + out.owner_revision.size(), 0, "no stale output remains")
 	assert_equal(_terrain.natural_survey_into(box, 3, out, _lease + 1), &"TERRAIN_COLD_LEASE", "foreign numeric lease refuses")
+
+
+func test_mixed_height_exclusions_do_not_imply_empty_space_or_support() -> void:
+	"""A landing crossing the surface can inspect protections without treating untouched soil as dug air."""
+	var bounds: PackedInt32Array = _box(CLEAR_TILE, -256, 2048)
+	var before: PackedByteArray = _owner.state_bytes()
+	assert_equal(_terrain.exclusions_refusal(bounds), &"", "no protected exclusion at this mixed-height location")
+	assert_equal(_terrain.dig_refusal(bounds), Terrain.REFUSE_DRY, "upper air is not excavatable dry soil")
+	assert_equal(_terrain.exterior_refusal(bounds), Terrain.REFUSE_EXTERIOR, "lower soil is not exterior free space")
+	assert_equal(_terrain.natural_support_refusal(bounds), Terrain.REFUSE_DRY, "mixed interval supplies no footing")
+	assert_equal(_owner.state_bytes(), before, "protection observation cannot publish paid void or support")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -32257, -32000)), Terrain.REFUSE_BOUNDS, "finite depth")
+	var broad: PackedInt32Array = PackedInt32Array([0, -256, 0, 18432, 2048, 18432])
+	assert_equal(_terrain.exclusions_refusal(broad), &"TERRAIN_LOCAL_CAPACITY", "bounded nearby tile count")
+
+
+func test_mixed_height_exclusions_keep_exact_water_surface_and_ford_edges() -> void:
+	"""Air above water has no wet exclusion, but never becomes a supported traversal permission."""
+	for tile: int in [5 * 128 + 20, 66 * 128 + 100, 60 * 128 + 76, 49 * 128 + 77]:
+		assert_equal(_terrain.exclusions_refusal(_box(tile, -1, 2048)), Terrain.REFUSE_WATER, "one unit below water refuses")
+		assert_equal(_terrain.exclusions_refusal(_box(tile, 0, 2048)), &"", "exact water surface does not overlap air")
+		assert_equal(_terrain.natural_support_refusal(_box(tile, 0, 256)), Terrain.REFUSE_WATER \
+			if tile != 49 * 128 + 77 else Terrain.REFUSE_DRY, "air above water never supplies natural support")
+	var crossing: PackedInt32Array = _box(60 * 128 + 75, -1024, 2048)
+	assert_equal(_terrain.exclusions_refusal(crossing), &"", "dry side can be considered by actual paid geometry")
+	crossing[3] += 1
+	assert_equal(_terrain.exclusions_refusal(crossing), Terrain.REFUSE_WATER, "exact one-unit wet crossing refuses")
+	assert_equal(_terrain.exclusions_refusal(_box(49 * 128 + 77, -256, -128)), &"", "ford substrate below water")
+	assert_equal(_terrain.exclusions_refusal(_box(49 * 128 + 77, -256, -127)), Terrain.REFUSE_WATER, "one unit above ford bed")
+
+
+func test_mixed_height_exclusions_read_live_roots_harvest_and_regrowth() -> void:
+	"""No graph or immutable World-source cache hides renewable resource changes."""
+	var revision: int = _owner.revision()
+	var tree: Nodes.OpResult = _nodes.create_at_tile(CLEAR_TILE, _items.compiled_id(&"wood"), 1000, 4, 1)
+	assert_true(tree.ok, "actual renewable tree")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -256, 2048)), Terrain.REFUSE_RESOURCE, "root and upper body protected")
+	assert_equal(_terrain.last_conflict_ref(), tree.ref, "full real resource identity")
+	assert_true(_nodes.harvest_all(tree.value, 2).ok, "actual stump transition")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, 1024, 2048)), &"", "harvested canopy no longer blocks")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -256, 1024)), Terrain.REFUSE_RESOURCE, "retained stump and roots still block")
+	assert_true(_nodes.regrow(tree.value, 6).ok, "actual regrowth")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, 1024, 2048)), Terrain.REFUSE_RESOURCE, "same geometry revision sees new canopy")
+	assert_true(_nodes.destroy(tree.ref).ok, "actual resource removed")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -256, 2048)), &"", "retired resource no longer blocks")
+	assert_equal(_owner.revision(), revision, "resource lifecycle did not change sparse geometry revision")
+
+
+func test_mixed_height_exclusions_protect_live_unregistered_building_and_exact_faces() -> void:
+	"""An unfinished upper building is visible immediately, including its real foundation depth."""
+	var kitchen: Vector2i = _place("kitchen")
+	assert_equal(_owner.source_revision(kitchen), 0, "not yet a registered sparse source")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -256, 2048)), Terrain.REFUSE_FOUNDATION, "cross-surface foundation remains protected")
+	assert_equal(_terrain.last_conflict_ref(), kitchen, "actual Building full ref")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, 512, 5632)), Terrain.REFUSE_BODY, "exact upper site extent")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -1536, -512)), &"", "touching underside is not penetration")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, 5632, 6656)), &"", "touching top is not penetration")
+	assert_true(_buildings.demolish_building(kitchen).ok, "actual unfinished Building cancellation")
+	assert_equal(_terrain.exclusions_refusal(_box(CLEAR_TILE, -256, 2048)), &"", "actual removal releases exclusion")
+
+
+func _observed_owner() -> ObservedOwner:
+	"""Bind the production sparse capacities while retaining all actual source/terrain owners."""
+	var observed: ObservedOwner = ObservedOwner.new(_sources)
+	assert_equal(observed.configure(_domain(), 6144, 2048), &"", "production sparse capacity")
+	_owner = observed
+	_terrain = Terrain.new()
+	assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual observed owner binding")
+	observed.revision_reads = 0
+	observed.source_reads = 0
+	return observed
+
+
+func test_world_source_proof_is_reused_only_until_actual_geometry_publication() -> void:
+	"""256 unchanged local reads do not rescan2048 source slots; one real publication refreshes proof."""
+	var observed: ObservedOwner = _observed_owner()
+	var bounds: PackedInt32Array = _box(CLEAR_TILE, -256, 2048)
+	for index: int in 256:
+		assert_equal(_terrain.exclusions_refusal(bounds), &"", "unchanged full World source")
+	assert_equal(observed.revision_reads, 0, "no repeated source-revision scans")
+	assert_equal(observed.source_reads, 0, "no repeated immutable-source scans")
+	_register(_world_ref)
+	for index: int in 256:
+		assert_equal(_terrain.exclusions_refusal(bounds), &"", "actual publication is revalidated")
+	assert_equal(observed.revision_reads, 1, "exactly one source-revision scan for new geometry revision")
+	assert_equal(observed.source_reads, 1, "exactly one real source proof")
+	assert_true(_jobs.directory().destroy(_world_ref), "actual World identity retires")
+	var replacement: Vector2i = _jobs.directory().create(Directory.KIND_WORLD)
+	assert_true(replacement != _world_ref, "actual generation changed")
+	assert_equal(_terrain.exclusions_refusal(bounds), &"TERRAIN_WORLD_SOURCE", "matching cached revision never bypasses full generation")
+
+
+func test_world_source_proof_never_pins_a_revision_changed_during_its_read() -> void:
+	"""A reentrant source read publishing real geometry cannot supply a stale cache certificate."""
+	var observed: ObservedOwner = _observed_owner()
+	_register(_world_ref)
+	observed.advance_on_source_read = true
+	assert_equal(_terrain.exclusions_refusal(_box()), &"TERRAIN_WORLD_SOURCE", "publication inside source proof refuses")
+	assert_equal(_terrain.exclusions_refusal(_box()), &"", "next independent query validates the actual new revision")
+	assert_equal(observed.revision_reads, 2, "refused proof was not cached")
+	assert_equal(observed.source_reads, 2, "actual proof reran")

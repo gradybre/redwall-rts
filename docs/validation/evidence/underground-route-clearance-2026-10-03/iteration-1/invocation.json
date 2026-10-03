@@ -1,0 +1,63 @@
+{
+  "head": "fc4fac4f3b80c0d732d4e7ad82460161b0164344",
+  "focused_only": true,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "log": "clean-import.log",
+      "exit_code": 0,
+      "seconds": 3.65
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "137/335",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-route-clearance-2026-10-03/iteration-1"
+      ],
+      "log": "test_underground_terrain.gd.log",
+      "exit_code": 0,
+      "seconds": 8.521
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "102/335",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-route-clearance-2026-10-03/iteration-1"
+      ],
+      "log": "test_underground_world_bindings.gd.log",
+      "exit_code": 0,
+      "seconds": 11.704
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--port",
+        "6197",
+        "--max",
+        "0",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-route-clearance-2026-10-03/iteration-1/analyzer.json",
+        "godot/scripts/core/underground_terrain.gd",
+        "godot/test/test_underground_terrain.gd"
+      ],
+      "log": "analyzer.log",
+      "exit_code": 0,
+      "seconds": 9.638
+    }
+  ],
+  "source_unchanged": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

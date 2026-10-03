@@ -1,0 +1,38 @@
+state_registry_coverage: PASS -- 106 modules, 515 rows, 904 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_locations.gd
+  PASS  test_exact_real_binding_and_full_local_refs
+  PASS  test_arena_and_cold_admission_refuse_before_allocation
+  PASS  test_reads_do_not_alias_packed_geometry
+  PASS  test_negative_cells_and_stacked_sections_do_not_alias
+  PASS  test_support_hole_refuses_despite_supported_corners
+  PASS  test_water_unfinished_obstacle_and_boundary_refuse
+  PASS  test_stale_geometry_requires_explicit_refresh_without_payload_change
+  FAIL  test_actual_inventory_promotion_and_retirement_guard
+        actual earth output (expected true, got false)
+        same row promotes (expected true, got false)
+        real output commits (expected true, got false)
+        no lost goods (expected 2000, got 0)
+  PASS  test_abort_and_stale_seal_do_not_publish_locations
+  PASS  test_exhaustion_reuse_and_wire_round_trip
+  PASS  test_malformed_image_and_foreign_floor_preserve_live_bytes
+  PASS  test_unqualified_transit_role_never_grants_storage
+CI_SUITE_TIME {"assertions":282,"failures":1,"suite":"test_underground_locations.gd","tests":12,"usec":437884}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+12 test(s), 282 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

@@ -105,9 +105,10 @@ their simultaneous image, and 8,192 bytes for live/image loss-domain expansion.
 UG07's reviewed transaction packet confirms three Quote buffers at 112 packed
 bytes each, plus the Router's 32-byte delivery scratch. Each Quote also owns 72
 logical numeric bytes and four StringName keys; those controls and native object
-headers belong in the explicit binding/native reservation. With the packed Quote
-and delivery allowances the proposed sum is 4,962,090, leaving 47,533 bytes.
-Remaining Router controls must also be counted. Provider reserves are not
+headers belong in the explicit binding/native reservation. The complete reviewed
+B1–B3 increment, including Router and Work controls, is 271,003 bytes. The proposed
+sum is therefore 4,962,389, leaving 47,234 bytes before further declaration changes.
+Provider reserves are not
 implemented allocations or proof that native peaks fit. Every final source-derived field/copy belongs in admission;
 no missing provider receives a zero-byte allowance.
 
@@ -127,6 +128,59 @@ alias either owner bank. The consumer must count the newly built snapshot and
 any prior snapshot retained in the output argument until assignment. Production
 companion preparation uses a fresh empty output and releases it before the next
 cold phase; retaining a third full survey requires separately admitted memory.
+
+## Location endpoint schema and cold lifetime
+
+The first concrete location slice uses an explicit N (initial pack N=1024).
+Each of the two banks has 22 I32 columns: local generation; XYZ; full Room ref;
+full floor-section ref; level; role; six envelope bounds; six support bounds.
+Two I64 columns hold the immutable payload revision and the geometry revision
+whose complete cold validation established its current proof. Two byte columns
+hold presence and generation exhaustion. Each bank also owns its own free-row
+heap and sorted-row index (two I32 arrays). Thus each bank is 114N bytes and the
+pair is **228N + 256 bytes**, including two fixed 16-I64 headers. No per-location
+object or Dictionary is stored. Caller packets are temporary typed values.
+
+The canonical one-bank image is **106N + 128 bytes**; heaps and order are rebuilt
+and checked. Capture/load may run only through the exclusive cold lease, without
+a staged phase, and admission counts the raw image beside both banks. Snapshot
+copies needed to validate locations use the already reserved phase/survey cold
+arena, never an uncounted third survey. The maximum is checked before copying.
+New location payloads are immutable. Refreshing a stale static proof changes
+only its geometry revision, not the payload revision retained by Inventory.
+Changing a live same-generation payload through the local loader refuses even
+when Inventory currently holds no container there. Canonical exhausted slots
+must retain their exhaustion marker.
+
+Location handles belong to this actual owner instance. They are neither global
+Directory refs nor spatial region handles. Underground endpoints require a live
+Room, its exact floor-section generation and an actual permanent Sites key at
+the point's paid cube. This key supplies the typed Room-claim exemption; actual
+obstacles, foreign claims and unfinished volumes remain blockers. Surface
+endpoints have a World-owned floor and no Room. Full containment and support
+are validated using integer boxes; a point alone is not a storage permission.
+
+Inventory gets one weak adapter implementing its typed location contract. The
+adapter compares the exact Inventory/World binding. The 2m storage-cell key is
+World plus full section plus floor-divided X/Z relative to the immutable world
+datum. It does not move or enlarge the authored envelope. Retiring a location
+requires the actual Inventory retained-reference guard, including stale proofs;
+the guard runs again at sealing, final preflight and publication, so a real
+container created after staging cannot lose its location. It runs before both
+ordinary and future Sites publication branches. An absent guard refuses.
+Later route/actor/contact fields remain reserved work
+within the same 1MiB provider ceiling, not zero-byte completed functionality.
+
+The endpoint-only cold operation uses at most one snapshot (48K region bytes
+plus 16K source bytes, conservatively using the owner's enforced O<=K), two
+fragment lists bounded to K/2 six-I32 boxes each (24K), and 384 box-scratch bytes:
+**88K + 384 packed bytes**. This excludes native Array/packed-handle overhead,
+which must fit the separately admitted native/control reservation. The shared
+1072 Budget will replace the provisional component ColdLease; it must reserve
+the actual simultaneous caller plan/survey and companion peak before the first
+copy, and retain the token until charged output is consumed. An independent
+maximum phase plus maximum endpoint copy cannot coexist merely because each
+fits separately.
 
 ## Engineering and policy
 
@@ -196,3 +250,23 @@ fixture identifier shadow; it was renamed with no behavior change and the final
 analyzer passed. [Raw logs and exact source evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/README.md)
 retain that rejection and the accepted runs. This verifies transaction seams;
 it does not qualify actual terrain, support content, profiles or navigation.
+
+## Immutable endpoint validation
+
+Independent source review accepted the endpoint slice after its current
+Inventory-retention checks were added. The final clean, assets-aside import
+produced zero diagnostics. The strict runner and analyzer reported:
+
+```text
+16 test(s), 358 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+0 GDScript warning(s) in 0 of 4 file(s)
+```
+
+[Raw endpoint evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/locations/README.md)
+records exact source hashes, strict invocation and the rejected fixture run.
+This proves actual endpoint identity, bounded local persistence and Inventory
+retention/promotion against synthetic geometric fixtures. Actual terrain,
+movement, profile qualification and shared cold-budget composition remain work
+in this same lane.

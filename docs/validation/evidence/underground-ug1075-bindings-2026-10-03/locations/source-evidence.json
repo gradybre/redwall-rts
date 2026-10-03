@@ -1,0 +1,31 @@
+{
+  "scope": "immutable location endpoints; actual Inventory and source identities; synthetic geometry; no navigation/profile qualification",
+  "sources": {
+    "godot/scripts/core/underground_locations.gd": "ca5933e1742625337a7c7bd1024a5e5d2b9b03971b337434bfc196d6a83ad202",
+    "godot/test/test_underground_locations.gd": "a5b6105ae3012d5eb8011fff38cc713c38d7253ea05e3a33838eeb3241cac760",
+    "godot/scripts/core/underground_space_owner.gd": "938522471c5fed1691ad229f4bf47a9c743890d14a7cc4502d163d3cda6380e9",
+    "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+    "godot/scripts/core/inventory_spatial_contract.gd": "0919427cbe6ea08ca7caa0f759775f5b1536373e5e174fa739bc0f420725aa0a",
+    "godot/scripts/core/excavation_sites.gd": "97559c5e220fd2ea67996f80f209b3c32865da64409701bc253103e52a853973"
+  },
+  "prerequisite_head": "882640fb14c6eb38f2af724cb1655550d6b1772b",
+  "space_owner_note": "The tested SpaceOwner includes the separately reviewed pending-to-installed Furniture source bridge; Location does not call that bridge. Its exact hash is pinned here and that source is committed separately.",
+  "clean_import": "assets moved aside if present; own godot/.godot removed; godot --headless --path godot --editor --quit; assets restored in finally",
+  "strict_command": "./tools/run_tests.sh --shard 168/321 --output-dir <fresh-run-directory>",
+  "accepted": {
+    "tests": 16,
+    "assertions": 358,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0
+  },
+  "review": "Independent source review accepted after adding current Inventory-retention rechecks at seal, final preflight and both publication paths.",
+  "analyzer": {
+    "command": "python3 tools/gdscript_warnings.py --port 6153 --max 0 godot/scripts/core/underground_space_owner.gd godot/test/test_underground_space_owner.gd godot/scripts/core/underground_locations.gd godot/test/test_underground_locations.gd",
+    "result": "0 GDScript warning(s) in 0 of 4 file(s)"
+  }
+}

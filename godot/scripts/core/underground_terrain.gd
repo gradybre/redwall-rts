@@ -23,6 +23,7 @@ const BOTTOM_U: int = World.LAND_Y_UNITS - 32768
 const TOP_U: int = World.LAND_Y_UNITS + 16384
 const MAP_WIDTH_U: int = World.MAP_TILES_X * World.TILE_SIZE_UNITS
 const LOCAL_TILE_LIMIT: int = 64
+const LOCAL_QUERY_CHECKS: int = 16 * LOCAL_TILE_LIMIT + 1 # Tile/leaf checks, including three resource-id comparisons.
 const SURVEY_CONTROL_BYTES: int = 256
 const DIG: int = 0
 const FOOTING: int = 1
@@ -453,6 +454,39 @@ func _local_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
 	var code: StringName = _bounds_refusal(bounds)
 	if code != &"":
 		return code
+	return _local_tiles_refusal(bounds, purpose)
+
+
+func local_facts_refusal(bounds: PackedInt32Array, purpose: int, expected_revision: int) -> StringName:
+	"""Final actual local facts, without invoking public binding/observation callbacks or creating a survey."""
+	_reset_query()
+	var code: StringName = _leaf_binding_refusal(expected_revision)
+	if code != &"":
+		return code
+	if purpose < DIG or purpose > EXCLUSIONS or not Space.valid_box(bounds) \
+			or not Space.contains_box(_domain_bounds, bounds):
+		return REFUSE_BOUNDS
+	return _local_tiles_refusal(bounds, purpose)
+
+
+func _leaf_binding_refusal(expected_revision: int) -> StringName:
+	"""Recheck the already-attested exact actual wiring from leaf facts, with no source-provider read."""
+	var space: Owner = _space.get_ref() as Owner if _space != null else null
+	var reader: Owner.CoreSources = _sources.get_ref() as Owner.CoreSources if _sources != null else null
+	if not _ready or space == null or reader == null or expected_revision < 1 \
+			or space.revision() != expected_revision or _checked_geometry_revision != expected_revision \
+			or space.has_prepared() or not space.is_bound_sources(reader):
+		return REFUSE_BINDING
+	if not _world.is_published() or _world.section_1_published_seed() != _seed \
+			or _world.resource_nodes() != _nodes or reader.directory() != _world.directory() \
+			or reader.construction_owner() == null or reader.construction_owner().buildings() != _buildings \
+			or not reader.directory().is_valid_of_kind(_world_ref, Directory.KIND_WORLD):
+		return REFUSE_BINDING
+	return &""
+
+
+func _local_tiles_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
+	"""Each bounded tile reads actual terrain, resources and Building footprints through their leaf accessors."""
 	@warning_ignore("integer_division") var first_x: int = bounds[0] / World.TILE_SIZE_UNITS
 	@warning_ignore("integer_division") var last_x: int = (bounds[3] - 1) / World.TILE_SIZE_UNITS
 	@warning_ignore("integer_division") var first_z: int = bounds[2] / World.TILE_SIZE_UNITS
@@ -461,7 +495,7 @@ func _local_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
 		return &"TERRAIN_LOCAL_CAPACITY"
 	for z: int in range(first_z, last_z + 1):
 		for x: int in range(first_x, last_x + 1):
-			code = _local_tile(z * World.MAP_TILES_X + x, bounds, purpose)
+			var code: StringName = _local_tile(z * World.MAP_TILES_X + x, bounds, purpose)
 			if code != &"":
 				return code
 	return &""

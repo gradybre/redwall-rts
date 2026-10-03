@@ -1,0 +1,34 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.028,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "209/355",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-work-face-2026-10-03/iteration-2"
+      ],
+      "exit_code": 1,
+      "seconds": 5.564,
+      "log": "test_underground_work_face.gd.log"
+    }
+  ],
+  "error": "test_underground_work_face.gd.log",
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 1
+}

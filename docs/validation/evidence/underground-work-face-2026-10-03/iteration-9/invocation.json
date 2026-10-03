@@ -1,0 +1,77 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.459,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "164/356",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-work-face-2026-10-03/iteration-9"
+      ],
+      "exit_code": 0,
+      "seconds": 7.862,
+      "log": "test_underground_work_face.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "134/356",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-work-face-2026-10-03/iteration-9"
+      ],
+      "exit_code": 0,
+      "seconds": 8.824,
+      "log": "test_underground_terrain.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "198/356",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-work-face-2026-10-03/iteration-9"
+      ],
+      "exit_code": 0,
+      "seconds": 3.858,
+      "log": "test_underground_final_facts.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6198",
+        "godot/scripts/core/underground_work_face.gd",
+        "godot/test/test_underground_work_face.gd",
+        "godot/scripts/core/underground_terrain.gd",
+        "godot/test/test_underground_terrain.gd",
+        "godot/scripts/core/underground_final_facts.gd",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/test/test_underground_final_facts.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.257,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

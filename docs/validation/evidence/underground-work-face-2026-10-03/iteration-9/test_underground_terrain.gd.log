@@ -1,0 +1,48 @@
+state_registry_coverage: PASS -- 127 modules, 628 rows, 981 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_terrain.gd
+  PASS  test_binding_requires_actual_generated_resource_and_source_owners
+  PASS  test_wrong_datum_and_extended_depth_cannot_invent_terrain
+  PASS  test_dry_clipped_survey_has_exact_source_and_no_map_wide_protected_support
+  PASS  test_exact_dry_water_boundary_and_real_ford_height
+  PASS  test_every_water_mask_has_finite_excavation_protection_without_fake_floor
+  PASS  test_tree_stump_regrowth_and_retirement_are_seen_without_sparse_revision_changes
+  PASS  test_exhausted_nonrenewable_deposit_does_not_keep_a_phantom_resource
+  PASS  test_unknown_resource_item_refuses_instead_of_guessing_tree_or_stone
+  PASS  test_real_rotated_unfinished_building_protects_foundation_and_body
+  PASS  test_open_stockpile_and_paths_do_not_invent_filled_upper_obstacles
+  PASS  test_cold_building_rows_require_registered_current_nonzero_revision
+  PASS  test_capacity_lease_and_off_domain_refusals_clear_every_output_column
+  PASS  test_published_world_reset_full_ref_retirement_and_unknown_terrain_refuse
+  PASS  test_world_and_resource_into_readers_erase_stale_facts_and_preserve_generations
+  PASS  test_surveys_do_not_mutate_or_refill_retained_paid_space
+  PASS  test_natural_observation_is_separate_from_live_exclusion_and_sparse_source_registration
+  PASS  test_natural_survey_preserves_clipping_capacity_and_exact_budget_contract
+  PASS  test_mixed_height_exclusions_do_not_imply_empty_space_or_support
+  PASS  test_mixed_height_exclusions_keep_exact_water_surface_and_ford_edges
+  PASS  test_mixed_height_exclusions_read_live_roots_harvest_and_regrowth
+  PASS  test_mixed_height_exclusions_protect_live_unregistered_building_and_exact_faces
+  PASS  test_world_source_proof_is_reused_only_until_actual_geometry_publication
+  PASS  test_world_source_proof_never_pins_a_revision_changed_during_its_read
+  PASS  test_final_local_facts_read_fresh_unregistered_obstacles_without_observation_hook
+  PASS  test_final_local_facts_require_current_attested_wiring_and_exact_finite_bounds
+CI_SUITE_TIME {"assertions":995,"failures":0,"suite":"test_underground_terrain.gd","tests":25,"usec":6083343}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+25 test(s), 995 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 25 tests, 995 assertions, 0 failures.

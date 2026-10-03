@@ -527,3 +527,41 @@ func test_world_source_proof_never_pins_a_revision_changed_during_its_read() -> 
 	assert_equal(_terrain.exclusions_refusal(_box()), &"", "next independent query validates the actual new revision")
 	assert_equal(observed.revision_reads, 2, "refused proof was not cached")
 	assert_equal(observed.source_reads, 2, "actual proof reran")
+
+
+class ObservedBindingTerrain extends Terrain:
+	## Public observation hook is deliberately distinct from the final actual local-facts reader.
+	var calls: int = 0
+
+	func binding_refusal() -> StringName:
+		"""Count the ordinary observer without changing any actual source fact or physical rule."""
+		calls += 1
+		return super.binding_refusal()
+
+
+func test_final_local_facts_read_fresh_unregistered_obstacles_without_observation_hook() -> void:
+	"""A late new well changes actual exclusion geometry even though the sparse revision is unchanged."""
+	var final_reader: ObservedBindingTerrain = ObservedBindingTerrain.new()
+	assert_equal(final_reader.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "exact actual owners")
+	var bounds: PackedInt32Array = _box()
+	assert_equal(final_reader.dig_refusal(bounds), &"", "ordinary binding and dry-space proof")
+	var calls: int = final_reader.calls
+	var revision: int = _owner.revision()
+	assert_equal(final_reader.local_facts_refusal(bounds, Terrain.DIG, revision), &"", "current leaf facts")
+	assert_equal(final_reader.calls, calls, "no public binding callback during final attestation")
+	var well: Vector2i = _place("well")
+	assert_true(_buildings.is_live_building(well), "actual new obstruction")
+	assert_equal(_owner.revision(), revision, "no sparse publication disguised as the trigger")
+	assert_equal(final_reader.local_facts_refusal(bounds, Terrain.DIG, revision), Terrain.REFUSE_FOUNDATION, "fresh protected foundation")
+	assert_equal(final_reader.calls, calls, "late exclusion check remains callback-free")
+
+
+func test_final_local_facts_require_current_attested_wiring_and_exact_finite_bounds() -> void:
+	"""The leaf reader cannot initialize an unbound provider or accept a foreign/stale geometry image."""
+	var bounds: PackedInt32Array = _box()
+	var revision: int = _owner.revision()
+	assert_equal(Terrain.new().local_facts_refusal(bounds, Terrain.DIG, revision), Terrain.REFUSE_BINDING, "unbound")
+	assert_equal(_terrain.local_facts_refusal(bounds, Terrain.DIG, revision + 1), Terrain.REFUSE_BINDING, "wrong geometry")
+	assert_equal(_terrain.local_facts_refusal(bounds, 99, revision), Terrain.REFUSE_BOUNDS, "unknown purpose")
+	bounds[3] = bounds[0]
+	assert_equal(_terrain.local_facts_refusal(bounds, Terrain.DIG, revision), Terrain.REFUSE_BOUNDS, "degenerate target")

@@ -1,0 +1,61 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_work_face.gd
+  FAIL  test_exact_complete_corridor_and_authored_stroke_reach_one_solid_face
+        actual corridor fixture checks (expected true, got false)
+        source-bound synthetic profile fits the actual geometry (expected , got LOCATION_STALE)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_max_face_is_a_legal_exact_plane_without_reversing_already_oriented_boxes
+        actual corridor fixture checks (expected true, got false)
+        inclusive max-face contact and immutable source orientation (expected , got LOCATION_STALE)
+        opposite plane is not selected contact (expected WORK_FACE_CONTACT, got LOCATION_STALE)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_interior_one_unit_void_hole_blocks_approach_even_when_endpoints_fit
+        actual corridor fixture checks (expected true, got false)
+        one-unit approach gap is still solid (expected WORK_FACE_COMPLETE_SPACE, got LOCATION_STALE)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_actual_support_and_negative_body_residual_are_never_clipped
+        actual corridor fixture checks (expected true, got false)
+        no floor support outside completed corridor (expected WORK_FACE_SUPPORT, got LOCATION_STALE)
+        the second below-root unit is outside authored stance (expected WORK_FACE_COMPLETE_SPACE, got LOCATION_STALE)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_stroke_cannot_enter_a_second_solid_cube_or_floor
+        actual corridor fixture checks (expected true, got false)
+        second cube remains blocked (expected WORK_FACE_STROKE, got LOCATION_STALE)
+        tool penetration into actual supporting floor refuses (expected WORK_FACE_STROKE, got LOCATION_STALE)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_full_profile_endpoint_and_face_identity_are_mandatory
+        actual corridor fixture checks (expected true, got false)
+        physical quantum origin cannot be rounded (expected WORK_FACE_TARGET, got LOCATION_STALE)
+        face point must also be reached by the actual stroke (expected WORK_FACE_CONTACT, got LOCATION_STALE)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_final_callback_drift_refuses_actual_replacement_and_mutated_input
+        actual corridor fixture checks (expected true, got false)
+        the final read hook executed (expected 1, got 0)
+        nested actual cleanup checks (expected true, got false)
+        actual corridor fixture checks (expected true, got false)
+        the final read hook executed (expected 1, got 0)
+        nested actual cleanup checks (expected true, got false)
+        actual corridor fixture checks (expected true, got false)
+        the final read hook executed (expected 1, got 0)
+        nested actual cleanup checks (expected true, got false)
+  FAIL  test_foreign_arena_or_unbound_sources_never_allocate_geometry_permission
+        actual corridor fixture checks (expected true, got false)
+        nested actual cleanup checks (expected true, got false)
+CI_SUITE_TIME {"assertions":88,"failures":8,"suite":"test_underground_work_face.gd","tests":8,"usec":2872222}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 88 assertion(s), 8 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

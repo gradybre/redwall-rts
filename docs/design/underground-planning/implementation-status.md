@@ -15,29 +15,30 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `8334ce3a` passed **10,194 tests / 912,108
+The latest full frozen source `3e891a41` passed **10,227 tests / 953,231
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
-zero analyzer warnings across 1,131 scripts. The
-[checkpoint logs](evidence/modular-build/checkpoint-8334ce3a/README.md)
+zero analyzer warnings across 1,140 scripts. The
+[checkpoint logs](evidence/modular-build/checkpoint-3e891a41/README.md)
 record the exact clean-assets/cache/import and no-argument suite procedure:
 
 ```text
-10194 test(s), 912108 assertion(s), 0 failure(s)
+10227 test(s), 953231 assertion(s), 0 failure(s)
 diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
 log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
 ```
 
 This includes full-size painted-room admission, packed footprint validation,
 actual World structural phase observations and compact native actor content.
-Subsequent cut-map, entry/route companion and grip changes retain separate
-focused source evidence until a later assembled checkpoint.
+It also includes unique cut mapping, endpoint preservation, the static profile-edge
+query and reviewed mole grip. Subsequent profile-path search and atomic
+Room/Sites reservation retain separate focused evidence.
 
 The shell study proves boundary coverage and material scale, but its rounded
 walls are visibly stepped. Organic silhouettes remain part of visual
 qualification; a renderer-only change cannot cut through authoritative solid
 corners or silently change usable room space. Front, side and rear native
 inspection selected a firmer authored worker grip; its source-bound rebake
-and physical contact/profile qualification remain in progress.
+has passed native checks; physical contact/profile qualification remains in progress.
 
 Active work derives unique physical cut claims, preserves existing circulation
 during room confirmation, and resolves the actual first-entry/worker-contact

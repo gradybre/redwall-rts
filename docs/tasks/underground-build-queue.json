@@ -426,7 +426,7 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-room-companion-scope",
+      "branch": "codex/underground-room-claim-batch",
       "evidence": {
         "in_progress": "Reviewed1095 cut cursor integrated5b273105/0c3c8ee1; reviewed pure RoomOrders companion reader integrated76a5a8bc. Actual Sites ClaimBatch implementing with final callback-free guard and sequential cold-memory admission. Actual entry/work feasibility remains open.",
         "identity_prerequisite": {
@@ -553,7 +553,11 @@
           "scope": "Actual Sites-owned atomic virgin cut reservations composed inside actual RoomOrders; final callback-free guard then Room allocation and Sites publication before any Space/source callback. Contacts and first-entry admission remain closed until actual feasibility composes.",
           "memory": "Sequential static854016, Locations919936, WorldRoutes773120 and post-seal batch657408 logical bytes including2048 controls; exact census and peak tests required. No cursor bank overlaps companion snapshots.",
           "owner": "/root/ug_construction",
-          "tests": "Implementation in progress; no completion asserted."
+          "tests": "193 tests /73895 assertions /0 failures; all strict/raw diagnostics/leaks0; analyzer0/8.",
+          "review": "ug_geometry independently accepted all8 frozen source pins; candidate commits packaging, integration waits for pinned full-suite checkpoint.",
+          "source": "4188f6f9078b26c77aeac95a7c4e21b0b2f9660d",
+          "registry": "8cdc2bdc0affa992131e0d508581d5550d105a56",
+          "integration": "pending"
         },
         "derived_cut_mapping": {
           "source": "c7ffd972",
@@ -636,7 +640,11 @@
         "godot/test/test_underground_actor_content.gd",
         ".gitattributes",
         "godot/test/test_mole_grip_source.gd",
-        "tools/bake_mole_grip_content.gd"
+        "tools/bake_mole_grip_content.gd",
+        "godot/test/test_mole_profile_driver.gd",
+        "godot/test/test_mole_profile_driver.gd.uid",
+        "godot/test/test_mole_qualified_profiles.gd",
+        "godot/test/test_mole_qualified_profiles.gd.uid"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -817,6 +825,20 @@
             "tools/bake_mole_grip_content.gd"
           ],
           "witnesses": "grip-closed-v4 and grip-angles-v1 in agent worktree; original source fingerprint unchanged"
+        },
+        "firm_grip": {
+          "source": "38e75ec1",
+          "integration": "3e891a41",
+          "tests": "36 tests/384 assertions/0 failures; strict/raw diagnostic/leaks all0; analyzer0/2; five rebake plus seven native wrapper Python tests",
+          "native": "731 poses/1578 assertions/0 failures; source_unchanged true; zero native diagnostics/leaks; compact426888B, source-bound raw5906853B. Zero production-qualified profiles.",
+          "review": "Root accepted exact helper/test/baker, transitive rebake and native replay. Late source pin and dangling output-link corrections independently accepted; front/side/rear grip images accepted for source-only grasp scope.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/grip-final-v1/"
+        },
+        "qualified_mole_profile_in_progress": {
+          "owner": "/root/ug_furnishing",
+          "scope": "Actual firm-grip source-derived travel/BUILD work profile, safe source-indexed strike/recovery and actual tip contact witness; exact Gear manufacture and presentation-state binding. Zero production qualifications until all proofs/native review pass.",
+          "paths": "Existing data/underground/mole-worker lease plus test_mole_profile_driver and test_mole_qualified_profiles. No core owner edits.",
+          "next": "Source-indexed forward-to-strike/retrace motion avoids real below-floor late-cycle pick motion; preserve original, rederive envelopes and native review."
         }
       },
       "lease": {
@@ -862,7 +884,10 @@
         "godot/test/test_underground_world_identities.gd",
         "docs/decisions/1096-room-admission-location-companions.md",
         "docs/decisions/1097-static-profile-route-admission.md",
-        "docs/decisions/1098-profile-filtered-route-search.md"
+        "docs/decisions/1098-profile-filtered-route-search.md",
+        "godot/scripts/core/underground_work_face.gd",
+        "godot/test/test_underground_work_face.gd",
+        "docs/decisions/1099-source-bound-solid-work-face.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1113,6 +1138,21 @@
           "tests": "66 tests/10886 assertions/0 failures; strict/raw all0; analyzer0/2",
           "review": "ug_geometry accepted aae5918b/d8b126a8 correction; MEDIUM final-callback freshness fixed with actual late Catalog/Profile/geometry replacement regressions. No complete path/face permission.",
           "evidence_path": "docs/validation/evidence/underground-static-routes-2026-10-03/"
+        },
+        "solid_work_face_in_progress": {
+          "owner": "/root",
+          "branch": "codex/underground-work-face",
+          "scope": "Cold actual completed-endpoint/source-bound work-profile geometry at an exact solid cube face; no actual claim, Job or productive permission. Real source profile qualification remains complementary UG08.",
+          "decision": "docs/decisions/1099-source-bound-solid-work-face.md",
+          "memory": "One traversal snapshot327680 + two exact-union banks49152 +2048 controls =378880; sequential with Room24N images gives772096 atN16384, no new persistent arena."
+        },
+        "static_profile_paths": {
+          "source": "306c2f15",
+          "registry": "4ed742d8",
+          "integration": "pending frozen full-suite checkpoint",
+          "tests": "71 tests /11039 assertions /0 failures; all strict/raw diagnostics/leaks0; analyzer0/3.",
+          "review": "ug_furnishing independently accepted corrected sticky operation-fault refusal and exact8-int-output regression; source0c597ff7, WorldRoutes874742a3, test57a6542f.",
+          "evidence_path": "docs/validation/evidence/underground-profile-paths-2026-10-03/iteration-3/"
         }
       },
       "lease": {
@@ -1135,10 +1175,14 @@
               "godot/scripts/core/underground_world_structure_scope.gd",
               "godot/test/test_underground_world_structure_scope.gd",
               "godot/test/test_underground_world_structure.gd",
-              "docs/decisions/1097-static-profile-route-admission.md"
+              "docs/decisions/1097-static-profile-route-admission.md",
+              "godot/scripts/core/underground_work_face.gd",
+              "godot/test/test_underground_work_face.gd",
+              "docs/decisions/1099-source-bound-solid-work-face.md",
+              "godot/scripts/core/underground_world_routes.gd"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources.",
-            "branch": "codex/underground-static-route-admission"
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again.",
+            "branch": "codex/underground-work-face"
           }
         ]
       }
@@ -1922,6 +1966,18 @@
       "analyzer_seconds": 225.937,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-8334ce3a/README.md",
       "limits": "Assembled component checkpoint;1095 cut map, room companion scope,1097 static query and authored grip correction are subsequent focused increments. All player workflows and256-resident qualification remain in progress."
+    },
+    {
+      "commit": "3e891a4117da0db1975982a3e5a5cf25329631d3",
+      "outcome": "passed",
+      "full_suite": "10227 test(s), 953231 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 GDScript warning(s) in 0 of 1140 file(s)",
+      "procedure": "Assets absent; delete own .godot; exact clean editor import; full no-argument runner; source and HEAD unchanged; original asset state restored",
+      "suite_seconds": 1271.224,
+      "analyzer_seconds": 227.491,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-3e891a41/README.md",
+      "limits": "Component integration checkpoint includes1095 mapping,1096 preservation,1097 static edge query and reviewed grip. Subsequent1098, ClaimBatch and1099 remain separately tested; first playable Kitchen and full workflow open."
     }
   ],
   "crosscut_fixes": [

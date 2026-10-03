@@ -342,6 +342,77 @@ func test_final_preflight_detects_source_change_after_seal() -> void:
 	assert_true(_owner.abort(token), "discard stale preparation")
 
 
+func test_prepared_readers_require_current_sealed_token_and_preserve_live_state() -> void:
+	"""Prepared facts are available only through the receiver's current sealed token namespace."""
+	var before: PackedByteArray = _owner.state_bytes()
+	var token: int = _begin()
+	var handle: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	var row: Owner.Region = Owner.Region.new()
+	var image: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_owner.prepared_region_into(token, handle, row), &"SPACE_TRANSACTION_UNSEALED", "unsealed row")
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"SPACE_TRANSACTION_UNSEALED", "unsealed survey")
+	assert_equal(_owner.seal(token), &"", "sealed")
+	assert_equal(_owner.prepared_snapshot_into(token + 1, image), &"SPACE_TRANSACTION_UNSEALED", "wrong token")
+	var foreign: Owner = Owner.new(_sources)
+	assert_equal(foreign.configure(_domain, R, O), &"", "separate actual owner")
+	assert_equal(foreign.prepared_snapshot_into(token, image), &"SPACE_TRANSACTION_UNSEALED", "other receiver owns no candidate")
+	assert_equal(_owner.prepared_region_into(token, Vector2i(handle.x, handle.y + 1), row), &"SPACE_REGION_STALE", "full region generation")
+	assert_equal(_owner.prepared_region_into(token, handle, row), &"", "actual candidate reads")
+	assert_equal(row.box, PackedInt32Array([0, 0, 0, 1024, 1024, 1024]), "exact future geometry")
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"", "actual survey reads")
+	assert_equal(image.revision, _owner.revision() + 1, "future revision is explicit")
+	assert_equal(_snapshot().volumes.role.size(), 0, "live world remains unchanged")
+	assert_true(_owner.abort(token), "discard preparation")
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"SPACE_TRANSACTION_UNSEALED", "aborted token")
+	assert_equal(_owner.state_bytes(), before, "reads and abort preserve every live byte")
+
+
+func test_prepared_results_are_copied_and_retain_claims_removals_and_next_generation() -> void:
+	"""No caller can rewrite staged facts or see a removed row through its retired handle."""
+	var token: int = _begin()
+	var old: Vector2i = _put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	_publish(token)
+	token = _begin()
+	assert_equal(_owner.stage_remove(token, old), &"", "remove old solid")
+	var replacement: Vector2i = _put(token, _region([1024, 0, 0, 2048, 1024, 1024], Space.UNFINISHED, _world))
+	_room_claim(token)
+	assert_equal(_owner.seal(token), &"", "sealed replacement")
+	var row: Owner.Region = Owner.Region.new()
+	var image: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_owner.prepared_region_into(token, old, row), &"SPACE_REGION_STALE", "old handle retired")
+	assert_equal(_owner.prepared_region_into(token, replacement, row), &"", "replacement generation")
+	row.box[0] = -8192
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"", "copied candidate")
+	assert_equal(image.volumes.role, PackedInt32Array([Space.UNFINISHED, Space.OBSTACLE]), "actual future roles and Room claim")
+	image.volumes.hi_x[0] = 8192
+	image.live_refs[0] = 123
+	assert_equal(_owner.prepared_region_into(token, replacement, row), &"", "read pristine candidate")
+	assert_equal(row.box, PackedInt32Array([1024, 0, 0, 2048, 1024, 1024]), "caller mutations isolated")
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"", "fresh source identities")
+	assert_equal(image.live_refs[0], _world.x, "World source remains actual")
+	_owner.publish(token)
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"SPACE_TRANSACTION_UNSEALED", "published token cannot reread")
+	assert_equal(_snapshot().volumes.role, PackedInt32Array([Space.UNFINISHED, Space.OBSTACLE]), "exact prepared candidate published")
+
+
+func test_prepared_readers_refuse_actual_source_drift_without_overwriting_outputs() -> void:
+	"""A sealed old source is not future truth after an actual owner changes its structural facts."""
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _hall), &"", "actual Building")
+	var handle: Vector2i = _put(token, _region([0, 0, 0, 1024, 1, 1024], Space.FLOOR_DATUM, _hall))
+	assert_equal(_owner.seal(token), &"", "sealed")
+	var row: Owner.Region = Owner.Region.new()
+	var image: Space.Snapshot = Space.Snapshot.new()
+	row.level = 771
+	image.revision = 991
+	assert_true(_buildings.set_building_interior_id(_hall, 17).ok, "actual structural change")
+	assert_equal(_owner.prepared_region_into(token, handle, row), &"SPACE_SOURCE_DRIFT", "region source drift")
+	assert_equal(_owner.prepared_snapshot_into(token, image), &"SPACE_SOURCE_DRIFT", "survey source drift")
+	assert_equal(row.level, 771, "refusal preserved caller packet")
+	assert_equal(image.revision, 991, "refusal preserved prior caller survey")
+	assert_true(_owner.abort(token), "stale candidate can be discarded")
+
+
 func test_floor_section_generation_cannot_transfer_furniture_to_reused_floor() -> void:
 	"""Removing and reusing the same floor row never silently reparents a bed to another floor."""
 	var bed: Vector2i = _buildings.place_furniture(_room, int(Catalog.FURNITURE_DEFINITION["bed"]), 60 * 128 + 59, 0).ref

@@ -545,6 +545,53 @@ func prepared_has_changes(token: int) -> bool:
 		or _o_a != _s_o_a or _o_b != _s_o_b or _o_c != _s_o_c or _o_d != _s_o_d
 
 
+func prepared_region_into(token: int, handle: Vector2i, out: Region) -> StringName:
+	"""Cold copied facts from this owner's exact sealed candidate; never a caller's future plan."""
+	var code: StringName = prepared_refusal(token)
+	if code != &"":
+		return code
+	if out == null or not _region_live(handle, true):
+		return &"SPACE_REGION_STALE"
+	var row: int = handle.x
+	out.box = _box(row, true)
+	out.role = _s_r_role[row]
+	out.level = _s_r_level[row]
+	out.owner = Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row])
+	out.section = Vector2i(_s_r_section_slot[row], _s_r_section_generation[row])
+	out.claim_ref = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row])
+	out.claim_kind = _s_r_claim_kind[row]
+	return &""
+
+
+func prepared_snapshot_into(token: int, out: Space.Snapshot) -> StringName:
+	"""Cold complete candidate survey, including all claims; callers budget its isolated copy."""
+	var code: StringName = prepared_refusal(token)
+	if code != &"":
+		return code
+	if out == null:
+		return &"SPACE_WORLD_UNBOUND"
+	var image: Space.Snapshot = Space.Snapshot.new()
+	image.world_ref = Vector2i(_s_header[3], _s_header[4])
+	image.revision = _s_header[17]
+	for row: int in _source_capacity:
+		if _s_o_present[row] != 0:
+			image.live_refs.append_array(PackedInt32Array([_s_o_slot[row], _s_o_generation[row]]))
+			image.live_revisions.append(_s_o_revision[row])
+	for row: int in _region_capacity:
+		if _s_r_present[row] == 0:
+			continue
+		var role: int = Space.OBSTACLE if _s_r_claim_kind[row] != CLAIM_NONE else _s_r_role[row]
+		image.volumes.append(_box(row, true), role, _s_r_level[row],
+			Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), _s_r_owner_revision[row])
+	out.version = image.version
+	out.world_ref = image.world_ref
+	out.revision = image.revision
+	out.live_refs = image.live_refs
+	out.live_revisions = image.live_revisions
+	out.volumes = image.volumes
+	return &""
+
+
 func publish(token: int) -> void:
 	"""A coordinator calls this synchronously after successful payment; there are no fallible callbacks."""
 	assert(token != 0 and token == _stage_token and _sealed, "only a preflighted transaction may publish")

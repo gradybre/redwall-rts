@@ -43,6 +43,17 @@ func _resident() -> Vector2i:
 
 # --- the derived row ----------------------------------------------------------------------------
 
+func test_directory_binding_compares_actual_owner_not_coincident_refs() -> void:
+	"""Two independent allocators can issue the same pair; only the borrowed instance qualifies."""
+	var foreign: EntityDirectoryScript = EntityDirectoryScript.new()
+	assert_equal(_resident(), foreign.create(EntityDirectoryScript.KIND_RESIDENT), "pairs coincide")
+	assert_true(_transforms.is_bound_directory(_directory), "actual directory is bound")
+	assert_false(_transforms.is_bound_directory(foreign), "foreign namespace refuses")
+	assert_false(_transforms.is_bound_directory(null), "null never qualifies")
+	assert_equal(_transforms.bound_count(), 0, "reader did not place a transform")
+	assert_equal(_transforms.last_refusal(), TransformsScript.REFUSE_NONE, "reader has no side effect")
+
+
 func test_capacity_is_the_sum_of_the_four_positioned_kinds() -> void:
 	"""systems_architecture.md 2.1: `P = 512 + 1024 + 81920 + 4096 = 87552`."""
 	assert_equal(TransformsScript.TRANSFORM_CAPACITY, 87552, "P is 87552 rows")

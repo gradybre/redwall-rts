@@ -155,6 +155,11 @@ func _init(directory: EntityDirectory) -> void:
 	_assert_bases_tile_the_capacity()
 
 
+func is_bound_directory(candidate: EntityDirectory) -> bool:
+	"""Prove the actual identity namespace; matching numeric entity pairs cannot prove this."""
+	return candidate != null and candidate == _directory
+
+
 func reset() -> void:
 	"""COLD, GUARDED RESET: zero all nine columns and the derived count. Never on a tick path.
 

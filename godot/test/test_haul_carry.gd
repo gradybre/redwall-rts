@@ -58,6 +58,22 @@ func _assert_conserved(message: String) -> void:
 
 # --- the satchel door ----------------------------------------------------------------------
 
+func test_binding_reader_rejects_each_foreign_store_and_null_without_mutation() -> void:
+	"""Exact allocator/owner instances matter even when their live references happen to coincide."""
+	var foreign: HaulWorld = HaulWorld.new()
+	var before: PackedByteArray = _w.inventory.state_bytes()
+	assert_true(_w.carry.binding_matches(_w.inventory, _w.pool, _w.residents, _w.piles), "actual owners")
+	assert_false(_w.carry.binding_matches(foreign.inventory, _w.pool, _w.residents, _w.piles), "inventory")
+	assert_false(_w.carry.binding_matches(_w.inventory, foreign.pool, _w.residents, _w.piles), "claims")
+	assert_false(_w.carry.binding_matches(_w.inventory, _w.pool, foreign.residents, _w.piles), "residents")
+	assert_false(_w.carry.binding_matches(_w.inventory, _w.pool, _w.residents, foreign.piles), "pile owner")
+	assert_false(_w.carry.binding_matches(null, _w.pool, _w.residents, _w.piles), "null refuses")
+	var unbound: HaulCarryScript = HaulCarryScript.new()
+	assert_false(unbound.binding_matches(null, null, null, null), "null identity never qualifies")
+	assert_false(unbound.binding_matches(_w.inventory, _w.pool, _w.residents, _w.piles), "unbound refuses")
+	assert_equal(_w.inventory.state_bytes(), before, "readers preserve actual inventory bytes")
+
+
 func test_a_satchel_is_minted_only_by_its_own_door() -> void:
 	"""create_container refuses the satchel policy; create_satchel mints an unplaced, closed row."""
 	var refused: InventoryScript.OpResult = _w.inventory.create_container(_w.residents.ref_of(_mouse),

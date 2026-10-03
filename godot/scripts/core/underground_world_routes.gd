@@ -799,19 +799,65 @@ func _certificate_refusal(ref: Vector2i, selection: Profiles.Selection) -> Strin
 	var code: StringName = _hot_refusal()
 	if code == &"":
 		code = _selection_refusal(selection)
+	return code if code != &"" else _committed_profile_edge_refusal(ref)
+
+
+func _committed_profile_edge_refusal(ref: Vector2i) -> StringName:
+	"""A descriptor can consume only its own bit in this full-generation, current committed edge."""
+	var code: StringName = _current_certificate_refusal(ref)
 	if code != &"":
 		return code
-	if ref.x < 0 or ref.x >= EDGE_CAPACITY or ref.y <= 0 or _live.generations[ref.x] != ref.y \
-			or _live.geometry[ref.x] != _owner().revision() or _live.content[ref.x] != selection.content_revision \
-			or _live_catalog_revision <= 0 or _live_catalog_revision != _catalog.content_revision() \
-			or not _live.admits(ref.x, selection.profile_id):
-		return &"WORLD_ROUTE_CERTIFICATE_STALE"
 	code = _routes().edge_metadata_into(ref, _edge)
 	if code == &"" and (_edge.geometry_revision != _live.geometry[ref.x] \
-			or _edge.content_revision != _live.content[ref.x] or _edge.mode != selection.mode \
-			or _edge.posture != selection.posture):
+			or _edge.content_revision != _live.content[ref.x] or _edge.mode != _descriptor.mode \
+			or _edge.posture != _descriptor.posture):
 		code = &"WORLD_ROUTE_CERTIFICATE_STALE"
-	return code
+	return code if code != &"" else _current_certificate_refusal(ref)
+
+
+func _current_certificate_refusal(ref: Vector2i) -> StringName:
+	"""After the last callback, pure actual-owner reads pin the complete current certificate again."""
+	if ref.x < 0 or ref.x >= EDGE_CAPACITY or ref.y <= 0 or _live.generations[ref.x] != ref.y \
+			or _live.geometry[ref.x] != _owner().revision() or _live.content[ref.x] != _descriptor.content_revision \
+			or _descriptor.content_revision != _profiles.content_revision() \
+			or _live_catalog_revision <= 0 or _live_catalog_revision != _catalog.content_revision() \
+			or not _live.admits(ref.x, _descriptor.profile_id) or not _routes().is_live_edge(ref) \
+			or not _residents.directory().is_valid_of_kind(_domain._world, Directory.KIND_WORLD):
+		return &"WORLD_ROUTE_CERTIFICATE_STALE"
+	return REFUSE_CONTEXT if _owner().has_prepared() else &""
+
+
+func static_profile_edge_refusal(edge: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int) -> StringName:
+	"""Read static full-profile eligibility before a Job exists; this grants no actor, pace or movement."""
+	if _reading:
+		return REFUSE_BUSY
+	_reading = true
+	var graph: Routes = _routes()
+	var owner: Owner = _owner()
+	var sources: Owner.CoreSources = _sources()
+	var locations: Locations = _locations()
+	var code: StringName = REFUSE_BINDING
+	if graph != null and owner != null and sources != null and locations != null \
+			and exact_binding(graph, locations, owner, _budget):
+		code = _static_profile_edge_refusal(edge, profile_id, profile_revision, content_revision)
+	return _finish_read(code)
+
+
+func _static_profile_edge_refusal(edge: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int) -> StringName:
+	"""The actual loaded immutable descriptor and published cache must agree; caller metadata is insufficient."""
+	var code: StringName = _hot_refusal()
+	if code == &"":
+		code = _profiles.descriptor_into(profile_id, content_revision, _descriptor)
+	if code == &"" and (_descriptor.profile_revision != profile_revision \
+			or _descriptor.certificate_flags != Profiles.CERT_REQUIRED):
+		code = &"WORLD_ROUTE_PROFILE_STALE"
+	if code == &"":
+		code = _committed_profile_edge_refusal(edge)
+	if code == &"":
+		code = _hot_refusal()
+	return code if code != &"" else _current_certificate_refusal(edge)
 
 
 func travel_refusal(edge: Vector2i, selection: Profiles.Selection) -> StringName:

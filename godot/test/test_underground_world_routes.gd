@@ -54,6 +54,21 @@ class ReenteringTerrain extends Terrain:
 	var target: WeakRef = null
 	var reentry_code: StringName = &""
 	var preparation_code: StringName = &""
+	var binding_countdown: int = 0
+	var binding_probe: Callable = Callable()
+	var binding_probe_count: int = 0
+
+	func binding_refusal() -> StringName:
+		"""Replace an actual source only after its normal binding check has returned."""
+		var code: StringName = super.binding_refusal()
+		if binding_countdown > 0:
+			binding_countdown -= 1
+			if binding_countdown == 0:
+				var probe: Callable = binding_probe
+				binding_probe = Callable()
+				binding_probe_count += 1
+				probe.call()
+		return code
 
 	func exclusions_refusal(bounds: PackedInt32Array) -> StringName:
 		"""Try a nested scratch read and transaction before returning the actual unchanged local exclusions."""
@@ -240,6 +255,7 @@ func test_unbound_adapter_cannot_admit_or_publish_actual_routes() -> void:
 	assert_equal(binding.binding_refusal(), Binding.REFUSE_BINDING, "no remembered configured boolean")
 	assert_equal(binding.begin_prepare(1).error, Binding.REFUSE_BINDING, "no unbound candidate")
 	assert_equal(binding.travel_refusal(Vector2i(0, 1), Profiles.Selection.new()), Binding.REFUSE_BINDING, "no cached permission")
+	assert_equal(binding.static_profile_edge_refusal(Vector2i(0, 1), 0, 1, 1), Binding.REFUSE_BINDING, "no unbound static permission")
 	assert_equal(binding.publish(1), Binding.REFUSE_CONTEXT, "no unbound graph publication")
 	assert_false(binding.abort(1), "no foreign token cancellation")
 
@@ -719,3 +735,96 @@ func test_reentrant_local_source_read_cannot_replace_current_actor_scratch() -> 
 	var actor: Routes.Actor = Routes.Actor.new()
 	assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual actor retained")
 	assert_true(actor.point.x > X + 512, "normal next motion still works")
+
+
+func test_static_profile_edge_reads_actual_certificate_without_admitting_actor_or_job() -> void:
+	"""Room planning can observe a complete travel profile without fabricating a selected resident or work Job."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var directory: PackedByteArray = _jobs.directory().state_bytes()
+	var geometry: PackedByteArray = _owner.state_bytes()
+	var before: Transforms.Pose = Transforms.Pose.new()
+	assert_true(_transforms.read_into(_worker, before), "actual initial transform")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"", "walking profile has a real committed bit")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 1, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "climb profile cannot borrow walking eligibility")
+	assert_equal(_jobs.directory().state_bytes(), directory, "no resident, Room or Job allocated")
+	assert_equal(_owner.state_bytes(), geometry, "no void, support or geometry revision created")
+	assert_true(_routes.read_actor_into(_worker, Routes.Actor.new()) != &"", "observer never admits or relocates a resident")
+	var after: Transforms.Pose = Transforms.Pose.new()
+	assert_true(_transforms.read_into(_worker, after), "actual final transform")
+	assert_equal(Vector3i(after.x, after.y, after.z), Vector3i(before.x, before.y, before.z), "transform unchanged")
+	assert_true(_budget.is_quiescent(), "fixed-packet read acquires no cold lease")
+
+
+func test_static_profile_edge_refuses_wrong_identity_content_or_unpublished_candidate() -> void:
+	"""Full generations, exact immutable profile revisions and actual successful publication all remain mandatory."""
+	_actual_fixture()
+	var token: int = _begin()
+	var added: Routes.Result = _routes.stage_add(token, _edge())
+	assert_equal(added.error, &"", "private actual candidate")
+	assert_equal(_binding.static_profile_edge_refusal(added.ref, 0, 1, 1), Binding.REFUSE_BUSY, "prepared masks cannot admit planning")
+	_end(token)
+	assert_equal(_binding.static_profile_edge_refusal(added.ref, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "aborted candidate has no live certificate")
+	var edge: Vector2i = _publish_route()
+	assert_equal(_binding.static_profile_edge_refusal(Vector2i(edge.x, edge.y + 1), 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "numeric slot alias refuses")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 2, 1), &"WORLD_ROUTE_PROFILE_STALE", "profile revision cannot alias")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 2), &"PROFILE_SELECTION_STALE", "content revision cannot alias")
+	assert_equal(_binding.static_profile_edge_refusal(edge, -1, 1, 1), &"PROFILE_SELECTION_STALE", "absent profile")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"", "failed observations never poison actual valid content")
+
+
+func test_static_profile_edge_refuses_pending_or_replaced_geometry_and_catalog() -> void:
+	"""Completed topology alone cannot outlive the exact geometric and content qualification it was given."""
+	_actual_fixture()
+	var edge: Vector2i = _publish_route()
+	var token: int = _stage_distant_geometry()
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), Binding.REFUSE_CONTEXT, "uncommitted geometry refuses")
+	assert_true(_owner.abort(token), "discard geometry candidate")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"", "discard retains earlier qualification")
+	assert_equal(_load_catalog(2), &"", "real catalog content replacement")
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "old catalog mask refuses")
+	token = _begin()
+	assert_equal(_routes.stage_refresh(token, edge), &"", "current catalog gets a fresh complete proof")
+	assert_equal(_binding.seal(token), &"", "fresh proof sealed")
+	assert_equal(_binding.publish(token), &"", "fresh actual mask published")
+	_end(token)
+	token = _stage_distant_geometry()
+	_owner.publish(token)
+	assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "unrelated geometry revision still invalidates mask")
+
+
+func _replace_catalog_during_final_binding() -> void:
+	"""Reload the real immutable catalog after the second successful terrain binding check."""
+	assert_equal(_load_catalog(2), &"", "actual catalog mutation within final callback")
+
+
+func _replace_profiles_during_final_binding() -> void:
+	"""Replace actual loaded content, retaining the same numeric profile IDs and separate catalog object."""
+	var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	assert_true(_residents.spatial_profile_identity_into(_worker, identity), "real profile identity")
+	var bytes: PackedByteArray = ContentFixture.synthetic_profile_image(identity, 2)
+	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 2), &"", "actual profiles replaced")
+
+
+func _publish_geometry_during_final_binding() -> void:
+	"""An unrelated actual geometry publication still invalidates every old edge certificate."""
+	var token: int = _stage_distant_geometry()
+	_owner.publish(token)
+	assert_equal(_owner.last_published_token(), token, "actual geometry publication in final callback")
+
+
+func test_static_profile_edge_rechecks_actual_sources_after_final_binding_callback() -> void:
+	"""Success from the last callback cannot publish a stale old catalog, profile or geometry mask."""
+	for probe: Callable in [_replace_catalog_during_final_binding, _replace_profiles_during_final_binding,
+			_publish_geometry_during_final_binding]:
+		_actual_fixture()
+		var edge: Vector2i = _publish_route()
+		var directory: PackedByteArray = _jobs.directory().state_bytes()
+		_terrain.binding_probe = probe
+		_terrain.binding_countdown = 2
+		assert_equal(_binding.static_profile_edge_refusal(edge, 0, 1, 1), &"WORLD_ROUTE_CERTIFICATE_STALE", "late real-source mutation refuses")
+		assert_equal(_terrain.binding_probe_count, 1, "probe fired only at the final binding callback")
+		assert_equal(_terrain.binding_countdown, 0, "the intended last callback was reached")
+		assert_equal(_jobs.directory().state_bytes(), directory, "no actor or Job was created")
+		assert_true(_routes.read_actor_into(_worker, Routes.Actor.new()) != &"", "no resident admission")
+		after_each()

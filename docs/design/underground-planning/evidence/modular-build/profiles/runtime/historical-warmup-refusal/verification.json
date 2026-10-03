@@ -1,0 +1,51 @@
+{
+  "schema": 1,
+  "scope": "sampled staged runtime evidence only",
+  "command": [
+    "godot",
+    "--path",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_profiles.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-spec.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-native.json"
+  ],
+  "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+  },
+  "cases": 47,
+  "sources": 522,
+  "sampled_poses": 3736,
+  "matrix_checks": 107040,
+  "matrix_max_observed_error_m": 0,
+  "unexpected_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "production_qualified": false,
+  "qualified_profile_count": 0,
+  "report": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-native.json",
+    "sha256": "68363879a389eefd9b34e1c45c9f57b5bb5266979eac390af5c270536a70b25d"
+  },
+  "log": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-native.log",
+    "sha256": "a14ac3f23027f1f33646ba034357645cfde3b2ac7566f30c14d1d4948fc3fe58"
+  },
+  "spec": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-spec.json",
+    "sha256": "fd80a2494220622e4222f9cfa91c41cdd0ac9373d68d4e7312311db5b7664ce9"
+  }
+}

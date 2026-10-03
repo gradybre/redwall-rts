@@ -105,3 +105,56 @@ The earlier failed `grow_enabled` amendment is retained there: its nonzero
 diagnostic/leak counts are a failure, not part of the passing claim. The final
 source uses Godot's actual `grow` property. The separate sampled runtime actor
 capture remains a following implementation and review scope.
+
+## Follow-up: actual staged runtime profile capture
+
+Add `tools/capture_underground_profiles.gd` and its adversarial Python tests,
+with reproduction and evidence under the existing `profiles/runtime/` path.
+Existing staging/import tools run unchanged against the read-only source
+library, using only the isolated worktree's ignored assets/cache. No paid
+generation or change to the original library is involved.
+
+The capture reads actual imported bodies, remapped animation tracks, all
+four/eight skin influences, final modifier poses and actual fitted held meshes.
+It records the imported Skin name/index mapping and compares each captured
+matrix against the native renderer's uploaded palette. The `skeleton_updated`
+signal precedes that upload, so the comparison runs in the following deferred
+callback using retained final matrices. The next pose cannot advance until
+that comparison completes. This ordering was measured, not inferred from a
+matching node name or a rest-pose bounding box.
+
+Every directly loaded import, generated scene, literal script-load dependency,
+project autoload and capture/staging implementation is source hashed. Missing
+species, clip, life-stage binding, imported-scene pin or attachment refuses
+rather than borrowing another state. The whole output bundle is preflighted before any write, then input, report,
+log and verification are create-only. A fresh output directory is required
+for another batch; refusal preserves manifests and source bytes through aliases.
+Body and attachment vertex/surface budgets bound the offline workload.
+
+An intermediate run exposed an ArrayMesh-only API being called on the demo's
+actual CylinderMesh log. Godot emitted script errors, continued with omitted
+attachments and exited zero. That run is preserved as rejected evidence. The
+corrected helper explicitly handles ArrayMesh and PrimitiveMesh, and a strict
+outer verifier now requires complete identities/attachments, native palette
+observations and zero raw diagnostics/leaks before accepting any batch.
+
+Independent review also found that the warm-up had completed both non-looping
+hammer clips before sampling. That rejected batch and its old verification are
+preserved separately. The tool now restarts the source clip at sample zero,
+records its observed timeline and checks exact expected pose/palette totals.
+Both actual hammer cases span all 58 expected samples from zero to the source
+endpoint and prove nonzero bone-pose changes. This is an explicit reset; it
+does not qualify the reset transient or continuous intervals.
+
+The corrected candidate completed **47 cases / 3736 sampled poses / 522 source
+pins / 107040 exact observed native matrix comparisons**, with **zero unexpected
+diagnostics and leaks**. The 30 adversarial tests pass; the tool's analyzer
+reports `0 GDScript warning(s) in 0 of 1 file(s)`. Raw command/output/source
+evidence is retained in the runtime directory for independent review.
+
+These are presentation measurements only. They do not establish continuous
+motion or GPU numerical residuals, transition/recovery coverage, actual
+resident life-stage and gear/cargo identities, authoritative state costs,
+root/support contacts or an accepted profile revision. Sampled bounds never
+become integer gameplay clearances or catalog dimensions. This follow-up does
+not close UG08 or MOVE-G01–05 and adds no new gameplay policy.

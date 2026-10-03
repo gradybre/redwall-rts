@@ -18,6 +18,9 @@ class Authority extends Buildings.SpatialAuthority:
 	var area_room: Vector2i = NULL_REF
 	var area: int = 0
 	var service_room: Vector2i = NULL_REF
+	var candidate: Directory.CreateCandidate = null
+	var candidate_type: int = -1
+	var publishing_room: bool = false
 
 	func buildings_owner() -> RefCounted:
 		"""Compare actual store objects even when another Directory reuses the same numbers."""
@@ -32,6 +35,15 @@ class Authority extends Buildings.SpatialAuthority:
 	func area_of_room(room: Vector2i) -> Buildings.OpResult:
 		"""Return a deliberately explicit synthetic floor area under its actual Room identity."""
 		return Buildings.OpResult.new(room == area_room, &"", area, area_room)
+
+	func room_candidate_refusal(p_candidate: Directory.CreateCandidate, room_type: int) -> StringName:
+		"""This explicit synthetic future-room permit supplements the real allocator validation."""
+		return &"" if candidate != null and p_candidate == candidate and room_type == candidate_type \
+			else Buildings.REFUSE_SPATIAL_COMMAND
+
+	func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
+		"""Only one exact fixture publication call may create the selected candidate."""
+		return publishing_room and candidate != null and room == candidate.ref and room_type == candidate_type
 
 	func service_refusal(room: Vector2i) -> StringName:
 		"""Synthetic service qualification is separate from the persisted validity flag."""
@@ -175,6 +187,73 @@ func test_room_identity_is_real_permanent_and_not_limited_to_sixteen_surface_roo
 	assert_equal(_store.tile_count_of_room(refs[0]).error, Buildings.REFUSE_SPATIAL_COORDINATE, "zero links is not area")
 	assert_equal(_store.tile_offset_of_room(refs[0]).error, Buildings.REFUSE_SPATIAL_COORDINATE, "no ground offset")
 	assert_equal(_store.room_tile_at(refs[0], 0).error, Buildings.REFUSE_SPATIAL_COORDINATE, "no flattening")
+
+
+func _candidate(kind: int = Buildings.ROOM_TYPE_KITCHEN) -> Directory.CreateCandidate:
+	"""Prepare exact actual allocator scratch while the synthetic publication window stays closed."""
+	var candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
+	assert_equal(_store.directory().peek_create_into(Directory.KIND_ROOM, candidate), &"", "future actual Room")
+	_authority.candidate = candidate
+	_authority.candidate_type = kind
+	return candidate
+
+
+func test_candidate_preflight_never_creates_until_exact_publication_window() -> void:
+	"""Sealable future facts and permission to spend an identity are separate boundaries."""
+	var candidate: Directory.CreateCandidate = _candidate()
+	var before: PackedByteArray = _image()
+	assert_equal(_store.spatial_room_candidate_refusal(Buildings.ROOM_TYPE_KITCHEN, candidate), &"", "cold candidate qualifies")
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate).ok, "preparation is not publication")
+	assert_false(_store.designate_spatial_room(Buildings.ROOM_TYPE_KITCHEN).ok, "candidate cannot open legacy create")
+	assert_equal(_image(), before, "all pre-publication calls unchanged")
+	_authority.publishing_room = true
+	var made: Buildings.OpResult = _store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate)
+	_authority.publishing_room = false
+	assert_true(made.ok, "exact publication succeeds")
+	assert_equal(made.ref, candidate.ref, "exact sealed identity")
+	assert_equal(made.value, candidate.typed_row, "exact typed row")
+	assert_equal(_store.directory().get_persistent_id(made.ref), candidate.persistent_id, "exact PID")
+	assert_equal(_store.spatial_kind_of_room(made.ref).value, Buildings.ROOM_SPACE_UNDERGROUND, "real underground kind")
+	assert_equal(_store.room_building_ref_of(made.ref), NULL_REF, "no fake parent")
+	assert_false(_store.room_is_valid(made.ref), "planned identity does not complete shell")
+	assert_equal(_store.room_tile_links_used(), 0, "no surface alias")
+	before = _image()
+	_authority.publishing_room = true
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate).ok, "spent candidate refuses")
+	assert_equal(_image(), before, "duplicate spends nothing")
+
+
+func test_candidate_wrong_kind_foreign_owner_and_wrong_type_leave_both_stores_unchanged() -> void:
+	"""Exact authority arguments cannot bypass real Directory and Room-type gates."""
+	var candidate: Directory.CreateCandidate = _candidate()
+	_authority.publishing_room = true
+	var before: PackedByteArray = _image()
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_DORMITORY, candidate).ok, "wrong permanent purpose")
+	assert_false(_store.designate_spatial_room_candidate(-1, candidate).ok, "unknown purpose")
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, null).ok, "null packet")
+	_store.directory().peek_create_into(Directory.KIND_FURNITURE, candidate)
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate).ok, "non-Room typed capacity")
+	var foreign: Directory = Directory.new()
+	foreign.peek_create_into(Directory.KIND_ROOM, candidate)
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate).ok, "identical foreign numbers")
+	assert_equal(_image(), before, "all real columns/heaps unchanged")
+	assert_equal(foreign.total_live_count(), 0, "foreign Directory unchanged")
+
+
+func test_candidate_stale_after_intervening_allocation_cannot_roll_back_identity_history() -> void:
+	"""The pending Room may retry only with a newly prepared full identity and spatial candidate."""
+	var candidate: Directory.CreateCandidate = _candidate()
+	var intervening: Vector2i = _store.directory().create(Directory.KIND_BUILDING)
+	assert_true(_store.directory().destroy(intervening), "intervening allocation retired")
+	_authority.publishing_room = true
+	var before: PackedByteArray = _image()
+	assert_false(_store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate).ok, "stale candidate refuses")
+	assert_equal(_image(), before, "neither generation nor PID is rolled back")
+	candidate = _candidate()
+	var made: Buildings.OpResult = _store.designate_spatial_room_candidate(Buildings.ROOM_TYPE_KITCHEN, candidate)
+	assert_true(made.ok, "freshly prepared candidate publishes")
+	assert_equal(made.ref.y, 2, "actual new generation")
+	assert_equal(_store.directory().get_persistent_id(made.ref), 2, "actual new PID")
 
 
 func test_unknown_type_wrong_permit_and_stale_identity_refuse_without_writes() -> void:

@@ -278,6 +278,14 @@ class SpatialAuthority extends RefCounted:
 		"""Permit only a synchronous proved coordinator operation, including its exact arguments."""
 		return &"ROOM_SPATIAL_AUTHORITY"
 
+	func room_candidate_refusal(_candidate: EntityDirectory.CreateCandidate, _room_type: int) -> StringName:
+		"""Prove one exact currently prepared future Room; this read alone never permits allocation."""
+		return REFUSE_SPATIAL_COMMAND
+
+	func is_publishing_room_admission(_room: Vector2i, _room_type: int) -> bool:
+		"""True only in the actual coordinator's synchronous sealed Room publication window."""
+		return false
+
 	func area_of_room(_room: Vector2i) -> OpResult:
 		"""Read actual owned floor area in squared fixed units, never a TileLinks approximation."""
 		return OpResult.new(false, &"ROOM_SPATIAL_AREA_UNPROVED", 0, Vector2i(-1, 0))
@@ -1017,6 +1025,39 @@ func designate_spatial_room(room_type: int) -> OpResult:
 	var ref: Vector2i = _directory.create(EntityDirectory.KIND_ROOM)
 	if ref == NULL_REF:
 		return _refuse(_directory.last_refusal())
+	return _publish_spatial_room(ref, room_type)
+
+
+func spatial_room_candidate_refusal(room_type: int, candidate: EntityDirectory.CreateCandidate) -> StringName:
+	"""Check exact future identity and room authority without spending either allocator or a PID."""
+	if room_type < 0 or room_type >= ROOM_TYPE_COUNT:
+		return REFUSE_UNKNOWN_ROOM_TYPE
+	if candidate == null or candidate.kind != EntityDirectory.KIND_ROOM:
+		return EntityDirectory.REFUSAL_CANDIDATE
+	var code: StringName = _directory.candidate_refusal(candidate)
+	if code != REFUSE_NONE:
+		return code
+	var authority: SpatialAuthority = spatial_authority()
+	if authority == null or authority.buildings_owner() != self:
+		return REFUSE_SPATIAL_AUTHORITY
+	return authority.room_candidate_refusal(candidate, room_type)
+
+
+func designate_spatial_room_candidate(room_type: int, candidate: EntityDirectory.CreateCandidate) -> OpResult:
+	"""Commit one sealed future Room only in the same actual authority's exact publication window."""
+	var code: StringName = spatial_room_candidate_refusal(room_type, candidate)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	if not spatial_authority().is_publishing_room_admission(candidate.ref, room_type):
+		return _refuse(REFUSE_SPATIAL_COMMAND)
+	var ref: Vector2i = _directory.create_candidate(candidate)
+	if ref == NULL_REF:
+		return _refuse(_directory.last_refusal())
+	return _publish_spatial_room(ref, room_type)
+
+
+func _publish_spatial_room(ref: Vector2i, room_type: int) -> OpResult:
+	"""Initialize every actual Room column through the existing row path; no flat tile is claimed."""
 	var row: int = _directory.get_typed_row(ref)
 	_write_room_row(row, ref, NULL_REF, room_type, PackedInt32Array())
 	_r_spatial_kind[row] = ROOM_SPACE_UNDERGROUND

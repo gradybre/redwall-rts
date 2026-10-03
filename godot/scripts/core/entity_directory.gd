@@ -21,8 +21,9 @@ extends RefCounted
 ## ARCH-SAVE-002 section 3 reads and writes this store in bulk through
 ## `copy_columns_into()` and `restore_columns()`: the six persisted columns move
 ## as a set, and every derived member is rebuilt from them rather than carried.
-## Those two are the ONLY way to reach the generation of an inactive slot, which
-## every other reader hides because it answers for live rows alone. The
+## Those bulk APIs expose inactive generations only to persistence. Decision 1083's
+## read-only CreateCandidate additionally exposes exactly the next allocation's
+## future identity; it never makes that identity live or reserves either heap. The
 ## generations here are the DIRECTORY namespace and no other -- `inventory.gd`
 ## carries its own container and lot generations, and `navigation.gd` its own
 ## route-descriptor generation, all independently of these.
@@ -129,6 +130,31 @@ const REFUSAL_UNKNOWN_KIND: StringName = &"UNKNOWN_KIND"
 const REFUSAL_DIRECTORY_FULL: StringName = &"CAPACITY_DIRECTORY"
 const REFUSAL_PERSISTENT_ID: StringName = &"PERSISTENT_ID_EXHAUSTED"
 const REFUSAL_LIVING_CAP: StringName = &"LIVING_CAP_RESIDENT"
+const REFUSAL_CANDIDATE: StringName = &"CREATE_CANDIDATE_STALE_OR_FOREIGN"
+
+
+class CreateCandidate extends RefCounted:
+
+	## Cold caller-owned observation, not a reservation, identity, or persisted allocator row.
+	## Every field is revalidated against the exact live owner before publication. Do not retain
+	## this packet across world reset/restore; publication authority must pin its actual World.
+	var ref: Vector2i = NULL_REF
+	var kind: int = KIND_ANY
+	var typed_row: int = NULL_SLOT
+	var persistent_id: int = 0
+	var _directory: WeakRef = null
+
+	func directory_owner() -> RefCounted:
+		"""Return the actual observed Directory, never a coincident numeric identity space."""
+		return _directory.get_ref() if _directory != null else null
+
+	func reset() -> void:
+		"""Erase only this scratch observation; no owner allocation was ever reserved."""
+		ref = NULL_REF
+		kind = KIND_ANY
+		typed_row = NULL_SLOT
+		persistent_id = 0
+		_directory = null
 
 ## Bulk column refusals, read through `last_column_refusal()` and never through `last_refusal()`.
 ## ARCH-ID-004 numbers the `create()` codes above; it publishes no registry for column operations,
@@ -216,6 +242,47 @@ func create_refusal(kind: int) -> StringName:
 	(decision 0534's demolition admit), without restating these rules.
 	"""
 	return _refuse_create(kind)
+
+
+func peek_create_into(kind: int, out: CreateCandidate) -> StringName:
+	"""Observe both next min-heap roots and the next PID without reserving or copying an allocator."""
+	if out == null:
+		return REFUSAL_CANDIDATE
+	out.reset()
+	var code: StringName = _refuse_create(kind)
+	if code != REFUSAL_NONE:
+		return code
+	var slot: int = _free_heap[0]
+	out.ref = Vector2i(slot, _generation[slot] + 1)
+	out.kind = kind
+	out.typed_row = _heap_index[_kind_base[kind]]
+	out.persistent_id = _next_persistent_id
+	out._directory = weakref(self)
+	return REFUSAL_NONE
+
+
+func candidate_refusal(candidate: CreateCandidate) -> StringName:
+	"""Recheck exact owner, capacity, both roots, generation and PID; refusal writes no state byte."""
+	if candidate == null or candidate.directory_owner() != self:
+		return REFUSAL_CANDIDATE
+	var code: StringName = _refuse_create(candidate.kind)
+	if code != REFUSAL_NONE:
+		return code
+	var slot: int = _free_heap[0]
+	if candidate.ref != Vector2i(slot, _generation[slot] + 1) \
+			or candidate.typed_row != _heap_index[_kind_base[candidate.kind]] \
+			or candidate.persistent_id != _next_persistent_id:
+		return REFUSAL_CANDIDATE
+	return REFUSAL_NONE
+
+
+func create_candidate(candidate: CreateCandidate) -> Vector2i:
+	"""Publish the exact current observation through the existing allocator, with no generation rollback."""
+	var code: StringName = candidate_refusal(candidate)
+	if code != REFUSAL_NONE:
+		_last_refusal = code
+		return NULL_REF
+	return create(candidate.kind)
 
 
 func _publish_row(slot: int, kind: int, row: int) -> Vector2i:
@@ -399,9 +466,9 @@ func copy_columns_into(out_active: PackedByteArray, out_generation: PackedInt32A
 	"""Copy the six persisted columns into caller-owned buffers. False refuses; see
 	`last_column_refusal()`.
 
-	ARCH-SAVE-002 §3's capture step, and the ONLY way to read the generation of an inactive slot:
-	every other reader answers for live slots alone, so the free and retired generations the
-	persistence registry requires to survive verbatim are unreachable without this. These are
+	ARCH-SAVE-002 §3's capture step, and the only bulk reader of inactive generations. The cold
+	CreateCandidate observes only the next allocation's future identity; all other readers
+	answer for live slots alone. Persistence must still use these complete columns. These are
 	DIRECTORY generations -- not `inventory.gd`'s container or lot generation, and not
 	`navigation.gd`'s route-descriptor generation.
 

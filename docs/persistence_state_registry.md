@@ -1443,3 +1443,16 @@ readers introduce no new authoritative, derived or transient retained state.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Reused exact actual Room facts | -- | -- | -- | Scratch is initialized once and never grants source permission | 3 | -- | Decision1093. Nested CoreSources `_room_identity` is one six-I32 packet, 24 bytes, inside the unchanged shared bindings reservation. The actual Buildings helper reads full generation, purpose, spatial kind, parent and surface TileLinks without allocating OpResult. Public source output is still cleared before refusal; underground b/c stay zero. No authoritative column, canonical ordinal or wire field changes; source lookup remains bounded linear. |
+
+
+### `godot/scripts/core/underground_room_bindings.gd` — actual Room admission preflight
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Authored Level record and exact admission token | -- | -- | -- | No active synchronous Room preflight at save/frame/input boundary | 3 | -- | Decision1092. One reused LevelCatalog.Record contains full World8 plus ten I64 values80 and bool1 =89 logical bytes; `_room_token` adds8, for97 added retained/reused bytes and226 total RoomBindings logical bytes with existing129 mask scratch. Two weak coordinator/catalog links, native headers and borrowed actual owner references remain in1072's shared bindings/growth reservation. No authoritative state or saved pointer. |
+| Private exact admission plan and sequential Footprint/compositor lifetime | -- | -- | -- | `_room_pin` and `_room_request` null after every return | 3 | -- | Decision1092. Cold-only RoomPlan metadata60 plus8N copied cells; simultaneous possible plan images16N are admitted before any copy. Full actual World cold token covers max(975488+16N+2048,2192N+2048), including the temporary conservative Dictionary/native-growth allowance. Exact scalar/cell comparisons, full owner identity and lease are rechecked after callbacks; private plan drops before exact token release. The temporary477-cell technical bound is explicitly not gameplay policy; packed validation and larger-plan coexistence must close before production activation. |
+
+### `godot/scripts/core/underground_room_orders.gd` — exact Room cold handshake
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Original request, exact Budget identity and retained cold token | -- | -- | -- | `_room_request` and `_room_budget` null; `_room_cold_token`0 outside the synchronous admission | 3 | -- | Decision1092. One added I64 token8 logical bytes; original request and actual Budget are strong references only inside the exclusive call/cleanup scope. Existing candidate/plan scratch is reused and clears before provider release. Successful provider return alone grants no permission: actual Budget.covers and the original token are required before copies, callbacks and Directory publication. Combined with concrete provider additions, total retained/reused logical delta105 bytes, no packed/canonical/wire schema change. |

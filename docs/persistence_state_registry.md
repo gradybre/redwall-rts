@@ -1120,7 +1120,7 @@ service mutation; accepted receipts must resolve actual live projects on load.
 | Reserved output mass | `_output_mass_g` | 8 | `Construction.CONSTRUCTION_CAPACITY` = 82944 | 0 | 1 | §6 AUXILIARY_STATE | Already reserved finite Inventory headroom, never a virtual output buffer. |
 | Receipt free arena and metadata | `_free`, `_r_next`, `_r_item`, `_r_quality`, `_r_provenance`, `_r_recipe` | 4 | `_capacity` <= 32768 | Next -1; unused metadata 0 | 1 | §6 AUXILIARY_STATE | Deterministic fixed SoA receipt pool, requested capacity in 1..32768 and no larger than actual Reservations.row_capacity(); invalid requests refuse before allocation, without clamping into a usable owner. No per-input-lot truncation. Free count and capacity are saved control scalars; capacity exhaustion refuses before consumption. |
 | Receipt input quantities and exact ages | `_r_quantity`, `_r_age`, `_r_remainder` | 8 | `_capacity` <= 32768 | 0 | 1 | §6 AUXILIARY_STATE | Actual consumed input metadata for cancellation; not another loose-goods ledger. |
-| Declared cancellation losses by purpose | `_lost_milli` | 8 | `LOSS_CELL_CAPACITY` = 768 | 0 | 1 | §6 AUXILIARY_STATE | Decisions 1069/1073. Three historical per-item domains: excavation, spatial furniture, spoil tips. Additional 4096 persistent bytes and 4096 per staged image. Global earth sums domains once; support reads excavation only. Loss survives project retirement and is not derivable. |
+| Declared cancellation losses by purpose | `_lost_milli` | 8 | `LOSS_CELL_CAPACITY` = 1024 | 0 | 1 | §6 AUXILIARY_STATE | Decisions 1069/1073/1102. Four historical per-item domains: excavation, spatial furniture, spoil tips, connector installation. Additional6144 persistent bytes and6144 per staged image versus the original excavation-only column. Global earth sums domains once; support reads excavation only. Loss survives project retirement and is not derivable. |
 | Staged metadata | `_s_item`, `_s_quality`, `_s_provenance`, `_s_recipe` | 4 | `_capacity` <= 32768 | 0 outside populated prefix | 3 | -- | Cold transaction scratch, overwritten before read. |
 | Staged quantities and ages | `_s_quantity`, `_s_age`, `_s_remainder` | 8 | `_capacity` <= 32768 | 0 outside populated prefix | 3 | -- | Captured before Inventory may retire input lots; becomes authoritative only after commit. |
 | Staged item totals, returns and rounding carries | `_s_totals`, `_s_returned`, `_s_carry` | 8 | `Inventory.ITEM_CAPACITY` = 256 | 0 | 3 | -- | Cleared for each transaction; scratch count and IntResult are transient. |
@@ -1541,3 +1541,33 @@ frames remain within the shared WorkFace control envelope when called there.
 plus one finite-query guard; the caller pays that budget before local work. The
 query checks actual current local protections after observation callbacks; it
 does not mint physical-space or work permission, or initialize a missing binding.
+
+### `godot/scripts/core/underground_connector_recipes.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable source revisions and row count | `_header` | 8 | `4` = 4 | Zero until a complete successful source load | 2 | §1 WORLD | Decision1102. Recipe, connector-catalog and frontier revisions plus loaded part count. One immutable source bank, not per-placement accounting. Actual save composition must pin exact immutable content sources before any connector installation can activate. |
+| Immutable exact source hashes | `_digests` | 1 | `96` = 96 | Zero before successful publication | 2 | §1 WORLD | Recipe, actual connector-catalog and authored frontier SHA256 values. Hashes do not themselves qualify frontier geometry or contacts. |
+| Exact part IDs and bill counts | `_part_id`, `_input_count` | 4 | `_capacity` <= 256 | Part -1, count0 | 2 | §1 WORLD | Unique sorted ordinals owned by one exact actual connector variant. No missing row fallback or active price data. |
+| Fixed construction material key indices | `_input_key` | 4 | `_input_capacity` runtime | -1 | 2 | §1 WORLD | Four lines per part resolve the existing six Construction material names through the actual Items/Inventory composition on every read. |
+| Exact authored installation work | `_work_mwu` | 8 | `_capacity` <= 256 | 0 | 2 | §1 WORLD | Positive integer milli-WU, never excavation BRACE work or timed demo progress. |
+| Exact authored quantities | `_quantity` | 8 | `_input_capacity` runtime | 0 | 2 | §1 WORLD | Positive integer milli-U; checked mass/refund overflow and duplicate-key refusal. One64P+128-byte immutable bank; no loader bank or full file image. |
+| Reused exact source digest | `_hash` | 1 | `32` = 32 | Empty before explicit configuration admission | 3 | -- |32 packed scratch bytes within the512-byte logical control/decode envelope. Exact fixed header/row streaming and native SHA/RefCounted/StringName overhead are additional unmeasured native obligations; no measured-runtime claim. |
+| Reused actual part facts | `_part` | 4 | `9` = 9 | Empty before explicit configuration admission | 3 | -- |36 packed scratch bytes within the same512-byte envelope; neither query allocates another part bank. |
+| Actual source bindings and bounded read controls | -- | -- | -- | No active load/read at frame or save boundary | 3 | -- | Actual Catalog/Items/Inventory references; capacity/key-count, exact variant ordinal/revision, configured/loaded/busy flags and one reused IntResult. Source bank derives only from pinned authored content. No placement, service, work, contact or installed-prefix state. |
+
+### `godot/scripts/core/excavation_inventory.gd` — connector installation loss domain
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Existing purpose-separated loss column extension | -- | 8 | `LOSS_CELL_CAPACITY` = 1024 | 0 | 1 | §6 AUXILIARY_STATE | Decision1102 extends the existing `_lost_milli` from768 to1024 I64 entries: purpose8 connector installation is fourth after excavation/furniture/tips. Additional2048 persistent bytes and2048 per simultaneous cold image. Every refund uses the same exact receipt owner/transaction; loss survives Project retirement. Canonical reconciliation and composed codec remain required. |
+
+### `godot/scripts/core/modular_projects.gd` — connector purpose binding
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Exact weak connector-purpose owner | -- | -- | -- | Unbound until the actual typed placement adapter exists | 3 | -- | Decision1102 adds one WeakRef alongside Furniture/Tip owners, no new packed column/Quote/receipt arena. Purpose8 cannot bind to another actual World or replace a live different owner; the complete real placement/recipe/source contract remains a queued adapter dependency. |
+
+### `godot/scripts/core/underground_connector_source_facts.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Pure final actual source attestation | -- | -- | -- | No retained fields, copies or query result object | 3 | -- | Decision1102. Static typed helper borrows actual Catalog/Profile/Level banks and exact Movement/Residents/Transforms/Directory wiring. Bounded32/64-byte hash comparisons and full World generation validation follow all overridable observation callbacks. Its numeric helper frames fit the existing224-byte nested-frame allowance inside Recipes512 controls; no new arena or packed column. No source/geometry permission is invented. |

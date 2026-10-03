@@ -1,0 +1,170 @@
+{
+  "schema": 1,
+  "scope": "UG05 native fitted interior shell/material study; not a village playthrough or production excavation admission",
+  "recorded_at_utc": "2026-10-03T02:11:17.716940+00:00",
+  "base_commit": "a5fcaa1dc1efe7d6ed68737bb4cc48f9cc70b45e",
+  "source_state": "New lane files were uncommitted during capture; these SHA-256 values pin the exact subsequently committed code. Documentation changes do not alter capture source.",
+  "sources_sha256": {
+    "godot/project.godot": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+    "godot/scripts/core/room_footprint.gd": "35b75ff3ed25f45e9d015ac68b9c9b8ab5b1006e215b1a75164122431ac72d5f",
+    "godot/demo/burrow/modular_shell.gd": "67ca1b52171bbbedd9cf3b120ca4d712c9394ec658b951d3b448c1e8e6ff7290",
+    "godot/demo/burrow/modular_materials.gd": "81770a0d882158f0ded40d8974f49c6de4297c443ab7128f0b6b706ed74bc37e",
+    "godot/demo/burrow/modular_surface.gdshader": "badf735a253548d7148b87805c4894188ea9835493d997b5360eb8c9be8cd618",
+    "godot/test/test_modular_shell.gd": "90ce4811f5f75f17c4eefc00a0e58a4ecf353fb64420855b9d806eea8cdfad62",
+    "godot/test/live/modular_shell_live.gd": "27686528c6072d86a13c360a131afff9ddc264097098a07cbcede2748ddaa735",
+    "godot/scripts/core/room_footprint.gd.uid": "cf2bd7a2612193c8e21a7962ba240a61239096a9c08e409747a5a9dc5e1a8be2",
+    "godot/demo/burrow/modular_shell.gd.uid": "cd8d5f2014b52d41890d48d816b2c8f76fc0649c3797a1fb62a9adb6bb15fe91",
+    "godot/demo/burrow/modular_materials.gd.uid": "fa38e9d30c4f7e64cf14279f85e7c293f26ceb54f6a692b86d178aa5b2740e95",
+    "godot/demo/burrow/modular_surface.gdshader.uid": "6694cded4a0fd601495d5a9e1b68992b80b5d339b976e585d4a8e8b356b76548",
+    "godot/test/test_modular_shell.gd.uid": "3cee06401da6c264f50ee5cb26ba8343dc8b138f268e92f3b199cd3d440eca97",
+    "godot/test/live/modular_shell_live.gd.uid": "45b3ae972243fce368c440ff31a32a3cf8930468c9062a8882709a3de8e85982"
+  },
+  "engine": "Godot Engine v4.7.2.stable.official.ed1daf0bf",
+  "native_renderer": "Metal 4.0 - Forward+ - Apple M5 Pro (Apple9)",
+  "native_command": "godot --path godot --script res://test/live/modular_shell_live.gd -- --capture <absolute evidence directory>",
+  "native_summary": "SHELL-LIVE-SUMMARY 33 0",
+  "native_log_diagnostics": {
+    "errors": 0,
+    "warnings": 0,
+    "leak_lines": 0
+  },
+  "captures": [
+    {
+      "file": "01-gallery-cutaway.png",
+      "sha256": "e4892c559e26c2f11da89080c5521969a055c4352b6bc242c5257b25f5406bfe",
+      "width": 1280,
+      "height": 720,
+      "captured_at_utc": "2026-10-03T02:08:06.280809+00:00"
+    },
+    {
+      "file": "02-ceilings-and-aperture.png",
+      "sha256": "c6ef8fb89048b1906161483b621cdacc36a0c4da9099f6c0919802bb5726a57c",
+      "width": 1280,
+      "height": 720,
+      "captured_at_utc": "2026-10-03T02:08:06.492952+00:00"
+    },
+    {
+      "file": "03-height-join-close.png",
+      "sha256": "2f70c4fe0b646c7049a46ab423af3602424a72904969f594951de0657b6e5e50",
+      "width": 1280,
+      "height": 720,
+      "captured_at_utc": "2026-10-03T02:08:06.723901+00:00"
+    }
+  ],
+  "capture_method": "Unedited native viewport PNG via get_texture().get_image().save_png(); bounded 76-frame standalone SceneTree; inspected individually with view_image.",
+  "art_assets": {
+    "external_or_generated_texture_assets": false,
+    "paid_generation": false,
+    "procedural_surfaces": "Authored shader; no vertex displacement; whole-category earth/timber/stone finishes.",
+    "approved_reference": {
+      "path": "docs/art-reference/visuals/grounded_expressive_rts_example_v1.png",
+      "sha256": "a31d68d906486e3a4efe1b2daff1a38d859155d4c5390e2e38512bd602e9c1e8",
+      "use": "Opened and inspected for grounded warm practical material direction; not used as a dimension catalog."
+    },
+    "literary_references": [
+      {
+        "id": "mossflower::MF_place_brockhall_domestic_chambers",
+        "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+        "narrative_blocks": "576–785",
+        "source_unit_blocks": "576–785"
+      },
+      {
+        "id": "mossflower::MF_place_brockhall",
+        "source": "Jacques, Brian - Redwall 02 - Mossflower.htm",
+        "narrative_blocks": "506–521",
+        "source_unit_blocks": "506–521"
+      }
+    ]
+  },
+  "strict_focus": {
+    "counts": {
+      "assertions": 298,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 19,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "manifest_sha256": "e3146008befeea63795e5813772bf3a684b20d77013c1c22c6e8dcf233c48534",
+    "shard_count": 300,
+    "shard_index": 163,
+    "suite_counts": {
+      "test_modular_shell.gd": {
+        "assertions": 298,
+        "failures": 0,
+        "tests": 19
+      }
+    },
+    "suite_usec": {
+      "test_modular_shell.gd": 19627
+    },
+    "suites": [
+      "test_modular_shell.gd"
+    ],
+    "version": 1,
+    "wall_seconds": 2
+  },
+  "analyzer": {
+    "files": 4,
+    "warnings": 0,
+    "max": 0
+  },
+  "clean_import": {
+    "assets_present": false,
+    "own_godot_cache_deleted": true,
+    "command": "godot --headless --path godot --editor --quit",
+    "diagnostic_lines": 0
+  },
+  "benchmark": {
+    "mode": "headless debug CPU; not GPU/frame-time or 256-resident qualification",
+    "method": "Five new builders per square size; measure rebuild(1,spec), then same revision/spec cache retrieval with Time.get_ticks_usec(). Sorted median is sample 2; maximum is sample 4. Explicit 1024-unit pitch, 0 floor, 2048 ceiling, 1024 supplied headroom, all FINISHED.",
+    "measurements": [
+      {
+        "cells": 64,
+        "samples": 5,
+        "build_median_usec": 850,
+        "build_max_usec": 908,
+        "cached_median_usec": 1
+      },
+      {
+        "cells": 256,
+        "samples": 5,
+        "build_median_usec": 3090,
+        "build_max_usec": 3118,
+        "cached_median_usec": 1
+      },
+      {
+        "cells": 1024,
+        "samples": 5,
+        "build_median_usec": 11692,
+        "build_max_usec": 11808,
+        "cached_median_usec": 2
+      },
+      {
+        "cells": 4096,
+        "samples": 5,
+        "build_median_usec": 46630,
+        "build_max_usec": 47679,
+        "cached_median_usec": 4
+      },
+      {
+        "cells": 16384,
+        "samples": 5,
+        "build_median_usec": 181636,
+        "build_max_usec": 184219,
+        "cached_median_usec": 9
+      }
+    ],
+    "reproducer_gdscript": "extends SceneTree\nconst Shell := preload(\"res://demo/burrow/modular_shell.gd\")\nconst Footprint := preload(\"res://scripts/core/room_footprint.gd\")\nfunc _initialize() -> void:\n\tfor side: int in [8, 16, 32, 64, 128]:\n\t\tvar spec: Dictionary = make_spec(side)\n\t\tvar samples: PackedInt64Array = PackedInt64Array()\n\t\tvar cached: PackedInt64Array = PackedInt64Array()\n\t\tfor iteration: int in range(5):\n\t\t\tvar shell: Shell = Shell.new()\n\t\t\tvar begin: int = Time.get_ticks_usec()\n\t\t\tvar result: Dictionary = shell.rebuild(1, spec)\n\t\t\tsamples.append(Time.get_ticks_usec() - begin)\n\t\t\tif not result.ok:\n\t\t\t\tpush_error(String(result.error))\n\t\t\t\tquit(1)\n\t\t\t\treturn\n\t\t\tbegin = Time.get_ticks_usec()\n\t\t\tshell.rebuild(1, spec)\n\t\t\tcached.append(Time.get_ticks_usec() - begin)\n\t\tsamples.sort()\n\t\tcached.sort()\n\t\tprint(\"SHELL-BENCH cells=%d samples=5 build_median_usec=%d build_max_usec=%d cached_median_usec=%d\" % [side*side,samples[2],samples[4],cached[2]])\n\tquit(0)\nfunc make_spec(side: int) -> Dictionary:\n\tvar cells: PackedInt32Array = Footprint.rectangle(0, 0, side, side, 16384).cells\n\tvar floor_u: PackedInt32Array = PackedInt32Array()\n\tvar ceiling_u: PackedInt32Array = PackedInt32Array()\n\tvar state: PackedByteArray = PackedByteArray()\n\tfloor_u.resize(side*side)\n\tceiling_u.resize(side*side)\n\tceiling_u.fill(2048)\n\tstate.resize(side*side)\n\tstate.fill(Shell.FINISHED)\n\treturn {\"cells\":cells,\"floor_u\":floor_u,\"ceiling_u\":ceiling_u,\"state\":state,\"origin_u\":Vector2i.ZERO,\n\t\t\"cell_size_u\":1024,\"minimum_headroom_u\":1024,\"openings\":PackedInt32Array()}\n"
+  },
+  "remaining_limits": [
+    "Production catalog and paid physical cut/finish mapping required.",
+    "Synthetic 256-unit preview pitch does not create or price production excavation.",
+    "Cold large rebuilds exceed a frame; UG09/17 integration needs batching/incremental publication.",
+    "Stepped round outlines and procedural look development need final art; no curved-profile, stair, support or roof structure is claimed.",
+    "No Windows, village integration, save/job/service or 256-resident qualification."
+  ]
+}

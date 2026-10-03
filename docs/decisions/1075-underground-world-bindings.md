@@ -361,15 +361,15 @@ source hashes and the rejected preliminary registry invocation are under
 This is logical lifetime evidence; actual terrain/profile/route composition and
 native memory qualification remain in progress.
 
-## Proposed actual route-owner arena (not allocated yet)
+## Actual finite route-owner arena
 
-The next owned module is `underground_routes.gd`, with a separate focused test.
+The owned module is `underground_routes.gd`, with a separate focused test.
 Locations remains the immutable endpoint/containment owner. Routes owns connected
 edge identity, retained route state and integer Transform progression; it also
 supplies the actual `SpaceOwner.ResidentLocations` reader. A paid cube, matching
 X/Z or a successful profile query alone does not create a connection.
 
-The initial technical pack proposes N=1024 actual Locations, E=1536 directed
+The initial technical pack selects N=1024 actual Locations, E=1536 directed
 edges, V=4096 authored polyline vertices, L=4096 pooled route links and the actual
 Residents typed capacity S=512. At most 256 residents are living, as before.
 These are finite reusable arena capacities, not a room count, floor count or
@@ -377,23 +377,22 @@ maximum player route-length policy. Admission refuses before allocating a partia
 route. The counts leave room for the measured initial settlement workload and
 must be exercised at 256 living residents before claiming workload qualification.
 
-| Store | Exact proposed columns | Retained bytes at this pack |
+| Store | Exact columns | Retained bytes at this pack |
 |---|---|---:|
 | Existing Locations banks | Reviewed 228N+256 | 233,728 |
 | Two directed-edge banks | Each has14 I32: generation, from slot/generation, to slot/generation, full containment FLOOR_DATUM section slot/generation, family, variant, rotation, path start/count, mode, posture; 3 I64: content revision, geometry revision, path length; 2 B8: present, exhausted; plus I32 free heap and deterministic order index. 180E total | 276,480 |
 | Two authored polyline banks | X/Y/Z I32 columns; compact occupied prefix with per-edge start/count. 24V total | 98,304 |
-| Resident state plus simultaneous load image | 27 I32: full Resident ref, current Location ref, current edge ref, actual Job ref, route head/tail, mode/posture/phase, profile ID/connector family, full tool/cargo/satchel refs, segment index, retained actual Room and FLOOR_DATUM full refs, actual level. Next/goal endpoints derive from existing edge/tail refs. 6 I64: profile/content revisions, committed cargo quantity, edge progress, displacement remainder, request tick. 312S total | 159,744 |
+| Resident state plus simultaneous load image | 27 I32: full Resident ref, current Location ref, current edge ref, actual Job ref, route head/tail, mode/posture/phase, profile ID/connector family, full tool/cargo/satchel refs, segment index, retained actual Room and FLOOR_DATUM full refs, actual level. Next/goal endpoints derive from existing edge/tail refs. 6 I64: profile/content revisions, committed cargo quantity, edge progress, exact reduced fractional distance, request tick. 312S total | 159,744 |
 | Pooled route state plus simultaneous load image and both derived heaps | Four I32: full edge ref, next link, owning Resident typed row. Actual Resident identity is validated through that row's full stored ref. Both heaps are preflighted before load publication. 40L total | 163,840 |
 | One reused Dijkstra scratch | Per Location: I64 distance, I32 predecessor edge/heap node/heap position, B8 search state. 21N | 21,504 |
 | One proposed route result | Full local edge ref per node, 8N | 8,192 |
 | Derived local occupancy lookup | I32 hash heads[N], next[S], cell XYZ[3S], query visit[S], complete actual body/held-load envelope[6S], I64 profile revision[S] | 28,672 |
 | Reused complete edge/query and compaction packet | XYZ I32[3V], shared sequentially by callbacks, actual edge reads and vertex compaction; no per-call copy | 49,152 |
-| Bounded numeric/header reservation | Source-defined fixed headers and operation controls, charged before final implementation; native objects/handles remain in the separately declared bindings reserve | 1,024 |
-| Combined proposed provider peak | Including existing Locations and simultaneous route/resident load images | **1,040,640** |
+| Bounded numeric/header reservation | Source-defined fixed headers and query packets; native objects/handles remain in the separately declared bindings reserve | 2,112 |
+| Combined proposed provider peak | Including existing Locations and simultaneous route/resident load images | **1,041,728** |
 
-The remaining **7,936 bytes** inside the existing1,048,576-byte provider reserve
-are unallocated headroom, not a permission to omit later columns. The final source
-will recalculate exact scalar/header counts. Cold survey/profile copies still
+The remaining **6,848 bytes** inside the existing1,048,576-byte provider reserve
+are unallocated headroom, not a permission to omit later columns. The source census below accounts for exact scalar/header counts. Cold survey/profile copies still
 borrow the actual shared decision1072 Budget; no third graph bank or per-resident
 path object is permitted. Current graph publication and cold loaded images must
 not overlap uncharged.
@@ -681,6 +680,77 @@ strict Transform tests reported **30 tests /203 assertions /0 failures**, both
 strict/raw diagnostic and leak footers zero, and no expected/tolerated diagnostics.
 The analyzer reported zero warnings in both files. Raw logs and source pins are
 retained under the 1075 evidence folder's `transform-freshness/` child.
+
+
+## Finite actual route, actor and occupancy increment
+
+The new Routes owner supplies actual integer Transform progression and full
+Resident/Room/section identity to CoreSources. Graph spans retain full local
+generations and explicit XYZ polylines. Sealed publication is tied to the exact
+shared cold lease and same-stack actual provider; no matching endpoint or paid
+cube creates a connection. The provider receives an exact future edge ref and
+never-reused route token. `last_published_token()` changes only after a successful
+bank swap, so aborted future refs cannot bless staged profile certificates.
+
+Live actor state and pooled queues are packed. A cancelled queued route releases
+its future spans; an actor already traversing a span retains it until its safe
+endpoint. A tick spends exactly one thirtieth of a second across every reached
+span, including a freshly qualified next span. Subdividing identical geometry
+cannot insert an unauthored stop or reduce the declared travel speed. Every
+crossed segment and next-span turn needs a fresh complete-body sweep, current
+profile/gear/load/Job evidence and dynamic occupancy proof. A blocked next span
+commits only the already-cleared prefix and discards its unspent tick time; it
+never banks blocked time. An initial refusal preserves the previous pose, queue
+and fractional distance. Neither a floor datum nor a level number supplies slope
+height, headroom or pace.
+
+The existing I64 remainder column holds an exact reduced fraction in two positive
+31-bit lanes (numerator in the upper 32 bits, denominator in the lower 32); zero is
+canonical 0/1. Unspent distance is rescaled by exact next-pace/prior-pace with GCD
+cancellation and checked integer products, preserving elapsed time across
+unequal rates. A fraction outside this finite representation refuses before
+movement; it is never rounded. The finite compiled pace pack must qualify its
+rate combinations against that technical bound. Within-tick segment/span
+transitions spend the unchanged domain work budget and stop at the existing
+finite vertex-plus-location ceiling. No new per-resident column is allocated.
+
+A derived root-cell index uses the existing1024u quantum solely as hash
+resolution. Collision remains the complete translated BODY_HELD_LOAD and
+TURN_RECOVERY boxes, with catalog-wide bounds expanding lookup into neighbouring
+cells. Exact negative-coordinate floor division and full cell equality resolve
+boundaries/hash collisions. Every nearby candidate is read from real current
+Resident/Transform/Profile/Job/gear/load sources; missing current profile truth
+refuses instead of treating the actor as empty. The actual Transform revision
+pins completeness of the root index. Foreign pose writes invalidate it; one
+explicit bounded refresh checks registered roots, while each own movement commit
+updates its bucket before the next actor/work query. Productive queries never
+scan the spatial-region arena or rebuild static geometry. Surface actors outside
+this owner still need the actual World provider's separate geometry/ownership
+proof; the index does not silently claim those actors.
+
+The current fixed logical census is **2,060 bytes** within the approved 2,112
+ceiling: 190 top-level numeric controls, 80 bank controls, 68 Domain controls, 48
+Region controls, 9 IntResult, 64 Pose, 136 for two Location packets, 120 Edge packet,
+156 Actor packet, 117 unpublished MotionStep, 672 for four Profile Selections, 64 for
+two Profile Boxes,216 fixed packed packet bytes, and 120 constant CORDIC integer
+values. The last-published and expected-Transform tokens are included. Native
+objects, array handles and call-stack/runtime overhead remain within the separate
+bindings/native reservation and need actual measurement; this is logical payload
+arithmetic. No additional per-row columns or independent arena maxima were added.
+
+Current tests use actual core stores and explicitly synthetic physical/profile
+certificates. Full-save/load, actual source-certified content/provider binding,
+native presentation, the simulation target and first-playable Kitchen acceptance
+remain open; this component increment is not a completed traversal qualification.
+
+The final focused Routes run reports **31 tests / 5,733 assertions / 0 failures**,
+zero unexpected/expected/tolerated diagnostics, and zero raw or runner object and
+resource leaks. The analyzer reports zero warnings in both files. Exact source
+pins and raw logs are in the 1075 evidence folder's `routes/iteration-3/` child;
+the rejected intermediate correction run is retained separately. The 256 actual
+resident synthetic-clearance probe took 682,277 microseconds for 30 ticks
+(about 22.7 ms/tick). This exceeds the 2 ms movement target; concurrent host work
+also makes it diagnostic timing only, not production performance qualification.
 
 ## Atomic pending Furniture sources for one accepted layout
 

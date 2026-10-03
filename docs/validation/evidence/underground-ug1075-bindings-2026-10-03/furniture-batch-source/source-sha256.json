@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/underground_space_owner.gd": "44d749caaccae72379f96d19e36c7eac196d616f4f7d5b8cb5c89aacbf5f98cd",
+  "godot/test/test_underground_space_owner.gd": "569a8660400991632e04f0ef953e16551797c76935e93f4f5c5f50cb500bd1d7",
+  "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+  "godot/scripts/core/buildings.gd": "7edbdcc39a4ac178cbd4ba59e9e4a6678c1f4fb8df636dc2b59a5ec38ca249ae",
+  "godot/scripts/core/construction.gd": "ae8f77c76a44f3630f6ce055ae7783efc4552a6f50b810dffed1a4422860b026",
+  "godot/scripts/core/modular_projects.gd": "e2b79113450935234ed5e78ffadfa90685c659e7355d95b4086c8a06231f6f6e",
+  "godot/test/test_construction_furniture_batches.gd": "5f925ed70d231c7884cfb85e8f69fcc8771325c3fff4a1693d281b3806528257"
+}

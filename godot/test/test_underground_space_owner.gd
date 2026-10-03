@@ -22,11 +22,188 @@ const IntMath := preload("res://scripts/core/int_math.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const ModularFixture := preload("res://test/test_modular_projects.gd")
 const SparseSpace := preload("res://scripts/core/underground_space_owner.gd")
+const PairFixture := preload("res://test/test_construction_furniture_batches.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const R: int = 32
 const O: int = 8
+
+
+class BatchAuthority extends PairFixture.SyntheticAuthority:
+	## Actual Router windows; only the room shell and fixture occupied boxes are synthetic.
+	var attack_phase: int = 0
+	var mutate_packet: bool = false
+	var aborted: bool = false
+	var rebegin_error: StringName = &""
+
+	func furniture_candidates_refusal(room: Vector2i, batch: Directory.CreateBatch,
+			entries: PackedInt32Array) -> StringName:
+		"""Adversarial callbacks cannot mutate the exact geometry transaction or rewrite its pinned request."""
+		_attack(1, batch, entries)
+		return super.furniture_candidates_refusal(room, batch, entries)
+
+	func is_publishing_furniture_admissions(room: Vector2i, batch: Directory.CreateBatch) -> bool:
+		"""Publication requires the actual Router bracket even when the fixture tries to reenter."""
+		_attack(2, batch, PackedInt32Array())
+		return super.is_publishing_furniture_admissions(room, batch)
+
+	func _attack(phase: int, batch: Directory.CreateBatch, entries: PackedInt32Array) -> void:
+		"""Only attack an active Space callback, not earlier actual Router/Buildings checks."""
+		var target: AdmissionBatchOwner = batch_owner.get_ref() as AdmissionBatchOwner
+		if attack_phase != phase or target == null or target.token == 0 or not target.geometry._room_callback:
+			return
+		if mutate_packet:
+			if not entries.is_empty():
+				entries[3] = (entries[3] + 1) % 4
+			else:
+				batch.persistent_ids[0] += 1
+			return
+		aborted = target.geometry.abort(target.token)
+		rebegin_error = target.geometry.begin_stage(target.geometry.revision()).error
+		target.geometry.publish(target.token)
+
+class AdmissionBatchOwner extends PairFixture.SyntheticOwner:
+	## Real mixed identity/accounting publication with actual future-source bridge.
+	var geometry: SparseSpace = null
+	var authority: WeakRef = null
+	var floor_ref: Vector2i = NULL_REF
+	var token: int = 0
+	var refuse_after_seal: bool = false
+	var skip_last: bool = false
+	var region_role: int = Space.OBSTACLE
+	var published_code: StringName = &""
+	var after_drift: StringName = &""
+
+	func stage_candidate(entries: PackedInt32Array) -> StringName:
+		"""Pin the actual observation before any companion region, without allocating real identities."""
+		var begun: SparseSpace.Result = geometry.begin_stage(geometry.revision())
+		token = begun.token
+		if begun.error != &"":
+			return begun.error
+		return geometry.stage_furniture_admissions(token, packet, room, entries, authority.get_ref())
+
+	func add_candidate_regions() -> StringName:
+		"""Use explicit separated test extents; these are not measured production furniture dimensions."""
+		@warning_ignore("integer_division") var count: int = packet.count / 2
+		for index: int in count - (1 if skip_last else 0):
+			var piece: SparseSpace.Region = SparseSpace.Region.new()
+			var x: int = entries_pin[index * 4 + 1] * 1024
+			var z: int = entries_pin[index * 4 + 2] * 1024
+			piece.box = PackedInt32Array([x, 0, z, x + 512, 512, z + 512])
+			piece.role = region_role
+			piece.level = 1
+			piece.owner = packet.ref_at(index * 2)
+			piece.section = floor_ref
+			var result: SparseSpace.Result = geometry.stage_add(token, piece)
+			if result.error != &"":
+				return result.error
+		return &""
+
+	func furniture_batch_refusal(actual_room: Vector2i, batch: Directory.CreateBatch,
+			entries: PackedInt32Array) -> StringName:
+		"""The actual Router cannot allocate one pair until the whole actual geometry image is sealed."""
+		var code: StringName = super.furniture_batch_refusal(actual_room, batch, entries)
+		if code == &"":
+			code = stage_candidate(entries)
+		if code == &"":
+			code = add_candidate_regions()
+		if code == &"":
+			code = geometry.seal(token)
+		if code == &"":
+			code = geometry.prepared_refusal(token)
+		return &"SYNTHETIC_BATCH_LATE_REFUSAL" if code == &"" and refuse_after_seal else code
+
+	func publish_furniture_batch(actual_room: Vector2i, batch: Directory.CreateBatch,
+			entries: PackedInt32Array) -> void:
+		"""The actual Router already published both real typed rows before this same-stack callback."""
+		super.publish_furniture_batch(actual_room, batch, entries)
+		var saved: int = _inject_after_drift(batch)
+		published_code = geometry.publish_furniture_admissions(token, batch, actual_room, entries, authority.get_ref())
+		_restore_after_drift(batch, saved)
+		if published_code == &"":
+			token = 0
+
+	func _inject_after_drift(batch: Directory.CreateBatch) -> int:
+		"""Test-only actual row corruption probes after-fact refusal; the original value is immediately restored."""
+		if after_drift == &"":
+			return 0
+		var store: RefCounted = construction
+		if after_drift.begins_with("_f_"):
+			store = construction.buildings()
+		var ref: Vector2i = batch.ref_at(0 if after_drift.begins_with("_f_") else 1)
+		var row: int = construction.directory().get_typed_row(ref)
+		var column: PackedInt32Array = store.get(after_drift)
+		var old: int = column[row]
+		column[row] += 1
+		return old
+
+	func _restore_after_drift(batch: Directory.CreateBatch, saved: int) -> void:
+		"""Negative fixtures restore actual owner facts without pretending the rejected geometry published."""
+		if after_drift == &"":
+			return
+		var store: RefCounted = construction
+		if after_drift.begins_with("_f_"):
+			store = construction.buildings()
+		var ref: Vector2i = batch.ref_at(0 if after_drift.begins_with("_f_") else 1)
+		var row: int = construction.directory().get_typed_row(ref)
+		var column: PackedInt32Array = store.get(after_drift)
+		column[row] = saved
+
+	func discard_furniture_batch(actual_room: Vector2i, batch: Directory.CreateBatch) -> void:
+		"""Abort only this exact geometry candidate before the caller can release its charged copies."""
+		super.discard_furniture_batch(actual_room, batch)
+		if token != 0:
+			geometry.abort(token)
+			token = 0
+
+class AdmissionBatchHarness extends PairFixture:
+	## Reuse actual paired allocation/accounting fixture with a real sparse source publication companion.
+	func _bind_fixture() -> void:
+		"""Keep exactly one actual Buildings authority and Furniture purpose owner in the real Router."""
+		_authority = BatchAuthority.new()
+		_authority.owner = weakref(_buildings)
+		assert_true(_buildings.bind_spatial_authority(_authority).ok, "actual authority")
+		_authority.allow(Buildings.SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, Buildings.ROOM_TYPE_KITCHEN)
+		_room = _buildings.designate_spatial_room(Buildings.ROOM_TYPE_KITCHEN).ref
+		_authority.allow(Buildings.SPATIAL_ROOM_VALID, _room, NULL_REF, 1)
+		assert_true(_buildings.set_room_valid(_room, true).ok, "synthetic completed shell")
+		_authority.reset()
+		_authority.service_room = _room
+		var fitting: AdmissionBatchOwner = AdmissionBatchOwner.new()
+		_owner = fitting
+		_owner.construction = _construction
+		_owner.world = _world
+		_owner.route = weakref(_router)
+		_authority.batch_owner = weakref(_owner)
+		fitting.authority = weakref(_authority)
+		assert_true(_router.bind_owner(_owner).ok, "actual Furniture purpose")
+		_geometry(fitting)
+
+	func _geometry(fitting: AdmissionBatchOwner) -> void:
+		"""Actual Room source/floor metadata only; no paid void, support or services are fabricated."""
+		var domain: Space.Domain = Space.Domain.new()
+		assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
+			Vector3i(16, 16, 16), 64, 64, 100000), &"", "component domain")
+		var sources: SparseSpace.CoreSources = SparseSpace.CoreSources.new(_construction.directory(), _buildings, _construction)
+		fitting.geometry = SparseSpace.new(sources)
+		assert_equal(fitting.geometry.configure(domain, 32, 16), &"", "actual sparse owner")
+		var begun: SparseSpace.Result = fitting.geometry.begin_stage(1)
+		assert_equal(fitting.geometry.stage_source(begun.token, _room), &"", "actual Room source")
+		var floor_region: SparseSpace.Region = SparseSpace.Region.new()
+		floor_region.box = PackedInt32Array([-8192, 0, -8192, 8192, 1, 8192])
+		floor_region.role = Space.FLOOR_DATUM
+		floor_region.level = 1
+		floor_region.owner = _room
+		var added: SparseSpace.Result = fitting.geometry.stage_add(begun.token, floor_region)
+		assert_equal(added.error, &"", "actual Room datum")
+		fitting.floor_ref = added.handle
+		assert_equal(fitting.geometry.seal(begun.token), &"", "seal metadata")
+		fitting.geometry.publish(begun.token)
+
+	func batch_fitting() -> AdmissionBatchOwner:
+		"""Typed borrowed fixture owner exposes assertions without any production dynamic calls."""
+		return _owner as AdmissionBatchOwner
 
 
 class InstallationOwner extends ModularFixture.SyntheticOwner:
@@ -1741,3 +1918,244 @@ func test_region_reader_keeps_allocating_contract_and_reused_reader_refuses_wron
 	var borrowed: PackedInt32Array = out.box
 	assert_equal(_owner.region_into_reused(first, out), &"", "explicit borrowed-scratch call")
 	assert_equal(borrowed[0], 0, "borrowed alias visibly overwritten by contract")
+
+
+func _batch_fixture() -> AdmissionBatchHarness:
+	"""Own an isolated actual Router fixture and propagate every nested helper assertion."""
+	var harness: AdmissionBatchHarness = AdmissionBatchHarness.new()
+	harness.before_each()
+	return harness
+
+
+func _release_batch_fixture(harness: AdmissionBatchHarness) -> void:
+	"""Drop the actual callback graph and verify nested helper evidence before fixture retirement."""
+	if harness.batch_fitting().token != 0:
+		harness.batch_fitting().geometry.abort(harness.batch_fitting().token)
+		harness.batch_fitting().token = 0
+	harness.after_each()
+	assert_true(harness.failures.is_empty(), "actual paired fixture checks: %s" % harness.failures)
+
+
+func test_future_furniture_batch_publishes_actual_pairs_and_blockers_only() -> void:
+	"""Every real Furniture/Construction pair and exact pending source publishes, without installed service grants."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	assert_equal(Owner.furniture_admission_cold_bytes(3), 196, "exact60N private payload plus16 controls")
+	for count: int in [-1, 0, Space.MAX_REGIONS + 1, 9223372036854775807]:
+		assert_equal(Owner.furniture_admission_cold_bytes(count), 0, "invalid count refuses before multiplication")
+	var result: Construction.OpResult = harness._router.open_furniture_batch(fitting, harness._room, harness._batch, harness._entries)
+	assert_true(result.ok, "actual paired Router: %s" % result.error)
+	assert_equal(fitting.published_code, &"", "same-stack future source publication")
+	assert_equal(fitting.geometry._furniture_pins.size() + fitting.geometry._furniture_entries.size()
+		+ fitting.geometry._furniture_rows.size(), 0, "all private copies released")
+	var image: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(fitting.geometry.snapshot_into(image), &"", "all after-facts now real")
+	assert_equal(image.volumes.role, PackedInt32Array([Space.FLOOR_DATUM, Space.OBSTACLE, Space.OBSTACLE, Space.OBSTACLE]), "no free void/support")
+	for index: int in range(0, harness._batch.count, 2):
+		harness._assert_pair(index)
+		assert_equal(fitting.geometry.source_refusal(harness._batch.ref_at(index)), &"", "actual pending source")
+		assert_equal(fitting.geometry.source_revision(harness._batch.ref_at(index + 1)), 0, "no invented master/project source")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_whole_refusal_keeps_geometry_allocator_and_goods() -> void:
+	"""A late companion refusal retains every original owner byte and retries the same exact observation."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var before: PackedByteArray = fitting.geometry.state_bytes()
+	fitting.refuse_after_seal = true
+	harness._refused_unchanged()
+	assert_equal(fitting.geometry.state_bytes(), before, "no pending geometry prefix")
+	assert_equal(fitting.geometry._furniture_pins.size() + fitting.geometry._furniture_entries.size()
+		+ fitting.geometry._furniture_rows.size(), 0, "aborted copies released before lease")
+	fitting.refuse_after_seal = false
+	assert_true(harness._router.open_furniture_batch(fitting, harness._room, harness._batch, harness._entries).ok, "same observation retries")
+	assert_equal(fitting.published_code, &"", "one actual geometry publication")
+	assert_equal(fitting.publications, 1, "exactly one paired publication")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_rechecks_all_mutable_tuple_and_entry_fields() -> void:
+	"""Prepared permission pins both kinds' slot/generation/kind/row/PID and every exact layout integer."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	assert_equal(fitting.stage_candidate(harness._entries), &"", "future sources")
+	assert_equal(fitting.add_candidate_regions(), &"", "all occupied envelopes")
+	assert_equal(fitting.geometry.seal(fitting.token), &"", "sealed")
+	for field: StringName in [&"slots", &"generations", &"kinds", &"typed_rows", &"persistent_ids"]:
+		var values: PackedInt32Array = harness._batch.get(field)
+		for index: int in [0, 1]:
+			var saved: int = values[index]
+			values[index] += 1
+			assert_true(fitting.geometry.prepared_refusal(fitting.token) != &"", "changed actual tuple refuses")
+			values[index] = saved
+	for index: int in harness._entries.size():
+		var saved: int = harness._entries[index]
+		harness._entries[index] += 1
+		assert_true(fitting.geometry.prepared_refusal(fitting.token) != &"", "changed type/XYZ/rotation refuses")
+		harness._entries[index] = saved
+	assert_equal(fitting.geometry.prepared_refusal(fitting.token), &"", "restored exact packet retains permission")
+	var late: Vector2i = harness._residents.directory().create(Directory.KIND_RESIDENT)
+	assert_true(late != NULL_REF, "actual allocator moved")
+	assert_true(fitting.geometry.prepared_refusal(fitting.token) != &"", "stale next-identity observation refuses")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_requires_every_piece_and_forbids_physical_permissions() -> void:
+	"""Missing pieces and fabricated air/support are rejected before any actual identities publish."""
+	for role: int in [Space.SUPPORTED_VOID, Space.SUPPORT, Space.UNFINISHED, Space.FLOOR_DATUM]:
+		var harness: AdmissionBatchHarness = _batch_fixture()
+		var fitting: AdmissionBatchOwner = harness.batch_fitting()
+		var before: PackedByteArray = fitting.geometry.state_bytes()
+		fitting.region_role = role
+		harness._refused_unchanged()
+		assert_equal(fitting.geometry.state_bytes(), before, "forbidden role retains actual prior state")
+		_release_batch_fixture(harness)
+	var missing: AdmissionBatchHarness = _batch_fixture()
+	missing.batch_fitting().skip_last = true
+	missing._refused_unchanged()
+	_release_batch_fixture(missing)
+
+
+func test_future_furniture_batch_refuses_foreign_binding_and_unscoped_publication() -> void:
+	"""An equal-looking Authority/Room/token never replaces exact actual owner or same-stack Router evidence."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var before: PackedByteArray = fitting.geometry.state_bytes()
+	var foreign: BatchAuthority = BatchAuthority.new()
+	foreign.owner = weakref(harness._buildings)
+	fitting.token = fitting.geometry.begin_stage(fitting.geometry.revision()).token
+	assert_equal(fitting.geometry.stage_furniture_admissions(fitting.token, harness._batch, harness._room,
+		harness._entries, foreign), &"SPACE_ROOM_ADMISSION_BINDING", "exact one authority")
+	assert_true(fitting.geometry.stage_furniture_admissions(fitting.token, harness._batch, NULL_REF,
+		harness._entries, harness._authority) != &"", "actual Room required")
+	assert_equal(fitting.geometry.stage_furniture_admissions(fitting.token, harness._batch, harness._room,
+		harness._entries, harness._authority), &"", "current actual packet")
+	assert_equal(fitting.add_candidate_regions(), &"", "all occupied boxes")
+	assert_equal(fitting.geometry.seal(fitting.token), &"", "sealed")
+	var revision: int = fitting.geometry.revision()
+	fitting.geometry.publish(fitting.token)
+	assert_equal(fitting.geometry.revision(), revision, "generic publish cannot create future facts")
+	assert_equal(fitting.geometry.publish_furniture_admissions(fitting.token, harness._batch, harness._room,
+		harness._entries, harness._authority), &"SPACE_FURNITURE_ADMISSION_PUBLICATION", "no forged actual Router window")
+	assert_true(fitting.geometry.abort(fitting.token), "owner abort remains available")
+	fitting.token = 0
+	assert_equal(fitting.geometry.state_bytes(), before, "unscoped publication preserved live bytes")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_callback_reentry_and_request_rewrite_refuse() -> void:
+	"""Even initial and prepared attestations cannot abort/rebegin or swap in an edited request."""
+	for phase: int in [0, 1]:
+		var harness: AdmissionBatchHarness = _batch_fixture()
+		var fitting: AdmissionBatchOwner = harness.batch_fitting()
+		var authority: BatchAuthority = harness._authority as BatchAuthority
+		var before: PackedByteArray = fitting.geometry.state_bytes()
+		if phase == 1:
+			assert_equal(fitting.stage_candidate(harness._entries), &"", "prepared sources")
+			assert_equal(fitting.add_candidate_regions(), &"", "candidate boxes")
+		authority.attack_phase = 1
+		var code: StringName = fitting.stage_candidate(harness._entries) if phase == 0 else fitting.geometry.seal(fitting.token)
+		assert_equal(code, &"SPACE_ROOM_ADMISSION_REENTRY", "callback cannot steal inactive bank")
+		assert_false(authority.aborted, "callback abort refused")
+		assert_equal(authority.rebegin_error, &"SPACE_ROOM_ADMISSION_REENTRY", "callback rebegin refused")
+		authority.attack_phase = 0
+		assert_true(fitting.geometry.abort(fitting.token), "caller can abort after callback refusal")
+		fitting.token = 0
+		assert_equal(fitting.geometry.state_bytes(), before, "byte-exact prior geometry")
+		_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_source_capacity_refuses_before_private_copies() -> void:
+	"""Technical arena exhaustion is atomic, without silently limiting a room or truncating its fitting plan."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var source: Owner.CoreSources = Owner.CoreSources.new(harness._construction.directory(), harness._buildings, harness._construction)
+	var smaller: Owner = Owner.new(source)
+	assert_equal(smaller.configure(fitting.geometry.domain_copy(), 8, 3), &"", "finite World plus two sources")
+	var token: int = smaller.begin_stage(smaller.revision()).token
+	assert_equal(smaller.stage_furniture_admissions(token, harness._batch, harness._room, harness._entries,
+		harness._authority), &"SPACE_FURNITURE_ADMISSION_CAPACITY", "three fits cannot fit two available rows")
+	assert_equal(smaller._furniture_pins.size() + smaller._furniture_entries.size() + smaller._furniture_rows.size(), 0, "no private copies")
+	assert_true(smaller.abort(token), "unchanged source bank remains abortable")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_after_facts_require_real_pending_rows_and_project_pairs() -> void:
+	"""Adversarial typed-row drift after allocation cannot make a sealed future source masquerade as actual."""
+	for field: StringName in [&"_f_type_id", &"_f_rotation", &"_f_room_generation", &"_subject_generation", &"_purpose", &"_type_id"]:
+		var harness: AdmissionBatchHarness = _batch_fixture()
+		var fitting: AdmissionBatchOwner = harness.batch_fitting()
+		var before: PackedByteArray = fitting.geometry.state_bytes()
+		fitting.after_drift = field
+		assert_true(harness._router.open_furniture_batch(fitting, harness._room, harness._batch, harness._entries).ok,
+			"negative fixture deliberately corrupts after actual pairs exist")
+		assert_true(fitting.published_code != &"", "actual changed after-fact %s refuses" % field)
+		assert_true(fitting.geometry.abort(fitting.token), "discard rejected geometry only")
+		fitting.token = 0
+		assert_equal(fitting.geometry.state_bytes(), before, "no future geometry became authoritative")
+		_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_publication_callback_reentry_keeps_sealed_geometry() -> void:
+	"""After real paired allocation even a hostile publication attestation cannot swap or destroy the Space bank."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var before: PackedByteArray = fitting.geometry.state_bytes()
+	var authority: BatchAuthority = harness._authority as BatchAuthority
+	authority.attack_phase = 2
+	assert_true(harness._router.open_furniture_batch(fitting, harness._room, harness._batch, harness._entries).ok,
+		"negative fixture reaches actual post-identity callback")
+	assert_equal(fitting.published_code, &"SPACE_ROOM_ADMISSION_REENTRY", "guarded same-stack callback")
+	assert_false(authority.aborted, "no hidden abort")
+	assert_equal(authority.rebegin_error, &"SPACE_ROOM_ADMISSION_REENTRY", "no replacement bank")
+	authority.attack_phase = 0
+	assert_true(fitting.geometry.abort(fitting.token), "real coordinator can discard its failed fixture candidate")
+	fitting.token = 0
+	assert_equal(fitting.geometry.state_bytes(), before, "live bank was never exchanged")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_callback_mutation_and_same_room_floor_generation_refuse() -> void:
+	"""The real coordinator's initial pins precede copying; a future source also needs the exact live floor generation."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var authority: BatchAuthority = harness._authority as BatchAuthority
+	authority.attack_phase = 1
+	authority.mutate_packet = true
+	assert_true(fitting.stage_candidate(harness._entries) != &"", "rewriting caller entry cannot change accepted plan")
+	assert_equal(fitting.geometry._furniture_pins.size(), 0, "initial rewritten packet was never copied")
+	assert_true(fitting.geometry.abort(fitting.token), "abort refused initial plan")
+	fitting.token = 0
+	authority.attack_phase = 0
+	harness._prepare()
+	assert_equal(fitting.stage_candidate(harness._entries), &"", "exact retry")
+	fitting.floor_ref.y += 1
+	assert_equal(fitting.add_candidate_regions(), &"", "record input remains staged only")
+	assert_equal(fitting.geometry.seal(fitting.token), &"SPACE_SECTION_STALE", "same Room cannot borrow another floor generation")
+	_release_batch_fixture(harness)
+
+
+func test_future_furniture_batch_seals_under_real_joint_sparse_capacities() -> void:
+	"""The unchanged R6144/O2048 arena can admit a real small fitting batch inside MAX_CHECKS."""
+	var harness: AdmissionBatchHarness = _batch_fixture()
+	var fitting: AdmissionBatchOwner = harness.batch_fitting()
+	var source: Owner.CoreSources = Owner.CoreSources.new(harness._construction.directory(), harness._buildings, harness._construction)
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(harness._world, Vector3i.ZERO, Vector3i(-8, -8, -8),
+		Vector3i(16, 16, 16), 8192, 8192, Space.MAX_CHECKS), &"", "explicit actual joint capacities")
+	fitting.geometry = Owner.new(source)
+	assert_equal(fitting.geometry.configure(domain, 6144, 2048), &"", "full sparse arena")
+	var begun: Owner.Result = fitting.geometry.begin_stage(1)
+	assert_equal(fitting.geometry.stage_source(begun.token, harness._room), &"", "actual Room source")
+	var floor_region: Owner.Region = _region([-8192, 0, -8192, 8192, 1, 8192], Space.FLOOR_DATUM, harness._room)
+	var added: Owner.Result = fitting.geometry.stage_add(begun.token, floor_region)
+	assert_equal(added.error, &"", "floor datum")
+	fitting.floor_ref = added.handle
+	assert_equal(fitting.geometry.seal(begun.token), &"", "metadata fits unchanged work limit")
+	fitting.geometry.publish(begun.token)
+	assert_true(harness._router.open_furniture_batch(fitting, harness._room, harness._batch, harness._entries).ok, "actual three-pair batch")
+	assert_equal(fitting.published_code, &"", "sealed source published under full pack")
+	assert_true(fitting.geometry._remaining > 0, "bounded comparisons did not raise MAX_CHECKS")
+	print("UG1075_FURNITURE full_pack_checks=", Space.MAX_CHECKS - fitting.geometry._remaining)
+	_release_batch_fixture(harness)

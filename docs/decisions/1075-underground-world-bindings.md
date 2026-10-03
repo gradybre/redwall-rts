@@ -681,3 +681,63 @@ strict Transform tests reported **30 tests /203 assertions /0 failures**, both
 strict/raw diagnostic and leak footers zero, and no expected/tolerated diagnostics.
 The analyzer reported zero warnings in both files. Raw logs and source pins are
 retained under the 1075 evidence folder's `transform-freshness/` child.
+
+## Atomic pending Furniture sources for one accepted layout
+
+Decision1089's actual Router owns one mixed Directory batch with alternating
+Furniture and Construction tuples. `stage_furniture_admissions` observes that
+exact real batch, actual Room, canonical `[type, x, z, rotation]` entries and the
+one bound Buildings authority. The coordinator must already have pinned its
+original request and allocator tuples and admitted the exact shared cold peak.
+Its pure `furniture_candidates_refusal` compares those pins and calls the actual
+Budget directly, before SpaceOwner makes any private copy. It must not invoke
+physical providers or recurse into SpaceOwner preparation from that callback.
+
+SpaceOwner then copies every slot, generation, kind, typed row, persistent ID
+and layout integer, and rechecks them around all later authority callbacks.
+The only future facts admitted are pending Furniture: the actual containing
+Room, selected catalog type, authored rotation, `NO_LINK` surface origin and
+installed status zero. Future Construction identities remain under their real
+owner; no master project or arbitrary future-facts override is introduced.
+Every pending Furniture source must have an explicit occupied obstacle linked
+to the actual Room's floor metadata. This path cannot create supported void,
+excavated matter, structural support, installed service capacity or a route.
+
+Normal publication refuses the candidate. The separate
+`publish_furniture_admissions` requires the exact sealed token, original batch,
+Room and authority during the real Router's synchronous publication window.
+After the Directory, Buildings and Construction rows exist, SpaceOwner checks
+every full tuple and both typed after-facts: each project must name its exact
+Furniture, purpose and type, and each Furniture must still be pending with the
+same Room/type/rotation. Ordinary source drift checks remain in force. Callback
+reentry cannot abort, rebegin or publish the geometry bank. Abort discards only
+the private candidate and preserves all live geometry and allocator state.
+
+The three private packed arrays contain 40N bytes of paired tuples, 16N bytes
+of exact entries and 4N bytes of sorted source-row indexes. The high bit of a
+source-row scratch index records per-seal geometry presence, avoiding another
+array. `furniture_admission_cold_bytes(N)` returns `60N + 16` for a valid finite
+pair count, and zero before multiplication for an invalid count. The 16 bytes
+are the count and full Room control. The original entries are borrowed, not
+copied a second time; references, packed headers and temporary call frames
+remain in the declared native/control reserve. All owned arrays are dropped
+before the caller releases its shared cold lease. Existing canonical columns,
+wire schema, capacities and work limit are unchanged. Source-index lookups and
+validation charge bounded comparisons; technical exhaustion refuses the whole
+candidate rather than truncating a player's fitting plan.
+
+The component tests use real Directory/Router/Buildings/Construction owners
+and exact catalog recipes. Their shell and occupied boxes are explicitly
+synthetic extents, so they qualify atomic identity/source publication only.
+Production layout, footprint, contact, support and paid installation proofs
+remain with the actual RoomOrders and world bindings.
+
+
+The clean focused result for this increment is72 Owner tests/3217 assertions
+and18 actual paired-core tests/523 assertions, all failures, strict/raw
+unexpected diagnostics and object/resource leaks zero. The two changed files
+produce0 analyzer warnings. A real three-pair command at the unchanged
+R6144/O2048 pack spends59668 Owner checks within MAX_CHECKS1048576.
+[Exact source pins and raw logs](../validation/evidence/underground-ug1075-bindings-2026-10-03/furniture-batch-source/README.md)
+preserve rejected development attempts separately. Independent root review accepted the exact frozen source and tests before commit; these component fixtures do not close
+actual world/layout/contact or complete save/load qualification.

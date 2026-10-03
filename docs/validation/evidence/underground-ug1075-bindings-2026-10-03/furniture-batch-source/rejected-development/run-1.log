@@ -1,0 +1,17 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-a4diwbsn
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 1
+FAIL C4 underground_routes.gd line 1282: `_furniture_pins` is not a packed column there
+FAIL C4 underground_routes.gd line 1283: `_furniture_entries` is not a packed column there
+FAIL C4 underground_routes.gd line 1284: `_furniture_rows` is not a packed column there
+FAIL C4 underground_routes.gd line 1285: `_furniture_input_entries` is not a packed column there
+FAIL C3 underground_space_owner.gd declares `_furniture_input_entries` with no registry row
+FAIL C3 underground_space_owner.gd declares `_furniture_pins` with no registry row
+FAIL C3 underground_space_owner.gd declares `_furniture_entries` with no registry row
+FAIL C3 underground_space_owner.gd declares `_furniture_rows` with no registry row
+FAIL C6 underground_routes.gd line 1282: `_furniture_pins` has no resize() call; say 'never allocated'
+FAIL C6 underground_routes.gd line 1283: `_furniture_entries` has no resize() call; say 'never allocated'
+FAIL C6 underground_routes.gd line 1284: `_furniture_rows` has no resize() call; say 'never allocated'
+FAIL C6 underground_routes.gd line 1285: `_furniture_input_entries` has no resize() call; say 'never allocated'
+state_registry_coverage: 12 failure(s)
+assets restored True

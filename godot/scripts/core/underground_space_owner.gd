@@ -305,6 +305,17 @@ var _room_row: int = -1
 var _room_type: int = -1
 var _room_callback: bool = false
 var _room_reentered: bool = false
+## One admitted cold batch: private5-column paired tuples, layout entries and source-row index.
+var _furniture_count: int = 0
+var _furniture_room: Vector2i = NULL_REF
+var _furniture_input: WeakRef = null
+var _furniture_authority: WeakRef = null
+var _furniture_input_entries: PackedInt32Array = PackedInt32Array()
+var _furniture_pins: PackedInt32Array = PackedInt32Array()
+var _furniture_entries: PackedInt32Array = PackedInt32Array()
+var _furniture_rows: PackedInt32Array = PackedInt32Array()
+const FURNITURE_GEOMETRY_SEEN: int = 1073741824
+
 
 
 func _init(sources: Sources) -> void:
@@ -450,6 +461,7 @@ func abort(token: int) -> bool:
 	_sealed = false
 	_clear_installation()
 	_clear_room_admission()
+	_clear_furniture_admissions()
 	return true
 
 
@@ -459,7 +471,7 @@ func stage_furniture_install(token: int, project: Vector2i, router: ModularContr
 	var code: StringName = _editable(token)
 	if code != &"":
 		return code
-	if _install_row != -1 or _room_row != -1:
+	if _install_row != -1 or _room_row != -1 or _furniture_count > 0:
 		return &"SPACE_INSTALLATION_BUSY"
 	code = _installation_project_refusal(project, router, owner)
 	if code != &"":
@@ -539,7 +551,7 @@ func stage_room_admission(token: int, candidate: Directory.CreateCandidate, room
 	var code: StringName = _editable(token)
 	if code != &"":
 		return code
-	if _install_row >= 0 or _room_row >= 0:
+	if _install_row >= 0 or _room_row >= 0 or _furniture_count > 0:
 		return &"SPACE_ROOM_ADMISSION_BUSY"
 	code = _observe_room_candidate(candidate)
 	if code == &"":
@@ -922,7 +934,7 @@ func publish(token: int) -> void:
 	"""A coordinator calls this synchronously after successful payment; there are no fallible callbacks."""
 	if _reject_room_reentry() or _validation_sources >= 0:
 		return
-	if _install_row >= 0 or _room_row >= 0:
+	if _install_row >= 0 or _room_row >= 0 or _furniture_count > 0:
 		return # Future source publication requires its exact actual owner callback, even with a sealed token.
 	assert(token != 0 and token == _stage_token and _sealed, "only a preflighted transaction may publish")
 	_swap_banks()
@@ -1559,6 +1571,10 @@ func _sources_refusal(staged: bool, allow_prepared: bool = true) -> StringName:
 		var code: StringName = _installation_source_refusal()
 		if code != &"":
 			return code
+	if staged and allow_prepared and _furniture_count > 0:
+		var code: StringName = _furniture_before_refusal()
+		if code != &"":
+			return code
 	if staged and allow_prepared and _room_row >= 0:
 		var code: StringName = _room_before_refusal()
 		if code != &"":
@@ -1588,6 +1604,12 @@ func _installation_source_refusal() -> StringName:
 
 func _source_row_refusal(row: int, staged: bool, allow_prepared: bool) -> StringName:
 	"""Ordinary rows always read real current facts; only exact typed transition rows have before-facts."""
+	if staged and allow_prepared and _furniture_count > 0:
+		var ordinal: int = _furniture_ordinal(row)
+		if ordinal == LOOKUP_BUDGET:
+			return &"SPACE_OPERATION_BUDGET"
+		if ordinal >= 0:
+			return _furniture_source_refusal(ordinal)
 	if staged and allow_prepared and row == _room_row:
 		return _room_source_refusal()
 	var ref: Vector2i = Vector2i(_s_o_slot[row], _s_o_generation[row]) if staged \
@@ -1612,10 +1634,12 @@ func _installation_before_matches(row: int) -> bool:
 
 func _validate_stage(refresh_revisions: bool = false) -> StringName:
 	"""Borrow staged heaps only while edits are locked, reserving their unconditional reconstruction."""
-	if not _spend(_region_capacity + _source_capacity):
+	if not _spend(_region_capacity + _source_capacity + _furniture_count):
 		return &"SPACE_OPERATION_BUDGET"
 	_validation_regions = 0
 	_validation_sources = 0
+	for index: int in _furniture_count:
+		_furniture_rows[index] &= ~FURNITURE_GEOMETRY_SEEN
 	var code: StringName = _index_validation_rows()
 	if code == &"":
 		code = _sort_validation_sources()
@@ -1720,6 +1744,8 @@ func _validate_indexed_stage(refresh_revisions: bool) -> StringName:
 		if code != &"":
 			return code
 	code = _room_markers_refusal()
+	if code == &"":
+		code = _furniture_markers_refusal()
 	return _overlap_refusal() if code == &"" else code
 
 func _room_region_refusal(role: int, ref: Vector2i, kind: int, claim: Vector2i, section: Vector2i) -> StringName:
@@ -1770,7 +1796,9 @@ func _staged_region_refusal(row: int, refresh_revisions: bool) -> StringName:
 		Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row]), _s_r_claim_kind[row],
 		Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row]),
 		Vector2i(_s_r_section_slot[row], _s_r_section_generation[row]))
-	return _section_refusal(row, owner) if code == &"" else code
+	if code == &"":
+		code = _section_refusal(row, owner)
+	return _furniture_region_refusal(row, owner) if code == &"" else code
 
 
 func _section_refusal(row: int, owner: int) -> StringName:
@@ -2312,3 +2340,282 @@ func _swap_columns_4() -> void:
 	var saved_4: PackedInt32Array = _o_d
 	_o_d = _s_o_d
 	_s_o_d = saved_4
+
+
+static func furniture_admission_cold_bytes(pair_count: int) -> int:
+	"""Charge private tuples/entries/row indexes plus16 logical controls before the first batch copy."""
+	return 60 * pair_count + 16 if pair_count > 0 and pair_count <= MAX_REGIONS else 0
+
+
+func stage_furniture_admissions(token: int, candidates: Directory.CreateBatch, room: Vector2i,
+		entries: PackedInt32Array, authority: Buildings.SpatialAuthority) -> StringName:
+	"""Pin the actual coordinator's admitted paired observation; only pending Furniture facts may be future."""
+	var code: StringName = _editable(token)
+	if code != &"":
+		return code
+	if _install_row >= 0 or _room_row >= 0 or _furniture_count > 0:
+		return &"SPACE_FURNITURE_ADMISSION_BUSY"
+	code = _admit_furniture_packet(candidates, room, entries, authority)
+	if code != &"":
+		return code
+	@warning_ignore("integer_division") var count: int = candidates.count / 2
+	if count > _s_source_free_count or not _spend(64 * count + _source_capacity * 16):
+		return &"SPACE_FURNITURE_ADMISSION_CAPACITY"
+	_pin_furniture_packet(candidates, room, entries, authority)
+	code = _furniture_before_refusal()
+	if code == &"":
+		code = _editable(token)
+	if code == &"":
+		code = _furniture_sources_absent()
+	if code != &"":
+		_clear_furniture_admissions()
+		return code
+	_stage_furniture_sources()
+	return &""
+
+
+func _admit_furniture_packet(candidates: Directory.CreateBatch, room: Vector2i,
+		entries: PackedInt32Array, authority: Buildings.SpatialAuthority) -> StringName:
+	"""The actual coordinator's pre-pinned canonical packet and exact cold lease precede our60N copy."""
+	if candidates == null or candidates.storage_refusal() != &"" or candidates.count < 2 \
+			or candidates.count != candidates.capacity() or candidates.count % 2 != 0 \
+			or candidates.count > _source_capacity * 2 or entries.size() != candidates.count * 2:
+		return &"SPACE_FURNITURE_PACKET"
+	var code: StringName = _room_binding_refusal(authority)
+	if code == &"":
+		code = _furniture_authority_refusal(candidates, room, entries)
+	return code
+
+
+func _furniture_authority_refusal(candidates: Directory.CreateBatch, room: Vector2i,
+		entries: PackedInt32Array) -> StringName:
+	"""Reentrancy protection surrounds the actual Buildings/RoomOrders attestation, then rechecks allocation."""
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	var code: StringName = _sources.construction_owner().buildings().spatial_furniture_batch_refusal(room, candidates, entries)
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	return _sources.directory().batch_candidate_refusal(candidates) if code == &"" else code
+
+
+func _pin_furniture_packet(candidates: Directory.CreateBatch, room: Vector2i,
+		entries: PackedInt32Array, authority: Buildings.SpatialAuthority) -> void:
+	"""Private copies total60N bytes; the original mutable observations remain separate and are compared."""
+	@warning_ignore("integer_division") _furniture_count = candidates.count / 2
+	_furniture_room = room
+	_furniture_input = weakref(candidates)
+	_furniture_authority = weakref(authority)
+	_furniture_input_entries = entries
+	_furniture_pins.resize(candidates.count * 5)
+	_furniture_entries = entries.duplicate()
+	_furniture_rows.resize(_furniture_count)
+	_furniture_rows.fill(-1)
+	for index: int in candidates.count:
+		_furniture_pins[index * 5] = candidates.slots[index]
+		_furniture_pins[index * 5 + 1] = candidates.generations[index]
+		_furniture_pins[index * 5 + 2] = candidates.kinds[index]
+		_furniture_pins[index * 5 + 3] = candidates.typed_rows[index]
+		_furniture_pins[index * 5 + 4] = candidates.persistent_ids[index]
+
+
+func _furniture_packet_matches(candidates: Directory.CreateBatch, entries: PackedInt32Array) -> bool:
+	"""Every tuple, layout entry and actual namespace must equal the privately pinned admission."""
+	if candidates == null or candidates.directory_owner() != _sources.directory() \
+			or candidates.storage_refusal() != &"" or candidates.count != _furniture_count * 2 \
+			or candidates.capacity() != candidates.count or entries.size() != _furniture_count * 4:
+		return false
+	for index: int in candidates.count:
+		if candidates.slots[index] != _furniture_pins[index * 5] \
+				or candidates.generations[index] != _furniture_pins[index * 5 + 1] \
+				or candidates.kinds[index] != _furniture_pins[index * 5 + 2] \
+				or candidates.typed_rows[index] != _furniture_pins[index * 5 + 3] \
+				or candidates.persistent_ids[index] != _furniture_pins[index * 5 + 4]:
+			return false
+	return entries == _furniture_entries
+
+
+func _furniture_before_refusal() -> StringName:
+	"""No edited input, authority expiry or changed Directory cursor can retain prepared permission."""
+	var candidates: Directory.CreateBatch = _furniture_input.get_ref() as Directory.CreateBatch \
+		if _furniture_input != null else null
+	var authority: Buildings.SpatialAuthority = _furniture_authority.get_ref() as Buildings.SpatialAuthority \
+		if _furniture_authority != null else null
+	if not _furniture_packet_matches(candidates, _furniture_input_entries):
+		return &"SPACE_FURNITURE_PACKET"
+	var code: StringName = _room_binding_refusal(authority)
+	if code == &"":
+		code = _furniture_authority_refusal(candidates, _furniture_room, _furniture_input_entries)
+	if code == &"" and not _furniture_packet_matches(candidates, _furniture_input_entries):
+		return &"SPACE_FURNITURE_PACKET"
+	return code
+
+
+func _furniture_sources_absent() -> StringName:
+	"""Scan the existing source bank once; the actual Directory's globally ordered batch supplies lookup keys."""
+	for row: int in _source_capacity:
+		if _s_o_present[row] == 0:
+			continue
+		var first: int = 0
+		var limit: int = _furniture_count
+		while first < limit:
+			@warning_ignore("integer_division") var middle: int = (first + limit) / 2
+			var slot: int = _furniture_pins[middle * 10]
+			if slot == _s_o_slot[row]:
+				return &"SPACE_FURNITURE_SOURCE_EXISTS"
+			if slot < _s_o_slot[row]:
+				first = middle + 1
+			else:
+				limit = middle
+	return &""
+
+
+func _stage_furniture_sources() -> void:
+	"""All finite/identity preflights finished before any inactive source row is allocated."""
+	for index: int in _furniture_count:
+		var row: int = _heap_pop(_s_source_free_heap, _s_source_free_count)
+		_s_source_free_count -= 1
+		_furniture_rows[index] = row
+		_s_o_present[row] = 1
+		_s_o_slot[row] = _furniture_pins[index * 10]
+		_s_o_generation[row] = _furniture_pins[index * 10 + 1]
+		_s_o_revision[row] = 1
+		_furniture_facts_into(index)
+		_write_source_facts(row)
+
+
+func _furniture_facts_into(index: int) -> void:
+	"""Only actual pending Furniture facts are derived: real Room, authored type/rotation, no tile, installed0."""
+	_facts.clear()
+	_facts.kind = Directory.KIND_FURNITURE
+	_facts.parent = _furniture_room
+	_facts.a = _furniture_entries[index * 4]
+	_facts.b = Buildings.NO_LINK
+	_facts.c = _furniture_entries[index * 4 + 3]
+
+
+func _furniture_ordinal(row: int) -> int:
+	"""Source rows were taken from a min-heap, so their private index remains sorted without another array."""
+	var first: int = 0
+	var limit: int = _furniture_count
+	while first < limit:
+		if _validation_sources >= 0 and not _spend(1):
+			return LOOKUP_BUDGET
+		@warning_ignore("integer_division") var middle: int = (first + limit) / 2
+		var source: int = _furniture_rows[middle] & ~FURNITURE_GEOMETRY_SEEN
+		if source == row:
+			return middle
+		if source < row:
+			first = middle + 1
+		else:
+			limit = middle
+	return -1
+
+
+func _furniture_source_refusal(index: int) -> StringName:
+	"""A private future source must still have its exact paired full identity and uninstalled derived facts."""
+	var row: int = _furniture_rows[index] & ~FURNITURE_GEOMETRY_SEEN
+	if row < 0 or row >= _source_capacity or _s_o_present[row] != 1 \
+			or _s_o_slot[row] != _furniture_pins[index * 10] \
+			or _s_o_generation[row] != _furniture_pins[index * 10 + 1]:
+		return &"SPACE_FURNITURE_SOURCE"
+	_furniture_facts_into(index)
+	return &"" if _facts_match(row, true) else &"SPACE_FURNITURE_SOURCE"
+
+
+func _furniture_region_refusal(row: int, owner: int) -> StringName:
+	"""Pending admission can only block actual installation space; no services, free void or support is created."""
+	var ordinal: int = _furniture_ordinal(owner)
+	if ordinal == LOOKUP_BUDGET:
+		return &"SPACE_OPERATION_BUDGET"
+	if ordinal < 0:
+		return &""
+	if _s_r_role[row] != Space.OBSTACLE or _s_r_claim_kind[row] != CLAIM_NONE \
+			or _s_r_section_slot[row] < 0:
+		return &"SPACE_FURNITURE_ADMISSION_REGION"
+	_furniture_rows[ordinal] |= FURNITURE_GEOMETRY_SEEN
+	return &""
+
+
+func _furniture_markers_refusal() -> StringName:
+	"""Every accepted pending piece needs actual occupied geometry before source identities can publish."""
+	if not _spend(_furniture_count):
+		return &"SPACE_OPERATION_BUDGET"
+	for index: int in _furniture_count:
+		if (_furniture_rows[index] & FURNITURE_GEOMETRY_SEEN) == 0:
+			return &"SPACE_FURNITURE_ADMISSION_GEOMETRY"
+	return &""
+
+
+func publish_furniture_admissions(token: int, candidates: Directory.CreateBatch, room: Vector2i,
+		entries: PackedInt32Array, authority: Buildings.SpatialAuthority) -> StringName:
+	"""Publish only exact sealed geometry after the real paired identity/row publication in its Router window."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if token == 0 or token != _stage_token or not _sealed or _furniture_count == 0 \
+			or _furniture_input == null or _furniture_input.get_ref() != candidates or room != _furniture_room \
+			or _furniture_authority == null or _furniture_authority.get_ref() != authority \
+			or not _furniture_packet_matches(candidates, entries):
+		return &"SPACE_FURNITURE_ADMISSION_TOKEN"
+	var code: StringName = _furniture_after_refusal(candidates, authority)
+	if code != &"":
+		return code
+	if not _furniture_packet_matches(candidates, entries) or _s_header[17] != revision() + 1:
+		return &"SPACE_FURNITURE_PACKET"
+	code = _sources_refusal(true, false)
+	if code == &"":
+		code = _claims_refusal(true, false)
+	if code != &"":
+		return code
+	_swap_banks()
+	_stage_token = 0
+	_sealed = false
+	_clear_furniture_admissions()
+	return &""
+
+
+func _furniture_after_refusal(candidates: Directory.CreateBatch, authority: Buildings.SpatialAuthority) -> StringName:
+	"""A live coincident ref is insufficient; actual full row/PID tuples and exact publishing authority are required."""
+	var code: StringName = _room_binding_refusal(authority)
+	if code != &"":
+		return code
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	var publishing: bool = authority.is_publishing_furniture_admissions(_furniture_room, candidates)
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if not publishing:
+		return &"SPACE_FURNITURE_ADMISSION_PUBLICATION"
+	var ids: Directory = _sources.directory()
+	for index: int in _furniture_count * 2:
+		var ref: Vector2i = Vector2i(_furniture_pins[index * 5], _furniture_pins[index * 5 + 1])
+		if not ids.is_valid_of_kind(ref, _furniture_pins[index * 5 + 2]) \
+				or ids.get_typed_row(ref) != _furniture_pins[index * 5 + 3] \
+				or ids.get_persistent_id(ref) != _furniture_pins[index * 5 + 4]:
+			return &"SPACE_FURNITURE_AFTER_IDENTITY"
+	return _furniture_after_pairs_refusal()
+
+
+func _furniture_after_pairs_refusal() -> StringName:
+	"""Both typed rows must be the actual paired project and pending Furniture, never bare Directory allocations."""
+	for index: int in _furniture_count:
+		var project: Vector2i = Vector2i(_furniture_pins[index * 10 + 5], _furniture_pins[index * 10 + 6])
+		var code: StringName = _read_source(project)
+		if code != &"":
+			return code
+		if _facts.kind != Directory.KIND_CONSTRUCTION or _facts.parent != Vector2i(_furniture_pins[index * 10],
+				_furniture_pins[index * 10 + 1]) or _facts.a != Construction.PURPOSE_SPATIAL_FURNITURE \
+				or _facts.b != _furniture_entries[index * 4]:
+			return &"SPACE_FURNITURE_AFTER_PROJECT"
+	return &""
+
+
+func _clear_furniture_admissions() -> void:
+	"""Discard every charged private copy before the coordinator releases its shared cold lease."""
+	_furniture_count = 0
+	_furniture_room = NULL_REF
+	_furniture_input = null
+	_furniture_authority = null
+	_furniture_input_entries = PackedInt32Array()
+	_furniture_pins = PackedInt32Array()
+	_furniture_entries = PackedInt32Array()
+	_furniture_rows = PackedInt32Array()

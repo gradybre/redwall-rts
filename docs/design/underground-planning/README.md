@@ -15,7 +15,9 @@ is pinned to `d9941bd9fc4ebdca12ab5b34d86c943439d93ad1`.
 
 ## User direction already given
 
-- Select a room or passage type and lay out a blueprint before confirming it.
+- Select a room or passage type and draw its planned footprint directly on the
+  dirt at its intended world location and selected underground level. The
+  blueprint is the in-world preview, not a separate drawing canvas.
 - Workers excavate the room; completion leaves an empty shell.
 - Furnishing is ordered afterward, with equipment appropriate to the room use.
 - A completed room retains its selected type even when empty. A different type
@@ -580,9 +582,34 @@ changes accidentally. Save/load and interruptions must preserve the draft and
 its valid hold ownership without silently resolving the decision for the player.
 Exact registered controls and persistence remain engineering work.
 
+**D29 — Draw the room directly on the dirt where it will be built. Clarified by
+Brendan on 2026-10-02.**
+
+The user clarified: “the player shouldn’t draw the actual shape of the room on a
+blueprint, but they should draw it on the dirt where it goes.” Select a room
+purpose and shape tool, then paint directly into the selected underground world
+view. The planning grid, boundary, materials, entrances and obstruction feedback
+appear over that actual location before confirmation. “Blueprint” in D01–D28
+means this in-world planned state; it is not a separate sheet, layout designer or
+canvas which is later placed into the world.
+
+Camera movement and underground-level selection retain real spatial context.
+Pointer picking and the preview use the same selected floor datum and integer
+cell mapping as validation and the eventual excavation order. Above/below-level
+conflicts remain visible as D03 requires. Side controls select tools and options;
+they do not become the drawing surface. D07 raised/sunken sections use the same
+in-world interaction on the selected room.
+
+The UG04 two-dimensional board is explicitly a synthetic component test. It is
+not the intended playable interface and cannot satisfy the actual-demo criteria.
+UG09 and native integration qualification must exercise drawing on the village's
+dirt, including camera movement, GUI interception and changes of selected level.
+This clarification changes no geometry, cost, excavation or confirmation rule.
+
 ## Current review checkpoint
 
-The interaction choices discussed in D01–D28 are recorded. The next review
+The interaction choices in D01–D28 and the in-world drawing clarification D29
+are recorded. The next review
 piece is the already scoped [blueprint-to-empty-shell checkpoint](first-milestone.md#first-review-checkpoint-blueprint-to-empty-shell):
 plan the kitchen with whole-surface materials and optional fit guides, build
 with real work, revise an unstarted area through the complete pause/exit flow,

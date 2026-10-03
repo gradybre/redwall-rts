@@ -80,7 +80,7 @@ The specific tool examples above remain proposals within D01's requirements.
 
 | ID | Requirement |
 | --- | --- |
-| UG-SHAPE-001 | While editing a draft, the tool shall show its planning grid and the resulting room boundary before confirmation. |
+| UG-SHAPE-001 | Draw the draft directly on the dirt at its intended location in the selected underground world view. Show the planning grid and resulting boundary there before confirmation; a separate blueprint drawing canvas does not satisfy this requirement (D29). |
 | UG-SHAPE-002 | The editor shall support both straight-sided and curved room shapes, including connected irregular shapes, rather than only oval/circular templates. |
 | UG-SHAPE-003 | When painting, erasing or resizing, the editor shall keep the displayed usable floor, confirmed geometry and legal placement boundary consistent. |
 | UG-SHAPE-004 | The editor shall provide a tunnel-appropriate route tool whose preview shows passage width, bends, junctions and connection openings. |
@@ -407,7 +407,7 @@ simulation; the approved world art and reduced-motion rules remain in force.
 
 | ID | Acceptance criterion derived from D17 and existing UI rules |
 | --- | --- |
-| UG-VIEW-001 | While an unfinished room or tunnel project is selected or being edited, its full translucent plan shall be visible within the active view; otherwise its presentation shall retain a subtle planned boundary around the visible work. |
+| UG-VIEW-001 | While an unfinished room or tunnel project is selected or being edited, its full translucent plan shall be visible over its actual dirt/world location within the active view; otherwise its presentation shall retain a subtle planned boundary around the visible work. Camera and selected-level changes must preserve the same world placement (D29). |
 | UG-VIEW-002 | The plan overlay shall distinguish intended space from committed construction and shall keep the actual work and required warning/blocker information legible. |
 | UG-VIEW-003 | Blueprint visibility shall respect the selected layer, cutaway and discovery rules; it shall not expose undiscovered contents or make geometry on another level an accidental selection target. |
 | UG-VIEW-004 | Selecting, editing the draft presentation or hiding a plan overlay shall not itself change authoritative work, inventory, geometry or routes; world changes shall require their normal explicit commands. |

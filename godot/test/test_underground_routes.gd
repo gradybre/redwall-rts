@@ -9,6 +9,9 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const WorldRouteTests := preload("res://test/test_underground_world_routes.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
@@ -1190,3 +1193,215 @@ func test_route_publication_rechecks_location_receipt_after_provider_callback() 
 	assert_false(_routes.is_live_edge(route.ref), "restored identity does not publish an old proof")
 	assert_true(_routes.abort(route.token), "discard prepared graph")
 	assert_equal(_budget.release(cold), &"", "release operation after copies dropped")
+
+
+class ObservedStaticBinding extends WorldRoutes:
+	## Negative-only probes around actual committed certificates; no positive synthetic route permission.
+	var closed: Vector2i = NULL_REF
+	var probe: Callable = Callable()
+	var catalog_reads: int = 0
+	var edge_reads: int = 0
+
+	func static_catalog_owner() -> Catalog:
+		"""Count the admission boundary without replacing the actual immutable owner."""
+		catalog_reads += 1
+		return super.static_catalog_owner()
+
+	func static_profile_edge_refusal(edge: Vector2i, profile_id: int, profile_revision: int,
+			content_revision: int) -> StringName:
+		"""The real proof runs first; fault injection may only reject or invalidate that result."""
+		edge_reads += 1
+		var code: StringName = super.static_profile_edge_refusal(edge, profile_id, profile_revision, content_revision)
+		if probe.is_valid():
+			var once: Callable = probe
+			probe = Callable()
+			once.call()
+		return &"TEST_STATIC_SPAN_CLOSED" if edge == closed else code
+
+
+class ProfileRouteFixture extends WorldRouteTests:
+	## Actual compiled-certificate provider; inherited immutable physical/body fixtures remain test-only.
+	var edges: Array[Vector2i] = []
+	var cold: int = 0
+	var replacement: int = 0
+	var nested_code: StringName = &""
+
+	func _actual_binding() -> void:
+		"""Use the production composition with a negative-only observation subclass."""
+		_binding = ObservedStaticBinding.new()
+		var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
+		config.routes = _routes
+		config.owner = _owner
+		config.sources = _sources
+		config.locations = _locations
+		config.profiles = _profiles
+		config.catalog = _catalog
+		config.levels = _levels
+		config.movement = _movement
+		config.residents = _residents
+		config.transforms = _transforms
+		config.world = _world
+		config.terrain = _terrain
+		config.budget = _budget
+		assert_equal(_binding.configure(config), &"", "actual static route provider")
+		assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
+			8, 16, 64, 64, Routes.ARENA_BYTES), &"", "actual graph namespace")
+		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual profile owners")
+
+	func network() -> void:
+		"""Publish a short direct span and a longer three-span detour through actual complete endpoints."""
+		_actual_fixture()
+		var first_turn: Vector2i = _location(Vector3i(X + 512, 512, Z + 1536))
+		var last_turn: Vector2i = _location(Vector3i(X + 1536, 512, Z + 1536))
+		var token: int = _begin()
+		edges.append(_routes.stage_add(token, _edge()).ref)
+		edges.append(_routes.stage_add(token, _span(_first, first_turn, Vector3i(X + 512, 512, Z + 512), Vector3i(X + 512, 512, Z + 1536))).ref)
+		edges.append(_routes.stage_add(token, _span(first_turn, last_turn, Vector3i(X + 512, 512, Z + 1536), Vector3i(X + 1536, 512, Z + 1536))).ref)
+		edges.append(_routes.stage_add(token, _span(last_turn, _last, Vector3i(X + 1536, 512, Z + 1536), Vector3i(X + 1536, 512, Z + 512))).ref)
+		for ref: Vector2i in edges:
+			assert_true(ref != NULL_REF, "actual certified span allocated")
+		assert_equal(_binding.seal(token), &"", "actual network sealed")
+		assert_equal(_binding.publish(token), &"", "actual network published")
+		_end(token)
+		cold = _budget.acquire(Routes.PROFILE_PATH_COLD_BYTES)
+
+	func _span(first: Vector2i, last: Vector2i, start: Vector3i, end: Vector3i) -> Routes.Edge:
+		"""Every alternate span has exact endpoints and the same immutable compiled travel profile."""
+		var edge: Routes.Edge = _edge()
+		edge.from_location = first
+		edge.to_location = last
+		edge.points = PackedInt32Array([start.x, start.y, start.z, end.x, end.y, end.z])
+		return edge
+
+	func path(out: PackedInt32Array, profile_id: int = 0, revision: int = 1, content: int = 1) -> Routes.Result:
+		"""Read under the fixture's original exact tiny cold lease without selecting an actor."""
+		return _routes.profile_path_into(_first, _last, profile_id, revision, content, out, cold)
+
+	func replace_lease() -> void:
+		"""A same-sized newly issued token cannot authorize the original cold query."""
+		assert_equal(_budget.release(cold), &"", "actual lease revoked")
+		replacement = _budget.acquire(Routes.PROFILE_PATH_COLD_BYTES)
+
+	func replace_catalog() -> void:
+		"""Replacing the actual immutable content invalidates earlier edge checks in this search."""
+		assert_equal(_load_catalog(2), &"", "actual catalog revision replaced")
+
+	func reenter() -> void:
+		"""A nested graph query cannot reuse the active operation's Dijkstra scratch."""
+		nested_code = _routes.profile_path_into(_first, _last, 0, 1, 1, PackedInt32Array(), cold).error
+
+	func retire_endpoint() -> void:
+		"""Inject an actual stale full generation without claiming a legitimate topology edit."""
+		_locations._live.i32[Locations.GENERATION * _locations._capacity + _last.x] += 1
+
+	func finish() -> void:
+		"""Only the owner of the original or deliberately substituted lease releases it."""
+		if _budget.covers(cold, 1):
+			assert_equal(_budget.release(cold), &"", "original query lease released")
+		elif replacement > 0:
+			assert_equal(_budget.release(replacement), &"", "external replacement released")
+		after_each()
+
+
+func _finish_profile_fixture(fixture: ProfileRouteFixture) -> void:
+	"""Propagate all reused fixture assertions; they are not silently discarded from the outer verdict."""
+	fixture.finish()
+	assert_true(fixture.failures.is_empty(), "actual composed fixture: %s" % str(fixture.failures))
+
+
+func test_static_profile_search_selects_longer_qualified_path_without_worker_or_job() -> void:
+	"""A short refused span must not hide a longer complete certified route for this descriptor."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	assert_true(binding.static_catalog_owner() == fixture._catalog, "exact actual Catalog identity")
+	var before: PackedByteArray = fixture._residents.directory().state_bytes()
+	var out: PackedInt32Array = PackedInt32Array()
+	out.resize(8)
+	var direct: Routes.Result = fixture.path(out)
+	assert_equal(direct.error, &"", "actual direct route")
+	assert_equal(direct.count, 1, "shorter route chosen")
+	assert_equal(Vector2i(out[0], out[1]), fixture.edges[0], "exact direct edge")
+	binding.closed = fixture.edges[0]
+	var detour: Routes.Result = fixture.path(out)
+	assert_equal(detour.error, &"", "qualified alternative found")
+	assert_equal(detour.count, 3, "three-span detour")
+	for index: int in 3:
+		assert_equal(Vector2i(out[index * 2], out[index * 2 + 1]), fixture.edges[index + 1], "deterministic full-ref route order")
+	assert_true(fixture._residents.directory().state_bytes() == before, "no Room, worker or Job allocation")
+	assert_true(fixture._routes.read_actor_into(fixture._worker, Routes.Actor.new()) != &"", "no actor admission")
+	_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_refuses_missing_stale_or_wrong_mode_without_output_writes() -> void:
+	"""A topology path cannot substitute for this exact current travel profile."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([91, 92, 93, 94, 95, 96])
+	var prior: PackedInt32Array = out.duplicate()
+	assert_true(fixture.path(out, -1).error != &"", "missing immutable profile")
+	assert_true(fixture.path(out, 0, 2).error != &"", "wrong profile revision")
+	assert_true(fixture.path(out, 0, 1, 2).error != &"", "wrong content revision")
+	assert_equal(fixture.path(out, 1).error, &"ROUTE_NOT_CONNECTED", "climb descriptor cannot borrow a walk path")
+	assert_equal(out, prior, "every refusal preserves caller output")
+	var zero: Routes.Result = fixture._routes.profile_path_into(fixture._first, fixture._first, 0, 1, 1, out, fixture.cold)
+	assert_equal(zero.error, &"", "current same-endpoint observation")
+	assert_equal(zero.count, 0, "zero spans grant no movement")
+	assert_equal(out, prior, "zero path need not overwrite any row")
+	_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_admits_memory_before_callbacks_and_rejects_replaced_token() -> void:
+	"""A foreign/expired numerical token never reaches the actual catalog or edge callback."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	var reads: int = binding.catalog_reads
+	var out: PackedInt32Array = PackedInt32Array([41, 42, 43, 44])
+	var before: PackedInt32Array = out.duplicate()
+	assert_equal(fixture._routes.profile_path_into(fixture._first, fixture._last, 0, 1, 1, out, fixture.cold + 1).error,
+		&"ROUTE_COLD_LEASE", "unissued token")
+	assert_equal(binding.catalog_reads, reads, "no callback before cold admission")
+	binding.probe = fixture.replace_lease
+	assert_equal(fixture.path(out).error, &"ROUTE_COLD_LEASE", "same-sized replacement refuses")
+	assert_true(fixture._budget.covers(fixture.replacement, Routes.PROFILE_PATH_COLD_BYTES), "replacement remains owned externally")
+	assert_equal(out, before, "no partial route output")
+	_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_rechecks_source_generation_and_reentry_after_callbacks() -> void:
+	"""The final copy cannot use a changed catalog, recycled endpoint or nested search result."""
+	for fault: int in 3:
+		var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+		fixture.network()
+		var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+		binding.probe = [fixture.replace_catalog, fixture.retire_endpoint, fixture.reenter][fault]
+		var reads: int = binding.edge_reads
+		var out: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+		var before: PackedInt32Array = out.duplicate()
+		var expected: StringName = [&"ROUTE_STATIC_PROFILE_STALE", &"ROUTE_LOCATION_STALE", &"ROUTE_CALLBACK_REENTRY"][fault]
+		assert_equal(fixture.path(out).error, expected, "first operation fault cannot become a detour")
+		assert_equal(binding.edge_reads, reads + 1, "no later permission callback after the first fault")
+		assert_equal(out, before, "full output preserved")
+		if fault == 2:
+			assert_equal(fixture.nested_code, &"ROUTE_TRANSACTION_BUSY", "nested path cannot replace scratch")
+		_finish_profile_fixture(fixture)
+
+
+func test_static_profile_search_preserves_output_for_short_storage_and_stale_endpoints() -> void:
+	"""Current source content cannot legitimize a recycled endpoint or partially writable output packet."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var short: PackedInt32Array = PackedInt32Array([19])
+	assert_equal(fixture.path(short).error, &"ROUTE_OUTPUT_SHAPE", "no partial pair write")
+	assert_equal(short, PackedInt32Array([19]), "undersized caller unchanged")
+	var out: PackedInt32Array = PackedInt32Array([51, 52, 53, 54])
+	var stale: Vector2i = Vector2i(fixture._last.x, fixture._last.y + 1)
+	assert_equal(fixture._routes.profile_path_into(fixture._first, stale, 0, 1, 1, out, fixture.cold).error,
+		&"ROUTE_LOCATION_STALE", "full target generation required")
+	assert_equal(out, PackedInt32Array([51, 52, 53, 54]), "stale observation unchanged")
+	assert_equal(fixture.path(out).error, &"", "first exact deterministic result")
+	var previous: PackedInt32Array = out.duplicate()
+	assert_equal(fixture.path(out).error, &"", "same immutable inputs remain usable")
+	assert_equal(out, previous, "deterministic repeated full-edge output")
+	_finish_profile_fixture(fixture)

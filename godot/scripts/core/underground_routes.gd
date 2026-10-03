@@ -12,6 +12,7 @@ const Buildings := preload("res://scripts/core/buildings.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Work := preload("res://scripts/core/work.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
 const Gear := preload("res://scripts/core/gear.gd")
@@ -30,6 +31,7 @@ const MAX_LINKS: int = 4096
 const MAX_LOCATIONS: int = 1024
 const ARENA_BYTES: int = 1048576
 const HEADER_RESERVE: int = 2112
+const PROFILE_PATH_COLD_BYTES: int = 512 # Private descriptor/query packet; caller output is separately admitted.
 const FIXED_PACKED_BYTES: int = 216 # Domain/section, two Location records, broadphase and candidate bounds.
 const EDGE_FIELDS: int = 14
 const EDGE_LONGS: int = 3
@@ -173,6 +175,23 @@ class MotionStep extends RefCounted:
 	var consumed: int = 0
 
 
+class ProfilePath extends RefCounted:
+	## Cold private observation, never stored in an actor or exposed to provider callbacks.
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var bindings: Bindings = null
+	var owner: Owner = null
+	var profiles: Profiles = null
+	var locations: Locations = null
+	var sources: Owner.CoreSources = null
+	var catalog: Catalog = null
+	var first: Vector2i = NULL_REF
+	var last: Vector2i = NULL_REF
+	var geometry_revision: int = 0
+	var graph_revision: int = 0
+	var catalog_revision: int = 0
+	var cold_token: int = 0
+
+
 class Bindings extends RefCounted:
 	## Actual WorldBindings implements these read-only proofs; base callbacks fail closed.
 	func exact_binding(_routes: RefCounted, _locations: Locations, _owner: Owner, _cold: Budget) -> bool:
@@ -189,6 +208,15 @@ class Bindings extends RefCounted:
 
 	func travel_refusal(_edge: Vector2i, _selection: Profiles.Selection) -> StringName:
 		"""Qualify this actor's local body/load over a prospective complete span, independently of arrival."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func static_catalog_owner() -> Catalog:
+		"""Borrow the actual immutable catalog identity; this reader grants no route permission."""
+		return null
+
+	func static_profile_edge_refusal(_edge: Vector2i, _profile_id: int, _profile_revision: int,
+			_content_revision: int) -> StringName:
+		"""Observe a complete committed profile-specific span proof before any actor or Job exists."""
 		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
 
 	func transit_region_into(_section: Vector2i, _segment: int, _point: Vector3i, _out: Owner.Region) -> StringName:
@@ -1055,6 +1083,8 @@ func _attest_binding(bindings: Bindings, locations: Locations, owner: Owner, col
 
 func _spend(count: int = 1) -> bool:
 	"""Finite cold graph work refuses before the next charged loop; no capacity multiplication shortcut."""
+	if _operation_error != &"":
+		return false
 	if count < 0 or count > _remaining:
 		_operation_error = &"ROUTE_OPERATION_BUDGET"
 		return false
@@ -1399,7 +1429,128 @@ func candidate_path_into(first: Vector2i, last: Vector2i, mode: int, posture: in
 	return Result.new(&"", 0, NULL_REF, _proposed_count)
 
 
-func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int) -> StringName:
+
+func profile_path_into(first: Vector2i, last: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int, out: PackedInt32Array, cold_token: int) -> Result:
+	"""Find an actually certified static profile path; no actor, Job, contact or dynamic permission is created."""
+	if _reject_callback() or _token != 0 or _searching or _advancing or _occupancy_reading:
+		return Result.new(&"ROUTE_TRANSACTION_BUSY")
+	if _cold == null or not _cold.covers(cold_token, PROFILE_PATH_COLD_BYTES):
+		return Result.new(&"ROUTE_COLD_LEASE")
+	var query: ProfilePath = ProfilePath.new()
+	query.first = first
+	query.last = last
+	query.cold_token = cold_token
+	_searching = true
+	var code: StringName = _prepare_profile_path(query, profile_id, profile_revision, content_revision)
+	if code == &"":
+		code = _find_path(first, last, query.descriptor.mode, query.descriptor.posture, query)
+	if code == &"":
+		code = _profile_path_final_refusal(query)
+	_searching = false
+	if code != &"":
+		return Result.new(code)
+	return _copy_proposed_path(out)
+
+
+func _prepare_profile_path(query: ProfilePath, profile_id: int, profile_revision: int,
+		content_revision: int) -> StringName:
+	"""Hold original actual collaborators across callbacks before touching the shared Dijkstra scratch."""
+	query.bindings = _bindings
+	query.owner = _owner
+	query.profiles = _profiles
+	query.locations = _locations
+	query.sources = _sources
+	var code: StringName = _binding_refusal()
+	if code != &"":
+		return code
+	_in_callback = true
+	_callback_reentered = false
+	query.catalog = query.bindings.static_catalog_owner()
+	_in_callback = false
+	if _callback_reentered:
+		return &"ROUTE_CALLBACK_REENTRY"
+	if query.catalog == null or query.catalog.content_revision() <= 0:
+		return &"ROUTE_STATIC_CATALOG_UNBOUND"
+	query.geometry_revision = query.owner.revision()
+	query.graph_revision = _live.revision
+	query.catalog_revision = query.catalog.content_revision()
+	code = query.profiles.descriptor_into(profile_id, content_revision, query.descriptor)
+	if code == &"" and (query.descriptor.profile_revision != profile_revision 			or query.descriptor.certificate_flags != Profiles.CERT_REQUIRED):
+		code = &"ROUTE_STATIC_PROFILE_STALE"
+	if code != &"":
+		return code
+	return _start_profile_path(query)
+
+
+func _start_profile_path(query: ProfilePath) -> StringName:
+	"""A valid immutable travel descriptor is necessary even for a zero-span path."""
+	if query.descriptor.mode < Profiles.MODE_WALK or query.descriptor.mode > Profiles.MODE_CLIMB 			or query.descriptor.mode == Profiles.MODE_WORK or query.descriptor.posture < Profiles.POSTURE_UPRIGHT 			or query.descriptor.posture > Profiles.POSTURE_STOOPED:
+		return &"ROUTE_PROFILE_TERMS"
+	_remaining = _domain._checks
+	_operation_error = &""
+	return _current_profile_path_refusal(query)
+
+
+func _current_profile_path_refusal(query: ProfilePath) -> StringName:
+	"""Pure full-identity and revision reads follow every external callback and precede output writes."""
+	if not _cold.covers(query.cold_token, PROFILE_PATH_COLD_BYTES):
+		return &"ROUTE_COLD_LEASE"
+	if query.bindings != _bindings or query.owner != _owner or query.profiles != _profiles 			or query.locations != _locations or query.sources != _sources 			or not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD):
+		return &"ROUTE_OWNER_MISMATCH"
+	if query.owner.has_prepared() or query.owner.revision() != query.geometry_revision 			or _live.revision != query.graph_revision or query.profiles.content_revision() != query.descriptor.content_revision 			or query.catalog.content_revision() != query.catalog_revision:
+		return &"ROUTE_STATIC_PROFILE_STALE"
+	if not query.locations.is_live_location(query.first) or not query.locations.is_live_location(query.last):
+		return &"ROUTE_LOCATION_STALE"
+	return &""
+
+
+func _static_travel_profile_refusal(row: int, query: ProfilePath) -> StringName:
+	"""A refused span may be bypassed; changed source/lease context invalidates the complete search."""
+	if not _spend(64):
+		return _operation_error
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = query.bindings.static_profile_edge_refusal(
+		Vector2i(row, _edge_i32(_live, E_GENERATION, row)), query.descriptor.profile_id,
+		query.descriptor.profile_revision, query.descriptor.content_revision)
+	_in_callback = false
+	_operation_error = &"ROUTE_CALLBACK_REENTRY" if _callback_reentered else _current_profile_path_refusal(query)
+	return code if _operation_error == &"" else _operation_error
+
+
+func _profile_path_final_refusal(query: ProfilePath) -> StringName:
+	"""Check every collected full edge and endpoint chain after the final permission callback."""
+	var code: StringName = _current_profile_path_refusal(query)
+	if code != &"":
+		return code
+	var endpoint: Vector2i = query.first
+	for index: int in _proposed_count:
+		if not _spend():
+			return _operation_error
+		var offset: int = (_proposed_count - index - 1) * 2
+		var edge: Vector2i = Vector2i(_proposed_edges[offset], _proposed_edges[offset + 1])
+		if not _live_edge(_live, edge) or _edge_pair(_live, E_FROM_SLOT, edge.x) != endpoint 				or _edge_i64(_live, E_GEOMETRY_REVISION, edge.x) != query.geometry_revision 				or _edge_i64(_live, E_CONTENT_REVISION, edge.x) != query.descriptor.content_revision:
+			return &"ROUTE_EDGE_REVISION"
+		endpoint = _edge_pair(_live, E_TO_SLOT, edge.x)
+		if not query.locations.is_live_location(endpoint):
+			return &"ROUTE_LOCATION_STALE"
+	return &"" if endpoint == query.last else &"ROUTE_NOT_CONNECTED"
+
+
+func _copy_proposed_path(out: PackedInt32Array) -> Result:
+	"""Only a fully checked path overwrites caller-provided storage; no resize or partial refusal writes."""
+	if out.size() < _proposed_count * 2:
+		return Result.new(&"ROUTE_OUTPUT_SHAPE")
+	for index: int in _proposed_count:
+		var reverse: int = (_proposed_count - index - 1) * 2
+		out[index * 2] = _proposed_edges[reverse]
+		out[index * 2 + 1] = _proposed_edges[reverse + 1]
+	return Result.new(&"", 0, NULL_REF, _proposed_count)
+
+
+func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int,
+		query: ProfilePath = null) -> StringName:
 	"""Positive exact lengths admit ordinary Dijkstra; a flat octile heuristic cannot connect floors."""
 	_distance.fill(I64_MAX)
 	_predecessor.fill(-1)
@@ -1419,7 +1570,7 @@ func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int) -> Str
 		if node == last.x:
 			return _collect_path(first, last)
 		var generation: int = first.y if node == first.x else _edge_i32(_live, E_TO_GENERATION, _predecessor[node])
-		var code: StringName = _relax_edges(Vector2i(node, generation), mode, posture)
+		var code: StringName = _relax_edges(Vector2i(node, generation), mode, posture, query)
 		if code != &"":
 			return code
 	return &"ROUTE_NOT_CONNECTED"
@@ -1441,7 +1592,7 @@ func _first_edge_index(origin: Vector2i) -> int:
 	return low
 
 
-func _relax_edges(origin: Vector2i, mode: int, posture: int) -> StringName:
+func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath = null) -> StringName:
 	"""Visit only this node's authored outgoing edges; endpoint coincidence never fabricates a link."""
 	var index: int = _first_edge_index(origin)
 	while index < _live.edge_count:
@@ -1462,13 +1613,23 @@ func _relax_edges(origin: Vector2i, mode: int, posture: int) -> StringName:
 			return &"ROUTE_LOCATION_STALE"
 		if _search_state[next.x] == 2:
 			continue
-		if _search_worker != NULL_REF and _travel_profile_refusal(row) != &"":
+		var code: StringName = _path_profile_refusal(row, query)
+		if _operation_error != &"":
+			return _operation_error
+		if code != &"":
 			continue
 		var length: int = _edge_i64(_live, E_LENGTH, row)
 		if _distance[origin.x] > I64_MAX - length:
 			return &"ROUTE_DISTANCE_OVERFLOW"
 		_relax(next.x, row, _distance[origin.x] + length)
 	return _operation_error
+
+
+func _path_profile_refusal(row: int, query: ProfilePath) -> StringName:
+	"""Only a clean span refusal can choose a detour; callers must stop on a recorded operation fault."""
+	if query != null:
+		return _static_travel_profile_refusal(row, query)
+	return _travel_profile_refusal(row) if _search_worker != NULL_REF else &""
 
 
 func _travel_profile_refusal(row: int) -> StringName:

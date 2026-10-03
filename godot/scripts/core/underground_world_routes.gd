@@ -827,6 +827,11 @@ func _current_certificate_refusal(ref: Vector2i) -> StringName:
 	return REFUSE_CONTEXT if _owner().has_prepared() else &""
 
 
+func static_catalog_owner() -> Catalog:
+	"""Borrow the exact configured immutable content owner; this identity reader grants no permission."""
+	return _catalog
+
+
 func static_profile_edge_refusal(edge: Vector2i, profile_id: int, profile_revision: int,
 		content_revision: int) -> StringName:
 	"""Read static full-profile eligibility before a Job exists; this grants no actor, pace or movement."""

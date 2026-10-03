@@ -641,7 +641,16 @@
           "review": "Root independent descriptor and outside-project asset wrapper reviews accepted; v3 supersedes earlier import-scope evidence. Geometry observation does not grant work permission.",
           "evidence_path": "godot/data/underground/evidence/catalog-descriptor-v3/"
         },
-        "connector_catalog_in_progress": "Additive lease approved for actual source-bound fixed geometry/contact/pace reader. Ground family=-1/variant0 reads exact actual Movement species/stage/revision cap; other families require explicit authored source. Exact joint retained/decode peak pending before allocation; no added Profiles arena."
+        "connector_catalog_in_progress": "Additive lease approved for actual source-bound fixed geometry/contact/pace reader. Ground family=-1/variant0 reads exact actual Movement species/stage/revision cap; other families require explicit authored source. Exact joint retained/decode peak pending before allocation; no added Profiles arena.",
+        "level_catalog": {
+          "source": "6560a9ce",
+          "registry": "f7650422",
+          "integration": "072a75d5/9caf5875",
+          "tests": "10 tests / 179 assertions / 0 failures; strict/raw diagnostics and object/resource leaks0; analyzer0/2; compiler6 testsOK",
+          "review": "Root independently accepted c067c3e0/3a09b629 exact source/test and compiler; actual finite World/domain identity and unchanged output on refusals.",
+          "memory": "2292 bytes within Profiles+Levels261428/262144 unchanged arena; native reservation unmeasured; no geometry/traversal permission.",
+          "evidence_path": "godot/data/underground/evidence/levels-v1/"
+        }
       },
       "lease": {
         "state": "held"
@@ -819,7 +828,15 @@
           "review": "ug_furnishing independently accepted all writer coverage, failed-write preservation and permanent saturation poison; reset completes. Future in-place restore must invalidate runtime cache.",
           "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/transform-freshness/"
         },
-        "world_routes_in_progress": "Root owns actual typed Routes.Bindings adapter: immutable source-bound profile eligibility prepared under exact graph token and published only after actual graph commit. No duplicate resident spatial index or hot full-world survey; concrete review/implementation pending."
+        "world_routes_in_progress": "Root owns actual typed Routes.Bindings adapter: source-bound profile eligibility prepared under exact graph token and published only after actual graph commit; continuous paid-void/support unions, live exclusions and shared actor occupancy. Geometry adds live/prepared traversal-only typed Room-marker observation; physical blockers remain. No duplicate resident index or hot full-world survey.",
+        "mixed_height_exclusions": {
+          "source": "0ae9cc6d",
+          "integration": "36441064",
+          "tests": "Terrain23/966 and WorldBindings34/766;57 tests1732 assertions0 failures;strict/raw diagnostic/leaks0;analyzer0/2",
+          "review": "ug_geometry independently accepted exact a8c9c2f5/a52ea634 pins; full actual lifetime and immutable source proof cache; live Resource/Building queries unchanged.",
+          "evidence_path": "docs/validation/evidence/underground-route-clearance-2026-10-03/",
+          "scope": "Mixed-height protection-only observation; no paid void/support/route permission.8 additional unsaved controls in unchanged terrain reserve."
+        }
       },
       "lease": {
         "state": "held",

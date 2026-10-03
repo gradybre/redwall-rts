@@ -490,6 +490,106 @@ func test_cold_body_extent_includes_all_load_and_recovery_variants_only() -> voi
 	assert_equal(extent, PackedInt32Array([-128, -20, -128, 128, 900, 128]), "replacement does not retain old bounds")
 
 
+func _patch_case(axis: int = 1) -> Dictionary:
+	"""Synthetic source patch, explicitly distinct from production trajectory or contact qualification."""
+	var row: Dictionary = _row(Profiles.MODE_WORK)
+	row.fields[6] = _items.compiled_id(&"tool")
+	row.fields[7] = Gear.MANUFACTURE_BASIC
+	row.fields[10] = Profiles.YAW_EXACT
+	row.fields[15] = 7
+	row.fields[16] = Jobs.JOB_KIND_BUILD
+	row.fields[17] = Profiles.CONTACT_ANCHOR_AND_PATCH
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append(PackedInt32Array([-128, -20, -128, 128, 1000, 256, Profiles.WORK_APPROACH]))
+	boxes.append(PackedInt32Array([-128, 0, -256, 128, 1000, 128, Profiles.WORK_STROKE]))
+	boxes.append(PackedInt32Array([0, 0, 0, 0, 0, 0, Profiles.CONTACT_POINT]))
+	var patch: PackedInt32Array = PackedInt32Array([-5, -5, -5, 5, 5, 5, Profiles.CONTACT_PATCH])
+	patch[axis] = 0
+	patch[axis + 3] = 0
+	boxes.append(patch)
+	return {"row": row, "boxes": boxes}
+
+
+func test_planar_source_patch_is_readable_on_every_normal_axis_with_exact_actual_work() -> void:
+	"""The planar source witness survives decode/read, while actual Work still owns productive selection."""
+	var tool: Vector2i = _equip()
+	var job: Jobs.OpResult = _actual_work_job()
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "real claimed tool")
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var out: Profiles.Selection = Profiles.Selection.new()
+	var patch: Profiles.Box = Profiles.Box.new()
+	for axis: int in 3:
+		var fixture: Dictionary = _patch_case(axis)
+		assert_equal(_load(_image([fixture.row], fixture.boxes, axis + 1), axis + 1), &"", "explicit planar row")
+		assert_equal(_profiles.descriptor_into(0, axis + 1, descriptor), &"", "static before contact")
+		assert_equal(descriptor.contact_kind, Profiles.CONTACT_ANCHOR_AND_PATCH, "stronger contact contract")
+		assert_equal(_profiles.query_into(_worker, job.ref, 3, 0, -1, NULL_REF, out), &"", "real work identity")
+		assert_equal(_profiles.box_into(0, 1, axis + 1, 6, patch), &"", "caller-owned patch")
+		assert_equal(patch.role, Profiles.CONTACT_PATCH, "no physical volume alias")
+		assert_equal(patch.low[axis], patch.high[axis], "exact face plane")
+		assert_equal(patch.low[(axis + 1) % 3], -5, "outward lower span")
+		assert_equal(patch.high[(axis + 2) % 3], 5, "outward upper span")
+	assert_true(_work.release_tool_claim(_slot).ok, "release real claim")
+
+
+func test_patch_refuses_volume_line_point_inversion_and_unknown_role_without_replacement() -> void:
+	"""Exactly one zero axis is required; failed replacements preserve the whole previous catalog."""
+	var fixture: Dictionary = _patch_case()
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"", "prior complete content")
+	var bad: Array[PackedInt32Array] = [PackedInt32Array([-5, -5, -5, 5, 5, 5, Profiles.CONTACT_PATCH]),
+		PackedInt32Array([0, 0, -5, 0, 0, 5, Profiles.CONTACT_PATCH]),
+		PackedInt32Array([0, 0, 0, 0, 0, 0, Profiles.CONTACT_PATCH]),
+		PackedInt32Array([6, 0, -5, 5, 0, 5, Profiles.CONTACT_PATCH])]
+	for malformed: PackedInt32Array in bad:
+		fixture.boxes[6] = malformed
+		assert_equal(_load(_image([fixture.row], fixture.boxes, 2), 2), &"PROFILE_BOX_FORMAT", "not one finite face patch")
+		assert_equal(_profiles.content_revision(), 1, "old live bank retained")
+	fixture.boxes[6] = PackedInt32Array([-5, 0, -5, 5, 0, 5, 7])
+	assert_equal(_load(_image([fixture.row], fixture.boxes, 2), 2), &"PROFILE_BOX_ROLE", "unknown role")
+	var out: Profiles.Box = Profiles.Box.new()
+	assert_equal(_profiles.box_into(0, 1, 1, 6, out), &"", "prior patch still readable")
+	assert_equal(out.low, Vector3i(-5, 0, -5), "no rejected staging alias")
+
+
+func test_patch_requires_exact_kind_count_and_coplanar_contained_anchor() -> void:
+	"""A legacy anchor never silently acquires patch semantics, nor may a stronger witness be omitted."""
+	var fixture: Dictionary = _patch_case()
+	fixture.row.fields[17] = Profiles.CONTACT_ANCHOR_ONLY
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"PROFILE_CONTACT_PATCH_KIND", "legacy kind cannot carry patch")
+	fixture.row.fields[17] = Profiles.CONTACT_ANCHOR_AND_PATCH
+	fixture.row.fields[15] = 6
+	assert_equal(_load(_image([fixture.row], fixture.boxes.slice(0, 6))), &"PROFILE_CONTACT_PATCH_MISSING", "witness missing")
+	fixture.row.fields[15] = 8
+	fixture.boxes.append(fixture.boxes[6])
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"PROFILE_CONTACT_PATCH_MISSING", "duplicate witness")
+	fixture.boxes.pop_back()
+	fixture.row.fields[15] = 7
+	fixture.boxes[5] = PackedInt32Array([0, 1, 0, 0, 1, 0, Profiles.CONTACT_POINT])
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"PROFILE_CONTACT_PATCH_ANCHOR", "parallel wrong plane")
+	fixture.boxes[5] = PackedInt32Array([6, 0, 0, 6, 0, 0, Profiles.CONTACT_POINT])
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"PROFILE_CONTACT_PATCH_ANCHOR", "point outside source patch")
+	fixture.boxes[5] = PackedInt32Array([5, 0, 5, 5, 0, 5, Profiles.CONTACT_POINT])
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"", "closed patch edge is explicit")
+
+
+func test_patch_is_excluded_from_body_broadphase_and_stale_read_preserves_caller() -> void:
+	"""Planar contact metadata does not enlarge a body/turn search or bypass full content identity."""
+	var fixture: Dictionary = _patch_case()
+	fixture.boxes[6] = PackedInt32Array([-20000, 0, -20000, 20000, 0, 20000, Profiles.CONTACT_PATCH])
+	assert_equal(_load(_image([fixture.row], fixture.boxes)), &"", "deliberately wider synthetic patch")
+	var extent: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+	assert_equal(_profiles.body_extent_into(1, extent), &"", "bounded collision-role union")
+	assert_equal(extent, PackedInt32Array([-128, -20, -128, 128, 900, 128]), "patch adds no occupied volume")
+	var out: Profiles.Box = Profiles.Box.new()
+	out.low = Vector3i(13, 17, 19)
+	out.high = Vector3i(23, 29, 31)
+	out.role = 99
+	assert_equal(_profiles.box_into(0, 1, 2, 6, out), &"PROFILE_SELECTION_STALE", "exact revision mandatory")
+	assert_equal(out.low, Vector3i(13, 17, 19), "low unchanged")
+	assert_equal(out.high, Vector3i(23, 29, 31), "high unchanged")
+	assert_equal(out.role, 99, "role unchanged")
+
+
 func test_cold_body_extent_refusal_never_resizes_or_overwrites_scratch() -> void:
 	"""Absent content and malformed output cannot masquerade as a zero-sized resident."""
 	var extent: PackedInt32Array = PackedInt32Array([1, 2, 3, 4, 5, 6])

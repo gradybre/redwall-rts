@@ -663,3 +663,32 @@ source pins match. V1 and its executed runner remain historical evidence.
 `mole-worker/evidence/grip-final-v1/` records the accepted source and artifact
 identities, exact reproduction commands, reviewed views and unqualified gates.
 The compact image alone still provides zero production profile qualifications.
+
+### Planar contact witness metadata
+
+The additive source schema has `CONTACT_PATCH=6` and
+`CONTACT_ANCHOR_AND_PATCH=2`. The existing seven-int box row stores a closed
+planar source witness: exactly one zero normal axis and two positive spans.
+Kind2 WORK requires exactly one patch and one coplanar contained CONTACT_POINT.
+The point is an integer authored focus; the patch conservatively bounds where
+the actual proven source tip crosses that face. Neither is occupied body volume.
+Actual WorkFace must require kind2 and keep the whole translated patch inside
+the selected target face, independently of the complete tool/body clearance.
+Legacy kind1 anchor-only fixtures remain readable and grant no new production
+contact qualification. Unknown/missing/duplicate/malformed patches refuse.
+
+No wire width, retained column, bank, capacity or persistent control changes.
+The bounded cold validation adds fewer than128 logical bytes of nested scalar
+locals; it remains within the existing32768-byte control reservation, which is
+reserved rather than a measured native peak. All public readers preserve their
+full identity and refused-output contracts. Current Routes/WorldRoutes collision,
+stance, endpoint and motion consumers explicitly select physical roles and
+already skip contact metadata; WorkFace is the new planar consumer.
+
+Independent root review accepts source c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2
+and test395f40c9b94a2f4b8c03e2edaf2a625a934a2b2824986c6721f40bf603aec37e.
+Clean assets-aside import and strict focused checks report21 tests,454 assertions,
+zero failures, all strict/raw unexpected diagnostics and leaks zero; the analyzer
+reports zero warnings in two files. Raw evidence lives in
+`mole-worker/evidence/contact-qualification/profile-schema-v1/`. These are
+component/schema checks, not production source contact or motion qualification.

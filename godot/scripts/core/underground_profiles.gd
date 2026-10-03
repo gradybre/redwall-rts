@@ -30,6 +30,10 @@ const TURN_RECOVERY: int = 2
 const WORK_APPROACH: int = 3
 const WORK_STROKE: int = 4
 const CONTACT_POINT: int = 5
+const CONTACT_PATCH: int = 6
+const CONTACT_NONE: int = 0
+const CONTACT_ANCHOR_ONLY: int = 1
+const CONTACT_ANCHOR_AND_PATCH: int = 2
 const MODE_STAND: int = 0
 const MODE_WALK: int = 1
 const MODE_CARRY: int = 2
@@ -104,7 +108,8 @@ class Selection extends RefCounted:
 
 class Box extends RefCounted:
 	## Position-relative integer AABB at the selected yaw (already oriented, never rotate again).
-	## CONTACT_POINT is one exact point with equal bounds; all other boxes are half-open.
+	## CONTACT_POINT is exact. CONTACT_PATCH is closed on its face plane with two positive spans.
+	## All volume roles are half-open. A patch grants no occupied volume or clearance.
 	var role: int = -1
 	var low: Vector3i = Vector3i.ZERO
 	var high: Vector3i = Vector3i.ZERO
@@ -415,7 +420,8 @@ func _key_refusal(row: int) -> StringName:
 			or (_field(_stage, row, F_CARGO) >= 0 and minimum < 1):
 		return &"PROFILE_QUANTITY"
 	if _field(_stage, row, F_WORK_KIND) < -1 or _field(_stage, row, F_WORK_KIND) >= 12 \
-			or _field(_stage, row, F_CONTACT_KIND) < 0 or _field(_stage, row, F_CONTACT_KIND) > 1:
+			or _field(_stage, row, F_CONTACT_KIND) < CONTACT_NONE \
+			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_ANCHOR_AND_PATCH:
 		return &"PROFILE_WORK_IDENTITY"
 	return &""
 
@@ -424,23 +430,56 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 	"""Require whole-body, stance and recovery; productive profiles also need explicit contact roles."""
 	var mask: int = 0
 	var points: int = 0
+	var patches: int = 0
+	var point_row: int = -1
+	var patch_row: int = -1
 	for row: int in range(first, first + count):
 		var role: int = _stage.boxes[6 * _box_capacity + row]
-		if role < BODY_HELD_LOAD or role > CONTACT_POINT:
-			return &"PROFILE_BOX_ROLE"
-		for axis: int in 3:
-			var low: int = _stage.boxes[axis * _box_capacity + row]
-			var high: int = _stage.boxes[(axis + 3) * _box_capacity + row]
-			if (role == CONTACT_POINT and low != high) or (role != CONTACT_POINT and low >= high):
-				return &"PROFILE_BOX_FORMAT"
+		var code: StringName = _box_shape_refusal(row, role)
+		if code != &"":
+			return code
 		mask |= 1 << role
 		points += int(role == CONTACT_POINT)
+		patches += int(role == CONTACT_PATCH)
+		if role == CONTACT_POINT:
+			point_row = row
+		elif role == CONTACT_PATCH:
+			patch_row = row
 	var working: bool = _field(_stage, profile, F_MODE) == MODE_WORK
 	if (mask & 7) != 7 or (working and ((mask & 56) != 56 or points != 1 \
-			or _field(_stage, profile, F_WORK_KIND) < 0 or _field(_stage, profile, F_CONTACT_KIND) != 1)):
+			or _field(_stage, profile, F_WORK_KIND) < 0 or _field(_stage, profile, F_CONTACT_KIND) == CONTACT_NONE)):
 		return &"PROFILE_ROLE_MISSING"
 	if not working and (_field(_stage, profile, F_WORK_KIND) != -1 or _field(_stage, profile, F_CONTACT_KIND) != 0):
 		return &"PROFILE_WORK_IDENTITY"
+	return _contact_patch_refusal(profile, patches, point_row, patch_row)
+
+
+func _box_shape_refusal(row: int, role: int) -> StringName:
+	"""Planar contact patches are explicit data, never silently treated as empty body boxes."""
+	if role < BODY_HELD_LOAD or role > CONTACT_PATCH:
+		return &"PROFILE_BOX_ROLE"
+	var zero_axes: int = 0
+	for axis: int in 3:
+		var low: int = _stage.boxes[axis * _box_capacity + row]
+		var high: int = _stage.boxes[(axis + 3) * _box_capacity + row]
+		if low > high:
+			return &"PROFILE_BOX_FORMAT"
+		zero_axes += int(low == high)
+	var expected: int = 3 if role == CONTACT_POINT else (1 if role == CONTACT_PATCH else 0)
+	return &"" if zero_axes == expected else &"PROFILE_BOX_FORMAT"
+
+
+func _contact_patch_refusal(profile: int, count: int, point: int, patch: int) -> StringName:
+	"""The stronger contact kind requires one source patch and its exact coplanar anchor."""
+	if _field(_stage, profile, F_CONTACT_KIND) != CONTACT_ANCHOR_AND_PATCH:
+		return &"" if count == 0 else &"PROFILE_CONTACT_PATCH_KIND"
+	if count != 1 or point < 0 or patch < 0:
+		return &"PROFILE_CONTACT_PATCH_MISSING"
+	for axis: int in 3:
+		var value: int = _stage.boxes[axis * _box_capacity + point]
+		if value < _stage.boxes[axis * _box_capacity + patch] \
+				or value > _stage.boxes[(axis + 3) * _box_capacity + patch]:
+			return &"PROFILE_CONTACT_PATCH_ANCHOR"
 	return &""
 
 

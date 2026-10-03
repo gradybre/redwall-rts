@@ -1,7 +1,7 @@
 # 1080 — Source-bound underground profile catalog
 
 Date: 2026-10-03
-Status: implementation in progress; only the exact Residents identity prerequisite is reviewed and verified.
+Status: implementation in progress. The exact Residents reader and immutable catalog/actual-owner selection prerequisite are independently reviewed; authored production clearance remains in progress.
 
 ## Decision
 
@@ -14,7 +14,7 @@ checks pass. It deliberately refuses absent child/elder rig bindings, preserving
 existing catalog rather than substituting an adult body. The movement/contact owner
 separately checks life and eligibility.
 
-The forthcoming physical catalog remains immutable integer content, with a finite
+The physical catalog is immutable integer content, with a finite
 per-selection box bound and streamed replacement. Source extraction, mathematical
 continuous enclosure, runtime numerical enclosure, setting permissions and real
 world contact are separate evidence obligations. Existing sampled captures cannot
@@ -30,5 +30,77 @@ Residents suite reports 98 tests, 2,019 assertions, zero failures, zero unexpect
 diagnostics and zero leaks. The analyzer reports zero warnings in two files.
 No persistent columns, memory schema or balance rules changed.
 
-The rest of decision1080 is still being implemented. This record does not mark UG08,
-production profiles or the five connector families complete.
+## Immutable catalog and actual-owner lookup
+
+`underground_profiles.gd` admits two fixed packed content banks before allocation.
+The loader streams the exact bytes it hashes, validates the expected SHA-256,
+source census, contiguous box ownership, canonical physical-key ordering and every
+descriptor before swapping banks. A failed replacement preserves the live content.
+Content revisions increase; a selection from an older revision cannot read boxes.
+The module has no fallback content and does not infer a physical permission from a
+cast name, sampled pose, unqualified certificate or caller-supplied species.
+
+Lookup reads full actual Resident and Job identities, the actual Transform pose,
+Work/Gear tool ownership and claim, and HaulCarry/Inventory cargo lot, recipe and
+quantity. Exact borrowed-owner binding is rechecked after collaborator rebinding.
+Empty tool hints cannot conceal an actually equipped tool. Absent life-stage rigs,
+unsupported posture, connector family, quantity or yaw refuse while leaving caller
+outputs unchanged. A successful geometric lookup does not grant movement or work:
+the owning contact/route provider must still prove current support, route, contact
+and eligibility. All-yaw envelopes require an explicit content certificate; exact
+yaw is never rounded to a cardinal. Work-contact profiles require exact yaw.
+
+`Selection` and `Box` are caller-owned scratch. Box roles distinguish occupied
+body/held/load, stance/support, turn/recovery, work approach, productive stroke and
+one exact contact point. Boxes already contain the selected orientation. Consumers
+translate them with checked integer arithmetic and must not rotate them again.
+This preserves below-root body extent; the contact provider must not clip geometry
+at the floor to manufacture clearance.
+
+The content boundary trusts an externally approved digest and certificate flags;
+it is not a proof verifier for arbitrary user files. Actual World/save composition
+must pin the complete authored digest and revision. That owning save field is not
+added by this prerequisite and composed production activation is not claimed.
+
+## Finite storage and query work
+
+One bank uses 18 I32, three I64 and two byte fields per descriptor, seven I32 fields
+per box, 32 bytes per source bundle and a four-I64 header. Two banks at the admitted
+maxima (256 descriptors, 3,072 boxes, 64 source bundles) use exactly 226,368 packed
+bytes. A separate 32,768-byte control/native/stream reservation includes 52 packed
+scratch bytes, both Bank objects, borrowed references, reusable output/math objects,
+bounded streamed rows and digest state. The total is 259,136 bytes under the
+262,144-byte arena, leaving 3,008 bytes unallocated. The native reservation is not a
+measured allocator result. No third full image or full JSON image is loaded.
+
+Each selection has at most 12 boxes. Lookup uses a binary search followed by at
+most 16 exact-key variants using a bounded while loop; it does not scan every box
+for every resident. Replacement admission is cold and may compare descriptor pairs
+to reject ambiguous ranges and orientation/family overlaps.
+
+## Catalog verification and scope
+
+Independent geometry review accepted the immutable catalog and actual-owner lookup
+scope. Its two low follow-ups added a successful actual assigned BUILD Job with a
+real Work/Gear claim (followed by stale tool-claim and Job-assignment refusals), and
+removed a per-query `range` allocation. Final evidence is under
+`godot/data/underground/evidence/catalog-v4/`:
+
+```text
+13 test(s), 245 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+0 GDScript warning(s) in 0 of 2 file(s)
+```
+
+The wrapper moves assets aside, deletes `godot/.godot`, imports with the exact
+headless editor command, and invokes unchanged `tools/run_tests.sh` through the
+existing CI suite-selection runner. The first rejected attempt supplied a non-JSON
+selector and ran zero tests; v2 passed tests but had six analyzer warnings. Those
+logs remain alongside corrected v3/v4 evidence. Exit status alone is not used as
+evidence. All profile certificates and dimensions in the tests are explicitly
+synthetic fixtures; none qualifies a production body or connector.
+
+The continuous native-source exporter, numerical/presentation enclosure, authored
+profile/stance/contact content and five-family engineering pack remain active work.
+This record does not mark UG08, production profiles or those families complete.

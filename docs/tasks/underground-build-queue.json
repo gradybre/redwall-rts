@@ -417,7 +417,12 @@
         "godot/scripts/core/underground_connector_assemblies.gd.uid",
         "godot/test/test_underground_connector_assemblies.gd",
         "godot/test/test_underground_connector_assemblies.gd.uid",
-        "docs/decisions/1104-immutable-connector-assemblies.md"
+        "docs/decisions/1104-immutable-connector-assemblies.md",
+        "godot/scripts/core/underground_connector_work.gd",
+        "godot/scripts/core/underground_connector_work.gd.uid",
+        "godot/test/test_underground_connector_work.gd",
+        "godot/test/test_underground_connector_work.gd.uid",
+        "docs/decisions/1106-paid-connector-installation.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -438,7 +443,7 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-connector-assemblies",
+      "branch": "codex/underground-connector-work",
       "evidence": {
         "in_progress": "Reviewed1095 cut cursor integrated5b273105/0c3c8ee1; reviewed pure RoomOrders companion reader integrated76a5a8bc. Actual Sites ClaimBatch implementing with final callback-free guard and sequential cold-memory admission. Actual entry/work feasibility remains open.",
         "identity_prerequisite": {
@@ -627,11 +632,48 @@
         "connector_assemblies_in_progress": {
           "status": "contract approved; independent implementation beginning",
           "decision": "docs/decisions/1104-immutable-connector-assemblies.md",
-          "scope": "Actual immutable Catalog/Recipe-bound complete unique part partition and single bill anchor per assembly; no physical frontier or contact permission."
+          "scope": "No active entry/physical-frontier/installation permission. Actual Placement and ConnectorWork remain required.",
+          "state": "independently reviewed scoped component integrated",
+          "source_commits": [
+            "cc879df3",
+            "f330db98"
+          ],
+          "source_sha256": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
+          "tests": "55 unique tests /2203 assertions /0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "root accepted complete actual part partition, exact Recipe anchor bijection, acyclic pins and pure last-source guards",
+          "evidence_path": "docs/validation/evidence/underground-ug1104-assemblies-2026-10-03/README.md",
+          "integration_commits": [
+            "48aa83ad",
+            "f5e4b56d"
+          ]
+        },
+        "ci_ledger_reconciliation": {
+          "source": "f7674d24",
+          "integration": "caa28a14",
+          "checks": "34 Specification commands plus9-case stale-census command;35 commands/0failures",
+          "review": "Root independently accepted actual census/history/table; no workflow/runtime/capacity/diagnostic weakening",
+          "evidence_path": "docs/validation/evidence/underground-ug1102-ledger-2026-10-03/"
+        },
+        "connector_work_next": {
+          "state": "authorized; concrete Placement API agreed before coding",
+          "scope": "Purpose8 full local PlacementRef/assembly operation; actual Funding/Jobs/Work/Gear; bill each approved wood-only assembly once; exact final leaf after final recipe observation; paid companions before prefix advance; cancellation retains committed prefix and blocked refund receipt",
+          "dependencies": "Actual Placement/companion/pure publication context and installation Contacts; base refusals do not establish playable completion"
         }
       },
       "lease": {
-        "state": "held"
+        "state": "held",
+        "temporary_scope": {
+          "purpose": "Correct strict CI specification arithmetic for accepted1102 fourth Funding loss domain; no gate relaxation",
+          "files": [
+            "docs/validation/ready07_arithmetic.py",
+            "docs/systems_architecture.md",
+            "docs/decisions/1102-immutable-connector-recipes.md",
+            "docs/validation/evidence/underground-ug1102-ledger-2026-10-03/"
+          ],
+          "state": "released",
+          "agent": "/root/ug_construction",
+          "stop_evidence": "Construction cleanworktree/writesstopped after f7674d24; root reviewed all5 frozenpins and reran9 negative checks before commit"
+        }
       }
     },
     {
@@ -906,6 +948,13 @@
           "tests": "21 test(s),454 assertion(s),0 failure(s); strict/raw zero unexpected diagnostics and zero object/resource leaks; analyzer0 warnings/2 files.",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/profile-schema-v1/",
           "scope": "Additive kind2 exact anchor+positive-area planar patch in existing box bank; production motion/contact qualification remains open."
+        },
+        "motion_contact_review_v2": {
+          "state": "root accepted scoped loop/census correction; component commit pending",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-motion-v2/",
+          "scope": "Yaw0/source-local;386 actual rendered edges including loop closure. No arbitrary crossclip/other-yaw or productionpermission",
+          "checks": "11source/50output pins verified;47 independentPython checks pass; native2335 poses/5349 assertions/0fail;tip9/61/0; allrawdiagnostics/leaks0",
+          "remaining": "Actual state driver, full profiles, highwall qualification, physical workstations, route/native/memory acceptance"
         }
       },
       "lease": {
@@ -970,7 +1019,12 @@
         "docs/decisions/1099-source-bound-solid-work-face.md",
         "godot/scripts/core/underground_final_facts.gd",
         "godot/test/test_underground_final_facts.gd",
-        "docs/decisions/1100-final-underground-source-attestation.md"
+        "docs/decisions/1100-final-underground-source-attestation.md",
+        "godot/scripts/core/underground_connector_placements.gd",
+        "godot/scripts/core/underground_connector_placements.gd.uid",
+        "godot/test/test_underground_connector_placements.gd",
+        "godot/test/test_underground_connector_placements.gd.uid",
+        "docs/decisions/1105-connector-placements.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -993,7 +1047,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-world-locations",
+      "branch": "codex/underground-connector-placements",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -1268,11 +1322,47 @@
           "evidence_path": "docs/validation/evidence/underground-final-facts-2026-10-03/snapshot-lease/README.md"
         },
         "surface_anchor_in_progress": {
-          "status": "contract accepted; implementation beginning",
+          "status": "reviewed scoped component integrated; full entry remains open",
           "decision": "docs/decisions/1103-actual-surface-work-anchor.md",
           "root": "Actual create-only Terrain/retained-matter World provider on codex/underground-surface-anchor",
           "geometry": "Locations WorldScope and atomic companion context on codex/underground-world-locations",
-          "scope": "Existing natural surface work anchor only; no free timber/cut/Room or full entrance feasibility claim."
+          "scope": "Existing natural surface work anchor only; no free timber/cut/Room or full entrance feasibility claim.",
+          "state": "independent re-review accepted; integrated9bc26d10",
+          "tests": "126 tests /4420 assertions /0 failures; strict/raw diagnostics/leaks0; analyzer0/8",
+          "review_findings": "One high and three medium findings corrected and accepted at d928d4f0/4f4926b9; exact source pins and rejected regression evidence retained.",
+          "evidence_path": "docs/validation/evidence/underground-surface-anchor-2026-10-03/",
+          "source_commit": "dabf6262",
+          "integration_commit": "9bc26d10"
+        },
+        "world_locations_component": {
+          "state": "independently reviewed scoped component integrated",
+          "source_commits": [
+            "4b3b0e5d",
+            "8eb5e742"
+          ],
+          "tests": "195 tests /16024 assertions /0 failures; strict/raw diagnostics/leaks0; analyzer0/4",
+          "review": "root accepted exact original leases, complete claims, private request pins, old payload retention and no post-swap source observers",
+          "limits": "Full-claim World refresh conservatively refuses underground endpoints overlapping retained Room markers; concrete SurfaceAnchor reviewed separately.",
+          "integration_commits": [
+            "c1efd751",
+            "47217d3b"
+          ]
+        },
+        "connector_placements_next": {
+          "state": "concrete API accepted; implementation running",
+          "agent": "/root/ug_geometry",
+          "branch": "codex/underground-connector-placements",
+          "design": "P256/M512 ceilings retained. Exact proposed189P+89M+14848=108800 maximum using inactive bank and4096B stream. Joint actual configured admission with catalog/recipes/grouping/Anchor/frontier/adapters/native is mandatory; native allowance unmeasured.",
+          "scope": "Actual placed entry identity, installed assembly prefix, exact Project and geometry/Locations/Routes companions; no duplicate cut/work ledger or permissive base contact authority.",
+          "companion_dependency": "Authorized same-lane follow-on: exact Placement context in Locations/WorldRoutes and callback-free sealed publication kernel. Generic observed Routes.publish cannot follow a first swap."
+        },
+        "binding_reserve_census": {
+          "source": "fa76aca2",
+          "integration": "904c535b",
+          "review": "Independent Construction review accepted corrected typed-member census after38 Python tests and exact artifact check",
+          "known_bytes": 378120,
+          "remaining_bytes": 146168,
+          "runtime_qualified": false
         }
       },
       "lease": {
@@ -1288,7 +1378,6 @@
               "godot/scripts/core/underground_terrain.gd",
               "godot/test/test_underground_terrain.gd",
               "docs/decisions/1088-scoped-composed-phase-surveys.md",
-              "godot/test/test_underground_world_routes.gd",
               "docs/decisions/1090-actual-route-clearance-certificates.md",
               "godot/test/test_underground_world_room_bindings.gd",
               "godot/test/test_underground_world_identities.gd",
@@ -1299,14 +1388,13 @@
               "godot/scripts/core/underground_work_face.gd",
               "godot/test/test_underground_work_face.gd",
               "docs/decisions/1099-source-bound-solid-work-face.md",
-              "godot/scripts/core/underground_world_routes.gd",
               "godot/scripts/core/underground_surface_anchor.gd",
               "godot/scripts/core/underground_surface_anchor.gd.uid",
               "godot/test/test_underground_surface_anchor.gd",
               "godot/test/test_underground_surface_anchor.gd.uid",
               "docs/decisions/1103-actual-surface-work-anchor.md"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits.",
             "branch": "codex/underground-surface-anchor"
           }
         ]
@@ -2137,7 +2225,7 @@
       "source_unchanged": true,
       "head_unchanged": true,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-499bfd73/README.md",
-      "remote_ci": "37149792747 specification Memory ledger arithmetic gate failed; diagnosis/correction pending, no all-gates pass claimed"
+      "remote_ci": "37149792747 Memory ledger arithmetic failed; accepted correctionf7674d24 integratedcaa28a14 passes all34 Specification commands. Subsequent successful remote run not yet claimed."
     }
   ],
   "crosscut_fixes": [

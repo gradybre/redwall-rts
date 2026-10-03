@@ -10,9 +10,9 @@
   },
   "audited_source": {
     "module_sha256": {
-      "buildings": "fb9646811e2e7af4979672aa2159403114d2124f43cad3d763be103de0db18e8",
+      "buildings": "2b3f9c2c2be6a53913353279a8ab1e79f1047c824853e98138920f77b505a8e3",
       "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
-      "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+      "construction": "ae8f77c76a44f3630f6ce055ae7783efc4552a6f50b810dffed1a4422860b026",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
       "excavation_sites": "72d2a5a2c795ffe9afcf6c9bd55a88276c1534d7da363aaf3c8b9a325a27de93",
@@ -25,7 +25,7 @@
       "inventory": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
       "jobs": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
-      "modular_projects": "f0f0af6f713d2819ec6260d0bd06ea1e54457e931bd06143e35876572fbd63b3",
+      "modular_projects": "f1f30fa58cda56ec07a3245ab493f94dcd5cd885e3d4d6af7d653179710460ea",
       "movement": "ab50f8c4c0d67288f7b02389e1e85cef95561c0e8fa2d0443e7c5d8b0d4fab62",
       "navigation": "ae078227fb79879b3357e1ba174c58f1b209ac346a9b6cc6ded70e1080cd7255",
       "needs": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190",
@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
-      "underground_space_owner": "09e17f6f61be075699717cd857ce4494841edc841140f6abf81861ecffbc35d0",
+      "underground_space_owner": "6a00994dc0f25de1e511b44c68fcbc9686f399c5e89dd76e47f218b4c82b5a86",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
@@ -1816,7 +1816,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 468,
+      "source_resize_line": 477,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1841,7 +1841,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 469,
+      "source_resize_line": 478,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -1866,7 +1866,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "TILE_COUNT",
-      "source_resize_line": 470,
+      "source_resize_line": 479,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 1931,
+      "source_resize_line": 1953,
       "source_value": 18,
       "status": "proved_equality"
     },
@@ -2668,7 +2668,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 440,
+      "source_resize_line": 449,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2691,7 +2691,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 461,
+      "source_resize_line": 470,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2714,7 +2714,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 484,
+      "source_resize_line": 493,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -2737,7 +2737,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 431,
+      "source_resize_line": 440,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2760,7 +2760,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 432,
+      "source_resize_line": 441,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2783,7 +2783,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 433,
+      "source_resize_line": 442,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2806,7 +2806,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 434,
+      "source_resize_line": 443,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2829,7 +2829,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 435,
+      "source_resize_line": 444,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2852,7 +2852,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 436,
+      "source_resize_line": 445,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2875,7 +2875,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 437,
+      "source_resize_line": 446,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2898,7 +2898,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 438,
+      "source_resize_line": 447,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2921,7 +2921,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 439,
+      "source_resize_line": 448,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -2944,7 +2944,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 451,
+      "source_resize_line": 460,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2967,7 +2967,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 452,
+      "source_resize_line": 461,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -2990,7 +2990,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 453,
+      "source_resize_line": 462,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3013,7 +3013,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 454,
+      "source_resize_line": 463,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3036,7 +3036,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 455,
+      "source_resize_line": 464,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3059,7 +3059,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 456,
+      "source_resize_line": 465,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3082,7 +3082,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 457,
+      "source_resize_line": 466,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3105,7 +3105,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 458,
+      "source_resize_line": 467,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3128,7 +3128,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 459,
+      "source_resize_line": 468,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -3151,7 +3151,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 476,
+      "source_resize_line": 485,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3174,7 +3174,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 477,
+      "source_resize_line": 486,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3197,7 +3197,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 478,
+      "source_resize_line": 487,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3220,7 +3220,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 479,
+      "source_resize_line": 488,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3243,7 +3243,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 480,
+      "source_resize_line": 489,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3266,7 +3266,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 481,
+      "source_resize_line": 490,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3289,7 +3289,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 482,
+      "source_resize_line": 491,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -3312,7 +3312,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 483,
+      "source_resize_line": 492,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9608,7 +9608,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 441,
+      "source_resize_line": 450,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -9631,7 +9631,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 442,
+      "source_resize_line": 451,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -9654,7 +9654,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 443,
+      "source_resize_line": 452,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -9677,7 +9677,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "BUILDING_CAPACITY",
-      "source_resize_line": 444,
+      "source_resize_line": 453,
       "source_value": 1024,
       "status": "proved_equality"
     },
@@ -9700,7 +9700,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 462,
+      "source_resize_line": 471,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9723,7 +9723,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 463,
+      "source_resize_line": 472,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9746,7 +9746,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 464,
+      "source_resize_line": 473,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9769,7 +9769,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 465,
+      "source_resize_line": 474,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9792,7 +9792,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 466,
+      "source_resize_line": 475,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9815,7 +9815,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 467,
+      "source_resize_line": 476,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -9838,7 +9838,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 486,
+      "source_resize_line": 495,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9861,7 +9861,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 487,
+      "source_resize_line": 496,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9884,7 +9884,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 488,
+      "source_resize_line": 497,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9907,7 +9907,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 489,
+      "source_resize_line": 498,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -9930,7 +9930,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_TILE_LINK_CAPACITY",
-      "source_resize_line": 471,
+      "source_resize_line": 480,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -10287,7 +10287,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "ROOM_CAPACITY",
-      "source_resize_line": 460,
+      "source_resize_line": 469,
       "source_value": 16384,
       "status": "proved_equality"
     },
@@ -10310,7 +10310,7 @@
       "source_module": "buildings",
       "source_relation": "eq",
       "source_resize_expression": "FURNITURE_CAPACITY",
-      "source_resize_line": 485,
+      "source_resize_line": 494,
       "source_value": 81920,
       "status": "proved_equality"
     },
@@ -11275,7 +11275,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 72,
+      "source_resize_line": 75,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11299,7 +11299,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 72,
+      "source_resize_line": 75,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11323,7 +11323,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 72,
+      "source_resize_line": 75,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11347,7 +11347,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 72,
+      "source_resize_line": 75,
       "source_value": 8192,
       "status": "proved_equality"
     },

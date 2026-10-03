@@ -379,7 +379,9 @@
         "godot/test/test_construction_furniture_batches.gd",
         "godot/test/test_underground_furniture_batches.gd",
         "docs/decisions/1087-cold-room-layout-admission.md",
-        "docs/decisions/1089-atomic-room-furniture-batches.md"
+        "docs/decisions/1089-atomic-room-furniture-batches.md",
+        "godot/scripts/core/underground_layout_sources.gd",
+        "godot/test/test_underground_layout_sources.gd"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -449,6 +451,14 @@
           "tests": "RoomLayout57/563 and Budget6/58;63 tests621 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/2",
           "review": "ug_furnishing accepted final exact source/test after correcting false failure on post-commit cleanup; committed outcome remains truthful and provider breach quarantines future input.",
           "evidence_path": "docs/validation/evidence/underground-layout-cold-2026-10-03/"
+        },
+        "furniture_batch_core": {
+          "source": "92549a0d",
+          "registry": "15b54904",
+          "integration": "4995943f/85bb8433",
+          "tests": "121 tests /7916 assertions /0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/5",
+          "review": "Root independently accepted exact final five source pins; MEDIUM committed receipt lifetime defect corrected by pinning count/ref before callback cleanup. Actual room coordinator remains in progress.",
+          "evidence_path": "docs/validation/evidence/underground-furniture-batches-2026-10-03/core/"
         }
       },
       "lease": {
@@ -776,8 +786,18 @@
           "release": "Actual Godot macOS release8 checks0 failures with assert_ran=false; rejected assert-side-effect variant8 checks4 failures",
           "review": "ug_geometry accepted exact final8510288b/af06d057 pins and real exported-entry hash; HIGH release-only cleanup defect fixed and independently closed",
           "evidence_path": "docs/validation/evidence/underground-phase-leases-2026-10-03/",
-          "scope": "Actual same-Budget synchronous phase lease, Site/Room/project/geometry pins and invalidation cleanup only; no new productive permission or persistent state"
-        }
+          "scope": "Actual same-Budget synchronous phase lease, Site/Room/project/geometry pins and invalidation cleanup only; no new productive permission or persistent state",
+          "source": "1797312e",
+          "integration": "reviewed source merged without changes before f8e86173"
+        },
+        "reusable_region": {
+          "source": "bbd7d1ea",
+          "integration": "f8e86173",
+          "tests": "61 tests /3041 assertions /0 failures; strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "ug_furnishing independently accepted explicit caller-borrowed six-I32 output. Original allocating read semantics preserved; runtime rejected alias assumption retained as regression.",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/reusable-region-reader/"
+        },
+        "transforms_freshness_in_progress": "Geometry owns narrow runtime Transforms mutation revision and matching tests for exact occupancy-cache invalidation. No canonical/wire or per-row column change; reset must complete safely even at artificial counter exhaustion. Source review and tests pending."
       },
       "lease": {
         "state": "held",

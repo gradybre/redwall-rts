@@ -1,0 +1,5 @@
+Initial foundation check on base 223eb586, before latest-master integration.
+Command: godot --headless --path godot --script /tmp/redwall_underground_focus.gd
+Suites: test_demo_tunnel_ext_world.gd, test_demo_rooms.gd, test_demo_levels.gd, test_demo_action_cards.gd
+221 test(s), 6207 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 206 tolerated; leaked at exit: 0 object(s), 0 resource(s)

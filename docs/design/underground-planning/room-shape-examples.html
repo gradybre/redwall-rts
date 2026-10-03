@@ -1,0 +1,161 @@
+<div id="burrow-shape-examples">
+  <div class="viz-controls" role="group" aria-label="Compare the same construction stage across all three options">
+    <button type="button" class="btn" data-phase="blueprint" aria-pressed="true">1 · Blueprint</button>
+    <button type="button" class="btn" data-phase="excavated" aria-pressed="false">2 · Empty shell</button>
+    <button type="button" class="btn" data-phase="furnished" aria-pressed="false">3 · Furnished example</button>
+  </div>
+  <div class="viz-grid examples-grid">
+    <section aria-labelledby="shape-example-a">
+      <h3 id="shape-example-a">A · Paint the shape</h3>
+      <div class="text-small">Round starter + add/erase brush</div>
+      <svg class="example-plan" data-method="brush" role="img" aria-label="Organic painted burrow with a curved entrance and a rounded sleeping alcove"></svg>
+      <div class="example-action text-small" data-caption="brush">Dashed circles show overlapping brush strokes.</div>
+    </section>
+    <section aria-labelledby="shape-example-b">
+      <h3 id="shape-example-b">B · Connect modules</h3>
+      <div class="text-small">Resize circles, ovals and passages</div>
+      <svg class="example-plan" data-method="modules" role="img" aria-label="A regular oval burrow joined to a circular sleeping alcove and a straight entrance"></svg>
+      <div class="example-action text-small" data-caption="modules">Square handles resize the individual modules.</div>
+    </section>
+    <section aria-labelledby="shape-example-c">
+      <h3 id="shape-example-c">C · Draw the outline</h3>
+      <div class="text-small">Place points and bend the boundary</div>
+      <svg class="example-plan" data-method="outline" role="img" aria-label="A custom curved burrow with editable boundary points and curve handles"></svg>
+      <div class="example-action text-small" data-caption="outline">Round handles control the boundary curves.</div>
+    </section>
+  </div>
+  <div class="stage-detail text-small" aria-live="polite">Blueprint · Draft geometry and editing guides</div>
+  <div class="text-small text-muted">Concept examples · Same brief: main room, sleeping alcove, entrance · Not game screenshots</div>
+</div>
+<style>
+  #burrow-shape-examples .examples-grid { margin-block: 16px; }
+  #burrow-shape-examples section { min-width: 0; }
+  #burrow-shape-examples h3 { margin-block: 0 4px; }
+  #burrow-shape-examples .example-plan { width: 100%; display: block; height: 310px; margin-block: 8px; }
+  #burrow-shape-examples .example-action { min-height: 40px; }
+  #burrow-shape-examples .solid-earth { fill: var(--muted); }
+  #burrow-shape-examples .earth-mark { fill: none; stroke: var(--border); stroke-width: 1; }
+  #burrow-shape-examples .draft-floor { fill: color-mix(in srgb, var(--viz-series-1) 17%, var(--background)); stroke: var(--viz-series-1); stroke-width: 1.5; }
+  #burrow-shape-examples .cut-depth { fill: color-mix(in srgb, var(--foreground) 38%, var(--muted)); }
+  #burrow-shape-examples .cut-floor { fill: var(--background); stroke: var(--muted-foreground); stroke-width: 1.5; }
+  #burrow-shape-examples .tool-guide { fill: none; stroke: var(--muted-foreground); stroke-width: 1; stroke-dasharray: 4 4; }
+  #burrow-shape-examples .tool-handle { fill: var(--background); stroke: var(--foreground); stroke-width: 1.5; }
+  #burrow-shape-examples .furniture { fill: var(--secondary); stroke: var(--foreground); stroke-width: 1.2; }
+  #burrow-shape-examples .bedding { fill: color-mix(in srgb, var(--viz-series-1) 28%, var(--background)); stroke: var(--muted-foreground); stroke-width: 1; }
+  #burrow-shape-examples .pillow { fill: var(--background); stroke: var(--muted-foreground); stroke-width: 1; }
+  #burrow-shape-examples .rug { fill: color-mix(in srgb, var(--viz-series-1) 13%, var(--background)); stroke: var(--border); stroke-width: 1; }
+  #burrow-shape-examples .room-label { fill: var(--foreground); font-weight: 500; text-anchor: middle; }
+  #burrow-shape-examples .entrance-label { fill: var(--muted-foreground); text-anchor: middle; }
+  #burrow-shape-examples .room-annotation { fill: none; stroke: var(--muted-foreground); stroke-width: 1; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('burrow-shape-examples');
+  const plans = Array.from(root.querySelectorAll('.example-plan'));
+  const buttons = Array.from(root.querySelectorAll('[data-phase]'));
+  const captions = {
+    blueprint: {
+      brush: 'Dashed circles show overlapping brush strokes.',
+      modules: 'Square handles resize the individual modules.',
+      outline: 'Round handles control the boundary curves.'
+    },
+    excavated: {
+      brush: 'Soft, irregular walls and a naturally widened alcove.',
+      modules: 'Regular rooms and a clearly defined connecting neck.',
+      outline: 'A deliberately shaped perimeter with a sculpted neck.'
+    },
+    furnished: {
+      brush: 'Furniture follows the space you painted.',
+      modules: 'Furniture fits within the connected modules.',
+      outline: 'Furniture fits within the outline you designed.'
+    }
+  };
+  const stageLabels = {
+    blueprint: 'Blueprint · Draft geometry and editing guides',
+    excavated: 'Empty shell · Excavation finished; no furniture installed',
+    furnished: 'Furnished example · Bed in the alcove; table, seating and storage in the main room'
+  };
+  const methods = {
+    brush: {
+      path: 'M 74 284 L 105 284 C 107 250 94 230 104 210 C 132 218 160 208 177 189 C 192 172 184 149 207 134 C 235 157 281 143 293 111 C 310 79 288 44 254 42 C 220 40 212 59 190 72 C 175 80 165 56 130 56 C 90 52 56 69 43 102 C 21 139 40 169 64 187 C 85 201 83 215 78 234 Z',
+      guides: '<circle class="tool-guide" cx="109" cy="130" r="60"/><circle class="tool-guide" cx="154" cy="115" r="35"/><circle class="tool-guide" cx="240" cy="91" r="39"/><circle class="tool-guide" cx="266" cy="109" r="24"/><path class="tool-guide" d="M 90 278 Q 103 246 87 216"/>',
+      main: [116, 140], alcove: [246, 96], entrance: [89, 281]
+    },
+    modules: {
+      path: 'M 87 284 L 115 284 L 115 210 C 159 211 195 184 201 151 L 201 115 L 215 115 A 44 44 0 1 0 205 93 L 190 93 C 174 66 151 60 123 60 C 78 60 42 93 42 136 C 42 170 59 194 87 205 Z',
+      guides: '<ellipse class="tool-guide" cx="122" cy="136" rx="80" ry="75"/><circle class="tool-guide" cx="247" cy="85" r="44"/><path class="tool-guide" d="M 101 211 V 280 M 187 104 H 205"/><rect class="tool-handle" x="118" y="56" width="8" height="8"/><rect class="tool-handle" x="37" y="132" width="8" height="8"/><rect class="tool-handle" x="287" y="81" width="8" height="8"/>',
+      main: [119, 140], alcove: [247, 85], entrance: [101, 281]
+    },
+    outline: {
+      path: 'M 80 284 L 107 284 C 103 239 87 223 112 212 C 161 205 181 190 186 164 C 189 135 211 132 240 139 C 292 154 313 98 287 62 C 273 43 250 40 231 51 C 207 66 206 92 183 83 C 149 58 108 51 75 74 C 27 101 38 150 54 178 C 78 219 66 241 80 284 Z',
+      guides: '<path class="tool-guide" d="M 75 74 L 108 51 M 183 83 L 149 58 M 240 139 L 211 132 M 287 62 L 313 98 M 112 212 L 161 205"/><circle class="tool-handle" cx="75" cy="74" r="4"/><circle class="tool-handle" cx="183" cy="83" r="4"/><circle class="tool-handle" cx="240" cy="139" r="4"/><circle class="tool-handle" cx="287" cy="62" r="4"/><circle class="tool-handle" cx="112" cy="212" r="4"/><circle class="tool-handle" cx="108" cy="51" r="2.5"/><circle class="tool-handle" cx="149" cy="58" r="2.5"/><circle class="tool-handle" cx="211" cy="132" r="2.5"/><circle class="tool-handle" cx="313" cy="98" r="2.5"/><circle class="tool-handle" cx="161" cy="205" r="2.5"/>',
+      main: [119, 142], alcove: [250, 91], entrance: [93, 281]
+    }
+  };
+  let phase = 'blueprint';
+  function furniture(method) {
+    const [mx, my] = method.main;
+    const [ax, ay] = method.alcove;
+    return `<ellipse class="rug" cx="${mx}" cy="${my + 7}" rx="39" ry="31"/>
+      <rect class="furniture" x="${ax - 15}" y="${ay - 28}" width="30" height="54" rx="3"/>
+      <rect class="bedding" x="${ax - 12}" y="${ay - 24}" width="24" height="45" rx="2"/>
+      <rect class="pillow" x="${ax - 10}" y="${ay - 23}" width="20" height="10" rx="3"/>
+      <path class="room-annotation" d="M ${ax - 12} ${ay - 8} H ${ax + 12}"/>
+      <circle class="furniture" cx="${mx}" cy="${my + 7}" r="18"/>
+      <rect class="furniture" x="${mx - 9}" y="${my - 30}" width="18" height="13" rx="2"/>
+      <rect class="furniture" x="${mx - 9}" y="${my + 33}" width="18" height="13" rx="2"/>
+      <rect class="furniture" x="${mx - 58}" y="${my - 20}" width="17" height="32" rx="2"/>
+      <path class="room-annotation" d="M ${mx - 57} ${my - 9} H ${mx - 42} M ${mx - 57} ${my + 1} H ${mx - 42}"/>`;
+  }
+  function renderPlan(svg) {
+    const method = methods[svg.dataset.method];
+    const width = Math.max(220, Math.round(svg.getBoundingClientRect().width));
+    const height = 310;
+    const scale = Math.min((width - 12) / 330, 0.92);
+    const left = (width - 330 * scale) / 2;
+    const top = (height - 310 * scale) / 2 - 5;
+    const tx = x => left + x * scale;
+    const ty = y => top + y * scale;
+    const id = `ground-${svg.dataset.method}`;
+    svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    const markLines = Array.from({length: 11}, (_, i) => {
+      const x = 12 + i * 31;
+      return `<path class="earth-mark" d="M ${x} 22 l 4 -2 m -4 42 l 3 1 m -4 41 l 4 -2 m -5 42 l 3 1 m -2 38 l 4 -2 m -5 43 l 3 1 m -1 36 l 4 -2"/>`;
+    }).join('');
+    let body = '';
+    if (phase === 'blueprint') {
+      body = `<path class="draft-floor" d="${method.path}"/>${method.guides}`;
+    } else {
+      body = `<path class="cut-depth" d="${method.path}" transform="translate(0 9)"/><path class="cut-floor" d="${method.path}"/>${phase === 'furnished' ? furniture(method) : ''}`;
+    }
+    const labels = phase === 'furnished' ? '' : `<text class="room-label" x="${tx(method.main[0])}" y="${ty(method.main[1])}">Burrow</text><text class="room-label text-small" x="${tx(method.alcove[0])}" y="${ty(method.alcove[1])}">Alcove</text>`;
+    svg.innerHTML = `<title>${svg.getAttribute('aria-label')} — ${phase}</title>
+      <defs><clipPath id="${id}"><rect x="0" y="0" width="330" height="294" rx="4"/></clipPath></defs>
+      <g transform="translate(${left} ${top}) scale(${scale})" clip-path="url(#${id})">
+        <rect class="solid-earth" x="0" y="0" width="330" height="294"/>${markLines}${body}
+      </g>${labels}<text class="entrance-label text-small" x="${tx(method.entrance[0])}" y="${ty(309)}">Entrance</text>`;
+  }
+  function render() {
+    plans.forEach(renderPlan);
+    for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.phase === phase));
+    for (const label of root.querySelectorAll('[data-caption]')) label.textContent = captions[phase][label.dataset.caption];
+    root.querySelector('.stage-detail').textContent = stageLabels[phase];
+  }
+  function restore(state) {
+    const storedPhase = state?.privateContent?.examplePhase;
+    if (Object.hasOwn(stageLabels, storedPhase)) phase = storedPhase;
+    render();
+  }
+  for (const button of buttons) button.addEventListener('click', () => {
+    phase = button.dataset.phase;
+    render();
+    if (window.openai?.setWidgetState) window.openai.setWidgetState({modelContent:null,privateContent:{examplePhase:phase}}).catch(() => {});
+  });
+  window.addEventListener('openai:set_globals', event => {
+    if (event.detail?.globals?.widgetState) restore(event.detail.globals.widgetState);
+  });
+  const observer = new ResizeObserver(render);
+  plans.forEach(plan => observer.observe(plan));
+  restore(window.openai?.widgetState);
+})();
+</script>

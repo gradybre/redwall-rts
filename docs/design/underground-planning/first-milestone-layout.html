@@ -1,0 +1,128 @@
+<div id="first-underground-milestone">
+  <h2>First test build: where the stairs belong</h2>
+  <div class="viz-grid layout-options">
+    <section aria-labelledby="shared-stair-layout">
+      <h3 id="shared-stair-layout">1 · Shared stair passage</h3>
+      <div class="text-small">Recommended</div>
+      <div class="level-label">Upper level · surface entry</div>
+      <svg class="floor-plan" data-layout="shared" data-level="upper" role="img" aria-label="Upper kitchen branches off a passage. Stair A is outside the kitchen removal area."></svg>
+      <div class="level-label">Lower level</div>
+      <svg class="floor-plan" data-layout="shared" data-level="lower" role="img" aria-label="Lower bedroom branches off the shared stair landing. Stair A and its access are outside the bedroom removal area."></svg>
+      <div class="text-small">Room removal can preserve the stair route.</div>
+    </section>
+    <section aria-labelledby="internal-stair-layout">
+      <h3 id="internal-stair-layout">2 · Stairs inside the rooms</h3>
+      <div class="text-small">Compact alternative</div>
+      <div class="level-label">Upper level · surface entry</div>
+      <svg class="floor-plan" data-layout="inside" data-level="upper" role="img" aria-label="The kitchen contains Stair A. Removing the kitchen must first resolve the stair and the lower room's access."></svg>
+      <div class="level-label">Lower level</div>
+      <svg class="floor-plan" data-layout="inside" data-level="lower" role="img" aria-label="Stair A lands inside the bedroom. Room closure includes a dependency on the stair and escape route."></svg>
+      <div class="text-small">Room removal must first resolve stair access.</div>
+    </section>
+  </div>
+  <div class="viz-row legend text-small">
+    <span><span class="room-swatch" aria-hidden="true"></span>Room removal area</span>
+    <span><span class="passage-swatch" aria-hidden="true"></span>Shared passage / landing</span>
+    <span>A = the same stair on both levels</span>
+  </div>
+  <div class="text-small text-muted">Schematic proposal · No dimensions · Not a game screenshot</div>
+</div>
+<style>
+  #first-underground-milestone .layout-options { margin-block: 12px 16px; }
+  #first-underground-milestone section { min-width: 0; }
+  #first-underground-milestone h2 { margin-block: 0 12px; }
+  #first-underground-milestone h3 { margin-block: 0 4px; }
+  #first-underground-milestone .level-label { margin-block: 14px 4px; font-weight: 500; }
+  #first-underground-milestone .floor-plan { display: block; width: 100%; height: 252px; }
+  #first-underground-milestone .floor { fill: var(--muted); stroke: var(--muted-foreground); stroke-width: 1.5; }
+  #first-underground-milestone .room-area { fill: color-mix(in srgb, var(--viz-series-2) 17%, var(--background)); }
+  #first-underground-milestone .room-boundary { fill: none; stroke: var(--muted-foreground); stroke-width: 1; stroke-dasharray: 4 4; }
+  #first-underground-milestone .stair-line { fill: none; stroke: var(--muted-foreground); stroke-width: 1; }
+  #first-underground-milestone .map-label { fill: var(--foreground); font-weight: 500; text-anchor: middle; }
+  #first-underground-milestone .map-note { fill: var(--foreground); text-anchor: middle; }
+  #first-underground-milestone .label-base { fill: var(--background); }
+  #first-underground-milestone .legend { margin-block: 10px; }
+  #first-underground-milestone .legend > span { display: inline-flex; align-items: center; gap: 6px; }
+  #first-underground-milestone .room-swatch,
+  #first-underground-milestone .passage-swatch { display: inline-block; width: 16px; height: 12px; }
+  #first-underground-milestone .room-swatch { background: color-mix(in srgb, var(--viz-series-2) 17%, var(--background)); }
+  #first-underground-milestone .passage-swatch { background: var(--muted); }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('first-underground-milestone');
+  const plans = Array.from(root.querySelectorAll('.floor-plan'));
+  const NS = 'http://www.w3.org/2000/svg';
+  const kitchen = 'M 38 102 H 208 Q 218 102 218 112 V 220 Q 218 230 208 230 H 38 Q 28 230 28 220 V 112 Q 28 102 38 102 Z';
+  const bedroom = 'M 146 174 V 137 Q 146 112 172 110 C 190 106 200 122 218 114 C 237 102 262 111 270 129 L 293 147 C 313 156 314 195 298 204 Q 300 227 277 228 H 174 Q 148 230 146 210 Z';
+  const layouts = {
+    'shared-upper': {
+      floor: 'M 272 0 H 310 V 230 H 272 V 194 H 218 V 220 Q 218 230 208 230 H 38 Q 28 230 28 220 V 112 Q 28 102 38 102 H 208 Q 218 102 218 112 V 162 H 272 V 72 H 90 V 24 H 272 Z',
+      room: kitchen,
+      label: [123, 150, 'Kitchen'],
+      note: [123, 174, 'Rounded corners'],
+      direction: 'A · down',
+      passage: [291, 125]
+    },
+    'shared-lower': {
+      floor: 'M 58 24 H 272 V 72 H 100 V 174 H 146 V 137 Q 146 112 172 110 C 190 106 200 122 218 114 C 237 102 262 111 270 129 L 293 147 C 313 156 314 195 298 204 Q 300 227 277 228 H 174 Q 148 230 146 210 V 206 H 100 V 230 H 58 Z',
+      room: bedroom,
+      label: [224, 161, 'Bedroom'],
+      note: [224, 185, 'Irregular alcove'],
+      direction: 'A · up',
+      passage: [79, 133]
+    },
+    'inside-upper': {
+      floor: 'M 272 0 H 310 V 216 Q 310 230 296 230 H 44 Q 28 230 28 214 V 38 Q 28 24 44 24 H 272 Z',
+      room: 'M 44 24 H 310 V 216 Q 310 230 296 230 H 44 Q 28 230 28 214 V 38 Q 28 24 44 24 Z',
+      label: [169, 150, 'Kitchen'],
+      note: [169, 174, 'Includes stair access'],
+      direction: 'A · down'
+    },
+    'inside-lower': {
+      floor: 'M 68 24 H 280 Q 305 24 305 49 V 100 C 311 120 282 125 288 147 C 318 167 310 206 286 218 Q 274 234 247 228 H 95 Q 66 228 61 205 C 36 187 40 160 57 147 V 40 Q 57 24 68 24 Z',
+      room: 'M 68 24 H 280 Q 305 24 305 49 V 100 C 311 120 282 125 288 147 C 318 167 310 206 286 218 Q 274 234 247 228 H 95 Q 66 228 61 205 C 36 187 40 160 57 147 V 40 Q 57 24 68 24 Z',
+      label: [179, 150, 'Bedroom'],
+      note: [179, 174, 'Includes stair landing'],
+      direction: 'A · up'
+    }
+  };
+  function element(tag, attributes, text) {
+    const node = document.createElementNS(NS, tag);
+    Object.entries(attributes).forEach(([key, value]) => node.setAttribute(key, String(value)));
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+  function draw(svg) {
+    const width = Math.max(1, Math.floor(svg.getBoundingClientRect().width));
+    const sx = width / 340;
+    const entry = layouts[svg.dataset.layout + '-' + svg.dataset.level];
+    svg.setAttribute('viewBox', '0 0 ' + width + ' 252');
+    svg.replaceChildren();
+    const geometry = element('g', {transform: 'scale(' + sx + ' 1)'});
+    geometry.append(element('path', {d: entry.floor, class: 'floor', 'vector-effect': 'non-scaling-stroke'}));
+    geometry.append(element('path', {d: entry.room, class: 'room-area'}));
+    geometry.append(element('path', {d: entry.room, class: 'room-boundary', 'vector-effect': 'non-scaling-stroke'}));
+    geometry.append(element('path', {d: 'M 90 24 H 272 M 90 72 H 272', class: 'stair-line'}));
+    for (let x = 98; x <= 264; x += 16) {
+      geometry.append(element('path', {d: 'M ' + x + ' 27 V 69', class: 'stair-line'}));
+    }
+    svg.append(geometry);
+    svg.append(element('rect', {x: 181 * sx - 34, y: 35, width: 68, height: 25, rx: 2, class: 'label-base'}));
+    svg.append(element('text', {x: 181 * sx, y: 53, class: 'map-label'}, entry.direction));
+    svg.append(element('text', {x: entry.label[0] * sx, y: entry.label[1], class: 'map-label'}, entry.label[2]));
+    svg.append(element('text', {x: entry.note[0] * sx, y: entry.note[1], class: 'map-note text-small'}, entry.note[2]));
+    if (entry.passage) {
+      const px = entry.passage[0] * sx;
+      const py = entry.passage[1];
+      svg.append(element('text', {x: px, y: py, transform: 'rotate(-90 ' + px + ' ' + py + ')', class: 'map-note text-small'}, 'Passage'));
+    }
+    if (svg.dataset.level === 'upper') {
+      svg.append(element('text', {x: 291 * sx, y: 17, class: 'map-label'}, '↓'));
+    }
+  }
+  const observer = new ResizeObserver(() => plans.forEach(draw));
+  plans.forEach(svg => observer.observe(svg));
+  plans.forEach(draw);
+})();
+</script>

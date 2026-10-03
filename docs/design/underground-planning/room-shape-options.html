@@ -1,0 +1,77 @@
+<div id="underground-shape-options">
+  <div class="viz-controls" role="group" aria-label="Compare proposed room shaping tools">
+    <button type="button" class="btn" data-shape="brush" aria-pressed="true">A · Brush + starter shapes</button>
+    <button type="button" class="btn" data-shape="modules" aria-pressed="false">B · Resize modules</button>
+    <button type="button" class="btn" data-shape="outline" aria-pressed="false">C · Curve handles</button>
+  </div>
+  <svg class="room-shape-diagram" role="img" aria-labelledby="room-shape-title room-shape-description">
+    <title id="room-shape-title">Proposed organic room footprint</title>
+    <desc id="room-shape-description">An irregular rounded room formed from overlapping brush strokes, with a curved entrance passage.</desc>
+    <g class="room-marks"></g>
+  </svg>
+  <div class="viz-row"><span class="shape-detail" aria-live="polite">Recommended · Start round, then add alcoves or erase edges</span></div>
+  <div class="text-small text-muted">Illustrative footprints · Dimensions undecided · Not in-game footage</div>
+</div>
+<style>
+  #underground-shape-options .room-shape-diagram { display: block; width: 100%; height: 250px; margin-block: 12px; }
+  #underground-shape-options .room-area { fill: color-mix(in srgb, var(--viz-series-1) 17%, transparent); stroke: var(--foreground); stroke-width: 1.5; }
+  #underground-shape-options .tool-guide { fill: none; stroke: var(--muted-foreground); stroke-width: 1; stroke-dasharray: 4 5; }
+  #underground-shape-options .tool-handle { fill: var(--background); stroke: var(--foreground); stroke-width: 1.5; }
+</style>
+<script>
+(() => {
+  const root = document.getElementById('underground-shape-options');
+  const svg = root.querySelector('.room-shape-diagram');
+  const marks = root.querySelector('.room-marks');
+  const detail = root.querySelector('.shape-detail');
+  const description = root.querySelector('#room-shape-description');
+  const buttons = Array.from(root.querySelectorAll('[data-shape]'));
+  const options = {
+    brush: {
+      detail: 'Recommended · Start round, then add alcoves or erase edges',
+      description: 'An irregular rounded room formed from overlapping brush strokes, with a curved entrance passage.',
+      path: 'M 88 104 C 66 76 84 45 116 42 C 143 13 184 24 196 43 C 225 25 264 45 258 76 C 304 83 298 124 270 134 C 250 170 208 162 198 146 C 174 172 132 169 117 145 C 101 153 89 156 81 172 L 53 200 L 22 200 L 61 155 C 74 139 74 122 88 104 Z',
+      guides: '<circle class="tool-guide" cx="132" cy="80" r="39"/><circle class="tool-guide" cx="206" cy="82" r="46"/><circle class="tool-guide" cx="222" cy="126" r="27"/>'
+    },
+    modules: {
+      detail: 'Repeatable shapes · Resize and connect round or oval rooms',
+      description: 'Two regular oval room modules connected by a short passage, with handles for resizing.',
+      path: 'M 54 134 C 7 134 7 48 54 48 C 95 48 112 63 113 85 L 157 85 C 158 47 185 30 225 30 C 312 30 312 153 225 153 C 185 153 160 134 157 110 L 113 110 C 105 127 83 134 54 134 Z',
+      guides: '<ellipse class="tool-guide" cx="64" cy="91" rx="48" ry="43"/><ellipse class="tool-guide" cx="224" cy="92" rx="65" ry="62"/><rect class="tool-handle" x="59" y="44" width="8" height="8"/><rect class="tool-handle" x="284" y="88" width="8" height="8"/>'
+    },
+    outline: {
+      detail: 'Precise curves · Place boundary points and adjust their handles',
+      description: 'A custom asymmetric curved room outline with editable boundary points and curve control handles.',
+      path: 'M 56 150 C 9 150 18 45 80 39 C 163 30 146 108 203 62 C 274 6 321 113 264 146 C 213 178 113 163 56 150 Z',
+      guides: '<path class="tool-guide" d="M 56 150 L 18 45 M 80 39 L 163 30 M 203 62 L 146 108 M 264 146 L 321 113"/><circle class="tool-handle" cx="56" cy="150" r="4"/><circle class="tool-handle" cx="80" cy="39" r="4"/><circle class="tool-handle" cx="203" cy="62" r="4"/><circle class="tool-handle" cx="264" cy="146" r="4"/><circle class="tool-handle" cx="18" cy="45" r="3"/><circle class="tool-handle" cx="163" cy="30" r="3"/><circle class="tool-handle" cx="146" cy="108" r="3"/><circle class="tool-handle" cx="321" cy="113" r="3"/>'
+    }
+  };
+  let selected = 'brush';
+  function render() {
+    const width = Math.max(260, Math.round(svg.getBoundingClientRect().width));
+    const scale = Math.min(1.15, (width - 24) / 350);
+    svg.setAttribute('viewBox', `0 0 ${width} 250`);
+    marks.setAttribute('transform', `translate(${(width - 350 * scale) / 2} ${(250 - 210 * scale) / 2}) scale(${scale})`);
+    const option = options[selected];
+    marks.innerHTML = `<path class="room-area" d="${option.path}"/>${option.guides}`;
+    detail.textContent = option.detail;
+    description.textContent = option.description;
+    for (const button of buttons) button.setAttribute('aria-pressed', String(button.dataset.shape === selected));
+  }
+  function restore(state) {
+    const candidate = state?.privateContent?.selectedShape;
+    if (Object.hasOwn(options, candidate)) selected = candidate;
+    render();
+  }
+  for (const button of buttons) button.addEventListener('click', () => {
+    selected = button.dataset.shape;
+    render();
+    if (window.openai?.setWidgetState) window.openai.setWidgetState({ modelContent: null, privateContent: { selectedShape: selected } }).catch(() => {});
+  });
+  window.addEventListener('openai:set_globals', event => {
+    if (event.detail?.globals?.widgetState) restore(event.detail.globals.widgetState);
+  });
+  new ResizeObserver(render).observe(svg);
+  restore(window.openai?.widgetState);
+})();
+</script>

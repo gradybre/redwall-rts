@@ -77,8 +77,8 @@ const DIG_TIP: String = "Dig tunnel (B) — the Dig tool: drag a tunnel from whe
 ## The room tools' buttons (decision 0209): text, tip, and the template each asks for (underground_rooms.gd).
 const ROOM_BUTTONS: Array[String] = ["Burrow home (H)", "Root cellar (C)"]
 const ROOM_TIPS: Array[String] = [
-	"Burrow home (H) — a round home with its own front door, dug beside the tunnels: move it, R turns it, click to dig it with a passage to the nearest tunnel (Shift+click: none)",
-	"Root cellar (C) — a stone-lined cellar with a hatch, where the pantry stores harvests: move it, R turns it, click to dig it with a passage to the nearest tunnel (Shift+click: none)"]
+	"Burrow home (H) — a round home with its own front door: move it, R turns it, click to hold a blueprint with its passage (Shift+click: none), then Confirm or Enter to order the dig",
+	"Root cellar (C) — a stone-lined cellar with a hatch: move it, R turns it, click to hold a blueprint with its passage (Shift+click: none), then Confirm or Enter to order the dig"]
 const ROOM_TEMPLATES: Array[int] = [RoomsScript.TEMPLATE_HOME, RoomsScript.TEMPLATE_CELLAR]
 const RELEASE_BUTTON: String = "Release (R)"
 const RELEASE_TIP: String = "Release (R) — hand the selected residents back to their own routine; they stay selected"

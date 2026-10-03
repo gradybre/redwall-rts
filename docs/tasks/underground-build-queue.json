@@ -36,7 +36,13 @@
         "tests": "36 test(s), 4038 assertion(s), 0 failure(s); strict focused suite after cleanimport",
         "diagnostics": "0unexpectederrors/warnings;0expected/tolerated;0leakedobjects/resources; analyzer0warnings/2files",
         "review": "Separate integration-owner source review; radius/coordinate overflowcases corrected andtested; membershipoptimization preservescanonicaloutput. All511nonempty3x3masks checked. 16k validation51.6ms coldonly, cacheperrevision.",
-        "integration": "c1a697e5 unchanged source; statelessregistryreconciled separately. Fullcombinedsuitependingcheckpoint."
+        "integration": "c1a697e5 unchanged source; statelessregistryreconciled separately. Fullcombinedsuitependingcheckpoint.",
+        "validation_sublease": {
+          "owner": "/root/ug_construction",
+          "lane": "UG07",
+          "file": "godot/scripts/core/room_footprint.gd",
+          "scope": "1094 validation-only packed scratch; old public geometry remains unchanged"
+        }
       },
       "lease": {
         "state": "released",
@@ -386,7 +392,9 @@
         "godot/scripts/core/underground_room_bindings.gd",
         "godot/test/test_underground_room_bindings.gd",
         "docs/decisions/1092-actual-room-phase-masks.md",
-        "godot/test/test_underground_room_admission.gd"
+        "godot/test/test_underground_room_admission.gd",
+        "godot/test/test_room_footprint_packed.gd",
+        "docs/decisions/1094-packed-room-footprint-validation.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -482,8 +490,33 @@
         "buildings_reader_sublease": {
           "owner": "/root",
           "branch": "codex/underground-world-identities",
-          "status": "reviewed and committed16359f0c, integration pending full checkpoint closure",
+          "status": "reviewed committed16359f0c, integratedb5561d09; narrow sublease returned, helper/test frozen",
           "scope": "Narrow stateless Buildings.room_identity_into plus newtest; actual mutation/admission remains construction-owned.89tests1379assertions all strict/raw unexpected/leaks0,analyzer0/2."
+        },
+        "actual_site_identity_readers": {
+          "source": "f64d240c",
+          "integration": "d9069521",
+          "tests": "48 tests/23880 assertions/0 failures; strict/raw unexpected/leaks0; analyzer0/2",
+          "review": "root accepted exact installed support and Jobs-owner identity readers",
+          "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/physical-identity-readers/"
+        },
+        "packed_validator_packet": {
+          "owner": "/root/ug_construction",
+          "paths": [
+            "godot/scripts/core/room_footprint.gd",
+            "godot/test/test_room_footprint_packed.gd",
+            "docs/decisions/1094-packed-room-footprint-validation.md"
+          ],
+          "scope": "Validation-only bounded packed adjacency/BFS/Euler scratch; preserve API/refusal order/shape semantics and existing contour rendering. Exhaustive legacy parity; no new gameplay cell cap. Actual compositor coexistence remains separate."
+        },
+        "actual_room_admission": {
+          "source": "9b08be058fd564dd852f5b57794b938f084bb39e",
+          "registry": "06beaf39f566525e1e1e03694dfe3674b60704cc",
+          "integration": "7fc17626/00216ae0",
+          "tests": "128tests8444assertions aggregated from unchanged seven-suite baseline plus final affected15/504 rerun;strict/raw unexpected/leaks0;analyzers0/5 then0/2",
+          "review": "root accepted final five pins and callback-release strong Sites lifetime regression",
+          "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/admission/",
+          "scope": "Actual Level/Terrain/retained claim/history preflight; valid static terrain ends at missing actual prospective entry contact. No production admission;477-cell temporary conservative cold bound has required packed-validator/coexistence follow-up."
         }
       },
       "lease": {
@@ -700,6 +733,15 @@
             "godot/data/underground/mole-worker/"
           ],
           "scope": "First actual mole idle/walk/crouch/tool/hammer slice, source-pinned original parts and positive affine palette; no absent-state fallback. Presentation source/decode/copy/native peak must be separately counted and measured."
+        },
+        "finite_world_envelopes": {
+          "source": "a16b4621",
+          "integration": "d10ecd61",
+          "native": "54 cases,4158 poses,116352 native skin checks; all unexpected diagnostics/leaks0; exact full native heading norm",
+          "tests": "58+12 Python tests;21 engine tests/225 assertions/0failures; strict/raw all0; analyzer0/5",
+          "review": "root independent frozen-source review accepted; all83 evidence pins verified",
+          "scope": "Original body and held-tool source geometry; zero production profiles",
+          "evidence_path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/"
         }
       },
       "lease": {
@@ -741,7 +783,7 @@
         "godot/test/test_underground_world_room_bindings.gd",
         "godot/scripts/core/underground_phase_structure.gd",
         "godot/test/test_underground_phase_structure.gd",
-        "docs/decisions/1093-actual-room-natural-support.md",
+        "docs/decisions/1093-retained-natural-room-support.md",
         "godot/test/test_underground_world_identities.gd"
       ],
       "requirements": [
@@ -929,7 +971,20 @@
           "evidence_path": "docs/validation/evidence/underground-world-room-bindings-2026-10-03/"
         },
         "natural_support_packet": "Approved1093: actual Levels/Terrain/retained matter proof and exact Room-owned natural SUPPORT protections outside cuts; Room lifetime spans vertical Sites, no installed-bracing/salvage fiction. Separateprovider plus Authority post-seal array release; actual contact/profile and paid connector dependencies remain.",
-        "root_next_identity_packet": "Actual WB underground Room and assigned worker identity readers; no profile/contact permission. Separate own worktree /Users/brendan/Developer/redwall-rts-codex-ug-world-composition on codex/underground-world-identities while full checkpoint1ea96be7 runs frozen."
+        "root_next_identity_packet": "Actual WB underground Room and assigned worker identity readers; no profile/contact permission. Separate own worktree /Users/brendan/Developer/redwall-rts-codex-ug-world-composition on codex/underground-world-identities while full checkpoint1ea96be7 runs frozen.",
+        "early_survey_release": {
+          "source": "4a702647",
+          "integration": "c6334484",
+          "tests": "36 tests/4991 assertions/0failures; strict/raw all0; analyzer0/2",
+          "review": "construction independently accepted; no later original-array consumer; final scalar/revision/phase checks retained"
+        },
+        "room_identity_consumer": {
+          "source": "2e030966",
+          "registry": "f2d93352",
+          "integration": "8259edf5/4113c93b",
+          "tests": "88 tests/5024 assertions/0failures; strict/raw all0; analyzer0/1",
+          "review": "root accepted actual fixed Buildings read;24B scratch, no schema delta, no O(1) source-lookup claim"
+        }
       },
       "lease": {
         "state": "held",

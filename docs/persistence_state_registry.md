@@ -1090,7 +1090,7 @@ future-affecting once integrated; no codec assignment is invented here.
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---:|---|---|:-:|---|---|
-| Cold multilevel validation | -- | -- | -- | Refusal has no candidate; owner null is `(-1,0)` | 3 | -- | Decision 1058. Stateless helper with caller-owned immutable domain, versioned packed snapshot/plan/contact records and bounded union-coverage scratch. Volume rows are 48 logical bytes, cuts 16, contact metadata 24 beyond its volume rows, live owners 12. No module-level persistent columns, terrain, reservations, material account, physical history or route publication. Integrating owners must serialize the domain and accepted geometry/content/owner revisions; no codec assignment is invented by this foundation. |
+| Cold multilevel validation | -- | -- | -- | Refusal has no candidate; owner null is `(-1,0)` | 3 | -- | Decision 1058. Stateless helper with caller-owned immutable domain, versioned packed snapshot/plan/contact records and bounded union-coverage scratch. Volume rows are 48 logical bytes, cuts 16, contact metadata 24 beyond its volume rows, live owners 16 (two int32 reference fields plus one int64 revision). No module-level persistent columns, terrain, reservations, material account, physical history or route publication. Integrating owners must serialize the domain and accepted geometry/content/owner revisions; no codec assignment is invented by this foundation. |
 
 ### `godot/scripts/core/room_connectors.gd`
 

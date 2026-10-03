@@ -68,7 +68,8 @@ proposed rows and both contact-volume tables; live owner rows are separately
 bounded by the same region ceiling. Box fragmentation is also bounded. These
 are refusal ceilings, not a frame-time or 256-resident performance claim.
 A volume row has 48 logical bytes; each cut has 16; a contact adds 24 beyond
-its two volume rows; each live owner adds 12. Input copies, coverage fragments
+its two volume rows; each live owner adds 16 (two int32 reference fields and
+one int64 revision). Input copies, coverage fragments
 and dictionaries are transient and bounded, but native overhead is unmeasured.
 This API is for cold placement/phase validation, not per-resident tick loops.
 

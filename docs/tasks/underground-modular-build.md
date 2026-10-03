@@ -25,7 +25,8 @@ python3 tools/underground_build_queue.py ready
 | UG04 | Interactive room drawing and blueprint controls | UG01 |
 | UG05 | Fitted shells and physically scaled materials | UG01 |
 | UG06 | Actual excavation, spoil, closure and Construction accounting | UG02 |
-| UG07 | Room/equipment catalog and real order coordinator | UG01, UG03, UG06 |
+| UG18 | Room-purpose catalog and furnishing compatibility | UG01, UG03 |
+| UG07 | Real room/equipment order coordinator | UG01, UG03, UG06, UG18 |
 | UG08 | Multilevel occupancy, support, fixed connector catalog | UG01; compose with UG06 at UG09 |
 | UG09 | **First playable checkpoint: blueprint → workers → empty Kitchen** | UG04–08 |
 | UG10 | Furnishing modes, real services and optional example guides | UG07, UG09 |

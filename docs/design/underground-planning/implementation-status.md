@@ -5,7 +5,7 @@
 Brendan subsequently authorized concurrent subagents and automatic release of
 dependent work until all approved scope is built. The integration now continues
 on `codex/underground-modular-integration`; see the
-[17-lane build queue](../../tasks/underground-modular-build.md) for current
+[build queue](../../tasks/underground-modular-build.md) for current
 ownership, dependencies and evidence. The first wave's canonical footprints,
 project editing holds and grid furniture layout validation are now integrated.
 Source `26283981` passed **9,233 tests / 616,737 assertions / zero failures**,

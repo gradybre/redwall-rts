@@ -87,3 +87,11 @@ native 1280×720 input/visual checks, save/resume and resource-conservation
 checks, and measured 256-resident results. Qualification hardware limits are
 reported honestly; local timing cannot certify an untested target machine.
 No diagnostic/leak allowance is increased and no paid generation is authorized.
+
+## Independent catalog release
+
+UG18 extracts the room-purpose/furnishing catalog portion of UG07 so its
+authoritative GDD facts and compatibility authoring can progress while physical
+excavation is implemented. UG07 retains real atomic acceptance and depends on
+both UG18 and UG06; no order coordinator is qualified by catalog-only tests.
+This adds a lane without removing any of the107 requirement owners.

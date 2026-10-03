@@ -267,18 +267,54 @@
       }
     },
     {
+      "id": "UG18",
+      "title": "Room-purpose catalog and furnishing compatibility",
+      "status": "running",
+      "depends_on": [
+        "UG01",
+        "UG03"
+      ],
+      "owns": [
+        "godot/scripts/core/room_catalog.gd",
+        "godot/test/test_room_catalog.gd",
+        "docs/decisions/1059-room-purpose-catalog.md"
+      ],
+      "requirements": [
+        "UG-FURN-001",
+        "UG-FURN-002",
+        "UG-FURN-003",
+        "UG-FURN-004",
+        "UG-FURN-005",
+        "UG-FURN-010",
+        "UG-FURN-012",
+        "UG-FURN-013",
+        "UG-FURN-024",
+        "UG-FURN-027"
+      ],
+      "acceptance": [
+        "Reuse GDD and BuildingDefinitions identities, exact costs and work; no duplicate authoritative catalog",
+        "Explicit Bedroom/private-room mapping, permanent room purpose and room-appropriate compatibility with documented proposal boundary",
+        "Equipment dimensions/access absent from owners remain explicit profile authoring inputs, not silent production constants"
+      ],
+      "agent": "/root/ug_geometry",
+      "branch": "codex/underground-catalog",
+      "evidence": {},
+      "lease": {
+        "state": "held"
+      }
+    },
+    {
       "id": "UG07",
-      "title": "Room catalog, equipment profiles and real order acceptance",
+      "title": "Room and equipment atomic order coordination",
       "status": "queued",
       "depends_on": [
         "UG01",
         "UG03",
-        "UG06"
+        "UG06",
+        "UG18"
       ],
       "owns": [
-        "godot/scripts/core/room_catalog.gd",
         "godot/scripts/core/room_order_coordinator.gd",
-        "godot/test/test_room_catalog.gd",
         "godot/test/test_room_order_coordinator.gd"
       ],
       "requirements": [

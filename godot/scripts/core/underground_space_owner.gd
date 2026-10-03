@@ -880,6 +880,33 @@ func prepared_region_into(token: int, handle: Vector2i, out: Region) -> StringNa
 	return &""
 
 
+func prepared_region_observation_into(token: int, handle: Vector2i, out: Region) -> StringName:
+	"""Copy sealed fixed scratch only; bracket an entire batch with full prepared_refusal before and after."""
+	if _ready_error != &"" or token <= 0 or token != _stage_token or not _sealed \
+			or _s_header[17] != revision() + 1:
+		return &"SPACE_TRANSACTION_UNSEALED"
+	if not _sources.directory().is_valid_of_kind(Vector2i(_header[3], _header[4]), Directory.KIND_WORLD):
+		return &"SPACE_SOURCE_STALE"
+	if out == null or not _region_live(handle, true):
+		return &"SPACE_REGION_STALE"
+	if out.box.size() != 6:
+		return &"SPACE_REGION_OUTPUT_SHAPE"
+	var row: int = handle.x
+	out.box[0] = _s_r_lo_x[row]
+	out.box[1] = _s_r_lo_y[row]
+	out.box[2] = _s_r_lo_z[row]
+	out.box[3] = _s_r_hi_x[row]
+	out.box[4] = _s_r_hi_y[row]
+	out.box[5] = _s_r_hi_z[row]
+	out.role = _s_r_role[row]
+	out.level = _s_r_level[row]
+	out.owner = Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row])
+	out.section = Vector2i(_s_r_section_slot[row], _s_r_section_generation[row])
+	out.claim_ref = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row])
+	out.claim_kind = _s_r_claim_kind[row]
+	return &""
+
+
 func prepared_snapshot_into(token: int, out: Space.Snapshot) -> StringName:
 	"""Cold complete candidate survey, including all claims; callers budget its isolated copy."""
 	var code: StringName = prepared_refusal(token)

@@ -839,3 +839,30 @@ accepted the bounded slice. Exact source pins and raw evidence are retained unde
 `underground-ug1075-bindings-2026-10-03/traversal/`. This qualifies the observation
 and endpoint boundary only; actual paid profile/traversal production binding
 remains a separate gate.
+
+
+## Bounded observation inside a fully validated prepared batch
+
+The prepared source proof is expensive enough that repeating it for every
+static edge is not a viable certificate compiler. SpaceOwner now provides
+`prepared_region_observation_into`, and Routes provides
+`prepared_edge_metadata_reused_into`. They preserve exact sealed tokens, full
+local generations, live World identity, unchanged geometry and fixed caller
+scratch; Routes also checks its actual cold lease and profile content revision.
+Neither reader invokes a provider or scans source owners. The section copied
+from a staged Space bank is still exact metadata, never inferred clearance.
+
+These APIs deliberately do not replace full source/claim freshness validation.
+Callers must bracket the entire observation loop with full `prepared_refusal`
+and must wait for the successful real graph publication before publishing
+certificate state. A direct actual Building mutation can therefore leave an
+observation readable while correctly refusing the mandatory final full proof.
+No new member, buffer, retained image, schema or memory reservation is added.
+
+Independent source review accepted the four-file increment. Clean focused
+results are **77 tests / 4,845 assertions** and **34 tests / 8,935 assertions**,
+with zero failures, strict/raw unexpected diagnostics or leaks, and zero
+expected/tolerated diagnostics. The analyzer reports zero warnings in four
+files. The 1,536-row regressions observe zero source callbacks inside the loop.
+[Source pins and raw logs](../validation/evidence/underground-ug1075-bindings-2026-10-03/prepared-observations/README.md)
+qualify only this observation boundary, not the whole production movement cost.

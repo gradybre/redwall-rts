@@ -2227,3 +2227,56 @@ func test_traversal_source_and_claim_lifetime_are_not_exempted() -> void:
 	assert_true(_buildings.directory().destroy(_room), "actual Room generation retired")
 	assert_equal(_owner.snapshot_for_traversal_into(image), &"SPACE_SOURCE_STALE", "room marker cannot outlive owner")
 	assert_equal(image.revision, 901, "failed lifetime proof does not replace caller's prior survey")
+
+
+class CountedSources extends Owner.CoreSources:
+	## Exact actual source reader with a test-only counter for bounded observation loops.
+	var reads: int = 0
+
+	func read_into(ref: Vector2i, out: Owner.Facts) -> StringName:
+		"""Counting cannot authorize missing or changed actual source facts."""
+		reads += 1
+		return super.read_into(ref, out)
+
+
+func test_prepared_region_observation_uses_no_source_scan_and_requires_full_final_preflight() -> void:
+	"""Observation copies sealed scalars only; it cannot replace the batch's actual source freshness proof."""
+	var counted: CountedSources = CountedSources.new(_buildings.directory(), _buildings, _construction)
+	_owner = Owner.new(counted)
+	assert_equal(_owner.configure(_domain, R, O), &"", "counted actual reader")
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _hall), &"", "actual Building source")
+	var floor_ref: Vector2i = _put(token, _region([0, 0, 0, 1024, 1, 1024], Space.FLOOR_DATUM, _hall))
+	assert_equal(_owner.seal(token), &"", "strict candidate")
+	assert_equal(_owner.prepared_refusal(token), &"", "one full source proof before batch")
+	var out: Owner.Region = Owner.Region.new()
+	out.box.resize(6)
+	var reads: int = counted.reads
+	for index: int in 1536:
+		assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"", "bounded fixed observation")
+	assert_equal(counted.reads, reads, "no source reader or arena scan per row")
+	assert_equal(out.section, floor_ref, "full internal generation remains explicit")
+	assert_true(_buildings.set_building_interior_id(_hall, 29).ok, "actual source changes without allocator reuse")
+	assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"", "raw observation is not freshness permission")
+	assert_equal(_owner.prepared_refusal(token), &"SPACE_SOURCE_DRIFT", "mandatory final full proof detects changed owner")
+	assert_true(_owner.abort(token), "discard stale candidate")
+
+
+func test_prepared_region_observation_refusals_preserve_exact_caller_scratch() -> void:
+	"""No stale token, retired row or undersized scratch can expose a different prepared namespace."""
+	var token: int = _begin()
+	var floor_ref: Vector2i = _put(token, _region([0, 0, 0, 1024, 1, 1024], Space.FLOOR_DATUM, _world))
+	var out: Owner.Region = Owner.Region.new()
+	out.level = 773
+	out.box = PackedInt32Array([1, 2, 3, 4, 5, 6])
+	assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"SPACE_TRANSACTION_UNSEALED", "unsealed")
+	assert_equal(_owner.seal(token), &"", "actual seal")
+	assert_equal(_owner.prepared_region_observation_into(token + 1, floor_ref, out), &"SPACE_TRANSACTION_UNSEALED", "foreign token")
+	assert_equal(_owner.prepared_region_observation_into(token, Vector2i(floor_ref.x, floor_ref.y + 1), out),
+		&"SPACE_REGION_STALE", "full generation")
+	assert_equal(out.level, 773, "metadata preserved")
+	assert_equal(out.box, PackedInt32Array([1, 2, 3, 4, 5, 6]), "all refused bytes preserved")
+	out.box.resize(5)
+	assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"SPACE_REGION_OUTPUT_SHAPE", "no implicit allocation")
+	assert_true(_owner.abort(token), "expire exact observation")
+	assert_equal(_owner.prepared_region_observation_into(token, floor_ref, out), &"SPACE_TRANSACTION_UNSEALED", "aborted candidate")

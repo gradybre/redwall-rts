@@ -33,6 +33,16 @@ const VERTICES: int = 64
 const LINKS: int = 64
 
 
+class CountedSources extends Owner.CoreSources:
+	## Preserve real source semantics while counting full owner reads in observation-only loops.
+	var reads: int = 0
+
+	func read_into(ref: Vector2i, out: Owner.Facts) -> StringName:
+		"""The counter never supplies a synthetic source fact or skips a real owner check."""
+		reads += 1
+		return super.read_into(ref, out)
+
+
 class SyntheticWorld extends Routes.Bindings:
 	var routes: Routes = null
 	var locations: Locations = null
@@ -187,7 +197,7 @@ func _make_profiles() -> void:
 func _make_space(nodes: int = NODES, regions: int = 64, sources: int = 16, surveys: int = 64) -> void:
 	"""The real sparse owner and CoreSources retain this exact movement/containment reader."""
 	_routes = Routes.new(_residents, _transforms)
-	_sources = Owner.CoreSources.new(_residents.directory(), _buildings, _construction, _routes)
+	_sources = CountedSources.new(_residents.directory(), _buildings, _construction, _routes)
 	var domain: Space.Domain = Space.Domain.new()
 	assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
 		Vector3i(16, 16, 16), 64, surveys, Space.MAX_CHECKS), &"", "explicit test domain")
@@ -963,3 +973,72 @@ func test_later_segment_callback_reentry_rejects_the_whole_uncommitted_tick() ->
 	assert_equal(_routes.advance_tick(2), 1, "current complete proof retries")
 	assert_equal(_routes.read_actor_into(_worker, actor), &"", "accepted exact retry")
 	assert_equal(actor.point.x, -478, "one current34-unit tick, no failed-time bank")
+
+
+func test_prepared_metadata_batch_reads_constant_rows_between_full_preflights() -> void:
+	"""A1536-edge certificate scan cannot secretly repeat the complete source census for each observation."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	assert_equal(_routes.seal(token), &"", "exact staged graph")
+	assert_equal(_routes.prepared_refusal(token), &"", "one full initial source/claim check")
+	var out: Routes.Edge = Routes.Edge.new()
+	out.points = PackedInt32Array([4, 5, 6])
+	var counted: CountedSources = _sources as CountedSources
+	var reads: int = counted.reads
+	for index: int in 1536:
+		assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"", "fixed exact metadata")
+	assert_equal(counted.reads, reads, "no hidden source scans or provider callbacks")
+	assert_equal(out.ref, refs[2], "full span generation retained")
+	assert_equal(out.points, PackedInt32Array([4, 5, 6]), "no polyline copy or resize")
+	assert_equal(_routes.prepared_refusal(token), &"", "one full final source/claim check")
+	assert_true(counted.reads > reads, "full bracket still performs real source validation")
+	assert_true(_routes.abort(token), "discard observation candidate")
+	assert_equal(_budget.release(cold), &"", "release real lease")
+
+
+func test_prepared_metadata_observes_sealed_space_without_repeated_source_reads() -> void:
+	"""Actual future section observations use the same sealed full handles and never grant future movement."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var space_token: int = _owner.begin_stage(_owner.revision()).token
+	_region(space_token, [3000, 0, 3000, 3100, 128, 3100], Space.OBSTACLE)
+	assert_equal(_owner.seal(space_token), &"", "actual sealed changed geometry")
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold, space_token).token
+	assert_equal(_routes.stage_refresh(token, refs[2]), &"", "real future geometry revision")
+	assert_equal(_routes.seal(token), &"", "graph after exact future section proof")
+	assert_equal(_routes.prepared_refusal(token), &"", "full preflight before observation loop")
+	var counted: CountedSources = _sources as CountedSources
+	var reads: int = counted.reads
+	var out: Routes.Edge = Routes.Edge.new()
+	for index: int in 1536:
+		assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"", "future metadata")
+	assert_equal(counted.reads, reads, "staged section also copies directly")
+	assert_equal(out.geometry_revision, _owner.revision() + 1, "future revision remains explicit")
+	assert_equal(_routes.prepared_refusal(token), &"", "full final freshness proof")
+	assert_true(_owner.abort(space_token), "future geometry disappeared")
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out),
+		&"SPACE_TRANSACTION_UNSEALED", "old graph token cannot observe aborted geometry")
+	assert_true(_routes.abort(token), "discard dependent graph")
+	assert_equal(_budget.release(cold), &"", "no retained operation")
+
+
+func test_prepared_metadata_observation_requires_current_tokens_lease_and_full_ref() -> void:
+	"""A metadata read is cheap but still cannot alias another namespace or outlive its cold operation."""
+	var refs: Array[Vector2i] = _moving_actor()
+	var cold: int = _budget.acquire(COLD_BYTES)
+	var token: int = _routes.begin_prepare(cold).token
+	var out: Routes.Edge = Routes.Edge.new()
+	out.level = 913
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"ROUTE_TRANSACTION_STALE", "unsealed")
+	assert_equal(_routes.seal(token), &"", "sealed exact candidate")
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token + 1, refs[2], out), &"ROUTE_TRANSACTION_STALE", "wrong token")
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, Vector2i(refs[2].x, refs[2].y + 1), out),
+		&"ROUTE_EDGE_STALE", "full generation")
+	assert_equal(out.level, 913, "refused result untouched")
+	assert_equal(_budget.release(cold), &"", "operation loses actual lease")
+	var replacement: int = _budget.acquire(COLD_BYTES)
+	assert_equal(_routes.prepared_edge_metadata_reused_into(token, refs[2], out), &"ROUTE_TRANSACTION_STALE", "replacement lease cannot alias")
+	assert_equal(out.level, 913, "stale lease leaves metadata unchanged")
+	assert_true(_routes.abort(token), "discard original graph preparation")
+	assert_equal(_budget.release(replacement), &"", "release replacement operation")

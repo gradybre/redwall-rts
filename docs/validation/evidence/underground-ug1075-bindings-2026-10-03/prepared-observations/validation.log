@@ -1,0 +1,15 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-79mmhw5t
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 0
+CI_SUITE_TIME {"assertions":4845,"failures":0,"suite":"test_underground_space_owner.gd","tests":77,"usec":3786979}
+77 test(s), 4845 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 77 tests, 4845 assertions, 0 failures.
+test_underground_routes.gd exit 0
+CI_SUITE_TIME {"assertions":8935,"failures":0,"suite":"test_underground_routes.gd","tests":34,"usec":2377902}
+34 test(s), 8935 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 34 tests, 8935 assertions, 0 failures.
+assets restored True

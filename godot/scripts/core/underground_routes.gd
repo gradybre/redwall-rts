@@ -2381,6 +2381,31 @@ func prepared_edge_metadata_into(token: int, ref: Vector2i, out: Edge) -> String
 	return &""
 
 
+func prepared_edge_metadata_reused_into(token: int, ref: Vector2i, out: Edge) -> StringName:
+	"""Observation only: require full prepared_refusal before and after the whole fixed-metadata batch."""
+	if token <= 0 or token != _token or not _sealed or _operation_error != &"" \
+			or not _cold.covers(_cold_token, 1):
+		return &"ROUTE_TRANSACTION_STALE"
+	if not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD) or _owner.revision() != _base_geometry_revision:
+		return &"ROUTE_GEOMETRY_STALE"
+	if out == null or not _live_edge(_stage, ref):
+		return &"ROUTE_EDGE_STALE"
+	if _edge_i64(_stage, E_CONTENT_REVISION, ref.x) != _profiles.content_revision() \
+			or _edge_i64(_stage, E_GEOMETRY_REVISION, ref.x) != _target_geometry_revision:
+		return &"ROUTE_EDGE_REVISION"
+	if _space_token == 0 and _owner.has_prepared():
+		return &"ROUTE_SPACE_TRANSACTION"
+	var section: Vector2i = _edge_pair(_stage, E_SECTION_SLOT, ref.x)
+	var code: StringName = _owner.prepared_region_observation_into(_space_token, section, _section) \
+		if _space_token != 0 else _owner.region_into_reused(section, _section)
+	if code != &"":
+		return code
+	if _section.role != Space.FLOOR_DATUM:
+		return &"ROUTE_SECTION_ROLE"
+	_read_edge_metadata(_stage, ref.x, out)
+	return &""
+
+
 func refresh_occupancy() -> StringName:
 	"""Rebuild roots once after foreign pose changes; no profile image, world scan or authority mutation."""
 	if _reject_callback() or _advancing or _searching or _occupancy_reading or _token != 0:

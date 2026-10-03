@@ -165,6 +165,12 @@ class ColdCheck extends RefCounted:
 		remaining -= amount
 		return true
 
+	func release_survey_payload() -> void:
+		"""After seal, only the pinned revision is needed; drop the old image before companion copies."""
+		snapshot.live_refs = PackedInt32Array()
+		snapshot.live_revisions = PackedInt64Array()
+		snapshot.volumes = null
+
 
 class FinishPartition extends RefCounted:
 	## One synchronous cold packet; fixed scratch and two flat banks, never one object per fragment.
@@ -821,6 +827,7 @@ func _prepare(check: ColdCheck, site: Vector2i, operation: int, stage: int, room
 	code = _owner.seal(_owner_token)
 	if code != &"":
 		return _failed_prepare(code)
+	check.release_survey_payload()
 	_companion_token = _bindings.prepare_companions(_owner_token, site, operation, stage, room, check.plan.copy())
 	if _companion_token <= 0:
 		return _failed_prepare(&"SPACE_COMPANION_PREPARATION_REFUSED")

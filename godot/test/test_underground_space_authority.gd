@@ -110,6 +110,8 @@ class SyntheticBindings extends Authority.Bindings:
 	var staged_floor: Vector2i = NULL_REF
 	var staged_support: Vector2i = NULL_REF
 	var saw_sealed_candidate: bool = false
+	var saw_released_survey: bool = false
+	var after_prepare_fault: int = 0
 	var cold_denied: bool = false
 	var cold_next: int = 1
 	var cold_active: int = 0
@@ -341,14 +343,30 @@ class SyntheticBindings extends Authority.Bindings:
 	func prepare_companions(owner_token: int, site: Vector2i, _operation: int,
 			_stage: int, _room: Vector2i, _plan: Space.Plan) -> int:
 		"""No service/navigation is published here; the synthetic companion only exercises atomic scope."""
+		var observed: WeakRef = (owner as ObservedSpace).last_snapshot
+		var previous: Space.Snapshot = observed.get_ref() as Space.Snapshot if observed != null else null
+		saw_released_survey = previous != null and previous.volumes == null \
+			and previous.live_refs.is_empty() and previous.live_revisions.is_empty() \
+			and previous.revision == owner.revision()
 		var candidate: Space.Snapshot = Space.Snapshot.new()
 		saw_sealed_candidate = owner.prepared_snapshot_for_site_into(owner_token, candidate, sites, site) == &""
 		pending = not fail_preparation and saw_sealed_candidate
+		_apply_after_prepare_fault(owner_token)
 		return 1 if pending else 0
+
+	func _apply_after_prepare_fault(owner_token: int) -> void:
+		"""Mutate one actual boundary after its sealed observation, without replacing the real transaction."""
+		match after_prepare_fault:
+			1:
+				qualified_revision += 1
+			2:
+				cold_attestation = &"SYNTHETIC_COLD_REVOKED"
+			3:
+				owner.abort(owner_token)
 
 	func prepared_refusal(token: int) -> StringName:
 		"""A refused prepared companion is observable before the actual Inventory transaction."""
-		return &"" if token == 1 and pending else &"SYNTHETIC_COMPANION_STALE"
+		return &"" if token == 1 and pending and after_prepare_fault != 4 else &"SYNTHETIC_COMPANION_STALE"
 
 	func revision_after(_token: int) -> int:
 		"""The fixture installs no new qualified content during its no-op companion publication."""
@@ -642,6 +660,33 @@ func test_actual_cut_stages_floor_support_then_sealed_companions_and_rolls_back_
 	assert_true(_owner.is_live_region(_bindings.staged_support), "support published atomically")
 	assert_equal(_target_role(), Space.UNFINISHED, "cut is still unavailable for travel")
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"excavated_earth")), 2000, "one paid cube output")
+
+
+func test_released_survey_still_rechecks_every_final_candidate_boundary() -> void:
+	"""The released arrays cannot erase actual post-seal freshness or permit payment on a failed retry."""
+	_complete(Contract.OP_BRACE)
+	var job: int = _start(Contract.OP_CUT)
+	_finish_work(job)
+	var geometry: PackedByteArray = _owner.state_bytes()
+	var goods: PackedByteArray = _inventory.state_bytes()
+	var physical: PackedByteArray = _sites.state_bytes()
+	for fault: int in range(1, 5):
+		_bindings.after_prepare_fault = fault
+		_bindings.saw_released_survey = false
+		var revision: int = _bindings.qualified_revision
+		assert_false(_sites.settle_phase(_site).ok, "post-seal qualification/lease/owner/companion refuses")
+		assert_true(_bindings.saw_released_survey, "old arrays already dropped before any companion allocation")
+		assert_equal(_owner.state_bytes(), geometry, "no live geometry publication")
+		assert_equal(_inventory.state_bytes(), goods, "no output or input ownership change")
+		assert_equal(_sites.state_bytes(), physical, "actual completed work retained for retry")
+		assert_false(_owner.has_prepared(), "all staged changes discarded")
+		_bindings.qualified_revision = revision
+		_bindings.cold_attestation = &""
+		_assert_cold_released()
+	_bindings.after_prepare_fault = 0
+	assert_true(_sites.settle_phase(_site).ok, "fresh exact paid retry succeeds")
+	assert_true(_bindings.saw_released_survey, "successful path has the same bounded lifetime")
+	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"excavated_earth")), 2000, "one actual output")
 
 
 func test_physical_geometry_hook_refuses_unbound_foreign_token_and_wrong_room() -> void:

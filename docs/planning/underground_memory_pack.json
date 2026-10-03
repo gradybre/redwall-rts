@@ -756,35 +756,35 @@
         "capacity": 4,
         "bytes": 32,
         "resize_expression": "DELIVERY_CAPACITY",
-        "line": 79
+        "line": 80
       },
       "_job_generation": {
         "width": 4,
         "capacity": 8192,
         "bytes": 32768,
         "resize_expression": "JOB_CAPACITY",
-        "line": 75
+        "line": 76
       },
       "_job_slot": {
         "width": 4,
         "capacity": 8192,
         "bytes": 32768,
         "resize_expression": "JOB_CAPACITY",
-        "line": 75
+        "line": 76
       },
       "_project_generation": {
         "width": 4,
         "capacity": 8192,
         "bytes": 32768,
         "resize_expression": "JOB_CAPACITY",
-        "line": 75
+        "line": 76
       },
       "_project_slot": {
         "width": 4,
         "capacity": 8192,
         "bytes": 32768,
         "resize_expression": "JOB_CAPACITY",
-        "line": 75
+        "line": 76
       }
     },
     "inventory_spatial": {
@@ -904,6 +904,84 @@
     "borrowed_entry_bytes_per_pair": 16,
     "scope": "Exact shared cold lease only; borrowed input is owned by the caller's separately charged packet."
   },
+  "connector_recipe_reservation": {
+    "columns": {
+      "_digests": {
+        "width": 1,
+        "capacity": 96,
+        "bytes": 96,
+        "resize_expression": "96",
+        "line": 65
+      },
+      "_hash": {
+        "width": 1,
+        "capacity": 32,
+        "bytes": 32,
+        "resize_expression": "32",
+        "line": 71
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 4,
+        "bytes": 32,
+        "resize_expression": "4",
+        "line": 64
+      },
+      "_input_count": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 67
+      },
+      "_input_key": {
+        "width": 4,
+        "capacity": 1024,
+        "bytes": 4096,
+        "resize_expression": "_input_capacity",
+        "line": 68
+      },
+      "_part": {
+        "width": 4,
+        "capacity": 9,
+        "bytes": 36,
+        "resize_expression": "9",
+        "line": 72
+      },
+      "_part_id": {
+        "width": 4,
+        "capacity": 256,
+        "bytes": 1024,
+        "resize_expression": "_capacity",
+        "line": 66
+      },
+      "_quantity": {
+        "width": 8,
+        "capacity": 1024,
+        "bytes": 8192,
+        "resize_expression": "_input_capacity",
+        "line": 70
+      },
+      "_work_mwu": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "_capacity",
+        "line": 69
+      }
+    },
+    "part_capacity": 256,
+    "bank_bytes": 16512,
+    "fixed_bytes": 512,
+    "known_binding_consumers": {
+      "connector_catalog": 190448,
+      "world_routes": 163840,
+      "connector_recipes": 17024
+    },
+    "known_binding_used_bytes": 371312,
+    "remaining_binding_reserve_bytes": 152976,
+    "scope": "Known logical consumers only; actual placement, other controls and native growth still require joint admission."
+  },
   "contributions": {
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
@@ -911,7 +989,7 @@
     "space_known_numeric_controls": 686,
     "tips_live_and_cold_image_peak": 123440,
     "layout_retained_columns": 37120,
-    "shared_router_and_funding_increment": 271003,
+    "shared_router_and_funding_increment": 275099,
     "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
     "INVENTORY_EXTENSION_BYTES": 131072,
     "PROFILE_BYTES": 262144,
@@ -919,24 +997,27 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524288
   },
-  "new_mutable_and_reserved_bytes": 4962389,
+  "new_mutable_and_reserved_bytes": 4966485,
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 99955154,
-  "headroom_bytes": 44846,
+  "live_with_reserve_bytes": 99959250,
+  "headroom_bytes": 40750,
   "source_sha256": {
-    "godot/scripts/core/construction.gd": "ae8f77c76a44f3630f6ce055ae7783efc4552a6f50b810dffed1a4422860b026",
-    "godot/scripts/core/excavation_inventory.gd": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
+    "godot/scripts/core/construction.gd": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
+    "godot/scripts/core/excavation_inventory.gd": "cb8c1b528a47472080ce816815ffc68cbdb19c9b29963cd7f3da75880e5aca7f",
     "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
     "godot/scripts/core/modular_project_contract.gd": "f4209b09cc46b898dac45c51fbd7eafc4de44ca8238ec9dfdf1731afa8d4cdb5",
-    "godot/scripts/core/modular_projects.gd": "f1f30fa58cda56ec07a3245ab493f94dcd5cd885e3d4d6af7d653179710460ea",
+    "godot/scripts/core/modular_projects.gd": "1e8a418c89054b310931df2356e7785bcee86fe28dd941c504d073679a25488a",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "godot/scripts/core/underground_connector_catalog.gd": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
+    "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
     "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
-    "godot/scripts/core/underground_space_owner.gd": "aeaed08c4a834813dbbfdef4342841ef130d9d1bcda270d33eb5688f53905c44"
+    "godot/scripts/core/underground_space_owner.gd": "aeaed08c4a834813dbbfdef4342841ef130d9d1bcda270d33eb5688f53905c44",
+    "godot/scripts/core/underground_world_routes.gd": "874742a3c6daa23a97571c51a14fab4309a894dc91f15b22d4e3ad45424c138a"
   },
-  "registry_sha256": "e0f9278bec43386af0a59cd4b2a81b9143c9c907cbcf16cdd2da8975b197d17c",
+  "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",

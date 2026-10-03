@@ -588,12 +588,18 @@
           "scope": "Twelve combined strict suites after separately reviewed claims/routes integration; not full-suite replacement or playable acceptance."
         },
         "connector_recipe_in_progress": {
-          "status": "running",
+          "status": "independently reviewed and integrated component",
           "owner": "/root/ug_construction",
-          "scope": "Immutable source-bound recipe bank and narrow append-only purpose/Funding/Router plumbing; actual placement adapter awaits matching owner contract. Existing Construction, modular_projects, excavation_inventory and associated tests remain within UG07 lease.",
-          "budget_proposal": "64P+128 immutable bytes, P<=256;512 controls; Funding fourth loss domain2048 live plus each simultaneous cold image; adapter controls and native/Placement coexistence still require source census.",
-          "authoring": "Absent recipe rows refuse. No new prices or work amounts silently activated.",
-          "review": "Root found MEDIUM stale source binding after final Catalog hash callback; initial final quote-shape guard accepted. Construction reproducing late Profile/World invalidation and adding narrow pure Catalog attestation before publication. Other six plumbing sources reviewed without high/medium findings."
+          "source": "511f4052",
+          "registry": "20447ad1",
+          "integration": "9c983b19/ecdd8211",
+          "scope": "Immutable source-bound recipe reader and append-only Construction purpose8/Router/Funding plumbing. No active recipe file, placement adapter or installed-prefix permission.",
+          "tests": "126 unique affected tests /8679 assertions /0 failures; every strict/raw unexpected diagnostic and object/resource leak count0; analyzer0/10. Six unchanged plumbing suites plus final corrected Recipes20/869 and Catalog18/332.",
+          "review": "Root independently accepted ten exact final pins after five regressions reproduced stale actual Profile/World source binding following the final Catalog observer. Stateless callback-free SourceFacts and final quote-shape validation close the finding; rejected evidence retained.",
+          "evidence_path": "docs/validation/evidence/underground-ug1102-recipes-2026-10-03/",
+          "memory": "64P+128 immutable bytes, P<=256, plus512 logical frame/control bytes within existing binding reserve. Fourth Funding loss domain adds2048 live and2048 per simultaneous cold image; native/Placement coexistence remains unqualified.",
+          "authoring": "Wood-only approved per1101; complete unique assembly grouping and actual placement/frontier qualification precede active source publication.",
+          "joint_census": "Reviewed25 memory tests;190 capacity checks;129 modules644 rows990 packed fields; schema3 loss1024; logical99959250 bytes, headroom40750, runtime unqualified. joint-integration evidence retains exact commands/pins."
         },
         "timber_recipe_authoring": {
           "status": "user_approved_wood_only",
@@ -898,12 +904,13 @@
           {
             "agent": "/root/ug_construction",
             "branch": "codex/underground-connector-recipes",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_connector_catalog.gd",
               "godot/test/test_underground_connector_catalog.gd"
             ],
-            "handoff": "ug_furnishing acknowledged no edits and released both exact files on2026-10-03 for the1102 final callback-free Catalog/Profile/Level/World source attestation correction. No catalog content or motion ownership transferred."
+            "handoff": "ug_furnishing acknowledged no edits and released both exact files on2026-10-03 for the1102 final callback-free Catalog/Profile/Level/World source attestation correction. No catalog content or motion ownership transferred.",
+            "worker_stopped": "Construction explicitly acknowledged no further Catalog source/test writes and returned both files after20447ad1 on2026-10-03."
           }
         ]
       }
@@ -1249,6 +1256,13 @@
           "tests": "153 tests /15295 assertions /0 failures; strict/raw all0, analyzer0/2",
           "review": "Root independently accepted exact Owner aeaed08c and testbb9a1480; token rechecked after callbacks immediately before image allocation, prior output counted twice; no retained state added.",
           "evidence_path": "docs/validation/evidence/underground-final-facts-2026-10-03/snapshot-lease/README.md"
+        },
+        "surface_anchor_in_progress": {
+          "status": "contract accepted; implementation beginning",
+          "decision": "docs/decisions/1103-actual-surface-work-anchor.md",
+          "root": "Actual create-only Terrain/retained-matter World provider on codex/underground-surface-anchor",
+          "geometry": "Locations WorldScope and atomic companion context on codex/underground-world-locations",
+          "scope": "Existing natural surface work anchor only; no free timber/cut/Room or full entrance feasibility claim."
         }
       },
       "lease": {
@@ -1275,10 +1289,15 @@
               "godot/scripts/core/underground_work_face.gd",
               "godot/test/test_underground_work_face.gd",
               "docs/decisions/1099-source-bound-solid-work-face.md",
-              "godot/scripts/core/underground_world_routes.gd"
+              "godot/scripts/core/underground_world_routes.gd",
+              "godot/scripts/core/underground_surface_anchor.gd",
+              "godot/scripts/core/underground_surface_anchor.gd.uid",
+              "godot/test/test_underground_surface_anchor.gd",
+              "godot/test/test_underground_surface_anchor.gd.uid",
+              "docs/decisions/1103-actual-surface-work-anchor.md"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again.",
-            "branch": "codex/underground-work-face"
+            "branch": "codex/underground-surface-anchor"
           }
         ]
       }

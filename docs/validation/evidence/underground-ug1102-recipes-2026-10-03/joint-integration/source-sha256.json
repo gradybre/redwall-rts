@@ -1,0 +1,6 @@
+{
+  "tools/underground_memory_budget.py": "c0f2a83f94005d1f5a094a88d891475d17a531aa77c68baa465b0658e9c36821",
+  "tools/test_underground_memory_budget.py": "734ccde3fe59947b9b43b2d87a52e63f7899b7055849165d2c38c07a3722f862",
+  "docs/planning/canonical_state_registry.json": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
+  "godot/scripts/core/canonical_state_hash.gd": "f6b09e6e5e4ce74d3764dac0207f206cef12a440ffd0426f6fddee51deda3760"
+}

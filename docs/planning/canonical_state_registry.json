@@ -6291,7 +6291,7 @@
   {
    "section_id": 6,
    "owner_key": "excavation_inventory",
-   "owner_schema_version": 2,
+   "owner_schema_version": 3,
    "fields": [
     {
      "field_key": "_capacity",
@@ -6540,7 +6540,7 @@
      "source_module": "excavation_inventory",
      "source_member": "_lost_milli",
      "shape": {
-      "declared_capacity": "`LOSS_CELL_CAPACITY` = 768",
+      "declared_capacity": "`LOSS_CELL_CAPACITY` = 1024",
       "order": "purpose_domain_then_ascending_item_id"
      },
      "ordinal": 17,
@@ -11989,7 +11989,7 @@
   },
   "C180": {
    "unused": "Zero loss for untouched compiled item.",
-   "notes": "Decisions1073/1072. Three protected cancellation-loss domains (excavation, modular furniture, spoil tip), each256 compiled item totals. Preserve exact purpose attribution and aggregate checked nonnegative conservation; schema2 retains the existing field ordinal and widens its shape."
+   "notes": "Decisions1073/1072/1102. Four protected cancellation-loss domains (excavation, modular furniture, spoil tip, connector installation), each256 compiled item totals. Preserve exact purpose attribution and aggregate checked nonnegative conservation; schema3 retains the existing field ordinal and widens its shape. No composed codec or migration is yet implemented."
   },
   "C181": {
    "unused": "Absent physical rows: key/identity slots/operation/promotion tile -1; generations/quantities/flags0; phase and closure_before SOLID(7).",

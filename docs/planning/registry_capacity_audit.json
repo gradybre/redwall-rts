@@ -4,7 +4,7 @@
   "audit_schema_version": 2,
   "audited_registry": {
     "path": "docs/planning/canonical_state_registry.json",
-    "registry_canonical_json_sha256": "eeaffd6a32f91477f7194498dd7faed0a70276b2e026575a32188f065d866b2a",
+    "registry_canonical_json_sha256": "4ad3ce3740d733432de6bd987087cae1634397041aaf847d2743a22325ca7354",
     "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-03-UG4",
     "registry_version": 11
   },
@@ -12,9 +12,9 @@
     "module_sha256": {
       "buildings": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
       "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
-      "construction": "ae8f77c76a44f3630f6ce055ae7783efc4552a6f50b810dffed1a4422860b026",
+      "construction": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
-      "excavation_inventory": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
+      "excavation_inventory": "cb8c1b528a47472080ce816815ffc68cbdb19c9b29963cd7f3da75880e5aca7f",
       "excavation_sites": "e7b78cca952a5a87cc7715d86a44dca01e9a6a9b98e642a03cd80130167f6712",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
       "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
@@ -25,7 +25,7 @@
       "inventory": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
       "jobs": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
-      "modular_projects": "f1f30fa58cda56ec07a3245ab493f94dcd5cd885e3d4d6af7d653179710460ea",
+      "modular_projects": "1e8a418c89054b310931df2356e7785bcee86fe28dd941c504d073679a25488a",
       "movement": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
       "navigation": "ae078227fb79879b3357e1ba174c58f1b209ac346a9b6cc6ded70e1080cd7255",
       "needs": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190",
@@ -3335,7 +3335,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 452,
+      "source_resize_line": 453,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3358,7 +3358,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 445,
+      "source_resize_line": 446,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3381,7 +3381,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 446,
+      "source_resize_line": 447,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3404,7 +3404,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 447,
+      "source_resize_line": 448,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3427,7 +3427,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 448,
+      "source_resize_line": 449,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3450,7 +3450,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 449,
+      "source_resize_line": 450,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3473,7 +3473,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 450,
+      "source_resize_line": 451,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3496,7 +3496,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 451,
+      "source_resize_line": 452,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3519,7 +3519,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 453,
+      "source_resize_line": 454,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3542,7 +3542,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 454,
+      "source_resize_line": 455,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3565,7 +3565,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 455,
+      "source_resize_line": 456,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3588,7 +3588,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 456,
+      "source_resize_line": 457,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3611,7 +3611,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 457,
+      "source_resize_line": 458,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3634,7 +3634,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 458,
+      "source_resize_line": 459,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3657,7 +3657,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 459,
+      "source_resize_line": 460,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -3680,7 +3680,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "CONSTRUCTION_CAPACITY",
-      "source_resize_line": 460,
+      "source_resize_line": 461,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -9955,7 +9955,7 @@
       "source_module": "construction",
       "source_relation": "eq",
       "source_resize_expression": "DELIVERED_CELLS",
-      "source_resize_line": 461,
+      "source_resize_line": 462,
       "source_value": 331776,
       "status": "proved_equality"
     },
@@ -10429,7 +10429,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 142,
+      "source_resize_line": 144,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -10452,7 +10452,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 142,
+      "source_resize_line": 144,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -10475,7 +10475,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 142,
+      "source_resize_line": 144,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -10498,7 +10498,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 142,
+      "source_resize_line": 144,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -10521,7 +10521,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 142,
+      "source_resize_line": 144,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -10544,7 +10544,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "eq",
       "source_resize_expression": "Construction.CONSTRUCTION_CAPACITY",
-      "source_resize_line": 148,
+      "source_resize_line": 150,
       "source_value": 82944,
       "status": "proved_equality"
     },
@@ -10569,7 +10569,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 153,
+      "source_resize_line": 155,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10594,7 +10594,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 153,
+      "source_resize_line": 155,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10619,7 +10619,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 153,
+      "source_resize_line": 155,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10644,7 +10644,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 153,
+      "source_resize_line": 155,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10669,7 +10669,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 153,
+      "source_resize_line": 155,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10694,7 +10694,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 156,
+      "source_resize_line": 158,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10719,7 +10719,7 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 156,
+      "source_resize_line": 158,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
@@ -10744,24 +10744,24 @@
       "source_module": "excavation_inventory",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 156,
+      "source_resize_line": 158,
       "source_value": 32768,
       "status": "proved_upper_bound"
     },
     {
-      "declared_capacity_prose": "`LOSS_CELL_CAPACITY` = 768",
+      "declared_capacity_prose": "`LOSS_CELL_CAPACITY` = 1024",
       "field_key": "_lost_milli",
       "ordinal": 17,
       "owner_key": "excavation_inventory",
       "parsed_expression": "LOSS_CELL_CAPACITY",
       "proof_chain": [
-        "LOSS_DOMAIN_COUNT -> godot/scripts/core/excavation_inventory.gd:18 `const LOSS_DOMAIN_COUNT = 3` = 3",
+        "LOSS_DOMAIN_COUNT -> godot/scripts/core/excavation_inventory.gd:18 `const LOSS_DOMAIN_COUNT = 4` = 4",
         "Inventory.ITEM_CAPACITY -> godot/scripts/core/inventory.gd:219 `const ITEM_CAPACITY = 256` = 256",
-        "LOSS_CELL_CAPACITY -> godot/scripts/core/excavation_inventory.gd:19 `const LOSS_CELL_CAPACITY = LOSS_DOMAIN_COUNT * Inventory.ITEM_CAPACITY` = 768"
+        "LOSS_CELL_CAPACITY -> godot/scripts/core/excavation_inventory.gd:19 `const LOSS_CELL_CAPACITY = LOSS_DOMAIN_COUNT * Inventory.ITEM_CAPACITY` = 1024"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
-      "prose_value": 768,
+      "prose_value": 1024,
       "quarantine_reason": "",
       "section_id": 6,
       "source_file": "godot/scripts/core/excavation_inventory.gd",
@@ -10770,7 +10770,7 @@
       "source_relation": "eq",
       "source_resize_expression": "LOSS_CELL_CAPACITY",
       "source_resize_line": 79,
-      "source_value": 768,
+      "source_value": 1024,
       "status": "proved_equality"
     },
     {
@@ -11275,7 +11275,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 75,
+      "source_resize_line": 76,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11299,7 +11299,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 75,
+      "source_resize_line": 76,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11323,7 +11323,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 75,
+      "source_resize_line": 76,
       "source_value": 8192,
       "status": "proved_equality"
     },
@@ -11347,7 +11347,7 @@
       "source_module": "modular_projects",
       "source_relation": "eq",
       "source_resize_expression": "JOB_CAPACITY",
-      "source_resize_line": 75,
+      "source_resize_line": 76,
       "source_value": 8192,
       "status": "proved_equality"
     },

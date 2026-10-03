@@ -67,7 +67,33 @@ class JointPackTests(unittest.TestCase):
         self.refuses("inventory", source, source + "\nvar _spatial_extra: PackedInt32Array = PackedInt32Array()\n")
 
     def test_negative_loss_domain_count(self) -> None:
-        self.refuses("excavation_inventory", "LOSS_DOMAIN_COUNT: int = 3", "LOSS_DOMAIN_COUNT: int = 4")
+        self.refuses("excavation_inventory", "LOSS_DOMAIN_COUNT: int = 4", "LOSS_DOMAIN_COUNT: int = 5")
+
+    def test_negative_unaccounted_recipe_column(self) -> None:
+        source = self.index["underground_connector_recipes"].text
+        self.refuses("underground_connector_recipes", source,
+                     source + "\nvar _extra: PackedInt32Array = PackedInt32Array()\n")
+
+    def test_negative_recipe_quantity_width(self) -> None:
+        self.refuses("underground_connector_recipes", "_quantity: PackedInt64Array", "_quantity: PackedInt32Array")
+
+    def test_negative_recipe_hash_scratch_growth(self) -> None:
+        self.refuses("underground_connector_recipes", "_hash.resize(32)", "_hash.resize(64)")
+
+    def test_negative_recipe_fixed_frame_shortfall(self) -> None:
+        self.refuses("underground_connector_recipes", "FIXED_BYTES: int = 512", "FIXED_BYTES: int = 256")
+
+    def test_negative_binding_reserve_cannot_omit_existing_consumers(self) -> None:
+        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
+                     "BINDINGS_AND_GROWTH_BYTES: int = 371311")
+
+    def test_negative_route_leading_multiplier_preserves_precedence(self) -> None:
+        self.refuses("underground_world_routes", "2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)",
+                     "2 * 2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)")
+
+    def test_negative_route_trailing_multiplier_preserves_precedence(self) -> None:
+        self.refuses("underground_world_routes", "2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)",
+                     "2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16) * 2")
 
     def test_negative_joint_limit_even_when_individual_formulas_agree(self) -> None:
         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
@@ -87,11 +113,16 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4962389)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966485)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99955154)
-        self.assertEqual(result["headroom_bytes"], 44846)
+        self.assertEqual(result["live_with_reserve_bytes"], 99959250)
+        self.assertEqual(result["headroom_bytes"], 40750)
         self.assertFalse(result["runtime_qualified"])
+        recipes = result["connector_recipe_reservation"]
+        self.assertEqual(budget.payload(recipes["columns"]), 16580)
+        self.assertEqual(recipes["bank_bytes"], 16512)
+        self.assertEqual(recipes["known_binding_used_bytes"], 371312)
+        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 152976)
         self.assertEqual(budget.payload(result["quote"]["columns"]), 112)
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)
         self.assertEqual(result["furniture_bridge_cold"]["private_bytes_per_pair"], 60)

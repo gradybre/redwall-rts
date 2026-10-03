@@ -192,3 +192,40 @@ checks are recipes20/869 and Catalog18/332, all strict/raw
 diagnostics/leaks/failures0. Root independently accepted the exact corrected
 ten-source packet after reading the complete narrow delta and tests; analyzer
 reports0 warnings in0 of10 files.
+
+
+## Joint integration census and canonical shape
+
+The integrated source census charges the fourth loss domain twice:2048 live
+bytes and2048 for the simultaneous cold image. The new/reserved increment is
+4966485 bytes; declarations23573 bytes; the unchanged aggregate logical pack
+is99959250 bytes with40750 bytes remaining below100000000. This remains
+source arithmetic, not native RAM or256-resident runtime qualification.
+
+The immutable recipe bank16512 plus its512 fixed allowance is counted within
+the existing524288 binding reserve, not charged twice. Known consumers are
+Catalog190448, WorldRoutes163840 and Recipes17024, total371312, leaving152976
+for other bindings, Placement and native/control growth. That remainder is not
+permission to allocate each new subsystem independently. All nine actual
+recipe packed columns and their68-byte scratch are independently enumerated.
+
+Canonical excavation_inventory field17 now declares1024 entries and four
+ordered domains. Existing offsets0,256,512 remain; connector installation
+starts at768. The owner schema changes2→3 and the generated declaration table
+follows. An old768-entry state is not complete current state. No composed
+codec/migration is claimed. The integration audit caught and corrected the
+stale768 declaration before checkpoint acceptance.
+
+Independent construction review found a MEDIUM census-parser defect: replacing
+a matching product subexpression without preserving surrounding multiplication
+could undercount a changed route reserve. The final tool expands only the
+complete exact authored constant declaration; leading and trailing multiplier
+mutations both refuse. Review accepted tool SHA256
+`c0f2a83f94005d1f5a094a88d891475d17a531aa77c68baa465b0658e9c36821`
+and test `734ccde3fe59947b9b43b2d87a52e63f7899b7055849165d2c38c07a3722f862`.
+All25 memory regressions pass. Capacity audit190 checks passes with501 equalities
+and86 upper bounds; registry coverage129 modules644 rows990 packed columns;
+save handoff31 fixtures and61 owners756 canonical records pass. Nine metadata
+checks and exact pins are retained in the joint-integration evidence subdirectory.
+Two initial wrong-path command launches are retained as invocation errors and
+replaced by successful invocations of the actual docs/validation tools.

@@ -99,6 +99,46 @@ def quote_payload(index: dict) -> dict:
             "consumers": sorted(consumers)}
 
 
+def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
+    """Count the exact immutable recipe bank inside, not in addition to, the shared binding reserve."""
+    # The shared audit parser intentionally keeps inline comments. Strip comments
+    # only from integer arithmetic declarations in these two local read views;
+    # original source hashes remain in the returned whole-pack provenance.
+    index = dict(index)
+    for name in ("underground_connector_catalog", "underground_world_routes"):
+        source = index[name]
+        clean = re.sub(r"(?m)^(const [A-Z][A-Z0-9_]*: int = [A-Z0-9_ .+*()-]+?)[ \t]+#.*$",
+                       r"\1", source.text)
+        # Expand this exact authored product into the audit's sums-of-products
+        # grammar; other parentheses/operators continue to fail closed.
+        if name == "underground_world_routes":
+            clean = re.sub(
+                r"(?m)^const CERTIFICATE_BYTES: int = 2 \* EDGE_CAPACITY \* \(MASK_BYTES \+ 4 \+ 16\)$",
+                "const CERTIFICATE_BYTES: int = 2 * EDGE_CAPACITY * MASK_BYTES + 2 * EDGE_CAPACITY * 4 + 2 * EDGE_CAPACITY * 16",
+                clean)
+        index[name] = audit.parse_module(name, source.relative_path, clean)
+    module = "underground_connector_recipes"
+    capacity = resolve(index, module, "MAX_PARTS")
+    inputs = capacity * resolve(index, "modular_project_contract", "INPUT_CAPACITY")
+    rows = columns(index, module, 9, {"_capacity": capacity, "_input_capacity": inputs})
+    bank = resolve(index, module, "PART_BYTES") * capacity + resolve(index, module, "BANK_HEADER_BYTES")
+    fixed = resolve(index, module, "FIXED_BYTES")
+    assert payload(rows) == bank + 68, "recipe bank or fixed packed scratch drift"
+    assert bank == 64 * capacity + 128 and fixed == 512, "recipe frame/storage contract drift"
+    consumers = {
+        "connector_catalog": resolve(index, "underground_connector_catalog", "RESERVED_BYTES"),
+        "world_routes": resolve(index, "underground_world_routes", "RESERVED_BYTES"),
+        "connector_recipes": bank + fixed,
+    }
+    used = sum(consumers.values())
+    assert used <= binding_reserve, "known binding consumers exceed their shared reserve"
+    return {"columns": rows, "part_capacity": capacity, "bank_bytes": bank,
+            "fixed_bytes": fixed, "known_binding_consumers": consumers,
+            "known_binding_used_bytes": used,
+            "remaining_binding_reserve_bytes": binding_reserve - used,
+            "scope": "Known logical consumers only; actual placement, other controls and native growth still require joint admission."}
+
+
 def build(index: dict | None = None) -> dict:
     index = audit.load_source_index() if index is None else index
     budget = index["underground_budget"]
@@ -136,11 +176,12 @@ def build(index: dict | None = None) -> dict:
     assert "return 120 * volume_limit + 32 * source_capacity + COLD_BOX_SCRATCH_BYTES" in index["underground_space_authority"].text
     assert resolve(index, budget.name, "COLD_BYTES") == 120 * k + 32 * o + 384
     loss = columns(index, "excavation_inventory", 1, {}, {"_lost_milli"})
-    assert payload(loss) == 768 * 8
+    assert payload(loss) == 1024 * 8 # Decision1102: four historical purpose domains.
     quote = quote_payload(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
+    recipes = connector_recipe_reservation(index, reserves["BINDINGS_AND_GROWTH_BYTES"])
     assert 56 * endpoints <= reserves["INVENTORY_EXTENSION_BYTES"], "endpoint live/raw/conversion exceeds reserve"
     assert 228 * locations + 256 + 106 * locations + 128 <= reserves["LOCATION_AND_TOPOLOGY_BYTES"]
     contributions = {
@@ -155,7 +196,7 @@ def build(index: dict | None = None) -> dict:
             + 2 * 131072 + 32 + 67 + 16,
         **reserves,
     }
-    assert contributions["shared_router_and_funding_increment"] == 271003
+    assert contributions["shared_router_and_funding_increment"] == 275099
     registry = json.loads((ROOT / "docs/planning/canonical_state_registry.json").read_text())
     owners = registry["owners"]
     fields = [field for owner in owners for field in owner["fields"]]
@@ -165,10 +206,11 @@ def build(index: dict | None = None) -> dict:
     total = 86601769 + added + declaration - 21185 + 8388608
     assert total < 100000000, ("joint pack exceeds unchanged memory limit", total)
     sources = set(groups) - {"inventory_spatial"}
-    sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget"))
+    sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget",
+                    "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
-            "furniture_bridge_cold": bridge,
+            "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

@@ -15,7 +15,7 @@
       "construction": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
-      "excavation_sites": "e7b78cca952a5a87cc7715d86a44dca01e9a6a9b98e642a03cd80130167f6712",
+      "excavation_sites": "813958c19a17f15396cb46e68a6af099a561bb3078cf174f8e7ffe31df10fc37",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
       "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
       "fishing": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
@@ -10780,8 +10780,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10793,7 +10793,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 316,
+      "source_resize_line": 391,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10804,8 +10804,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10817,7 +10817,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 297,
+      "source_resize_line": 372,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10828,8 +10828,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10841,7 +10841,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 297,
+      "source_resize_line": 372,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10852,8 +10852,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10865,7 +10865,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 297,
+      "source_resize_line": 372,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10876,8 +10876,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10889,7 +10889,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 297,
+      "source_resize_line": 372,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10900,8 +10900,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10913,7 +10913,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 297,
+      "source_resize_line": 372,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10924,8 +10924,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10937,7 +10937,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 308,
+      "source_resize_line": 383,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10948,10 +10948,10 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_earned_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
         "Contract.OP_COUNT -> godot/scripts/core/excavation_contract.gd:93 `const OP_COUNT = 5` = 5",
-        "MAX_EARNED_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_EARNED_CAPACITY = MAX_SITE_CAPACITY * Contract.OP_COUNT` = 369545",
-        "_earned_capacity -> godot/scripts/core/excavation_sites.gd:209 `clampi(earned_request, 0, MAX_EARNED_CAPACITY)` max = 369545"
+        "MAX_EARNED_CAPACITY -> godot/scripts/core/excavation_sites.gd:33 `const MAX_EARNED_CAPACITY = MAX_SITE_CAPACITY * Contract.OP_COUNT` = 369545",
+        "_earned_capacity -> godot/scripts/core/excavation_sites.gd:284 `clampi(earned_request, 0, MAX_EARNED_CAPACITY)` max = 369545"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10963,7 +10963,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_earned_capacity",
-      "source_resize_line": 309,
+      "source_resize_line": 384,
       "source_value": 369545,
       "status": "proved_upper_bound"
     },
@@ -10974,8 +10974,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -10987,7 +10987,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -10998,8 +10998,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11011,7 +11011,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11022,8 +11022,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11035,7 +11035,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11046,8 +11046,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11059,7 +11059,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11070,8 +11070,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11083,7 +11083,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11094,8 +11094,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11107,7 +11107,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11118,8 +11118,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11131,7 +11131,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11142,8 +11142,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11155,7 +11155,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11166,8 +11166,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11179,7 +11179,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11190,8 +11190,8 @@
       "owner_key": "excavation_sites",
       "parsed_expression": "_capacity",
       "proof_chain": [
-        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:31 `const MAX_SITE_CAPACITY = 73909` = 73909",
-        "_capacity -> godot/scripts/core/excavation_sites.gd:207 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
+        "MAX_SITE_CAPACITY -> godot/scripts/core/excavation_sites.gd:32 `const MAX_SITE_CAPACITY = 73909` = 73909",
+        "_capacity -> godot/scripts/core/excavation_sites.gd:282 `clampi(physical_site_capacity, 0, MAX_SITE_CAPACITY)` max = 73909"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11203,7 +11203,7 @@
       "source_module": "excavation_sites",
       "source_relation": "lte",
       "source_resize_expression": "_capacity",
-      "source_resize_line": 299,
+      "source_resize_line": 374,
       "source_value": 73909,
       "status": "proved_upper_bound"
     },
@@ -11227,7 +11227,7 @@
       "source_module": "excavation_sites",
       "source_relation": "eq",
       "source_resize_expression": "Work.RESIDENT_CAPACITY",
-      "source_resize_line": 312,
+      "source_resize_line": 387,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -11251,7 +11251,7 @@
       "source_module": "excavation_sites",
       "source_relation": "eq",
       "source_resize_expression": "Work.RESIDENT_CAPACITY",
-      "source_resize_line": 314,
+      "source_resize_line": 389,
       "source_value": 512,
       "status": "proved_equality"
     },

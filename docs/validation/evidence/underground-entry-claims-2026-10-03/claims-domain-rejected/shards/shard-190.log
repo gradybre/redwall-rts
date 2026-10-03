@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_excavation_entry_claim_batch.gd
+  PASS  test_entry_union_reserves_actual_unique_corridor_cuts_without_goods_or_void
+  PASS  test_prepared_or_already_published_entry_batch_cannot_publish_again
+  PASS  test_entry_claims_require_permanent_corridor_purpose
+  PASS  test_every_late_entry_request_or_candidate_change_refuses_all_writes
+  PASS  test_late_external_history_survives_refusal_without_partial_entry_claims
+  PASS  test_same_sized_replacement_lease_refuses_before_allocation_and_at_final_guard
+  PASS  test_foreign_actual_arena_with_coincident_token_refuses_before_private_copy
+  PASS  test_scope_callback_shape_mutation_and_shifted_domain_refuse_before_copy
+  PASS  test_retained_history_and_capacity_cannot_partly_reserve_entry
+  PASS  test_sorted_merge_preserves_full_existing_site_references_and_gaps
+  PASS  test_entry_image_coexistence_has_explicit_bounded_admission
+  FAIL  test_only_the_attested_domain_snapshot_can_choose_entry_physical_keys
+        no second caller Domain observer before cursor allocation (expected 1, got 2)
+        exactly one actual datum-relative physical key (expected 1, got 2)
+        unintended neighboring key remains virgin (expected (-1, 0), got (0, 1))
+  FAIL  test_only_the_attested_domain_snapshot_can_choose_flat_room_physical_keys
+        no second caller Domain observation on flat path (expected 1, got 2)
+        one intended physical key (expected 1, got 2)
+        no neighboring phantom flat claim (expected (-1, 0), got (0, 1))
+  FAIL  test_second_domain_lease_observer_cannot_run_between_private_and_interval_copies
+        original attested scope completes without a second observer (expected true, got false)
+        only initial caller observation (expected 1, got 2)
+        no replacement lease minted (expected 0, got 2)
+  PASS  test_first_domain_namespace_or_lease_mutation_refuses_before_private_copy
+CI_SUITE_TIME {"assertions":501,"failures":3,"suite":"test_excavation_entry_claim_batch.gd","tests":15,"usec":2058424}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+15 test(s), 501 assertion(s), 3 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

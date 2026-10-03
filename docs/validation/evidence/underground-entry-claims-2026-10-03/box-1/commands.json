@@ -1,0 +1,49 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.027,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "219/361",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/box-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 2.821,
+      "log": "strict.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6291",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-claims-2026-10-03/box-1/analyzer.json",
+        "godot/scripts/core/underground_entry_cut_map.gd",
+        "godot/test/test_underground_entry_cut_map.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 9.883,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

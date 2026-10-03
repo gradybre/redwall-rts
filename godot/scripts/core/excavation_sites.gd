@@ -20,6 +20,7 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const RoomSpace := preload("res://scripts/core/room_space.gd")
 const CutMap := preload("res://scripts/core/underground_room_cut_map.gd")
+const EntryCutMap := preload("res://scripts/core/underground_entry_cut_map.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const NO_ROW: int = -1
 const SITE_GENERATION: int = 1
@@ -66,15 +67,25 @@ class RoomClaimInput extends RefCounted:
 	var height_u: int = 0
 	var cells: PackedInt32Array = PackedInt32Array()
 
+class EntryClaimInput extends RefCounted:
+	## Distinct non-flat input; purpose is always Corridor, never a mutable caller-selected type.
+	var world: Vector2i = NULL_REF
+	var base_level: int = -1
+	var space_revision: int = 0
+	var boxes: PackedInt32Array = PackedInt32Array()
+
 class RoomClaimBatch extends RefCounted:
 	## Synchronous cold observation only. No Site, Room, paid work or reservation exists before publish.
 	var _owner: WeakRef = null
 	var _authority: WeakRef = null
 	var _budget: Budget = null
 	var _input: RoomClaimInput = null
+	var _entry_input: EntryClaimInput = null
 	var _candidate: Directory.CreateCandidate = null
 	var _cursor: CutMap = null
+	var _entry_cursor: EntryCutMap = null
 	var _cells: PackedInt32Array = PackedInt32Array()
+	var _boxes: PackedInt32Array = PackedInt32Array()
 	var _room_facts: PackedInt32Array = PackedInt32Array()
 	var _world: Vector2i = NULL_REF
 	var _room_type: int = -1
@@ -115,20 +126,50 @@ class RoomClaimBatch extends RefCounted:
 
 	func _unchanged() -> bool:
 		"""Every exposed scalar/tuple and cell must still match its independently retained observation."""
+		if _entry_input != null:
+			return _input == null and _entry_unchanged()
 		return _input != null and _candidate != null and _input.world == _world \
 			and _input.room_type == _room_type and _input.level == _level and _input.space_revision == _space_revision \
 			and _input.origin_u == _origin and _input.cell_size_u == _pitch and _input.height_u == _height \
 			and _input.cells == _cells and _candidate.ref == _room and _candidate.kind == _kind \
 			and _candidate.typed_row == _typed_row and _candidate.persistent_id == _persistent_id
 
+	func _copy_entry_input(request: EntryClaimInput, candidate: Directory.CreateCandidate) -> void:
+		"""The extra24B private box image is admitted with every enclosing retained image before this copy."""
+		_entry_input = request
+		_candidate = candidate
+		_world = request.world
+		_room_type = Buildings.ROOM_TYPE_CORRIDOR
+		_level = request.base_level
+		_space_revision = request.space_revision
+		_boxes = request.boxes.duplicate()
+		_room = candidate.ref
+		_kind = candidate.kind
+		_typed_row = candidate.typed_row
+		_persistent_id = candidate.persistent_id
+		_room_facts.resize(Buildings.ROOM_IDENTITY_FIELDS)
+
+	func _entry_unchanged() -> bool:
+		"""Both mutable request fields and future identity stay pinned through every external observation."""
+		return _entry_input != null and _candidate != null and _entry_input.world == _world \
+			and _room_type == Buildings.ROOM_TYPE_CORRIDOR and _entry_input.base_level == _level \
+			and _entry_input.space_revision == _space_revision and _entry_input.boxes == _boxes \
+			and _candidate.ref == _room and _candidate.kind == _kind \
+			and _candidate.typed_row == _typed_row and _candidate.persistent_id == _persistent_id
+
 	func _drop_scratch() -> void:
 		"""Drop the private image and borrowed handles before the coordinator releases its exact cold token."""
 		if _cursor != null:
 			_cursor.clear()
+		if _entry_cursor != null:
+			_entry_cursor.clear()
 		_cursor = null
+		_entry_cursor = null
 		_cells = PackedInt32Array()
+		_boxes = PackedInt32Array()
 		_room_facts = PackedInt32Array()
 		_input = null
+		_entry_input = null
 		_candidate = null
 		_budget = null
 
@@ -139,6 +180,40 @@ class RoomClaimBatch extends RefCounted:
 	func matches_input(request: RoomClaimInput, candidate: Directory.CreateCandidate) -> bool:
 		"""Compare exact borrowed objects without lending private arrays or granting publication."""
 		return request != null and request == _input and candidate != null and candidate == _candidate
+
+	func matches_entry_input(request: EntryClaimInput, candidate: Directory.CreateCandidate) -> bool:
+		"""Borrowed entry identity is separate from the unchanged ordinary flat-room input contract."""
+		return request != null and request == _entry_input and candidate != null and candidate == _candidate
+
+	static func advance_cursor(batch: RoomClaimBatch) -> bool:
+		"""Concrete internally created cursor dispatch; no caller-supplied replay interface is accepted."""
+		return batch._entry_cursor.advance() if batch._entry_cursor != null else batch._cursor.advance()
+
+	static func cursor_key(batch: RoomClaimBatch) -> int:
+		"""Both concrete derived streams use the existing exact physical Sites key rank."""
+		return batch._entry_cursor.current_key() if batch._entry_cursor != null else batch._cursor.current_key()
+
+	static func cursor_error(batch: RoomClaimBatch) -> StringName:
+		"""Ambiguous or absent internal cursor selection cannot become successful empty output."""
+		if batch._entry_cursor != null:
+			return batch._entry_cursor.refusal() if batch._cursor == null else REFUSE_CLAIM_BATCH
+		return batch._cursor.refusal() if batch._cursor != null else REFUSE_CLAIM_BATCH
+
+	static func cursor_count(batch: RoomClaimBatch) -> int:
+		"""A partial emission count remains diagnostic until the complete cursor proof succeeds."""
+		return batch._entry_cursor.emitted_count() if batch._entry_cursor != null else batch._cursor.emitted_count()
+
+	static func cursor_remaining(batch: RoomClaimBatch) -> int:
+		"""Caller observations and replay share only the original finite work envelope."""
+		return batch._entry_cursor.remaining_checks() if batch._entry_cursor != null else batch._cursor.remaining_checks()
+
+	static func cursor_charge(batch: RoomClaimBatch, checks: int) -> StringName:
+		"""Debit actual history observations and sorted merge work before the final publication proof."""
+		return batch._entry_cursor.charge_checks(checks) if batch._entry_cursor != null else batch._cursor.charge_checks(checks)
+
+	static func cursor_rewind(batch: RoomClaimBatch, checks: int) -> StringName:
+		"""Only a completed concrete stream can reserve its already-admitted no-allocation replay."""
+		return batch._entry_cursor.rewind_prepaid(checks) if batch._entry_cursor != null else batch._cursor.rewind_prepaid(checks)
 
 var _construction: Construction = null
 var _inventory: Inventory = null
@@ -355,6 +430,11 @@ static func room_claim_cold_bytes(cell_count: int) -> int:
 	return 40 * cell_count + 2048 if cell_count > 0 and cell_count <= RoomSpace.MAX_CELLS else 0
 
 
+static func entry_claim_cold_bytes(box_count: int) -> int:
+	"""Four24B protected box images plus8B intervals; prior companion surveys must already be dropped."""
+	return 104 * box_count + 2048 if box_count > 0 and box_count <= RoomSpace.MAX_REGIONS else 0
+
+
 func prepare_room_claim_batch_into(request: RoomClaimInput, candidate: Directory.CreateCandidate,
 		authority: Buildings.SpatialAuthority, domain: RoomSpace.Domain, budget: Budget,
 		cold_token: int, out: RoomClaimBatch) -> StringName:
@@ -368,9 +448,45 @@ func prepare_room_claim_batch_into(request: RoomClaimInput, candidate: Directory
 		return REFUSE_DOMAIN
 	if not _claim_input_bounded(request) or _current_claim_batch() != null or out._phase != 0:
 		return REFUSE_CLAIM_BATCH
+	var pinned_domain: RoomSpace.Domain = _claim_domain_copy(descriptor, request.world)
+	if pinned_domain == null:
+		return REFUSE_DOMAIN
 	_pin_claim_batch(request, candidate, authority, budget, cold_token, descriptor, out)
-	code = _prepare_claim_cursor(out, domain, descriptor.max_checks)
-	if code == CutMap.REFUSE_CAPACITY:
+	return _finish_claim_preparation(out, pinned_domain, descriptor.max_checks)
+
+
+func prepare_entry_claim_batch_into(request: EntryClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, domain: RoomSpace.Domain, budget: Budget,
+		cold_token: int, out: RoomClaimBatch) -> StringName:
+	"""Reserve a distinct non-flat Corridor union using actual Sites history, never a second cut ledger."""
+	var code: StringName = _entry_prepare_refusal(request, candidate, authority, budget, cold_token, out)
+	if code != &"" or domain == null:
+		return code if code != &"" else REFUSE_DOMAIN
+	var descriptor: Dictionary = domain.descriptor()
+	if not domain_matches(request.world, descriptor.datum_u, descriptor.min_quantum, descriptor.size_quanta) \
+			or descriptor.world_ref != request.world or not budget.covers(cold_token, Budget.COLD_BYTES):
+		return REFUSE_DOMAIN
+	if not _entry_input_bounded(request) or _current_claim_batch() != null or out._phase != 0:
+		return REFUSE_CLAIM_BATCH
+	var pinned_domain: RoomSpace.Domain = _claim_domain_copy(descriptor, request.world)
+	if pinned_domain == null:
+		return REFUSE_DOMAIN
+	_pin_entry_claim_batch(request, candidate, authority, budget, cold_token, descriptor, out)
+	return _finish_claim_preparation(out, pinned_domain, descriptor.max_checks)
+
+
+static func _claim_domain_copy(facts: Dictionary, world: Vector2i) -> RoomSpace.Domain:
+	"""After the actual lease/namespace check, pin one private concrete Domain; never reobserve caller code."""
+	var pinned: RoomSpace.Domain = RoomSpace.Domain.new()
+	var code: StringName = pinned.configure(world, facts.datum_u, facts.min_quantum, facts.size_quanta,
+		facts.max_cells, facts.max_regions, facts.max_checks)
+	return pinned if code == &"" else null
+
+
+func _finish_claim_preparation(out: RoomClaimBatch, domain: RoomSpace.Domain, checks: int) -> StringName:
+	"""Share actual virgin-history preflight and final original-token guard for both concrete input forms."""
+	var code: StringName = _prepare_claim_cursor(out, domain, checks)
+	if code == CutMap.REFUSE_CAPACITY or code == EntryCutMap.REFUSE_CAPACITY:
 		code = REFUSE_SITE_CAPACITY
 	if code != &"":
 		out._drop_scratch()
@@ -382,6 +498,33 @@ func prepare_room_claim_batch_into(request: RoomClaimInput, candidate: Directory
 	if code != &"":
 		discard_room_claim_batch(out)
 	return code
+
+
+func _entry_prepare_refusal(request: EntryClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int, out: RoomClaimBatch) -> StringName:
+	"""The exact actual Room authority and original full lease precede every private entry image."""
+	if remaining_history_capacity() < 0 or not _entry_input_bounded(request) or candidate == null or out == null \
+			or out._phase != 0 or _current_claim_batch() != null or budget == null \
+			or not budget.covers(token, Budget.COLD_BYTES) or authority == null \
+			or authority != _construction.buildings().spatial_authority() or request.world != _domain.world_ref \
+			or candidate.kind != Directory.KIND_ROOM:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _construction.directory().candidate_refusal(candidate)
+	if code == &"":
+		code = authority.room_claim_scope_refusal(candidate, Buildings.ROOM_TYPE_CORRIDOR, budget, token)
+	if code != &"":
+		return code
+	return &"" if budget.covers(token, Budget.COLD_BYTES) and remaining_history_capacity() >= 0 \
+		and authority == _construction.buildings().spatial_authority() else REFUSE_CLAIM_BATCH
+
+
+func _entry_input_bounded(request: EntryClaimInput) -> bool:
+	"""Shape and complete image coexistence are bounded again after any preceding scope callback."""
+	if request == null or request.boxes.is_empty() or request.boxes.size() % 6 != 0 \
+			or request.base_level < 0 or request.base_level > RoomSpace.I32_MAX or request.space_revision < 1:
+		return false
+	@warning_ignore("integer_division") var bytes: int = entry_claim_cold_bytes(request.boxes.size() / 6)
+	return bytes > 0 and bytes <= Budget.COLD_BYTES
 
 
 func _claim_prepare_refusal(request: RoomClaimInput, candidate: Directory.CreateCandidate,
@@ -428,26 +571,50 @@ func _pin_claim_batch(request: RoomClaimInput, candidate: Directory.CreateCandid
 	out._cursor = CutMap.new()
 
 
+func _pin_entry_claim_batch(request: EntryClaimInput, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority, budget: Budget, token: int,
+		descriptor: Dictionary, out: RoomClaimBatch) -> void:
+	"""Only the actual owner constructs the concrete entry cursor; the caller supplies boxes, never replay code."""
+	out._owner = weakref(self)
+	out._authority = weakref(authority)
+	out._budget = budget
+	out._cold_token = token
+	out._base_count = _count
+	out._datum = descriptor.datum_u
+	out._minimum = descriptor.min_quantum
+	out._size = descriptor.size_quanta
+	out._copy_entry_input(request, candidate)
+	out._entry_cursor = EntryCutMap.new()
+
+
 func _prepare_claim_cursor(batch: RoomClaimBatch, domain: RoomSpace.Domain, checks: int) -> StringName:
 	"""Unique preflight and later replay share one finite allowance; index merge is prepaid too."""
-	var code: StringName = batch._cursor.configure(batch._cells, batch._origin, batch._pitch,
-		batch._height, domain, checks, _capacity - _count)
+	var code: StringName = _configure_claim_cursor(batch, domain, checks, _capacity - _count)
 	if code != &"":
 		return code
-	while batch._cursor.advance():
-		code = batch._cursor.charge_checks(CLAIM_SEARCH_CHECKS)
+	while RoomClaimBatch.advance_cursor(batch):
+		code = RoomClaimBatch.cursor_charge(batch, CLAIM_SEARCH_CHECKS)
 		if code != &"":
 			return code
-		var key: int = batch._cursor.current_key()
+		var key: int = RoomClaimBatch.cursor_key(batch)
 		var index: int = _key_lower_bound(key)
 		if index < _count and _ordered_key[index] == key:
 			return REFUSE_CLAIM_HISTORY
-	if batch._cursor.refusal() != &"":
-		return batch._cursor.refusal()
-	batch._count = batch._cursor.emitted_count()
-	var replay: int = checks - batch._cursor.remaining_checks() - CLAIM_SEARCH_CHECKS * batch._count
-	code = batch._cursor.charge_checks(_count + 2 * batch._count)
-	return code if code != &"" else batch._cursor.rewind_prepaid(replay)
+	if RoomClaimBatch.cursor_error(batch) != &"":
+		return RoomClaimBatch.cursor_error(batch)
+	batch._count = RoomClaimBatch.cursor_count(batch)
+	var replay: int = checks - RoomClaimBatch.cursor_remaining(batch) - CLAIM_SEARCH_CHECKS * batch._count
+	code = RoomClaimBatch.cursor_charge(batch, _count + 2 * batch._count)
+	return code if code != &"" else RoomClaimBatch.cursor_rewind(batch, replay)
+
+
+static func _configure_claim_cursor(batch: RoomClaimBatch, domain: RoomSpace.Domain,
+		checks: int, remaining: int) -> StringName:
+	"""A batch has one concrete private input/cursor kind; no cross-kind fallback or implicit conversion."""
+	if batch._entry_input != null:
+		return batch._entry_cursor.configure(batch._boxes, domain, checks, remaining)
+	return batch._cursor.configure(batch._cells, batch._origin, batch._pitch,
+		batch._height, domain, checks, remaining)
 
 
 func room_claim_batch_refusal(batch: RoomClaimBatch) -> StringName:
@@ -468,8 +635,8 @@ func _claim_batch_current_refusal(batch: RoomClaimBatch) -> StringName:
 	if not domain_matches(batch._world, batch._datum, batch._minimum, batch._size) \
 			or _count != batch._base_count or batch._count < 1 or batch._count > _capacity - _count:
 		return REFUSE_CLAIM_BATCH
-	return &"" if batch._cursor != null and batch._cursor.refusal() == &"" \
-		and batch._cursor.emitted_count() == 0 else REFUSE_CLAIM_BATCH
+	return &"" if RoomClaimBatch.cursor_error(batch) == &"" \
+		and RoomClaimBatch.cursor_count(batch) == 0 else REFUSE_CLAIM_BATCH
 
 
 func publish_room_claim_batch(batch: RoomClaimBatch) -> StringName:
@@ -510,13 +677,13 @@ func _claim_created_room_refusal(batch: RoomClaimBatch) -> StringName:
 func _publish_claim_rows(batch: RoomClaimBatch) -> void:
 	"""Replay private proven input into preallocated permanent SOLID rows; no price or physical cut occurs."""
 	var row: int = _count
-	while batch._cursor.advance():
-		_site_key[row] = batch._cursor.current_key()
+	while RoomClaimBatch.advance_cursor(batch):
+		_site_key[row] = RoomClaimBatch.cursor_key(batch)
 		_present[row] = 1
 		_room_slot[row] = batch._room.x
 		_room_generation[row] = batch._room.y
 		row += 1
-	assert(batch._cursor.refusal() == &"" and row == _count + batch._count, "prepaid private replay cannot fail")
+	assert(RoomClaimBatch.cursor_error(batch) == &"" and row == _count + batch._count, "prepaid private replay cannot fail")
 	_merge_claim_rows(_count, row)
 	_count = row
 

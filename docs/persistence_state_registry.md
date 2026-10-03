@@ -1147,6 +1147,7 @@ service mutation; accepted receipts must resolve actual live projects on load.
 | Cold Room claim request and private input | -- | 4 | `2N <= 32768` | Empty outside the exact synchronous confirmation | 3 | -- | Decision1095 atomic claim increment. Nested RoomClaimInput.cells borrows the coordinator image; RoomClaimBatch._cells duplicates exactly2N I32 entries only after the actual full World lease, input bounds and scope match. N<=16384; this is8N private bytes, never another physical history ledger. |
 | Cold actual Room after-facts | -- | 4 | `Buildings.ROOM_IDENTITY_FIELDS` = 6 | Dropped with the batch before cold release | 3 | -- | RoomClaimBatch._room_facts owns24 packed bytes to prove full real Room purpose/spatial kind/parent after Directory allocation. No post-identity allocation or saved column. |
 | Cold claim batch wiring and controls | -- | -- | -- | No packet or publication crosses a frame or save boundary | 3 | -- | One weak current batch on Sites; coordinator holds the strong synchronous batch/Sites links. Exact request, candidate, authority, Budget/token, cached immutable Domain, monotonic physical count and prepaid replay state are transient only. The batch's existing CutMap owns one8N interval bank. Complete copy/control and sequential companion census is in1095; no new packed persistent state or epoch. |
+| Cold non-flat entry claim image and concrete cursor | -- | 4 | `6B <= 98304` | Empty outside synchronous EntryPlan admission | 3 | -- | Decision1107. Distinct EntryClaimInput fixes Corridor purpose and borrows world boxes; RoomClaimBatch._boxes duplicates exactly24B private bytes after the original actual World lease and complete104B+2048 image/control admission. Its internally created EntryCutMap uses8B intervals; ordinary flat input remains unchanged. Both claim paths copy the sole attested Domain after the actual namespace/original-lease proof:92 logical private Domain bytes, temporary24 configure bounds and descriptor/scalar coexistence fit the existing2048 control allowance; no second caller observation chooses keys or precedes an unleased allocation. No new per-Site columns, history or work counters. Input/cursor references, base level and copied full source/Room identity remain transient; all packed lifetimes drop before cold release. |
 
 
 
@@ -1618,3 +1619,12 @@ frames are conservatively bounded by256 logical bytes within the existing32768
 control/native reservation, which remains unmeasured. The query performs no
 per-worker heap allocation or saved selection cache. Source/content identity,
 complete-state certificate and actual Job/Work/Gear obligations remain unchanged.
+
+
+### `godot/scripts/core/underground_entry_cut_map.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Borrowed protected non-flat box image | `_boxes` | 4 | never allocated | Empty before configure and after clear | 3 | -- | Decision1107. Caller-owned private world boxes6B I32 entries, B<=Space.MAX_REGIONS16384. No cursor copy or authoritative history. All caller images must be admitted separately under the same cold lease. |
+| Active-prefix union intervals | `_intervals` | 8 | `_capacity` runtime | Empty before complete preflight and after clear | 3 | -- | One B-row bank sorts and merges normalized X endpoints in place; no full physical-key output list or second bank. |
+| Derived scalar controls and frames | -- | -- | -- | Cursor never crosses a frame/save boundary | 3 | -- | Twelve I64 controls96, four Vector3i48 and three bools3 total147 logical retained numeric bytes. The512-byte fixed logical allowance also covers copied Domain numerical facts/bounds and nested synchronous scalar frames. Actual packed/object headers, Dictionary/String/ref overhead and native growth remain separately unmeasured; no canonical/save state or production memory claim. |

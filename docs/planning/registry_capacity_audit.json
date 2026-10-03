@@ -13,7 +13,7 @@
       "buildings": "fb9646811e2e7af4979672aa2159403114d2124f43cad3d763be103de0db18e8",
       "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
       "construction": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
-      "entity_directory": "322b3222e812057394297f2be1867ddfb4fc7bbce906a494e1bf125448953a5a",
+      "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
       "excavation_sites": "72d2a5a2c795ffe9afcf6c9bd55a88276c1534d7da363aaf3c8b9a325a27de93",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
-      "underground_space_owner": "089b91a660f4ed1643806685c6929005b1e90e3c9c66d7b5d07bf48018093918",
+      "underground_space_owner": "09e17f6f61be075699717cd857ce4494841edc841140f6abf81861ecffbc35d0",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 1775,
+      "source_resize_line": 1931,
       "source_value": 18,
       "status": "proved_equality"
     },
@@ -2530,7 +2530,7 @@
       "source_module": "entity_directory",
       "source_relation": "eq",
       "source_resize_expression": "DIRECTORY_CAPACITY",
-      "source_resize_line": 672,
+      "source_resize_line": 913,
       "source_value": 352418,
       "status": "proved_equality"
     },
@@ -2553,7 +2553,7 @@
       "source_module": "entity_directory",
       "source_relation": "eq",
       "source_resize_expression": "DIRECTORY_CAPACITY",
-      "source_resize_line": 670,
+      "source_resize_line": 911,
       "source_value": 352418,
       "status": "proved_equality"
     },
@@ -2576,7 +2576,7 @@
       "source_module": "entity_directory",
       "source_relation": "eq",
       "source_resize_expression": "DIRECTORY_CAPACITY",
-      "source_resize_line": 675,
+      "source_resize_line": 916,
       "source_value": 352418,
       "status": "proved_equality"
     },
@@ -2599,7 +2599,7 @@
       "source_module": "entity_directory",
       "source_relation": "eq",
       "source_resize_expression": "DIRECTORY_CAPACITY",
-      "source_resize_line": 669,
+      "source_resize_line": 910,
       "source_value": 352418,
       "status": "proved_equality"
     },
@@ -2622,7 +2622,7 @@
       "source_module": "entity_directory",
       "source_relation": "eq",
       "source_resize_expression": "DIRECTORY_CAPACITY",
-      "source_resize_line": 671,
+      "source_resize_line": 912,
       "source_value": 352418,
       "status": "proved_equality"
     },
@@ -2645,7 +2645,7 @@
       "source_module": "entity_directory",
       "source_relation": "eq",
       "source_resize_expression": "DIRECTORY_CAPACITY",
-      "source_resize_line": 673,
+      "source_resize_line": 914,
       "source_value": 352418,
       "status": "proved_equality"
     },

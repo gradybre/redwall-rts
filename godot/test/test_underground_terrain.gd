@@ -364,3 +364,36 @@ func test_surveys_do_not_mutate_or_refill_retained_paid_space() -> void:
 	assert_equal(_owner.state_bytes(), before, "Terrain never publishes soil over actual retained void")
 	assert_equal(_terrain.dig_refusal(_box()), &"", "base-only query does not claim paid-ledger permission")
 	assert_equal(_owner.state_bytes(), before, "local query cannot mutate paid owner either")
+
+
+func test_natural_observation_is_separate_from_live_exclusion_and_sparse_source_registration() -> void:
+	"""Original substrate is readable without pretending an unregistered foundation or resource is absent."""
+	var building: Vector2i = _place("kitchen")
+	var out: Space.Volumes = Space.Volumes.new()
+	assert_equal(_terrain.natural_survey_into(_box(), 16, out, _lease), &"", "read original substrate only")
+	assert_equal(out.role, PackedInt32Array([Space.DRY_SOLID]), "no guessed Building source or obstacle facts")
+	assert_equal(out.ref_at(0), _world_ref, "actual World owns only the original substrate")
+	assert_equal(_owner.source_revision(building), 0, "observation does not register or mutate sources")
+	assert_equal(_terrain.dig_refusal(_box()), Terrain.REFUSE_FOUNDATION, "fresh actual foundation still refuses excavation")
+	assert_equal(_terrain.survey_into(_box(), 16, out, _lease), &"SPACE_SOURCE_NOT_REGISTERED", "full survey still requires real source")
+	assert_equal(out.role.size(), 0, "full refusal clears prior natural output")
+	var foreign: Owner.CoreSources = Owner.CoreSources.new(_jobs.directory(), _buildings, _construction)
+	assert_true(_terrain.is_bound_world(_world, _owner, _sources), "actual owners attest")
+	assert_false(_terrain.is_bound_world(_world, _owner, foreign), "equal Directory and stores are not equal source owner")
+	assert_false(_terrain.is_bound_world(null, _owner, _sources), "absent World cannot borrow observations")
+
+
+func test_natural_survey_preserves_clipping_capacity_and_exact_budget_contract() -> void:
+	"""The base-only path cannot bypass the full survey's bounds, pre-count or actual lease lifetime."""
+	var out: Space.Volumes = Space.Volumes.new()
+	var box: PackedInt32Array = _box(CLEAR_TILE, -1, 514)
+	box[0] += 7
+	box[5] -= 9
+	assert_equal(_terrain.natural_survey_into(box, 3, out, _lease), &"", "three exact natural roles")
+	assert_equal(out.role, PackedInt32Array([Space.DRY_SOLID, Space.FLOOR_DATUM, Space.SUPPORTED_VOID]), "stable base-role order")
+	for row: int in out.role.size():
+		assert_equal(out.lo_x[row], box[0], "exact cropped left edge")
+		assert_equal(out.hi_z[row], box[5], "exact cropped back edge")
+	assert_equal(_terrain.natural_survey_into(box, 2, out, _lease), Terrain.REFUSE_CAPACITY, "count pass refuses before partial append")
+	assert_equal(out.role.size() + out.owner_revision.size(), 0, "no stale output remains")
+	assert_equal(_terrain.natural_survey_into(box, 3, out, _lease + 1), &"TERRAIN_COLD_LEASE", "foreign numeric lease refuses")

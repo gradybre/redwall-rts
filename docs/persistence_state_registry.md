@@ -1296,3 +1296,12 @@ Local row/generation handles are qualified by the bound actual World.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Borrowed staged-index counts | -- | -- | -- | `_validation_regions` and `_validation_sources` are -1 outside validation | 3 | -- | Decision 1075. Two numeric integers add 16 logical control bytes inside the existing bindings reserve. Existing staged free-heap arrays temporarily hold compact present-region and sorted source-row indexes while mutations are locked. Both heaps are rebuilt on every success/refusal before later editing or publication. No added packed columns, changed wire schema or extra retained image; load never normalizes invalid saved revisions. `allocation_within` and the exact borrowed ResidentLocations reader are stateless comparisons/readers. |
+
+
+### `godot/scripts/core/underground_world_bindings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact intersection boxes | `_clip`, `_intersection` | 4 | `6` = 6 | Overwritten during each bounded observation | 3 | -- | Decision1085. Two six-I32 boxes total48 bytes. A nested immutable Domain copy adds24 packed bounds bytes and68 logical numeric bytes; it derives from the actual SpaceOwner, never another persistent world. |
+| Observation controls and actual owner wiring | -- | -- | -- | No candidate permission or gameplay mutation | 3 | -- | Two I64 counters and one boolean add17 logical control bytes. Together with nested Domain and the above arrays, the provider has157 logical persistent/reused bytes inside the existing524288-byte bindings/native-growth reservation. SpaceOwner/CoreSources are weak; World/Terrain/Budget are the actual shared objects. No new authoritative columns or wire schema. |
+| Simultaneous cold observation and fragment peak | -- | -- | -- | Cleared after observation; caller retains exact lease through output use | 3 | -- | Before the first copy, the actual shared Budget must cover975488 logical bytes: sparse snapshot327680; natural rows24576; output425984; two4096-element six-I32 fragment lists196608; transient controls640. Fragment lists contain packed integer boxes, never per-entity state. Caller plans/copies and native/container growth are additional charged coexistence in the pre-existing reserved envelopes, not measured RAM. A reentrant refusal preserves the active outer output; every admitted failure clears all output columns. |

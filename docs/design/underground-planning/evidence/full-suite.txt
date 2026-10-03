@@ -1,0 +1,11 @@
+Baseline: origin/master 223eb586 plus the underground confirmation implementation.
+Engine: Godot 4.7.2.stable.official.ed1daf0bf
+Preparation: demo assets absent; removed godot/.godot; clean headless editor import.
+Command: ./tools/run_tests.sh (no arguments)
+state_registry_coverage: PASS -- 92 modules, 437 rows, 747 packed columns checked
+9094 test(s), 605134 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 9094 tests, 605134 assertions, 0 failures.
+Import and full suite: 1169.9 seconds
+Raw log SHA256: 3de8f462cab6f32567f3bb21c0f184318756e5bc914e87db00e9937855c4567d

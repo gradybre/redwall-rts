@@ -1177,12 +1177,20 @@ Rooms are their own structures on the network (decision 0209, `burrow/undergroun
 
 - **Placing one**: in the Dig tool press **H** (home) or **C** (cellar), or the party panel's buttons. A
   ghost room follows the pointer -- its outline, its door ramp out to its door, a tick at each socket --
-  **R** turns it (Shift+R back; the HUD's placement keys; the wheel stays the camera's zoom), and a click
-  digs it. Within 6 m of the network the ghost **proposes its passage**: the shortest straight tunnel from
+  **R** turns it (Shift+R back; the wheel stays the camera's zoom), and a click
+  **holds a blueprint for review**. The clipped grid marks the existing quarter-metre positioning lattice;
+  this first increment still uses the two existing templates, not arbitrary room painting.
+  **Confirm room / Enter** rechecks the site and orders excavation; pointer movement or another world
+  click does not submit the held plan. **Move / Backspace** resumes positioning.
+  **Discard / Esc / right click** discards only the draft, with no materials spent or workers assigned.
+  The next Esc returns to tunnels. The right-hand review card shows the readout and controls at 1280×720. Within 6 m of the network the ghost **proposes its passage**: the shortest straight tunnel from
   an open bore or junction to one of its sockets that the Dig tool's rules accept, drawn in brass and dug
-  after the room. **Shift+click** places it standalone; connect it later by digging a tunnel to a socket.
-  Esc (or right click) goes back to laying tunnels; the same key again does too. The tunnel panel's
-  heading says which room is being placed.
+  after the room. **Shift+click** holds a standalone blueprint; connect it later by digging to a socket.
+  A changed automatic passage needs a second review before confirmation. If the reviewed passage
+  cannot be allocated, the whole room order refuses instead of silently building a standalone room.
+  Type/level changes are refused while a blueprint is held; discard or confirm it first. Existing
+  excavation and post-dig fit-out rules still apply. See decision 1050 and the underground planning ledger
+  for the broader painted-room, material, furnishing and backfill work still to follow.
 - **Refused in words** over the ghost (wrapped, so they stay clear of the side panels; the ghost turns clay): over the stream, the pond or their no-dig
   band; over the crop beds; under a building or the well; within 1 m of earth of another room; within 1 m
   of a tunnel, or its door ramp within a pillar of another's (join a tunnel at a socket instead); its mound,

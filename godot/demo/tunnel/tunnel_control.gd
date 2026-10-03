@@ -370,6 +370,9 @@ func _level_key(event: InputEvent) -> bool:
 
 func show_level(level: int) -> void:
 	"""Show `level` in the U view; the tool, open, lays on it now (a piece half laid on the other is dropped)."""
+	if room.pending and level != room.plan.level:
+		_say(RoomToolScript.KEEP_DRAFT)
+		return
 	if not view.set_level(level):
 		return
 	_say(LEVEL_SHOWN % view.level)
@@ -521,6 +524,9 @@ func _room_key(event: InputEvent) -> bool:
 func begin_room(kind: int) -> bool:
 	"""Open the room tool for template `kind` (see ROOMS), opening the Dig tool first when it is closed; the
 	tool already open for `kind` goes back to laying tunnels. Returns whether a room tool is open now."""
+	if room.pending:
+		_say(RoomToolScript.KEEP_DRAFT)
+		return true
 	if not planning and not begin_plan():
 		return false
 	if room.active and room.plan.kind == kind:
@@ -537,6 +543,9 @@ func begin_room(kind: int) -> bool:
 
 func end_room() -> void:
 	"""Close the room tool: back to laying tunnels."""
+	if room.pending:
+		room.discard_blueprint()
+		return
 	room.end()
 	ext.placing_room = RoomsScript.TEMPLATE_NONE
 	_say(PLAN_FIRST)
@@ -643,6 +652,10 @@ func _hover(screen: Vector2) -> void:
 func toggle_view() -> void:
 	"""Switch the underground view (one cull-mask write, tunnel_view.gd); switched back, the notice it
 	replaced returns. The tool, open, lays on the level now shown (`laying_level`)."""
+	var next_level := Rules.TOP_LEVEL if view.on else view.level
+	if room.pending and room.plan.level != next_level:
+		_say(RoomToolScript.KEEP_DRAFT)
+		return
 	var was := laying_level()
 	if view.toggle():
 		_before_view = _last_notice
@@ -758,6 +771,9 @@ func undo_point() -> void:
 
 func cancel_plan() -> void:
 	"""Close the Dig tool without digging what is laid; the view goes back to what it was."""
+	if room.pending:
+		room.discard_blueprint()
+		return
 	_end_plan()
 	_say(PLAN_CANCELLED)
 
@@ -1204,6 +1220,8 @@ func resume(slot: int) -> bool:
 
 func _process(_delta: float) -> void:
 	"""Say what changed in the network (see THE NOTICE FOLLOWS THE TUNNELS)."""
+	if room != null:
+		room.refresh()
 	if network == null or network.revision == _seen_revision:
 		return
 	_seen_revision = network.revision

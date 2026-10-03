@@ -1,0 +1,36 @@
+{
+  "captured_at_utc": "2026-10-02T23:58:50.451939+00:00",
+  "base_commit": "223eb586",
+  "working_branch": "codex/underground-build-2026-10-02",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "viewport": [
+    1280,
+    720
+  ],
+  "renderer": "forward_plus",
+  "assets": "unstaged; demo placeholders and silent sound cues",
+  "capture_command": "godot --path godot --script res://test/live/demo_room_blueprint_live.gd -- --capture <absolute evidence directory>",
+  "status": "Runtime screenshots of the confirmation foundation. No arbitrary-footprint, production excavation, final-art or 256-resident qualification claimed.",
+  "live_summary": "LIVE-SUMMARY 32 0",
+  "source_sha256": {
+    "godot/demo/burrow/room_tool.gd": "bd84d53db2ae01d49534c44330f578a6f208b22848685565e084305be2d333bf",
+    "godot/demo/burrow/room_blueprint.gdshader": "172131e3911a46276c1a23125c7d99e00fa02463d92f9dcf7f2f0d2ddaf6d294",
+    "godot/demo/control/demo_party_panel.gd": "6ece19289320038b55db90564d8f4b103d49aa7b21eb4f1817f70d1934c83070",
+    "godot/demo/tunnel/tunnel_control.gd": "5c71c02cc9415747ed94ab6398b238fc1b8f4bbf211c51a50605b57b6ca4a828",
+    "godot/demo/tunnel/tunnel_ext.gd": "286d386c02ed4e4193965bc0fc196f5054369dd8842656e78b0f27b4594b9492",
+    "godot/demo/tunnel/tunnel_panel.gd": "83edb7c2eeb6d2878f25c9b3a19ea4a1f5ccd35d8e4f7ee4f802d3f7f9a11d7c",
+    "godot/test/test_demo_input_live.gd": "f9e280e2182c5c459372f4e0a12a3e1e84d3572bedc08b35ce2a63167344169c",
+    "godot/test/test_demo_tunnel_ext_world.gd": "886307218a3c6115c0ab2dc43de6bd723316d2835be44af0dc31410bbe93dd08",
+    "godot/test/live/demo_room_blueprint_live.gd": "e62c4c2275486a0630075872021d1001b7812f3832a2826c733d71197755b584"
+  },
+  "captures": {
+    "room_blueprint_confirmed_1280x720.png": "650a5857cf3ba517bc704215dd0867c8d8051e8dcf457d2805113720d8b61fdf",
+    "room_blueprint_held_1280x720.png": "95500da8f7fdbbc398b5dadbf87b482b4df5b9cb1d96e31b72b1739d7f98c7a4",
+    "room_blueprint_refused_1280x720.png": "c008d7b81c3e02af9d00c4894afb77c8b0dff236c13024f3514f959e3f5240b5"
+  },
+  "native_diagnostics": {
+    "errors": 0,
+    "warnings": 22,
+    "warning_scope": "Known unstaged demo assets and sound cues only."
+  }
+}

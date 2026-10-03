@@ -1619,6 +1619,18 @@
       "analyzer_seconds": 234.777,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-fc4fac4f/README.md",
       "limits": "Includes scoped phase surveys and actual leases, atomic Furniture/Construction core batch, Layout lifetime, endpoint retention, immutable descriptor and Transform freshness. Predates mixed-height Terrain, Levels, actual Routes, B2 coordinator and playable activation."
+    },
+    {
+      "commit": "18b943be79e034e62103dd7deb9e7d7003123fd8",
+      "outcome": "passed",
+      "full_suite": "9995 test(s), 708261 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 warnings in 0 of 1109 files",
+      "procedure": "assets absent; delete own .godot; exact clean editor import; full no-argument runner; source and HEAD unchanged; original asset state restored",
+      "suite_seconds": 1234.278,
+      "analyzer_seconds": 228.266,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-18b943be/README.md",
+      "limits": "Includes actual Routes and prepared observations, mixed-height Terrain, Levels, B2 room furniture coordinator and bridge, exact Room section metadata and Actor grounding. Predates concrete WorldRoutes, exact phase masks, connector catalog and later native pose qualification. Complete playable workflow remains in progress."
     }
   ],
   "crosscut_fixes": [

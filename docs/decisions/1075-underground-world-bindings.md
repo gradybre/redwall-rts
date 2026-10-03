@@ -556,3 +556,28 @@ high or medium findings; the analyzer reported zero warnings in both files.
 Final evidence is retained under the 1075 evidence directory's `capacity-validation/`
 child. Full-scene frame time, native memory and completed route binding remain
 separate qualifications.
+
+
+## Retained observation freshness without another snapshot
+
+`SpaceOwner.snapshot_revision_refusal(expected_revision)` exposes the existing
+live source/claim validation after checking the exact current geometry revision.
+WorldBindings can validate its retained observation before publication without
+another full Snapshot or an O(live sources × source capacity) sequence of public
+source lookups. An unpublished staged candidate does not change the live image.
+Matching revisions alone do not excuse changed actual Building facts, expired
+claims or a destroyed World.
+
+This reader adds no fields, buffers or wire bytes. Underlying current Buildings
+getters still create small result objects, charged to the cold/native binding
+envelope; the wrapper is not a claim of transitive allocation-free execution.
+WorldBindings must continue charging both initial and final source/claim scans
+against the same finite work budget.
+
+Independent source review accepted the reader. Final clean CI import and strict
+Owner validation reported **59 tests / 3,010 assertions / 0 failures**, with
+**0 unexpected errors, 0 unexpected warnings, 0 expected, 0 tolerated and
+0 object/resource leaks** in both strict/raw reports. The analyzer reported
+`0 GDScript warning(s) in 0 of 2 file(s)`. Exact source pins, raw final logs and
+the earlier rejected test-fixture log are retained under the 1075 evidence
+folder's `snapshot-revision/` child. No additional full suite was duplicated.

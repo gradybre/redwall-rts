@@ -1062,6 +1062,15 @@ func snapshot_into(out: Space.Snapshot) -> StringName:
 	return _copy_snapshot_into(out, NULL_REF, NULL_REF)
 
 
+func snapshot_revision_refusal(expected_revision: int) -> StringName:
+	"""Revalidate retained live survey evidence without allocating another snapshot or repeated owner lookups."""
+	if _ready_error != &"":
+		return _ready_error
+	if expected_revision != revision():
+		return &"SPACE_REVISION_STALE"
+	return _snapshot_refusal()
+
+
 func snapshot_for_site_into(out: Space.Snapshot, sites: Sites, site: Vector2i) -> StringName:
 	"""Exempt only exact Room/phase claims after proving actual Sites ownership in this world."""
 	var code: StringName = _site_scope_refusal(sites, site)

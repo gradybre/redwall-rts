@@ -1659,3 +1659,46 @@ func test_same_source_forget_and_reregister_never_resets_its_revision() -> void:
 	_publish(token)
 	assert_equal(_owner.source_revision(_hall), old + 1, "identity revision never returns to one")
 	assert_equal(_owner.source_refusal(_hall), &"", "relocated source facts still read actual Buildings")
+
+
+func test_snapshot_revision_reader_checks_current_geometry_and_preserves_live_bytes() -> void:
+	"""The public preflight copies nothing and compares the exact live revision, including during staging."""
+	var absent: Owner = Owner.new(_sources)
+	assert_equal(absent.snapshot_revision_refusal(0), &"SPACE_WORLD_UNBOUND", "missing owner cannot attest zero")
+	var previous: int = _owner.revision()
+	var before: PackedByteArray = _owner.state_bytes()
+	assert_equal(_owner.snapshot_revision_refusal(previous), &"", "empty actual image is current")
+	assert_equal(_owner.snapshot_revision_refusal(previous + 1), &"SPACE_REVISION_STALE", "future revision")
+	assert_equal(_owner.state_bytes(), before, "read-only preflight")
+	var token: int = _begin()
+	_put(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world))
+	assert_equal(_owner.snapshot_revision_refusal(previous), &"", "unpublished candidate cannot change live image")
+	_publish(token)
+	assert_equal(_owner.snapshot_revision_refusal(previous), &"SPACE_REVISION_STALE", "prior copied geometry is stale")
+	assert_equal(_owner.snapshot_revision_refusal(_owner.revision()), &"", "new exact live revision")
+
+
+func test_snapshot_revision_reader_revalidates_source_and_claim_lifetimes() -> void:
+	"""A matching geometry revision does not excuse actual source drift, stale claims or a destroyed World."""
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, _hall), &"", "actual Building structural facts")
+	_publish(token)
+	var expected: int = _owner.revision()
+	assert_equal(_owner.snapshot_revision_refusal(expected), &"", "actual source matches")
+	var original_interior: int = _buildings.interior_id_of_building(_hall).value
+	assert_true(_buildings.set_building_interior_id(_hall, 91).ok, "change actual source without geometry publication")
+	assert_equal(_owner.snapshot_revision_refusal(expected), &"SPACE_SOURCE_DRIFT", "fresh structural evidence required")
+	assert_true(_buildings.set_building_interior_id(_hall, original_interior).ok, "restore actual authored fixture source")
+	var project: Vector2i = _construction.open_build(_hall).ref
+	token = _begin()
+	var claim: Owner.Region = _region([0, 0, 0, 1024, 1024, 1024], Space.OBSTACLE, _world)
+	claim.claim_kind = Owner.CLAIM_CONSTRUCTION
+	claim.claim_ref = project
+	_put(token, claim)
+	_publish(token)
+	expected = _owner.revision()
+	assert_equal(_owner.snapshot_revision_refusal(expected), &"", "exact live claim")
+	assert_true(_buildings.directory().destroy(project), "retire actual claimed project")
+	assert_equal(_owner.snapshot_revision_refusal(expected), &"SPACE_SOURCE_STALE", "claim generation rechecked")
+	assert_true(_buildings.directory().destroy(_world), "retire actual World")
+	assert_equal(_owner.snapshot_revision_refusal(expected), &"SPACE_SOURCE_STALE", "world lifetime rechecked")

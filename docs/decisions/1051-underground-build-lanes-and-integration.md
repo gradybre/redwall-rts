@@ -43,6 +43,22 @@ review reproduced alias, premature lease-release and dependency-bypass cases.
 One integration owner serializes shared-file changes. A worker finishing a
 helper is not equivalent to completion of a player-facing requirement.
 
+The UG08 independent geometry increment was released after UG01 while UG06
+continued. Inspection showed no required source dependency: the two owners
+exchange immutable datum geometry and versioned admission/publication facts;
+UG09 remains the composition gate. This removes an unnecessary implementation
+dependency, not the requirement for actual support/contact/profile bindings.
+Unmeasured connector numbers remain proposals until their contracts close.
+
+UG06 additionally owns narrow Reservations consumption and Inventory ground
+pile publication changes. Inventory currently refuses an empty ground pile
+with only reserved mass. The selected solution uses a real finite World-owned
+staging container, then publishes that same container as a ground pile only
+when its first actual output lot and policy/map change commit together.
+No empty-pile invariant or diagnostics allowance is weakened. Cancellation,
+capacity refusal, journal exhaustion and generation changes require conservation
+tests. The spatial owner must reserve its real output contact.
+
 The first playable checkpoint remains D20: reviewed blueprint through worker
 construction to an empty Kitchen. Kitchen/Bedroom furnishing, two-level
 access, replacement, renovation and the expanded catalog follow under their

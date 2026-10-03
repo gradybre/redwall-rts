@@ -127,7 +127,10 @@
         "godot/demo/burrow/modular_draft.gd",
         "godot/demo/burrow/modular_editor.gd",
         "godot/test/test_modular_draft.gd",
-        "godot/test/test_modular_editor.gd"
+        "godot/test/test_modular_editor.gd",
+        "godot/test/live/modular_editor_live.gd",
+        "docs/decisions/1055-modular-room-drawing.md",
+        "docs/design/underground-planning/evidence/modular-build/editor/"
       ],
       "requirements": [
         "UG-SHAPE-001",
@@ -208,7 +211,10 @@
         "godot/scripts/core/excavation_inventory.gd",
         "docs/decisions/1056-physical-excavation-phases.md",
         "godot/scripts/core/excavation_contract.gd",
-        "godot/scripts/core/reservations.gd"
+        "godot/scripts/core/reservations.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/test/test_reservation_consumption.gd",
+        "godot/test/test_inventory_pile_promotion.gd"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -276,16 +282,16 @@
     {
       "id": "UG08",
       "title": "Multilevel occupancy, support and fixed connector catalog",
-      "status": "queued",
+      "status": "running",
       "depends_on": [
-        "UG01",
-        "UG06"
+        "UG01"
       ],
       "owns": [
         "godot/scripts/core/room_space.gd",
         "godot/scripts/core/room_connectors.gd",
         "godot/test/test_room_space.gd",
-        "godot/test/test_room_connectors.gd"
+        "godot/test/test_room_connectors.gd",
+        "docs/decisions/1058-multilevel-room-space.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -316,11 +322,13 @@
         "Real worker/load movement profile and occupied traversal safety; no stretching",
         "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
       ],
-      "agent": null,
-      "branch": null,
-      "evidence": {},
+      "agent": "/root/ug_furnishing",
+      "branch": "codex/underground-space",
+      "evidence": {
+        "in_progress": "IncrementA geometry/connector validation can run independently; UG09 composes06+08. Missing production authoring/profile binding remains explicit and is not satisfied by synthetic tests."
+      },
       "lease": {
-        "state": "free"
+        "state": "held"
       }
     },
     {
@@ -814,5 +822,15 @@
       }
     }
   ],
-  "automation_id": "finish-underground-building"
+  "automation_id": "finish-underground-building",
+  "checkpoints": [
+    {
+      "commit": "26283981f313ba7744ae1f569b920945ca6336d6",
+      "full_suite": "9233 test(s), 616737 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 warnings in 0 of 1034 files",
+      "procedure": "assets aside, delete own .godot, clean editor import, no-argument ./tools/run_tests.sh, restore assets",
+      "seconds": 1179.5
+    }
+  ]
 }

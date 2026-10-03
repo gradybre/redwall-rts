@@ -26,7 +26,7 @@ python3 tools/underground_build_queue.py ready
 | UG05 | Fitted shells and physically scaled materials | UG01 |
 | UG06 | Actual excavation, spoil, closure and Construction accounting | UG02 |
 | UG07 | Room/equipment catalog and real order coordinator | UG01, UG03, UG06 |
-| UG08 | Multilevel occupancy, support, fixed connector catalog | UG01, UG06 |
+| UG08 | Multilevel occupancy, support, fixed connector catalog | UG01; compose with UG06 at UG09 |
 | UG09 | **First playable checkpoint: blueprint → workers → empty Kitchen** | UG04–08 |
 | UG10 | Furnishing modes, real services and optional example guides | UG07, UG09 |
 | UG11 | Two-level rooms, section painting, stairs and extra entrances | UG08, UG09 |
@@ -54,6 +54,18 @@ releases dependents only after the prerequisite is `verified`, which requires
 a commit, test/diagnostic evidence, review and integration record.
 
 ## Completion evidence
+
+The first integrated foundation checkpoint at `26283981` passed the full
+CI procedure: **9,233 tests, 616,737 assertions, zero failures**, zero unexpected
+errors/warnings and zero leaked objects/resources (272 expected diagnostics,
+353 tolerated notices). The analyzer found zero warnings across 1,034 files.
+See [source-pinned logs](../design/underground-planning/evidence/modular-build/checkpoint-26283981/).
+This checkpoint covers UG01–03, not the subsequently developed components.
+
+The UG08 geometry increment now runs independently of excavation. It validates
+explicit spatial input; UG09 still requires both the physical construction and
+spatial owners. Production connector authoring, measured profiles and live
+binding remain part of UG08/UG09 qualification, not implied by synthetic tests.
 
 The full build is not complete until all 107 criteria work in the actual demo.
 Retain real worker routing, materials, tool checks, physical cut history,

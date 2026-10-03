@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03T23:09:26.016057+00:00",
+  "updated": "2026-10-03T23:36:21.625447+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -680,7 +680,7 @@
           ],
           "tests": "148 tests /12554 assertions /0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/7"
         },
-        "first_entry_feasibility": "Downward530x647u stance cannot fit512u tread; fractional roots do not share cube top contacts; landing excavation must retain real footing, material/output access and retreat. Source-backed low/front-wall variant and actual ordered cut/assembly frontier remain open.",
+        "first_entry_feasibility": "Earlier647u figure described downward plane contact, not full feet. Reviewed source compiler full support is759u deep down/625u high and cannot fit512u tread. Separate planted front-wall candidate has343u full foot projection, actual body122u behind face, entry/recovery tool clear, productive pick reaches face; full native/state/terrain/paid ordered frontier still unqualified.",
         "first_entry_assessment": {
           "source_commit": "460e4053",
           "integration_commit": "e797b15b",
@@ -688,10 +688,13 @@
           "scope": "Read-only constructibility handoff; arithmetic first-cut and T2 front-wall witnesses, actual footprint/footing/retreat gaps, unique cut-union/EntryPlan seam. No motion or playable certificate."
         },
         "entry_admission_next": {
-          "status": "root EntryPlan/RoomOrders helper implemented; independent review and pure Space/Placement tail integration pending",
+          "status": "typed coordinator independently reviewed and integrated; pure entry publication tail and actual bindings in progress",
           "scope": "Distinct typed non-flat EntryPlan; original cold lease, future permanent Corridor, exact varying-height claims and unique Sites union. No pre-created Corridor workaround. Actual frontier and Placement bindings remain closed.",
-          "focused_tests": "check-2:113 tests/4514 assertions/0 failures across6 strict suites; strict/raw unexpected errors,warnings,object/resource leaks0; analyzer0/3. Check-3 includes the added post-Sites final companion gate.",
-          "review_gap": "Construction identified inherited Space Room publication observers after identity/Sites mutation. Geometry owns planned pure prepared-room leaf/static commit kernel with1108 Placement admission; new entry path will use it before atomic completion is accepted."
+          "focused_tests": "check-3:114 tests/4549 assertions/0 failures across6 strict suites; strict/raw unexpected errors,warnings,object/resource leaks0; analyzer0/3.",
+          "review_gap": "Construction identified inherited Space Room publication observers after identity/Sites mutation. Geometry owns planned pure prepared-room leaf/static commit kernel with1108 Placement admission; new entry path will use it before atomic completion is accepted.",
+          "source_commit": "c84ae836",
+          "integration_commit": "b8d8a761",
+          "evidence_path": "docs/validation/evidence/underground-entry-orders-2026-10-03/"
         }
       },
       "lease": {
@@ -738,6 +741,15 @@
               "docs/validation/evidence/underground-entry-orders-2026-10-03/"
             ],
             "handoff": "Construction explicitly stopped all writes and granted this narrow EntryPlan/atomic future Placement admission packet on2026-10-03 after1107. Preserve the sole Buildings authority and ordinary flat RoomPlan path. Geometry retains Placement/companions; Construction retains ConnectorWork."
+          },
+          {
+            "agent": "/root",
+            "state": "held",
+            "branch": "codex/underground-entry-admission",
+            "files": [
+              "godot/scripts/core/excavation_sites.gd"
+            ],
+            "handoff": "Construction explicitly granted narrow entry-only preflighted publication kernel after confirming no Sites edits. Preserve flat API/test ownership. Root and Geometry coordinate pure receipt publication before actual entry activation."
           }
         ]
       }
@@ -1052,6 +1064,14 @@
           "tests": "6 tests/117 assertions/0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/2.",
           "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/driver-check-v3/",
           "limits": "Presentation-clock component only, synthetic geometric qualification; no Work credit or production profile. Full actual state handoffs, clip/contact/route and native-memory qualification remain open."
+        },
+        "mole_state_handoffs": {
+          "source_commit": "89c9f267",
+          "integration_commit": "1f853a46",
+          "review": "Root accepted exact proof9e5dd13b/test08b498ea/resulteee187ed after shared convex-coefficient translation, all65536 finite heading inverse bounds, complete triangle hull and bounded fail-closed subdivision review. Six output and eight transitive source pins matched.",
+          "tests": "Root independently reran8 Python adversarial tests: all pass. 155 actual driver handoffs,7962301 checks,0 unresolved.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-state-handoffs-v1/",
+          "limits": "Source self-contact only.0 production-qualified profiles; compact planted variant, world contact and native full driver remain separate."
         }
       },
       "lease": {
@@ -1453,12 +1473,21 @@
           ]
         },
         "connector_placements_next": {
-          "state": "concrete API accepted; implementation running",
+          "state": "independently reviewed source/storage component integrated;1108 future Room admission follow-on running",
           "agent": "/root/ug_geometry",
           "branch": "codex/underground-connector-placements",
           "design": "P256/M512 ceilings retained. Exact proposed189P+89M+14848=108800 maximum using inactive bank and4096B stream. Joint actual configured admission with catalog/recipes/grouping/Anchor/frontier/adapters/native is mandatory; native allowance unmeasured.",
           "scope": "Actual placed entry identity, installed assembly prefix, exact Project and geometry/Locations/Routes companions; no duplicate cut/work ledger or permissive base contact authority.",
-          "companion_dependency": "Authorized same-lane follow-on: exact Placement context in Locations/WorldRoutes and callback-free sealed publication kernel. Generic observed Routes.publish cannot follow a first swap."
+          "companion_dependency": "Authorized same-lane follow-on: exact Placement context in Locations/WorldRoutes and callback-free sealed publication kernel. Generic observed Routes.publish cannot follow a first swap.",
+          "source_commit": "4153a232",
+          "registry_commit": "58bb1a21",
+          "integration_commits": [
+            "91442ff2",
+            "4398c08a"
+          ],
+          "tests": "final-4:258 tests/21964 assertions/0 failures across5 strict suites; strict/raw unexpected diagnostics and leaks0; analyzer0/7.",
+          "review": "Root and Construction accepted exact final four source packet after revision-exhaustion headroom, actual WorldRoutes/Profile/Level ownership and late unrelated source-repin regressions. Retained identities, accounting and companions are actual; physical/contact qualification remains synthetic.",
+          "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/final-4/"
         },
         "binding_reserve_census": {
           "source": "36665ade",
@@ -2403,6 +2432,20 @@
       "seconds": 1297.328,
       "analyzer_seconds": 233.648,
       "limits": "Component checkpoint;1107 entry claims and actual Placement/ConnectorWork/complete profile state still separate in progress."
+    },
+    {
+      "id": "remote-f9854b4b-2026-10-03",
+      "commit": "f9854b4bcf0b1fc2e0f446d6ac8152ec15198680",
+      "outcome": "passed-remote-all-jobs",
+      "run": "https://github.com/gradybre/redwall-rts/actions/runs/37158872557",
+      "suite_files": 362,
+      "shards": 8,
+      "summary": "10433 tests,961393 assertions,0 failures",
+      "diagnostics": "0 unexpected errors/warnings;272 expected,353 tolerated;0 leaked objects/resources; every raw shard unexpected/leak count0",
+      "analyzer": "0 GDScript warning(s) in0 of1160 file(s)",
+      "seconds": 686,
+      "evidence": "docs/validation/evidence/underground-ci-f9854b4b/",
+      "limits": "No same-head full-run baseline supplied; baseline_matches:false is not a failed comparison. New driver, Placement and EntryPlan source require next integrated full checkpoint."
     }
   ],
   "crosscut_fixes": [

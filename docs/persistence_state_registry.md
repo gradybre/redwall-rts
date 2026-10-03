@@ -1377,3 +1377,10 @@ Local row/generation handles are qualified by the bound actual World.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Section envelope and shared exact claim handle | -- | -- | -- | No extra owner field or retained packet | 3 | -- | Decision1091. One existing FLOOR_DATUM row plus R unchanged fine CLAIM_ROOM rows replaces2R newly confirmed rows; no persistent schema/capacity change or migration of older section handles. Enclosing metadata grants no area/support/void. Sequential floor/claim boxes peak24 packed bytes within the existing48-byte allowance. The changed cold helper chain has128 logical numeric bytes including the retained16-byte section Result and complete transform arguments/endpoints; unchanged frames/native headers remain in the existing joint helper/growth allowance. No per-Site map or hot-path allocation. |
+
+Decision1075 prepared observation readers add no fields to
+`underground_space_owner.gd` or `underground_routes.gd`. Exact sealed metadata is
+copied into existing caller-owned fixed scratch without a new image or index.
+The consumer still holds the previously charged shared cold lease and must run
+full source/claim preflight before and after the whole observation batch; the
+readers introduce no new authoritative, derived or transient retained state.

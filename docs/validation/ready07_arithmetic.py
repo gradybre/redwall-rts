@@ -182,7 +182,7 @@ audit_spec=importlib.util.spec_from_file_location('capacity_source_proof',r/'too
 audit_module=importlib.util.module_from_spec(audit_spec);audit_spec.loader.exec_module(audit_module)
 source_index=audit_module.load_source_index()
 excavation_shapes={}
-for module,expected_columns,expected_bytes in [('excavation_inventory',26,5218304),('excavation_sites',24,8388597)]:
+for module,expected_columns,expected_bytes in [('excavation_inventory',26,5220352),('excavation_sites',24,8388597)]:
  source=source_index[module].text
  columns=dict(re.findall(r'^var (_\w+): (Packed\w+Array) =',source,re.M))
  assert len(columns)==expected_columns,(module,len(columns))
@@ -204,7 +204,7 @@ for module,shapes,excluded,expected_scalars in [
  ('excavation_sites',site_shapes,site_derived|site_scratch,20)]:
  owner=next(o for o in registry_owners if o['owner_key']==module)
  packed=[f for f in owner['fields'] if 'source_contract' in f]
- assert owner['section_id']==6 and owner['owner_schema_version']==(2 if module=='excavation_inventory' else 1)
+ assert owner['section_id']==6 and owner['owner_schema_version']==(3 if module=='excavation_inventory' else 1)
  assert {f['source_member'] for f in packed}==shapes.keys()-excluded
  assert sum(bool(f.get('scalar')) for f in owner['fields'])==expected_scalars
  for field in packed:
@@ -245,9 +245,12 @@ assert 'var _publishing_excavation_job: Vector2i' in (r/'godot/scripts/core/work
 DECISION_1066_CONTROLS=9*8+11*4+2*8+8
 DECISION_1066_TRANSIENTS=32+3*(8+1)+8+8
 assert (DECISION_1066_CONTROLS,DECISION_1066_TRANSIENTS)==(140,75)
-# Keep1066 historical;1072 separately adds the live and cold three-domain growth.
+# Keep1066 historical;1072 adds two loss domains and1102 adds a fourth.
+# Their live growth is already in the current packed census; subtract it once here.
 CURRENT_EXCAVATION_PACKED=sum(w*c for shapes in excavation_shapes.values() for w,c in shapes.values())
-DECISION_1066_PACKED=CURRENT_EXCAVATION_PACKED-4096
+CURRENT_FUNDING_LOSS_GROWTH=fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-256*8
+assert CURRENT_FUNDING_LOSS_GROWTH==6144
+DECISION_1066_PACKED=CURRENT_EXCAVATION_PACKED-CURRENT_FUNDING_LOSS_GROWTH
 DECISION_1066_SCRATCH=sum(w*c for name,(w,c) in fund_shapes.items() if name in fund_scratch)+16+DECISION_1066_TRANSIENTS
 DECISION_1066_ADDED=DECISION_1066_PACKED+DECISION_1066_CONTROLS+DECISION_1066_TRANSIENTS
 assert (DECISION_1066_PACKED,DECISION_1066_SCRATCH,DECISION_1066_ADDED)==(13602805,1316955,13603020)
@@ -303,12 +306,16 @@ import sys
 sys.path.insert(0,str(r/'tools'))
 import underground_memory_budget
 underground_pack=underground_memory_budget.build()
-DECISION_1072_MUTABLE=underground_pack['new_mutable_and_reserved_bytes']
+CURRENT_UNDERGROUND_MUTABLE=underground_pack['new_mutable_and_reserved_bytes']
+# Preserve1072's trail;1102 adds256 I64 cells in both live and conservative cold state.
+DECISION_1102_MUTABLE=2*(fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-3*256*8)
+assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==4966485
+DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE
 assert DECISION_1072_MUTABLE==4962389
 assert underground_pack['declaration_bytes']==DECISION_0127_ADDED
 assert not underground_pack['runtime_qualified']
-assert '| Joint underground pack and remaining envelopes | 1 | 4958293 | 4958293 |' in s
-assert fund_shapes['_lost_milli']==(8,768)
+assert '| Joint underground pack and remaining envelopes | 1 | 4960341 | 4960341 |' in s
+assert fund_shapes['_lost_milli']==(8,1024)
 # 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
 DECISION_0167_CLAIM_SLOT=512*4
 assert DECISION_0167_CLAIM_SLOT==2048
@@ -420,10 +427,10 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
-assert len(allocations)==45 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE
+assert len(allocations)==45 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==91566546
-assert live==99955154 and candidate==85316853 and live+candidate==185272007
+assert payload==91570642
+assert live==99959250 and candidate==85320949 and live+candidate==185280199
 assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
 # A valid internal trail can still omit its final step. Require its endpoint to reach the
 # independently summed allocation table; merge_gate.py separately checks every intervening row.
@@ -464,7 +471,7 @@ report={'scope':'STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_T
 report['room_projects_packed_bytes']=DECISION_1053_ADDED
 report['canonical_declaration_bytes']=DECISION_0127_ADDED
 report['excavation_packed_bytes']=CURRENT_EXCAVATION_PACKED
-report['joint_underground_pack_bytes']=DECISION_1072_MUTABLE
+report['joint_underground_pack_bytes']=CURRENT_UNDERGROUND_MUTABLE
 report['underground_pack_runtime_qualified']=underground_pack['runtime_qualified']
 report['excavation_numeric_controls_and_transients']=DECISION_1066_CONTROLS+DECISION_1066_TRANSIENTS
 report['gear_lot_index_and_restore_bytes']=DECISION_1068_ADDED

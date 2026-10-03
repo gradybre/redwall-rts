@@ -1,0 +1,16 @@
+Godot headless suite	Require every shard and existing gate to succeed	﻿2026-10-03T20:09:32.1278500Z ##[group]Run set -euo pipefail
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1279273Z ^[[36;1mset -euo pipefail^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1280037Z ^[[36;1mfor result in "$SHARDS_RESULT" "$GATES_RESULT" "$CONTRACTS_RESULT"; do^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1280909Z ^[[36;1m  if [[ "$result" != success ]]; then^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1282071Z ^[[36;1m    echo "error: a required shard or gate was failed, cancelled, or skipped ($result)." >&2^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1282980Z ^[[36;1m    exit 1^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1283491Z ^[[36;1m  fi^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1283956Z ^[[36;1mdone^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1434763Z shell: /usr/bin/bash -e {0}
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1435721Z env:
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1436221Z   SHARDS_RESULT: success
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1436766Z   GATES_RESULT: success
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1437304Z   CONTRACTS_RESULT: failure
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1437828Z ##[endgroup]
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1551839Z error: a required shard or gate was failed, cancelled, or skipped (failure).
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:09:32.1562408Z ##[error]Process completed with exit code 1.

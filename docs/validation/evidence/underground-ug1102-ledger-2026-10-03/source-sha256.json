@@ -1,0 +1,7 @@
+{
+  "docs/validation/ready07_arithmetic.py": "302cb3723a8fdd28e02b24dcaf182863fcd86124c78f29a5fad8dafe8f7cd553",
+  "docs/systems_architecture.md": "d7b563d24280eb6fcbdb8bc531232793c859e1be6af250066c002713acc74d84",
+  "docs/decisions/1102-immutable-connector-recipes.md": "0d0041615304633aca1dc0e8bf04c77a387721ab048e17b9ac96cfbddb1026fa",
+  "docs/validation/evidence/underground-ug1102-ledger-2026-10-03/test_stale_census.py": "0798e9e31986f0d379d73183eb4dd0194eb2496828d12cddc49d6dc05e92e4eb",
+  "docs/validation/evidence/underground-ug1102-ledger-2026-10-03/run_checks.py": "d5ca01101c13635d1ba94bad16d87622d935aa559e294b3881810698c4b462cb"
+}

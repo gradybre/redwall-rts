@@ -242,3 +242,43 @@ correction retains exact assertions but requires schema3,1024 entries and
 allowance changed. Fresh focused strict tests pass110 tests/28650 assertions,
 all strict/raw diagnostics and leaks0; the rejected complete run remains in
 checkpoint-60f22f11. A new complete checkpoint is required after this correction.
+
+### CI ledger reconciliation after checkpoint499bfd73
+
+CI run37149792747 at499bfd73 failed the unchanged Specification contracts
+step `Memory ledger arithmetic`: `ready07_arithmetic.py` still required the
+three-domain Funding census. The actual26 packed columns total5220352 bytes,
+not5218304. Further stale assumptions retained owner schema2, loss capacity768,
+and the pre-1102 joint total. `systems_architecture.md` also omitted the fourth
+domain from its actual auxiliary row and conservative cold-image allocation.
+This was a ledger/checker omission, not a production or diagnostic failure.
+
+The correction keeps the1066 and1072 historical trail and adds an explicit1102
+step of4096 bytes:2048 live loss state and2048 simultaneous cold image. The
+current source census subtracts6144 live growth before reconstructing1066;
+it does not rewrite that historical baseline or count the growth twice. The
+auxiliary row is39758689; the joint allocation row is4960341 after removing
+6144 live growth already counted in that auxiliary row. Current payload is
+91570642, live plus reserve99959250 and headroom40750. The rejected two-world
+alternative is185280199 bytes. Canonical metadata, GDScript, workflows and
+strict checks remain unchanged. Native memory and runtime qualification stay
+open.
+
+All34 commands from the CI Specification contracts job pass on the correction.
+The source arithmetic reports145 field rows,45 allocation rows and131 checked
+links; the merge gate reports0 problems. Nine added read-only regressions run
+the real checker against current inputs and virtual stale inputs: three/five
+loss domains, schema2, an internally balanced768-cell ledger, an omitted cold
+image, duplicate live growth, stale headroom and an omitted final trail step.
+All nine pass, including required assertion failures for every stale input.
+The existing25 joint-memory,190 capacity-audit and58 component-schema checks
+also pass. No Godot rerun is warranted for this arithmetic/documentation-only
+correction; the parent recorded the independent499bfd73 clean full run as
+10321 tests/956322 assertions/0 failures, all unexpected strict/raw diagnostics
+and leaks0, and analyzer0/1148.
+
+Evidence, exact commands and the failed remote logs are in
+`docs/validation/evidence/underground-ug1102-ledger-2026-10-03/`. Remote shard
+and Godot-gate jobs individually succeeded, but the aggregate correctly
+refused the failed Specification contracts result. This correction does not
+claim a subsequently successful remote run or aggregate coverage audit.

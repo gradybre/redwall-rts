@@ -1403,6 +1403,18 @@
       "procedure": "assets aside, delete own .godot, clean editor import, full no-argument runner, restore assets; source unchanged",
       "seconds": 1409.83,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-5d2d8eca/README.md"
+    },
+    {
+      "commit": "00573c3ef415bf425152ce6d26b9d1291d66cee1",
+      "outcome": "passed",
+      "full_suite": "9748 test(s), 681366 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 warnings in 0 of 1094 files",
+      "procedure": "assets aside if present; delete own .godot; clean editor import; full no-argument runner; restore assets; source and HEAD unchanged",
+      "suite_seconds": 1195.525,
+      "analyzer_seconds": 212.474,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-00573c3e/README.md",
+      "limits": "Predates RoomOrders confirmation, WorldBindings, real-capacity validation correction and playable demo activation."
     }
   ],
   "crosscut_fixes": [

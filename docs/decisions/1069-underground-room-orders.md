@@ -204,3 +204,117 @@ are retained at
 This is the isolated identity/service boundary. It does not claim the actual
 room-order coordinator, paid furnishings, UG10 service-consumer integration,
 production geometry, full suite, save/load or hardware performance complete.
+
+## Shared increment B packet: paid operation coordinator
+
+The next increment composes real spatial furnishings and spoil-tip operations
+through one shared project/receipt owner. It appends live-only Construction
+purposes `SPATIAL_FURNITURE=6` and `SPOIL_TIP=7`, preserving every existing
+purpose ID and all frozen legacy save domains. Modular input reservation
+ownership appends `MODULAR_INPUT=4`. Existing excavation operation IDs and
+surface furniture semantics remain unchanged.
+
+A typed `modular_project_contract.gd` interface supplies a fail-closed
+`Owner` boundary. The concrete `modular_projects.gd` router binds exact
+Construction, Jobs, Work, Inventory, Reservations, Items and Sites instances,
+and holds actual per-purpose owners weakly. Initialization must preflight
+both Construction and Work before either binding changes. Live mutations
+revalidate that same composition. No caller-supplied bill, work amount or
+completion boolean can replace the actual bound owner's facts.
+
+The proposed owner calls are:
+
+- `construction_owner()` and `world_ref()` identify actual composition.
+- `prepared_order_into(subject, operation, quote)` describes a previously
+  validated cold admission; `project_facts_into(project, quote)` reads the
+  exact live project and immutable subject/operation/quantity contract.
+- Subject/project liveness and geometry/material/output/worker refusal
+  readers establish the real operation prerequisites.
+- `publish_open`, `publish_work`, `publish_completion` and
+  `publish_cancellation` install a fully preflighted transition synchronously.
+  Each checks the router's exact same-call-stack publication attestation.
+
+`Quote` is a finite caller-owned cold scratch record, never one object per
+project. It carries integer subject/operation/quantity and full/remaining
+milli-WU, existing Job/skill identifiers, actual worker limit, at most four
+input item/quantity pairs (the existing Construction material stride), and
+at most two output records (the existing physical salvage envelope). A
+spatial furnishing derives its actual protected catalog type and material
+recipe from Buildings/Construction. A tip's local operation and exact q
+contract are read from the real tip owner; its handle is a local row/generation
+qualified by the actual World, never a Directory EntityRef. Context-free
+catalog readers must refuse owner-dependent pricing rather than invent a
+quantity or a zero-price bill. Project-specific readers serve the actual
+immutable bill.
+
+The router owns actual project admission, Job/container/output binding,
+delivery reads, WIP start, productive work, pause/resume, cancellation and
+settlement. Work preflights the actual project and publishes accepted Job
+progress only within `is_publishing_modular_tick(full_job)`; no caller WU is
+accepted. Its existing integer carry, XP and real equipped-tool transaction
+remain the source of accepted labor. Exact pause, worker generation, active
+Job, tool, route and current geometry must qualify before those mutations.
+
+Reuse the existing Funding instance through a checked Sites reader. The
+receipt/project arenas are not allocated again. Generalize Funding's exact
+bill, claim-purpose and output readers over the bound purpose owner while
+retaining actual Inventory transactions, input metadata, per-item refund
+rounding, first-pile staging and blocked-output retry. Only a successful
+Inventory output/refund commit can open the matching physical publication
+window; source debit or installed furniture presence follows synchronously
+from a prepared no-fail owner transition. No direct publication, stale
+project, foreign owner or prior callback may supply that permission.
+
+Sharing WIP requires purpose-qualified conservation. Sites' brace/support
+ledger must read only excavation WIP and cancellation loss, while the
+whole-world earth ledger counts shared WIP/loss once and includes actual tip
+embedded stock. Expand the existing item-loss column to three item domains
+(EXCAVATION, SPATIAL_FURNITURE, SPOIL_TIP): 768 I64 entries instead of 256,
+an additional **4096 persistent bytes** and another 4096 bytes per staged
+image. Historical losses cannot be rederived after project retirement, so
+this is authoritative state, not a derived cache. The exact cold quote,
+permit and owner-wiring bytes will be enumerated from the implemented source
+before integration. No second 2.3 MB project arena is authorized.
+
+This packet does not activate the complete room/furniture flow. The actual
+Room-owned footprint, completed shell, room-specific furnishing fit and
+service contacts still require the shared spatial composition. The staged
+Buildings authority remains fail closed until those actual owner inputs
+bind. Every new persistent field and composed lifetime needs the canonical
+and memory gates before activation; UG16 owns versioned save/load.
+
+## Implemented B1: purpose-qualified Construction accounting
+
+The shared typed contract and Construction boundary now exist. Actual world
+and object identity qualify the weak router binding; an expired binding cannot
+be replaced to reset old ownership. Only a prepared router order allocates a
+project, and only its exact operation permit mutates delivery, WIP start, work,
+refund or retirement. Plain completion/refund doors refuse the new purposes.
+A World-qualified local tip handle never enters Building/Furniture lookups or
+writes a Building back-reference. Actual pending spatial furniture also cannot
+enter legacy surface construction/removal doors.
+
+New project-specific bill readers obtain the immutable q/type facts from the
+actual typed owner. Missing ownership refuses, never becomes an empty bill.
+Context-free spoil pricing explicitly refuses without the real project. The
+existing spatial furniture catalog remains exact, including all three Kitchen
+bench inputs; Construction independently compares its quote with that catalog.
+Retained zero labor still requires the full new bill before WORK_DONE, and
+pause, generation and refund-floor behavior remain intact. Frozen legacy
+Construction Columns continue rejecting every purpose outside 0–3.
+
+B1 adds no persistent columns. Construction holds one reusable nested Quote
+with 112 packed scratch bytes, four named catalog keys and the integer/ref
+controls described in the contract, plus one weak router reference. Nested
+Quote arrays are explicitly category 3; the current Markdown coverage parser
+only enumerates top-level columns, so their names and sizes are retained in
+its explanatory rows rather than falsely declaring module-level arrays.
+
+The focused strict suites passed **119 tests / 1160 assertions / 0 failures**;
+every strict diagnostic and raw-log unexpected/leak count is zero. The
+five-source/test analyzer reported `0 GDScript warning(s) in 0 of 5 file(s)`.
+Evidence and frozen source hashes are in
+`docs/validation/evidence/underground-ug07-modular-accounting-2026-10-03/`.
+The accounting fixture uses real identities and explicit synthetic permission;
+it is not the shared real Funding/Work/router, room coordinator or spoil adapter.
+Those are the next implemented boundaries, not qualifications implied by B1.

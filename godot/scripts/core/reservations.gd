@@ -99,8 +99,10 @@ const PURPOSE_HAUL_SOURCE: int = 1
 const PURPOSE_HAUL_DESTINATION: int = 2
 ## Paid excavation input claims; consumed atomically into physical-site WIP (decision 1056).
 const PURPOSE_EXCAVATION_INPUT: int = 3
+## Shared spatial furnishing / spoil operation inputs (decision 1069); distinct from site phases.
+const PURPOSE_MODULAR_INPUT: int = 4
 ## One past the highest numbered member.
-const PURPOSE_NUMBERED_COUNT: int = 4
+const PURPOSE_NUMBERED_COUNT: int = 5
 
 ## A batch is a flat int64 array of `claim_count` records of CLAIM_STRIDE fields. Passing the
 ## claims as one caller-owned buffer keeps this module free of a staging arena that the memory

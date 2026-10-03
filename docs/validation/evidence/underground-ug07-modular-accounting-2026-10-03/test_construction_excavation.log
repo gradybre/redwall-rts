@@ -1,0 +1,32 @@
+state_registry_coverage: PASS -- 102 modules, 482 rows, 823 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_excavation.gd
+  PASS  test_adopted_economic_rows_and_legacy_material_domain_are_exact
+  PASS  test_brace_needs_full_delivery_and_preserves_partial_accounting
+  PASS  test_site_completion_requires_physical_coordinator_and_retry_spends_no_work
+  PASS  test_cancelled_started_brace_prices_refund_per_phase
+  PASS  test_retained_work_needs_full_new_funding_even_when_work_is_ready
+  PASS  test_site_and_building_reference_namespaces_never_alias
+  PASS  test_site_authority_liveness_and_pause_are_revalidated
+  PASS  test_base_authority_and_expired_binding_cannot_reset_physical_history
+  PASS  test_new_purpose_is_rejected_by_frozen_legacy_save_columns
+CI_SUITE_TIME {"assertions":114,"failures":0,"suite":"test_construction_excavation.gd","tests":9,"usec":423306}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+9 test(s), 114 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 9 tests, 114 assertions, 0 failures.

@@ -60,6 +60,16 @@ class Bindings extends Space.Authority:
 		"""Actual static profile, structural and route qualification revision; zero is unavailable."""
 		return 0
 
+	func phase_plan_row_limit(_owner: Owner, _cold_token: int) -> int:
+		"""Attest the simultaneous plan/survey peak before the first phase-plan allocation."""
+		return 0
+
+	func phase_snapshot_into(_owner: Owner, _sites: Sites, _site: Vector2i, _operation: int,
+			_stage: int, _room: Vector2i, _plan: Space.Plan, _out: Space.Snapshot,
+			_cold_token: int) -> StringName:
+		"""Compose actual terrain and exact site-scoped history around the checked phase/contact bounds."""
+		return &"SPACE_PHASE_SURVEY_UNBOUND"
+
 	func room_refusal(_room: Vector2i) -> StringName:
 		"""Require actual underground Room registration, immutable purpose and current geometry binding."""
 		return &"SPACE_ROOM_PUBLICATION_UNBOUND"
@@ -455,24 +465,87 @@ func _cold_refusal(check: ColdCheck, site: Vector2i, operation: int, stage: int,
 	check.target = Space.quantum_box(_domain, _physical().origin_of(site))
 	if check.target.is_empty() or _bindings.qualification_revision() < 1:
 		return &"SPACE_QUALIFICATION_UNBOUND"
-	var code: StringName = _owner.snapshot_for_site_into(check.snapshot, _physical(), site)
-	if code != &"":
-		return code
-	code = _bindings.phase_plan_into(site, operation, stage, room,
-		_domain._regions - check.snapshot.volumes.role.size(), check.plan)
+	var code: StringName = _read_phase_plan(check, site, operation, stage, room)
+	if code == &"":
+		code = _bindings.phase_snapshot_into(_owner, _physical(), site, operation, stage, room,
+			check.plan, check.snapshot, _cold_token)
+	if code == &"":
+		code = _bindings.cold_operation_refusal(_cold_token)
 	if code == &"":
 		code = _plan_format_refusal(check, room)
 	if code == &"":
 		code = _target_refusal(check, operation, room)
 	if code == &"":
 		code = _contacts_refusal(check, room)
+	return _qualify_cold(check, site, operation, stage, room) if code == &"" else code
+
+
+func _qualify_cold(check: ColdCheck, site: Vector2i, operation: int, stage: int,
+		room: Vector2i) -> StringName:
+	"""Keep final physical qualification, exact cold lifetime and current sources conjunctive."""
+	var code: StringName = _bindings.cold_operation_refusal(_cold_token)
 	if code == &"":
 		code = _bindings.phase_qualification_refusal(_domain, check.snapshot.copy(), check.plan.copy(),
 			site, operation, stage)
+	if code == &"":
+		code = _bindings.cold_operation_refusal(_cold_token)
 	if code == &"" and (check.snapshot.revision != _owner.revision() or _owner.source_refusal(room) != &"" \
 			or check.qualification_revision != _bindings.qualification_revision()):
 		return &"SPACE_GEOMETRY_STALE"
 	return code
+
+
+func _read_phase_plan(check: ColdCheck, site: Vector2i, operation: int, stage: int,
+		room: Vector2i) -> StringName:
+	"""Acquire a bounded contact plan before surveying; its allocation shares the exact cold lease."""
+	var limit: int = _bindings.phase_plan_row_limit(_owner, _cold_token)
+	if limit < 1 or limit > _domain._regions:
+		return &"SPACE_PHASE_PLAN_CAPACITY"
+	var code: StringName = _bindings.cold_operation_refusal(_cold_token)
+	if code == &"":
+		code = _bindings.phase_plan_into(site, operation, stage, room, limit, check.plan)
+	if code == &"":
+		code = _bindings.cold_operation_refusal(_cold_token)
+	if code != &"":
+		return code
+	if not check.spend(limit):
+		return check.error
+	return phase_plan_bounds_refusal(_domain, check.plan, limit)
+
+
+static func phase_plan_bounds_refusal(domain: Space.Domain, plan: Space.Plan, limit: int) -> StringName:
+	"""Validate finite table shapes and full boxes before a provider uses them to choose survey bounds."""
+	if domain == null or plan == null or plan.contacts == null or limit < 1:
+		return &"SPACE_PHASE_PLAN_FORMAT"
+	var total: int = 0
+	for rows: Space.Volumes in [plan.volumes, plan.contacts.approach, plan.contacts.reach]:
+		if rows == null:
+			return &"SPACE_PHASE_PLAN_FORMAT"
+		total += rows.role.size()
+		if total > limit or not _phase_table_bounds_valid(domain, rows):
+			return &"SPACE_PHASE_PLAN_FORMAT"
+	var count: int = plan.contacts.profile_id.size()
+	if plan.contacts.approach.role.size() != count or plan.contacts.reach.role.size() != count \
+			or plan.contacts.profile_revision.size() != count or plan.contacts.work_xyz.size() != 3 * count:
+		return &"SPACE_PHASE_CONTACT_MISSING"
+	if not plan.cuts_xyz.is_empty() or not plan.cut_contacts.is_empty() or not plan.endpoints_xyz.is_empty() \
+			or not plan.endpoint_levels.is_empty() or not plan.endpoint_refs.is_empty() or not plan.endpoint_revisions.is_empty():
+		return &"SPACE_PHASE_PLAN_SCOPE"
+	return &""
+
+
+static func _phase_table_bounds_valid(domain: Space.Domain, rows: Space.Volumes) -> bool:
+	"""Read no column index until every SoA length matches, and never narrow an overflowing extent."""
+	var count: int = rows.role.size()
+	for column: Variant in [rows.lo_x, rows.lo_y, rows.lo_z, rows.hi_x, rows.hi_y, rows.hi_z,
+			rows.level, rows.owner_slot, rows.owner_generation, rows.owner_revision]:
+		if column.size() != count:
+			return false
+	for row: int in count:
+		var box: PackedInt32Array = rows.box_at(row)
+		if not Space.valid_box(box) or not Space.contains_box(domain._bounds, box):
+			return false
+	return true
 
 
 func _plan_format_refusal(check: ColdCheck, room: Vector2i) -> StringName:

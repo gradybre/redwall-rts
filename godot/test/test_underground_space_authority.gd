@@ -88,6 +88,12 @@ class SyntheticBindings extends Authority.Bindings:
 	var cold_attestation: StringName = &""
 	var cold_objects_released: bool = true
 	var last_plan: WeakRef = null
+	var plan_limit: int = 32
+	var malformed_plan: bool = false
+	var expire_after_plan: bool = false
+	var saw_checked_plan: bool = false
+	var snapshot_refusal: StringName = &""
+	var last_survey_stage: int = -1
 
 	func sources() -> Owner.CoreSources:
 		"""Use the actual reader that owns this fixture's directory and structural facts."""
@@ -126,6 +132,20 @@ class SyntheticBindings extends Authority.Bindings:
 		"""Fixture-controlled revision deliberately stands in for unavailable production measurements."""
 		return qualified_revision
 
+	func phase_plan_row_limit(store: Owner, token: int) -> int:
+		"""Explicit synthetic allowance; real WorldBindings derives its own joint peak allowance."""
+		return plan_limit if store == owner and cold_operation_refusal(token) == &"" else 0
+
+	func phase_snapshot_into(store: Owner, physical: Sites, site: Vector2i, _operation: int,
+			stage: int, _room: Vector2i, plan: Space.Plan, out: Space.Snapshot,
+			token: int) -> StringName:
+		"""Use only the actual sparse fixture image; production composes finite terrain here."""
+		saw_checked_plan = last_plan != null and last_plan.get_ref() == plan
+		last_survey_stage = stage
+		if store != owner or physical != sites or cold_operation_refusal(token) != &"":
+			return &"SYNTHETIC_SURVEY_BINDING"
+		return owner.snapshot_for_site_into(out, sites, site) if snapshot_refusal == &"" else snapshot_refusal
+
 	func room_refusal(room: Vector2i) -> StringName:
 		"""Require an actual underground Room generation; layout coordinates remain synthetic."""
 		var kind: Buildings.OpResult = buildings.spatial_kind_of_room(room)
@@ -160,6 +180,10 @@ class SyntheticBindings extends Authority.Bindings:
 		out.contacts.work_xyz = PackedInt32Array([origin.x, origin.y + 512, origin.z + 512])
 		out.contacts.profile_id = PackedInt32Array([7])
 		out.contacts.profile_revision = PackedInt64Array([qualified_revision])
+		if malformed_plan:
+			out.contacts.reach.hi_x.clear()
+		if expire_after_plan:
+			cold_attestation = &"SYNTHETIC_COLD_EXPIRED"
 		return &""
 
 	func _translated(box: Array[int], origin: Vector3i) -> PackedInt32Array:
@@ -564,6 +588,7 @@ func test_productive_work_uses_static_proof_and_fresh_dynamic_checks() -> void:
 	assert_false(_work.tick_solo(job).ok, "changed static qualification refuses cached proof")
 	assert_equal(_bindings.cold_reads, cold, "stale proof never rebuilds from WORK")
 	assert_equal(_authority.refresh_static_proof(_site), &"", "separate cold refresh requalifies funded phase")
+	assert_equal(_bindings.last_survey_stage, Contract.STAGE_WORK, "funded refresh surveys the exact WORK stage")
 	assert_true(_work.tick_solo(job).ok, "funded work resumes without repayment")
 
 
@@ -987,3 +1012,40 @@ func _target_role() -> int:
 				and Space.contains_box(image.volumes.box_at(row), target):
 			return image.volumes.role[row]
 	return -1
+
+
+func test_phase_plan_allowance_and_shape_are_checked_before_survey() -> void:
+	"""Plan memory and table integrity must be proven before the binding surveys its contact bounds."""
+	var observed: ObservedSpace = _owner as ObservedSpace
+	var snapshots: int = observed.snapshot_reads
+	var plans: int = _bindings.cold_reads
+	_bindings.plan_limit = 0
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		&"SPACE_PHASE_PLAN_CAPACITY", "zero allowance refuses before any phase plan")
+	assert_equal(_bindings.cold_reads, plans, "no plan allocation without admission")
+	_bindings.plan_limit = 1
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		&"SYNTHETIC_PLAN_CAPACITY", "provider refuses before exceeding exact allowance")
+	_bindings.plan_limit = 32
+	_bindings.malformed_plan = true
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		&"SPACE_PHASE_PLAN_FORMAT", "truncated table cannot determine a query")
+	assert_equal(observed.snapshot_reads, snapshots, "no snapshot on any early refusal")
+	_assert_cold_released()
+
+
+func test_phase_plan_lease_expiry_and_survey_refusal_release_all_scratch() -> void:
+	"""Provider success never overrides the exact shared lease or a refused world survey."""
+	var observed: ObservedSpace = _owner as ObservedSpace
+	var snapshots: int = observed.snapshot_reads
+	_bindings.expire_after_plan = true
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		&"SYNTHETIC_COLD_EXPIRED", "recheck immediately after plan callback")
+	assert_equal(observed.snapshot_reads, snapshots, "expired plan does not start a survey")
+	_bindings.expire_after_plan = false
+	_bindings.cold_attestation = &""
+	_bindings.snapshot_refusal = &"SYNTHETIC_WORLD_SURVEY_REFUSED"
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		_bindings.snapshot_refusal, "composed survey refusal is final")
+	assert_true(_bindings.saw_checked_plan, "the actual prepared plan precedes its bounds-based survey")
+	_assert_cold_released()

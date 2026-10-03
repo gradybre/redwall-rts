@@ -378,7 +378,8 @@
         "godot/test/test_room_layout.gd",
         "godot/test/test_construction_furniture_batches.gd",
         "godot/test/test_underground_furniture_batches.gd",
-        "docs/decisions/1087-cold-room-layout-admission.md"
+        "docs/decisions/1087-cold-room-layout-admission.md",
+        "docs/decisions/1089-atomic-room-furniture-batches.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -439,7 +440,8 @@
           "integration": "96ce2b41/b4241e61",
           "tests": "Batch21/7971,candidate11/358,Directory61/638; all failures/strict and raw diagnostics/leaks0; analyzer0/2",
           "review": "Root independently accepted exact source/test; packet24K+76+16controls; actual caller must charge and pin mutable observations."
-        }
+        },
+        "active_batch_increment": "B1 typed Sources/cold Results under independent correction for truthful committed outcomes; B2 Router-owned atomic pending Furniture/Construction batch approved. Exact packet/bridge180N+76 bytes plus B1 receipt/provider/native coexistence in the same existing cold lease. No future Project source or extra receipt arena."
       },
       "lease": {
         "state": "held"
@@ -726,7 +728,14 @@
           "scope": "Read-only original terrain plus retained sparse history; source scans and exact callback lease freshness corrected after two independent MEDIUM findings; productive bindings still refuse.",
           "review": "ug_construction accepted all four corrected iteration3 pins; both MEDIUM source-scan and callback-lease findings fixed; no remaining high/medium finding; all34 CI Specification contracts commands pass."
         },
-        "routes_allocation": "Approved authored single-containment-span edges; full section replaces Room edge fields; existing redundant resident next/goal fields reused for Room+section; one live/load levelI32 adds4096bytes. Combined Locations/Routes pack1040640 of1048576,7936headroom; source/commit/runtime evidence pending."
+        "routes_allocation": "Approved authored containment-span edges and retained actor Room/section/level:1040640 bytes, plus fixed Actor/Edge/Record/Domain/Region/Pose/Profile packet reservation correction1024. Total1041664 of1048576,6912 headroom; final packet census/source/runtime qualification pending.",
+        "phase_surveys": {
+          "status": "independently reviewed scoped-survey component; productive lane remains running",
+          "tests": "WorldBindings26/585 and Authority26/3090;52 tests3675 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/4",
+          "scope": "Plan-first exact Sites-scoped natural/history composition; real claim/project drift and bounded cold lease regressions. Actual productive profiles/routes/contact/paid publication still required.",
+          "evidence_path": "docs/validation/evidence/underground-phase-surveys-2026-10-03/iteration-3",
+          "review": "ug_geometry independently accepted final4 pins after correcting the MEDIUM cold WORK refresh guard; actual paid refresh/resume and composed WORK observation are covered."
+        }
       },
       "lease": {
         "state": "held",
@@ -739,9 +748,10 @@
               "godot/test/test_underground_world_bindings.gd",
               "docs/decisions/1085-actual-underground-world-composition.md",
               "godot/scripts/core/underground_terrain.gd",
-              "godot/test/test_underground_terrain.gd"
+              "godot/test/test_underground_terrain.gd",
+              "docs/decisions/1088-scoped-composed-phase-surveys.md"
             ],
-            "handoff": "ug_geometry explicitly released both absent new files; retains existing owner/authority, Routes/Locations/CoreSources.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
             "branch": "codex/underground-world-composition"
           }
         ]

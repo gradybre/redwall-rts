@@ -1399,3 +1399,15 @@ readers introduce no new authoritative, derived or transient retained state.
 |---|---|---:|---|---|:-:|---|---|
 | Fixed paid cube and exact claim intersection | `_cube`, `_clip` | 4 | `6` = 6 | Empty until exact owner composition binds; overwritten per synchronous query | 3 | -- | Decision1092.48 packed bytes, no authoritative coordinates or duplicate Site/Room map. Actual Sites owns the immutable quantum and SpaceOwner owns every exact claim. |
 | Reused actual Region, callbacks and cold outputs | -- | -- | -- | No active query at save/input/frame boundary | 3 | -- | Decision1092. One reusable Region adds24 packed box bytes and48 numeric metadata bytes; `_remaining`8 and `_reading`1 give129 total logical persistent/reused bytes. Two weak actual owner links, one borrowed actual Budget reference and native headers remain inside the shared bindings/native reservation. The exact World phase lease precedes descriptor/domain scratch and the8R handle image plus one exactly sized24F caller mask;512 cold control bytes cover sequential helper/numeric/descriptor scratch, with native/growth overhead additionally admitted. No authoritative schema, save ordinal, new arena or worker cache is added. Caller clears the synchronous output before the actual phase owner releases its lease. |
+
+### `godot/scripts/core/underground_space_owner.gd` — exact publication receipt
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Successful local publication token | -- | -- | -- | Zero before the first publication and after successful restore | 3 | -- | Decision1075. `_last_published_token` adds 8 logical numeric bytes inside the existing shared bindings/control reserve. Only the actual completed bank swap changes it across all four publication paths. Abort/refusal preserve the previous token. It is unsaved and noncanonical; no packed/wire field or image grows. Exact owner identity and all physical/source/lease checks remain mandatory. |
+
+### `godot/scripts/core/underground_locations.gd` — exact publication receipt
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Successful local publication token | -- | -- | -- | Zero before the first publication and after successful restore | 3 | -- | Decision1075. `_last_published_token` adds 8 logical numeric bytes inside the existing 2,112-byte whole-topology fixed-control ceiling, changing its actual census 2,060→2,068. Combined Locations/Routes reservation remains 1,041,728 with 6,848 unallocated bytes inside1MiB; the receipt is included once. Only actual bank swap publishes it, failed operations preserve, successful restore clears. Existing packed banks and wire format remain unchanged. Routes compares exact Space/Location receipts before and after provider callbacks; future Locations requires exact Space receipt plus its real Sites publication window. No extra Route state or multi-owner atomicity permission is introduced. |

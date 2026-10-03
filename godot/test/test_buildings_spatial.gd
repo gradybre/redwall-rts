@@ -256,6 +256,56 @@ func test_candidate_stale_after_intervening_allocation_cannot_roll_back_identity
 	assert_equal(_store.directory().get_persistent_id(made.ref), 2, "actual new PID")
 
 
+func test_building_spatial_identity_reads_current_actual_type_rotation_origin_and_state() -> void:
+	"""The Terrain reader borrows real ground Building facts, never underground Room coordinates."""
+	var out: PackedInt32Array = PackedInt32Array([99, 99, 99, 99])
+	var type_id: int = int(Catalog.BUILDING_DEFINITION["hall"])
+	for rotation: int in 4:
+		var made: Buildings.OpResult = _store.place_building(type_id, 258, rotation, 1)
+		assert_true(made.ok, "actual rotated Building exists")
+		for state: int in Buildings.STATE_COUNT:
+			assert_true(_store.set_building_state(made.ref, state).ok, "actual owner state changes")
+			assert_equal(_store.spatial_identity_into(made.ref, out), &"", "actual full identity reads")
+			assert_equal(out, PackedInt32Array([type_id, 258, rotation, state]), "all four current facts")
+		assert_true(_store.demolish_building(made.ref).ok, "empty Building retires between rotations")
+
+
+func test_building_spatial_identity_clears_stale_wrong_kind_and_unmirrored_rows() -> void:
+	"""Full generation and the actual Buildings mirror are both required before any fact is written."""
+	var made: Buildings.OpResult = _store.place_building(int(Catalog.BUILDING_DEFINITION["hall"]), 0, 0, 1)
+	assert_true(made.ok, "actual Building exists")
+	var wrong_kind: Vector2i = _store.directory().create(Directory.KIND_ROOM)
+	var orphan: Vector2i = _store.directory().create(Directory.KIND_BUILDING)
+	var out: PackedInt32Array = PackedInt32Array([7, 8, 9, 10])
+	var before: PackedByteArray = _image()
+	for refused: Vector2i in [NULL_REF, wrong_kind, orphan, Vector2i(made.ref.x, made.ref.y + 1)]:
+		out.fill(17)
+		assert_equal(_store.spatial_identity_into(refused, out), Buildings.REFUSE_STALE_BUILDING_REF, "unknown full identity refuses")
+		assert_equal(out, PackedInt32Array([0, 0, 0, 0]), "refusal erases prior facts")
+	assert_equal(_image(), before, "all read refusals leave actual owners unchanged")
+	assert_true(_store.demolish_building(made.ref).ok, "real Building retires")
+	out.fill(17)
+	assert_equal(_store.spatial_identity_into(made.ref, out), Buildings.REFUSE_STALE_BUILDING_REF, "retired ref refuses")
+	assert_equal(out, PackedInt32Array([0, 0, 0, 0]), "retired output cleared")
+	_store.directory().destroy(wrong_kind)
+	_store.directory().destroy(orphan)
+
+
+func test_building_spatial_identity_rejects_and_clears_wrong_sized_output_without_resize() -> void:
+	"""Hot readers never resize, allocate an OpResult, or preserve potentially stale facts."""
+	var made: Buildings.OpResult = _store.place_building(int(Catalog.BUILDING_DEFINITION["hall"]), 0, 0, 1)
+	assert_true(made.ok, "actual Building exists")
+	var before: PackedByteArray = _image()
+	for size: int in [0, 1, 3, 5, 8]:
+		var out: PackedInt32Array = PackedInt32Array()
+		out.resize(size)
+		out.fill(19)
+		assert_equal(_store.spatial_identity_into(made.ref, out), Buildings.REFUSE_COLUMN_SHAPE, "wrong shape refuses")
+		assert_equal(out.size(), size, "reader never resizes caller output")
+		assert_equal(out.count(0), size, "all supplied old facts erased")
+	assert_equal(_image(), before, "bad output sizes mutate no owner state")
+
+
 func test_unknown_type_wrong_permit_and_stale_identity_refuse_without_writes() -> void:
 	"""Admission and later identity readers validate every full generation and operation argument."""
 	var before: PackedByteArray = _image()

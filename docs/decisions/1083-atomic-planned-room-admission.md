@@ -108,3 +108,19 @@ Independent parent-agent review accepted the four frozen source/test hashes,
 with no remaining high or medium finding in this prerequisite. The reviewer
 read the new adversarial tests and owner delta; it did not claim to rerun
 the suites or qualify the later spatial composition.
+
+## Narrow Terrain reader prerequisite
+
+`Buildings.spatial_identity_into(ref, out)` fills a caller-owned four-int32
+array with actual Building type, origin tile, rotation and state. It clears
+the supplied array on every refusal and requires exact size four without
+resizing. The existing full Directory kind/generation/reverse map and actual
+Buildings presence/ref mirror gate every read. No result object or owner
+column is allocated. The caller's reusable16-byte buffer belongs in its own
+Terrain binding ledger; this function grants no terrain/contact permission.
+
+The separate `terrain-reader/` evidence retains the initially rejected
+fixture retirement call and corrected final strict84 tests/1340 assertions/0
+failures. Both suite diagnostic/raw unexpected/leak totals are zero; analyzer
+reports zero warnings in two files. Parent independently reviewed the exact
+production reader and the adversarial test delta.

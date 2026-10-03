@@ -1,0 +1,44 @@
+state_registry_coverage: PASS -- 111 modules, 532 rows, 925 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_buildings_spatial.gd
+  PASS  test_authority_binding_refuses_unbound_foreign_replacement_and_expiration
+  PASS  test_room_identity_is_real_permanent_and_not_limited_to_sixteen_surface_rooms
+  PASS  test_candidate_preflight_never_creates_until_exact_publication_window
+  PASS  test_candidate_wrong_kind_foreign_owner_and_wrong_type_leave_both_stores_unchanged
+  PASS  test_candidate_stale_after_intervening_allocation_cannot_roll_back_identity_history
+  PASS  test_building_spatial_identity_reads_current_actual_type_rotation_origin_and_state
+  PASS  test_building_spatial_identity_clears_stale_wrong_kind_and_unmirrored_rows
+  PASS  test_building_spatial_identity_rejects_and_clears_wrong_sized_output_without_resize
+  PASS  test_unknown_type_wrong_permit_and_stale_identity_refuse_without_writes
+  PASS  test_pending_bed_reserves_identity_membership_but_supplies_no_presence_or_use
+  PASS  test_installation_is_owner_scoped_idempotent_and_generation_safe
+  PASS  test_pending_pantry_and_kitchen_furniture_grant_no_service_capacity
+  PASS  test_area_and_countable_rules_use_actual_floor_identity_without_rounding_up
+  PASS  test_legacy_mutators_cannot_reassign_remove_or_validate_spatial_rows
+  PASS  test_exact_installed_user_condition_and_temperature_publications_remain_available
+  PASS  test_late_foreign_owner_rewiring_blocks_mutations_and_service_reads
+  PASS  test_spatial_removal_requires_occupants_released_and_new_purpose_gets_fresh_identity
+  PASS  test_surface_and_spatial_slot_reuse_initializes_both_new_columns
+  PASS  test_clear_resets_pending_flags_and_preserves_only_weak_owner_wiring
+  PASS  test_legacy_capture_and_restore_refuse_spatial_or_unknown_state_atomically
+  PASS  test_legacy_restore_explicitly_initializes_old_live_furniture_and_rejects_unknowns
+CI_SUITE_TIME {"assertions":434,"failures":0,"suite":"test_buildings_spatial.gd","tests":21,"usec":1071361}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+21 test(s), 434 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 21 tests, 434 assertions, 0 failures.

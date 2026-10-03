@@ -864,6 +864,21 @@ func is_live_building(building_ref: Vector2i) -> bool:
 	return _building_row_of(building_ref) != NO_ROW
 
 
+func spatial_identity_into(building_ref: Vector2i, out: PackedInt32Array) -> StringName:
+	"""Fill type/origin/rotation/state without allocation; stale or misshaped output is cleared."""
+	out.fill(0)
+	if out.size() != 4:
+		return REFUSE_COLUMN_SHAPE
+	var row: int = _building_row_of(building_ref)
+	if row == NO_ROW:
+		return REFUSE_STALE_BUILDING_REF
+	out[0] = _b_type_id[row]
+	out[1] = _b_origin_tile[row]
+	out[2] = _b_rotation[row]
+	out[3] = _b_state[row]
+	return REFUSE_NONE
+
+
 func _building_field(building_ref: Vector2i, column: PackedInt32Array) -> OpResult:
 	"""One Building column's value for a live reference, or a stale-reference refusal.
 

@@ -32,7 +32,7 @@
       "orchard_hive": "5df8ff1b6c33deef47bbde0e16c94bcd7c2392f7a6e9b60c2ebab45daa6d459d",
       "priorities": "27b1bd69d315f822dc34ee59ab8e01c74cd23396f4228467a08171216605f3a4",
       "reservations": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
-      "residents": "5401be1da7a5a5b60d36935df39a74898ac054f4f7fdebcfd2e5517be9f75c96",
+      "residents": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
       "resource_nodes": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465",
       "rng": "4ad32c2e173774b3e30300b8516a006a68c34f4a3d8f46470fca6490d124149e",
       "room_layout": "33ff91234526617fd814034c710e37b1774ee829ad92a9e2b5c784511b8e288a",
@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
-      "underground_space_owner": "51e065b3bef01490000aacfcebfee9687164ab94961e4ec21b82f0cbf8dc95c8",
+      "underground_space_owner": "938522471c5fed1691ad229f4bf47a9c743890d14a7cc4502d163d3cda6380e9",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
       "world_init": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4"
@@ -2257,7 +2257,7 @@
       "owner_key": "underground_space_owner",
       "parsed_expression": "HEADER_FIELDS",
       "proof_chain": [
-        "HEADER_FIELDS -> godot/scripts/core/underground_space_owner.gd:14 `const HEADER_FIELDS = 18` = 18"
+        "HEADER_FIELDS -> godot/scripts/core/underground_space_owner.gd:15 `const HEADER_FIELDS = 18` = 18"
       ],
       "proof_kind": "compiled_constant",
       "prose_relation": "eq",
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 1345,
+      "source_resize_line": 1484,
       "source_value": 18,
       "status": "proved_equality"
     },

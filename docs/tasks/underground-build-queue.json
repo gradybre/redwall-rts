@@ -363,7 +363,12 @@
         "godot/test/test_modular_projects.gd",
         "godot/test/test_reservations.gd",
         "godot/test/test_work.gd",
-        "docs/decisions/1073-shared-modular-receipts-and-worker-router.md"
+        "docs/decisions/1073-shared-modular-receipts-and-worker-router.md",
+        "godot/scripts/core/underground_furniture_work.gd",
+        "godot/test/test_underground_furniture_work.gd",
+        "godot/test/test_modular_spatial_outputs.gd",
+        "docs/decisions/1079-paid-spatial-output-dispatch.md",
+        "docs/decisions/1081-paid-spatial-furniture-installation.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -384,9 +389,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-orders",
+      "branch": "codex/underground-furniture-work",
       "evidence": {
-        "in_progress": "Buildings spatial Room/installed Furniture flags and shared Sites publication guard reviewed and integrated; mandatory S6 extension recorded in1071. B1 modular purpose accounting and B2 single shared funded-receipt arena reviewed and tested on component branches. Actual worker Router, Room/Furniture coordinator and production contacts remain in development; the whole lane remains running.",
+        "in_progress": "1081 actual RoomOrders authority/FurnitureWork paid installation of registered pending furniture; atomic Room/RoomLayout admission still needs Directory candidate-identity packet. No actual dirt-to-empty-Kitchen completion claimed.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -394,12 +399,15 @@
           "review": "Root independently accepted actual-owner getters; no extra authoritative state or implied clearance proof."
         },
         "shared_funding": {
-          "commit": "775aa07a",
-          "registry": "a1a06b1e",
-          "tests": "128 tests,27099 assertions,0 failures; diagnostics0 unexpected errors/0 unexpected warnings,0 leaks; raw log0 unexpected/0 leaks; analyzer0 warnings in0of7 files.",
-          "review": "root independent review of the frozen seven-file candidate; no unresolved findings",
-          "integration": "root UG20 branch121d1ea2/becf04d1; PR230 integration awaits joint1072 memory/registry reconciliation",
-          "evidence_path": "docs/validation/evidence/underground-ug07-shared-funding-2026-10-03/README.md"
+          "commits": "373bb612/34a9fcdc, f76cb01f/18898500, 7f138737/815a20dc",
+          "scope": "Reviewed B1-B3 real Construction/Funding/Work/Router shared receipts and full Job bindings; no second escrow or per-project Quote."
+        },
+        "spatial_outputs": {
+          "commit": "7d1ba0aa",
+          "source": "f3f490e4",
+          "tests": "124 tests,29770 assertions,0 failures; strict/raw diagnostics/leaks all0; analyzer0/5",
+          "review": "root independent source accepted; actual real endpoint promotion/refund and shared-container cancellation tested",
+          "evidence_path": "docs/validation/evidence/underground-paid-spatial-outputs-2026-10-03/"
         }
       },
       "lease": {
@@ -436,7 +444,20 @@
         "docs/design/underground-planning/evidence/modular-build/profiles/runtime/",
         "tools/capture_underground_transitions.gd",
         "tools/test_underground_transitions.py",
-        "docs/decisions/1074-runtime-underground-transition-capture.md"
+        "docs/decisions/1074-runtime-underground-transition-capture.md",
+        "godot/demo/cast/demo_actor.gd",
+        "tools/capture_underground_heading.gd",
+        "docs/decisions/1077-underground-rendered-heading.md",
+        "godot/scripts/core/underground_profiles.gd",
+        "godot/test/test_underground_profiles.gd",
+        "tools/export_underground_envelopes.py",
+        "tools/test_export_underground_envelopes.py",
+        "tools/export_underground_native_source.gd",
+        "godot/data/underground/",
+        "godot/scripts/core/residents.gd",
+        "godot/test/test_residents.gd",
+        "docs/decisions/1080-source-bound-underground-profile-catalog.md",
+        "godot/test/test_demo_actor_underground_heading.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -468,9 +489,9 @@
         "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
       ],
       "agent": "/root/ug_furnishing",
-      "branch": "codex/underground-space",
+      "branch": "codex/underground-profiles",
       "evidence": {
-        "in_progress": "Fixed five-family connector geometry and imported runtime pose capture reviewed and integrated. Actual crossfade/reversal/retreat capture and source-derived level/offset/profile catalog are being built. Sampled envelopes do not alone qualify production movement.",
+        "in_progress": "1080 source-bound continuous profile exporter and finite actual catalog. Extracted native source is evidence input only; no qualified production profile is claimed.",
         "increments": [
           {
             "commit": "efadbab9",
@@ -518,6 +539,20 @@
           "registry": "f682c5cd",
           "integration": "a931c484/4f0057d8",
           "review": "independent corrected winding and material-containment review accepted; visual fixture is not traversal qualification"
+        },
+        "heading": {
+          "commit": "3ab3f46f",
+          "source": "d90fbf8f",
+          "tests": "198 tests,4591 assertions,0failures;0unexpecteddiagnostics,6expected,0tolerated,0leaks; analyzer0/3;13Python adversarial checks",
+          "native": "10 real reversal/retreat cases,1894poses,54816matrices; all0diagnostics;34142inheritedBrainobservations unchanged;0qualifiedprofiles",
+          "evidence_path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/"
+        },
+        "resident_identity": {
+          "commit": "ca9da74d",
+          "source": "ecb8fe26",
+          "tests": "98 tests,2019 assertions,0failures; strict/raw diagnostics/leaks all0;analyzer0/2",
+          "review": "root independent source accepted; identity only, actual contact authority still checks living/movement eligibility",
+          "evidence_path": "godot/data/underground/evidence/resident-identity-v1/"
         }
       },
       "lease": {
@@ -544,7 +579,12 @@
         "godot/scripts/core/transforms.gd",
         "godot/test/test_transforms.gd",
         "godot/scripts/core/haul_carry.gd",
-        "godot/test/test_haul_carry.gd"
+        "godot/test/test_haul_carry.gd",
+        "godot/scripts/core/inventory.gd",
+        "godot/scripts/core/inventory_spatial_contract.gd",
+        "godot/test/test_inventory_spatial.gd",
+        "docs/decisions/1075-underground-world-bindings.md",
+        "docs/decisions/1076-spatial-inventory-endpoints.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -570,7 +610,7 @@
       "branch": "codex/underground-world-bindings",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
-        "in_progress": "Sparse Space owner and exact phase adapter reviewed on component branch; production World/terrain support, actual multilevel location/topology/contact owner and exact Transforms/Haul identity readers now implementing under1075. Technical capacity pack is reserved, not measured qualification; UG07 Router/Funding and all native/provider growth must fit the joint1072 gate.",
+        "in_progress": "1075 actual terrain/route/physical world bindings and shared Budget hooks before the first cold snapshot. Endpoint identity and staged sources are reviewed components; actual productive contacts remain unqualified.",
         "phase_adapter": {
           "commit": "8b14c60de10baf2c19f830bc307b1d5a529c1b6e",
           "registry": "aef88460d65bbe9cf7ae3b4ae2cfee165f1d483e",
@@ -578,6 +618,20 @@
           "review": "ug_furnishing independently accepted actual phase binding/guard tests",
           "integration": "pending joint1072 canonical/memory reconciliation",
           "evidence_path": "docs/validation/evidence/underground-ug21-spatial-2026-10-03/README.md"
+        },
+        "locations": {
+          "commits": "67c33942/3ef4770f",
+          "sources": "3db3876b/f7d549f1",
+          "tests": "16 tests,358 assertions,0 failures; strict/raw all0;analyzer0/4",
+          "review": "ug_furnishing independently accepted actual post-seal Inventory-retention correction",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/locations/"
+        },
+        "paid_furniture_source": {
+          "commits": "28d60882/c31bf985",
+          "sources": "dff55e50/0a8a542c",
+          "tests": "39 tests,570 assertions,0failures; strict/raw all0;analyzer0/4",
+          "review": "root independently accepted exact completed actual Project/Router/World d0-to1 source exception; generic publish refuses it",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/furniture-source/"
         }
       },
       "lease": {
@@ -975,13 +1029,20 @@
       "agent": "/root",
       "branch": "codex/underground-spoil",
       "evidence": {
-        "in_progress": "Actual generational tip/source ledger and read-only admission preflight are reviewed. Root is implementing the real SpoilWork adapter and integration tests against the shared Router/Funding/Jobs/Work/Gear owners. Actual World contacts and spatial pile endpoints remain required. Ledger-only synthetic fixtures do not complete this lane.",
+        "in_progress": "Paid Tips coordinator implemented/reviewed; actual exterior siting, support and haul contact binding waits on UG21; demo controls/persistence still queued.",
         "candidate_preflight": {
           "commit": "33b6fd34",
           "tests": "18 tests,798 assertions,0 failures; diagnostics0 unexpected/0 expected/0 tolerated/0 leaks;raw0 unexpected/0 leaks;analyzer0of2.",
           "review": "ug_geometry independently accepted exact frozen source/test hashes",
           "integration": "pending joint1072 canonical/memory reconciliation",
           "evidence_path": "docs/validation/evidence/underground-ug20-candidate-2026-10-03/README.md"
+        },
+        "paid_coordinator": {
+          "commits": "3f85096b/d2ff8ddc",
+          "sources": "838ed6d0/f52a23bb",
+          "tests": "97 tests,26210 assertions,0failures;strict/raw all0;analyzer0/4",
+          "review": "ug_furnishing independent source accepted; real Router/Inventory/Work/Tips; actual Contacts remains required",
+          "evidence_path": "docs/validation/evidence/underground-spoil-worker-composition-2026-10-03/"
         }
       },
       "lease": {
@@ -1265,6 +1326,14 @@
       "review": "root independent review approved",
       "tests": "all32 specification commands passed;7 corruption probes refused",
       "limits": "logical ledger only; new underground owners still require additional accounting and whole runtime qualification"
+    },
+    {
+      "commit": "c6c10f3c",
+      "scope": "1072 shared cold-allocation admission plus five mandatory canonical owners and joint memory pack",
+      "review": "ug_furnishing independent source/arithmetic and final delta review accepted",
+      "tests": "66tests4782assertions0failures;strict/raw diagnostic/leaksall0;analyzer0/4;34spec commands and190capacitychecks plus13packtests pass",
+      "memory": "99955154 logical live+reserve bytes;44846headroom;actual cold consumers and measured native peaks required before activation",
+      "evidence_path": "docs/validation/evidence/underground-joint-budget-2026-10-03/README.md"
     }
   ]
 }

@@ -1103,6 +1103,7 @@ future-affecting once integrated; no codec assignment is invented here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---:|---|---|:-:|---|---|
 | Cold fixed-piece transforms | -- | -- | -- | Refusal has no plan; unnamed catalog defaults refuse | 3 | -- | Decision 1058. Stateless exact quarter-turn/translation over caller-owned catalog definitions and placement inputs. Output is only a RoomSpace candidate with catalog revision, actual endpoint floors and full target refs. No production catalog defaults, dynamic resizing, occupancy, installation, work, traversal or saved identity is created. Accepted connector identity/geometry and catalog version remain the eventual owning store's persistence obligation. |
+
 ### `godot/scripts/core/excavation_inventory.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
@@ -1133,3 +1134,10 @@ future-affecting once integrated; no codec assignment is invented here.
 | Delivery transaction totals | `_delivery_totals` | 8 | `2` = 2 | 0 | 3 | -- | Cold scratch for the maximum adopted two-line phase bill; reads all actual reservation rows and refuses extras. |
 | Immutable domain and physical conservation scalars | -- | -- | -- | World null only before valid binding | 1 | §6 AUXILIARY_STATE | World identity, copied datum/minimum/size, sparse capacity/count and world volume, initial earth, virgin source, funded/completed/salvaged brace counts and committed per-material brace returns. Required UG16 codec/hash state even after all paid phase rows retire; legacy saves explicitly unsupported. |
 | Owner wiring and synchronous permit | -- | -- | -- | Null permit and action -1 | 3 | -- | Construction/Inventory/Reservations/Items/Jobs/Work/Funding and weak SpatialAuthority wiring. Permits and prepared-candidate row/stage exist only during the current physical-owner call stack; decision 1069 adds `_publishing_spatial`, one logical bool byte of category-3 synchronous callback control, false outside the exact committed spatial publication and excluded from save/hash; `_earned_capacity` is a derived 8-byte scalar cache recomputed from admitted site capacity times five operations. Initialization refusal and transient math/result scratch are excluded from local state image. All collaborator bindings are revalidated on live phase/work entry. |
+
+
+### `godot/scripts/core/connector_geometry.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---:|---|---|:-:|---|---|
+| Cold fixed-content mesh and footprint compilation | -- | -- | -- | Refusal has no candidate; unnamed or incomplete content refuses | 3 | -- | Decision 1070. Stateless integer compiler over explicit caller-owned polygon parts, fixed RoomConnectors metadata and full RoomSpace contracts. Packed input is 12 bytes per top vertex, 32 per part plus 4 for the offset sentinel, and 4 per material. Triangle output is 44 bytes per triangle, plus 4 per part, 4 per material, optional 24-byte hinge and 24-byte sweep. Compiled geometry additionally holds copied 48-byte volume rows and full contact/cut metadata; each part adds one SOLID row, a hatch one ENVELOPE row. Bounds are caller-selected under 128 parts, 2048 top vertices, 8192 triangles, 16 materials and RoomSpace region ceilings; no resident arrays or module-level persistent state. The eventual accepted content/geometry owner must retain the catalog revision, never rebuild authority from a mutable display mesh. Native object/material/renderer memory is separate, unmeasured presentation overhead. |

@@ -238,6 +238,11 @@ func construction_owner() -> Construction:
 	return _construction if _ready_error == &"" else null
 
 
+func jobs_owner() -> Jobs:
+	"""Borrow the exact initialized Job store; identity alone grants no worker or contact permission."""
+	return _jobs if _ready_error == &"" else null
+
+
 func funding_owner(construction: Construction, inventory: Inventory, pool: Reservations,
 		items: Items, jobs: Jobs, work: Work) -> Funding:
 	"""Share this one receipt arena only with the exact still-valid composed world owners."""
@@ -1120,6 +1125,17 @@ func release_room_claim(site: Vector2i) -> Construction.OpResult:
 func phase_into(site: Vector2i, out: IntMath.IntResult) -> bool:
 	"""Read physical state separately from Construction's paid-project phase."""
 	return out.succeed(_phase[site.x]) if is_live_site(site) else out.refuse(REFUSE_SITE)
+
+
+func installed_support(site: Vector2i) -> bool:
+	"""Read paid brace truth through the actual live Site, World and Room; phase names are insufficient."""
+	if _ready_error != &"" or not is_live_site(site) or not _world_is_live() or _installed[site.x] != 1:
+		return false
+	var spatial: SpatialAuthority = _spatial()
+	var room: Vector2i = _room(site.x)
+	if spatial == null or room == NULL_REF or spatial.room_refusal(room) != &"":
+		return false
+	return _spatial() == spatial and _world_is_live() and _room(site.x) == room and _installed[site.x] == 1
 
 
 func embedded_earth_milli(site: Vector2i) -> int:

@@ -46,6 +46,8 @@ class SpatialFixture extends Contract.SpatialAuthority:
 	## This fixture is never bound into production. Real UG08/09 must supply all these proofs.
 	var world: Vector2i = NULL_REF
 	var retained_descriptor: Contract.Domain = null
+	var room_generation: int = 1
+	var retire_world_on_room_read: Directory = null
 	var block_operation: StringName = &""
 	var block_worker: StringName = &""
 	var block_output: StringName = &""
@@ -70,7 +72,10 @@ class SpatialFixture extends Contract.SpatialAuthority:
 
 	func room_refusal(room: Vector2i) -> StringName:
 		"""Accept only the explicit synthetic room generations."""
-		return &"" if room.x >= ROOM.x and room.x < ROOM.x + 64 and room.y == 1 else &"SYNTHETIC_ROOM_STALE"
+		if retire_world_on_room_read != null:
+			retire_world_on_room_read.destroy(world)
+			retire_world_on_room_read = null
+		return &"" if room.x >= ROOM.x and room.x < ROOM.x + 64 and room.y == room_generation else &"SYNTHETIC_ROOM_STALE"
 
 	func retirement_refusal(room: Vector2i) -> StringName:
 		"""No actual room or route is erased by this isolated economy fixture."""
@@ -1067,6 +1072,8 @@ func test_refused_null_owner_public_methods_fail_safely() -> void:
 	assert_equal(refused.earth_conservation_refusal(), Contract.REFUSE_AUTHORITY, "earth read refuses safely")
 	assert_equal(refused.support_conservation_refusal(), Contract.REFUSE_AUTHORITY, "support read refuses safely")
 	assert_true(refused.construction_owner() == null, "refused initialization exposes no bound owner")
+	assert_true(refused.jobs_owner() == null, "refused initialization exposes no Job owner")
+	assert_false(refused.installed_support(Vector2i(0, 1)), "refused initialization never exposes support")
 	assert_true(refused.bound_spatial_authority() == null, "refused initialization exposes no typed spatial target")
 	assert_false(refused.is_bound_spatial(_space), "refused initialization exposes no spatial binding")
 
@@ -1092,6 +1099,99 @@ func test_owner_identity_readers_refuse_numeric_aliases_null_and_expired_space()
 	assert_false(_sites.is_bound_spatial(null), "expired weak reference and null are not a binding")
 	assert_false(_sites.is_publishing_spatial_transition(ORIGIN, Contract.OP_BRACE,
 		Contract.STAGE_START, ROOM, null), "expired spatial owner cannot attest a callback")
+
+
+func _assert_installed_support(expected: bool) -> void:
+	"""Public support reads preserve real payment, history, project and worker state byte for byte."""
+	var before: Array[PackedByteArray] = [_sites.state_bytes(), _construction.state_bytes(),
+		_inventory.state_bytes(), _jobs.state_bytes(), _work.state_bytes(), _gear.state_bytes()]
+	assert_equal(_sites.installed_support(_site), expected, "actual installed-support flag")
+	var after: Array[PackedByteArray] = [_sites.state_bytes(), _construction.state_bytes(),
+		_inventory.state_bytes(), _jobs.state_bytes(), _work.state_bytes(), _gear.state_bytes()]
+	assert_equal(after, before, "read-only support proof changes no authoritative byte")
+
+
+func test_support_reader_follows_paid_brace_cut_finish_and_canceled_closure() -> void:
+	"""CLOSING keeps actual installed support until paid closure commits; canceled work removes none."""
+	_assert_installed_support(false)
+	var job: int = _start(Contract.OP_BRACE)
+	_assert_installed_support(false)
+	_finish_work(job)
+	_assert_installed_support(false)
+	assert_true(_sites.settle_phase(_site).ok, "only real settled brace installs support")
+	_assert_installed_support(true)
+	job = _start(Contract.OP_CUT)
+	_assert_installed_support(true)
+	_finish_work(job)
+	assert_true(_sites.settle_phase(_site).ok, "real paid cut settles")
+	_assert_installed_support(true)
+	job = _start(Contract.OP_FINISH)
+	_assert_installed_support(true)
+	_finish_work(job)
+	assert_true(_sites.settle_phase(_site).ok, "real paid finish settles")
+	_assert_installed_support(true)
+	job = _start(Contract.OP_BACKFILL_CLOSE)
+	assert_true(_work.tick_solo(job).ok, "actual closing begins")
+	_assert_installed_support(true)
+	assert_true(_sites.cancel_phase(_site, _store).ok, "actual incomplete backfill refunds")
+	_assert_installed_support(true)
+
+
+func test_support_reader_clears_only_at_paid_backfill_or_unopened_closure() -> void:
+	"""Both real closure operations remove the one installed brace exactly when salvage commits."""
+	_complete(Contract.OP_BRACE)
+	_complete(Contract.OP_CUT)
+	_complete(Contract.OP_FINISH)
+	_complete(Contract.OP_BACKFILL_CLOSE)
+	_assert_installed_support(false)
+	assert_true(_sites.release_room_claim(_site).ok, "closed former Room claim releases")
+	assert_false(_sites.installed_support(_site), "historical row grants no support to a retired Room")
+	assert_equal(_sites.claim_quantum(ORIGIN, OTHER_ROOM).ref, _site, "new Room reuses only physical history")
+	_complete(Contract.OP_BRACE)
+	_assert_installed_support(true)
+	var job: int = _start(Contract.OP_UNOPENED_SUPPORT_CLOSE)
+	_assert_installed_support(true)
+	_finish_work(job)
+	assert_true(_sites.settle_phase(_site).ok, "real never-opened closure settles")
+	_assert_installed_support(false)
+
+
+func test_support_reader_refuses_stale_site_room_world_and_expired_authority() -> void:
+	"""Full generations and exact weak binding matter even when the retained installed byte is one."""
+	_complete(Contract.OP_BRACE)
+	assert_false(_sites.installed_support(NULL_REF), "null Site refuses")
+	assert_false(_sites.installed_support(Vector2i(_site.x, _site.y + 1)), "wrong Site generation refuses")
+	assert_false(_sites.installed_support(Vector2i(_site.x + 1, _site.y)), "absent Site refuses")
+	_space.room_generation += 1
+	_assert_installed_support(false)
+	_space.room_generation -= 1
+	_assert_installed_support(true)
+	_space = null
+	_assert_installed_support(false)
+
+
+func test_support_reader_rechecks_world_after_room_callback_and_recycled_world() -> void:
+	"""A callback cannot validate a Room and then leave a destroyed or recycled World authorized."""
+	_complete(Contract.OP_BRACE)
+	var before: PackedByteArray = _sites.state_bytes()
+	_space.retire_world_on_room_read = _residents.directory()
+	assert_false(_sites.installed_support(_site), "World retired inside Room proof refuses immediately")
+	assert_equal(_sites.state_bytes(), before, "external World retirement does not rewrite paid history")
+	var replacement: Vector2i = _residents.directory().create(Directory.KIND_WORLD)
+	assert_equal(replacement.x, _world.x, "actual World slot reused")
+	assert_true(replacement.y != _world.y, "actual World generation advances")
+	_assert_installed_support(false)
+
+
+func test_jobs_reader_returns_actual_store_without_numeric_alias_permission() -> void:
+	"""Borrowed Job identity never substitutes a foreign store with identical row or World numbers."""
+	var other_residents: Residents = Residents.new()
+	var other_priorities: Priorities = Priorities.new()
+	var other_schedule: Schedule = Schedule.new(other_residents.needs())
+	var other_jobs: Jobs = Jobs.new(other_residents, other_priorities, other_schedule)
+	assert_true(_sites.jobs_owner() == _jobs, "exact initialized Jobs is borrowed")
+	assert_false(_sites.jobs_owner() == other_jobs, "same-shape foreign store cannot replace actual Jobs")
+	assert_equal(_sites.jobs_owner().directory(), _construction.directory(), "actual shared Directory remains explicit")
 
 
 func test_spatial_publication_attests_only_the_exact_committed_callback() -> void:

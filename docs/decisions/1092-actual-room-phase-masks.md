@@ -162,3 +162,31 @@ assertions,0 failures; strict/raw unexpected diagnostics and leaks are all zero.
 The analyzer reports0 GDScript warnings in0 of3 actual files. Corrected local
 selection/analyzer path mistakes are disclosed in the retained evidence at
 `docs/validation/evidence/underground-room-masks-2026-10-03/phase-world-identity/`.
+
+
+## Physical identity prerequisites for actual support and worker binding
+
+`Sites.jobs_owner()` borrows the exact successfully initialized Job store, or
+null after refused initialization. This is owner identity metadata; a consumer
+still proves current World, full Job, requester, worker and contact separately.
+`Sites.installed_support(site)` reads the actual paid installed byte through the
+full live Site, immutable World generation and bound spatial Room proof. It
+rechecks the exact authority, World, Room and installed byte after that callback.
+It does not infer a brace from BRACING, CUTTING or CLOSING. A canceled closure
+retains support; either successfully settled physical closure removes it.
+
+These are stateless readers: no packed columns, persistent controls, scratch
+buffers, save fields or byte ledger change. Root owns the actual worker binding;
+geometry owns the separate retained natural-footing/roof provider. Neither may
+turn this paid-brace fact into invented natural support or free installation.
+
+Five new actual physical lifecycle/identity regressions and refused-initializer
+assertions cover unsettled/settled brace, cutting/finishing/closing, canceled and
+paid closure, stale Site/Room, expired authority, callback-time World retirement,
+World slot reuse, actual Job object identity and unchanged authoritative bytes.
+Final clean strict physical suite:48 tests,23880 assertions,0 failures; strict
+and raw unexpected diagnostics and leaks all zero. Analyzer:0 warnings in0 of2
+files. The initial test-constructor error and complete final evidence are retained
+at `docs/validation/evidence/underground-room-masks-2026-10-03/physical-identity-readers/`.
+Independent root review matched both frozen source pins and accepted the exact
+paid-state/identity checks and tests with no high/medium finding.

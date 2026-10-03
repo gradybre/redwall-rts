@@ -865,3 +865,32 @@ strict/raw diagnostics and leaks zero. Analyzer reports zero warnings across
 the pinned Owner/Routes source/test pairs. Evidence is retained in
 `docs/validation/evidence/underground-connector-placements-2026-10-03/work-choice-1/`;
 the shared analyzer and four source pins are in the adjacent `scoped-copy-4/`.
+
+### Upper-wall source component
+
+`review-high-wall-v1/` records the distinct30–43–30 upper-wall source, the
+15-degree shoulder entry correction, its complete source-local primitive proof
+and the actual native tip witness. The contact focus is `(122,1039,-536)u` with
+planar source patch `[120,1038,-536 ..123,1041,-536]u`. The fully enclosed entry
+portion ahead of the face ends at1017u; the lower approach still must already be
+complete. The visible target/bench remains an engineering fixture, not an
+installed structure or a constructible first-entry claim.
+
+The native repeat uses exact archived import-cache bytes in this isolated
+checkout and a separately recorded current runtime closure. The offline source
+proof uses the verifier's existing project-root parameter to reproduce the one
+historical Profiles script from its exact accepted commit/hash. Other source
+bytes remain fully checked; no live source is replaced and no arbitrary source
+drift is allowed. Every finite matrix/timing/grounding value is rederived from
+the pinned parent and the authored correction. Source and runtime provenance
+are explicit separate records. Complete state/role and actual owner integration
+continue after this component's independent review; production qualification
+is still zero.
+
+Independent root source/evidence review accepts this bounded upper-wall packet:
+all six source and253 output pins matched, seven Python checks pass, and the
+native537 poses/1283 assertions plus analyzer0/1 show zero failures or unexpected
+diagnostics/leaks. The9 tip points and26+30 finite intervals were checked against
+the stated source equations. Visual witnesses cover the selected upper strike
+and corrected entry only. Complete state unions, actual support and the first
+paid construction frontier remain required; no production flag is emitted.

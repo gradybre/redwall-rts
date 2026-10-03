@@ -1,0 +1,12 @@
+test_capture_requires_complete_positive_source_bound_evidence (__main__.WallSource.test_capture_requires_complete_positive_source_bound_evidence) ... ok
+test_entire_candidate_is_rederived_and_rejects_unowned_motion_or_timing_drift (__main__.WallSource.test_entire_candidate_is_rederived_and_rejects_unowned_motion_or_timing_drift) ... ok
+test_evidence_json_is_bounded_before_decode (__main__.WallSource.test_evidence_json_is_bounded_before_decode) ... ok
+test_historical_snapshot_is_one_pinned_script_and_other_drift_still_refuses (__main__.WallSource.test_historical_snapshot_is_one_pinned_script_and_other_drift_still_refuses) ... ok
+test_import_restoration_is_hash_bound_cache_only_and_preflights_every_entry (__main__.WallSource.test_import_restoration_is_hash_bound_cache_only_and_preflights_every_entry) ... ok
+test_native_point_evidence_must_follow_every_axis_of_exact_source_equation (__main__.WallSource.test_native_point_evidence_must_follow_every_axis_of_exact_source_equation) ... ok
+test_retraction_preserves_every_unowned_bone_both_endpoints_and_actual_segment_lengths (__main__.WallSource.test_retraction_preserves_every_unowned_bone_both_endpoints_and_actual_segment_lengths) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.030s
+
+OK

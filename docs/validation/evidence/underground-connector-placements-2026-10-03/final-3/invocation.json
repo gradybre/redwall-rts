@@ -1,0 +1,103 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.365,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "47/361",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/final-3"
+      ],
+      "exit_code": 0,
+      "seconds": 7.762,
+      "log": "test_underground_space_owner.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "79/361",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/final-3"
+      ],
+      "exit_code": 0,
+      "seconds": 4.644,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "69/361",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/final-3"
+      ],
+      "exit_code": 0,
+      "seconds": 7.555,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "118/361",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/final-3"
+      ],
+      "exit_code": 0,
+      "seconds": 9.069,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "97/361",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/final-3"
+      ],
+      "exit_code": 0,
+      "seconds": 10.009,
+      "log": "test_underground_connector_placements.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6243",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/final-3/analyzer.json",
+        "godot/scripts/core/underground_connector_placements.gd",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_underground_connector_placements.gd",
+        "godot/test/test_underground_space_owner.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.433,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "assets_present_before": false,
+  "assets_restored": true,
+  "exit_code": 0
+}

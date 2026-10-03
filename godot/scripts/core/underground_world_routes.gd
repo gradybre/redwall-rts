@@ -17,6 +17,7 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MASK_BYTES: int = 32
 const EDGE_CAPACITY: int = Routes.MAX_EDGES
@@ -252,6 +253,7 @@ var _world: World = null
 var _terrain: Terrain = null
 var _budget: Budget = null
 var _domain: Space.Domain = null
+var _installation: Locations.InstallationContext = null
 var _live: Certificates = Certificates.new()
 var _stage: Certificates = Certificates.new()
 var _proof: Clearance = null
@@ -387,6 +389,88 @@ func binding_refusal() -> StringName:
 	return _terrain.binding_refusal()
 
 
+func installation_binding_refusal(context: Locations.InstallationContext) -> StringName:
+	"""Pure once-binding preflight; no catalog, geometry or publication observer runs here."""
+	return installation_binding_leaf_refusal(self, context)
+
+
+static func installation_binding_leaf_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""Direct retained pointers close reciprocal composition without any overridable getter."""
+	if actual == null or context == null or actual._domain == null or actual._route_token != 0 \
+			or actual._opening or actual._compiling or actual._publishing or actual._reading \
+			or (actual._installation != null and actual._installation != context) or context.space == null \
+			or context.space.get_ref() != actual._owner_ref.get_ref() or context.locations == null \
+			or context.locations.get_ref() != actual._locations_ref.get_ref() or context.budget != actual._budget \
+			or context.world != actual._domain._world or actual._routes_ref.get_ref() == null \
+			or actual._routes_ref.get_ref()._bindings != actual:
+		return REFUSE_BINDING
+	return &"" if actual._budget.is_quiescent() else REFUSE_BUDGET
+
+
+static func installation_prepared_leaf_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""Close all observers before Funding with exact masks, immutable source pins and sealed graph identities."""
+	if actual == null or context == null or actual._installation != context or not actual._sealed \
+			or actual._opening or actual._compiling or actual._publishing or actual._reading or actual._proof != null \
+			or actual._route_token != context.route_token or actual._space_token != context.space_token \
+			or actual._location_token != context.location_token or actual._cold_token != context.cold_token \
+			or actual._budget != context.budget or actual._base_revision != context.base_revision \
+			or actual._target_revision != context.target_revision or actual._content_revision != context.profile_revision \
+			or actual._catalog_revision != context.catalog_revision:
+		return REFUSE_CONTEXT
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual._routes_ref != null else null
+	if graph == null or graph._bindings != actual or graph._profiles != actual._profiles \
+			or actual._profiles._loading or actual._profiles._live.header[0] != context.profile_revision \
+			or actual._catalog._loading or actual._catalog._live.header[0] != context.catalog_revision \
+			or not SourceFacts._same_actual_owners(actual._catalog) \
+			or not SourceFacts._source_storage_matches(actual._catalog) or not SourceFacts._source_digests_match(actual._catalog):
+		return REFUSE_BINDING
+	var code: StringName = Routes.installation_leaf_refusal(graph, context)
+	return _installation_masks_refusal(actual, graph, context) if code == &"" else code
+
+
+static func _installation_masks_refusal(actual: RefCounted, graph: Routes,
+		context: Locations.InstallationContext) -> StringName:
+	"""Every retained full edge has a complete exact current certificate; absent rows supply no permission."""
+	for row: int in graph._edge_capacity:
+		if graph._stage.present[row] == 0:
+			if actual._stage.generations[row] != 0:
+				return &"WORLD_ROUTE_CERTIFICATE_STALE"
+			continue
+		if actual._stage.generations[row] != graph._stage.fields[Routes.E_GENERATION * graph._edge_capacity + row] \
+				or actual._stage.geometry[row] != context.target_revision or actual._stage.content[row] != context.profile_revision:
+			return &"WORLD_ROUTE_CERTIFICATE_STALE"
+		var found: bool = false
+		for index: int in MASK_BYTES:
+			found = found or actual._stage.masks[row * MASK_BYTES + index] != 0
+		if not found:
+			return &"WORLD_ROUTE_NO_FITTING_PROFILE"
+	return &""
+
+
+static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
+	"""Only static kernels run after payment; successful actual graph publication promotes the same mask bank."""
+	if installation_prepared_leaf_refusal(actual, context) != &"":
+		return false
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	if not Routes.publish_installation(graph, context):
+		return false
+	var previous: Certificates = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._live_catalog_revision = context.catalog_revision
+	actual._proof = null
+	actual._route_token = 0
+	actual._space_token = 0
+	actual._location_token = 0
+	actual._cold_token = 0
+	actual._base_revision = 0
+	actual._target_revision = 0
+	actual._content_revision = 0
+	actual._catalog_revision = 0
+	actual._sealed = false
+	return true
+
+
 func begin_prepare(cold_token: int, space_token: int = 0, location_token: int = 0) -> Routes.Result:
 	"""Own the certificate companion of one real Routes transaction under the actual whole-operation lease."""
 	if _opening or _compiling or _publishing or _reading or _route_token != 0:
@@ -414,10 +498,10 @@ func _pin_preparation(token: int, cold_token: int, space_token: int, location_to
 	_cold_token = cold_token
 	_space_token = space_token
 	_location_token = location_token
-	_base_revision = _owner().revision()
-	_target_revision = _base_revision + (1 if space_token != 0 and _owner().prepared_has_changes(space_token) else 0)
-	_content_revision = _profiles.content_revision()
-	_catalog_revision = _catalog.content_revision()
+	_base_revision = _owner()._header[17]
+	_target_revision = _owner()._s_header[17] if space_token != 0 else _base_revision
+	_content_revision = _profiles._live.header[0]
+	_catalog_revision = _catalog._live.header[0]
 	_stage.copy_from(_live)
 	if _live_catalog_revision != _catalog_revision:
 		_stage.content.fill(0) # Retain handles so every surviving edge must be explicitly requalified.
@@ -432,13 +516,17 @@ func _begin_proof() -> StringName:
 	var code: StringName = _preparation_refusal()
 	if code != &"":
 		return code
+	if not _budget.covers(_cold_token, Budget.COLD_BYTES):
+		return REFUSE_BUDGET
 	var snapshot: Space.Snapshot = Space.Snapshot.new()
-	code = _owner().prepared_snapshot_for_traversal_into(_space_token, snapshot) if _space_token != 0 \
-		else _owner().snapshot_for_traversal_into(snapshot)
+	code = _owner().prepared_snapshot_for_traversal_leased_into(_space_token, snapshot, _budget, _cold_token) if _space_token != 0 \
+		else _owner().snapshot_for_traversal_leased_into(snapshot, _budget, _cold_token)
 	if code == &"":
 		code = _preparation_refusal()
 	if code != &"":
 		return code
+	if not _budget.covers(_cold_token, Budget.COLD_BYTES):
+		return REFUSE_BUDGET
 	_proof = Clearance.new()
 	_proof.allocate(snapshot, _domain._checks)
 	return &"" if _proof.spend(3 * (Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY)) else _proof.error
@@ -725,6 +813,8 @@ func _publication_context_refusal() -> StringName:
 func publish(token: int) -> StringName:
 	"""Actual Routes success is the final mutation boundary; later owner checks cannot publish a private mask early."""
 	if _opening or _compiling or _publishing or _reading or not _sealed or token <= 0 or token != _route_token:
+		return REFUSE_CONTEXT
+	if _installation != null and _installation.route_token == token:
 		return REFUSE_CONTEXT
 	var code: StringName = _publication_context_refusal()
 	if code != &"":

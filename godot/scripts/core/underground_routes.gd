@@ -767,26 +767,43 @@ func begin_prepare(cold_token: int, space_token: int = 0, location_token: int = 
 		return Result.new(code)
 	if not _cold.covers(cold_token, 1) or _next_token >= I64_MAX or _live.revision >= I64_MAX:
 		return Result.new(&"ROUTE_COLD_LEASE")
-	if space_token != 0:
-		code = _owner.prepared_refusal(space_token)
-	elif _owner.has_prepared():
-		code = &"ROUTE_SPACE_TRANSACTION"
-	if code == &"" and location_token != 0:
-		code = _locations.prepared_refusal(location_token)
+	var base_revision: int = _owner._header[17]
+	code = _preparation_sources_refusal(space_token, location_token)
 	if code != &"":
 		return Result.new(code)
+	if not _cold.covers(cold_token, 1) or _owner._header[17] != base_revision or _token != 0:
+		return Result.new(&"ROUTE_COLD_LEASE")
 	_stage.copy_from(_live)
 	_token = _next_token
 	_next_token += 1
 	_cold_token = cold_token
 	_space_token = space_token
 	_location_token = location_token
-	_base_geometry_revision = _owner.revision()
-	_target_geometry_revision = _base_geometry_revision + (1 if space_token != 0 and _owner.prepared_has_changes(space_token) else 0)
+	_base_geometry_revision = base_revision
+	_target_geometry_revision = _owner._s_header[17] if space_token != 0 else base_revision
 	_operation_error = &""
 	_remaining = _domain._checks
 	_sealed = false
 	return Result.new(&"", _token)
+
+
+func _preparation_sources_refusal(space_token: int, location_token: int) -> StringName:
+	"""Keep source observers inside the route reentry guard, then close exact candidate pins without callbacks."""
+	_in_callback = true
+	_callback_reentered = false
+	var code: StringName = _owner.prepared_refusal(space_token) if space_token != 0 else &""
+	if code == &"" and location_token != 0:
+		code = _locations.prepared_refusal(location_token)
+	_in_callback = false
+	if _callback_reentered:
+		return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"":
+		return code
+	if _owner._stage_token != space_token or (space_token != 0 and not _owner._sealed):
+		return &"ROUTE_SPACE_TRANSACTION"
+	if location_token != 0 and (_locations._token != location_token or not _locations._sealed):
+		return &"ROUTE_LOCATION_TRANSACTION"
+	return &""
 
 
 func _reject_callback() -> bool:
@@ -1320,6 +1337,8 @@ func publish(token: int) -> StringName:
 	if _reject_callback() or token <= 0 or token != _token or not _sealed or _operation_error != &"" \
 			or not _cold.covers(_cold_token, 1):
 		return &"ROUTE_TRANSACTION_STALE"
+	if _locations._installation != null and _locations._installation.route_token == token:
+		return &"ROUTE_INSTALLATION_WINDOW"
 	if _binding_refusal() != &"" or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
 		return &"ROUTE_GEOMETRY_STALE"
 	var code: StringName = _companion_publications_refusal()
@@ -1341,6 +1360,65 @@ func publish(token: int) -> StringName:
 	_last_published_token = token
 	_reset_preparation()
 	return &""
+
+
+static func installation_leaf_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""A sealed add/refresh-only graph retains every old path and exact shared companion token."""
+	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
+			or not actual._sealed or actual._operation_error != &"" or actual._in_callback \
+			or actual._searching or actual._advancing or actual._occupancy_reading \
+			or actual._cold != context.budget or actual._cold_token != context.cold_token \
+			or not actual._cold.covers(context.cold_token, Budget.COLD_BYTES) \
+			or actual._space_token != context.space_token or actual._location_token != context.location_token \
+			or actual._base_geometry_revision != context.base_revision or actual._target_geometry_revision != context.target_revision:
+		return &"ROUTE_INSTALLATION_CONTEXT"
+	return _installation_paths_refusal(actual, context)
+
+
+static func _installation_paths_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""Preserve occupied and queued spans without a new retention observer after payment."""
+	if actual._stage.vertex_count < actual._live.vertex_count:
+		return &"ROUTE_INSTALLATION_CREATE_ONLY"
+	for row: int in actual._edge_capacity:
+		if actual._live.present[row] != 0:
+			if actual._stage.present[row] != actual._live.present[row]:
+				return &"ROUTE_INSTALLATION_CREATE_ONLY"
+			for field: int in EDGE_FIELDS:
+				if actual._live.fields[field * actual._edge_capacity + row] != actual._stage.fields[field * actual._edge_capacity + row]:
+					return &"ROUTE_INSTALLATION_CREATE_ONLY"
+			if actual._live.longs[E_LENGTH * actual._edge_capacity + row] != actual._stage.longs[E_LENGTH * actual._edge_capacity + row]:
+				return &"ROUTE_INSTALLATION_CREATE_ONLY"
+		if actual._stage.present[row] != 0 and (actual._stage.longs[E_CONTENT_REVISION * actual._edge_capacity + row] != context.profile_revision \
+				or actual._stage.longs[E_GEOMETRY_REVISION * actual._edge_capacity + row] != context.target_revision):
+			return &"ROUTE_INSTALLATION_REFRESH_REQUIRED"
+	for index: int in actual._live.vertex_count * 3:
+		if actual._live.vertices[index] != actual._stage.vertices[index]:
+			return &"ROUTE_INSTALLATION_CREATE_ONLY"
+	return &""
+
+
+static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
+	"""Static paid tail follows actual Space and Locations receipts; no provider or endpoint observer runs."""
+	if installation_leaf_refusal(actual, context) != &"" \
+			or Locations.installation_scope_refusal(actual._locations, context, true) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
+		return false
+	var previous: EdgeBank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._last_published_token = context.route_token
+	actual._token = 0
+	actual._cold_token = 0
+	actual._space_token = 0
+	actual._location_token = 0
+	actual._base_geometry_revision = 0
+	actual._target_geometry_revision = 0
+	actual._operation_error = &""
+	actual._remaining = 0
+	actual._sealed = false
+	return true
 
 
 func _companion_publications_refusal() -> StringName:

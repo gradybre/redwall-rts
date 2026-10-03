@@ -3013,3 +3013,39 @@ func test_prepared_site_copy_refuses_replaced_lease_and_foreign_owner() -> void:
 	assert_equal(counted.copies, 1, "one actual copy")
 	assert_true(counted.abort(token), "normal abort still works")
 	assert_equal(probe.budget.release(probe.replacement), &"", "replacement lease not stolen")
+
+
+func test_static_generic_kernel_preserves_exact_token_and_ordinary_publication() -> void:
+	"""The additive static commit has the same sealed revision contract and leaves ordinary staging intact."""
+	var base: int = _owner.revision()
+	var token: int = _owner.begin_stage(base).token
+	assert_equal(_owner.stage_add(token, _region([0, 0, 0, 1024, 1024, 1024], Space.DRY_SOLID, _world)).error, &"", "actual generic row")
+	assert_equal(_owner.seal(token), &"", "actual sealed generic candidate")
+	assert_false(Owner.commit_preflighted(_owner, token + 1, base, base + 1), "wrong full transaction token")
+	assert_false(Owner.commit_preflighted(_owner, token, base + 1, base + 2), "wrong original revision")
+	assert_equal(_owner.revision(), base, "refused kernel does not swap")
+	assert_true(Owner.commit_preflighted(_owner, token, base, base + 1), "exact preflighted generic swap")
+	assert_equal(_owner.last_published_token(), token, "success-only receipt")
+	assert_false(Owner.commit_preflighted(_owner, token, base, base + 1), "consumed transaction never replays")
+	var next: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_add(next, _region([1024, 0, 0, 2048, 1024, 1024], Space.DRY_SOLID, _world)).error, &"", "second ordinary row")
+	assert_equal(_owner.seal(next), &"", "ordinary candidate")
+	_owner.publish(next)
+	assert_equal(_owner.revision(), base + 2, "ordinary generic publication remains available")
+
+
+func test_static_generic_kernel_never_accepts_special_future_source_context() -> void:
+	"""A typed pending Furniture transaction cannot use the generic bank swap even with its real token."""
+	var harness: InstallationHarness = _installation_fixture()
+	var fitting: InstallationOwner = harness.furniture_with_geometry()
+	var project: Vector2i = harness._open(fitting)
+	var job: Vector2i = harness._job(project)
+	harness._start(project)
+	harness._finish_labor(project, job)
+	var base: int = fitting.geometry.revision()
+	assert_equal(fitting.transition_refusal(project, ModularContract.COMMIT), &"", "actual sealed installed-fact candidate")
+	assert_false(Owner.commit_preflighted(fitting.geometry, fitting.token, base, base + 1), "special installed source cannot use generic kernel")
+	assert_equal(fitting.geometry.revision(), base, "no premature installed source publication")
+	fitting.discard_transition(project, ModularContract.COMMIT)
+	assert_true(harness._router.complete_order(project).ok, "actual paid special publication remains available")
+	_release_installation_fixture(harness)

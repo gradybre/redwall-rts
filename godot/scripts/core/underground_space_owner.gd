@@ -220,6 +220,7 @@ var _s_source_free_count: int = 0
 var _next_token: int = 1
 var _stage_token: int = 0
 var _last_published_token: int = 0
+var _installation_context: WeakRef = null
 var _sealed: bool = false
 var _remaining: int = 0
 var _changed_count: int = 0
@@ -1113,12 +1114,95 @@ func publish(token: int) -> void:
 	"""A coordinator calls this synchronously after successful payment; there are no fallible callbacks."""
 	if _reject_room_reentry() or _validation_sources >= 0:
 		return
+	if _installation_context != null and _installation_owns_token(self, token):
+		return # Only the static actual paid window can publish this installation-owned token.
 	if _install_row >= 0 or _room_row >= 0 or _furniture_count > 0:
 		return # Future source publication requires its exact actual owner callback, even with a sealed token.
 	assert(token != 0 and token == _stage_token and _sealed, "only a preflighted transaction may publish")
 	_swap_banks()
 	_stage_token = 0
 	_sealed = false
+
+
+static func generic_commit_refusal(actual: RefCounted, token: int, base_revision: int,
+		target_revision: int) -> StringName:
+	"""Pure identity gate only; the caller must finish every source/claim proof before irreversible payment."""
+	if actual == null or actual._ready_error != &"" or token <= 0 or token != actual._stage_token \
+			or not actual._sealed or actual._room_callback or actual._room_reentered \
+			or actual._validation_sources >= 0 or actual._validation_regions >= 0:
+		return &"SPACE_TRANSACTION_UNSEALED"
+	if actual._install_row >= 0 or actual._room_row >= 0 or actual._furniture_count > 0:
+		return &"SPACE_SPECIAL_PUBLICATION_REQUIRED"
+	if base_revision <= 0 or base_revision == I64_MAX or target_revision != base_revision + 1 \
+			or actual._header[17] != base_revision or actual._s_header[17] != target_revision:
+		return &"SPACE_REVISION_STALE"
+	return &""
+
+
+static func commit_preflighted(actual: RefCounted, token: int, base_revision: int,
+		target_revision: int) -> bool:
+	"""Commit a previously fully proved generic candidate without virtual dispatch, source reads or allocation."""
+	if generic_commit_refusal(actual, token, base_revision, target_revision) != &"":
+		return false
+	if _installation_owns_token(actual, token) and installation_commit_refusal(actual, token) != &"":
+		return false
+	_commit_columns_0(actual)
+	_commit_columns_1(actual)
+	_commit_columns_2(actual)
+	_commit_columns_3(actual)
+	_commit_columns_4(actual)
+	var count: int = actual._region_free_count
+	actual._region_free_count = actual._s_region_free_count
+	actual._s_region_free_count = count
+	count = actual._source_free_count
+	actual._source_free_count = actual._s_source_free_count
+	actual._s_source_free_count = count
+	actual._last_published_token = token
+	actual._stage_token = 0
+	actual._sealed = false
+	return true
+
+
+static func installation_binding_refusal(actual: RefCounted, context: RefCounted) -> StringName:
+	"""Once-bind only the actual sibling composition; no interface or source observer is invoked."""
+	if actual == null or actual._domain == null or actual._ready_error != &"":
+		return &"SPACE_INSTALLATION_BINDING"
+	var old: RefCounted = actual._installation_context.get_ref() if actual._installation_context != null else null
+	if context == null or (actual._installation_context != null and old != context) or actual._stage_token != 0 \
+			or context.space == null or context.space.get_ref() != actual or context.issuer == null \
+			or context.issuer.get_ref() == null or context.world != actual._domain._world \
+			or context.budget == null or not context.budget.is_quiescent():
+		return &"SPACE_INSTALLATION_BINDING"
+	return &""
+
+
+static func _installation_owns_token(actual: RefCounted, token: int) -> bool:
+	"""The issuer's independent original token also blocks publication after a mutable context is tampered with."""
+	var context: RefCounted = actual._installation_context.get_ref() if actual._installation_context != null else null
+	if context == null or token <= 0:
+		return false
+	var issuer: RefCounted = context.issuer.get_ref() if context.issuer != null else null
+	return context.space_token == token or (issuer != null and issuer._space == actual and issuer._space_token == token)
+
+
+static func installation_commit_refusal(actual: RefCounted, token: int) -> StringName:
+	"""Exact direct actual Router COMMIT and original issuer/lease pins close the public paid kernel."""
+	var context: RefCounted = actual._installation_context.get_ref() if actual._installation_context != null else null
+	var issuer: RefCounted = context.issuer.get_ref() if context != null and context.issuer != null else null
+	var router: RefCounted = context.router.get_ref() if context != null and context.router != null else null
+	var paid: RefCounted = context.paid_owner.get_ref() if context != null and context.paid_owner != null else null
+	if issuer == null or router == null or paid == null or issuer._context != context or issuer._space != actual \
+			or issuer._space_token != token or context.space_token != token or context.world != actual._domain._world \
+			or issuer._cold_token != context.cold_token or issuer._budget != context.budget \
+			or issuer._prepared_project != context.project or issuer._prepared_placement != context.placement \
+			or issuer._prepared_assembly != context.assembly or not context.budget.covers(context.cold_token, Budget.COLD_BYTES):
+		return &"SPACE_INSTALLATION_CONTEXT"
+	if not router._busy or router._publishing_project != context.project or router._publishing_owner != paid \
+			or router._publishing_action != ModularContract.COMMIT or router._connector_owner == null \
+			or router._connector_owner.get_ref() != paid or router._construction != issuer._construction \
+			or router._world != context.world or router._inventory != issuer._inventory:
+		return &"SPACE_INSTALLATION_WINDOW"
+	return &""
 
 
 func publish_furniture_install(token: int, project: Vector2i, router: ModularContract,
@@ -2545,122 +2629,147 @@ func _swap_banks() -> void:
 
 
 func _swap_columns_0() -> void:
+	"""Keep ordinary publication behavior while sharing the static field swap."""
+	_commit_columns_0(self)
+
+
+static func _commit_columns_0(actual: RefCounted) -> void:
 	"""One fixed publication group in the declared packed-field order."""
-	var saved_0: PackedInt64Array = _header
-	_header = _s_header
-	_s_header = saved_0
-	var saved_1: PackedInt32Array = _region_free_heap
-	_region_free_heap = _s_region_free_heap
-	_s_region_free_heap = saved_1
-	var saved_2: PackedInt32Array = _source_free_heap
-	_source_free_heap = _s_source_free_heap
-	_s_source_free_heap = saved_2
-	var saved_3: PackedByteArray = _r_present
-	_r_present = _s_r_present
-	_s_r_present = saved_3
-	var saved_4: PackedByteArray = _r_retired
-	_r_retired = _s_r_retired
-	_s_r_retired = saved_4
-	var saved_5: PackedByteArray = _r_role
-	_r_role = _s_r_role
-	_s_r_role = saved_5
-	var saved_6: PackedByteArray = _r_claim_kind
-	_r_claim_kind = _s_r_claim_kind
-	_s_r_claim_kind = saved_6
+	var saved_0: PackedInt64Array = actual._header
+	actual._header = actual._s_header
+	actual._s_header = saved_0
+	var saved_1: PackedInt32Array = actual._region_free_heap
+	actual._region_free_heap = actual._s_region_free_heap
+	actual._s_region_free_heap = saved_1
+	var saved_2: PackedInt32Array = actual._source_free_heap
+	actual._source_free_heap = actual._s_source_free_heap
+	actual._s_source_free_heap = saved_2
+	var saved_3: PackedByteArray = actual._r_present
+	actual._r_present = actual._s_r_present
+	actual._s_r_present = saved_3
+	var saved_4: PackedByteArray = actual._r_retired
+	actual._r_retired = actual._s_r_retired
+	actual._s_r_retired = saved_4
+	var saved_5: PackedByteArray = actual._r_role
+	actual._r_role = actual._s_r_role
+	actual._s_r_role = saved_5
+	var saved_6: PackedByteArray = actual._r_claim_kind
+	actual._r_claim_kind = actual._s_r_claim_kind
+	actual._s_r_claim_kind = saved_6
 
 
 func _swap_columns_1() -> void:
+	"""Keep ordinary publication behavior while sharing the static field swap."""
+	_commit_columns_1(self)
+
+
+static func _commit_columns_1(actual: RefCounted) -> void:
 	"""One fixed publication group in the declared packed-field order."""
-	var saved_0: PackedInt32Array = _r_generation
-	_r_generation = _s_r_generation
-	_s_r_generation = saved_0
-	var saved_1: PackedInt32Array = _r_lo_x
-	_r_lo_x = _s_r_lo_x
-	_s_r_lo_x = saved_1
-	var saved_2: PackedInt32Array = _r_lo_y
-	_r_lo_y = _s_r_lo_y
-	_s_r_lo_y = saved_2
-	var saved_3: PackedInt32Array = _r_lo_z
-	_r_lo_z = _s_r_lo_z
-	_s_r_lo_z = saved_3
-	var saved_4: PackedInt32Array = _r_hi_x
-	_r_hi_x = _s_r_hi_x
-	_s_r_hi_x = saved_4
-	var saved_5: PackedInt32Array = _r_hi_y
-	_r_hi_y = _s_r_hi_y
-	_s_r_hi_y = saved_5
-	var saved_6: PackedInt32Array = _r_hi_z
-	_r_hi_z = _s_r_hi_z
-	_s_r_hi_z = saved_6
+	var saved_0: PackedInt32Array = actual._r_generation
+	actual._r_generation = actual._s_r_generation
+	actual._s_r_generation = saved_0
+	var saved_1: PackedInt32Array = actual._r_lo_x
+	actual._r_lo_x = actual._s_r_lo_x
+	actual._s_r_lo_x = saved_1
+	var saved_2: PackedInt32Array = actual._r_lo_y
+	actual._r_lo_y = actual._s_r_lo_y
+	actual._s_r_lo_y = saved_2
+	var saved_3: PackedInt32Array = actual._r_lo_z
+	actual._r_lo_z = actual._s_r_lo_z
+	actual._s_r_lo_z = saved_3
+	var saved_4: PackedInt32Array = actual._r_hi_x
+	actual._r_hi_x = actual._s_r_hi_x
+	actual._s_r_hi_x = saved_4
+	var saved_5: PackedInt32Array = actual._r_hi_y
+	actual._r_hi_y = actual._s_r_hi_y
+	actual._s_r_hi_y = saved_5
+	var saved_6: PackedInt32Array = actual._r_hi_z
+	actual._r_hi_z = actual._s_r_hi_z
+	actual._s_r_hi_z = saved_6
 
 
 func _swap_columns_2() -> void:
+	"""Keep ordinary publication behavior while sharing the static field swap."""
+	_commit_columns_2(self)
+
+
+static func _commit_columns_2(actual: RefCounted) -> void:
 	"""One fixed publication group in the declared packed-field order."""
-	var saved_0: PackedInt32Array = _r_level
-	_r_level = _s_r_level
-	_s_r_level = saved_0
-	var saved_1: PackedInt32Array = _r_section_slot
-	_r_section_slot = _s_r_section_slot
-	_s_r_section_slot = saved_1
-	var saved_2: PackedInt32Array = _r_section_generation
-	_r_section_generation = _s_r_section_generation
-	_s_r_section_generation = saved_2
-	var saved_3: PackedInt32Array = _r_owner_slot
-	_r_owner_slot = _s_r_owner_slot
-	_s_r_owner_slot = saved_3
-	var saved_4: PackedInt32Array = _r_owner_generation
-	_r_owner_generation = _s_r_owner_generation
-	_s_r_owner_generation = saved_4
-	var saved_5: PackedInt64Array = _r_owner_revision
-	_r_owner_revision = _s_r_owner_revision
-	_s_r_owner_revision = saved_5
-	var saved_6: PackedInt32Array = _r_claim_slot
-	_r_claim_slot = _s_r_claim_slot
-	_s_r_claim_slot = saved_6
+	var saved_0: PackedInt32Array = actual._r_level
+	actual._r_level = actual._s_r_level
+	actual._s_r_level = saved_0
+	var saved_1: PackedInt32Array = actual._r_section_slot
+	actual._r_section_slot = actual._s_r_section_slot
+	actual._s_r_section_slot = saved_1
+	var saved_2: PackedInt32Array = actual._r_section_generation
+	actual._r_section_generation = actual._s_r_section_generation
+	actual._s_r_section_generation = saved_2
+	var saved_3: PackedInt32Array = actual._r_owner_slot
+	actual._r_owner_slot = actual._s_r_owner_slot
+	actual._s_r_owner_slot = saved_3
+	var saved_4: PackedInt32Array = actual._r_owner_generation
+	actual._r_owner_generation = actual._s_r_owner_generation
+	actual._s_r_owner_generation = saved_4
+	var saved_5: PackedInt64Array = actual._r_owner_revision
+	actual._r_owner_revision = actual._s_r_owner_revision
+	actual._s_r_owner_revision = saved_5
+	var saved_6: PackedInt32Array = actual._r_claim_slot
+	actual._r_claim_slot = actual._s_r_claim_slot
+	actual._s_r_claim_slot = saved_6
 
 
 func _swap_columns_3() -> void:
+	"""Keep ordinary publication behavior while sharing the static field swap."""
+	_commit_columns_3(self)
+
+
+static func _commit_columns_3(actual: RefCounted) -> void:
 	"""One fixed publication group in the declared packed-field order."""
-	var saved_0: PackedInt32Array = _r_claim_generation
-	_r_claim_generation = _s_r_claim_generation
-	_s_r_claim_generation = saved_0
-	var saved_1: PackedByteArray = _o_present
-	_o_present = _s_o_present
-	_s_o_present = saved_1
-	var saved_2: PackedByteArray = _o_kind
-	_o_kind = _s_o_kind
-	_s_o_kind = saved_2
-	var saved_3: PackedInt32Array = _o_slot
-	_o_slot = _s_o_slot
-	_s_o_slot = saved_3
-	var saved_4: PackedInt32Array = _o_generation
-	_o_generation = _s_o_generation
-	_s_o_generation = saved_4
-	var saved_5: PackedInt64Array = _o_revision
-	_o_revision = _s_o_revision
-	_s_o_revision = saved_5
-	var saved_6: PackedInt32Array = _o_parent_slot
-	_o_parent_slot = _s_o_parent_slot
-	_s_o_parent_slot = saved_6
+	var saved_0: PackedInt32Array = actual._r_claim_generation
+	actual._r_claim_generation = actual._s_r_claim_generation
+	actual._s_r_claim_generation = saved_0
+	var saved_1: PackedByteArray = actual._o_present
+	actual._o_present = actual._s_o_present
+	actual._s_o_present = saved_1
+	var saved_2: PackedByteArray = actual._o_kind
+	actual._o_kind = actual._s_o_kind
+	actual._s_o_kind = saved_2
+	var saved_3: PackedInt32Array = actual._o_slot
+	actual._o_slot = actual._s_o_slot
+	actual._s_o_slot = saved_3
+	var saved_4: PackedInt32Array = actual._o_generation
+	actual._o_generation = actual._s_o_generation
+	actual._s_o_generation = saved_4
+	var saved_5: PackedInt64Array = actual._o_revision
+	actual._o_revision = actual._s_o_revision
+	actual._s_o_revision = saved_5
+	var saved_6: PackedInt32Array = actual._o_parent_slot
+	actual._o_parent_slot = actual._s_o_parent_slot
+	actual._s_o_parent_slot = saved_6
 
 
 func _swap_columns_4() -> void:
+	"""Keep ordinary publication behavior while sharing the static field swap."""
+	_commit_columns_4(self)
+
+
+static func _commit_columns_4(actual: RefCounted) -> void:
 	"""One fixed publication group in the declared packed-field order."""
-	var saved_0: PackedInt32Array = _o_parent_generation
-	_o_parent_generation = _s_o_parent_generation
-	_s_o_parent_generation = saved_0
-	var saved_1: PackedInt32Array = _o_a
-	_o_a = _s_o_a
-	_s_o_a = saved_1
-	var saved_2: PackedInt32Array = _o_b
-	_o_b = _s_o_b
-	_s_o_b = saved_2
-	var saved_3: PackedInt32Array = _o_c
-	_o_c = _s_o_c
-	_s_o_c = saved_3
-	var saved_4: PackedInt32Array = _o_d
-	_o_d = _s_o_d
-	_s_o_d = saved_4
+	var saved_0: PackedInt32Array = actual._o_parent_generation
+	actual._o_parent_generation = actual._s_o_parent_generation
+	actual._s_o_parent_generation = saved_0
+	var saved_1: PackedInt32Array = actual._o_a
+	actual._o_a = actual._s_o_a
+	actual._s_o_a = saved_1
+	var saved_2: PackedInt32Array = actual._o_b
+	actual._o_b = actual._s_o_b
+	actual._s_o_b = saved_2
+	var saved_3: PackedInt32Array = actual._o_c
+	actual._o_c = actual._s_o_c
+	actual._s_o_c = saved_3
+	var saved_4: PackedInt32Array = actual._o_d
+	actual._o_d = actual._s_o_d
+	actual._s_o_d = saved_4
 
 
 static func furniture_admission_cold_bytes(pair_count: int) -> int:

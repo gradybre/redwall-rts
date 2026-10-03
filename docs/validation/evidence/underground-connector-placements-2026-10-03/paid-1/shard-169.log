@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_placements.gd
+  PASS  test_actual_source_registration_copies_full_identity_without_building_geometry
+  PASS  test_stream_capture_restore_is_bounded_and_authority_is_mandatory
+  PASS  test_registration_replaced_lease_preserves_new_lease_and_empty_state
+  PASS  test_retirement_requires_cleanup_and_reuses_full_generation
+  FAIL  test_actual_paid_completion_commits_all_companions_once_without_postpayment_observers
+        actual completion: ROUTE_EDGE_REVISION /  (expected true, got false)
+        receipt settled before physical publication (expected true, got false)
+        one actual geometry publication (expected 4, got 3)
+        one billed group, not its individual prisms (expected 1, got 0)
+        project cleared only after companion publication (expected (-1, 0), got (822, 2))
+        actual Router retires paid Project (expected false, got true)
+        actual committed profile certificate (expected true, got false)
+CI_SUITE_TIME {"assertions":305,"failures":1,"suite":"test_underground_connector_placements.gd","tests":5,"usec":1853005}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+5 test(s), 305 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

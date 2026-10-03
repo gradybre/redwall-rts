@@ -13,6 +13,9 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const InventoryContract := preload("res://scripts/core/inventory_spatial_contract.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Modular := preload("res://scripts/core/modular_project_contract.gd")
+const Router := preload("res://scripts/core/modular_projects.gd")
+const Construction := preload("res://scripts/core/construction.gd")
 const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SCHEMA: int = 1
@@ -140,6 +143,32 @@ class WorldScope extends RefCounted:
 		return false
 
 
+class InstallationContext extends RefCounted:
+	## One component-owned synchronous packet; issuer/Router/paid owner are exact weak identities.
+	## Numeric payload112B; references/native headers stay in the Placement fixed/native reserve.
+	var issuer: WeakRef = null
+	var router: WeakRef = null
+	var paid_owner: WeakRef = null
+	var space: WeakRef = null
+	var locations: WeakRef = null
+	var construction: Construction = null
+	var budget: Budget = null
+	var world: Vector2i = NULL_REF
+	var placement: Vector2i = NULL_REF
+	var project: Vector2i = NULL_REF
+	var assembly: int = -1
+	var cold_token: int = 0
+	var space_token: int = 0
+	var location_token: int = 0
+	var route_token: int = 0
+	var base_revision: int = 0
+	var target_revision: int = 0
+	var profile_revision: int = 0
+	var catalog_revision: int = 0
+	var placement_revision: int = 0
+	var payload_revision: int = 0
+
+
 class InventoryLocations extends InventoryContract:
 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
 	var _locations: WeakRef = null
@@ -212,6 +241,7 @@ var _admission_room: Vector2i = NULL_REF
 var _admission_type: int = -1
 var _world_scope: WeakRef = null
 var _world_preparation: bool = false
+var _installation: InstallationContext = null
 
 
 func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
@@ -517,6 +547,189 @@ func begin_world_prepare(cold_token: int, owner_token: int) -> Result:
 	return result
 
 
+func installation_binding_refusal(context: InstallationContext) -> StringName:
+	"""Pure link admission runs before either side writes its once-bound actual installation context."""
+	return installation_binding_leaf_refusal(self, context)
+
+
+static func installation_binding_leaf_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
+	"""The final reciprocal link proof cannot dispatch an overridden observation method."""
+	if actual == null or actual._capacity == 0 or actual._token != 0 or actual._in_retention or context == null \
+			or (actual._installation != null and actual._installation != context) or context.issuer == null \
+			or context.issuer.get_ref() == null or context.locations == null or context.locations.get_ref() != actual \
+			or context.space == null or context.space.get_ref() != actual._owner or context.budget != actual._cold \
+			or context.world != actual._world or context.construction != actual._sources._construction:
+		return &"LOCATION_INSTALLATION_BINDING"
+	return &"" if context.budget.is_quiescent() else &"LOCATION_COLD_CAPACITY"
+
+
+func bind_installation_context(context: InstallationContext) -> StringName:
+	"""Once bind the exact shared packet after reciprocal pure preflight; no provider is invoked."""
+	var code: StringName = installation_binding_refusal(context)
+	if code == &"":
+		_installation = context
+	return code
+
+
+static func installation_scope_refusal(actual: RefCounted, context: InstallationContext,
+		publishing: bool = false) -> StringName:
+	"""Exact actual Construction/Router leaves replace any virtual publication-success predicate."""
+	if context == null or context != actual._installation or context.locations == null \
+			or context.locations.get_ref() != actual or context.space == null or context.space.get_ref() != actual._owner \
+			or context.budget != actual._cold or context.world != actual._world or context.issuer == null \
+			or context.issuer.get_ref() == null or context.construction == null \
+			or context.construction != actual._sources._construction or context.cold_token <= 0 \
+			or not actual._cold.covers(context.cold_token, Budget.COLD_BYTES):
+		return &"LOCATION_INSTALLATION_CONTEXT"
+	if actual._token > 0 and (context.location_token != actual._token or context.cold_token != actual._cold_token \
+			or context.space_token != actual._owner_token or context.base_revision != actual._base_geometry_revision \
+			or context.target_revision != actual._target_geometry_revision):
+		return &"LOCATION_INSTALLATION_CONTEXT"
+	var router: Router = context.router.get_ref() as Router if context.router != null else null
+	var paid: Modular.Owner = context.paid_owner.get_ref() as Modular.Owner if context.paid_owner != null else null
+	if router == null or paid == null or router._ready_error != &"" or router._construction != context.construction \
+			or router._world != context.world or router._inventory != actual._inventory or router._connector_owner == null \
+			or router._connector_owner.get_ref() != paid or context.construction._modular_authority == null \
+			or context.construction._modular_authority.get_ref() != router:
+		return &"LOCATION_INSTALLATION_CONTEXT"
+	if publishing and (not router._busy or router._publishing_project != context.project \
+			or router._publishing_action != Modular.COMMIT or router._publishing_owner != paid):
+		return &"LOCATION_INSTALLATION_WINDOW"
+	return _installation_project_refusal(actual, context)
+
+
+static func _installation_project_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
+	"""Neither a coincident local handle nor the released postpayment worker assignment grants identity."""
+	var project: Vector2i = context.project
+	var construction: Construction = context.construction
+	if construction._directory != actual._ids or not actual._ids.is_valid_of_kind(context.world, Directory.KIND_WORLD) \
+			or not actual._ids.is_valid_of_kind(project, Directory.KIND_CONSTRUCTION):
+		return &"LOCATION_INSTALLATION_PROJECT"
+	var row: int = actual._ids.get_typed_row(project)
+	if row < 0 or row >= Construction.CONSTRUCTION_CAPACITY or construction._present[row] != 1 \
+			or construction._ref_slot[row] != project.x or construction._ref_generation[row] != project.y \
+			or construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL \
+			or construction._type_id[row] != context.assembly or context.assembly < 0 \
+			or Vector2i(construction._subject_slot[row], construction._subject_generation[row]) != context.placement \
+			or context.placement.x < 0 or context.placement.y <= 0:
+		return &"LOCATION_INSTALLATION_PROJECT"
+	return &""
+
+
+func begin_installation_prepare(context: InstallationContext) -> Result:
+	"""Prepare a paid installation companion against an exact sealed Space token, with no borrowed Site permit."""
+	if _reject_retention_callback() or _token != 0 or _next_token == 9223372036854775807:
+		return Result.new(&"LOCATION_PREPARATION_BUSY")
+	var code: StringName = installation_scope_refusal(self, context)
+	if code != &"" or context.space_token <= 0 or _owner._stage_token != context.space_token or not _owner._sealed:
+		return Result.new(code if code != &"" else &"LOCATION_GEOMETRY_STALE")
+	var cold_token: int = context.cold_token
+	var space_token: int = context.space_token
+	var base_revision: int = context.base_revision
+	var target_revision: int = context.target_revision
+	_in_retention = true
+	_retention_reentered = false
+	code = _owner.prepared_refusal(context.space_token)
+	_in_retention = false
+	if _retention_reentered:
+		return Result.new(&"LOCATION_RETENTION_REENTRY")
+	if code == &"":
+		code = installation_scope_refusal(self, context)
+	if code != &"" or context.cold_token != cold_token or context.space_token != space_token \
+			or context.base_revision != base_revision or context.target_revision != target_revision \
+			or _owner._stage_token != space_token or not _owner._sealed \
+			or _owner._header[17] != base_revision or _owner._s_header[17] != target_revision:
+		return Result.new(code if code != &"" else &"LOCATION_GEOMETRY_STALE")
+	var result: Result = _start_installation(context)
+	context.location_token = result.token if result.error == &"" else 0
+	return result
+
+
+func _start_installation(context: InstallationContext) -> Result:
+	"""The final pure lease gate immediately precedes bank copying; no observer supplies numeric revision pins."""
+	if not _cold.covers(context.cold_token, Budget.COLD_BYTES) or _live.header[13] == 9223372036854775807:
+		return Result.new(&"LOCATION_COLD_CAPACITY")
+	_stage.copy_from(_live)
+	_stage.header[13] += 1
+	_token = _next_token
+	_next_token += 1
+	_cold_token = context.cold_token
+	_owner_token = context.space_token
+	_site = NULL_REF
+	_operation = -1
+	_phase_stage = -1
+	_base_geometry_revision = context.base_revision
+	_target_geometry_revision = context.target_revision
+	_remaining = _domain._checks
+	return Result.new(&"", _token)
+
+
+func _installation_active() -> bool:
+	"""Exact local token identity distinguishes this context from all other endpoint preparation modes."""
+	return _installation != null and _token > 0 and _installation.location_token == _token
+
+
+static func installation_prepared_leaf_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
+	"""Pure final candidate proof; all source/retention observations already completed before Funding."""
+	var code: StringName = installation_scope_refusal(actual, context)
+	if code != &"":
+		return code
+	if actual._token <= 0 or actual._token != context.location_token or not actual._sealed or actual._in_retention \
+			or actual._cold_token != context.cold_token or actual._owner_token != context.space_token \
+			or actual._base_geometry_revision != context.base_revision or actual._target_geometry_revision != context.target_revision:
+		return &"LOCATION_TOKEN_STALE"
+	return _installation_rows_refusal(actual, context)
+
+
+static func _installation_rows_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
+	"""Paid installation only adds/refreshes endpoints; no existing immutable payload or retention can disappear."""
+	for row: int in actual._capacity:
+		if actual._live.present[row] != 0:
+			if actual._stage.present[row] != actual._live.present[row]:
+				return &"LOCATION_INSTALLATION_CREATE_ONLY"
+			for field: int in I32_FIELDS:
+				if actual._live.i32[field * actual._capacity + row] != actual._stage.i32[field * actual._capacity + row]:
+					return &"LOCATION_INSTALLATION_CREATE_ONLY"
+			if actual._live.i64[PAYLOAD_REVISION * actual._capacity + row] != actual._stage.i64[PAYLOAD_REVISION * actual._capacity + row]:
+				return &"LOCATION_INSTALLATION_CREATE_ONLY"
+		if actual._stage.present[row] != 0 and actual._stage.i64[GEOMETRY_REVISION * actual._capacity + row] != context.target_revision:
+			return &"LOCATION_INSTALLATION_REFRESH_REQUIRED"
+	return &""
+
+
+static func publish_installation(actual: RefCounted, context: InstallationContext) -> bool:
+	"""Static kernel: no observer follows payment or Space publication; old endpoints are always preserved."""
+	if installation_scope_refusal(actual, context, true) != &"" \
+			or installation_prepared_leaf_refusal(actual, context) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token:
+		return false
+	var previous: Bank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._last_published_token = context.location_token
+	_clear_installation_preparation(actual)
+	return true
+
+
+static func _clear_installation_preparation(actual: RefCounted) -> void:
+	"""Reset only transient fields directly, avoiding any virtual dispatch inside the paid kernel."""
+	actual._token = 0
+	actual._cold_token = 0
+	actual._owner_token = 0
+	actual._site = NULL_REF
+	actual._operation = -1
+	actual._phase_stage = -1
+	actual._base_geometry_revision = 0
+	actual._target_geometry_revision = 0
+	actual._sealed = false
+	actual._snapshot = null
+	actual._room_admission = false
+	actual._admission_room = NULL_REF
+	actual._admission_type = -1
+	actual._world_preparation = false
+
+
 func _actual_world_scope() -> WorldScope:
 	"""Keep the weakly bound real publisher alive for the complete synchronous observation."""
 	return _world_scope.get_ref() as WorldScope if _world_scope != null else null
@@ -685,6 +898,8 @@ func _prepared_retention_refusal() -> StringName:
 		code = _refreshed_room_rows_refusal()
 	if code == &"" and _world_preparation:
 		code = _world_rows_refusal()
+	if code == &"" and _installation_active():
+		code = _installation_rows_refusal(self, _installation)
 	return _final_inventory_refusal(_cold_token, cold_peak_bytes()) if code == &"" else code
 
 
@@ -726,6 +941,8 @@ func publish(token: int) -> bool:
 	"""Swap only in the prepared actual Sites or Room callback, after the exact Space publication."""
 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return false
+	if _installation_active():
+		return false # The static paid kernel owns this context.
 	if _world_preparation:
 		if _world_publication_refusal() != &"":
 			return false
@@ -818,6 +1035,8 @@ func _editable(token: int) -> StringName:
 		return &"LOCATION_RETENTION_REENTRY"
 	if token <= 0 or token != _token or _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return &"LOCATION_TOKEN_STALE"
+	if _installation_active():
+		return installation_scope_refusal(self, _installation)
 	if _world_preparation:
 		return _world_preflight(_actual_world_scope(), _cold_token, _owner_token)
 	return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room,
@@ -830,6 +1049,11 @@ func _geometry_current_refusal() -> StringName:
 		return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room, _admission_type)
 	if _world_preparation:
 		return _world_preflight(_actual_world_scope(), _cold_token, _owner_token)
+	if _installation_active():
+		var code: StringName = installation_scope_refusal(self, _installation)
+		if code == &"":
+			code = _owner.prepared_refusal(_owner_token)
+		return installation_scope_refusal(self, _installation) if code == &"" else code
 	if _owner_token != 0:
 		return _owner.prepared_refusal(_owner_token)
 	if _owner.has_prepared() or _base_geometry_revision != _owner.revision():
@@ -839,10 +1063,10 @@ func _geometry_current_refusal() -> StringName:
 
 func _validate_record(record: Record) -> StringName:
 	"""World observations cannot mutate their caller input or reenter the retained endpoint candidate."""
-	if not _world_preparation:
+	if not _world_preparation and not _installation_active():
 		return _record_geometry_refusal(record)
 	var scope: WorldScope = _actual_world_scope()
-	if record == null or not _world_scope_current(scope, _cold_token, _owner_token):
+	if record == null or not _record_scope_current(scope):
 		return &"LOCATION_WORLD_SCOPE"
 	if record.envelope.size() != 6 or record.support.size() != 6:
 		return &"LOCATION_GEOMETRY_FORMAT"
@@ -851,12 +1075,18 @@ func _validate_record(record: Record) -> StringName:
 	_retention_reentered = false
 	var code: StringName = _record_geometry_refusal(pinned)
 	_in_retention = false
-	if _retention_reentered or not _world_scope_current(scope, _cold_token, _owner_token) \
+	if _retention_reentered or not _record_scope_current(scope) \
 			or _owner._stage_token != _owner_token or not _owner._sealed:
 		return &"LOCATION_WORLD_SCOPE"
 	if not _world_record_matches(record, pinned):
 		return &"LOCATION_REQUEST_CHANGED"
 	return code
+
+
+func _record_scope_current(scope: WorldScope) -> bool:
+	"""Both publication contexts require the exact current original lease before copied caller geometry."""
+	return installation_scope_refusal(self, _installation) == &"" if _installation_active() \
+		else _world_scope_current(scope, _cold_token, _owner_token)
 
 
 func _copy_world_record(record: Record) -> Record:
@@ -934,7 +1164,7 @@ func _section_refusal(record: Record) -> StringName:
 
 func _read_section(section: Vector2i) -> StringName:
 	"""The World path brackets a reused pure row observation with its complete source preflight and leased image."""
-	if _world_preparation:
+	if _world_preparation or _installation_active():
 		_region.box.resize(6)
 		return _owner.prepared_region_observation_into(_owner_token, section, _region)
 	return _owner.prepared_region_into(_owner_token, section, _region) \
@@ -956,20 +1186,37 @@ func _survey_for(record: Record) -> StringName:
 	if _world_preparation and not _world_scope_current(_actual_world_scope(), _cold_token, _owner_token):
 		return &"LOCATION_WORLD_SCOPE"
 	var image: Space.Snapshot = Space.Snapshot.new()
-	var code: StringName = &""
-	if _world_preparation:
-		code = _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
-	elif record.role == ROLE_TRANSIT:
-		code = _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
-			if _owner_token != 0 else _owner.snapshot_for_traversal_into(image)
-	elif record.room == NULL_REF:
-		code = _owner.prepared_snapshot_into(_owner_token, image) if _owner_token != 0 else _owner.snapshot_into(image)
-	else:
-		code = _owner.prepared_snapshot_for_site_into(_owner_token, image, physical, site) \
-			if _owner_token != 0 else _owner.snapshot_for_site_into(image, physical, site)
+	var code: StringName = _snapshot_for_into(record, physical, site, image)
 	if code == &"":
 		_snapshot = image
 	return code
+
+
+func _snapshot_for_into(record: Record, physical: Sites, site: Vector2i, image: Space.Snapshot) -> StringName:
+	"""Select the exact existing claim predicate without changing scope, allocating another image or post-filtering."""
+	if _world_preparation:
+		return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
+	if _installation_active():
+		return _installation_snapshot_into(record, physical, site, image)
+	if record.role == ROLE_TRANSIT:
+		return _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
+			if _owner_token != 0 else _owner.snapshot_for_traversal_into(image)
+	if record.room == NULL_REF:
+		return _owner.prepared_snapshot_into(_owner_token, image) if _owner_token != 0 else _owner.snapshot_into(image)
+	return _owner.prepared_snapshot_for_site_into(_owner_token, image, physical, site) \
+		if _owner_token != 0 else _owner.snapshot_for_site_into(image, physical, site)
+
+
+func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i,
+		image: Space.Snapshot) -> StringName:
+	"""Leased typed predicates preserve real paid Site proof and every non-exempt physical blocker."""
+	if installation_scope_refusal(self, _installation) != &"":
+		return &"LOCATION_INSTALLATION_CONTEXT"
+	if record.role == ROLE_TRANSIT:
+		return _owner.prepared_snapshot_for_traversal_leased_into(_owner_token, image, _cold, _cold_token)
+	if record.room != NULL_REF:
+		return _owner.prepared_snapshot_for_site_leased_into(_owner_token, image, physical, site, _cold, _cold_token)
+	return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
 
 
 func _covered(box: PackedInt32Array, role: int) -> bool:

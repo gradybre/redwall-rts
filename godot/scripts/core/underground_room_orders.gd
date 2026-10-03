@@ -10,6 +10,8 @@ const SpaceOwner := preload("res://scripts/core/underground_space_owner.gd")
 const RoomSpace := preload("res://scripts/core/room_space.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const Footprint := preload("res://scripts/core/room_footprint.gd")
+const Layout := preload("res://scripts/core/room_layout.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
@@ -19,6 +21,92 @@ const REFUSE_TRANSITION: StringName = &"UNDERGROUND_ROOM_TRANSITION_NOT_PREPARED
 const REFUSE_PLAN: StringName = &"UNDERGROUND_ROOM_PLAN_INVALID"
 ## Local RoomOrders stage only; never passed as a ModularContract operation/action ordinal.
 const ROOM_ADMISSION_STAGE: int = 100
+const LAYOUT_OPERATION_STAGE: int = 101
+const FURNITURE_BATCH_STAGE: int = 102
+const LAYOUT_BATCH_CONTROL_BYTES: int = 138 # 120 coordinator/packet +16 Directory +1 receipt +1 guard.
+
+class FurnitureBatch extends RefCounted:
+
+	## Caller-admitted synchronous scratch, not retained Furniture/Project state.
+	var count: int = 0
+	var original: Layout.Batch = null
+	var canonical: Layout.Batch = Layout.Batch.new()
+	var submitted: Layout.Batch = Layout.Batch.new()
+	var candidates: Directory.CreateBatch = null
+	var slots: PackedInt32Array = PackedInt32Array()
+	var generations: PackedInt32Array = PackedInt32Array()
+	var kinds: PackedInt32Array = PackedInt32Array()
+	var typed_rows: PackedInt32Array = PackedInt32Array()
+	var persistent_ids: PackedInt32Array = PackedInt32Array()
+	var receipt: Layout.Submission = Layout.Submission.new()
+
+	func copy_request(request: Layout.Batch) -> void:
+		"""Keep original and two distinct input copies; providers never receive the canonical one."""
+		original = request
+		copy_batch(request, canonical)
+		copy_batch(request, submitted)
+		@warning_ignore("integer_division") count = request.entries.size() / Layout.ENTRY_STRIDE
+		receipt.project_refs.resize(count * 2)
+
+	static func copy_batch(source: Layout.Batch, target: Layout.Batch) -> void:
+		"""Called only after the actual shared scope admits both16N entry buffers and their headers."""
+		target.room_ref = source.room_ref
+		target.room_type = source.room_type
+		target.level = source.level
+		target.pitch_units = source.pitch_units
+		target.expected_revision = source.expected_revision
+		target.entries = source.entries.duplicate()
+
+	func observe(directory: Directory) -> StringName:
+		"""Drop the8N kind request before constructing the40N separately pinned identity columns."""
+		candidates = Directory.CreateBatch.new(count * 2)
+		var requested: PackedInt32Array = PackedInt32Array()
+		requested.resize(count * 2)
+		for index: int in count:
+			requested[index * 2] = Directory.KIND_FURNITURE
+			requested[index * 2 + 1] = Directory.KIND_CONSTRUCTION
+		var code: StringName = directory.peek_create_batch_into(requested, candidates)
+		requested.clear()
+		if code != &"":
+			return code
+		slots = candidates.slots.duplicate()
+		generations = candidates.generations.duplicate()
+		kinds = candidates.kinds.duplicate()
+		typed_rows = candidates.typed_rows.duplicate()
+		persistent_ids = candidates.persistent_ids.duplicate()
+		return &""
+
+	static func same_batch(first: Layout.Batch, second: Layout.Batch) -> bool:
+		"""All player coordinates, purpose, level, pitch and observed revision are immutable during callbacks."""
+		return first != null and second != null and first.room_ref == second.room_ref \
+			and first.room_type == second.room_type and first.level == second.level \
+			and first.pitch_units == second.pitch_units and first.expected_revision == second.expected_revision \
+			and first.entries == second.entries
+
+	func unchanged() -> bool:
+		"""Private copies cover all five mutable tuple columns and both exposed request objects."""
+		return same_batch(original, canonical) and same_batch(submitted, canonical) \
+			and candidates != null and candidates.storage_refusal() == &"" and candidates.count == count * 2 \
+			and candidates.slots == slots and candidates.generations == generations and candidates.kinds == kinds \
+			and candidates.typed_rows == typed_rows and candidates.persistent_ids == persistent_ids
+
+	func write_receipt() -> void:
+		"""Pin every actual accepted Project before a final publication callback can discard observations."""
+		for index: int in count:
+			receipt.project_refs[index * 2] = candidates.slots[index * 2 + 1]
+			receipt.project_refs[index * 2 + 1] = candidates.generations[index * 2 + 1]
+
+	func drop_inputs() -> void:
+		"""Drop all copied input/identity buffers before releasing the still-borrowed shared scope."""
+		original = null
+		canonical = null
+		submitted = null
+		candidates = null
+		slots.clear()
+		generations.clear()
+		kinds.clear()
+		typed_rows.clear()
+		persistent_ids.clear()
 
 class RoomPlan extends RefCounted:
 
@@ -62,6 +150,52 @@ class Bindings extends RefCounted:
 			_world: Vector2i) -> bool:
 		"""Prove actual World owners and the admitted joint live/cold budget; base grants nothing."""
 		return false
+
+	func layout_budget_owner() -> Budget:
+		"""Return the same actual World arena used by every physical companion; base has no arena."""
+		return null
+
+	func begin_layout_cold(_room: Vector2i, _planner_bytes: int, _geometry_limit: int,
+			_placement_limit: int, _batch_bytes: int) -> int:
+		"""Admit the complete shared planner/provider/batch/bridge/native peak before any input copy."""
+		return 0
+
+	func layout_cold_refusal() -> StringName:
+		"""An unbound provider has neither a real budget lease nor a valid empty snapshot."""
+		return REFUSE_BINDING
+
+	func layout_scope_refusal(_token: int, _room: Vector2i, _planner_bytes: int,
+			_batch_bytes: int) -> StringName:
+		"""Check the exact actual World's current token and entire retained peak without allocation."""
+		return REFUSE_BINDING
+
+	func layout_snapshot(_token: int, _room: Vector2i, _geometry_limit: int,
+			_placement_limit: int) -> Layout.Snapshot:
+		"""Return real completed floor, protected circulation, contacts/profiles and current accepted claims."""
+		return null
+
+	func layout_plan_refusal(_token: int, _request: Layout.Batch, _candidates: Directory.CreateBatch,
+			_space_token: int) -> StringName:
+		"""Stage only exact pending geometry and its companions under the already acquired common lease."""
+		return REFUSE_BINDING
+
+	func layout_prepared_refusal(_token: int, _request: Layout.Batch, _candidates: Directory.CreateBatch,
+			_space_token: int) -> StringName:
+		"""Revalidate the actual snapshot revision, profiles, contacts and sealed companions before allocation."""
+		return REFUSE_BINDING
+
+	func publish_layout(_token: int, _request: Layout.Batch, _candidates: Directory.CreateBatch,
+			_space_token: int) -> void:
+		"""Only already-prepared companions publish; this cannot release the original planner lease."""
+		assert(false, "Unbound layout bindings cannot publish a companion")
+
+	func discard_layout(_token: int, _room: Vector2i, _space_token: int) -> void:
+		"""Drop only this unpublished companion, keeping the caller's original exact scope alive."""
+		pass
+
+	func end_layout_cold(_token: int, _room: Vector2i) -> StringName:
+		"""Release only after planner views, provider images and all batch/bridge companions have dropped."""
+		return REFUSE_BINDING
 
 	func begin_room_cold(_plan: RoomPlan) -> StringName:
 		"""Acquire plan-copy, Footprint dictionary/native and spatial/companion peak before any copies."""
@@ -157,6 +291,17 @@ var _publishing: bool = false
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _room_plan: RoomPlan = RoomPlan.new()
 var _room_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
+var _layout_token: int = 0
+var _layout_planner_bytes: int = 0
+var _layout_geometry_limit: int = 0
+var _layout_placement_limit: int = 0
+var _layout_bindings: Bindings = null
+var _layout_budget: Budget = null
+var _layout_snapshot: Layout.Snapshot = null
+var _layout_batch: FurnitureBatch = null
+var _layout_receipt: Layout.Submission = null
+var _layout_error: StringName = &""
+var _layout_callback: bool = false
 
 
 func configure(router: Router, space: SpaceOwner, sources: SpaceOwner.CoreSources,
@@ -248,6 +393,355 @@ func _identity_binding_refusal() -> StringName:
 		return REFUSE_BINDING
 	return &"" if _actual_router() != null and _bindings != null \
 		and _bindings.get_ref() is Bindings else REFUSE_BINDING
+
+
+static func layout_batch_cold_bytes(placement_limit: int) -> int:
+	"""Additional simultaneous packet/bridge payload; actual providers separately admit native/growth/images."""
+	if placement_limit < 1 or placement_limit > Layout.PLACEMENT_CAPACITY:
+		return 0
+	var bridge_bytes: int = SpaceOwner.furniture_admission_cold_bytes(placement_limit)
+	return 120 * placement_limit + 76 + LAYOUT_BATCH_CONTROL_BYTES + bridge_bytes if bridge_bytes > 0 else 0
+
+
+func layout_binding_refusal() -> StringName:
+	"""Typed Sources can check exact local composition without calling a physical provider outside a guard."""
+	return _identity_binding_refusal()
+
+
+func begin_layout_operation(room: Vector2i, planner_bytes: int, geometry_limit: int,
+		placement_limit: int) -> int:
+	"""Take exclusivity before the first physical callback, then admit every synchronous cold lifetime."""
+	if _stage_action != -1:
+		_layout_error = REFUSE_TRANSITION
+		return 0
+	_stage_action = LAYOUT_OPERATION_STAGE
+	_stage_room = room
+	_layout_error = _layout_limits_refusal(planner_bytes, geometry_limit, placement_limit)
+	if _layout_error == &"":
+		_layout_bindings = _actual_bindings()
+		if _layout_bindings == null:
+			_layout_error = REFUSE_BINDING
+	if _layout_error == &"":
+		_layout_error = _acquire_layout_scope(room, planner_bytes, geometry_limit, placement_limit)
+	if _layout_error != &"" or _layout_token <= 0:
+		_clear_layout_scope()
+		return 0
+	_cold_held = true
+	return _layout_token
+
+
+func _acquire_layout_scope(room: Vector2i, planner_bytes: int, geometry_limit: int,
+		placement_limit: int) -> StringName:
+	"""Pin the actual arena before acquisition; a provider token cannot stand in for Budget ownership."""
+	_layout_planner_bytes = planner_bytes
+	_layout_geometry_limit = geometry_limit
+	_layout_placement_limit = placement_limit
+	_layout_budget = _layout_bindings.layout_budget_owner()
+	if _layout_budget == null:
+		return REFUSE_BINDING
+	_layout_token = _layout_bindings.begin_layout_cold(room, planner_bytes, geometry_limit,
+		placement_limit, layout_batch_cold_bytes(placement_limit))
+	if _layout_token <= 0:
+		return _layout_bindings.layout_cold_refusal()
+	if _layout_budget != _layout_bindings.layout_budget_owner() or not _layout_budget_covers():
+		_layout_bindings.end_layout_cold(_layout_token, room)
+		return Layout.REFUSE_SCOPE
+	return &""
+
+
+func _layout_budget_covers() -> bool:
+	"""Pure actual-token proof allows copying and sealed source callbacks without another provider invocation."""
+	return _layout_budget != null and _layout_budget.covers(_layout_token,
+		_layout_planner_bytes + layout_batch_cold_bytes(_layout_placement_limit))
+
+
+func _layout_limits_refusal(planner_bytes: int, geometry_limit: int, placement_limit: int) -> StringName:
+	"""Bound input arithmetic before callbacks/copies; retired Room handles remain valid for UI cleanup."""
+	if _identity_binding_refusal() != &"":
+		return REFUSE_BINDING
+	if _stage_room.x < 0 or _stage_room.y <= 0 or geometry_limit < 1 \
+			or geometry_limit > Layout.MAX_OPERATION_CELLS or layout_batch_cold_bytes(placement_limit) == 0:
+		return Layout.REFUSE_SCOPE
+	return &"" if planner_bytes == Layout.cold_packed_bytes(geometry_limit, placement_limit) else Layout.REFUSE_SCOPE
+
+
+func layout_cold_refusal() -> StringName:
+	"""Report the actual acquisition refusal instead of granting a dummy positive lease token."""
+	return _layout_error if _layout_error != &"" else Layout.REFUSE_SCOPE
+
+
+func layout_scope_refusal(token: int, room: Vector2i, planner_bytes: int) -> StringName:
+	"""Check local exact scope first, then the original physical provider's actual same-World lease."""
+	if _layout_callback or not _same_layout_scope(token, room) or planner_bytes != _layout_planner_bytes \
+			or _identity_binding_refusal() != &"" or _bindings.get_ref() != _layout_bindings:
+		return Layout.REFUSE_SCOPE
+	_layout_callback = true
+	var code: StringName = _layout_bindings.layout_scope_refusal(token, room, planner_bytes,
+		layout_batch_cold_bytes(_layout_placement_limit))
+	_layout_callback = false
+	return code if code != &"" else (&"" if _layout_budget_covers() else Layout.REFUSE_SCOPE)
+
+
+func _same_layout_scope(token: int, room: Vector2i) -> bool:
+	"""Pure exact token/Room/stage comparison; no callback may borrow a foreign ongoing operation."""
+	return _layout_scope_identity(token, room) and _layout_budget_covers()
+
+
+func _layout_scope_identity(token: int, room: Vector2i) -> bool:
+	"""Cleanup can discard its own scratch after lease refusal, without releasing a foreign token."""
+	return token > 0 and token == _layout_token and room == _stage_room and _cold_held \
+		and _layout_bindings != null \
+		and (_stage_action == LAYOUT_OPERATION_STAGE or _stage_action == FURNITURE_BATCH_STAGE)
+
+
+func layout_snapshot(room: Vector2i, token: int) -> Layout.Snapshot:
+	"""Borrow one provider image inside the admitted scope; actual Room identity/type remain owner facts."""
+	if _stage_action != LAYOUT_OPERATION_STAGE or layout_scope_refusal(token, room, _layout_planner_bytes) != &"" \
+			or not _buildings.is_live_room(room):
+		return null
+	if _layout_snapshot != null:
+		return _layout_snapshot
+	_layout_callback = true
+	var snapshot: Layout.Snapshot = _layout_bindings.layout_snapshot(token, room,
+		_layout_geometry_limit, _layout_placement_limit)
+	_layout_callback = false
+	if layout_scope_refusal(token, room, _layout_planner_bytes) != &"" or snapshot == null:
+		return null
+	var kind: Buildings.OpResult = _buildings.spatial_kind_of_room(room)
+	var type_id: Buildings.OpResult = _buildings.type_of_room(room)
+	if kind.ok and kind.value == Buildings.ROOM_SPACE_UNDERGROUND and type_id.ok \
+		and snapshot.room_ref == room and snapshot.room_type == type_id.value \
+		and snapshot.allowed_types_mask == _catalog.allowed_types_mask(type_id.value):
+		_layout_snapshot = snapshot
+	return _layout_snapshot
+
+
+func layout_identity_live(domain: int, ref: Vector2i, token: int) -> bool:
+	"""Real full-generation owner readers replace caller booleans and same-number identities."""
+	if layout_scope_refusal(token, _stage_room, _layout_planner_bytes) != &"":
+		return false
+	match domain:
+		Layout.DOMAIN_ROOM:
+			return _buildings.is_live_room(ref)
+		Layout.DOMAIN_FURNITURE:
+			return _buildings.is_live_furniture(ref)
+		Layout.DOMAIN_PROJECT:
+			return _construction.is_live_project(ref)
+	return false
+
+
+func can_submit_layout(token: int) -> bool:
+	"""Only the actual once-bound Furniture purpose owner and original active scope can accept a batch."""
+	if _stage_action != LAYOUT_OPERATION_STAGE or _layout_receipt != null \
+			or layout_scope_refusal(token, _stage_room, _layout_planner_bytes) != &"":
+		return false
+	_layout_callback = true
+	var owner: Contract.Owner = _actual_owner()
+	_layout_callback = false
+	return owner != null
+
+
+func accept_layout(request: Layout.Batch, token: int) -> Layout.Submission:
+	"""Prepare the whole exact furniture request under the existing input lease, then use one actual Router commit."""
+	if _layout_callback or _stage_action != LAYOUT_OPERATION_STAGE or _layout_receipt != null \
+			or not _same_layout_scope(token, _stage_room):
+		return _layout_refused(REFUSE_TRANSITION)
+	_stage_action = FURNITURE_BATCH_STAGE
+	var code: StringName = _layout_request_shape_refusal(request)
+	if code == &"":
+		_layout_batch = FurnitureBatch.new()
+		_layout_batch.copy_request(request)
+		code = _layout_batch.observe(_construction.directory())
+	if code == &"":
+		code = _layout_request_refusal(token)
+	if code == &"":
+		code = _prepare_layout_geometry()
+	if code == &"":
+		code = _open_layout_pairs()
+	if code != &"":
+		_discard_layout_candidate()
+		return _layout_refused(code)
+	var receipt: Layout.Submission = _layout_receipt
+	_drop_layout_inputs()
+	return receipt
+
+
+func _layout_request_shape_refusal(request: Layout.Batch) -> StringName:
+	"""Check scalar bounds without callbacks before copying within the actual already-held Budget lease."""
+	if request == null or request.room_ref != _stage_room or _identity_binding_refusal() != &"":
+		return REFUSE_PLAN
+	if request.entries.is_empty() or request.entries.size() % Layout.ENTRY_STRIDE != 0 \
+			or request.entries.size() > _layout_placement_limit * Layout.ENTRY_STRIDE \
+			or request.pitch_units < 1 or request.pitch_units > Layout.CATALOG_TILE_UNITS \
+			or Layout.CATALOG_TILE_UNITS % request.pitch_units != 0 or request.level < 0 \
+			or request.level > RoomSpace.I32_MAX or request.expected_revision < 0:
+		return REFUSE_PLAN
+	return &""
+
+
+func _layout_request_refusal(token: int) -> StringName:
+	"""All inputs are pinned before provider callbacks; functional service validity is not shell completion."""
+	var code: StringName = layout_scope_refusal(token, _stage_room, _layout_planner_bytes)
+	if code != &"":
+		return code
+	var request: Layout.Batch = _layout_batch.canonical
+	var kind: Buildings.OpResult = _buildings.spatial_kind_of_room(request.room_ref)
+	var type_id: Buildings.OpResult = _buildings.type_of_room(request.room_ref)
+	if not kind.ok or kind.value != Buildings.ROOM_SPACE_UNDERGROUND \
+			or not type_id.ok or request.room_type != type_id.value or _actual_owner() == null:
+		return REFUSE_FURNITURE
+	for offset: int in range(0, request.entries.size(), Layout.ENTRY_STRIDE):
+		code = _catalog.compatibility_error(type_id.value, request.entries[offset])
+		if code != &"" or request.entries[offset + 3] < 0 or request.entries[offset + 3] >= 4:
+			return code if code != &"" else REFUSE_PLAN
+	code = layout_scope_refusal(token, _stage_room, _layout_planner_bytes)
+	return code if code != &"" else (&"" if _layout_batch.unchanged() else REFUSE_PLAN)
+
+
+func _prepare_layout_geometry() -> StringName:
+	"""Stage exact future Furniture sources and mandatory physical companions before the paired allocation."""
+	if not _layout_batch.unchanged():
+		return REFUSE_PLAN
+	var begun: SpaceOwner.Result = _space.begin_stage(_space.revision())
+	if begun.error != &"":
+		return begun.error
+	_stage_token = begun.token
+	var code: StringName = _space.stage_furniture_admissions(_stage_token, _layout_batch.candidates,
+		_stage_room, _layout_batch.submitted.entries, self)
+	if code == &"":
+		_layout_callback = true
+		code = _layout_bindings.layout_plan_refusal(_layout_token, _layout_batch.submitted,
+			_layout_batch.candidates, _stage_token)
+		_layout_callback = false
+	if code == &"" and not _layout_batch.unchanged():
+		code = REFUSE_PLAN
+	if code == &"":
+		code = _space.seal(_stage_token)
+	return code
+
+
+func _open_layout_pairs() -> StringName:
+	"""The actual Router alone spends the observed free identities and invokes prepared owner publication."""
+	var owner: Contract.Owner = _actual_owner()
+	var router: Router = _actual_router() as Router
+	if owner == null or router == null:
+		return REFUSE_BINDING
+	var result: Construction.OpResult = router.open_furniture_batch(owner, _stage_room,
+		_layout_batch.candidates, _layout_batch.submitted.entries)
+	return &"" if result.ok else result.error
+
+
+func furniture_candidates_refusal(room: Vector2i, candidates: Directory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Pure retained-packet proof for Buildings/Space callbacks; never recurse into physical prepared validation."""
+	return &"" if _identity_binding_refusal() == &"" and _stage_action == FURNITURE_BATCH_STAGE \
+		and _same_layout_scope(_layout_token, room) and _layout_batch != null \
+		and candidates != null and candidates == _layout_batch.candidates \
+		and candidates.directory_owner() == _construction.directory() and _layout_batch.unchanged() \
+		and entries == _layout_batch.canonical.entries else REFUSE_PLAN
+
+
+func furniture_batch_refusal(room: Vector2i, candidates: Directory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""Finish all fallible proof before Directory commits; the last callback can never alter pinned input unnoticed."""
+	if _layout_callback:
+		return REFUSE_TRANSITION
+	var code: StringName = furniture_candidates_refusal(room, candidates, entries)
+	if code == &"":
+		_layout_callback = true
+		code = _layout_bindings.layout_prepared_refusal(_layout_token, _layout_batch.submitted,
+			candidates, _stage_token)
+		_layout_callback = false
+	if code == &"":
+		code = layout_scope_refusal(_layout_token, room, _layout_planner_bytes)
+	if code == &"":
+		code = _space.prepared_refusal(_stage_token)
+	return furniture_candidates_refusal(room, candidates, entries) if code == &"" else code
+
+
+func is_publishing_furniture_admissions(room: Vector2i, candidates: Directory.CreateBatch) -> bool:
+	"""No physical provider callback occurs after identities commit; compare the real Router's exact same-stack permit."""
+	if _layout_batch == null or _layout_batch.submitted == null \
+			or furniture_candidates_refusal(room, candidates, _layout_batch.submitted.entries) != &"":
+		return false
+	var owner: Contract.Owner = _furniture_owner.get_ref() as Contract.Owner if _furniture_owner != null else null
+	return _actual_router().is_publishing_furniture_admissions(room, candidates, owner)
+
+
+func publish_furniture_batch(room: Vector2i, candidates: Directory.CreateBatch,
+		entries: PackedInt32Array) -> void:
+	"""Pin the complete preallocated receipt before sealed geometry/companion publication and cleanup."""
+	if not is_publishing_furniture_admissions(room, candidates) \
+			or entries != _layout_batch.canonical.entries:
+		return
+	_publishing = true
+	_layout_batch.write_receipt()
+	var code: StringName = _space.publish_furniture_admissions(_stage_token, candidates, room, entries, self)
+	assert(code == &"", "preflighted actual pending Furniture geometry must publish after paired identities")
+	_layout_bindings.publish_layout(_layout_token, _layout_batch.submitted, candidates, _stage_token)
+	_layout_batch.receipt.ok = true
+	_layout_batch.receipt.error = &""
+	_layout_receipt = _layout_batch.receipt
+	_publishing = false
+
+
+func _discard_layout_candidate() -> void:
+	"""Drop prepared physical companions and Space scratch before any private copied batch is discarded."""
+	if _stage_action != FURNITURE_BATCH_STAGE:
+		return
+	if _layout_bindings != null:
+		_layout_bindings.discard_layout(_layout_token, _stage_room, _stage_token)
+	if _stage_token > 0:
+		_space.abort(_stage_token)
+	_drop_layout_inputs()
+
+
+func _drop_layout_inputs() -> void:
+	"""Retain only the receipt until the planner consumes it; all other packet buffers end in this call."""
+	if _layout_batch != null:
+		_layout_batch.drop_inputs()
+	_layout_batch = null
+	_stage_token = 0
+	_stage_action = LAYOUT_OPERATION_STAGE
+
+
+func _layout_refused(code: StringName) -> Layout.Submission:
+	"""An ordinary refused submission leaves every world owner unchanged and grants no project receipt."""
+	var result: Layout.Submission = Layout.Submission.new()
+	result.error = code
+	return result
+
+
+func has_layout_scope() -> bool:
+	"""A typed Sources adapter retains its actual coordinator until the original scope has ended."""
+	return _layout_token > 0
+
+
+func end_layout_operation(token: int, room: Vector2i) -> StringName:
+	"""Clear accepted receipt/provider scratch before releasing the exact original shared lease."""
+	if _layout_callback or not _layout_scope_identity(token, room) or _stage_action != LAYOUT_OPERATION_STAGE:
+		return Layout.REFUSE_SCOPE
+	if _layout_receipt != null:
+		_layout_receipt.project_refs.clear()
+	_layout_receipt = null
+	_layout_snapshot = null
+	_layout_callback = true
+	var code: StringName = _layout_bindings.end_layout_cold(token, room)
+	_layout_callback = false
+	if code == &"":
+		_clear_layout_scope()
+	return code
+
+
+func _clear_layout_scope() -> void:
+	"""Clear only transient numerical/reference wiring, never accepted Furniture/project state."""
+	_layout_token = 0
+	_layout_planner_bytes = 0
+	_layout_geometry_limit = 0
+	_layout_placement_limit = 0
+	_layout_bindings = null
+	_layout_budget = null
+	_clear_stage()
 
 
 func confirm_room(plan: RoomPlan) -> Buildings.OpResult:
@@ -606,7 +1100,7 @@ func worker_refusal(project: Vector2i, job: Vector2i, worker: Vector2i) -> Strin
 
 func discard_transition(project: Vector2i, action: int) -> void:
 	"""A wrong action/project cannot erase another prepared candidate or any accepted footprint."""
-	if _stage_action == ROOM_ADMISSION_STAGE or project != _stage_project or action != _stage_action or _publishing:
+	if _stage_action >= ROOM_ADMISSION_STAGE or project != _stage_project or action != _stage_action or _publishing:
 		return
 	var target: Bindings = _bindings.get_ref() as Bindings if _bindings != null else null
 	if target != null:

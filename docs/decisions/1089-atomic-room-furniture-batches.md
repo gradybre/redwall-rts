@@ -174,3 +174,76 @@ zero leaked objects/resources in every footer. The analyzer reported **0 GDScrip
 warnings in0 of5 files**. Raw logs, exact manifests, source hashes and the rejected
 initial fixture-quote run live in
 `docs/validation/evidence/underground-furniture-batches-2026-10-03/core/`.
+
+## Actual coordinator and typed Sources increment
+
+RoomOrders now prepares the paired request under the original RoomLayout input
+lease. `underground_layout_sources.gd` is a typed adapter to that actual owner;
+it has no callable permission hooks, geometry rules, prices or allocation arena.
+Its permanent RoomOrders link is weak. A strong coordinator reference lasts only
+through one synchronous input operation, including result consumption and release.
+The room coordinator retains the actual physical Bindings and actual shared
+Budget for that same interval. Neither is a new persistent gameplay owner.
+
+The actual Budget is captured before provider acquisition. Its exact live token
+and full planner/packet charge are checked directly before the first request or
+allocator copy, and in the pure future-source candidate attestation. Remembering
+`_cold_held` alone cannot authorize a revoked or reacquired arena. Provider scope
+checks additionally cover physical images, native headers, dictionary growth and
+companions. All exposed request scalar fields, both exposed entry arrays and all
+five mutable Directory tuple columns are separately pinned before an acceptance
+provider callback can change them. The original Room, level, pitch, revision and
+rotation therefore cannot change during final qualification.
+
+One operation borrows only one cached provider snapshot and can retain only one
+accepted receipt. Repeated direct Sources reads reuse that same image; a second
+submission after success requires a new synchronous operation. This prevents the
+public typed adapter from accumulating uncharged images or receipts outside the
+planner's normal single-read/single-submit call pattern. Both references and all
+receipt buffers are cleared before the provider releases the actual lease.
+
+The operation budget includes the Directory `48N+76`, two extra request entry
+copies `32N`, private tuple pins `40N`, and the SpaceOwner's independently declared
+`60N+16` future-source bridge. Known packed payload plus fixed numeric controls is
+therefore **180N+230 bytes**, added to the unchanged planner bound
+`336G+64P+512`. The RoomOrders portion of the fixed numeric controls is138 bytes:
+four operation I64 values32, one packet count8, two request scalar headers80,
+Directory packet capacity/count16, one receipt boolean1 and callback guard1.
+The separately owned bridge adds16. The preallocated `8N` Project receipt is
+already inside the planner's64P allowance and is not counted twice. Native object,
+WeakRef/strong reference, packed header and helper-frame lifetimes are additional
+provider admission; none is a zero-runtime allocation claim.
+
+RoomOrders establishes its exclusive local stage before any physical binding
+callback. Pure candidate proof never calls a physical provider or recursively
+validates SpaceOwner. The final receipt is filled from actual Project tuples
+before geometry/companion publication, so a legitimate final cleanup cannot erase
+the committed result. Pending furniture contributes no installed mask or service.
+An empty completed Kitchen can accept a layout even though its whole-room service
+prerequisites remain unsatisfied; physical shell completion and functional service
+readiness are distinct owner obligations.
+
+The composition tests use actual Directory, Buildings, Construction,
+Router, shared Funding, Inventory, Work, Gear, SpaceOwner and Budget. Only authored
+shell/profile/contact qualification is explicitly synthetic. They do not qualify
+the live demo, full-room geometry, actual content or production performance.
+
+The reviewed future-source bridge is included unchanged. After deleting the
+import cache, with demo assets absent, the clean Godot4.7.2 import and six
+unchanged strict suite invocations passed **134 tests,8285 assertions,0 failures**.
+Every suite reported:
+
+```text
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+The analyzer reported **0 GDScript warning(s) in0 of5 file(s)**. Exact manifests,
+six raw logs/results, import/analyzer logs and source pins are retained under
+`docs/validation/evidence/underground-furniture-batches-2026-10-03/coordinator/`.
+The independent furnishing agent checked all five frozen source/test hashes
+before and after its read-only review and accepted the candidate with no
+critical/high/medium finding. It inspected the actual transaction, same-input
+lifetime, packet arithmetic and adversarial tests without repeating the author's
+engine runs. Actual authored geometry/contact qualification, production
+composition, composed save/load and hardware performance remain open.

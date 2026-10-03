@@ -9,6 +9,7 @@ const Construction := preload("res://scripts/core/construction.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"UNDERGROUND_FURNITURE_OWNER_UNBOUND"
 const REFUSE_ORDER: StringName = &"UNDERGROUND_FURNITURE_ORDER_NOT_PREPARED"
@@ -120,6 +121,26 @@ func prepared_order_into(subject: Vector2i, operation: int, out: Contract.Quote)
 		return REFUSE_ORDER
 	var code: StringName = _actual_rooms().prepare_admission(subject, operation)
 	return _fill_quote(subject, operation, out) if code == &"" else code
+
+
+func furniture_batch_refusal(room: Vector2i, candidates: Directory.CreateBatch,
+		entries: PackedInt32Array) -> StringName:
+	"""The actual caller coordinator owns all prepared inputs and completes fresh geometry/lease proof."""
+	var rooms: RoomOrders = _actual_rooms()
+	return rooms.furniture_batch_refusal(room, candidates, entries) if rooms != null else REFUSE_BINDING
+
+
+func publish_furniture_batch(room: Vector2i, candidates: Directory.CreateBatch,
+		entries: PackedInt32Array) -> void:
+	"""Delegate only through the exact coordinator's pure same-stack publication attestation."""
+	var rooms: RoomOrders = _actual_rooms()
+	if rooms != null:
+		rooms.publish_furniture_batch(room, candidates, entries)
+
+
+func discard_furniture_batch(_room: Vector2i, _candidates: Directory.CreateBatch) -> void:
+	"""RoomOrders owns caller scratch and disposes it once after Router returns; this callback owns no copy."""
+	pass
 
 
 func project_facts_into(project: Vector2i, out: Contract.Quote) -> StringName:

@@ -1,0 +1,41 @@
+{
+  "branch": "codex/underground-layout-coordinator",
+  "base": "98a08ec746edbcae14e4c4bf13f0d767931e2cea",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "demo_assets_present": false,
+  "deleted_import_cache": true,
+  "import_command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "strict_wrapper": "./tools/run_tests.sh --shard <index>/337 --output-dir /tmp/ug1089-coordinator-run1",
+  "suites": [
+    "test_underground_furniture_batches.gd",
+    "test_underground_layout_sources.gd",
+    "test_underground_room_orders.gd",
+    "test_underground_furniture_work.gd",
+    "test_room_layout.gd",
+    "test_construction_furniture_batches.gd"
+  ],
+  "totals": {
+    "tests": 134,
+    "assertions": 8285,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "analyzer": {
+    "files": 5,
+    "warnings": 0,
+    "port": 6156
+  },
+  "scope": "Actual paired pending Furniture/Construction/source publication and real paid completion; geometric shell/profile/contact permission remains explicitly synthetic. This is focused component validation, not the full no-argument suite, production geometry, demo activation or memory/performance qualification."
+}

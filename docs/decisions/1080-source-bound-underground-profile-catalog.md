@@ -926,3 +926,25 @@ assertions/0 failures, strict/raw diagnostics and leaks all0, and analyzer0/2.
 Tests use actual identity/equipment owners and deliberately synthetic source
 geometry; rejected parser and role-binding evidence remain in v1/v2. No
 production profile flag, Work credit or actual construction is created here.
+
+### Exact finite carry-handoff proof accepted
+
+The fixed-ready driver program now has a complete offline intersection proof:
+155 emitted fades,7,962,301 exact separating checks and0 unresolved primitive
+pairs. It includes every actual idle/walk loop edge, the one ready-to-walk
+start fade, and each source interval returning to idle frame8. Common positive
+source coefficients permit subtracting one shared body/tool origin; outward
+barycentric subdivision preserves the full covered simplex. Exhaustion refuses.
+Native error is conservatively mapped back through all65,536 finite WorldBasis
+rows without assuming unit norm. No new rig, tool geometry or speed is used.
+
+The 9,761 non-grip body triangles and1,150 complete pick triangles are checked;
+448 intentional palm-grip triangles are omitted only from this self-contact
+question and remain in physical bounds. The accepted source/test/report pins,
+exact NumPy interpreter, full raw log and rejected broad-hull/capacity attempts
+are retained in `contact-qualification/review-state-handoffs-v1` and its linked
+source evidence. Root independently reviewed the math/source closure and ran
+all8 adversarial tests successfully. This qualifies the finite offline source
+proof only: native complete-state replay, immutable physical-profile binding,
+actual support/target/approach and presentation peak remain open; production
+profiles stay0.

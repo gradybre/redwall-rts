@@ -1,0 +1,1 @@
+The complete arbitrary convex hull of all idle/walk source poses was not proven separate: 32 unresolved pairs after 66,856 checks. This is a conservative proof refusal, not evidence of actual playback collision. The next fixed-ready transition proof narrows the emitted state program and preserves this rejected larger domain. No production flag was emitted.

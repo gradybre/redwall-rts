@@ -1,0 +1,8 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_state_handoffs.py": "08b498ea7fb9af11bf729008772d3be82c74aa78a7695d2c013d2211f4fe411e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/state-fixed-ready-v6.json": "eee187ed68129222da0cbb515855d730eef5821f286529f3fe983a4ae2837910",
+  "godot/data/underground/mole-worker/mole_profile_driver.gd": "e518e92b571bbaecdeb9f77d667679d816d2c793d422d36f41a84852dba33434",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-state-handoffs-v1/proof.log": "b5933b0e9496acc7f32e4b03e77b90b31f3b247111c23eecff5709f871f96c9a",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-state-handoffs-v1/python-tests.log": "f43f777b37cc291bf71377fe00cb2047e5fbdc5c682893424fbe5354f58d87e0"
+}

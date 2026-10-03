@@ -1,0 +1,2215 @@
+{
+  "schema": 1,
+  "image_sha256": "f5f7c985b08df561956f6e057ff4acaee18948393125a9c41c6bce9c2e8e3433",
+  "selected_clips": [
+    0,
+    1
+  ],
+  "hull": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 7962301,
+    "checked": [
+      {
+        "from": "ready",
+        "interval": [
+          8,
+          8
+        ],
+        "to": "walk-start",
+        "corners": [
+          8,
+          8,
+          122
+        ],
+        "checks": 83039
+      },
+      {
+        "from": "idle",
+        "interval": [
+          0,
+          1
+        ],
+        "to": "ready",
+        "corners": [
+          0,
+          1,
+          8
+        ],
+        "checks": 847
+      },
+      {
+        "from": "idle",
+        "interval": [
+          1,
+          2
+        ],
+        "to": "ready",
+        "corners": [
+          1,
+          2,
+          8
+        ],
+        "checks": 827
+      },
+      {
+        "from": "idle",
+        "interval": [
+          2,
+          3
+        ],
+        "to": "ready",
+        "corners": [
+          2,
+          3,
+          8
+        ],
+        "checks": 805
+      },
+      {
+        "from": "idle",
+        "interval": [
+          3,
+          4
+        ],
+        "to": "ready",
+        "corners": [
+          3,
+          4,
+          8
+        ],
+        "checks": 758
+      },
+      {
+        "from": "idle",
+        "interval": [
+          4,
+          5
+        ],
+        "to": "ready",
+        "corners": [
+          4,
+          5,
+          8
+        ],
+        "checks": 682
+      },
+      {
+        "from": "idle",
+        "interval": [
+          5,
+          6
+        ],
+        "to": "ready",
+        "corners": [
+          5,
+          6,
+          8
+        ],
+        "checks": 525
+      },
+      {
+        "from": "idle",
+        "interval": [
+          6,
+          7
+        ],
+        "to": "ready",
+        "corners": [
+          6,
+          7,
+          8
+        ],
+        "checks": 379
+      },
+      {
+        "from": "idle",
+        "interval": [
+          7,
+          8
+        ],
+        "to": "ready",
+        "corners": [
+          7,
+          8,
+          8
+        ],
+        "checks": 245
+      },
+      {
+        "from": "idle",
+        "interval": [
+          8,
+          9
+        ],
+        "to": "ready",
+        "corners": [
+          8,
+          9,
+          8
+        ],
+        "checks": 227
+      },
+      {
+        "from": "idle",
+        "interval": [
+          9,
+          10
+        ],
+        "to": "ready",
+        "corners": [
+          9,
+          10,
+          8
+        ],
+        "checks": 337
+      },
+      {
+        "from": "idle",
+        "interval": [
+          10,
+          11
+        ],
+        "to": "ready",
+        "corners": [
+          10,
+          11,
+          8
+        ],
+        "checks": 438
+      },
+      {
+        "from": "idle",
+        "interval": [
+          11,
+          12
+        ],
+        "to": "ready",
+        "corners": [
+          11,
+          12,
+          8
+        ],
+        "checks": 509
+      },
+      {
+        "from": "idle",
+        "interval": [
+          12,
+          13
+        ],
+        "to": "ready",
+        "corners": [
+          12,
+          13,
+          8
+        ],
+        "checks": 656
+      },
+      {
+        "from": "idle",
+        "interval": [
+          13,
+          14
+        ],
+        "to": "ready",
+        "corners": [
+          13,
+          14,
+          8
+        ],
+        "checks": 706
+      },
+      {
+        "from": "idle",
+        "interval": [
+          14,
+          15
+        ],
+        "to": "ready",
+        "corners": [
+          14,
+          15,
+          8
+        ],
+        "checks": 853
+      },
+      {
+        "from": "idle",
+        "interval": [
+          15,
+          16
+        ],
+        "to": "ready",
+        "corners": [
+          15,
+          16,
+          8
+        ],
+        "checks": 1077
+      },
+      {
+        "from": "idle",
+        "interval": [
+          16,
+          17
+        ],
+        "to": "ready",
+        "corners": [
+          16,
+          17,
+          8
+        ],
+        "checks": 1369
+      },
+      {
+        "from": "idle",
+        "interval": [
+          17,
+          18
+        ],
+        "to": "ready",
+        "corners": [
+          17,
+          18,
+          8
+        ],
+        "checks": 1486
+      },
+      {
+        "from": "idle",
+        "interval": [
+          18,
+          19
+        ],
+        "to": "ready",
+        "corners": [
+          18,
+          19,
+          8
+        ],
+        "checks": 1356
+      },
+      {
+        "from": "idle",
+        "interval": [
+          19,
+          20
+        ],
+        "to": "ready",
+        "corners": [
+          19,
+          20,
+          8
+        ],
+        "checks": 1168
+      },
+      {
+        "from": "idle",
+        "interval": [
+          20,
+          21
+        ],
+        "to": "ready",
+        "corners": [
+          20,
+          21,
+          8
+        ],
+        "checks": 951
+      },
+      {
+        "from": "idle",
+        "interval": [
+          21,
+          22
+        ],
+        "to": "ready",
+        "corners": [
+          21,
+          22,
+          8
+        ],
+        "checks": 1262
+      },
+      {
+        "from": "idle",
+        "interval": [
+          22,
+          23
+        ],
+        "to": "ready",
+        "corners": [
+          22,
+          23,
+          8
+        ],
+        "checks": 2357
+      },
+      {
+        "from": "idle",
+        "interval": [
+          23,
+          24
+        ],
+        "to": "ready",
+        "corners": [
+          23,
+          24,
+          8
+        ],
+        "checks": 4159
+      },
+      {
+        "from": "idle",
+        "interval": [
+          24,
+          25
+        ],
+        "to": "ready",
+        "corners": [
+          24,
+          25,
+          8
+        ],
+        "checks": 6200
+      },
+      {
+        "from": "idle",
+        "interval": [
+          25,
+          26
+        ],
+        "to": "ready",
+        "corners": [
+          25,
+          26,
+          8
+        ],
+        "checks": 8006
+      },
+      {
+        "from": "idle",
+        "interval": [
+          26,
+          27
+        ],
+        "to": "ready",
+        "corners": [
+          26,
+          27,
+          8
+        ],
+        "checks": 9988
+      },
+      {
+        "from": "idle",
+        "interval": [
+          27,
+          28
+        ],
+        "to": "ready",
+        "corners": [
+          27,
+          28,
+          8
+        ],
+        "checks": 11785
+      },
+      {
+        "from": "idle",
+        "interval": [
+          28,
+          29
+        ],
+        "to": "ready",
+        "corners": [
+          28,
+          29,
+          8
+        ],
+        "checks": 13538
+      },
+      {
+        "from": "idle",
+        "interval": [
+          29,
+          30
+        ],
+        "to": "ready",
+        "corners": [
+          29,
+          30,
+          8
+        ],
+        "checks": 15129
+      },
+      {
+        "from": "idle",
+        "interval": [
+          30,
+          31
+        ],
+        "to": "ready",
+        "corners": [
+          30,
+          31,
+          8
+        ],
+        "checks": 16180
+      },
+      {
+        "from": "idle",
+        "interval": [
+          31,
+          32
+        ],
+        "to": "ready",
+        "corners": [
+          31,
+          32,
+          8
+        ],
+        "checks": 16845
+      },
+      {
+        "from": "idle",
+        "interval": [
+          32,
+          33
+        ],
+        "to": "ready",
+        "corners": [
+          32,
+          33,
+          8
+        ],
+        "checks": 18041
+      },
+      {
+        "from": "idle",
+        "interval": [
+          33,
+          34
+        ],
+        "to": "ready",
+        "corners": [
+          33,
+          34,
+          8
+        ],
+        "checks": 19287
+      },
+      {
+        "from": "idle",
+        "interval": [
+          34,
+          35
+        ],
+        "to": "ready",
+        "corners": [
+          34,
+          35,
+          8
+        ],
+        "checks": 20287
+      },
+      {
+        "from": "idle",
+        "interval": [
+          35,
+          36
+        ],
+        "to": "ready",
+        "corners": [
+          35,
+          36,
+          8
+        ],
+        "checks": 20401
+      },
+      {
+        "from": "idle",
+        "interval": [
+          36,
+          37
+        ],
+        "to": "ready",
+        "corners": [
+          36,
+          37,
+          8
+        ],
+        "checks": 19338
+      },
+      {
+        "from": "idle",
+        "interval": [
+          37,
+          38
+        ],
+        "to": "ready",
+        "corners": [
+          37,
+          38,
+          8
+        ],
+        "checks": 17571
+      },
+      {
+        "from": "idle",
+        "interval": [
+          38,
+          39
+        ],
+        "to": "ready",
+        "corners": [
+          38,
+          39,
+          8
+        ],
+        "checks": 15851
+      },
+      {
+        "from": "idle",
+        "interval": [
+          39,
+          40
+        ],
+        "to": "ready",
+        "corners": [
+          39,
+          40,
+          8
+        ],
+        "checks": 14287
+      },
+      {
+        "from": "idle",
+        "interval": [
+          40,
+          41
+        ],
+        "to": "ready",
+        "corners": [
+          40,
+          41,
+          8
+        ],
+        "checks": 12399
+      },
+      {
+        "from": "idle",
+        "interval": [
+          41,
+          42
+        ],
+        "to": "ready",
+        "corners": [
+          41,
+          42,
+          8
+        ],
+        "checks": 10546
+      },
+      {
+        "from": "idle",
+        "interval": [
+          42,
+          43
+        ],
+        "to": "ready",
+        "corners": [
+          42,
+          43,
+          8
+        ],
+        "checks": 9973
+      },
+      {
+        "from": "idle",
+        "interval": [
+          43,
+          44
+        ],
+        "to": "ready",
+        "corners": [
+          43,
+          44,
+          8
+        ],
+        "checks": 10199
+      },
+      {
+        "from": "idle",
+        "interval": [
+          44,
+          45
+        ],
+        "to": "ready",
+        "corners": [
+          44,
+          45,
+          8
+        ],
+        "checks": 9662
+      },
+      {
+        "from": "idle",
+        "interval": [
+          45,
+          46
+        ],
+        "to": "ready",
+        "corners": [
+          45,
+          46,
+          8
+        ],
+        "checks": 8967
+      },
+      {
+        "from": "idle",
+        "interval": [
+          46,
+          47
+        ],
+        "to": "ready",
+        "corners": [
+          46,
+          47,
+          8
+        ],
+        "checks": 8306
+      },
+      {
+        "from": "idle",
+        "interval": [
+          47,
+          48
+        ],
+        "to": "ready",
+        "corners": [
+          47,
+          48,
+          8
+        ],
+        "checks": 7218
+      },
+      {
+        "from": "idle",
+        "interval": [
+          48,
+          49
+        ],
+        "to": "ready",
+        "corners": [
+          48,
+          49,
+          8
+        ],
+        "checks": 6911
+      },
+      {
+        "from": "idle",
+        "interval": [
+          49,
+          50
+        ],
+        "to": "ready",
+        "corners": [
+          49,
+          50,
+          8
+        ],
+        "checks": 7183
+      },
+      {
+        "from": "idle",
+        "interval": [
+          50,
+          51
+        ],
+        "to": "ready",
+        "corners": [
+          50,
+          51,
+          8
+        ],
+        "checks": 7249
+      },
+      {
+        "from": "idle",
+        "interval": [
+          51,
+          52
+        ],
+        "to": "ready",
+        "corners": [
+          51,
+          52,
+          8
+        ],
+        "checks": 7285
+      },
+      {
+        "from": "idle",
+        "interval": [
+          52,
+          53
+        ],
+        "to": "ready",
+        "corners": [
+          52,
+          53,
+          8
+        ],
+        "checks": 6715
+      },
+      {
+        "from": "idle",
+        "interval": [
+          53,
+          54
+        ],
+        "to": "ready",
+        "corners": [
+          53,
+          54,
+          8
+        ],
+        "checks": 6011
+      },
+      {
+        "from": "idle",
+        "interval": [
+          54,
+          55
+        ],
+        "to": "ready",
+        "corners": [
+          54,
+          55,
+          8
+        ],
+        "checks": 4911
+      },
+      {
+        "from": "idle",
+        "interval": [
+          55,
+          56
+        ],
+        "to": "ready",
+        "corners": [
+          55,
+          56,
+          8
+        ],
+        "checks": 3605
+      },
+      {
+        "from": "idle",
+        "interval": [
+          56,
+          57
+        ],
+        "to": "ready",
+        "corners": [
+          56,
+          57,
+          8
+        ],
+        "checks": 6274
+      },
+      {
+        "from": "idle",
+        "interval": [
+          57,
+          58
+        ],
+        "to": "ready",
+        "corners": [
+          57,
+          58,
+          8
+        ],
+        "checks": 12756
+      },
+      {
+        "from": "idle",
+        "interval": [
+          58,
+          59
+        ],
+        "to": "ready",
+        "corners": [
+          58,
+          59,
+          8
+        ],
+        "checks": 19448
+      },
+      {
+        "from": "idle",
+        "interval": [
+          59,
+          60
+        ],
+        "to": "ready",
+        "corners": [
+          59,
+          60,
+          8
+        ],
+        "checks": 24715
+      },
+      {
+        "from": "idle",
+        "interval": [
+          60,
+          61
+        ],
+        "to": "ready",
+        "corners": [
+          60,
+          61,
+          8
+        ],
+        "checks": 29204
+      },
+      {
+        "from": "idle",
+        "interval": [
+          61,
+          62
+        ],
+        "to": "ready",
+        "corners": [
+          61,
+          62,
+          8
+        ],
+        "checks": 36018
+      },
+      {
+        "from": "idle",
+        "interval": [
+          62,
+          63
+        ],
+        "to": "ready",
+        "corners": [
+          62,
+          63,
+          8
+        ],
+        "checks": 41387
+      },
+      {
+        "from": "idle",
+        "interval": [
+          63,
+          64
+        ],
+        "to": "ready",
+        "corners": [
+          63,
+          64,
+          8
+        ],
+        "checks": 45452
+      },
+      {
+        "from": "idle",
+        "interval": [
+          64,
+          65
+        ],
+        "to": "ready",
+        "corners": [
+          64,
+          65,
+          8
+        ],
+        "checks": 48748
+      },
+      {
+        "from": "idle",
+        "interval": [
+          65,
+          66
+        ],
+        "to": "ready",
+        "corners": [
+          65,
+          66,
+          8
+        ],
+        "checks": 53656
+      },
+      {
+        "from": "idle",
+        "interval": [
+          66,
+          67
+        ],
+        "to": "ready",
+        "corners": [
+          66,
+          67,
+          8
+        ],
+        "checks": 67499
+      },
+      {
+        "from": "idle",
+        "interval": [
+          67,
+          68
+        ],
+        "to": "ready",
+        "corners": [
+          67,
+          68,
+          8
+        ],
+        "checks": 84459
+      },
+      {
+        "from": "idle",
+        "interval": [
+          68,
+          69
+        ],
+        "to": "ready",
+        "corners": [
+          68,
+          69,
+          8
+        ],
+        "checks": 100035
+      },
+      {
+        "from": "idle",
+        "interval": [
+          69,
+          70
+        ],
+        "to": "ready",
+        "corners": [
+          69,
+          70,
+          8
+        ],
+        "checks": 112434
+      },
+      {
+        "from": "idle",
+        "interval": [
+          70,
+          71
+        ],
+        "to": "ready",
+        "corners": [
+          70,
+          71,
+          8
+        ],
+        "checks": 117003
+      },
+      {
+        "from": "idle",
+        "interval": [
+          71,
+          72
+        ],
+        "to": "ready",
+        "corners": [
+          71,
+          72,
+          8
+        ],
+        "checks": 119013
+      },
+      {
+        "from": "idle",
+        "interval": [
+          72,
+          73
+        ],
+        "to": "ready",
+        "corners": [
+          72,
+          73,
+          8
+        ],
+        "checks": 119380
+      },
+      {
+        "from": "idle",
+        "interval": [
+          73,
+          74
+        ],
+        "to": "ready",
+        "corners": [
+          73,
+          74,
+          8
+        ],
+        "checks": 118660
+      },
+      {
+        "from": "idle",
+        "interval": [
+          74,
+          75
+        ],
+        "to": "ready",
+        "corners": [
+          74,
+          75,
+          8
+        ],
+        "checks": 117449
+      },
+      {
+        "from": "idle",
+        "interval": [
+          75,
+          76
+        ],
+        "to": "ready",
+        "corners": [
+          75,
+          76,
+          8
+        ],
+        "checks": 114107
+      },
+      {
+        "from": "idle",
+        "interval": [
+          76,
+          77
+        ],
+        "to": "ready",
+        "corners": [
+          76,
+          77,
+          8
+        ],
+        "checks": 109248
+      },
+      {
+        "from": "idle",
+        "interval": [
+          77,
+          78
+        ],
+        "to": "ready",
+        "corners": [
+          77,
+          78,
+          8
+        ],
+        "checks": 105153
+      },
+      {
+        "from": "idle",
+        "interval": [
+          78,
+          79
+        ],
+        "to": "ready",
+        "corners": [
+          78,
+          79,
+          8
+        ],
+        "checks": 101349
+      },
+      {
+        "from": "idle",
+        "interval": [
+          79,
+          80
+        ],
+        "to": "ready",
+        "corners": [
+          79,
+          80,
+          8
+        ],
+        "checks": 100785
+      },
+      {
+        "from": "idle",
+        "interval": [
+          80,
+          81
+        ],
+        "to": "ready",
+        "corners": [
+          80,
+          81,
+          8
+        ],
+        "checks": 100714
+      },
+      {
+        "from": "idle",
+        "interval": [
+          81,
+          82
+        ],
+        "to": "ready",
+        "corners": [
+          81,
+          82,
+          8
+        ],
+        "checks": 99368
+      },
+      {
+        "from": "idle",
+        "interval": [
+          82,
+          83
+        ],
+        "to": "ready",
+        "corners": [
+          82,
+          83,
+          8
+        ],
+        "checks": 101309
+      },
+      {
+        "from": "idle",
+        "interval": [
+          83,
+          84
+        ],
+        "to": "ready",
+        "corners": [
+          83,
+          84,
+          8
+        ],
+        "checks": 102692
+      },
+      {
+        "from": "idle",
+        "interval": [
+          84,
+          85
+        ],
+        "to": "ready",
+        "corners": [
+          84,
+          85,
+          8
+        ],
+        "checks": 103649
+      },
+      {
+        "from": "idle",
+        "interval": [
+          85,
+          86
+        ],
+        "to": "ready",
+        "corners": [
+          85,
+          86,
+          8
+        ],
+        "checks": 105019
+      },
+      {
+        "from": "idle",
+        "interval": [
+          86,
+          87
+        ],
+        "to": "ready",
+        "corners": [
+          86,
+          87,
+          8
+        ],
+        "checks": 106707
+      },
+      {
+        "from": "idle",
+        "interval": [
+          87,
+          88
+        ],
+        "to": "ready",
+        "corners": [
+          87,
+          88,
+          8
+        ],
+        "checks": 105991
+      },
+      {
+        "from": "idle",
+        "interval": [
+          88,
+          89
+        ],
+        "to": "ready",
+        "corners": [
+          88,
+          89,
+          8
+        ],
+        "checks": 102360
+      },
+      {
+        "from": "idle",
+        "interval": [
+          89,
+          90
+        ],
+        "to": "ready",
+        "corners": [
+          89,
+          90,
+          8
+        ],
+        "checks": 94436
+      },
+      {
+        "from": "idle",
+        "interval": [
+          90,
+          91
+        ],
+        "to": "ready",
+        "corners": [
+          90,
+          91,
+          8
+        ],
+        "checks": 84693
+      },
+      {
+        "from": "idle",
+        "interval": [
+          91,
+          92
+        ],
+        "to": "ready",
+        "corners": [
+          91,
+          92,
+          8
+        ],
+        "checks": 73083
+      },
+      {
+        "from": "idle",
+        "interval": [
+          92,
+          93
+        ],
+        "to": "ready",
+        "corners": [
+          92,
+          93,
+          8
+        ],
+        "checks": 60939
+      },
+      {
+        "from": "idle",
+        "interval": [
+          93,
+          94
+        ],
+        "to": "ready",
+        "corners": [
+          93,
+          94,
+          8
+        ],
+        "checks": 52292
+      },
+      {
+        "from": "idle",
+        "interval": [
+          94,
+          95
+        ],
+        "to": "ready",
+        "corners": [
+          94,
+          95,
+          8
+        ],
+        "checks": 45193
+      },
+      {
+        "from": "idle",
+        "interval": [
+          95,
+          96
+        ],
+        "to": "ready",
+        "corners": [
+          95,
+          96,
+          8
+        ],
+        "checks": 37687
+      },
+      {
+        "from": "idle",
+        "interval": [
+          96,
+          97
+        ],
+        "to": "ready",
+        "corners": [
+          96,
+          97,
+          8
+        ],
+        "checks": 31646
+      },
+      {
+        "from": "idle",
+        "interval": [
+          97,
+          98
+        ],
+        "to": "ready",
+        "corners": [
+          97,
+          98,
+          8
+        ],
+        "checks": 25633
+      },
+      {
+        "from": "idle",
+        "interval": [
+          98,
+          99
+        ],
+        "to": "ready",
+        "corners": [
+          98,
+          99,
+          8
+        ],
+        "checks": 18783
+      },
+      {
+        "from": "idle",
+        "interval": [
+          99,
+          100
+        ],
+        "to": "ready",
+        "corners": [
+          99,
+          100,
+          8
+        ],
+        "checks": 13222
+      },
+      {
+        "from": "idle",
+        "interval": [
+          100,
+          101
+        ],
+        "to": "ready",
+        "corners": [
+          100,
+          101,
+          8
+        ],
+        "checks": 9529
+      },
+      {
+        "from": "idle",
+        "interval": [
+          101,
+          102
+        ],
+        "to": "ready",
+        "corners": [
+          101,
+          102,
+          8
+        ],
+        "checks": 6715
+      },
+      {
+        "from": "idle",
+        "interval": [
+          102,
+          103
+        ],
+        "to": "ready",
+        "corners": [
+          102,
+          103,
+          8
+        ],
+        "checks": 4983
+      },
+      {
+        "from": "idle",
+        "interval": [
+          103,
+          104
+        ],
+        "to": "ready",
+        "corners": [
+          103,
+          104,
+          8
+        ],
+        "checks": 3967
+      },
+      {
+        "from": "idle",
+        "interval": [
+          104,
+          105
+        ],
+        "to": "ready",
+        "corners": [
+          104,
+          105,
+          8
+        ],
+        "checks": 3190
+      },
+      {
+        "from": "idle",
+        "interval": [
+          105,
+          106
+        ],
+        "to": "ready",
+        "corners": [
+          105,
+          106,
+          8
+        ],
+        "checks": 2447
+      },
+      {
+        "from": "idle",
+        "interval": [
+          106,
+          107
+        ],
+        "to": "ready",
+        "corners": [
+          106,
+          107,
+          8
+        ],
+        "checks": 1982
+      },
+      {
+        "from": "idle",
+        "interval": [
+          107,
+          108
+        ],
+        "to": "ready",
+        "corners": [
+          107,
+          108,
+          8
+        ],
+        "checks": 1485
+      },
+      {
+        "from": "idle",
+        "interval": [
+          108,
+          109
+        ],
+        "to": "ready",
+        "corners": [
+          108,
+          109,
+          8
+        ],
+        "checks": 1177
+      },
+      {
+        "from": "idle",
+        "interval": [
+          109,
+          110
+        ],
+        "to": "ready",
+        "corners": [
+          109,
+          110,
+          8
+        ],
+        "checks": 786
+      },
+      {
+        "from": "idle",
+        "interval": [
+          110,
+          111
+        ],
+        "to": "ready",
+        "corners": [
+          110,
+          111,
+          8
+        ],
+        "checks": 627
+      },
+      {
+        "from": "idle",
+        "interval": [
+          111,
+          112
+        ],
+        "to": "ready",
+        "corners": [
+          111,
+          112,
+          8
+        ],
+        "checks": 704
+      },
+      {
+        "from": "idle",
+        "interval": [
+          112,
+          113
+        ],
+        "to": "ready",
+        "corners": [
+          112,
+          113,
+          8
+        ],
+        "checks": 852
+      },
+      {
+        "from": "idle",
+        "interval": [
+          113,
+          114
+        ],
+        "to": "ready",
+        "corners": [
+          113,
+          114,
+          8
+        ],
+        "checks": 990
+      },
+      {
+        "from": "idle",
+        "interval": [
+          114,
+          115
+        ],
+        "to": "ready",
+        "corners": [
+          114,
+          115,
+          8
+        ],
+        "checks": 1105
+      },
+      {
+        "from": "idle",
+        "interval": [
+          115,
+          116
+        ],
+        "to": "ready",
+        "corners": [
+          115,
+          116,
+          8
+        ],
+        "checks": 1153
+      },
+      {
+        "from": "idle",
+        "interval": [
+          116,
+          117
+        ],
+        "to": "ready",
+        "corners": [
+          116,
+          117,
+          8
+        ],
+        "checks": 1076
+      },
+      {
+        "from": "idle",
+        "interval": [
+          117,
+          118
+        ],
+        "to": "ready",
+        "corners": [
+          117,
+          118,
+          8
+        ],
+        "checks": 1067
+      },
+      {
+        "from": "idle",
+        "interval": [
+          118,
+          119
+        ],
+        "to": "ready",
+        "corners": [
+          118,
+          119,
+          8
+        ],
+        "checks": 1104
+      },
+      {
+        "from": "idle",
+        "interval": [
+          119,
+          120
+        ],
+        "to": "ready",
+        "corners": [
+          119,
+          120,
+          8
+        ],
+        "checks": 1085
+      },
+      {
+        "from": "idle",
+        "interval": [
+          120,
+          0
+        ],
+        "to": "ready",
+        "corners": [
+          120,
+          0,
+          8
+        ],
+        "checks": 1057
+      },
+      {
+        "from": "walk",
+        "interval": [
+          0,
+          1
+        ],
+        "to": "ready",
+        "corners": [
+          122,
+          123,
+          8
+        ],
+        "checks": 83039
+      },
+      {
+        "from": "walk",
+        "interval": [
+          1,
+          2
+        ],
+        "to": "ready",
+        "corners": [
+          123,
+          124,
+          8
+        ],
+        "checks": 83493
+      },
+      {
+        "from": "walk",
+        "interval": [
+          2,
+          3
+        ],
+        "to": "ready",
+        "corners": [
+          124,
+          125,
+          8
+        ],
+        "checks": 69754
+      },
+      {
+        "from": "walk",
+        "interval": [
+          3,
+          4
+        ],
+        "to": "ready",
+        "corners": [
+          125,
+          126,
+          8
+        ],
+        "checks": 58754
+      },
+      {
+        "from": "walk",
+        "interval": [
+          4,
+          5
+        ],
+        "to": "ready",
+        "corners": [
+          126,
+          127,
+          8
+        ],
+        "checks": 48777
+      },
+      {
+        "from": "walk",
+        "interval": [
+          5,
+          6
+        ],
+        "to": "ready",
+        "corners": [
+          127,
+          128,
+          8
+        ],
+        "checks": 37253
+      },
+      {
+        "from": "walk",
+        "interval": [
+          6,
+          7
+        ],
+        "to": "ready",
+        "corners": [
+          128,
+          129,
+          8
+        ],
+        "checks": 27406
+      },
+      {
+        "from": "walk",
+        "interval": [
+          7,
+          8
+        ],
+        "to": "ready",
+        "corners": [
+          129,
+          130,
+          8
+        ],
+        "checks": 20091
+      },
+      {
+        "from": "walk",
+        "interval": [
+          8,
+          9
+        ],
+        "to": "ready",
+        "corners": [
+          130,
+          131,
+          8
+        ],
+        "checks": 14617
+      },
+      {
+        "from": "walk",
+        "interval": [
+          9,
+          10
+        ],
+        "to": "ready",
+        "corners": [
+          131,
+          132,
+          8
+        ],
+        "checks": 13965
+      },
+      {
+        "from": "walk",
+        "interval": [
+          10,
+          11
+        ],
+        "to": "ready",
+        "corners": [
+          132,
+          133,
+          8
+        ],
+        "checks": 17694
+      },
+      {
+        "from": "walk",
+        "interval": [
+          11,
+          12
+        ],
+        "to": "ready",
+        "corners": [
+          133,
+          134,
+          8
+        ],
+        "checks": 23694
+      },
+      {
+        "from": "walk",
+        "interval": [
+          12,
+          13
+        ],
+        "to": "ready",
+        "corners": [
+          134,
+          135,
+          8
+        ],
+        "checks": 35064
+      },
+      {
+        "from": "walk",
+        "interval": [
+          13,
+          14
+        ],
+        "to": "ready",
+        "corners": [
+          135,
+          136,
+          8
+        ],
+        "checks": 56743
+      },
+      {
+        "from": "walk",
+        "interval": [
+          14,
+          15
+        ],
+        "to": "ready",
+        "corners": [
+          136,
+          137,
+          8
+        ],
+        "checks": 79668
+      },
+      {
+        "from": "walk",
+        "interval": [
+          15,
+          16
+        ],
+        "to": "ready",
+        "corners": [
+          137,
+          138,
+          8
+        ],
+        "checks": 108048
+      },
+      {
+        "from": "walk",
+        "interval": [
+          16,
+          17
+        ],
+        "to": "ready",
+        "corners": [
+          138,
+          139,
+          8
+        ],
+        "checks": 141737
+      },
+      {
+        "from": "walk",
+        "interval": [
+          17,
+          18
+        ],
+        "to": "ready",
+        "corners": [
+          139,
+          140,
+          8
+        ],
+        "checks": 174773
+      },
+      {
+        "from": "walk",
+        "interval": [
+          18,
+          19
+        ],
+        "to": "ready",
+        "corners": [
+          140,
+          141,
+          8
+        ],
+        "checks": 188827
+      },
+      {
+        "from": "walk",
+        "interval": [
+          19,
+          20
+        ],
+        "to": "ready",
+        "corners": [
+          141,
+          142,
+          8
+        ],
+        "checks": 197745
+      },
+      {
+        "from": "walk",
+        "interval": [
+          20,
+          21
+        ],
+        "to": "ready",
+        "corners": [
+          142,
+          143,
+          8
+        ],
+        "checks": 199115
+      },
+      {
+        "from": "walk",
+        "interval": [
+          21,
+          22
+        ],
+        "to": "ready",
+        "corners": [
+          143,
+          144,
+          8
+        ],
+        "checks": 230743
+      },
+      {
+        "from": "walk",
+        "interval": [
+          22,
+          23
+        ],
+        "to": "ready",
+        "corners": [
+          144,
+          145,
+          8
+        ],
+        "checks": 238652
+      },
+      {
+        "from": "walk",
+        "interval": [
+          23,
+          24
+        ],
+        "to": "ready",
+        "corners": [
+          145,
+          146,
+          8
+        ],
+        "checks": 231909
+      },
+      {
+        "from": "walk",
+        "interval": [
+          24,
+          25
+        ],
+        "to": "ready",
+        "corners": [
+          146,
+          147,
+          8
+        ],
+        "checks": 243253
+      },
+      {
+        "from": "walk",
+        "interval": [
+          25,
+          26
+        ],
+        "to": "ready",
+        "corners": [
+          147,
+          148,
+          8
+        ],
+        "checks": 266715
+      },
+      {
+        "from": "walk",
+        "interval": [
+          26,
+          27
+        ],
+        "to": "ready",
+        "corners": [
+          148,
+          149,
+          8
+        ],
+        "checks": 272070
+      },
+      {
+        "from": "walk",
+        "interval": [
+          27,
+          28
+        ],
+        "to": "ready",
+        "corners": [
+          149,
+          150,
+          8
+        ],
+        "checks": 257796
+      },
+      {
+        "from": "walk",
+        "interval": [
+          28,
+          29
+        ],
+        "to": "ready",
+        "corners": [
+          150,
+          151,
+          8
+        ],
+        "checks": 212539
+      },
+      {
+        "from": "walk",
+        "interval": [
+          29,
+          30
+        ],
+        "to": "ready",
+        "corners": [
+          151,
+          152,
+          8
+        ],
+        "checks": 187700
+      },
+      {
+        "from": "walk",
+        "interval": [
+          30,
+          31
+        ],
+        "to": "ready",
+        "corners": [
+          152,
+          153,
+          8
+        ],
+        "checks": 152243
+      },
+      {
+        "from": "walk",
+        "interval": [
+          31,
+          32
+        ],
+        "to": "ready",
+        "corners": [
+          153,
+          154,
+          8
+        ],
+        "checks": 111764
+      },
+      {
+        "from": "walk",
+        "interval": [
+          32,
+          0
+        ],
+        "to": "ready",
+        "corners": [
+          154,
+          122,
+          8
+        ],
+        "checks": 83039
+      }
+    ],
+    "body_triangles": 9761,
+    "tool_triangles": 1150,
+    "intentional_grip_triangles": 448,
+    "scope": "actual source interval to frozen walk-start or idle-frame8 target, all positive fade shares; queued requests cannot interrupt a fade"
+  },
+  "inverse_heading_norm": {
+    "numerator": 398065705943040,
+    "denominator": 281474953696313
+  },
+  "inverse_heading_yaw": 8190,
+  "world_basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "source_scope": "fixed-ready handoff program",
+  "orientation_scope": "self-contact native errors conservatively inverted through every finite WorldBasis row; reported boxes stay source-local",
+  "production_qualified": false,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "e518e92b571bbaecdeb9f77d667679d816d2c793d422d36f41a84852dba33434"
+  }
+}

@@ -1,0 +1,1 @@
+The single-plane full handoff simplex returned unresolved, not a contact assertion. The next proof subdivides the same common-coefficient source simplex with outward midpoints; no source pose, residual or authority check is removed. This run emitted no production qualification.

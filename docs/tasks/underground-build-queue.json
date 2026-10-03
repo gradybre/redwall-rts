@@ -232,7 +232,8 @@
         "godot/test/test_gear.gd",
         "godot/scripts/core/item_definitions.gd",
         "godot/test/test_item_definitions.gd",
-        "godot/test/test_reservations.gd"
+        "godot/test/test_reservations.gd",
+        "godot/scripts/core/save_reservations_restore.gd"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -274,7 +275,7 @@
             "integration": "cb10f2a1 source;7be405d5 additive registry"
           }
         ],
-        "in_progress": "Physical owner under final independent review. Narrow Gear combined-read performance and Items/Reservations/Gear composition-identity fixes explicitly leased; existing numerical IDs never prove same-world ownership. Canonical/source capacity and memory reconciliation1066 owned by root after source freeze."
+        "in_progress": "Frozen physical source independently accepted by root;417 focused tests/52821 assertions, zero unexpected diagnostics/leaks and analyzer0/14. Worker preparing source/evidence and separate additive registry commits. Source review includes exact-world weak binding, save Reservations adapter forwarding and actual productive-work attestation. Root owns canonical/source capacity and memory reconciliation1066; composed geometry/save/performance remain downstream."
       },
       "lease": {
         "state": "held"

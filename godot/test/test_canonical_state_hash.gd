@@ -657,9 +657,9 @@ func test_excavation_funding_preserves_receipt_order_and_all_paid_lot_metadata()
 	assert_equal(String(fields[2]["shape"]["count_field"]), "_free_count", "only the used free-stack prefix")
 	assert_equal(String(fields[2]["shape"]["order"]), "used_stack_prefix_preserve_pop_order",
 		"sorting a restored free arena would change the next physical allocation")
-	assert_equal(int(owner["owner_schema_version"]), 2, "three protected loss domains require a new schema")
-	assert_equal(String(fields[17]["shape"]["declared_capacity"]), "`LOSS_CELL_CAPACITY` = 768",
-		"all three purposes retain256 per-item lifetime losses")
+	assert_equal(int(owner["owner_schema_version"]), 3, "four protected loss domains require a new schema")
+	assert_equal(String(fields[17]["shape"]["declared_capacity"]), "`LOSS_CELL_CAPACITY` = 1024",
+		"all four purposes retain256 per-item lifetime losses")
 	assert_equal(String(fields[17]["shape"]["order"]), "purpose_domain_then_ascending_item_id", "domains cannot be reordered")
 
 

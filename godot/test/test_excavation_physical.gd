@@ -1297,7 +1297,7 @@ func _assert_measured_packed_storage() -> void:
 	var site_bytes: int = _packed_payload_bytes(_sites)
 	var funding_bytes: int = _packed_payload_bytes(_sites.get("_funding"))
 	assert_equal(site_bytes, 36880 + 113 * 256, "all sparse Sites columns and fixed scratch measured")
-	assert_equal(funding_bytes, 2334720 + 88 * 512, "all actual Funding arrays, including three loss domains, measured")
+	assert_equal(funding_bytes, 2336768 + 88 * 512, "all actual Funding arrays, including four loss domains, measured")
 	print("UG06_PACKED S=256 R=512 sites_bytes=%d funding_bytes=%d total_bytes=%d" %
 		[site_bytes, funding_bytes, site_bytes + funding_bytes])
 

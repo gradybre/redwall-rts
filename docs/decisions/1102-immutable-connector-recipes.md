@@ -229,3 +229,16 @@ save handoff31 fixtures and61 owners756 canonical records pass. Nine metadata
 checks and exact pins are retained in the joint-integration evidence subdirectory.
 Two initial wrong-path command launches are retained as invocation errors and
 replaced by successful invocations of the actual docs/validation tools.
+
+
+### Full-checkpoint expectation correction
+
+The clean no-argument60f22f11 checkpoint ran10321 tests/956324 assertions and
+found two stale expectations, with zero unexpected diagnostics or leaks. The
+canonical test still required three domains/schema2, and the physical256-resident
+microbenchmark still required2379776 Funding bytes. The independently reviewed
+correction retains exact assertions but requires schema3,1024 entries and
+2381824 reflected Funding bytes (+2048 live). No production behavior or diagnostic
+allowance changed. Fresh focused strict tests pass110 tests/28650 assertions,
+all strict/raw diagnostics and leaks0; the rejected complete run remains in
+checkpoint-60f22f11. A new complete checkpoint is required after this correction.

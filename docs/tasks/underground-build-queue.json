@@ -412,7 +412,12 @@
         "godot/test/test_underground_connector_recipes.gd.uid",
         "docs/decisions/1102-immutable-connector-recipes.md",
         "godot/scripts/core/underground_connector_source_facts.gd",
-        "godot/scripts/core/underground_connector_source_facts.gd.uid"
+        "godot/scripts/core/underground_connector_source_facts.gd.uid",
+        "godot/scripts/core/underground_connector_assemblies.gd",
+        "godot/scripts/core/underground_connector_assemblies.gd.uid",
+        "godot/test/test_underground_connector_assemblies.gd",
+        "godot/test/test_underground_connector_assemblies.gd.uid",
+        "docs/decisions/1104-immutable-connector-assemblies.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -433,7 +438,7 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-connector-recipes",
+      "branch": "codex/underground-connector-assemblies",
       "evidence": {
         "in_progress": "Reviewed1095 cut cursor integrated5b273105/0c3c8ee1; reviewed pure RoomOrders companion reader integrated76a5a8bc. Actual Sites ClaimBatch implementing with final callback-free guard and sequential cold-memory admission. Actual entry/work feasibility remains open.",
         "identity_prerequisite": {
@@ -618,6 +623,11 @@
             "work": 432000
           },
           "scope": "Approved starting in-game balance, timber joinery, no rope or wood surcharge. Active content awaits exact assembly grouping and placement/frontier proof. Excavation and entrance/shell/rail geometry recipes remain separate."
+        },
+        "connector_assemblies_in_progress": {
+          "status": "contract approved; independent implementation beginning",
+          "decision": "docs/decisions/1104-immutable-connector-assemblies.md",
+          "scope": "Actual immutable Catalog/Recipe-bound complete unique part partition and single bill anchor per assembly; no physical frontier or contact permission."
         }
       },
       "lease": {
@@ -983,7 +993,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-snapshot-lease",
+      "branch": "codex/underground-world-locations",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -2105,6 +2115,15 @@
       "required_job_wall_seconds": 577,
       "evidence": "docs/validation/evidence/underground-ci-2f29ffd1/",
       "scope": "All CI gates succeeded. No same-head single-run comparison artifact supplied; prior local no-argument full run remains pinned3e891a41. No playable completion inferred."
+    },
+    {
+      "head": "60f22f11e9665d6790cfdf49977b74e966c915aa",
+      "type": "rejected_clean_full",
+      "tests": "10321tests956324assertions2failures",
+      "diagnostics": "0unexpected errors/warnings;272expected353tolerated;0object/resource leaks",
+      "reason": "Two stale independent schema/loss/memory expectations after1102; no production behavior change needed. Full analyzer skipped after test failure.",
+      "correction": "Independent construction review accepted exact four-line expectation correction. Fresh strict focused110tests28650assertions0;strict/raw all0. New full checkpoint pending.",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-60f22f11"
     }
   ],
   "crosscut_fixes": [

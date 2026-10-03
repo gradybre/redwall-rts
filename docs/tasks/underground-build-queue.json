@@ -382,7 +382,10 @@
         "docs/decisions/1089-atomic-room-furniture-batches.md",
         "godot/scripts/core/underground_layout_sources.gd",
         "godot/test/test_underground_layout_sources.gd",
-        "docs/decisions/1091-room-section-metadata.md"
+        "docs/decisions/1091-room-section-metadata.md",
+        "godot/scripts/core/underground_room_bindings.gd",
+        "godot/test/test_underground_room_bindings.gd",
+        "docs/decisions/1092-actual-room-phase-masks.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -405,7 +408,7 @@
       "agent": "/root/ug_construction",
       "branch": "codex/underground-furniture-batches",
       "evidence": {
-        "in_progress": "Reviewed B1 is integrated. B2 owns complete atomic pending-Furniture/Construction publication, followed by actual RoomOrders.Bindings and Layout.Sources. Cold preview results are consumed/released synchronously before simulation/input resumes.",
+        "in_progress": "Reviewed B2 atomic pending Furniture/Construction batches and one exact Room section are integrated. Next actual RoomBindings provides source-bound phase sections and exact fine finish masks; inherited unqualified work contacts remain closed.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -518,7 +521,9 @@
         "godot/scripts/core/underground_connector_catalog.gd",
         "godot/test/test_underground_connector_catalog.gd",
         "godot/scripts/core/movement.gd",
-        "godot/test/test_movement.gd"
+        "godot/test/test_movement.gd",
+        "tools/bake_underground_world_basis.gd",
+        "godot/test/test_underground_world_basis.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -788,7 +793,7 @@
           "scope": "Read-only original terrain plus retained sparse history; source scans and exact callback lease freshness corrected after two independent MEDIUM findings; productive bindings still refuse.",
           "review": "ug_construction accepted all four corrected iteration3 pins; both MEDIUM source-scan and callback-lease findings fixed; no remaining high/medium finding; all34 CI Specification contracts commands pass."
         },
-        "routes_allocation": "Approved authored containment-span edges and retained actor Room/section/level:1040640 bytes, plus fixed Actor/Edge/Record/Domain/Region/Pose/Profile packet reservation correction1024. Total1041664 of1048576,6912 headroom; final packet census/source/runtime qualification pending.",
+        "routes_allocation": "Reviewed Routes and Locations total1041728 of1048576 bytes;6848 headroom; fixed numeric/query census2060 within2112. Actual runtime qualification remains open.",
         "phase_surveys": {
           "status": "independently reviewed scoped-survey component; productive lane remains running",
           "tests": "WorldBindings26/585 and Authority26/3090;52 tests3675 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/4",
@@ -839,6 +844,13 @@
           "review": "ug_geometry independently accepted exact a8c9c2f5/a52ea634 pins; full actual lifetime and immutable source proof cache; live Resource/Building queries unchanged.",
           "evidence_path": "docs/validation/evidence/underground-route-clearance-2026-10-03/",
           "scope": "Mixed-height protection-only observation; no paid void/support/route permission.8 additional unsaved controls in unchanged terrain reserve."
+        },
+        "prepared_observations": {
+          "source": "8142097b",
+          "integration": "1fd458bb/e846c239",
+          "tests": "Owner77/4845 and Routes34/8935;111 tests13780 assertions0 failures; strict/raw diagnostics/leaks all0; analyzer0/4",
+          "review": "ug_construction independently accepted exact frozen source. Each actual1536-row live/staged loop performs zero source callbacks; mandatory whole-loop pre/post prepared_refusal catches real drift.",
+          "scope": "Observation-only fixed caller scratch; no new state or allocation, no geometry permission."
         }
       },
       "lease": {
@@ -1649,6 +1661,25 @@
         "grounding": "14 tests /113 assertions /0 failures; strict and raw diagnostics and leaks all0; analyzer0/7; native8 assertions /0 failures"
       },
       "ownership": "UG08 narrow Movement exact-owner identity predicate only; UG07 decision1091 metadata envelope while exact fine claims remain unchanged."
+    },
+    {
+      "id": "routes-and-room-section-2026-10-03",
+      "commits": [
+        "4c2576ef",
+        "5e63e13c",
+        "4890cb46",
+        "ebcea8bb",
+        "667a2e8d",
+        "1fd458bb",
+        "e846c239"
+      ],
+      "scope": "Reviewed physical blockers versus Room reservation markers, actual bounded actor routes, exact shared Room section metadata, and prepared observation cost. Full playable flow remains open.",
+      "evidence": {
+        "traversal": "104 tests/4060 assertions;all failures/strict and raw diagnostics/leaks0;analyzer0/4",
+        "routes": "31 tests/5733 assertions;all failures/strict and raw diagnostics/leaks0;analyzer0/2",
+        "room_section": "62 tests/7688 assertions;all failures/strict and raw diagnostics/leaks0;analyzer0/2"
+      },
+      "next_ownership": "UG07 actual phase-mask provider under1092; root exact WorldBindings accessors and scoped lease; UG08 finite world-basis presentation proof. New connector recipe values remain explicit unimplemented dependencies."
     }
   ]
 }

@@ -478,6 +478,12 @@
           "integration": "26122832",
           "tests": "42 tests/1960 assertions/0 failures; all strict/raw diagnostics/leaks0; analyzer0/3",
           "review": "root accepted exact weak composer identity reader; no state/allocation delta"
+        },
+        "buildings_reader_sublease": {
+          "owner": "/root",
+          "branch": "codex/underground-world-identities",
+          "status": "reviewed and committed16359f0c, integration pending full checkpoint closure",
+          "scope": "Narrow stateless Buildings.room_identity_into plus newtest; actual mutation/admission remains construction-owned.89tests1379assertions all strict/raw unexpected/leaks0,analyzer0/2."
         }
       },
       "lease": {
@@ -538,7 +544,11 @@
         "godot/scripts/core/movement.gd",
         "godot/test/test_movement.gd",
         "tools/bake_underground_world_basis.gd",
-        "godot/test/test_underground_world_basis.gd"
+        "godot/test/test_underground_world_basis.gd",
+        "tools/compile_underground_actor_content.py",
+        "tools/test_compile_underground_actor_content.py",
+        "godot/demo/cast/underground_actor_content.gd",
+        "godot/test/test_underground_actor_content.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -572,7 +582,7 @@
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-profiles",
       "evidence": {
-        "in_progress": "Reviewed local finite matrix proof and all65536 native heading coefficients integrated. Next exact finite World-domain/heading binding in Actor; zero production-qualified profiles so far.",
+        "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 complete (integration pending checkpoint closure). Next: source-bound compact mole Actor content, whole required-state unions and actual work contacts; zero production-qualified profiles.",
         "increments": [
           {
             "commit": "efadbab9",
@@ -680,6 +690,16 @@
           "tests": "strict20/213, native actual table21 assertions and full native lifecycle256 assertions; all failures/diagnostics/leaks0; analyzer0/4 and0/3",
           "review": "root accepted exact Actor64ce1492/test0ccb5088/native0aeb578d; world physical enclosure and isolated loading peak remain unqualified",
           "evidence_path": "godot/data/underground/evidence/matrix-presentation/world-basis/ACTOR_BINDING.md"
+        },
+        "next_content_packet": {
+          "paths": [
+            "tools/compile_underground_actor_content.py",
+            "tools/test_compile_underground_actor_content.py",
+            "godot/demo/cast/underground_actor_content.gd",
+            "godot/test/test_underground_actor_content.gd",
+            "godot/data/underground/mole-worker/"
+          ],
+          "scope": "First actual mole idle/walk/crouch/tool/hammer slice, source-pinned original parts and positive affine palette; no absent-state fallback. Presentation source/decode/copy/native peak must be separately counted and measured."
         }
       },
       "lease": {
@@ -718,7 +738,11 @@
         "godot/scripts/core/underground_world_routes.gd",
         "godot/test/test_underground_world_routes.gd",
         "docs/decisions/1090-actual-route-clearance-certificates.md",
-        "godot/test/test_underground_world_room_bindings.gd"
+        "godot/test/test_underground_world_room_bindings.gd",
+        "godot/scripts/core/underground_phase_structure.gd",
+        "godot/test/test_underground_phase_structure.gd",
+        "docs/decisions/1093-actual-room-natural-support.md",
+        "godot/test/test_underground_world_identities.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -741,10 +765,10 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-world-bindings",
+      "branch": "codex/underground-phase-structure",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
-        "in_progress": "Root owns actual WorldBindings/test under1085 on codex/underground-world-composition. Geometry owns Routes/Locations/CoreSources and owner/authority. ActualTerrain is reviewed/integrated; composition tests and real route/contact qualification continue.",
+        "in_progress": "Geometry builds actual Room-owned natural footing/roof support provider under1093 with reviewed early survey release4a702647; root owns WorldBindings actual Room/Job identity and weak Scope delegation in separate own worktree. CoreSources fixed Room reader independently accepted pending focused checks.",
         "phase_adapter": {
           "commit": "8b14c60de10baf2c19f830bc307b1d5a529c1b6e",
           "registry": "aef88460d65bbe9cf7ae3b4ae2cfee165f1d483e",
@@ -903,7 +927,9 @@
           "tests": "62 tests/1515 assertions/0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
           "review": "geometry independently accepted exact weak composer delegation, actual phase lifetime/reentry and73-byte census",
           "evidence_path": "docs/validation/evidence/underground-world-room-bindings-2026-10-03/"
-        }
+        },
+        "natural_support_packet": "Approved1093: actual Levels/Terrain/retained matter proof and exact Room-owned natural SUPPORT protections outside cuts; Room lifetime spans vertical Sites, no installed-bracing/salvage fiction. Separateprovider plus Authority post-seal array release; actual contact/profile and paid connector dependencies remain.",
+        "root_next_identity_packet": "Actual WB underground Room and assigned worker identity readers; no profile/contact permission. Separate own worktree /Users/brendan/Developer/redwall-rts-codex-ug-world-composition on codex/underground-world-identities while full checkpoint1ea96be7 runs frozen."
       },
       "lease": {
         "state": "held",
@@ -921,10 +947,11 @@
               "godot/scripts/core/underground_world_routes.gd",
               "godot/test/test_underground_world_routes.gd",
               "docs/decisions/1090-actual-route-clearance-certificates.md",
-              "godot/test/test_underground_world_room_bindings.gd"
+              "godot/test/test_underground_world_room_bindings.gd",
+              "godot/test/test_underground_world_identities.gd"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
-            "branch": "codex/underground-modular-integration"
+            "branch": "codex/underground-world-identities"
           }
         ]
       }
@@ -1684,6 +1711,18 @@
       "analyzer_seconds": 228.266,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-18b943be/README.md",
       "limits": "Includes actual Routes and prepared observations, mixed-height Terrain, Levels, B2 room furniture coordinator and bridge, exact Room section metadata and Actor grounding. Predates concrete WorldRoutes, exact phase masks, connector catalog and later native pose qualification. Complete playable workflow remains in progress."
+    },
+    {
+      "commit": "1ea96be7ca5de4f6c45bf3c32e24cfe2cad4a4e2",
+      "outcome": "passed",
+      "full_suite": "10099 test(s), 712989 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 GDScript warning(s) in 0 of 1119 file(s)",
+      "procedure": "Assets absent; delete own .godot; exact clean editor import; full no-argument runner; source and HEAD unchanged; original asset state restored",
+      "suite_seconds": 1259.413,
+      "analyzer_seconds": 219.907,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-1ea96be7/README.md",
+      "limits": "Component integration checkpoint; later Room identity/admission/support and native envelope packets excluded. Playable107-requirement delivery remains in progress."
     }
   ],
   "crosscut_fixes": [

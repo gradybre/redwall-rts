@@ -415,9 +415,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-room-admission-bindings",
+      "branch": "codex/underground-packed-footprint",
       "evidence": {
-        "in_progress": "Exact source-bound Room/Site masks are independently reviewed and integrated. Next: actual RoomPlan geometric admission and direct token handshake; productive first-work/entry companions remain required.",
+        "in_progress": "Actual static Room admission integrated; validation-only packed Footprint accepted by independent root review, awaiting actual-caller verification/commit. Next: one unfiltered retained snapshot plus actual windowed Terrain checks to remove the temporary477-cell cold bound without changing shape policy.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -507,7 +507,8 @@
             "godot/test/test_room_footprint_packed.gd",
             "docs/decisions/1094-packed-room-footprint-validation.md"
           ],
-          "scope": "Validation-only bounded packed adjacency/BFS/Euler scratch; preserve API/refusal order/shape semantics and existing contour rendering. Exhaustive legacy parity; no new gameplay cell cap. Actual compositor coexistence remains separate."
+          "scope": "Validation-only bounded packed adjacency/BFS/Euler scratch; preserve API/refusal order/shape semantics and existing contour rendering. Exhaustive legacy parity; no new gameplay cell cap. Actual compositor coexistence remains separate.",
+          "review": "Root accepts Footprint253eae560594d198ee7d0ac809d92a99e7c17795ef9c191cfb1c6940a0eb4b89 and testcc97ed7ca169c80bb2ac04f046d1beacefe4fe9455aaafb588411ca01811e6f8; no high/medium findings. Independent source traces plus reported101tests201369assertions strict/raw0,LSP0/2; actual caller verification pending."
         },
         "actual_room_admission": {
           "source": "9b08be058fd564dd852f5b57794b938f084bb39e",
@@ -621,7 +622,7 @@
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-profiles",
       "evidence": {
-        "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 complete (integration pending checkpoint closure). Next: source-bound compact mole Actor content, whole required-state unions and actual work contacts; zero production-qualified profiles.",
+        "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 integratedd10ecd61. Compact actual mole Actor content compiler/loader in progress; actual work contacts and moving tool grip acceptance remain open; zero production-qualified profiles.",
         "increments": [
           {
             "commit": "efadbab9",
@@ -978,7 +979,7 @@
           "evidence_path": "docs/validation/evidence/underground-world-room-bindings-2026-10-03/"
         },
         "natural_support_packet": "Approved1093: actual Levels/Terrain/retained matter proof and exact Room-owned natural SUPPORT protections outside cuts; Room lifetime spans vertical Sites, no installed-bracing/salvage fiction. Separateprovider plus Authority post-seal array release; actual contact/profile and paid connector dependencies remain.",
-        "root_next_identity_packet": "Actual WB underground Room and assigned worker identity readers; no profile/contact permission. Separate own worktree /Users/brendan/Developer/redwall-rts-codex-ug-world-composition on codex/underground-world-identities while full checkpoint1ea96be7 runs frozen.",
+        "root_next_identity_packet": "Exact operation/stage pins for cold structural Scope, followed by actual WorldStructureScope/provider delegation. Root own WorldBindings worktree; geometry owns provider. No playable activation or complete qualification.",
         "early_survey_release": {
           "source": "4a702647",
           "integration": "c6334484",
@@ -991,6 +992,13 @@
           "integration": "8259edf5/4113c93b",
           "tests": "88 tests/5024 assertions/0failures; strict/raw all0; analyzer0/1",
           "review": "root accepted actual fixed Buildings read;24B scratch, no schema delta, no O(1) source-lookup claim"
+        },
+        "world_room_worker_identities": {
+          "source": "6c845d40",
+          "integration": "6e13ddc5",
+          "tests": "52 tests/1025 assertions/0 failures; strict/raw unexpected diagnostics and all leaks0; analyzer0/2",
+          "review": "ug_geometry accepted exact WBf466e872/test29ef0f84 source pins; identity alone grants no structure/contact/work permission",
+          "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/world-iteration-5"
         }
       },
       "lease": {

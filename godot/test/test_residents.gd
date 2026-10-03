@@ -1329,3 +1329,62 @@ func test_a_retained_dead_row_keeps_its_name_and_its_flag() -> void:
 	assert_equal(_residents.name_key_of(slot), &"Brambletail", "and so does the name")
 	assert_equal(_residents.row_name_refusal(slot), Residents.REFUSE_NONE,
 		"the occupancy table admits it without consulting `is_alive()` at all")
+
+
+func test_spatial_identity_reads_actual_species_stage_and_logical_rig_without_changing_state() -> void:
+	"""The hot profile reader resolves each actual resident rather than trusting a caller's proposed key."""
+	var out: PackedInt32Array = PackedInt32Array([-99, -98, -97])
+	for species: StringName in SPECIES_ASCENDING:
+		var resident: Residents.OpResult = _residents.spawn_with_stage(species, EXPECTED_ADULT)
+		var before: PackedByteArray = _residents.state_bytes()
+		assert_true(_residents.spatial_profile_identity_into(resident.ref, out), "actual adult identity")
+		assert_equal(_residents.species_key(out[0]), species, "actual species")
+		assert_equal(out[1], EXPECTED_ADULT, "actual stage")
+		assert_equal(_residents.rig_key_of(out[2]), EXPECTED_RIG_OF[species] as StringName, "actual distinct rig")
+		assert_equal(_residents.state_bytes(), before, "read changes no resident state")
+
+
+func test_spatial_identity_refuses_missing_stage_rigs_without_touching_output() -> void:
+	"""Children and elders remain actual residents, but cannot silently borrow a matching adult profile."""
+	var original: PackedInt32Array = PackedInt32Array([7, 8, 9])
+	var out: PackedInt32Array = original.duplicate()
+	for stage: int in [EXPECTED_CHILD, EXPECTED_ELDER]:
+		var resident: Residents.OpResult = _residents.spawn_with_stage(&"mouse", stage)
+		assert_false(_residents.spatial_profile_identity_into(resident.ref, out), "missing authored stage rig")
+		assert_equal(out, original, "refusal preserves caller scratch")
+		assert_true(_residents.is_present(resident.value), "profile absence did not reject the resident")
+
+
+func test_spatial_identity_refuses_stale_wrong_kind_and_malformed_scratch() -> void:
+	"""A recycled live slot cannot turn an earlier ref into a new species or corrupt a partial output."""
+	var first: Residents.OpResult = _residents.spawn(&"mouse")
+	assert_true(_residents.despawn(first.ref).ok, "first resident leaves")
+	var second: Residents.OpResult = _residents.spawn(&"badger")
+	var building: Vector2i = _residents.directory().create(EntityDirectory.KIND_BUILDING)
+	var out: PackedInt32Array = PackedInt32Array([8, 9, 10])
+	for ref: Vector2i in [first.ref, Residents.NULL_REF, building, Vector2i(second.ref.x, second.ref.y + 1)]:
+		assert_false(_residents.spatial_profile_identity_into(ref, out), "only the exact actual resident qualifies")
+		assert_equal(out, PackedInt32Array([8, 9, 10]), "no refusal partially writes")
+	for size: int in [0, 2, 4]:
+		var wrong: PackedInt32Array = PackedInt32Array()
+		wrong.resize(size)
+		wrong.fill(22)
+		var before: PackedInt32Array = wrong.duplicate()
+		assert_false(_residents.spatial_profile_identity_into(second.ref, wrong), "exact output shape required")
+		assert_equal(wrong, before, "malformed output is preserved")
+	assert_true(_residents.spatial_profile_identity_into(second.ref, out), "actual replacement still resolves")
+	assert_equal(out[0], 0, "replacement is the actual badger, never the old mouse")
+
+
+func test_spatial_identity_refuses_unbound_catalog_and_inconsistent_row_identity() -> void:
+	"""Owner corruption or a missing catalog binding does not create a plausible profile key."""
+	var resident: Residents.OpResult = _residents.spawn(&"mouse")
+	var out: PackedInt32Array = PackedInt32Array([8, 9, 10])
+	_residents.set("_rig_catalog_error", "synthetic missing rig catalog")
+	assert_false(_residents.spatial_profile_identity_into(resident.ref, out), "no catalog fallback")
+	_residents.set("_rig_catalog_error", "")
+	var generations: PackedInt32Array = _residents.get("_ref_generation")
+	generations[resident.value] += 1
+	_residents.set("_ref_generation", generations)
+	assert_false(_residents.spatial_profile_identity_into(resident.ref, out), "directory and owner must agree")
+	assert_equal(out, PackedInt32Array([8, 9, 10]), "all refusals preserve caller scratch")

@@ -59,6 +59,18 @@ evidence, not a production save format. The future site ledger and phase owner a
 future-affecting state and need versioned registry/hash/codec composition under UG16 before
 production activation. No shared save validator is relaxed for this increment.
 
+## Increment B1: atomic reservation-owned input consumption
+
+`Reservations.consume_job_inputs` consumes the exact selected purpose's actual lot claims,
+with generation and absolute-tick expiry checks, while reserving output container mass in the
+same Inventory transaction. The reservation rows retire only after that transaction commits.
+The new `PURPOSE_EXCAVATION_INPUT = 3` appends to the existing explicitly numbered purpose
+domain; existing purpose numbers, packed columns and save records do not change. The caller
+must prove the actual phase bill, delivered location and Job liveness before using this
+recipe-agnostic primitive. It admits no arbitrary quantity argument and has no per-input-lot
+cap: fragmentation reaches the existing global reservation/Inventory capacities, which refuse
+atomically. It also handles material-free work that still needs a real output reservation.
+
 ## Following increments and integration gates
 
 Increment B owns immutable-datum 1024u physical quantum keys, installed support, committed
@@ -92,3 +104,17 @@ The zero-warning analyzer, using its own LSP port 6146 to avoid concurrent agent
 reports `0 GDScript warning(s) in 0 of 3 file(s)`. The initial default-port attempt connected
 to another project editor and reported the locally tested new preload missing; it is not used
 as validation. Parent integration owns the final cache-deleted, asset-isolated full-suite run.
+
+Increment B1: the new real Inventory/Reservations tests report
+`7 test(s), 2472 assertion(s), 0 failure(s)`, including an aborted consumption of 1200
+fragmented input claims at the Inventory journal limit. Existing reservation, carry and column
+suites report respectively 38/400, 10/66 and 22/1384 tests/assertions: combined with the new
+suite, **77 tests, 4322 assertions, 0 failures**. Every diagnostic/log footer is the exact zero
+footer above. Evidence: `/tmp/ug-excavation-reservations/` and `/tmp/ug-excavation-reservations-final/`. The two changed GDScript files
+report `0 GDScript warning(s) in 0 of 2 file(s)` on LSP port 6146.
+
+The independent B1 review also requested two owner-composition regressions: another Job's
+claim on the same lot survives consumption, and Inventory's commit-time
+`GROUND_PILE_EMPTY_WITH_CLAIM` refusal restores the complete Inventory and pool states. Both
+pass. First-cut output staging/promotion is a following owner transaction, not a relaxation of
+the existing prohibition on committing a lotless ground pile.

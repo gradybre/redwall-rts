@@ -97,8 +97,10 @@ const INT32_MAX: int = 2147483647
 const PURPOSE_UNSPECIFIED: int = 0
 const PURPOSE_HAUL_SOURCE: int = 1
 const PURPOSE_HAUL_DESTINATION: int = 2
+## Paid excavation input claims; consumed atomically into physical-site WIP (decision 1056).
+const PURPOSE_EXCAVATION_INPUT: int = 3
 ## One past the highest numbered member.
-const PURPOSE_NUMBERED_COUNT: int = 3
+const PURPOSE_NUMBERED_COUNT: int = 4
 
 ## A batch is a flat int64 array of `claim_count` records of CLAIM_STRIDE fields. Passing the
 ## claims as one caller-owned buffer keeps this module free of a staging arena that the memory
@@ -142,6 +144,7 @@ const REFUSE_AUDIT_JOB_LIST: StringName = &"AUDIT_JOB_LIST_BROKEN"
 const REFUSE_AUDIT_LOT_LIST: StringName = &"AUDIT_LOT_LIST_BROKEN"
 const REFUSE_AUDIT_RESERVED_TOTAL: StringName = &"AUDIT_RESERVED_TOTAL_MISMATCH"
 const REFUSE_AUDIT_RESERVED_EXCEEDS: StringName = &"AUDIT_RESERVED_EXCEEDS_QUANTITY"
+const REFUSE_INPUT_CLAIM_EXPIRED: StringName = &"INPUT_CLAIM_EXPIRED"
 
 # --- Reservation payload columns (systems_architecture.md §2.1: 5 x I32 + 2 x I64) ------------
 var _r_job_slot: PackedInt32Array = PackedInt32Array()
@@ -516,6 +519,100 @@ func _upsert_row(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, quantity_mi
 
 
 # --- Releasing --------------------------------------------------------------------------------
+
+func consume_job_inputs(job_ref: Vector2i, purpose: int, now_tick: int,
+		output_container: Vector2i, output_mass_g: int, inventory: Inventory) -> Inventory.OpResult:
+	"""Consume matching actual claims and reserve finite output in one Inventory transaction.
+
+	The owning coordinator has already proved its recipe and captured the lots' metadata for
+	WIP. This pool supplies ownership, expiry and all-or-nothing accounting, never a recipe.
+	It changes no row until Inventory commits; journal/capacity refusal preserves both owners.
+	An empty input set is valid for material-free work. The Job owner still proves liveness.
+	"""
+	var code: StringName = _consume_inputs_refusal(job_ref, purpose, now_tick,
+		output_container, output_mass_g, inventory)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var opened: Inventory.OpResult = inventory.begin()
+	if not opened.ok:
+		return opened
+	code = _consume_inputs_inventory(job_ref, purpose, output_container, output_mass_g, inventory)
+	if code != REFUSE_NONE:
+		inventory.abort()
+		return _refuse(code)
+	var committed: Inventory.OpResult = inventory.commit()
+	if not committed.ok:
+		return committed
+	return _ok(job_ref, _free_input_rows(job_ref, purpose))
+
+
+func _consume_inputs_refusal(job_ref: Vector2i, purpose: int, now_tick: int,
+		output_container: Vector2i, output_mass_g: int, inventory: Inventory) -> StringName:
+	"""Check the full matching claim list and arguments without mutating any owner."""
+	if inventory == null:
+		return REFUSE_NO_INVENTORY
+	if inventory.is_transaction_open():
+		return REFUSE_INVENTORY_TRANSACTION_OPEN
+	if purpose < INT32_MIN or purpose > INT32_MAX:
+		return REFUSE_INVALID_PURPOSE
+	if now_tick < 0:
+		return REFUSE_INVALID_EXPIRY
+	if output_mass_g < 0 or (output_mass_g == 0 and output_container != NULL_REF):
+		return REFUSE_INVALID_QUANTITY
+	if output_mass_g > 0 and not inventory.is_container_valid(output_container):
+		return Inventory.REFUSE_INVALID_CONTAINER
+	var code: StringName = _check_job_ref(job_ref)
+	if code != REFUSE_NONE:
+		return code
+	return _input_rows_refusal(job_ref, purpose, now_tick, inventory)
+
+
+func _input_rows_refusal(job_ref: Vector2i, purpose: int, now_tick: int,
+		inventory: Inventory) -> StringName:
+	"""Validate owned quantities and absolute-tick leases before the first Inventory write."""
+	var row: int = _list_head(job_ref, true)
+	while row != NULL_ROW:
+		if _r_purpose[row] == purpose:
+			var lot: Vector2i = row_lot_ref(row)
+			if not inventory.is_lot_valid(lot):
+				return REFUSE_INVALID_LOT
+			if inventory.lot_reserved_milli(lot) < _r_quantity_milli[row]:
+				return REFUSE_AUDIT_RESERVED_TOTAL
+			if now_tick >= _r_expiry[row]:
+				return REFUSE_INPUT_CLAIM_EXPIRED
+		row = _job_next[row]
+	return REFUSE_NONE
+
+
+func _consume_inputs_inventory(job_ref: Vector2i, purpose: int, output_container: Vector2i,
+		output_mass_g: int, inventory: Inventory) -> StringName:
+	"""Write only journaled Inventory state while the reservation rows remain untouched."""
+	if output_mass_g > 0:
+		var reserved: Inventory.OpResult = inventory.reserve_container_mass(output_container, output_mass_g)
+		if not reserved.ok:
+			return reserved.error
+	var row: int = _list_head(job_ref, true)
+	while row != NULL_ROW:
+		if _r_purpose[row] == purpose:
+			var consumed: Inventory.OpResult = inventory.consume_reserved(row_lot_ref(row), _r_quantity_milli[row])
+			if not consumed.ok:
+				return consumed.error
+		row = _job_next[row]
+	return REFUSE_NONE
+
+
+func _free_input_rows(job_ref: Vector2i, purpose: int) -> int:
+	"""Publish pool retirement after the matching Inventory transaction has committed."""
+	var freed: int = 0
+	var row: int = _list_head(job_ref, true)
+	while row != NULL_ROW:
+		var next: int = _job_next[row]
+		if _r_purpose[row] == purpose:
+			_free_row(row)
+			freed += 1
+		row = next
+	return freed
+
 
 func release_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, inventory: Inventory) -> Inventory.OpResult:
 	"""Release one `(job, lot, purpose)` claim in full. `.value` is the quantity released."""

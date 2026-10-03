@@ -27,6 +27,7 @@ const SURVEY_CONTROL_BYTES: int = 256
 const DIG: int = 0
 const FOOTING: int = 1
 const EXTERIOR: int = 2
+const EXCLUSIONS: int = 3 # Mixed-height clearance observes protections only, never matter or support.
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"TERRAIN_OWNER_BINDING"
 const REFUSE_BOUNDS: StringName = &"TERRAIN_SURVEY_BOUNDS"
@@ -62,6 +63,7 @@ var _sources: WeakRef = null
 var _budget: Budget = null
 var _world_ref: Vector2i = NULL_REF
 var _seed: int = 0
+var _checked_geometry_revision: int = -1
 var _ready: bool = false
 var _count: int = 0
 var _limit: int = 0
@@ -155,9 +157,27 @@ func binding_refusal() -> StringName:
 			or _world.resource_nodes() != _nodes or sources.directory() != _world.directory() \
 			or sources.construction_owner() == null or sources.construction_owner().buildings() != _buildings:
 		return REFUSE_BINDING
+	return _world_source_refusal(space, sources)
+
+
+func _world_source_refusal(space: Owner, reader: Owner.CoreSources) -> StringName:
+	"""World facts are immutable: reuse their proof at one spatial revision, but always check full live identity."""
+	if not reader.directory().is_valid_of_kind(_world_ref, Directory.KIND_WORLD):
+		return &"TERRAIN_WORLD_SOURCE"
+	var revision: int = space.revision()
+	if revision < 1:
+		return &"TERRAIN_WORLD_SOURCE"
+	if revision == _checked_geometry_revision:
+		return &""
 	if space.source_revision(_world_ref) < 1:
 		return &"TERRAIN_WORLD_SOURCE"
-	return space.source_refusal(_world_ref)
+	var code: StringName = space.source_refusal(_world_ref)
+	if code != &"":
+		return code
+	if space.revision() != revision or not reader.directory().is_valid_of_kind(_world_ref, Directory.KIND_WORLD):
+		return &"TERRAIN_WORLD_SOURCE"
+	_checked_geometry_revision = revision
+	return &""
 
 
 func is_bound_budget(candidate: Budget) -> bool:
@@ -422,6 +442,11 @@ func exterior_refusal(bounds: PackedInt32Array) -> StringName:
 	return _local_refusal(bounds, EXTERIOR)
 
 
+func exclusions_refusal(bounds: PackedInt32Array) -> StringName:
+	"""Observe fresh water, resource and Building protections across a surface boundary; this grants no void or footing."""
+	return _local_refusal(bounds, EXCLUSIONS)
+
+
 func _local_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
 	"""Read at most64 nearby tiles using preallocated facts/boxes, never a full World snapshot."""
 	_reset_query()
@@ -450,9 +475,10 @@ func _local_tile(tile: int, bounds: PackedInt32Array, purpose: int) -> StringNam
 	if _number.value < 0 or _number.value >= World.TERRAIN_COUNT:
 		return &"TERRAIN_WORLD_KIND"
 	var floor_y: int = _natural_floor(tile, _number.value)
-	if floor_y == BOTTOM_U or (floor_y < 0 and bounds[1] < 0 and bounds[4] > floor_y):
+	if (floor_y == BOTTOM_U and (purpose != EXCLUSIONS or bounds[1] < 0)) \
+			or (floor_y < 0 and bounds[1] < 0 and bounds[4] > floor_y):
 		return _conflict(REFUSE_WATER, _world_ref, tile)
-	if purpose != EXTERIOR and bounds[4] > floor_y:
+	if (purpose == DIG or purpose == FOOTING) and bounds[4] > floor_y:
 		return _conflict(REFUSE_DRY, _world_ref, tile)
 	if purpose == EXTERIOR and bounds[1] < maxi(floor_y, 0):
 		return _conflict(REFUSE_EXTERIOR, _world_ref, tile)
@@ -484,7 +510,7 @@ func _local_building(tile: int, bounds: PackedInt32Array, purpose: int) -> Strin
 		return _conflict(code, ref, tile)
 	if _vertical_overlap(bounds, _tile_box[1], World.LAND_Y_UNITS):
 		return _conflict(REFUSE_FOUNDATION, ref, tile)
-	if purpose == EXTERIOR and _vertical_overlap(bounds, World.LAND_Y_UNITS, _tile_box[4]):
+	if (purpose == EXTERIOR or purpose == EXCLUSIONS) and _vertical_overlap(bounds, World.LAND_Y_UNITS, _tile_box[4]):
 		return _conflict(REFUSE_BODY, ref, tile)
 	return &""
 

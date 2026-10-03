@@ -1384,3 +1384,11 @@ copied into existing caller-owned fixed scratch without a new image or index.
 The consumer still holds the previously charged shared cold lease and must run
 full source/claim preflight before and after the whole observation batch; the
 readers introduce no new authoritative, derived or transient retained state.
+
+### `godot/scripts/core/underground_connector_catalog.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact content digest scratch | `_hash` | 1 | `32` = 32 | Empty before full arena admission | 3 | -- | Decision1080. One reused caller-shaped digest reader, included in the fixed2048-byte control/decode reservation. No per-actor allocation. |
+| Immutable source-derived connector content banks | -- | -- | -- | Revision0 means absent; no geometry or pace defaults | 2 | §1 WORLD | Two nested Bank instances. Each has26 I32+1 I64 per16 variants;4 I32 per512 path points;8 I32 per1024 regions;9 I32 per256 parts;3 I32 per2048 vertices;1 I32 per16 materials;7 I32+1 I64 per256 paces;11 I64 header fields and96 digest bytes. Exactly86008 bytes per bank,172016 together. The actual World/save must pin catalog, profile and level content digests/revisions; no mutable source image or catalog alone is installed geometry. |
+| Actual owner bindings, bounded stream and reader controls | -- | -- | -- | No load in progress at save; every refused read preserves caller output | 3 | -- | Exact Profiles/Levels/Movement/Residents/Transforms composition; configure/load flags, one Descriptor, one IntResult,32-byte digest scratch, one112-byte maximum wire row plus the64-byte enclosing source header and SHA context, bounded caller Record/row output and scalar loop controls. Fixed2048 plus native16384 reservation joins172016 bank bytes for190448 total inside the existing bindings524288 arena, separately from Profiles/Levels262144. Native reservation is unmeasured. At most16 variants,16 exact opening targets per variant and256 pace rows; no third bank/full wire/JSON image. Actual installed connector refs, placement transform, opening target refs, paid publication and eligibility remain with their owning World components. |

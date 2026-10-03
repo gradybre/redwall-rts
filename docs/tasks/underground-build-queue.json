@@ -405,7 +405,12 @@
         "godot/test/test_underground_room_cut_map.gd",
         "docs/decisions/1095-derived-room-cut-map.md",
         "godot/test/test_excavation_claim_batch.gd",
-        "godot/test/test_excavation_claim_batch.gd.uid"
+        "godot/test/test_excavation_claim_batch.gd.uid",
+        "godot/scripts/core/underground_connector_recipes.gd",
+        "godot/scripts/core/underground_connector_recipes.gd.uid",
+        "godot/test/test_underground_connector_recipes.gd",
+        "godot/test/test_underground_connector_recipes.gd.uid",
+        "docs/decisions/1102-immutable-connector-recipes.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -426,7 +431,7 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-room-claim-batch",
+      "branch": "codex/underground-connector-recipes",
       "evidence": {
         "in_progress": "Reviewed1095 cut cursor integrated5b273105/0c3c8ee1; reviewed pure RoomOrders companion reader integrated76a5a8bc. Actual Sites ClaimBatch implementing with final callback-free guard and sequential cold-memory admission. Actual entry/work feasibility remains open.",
         "identity_prerequisite": {
@@ -579,6 +584,13 @@
           "tests": "300 tests /86082 assertions /0 failures; strict/raw diagnostics and leaks all0; analyzer0/19;7 metadata gates pass",
           "evidence_path": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/README.md",
           "scope": "Twelve combined strict suites after separately reviewed claims/routes integration; not full-suite replacement or playable acceptance."
+        },
+        "connector_recipe_in_progress": {
+          "status": "running",
+          "owner": "/root/ug_construction",
+          "scope": "Immutable source-bound recipe bank and narrow append-only purpose/Funding/Router plumbing; actual placement adapter awaits matching owner contract. Existing Construction, modular_projects, excavation_inventory and associated tests remain within UG07 lease.",
+          "budget_proposal": "64P+128 immutable bytes, P<=256;512 controls; Funding fourth loss domain2048 live plus each simultaneous cold image; adapter controls and native/Placement coexistence still require source census.",
+          "authoring": "Absent recipe rows refuse. No new prices or work amounts silently activated."
         }
       },
       "lease": {
@@ -845,6 +857,18 @@
           "scope": "Actual firm-grip source-derived travel/BUILD work profile, safe source-indexed strike/recovery and actual tip contact witness; exact Gear manufacture and presentation-state binding. Zero production qualifications until all proofs/native review pass.",
           "paths": "Existing data/underground/mole-worker lease plus test_mole_profile_driver and test_mole_qualified_profiles. No core owner edits.",
           "next": "Source-indexed forward-to-strike/retrace motion avoids real below-floor late-cycle pick motion; preserve original, rederive envelopes and native review."
+        },
+        "contact_patch_schema": {
+          "commit": "0c7366f1",
+          "registry_commit": "4dd24f15",
+          "integration_commits": [
+            "c3ae81e0",
+            "2f29ffd1"
+          ],
+          "review": "Root independent source review accepted exact Profiles c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2 and test395f40c9b94a2f4b8c03e2edaf2a625a934a2b2824986c6721f40bf603aec37e.",
+          "tests": "21 test(s),454 assertion(s),0 failure(s); strict/raw zero unexpected diagnostics and zero object/resource leaks; analyzer0 warnings/2 files.",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/profile-schema-v1/",
+          "scope": "Additive kind2 exact anchor+positive-area planar patch in existing box bank; production motion/contact qualification remains open."
         }
       },
       "lease": {

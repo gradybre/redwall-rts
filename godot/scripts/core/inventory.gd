@@ -202,6 +202,7 @@ extends RefCounted
 ## a separate integration step and is not part of task 2.5.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
+const SpatialLocations := preload("res://scripts/core/inventory_spatial_contract.gd")
 ## PROV-R01's protected InventoryProvenance domain. Read, never mirrored: this module
 ## publishes no provenance number of its own, so there is exactly one copy of each.
 const CatalogScript := preload("res://scripts/core/catalog.gd")
@@ -216,6 +217,13 @@ const MAX_INT32: int = 2147483647
 const CONTAINER_CAPACITY: int = 101376
 const LOT_CAPACITY: int = 16384
 const ITEM_CAPACITY: int = 256
+## Decision1076: explicit sparse endpoint arena, independent of the101376-container maximum.
+const SPATIAL_ENDPOINT_CAPACITY: int = 1024
+const REFUSE_SPATIAL_BINDING: StringName = &"INVENTORY_SPATIAL_AUTHORITY_UNBOUND"
+const REFUSE_SPATIAL_CAPACITY: StringName = &"CAPACITY_INVENTORY_SPATIAL_ENDPOINTS"
+const REFUSE_SPATIAL_LOCATION: StringName = &"INVENTORY_SPATIAL_LOCATION_STALE"
+const REFUSE_SPATIAL_REQUIRED: StringName = &"INVENTORY_SPATIAL_LOCATION_REQUIRED"
+const REFUSE_SPATIAL_CODEC: StringName = &"INVENTORY_SPATIAL_CODEC_REQUIRED"
 
 ## Milli-units per catalog unit (BAL-NUM-001).
 const MILLI_PER_UNIT: int = 1000
@@ -277,6 +285,7 @@ const _J_SUNK: int = 5
 ## One cell of the derived tile -> pile map (decision 0532), so a rollback restores the map with
 ## the rows it indexes.
 const _J_PILE_CELL: int = 6
+const _J_SPATIAL_ENDPOINT: int = 7
 
 ## Lot pre-image field offsets inside the journal arena.
 const LOT_F_ITEM: int = 0
@@ -618,6 +627,15 @@ var _pile_at_tile: PackedInt32Array = PackedInt32Array()
 ## authorities. Inventory holds no map, so it cannot prove a tile passable or off a refused
 ## footprint itself. Wiring, not state: not journaled, not in state_bytes(), survives clear().
 var _ground_pile_authority: WeakRef = null
+## Sparse full container/location identities;24C packed bytes. No duplicated XYZ or Room owner.
+var _spatial_container_slot: PackedInt32Array = PackedInt32Array()
+var _spatial_container_generation: PackedInt32Array = PackedInt32Array()
+var _spatial_location_slot: PackedInt32Array = PackedInt32Array()
+var _spatial_location_generation: PackedInt32Array = PackedInt32Array()
+var _spatial_location_revision: PackedInt64Array = PackedInt64Array()
+var _spatial_authority: WeakRef = null
+var _spatial_world: Vector2i = NULL_REF
+var _spatial_checked_revision: int = 0
 ## RECLAIM CANDIDATES. The container slots of every pile the open transaction created or took a
 ## lot out of. ARCH-MEM-002: "a ground pile with no live lot cannot retain an occupied row", so a
 ## successful commit retires each candidate left with no lot and no reserved mass. Every push is
@@ -733,6 +751,8 @@ func clear() -> void:
 	here instead of being refilled with 1, so a lot or container ref taken before the clear
 	can never validate against a row handed out after it; see _advance_generations().
 	"""
+	if _refuse_attestation_reentry():
+		return
 	_clear_container_rows()
 	_clear_lot_rows()
 	_item_mass_g.fill(0)
@@ -768,6 +788,7 @@ func _clear_container_rows() -> void:
 	_c_live_count = 0
 	_c_slot_high_water = 0
 	_pile_at_tile.fill(NO_PILE)
+	_clear_spatial_endpoints()
 	_clear_pile_candidates()
 
 
@@ -832,6 +853,8 @@ func register_item(item_id: int, mass_g: int, category: int) -> OpResult:
 	Catalog-time only: refused while a transaction is open, and never journaled, because item
 	masses are compiled facts rather than simulation state.
 	"""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if _tx_open:
 		return _refuse(REFUSE_TRANSACTION_OPEN)
 	if item_id < 0 or item_id >= ITEM_CAPACITY:
@@ -880,6 +903,8 @@ func category_mask(category: int) -> int:
 
 func begin() -> OpResult:
 	"""Open an explicit multi-operation transaction. Nesting is refused, not silently joined."""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if _tx_open:
 		return _refuse(REFUSE_NESTED_TRANSACTION)
 	_open_transaction()
@@ -892,6 +917,8 @@ func commit() -> OpResult:
 	A transaction poisoned by an earlier refusal is rolled back in full and the first refusal
 	code is returned, so a caller that ignored an intermediate result still cannot half-apply.
 	"""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if not _tx_open:
 		return _refuse(REFUSE_NO_TRANSACTION)
 	if _tx_poisoned:
@@ -912,6 +939,8 @@ func commit() -> OpResult:
 
 func abort() -> void:
 	"""Discard an open transaction, restoring state exactly as it stood at begin()."""
+	if _refuse_attestation_reentry():
+		return
 	if not _tx_open:
 		return
 	_rollback()
@@ -1048,6 +1077,17 @@ func _succeed(ref: Vector2i, value: int) -> StringName:
 	return REFUSE_NONE
 
 
+func _refuse_attestation_reentry() -> bool:
+	"""Reject callback mutation without closing its caller's journal or rewiring catalog facts."""
+	if not _attesting:
+		return false
+	if _tx_open:
+		_tx_poisoned = true
+		if _tx_error == REFUSE_NONE:
+			_tx_error = REFUSE_ATTESTATION_REENTRY
+	return true
+
+
 func _guard() -> StringName:
 	"""Refuse before touching state: attestation re-entry, a poisoned transaction, a full journal.
 
@@ -1078,6 +1118,8 @@ func _rollback() -> void:
 			_restore_lot(index, base)
 		elif kind == _J_CONTAINER:
 			_restore_container(index, base)
+		elif kind == _J_SPATIAL_ENDPOINT:
+			_restore_spatial_endpoint(index, base)
 		else:
 			_restore_scalar(kind, index, _j_row[base])
 		i -= 1
@@ -1338,8 +1380,14 @@ func _destroy_container_checked(container_ref: Vector2i) -> StringName:
 		return REFUSE_CONTAINER_HAS_RESERVED_MASS
 	if _c_generation[slot] >= MAX_INT32:
 		return REFUSE_GENERATION_EXHAUSTED
+	if _c_anchor_tile[slot] <= -2:
+		var spatial: StringName = _spatial_container_refusal(container_ref)
+		if spatial != REFUSE_NONE:
+			return spatial
 	_journal_container(slot)
-	if _c_policy[slot] == POLICY_GROUND_PILE:
+	if _c_anchor_tile[slot] <= -2:
+		_clear_spatial_endpoint(-2 - _c_anchor_tile[slot], true)
+	elif _c_policy[slot] == POLICY_GROUND_PILE:
 		_set_pile_cell(_c_anchor_tile[slot], NO_PILE)
 	_c_live[slot] = 0
 	_c_live_count -= 1
@@ -1396,6 +1444,8 @@ func _set_anchor_checked(container_ref: Vector2i, tile: int) -> StringName:
 		return REFUSE_GROUND_PILE_ANCHOR_FIXED
 	if _c_policy[container_ref.x] == POLICY_SATCHEL:
 		return REFUSE_SATCHEL_ANCHOR_FIXED
+	if _c_anchor_tile[container_ref.x] <= -2:
+		return REFUSE_SPATIAL_REQUIRED
 	if not is_anchor_tile_in_domain(tile):
 		return REFUSE_INVALID_ANCHOR_TILE
 	_journal_container(container_ref.x)
@@ -1424,7 +1474,7 @@ func _reduce_capacity_checked(container_ref: Vector2i, by_g: int) -> StringName:
 	if not is_container_valid(container_ref):
 		return REFUSE_INVALID_CONTAINER
 	var slot: int = container_ref.x
-	if _c_policy[slot] == POLICY_GROUND_PILE:
+	if _c_policy[slot] == POLICY_GROUND_PILE or _c_anchor_tile[slot] <= -2:
 		return REFUSE_GROUND_PILE_CAPACITY_FIXED
 	if by_g <= 0 or by_g > _c_max_mass_g[slot]:
 		return REFUSE_INVALID_MASS
@@ -1525,6 +1575,8 @@ func set_ground_pile_authority(authority: Object) -> OpResult:
 	Wiring, not simulation state: not journaled, not in state_bytes(), survives clear(). Held
 	weakly, because `ground_piles.gd` owns this store strongly.
 	"""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if _tx_open:
 		return _refuse(REFUSE_TRANSACTION_OPEN)
 	if authority != null and (not authority.has_method(GROUND_PILE_TILE_METHOD)
@@ -1694,6 +1746,9 @@ func _reclaim_empty_piles() -> void:
 		for tile: int in range(ANCHOR_TILE_COUNT):
 			if _pile_at_tile[tile] != NO_PILE:
 				_reclaim_if_empty(_pile_at_tile[tile])
+		for row: int in _spatial_container_slot.size():
+			if _spatial_container_slot[row] >= 0:
+				_reclaim_if_empty(_spatial_container_slot[row])
 	for index: int in range(_pile_candidate_count):
 		_reclaim_if_empty(_pile_candidates[index])
 	_clear_pile_candidates()
@@ -1709,6 +1764,9 @@ func _pile_commit_refusal() -> StringName:
 	if _pile_candidates_overflowed:
 		for tile: int in range(ANCHOR_TILE_COUNT):
 			if _pile_at_tile[tile] != NO_PILE and _is_claimed_empty_pile(_pile_at_tile[tile]):
+				return REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM
+		for row: int in _spatial_container_slot.size():
+			if _spatial_container_slot[row] >= 0 and _is_claimed_empty_pile(_spatial_container_slot[row]):
 				return REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM
 	for index: int in range(_pile_candidate_count):
 		if _is_claimed_empty_pile(_pile_candidates[index]):
@@ -1736,7 +1794,10 @@ func _retire_empty_pile(slot: int, tile: int) -> void:
 
 	A slot whose generation is exhausted is retired instead of pushed, the allocator's own rule.
 	"""
-	_pile_at_tile[tile] = NO_PILE
+	if tile <= -2:
+		_clear_spatial_endpoint(-2 - tile, false)
+	else:
+		_pile_at_tile[tile] = NO_PILE
 	_c_live[slot] = 0
 	_c_live_count -= 1
 	_free_container_slot(slot, false)
@@ -1765,7 +1826,7 @@ func _rebuild_pile_map() -> void:
 	"""Re-derive the tile -> pile map from the live rows. Restore validated uniqueness first."""
 	_pile_at_tile.fill(NO_PILE)
 	for slot: int in range(_c_slot_high_water):
-		if _c_live[slot] == 1 and _c_policy[slot] == POLICY_GROUND_PILE:
+		if _c_live[slot] == 1 and _c_policy[slot] == POLICY_GROUND_PILE and _c_anchor_tile[slot] >= 0:
 			_pile_at_tile[_c_anchor_tile[slot]] = slot
 
 
@@ -2719,6 +2780,8 @@ func set_seed_expiry_authority(authority: Object) -> OpResult:
 	would be enforcement in name only. The binding is wiring, not simulation state: it is not
 	journaled, not part of state_bytes(), and survives clear().
 	"""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if _tx_open:
 		return _refuse(REFUSE_TRANSACTION_OPEN)
 	if authority != null and not authority.has_method(SEED_EXPIRY_ATTESTATION_METHOD):
@@ -3037,6 +3100,8 @@ func set_equipment_authority(authority: Object) -> OpResult:
 	make impossible. The binding is wiring, not simulation state: it is not journaled, not part
 	of state_bytes(), and survives clear() the way a collaborator reference does.
 	"""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if _tx_open:
 		return _refuse(REFUSE_TRANSACTION_OPEN)
 	if authority != null and not authority.has_method(EQUIPMENT_ATTESTATION_METHOD):
@@ -3533,6 +3598,8 @@ func container_anchor_tile_into(container_ref: Vector2i, out: IntMath.IntResult)
 	"""
 	if not is_container_valid(container_ref):
 		return out.refuse(String(REFUSE_INVALID_CONTAINER))
+	if _c_anchor_tile[container_ref.x] <= -2:
+		return out.refuse(String(REFUSE_SPATIAL_REQUIRED))
 	return out.succeed(_c_anchor_tile[container_ref.x])
 
 
@@ -3562,9 +3629,12 @@ func containers_anchored_in_into(tile_mask: PackedByteArray, out_pairs: PackedIn
 
 	Read-only, allocation-free, no index built or kept. One pass over the occupied container rows
 	per pass; a destructive edit runs it once, and nothing runs it on a tick.
+	A live spatial endpoint refuses SPATIAL_REQUIRED: a flat mask cannot prove multilevel clearance.
 	"""
 	if tile_mask.size() != ANCHOR_TILE_COUNT:
 		return out.refuse(String(REFUSE_ANCHOR_MASK_SHAPE))
+	if _has_spatial_endpoints():
+		return out.refuse(String(REFUSE_SPATIAL_REQUIRED))
 	var found: int = _count_containers_anchored_in(tile_mask)
 	if out_pairs.size() < found * 2:
 		return out.refuse(String(REFUSE_OWNER_OUTPUT_TOO_SMALL))
@@ -3581,7 +3651,7 @@ func _anchored_in(slot: int, tile_mask: PackedByteArray) -> bool:
 	if _c_live[slot] != 1:
 		return false
 	var tile: int = _c_anchor_tile[slot]
-	return tile != UNPLACED_TILE and tile_mask[tile] != 0
+	return tile >= 0 and tile < ANCHOR_TILE_COUNT and tile_mask[tile] != 0
 
 
 func _count_containers_anchored_in(tile_mask: PackedByteArray) -> int:
@@ -3613,6 +3683,8 @@ func next_container_anchored_in(after_slot: int, tile_mask: PackedByteArray) -> 
 	null ref ends the walk, and also answers a mask that is not exactly `anchor_query_mask_bytes()`
 	long, which a caller tells apart by checking the mask it built. Read-only and allocation-free;
 	a cold planning query, never a per-tick one.
+	This iterator selects SURFACE candidates only. Its null result is never a completeness or
+	clearance proof; use the refusal-bearing query above for a complete footprint check.
 	"""
 	if tile_mask.size() != ANCHOR_TILE_COUNT:
 		return NULL_REF
@@ -3986,6 +4058,9 @@ func _audit_container_row(slot: int) -> StringName:
 
 func _audit_container_anchor(slot: int) -> StringName:
 	"""The anchor is in its domain, and a satchel is never placed (decision 1022)."""
+	if _c_anchor_tile[slot] <= -2:
+		var container: Vector2i = Vector2i(slot, _c_generation[slot])
+		return _spatial_container_refusal(container) if _spatial_row(container) >= 0 else REFUSE_AUDIT_ANCHOR
 	if not is_anchor_tile_in_domain(_c_anchor_tile[slot]):
 		return REFUSE_AUDIT_ANCHOR
 	if _c_policy[slot] == POLICY_SATCHEL and _c_anchor_tile[slot] != UNPLACED_TILE:
@@ -4021,7 +4096,9 @@ func _audit_ground_piles() -> StringName:
 			continue
 		piles += 1
 		var tile: int = _c_anchor_tile[slot]
-		if tile < 0 or tile >= ANCHOR_TILE_COUNT or _pile_at_tile[tile] != slot:
+		if tile <= -2:
+			piles -= 1  # The exact sparse reverse map is audited separately.
+		elif tile < 0 or tile >= ANCHOR_TILE_COUNT or _pile_at_tile[tile] != slot:
 			return REFUSE_AUDIT_GROUND_PILE
 		if _c_max_mass_g[slot] != GROUND_PILE_MAX_MASS_G:
 			return REFUSE_AUDIT_GROUND_PILE
@@ -4031,7 +4108,7 @@ func _audit_ground_piles() -> StringName:
 	for tile: int in range(ANCHOR_TILE_COUNT):
 		if _pile_at_tile[tile] != NO_PILE:
 			mapped += 1
-	return REFUSE_NONE if mapped == piles else REFUSE_AUDIT_GROUND_PILE
+	return _audit_spatial_endpoints() if mapped == piles else REFUSE_AUDIT_GROUND_PILE
 
 
 func _audit_conservation() -> StringName:
@@ -4080,6 +4157,7 @@ func state_bytes() -> PackedByteArray:
 	out.append_array(var_to_bytes(_item_registered))
 	out.append_array(var_to_bytes(PackedInt64Array([_c_free_count, _l_free_count, _c_live_count,
 		_l_live_count, _equipped_lot_count])))
+	_append_spatial_state(out)
 	return out
 
 
@@ -4310,6 +4388,9 @@ func copy_canonical_columns_into(out: CanonicalColumns) -> bool:
 	only into the caller's buffer -- the live columns are not touched, in this call or any other.
 	"""
 	_canonical_detail = ""
+	if _has_spatial_endpoints():
+		_canonical_detail = String(REFUSE_SPATIAL_CODEC)
+		return false
 	var quiescent: StringName = _canonical_quiescent_refusal()
 	if quiescent != REFUSE_NONE:
 		return false
@@ -4546,6 +4627,9 @@ func restore_canonical_columns(cols: CanonicalColumns) -> bool:
 	owners are published; running it now would refuse every legitimate equipped lot.
 	"""
 	_canonical_detail = ""
+	if _has_spatial_endpoints():
+		_canonical_detail = String(REFUSE_SPATIAL_CODEC)
+		return false
 	if _tx_open or _j_count != 0 or _attesting:
 		_canonical_detail = "the store is not quiescent"
 		return false
@@ -4776,3 +4860,303 @@ func _rebuild_derived_state() -> void:
 		if _l_container_slot[slot] == NULL_SLOT:
 			_equipped_lot_count += 1
 		_sourced_milli[_l_item_id[slot]] += _l_quantity_milli[slot]
+
+
+# --- Decision1076: actual sparse multilevel storage endpoints --------------------------------
+
+func bind_spatial_locations(authority: SpatialLocations, capacity: int) -> OpResult:
+	"""Admit one exact weak provider and finite arena once; ordinary local Inventory stays unchanged."""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
+	if _tx_open:
+		return _refuse(REFUSE_TRANSACTION_OPEN)
+	if authority == null or _spatial_authority != null:
+		return _refuse(REFUSE_SPATIAL_BINDING)
+	if capacity < 1 or capacity > SPATIAL_ENDPOINT_CAPACITY or capacity > _c_capacity:
+		return _refuse(REFUSE_SPATIAL_CAPACITY)
+	_attesting = true
+	var world: Vector2i = authority.world_ref()
+	var exact: bool = is_well_formed_owner(world) and authority.exact_binding(self, world)
+	_attesting = false
+	if not exact:
+		return _refuse(REFUSE_SPATIAL_BINDING)
+	_spatial_authority = weakref(authority)
+	_spatial_world = world
+	_spatial_container_slot.resize(capacity)
+	_spatial_container_generation.resize(capacity)
+	_spatial_location_slot.resize(capacity)
+	_spatial_location_generation.resize(capacity)
+	_spatial_location_revision.resize(capacity)
+	_clear_spatial_endpoints()
+	return _ok(NULL_REF, 0)
+
+
+func _spatial_provider() -> SpatialLocations:
+	"""Late foreign/expired World composition cannot attest coincident location numbers."""
+	if _attesting or _spatial_authority == null:
+		return null
+	var authority: SpatialLocations = _spatial_authority.get_ref() as SpatialLocations
+	if authority == null:
+		return null
+	_attesting = true
+	var exact: bool = authority.world_ref() == _spatial_world and authority.exact_binding(self, _spatial_world)
+	_attesting = false
+	return authority if exact else null
+
+
+func _spatial_location_refusal(location: Vector2i, revision: int = 0) -> StringName:
+	"""Attest current actual storage geometry and pin an immutable full-location payload revision."""
+	_spatial_checked_revision = 0
+	var authority: SpatialLocations = _spatial_provider()
+	if authority == null:
+		return REFUSE_SPATIAL_BINDING
+	if location.x < 0 or location.y <= 0:
+		return REFUSE_SPATIAL_LOCATION
+	_attesting = true
+	var code: StringName = authority.storage_endpoint_refusal(location)
+	var actual: int = authority.location_revision(location)
+	_attesting = false
+	if code != REFUSE_NONE:
+		return code
+	if actual <= 0 or revision > 0 and actual != revision:
+		return REFUSE_SPATIAL_LOCATION
+	_spatial_checked_revision = actual
+	return REFUSE_TRANSACTION_POISONED if _tx_poisoned else REFUSE_NONE
+
+
+func _same_spatial_cell(first: Vector2i, second: Vector2i) -> bool:
+	"""The provider compares qualified actual World/section/placement identities, with reentry blocked."""
+	var authority: SpatialLocations = _spatial_provider()
+	if authority == null:
+		return false
+	_attesting = true
+	var same: bool = authority.same_storage_cell(first, second)
+	_attesting = false
+	return same
+
+
+func _spatial_location(row: int) -> Vector2i:
+	"""Read one already-bounds-checked local location generation; it is never a Directory handle."""
+	return Vector2i(_spatial_location_slot[row], _spatial_location_generation[row])
+
+
+func _spatial_row(container: Vector2i) -> int:
+	"""Reverse-match the complete actual container before interpreting its private negative anchor."""
+	if not is_container_valid(container) or _c_anchor_tile[container.x] > -2:
+		return -1
+	var row: int = -2 - _c_anchor_tile[container.x]
+	return row if row >= 0 and row < _spatial_container_slot.size() \
+		and _spatial_container_slot[row] == container.x \
+		and _spatial_container_generation[row] == container.y else -1
+
+
+func _spatial_container_refusal(container: Vector2i) -> StringName:
+	"""Require the actual full endpoint and the immutable finite World-owned pile/staging shape."""
+	var row: int = _spatial_row(container)
+	if row < 0:
+		return REFUSE_SPATIAL_LOCATION
+	if container_owner(container) != _spatial_world or _c_max_mass_g[container.x] != GROUND_PILE_MAX_MASS_G \
+			or _c_filters[container.x] != FILTERS_ACCEPT_ALL \
+			or _c_policy[container.x] != UNSET_POLICY and _c_policy[container.x] != POLICY_GROUND_PILE:
+		return REFUSE_GROUND_PILE_STAGING
+	return _spatial_location_refusal(_spatial_location(row), _spatial_location_revision[row])
+
+
+func _spatial_candidate_refusal(location: Vector2i) -> StringName:
+	"""A stale existing endpoint never counts as evidence that a new duplicate placement is free."""
+	var code: StringName = _spatial_location_refusal(location)
+	if code != REFUSE_NONE:
+		return code
+	var revision: int = _spatial_checked_revision
+	for row: int in _spatial_container_slot.size():
+		if _spatial_container_slot[row] < 0:
+			continue
+		code = _spatial_container_refusal(Vector2i(_spatial_container_slot[row], _spatial_container_generation[row]))
+		if code != REFUSE_NONE:
+			return code
+		if _same_spatial_cell(location, _spatial_location(row)):
+			return REFUSE_GROUND_PILE_TILE_TAKEN
+	_spatial_checked_revision = revision
+	return REFUSE_TRANSACTION_POISONED if _tx_poisoned else REFUSE_NONE
+
+
+func create_spatial_ground_staging(location: Vector2i) -> OpResult:
+	"""Create actual finite first-output storage at a qualified multilevel location, without loose goods."""
+	var owned: bool = _enter()
+	return _leave(owned, _create_spatial_staging_checked(location))
+
+
+func _create_spatial_staging_checked(location: Vector2i) -> StringName:
+	"""Resolve all identity, uniqueness and capacity refusals before consuming a container generation."""
+	var code: StringName = _guard()
+	if code != REFUSE_NONE:
+		return code
+	code = _spatial_candidate_refusal(location)
+	if code != REFUSE_NONE:
+		return code
+	var row: int = _spatial_container_slot.find(-1)
+	if row < 0:
+		return REFUSE_SPATIAL_CAPACITY
+	var revision: int = _spatial_checked_revision
+	code = _mint_container(_spatial_world, GROUND_PILE_MAX_MASS_G, FILTERS_ACCEPT_ALL,
+		UNSET_POLICY, true, -2 - row)
+	if code != REFUSE_NONE:
+		return code
+	_journal_spatial_endpoint(row)
+	_spatial_container_slot[row] = _out_ref.x
+	_spatial_container_generation[row] = _out_ref.y
+	_spatial_location_slot[row] = location.x
+	_spatial_location_generation[row] = location.y
+	_spatial_location_revision[row] = revision
+	return REFUSE_NONE
+
+
+func promote_to_spatial_ground_pile(container: Vector2i, location: Vector2i) -> OpResult:
+	"""Publish the same nonempty finite staging row inside its real output Inventory transaction."""
+	var owned: bool = _enter()
+	var code: StringName = _spatial_promotion_refusal(container, location, owned)
+	if code != REFUSE_NONE:
+		return _leave(owned, code)
+	_journal_container(container.x)
+	_c_policy[container.x] = POLICY_GROUND_PILE
+	_note_pile_candidate(container.x)
+	return _leave(owned, _succeed(container, 0))
+
+
+func _spatial_promotion_refusal(container: Vector2i, location: Vector2i, owned: bool) -> StringName:
+	"""A legal source location cannot relocate someone else's staged goods or output reservation."""
+	var code: StringName = _guard()
+	if code != REFUSE_NONE:
+		return code
+	if owned:
+		return REFUSE_GROUND_PILE_NEEDS_TRANSACTION
+	code = _spatial_container_refusal(container)
+	if code != REFUSE_NONE:
+		return code
+	if _spatial_location(_spatial_row(container)) != location:
+		return REFUSE_SPATIAL_LOCATION
+	if _c_policy[container.x] != UNSET_POLICY or _c_lot_count[container.x] < 1 or _c_reachable[container.x] != 1:
+		return REFUSE_GROUND_PILE_STAGING
+	return REFUSE_NONE
+
+
+func spatial_location_of(container: Vector2i) -> Vector2i:
+	"""Read a freshly qualified actual location; null means unavailable and never means surface."""
+	return _spatial_location(_spatial_row(container)) if _spatial_container_refusal(container) == REFUSE_NONE else NULL_REF
+
+
+func spatial_location_revision_of(container: Vector2i) -> int:
+	"""Return the positive exact endpoint payload revision, or zero when full identity refuses."""
+	return _spatial_location_revision[_spatial_row(container)] if _spatial_container_refusal(container) == REFUSE_NONE else 0
+
+
+func has_spatial_location(location: Vector2i, revision: int) -> bool:
+	"""Cold retirement guard over retained ownership, including stale geometry that must not be erased."""
+	if location.x < 0 or location.y <= 0 or revision <= 0:
+		return false
+	for row: int in _spatial_container_slot.size():
+		if _spatial_container_slot[row] >= 0 and _spatial_location(row) == location \
+				and _spatial_location_revision[row] == revision:
+			return true
+	return false
+
+
+func spatial_ground_container_at(location: Vector2i) -> Vector2i:
+	"""Find the actual finite staging/pile at a qualified placement cell; ambiguity refuses as null."""
+	if _spatial_location_refusal(location) != REFUSE_NONE:
+		return NULL_REF
+	var found: Vector2i = NULL_REF
+	for row: int in _spatial_container_slot.size():
+		if _spatial_container_slot[row] < 0:
+			continue
+		var container: Vector2i = Vector2i(_spatial_container_slot[row], _spatial_container_generation[row])
+		if _spatial_container_refusal(container) != REFUSE_NONE:
+			return NULL_REF
+		if _same_spatial_cell(location, _spatial_location(row)):
+			if found != NULL_REF:
+				return NULL_REF
+			found = container
+	return found
+
+
+func spatial_endpoint_bytes() -> int:
+	"""Exact packed live bytes; excludes the shared existing journal and native component overhead."""
+	return _spatial_container_slot.size() * 24
+
+
+func _clear_spatial_endpoints() -> void:
+	"""Clear existing buffers without resizing, preserving once-bound provider and capacity."""
+	_spatial_container_slot.fill(-1)
+	_spatial_container_generation.fill(0)
+	_spatial_location_slot.fill(-1)
+	_spatial_location_generation.fill(0)
+	_spatial_location_revision.fill(0)
+
+
+func _journal_spatial_endpoint(row: int) -> void:
+	"""Use five cells of the existing fourteen-int64 Inventory journal row."""
+	var base: int = _j_count * ROW_STRIDE
+	_j_kind[_j_count] = _J_SPATIAL_ENDPOINT
+	_j_index[_j_count] = row
+	_j_row[base] = _spatial_container_slot[row]
+	_j_row[base + 1] = _spatial_container_generation[row]
+	_j_row[base + 2] = _spatial_location_slot[row]
+	_j_row[base + 3] = _spatial_location_generation[row]
+	_j_row[base + 4] = _spatial_location_revision[row]
+	_j_count += 1
+
+
+func _restore_spatial_endpoint(row: int, base: int) -> void:
+	"""Restore the endpoint preimage in the same reverse sequence as its container and goods."""
+	_spatial_container_slot[row] = _j_row[base]
+	_spatial_container_generation[row] = _j_row[base + 1]
+	_spatial_location_slot[row] = _j_row[base + 2]
+	_spatial_location_generation[row] = _j_row[base + 3]
+	_spatial_location_revision[row] = _j_row[base + 4]
+
+
+func _clear_spatial_endpoint(row: int, journaled: bool) -> void:
+	"""Release only a validated endpoint; post-commit automatic reclamation needs no undo record."""
+	if journaled:
+		_journal_spatial_endpoint(row)
+	_spatial_container_slot[row] = -1
+	_spatial_container_generation[row] = 0
+	_spatial_location_slot[row] = -1
+	_spatial_location_generation[row] = 0
+	_spatial_location_revision[row] = 0
+
+
+func _has_spatial_endpoints() -> bool:
+	"""A flat canonical codec cannot discard even one retained live endpoint."""
+	for slot: int in _spatial_container_slot:
+		if slot >= 0:
+			return true
+	return false
+
+
+func _audit_spatial_endpoints() -> StringName:
+	"""Audit canonical unused rows, live reverse identity and nonduplicated actual placement cells."""
+	for row: int in _spatial_container_slot.size():
+		if _spatial_container_slot[row] < 0:
+			if _spatial_container_slot[row] != -1 or _spatial_container_generation[row] != 0 \
+					or _spatial_location(row) != NULL_REF or _spatial_location_revision[row] != 0:
+				return REFUSE_SPATIAL_LOCATION
+			continue
+		var code: StringName = _spatial_container_refusal(Vector2i(_spatial_container_slot[row], _spatial_container_generation[row]))
+		if code != REFUSE_NONE:
+			return code
+		for previous: int in row:
+			if _spatial_container_slot[previous] >= 0 and _same_spatial_cell(_spatial_location(previous), _spatial_location(row)):
+				return REFUSE_GROUND_PILE_TILE_TAKEN
+	return REFUSE_NONE
+
+
+func _append_spatial_state(out: PackedByteArray) -> void:
+	"""Configured raw rollback images retain every endpoint; default local images keep their format."""
+	if _spatial_container_slot.is_empty():
+		return
+	out.append_array(var_to_bytes(_spatial_container_slot))
+	out.append_array(var_to_bytes(_spatial_container_generation))
+	out.append_array(var_to_bytes(_spatial_location_slot))
+	out.append_array(var_to_bytes(_spatial_location_generation))
+	out.append_array(var_to_bytes(_spatial_location_revision))

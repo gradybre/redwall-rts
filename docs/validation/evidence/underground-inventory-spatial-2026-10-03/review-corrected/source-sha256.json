@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+  "godot/scripts/core/inventory_spatial_contract.gd": "0919427cbe6ea08ca7caa0f759775f5b1536373e5e174fa739bc0f420725aa0a",
+  "godot/test/test_inventory_spatial.gd": "4b9cd03c1de5b1b957b11d496b77a1e26e55c164925853255abb97df7a63350f"
+}

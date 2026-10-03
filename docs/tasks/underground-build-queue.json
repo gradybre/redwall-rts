@@ -428,7 +428,7 @@
       "agent": "/root/ug_construction",
       "branch": "codex/underground-room-companion-scope",
       "evidence": {
-        "in_progress": "Reviewed1095 cut cursor committedc7ffd972/518114cb awaiting integration; reviewed pure RoomOrders companion readerad0a8b48; next actual Sites ClaimBatch final guard and shared lifetime packet under design. No entry/profile authority yet.",
+        "in_progress": "Reviewed1095 cut cursor integrated5b273105/0c3c8ee1; reviewed pure RoomOrders companion reader integrated76a5a8bc. Actual Sites ClaimBatch implementing with final callback-free guard and sequential cold-memory admission. Actual entry/work feasibility remains open.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -554,6 +554,21 @@
           "memory": "Sequential static854016, Locations919936, WorldRoutes773120 and post-seal batch657408 logical bytes including2048 controls; exact census and peak tests required. No cursor bank overlaps companion snapshots.",
           "owner": "/root/ug_construction",
           "tests": "Implementation in progress; no completion asserted."
+        },
+        "derived_cut_mapping": {
+          "source": "c7ffd972",
+          "registry": "518114cb",
+          "integration": "5b273105/0c3c8ee1",
+          "tests": "128 tests/66972 assertions/0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/6",
+          "review": "Root independent review accepted all6 final source pins. Unique whole1024u cubes, real remaining history capacity, same fixed ceiling and finite scan budget.",
+          "evidence_path": "docs/validation/evidence/underground-room-cut-map-2026-10-03/"
+        },
+        "room_companion_scope": {
+          "source": "ad0a8b48",
+          "integration": "76a5a8bc",
+          "tests": "30 tests/1533 assertions/0 failures; strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "Root accepted pure exact RoomOrders/Space/Budget/plan/candidate identity proof before and after actual Room creation. No permission or callback granted.",
+          "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/companion-scope/"
         }
       },
       "lease": {
@@ -870,7 +885,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-room-locations",
+      "branch": "codex/underground-profile-search",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -1077,24 +1092,27 @@
           "review": "ug_geometry independently accepted four iteration5 pins after Owner lifetime, cross-operation scratch exclusivity and exact preallocation lease fixes. Qualification remains0.",
           "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/structure-scope-iteration-5/"
         },
-        "room_locations_in_progress": {
-          "agent": "/root/ug_geometry",
-          "scope": "Actual post-Space-seal RoomOrders companion context, existing completed Location refresh only; no free future-room endpoint or surface anchor. Exact Space/Budget/token/publication checks;2068 to2085 logical controls within existing2112 reserve.",
-          "branch": "codex/underground-room-locations",
-          "decision": "docs/decisions/1096-room-admission-location-companions.md"
-        },
-        "static_profile_route_in_progress": {
-          "owner": "/root",
-          "branch": "codex/underground-static-route-admission",
-          "scope": "Read-only actual full-profile committed-edge eligibility without fake Selection/Job, no retained state delta. Independent geometry review pending. This is not a complete path/face proof.",
-          "tests": "65 tests10736 assertions0 failures; strict/raw unexpected/leaks0; analyzer0/2",
-          "review": "Independent geometry review found final-callback certificate freshness MEDIUM; root correction and regression underway. Initial pass does not close the finding."
-        },
         "profile_path_next": {
           "owner": "/root/ug_geometry",
           "scope": "After reviewed1096: actual immutable profile-filtered Routes Dijkstra with current scratch, full final revision/generation checks, no actors/Jobs or face permission. Root retains WorldRoutes.",
           "decision": "docs/decisions/1098-profile-filtered-route-search.md",
           "controls": "One184B cold Descriptor within invoking admission2048 controls; no retained SoA/bank."
+        },
+        "room_locations": {
+          "source": "908b35b5",
+          "registry": "6c373ae5",
+          "integration": "21e32287/c89b2b9e",
+          "tests": "106 tests/11856 assertions/0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "ug_furnishing accepted exact1728868f/9fce8263 pins; actual post-Space-seal RoomOrders callback and successful Space publication receipt. Existing endpoints only; no bootstrap entrance.",
+          "memory": "17 logical controls inside existing2112 reserve; sequential919936 cold peak.",
+          "evidence_path": "docs/validation/evidence/underground-room-location-companions-2026-10-03/"
+        },
+        "static_profile_route": {
+          "source": "22714381",
+          "integration": "46ef35a8",
+          "tests": "66 tests/10886 assertions/0 failures; strict/raw all0; analyzer0/2",
+          "review": "ug_geometry accepted aae5918b/d8b126a8 correction; MEDIUM final-callback freshness fixed with actual late Catalog/Profile/geometry replacement regressions. No complete path/face permission.",
+          "evidence_path": "docs/validation/evidence/underground-static-routes-2026-10-03/"
         }
       },
       "lease": {
@@ -1110,7 +1128,6 @@
               "godot/scripts/core/underground_terrain.gd",
               "godot/test/test_underground_terrain.gd",
               "docs/decisions/1088-scoped-composed-phase-surveys.md",
-              "godot/scripts/core/underground_world_routes.gd",
               "godot/test/test_underground_world_routes.gd",
               "docs/decisions/1090-actual-route-clearance-certificates.md",
               "godot/test/test_underground_world_room_bindings.gd",
@@ -1120,7 +1137,7 @@
               "godot/test/test_underground_world_structure.gd",
               "docs/decisions/1097-static-profile-route-admission.md"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources.",
             "branch": "codex/underground-static-route-admission"
           }
         ]

@@ -630,7 +630,15 @@
           "review": "ug_geometry accepted exact current-catalog body/turn extent reader; output unchanged on refusal, no persistent allocation or new movement permission.",
           "evidence_path": "godot/data/underground/evidence/catalog-extent-v1/"
         },
-        "finite_level_pack": "Furnishing owns the additive LevelCatalog module/test and existing data/underground pack: surface datum512; proposed six5m-spaced levels with4m clear shells and local footing/protection obligations. Exact body/contact/family proofs and actual placed Terrain/Space checks remain required; pack alone creates no support or route."
+        "finite_level_pack": "Furnishing owns the additive LevelCatalog module/test and existing data/underground pack: surface datum512; proposed six5m-spaced levels with4m clear shells and local footing/protection obligations. Exact body/contact/family proofs and actual placed Terrain/Space checks remain required; pack alone creates no support or route.",
+        "catalog_descriptor": {
+          "source": "8f069aa2",
+          "wrapper": "5e4c8274",
+          "integration": "0db68114/0e5d8083",
+          "tests": "17 tests348assertions0failures;strict/raw diagnostics/leaks0;analyzer0/2",
+          "review": "Root independent descriptor and outside-project asset wrapper reviews accepted; v3 supersedes earlier import-scope evidence. Geometry observation does not grant work permission.",
+          "evidence_path": "godot/data/underground/evidence/catalog-descriptor-v3/"
+        }
       },
       "lease": {
         "state": "held"
@@ -664,7 +672,10 @@
         "docs/decisions/1076-spatial-inventory-endpoints.md",
         "godot/scripts/core/underground_routes.gd",
         "godot/test/test_underground_routes.gd",
-        "docs/decisions/1085-actual-underground-world-composition.md"
+        "docs/decisions/1085-actual-underground-world-composition.md",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_underground_world_routes.gd",
+        "docs/decisions/1090-actual-route-clearance-certificates.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -797,7 +808,15 @@
           "review": "ug_furnishing independently accepted explicit caller-borrowed six-I32 output. Original allocating read semantics preserved; runtime rejected alias assumption retained as regression.",
           "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/reusable-region-reader/"
         },
-        "transforms_freshness_in_progress": "Geometry owns narrow runtime Transforms mutation revision and matching tests for exact occupancy-cache invalidation. No canonical/wire or per-row column change; reset must complete safely even at artificial counter exhaustion. Source review and tests pending."
+        "transforms_freshness": {
+          "source": "70839dfd",
+          "registry": "64bef08a",
+          "integration": "9ae8f75f/ddd07a89",
+          "tests": "30 tests203assertions0failures; strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "ug_furnishing independently accepted all writer coverage, failed-write preservation and permanent saturation poison; reset completes. Future in-place restore must invalidate runtime cache.",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/transform-freshness/"
+        },
+        "world_routes_in_progress": "Root owns actual typed Routes.Bindings adapter: immutable source-bound profile eligibility prepared under exact graph token and published only after actual graph commit. No duplicate resident spatial index or hot full-world survey; concrete review/implementation pending."
       },
       "lease": {
         "state": "held",
@@ -811,7 +830,10 @@
               "docs/decisions/1085-actual-underground-world-composition.md",
               "godot/scripts/core/underground_terrain.gd",
               "godot/test/test_underground_terrain.gd",
-              "docs/decisions/1088-scoped-composed-phase-surveys.md"
+              "docs/decisions/1088-scoped-composed-phase-surveys.md",
+              "godot/scripts/core/underground_world_routes.gd",
+              "godot/test/test_underground_world_routes.gd",
+              "docs/decisions/1090-actual-route-clearance-certificates.md"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
             "branch": "codex/underground-world-composition"

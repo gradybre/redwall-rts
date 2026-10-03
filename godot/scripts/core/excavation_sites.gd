@@ -519,6 +519,9 @@ func bind_output(site: Vector2i, container: Vector2i, promotion_tile: int = -1) 
 		return _refuse(code)
 	if _construction.has_work_begun(_project(site.x)) or not _inventory.container_reachable(container):
 		return _refuse(REFUSE_OUTPUT)
+	code = _funding.output_placement_refusal(container, promotion_tile)
+	if code != &"":
+		return _refuse(code)
 	code = _spatial().output_refusal(origin_of(site), _operation[site.x], _room(site.x),
 		container, _job(site.x), promotion_tile)
 	if code != &"":
@@ -742,6 +745,9 @@ func _output_refusal(row: int) -> StringName:
 		return &"" if _output(row) == NULL_REF else REFUSE_OUTPUT
 	if mass < 0 or not _inventory.container_reachable(_output(row)):
 		return REFUSE_OUTPUT
+	var code: StringName = _funding.output_placement_refusal(_output(row), _promotion_tile[row])
+	if code != &"":
+		return code
 	if _promotion_tile[row] >= 0 and not _staging_is_exact(row):
 		return REFUSE_OUTPUT
 	if _funding.is_funded(_project(row)) and _inventory.container_reserved_mass_g(_output(row)) < mass:
@@ -753,11 +759,11 @@ func _output_refusal(row: int) -> StringName:
 func _staging_is_exact(row: int) -> bool:
 	"""A first-pile staging row is finite, empty, World-owned and held at the actual contact."""
 	var output: Vector2i = _output(row)
-	return _inventory.container_owner(output) == _domain.world_ref \
+	return _inventory.container_anchor_tile_into(output, _math) and _math.value == _promotion_tile[row] \
+		and _inventory.container_owner(output) == _domain.world_ref \
 		and _inventory.container_policy(output) == Inventory.UNSET_POLICY \
 		and _inventory.container_max_mass_g(output) == Inventory.GROUND_PILE_MAX_MASS_G \
 		and _inventory.container_filters(output) == Inventory.FILTERS_ACCEPT_ALL \
-		and _inventory.container_anchor_tile(output) == _promotion_tile[row] \
 		and _inventory.container_lot_count(output) == 0
 
 
@@ -1039,9 +1045,10 @@ func _refund_unstarted(row: int, destination: Vector2i) -> StringName:
 	var released: Inventory.OpResult = _pool.release_job_claims(_job(row), _inventory)
 	if not released.ok:
 		return released.error
-	if _promotion_tile[row] >= 0:
+	if _unstarted_output_is_staging(row) and _inventory.container_reserved_mass_g(_output(row)) == 0:
 		var removed: Inventory.OpResult = _inventory.destroy_container(_output(row))
-		assert(removed.ok, "preflighted empty staging retirement cannot fail after claim release")
+		if not removed.ok:
+			return removed.error
 	return &""
 
 
@@ -1049,13 +1056,28 @@ func _unstarted_staging_refusal(row: int) -> StringName:
 	"""Prove the later independent empty-row retirement before releasing any input claim."""
 	if _inventory.is_transaction_open():
 		return Inventory.REFUSE_TRANSACTION_OPEN
-	if _promotion_tile[row] < 0:
-		return &""
-	if not _staging_is_exact(row) or _inventory.container_reserved_mass_g(_output(row)) != 0:
+	var code: StringName = _funding.output_placement_refusal(_output(row), _promotion_tile[row])
+	if code != &"":
+		return code
+	if _promotion_tile[row] >= 0 and not _staging_is_exact(row):
 		return REFUSE_OUTPUT
-	if _output_generation[row] >= Inventory.MAX_INT32:
+	if _unstarted_output_is_staging(row) and _inventory.container_reserved_mass_g(_output(row)) == 0 \
+			and _output_generation[row] >= Inventory.MAX_INT32:
 		return Inventory.REFUSE_GENERATION_EXHAUSTED
 	return &""
+
+
+func _unstarted_output_is_staging(row: int) -> bool:
+	"""Only actual first-output staging is ours to retire; goods or another claim keep it alive."""
+	var output: Vector2i = _output(row)
+	if not _inventory.is_container_valid(output) \
+			or _inventory.container_policy(output) != Inventory.UNSET_POLICY \
+			or _inventory.container_lot_count(output) != 0:
+		return false
+	if _promotion_tile[row] >= 0:
+		return true
+	return not _inventory.container_anchor_tile_into(output, _math) \
+		and _math.error == String(Inventory.REFUSE_SPATIAL_REQUIRED)
 
 
 func _retire_phase(row: int) -> void:

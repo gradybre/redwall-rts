@@ -567,12 +567,15 @@ func _start_refusal(project: Vector2i, row: int, output: Vector2i, tile: int, ow
 
 
 func _cold_output_refusal(project: Vector2i, row: int, output: Vector2i, tile: int, owner: Owner) -> StringName:
-	"""A first-pile candidate must retain the actual surface contact; deeper endpoints cannot alias it."""
+	"""Retain the actual output location; a spatial endpoint never aliases a surface contact."""
 	var mass: int = _funding.project_output_mass_g(project)
 	if mass == 0:
 		return &"" if output == NULL_REF and tile == -1 else REFUSE_OUTPUT
 	if mass < 0 or not _inventory.container_reachable(output):
 		return REFUSE_OUTPUT
+	var code: StringName = _funding.output_placement_refusal(output, tile)
+	if code != &"":
+		return code
 	if tile >= 0 and not _staging_is_exact(output, tile):
 		return REFUSE_OUTPUT
 	return owner.output_refusal(project, output, _bound_job(row), tile)
@@ -580,11 +583,12 @@ func _cold_output_refusal(project: Vector2i, row: int, output: Vector2i, tile: i
 
 func _staging_is_exact(output: Vector2i, tile: int) -> bool:
 	"""Finite first-pile staging keeps the Inventory invariant; spatial admission still belongs elsewhere."""
-	return _inventory.container_owner(output) == _world \
+	return _inventory.container_anchor_tile_into(output, _math) and _math.value == tile \
+		and _inventory.container_owner(output) == _world \
 		and _inventory.container_policy(output) == Inventory.UNSET_POLICY \
 		and _inventory.container_max_mass_g(output) == Inventory.GROUND_PILE_MAX_MASS_G \
 		and _inventory.container_filters(output) == Inventory.FILTERS_ACCEPT_ALL \
-		and _inventory.container_anchor_tile(output) == tile and _inventory.container_lot_count(output) == 0
+		and _inventory.container_lot_count(output) == 0
 
 
 func _start_job_states(project: Vector2i, primary: int) -> void:

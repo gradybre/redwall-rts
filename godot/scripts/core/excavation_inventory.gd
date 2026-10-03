@@ -190,6 +190,10 @@ func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 	var mass: int = project_output_mass_g(project)
 	if mass < 0:
 		return _refuse(REFUSE_ITEM)
+	if mass > 0:
+		refusal = output_placement_refusal(output)
+		if refusal != &"":
+			return _refuse(refusal)
 	var consumed: Inventory.OpResult = _pool.consume_job_inputs(job,
 		purpose, now_tick, output, mass, _inventory)
 	if not consumed.ok:
@@ -420,9 +424,7 @@ func refund_wip(project: Vector2i, destination: Vector2i, promotion_tile: int = 
 	var opened: Inventory.OpResult = _inventory.begin()
 	if not opened.ok:
 		return opened
-	code = _refund_inventory(project, destination)
-	if code == &"" and promotion_tile >= 0:
-		code = _finish_cancelled_staging(project, promotion_tile)
+	code = _refund_and_finish_staging(project, destination, promotion_tile)
 	if code != &"":
 		_inventory.abort()
 		return _refuse(code)
@@ -515,11 +517,68 @@ func _publish_refund(project: Vector2i) -> void:
 
 
 func _finish_cancelled_staging(project: Vector2i, tile: int) -> StringName:
-	"""Cancel the real pending output row, or publish refunded goods there as a nonempty pile."""
+	"""Retire only an empty unreserved staging row; another project's capacity stays owned."""
 	var output: Vector2i = output_container(project)
-	var finished: Inventory.OpResult = _inventory.destroy_container(output) \
-		if _inventory.container_lot_count(output) == 0 else _inventory.promote_to_ground_pile(output, tile)
+	var code: StringName = output_placement_refusal(output, tile)
+	if code != &"" or output == NULL_REF:
+		return code
+	var spatial: bool = not _inventory.container_anchor_tile_into(output, _math)
+	if not spatial and tile < 0 or _inventory.container_policy(output) == Inventory.POLICY_GROUND_PILE:
+		return &""
+	if _inventory.container_lot_count(output) > 0:
+		return _promote_output(output, tile)
+	if _inventory.container_reserved_mass_g(output) > 0:
+		return &""
+	var finished: Inventory.OpResult = _inventory.destroy_container(output)
 	return &"" if finished.ok else finished.error
+
+
+func _refund_and_finish_staging(project: Vector2i, destination: Vector2i, tile: int) -> StringName:
+	"""Refund goods and endpoint publication share the output-release transaction and rollback."""
+	var positive: bool = _has_returned_goods()
+	var code: StringName = output_placement_refusal(destination) if positive else &""
+	if code == &"":
+		code = _refund_inventory(project, destination)
+	if code == &"" and positive:
+		code = _promote_output(destination, -1)
+	return _finish_cancelled_staging(project, tile) if code == &"" else code
+
+
+func output_placement_refusal(output: Vector2i, tile: int = -1) -> StringName:
+	"""An unavailable multilevel endpoint never aliases a flat tile or an unplaced container."""
+	if _ready_error != &"" or _inventory == null:
+		return REFUSE_RECEIPTS
+	if not Inventory.is_anchor_tile_in_domain(tile):
+		return Inventory.REFUSE_INVALID_ANCHOR_TILE
+	if output == NULL_REF:
+		return &"" if tile == -1 else Inventory.REFUSE_INVALID_CONTAINER
+	if _inventory.container_anchor_tile_into(output, _math):
+		return &"" if tile < 0 or _math.value == tile else Inventory.REFUSE_GROUND_PILE_STAGING
+	if _math.error != String(Inventory.REFUSE_SPATIAL_REQUIRED):
+		return StringName(_math.error)
+	if tile != -1:
+		return Inventory.REFUSE_SPATIAL_REQUIRED
+	if _inventory.spatial_location_of(output) == NULL_REF \
+			or _inventory.spatial_location_revision_of(output) <= 0:
+		return Inventory.REFUSE_SPATIAL_LOCATION
+	return &""
+
+
+func _promote_output(output: Vector2i, tile: int) -> StringName:
+	"""Publish the actual nonempty endpoint in the current transaction, never caller coordinates."""
+	var code: StringName = output_placement_refusal(output, tile)
+	if code != &"" or output == NULL_REF:
+		return code
+	if _inventory.container_anchor_tile_into(output, _math):
+		if tile < 0:
+			return &""
+		var surface: Inventory.OpResult = _inventory.promote_to_ground_pile(output, tile)
+		return &"" if surface.ok else surface.error
+	if _inventory.container_policy(output) == Inventory.POLICY_GROUND_PILE:
+		return &""
+	var location: Vector2i = _inventory.spatial_location_of(output)
+	var spatial: Inventory.OpResult = _inventory.promote_to_spatial_ground_pile(output, location)
+	return &"" if spatial.ok else spatial.error
 
 
 func commit_outputs(project: Vector2i, cut_provenance: int,
@@ -590,10 +649,7 @@ func _modular_output_inventory(project: Vector2i, promotion_tile: int) -> String
 			_quote.output_provenance[index], _quote.output_recipe[index], _quote.output_age[index],
 			_quote.output_remainder[index])
 		code = &"" if made.ok else made.error
-	if code == &"" and promotion_tile >= 0:
-		var promoted: Inventory.OpResult = _inventory.promote_to_ground_pile(output_container(project), promotion_tile)
-		code = &"" if promoted.ok else promoted.error
-	return code
+	return _promote_output(output_container(project), promotion_tile) if code == &"" else code
 
 
 func _output_inventory(project: Vector2i, operation: int, provenance: int, tile: int) -> StringName:
@@ -608,10 +664,7 @@ func _output_inventory(project: Vector2i, operation: int, provenance: int, tile:
 		code = _make_output(output, &"wood", Contract.SALVAGE_WOOD_MILLI, Catalog.PROVENANCE_ORDINARY)
 		if code == &"":
 			code = _make_output(output, &"stone", Contract.SALVAGE_STONE_MILLI, Catalog.PROVENANCE_ORDINARY)
-	if code == &"" and tile >= 0:
-		var promoted: Inventory.OpResult = _inventory.promote_to_ground_pile(output, tile)
-		code = &"" if promoted.ok else promoted.error
-	return code
+	return _promote_output(output, tile) if code == &"" else code
 
 
 func _make_output(container: Vector2i, key: StringName, quantity: int, provenance: int) -> StringName:

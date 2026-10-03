@@ -19,6 +19,7 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const AccountingFixture := preload("res://test/test_construction_modular.gd")
+const LocationFixture := preload("res://test/test_inventory_spatial.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const ROOM: Vector2i = Vector2i(70000, 1)
 const OTHER_ROOM: Vector2i = Vector2i(70001, 1)
@@ -28,6 +29,18 @@ class SharedStock extends AccountingFixture.SyntheticRouter:
 	func embedded_earth_milli() -> int:
 		"""Explicit empty synthetic stock for checking actual weak-owner conservation wiring."""
 		return 0
+
+class SpatialOutputFixture extends LocationFixture.GeometryFixture:
+	## Only location support is synthetic; all containers, output claims and rollback are actual.
+	var refuse_after_output: bool = false
+	var watched_output: Vector2i = NULL_REF
+
+	func storage_endpoint_refusal(location: Vector2i) -> StringName:
+		"""Inject a support change after output creation, inside the actual promotion transaction."""
+		var actual: Inventory = inventory.get_ref() as Inventory
+		if refuse_after_output and actual.container_lot_count(watched_output) > 0:
+			return &"SYNTHETIC_OUTPUT_SUPPORT_CHANGED"
+		return super.storage_endpoint_refusal(location)
 
 class SpatialFixture extends Contract.SpatialAuthority:
 	## This fixture is never bound into production. Real UG08/09 must supply all these proofs.
@@ -324,6 +337,140 @@ func _phase() -> int:
 	"""Read physical phase through the public owner API."""
 	assert_true(_sites.phase_into(_site, _math), "physical phase reads")
 	return _math.value
+
+
+func _output_locations() -> SpatialOutputFixture:
+	"""Bind explicitly synthetic placement to the actual shared Inventory and Directory World."""
+	var locations: SpatialOutputFixture = SpatialOutputFixture.new()
+	locations.inventory = weakref(_inventory)
+	locations.directory = _residents.directory()
+	locations.world = _world
+	assert_true(_inventory.bind_spatial_locations(locations, 4).ok, "real finite endpoint binding")
+	return locations
+
+
+func test_real_cut_uses_actual_spatial_endpoint_and_refuses_surface_alias() -> void:
+	"""One real paid cut promotes its exact underground container without touching the flat map."""
+	var locations: SpatialOutputFixture = _output_locations()
+	_complete(Contract.OP_BRACE)
+	var output: Vector2i = _inventory.create_spatial_ground_staging(LocationFixture.LOWER).ref
+	var job: int = _open(Contract.OP_CUT)
+	var before: PackedByteArray = _sites.state_bytes()
+	assert_equal(_sites.bind_output(_site, output, 30).error, Inventory.REFUSE_SPATIAL_REQUIRED, "surface alias refuses")
+	assert_true(_sites.state_bytes() == before, "refused alias changes no bound output")
+	assert_true(_sites.bind_output(_site, output).ok, "actual full spatial container binds")
+	assert_true(_sites.bind_worker(_site).ok, "actual worker contact binds")
+	assert_true(_sites.begin_phase_work(_site, 0).ok, "actual first-cut reservation")
+	assert_equal(_inventory.container_reserved_mass_g(output), 2000, "actual finite reservation")
+	assert_equal(_finish_work(job), 50, "actual integer paid labor")
+	assert_true(_sites.settle_phase(_site).ok, "actual output and promotion commit")
+	assert_equal(_inventory.container_policy(output), Inventory.POLICY_GROUND_PILE, "same row is a real pile")
+	assert_equal(_inventory.spatial_location_of(output), LocationFixture.LOWER, "full retained location")
+	assert_equal(_inventory.spatial_location_revision_of(output), locations.revision, "actual positive payload revision")
+	assert_equal(_inventory.ground_pile_at_tile(30), NULL_REF, "surface map unchanged")
+	assert_equal(_sites.virgin_sourced_milli(), 2000, "exact geological source once")
+	assert_equal(_sites.earth_conservation_refusal(), &"", "paid earth ledger balances")
+	assert_false(_sites.settle_phase(_site).ok, "duplicate physical output refuses")
+	assert_true(_inventory.audit().ok, "actual endpoint/quantity audit")
+
+
+func test_spatial_cut_commit_rolls_back_on_support_change_after_actual_output_creation() -> void:
+	"""Failure inside promotion restores the real inventory and paid history for worker-free retry."""
+	var locations: SpatialOutputFixture = _output_locations()
+	_complete(Contract.OP_BRACE)
+	_output = _inventory.create_spatial_ground_staging(LocationFixture.LOWER).ref
+	var job: int = _start(Contract.OP_CUT)
+	_finish_work(job)
+	assert_true(_sites.release_worker(_site).ok, "release finished contributor before cold retry snapshot")
+	var inventory_before: PackedByteArray = _inventory.state_bytes()
+	var sites_before: PackedByteArray = _sites.state_bytes()
+	var wear_before: PackedByteArray = _work.state_bytes()
+	locations.watched_output = _output
+	locations.refuse_after_output = true
+	assert_false(_sites.settle_phase(_site).ok, "support changes after real lot creation")
+	assert_true(_inventory.state_bytes() == inventory_before, "container, lots, claims and endpoint roll back")
+	assert_true(_sites.state_bytes() == sites_before, "paid work and immutable cut history remain")
+	assert_true(_work.state_bytes() == wear_before, "retry refusal consumes no additional wear")
+	assert_equal(_inventory.container_reserved_mass_g(_output), 2000, "this paid output claim retained")
+	locations.refuse_after_output = false
+	assert_true(_sites.settle_phase(_site).ok, "same actual ready phase retries")
+	assert_equal(_inventory.container_policy(_output), Inventory.POLICY_GROUND_PILE, "retry promotes once")
+	assert_equal(_sites.earth_conservation_refusal(), &"", "no free or duplicated earth")
+	assert_true(_inventory.audit().ok, "actual post-retry audit")
+
+
+func test_spatial_output_revision_change_stops_productivity_before_xp_and_wear() -> void:
+	"""A coincident location ref with a different immutable payload is not the bound output."""
+	var locations: SpatialOutputFixture = _output_locations()
+	_complete(Contract.OP_BRACE)
+	_output = _inventory.create_spatial_ground_staging(LocationFixture.LOWER).ref
+	var job: int = _start(Contract.OP_CUT)
+	var before: PackedByteArray = _work.state_bytes()
+	var jobs_before: PackedByteArray = _jobs.state_bytes()
+	var gear_before: PackedByteArray = _gear.state_bytes()
+	var inventory_before: PackedByteArray = _inventory.state_bytes()
+	locations.revision += 1
+	assert_equal(_work.tick_solo(job).error, Inventory.REFUSE_SPATIAL_LOCATION, "old endpoint payload refuses")
+	assert_true(_work.state_bytes() == before, "no labor or XP carry")
+	assert_true(_jobs.state_bytes() == jobs_before, "no accepted Job work")
+	assert_true(_gear.state_bytes() == gear_before, "no tool wear")
+	assert_true(_inventory.state_bytes() == inventory_before, "no output claim change")
+	locations.revision -= 1
+	assert_equal(_finish_work(job), 50, "all original work remains")
+	assert_true(_sites.settle_phase(_site).ok, "original valid endpoint completes")
+
+
+func test_two_real_cut_projects_keep_each_others_spatial_output_reservation() -> void:
+	"""Canceling one paid cut releases only its mass; a neighbor can still publish the shared pile."""
+	var locations: SpatialOutputFixture = _output_locations()
+	_complete(Contract.OP_BRACE)
+	var first: Vector2i = _site
+	_site = _sites.claim_quantum(ORIGIN + Vector3i(1024, 0, 0), ROOM).ref
+	_complete(Contract.OP_BRACE)
+	var second: Vector2i = _site
+	_site = first
+	_output = _inventory.create_spatial_ground_staging(LocationFixture.LOWER).ref
+	_start(Contract.OP_CUT, first)
+	var second_job: int = _start(Contract.OP_CUT, second, _worker())
+	assert_equal(_inventory.container_reserved_mass_g(_output), 4000, "two actual paid project claims")
+	assert_true(_sites.cancel_phase(first, NULL_REF).ok, "material-free first cancellation")
+	assert_equal(_inventory.container_reserved_mass_g(_output), 2000, "only first reservation released")
+	assert_equal(_inventory.container_policy(_output), Inventory.UNSET_POLICY, "shared empty staging stays legal")
+	assert_equal(_inventory.spatial_location_revision_of(_output), locations.revision, "remaining endpoint retained")
+	assert_equal(_finish_work(second_job), 50, "neighbor still performs all paid labor")
+	assert_true(_sites.settle_phase(second).ok, "neighbor publishes its actual output")
+	assert_equal(_inventory.container_policy(_output), Inventory.POLICY_GROUND_PILE, "shared row promotes")
+	assert_equal(_sites.virgin_sourced_milli(), 2000, "canceled cut creates no geological output")
+	assert_equal(_sites.earth_conservation_refusal(), &"", "shared-container earth conservation")
+	assert_true(_inventory.audit().ok, "actual Inventory remains auditable")
+
+
+func test_unstarted_spatial_cut_cancellation_preserves_another_paid_project() -> void:
+	"""An accepted but unpaid cut cannot delete its neighbor's pending output container."""
+	var locations: SpatialOutputFixture = _output_locations()
+	_complete(Contract.OP_BRACE)
+	var first: Vector2i = _site
+	_site = _sites.claim_quantum(ORIGIN + Vector3i(1024, 0, 0), ROOM).ref
+	_complete(Contract.OP_BRACE)
+	var second: Vector2i = _site
+	_site = first
+	_output = _inventory.create_spatial_ground_staging(LocationFixture.LOWER).ref
+	_start(Contract.OP_CUT, first)
+	_open(Contract.OP_CUT, second, _worker())
+	assert_true(_sites.bind_worker(second).ok, "accepted unstarted worker ownership is explicit")
+	assert_true(_sites.cancel_phase(second, NULL_REF).ok, "unstarted accepted neighbor retires")
+	assert_equal(_inventory.container_reserved_mass_g(_output), 2000, "paid neighbor owns full retained capacity")
+	assert_equal(_inventory.spatial_location_revision_of(_output), locations.revision, "location still held")
+	assert_true(_sites.cancel_phase(first, NULL_REF).ok, "last paid owner cancels")
+	assert_false(_inventory.is_container_valid(_output), "empty now-unreserved staging retires")
+	assert_false(_inventory.has_spatial_location(LocationFixture.LOWER, locations.revision), "exact endpoint released")
+	_output = _inventory.create_spatial_ground_staging(LocationFixture.LOWER).ref
+	_open(Contract.OP_CUT, second)
+	assert_true(_sites.bind_worker(second).ok, "new unstarted worker binds")
+	assert_true(_sites.cancel_phase(second, NULL_REF).ok, "sole unstarted owner cancels")
+	assert_false(_inventory.is_container_valid(_output), "unstarted empty staging also retires")
+	assert_equal(_sites.virgin_sourced_milli(), 0, "neither incomplete cut mints spoil")
+	assert_true(_inventory.audit().ok, "actual empty output cleanup audit")
 
 
 func test_real_worker_brace_cut_finish_matches_adopted_arithmetic_and_wear() -> void:

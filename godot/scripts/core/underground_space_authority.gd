@@ -30,6 +30,7 @@ const PHASE: int = 10
 const GEOMETRY_REVISION: int = 0
 const QUALIFICATION_REVISION: int = 1
 const COLD_BOX_SCRATCH_BYTES: int = 16 * 6 * 4
+const FINISH_CONTROL_BYTES: int = 512
 
 
 class Bindings extends Space.Authority:
@@ -101,6 +102,11 @@ class Bindings extends Space.Authority:
 		"""Read the actual room-owned floor-section handle; no floor spacing or level is guessed."""
 		return NULL_REF
 
+	func finish_mask_into(_site: Vector2i, _room: Vector2i, _cold_token: int,
+			_row_limit: int, _out: PackedInt32Array) -> StringName:
+		"""Copy disjoint actual claimed boxes under the held lease; this output alone grants no usable void."""
+		return &"SPACE_FINISH_MASK_UNBOUND"
+
 	func material_refusal(_origin: Vector3i, _room: Vector2i, _container: Vector2i,
 			_job: Vector2i) -> StringName:
 		"""Prove the real material container's complete bound location and legal current approach."""
@@ -158,6 +164,34 @@ class ColdCheck extends RefCounted:
 			return false
 		remaining -= amount
 		return true
+
+
+class FinishPartition extends RefCounted:
+	## One synchronous cold packet; fixed scratch and two flat banks, never one object per fragment.
+	var limit: int = 0
+	var count: int = 0
+	var next_count: int = 0
+	var is_claim: bool = false
+	var mask: PackedInt32Array = PackedInt32Array()
+	var handles: PackedInt32Array = PackedInt32Array()
+	var front: PackedInt32Array = PackedInt32Array()
+	var back: PackedInt32Array = PackedInt32Array()
+	var piece: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+	var cut: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+	var overlap: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0])
+	var section: Owner.Region = Owner.Region.new()
+	var region: Owner.Region = Owner.Region.new()
+
+	func _init() -> void:
+		"""Only the declared constant-size packet exists before mask/row capacity admission."""
+		section.box.resize(6)
+		region.box.resize(6)
+
+	func reset(box: PackedInt32Array) -> void:
+		"""Reuse the current first flat row without changing bank sizes or retaining a borrowed box."""
+		for axis: int in 6:
+			front[axis] = box[axis]
+		count = 1
 
 
 var _owner: Owner = null
@@ -281,6 +315,16 @@ static func cold_packed_peak_bytes(region_capacity: int, source_capacity: int, v
 			or region_capacity > volume_limit or source_capacity < 1 or source_capacity > volume_limit:
 		return -1
 	return 120 * volume_limit + 32 * source_capacity + COLD_BOX_SCRATCH_BYTES
+
+
+static func finish_partition_peak_bytes(region_capacity: int, source_capacity: int,
+		volume_limit: int, plan_rows: int) -> int:
+	"""Original survey/plan plus mask, live handles, two residual banks and fixed cold controls coexist."""
+	if region_capacity < 1 or region_capacity > Space.MAX_REGIONS or source_capacity < 1 \
+			or source_capacity > Space.MAX_REGIONS or volume_limit < region_capacity \
+			or volume_limit > Space.MAX_REGIONS or plan_rows < 0 or plan_rows > Space.MAX_REGIONS:
+		return -1
+	return 48 * volume_limit + 16 * source_capacity + 72 * plan_rows + 80 * region_capacity + FINISH_CONTROL_BYTES
 
 
 func _physical() -> Sites:
@@ -829,6 +873,8 @@ func _stage_geometry(check: ColdCheck, site: Vector2i, operation: int, stage: in
 		return _reserve_closure(check.target, _physical().project_of(site), room)
 	if stage != Contract.STAGE_COMMIT or operation not in [Contract.OP_CUT, Contract.OP_FINISH, Contract.OP_BACKFILL_CLOSE]:
 		return &""
+	if operation == Contract.OP_FINISH:
+		return _finish_matter(check, site, room)
 	return _replace_matter(check, site, operation, room)
 
 
@@ -878,6 +924,312 @@ func _reserve_closure(box: PackedInt32Array, project: Vector2i, room: Vector2i) 
 		return code
 	region.level = floor_region.level
 	return _owner.stage_add(_owner_token, region).error
+
+
+func _finish_matter(check: ColdCheck, site: Vector2i, room: Vector2i) -> StringName:
+	"""Only the exact accepted claim union becomes supported; paid outside cavity stays unfinished."""
+	var partition: FinishPartition = FinishPartition.new()
+	partition.limit = _owner.region_capacity()
+	var code: StringName = _finish_inputs(check, site, room, partition)
+	if code == &"":
+		code = _finish_mask_format(check, partition)
+	if code == &"":
+		code = _finish_claim_proof(check, room, partition)
+	if code == &"":
+		code = _finish_replace_regions(check, room, partition)
+	return code
+
+
+func _finish_inputs(check: ColdCheck, site: Vector2i, room: Vector2i, part: FinishPartition) -> StringName:
+	"""All provider callbacks and exact lease/source checks precede consuming the borrowed mask output."""
+	if part.limit < 1 or part.limit > _domain._regions:
+		return &"SPACE_FINISH_CAPACITY"
+	if not check.spend(4 * part.limit + 3 * _domain._regions):
+		return check.error
+	var code: StringName = _owner.section_for_paid_cube_into(room, _physical().origin_of(site),
+		check.snapshot.revision, part.section)
+	if code == &"":
+		code = _bindings.finish_mask_into(site, room, _cold_token, part.limit, part.mask)
+	if code == &"":
+		code = _finish_current_refusal(check, site, room)
+	if code != &"":
+		return code
+	if part.mask.is_empty() or part.mask.size() % 6 != 0 or part.mask.size() > 6 * part.limit:
+		return &"SPACE_FINISH_MASK_SHAPE"
+	if not check.spend(part.limit):
+		return check.error
+	code = _owner.overlapping_regions_into(check.target, part.handles)
+	if code == &"" and (part.handles.size() % 2 != 0 or part.handles.size() > part.limit * 2):
+		code = &"SPACE_FINISH_CAPACITY"
+	if code == &"":
+		code = _finish_current_refusal(check, site, room)
+	if code == &"":
+		part.front.resize(part.limit * 6)
+		part.back.resize(part.limit * 6)
+	return code
+
+
+func _finish_current_refusal(check: ColdCheck, site: Vector2i, room: Vector2i) -> StringName:
+	"""The exact real phase and full source proof must still hold after the provider's final callback."""
+	var code: StringName = _bindings.cold_operation_refusal(_cold_token)
+	if code == &"":
+		code = _context_refusal(_physical().origin_of(site), Contract.OP_FINISH, room)
+	if code == &"":
+		code = _phase_refusal(site, Contract.OP_FINISH, Contract.STAGE_COMMIT)
+	if code != &"":
+		return code
+	if not check.spend(_owner.region_capacity() + _domain._regions):
+		return check.error
+	code = _owner.snapshot_revision_refusal(check.snapshot.revision)
+	if code == &"" and _bindings.qualification_revision() != check.qualification_revision:
+		code = &"SPACE_GEOMETRY_STALE"
+	return _bindings.cold_operation_refusal(_cold_token) if code == &"" else code
+
+
+func _finish_mask_format(check: ColdCheck, part: FinishPartition) -> StringName:
+	"""Every nonempty integer box lies inside the paid cube and is disjoint from every prior box."""
+	var row: int = 0
+	while row < part.mask.size():
+		if not check.spend():
+			return check.error
+		_copy_flat_box(part.mask, row, part.cut)
+		if not Space.valid_box(part.cut) or not Space.contains_box(check.target, part.cut):
+			return &"SPACE_FINISH_MASK_BOUNDS"
+		var previous: int = 0
+		while previous < row:
+			if not check.spend():
+				return check.error
+			if _flat_overlaps(part.cut, part.mask, previous):
+				return &"SPACE_FINISH_MASK_OVERLAP"
+			previous += 6
+		row += 6
+	return &""
+
+
+func _finish_claim_proof(check: ColdCheck, room: Vector2i, part: FinishPartition) -> StringName:
+	"""Validate both exact union directions from actual unfiltered claim rows; a scoped survey cannot do this."""
+	var row: int = 0
+	while row < part.mask.size():
+		_copy_flat_box(part.mask, row, part.cut)
+		part.reset(part.cut)
+		var code: StringName = _mask_within_claims(check, room, part)
+		if code != &"":
+			return code
+		row += 6
+	var claims: int = 0
+	var index: int = 0
+	while index < part.handles.size():
+		var code: StringName = _read_finish_claim(check, room, part, index)
+		if code != &"":
+			return code
+		if part.is_claim:
+			claims += 1
+			part.reset(part.cut)
+			code = _subtract_mask(check, part)
+			if code != &"":
+				return code
+			if part.count != 0:
+				return &"SPACE_FINISH_MASK_MISSING"
+		index += 2
+	return &"" if claims > 0 else &"SPACE_FINISH_CLAIM_MISSING"
+
+
+func _mask_within_claims(check: ColdCheck, room: Vector2i, part: FinishPartition) -> StringName:
+	"""Subtract only exact same-Room accepted claim intersections from this one proposed finished box."""
+	var index: int = 0
+	while index < part.handles.size() and part.count > 0:
+		var code: StringName = _read_finish_claim(check, room, part, index)
+		if code != &"":
+			return code
+		if part.is_claim and not _subtract_flat(check, part):
+			return check.error
+		index += 2
+	return &"" if part.count == 0 else &"SPACE_FINISH_MASK_OUTSIDE_CLAIMS"
+
+
+func _read_finish_claim(check: ColdCheck, room: Vector2i, part: FinishPartition, index: int) -> StringName:
+	"""Read complete live generations in constant time inside the already validated source/revision bracket."""
+	if not check.spend():
+		return check.error
+	var code: StringName = _owner.region_into_reused(Vector2i(part.handles[index], part.handles[index + 1]), part.region)
+	if code != &"":
+		return code
+	part.is_claim = part.region.claim_kind == Owner.CLAIM_ROOM and part.region.claim_ref == room \
+		and part.region.owner == room
+	if not part.is_claim:
+		return &""
+	if part.region.role != Space.OBSTACLE or part.region.section != part.section.section or part.region.level != part.section.level:
+		return &"SPACE_FINISH_CLAIM_SECTION"
+	for axis: int in 3:
+		part.cut[axis] = maxi(part.region.box[axis], check.target[axis])
+		part.cut[axis + 3] = mini(part.region.box[axis + 3], check.target[axis + 3])
+	return &"" if Space.valid_box(part.cut) else &"SPACE_FINISH_CLAIM_MISSING"
+
+
+func _subtract_mask(check: ColdCheck, part: FinishPartition) -> StringName:
+	"""Reuse both fixed banks for coverage proofs and final cube-minus-mask; no per-fragment objects exist."""
+	var row: int = 0
+	while row < part.mask.size() and part.count > 0:
+		_copy_flat_box(part.mask, row, part.cut)
+		if not _subtract_flat(check, part):
+			return check.error
+		row += 6
+	return &""
+
+
+func _subtract_flat(check: ColdCheck, part: FinishPartition) -> bool:
+	"""One exact six-slab subtraction pass replaces the valid prefix without growing either bank."""
+	part.next_count = 0
+	for row: int in part.count:
+		if not check.spend():
+			return false
+		_copy_flat_box(part.front, row * 6, part.piece)
+		if not _flat_intersection(part.piece, part.cut, part.overlap):
+			if not _append_flat(check, part):
+				return false
+		elif not _append_outside_slabs(check, part):
+			return false
+	var previous: PackedInt32Array = part.front
+	part.front = part.back
+	part.back = previous
+	part.count = part.next_count
+	return true
+
+
+func _append_outside_slabs(check: ColdCheck, part: FinishPartition) -> bool:
+	"""Each emitted slab is disjoint; the remaining centre becomes the exact excluded intersection."""
+	for axis: int in 3:
+		if part.piece[axis] < part.overlap[axis]:
+			var far: int = part.piece[axis + 3]
+			part.piece[axis + 3] = part.overlap[axis]
+			if not _append_flat(check, part):
+				return false
+			part.piece[axis + 3] = far
+			part.piece[axis] = part.overlap[axis]
+		if part.piece[axis + 3] > part.overlap[axis + 3]:
+			var near: int = part.piece[axis]
+			part.piece[axis] = part.overlap[axis + 3]
+			if not _append_flat(check, part):
+				return false
+			part.piece[axis] = near
+			part.piece[axis + 3] = part.overlap[axis + 3]
+	return true
+
+
+func _append_flat(check: ColdCheck, part: FinishPartition) -> bool:
+	"""Refuse technical fragmentation before writing past the actual configured sparse row count."""
+	if not check.spend():
+		return false
+	if part.next_count >= part.limit:
+		check.error = &"SPACE_FINISH_FRAGMENT_CAPACITY"
+		return false
+	for axis: int in 6:
+		part.back[part.next_count * 6 + axis] = part.piece[axis]
+	part.next_count += 1
+	return true
+
+
+func _finish_replace_regions(check: ColdCheck, room: Vector2i, part: FinishPartition) -> StringName:
+	"""Keep actual outside matter, then publish the exact finished mask and nontraversable paid residual."""
+	var code: StringName = _finish_remove_target(check, room, part)
+	if code != &"":
+		return code
+	var row: int = 0
+	while row < part.mask.size():
+		if not check.spend():
+			return check.error
+		_copy_flat_box(part.mask, row, part.piece)
+		code = _stage_finished_piece(part, room, Space.SUPPORTED_VOID)
+		if code != &"":
+			return code
+		row += 6
+	part.reset(check.target)
+	code = _subtract_mask(check, part)
+	if code != &"":
+		return code
+	for index: int in part.count:
+		if not check.spend():
+			return check.error
+		_copy_flat_box(part.front, index * 6, part.piece)
+		code = _stage_finished_piece(part, room, Space.UNFINISHED)
+		if code != &"":
+			return code
+	return &""
+
+
+func _finish_remove_target(check: ColdCheck, room: Vector2i, part: FinishPartition) -> StringName:
+	"""Only actual unclaimed same-Room unfinished matter is replaced; all claims/walls/support remain."""
+	var index: int = 0
+	while index < part.handles.size():
+		if not check.spend():
+			return check.error
+		var handle: Vector2i = Vector2i(part.handles[index], part.handles[index + 1])
+		var code: StringName = _owner.region_into_reused(handle, part.region)
+		if code != &"":
+			return code
+		if part.region.claim_kind == Owner.CLAIM_NONE and part.region.role == Space.UNFINISHED:
+			if part.region.owner != room:
+				return &"SPACE_PHASE_TARGET_CONFLICT"
+			code = _finish_retain_outside(check, handle, part)
+			if code != &"":
+				return code
+		index += 2
+	return &""
+
+
+func _finish_retain_outside(check: ColdCheck, handle: Vector2i, part: FinishPartition) -> StringName:
+	"""The same flat scratch retains neighbouring paid cells with their original exact role and owner."""
+	part.reset(part.region.box)
+	_copy_flat_box(check.target, 0, part.cut)
+	if not _subtract_flat(check, part):
+		return check.error
+	var code: StringName = _owner.stage_remove(_owner_token, handle)
+	if code != &"":
+		return code
+	for row: int in part.count:
+		if not check.spend():
+			return check.error
+		_copy_flat_box(part.front, row * 6, part.region.box)
+		code = _owner.stage_add(_owner_token, part.region).error
+		if code != &"":
+			return code
+	return &""
+
+
+func _stage_finished_piece(part: FinishPartition, room: Vector2i, role: int) -> StringName:
+	"""Copy actual scalar geometry into the existing staged columns, never a future metadata entitlement."""
+	_copy_flat_box(part.piece, 0, part.region.box)
+	part.region.role = role
+	part.region.owner = room
+	part.region.level = part.section.level
+	part.region.section = part.section.section
+	part.region.claim_kind = Owner.CLAIM_NONE
+	part.region.claim_ref = NULL_REF
+	return _owner.stage_add(_owner_token, part.region).error
+
+
+static func _copy_flat_box(source: PackedInt32Array, offset: int, out: PackedInt32Array) -> void:
+	"""Copy into admitted six-int scratch; caller retains no per-row temporary packed object."""
+	for axis: int in 6:
+		out[axis] = source[offset + axis]
+
+
+static func _flat_overlaps(box: PackedInt32Array, flat: PackedInt32Array, offset: int) -> bool:
+	"""Half-open faces may meet exactly without overlapping volume."""
+	for axis: int in 3:
+		if box[axis] >= flat[offset + axis + 3] or flat[offset + axis] >= box[axis + 3]:
+			return false
+	return true
+
+
+static func _flat_intersection(first: PackedInt32Array, second: PackedInt32Array, out: PackedInt32Array) -> bool:
+	"""Every positive intersection is exact integer geometry; zero-volume contact emits no residual cut."""
+	for axis: int in 3:
+		out[axis] = maxi(first[axis], second[axis])
+		out[axis + 3] = mini(first[axis + 3], second[axis + 3])
+		if out[axis] >= out[axis + 3]:
+			return false
+	return true
 
 
 func _replace_matter(check: ColdCheck, site: Vector2i, operation: int, room: Vector2i) -> StringName:

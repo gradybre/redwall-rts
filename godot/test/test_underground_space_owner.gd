@@ -2490,3 +2490,12 @@ func test_actual_furniture_admissions_publish_exact_space_receipt() -> void:
 	assert_equal(fitting.published_code, &"", "exact actual pending after-facts")
 	assert_equal(fitting.geometry.last_published_token(), expected, "one exact batch source receipt")
 	_release_batch_fixture(harness)
+
+
+func test_region_capacity_reports_only_the_actual_configured_cold_bound() -> void:
+	"""A small admitted owner cannot silently allocate maximum-size finish buffers."""
+	var empty: Owner = Owner.new(_sources)
+	assert_equal(empty.region_capacity(), 0, "unconfigured owner supplies no capacity")
+	assert_equal(_owner.region_capacity(), R, "exact current component arena")
+	assert_equal(empty.configure(_domain, 3, 2), &"", "different explicit small technical pack")
+	assert_equal(empty.region_capacity(), 3, "actual smaller row count")

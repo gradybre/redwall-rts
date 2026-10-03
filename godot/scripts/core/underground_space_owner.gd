@@ -324,20 +324,20 @@ func _init(sources: Sources) -> void:
 	_sources = sources
 
 
-func configure(domain: Space.Domain, region_capacity: int, source_capacity: int) -> StringName:
+func configure(domain: Space.Domain, region_rows: int, source_capacity: int) -> StringName:
 	"""Register one immutable actual domain; no inferred floor count or permissive source defaults."""
 	if _domain != null:
 		return &"SPACE_WORLD_ALREADY_BOUND"
 	if domain == null or _sources == null or _sources.directory() == null:
 		return _ready_error
 	var binding: Dictionary = domain.descriptor()
-	if binding.bounds_u.is_empty() or region_capacity < 1 or region_capacity > binding.max_regions \
+	if binding.bounds_u.is_empty() or region_rows < 1 or region_rows > binding.max_regions \
 			or source_capacity < 1 or source_capacity > binding.max_regions:
 		return &"SPACE_WORLD_CAPACITY"
 	var code: StringName = _read_source(binding.world_ref)
 	if code != &"" or _facts.kind != Directory.KIND_WORLD:
 		return &"SPACE_WORLD_IDENTITY"
-	_region_capacity = region_capacity
+	_region_capacity = region_rows
 	_source_capacity = source_capacity
 	_allocate_columns()
 	_write_header(binding)
@@ -428,6 +428,11 @@ func revision() -> int:
 func last_published_token() -> int:
 	"""Identify this owner's exact completed candidate; a successful load invalidates this unsaved receipt."""
 	return _last_published_token
+
+
+func region_capacity() -> int:
+	"""Expose the actual admitted sparse row count for bounded cold scratch, never a gameplay room limit."""
+	return _region_capacity if _ready_error == &"" else 0
 
 
 func has_prepared() -> bool:

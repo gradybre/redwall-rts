@@ -941,3 +941,102 @@ and paired payment identities are tested with explicitly synthetic physical
 certificates; full paid Sites/endpoint/route composition remains a separate gate.
 [Exact pins and raw evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/publication-receipts/README.md)
 retain the rejected test-only no-op assumption separately from final passing checks.
+
+
+## FINISH publishes the exact claimed shape inside paid excavation
+
+CUT continues to open and account for its complete immutable 1024³ quantum,
+including its one earth yield. FINISH now changes only the accepted same-Room
+claim union within that cube to SUPPORTED_VOID. Every remaining paid part stays
+explicit UNFINISHED and nontraversable. This implements the fine painted shape
+without giving away outside walkable space, recutting the residual, changing a
+recipe or inventing a second Room owner for one physical Site. Finishing still
+requires the real earned phase, current support/profile/contact proof and exact
+same-stack physical publication. No supported geometry is inferred from the
+metadata floor envelope or the presentation mesh.
+
+The Authority's new typed `finish_mask_into(site, room, cold_token, row_limit,
+out)` hook matches the separately reviewed actual RoomBindings provider in 1092.
+The base refuses. Provider output alone grants nothing: the Authority resolves
+the full section from actual claims, reads unfiltered full-generation region
+handles, validates every mask box as positive/disjoint/inside the paid cube,
+and proves both exact set-inclusion directions against stored same-Room
+OBSTACLE/CLAIM_ROOM intersections. An equivalent differently partitioned union
+is accepted; missing, outside, overlapping or malformed pieces refuse. A
+site-scoped snapshot deliberately omits those reservation markers and cannot
+replace this independent evidence.
+
+One bounded cold packet reuses two flat six-I32 banks for exact subtraction,
+coverage proof, neighbouring-matter retention and cube-minus-mask publication.
+The six-slab decomposition emits disjoint fragments and never allocates one
+object or packed array per fragment. The actual configured Owner row capacity,
+exposed by the stateless `region_capacity()` reader, caps both banks and the
+provider mask. Existing source, overlap and operation limits stay strict. A
+technical fragment/row/work exhaustion aborts the entire spatial candidate
+before the real physical transaction can publish, preserving earned work and
+materials for a later valid retry. It is not a new room-size policy.
+
+Exact Site/Room/phase, source revision, qualification and shared cold lease are
+rechecked after the mask callback and after live handle observation, immediately
+before either residual bank allocates. The final lease attestation follows all
+source/qualification callbacks. The independent review identified the latter
+observation boundary: a callback could replace the reservation after returning
+handles. The correction and regression use the actual Budget, prove both banks
+remain empty, preserve actual Owner/Inventory/Sites bytes, and show old cleanup
+cannot release the newer reservation. Actual successful retry then closes its
+own lease. Normal prepared/source and paid-publication guards remain mandatory.
+
+### FINISH lifetime accounting
+
+The unchanged shared cold arena must cover the maximum of sequential phases,
+not their unrelated independent maxima. At FINISH partition time the composed
+survey's intermediate images/fragments and copied qualification arguments have
+already dropped. The original survey and plan remain; the actual mask provider
+releases its own handle image before the Authority obtains another. The
+Authority packet is destroyed before later physical/companion callbacks copy
+the plan. No mask, handles or residual bank crosses that boundary or a frame.
+
+For actual capacities R/O, snapshot limit K, and admitted combined plan rows P,
+`finish_partition_peak_bytes` returns:
+
+```
+48K + 16O + 72P + 24R + 8R + 48R + 512
+```
+
+These terms are the retained original snapshot, original plan, flat mask,
+full-generation handles, two residual banks and fixed logical controls. With
+the approved R=6144/O=2048/K=8192/P=1013 pack, the peak is **990,952 logical bytes**,
+below the unchanged **1,048,960** lease. The helper checks bounds before
+multiplication and also describes smaller configured packs accurately; it
+neither acquires another arena nor authorizes an oversized provider.
+
+The packet's fixed fields are three six-I32 scratch boxes plus two Region boxes
+(120 packed bytes), two Region metadata packets (96 logical bytes), three
+integer counters (24 bytes) and one boolean: 241 known logical bytes inside the
+512-byte allowance. The remaining 271 bytes cover simultaneous small logical
+helper controls; native object/packed headers and actual allocator growth stay
+in the existing shared bindings/native allowance and remain unmeasured. There
+are no new persistent packed columns, canonical fields, save wire changes or
+productive-WORK allocations.
+
+### FINISH verification boundary
+
+The final focused evidence reports **139 tests / 10,413 assertions / 0 failures**:
+unchanged Owner 88/5,024 and actual RoomBindings 16/573 from the clean three-suite
+run, followed by corrected Authority 35/4,816 after another clean import. Every
+strict/raw diagnostic and object/resource leak count is zero, including expected
+and tolerated diagnostics. The analyzer reports zero warnings across all four changed source/test
+files with `--max 0`. Independent source review accepted the exact corrected
+pins with no remaining high/medium finding. Tests cover concavity, 256u painted boundaries, exact union
+in both directions, alternate partitions, negative bounds, malformed masks,
+fragment exhaustion, late staged region exhaustion, callback drift, actual
+paid-state conservation and successful retry.
+
+The Authority suite's physical identities, work, payment and rollback are real;
+its profile/support/companion qualification remains explicitly synthetic. The
+actual 1092 provider suite is additional observation evidence, not a completed
+playable WorldBindings contact/shell/route composition. Native memory, complete
+save/load, first playable Kitchen and final rounded visual quality remain
+separate acceptance gates. Exact pins, manifests, raw import/test/analyzer logs
+and rejected development evidence are retained under
+`underground-ug1075-bindings-2026-10-03/finish-partition/`.

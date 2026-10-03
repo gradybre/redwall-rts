@@ -22,6 +22,7 @@ const Gear := preload("res://scripts/core/gear.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const ORIGIN: Vector3i = Vector3i.ZERO
 
@@ -30,12 +31,41 @@ class ObservedSpace extends Owner:
 	## Read-only fixture observation proves denied cold allocation never calls the snapshot builder.
 	var snapshot_reads: int = 0
 	var last_snapshot: WeakRef = null
+	var handle_reads: int = 0
+	var replace_at_read: int = -1
+	var observed_budget: Budget = null
+	var observed_token: int = 0
+	var replacement_token: int = 0
 
 	func snapshot_for_site_into(out: Space.Snapshot, sites: Sites, site: Vector2i) -> StringName:
 		"""Observe the real public survey path without changing its exact output or refusal."""
 		snapshot_reads += 1
 		last_snapshot = weakref(out)
 		return super.snapshot_for_site_into(out, sites, site)
+
+	func overlapping_regions_into(box: PackedInt32Array, out: PackedInt32Array) -> StringName:
+		"""Adversarially replace a real cold reservation after the exact live handle observation."""
+		var code: StringName = super.overlapping_regions_into(box, out)
+		handle_reads += 1
+		if code == &"" and observed_budget != null and handle_reads == replace_at_read:
+			var released: StringName = observed_budget.release(observed_token)
+			assert(released == &"", "fixture replaces its actual current lease")
+			replacement_token = observed_budget.acquire(Budget.COLD_BYTES)
+		return code
+
+
+class ObservedAuthority extends Authority:
+	## Observe only the returned cold packet sizes, without changing the actual preparation path.
+	var finish_front_size: int = -1
+	var finish_back_size: int = -1
+
+	func _finish_inputs(check: Authority.ColdCheck, site: Vector2i, room: Vector2i,
+			part: Authority.FinishPartition) -> StringName:
+		"""Zero bank sizes distinguish early lifetime refusal from eventual late transaction rollback."""
+		var code: StringName = super._finish_inputs(check, site, room, part)
+		finish_front_size = part.front.size()
+		finish_back_size = part.back.size()
+		return code
 
 
 class SyntheticRoomCommands extends Buildings.SpatialAuthority:
@@ -87,6 +117,7 @@ class SyntheticBindings extends Authority.Bindings:
 	var cold_closed: int = 0
 	var cold_attestation: StringName = &""
 	var cold_objects_released: bool = true
+	var actual_budget: Budget = null
 	var last_plan: WeakRef = null
 	var plan_limit: int = 32
 	var malformed_plan: bool = false
@@ -94,6 +125,13 @@ class SyntheticBindings extends Authority.Bindings:
 	var saw_checked_plan: bool = false
 	var snapshot_refusal: StringName = &""
 	var last_survey_stage: int = -1
+	var mask_refusal: StringName = &""
+	var mask_override_enabled: bool = false
+	var mask_override: PackedInt32Array = PackedInt32Array()
+	var mask_reads: int = 0
+	var mask_row_limit: int = 0
+	var mask_expire_after: bool = false
+	var mask_drift_after: bool = false
 
 	func sources() -> Owner.CoreSources:
 		"""Use the actual reader that owns this fixture's directory and structural facts."""
@@ -110,6 +148,11 @@ class SyntheticBindings extends Authority.Bindings:
 			return 0
 		cold_active = cold_next
 		cold_next += 1
+		if actual_budget != null:
+			cold_active = actual_budget.acquire(Budget.COLD_BYTES)
+			(owner as ObservedSpace).observed_token = cold_active
+			if cold_active == 0:
+				return 0
 		cold_opened += 1
 		last_plan = null
 		(owner as ObservedSpace).last_snapshot = null
@@ -117,6 +160,8 @@ class SyntheticBindings extends Authority.Bindings:
 
 	func cold_operation_refusal(token: int) -> StringName:
 		"""An exact active token is necessary; fault injection can revoke its independent proof."""
+		if actual_budget != null and not actual_budget.covers(token, Budget.COLD_BYTES):
+			return Budget.REFUSE_TOKEN
 		return cold_attestation if token > 0 and token == cold_active else &"SYNTHETIC_COLD_TOKEN"
 
 	func end_cold_operation(token: int) -> void:
@@ -125,6 +170,9 @@ class SyntheticBindings extends Authority.Bindings:
 		var snapshot: WeakRef = (owner as ObservedSpace).last_snapshot
 		cold_objects_released = cold_objects_released and (last_plan == null or last_plan.get_ref() == null) \
 			and (snapshot == null or snapshot.get_ref() == null) and not pending
+		if actual_budget != null and actual_budget.covers(token, Budget.COLD_BYTES):
+			var released: StringName = actual_budget.release(token)
+			assert(released == &"", "fixture releases only its unchanged actual lease")
 		cold_active = 0
 		cold_closed += 1
 
@@ -158,6 +206,47 @@ class SyntheticBindings extends Authority.Bindings:
 	func floor_section(_site: Vector2i, _room: Vector2i) -> Vector2i:
 		"""Return the actual owner-created synthetic floor region handle, including its generation."""
 		return floor_ref
+
+	func finish_mask_into(site: Vector2i, room: Vector2i, token: int,
+			row_limit: int, out: PackedInt32Array) -> StringName:
+		"""Observe actual fixture claims; override packets deliberately attack the independent paid adapter."""
+		mask_reads += 1
+		mask_row_limit = row_limit
+		if cold_operation_refusal(token) != &"":
+			return &"SYNTHETIC_COLD_TOKEN"
+		if mask_refusal != &"":
+			return mask_refusal
+		out.clear()
+		var code: StringName = &""
+		if mask_override_enabled:
+			out.append_array(mask_override)
+		else:
+			code = _actual_claim_mask(site, room, row_limit, out)
+		if mask_expire_after:
+			cold_attestation = &"SYNTHETIC_COLD_EXPIRED"
+		if mask_drift_after:
+			qualified_revision += 1
+		return code
+
+	func _actual_claim_mask(site: Vector2i, room: Vector2i, limit: int, out: PackedInt32Array) -> StringName:
+		"""Fixture geometry is explicit; real full Room/Site/claim identities determine every emitted box."""
+		var cube: PackedInt32Array = Space.quantum_box(owner.domain_copy(), sites.origin_of(site))
+		var handles: PackedInt32Array = PackedInt32Array()
+		var code: StringName = owner.overlapping_regions_into(cube, handles)
+		var region: Owner.Region = Owner.Region.new()
+		region.box.resize(6)
+		var index: int = 0
+		while code == &"" and index < handles.size():
+			code = owner.region_into_reused(Vector2i(handles[index], handles[index + 1]), region)
+			if code == &"" and region.owner == room and region.claim_kind == Owner.CLAIM_ROOM and region.claim_ref == room:
+				if out.size() >= limit * 6:
+					return &"SYNTHETIC_MASK_CAPACITY"
+				for axis: int in 3:
+					out.append(maxi(cube[axis], region.box[axis]))
+				for axis: int in 3:
+					out.append(mini(cube[axis + 3], region.box[axis + 3]))
+			index += 2
+		return code
 
 	func phase_plan_into(site: Vector2i, _operation: int, stage: int, room: Vector2i,
 			volume_rows_limit: int, out: Space.Plan) -> StringName:
@@ -362,6 +451,8 @@ func _add(token: int, box: Array[int], role: int, owner: Vector2i, claim: int = 
 	region.level = 1
 	region.claim_kind = claim
 	region.claim_ref = owner if claim == Owner.CLAIM_ROOM else NULL_REF
+	if owner == _room and role != Space.FLOOR_DATUM:
+		region.section = _floor
 	var added: Owner.Result = _owner.stage_add(token, region)
 	assert_true(added.ok(), "actual spatial row: %s" % added.error)
 	return added.handle
@@ -376,7 +467,7 @@ func _bind_space() -> void:
 	_bindings.jobs = _jobs
 	_bindings.inventory = _inventory
 	_bindings.floor_ref = _floor
-	_authority = Authority.new()
+	_authority = ObservedAuthority.new()
 	assert_equal(_authority.configure(_owner, _bindings, 1), &"", "explicit single-proof capacity fixture")
 	_sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, _authority, 512, 8)
 	_bindings.sites = _sites
@@ -1049,3 +1140,254 @@ func test_phase_plan_lease_expiry_and_survey_refusal_release_all_scratch() -> vo
 		_bindings.snapshot_refusal, "composed survey refusal is final")
 	assert_true(_bindings.saw_checked_plan, "the actual prepared plan precedes its bounds-based survey")
 	_assert_cold_released()
+
+
+func _set_finish_claims(boxes: Array[PackedInt32Array]) -> void:
+	"""Replace only exact Room reservation rows; paid physical matter and floor identity stay actual."""
+	var handles: PackedInt32Array = PackedInt32Array()
+	assert_equal(_owner.overlapping_regions_into(_owner.domain_copy()._bounds, handles), &"", "actual live claim survey")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	var region: Owner.Region = Owner.Region.new()
+	region.box.resize(6)
+	var index: int = 0
+	while index < handles.size():
+		var handle: Vector2i = Vector2i(handles[index], handles[index + 1])
+		assert_equal(_owner.region_into_reused(handle, region), &"", "actual full row")
+		if region.owner == _room and region.claim_kind == Owner.CLAIM_ROOM:
+			assert_equal(_owner.stage_remove(token, handle), &"", "replace accepted synthetic test plan")
+		index += 2
+	for box: PackedInt32Array in boxes:
+		region.box = box.duplicate()
+		region.owner = _room
+		region.role = Space.OBSTACLE
+		region.level = 1
+		region.section = _floor
+		region.claim_kind = Owner.CLAIM_ROOM
+		region.claim_ref = _room
+		assert_true(_owner.stage_add(token, region).ok(), "new exact fine claim")
+	assert_equal(_owner.seal(token), &"", "actual source and shape validation")
+	_owner.publish(token)
+
+
+func _fine_finish_claims() -> Array[PackedInt32Array]:
+	"""The concave L uses256u paint while physical excavation remains the complete1024u cube."""
+	return [PackedInt32Array([0, 0, 0, 256, 1024, 1024]), PackedInt32Array([256, 0, 0, 1024, 1024, 256])]
+
+
+func _prepare_fine_finish() -> int:
+	"""Real bracing/cutting and actual work earn the finishing output before injecting mask failures."""
+	_complete(Contract.OP_BRACE)
+	_complete(Contract.OP_CUT)
+	_set_finish_claims(_fine_finish_claims())
+	var job: int = _start(Contract.OP_FINISH)
+	_finish_work(job)
+	return job
+
+
+func _assert_finished_partition(expected_finished: int) -> void:
+	"""Count exact disjoint actual volume, never corner samples or a metadata bounding rectangle."""
+	var survey: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_owner.snapshot_for_site_into(survey, _sites, _site), &"", "actual published physical survey")
+	var cube: PackedInt32Array = PackedInt32Array([0, 0, 0, 1024, 1024, 1024])
+	var boxes: Array[PackedInt32Array] = []
+	var finished: int = 0
+	var unfinished: int = 0
+	for row: int in survey.volumes.role.size():
+		var role: int = survey.volumes.role[row]
+		if role not in [Space.SUPPORTED_VOID, Space.UNFINISHED]:
+			continue
+		var box: PackedInt32Array = Space.intersection(survey.volumes.box_at(row), cube)
+		if not Space.valid_box(box):
+			continue
+		for previous: PackedInt32Array in boxes:
+			assert_false(Space.overlaps(previous, box), "no overlapping finished/residual prefix")
+		boxes.append(box)
+		var volume: int = (box[3] - box[0]) * (box[4] - box[1]) * (box[5] - box[2])
+		finished += volume if role == Space.SUPPORTED_VOID else 0
+		unfinished += volume if role == Space.UNFINISHED else 0
+	assert_equal(finished, expected_finished, "only exact painted union becomes usable")
+	assert_equal(finished + unfinished, 1024 * 1024 * 1024, "entire paid cube remains accounted")
+	assert_equal(_claim_count(Owner.CLAIM_ROOM), 2, "long-lived exact claims remain")
+
+
+func test_fine_finish_publishes_exact_claim_union_and_retains_paid_outside_cavity() -> void:
+	"""Completed real work cannot turn a concave painted room into its rectangular paid excavation envelope."""
+	_prepare_fine_finish()
+	var earth: int = _inventory.total_live_milli(_items.compiled_id(&"excavated_earth"))
+	assert_true(_sites.settle_phase(_site).ok, "actual paid exact-shape finish")
+	_assert_finished_partition((256 * 1024 + 768 * 256) * 1024)
+	assert_equal(_bindings.mask_row_limit, 64, "scratch uses actual small owner capacity")
+	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"excavated_earth")), earth, "finish gives no extra cut yield")
+	assert_equal(_sites.earth_conservation_refusal(), &"", "actual paid ledger unchanged by shape")
+	assert_equal(_sites.support_conservation_refusal(), &"", "actual material receipts balance")
+	assert_false(_sites.settle_phase(_site).ok, "actual phase cannot publish twice")
+
+
+func test_finish_rejects_missing_extra_overlapping_and_outside_masks_before_payment() -> void:
+	"""The real provider's output is independently checked against both directions of the exact claim union."""
+	_prepare_fine_finish()
+	var before: PackedByteArray = _owner.state_bytes()
+	var goods: PackedByteArray = _inventory.state_bytes()
+	var packets: Array[PackedInt32Array] = [PackedInt32Array(), PackedInt32Array([0, 0, 0, 256, 1024, 1024]),
+		PackedInt32Array([0, 0, 0, 1024, 1024, 1024]), PackedInt32Array([-1, 0, 0, 1024, 1024, 1024]),
+		PackedInt32Array([0, 0, 0, 256, 1024, 1024, 0, 0, 0, 256, 1024, 1024])]
+	var errors: Array[StringName] = [&"SPACE_FINISH_MASK_SHAPE", &"SPACE_FINISH_MASK_MISSING",
+		&"SPACE_FINISH_MASK_OUTSIDE_CLAIMS", &"SPACE_FINISH_MASK_BOUNDS", &"SPACE_FINISH_MASK_OVERLAP"]
+	_bindings.mask_override_enabled = true
+	for index: int in packets.size():
+		_bindings.mask_override = packets[index]
+		assert_equal(_sites.settle_phase(_site).error, errors[index], "independent refusal%d" % index)
+		assert_equal(_owner.state_bytes(), before, "no partial geometry")
+		assert_equal(_inventory.state_bytes(), goods, "no consumed paid output on refusal")
+		assert_false(_owner.has_prepared(), "failed candidate always discarded")
+		assert_equal(_bindings.cold_active, 0, "failed operation releases cold scratch")
+	_bindings.mask_override_enabled = false
+	assert_true(_sites.settle_phase(_site).ok, "same earned work retries with exact real mask")
+	_assert_finished_partition((256 * 1024 + 768 * 256) * 1024)
+
+
+func test_finish_accepts_a_different_disjoint_partition_of_the_same_claim_union() -> void:
+	"""Independent proof compares physical unions, so output rows need not mirror claim segmentation."""
+	_prepare_fine_finish()
+	_bindings.mask_override_enabled = true
+	_bindings.mask_override = PackedInt32Array([0, 0, 0, 1024, 1024, 256,
+		0, 0, 256, 256, 512, 1024, 0, 512, 256, 256, 1024, 1024])
+	assert_true(_sites.settle_phase(_site).ok, "same exact union with different XYZ partition")
+	_assert_finished_partition((256 * 1024 + 768 * 256) * 1024)
+
+
+func test_finish_mask_unbound_and_oversized_output_preserve_real_earned_phase() -> void:
+	"""Absent authored mask truth and technical exhaustion never silently finish the whole paid cube."""
+	_prepare_fine_finish()
+	var before: PackedByteArray = _owner.state_bytes()
+	_bindings.mask_refusal = &"SPACE_FINISH_MASK_UNBOUND"
+	assert_equal(_sites.settle_phase(_site).error, &"SPACE_FINISH_MASK_UNBOUND", "no generic whole-cube fallback")
+	_bindings.mask_refusal = &""
+	_bindings.mask_override_enabled = true
+	_bindings.mask_override.resize(65 * 6)
+	assert_equal(_sites.settle_phase(_site).error, &"SPACE_FINISH_MASK_SHAPE", "real64-row bound checked before scratch banks")
+	assert_equal(_owner.state_bytes(), before, "no geometry prefix")
+	assert_equal(_bindings.cold_active, 0, "all denied scratch released")
+	_bindings.mask_override_enabled = false
+	assert_true(_sites.settle_phase(_site).ok, "full phase can retry after technical refusal")
+
+
+func test_finish_partition_peak_includes_actual_banks_handles_and_original_inputs() -> void:
+	"""The real admitted pack fits under the same shared cold arena without erasing smaller capacities."""
+	assert_equal(Authority.finish_partition_peak_bytes(6144, 2048, 8192, 1013), 990952, "maximum simultaneous payload")
+	assert_equal(Authority.finish_partition_peak_bytes(64, 8, 128, 2), 12048, "small actual arena, not default maximum")
+	assert_equal(Authority.finish_partition_peak_bytes(0, 8, 128, 2), -1, "unconfigured")
+	assert_equal(Authority.finish_partition_peak_bytes(129, 8, 128, 2), -1, "bad row relation")
+	assert_equal(Authority.finish_partition_peak_bytes(64, 8, 128, 9223372036854775807), -1, "bound before multiply")
+
+
+func _fill_finish_arena() -> Array[Vector2i]:
+	"""Consume the actual remaining rows with distant World obstacles, never silently grow the arena."""
+	var survey: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_owner.snapshot_into(survey), &"", "actual occupied row count")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	var removable: Array[Vector2i] = []
+	for index: int in _owner.region_capacity() - survey.volumes.role.size():
+		var x: int = -3000 + index * 4
+		var handle: Vector2i = _add(token, [x, -3000, -3000, x + 2, -2998, -2998], Space.OBSTACLE, _world)
+		if removable.size() < 2:
+			removable.append(handle)
+	assert_equal(_owner.seal(token), &"", "bounded full actual arena")
+	_owner.publish(token)
+	return removable
+
+
+func test_finish_late_region_exhaustion_aborts_the_entire_paid_geometry_candidate() -> void:
+	"""Failure after removing target matter and staging a finished prefix cannot lose the original cube or goods."""
+	_prepare_fine_finish()
+	var removable: Array[Vector2i] = _fill_finish_arena()
+	var before: PackedByteArray = _owner.state_bytes()
+	var goods: PackedByteArray = _inventory.state_bytes()
+	assert_equal(_sites.settle_phase(_site).error, &"SPACE_REGION_CAPACITY", "insufficient rows for exact residual")
+	assert_equal(_owner.state_bytes(), before, "actual pre-finish geometry retained byte-for-byte")
+	assert_equal(_inventory.state_bytes(), goods, "actual paid receipt ownership retained")
+	assert_false(_owner.has_prepared(), "no leaked failed stage")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	for handle: Vector2i in removable:
+		assert_equal(_owner.stage_remove(token, handle), &"", "release unrelated technical capacity")
+	assert_equal(_owner.seal(token), &"", "actual capacity becomes available")
+	_owner.publish(token)
+	assert_true(_sites.settle_phase(_site).ok, "same earned phase retries without duplicate labor")
+	_assert_finished_partition((256 * 1024 + 768 * 256) * 1024)
+
+
+func test_finish_mask_callback_cannot_outlive_its_exact_lease_or_qualification() -> void:
+	"""Mask source success is insufficient when its callback revokes a separate current-world proof."""
+	_prepare_fine_finish()
+	var before: PackedByteArray = _owner.state_bytes()
+	var goods: PackedByteArray = _inventory.state_bytes()
+	_bindings.mask_expire_after = true
+	assert_equal(_sites.settle_phase(_site).error, &"SYNTHETIC_COLD_EXPIRED", "returned mask has no lease")
+	assert_equal(_owner.state_bytes(), before, "geometry unchanged after callback lease loss")
+	assert_equal(_bindings.cold_active, 0, "expired proof still cleans its exact owned operation")
+	_bindings.mask_expire_after = false
+	_bindings.cold_attestation = &""
+	_bindings.mask_drift_after = true
+	assert_equal(_sites.settle_phase(_site).error, &"SPACE_GEOMETRY_STALE", "changed profile/support qualification")
+	assert_equal(_owner.state_bytes(), before, "no prefix after qualification drift")
+	assert_equal(_inventory.state_bytes(), goods, "neither refusal commits receipts")
+	_bindings.mask_drift_after = false
+	assert_true(_sites.settle_phase(_site).ok, "fresh exact proof retries")
+
+
+func test_flat_finish_subtraction_preserves_negative_bounds_and_refuses_fragment_exhaustion() -> void:
+	"""The bounded six-slab primitive neither snaps negative coordinates nor truncates an inner cut."""
+	var part: Authority.FinishPartition = Authority.FinishPartition.new()
+	part.limit = 6
+	part.front.resize(36)
+	part.back.resize(36)
+	part.reset(PackedInt32Array([-1024, -1024, -1024, 0, 0, 0]))
+	part.cut = PackedInt32Array([-768, -768, -768, -256, -256, -256])
+	var check: Authority.ColdCheck = Authority.ColdCheck.new()
+	check.remaining = 100
+	assert_true(_authority._subtract_flat(check, part), "exact inner subtraction")
+	assert_equal(part.count, 6, "six disjoint retained slabs")
+	var volume: int = 0
+	for row: int in part.count:
+		Authority._copy_flat_box(part.front, row * 6, part.piece)
+		volume += (part.piece[3] - part.piece[0]) * (part.piece[4] - part.piece[1]) * (part.piece[5] - part.piece[2])
+		assert_false(Space.overlaps(part.piece, part.cut), "residual never includes cut volume")
+	assert_equal(volume, 1024 * 1024 * 1024 - 512 * 512 * 512, "exact retained integer volume")
+	part.limit = 5
+	part.reset(PackedInt32Array([-1024, -1024, -1024, 0, 0, 0]))
+	assert_false(_authority._subtract_flat(check, part), "sixth slab refuses before writing beyond five-row admission")
+	assert_equal(check.error, &"SPACE_FINISH_FRAGMENT_CAPACITY", "explicit finite capacity refusal")
+	part.limit = 6
+	part.reset(PackedInt32Array([-1024, -1024, -1024, 0, 0, 0]))
+	check.remaining = 0
+	assert_false(_authority._subtract_flat(check, part), "zero operation budget cannot begin subtraction")
+	assert_equal(check.error, &"SPACE_OPERATION_BUDGET", "no silent unbounded work")
+
+
+func test_finish_handle_observer_cannot_allocate_banks_after_replacing_the_actual_lease() -> void:
+	"""A real Budget replacement during handle observation refuses before either residual bank grows."""
+	_prepare_fine_finish()
+	var geometry: PackedByteArray = _owner.state_bytes()
+	var goods: PackedByteArray = _inventory.state_bytes()
+	var physical: PackedByteArray = _sites.state_bytes()
+	var observed: ObservedSpace = _owner as ObservedSpace
+	var actual: Budget = Budget.new()
+	_bindings.actual_budget = actual
+	_bindings.mask_override_enabled = true
+	_bindings.mask_override = PackedInt32Array([0, 0, 0, 256, 1024, 1024, 256, 0, 0, 1024, 1024, 256])
+	observed.observed_budget = actual
+	observed.replace_at_read = observed.handle_reads + 2
+	var result: Construction.OpResult = _sites.settle_phase(_site)
+	assert_false(result.ok, "expired original reservation cannot prepare FINISH")
+	assert_equal(result.error, Budget.REFUSE_TOKEN, "exact actual token refusal after handles")
+	assert_equal((_authority as ObservedAuthority).finish_front_size, 0, "first bank never allocated")
+	assert_equal((_authority as ObservedAuthority).finish_back_size, 0, "second bank never allocated")
+	assert_equal(_owner.state_bytes(), geometry, "no geometry or staged prefix published")
+	assert_equal(_inventory.state_bytes(), goods, "no output or input ownership changed")
+	assert_equal(_sites.state_bytes(), physical, "real earned physical phase remains unchanged")
+	assert_false(_owner.has_prepared(), "whole candidate aborted")
+	assert_true(actual.covers(observed.replacement_token, Budget.COLD_BYTES), "cleanup preserved replacement lease")
+	assert_equal(actual.release(observed.replacement_token), &"", "actual new owner releases its lease")
+	observed.replace_at_read = -1
+	assert_true(_sites.settle_phase(_site).ok, "fresh actual lease permits exactly one retry")
+	assert_true(actual.is_quiescent(), "successful path releases its own actual lease")

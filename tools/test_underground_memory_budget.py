@@ -83,9 +83,67 @@ class JointPackTests(unittest.TestCase):
     def test_negative_recipe_fixed_frame_shortfall(self) -> None:
         self.refuses("underground_connector_recipes", "FIXED_BYTES: int = 512", "FIXED_BYTES: int = 256")
 
+    def test_negative_unaccounted_assembly_column(self) -> None:
+        source = self.index["underground_connector_assemblies"].text
+        self.refuses("underground_connector_assemblies", source,
+                     source + "\nvar _extra: PackedInt32Array = PackedInt32Array()\n")
+
+    def test_negative_assembly_column_width(self) -> None:
+        self.refuses("underground_connector_assemblies", "_first_part: PackedInt32Array", "_first_part: PackedInt64Array")
+
+    def test_negative_assembly_fixed_frame_shortfall(self) -> None:
+        self.refuses("underground_connector_assemblies", "FIXED_BYTES: int = 512", "FIXED_BYTES: int = 256")
+
+    def test_negative_anchor_box_growth(self) -> None:
+        self.refuses("underground_surface_anchor", "_record.envelope.resize(6)", "_record.envelope.resize(12)")
+
+    def test_negative_unaccounted_anchor_column(self) -> None:
+        source = self.index["underground_surface_anchor"].text
+        self.refuses("underground_surface_anchor", source,
+                     source + "\nvar _extra: PackedInt32Array = PackedInt32Array()\n")
+
+    def test_negative_anchor_control_shortfall(self) -> None:
+        self.refuses("underground_surface_anchor", "RESERVED_BYTES: int = 2048", "RESERVED_BYTES: int = 256")
+
+    def test_negative_anchor_nested_width_growth(self) -> None:
+        self.refuses("underground_locations", "envelope: PackedInt32Array", "envelope: PackedInt64Array")
+
+    def test_negative_anchor_unaccounted_nested_column(self) -> None:
+        self.refuses("underground_space_owner", "class Region extends RefCounted:",
+                     "class Region extends RefCounted:\n\tvar extra: PackedInt32Array = PackedInt32Array()")
+
+    def test_negative_anchor_unaccounted_retained_packet(self) -> None:
+        line = "var _record: Locations.Record = Locations.Record.new()"
+        self.refuses("underground_surface_anchor", line,
+                     line + "\nvar _extra: Locations.Record = Locations.Record.new()")
+
+    def test_negative_anchor_commented_retained_packet(self) -> None:
+        line = "var _record: Locations.Record = Locations.Record.new()"
+        self.refuses("underground_surface_anchor", line,
+                     line + "\nvar _extra: Locations.Record = Locations.Record.new() # another packet")
+
+    def test_negative_anchor_late_allocated_packet(self) -> None:
+        source = self.index["underground_surface_anchor"].text
+        extra = source.replace("var _world: World = null", "var _extra: Locations.Record = null\nvar _world: World = null")
+        extra = extra.replace("\t_record.envelope.resize(6)",
+                              "\t_extra = Locations.Record.new()\n\t_extra.envelope.resize(1000000)\n\t_record.envelope.resize(6)")
+        self.refuses("underground_surface_anchor", source, extra)
+
+    def test_negative_anchor_nested_nonpacked_collection(self) -> None:
+        self.refuses("underground_locations", "class Record extends RefCounted:",
+                     "class Record extends RefCounted:\n\tvar extra: Array = []")
+
+    def test_anchor_packet_parser_excludes_later_function_locals(self) -> None:
+        source = self.index["underground_surface_anchor"].text
+        index = self.changed("underground_surface_anchor", source, source +
+                             "\nfunc unrelated() -> int:\n\tvar example: int = 7\n\treturn example\n")
+        anchor = budget.build(index)["connector_recipe_reservation"]["surface_anchor_reservation"]
+        self.assertEqual(anchor["packet_bytes"], 204)
+        self.assertEqual(anchor["numeric_control_bytes"], 92)
+
     def test_negative_binding_reserve_cannot_omit_existing_consumers(self) -> None:
         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
-                     "BINDINGS_AND_GROWTH_BYTES: int = 371311")
+                     "BINDINGS_AND_GROWTH_BYTES: int = 378119")
 
     def test_negative_route_leading_multiplier_preserves_precedence(self) -> None:
         self.refuses("underground_world_routes", "2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)",
@@ -121,8 +179,16 @@ class JointPackTests(unittest.TestCase):
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
-        self.assertEqual(recipes["known_binding_used_bytes"], 371312)
-        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 152976)
+        self.assertEqual(recipes["known_binding_used_bytes"], 378120)
+        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 146168)
+        assemblies = recipes["assembly_reservation"]
+        self.assertEqual(budget.payload(assemblies["columns"]), 4316)
+        self.assertEqual(assemblies["reserved_bytes"], 4760)
+        anchor = recipes["surface_anchor_reservation"]
+        self.assertEqual(anchor["numeric_control_bytes"], 92)
+        self.assertEqual(anchor["packet_bytes"], 204)
+        self.assertEqual(anchor["fixed_numeric_and_packed_bytes"], 296)
+        self.assertEqual(anchor["reserved_bytes"], 2048)
         self.assertEqual(budget.payload(result["quote"]["columns"]), 112)
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)
         self.assertEqual(result["furniture_bridge_cold"]["private_bytes_per_pair"], 60)

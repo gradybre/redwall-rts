@@ -128,3 +128,15 @@ are recorded in `docs/validation/evidence/underground-world-locations-2026-10-03
 An underground endpoint covered by a Room reservation can refuse this bootstrap
 path; no traversal exemption is silently borrowed.
 
+
+## Reservation census closure
+
+The source-derived pack now counts the actual1104 grouping4760-byte maximum and
+the2048-byte fixed Anchor reservation inside the existing524288-byte binding
+allowance. Known consumers total378120, leaving146168 before actual Placement,
+frontier, adapter and native overhead qualification. The logical total remains
+99959250/headroom40750. Concrete typed-member and nested packet checks reject
+extra allocations even with commented or deferred initializers. Independent
+Construction review accepted the corrected census after38 Python tests and an
+exact generated-artifact check. Evidence is in the Anchor evidence directory's
+`memory-reservation/`. This does not certify native RAM or the complete entry.

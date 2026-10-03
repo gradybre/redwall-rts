@@ -99,6 +99,91 @@ def quote_payload(index: dict) -> dict:
             "consumers": sorted(consumers)}
 
 
+def connector_assembly_reservation(index: dict) -> dict:
+    """Count the complete immutable grouping bank and its fixed scratch in the existing reserve."""
+    module = "underground_connector_assemblies"
+    capacity = resolve(index, module, "MAX_GROUPS")
+    rows = columns(index, module, 8, {"_capacity": capacity})
+    bank = resolve(index, module, "GROUP_BYTES") * capacity + resolve(index, module, "BANK_HEADER_BYTES")
+    fixed = resolve(index, module, "FIXED_BYTES")
+    assert payload(rows) == bank + 68, "assembly bank or fixed packed scratch drift"
+    assert bank == 16 * capacity + 152 and fixed == 512, "assembly frame/storage contract drift"
+    return {"columns": rows, "group_capacity": capacity, "bank_bytes": bank,
+            "fixed_bytes": fixed, "reserved_bytes": bank + fixed}
+
+
+def numeric_fields(source: str, indent: str) -> int:
+    """Count concrete numeric declarations; actual object references require separate native measurement."""
+    widths = {"int": 8, "bool": 1, "Vector2i": 8, "Vector3i": 12}
+    kinds = re.findall(r"^" + re.escape(indent) + r"var \w+: (int|bool|Vector2i|Vector3i)\b", source, re.M)
+    return sum(widths[kind] for kind in kinds)
+
+
+def class_body(source: str, name: str) -> str:
+    """Limit packet fields to the named indented class, excluding later top-level function locals."""
+    tail = source.split("class " + name + " extends RefCounted:\n", 1)[1]
+    lines = []
+    for line in tail.splitlines():
+        if line.strip() and not line.startswith(("\t", " ")):
+            break
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def anchor_packet_bytes(source: str, expected: dict, member: str, allocator: str) -> int:
+    """Reject extra/wider nested storage before counting each concretely reused six-coordinate box."""
+    actual = dict(re.findall(r"^\tvar (\w+): (Packed\w+Array)\b", source, re.M))
+    assert actual == expected, (member, "unreconciled anchor packet storage", actual)
+    fields = dict(re.findall(r"^\tvar (\w+): ([\w.]+)\b", source, re.M))
+    assert all(kind in {"int", "bool", "Vector2i", "Vector3i", "StringName"} or name in expected
+               for name, kind in fields.items()), (member, "unreconciled packet field", fields)
+    total = numeric_fields(source, "\t")
+    for name, kind in actual.items():
+        expression = re.escape(member + "." + name) + r"\.resize\(([^)]+)\)"
+        assert re.findall(expression, allocator) == ["6"], (member, name)
+        total += WIDTHS[kind] * 6
+    return total
+
+
+def anchor_owned_packets(source: str) -> None:
+    """Census every nonnumeric member, regardless of initializer, allocation location or trailing comment."""
+    expected = {
+        "_world": "World", "_terrain": "Terrain", "_space": "Owner", "_sources": "Owner.CoreSources",
+        "_locations": "Locations", "_routes": "Routes", "_budget": "Budget", "_ids": "Directory",
+        "_buildings": "Routes.Buildings", "_construction": "Owner.Construction", "_inventory": "Routes.Inventory",
+        "_transforms": "Routes.Transforms", "_residents": "Routes.Residents", "_jobs": "Routes.Jobs",
+        "_work": "Routes.Work", "_profiles": "Routes.Profiles", "_bindings": "Routes.Bindings",
+        "_gear": "Routes.Gear", "_carry": "Routes.Carry", "_reservations": "Routes.Reservations",
+        "_piles": "Routes.Piles", "_record": "Locations.Record", "_region": "Owner.Region",
+    }
+    declarations = re.findall(r"^var (\w+): ([\w.]+)\b", source, re.M)
+    actual = {name: kind for name, kind in declarations if kind not in {"int", "bool", "Vector2i", "Vector3i"}}
+    assert actual == expected, ("unreconciled anchor owned/borrowed member", actual)
+
+
+def surface_anchor_reservation(index: dict) -> dict:
+    """Reconcile actual fixed provider/packet numerics and their three admitted reused packed boxes."""
+    module = "underground_surface_anchor"
+    source = index[module].text
+    assert not re.search(r"^var \w+: Packed", source, re.M), "unreconciled surface anchor column"
+    anchor_owned_packets(source)
+    retained = re.findall(r"^var (\w+): [\w.]+ = ([\w.]+)\.new\(\)$", source, re.M)
+    assert retained == [("_record", "Locations.Record"), ("_region", "Owner.Region")], retained
+    record = class_body(index["underground_locations"].text, "Record")
+    region = class_body(index["underground_space_owner"].text, "Region")
+    result = class_body(source, "Result")
+    controls = numeric_fields(source, "")
+    packets = anchor_packet_bytes(record, {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}, "_record", source)
+    packets += anchor_packet_bytes(region, {"box": "PackedInt32Array"}, "_region", source)
+    packets += anchor_packet_bytes(result, {}, "Result", source)
+    reserved = resolve(index, module, "RESERVED_BYTES")
+    assert reserved >= controls + packets + 1024, "surface anchor fixed frame allowance insufficient"
+    return {"numeric_control_bytes": controls, "packet_bytes": packets,
+            "fixed_numeric_and_packed_bytes": controls + packets, "reserved_bytes": reserved,
+            "logical_helper_allowance_bytes": 1024,
+            "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."}
+
+
 def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     """Count the exact immutable recipe bank inside, not in addition to, the shared binding reserve."""
     # The shared audit parser intentionally keeps inline comments. Strip comments
@@ -125,15 +210,20 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     fixed = resolve(index, module, "FIXED_BYTES")
     assert payload(rows) == bank + 68, "recipe bank or fixed packed scratch drift"
     assert bank == 64 * capacity + 128 and fixed == 512, "recipe frame/storage contract drift"
+    assemblies = connector_assembly_reservation(index)
+    anchor = surface_anchor_reservation(index)
     consumers = {
         "connector_catalog": resolve(index, "underground_connector_catalog", "RESERVED_BYTES"),
         "world_routes": resolve(index, "underground_world_routes", "RESERVED_BYTES"),
         "connector_recipes": bank + fixed,
+        "connector_assemblies": assemblies["reserved_bytes"],
+        "surface_anchor": anchor["reserved_bytes"],
     }
     used = sum(consumers.values())
     assert used <= binding_reserve, "known binding consumers exceed their shared reserve"
     return {"columns": rows, "part_capacity": capacity, "bank_bytes": bank,
-            "fixed_bytes": fixed, "known_binding_consumers": consumers,
+            "fixed_bytes": fixed, "assembly_reservation": assemblies, "surface_anchor_reservation": anchor,
+            "known_binding_consumers": consumers,
             "known_binding_used_bytes": used,
             "remaining_binding_reserve_bytes": binding_reserve - used,
             "scope": "Known logical consumers only; actual placement, other controls and native growth still require joint admission."}
@@ -207,7 +297,8 @@ def build(index: dict | None = None) -> dict:
     assert total < 100000000, ("joint pack exceeds unchanged memory limit", total)
     sources = set(groups) - {"inventory_spatial"}
     sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget",
-                    "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes"))
+                    "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
+                    "underground_connector_assemblies", "underground_surface_anchor", "underground_locations"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,

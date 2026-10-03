@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03T22:32:38.894068+00:00",
+  "updated": "2026-10-03T22:34:09.655041+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -680,6 +680,10 @@
           "integration_commit": "e797b15b",
           "evidence_path": "docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/first-module-assessment.md",
           "scope": "Read-only constructibility handoff; arithmetic first-cut and T2 front-wall witnesses, actual footprint/footing/retreat gaps, unique cut-union/EntryPlan seam. No motion or playable certificate."
+        },
+        "entry_admission_next": {
+          "status": "authorized root sublease; implementation next",
+          "scope": "Distinct pinned EntryPlan under existing actual RoomOrders authority, future Corridor and prepared Placement before identity publication. No pre-created Corridor workaround or abstract frontier success flags."
         }
       },
       "lease": {
@@ -707,6 +711,19 @@
             ],
             "handoff": "Construction explicitly stopped writes and granted1107 narrow EntryClaimInput/batch adaptation; root preserves ordinary flat RoomPlan/CutMap. No per-Site columns or caller-supplied replay cursor.",
             "stop_evidence": "Root stopped all Sites/flat-claim-test writes after reviewed87452dbd, integratedf914a55d. Returned to Construction2026-10-03; no further source edits."
+          },
+          {
+            "agent": "/root",
+            "state": "held",
+            "branch": "codex/underground-entry-admission",
+            "files": [
+              "godot/scripts/core/underground_room_orders.gd",
+              "godot/scripts/core/underground_room_bindings.gd",
+              "godot/test/test_underground_room_orders.gd",
+              "godot/test/test_underground_room_bindings.gd",
+              "godot/test/test_underground_room_admission.gd"
+            ],
+            "handoff": "Construction explicitly stopped all writes and granted this narrow EntryPlan/atomic future Placement admission packet on2026-10-03 after1107. Preserve the sole Buildings authority and ordinary flat RoomPlan path. Geometry retains Placement/companions; Construction retains ConnectorWork."
           }
         ]
       }

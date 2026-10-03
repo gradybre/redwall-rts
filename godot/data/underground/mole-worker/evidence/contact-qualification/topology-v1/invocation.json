@@ -1,0 +1,31 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--audio-driver",
+      "Dummy",
+      "--script",
+      "res://data/underground/mole-worker/evidence/contact-qualification/capture_topology.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/topology-v1/spec.json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/topology-v1"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0
+  ],
+  "source_unchanged": true
+}

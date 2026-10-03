@@ -1,0 +1,54 @@
+[
+  {
+    "command": [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "godot/data/underground/mole-worker",
+      "-p",
+      "test_compile_profiles.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification",
+      "-p",
+      "test_self_clearance.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification",
+      "-p",
+      "test_tip_contact.py"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-m",
+      "unittest",
+      "discover",
+      "-s",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification",
+      "-p",
+      "test_capture.py"
+    ],
+    "exit": 0
+  }
+]

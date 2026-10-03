@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 207, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 194, in main
+    results = {str(clip): prove(cases[clip], original[0]["geometry"], topology, native["rig_binding"],
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 167, in prove
+    if not separated(alo[body], ahi[body], blo[tool], bhi[tool], counter):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 101, in separated
+    separated(np.stack([am_l, al[1]]), np.stack([am_h, ah[1]]), np.stack([bm_l, bl[1]]),
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 101, in separated
+    separated(np.stack([am_l, al[1]]), np.stack([am_h, ah[1]]), np.stack([bm_l, bl[1]]),
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 99, in separated
+    return separated(np.stack([al[0], am_l]), np.stack([ah[0], am_h]), np.stack([bl[0], bm_l]),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 99, in separated
+    return separated(np.stack([al[0], am_l]), np.stack([ah[0], am_h]), np.stack([bl[0], bm_l]),
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 88, in separated
+    require(counter[0] <= MAX_CHECKS, "SELF_CHECK_CAPACITY")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: SELF_CHECK_CAPACITY

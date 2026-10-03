@@ -1,0 +1,10 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+content-memory: before=158540525; after=159018461; prior_peak=255421769; peak=255421769; declared_peak=6969508; isolated=false
+mole-forward-motion: 2300 poses, 5179 assertions, 0 failures; qualified=0

@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "source_case": "mole_digger.heavy_hammer_swing.plain.firm_grip_v1",
+  "source_frame_indices": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    16,
+    15,
+    14,
+    13,
+    12,
+    11,
+    10,
+    9,
+    8,
+    7,
+    6,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0
+  ],
+  "parts": [
+    {
+      "boxes_u": {
+        "floor_crossing": [
+          148,
+          -1,
+          310,
+          225,
+          12,
+          356
+        ],
+        "above_floor": [
+          -187,
+          0,
+          -303,
+          529,
+          892,
+          538
+        ]
+      },
+      "triangle_counts": {
+        "floor_crossing": 7,
+        "above_floor": 10202
+      },
+      "partition_sha256": [
+        "c571eee0fde0ba60aae6d190571df6fca420412bb32239045cd48574552aeee8"
+      ],
+      "proof": "Each whole native triangle is in exactly one endpoint hull; all positive blends and triangle interiors are enclosed.",
+      "name": "Body/Armature/Skeleton3D/char1",
+      "kind": "body",
+      "residual_m": [
+        {
+          "numerator": 6998799465024644072357655823722336288013168411306516042066087562919835337702323093945,
+          "denominator": 12841710366421084838201705538889419802202139092745648315754487914052618287137015019339776
+        },
+        {
+          "numerator": 27078437190547799825056421071492038764085471007832217764244404423046608421645415457119,
+          "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+        },
+        {
+          "numerator": 6998799465024644072357655823722336288013168411306516042066087562919835337702323093945,
+          "denominator": 12841710366421084838201705538889419802202139092745648315754487914052618287137015019339776
+        }
+      ]
+    },
+    {
+      "boxes_u": {
+        "floor_crossing": [
+          -212,
+          -64,
+          356,
+          -110,
+          228,
+          492
+        ],
+        "above_floor": [
+          -245,
+          3,
+          323,
+          375,
+          527,
+          535
+        ]
+      },
+      "triangle_counts": {
+        "floor_crossing": 30,
+        "above_floor": 1120
+      },
+      "partition_sha256": [
+        "7b1b218b71839ca8d01301b3d4c5db23e99f31cf68f663baad1c896aaee385db"
+      ],
+      "proof": "Each whole native triangle is in exactly one endpoint hull; all positive blends and triangle interiors are enclosed.",
+      "name": "mole_pick",
+      "kind": "attachment",
+      "residual_m": [
+        {
+          "numerator": 53170664176543800413814016451237346165093498874658291450209255520449033646841752261147772026725246580348411583579717506245777,
+          "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+        },
+        {
+          "numerator": 8118717804352489433794357815183381566623924856707706316984356598385461993110780535685577151304822886138434625884120540062865,
+          "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+        },
+        {
+          "numerator": 53170664176543800413814016451237346165093498874658291450209255520449033646841752261147772026725246580348411583579717506245777,
+          "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+        }
+      ]
+    }
+  ],
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "yaw": 0,
+  "production_qualified": false,
+  "remaining": [
+    "SOURCE_TIP_CONTACT",
+    "NATIVE_MOTION_REVIEW",
+    "ACTUAL_MANUFACTURE_AND_STATE_DRIVER",
+    "ACTUAL_STANCE_SUPPORT",
+    "PRESENTATION_COLD_PEAK"
+  ],
+  "source_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "topology_sha256": "99d89cdf1fa2a0620881f1bb90d3872271ec383171b0ed2e1a481085bd3e4b89",
+  "compact_source_sha256": "004ea5955ba8877ec3998be179945eb846ed4b8f88c82555dba2d07be4947d0a",
+  "verified_source_files": 537,
+  "world_basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "exact_native_heading": [
+    1.0,
+    0.0
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/compile_profiles.py": "929a07259576ac59e7d38a31622a7d39fab3d9a76f4d70c2c760a2ed0f61b3d5",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  }
+}

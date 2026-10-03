@@ -692,3 +692,106 @@ zero failures, all strict/raw unexpected diagnostics and leaks zero; the analyze
 reports zero warnings in two files. Raw evidence lives in
 `mole-worker/evidence/contact-qualification/profile-schema-v1/`. These are
 component/schema checks, not production source contact or motion qualification.
+
+### Source-bound productive mole motion and contact qualification
+
+The next owned increment is `mole-worker/compile_profiles.py`, its Python test,
+`mole_profile_driver.gd`, `qualified-v1/`, and
+`evidence/contact-qualification/`, with the new Godot tests
+`test_mole_profile_driver.gd` and `test_mole_qualified_profiles.gd`.
+The accepted firm-grip source remains immutable. The imported full hammer cycle
+has genuine pick geometry below the floor, including a late sweep beside a
+planted foot; that source cannot be declared safe by trimming its box. A useful
+source-indexed forward strike and exact retrace may instead be authored from
+its finite matrices, preserving the original cycle and recording every chosen
+source frame. The candidate must pass native animated review before promotion.
+
+The proof partitions actual triangle primitives, not merely vertices, whenever
+the floor-contact portion of a body is separated from its upper volume. The
+new bounded `evidence/contact-qualification/capture_topology.gd` captures native
+primitive/index data after the same accepted Grip and Content geometry identity
+checks. Its source hashes and complete output hash are required inputs to the
+offline proof. This closes a missing primitive-topology input in the older raw
+palette stream; it grants no new movement permission or simulation state.
+
+Travel and turn keep every attached tool in BODY_HELD_LOAD. Productive WORK may
+exclude only the exact Gear-bound active pick from BODY_HELD_LOAD, because that
+same complete pick geometry is separately enclosed by WORK_STROKE. Body,
+non-active equipment, approach and safe recovery remain outside the operation's
+solid target. STANCE_SUPPORT is separately derived and only excuses the exact
+authored floor-contact intersection; a whole body rectangle is not a substitute
+for feet/support evidence. A real source tip/face witness must establish the
+CONTACT_POINT, and the spatial owner still proves actual support, completed
+approach, the paid target and all other physical obstruction checks.
+
+The renderer state driver must bind the exact compact source and profile digest,
+actual adult mole/rig/tool manufacture, supported state and positive finite
+interpolation. Missing identity, state, tool, cargo or source refuses. Static
+descriptor reads remain available before a Job exists, while productive runtime
+selection requires actual assigned Work and Gear. Numerical/native proof,
+authored source motion, source-manufacture binding, primitive contact proof,
+state transitions and presentation/cold coexistence are all separate closure
+gates. No production certificate is written until every required gate passes;
+component tests and compact images alone remain zero qualifications.
+
+The first source-indexed0–17–0 candidate is rejected: native review shows a
+backward tap while the mole looks away from its target. The late original full
+cycle drives the handle butt below the floor rather than the head. The next
+explicit authored candidate reverses the pick about the actual source fit's
+shaft-grip pivot only during productive motion, then uses the overhead source
+segment and exact retrace. Body, hand geometry, carry/idle orientation and
+original source remain unchanged. The pivot is captured from actual Props fit
+and drawn bounds, never inferred from a rounded screenshot. Entry, exit and
+contact require their own native and continuous proof; this is an authored
+presentation choice, not a new item or work capability.
+
+Native local-joint entry closes the rejected detached-limb transition. Exact
+continuous head-triangle separation also resolves the apparent brow crossing
+in projection. A broader check nevertheless finds real shaft/wrist penetration
+in the original imported carrying pose, outside the authored grasp. Changing
+only the shaft angle trades this intersection for a floor strike and is rejected.
+The next explicit source correction borrows the actual local right arm,
+forearm and hand pose from the existing forward-work source while retaining
+each travel clip's torso, legs and other arm. Its reversed pick remains fixed
+to the same palm grip. This authors finite pose matrices, not new mesh geometry,
+reach or item permission. All resulting intervals, transitions, source identities
+and native views must be regenerated and reviewed; the original and rejected
+angle-only candidates remain evidence. The current downward source still does
+not qualify the Kitchen's roof-adjacent course. That needs a distinct actual
+front/high-wall source and planar contact witness from a real supported station.
+
+The resulting raised ready carry uses actual right-arm source frame48, without
+changing the other arm, torso, legs, mesh, weights, scale or materials. Native
+side/front/RTS witnesses provisionally accept its grasp. A full source-local
+self-contact proof retains9,761 body and1,150 pick triangles and omits only448
+triangles wholly inside the intentionally authored palm-grip patch. The complete
+meshes still contribute to physical world envelopes. A genuine stone-head
+vertex crosses the downward face; its complete conservative face patch is
+`[-190,0,-678 ..49,0,-536]u`, with integer focus `(42,0,-673)` rounded from the
+exact ideal trajectory. The patch, not that rounded focus alone, owns uncertainty.
+
+Independent review rejected the first interval proof because the real Content
+loader closes linear loops penultimate→first rather than penultimate→stored-last.
+`review-motion-v2/` preserves that rejection and corrects decoder timing, exact
+rendered-edge enumeration and proof reuse. All386 rendered intervals now pass
+the same bounded primitive proof; the adversarial separating-plane regression
+would fail the old edge set. The native retry reports2,335 poses/5,349 assertions
+and the tip witness9/61, all with zero failures, raw diagnostics or leaks and no
+source drift. Forty-seven Python tests pass; the analyzer inspects four files
+with zero warnings. This is exact-yaw0 component evidence, not an all-yaw or
+arbitrary cross-clip guarantee. Source arrays and animation timing are unchanged
+by the loop correction; its derivative hash refreshes proof provenance only.
+
+Independent root re-review accepts that corrected motion component and the
+unchanged historical motion-capture helper. The reviewed source manifests and
+all rejected evidence remain in `review-motion-v2/` and its preceding packet.
+Acceptance is explicitly bounded to source-local/yaw0 and native interval/census
+correctness, with no remaining high/medium review finding in that slice.
+
+The distinct high-wall candidate retains actual source frames30–43–30 and
+authors a finite15° right-clavicle retraction during entry to keep the tool below
+the proposed upper target course. These are presentation engineering choices;
+the lower approach, bench, retreat, complete role union and actual paid frontier
+remain separate owner obligations. Neither this candidate nor the downward
+component enables a production profile until its remaining source/state,
+contact, world and memory gates are closed.

@@ -1,0 +1,308 @@
+#!/usr/bin/env python3
+"""Source-bound primitive/contact proof for the actual mole representation.
+
+The full primitive census and outward endpoint hulls cover triangle interiors and
+all positive matrix blends, including transitions. The CLI deliberately emits an
+unqualified contact candidate until animated/state/owner gates are independently
+accepted. It never turns a sampled intersection or arbitrary margin into a profile.
+"""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import json
+from pathlib import Path
+import struct
+import sys
+
+import numpy as np
+
+ROOT = Path(__file__).resolve().parents[4]
+sys.path.insert(0, str(ROOT / "tools"))
+import compile_underground_actor_content as content
+import export_underground_envelopes as envelope
+
+require = envelope.require
+MAX_TOPOLOGY_BYTES = 8 * 1024 * 1024
+MAX_TRIANGLES = 65536
+MAX_SEQUENCE = 2048
+SCALE = 1 << 24
+
+
+class IdentityHeading(envelope.WorldBasisSource):
+    """Read yaw zero from the exact same bytes included in the full native table hash."""
+
+    def __init__(self, stream, expected_sha256: str, producer_sha256: str):
+        self.identity_row = None
+        super().__init__(stream, expected_sha256, producer_sha256)
+        require(self.identity_row == (1.0, 0.0), "CONTACT_EXACT_YAW_UNSUPPORTED")
+
+    def read(self, count: int) -> bytes:
+        raw = super().read(count)
+        if self.identity_row is None and hasattr(self, "metadata") and count == 8:
+            self.identity_row = struct.unpack("<ff", raw)
+        return raw
+
+
+def read_topology(path: Path, expected_sha256: str, content_sha256: str, parts: list[dict]) -> list[list[np.ndarray]]:
+    """A complete pinned native index census is mandatory; no guessed vertex grouping."""
+    value = content.read_json(path, expected_sha256, MAX_TOPOLOGY_BYTES)
+    require(value.get("schema") == 1 and value.get("content_sha256") == content_sha256,
+            "CONTACT_TOPOLOGY_SOURCE")
+    rows = value.get("parts")
+    require(type(rows) is list and len(rows) == len(parts), "CONTACT_TOPOLOGY_PART_CENSUS")
+    result = []
+    total = 0
+    for part_id, (row, part) in enumerate(zip(rows, parts)):
+        require(type(row) is dict and row.get("part") == part_id and
+                type(row.get("surfaces")) is list and len(row["surfaces"]) == len(part["geometry"]),
+                "CONTACT_TOPOLOGY_SURFACE_CENSUS")
+        require(row.get("mesh_sha256") == content.geometry_fingerprint(part).hex(), "CONTACT_TOPOLOGY_MESH")
+        surfaces = []
+        for at, (surface, geometry) in enumerate(zip(row["surfaces"], part["geometry"])):
+            count = len(geometry["points"])
+            require(type(surface) is dict and surface.get("surface") == at and
+                    surface.get("vertex_count") == count and surface.get("primitive") == 3,
+                    "CONTACT_TOPOLOGY_PRIMITIVE")
+            indices = surface.get("indices")
+            native = surface.get("native_index_count")
+            require(type(indices) is list and 0 < len(indices) <= 3 * MAX_TRIANGLES and
+                    len(indices) % 3 == 0 and type(native) is int and
+                    (native == len(indices) or (native == 0 and len(indices) == count)),
+                    "CONTACT_TOPOLOGY_INDEX_CENSUS")
+            require(all(type(i) is int and 0 <= i < count for i in indices), "CONTACT_TOPOLOGY_INDEX")
+            if native == 0:
+                require(indices == list(range(count)), "CONTACT_TOPOLOGY_UNINDEXED")
+            total += len(indices) // 3
+            require(total <= MAX_TRIANGLES, "CONTACT_TOPOLOGY_CAPACITY")
+            surfaces.append(np.array(indices, dtype=np.int64).reshape(-1, 3))
+        result.append(surfaces)
+    return result
+
+
+def indexed_sequence(case: dict, frames: list[int], case_id: str, loop: bool) -> dict:
+    """Author only explicit source indices; original source arrays and motion remain immutable."""
+    require(type(frames) is list and 2 <= len(frames) <= MAX_SEQUENCE and
+            all(type(f) is int and 0 <= f < case["frames"] for f in frames), "CONTACT_SEQUENCE_INDEX")
+    require(type(case_id) is str and 1 <= len(case_id) <= 128, "CONTACT_SEQUENCE_ID")
+    result = dict(case)
+    result.update(id=case_id, frames=len(frames), source_loop_mode=int(loop),
+                  source_duration_s=Fraction(len(frames) - 1, 30), source_frame_indices=list(frames),
+                  matrices=case["matrices"][frames].copy(), grounding=case["grounding"][frames].copy())
+    return result
+
+
+def authored_f32(value: Fraction) -> np.float32:
+    """Round an authored rational exactly to nearest/even binary32, including a double-rounding tie."""
+    require(abs(value) <= (1 << 20), "CONTACT_AUTHORED_FLOAT_CAPACITY")
+    approximate = np.float32(float(value))
+    candidates = [approximate, np.nextafter(approximate, np.float32(-np.inf)),
+                  np.nextafter(approximate, np.float32(np.inf))]
+    return min(candidates, key=lambda x: (abs(Fraction(float(x)) - value),
+                                         struct.unpack("<I", struct.pack("<f", x))[0] & 1))
+
+
+def correct_work_pick(case: dict, native_binding: dict) -> dict:
+    """Explicit work-only source manufacture: reverse the shaft about the actual captured hand pivot.
+
+    This creates new source bytes. It is neither a runtime fit nor a claim that
+    the imported motion was already suitable. Original body/carry data remain
+    immutable, and qualification must prove the new bytes and native motion.
+    """
+    require(case.get("clip") == "heavy_hammer_swing" and case.get("cast") == "mole_digger" and
+            case.get("attachments") == ["mole_pick"], "CONTACT_WORK_CORRECTION_SOURCE")
+    pivot = native_binding.get("prop_local_grip_m")
+    require(native_binding.get("key") == "mole_pick" and type(pivot) is list and len(pivot) == 3 and
+            all(type(x) in (int, float) and np.isfinite(x) and abs(x) <= 2 for x in pivot),
+            "CONTACT_WORK_PIVOT")
+    parts = case["geometry"]
+    require(len(parts) == 2 and parts[0]["kind"] == "body" and parts[0]["binds"] > 0 and
+            parts[1]["kind"] == "attachment" and parts[1]["name"] == "mole_pick" and parts[1]["binds"] == 0,
+            "CONTACT_WORK_PART_CENSUS")
+    # JSON carries the exact native float value to more than binary32 precision;
+    # rebind to those original binary32 coefficients, not decimal fractions.
+    pivot = [Fraction(float(np.float32(x))) for x in pivot]
+    offset = parts[0]["binds"]
+    require(case["matrices"].shape == (case["frames"], offset + 1, 12), "CONTACT_WORK_MATRIX_CENSUS")
+    result = dict(case)
+    result["matrices"] = case["matrices"].copy()
+    for frame in result["matrices"]:
+        original = frame[offset].copy()
+        frame[offset, :6] = -original[:6]
+        for axis in range(3):
+            moved = Fraction(float(original[9 + axis]))
+            moved += 2 * pivot[0] * Fraction(float(original[axis]))
+            moved += 2 * pivot[1] * Fraction(float(original[3 + axis]))
+            frame[offset, 9 + axis] = authored_f32(moved)
+    result["work_recipe"] = {"id": "mole_pick_overhead_z_halfturn_v1", "pivot_native_f32_m": [float(x) for x in pivot],
+                             "rotation_diagonal": [-1, -1, 1], "frame": "original prop-local geometry",
+                             "rounding": "exact rational to nearest/even binary32", "scope": "new work source only"}
+    return result
+
+
+def outward_units(low: np.ndarray, high: np.ndarray) -> list[int]:
+    """Exact integer widening, including negative and non-integral endpoints."""
+    require(low.shape == (3,) and high.shape == (3,) and np.all(low <= high), "CONTACT_BOX_SHAPE")
+    return [int(v) // (SCALE // 1024) for v in low] + [-(-int(v) // (SCALE // 1024)) for v in high]
+
+
+def _vertex_hulls(part: dict, matrices: np.ndarray, grounding: np.ndarray) -> list[tuple[np.ndarray, np.ndarray]]:
+    """Fixed Q24 interval arithmetic is shared with the reviewed complete-palette exporter."""
+    math_ = envelope.FastSkin.__new__(envelope.FastSkin)
+    math_.np = np
+    require(len(matrices) == len(grounding) and 0 < len(matrices) <= MAX_SEQUENCE,
+            "CONTACT_MATRIX_CENSUS")
+    prepared = [(math_.exact(s["points"]), s["ids"], math_.exact(s["weights"]) if part["binds"] else None)
+                for s in part["geometry"]]
+    hulls = [(np.full((len(s["points"]), 3), math_.LIMIT, dtype=np.int64),
+              np.full((len(s["points"]), 3), -math_.LIMIT, dtype=np.int64)) for s in part["geometry"]]
+    grounds = math_.exact(grounding)
+    for at, frame in enumerate(matrices):
+        basis = math_.exact(frame[:, :9].reshape(-1, 3, 3).transpose(0, 2, 1))
+        origin = math_.exact(frame[:, 9:])
+        for (points, ids, weights), (low, high) in zip(prepared, hulls):
+            if part["binds"]:
+                moved = math_.affine((basis[0][ids], basis[1][ids]), (origin[0][ids], origin[1][ids]),
+                                     (points[0][:, None, :], points[1][:, None, :]))
+                moved = math_.multiply(moved, (weights[0][..., None], weights[1][..., None]))
+                require(math_.magnitude(moved) * ids.shape[1] <= math_.LIMIT, "FAST_REDUCTION_CAPACITY")
+                moved = moved[0].sum(axis=1), moved[1].sum(axis=1)
+            else:
+                moved = math_.affine((basis[0][0], basis[1][0]), (origin[0][0], origin[1][0]), points)
+            require(math_.magnitude(moved) + max(abs(int(grounds[0][at])), abs(int(grounds[1][at]))) <=
+                    math_.LIMIT, "CONTACT_GROUNDING_CAPACITY")
+            moved[0][:, 1] += grounds[0][at]
+            moved[1][:, 1] += grounds[1][at]
+            np.minimum(low, moved[0], out=low)
+            np.maximum(high, moved[1], out=high)
+    return hulls
+
+
+def vertex_hulls(part: dict, matrices: np.ndarray, grounding: np.ndarray, roots: list[int]) -> tuple[list, list]:
+    """Endpoint hull plus every accepted local/native-world arithmetic residual; no sampled margin."""
+    hulls = _vertex_hulls(part, matrices, grounding)
+    low = np.min(np.stack([h[0].min(axis=0) for h in hulls]), axis=0)
+    high = np.max(np.stack([h[1].max(axis=0) for h in hulls]), axis=0)
+    local_residual = envelope.palette_residual(part, matrices, grounding)
+    pad_local = -(-local_residual.numerator * SCALE // local_residual.denominator)
+    local = [envelope.Interval((int(low[a]) - pad_local) * (envelope.FIXED // SCALE),
+                               (int(high[a]) + pad_local) * (envelope.FIXED // SCALE)) for a in range(3)]
+    world = envelope.world_residual(part, matrices, grounding, local, roots)
+    padding = np.array([pad_local + -(-r.numerator * SCALE // r.denominator) for r in world], dtype=np.int64)
+    require(int(max(np.abs(low).max(), np.abs(high).max())) + int(padding.max()) <= envelope.FastSkin.LIMIT,
+            "CONTACT_RESIDUAL_CAPACITY")
+    result = [(low - padding, high + padding) for low, high in hulls]
+    return result, [envelope.fraction_record(local_residual + r) for r in world]
+
+
+def partition_primitives(hulls: list, topology: list[np.ndarray], plane_u: int = 0) -> dict:
+    """Every entire triangle belongs to exactly one partition, including edges across the plane."""
+    require(type(plane_u) is int and -(1 << 20) <= plane_u <= (1 << 20) and len(hulls) == len(topology),
+            "CONTACT_PARTITION_INPUT")
+    threshold = plane_u * (SCALE // 1024)
+    groups = {"floor_crossing": [], "above_floor": []}
+    counts = {name: 0 for name in groups}
+    assignments = []
+    for (low, high), triangles in zip(hulls, topology):
+        require(triangles.ndim == 2 and triangles.shape[1] == 3 and np.all(triangles >= 0) and
+                np.all(triangles < len(low)) and low.shape == high.shape and low.shape[1] == 3,
+                "CONTACT_PARTITION_INDEX")
+        crossing = np.min(low[triangles, 1], axis=1) <= threshold
+        assignments.append(hashlib.sha256(crossing.astype(np.uint8).tobytes()).hexdigest())
+        for name, chosen in (("floor_crossing", crossing), ("above_floor", ~crossing)):
+            indices = triangles[chosen].reshape(-1)
+            counts[name] += len(indices) // 3
+            if len(indices):
+                groups[name].append((low[indices].min(axis=0), high[indices].max(axis=0)))
+    boxes = {}
+    for name, group in groups.items():
+        boxes[name] = outward_units(np.min(np.stack([g[0] for g in group]), axis=0),
+                                    np.max(np.stack([g[1] for g in group]), axis=0)) if group else None
+    require(counts["floor_crossing"] + counts["above_floor"] == sum(len(t) for t in topology),
+            "CONTACT_PARTITION_CENSUS")
+    return {"boxes_u": boxes, "triangle_counts": counts, "partition_sha256": assignments,
+            "proof": "Each whole native triangle is in exactly one endpoint hull; all positive blends and triangle interiors are enclosed."}
+
+
+def analyze(original: dict, candidate: dict, topology: list, frames: list[int], roots: list[int]) -> dict:
+    """Source-indexed candidate report with exact body/active-tool decomposition and no permission flags."""
+    parts = []
+    offset = 0
+    for part, primitive in zip(candidate["geometry"], topology):
+        count = max(1, part["binds"])
+        matrices = candidate["matrices"][:, offset:offset + count]
+        hulls, residual = vertex_hulls(part, matrices, candidate["grounding"], roots)
+        row = partition_primitives(hulls, primitive)
+        row.update(name=part["name"], kind=part["kind"], residual_m=residual)
+        parts.append(row)
+        offset += count
+    return {"schema": 1, "source_case": original["id"], "source_frame_indices": frames,
+            "parts": parts, "world_root_bounds_u": roots,
+            "yaw": 0, "production_qualified": False,
+            "remaining": ["SOURCE_TIP_CONTACT", "NATIVE_MOTION_REVIEW", "ACTUAL_MANUFACTURE_AND_STATE_DRIVER",
+                          "ACTUAL_STANCE_SUPPORT", "PRESENTATION_COLD_PEAK"]}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in ("source", "proof", "plan", "topology", "world-basis", "out"):
+        parser.add_argument("--" + name, required=True, type=Path)
+    for name in ("source", "proof", "plan", "topology", "content"):
+        parser.add_argument("--" + name + "-sha256", required=True)
+    parser.add_argument("--import-archive", type=Path, required=True)
+    parser.add_argument("--last-frame", type=int, required=True)
+    parser.add_argument("--first-frame", type=int, default=0)
+    parser.add_argument("--correct-pick", action="store_true")
+    parser.add_argument("--emit-preview", action="store_true")
+    args = parser.parse_args()
+    require(not args.out.exists() and not args.out.is_symlink(), "CONTACT_OUTPUT_EXISTS")
+    proof = content.read_json(args.proof, args.proof_sha256)
+    plan = content.read_json(args.plan, args.plan_sha256, 65536)
+    with args.world_basis.open("rb") as stream:
+        basis = IdentityHeading(stream, proof["world_basis"]["sha256"], proof["world_basis"]["producer_sha256"])
+    cases, _, pins = content.extract(args.source, args.source_sha256, proof, plan, args.import_archive)
+    topology = read_topology(args.topology, args.topology_sha256, args.content_sha256, cases[0]["geometry"])
+    require(0 <= args.first_frame < args.last_frame < cases[-1]["frames"], "CONTACT_SEQUENCE_INDEX")
+    frames = list(range(args.first_frame, args.last_frame + 1)) + list(range(args.last_frame - 1, args.first_frame - 1, -1))
+    candidate = indexed_sequence(cases[-1], frames, "mole_digger.work_candidate.source_indexed_v1", True)
+    if args.correct_pick:
+        native = content.read_json(args.topology, args.topology_sha256, MAX_TOPOLOGY_BYTES)
+        candidate = correct_work_pick(candidate, native.get("pick_binding", {}))
+        candidate["id"] = "mole_digger.work_candidate.forward_pick_v1"
+    report = analyze(cases[-1], candidate, topology, frames, plan["world_root_bounds_u"])
+    report.update(source_sha256=args.source_sha256, topology_sha256=args.topology_sha256,
+                  compact_source_sha256=args.content_sha256, verified_source_files=pins,
+                  world_basis_sha256=basis.digest, exact_native_heading=list(basis.identity_row),
+                  producer_sources={str(Path(p).relative_to(ROOT)): content.file_hash(Path(p)) for p in
+                                    (__file__, content.__file__, envelope.__file__)})
+    report["work_recipe"] = candidate.get("work_recipe")
+    args.out.mkdir(parents=True)
+    with (args.out / "candidate.json").open("x") as output:
+        json.dump(report, output, indent=2)
+        output.write("\n")
+    if args.emit_preview:
+        # The immutable content loader may replay unqualified authoring previews;
+        # this header binds the exact recipe and candidate proof, never Profiles.
+        plan = dict(plan)
+        plan["revision"] += 1
+        plan["clips"] = [case["id"] for case in cases[:-1]] + [candidate["id"]]
+        plan["scope"] = "Unqualified authored motion preview; no production profile or operation permission."
+        source_recipe = {"source_sha256": args.source_sha256, "topology_sha256": args.topology_sha256,
+                         "frames": frames, "work_recipe": candidate.get("work_recipe"),
+                         "producer_sha256": content.file_hash(Path(__file__))}
+        recipe_bytes = json.dumps(source_recipe, sort_keys=True).encode()
+        plan_bytes = json.dumps(plan, sort_keys=True).encode()
+        image, budget = content.encode(cases[:-1] + [candidate], plan, proof, hashlib.sha256(recipe_bytes).hexdigest(),
+                                       content.file_hash(args.out / "candidate.json"), hashlib.sha256(plan_bytes).hexdigest())
+        (args.out / "source-recipe.json").write_bytes(recipe_bytes + b"\n")
+        (args.out / "preview-plan.json").write_bytes(plan_bytes + b"\n")
+        (args.out / "mole-worker.ugactor").write_bytes(image)
+        (args.out / "compilation.json").write_text(json.dumps({"content_sha256": hashlib.sha256(image).hexdigest(),
+            "content_bytes": len(image), "presentation_budget": budget, "production_qualified": False,
+            "source_frame_indices": frames}, indent=2) + "\n")
+    print(json.dumps({"parts": [p["boxes_u"] for p in report["parts"]], "production_qualified": False}, indent=2))
+
+
+if __name__ == "__main__":
+    main()

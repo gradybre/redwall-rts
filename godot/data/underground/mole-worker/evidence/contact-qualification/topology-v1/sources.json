@@ -1,0 +1,16 @@
+{
+  "godot/data/underground/mole-worker/evidence/grip-authoring/run_native_grip.py": "f2c8a9ce1655f78ed28cabd7cf09f27ba8291d6b282e7f416af93475ee4900b9",
+  "godot/data/underground/mole-worker/firm-v1/compilation.json": "39086852d3652bb9414b3c340ed72e0247eee5c8ed6beacefb2364152964878c",
+  "godot/data/underground/mole-worker/firm-v1/mole-worker.ugactor": "004ea5955ba8877ec3998be179945eb846ed4b8f88c82555dba2d07be4947d0a",
+  "godot/data/underground/mole-worker/evidence/native_sequence.gd": "b67a7ef615760a5e9cd5a118badcd6a37a04d624a039a8be33b82e6b2da5849e",
+  "godot/data/underground/mole-worker/evidence/grip-authoring/native_grip_sequence.gd": "f101fb26cacef38c1182f5613ef27da22a939c2a94ab93c25c3ab1a30c13cccc",
+  "godot/data/underground/mole-worker/mole_grip_source.gd": "d7c10a0c828f168fb8842e58fa07aa781fce0036769cd8585723ed1f7acb0b19",
+  "godot/demo/tunnel/tunnel_ext.gd": "286d386c02ed4e4193965bc0fc196f5054369dd8842656e78b0f27b4594b9492",
+  "godot/demo/cast/underground_actor_content.gd": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+  "godot/demo/cast/underground_actor.gd": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+  "godot/demo/cast/demo_actor.gd": "1dd127464e7a9853b307af20d8f34bdd2606e7dad64910b685a810eaa93b5fb0",
+  "godot/demo/props/demo_props.gd": "28eebe56851286d2718a89c8c5085ed3ee6e8a817bd5cf821a5dd9e76c2568da",
+  "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "godot/demo/assets/manifest.json": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_topology.gd": "6f900abd52f7041286c550f8e612968b087c9e2d0a9168d24ebc38f3de440f09"
+}

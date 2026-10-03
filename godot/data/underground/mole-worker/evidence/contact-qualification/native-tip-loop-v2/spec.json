@@ -1,0 +1,170 @@
+{
+  "content": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/result/mole-worker.ugactor",
+  "content_sha256": "f5f7c985b08df561956f6e057ff4acaee18948393125a9c41c6bce9c2e8e3433",
+  "reserve_bytes": 6969508,
+  "basis": "res://demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+  "basis_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "basis_producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+  "manifest": "res://demo/assets/manifest.json",
+  "manifest_sha256": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37",
+  "last_source_frame": 17,
+  "mode": "tip",
+  "source_frame_indices": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    47,
+    46,
+    45,
+    44,
+    43,
+    42,
+    41,
+    40,
+    39,
+    38,
+    37,
+    36,
+    35,
+    34,
+    33,
+    32,
+    31,
+    30
+  ],
+  "rig_entry": true,
+  "tip_witness": {
+    "clip": 6,
+    "part": 1,
+    "mesh_sha256": "c4029dd3ea3266e6fac9f9d5734c37925d7300020d494ca0f83529567a9a9b3a",
+    "witness": {
+      "vertex": 148,
+      "first_frame": 17,
+      "last_frame": 18,
+      "source_point_f32_m": [
+        -0.6314398050308228,
+        0.1740776002407074,
+        -0.7260041832923889
+      ],
+      "endpoint_intervals_q24": [
+        [
+          [
+            880999,
+            2491987,
+            -12505061
+          ],
+          [
+            899834,
+            2495558,
+            -12486227
+          ]
+        ],
+        [
+          [
+            608880,
+            -979890,
+            -10457645
+          ],
+          [
+            627714,
+            -976321,
+            -10438809
+          ]
+        ]
+      ],
+      "endpoint_ideal_m": [
+        [
+          {
+            "numerator": 3824312029179839,
+            "denominator": 72057594037927936
+          },
+          {
+            "numerator": 167354235023787,
+            "denominator": 1125899906842624
+          },
+          {
+            "numerator": -1677136958112097,
+            "denominator": 2251799813685248
+          }
+        ],
+        [
+          {
+            "numerator": 2655566424246827,
+            "denominator": 72057594037927936
+          },
+          {
+            "numerator": -131279141313573,
+            "denominator": 2251799813685248
+          },
+          {
+            "numerator": -350584312151345,
+            "denominator": 562949953421312
+          }
+        ]
+      ],
+      "ideal_crossing_share": {
+        "numerator": 111569490015858,
+        "denominator": 155329203787049
+      },
+      "ideal_crossing_m": [
+        {
+          "numerator": 463630991425086492985372400815,
+          "denominator": 11192648708721755400272152100864
+        },
+        {
+          "numerator": 0,
+          "denominator": 1
+        },
+        {
+          "numerator": -229849084899215036356171313567,
+          "denominator": 349770272147554856258504753152
+        }
+      ],
+      "authored_anchor_u": [
+        42,
+        0,
+        -673
+      ],
+      "residual_m": [
+        {
+          "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 73603857931212626274282689676674853835135091919238083489940843341763411668091422764113953146853960493490204445674712685084663,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 388967482536551803134420300129052606024422110044892179422515135796208413244208224842349317274796926352960043149543891448365047,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ],
+      "anchor_semantics": "nearest/even integer focus to exact ideal crossing; complete patch owns native trajectory uncertainty",
+      "crossing_semantics": "actual endpoint enclosures lie strictly on opposite sides; complete interpolated tool envelope bounds the swept contact"
+    },
+    "contact_patch_u": [
+      -190,
+      0,
+      -678,
+      49,
+      0,
+      -536
+    ]
+  }
+}

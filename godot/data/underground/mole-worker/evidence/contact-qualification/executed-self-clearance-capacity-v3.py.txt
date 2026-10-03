@@ -1,0 +1,215 @@
+#!/usr/bin/env python3
+"""Source-bound continuous tool/head separation. Unresolved pairs refuse; this emits no gameplay qualification."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import struct
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("mole_profile_proof", HERE.parents[1] / "compile_profiles.py")
+P = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(P)
+require = P.require
+MAX_CHECKS = 250000
+MAX_DEPTH = 8
+AXIS_Q = 16384
+
+
+def read_image(path: Path, expected: str, parts: list[dict]) -> list[dict]:
+    require(path.is_file() and path.stat().st_size <= 4 * P.content.MAX_SCALARS + 8192, "SELF_IMAGE_CAPACITY")
+    raw = path.read_bytes()
+    require(len(raw) >= 184 and hashlib.sha256(raw).hexdigest() == expected and raw[:8] == b"UGACNT01", "SELF_IMAGE_SOURCE")
+    version, revision, count, clips, frames, stride = struct.unpack_from("<6I", raw, 8)
+    require(version == 1 and revision > 0 and count == len(parts) and 1 <= clips <= P.content.MAX_CLIPS and
+            1 <= frames <= P.content.MAX_FRAMES and stride == sum(max(1, p["binds"]) * 12 for p in parts) and
+            frames * (stride + 1) <= P.content.MAX_SCALARS, "SELF_IMAGE_CENSUS")
+    at = 184
+    for part in parts:
+        binds, vertices, surfaces, attachment = struct.unpack_from("<4I", raw, at)
+        require((binds, vertices, surfaces, attachment) == (part["binds"], sum(len(s["points"]) for s in part["geometry"]),
+                len(part["geometry"]), int(part["kind"] == "attachment")) and
+                raw[at+16:at+48] == P.content.geometry_fingerprint(part), "SELF_IMAGE_GEOMETRY")
+        at += 72
+    table = [struct.unpack_from("<4I", raw, at + 48 * clip) for clip in range(clips)]
+    at += clips * 48
+    require(at + frames * (stride + 1) * 4 + 8 == len(raw) and raw[-8:] == b"UGAEND01", "SELF_IMAGE_FOOTER")
+    matrices = np.frombuffer(raw, dtype="<f4", count=frames * stride, offset=at).reshape(frames, stride // 12, 12)
+    grounding = np.frombuffer(raw, dtype="<f4", count=frames, offset=at + frames * stride * 4)
+    require(np.all(np.isfinite(matrices)) and np.all(np.isfinite(grounding)), "SELF_IMAGE_FINITE")
+    next_frame = 0
+    result = []
+    for first, size, loop, duration in table:
+        require(first == next_frame and size >= 2 and first + size <= frames and loop <= 1 and
+                (size - 2) * 65536 < duration <= (size - 1) * 65536, "SELF_IMAGE_PREFIX")
+        result.append({"matrices": matrices[first:first+size], "grounding": grounding[first:first+size], "frames": size})
+        next_frame += size
+    require(next_frame == frames, "SELF_IMAGE_PREFIX")
+    return result
+
+
+def projected_separation(al: np.ndarray, ah: np.ndarray, bl: np.ndarray, bh: np.ndarray, axis: np.ndarray) -> bool:
+    """An integer direction is sufficient; exact projections prove separation even if its construction was approximate."""
+    require(axis.shape == (3,) and np.all(np.abs(axis) <= AXIS_Q) and np.any(axis), "SELF_AXIS")
+    amin = int(np.sum(np.where(axis >= 0, al, ah) * axis, axis=-1).min())
+    amax = int(np.sum(np.where(axis >= 0, ah, al) * axis, axis=-1).max())
+    bmin = int(np.sum(np.where(axis >= 0, bl, bh) * axis, axis=-1).min())
+    bmax = int(np.sum(np.where(axis >= 0, bh, bl) * axis, axis=-1).max())
+    return amax < bmin or bmax < amin
+
+
+def candidate_axes(al: np.ndarray, ah: np.ndarray, bl: np.ndarray, bh: np.ndarray):
+    """Only directions are approximate; every accepted proof is checked again with bounded integer arithmetic."""
+    for axis in np.eye(3, dtype=np.int64):
+        yield axis
+    a, b = (al.astype(np.float64) + ah) / 2, (bl.astype(np.float64) + bh) / 2
+    for at in range(3):
+        aa = a[at] if at < 2 else (a[0] + a[1]) / 2
+        bb = b[at] if at < 2 else (b[0] + b[1]) / 2
+        ae, be = np.roll(aa, -1, axis=0) - aa, np.roll(bb, -1, axis=0) - bb
+        an, bn = np.cross(ae[0], ae[1]), np.cross(be[0], be[1])
+        axes = [an, bn] + [np.cross(x, y) for x in ae for y in be]
+        axes += [np.cross(an, x) for x in ae] + [np.cross(bn, x) for x in be]
+        for direction in axes:
+            magnitude = float(np.max(np.abs(direction)))
+            if magnitude > 0:
+                axis = np.rint(direction / magnitude * AXIS_Q).astype(np.int64)
+                if np.any(axis):
+                    yield axis
+
+
+def separated(al: np.ndarray, ah: np.ndarray, bl: np.ndarray, bh: np.ndarray, counter: list[int], depth: int = 0) -> bool:
+    counter[0] += 1
+    require(counter[0] <= MAX_CHECKS, "SELF_CHECK_CAPACITY")
+    for value in (al, ah, bl, bh):
+        require(value.shape == (2, 3, 3) and value.dtype == np.int64 and
+                np.all(value > -(1 << 29)) and np.all(value < (1 << 29)), "SELF_INTEGER_CAPACITY")
+    require(np.all(al <= ah) and np.all(bl <= bh), "SELF_INTERVAL_ORDER")
+    # At each common interpolation time subtract the same affine trajectory
+    # from both triangles. This cannot change their intersection. It removes
+    # shared arm/root translation without falsely comparing different times,
+    # keeping the exact endpoint interval residuals and all triangle interiors.
+    origin = (al[:, 0] + ah[:, 0]) // 2
+    al, ah, bl, bh = (value - origin[:, None, :] for value in (al, ah, bl, bh))
+    require(all(np.all(value > -(1 << 29)) and np.all(value < (1 << 29)) for value in (al, ah, bl, bh)),
+            "SELF_RELATIVE_CAPACITY")
+    if any(projected_separation(al, ah, bl, bh, axis) for axis in candidate_axes(al, ah, bl, bh)):
+        return True
+    if depth >= MAX_DEPTH:
+        return False
+    am_l, am_h = (al[0] + al[1]) // 2, -(-(ah[0] + ah[1]) // 2)
+    bm_l, bm_h = (bl[0] + bl[1]) // 2, -(-(bh[0] + bh[1]) // 2)
+    return separated(np.stack([al[0], am_l]), np.stack([ah[0], am_h]), np.stack([bl[0], bm_l]),
+                     np.stack([bh[0], bm_h]), counter, depth + 1) and \
+        separated(np.stack([am_l, al[1]]), np.stack([am_h, ah[1]]), np.stack([bm_l, bl[1]]),
+                  np.stack([bm_h, bh[1]]), counter, depth + 1)
+
+
+def head_triangle_ids(body: dict, triangles: np.ndarray, rig: dict) -> np.ndarray:
+    """Include every triangle with any positive actual neck/head influence; no estimated head AABB or excluded neck."""
+    bones = rig["bones"]
+    require(type(bones) is list and len(bones) == 24 and all(b.get("bone") == at and b.get("bind") == at and
+            type(b.get("parent")) is int and -1 <= b["parent"] < at for at, b in enumerate(bones)), "SELF_RIG_CENSUS")
+    neck = [b["bone"] for b in bones if b["name"] == "neck"]
+    require(len(neck) == 1, "SELF_HEAD_IDENTITY")
+    head_bones = {neck[0]}
+    for bone in bones:
+        if bone["parent"] in head_bones:
+            head_bones.add(bone["bone"])
+    geometry = body["geometry"][0]
+    influenced = np.any(np.isin(geometry["ids"], list(head_bones)) & (geometry["weights"] > 0), axis=1)
+    return np.flatnonzero(np.any(influenced[triangles], axis=1))
+
+
+def body_triangle_ids(body: dict, triangles: np.ndarray, rig: dict) -> tuple[np.ndarray, int]:
+    """Keep the entire body except triangles wholly inside the exact authored right-palm grip patch.
+
+    The shared source deliberately grips/intersects the held shaft. Mixed wrist
+    triangles are retained. This exclusion grants no world-volume permission:
+    both complete original meshes still contribute to their physical profiles.
+    """
+    points = body["geometry"][0]
+    hand = int(rig["right_hand"])
+    bind = P._affine64(np.asarray(rig["bones"][hand]["inverse_bind"], dtype=np.float32))
+    shares = np.sum(np.where(points["ids"] == hand, points["weights"], 0), axis=1)
+    local = points["points"].astype(np.float64) @ bind[:3, :3].T + bind[:3, 3]
+    changed = (shares > 0) & (local[:, 1] > .025)
+    require(int(changed.sum()) == 845, "SELF_AUTHORED_GRIP_PATCH_DRIFT")
+    omitted = np.all(changed[triangles], axis=1)
+    return np.flatnonzero(~omitted), int(omitted.sum())
+
+
+def prove(case: dict, geometry: list[dict], topology: list, rig: dict, roots: list[int], area: str = "head") -> dict:
+    require(len(geometry) == 2 and all(len(p["geometry"]) == 1 for p in geometry), "SELF_SOURCE_CENSUS")
+    head_ids = head_triangle_ids(geometry[0], topology[0][0], rig)
+    omitted = 0
+    if area == "body":
+        head_ids, omitted = body_triangle_ids(geometry[0], topology[0][0], rig)
+    triangles = [topology[0][0][head_ids], topology[1][0]]
+    endpoints = [[], []]
+    offset = 0
+    for which, part in enumerate(geometry):
+        count = max(1, part["binds"])
+        matrices = case["matrices"][:, offset:offset+count]
+        raw = P._vertex_hulls(part, matrices, case["grounding"])
+        padding, _ = P._residual_padding(part, matrices, case["grounding"], roots, raw)
+        for frame in range(case["frames"]):
+            low, high = P._vertex_hulls(part, matrices[frame:frame+1], case["grounding"][frame:frame+1])[0]
+            endpoints[which].append((low[triangles[which]] - padding, high[triangles[which]] + padding))
+        offset += count
+    unresolved, counter, pairs = [], [0], 0
+    for frame in range(case["frames"] - 1):
+        alo, ahi = np.stack([endpoints[0][frame][0], endpoints[0][frame+1][0]], axis=1), np.stack([endpoints[0][frame][1], endpoints[0][frame+1][1]], axis=1)
+        blo, bhi = np.stack([endpoints[1][frame][0], endpoints[1][frame+1][0]], axis=1), np.stack([endpoints[1][frame][1], endpoints[1][frame+1][1]], axis=1)
+        amin, amax = alo.min(axis=(1, 2)), ahi.max(axis=(1, 2))
+        bmin, bmax = blo.min(axis=(1, 2)), bhi.max(axis=(1, 2))
+        for tool in range(len(blo)):
+            possible = np.flatnonzero(np.all(amin <= bmax[tool], axis=1) & np.all(amax >= bmin[tool], axis=1))
+            for body in possible:
+                pairs += 1
+                if not separated(alo[body], ahi[body], blo[tool], bhi[tool], counter):
+                    unresolved.append({"interval": frame, "body_triangle": int(head_ids[body]), "tool_triangle": tool})
+                    if len(unresolved) >= 32:
+                        return {"clear": False, "unresolved": unresolved, "checks": counter[0], "pairs": pairs, "stopped_at_limit": True}
+    return {"clear": not unresolved, "unresolved": unresolved, "checks": counter[0], "pairs": pairs,
+            "body_triangles": len(head_ids), "intentional_grip_triangles": omitted,
+            "tool_triangles": len(triangles[1]), "intervals": case["frames"] - 1}
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("analysis", type=Path)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--area", choices=["head", "body"], default="head")
+    args = parser.parse_args()
+    require(not args.out.exists() and not args.out.is_symlink(), "SELF_OUTPUT_EXISTS")
+    command = json.loads((args.analysis / "invocation.json").read_text())["command"]
+    def value(key):
+        return command[command.index("--" + key) + 1]
+    proof = P.content.read_json(Path(value("proof")), value("proof-sha256"))
+    plan = P.content.read_json(Path(value("plan")), value("plan-sha256"), 65536)
+    original, _, pins = P.content.extract(Path(value("source")), value("source-sha256"), proof, plan, Path(value("import-archive")))
+    native = P.content.read_json(Path(value("topology")), value("topology-sha256"), P.MAX_TOPOLOGY_BYTES)
+    topology = P.read_topology(Path(value("topology")), value("topology-sha256"), value("content-sha256"), original[0]["geometry"])
+    compilation = json.loads((args.analysis / "result/compilation.json").read_text())
+    image = args.analysis / "result/mole-worker.ugactor"
+    cases = read_image(image, compilation["content_sha256"], original[0]["geometry"])
+    results = {str(clip): prove(cases[clip], original[0]["geometry"], topology, native["rig_binding"],
+                               plan["world_root_bounds_u"], args.area) for clip in (6, 7)}
+    report = {"schema": 1, "image_sha256": compilation["content_sha256"], "source_sha256": value("source-sha256"),
+              "topology_sha256": value("topology-sha256"), "verified_source_files": pins, "clips": results,
+              "source_scope": "all body except wholly authored palm-grip triangles" if args.area == "body" else
+                              "every triangle with any positive neck/head influence against the complete actual pick",
+              "production_qualified": False, "producer_sources": {str(Path(p)): P.content.file_hash(Path(p)) for p in
+                                                                    (__file__, P.__file__, P.envelope.__file__)}}
+    args.out.write_text(json.dumps(report, indent=2) + "\n")
+    print(json.dumps(results, indent=2))
+
+
+if __name__ == "__main__":
+    main()

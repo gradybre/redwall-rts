@@ -1,6 +1,6 @@
 # Underground modular building implementation
 
-Brendan authorized implementation of all approved D01–D28 and concurrent
+Brendan authorized implementation of all approved D01–D28 (with D29 direct-on-dirt clarification) and concurrent
 subagents on 2026-10-02. Decision
 [1051](../decisions/1051-underground-build-lanes-and-integration.md) records
 branch safety, ownership, the scheduling contract and discovered owner gaps.
@@ -28,7 +28,8 @@ python3 tools/underground_build_queue.py ready
 | UG18 | Room-purpose catalog and furnishing compatibility | UG01, UG03 |
 | UG07 | Real room/equipment order coordinator | UG01, UG03, UG06, UG18 |
 | UG08 | Multilevel occupancy, support, fixed connector catalog | UG01; compose with UG06 at UG09 |
-| UG09 | **First playable checkpoint: blueprint → workers → empty Kitchen** | UG04–08 |
+| UG19 | Direct terrain painting and in-world preview | UG04, UG05 |
+| UG09 | **First playable checkpoint: blueprint → workers → empty Kitchen** | UG04–08, UG19 |
 | UG10 | Furnishing modes, real services and optional example guides | UG07, UG09 |
 | UG11 | Two-level rooms, section painting, stairs and extra entrances | UG08, UG09 |
 | UG12 | Safe structural amendments and Apply/Discard/Keep editing | UG02, UG06, UG09 |
@@ -67,6 +68,21 @@ The UG08 geometry increment now runs independently of excavation. It validates
 explicit spatial input; UG09 still requires both the physical construction and
 spatial owners. Production connector authoring, measured profiles and live
 binding remain part of UG08/UG09 qualification, not implied by synthetic tests.
+
+D29 explicitly requires drawing on the dirt in the selected world view.
+The component test board is not the playable interaction. UG19 extracts the
+independent camera/pointer/terrain-preview work from UG09 while physical owners
+continue. Confirmation still depends on the integrated construction coordinator.
+
+The next source checkpoint `97a95b92` ran 9,289 tests / 619,925 assertions and
+correctly failed one obsolete ReservationPurpose domain-count assertion; all
+unexpected diagnostics and leaks remained zero. The full analyzer found zero
+warnings in 1,046 files. The exact failed log is retained under
+[checkpoint-97a95b92](../design/underground-planning/evidence/modular-build/checkpoint-97a95b92/).
+The narrow append-only enum test correction passes 33 tests /178 assertions;
+the separate canonical RoomProjects declaration fix passes its independent
+checks (decision1060). Neither focused fix retroactively makes that full run pass.
+New full/CI validation is required for the assembled source.
 
 The full build is not complete until all 107 criteria work in the actual demo.
 Retain real worker routing, materials, tool checks, physical cut history,

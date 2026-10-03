@@ -64,5 +64,5 @@ workflow. Full integration checkpoints record their exact source separately.
 ## Source
 
 AGENTS.md integer/SoA/EntityRef requirements; decision 1053; the persistent-state
-classification in `docs/state_registry.md`; `.github/workflows/tests.yml`
+classification in `docs/persistence_state_registry.md`; `.github/workflows/tests.yml`
 source-to-canonical gate; the user's approved project revision/save behavior.

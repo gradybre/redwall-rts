@@ -269,7 +269,7 @@
     {
       "id": "UG18",
       "title": "Room-purpose catalog and furnishing compatibility",
-      "status": "running",
+      "status": "verified",
       "depends_on": [
         "UG01",
         "UG03"
@@ -298,9 +298,16 @@
       ],
       "agent": "/root/ug_geometry",
       "branch": "codex/underground-catalog",
-      "evidence": {},
+      "evidence": {
+        "commit": "7eb73cf0474334d9d465bdc02532bff009daa03a",
+        "tests": "14 test(s),606 assertion(s),0 failure(s); strict singleton after clean import",
+        "diagnostics": "0 unexpected errors/warnings;0 expected/tolerated;0 leaked objects/resources; analyzer0/2 files",
+        "review": "root independent source/test review:8 purposes,9 items,exact bills/work/2m footprints,shared fittings vs scoped services,permanent type,counts/area,undefined oven refusal",
+        "integration": "616cf07c source and836097f1 registry, unchanged; final fullcheckpoint pending"
+      },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "ug_geometry final response,7eb73cf0/90441126,cleancatalogworktree,no furtherUG18writes"
       }
     },
     {
@@ -395,6 +402,46 @@
       }
     },
     {
+      "id": "UG19",
+      "title": "Direct terrain painting and in-world room preview",
+      "status": "running",
+      "depends_on": [
+        "UG04",
+        "UG05"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_world_tool.gd",
+        "godot/demo/burrow/modular_world_overlay.gd",
+        "godot/demo/burrow/modular_editor.gd",
+        "godot/test/test_modular_world_tool.gd",
+        "godot/test/live/modular_world_live.gd",
+        "docs/decisions/1061-in-world-room-painting.md",
+        "docs/design/underground-planning/evidence/modular-build/world/"
+      ],
+      "requirements": [
+        "UG-SHAPE-001",
+        "UG-SHAPE-002",
+        "UG-SHAPE-003",
+        "UG-SHAPE-004",
+        "UG-SHAPE-005",
+        "UG-VIEW-001",
+        "UG-VIEW-002",
+        "UG-VIEW-003",
+        "UG-VIEW-004"
+      ],
+      "acceptance": [
+        "Pointer paints actual selected-level dirt through live Camera3D projection; overlay uses same explicit integer domain/datum",
+        "GUI/modal/camera/focus/level-switch capture preserves valid draft without accidental world commands",
+        "Native1280x720 integration fixture proves world alignment; actual construction confirmation still requiresUG09 owner binding"
+      ],
+      "agent": "/root",
+      "branch": "codex/underground-world-paint",
+      "evidence": {},
+      "lease": {
+        "state": "held"
+      }
+    },
+    {
       "id": "UG09",
       "title": "First playable blueprint to empty Kitchen",
       "status": "queued",
@@ -403,7 +450,8 @@
         "UG05",
         "UG06",
         "UG07",
-        "UG08"
+        "UG08",
+        "UG19"
       ],
       "owns": [
         "godot/demo/burrow/modular_runtime.gd",
@@ -431,7 +479,8 @@
         "D20 first checkpoint: user can paint/confirm Kitchen; real workers dig and finish an EMPTY shell",
         "Entrance suggestion and manual adjustment; no template/silent passage fallback",
         "Actual native 1280x720 input and before/during/after screenshots reviewed",
-        "Activate no production cut until the physical-space owner supplies real dry/support/contact and canonical paid-volume bindings"
+        "Activate no production cut until the physical-space owner supplies real dry/support/contact and canonical paid-volume bindings",
+        "D29: actual world dirt is the drawing surface; no separate canvas. Same level datum for picking, overlay and excavation; camera/UI/modal interaction verified."
       ],
       "agent": null,
       "branch": null,
@@ -894,6 +943,25 @@
       "analyzer": "0 warnings in 0 of 1034 files",
       "procedure": "assets aside, delete own .godot, clean editor import, no-argument ./tools/run_tests.sh, restore assets",
       "seconds": 1179.5
+    },
+    {
+      "commit": "97a95b921536f72178e7c1bc7f1a968ff25960e4",
+      "outcome": "failed",
+      "full_suite": "9289 test(s),619925 assertion(s),1 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272expected;353tolerated;0 leakedobjects/resources; wrapperstopsbefore rawsummaryonassertionfailure",
+      "analyzer": "0 warnings in0 of1046files",
+      "procedure": "assets aside;delete .godot;cleaneditorimport;fullnoargumentrunner;restoreassets",
+      "seconds": 1183.9,
+      "fix": "ReservationPurpose explicitoldcount3\u21924 plus appendedID3 pinned in6dd9e529;focused33tests178assertallzero. Canonicalmembership CI gap fixed29f78a3c; exact11newfields, no gateweakening."
+    }
+  ],
+  "crosscut_fixes": [
+    {
+      "commit": "29f78a3c",
+      "scope": "RoomProjects canonical declaration",
+      "review": "ug_geometry independent review,no blockers",
+      "tests": "52 canonical tests/3678assertions and20projecttests/301assertions allzero;190capacitychecks0fail;31framingfixtures;566fields53owners615records;zeroanalyzerwarnings/2files",
+      "integration": "unchanged ff; declarationonly, real save binding remainsUG16"
     }
   ]
 }

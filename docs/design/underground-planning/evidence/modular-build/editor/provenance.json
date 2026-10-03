@@ -1,0 +1,18 @@
+{
+  "base_commit": "979b4141c2767c20f77afcebb078f96176bcf67a",
+  "branch": "codex/underground-editor",
+  "source_sha256": {
+    "godot/demo/burrow/modular_draft.gd": "f5d302b89cdbf2b1af550d8f3c32c3673e722efff7a70bcff646d8595b35ecc4",
+    "godot/demo/burrow/modular_editor.gd": "ca2f83ab7eddcebb908df6bfdb8ad87bfdde3584b9520257342334d44cb318ed",
+    "godot/test/test_modular_draft.gd": "925c6ddc1c215ce253914ee5f332cc2b62045ffe9a5914329c563506942a5045",
+    "godot/test/test_modular_editor.gd": "ffa325dd0305120416979596384b2c616e257836e731261ed18c6c171dc7fadf",
+    "godot/test/live/modular_editor_live.gd": "2b65292265626d0a944b1af0861e4354fcd115a488ce6816629c05ad43b6cf7b"
+  },
+  "engine": "Godot4.7.2.stable.official.ed1daf0bf",
+  "scope": "actual component controls/native input; synthetic grid and coordinator; NOT village or excavation evidence",
+  "native_command": "godot --path godot --script res://test/live/modular_editor_live.gd -- --capture <this directory>",
+  "native_summary": "MODULAR-EDITOR-SUMMARY 53 checks, 0 failures",
+  "headless_summary": "MODULAR-EDITOR-SUMMARY 50 checks, 0 failures",
+  "review": "ug_furnishing independent source review; callback identity/mutation finding fixed and retested; root inspected all three native captures, added12px padding and rechecked",
+  "source_state": "source hashes identify final candidate before commit; no code edits after final captures/tests"
+}

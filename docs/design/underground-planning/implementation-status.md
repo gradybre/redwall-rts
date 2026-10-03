@@ -72,10 +72,18 @@ captures on unstaged demo placeholders. See the [32 live checks](evidence/live-w
 and [capture provenance](evidence/provenance.json). These show the confirmation
 interaction, not final room art or completed modular construction.
 
-Before integrating the newer route work, the complete no-argument suite passed
-9,094 tests and 605,134 assertions with zero failures, unexpected diagnostics or
-leaked objects/resources. The analyzer found zero warnings in 1,021 files.
-See [full-run evidence](evidence/full-suite.txt) and [analyzer output](evidence/gdscript-warnings.json).
-The combined latest-master result will replace this initial validation.
+The integrated complete no-argument suite passed **9,138 tests, 612,134
+assertions, zero failures**, with **zero unexpected errors/warnings and zero
+leaked objects/resources** (272 expected diagnostics; 353 tolerated notices).
+The clean import and full run took 1,186.0 seconds locally. The integrated
+analyzer reported **0 GDScript warnings in 1,028 files**.
+
+See [full-run evidence](evidence/full-suite.txt), [analyzer output](evidence/gdscript-warnings.txt),
+and the [14 passing CI checks](evidence/ci-checks.json) on runtime/test source
+commit `92fcf82a`. Test and diagnostic totals match between the full local run
+and CI; assertions differ by 11. [The comparison](evidence/validation-comparison.md)
+records the platform-binding difference, the one unattributed assertion and
+the exact match for the seven directly relevant suites. The work is in [draft PR #229](https://github.com/gradybre/redwall-rts/pull/229).
+
 Historical screenshots in the initial review retain their original provenance
 and are not new-build evidence.

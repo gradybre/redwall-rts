@@ -202,5 +202,7 @@ The construction/revision interaction choices through D28 are settled for
 this checkpoint. The next review is the concrete blueprint-to-empty-shell
 walkthrough above, followed by the remaining small playthrough checkpoints.
 Technical bounds, catalogs and runtime evidence remain owner work; this is
-not a claim of implementation readiness or verified game behavior. The existing
-gameplay-code edit restrictions remain in force.
+not a claim of implementation readiness or verified game behavior. Brendan's
+subsequent build instruction authorizes the relevant gameplay changes on the
+isolated Codex branch; see the [working agreement](README.md). The branch,
+shared-checkout and paid-generation restrictions still apply.

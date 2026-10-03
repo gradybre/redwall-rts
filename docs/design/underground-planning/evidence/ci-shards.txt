@@ -1,0 +1,8 @@
+CI run: https://github.com/gradybre/redwall-rts/actions/runs/37082107961
+Source commit: 92fcf82a32eba7daf57926a0554100322e288855
+Command: python3 tools/ci_test_shards.py verify --reports /tmp/redwall-underground-ci-37082107961/combined --count 8
+ok: 298 suite files executed exactly once across 8 shards
+{"baseline_matches": false, "counts": {"assertions": 612123, "expected": 272, "failures": 0, "leaked_objects": 0, "leaked_resources": 0, "tests": 9138, "tolerated": 353, "unexpected_errors": 0, "unexpected_warnings": 0}, "shard_count": 8, "suite_count": 298, "version": 1, "wall_seconds": [253, 284, 287, 346, 226, 307, 272, 304]}
+
+No baseline log was supplied to this coverage audit, so baseline_matches is false.
+See full-suite.txt for the separate macOS full run.

@@ -201,8 +201,9 @@ its services under REQ-SET-129; an unaffected corner cannot bypass that rule.
 | UG-SURFACE-011 | Affected furniture, goods, occupants, claims and services shall be resolved through their owning rules before conflicting renovation work proceeds; unresolved access, clearing or material requirements shall produce a visible blocker rather than unapproved displacement or deletion. |
 | UG-SURFACE-012 | Renovation presentation and saved state shall preserve actual installed finishes, committed partial work and material accounts through interruption, cancellation and reload; they shall not imply instantaneous completion, duplicate recovery or rollback of already performed work. |
 
-This adds renovation to the feature plan, not gameplay implementation
-authorization. Reuse the completed first fixture for a focused follow-up check
+This added renovation to the feature plan during design approval. The later
+build instruction recorded in the [working agreement](README.md) authorizes
+implementation. Reuse the completed first fixture for a focused follow-up check
 before extending renovation across the whole material/room catalog.
 
 ## Construction and selected finishes — approved D08

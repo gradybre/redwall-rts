@@ -9,12 +9,52 @@ const Router := preload("res://scripts/core/modular_projects.gd")
 const SpaceOwner := preload("res://scripts/core/underground_space_owner.gd")
 const RoomSpace := preload("res://scripts/core/room_space.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
+const Footprint := preload("res://scripts/core/room_footprint.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"UNDERGROUND_ROOM_OWNER_UNBOUND"
 const REFUSE_FURNITURE: StringName = &"UNDERGROUND_PENDING_FURNITURE_REQUIRED"
 const REFUSE_TRANSITION: StringName = &"UNDERGROUND_ROOM_TRANSITION_NOT_PREPARED"
+const REFUSE_PLAN: StringName = &"UNDERGROUND_ROOM_PLAN_INVALID"
+## Local RoomOrders stage only; never passed as a ModularContract operation/action ordinal.
+const ROOM_ADMISSION_STAGE: int = 100
+
+class RoomPlan extends RefCounted:
+
+	## Caller data describes the exact painted shape, not physical cuts or qualification.
+	## Cells remain canonical [x,z] indices with an explicit world transform. A finer painted
+	## outline is never snapped to the separate ECON-001 physical cut lattice.
+	var world: Vector2i = NULL_REF
+	var space_revision: int = 0
+	var room_type: int = -1
+	var level: int = -1
+	var origin_u: Vector3i = Vector3i.ZERO
+	var cell_size_u: int = 0
+	var height_u: int = 0
+	var cells: PackedInt32Array = PackedInt32Array()
+
+	func copy_from(source: RoomPlan) -> void:
+		"""Snapshot caller cells only after the exact shared cold peak is acquired."""
+		world = source.world
+		space_revision = source.space_revision
+		room_type = source.room_type
+		level = source.level
+		origin_u = source.origin_u
+		cell_size_u = source.cell_size_u
+		height_u = source.height_u
+		cells = source.cells.duplicate()
+
+	func reset() -> void:
+		"""Drop the operation's copied cells before releasing the shared cold lease."""
+		world = NULL_REF
+		space_revision = 0
+		room_type = -1
+		level = -1
+		origin_u = Vector3i.ZERO
+		cell_size_u = 0
+		height_u = 0
+		cells.clear()
 
 class Bindings extends RefCounted:
 
@@ -22,6 +62,30 @@ class Bindings extends RefCounted:
 			_world: Vector2i) -> bool:
 		"""Prove actual World owners and the admitted joint live/cold budget; base grants nothing."""
 		return false
+
+	func begin_room_cold(_plan: RoomPlan) -> StringName:
+		"""Acquire plan-copy, Footprint dictionary/native and spatial/companion peak before any copies."""
+		return REFUSE_BINDING
+
+	func room_plan_refusal(_plan: RoomPlan, _room: Vector2i, _space_token: int) -> StringName:
+		"""Prove current actual terrain/level/support/profile and separate whole paid-cut coverage; stage companions."""
+		return REFUSE_BINDING
+
+	func room_prepared_refusal(_plan: RoomPlan, _room: Vector2i, _space_token: int) -> StringName:
+		"""Recheck actual source/contact revisions and every prepared companion before identity publication."""
+		return REFUSE_BINDING
+
+	func discard_room_plan(_room: Vector2i, _space_token: int) -> void:
+		"""Drop only this exact room companion; accepted claims from other Rooms remain live."""
+		assert(false, "Unbound room bindings cannot retain a plan")
+
+	func publish_room_plan(_room: Vector2i, _space_token: int) -> void:
+		"""Publish only in the exact room-admission callback after identity and sealed marker geometry commit."""
+		assert(false, "Unbound room bindings cannot publish a plan")
+
+	func end_room_cold() -> void:
+		"""Release the exact current room lease only after all copied plan/companion/Space scratch drops."""
+		assert(false, "Unbound room bindings cannot own the shared cold lease")
 
 	func admission_refusal(_room: Vector2i, _furniture: Vector2i, _type_id: int) -> StringName:
 		"""Prepare completed shell, actual fitted geometry, room-purpose access and source qualification."""
@@ -91,6 +155,8 @@ var _stage_token: int = 0
 var _cold_held: bool = false
 var _publishing: bool = false
 var _math: IntMath.IntResult = IntMath.IntResult.new()
+var _room_plan: RoomPlan = RoomPlan.new()
+var _room_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
 
 
 func configure(router: Router, space: SpaceOwner, sources: SpaceOwner.CoreSources,
@@ -170,11 +236,209 @@ func _actual_bindings() -> Bindings:
 
 func binding_refusal() -> StringName:
 	"""Late World retirement, foreign wiring or expired owners fail before any productive mutation."""
+	var code: StringName = _identity_binding_refusal()
+	return code if code != &"" else (&"" if _actual_bindings() != null else REFUSE_BINDING)
+
+
+func _identity_binding_refusal() -> StringName:
+	"""Read actual local owner identity without invoking a provider callback inside publication attestation."""
 	if _ready_error != &"" or _construction == null or _buildings.spatial_authority() != self \
 			or _construction.buildings() != _buildings or not _space.is_bound_sources(_sources) \
 			or not _construction.directory().is_valid_of_kind(_world, Directory.KIND_WORLD):
 		return REFUSE_BINDING
-	return &"" if _actual_router() != null and _actual_bindings() != null else REFUSE_BINDING
+	return &"" if _actual_router() != null and _bindings != null \
+		and _bindings.get_ref() is Bindings else REFUSE_BINDING
+
+
+func confirm_room(plan: RoomPlan) -> Buildings.OpResult:
+	"""Confirm one exact painted plan as a real reserved Room; no excavation or services are completed."""
+	if _stage_action != -1:
+		return Buildings.OpResult.new(false, REFUSE_TRANSITION, 0, NULL_REF)
+	_stage_action = ROOM_ADMISSION_STAGE
+	var code: StringName = _room_input_refusal(plan)
+	var bindings: Bindings = _actual_bindings() if code == &"" else null
+	if code != &"" or bindings == null:
+		_clear_stage()
+		return Buildings.OpResult.new(false, code if code != &"" else REFUSE_BINDING, 0, NULL_REF)
+	code = bindings.begin_room_cold(plan)
+	if code != &"":
+		_clear_stage()
+		return Buildings.OpResult.new(false, code, 0, NULL_REF)
+	_cold_held = true
+	code = _room_input_refusal(plan)
+	if code == &"":
+		_room_plan.copy_from(plan)
+		code = _prepare_room(bindings)
+	if code == &"" and not _same_room_plan(plan):
+		code = REFUSE_PLAN
+	if code != &"":
+		_discard_room(bindings)
+		return Buildings.OpResult.new(false, code, 0, NULL_REF)
+	return _publish_room(bindings)
+
+
+func _room_input_refusal(plan: RoomPlan) -> StringName:
+	"""Bound input shape/scalars before cold admission; finer cells and exact height remain authored data."""
+	if binding_refusal() != &"":
+		return REFUSE_BINDING
+	if plan == null or plan.world != _world or plan.space_revision != _space.revision() \
+			or plan.room_type < 0 or plan.room_type >= Buildings.ROOM_TYPE_COUNT \
+			or plan.level < 0 or plan.level > RoomSpace.I32_MAX \
+			or plan.cell_size_u < 1 or plan.cell_size_u > RoomSpace.I32_MAX \
+			or plan.height_u < 1 or plan.height_u > RoomSpace.I32_MAX \
+			or int(plan.origin_u.y) + plan.height_u > RoomSpace.I32_MAX \
+			or plan.cells.size() < 2 or plan.cells.size() % 2 != 0 \
+			or plan.cells.size() > Footprint.MAX_OPERATION_CELLS * 2:
+		return REFUSE_PLAN
+	return &""
+
+
+func _same_room_plan(plan: RoomPlan) -> bool:
+	"""A synchronous caller/binding cannot change the confirmed request after its owned snapshot."""
+	return plan != null and plan.world == _room_plan.world and plan.space_revision == _room_plan.space_revision \
+		and plan.room_type == _room_plan.room_type and plan.level == _room_plan.level \
+		and plan.origin_u == _room_plan.origin_u and plan.cell_size_u == _room_plan.cell_size_u \
+		and plan.height_u == _room_plan.height_u and plan.cells == _room_plan.cells
+
+
+func _prepare_room(bindings: Bindings) -> StringName:
+	"""Pin future identity, exact marker geometry and mandatory actual-world proofs before any live write."""
+	var code: StringName = _construction.directory().peek_create_into(Directory.KIND_ROOM, _room_candidate)
+	if code != &"":
+		return code
+	_stage_room = _room_candidate.ref
+	code = _prepare_room_geometry()
+	if code == &"":
+		code = bindings.room_plan_refusal(_room_plan, _stage_room, _stage_token)
+	if code == &"":
+		code = _space.seal(_stage_token)
+	if code == &"":
+		code = bindings.room_prepared_refusal(_room_plan, _stage_room, _stage_token)
+	if code == &"":
+		code = binding_refusal()
+	if code == &"":
+		code = _space.prepared_refusal(_stage_token)
+	if code == &"":
+		code = _buildings.spatial_room_candidate_refusal(_room_plan.room_type, _room_candidate)
+	return code
+
+
+func _prepare_room_geometry() -> StringName:
+	"""Preserve finer painted cells and holes; actual cut coverage is a separate mandatory provider proof."""
+	var domain: RoomSpace.Domain = _space.domain_copy()
+	if domain == null:
+		return REFUSE_BINDING
+	var descriptor: Dictionary = domain.descriptor()
+	if descriptor.world_ref != _world:
+		return REFUSE_BINDING
+	var code: StringName = Footprint.validation_error(_room_plan.cells, descriptor.max_cells, true)
+	if code != &"":
+		return code
+	var begun: SpaceOwner.Result = _space.begin_stage(_room_plan.space_revision)
+	if begun.error != &"":
+		return begun.error
+	_stage_token = begun.token
+	code = _space.stage_room_admission(_stage_token, _room_candidate, _room_plan.room_type, self)
+	if code != &"":
+		return code
+	return _stage_room_runs(descriptor.bounds_u)
+
+
+func _stage_room_runs(bounds: PackedInt32Array) -> StringName:
+	"""Claim contiguous canonical X runs; absent cells remain absent even inside the outer bounds."""
+	var start: int = 0
+	while start < _room_plan.cells.size():
+		var end: int = start + 2
+		while end < _room_plan.cells.size() and _room_plan.cells[end + 1] == _room_plan.cells[start + 1] \
+				and _room_plan.cells[end] == _room_plan.cells[end - 2] + 1:
+			end += 2
+		var code: StringName = _stage_room_run(start, end, bounds)
+		if code != &"":
+			return code
+		start = end
+	return &""
+
+
+func _room_run_box(start: int, end: int) -> PackedInt32Array:
+	"""Use int64 transforms and refuse int32 overflow before packing; never round a painted edge."""
+	var low_x: int = int(_room_plan.origin_u.x) + int(_room_plan.cells[start]) * _room_plan.cell_size_u
+	var low_z: int = int(_room_plan.origin_u.z) + int(_room_plan.cells[start + 1]) * _room_plan.cell_size_u
+	var high_x: int = int(_room_plan.origin_u.x) + (int(_room_plan.cells[end - 2]) + 1) * _room_plan.cell_size_u
+	var high_z: int = low_z + _room_plan.cell_size_u
+	if not RoomSpace.int32(low_x) or not RoomSpace.int32(low_z) \
+			or not RoomSpace.int32(high_x) or not RoomSpace.int32(high_z):
+		return PackedInt32Array()
+	return PackedInt32Array([low_x, _room_plan.origin_u.y, low_z, high_x,
+		int(_room_plan.origin_u.y) + _room_plan.height_u, high_z])
+
+
+func _stage_room_run(start: int, end: int, bounds: PackedInt32Array) -> StringName:
+	"""Add floor metadata and its exact Room marker; neither is supported void or an unpaid physical cut."""
+	var box: PackedInt32Array = _room_run_box(start, end)
+	if not RoomSpace.contains_box(bounds, box):
+		return REFUSE_PLAN
+	var region: SpaceOwner.Region = SpaceOwner.Region.new()
+	region.owner = _stage_room
+	region.level = _room_plan.level
+	region.role = RoomSpace.FLOOR_DATUM
+	region.box = box.duplicate()
+	region.box[4] = region.box[1] + 1
+	var floor_result: SpaceOwner.Result = _space.stage_add(_stage_token, region)
+	if floor_result.error != &"":
+		return floor_result.error
+	region.role = RoomSpace.OBSTACLE
+	region.box = box
+	region.section = floor_result.handle
+	region.claim_kind = SpaceOwner.CLAIM_ROOM
+	region.claim_ref = _stage_room
+	return _space.stage_add(_stage_token, region).error
+
+
+func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int) -> StringName:
+	"""Attest retained identity without provider/Space callbacks; fresh physical proof precedes publication."""
+	if _identity_binding_refusal() != &"" or _stage_action != ROOM_ADMISSION_STAGE or not _cold_held \
+			or candidate == null or candidate != _room_candidate or candidate.ref != _stage_room \
+			or room_type != _room_plan.room_type or _room_plan.world != _world:
+		return REFUSE_TRANSITION
+	return &""
+
+
+func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
+	"""Preparation/direct calls cannot borrow the exact synchronous Room identity/marker publication."""
+	return _publishing and room == _stage_room and room_candidate_refusal(_room_candidate, room_type) == &""
+
+
+func _publish_room(bindings: Bindings) -> Buildings.OpResult:
+	"""Publish actual Room then its sealed exact future source, without fallible reconstruction afterward."""
+	_publishing = true
+	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(_room_plan.room_type, _room_candidate)
+	if not made.ok:
+		_publishing = false
+		_discard_room(bindings)
+		return made
+	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _room_plan.room_type, self)
+	assert(code == &"", "preflighted exact future Room geometry must publish after identity")
+	bindings.publish_room_plan(_stage_room, _stage_token)
+	_publishing = false
+	_finish_room_cold(bindings)
+	return made
+
+
+func _discard_room(bindings: Bindings) -> void:
+	"""Abort only this candidate; every Room/Directory/geometry refusal leaves the live owners unchanged."""
+	bindings.discard_room_plan(_stage_room, _stage_token)
+	if _stage_token > 0:
+		_space.abort(_stage_token)
+	_finish_room_cold(bindings)
+
+
+func _finish_room_cold(bindings: Bindings) -> void:
+	"""Drop owned copied cells and candidate observations before releasing the exact shared peak."""
+	_room_plan.reset()
+	_room_candidate.reset()
+	if _cold_held:
+		bindings.end_room_cold()
+	_clear_stage()
 
 
 func furniture_owner_binding_refusal(owner: Contract.Owner) -> StringName:
@@ -342,7 +606,7 @@ func worker_refusal(project: Vector2i, job: Vector2i, worker: Vector2i) -> Strin
 
 func discard_transition(project: Vector2i, action: int) -> void:
 	"""A wrong action/project cannot erase another prepared candidate or any accepted footprint."""
-	if project != _stage_project or action != _stage_action or _publishing:
+	if _stage_action == ROOM_ADMISSION_STAGE or project != _stage_project or action != _stage_action or _publishing:
 		return
 	var target: Bindings = _bindings.get_ref() as Bindings if _bindings != null else null
 	if target != null:

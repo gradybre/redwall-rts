@@ -165,6 +165,12 @@ func is_bound_budget(candidate: Budget) -> bool:
 	return _ready and candidate != null and candidate == _budget
 
 
+func is_bound_world(world: World, space: Owner, sources: Owner.CoreSources) -> bool:
+	"""Compare actual observation owners; equal references in another composed world grant nothing."""
+	return _ready and world != null and world == _world and _space != null and _sources != null \
+		and space != null and _space.get_ref() == space and sources != null and _sources.get_ref() == sources
+
+
 func content_revision() -> int:
 	"""Return the immutable terrain pack revision, never the mutable sparse geometry revision."""
 	return CONTENT_REVISION if _ready else 0
@@ -187,6 +193,29 @@ static func survey_bytes(max_rows: int) -> int:
 
 func survey_into(bounds: PackedInt32Array, max_rows: int, out: Space.Volumes, token: int) -> StringName:
 	"""Copy clipped current base/exclusion rows under the exact shared lease; every refusal clears."""
+	return _survey_into(bounds, max_rows, out, token, true)
+
+
+func natural_survey_into(bounds: PackedInt32Array, max_rows: int, out: Space.Volumes, token: int) -> StringName:
+	"""Read original substrate/floor/exterior only; live exclusions and removed matter remain separate."""
+	return _survey_into(bounds, max_rows, out, token, false)
+
+
+static func natural_survey_checks(bounds: PackedInt32Array) -> int:
+	"""Bound two tile walks at eight fixed terrain/role probes per tile, excluding fixed owner lookups."""
+	if not Space.valid_box(bounds) or bounds[0] < 0 or bounds[2] < 0 \
+			or bounds[3] > MAP_WIDTH_U or bounds[5] > MAP_WIDTH_U:
+		return 0
+	@warning_ignore("integer_division") var first_x: int = bounds[0] / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var last_x: int = (bounds[3] - 1) / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var first_z: int = bounds[2] / World.TILE_SIZE_UNITS
+	@warning_ignore("integer_division") var last_z: int = (bounds[5] - 1) / World.TILE_SIZE_UNITS
+	return 16 * (last_x - first_x + 1) * (last_z - first_z + 1)
+
+
+func _survey_into(bounds: PackedInt32Array, max_rows: int, out: Space.Volumes, token: int,
+		exclusions: bool) -> StringName:
+	"""Count before allocating and pin one World source revision across both bounded passes."""
 	if out == null:
 		return &"TERRAIN_SURVEY_OUTPUT"
 	_clear(out)
@@ -197,21 +226,43 @@ func survey_into(bounds: PackedInt32Array, max_rows: int, out: Space.Volumes, to
 	if survey_bytes(max_rows) == 0 or not _budget.covers(token, survey_bytes(max_rows)):
 		return &"TERRAIN_COLD_LEASE"
 	_limit = max_rows
-	_count = 0
-	code = _walk_survey(bounds, null)
-	if code != &"":
-		return code
-	var expected: int = _count
-	_count = 0
-	code = _walk_survey(bounds, out)
-	if code == &"" and _count != expected:
-		code = &"TERRAIN_SOURCE_CHANGED"
+	var revision: int = (_space.get_ref() as Owner).source_revision(_world_ref)
+	code = _survey_passes(bounds, out, exclusions, revision)
+	if code == &"":
+		code = _survey_source_refusal(revision, token, max_rows)
 	if code != &"":
 		_clear(out)
 	return code
 
 
-func _walk_survey(bounds: PackedInt32Array, out: Space.Volumes) -> StringName:
+func _survey_passes(bounds: PackedInt32Array, out: Space.Volumes, exclusions: bool,
+		revision: int) -> StringName:
+	"""The count pass and the output pass reuse the same observed World revision for every tile."""
+	_count = 0
+	var code: StringName = _walk_survey(bounds, null, exclusions, revision)
+	if code != &"":
+		return code
+	var expected: int = _count
+	_count = 0
+	code = _walk_survey(bounds, out, exclusions, revision)
+	if code == &"" and _count != expected:
+		code = &"TERRAIN_SOURCE_CHANGED"
+	return code
+
+
+func _survey_source_refusal(revision: int, token: int, rows: int) -> StringName:
+	"""Only fixed end-of-survey owner lookups remain; actual lifetime and the original lease must survive."""
+	var code: StringName = binding_refusal()
+	if code != &"":
+		return code
+	if not _budget.covers(token, survey_bytes(rows)):
+		return &"TERRAIN_COLD_LEASE"
+	return &"" if (_space.get_ref() as Owner).source_revision(_world_ref) == revision \
+		else &"TERRAIN_SOURCE_CHANGED"
+
+
+func _walk_survey(bounds: PackedInt32Array, out: Space.Volumes, exclusions: bool,
+		revision: int) -> StringName:
 	"""Use stable Z/X/role order and bounded local reads; the first pass only counts rows."""
 	@warning_ignore("integer_division") var first_x: int = bounds[0] / World.TILE_SIZE_UNITS
 	@warning_ignore("integer_division") var last_x: int = (bounds[3] - 1) / World.TILE_SIZE_UNITS
@@ -219,31 +270,32 @@ func _walk_survey(bounds: PackedInt32Array, out: Space.Volumes) -> StringName:
 	@warning_ignore("integer_division") var last_z: int = (bounds[5] - 1) / World.TILE_SIZE_UNITS
 	for z: int in range(first_z, last_z + 1):
 		for x: int in range(first_x, last_x + 1):
-			var code: StringName = _survey_tile(z * World.MAP_TILES_X + x, bounds, out)
+			var code: StringName = _survey_tile(z * World.MAP_TILES_X + x, bounds, out, exclusions, revision)
 			if code != &"":
 				return code
 	return &""
 
 
-func _survey_tile(tile: int, bounds: PackedInt32Array, out: Space.Volumes) -> StringName:
+func _survey_tile(tile: int, bounds: PackedInt32Array, out: Space.Volumes, exclusions: bool,
+		revision: int) -> StringName:
 	"""Read this tile's actual terrain/resources/building, keeping dynamic overlays distinct."""
 	_set_tile_box(tile)
 	if not _world.terrain_into(tile, _number):
 		return StringName(_number.error)
 	if _number.value < 0 or _number.value >= World.TERRAIN_COUNT:
 		return &"TERRAIN_WORLD_KIND"
-	var code: StringName = _base_rows(tile, _number.value, bounds, out)
-	if code == &"":
-		code = _resource_rows(tile, bounds, out)
-	if code == &"":
+	var code: StringName = _base_rows(tile, _number.value, bounds, out, revision)
+	if code == &"" and exclusions:
+		code = _resource_rows(tile, bounds, out, revision)
+	if code == &"" and exclusions:
 		code = _building_rows(tile, bounds, out)
 	return code
 
 
-func _base_rows(tile: int, terrain: int, bounds: PackedInt32Array, out: Space.Volumes) -> StringName:
+func _base_rows(tile: int, terrain: int, bounds: PackedInt32Array, out: Space.Volumes,
+		revision: int) -> StringName:
 	"""Natural floor metadata never becomes map-wide protected support or paid underground void."""
 	var floor_y: int = _natural_floor(tile, terrain)
-	var revision: int = (_space.get_ref() as Owner).source_revision(_world_ref)
 	if floor_y == BOTTOM_U:
 		return _emit(BOTTOM_U, World.WATER_SURFACE_Y_UNITS, Space.WATER, _world_ref, revision, bounds, out)
 	var code: StringName = _emit(BOTTOM_U, floor_y, Space.DRY_SOLID, _world_ref, revision, bounds, out)
@@ -257,7 +309,8 @@ func _base_rows(tile: int, terrain: int, bounds: PackedInt32Array, out: Space.Vo
 	return code
 
 
-func _resource_rows(tile: int, bounds: PackedInt32Array, out: Space.Volumes) -> StringName:
+func _resource_rows(tile: int, bounds: PackedInt32Array, out: Space.Volumes,
+		revision: int) -> StringName:
 	"""Resources stay World-owned live exclusions, validated against actual full node references."""
 	var ref: Vector2i = _nodes.ref_at_tile(tile)
 	if ref == NULL_REF and not _nodes.has_node_at_tile(tile):
@@ -265,8 +318,7 @@ func _resource_rows(tile: int, bounds: PackedInt32Array, out: Space.Volumes) -> 
 	var code: StringName = _resource_extent(ref, tile)
 	if code != &"" or _tile_box[1] == _tile_box[4]:
 		return code
-	return _emit(_tile_box[1], _tile_box[4], Space.RESOURCE, _world_ref,
-		(_space.get_ref() as Owner).source_revision(_world_ref), bounds, out)
+	return _emit(_tile_box[1], _tile_box[4], Space.RESOURCE, _world_ref, revision, bounds, out)
 
 
 func _resource_extent(ref: Vector2i, tile: int) -> StringName:

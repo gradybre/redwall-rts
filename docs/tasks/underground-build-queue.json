@@ -371,7 +371,14 @@
         "docs/decisions/1081-paid-underground-furniture-and-room-authority.md",
         "godot/scripts/core/entity_directory.gd",
         "godot/test/test_entity_directory_candidate.gd",
-        "docs/decisions/1083-atomic-planned-room-admission.md"
+        "docs/decisions/1083-atomic-planned-room-admission.md",
+        "godot/test/test_entity_directory_batch.gd",
+        "docs/decisions/1086-observed-mixed-kind-identity-batches.md",
+        "godot/scripts/core/room_layout.gd",
+        "godot/test/test_room_layout.gd",
+        "godot/test/test_construction_furniture_batches.gd",
+        "godot/test/test_underground_furniture_batches.gd",
+        "docs/decisions/1087-cold-room-layout-admission.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -392,9 +399,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-room-admission",
+      "branch": "codex/underground-identity-batches",
       "evidence": {
-        "in_progress": "1083 actual Directory candidates and single Room confirmation; later multiidentity layout acceptance remains required.",
+        "in_progress": "B1 typed RoomLayout cold scope before first callback/snapshot, then B2 complete pending-Furniture/Construction publication. Escaped guide results must be consumed/released synchronously before simulation/frame resumes, never hold cold arena for visible hover lifetime.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -418,6 +425,20 @@
           "integration": "be7cea41/792c4fa9",
           "tests": "94 tests,7530 assertions,0 failures;strict/raw unexpected and leaks0;analyzer0of4",
           "review": "root independent final frozen source and cold-lease correction accepted"
+        },
+        "room_confirmation": {
+          "source": "552daa10",
+          "registry": "30b31faf",
+          "integration": "dfb78717/cdcd6c32",
+          "tests": "37 tests/5495 assertions,0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/3; unchanged prerequisites81/1604 separately",
+          "review": "Root accepted exact final source after callback reentry/null lookup correction and regressions. Does not grant excavation or ready-room service."
+        },
+        "identity_batches": {
+          "source": "54010756",
+          "registry": "0a3dcf6a",
+          "integration": "96ce2b41/b4241e61",
+          "tests": "Batch21/7971,candidate11/358,Directory61/638; all failures/strict and raw diagnostics/leaks0; analyzer0/2",
+          "review": "Root independently accepted exact source/test; packet24K+76+16controls; actual caller must charge and pin mutable observations."
         }
       },
       "lease": {
@@ -467,7 +488,10 @@
         "godot/scripts/core/residents.gd",
         "godot/test/test_residents.gd",
         "docs/decisions/1080-source-bound-underground-profile-catalog.md",
-        "godot/test/test_demo_actor_underground_heading.gd"
+        "godot/test/test_demo_actor_underground_heading.gd",
+        "godot/demo/cast/underground_actor.gd",
+        "godot/test/test_underground_actor.gd",
+        "tools/bake_underground_matrices.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -501,7 +525,7 @@
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-profiles",
       "evidence": {
-        "in_progress": "1080 source-bound continuous profile exporter and finite actual catalog. Extracted native source is evidence input only; no qualified production profile is claimed.",
+        "in_progress": "Profile API reviewed/integrated. Exact native matrix presentation/source qualification proceeds under1080; new adapter retains original meshes/materials with native skin palettes. No broad diagnostic radius becomes corridor policy, no paid asset generation.",
         "increments": [
           {
             "commit": "efadbab9",
@@ -603,7 +627,8 @@
         "docs/decisions/1075-underground-world-bindings.md",
         "docs/decisions/1076-spatial-inventory-endpoints.md",
         "godot/scripts/core/underground_routes.gd",
-        "godot/test/test_underground_routes.gd"
+        "godot/test/test_underground_routes.gd",
+        "docs/decisions/1085-actual-underground-world-composition.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -629,7 +654,7 @@
       "branch": "codex/underground-world-bindings",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
-        "in_progress": "Root takes new WorldBindings/test after explicit geometry handoff; geometry retains actual Routes/Locations/CoreSources and sparse owner/authority. Terrain1082 review underway. Productive contacts remain unqualified.",
+        "in_progress": "Root owns actual WorldBindings/test under1085 on codex/underground-world-composition. Geometry owns Routes/Locations/CoreSources and owner/authority. ActualTerrain is reviewed/integrated; composition tests and real route/contact qualification continue.",
         "phase_adapter": {
           "commit": "8b14c60de10baf2c19f830bc307b1d5a529c1b6e",
           "registry": "aef88460d65bbe9cf7ae3b4ae2cfee165f1d483e",
@@ -679,7 +704,29 @@
           "integration": "0751a09c/19756b45",
           "tests": "49/812 and24/3010;0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
           "review": "Independent furnishing review accepted callback guard correction and four adversarial regressions. Actual future Room identity publication;50 transient logical control bytes in existing binding reserve, no packed/wire delta."
-        }
+        },
+        "capacity_validation": {
+          "source": "b2bd786e",
+          "registry": "5136386e",
+          "integration": "b31dc0b6/07ff1f2e",
+          "tests": "Owner57/2976 and Authority24/3010,0 failures/strict and raw diagnostics/leaks; analyzer0/2",
+          "review": "Furnishing independently accepted exact final hashes. ActualR6144/O2048 and256 resident transaction validate below unchanged1048576 ceiling; no added packed fields or wire changes;16 logical controls."
+        },
+        "snapshot_freshness": {
+          "source": "7da6407b",
+          "integration": "227b47ac",
+          "tests": "59/3010 all failures/strict and raw diagnostics/leaks0; analyzer0/2",
+          "review": "Root accepted exact nine-line public fresh live-snapshot proof and actual-value fixture correction; no duplicate copy, no transitive allocation-free claim."
+        },
+        "world_composition": {
+          "status": "independently reviewed observation component; whole productive lane remains running",
+          "branch": "codex/underground-world-composition",
+          "tests": "WorldBindings19/373,Terrain17/340 all0; strict/raw diagnostics/leaks0; analyzer0/4",
+          "evidence_path": "docs/validation/evidence/underground-world-composition-2026-10-03/iteration-3/",
+          "scope": "Read-only original terrain plus retained sparse history; source scans and exact callback lease freshness corrected after two independent MEDIUM findings; productive bindings still refuse.",
+          "review": "ug_construction accepted all four corrected iteration3 pins; both MEDIUM source-scan and callback-lease findings fixed; no remaining high/medium finding; all34 CI Specification contracts commands pass."
+        },
+        "routes_allocation": "Approved authored single-containment-span edges; full section replaces Room edge fields; existing redundant resident next/goal fields reused for Room+section; one live/load levelI32 adds4096bytes. Combined Locations/Routes pack1040640 of1048576,7936headroom; source/commit/runtime evidence pending."
       },
       "lease": {
         "state": "held",
@@ -689,9 +736,13 @@
             "state": "held",
             "files": [
               "godot/scripts/core/underground_world_bindings.gd",
-              "godot/test/test_underground_world_bindings.gd"
+              "godot/test/test_underground_world_bindings.gd",
+              "docs/decisions/1085-actual-underground-world-composition.md",
+              "godot/scripts/core/underground_terrain.gd",
+              "godot/test/test_underground_terrain.gd"
             ],
-            "handoff": "ug_geometry explicitly released both absent new files; retains existing owner/authority, Routes/Locations/CoreSources."
+            "handoff": "ug_geometry explicitly released both absent new files; retains existing owner/authority, Routes/Locations/CoreSources.",
+            "branch": "codex/underground-world-composition"
           }
         ]
       }

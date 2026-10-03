@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_room_orders.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_GLOBAL_IDENTIFIER): The variable \"floor\" has the same name as a built-in function.",
+   "range": {
+    "end": {
+     "character": 10,
+     "line": 373
+    },
+    "start": {
+     "character": 5,
+     "line": 373
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

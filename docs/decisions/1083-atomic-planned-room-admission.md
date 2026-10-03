@@ -1,6 +1,6 @@
 # 1083 — Atomic planned Room admission
 
-Date: 2026-10-03 · Status: Allocator/Buildings prerequisite verified; composed admission follows
+Date: 2026-10-03 · Status: Allocator/Buildings and single-Room components verified; actual WorldBindings and batch admission remain open
 
 ## Decision
 
@@ -124,3 +124,140 @@ fixture retirement call and corrected final strict84 tests/1340 assertions/0
 failures. Both suite diagnostic/raw unexpected/leak totals are zero; analyzer
 reports zero warnings in two files. Parent independently reviewed the exact
 production reader and the adversarial test delta.
+
+## Single-Room composition candidate
+
+`RoomPlan` retains the exact painted canonical cells, explicit positive cell
+size, world origin, authored height, selected level, permanent type, actual
+World and expected sparse revision. These dimensions are request data, not
+newly adopted geometry/profile constants. Confirmation does not force painting
+onto the one-metre cut grid. Contiguous horizontal cell runs become exact
+world-space metadata/claim boxes; concave absent cells and inner holes remain
+absent. Actual bindings must qualify any hole policy and map the painted
+outline to the separate whole1024-cube physical excavation/support contract.
+No snapping, inflated Room outline or unpaid physical void is published.
+
+`confirm_room` first marks its exclusive local stage, before any provider
+callback. It then takes a fresh exact-world binding, acquires the room's shared
+cold peak, then copies the request. It validates canonical connectivity and
+unambiguous boundaries through the existing Footprint helper, prepares the
+actual future identity, stages only its floor metadata and typed Room claim
+markers, and asks the mandatory provider to prepare and recheck the real
+terrain/profile/selected-level/cut-map companions. Space seals its exact
+future source; all candidate and geometry checks precede the first live
+identity write. The caller request and owned copy must still agree.
+The retained-candidate and same-stack publication attestations read only
+actual local owner identities and the existing weak binding. They invoke
+neither provider callbacks nor Space validation. The provider's fresh physical
+proof is completed before this window, so a reentrant binding callback cannot
+change the sealed request after the final unchanged-plan check.
+
+Only the synchronous Room publication window permits Buildings to consume
+that exact candidate. The already sealed Space candidate then publishes its
+actual created after-facts; prepared companions publish before the shared
+peak is released. Every refused candidate aborts only its own Space token,
+drops its companions and copied cells, resets candidate scratch, and then
+releases only its own lease. A busy foreign Space stage or shared lease is
+left alone. The Furniture router's public discard path explicitly refuses
+the separate Room-admission stage. Legacy creation/removal/service setters
+cannot borrow this publication window.
+
+The typed base provider refuses room cold admission, actual plan proof and
+prepared proof. Component fixtures use real Directory, Buildings, Space,
+Construction, Inventory, Jobs, Work, Gear and Funding owners, but explicitly
+synthetic terrain/profile/whole-cut-map/shared-budget qualification. This
+increment alone does not activate the live demo's draw/confirm command.
+Full multi-owner paid excavation dispatch, accepted-plan editing/cancellation,
+room shell/service completion, atomic RoomLayout/Furniture batches and UG16
+composed save/load remain following owner integrations.
+
+### Single-Room cold accounting
+
+Two reusable packets add92 logical numeric bytes to RoomOrders: RoomPlan60
+and Directory CreateCandidate32. Existing operation refs/action/token and
+publication/cold-held flags are reused, giving151 logical numeric controls
+for RoomOrders. Its copied cell payload is8N bytes with N bounded by the
+actual Domain operation capacity and the existing16384-cell helper envelope.
+The caller-owned original request is a separate lifetime and must also be
+counted by its composer; borrowing it here does not make it free. The source
+bridge's own pinned candidate and ordinary Space banks remain separately
+accounted by their owner. No persistent field or save image is added here.
+
+Footprint validation precedes `Space.begin_stage`, so its peak is sequential
+with the sparse staging bank. For N cells, E boundary edges and H closed
+loops, E<=4N and H<=N give a conservative logical packed peak
+`8N + 12E + 16(E+H) + 60 <= 136N + 60`: owned cells, boundary triples,
+coexisting traced/canonical loop payloads and fixed Domain/descriptor/temp
+packets. Connectivity's queue is at most8N and is an earlier phase.
+Native Dictionary capacity (up to4N entries), loop-array headers, packed
+append growth/reallocation and helper frames are additional, not certified
+by the logical payload formula. The actual cold binding must admit all of
+those before copying/validation and refuse when it cannot; this does not
+claim that independently maximal N fits the shared524288-byte control reserve
+or the joint production memory pack. Runtime/cold-peak qualification remains
+open until the concrete provider is composed and measured.
+
+After validation, row staging retains8N copied cells plus Domain/descriptor
+bounds48 and at most48 bytes of current marker/floor boxes; Room/Space result
+packets, Region numeric controls and the sealed source's pins are separately
+counted helper lifetimes. Cold packet cleanup completes before release. No
+new hot Work allocation, receipt arena or per-Room object is introduced.
+
+### Single-Room component verification
+
+Evidence: `docs/validation/evidence/underground-room-admission-2026-10-03/confirmation/`.
+The own worktree had no demo assets; its cache was deleted and the required
+headless editor import completed without ERROR or WARNING lines. The unchanged
+strict runner executed five singleton CI shards:
+
+| Suite | Tests | Assertions | Failures |
+|---|---:|---:|---:|
+| RoomOrders, including exact Room confirmation | 22 | 867 | 0 |
+| Existing paid Furniture composition | 15 | 4628 | 0 |
+| Actual SpaceOwner, including future Room source | 49 | 812 | 0 |
+| Spatial Buildings | 21 | 434 | 0 |
+| Entity Directory candidate | 11 | 358 | 0 |
+| Total | 118 | 7099 | 0 |
+
+Independent review found that the original entry path called the provider
+before establishing exclusivity and dereferenced a second binding without
+checking absence. The correction establishes the stage first and clears it
+on all pre-lease failures, including a missing second binding. Two new
+adversarial tests cover initial-callback reentry and a provider passing its
+first check but refusing its second; actual live state stays unchanged and a
+fresh retry succeeds. After correction, a second clean import preceded the
+final RoomOrders22/867 and Furniture15/4628 rerun. The three unchanged
+dependency suite results above are from the first clean run; their actual
+source and tests did not change in this correction. Historical source pins
+and the earlier passing logs remain in `history/pre-entry-review/`.
+
+Every suite reports:
+
+```text
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+The analyzer reports `0 GDScript warning(s) in 0 of 3 file(s)`. An earlier
+draft's `floor` identifier warning was corrected before this clean run and its
+rejected analyzer output remains in the evidence history. The local selector
+initially mistyped the candidate suite filename after four successful suites;
+that selected no engine suite. The corrected actual candidate suite ran once,
+and the invocation record distinguishes that tooling error from runtime evidence.
+
+The new assertions cover real identity/PID publication, exact256/512-unit
+concavities and holes, full XYZ overlap across level labels, unchanged live
+owner bytes on malformed/capacity/source/candidate refusals, no rollback of
+intervening real Directory history, cold admission before any Domain/Space
+copy, preservation of foreign leases/tokens, balanced cleanup and reentrant
+creation/discard attempts. A late actual provider binding loss refuses before
+publication; publication attestation invokes no mutable provider callback.
+Existing paid Furniture and owner tests remain strict. No completed physical
+excavation, active service, demo workflow, composed save or performance gate is
+inferred from these component results.
+
+Independent source re-review accepted the final three frozen own source/test
+pins after the entry correction, with no remaining high or medium finding in
+this single-Room coordinator scope. The reviewer read the full fine-shape,
+candidate publication, cleanup and adversarial tests; runtime evidence remains
+the exact component checks above, not a production or full-suite claim.

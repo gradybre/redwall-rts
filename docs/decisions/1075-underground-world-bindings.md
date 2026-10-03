@@ -495,3 +495,89 @@ historical rejected fixture/analyzer results are preserved under the1075 evidenc
 directory's `room-admission/` child. This is actual identity/atomic-marker component
 evidence; production terrain, contacts and the actual Room confirmer are separate
 composition work.
+
+
+## Production-capacity validation and exact allocation readers
+
+The actual joint pack exposed a correctness blocker hidden by small component
+fixtures: SpaceOwner precharged R*(O+1)+O for sealing and R+O² for loading.
+At R=6,144/O=2,048, even an empty arena with one added region exceeded the
+unchanged 1,048,576-check RoomSpace work ceiling. The configured capacity was
+being treated as populated work. Per-edit source revision propagation and
+changed-versus-capacity overlap scans also multiplied empty rows.
+
+Validation now temporarily borrows the two existing staged free-heap arrays.
+One holds the compact present-region rows; the other is an in-place heapsorted
+index of present source rows by global slot. Source joins use charged binary
+search and retain exact generation checks. Overlap validation compares each
+changed row with present rows, preserving every contradictory-matter and
+foreign-claim check. Source registration/removal lookups charge actual visited
+rows. Work units remain logical row/identity/comparison checks, not elapsed time
+or a claim about individual VM instructions. The original MAX_CHECKS, configured
+capacities, physical geometry rules and saved schema do not change.
+
+Reconstruction of both deterministic free heaps is reserved before borrowing
+and runs on every validation success or refusal. Public edits, abort/rebegin and
+publication cannot mutate an owner while its heaps contain indexes. A failed
+seal can be edited and retried; an exhausted operation can be aborted and begun
+afresh. One affected source receives one new revision per transaction. Before
+ordinary sealing, all its retained rows receive that revision through the
+indexed join. Loading never performs this repair: corrupt or stale saved region
+revisions still refuse. Forgetting and re-registering the same actual source
+within one transaction cannot reset its live revision through row reuse.
+
+There are no new packed fields or arrays. Two temporary signed integer counts
+add **16 logical control bytes** inside the existing binding/control reserve.
+They return to -1 before subsequent mutation or publication. Staged heap arrays
+remain derived scratch; serialized bytes, source/region generation rules and
+allocator choice remain unchanged.
+
+`allocation_within(region_limit, source_limit)` is an allocation-free comparison
+against positive, actually configured capacities, so WorldBindings can reserve
+its complete cold-copy bound before creating a snapshot. The exact borrowed
+multilevel source provider is available as
+`CoreSources.resident_locations_owner()`; missing or foreign bindings return
+null. Neither reader grants geometry, movement or profile permission.
+
+The exact joint-pack regressions measured 26,632 logical checks for a minimal
+seal, 40,966 for its restore, 655,905 for registering and placing all 256 actual
+living Residents in one transaction, 112,545 for their full restore and 32,934
+for one body edit in that populated image. The fixture uses real generational
+Residents and Transforms with explicitly synthetic containment/envelopes; it is
+not production profile or traversal qualification. A separate 1,024-static-region
+edit exhausts the same original work ceiling and preserves every live byte.
+This region workload does not create residents beyond the living cap.
+
+Final clean CI import and strict component tests report SpaceOwner **57 tests /
+2,976 assertions** and unchanged paid Authority **24 tests /3,010 assertions**,
+with zero failures, strict/raw errors, warnings, expected/tolerated diagnostics
+and leaks. Independent read-only source review accepted the exact source/test pins with no
+high or medium findings; the analyzer reported zero warnings in both files.
+Final evidence is retained under the 1075 evidence directory's `capacity-validation/`
+child. Full-scene frame time, native memory and completed route binding remain
+separate qualifications.
+
+
+## Retained observation freshness without another snapshot
+
+`SpaceOwner.snapshot_revision_refusal(expected_revision)` exposes the existing
+live source/claim validation after checking the exact current geometry revision.
+WorldBindings can validate its retained observation before publication without
+another full Snapshot or an O(live sources × source capacity) sequence of public
+source lookups. An unpublished staged candidate does not change the live image.
+Matching revisions alone do not excuse changed actual Building facts, expired
+claims or a destroyed World.
+
+This reader adds no fields, buffers or wire bytes. Underlying current Buildings
+getters still create small result objects, charged to the cold/native binding
+envelope; the wrapper is not a claim of transitive allocation-free execution.
+WorldBindings must continue charging both initial and final source/claim scans
+against the same finite work budget.
+
+Independent source review accepted the reader. Final clean CI import and strict
+Owner validation reported **59 tests / 3,010 assertions / 0 failures**, with
+**0 unexpected errors, 0 unexpected warnings, 0 expected, 0 tolerated and
+0 object/resource leaks** in both strict/raw reports. The analyzer reported
+`0 GDScript warning(s) in 0 of 2 file(s)`. Exact source pins, raw final logs and
+the earlier rejected test-fixture log are retained under the 1075 evidence
+folder's `snapshot-revision/` child. No additional full suite was duplicated.

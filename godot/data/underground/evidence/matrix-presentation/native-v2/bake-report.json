@@ -1,0 +1,2697 @@
+{
+  "cases": [
+    {
+      "attachments": [
+        {
+          "body_and_attachment_bounds_m": [
+            -0.349174916744232,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.333033084869385,
+            0.997455596923828,
+            0.349637746810913
+          ],
+          "bounds_m": [
+            -0.349174916744232,
+            0.566577732563019,
+            0.0420349687337875,
+            0.333033084869385,
+            0.739376068115234,
+            0.253197371959686
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "log"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.356077998876572
+          ],
+          "bounds_m": [
+            -0.159187272191048,
+            0.511394441127777,
+            0.080779068171978,
+            0.140366941690445,
+            0.802278757095337,
+            0.356077998876572
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_radish"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.363430887460709
+          ],
+          "bounds_m": [
+            -0.196707487106323,
+            0.541306555271149,
+            0.073426179587841,
+            0.177887156605721,
+            0.772366642951965,
+            0.363430887460709
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_turnip"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.349637746810913
+          ],
+          "bounds_m": [
+            -0.252350926399231,
+            0.431401550769806,
+            0.192663684487343,
+            0.233530610799789,
+            0.882271647453308,
+            0.244193390011787
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_carrot"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.399353861808777
+          ],
+          "bounds_m": [
+            -0.167690992355347,
+            0.559757173061371,
+            0.0375031977891922,
+            0.148870676755905,
+            0.753916084766388,
+            0.399353861808777
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_beetroot"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.349844396114349
+          ],
+          "bounds_m": [
+            -0.166708618402481,
+            0.561045587062836,
+            0.0870126709342003,
+            0.14788830280304,
+            0.752627611160278,
+            0.349844396114349
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_onion"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.302880525588989,
+            0.997455596923828,
+            0.43302059173584
+          ],
+          "bounds_m": [
+            -0.321700841188431,
+            0.572240889072418,
+            0.00383646786212921,
+            0.302880525588989,
+            0.741432368755341,
+            0.43302059173584
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_leek"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.389351189136505
+          ],
+          "bounds_m": [
+            -0.19443467259407,
+            0.53233677148819,
+            0.0475059002637863,
+            0.175614342093468,
+            0.781336426734924,
+            0.389351189136505
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_lettuce"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.376172214746475
+          ],
+          "bounds_m": [
+            -0.296693682670593,
+            0.54894232749939,
+            0.060684859752655,
+            0.277873337268829,
+            0.764730870723724,
+            0.376172214746475
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_celery"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.369352996349335
+          ],
+          "bounds_m": [
+            -0.165130719542503,
+            0.589940965175629,
+            0.0675040930509567,
+            0.146310389041901,
+            0.723732173442841,
+            0.369352996349335
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_peas"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.349637746810913
+          ],
+          "bounds_m": [
+            -0.26063534617424,
+            0.366403847932816,
+            0.176929399371147,
+            0.241815015673637,
+            0.947269320487976,
+            0.259927660226822
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_barley"
+        },
+        {
+          "body_and_attachment_bounds_m": [
+            -0.33172881603241,
+            -0.000443503260612488,
+            -0.238797649741173,
+            0.28880912065506,
+            0.997455596923828,
+            0.349637746810913
+          ],
+          "bounds_m": [
+            -0.283844351768494,
+            0.366399258375168,
+            0.134567454457283,
+            0.26502400636673,
+            0.947273969650269,
+            0.302289605140686
+          ],
+          "cargo_lot_ref": null,
+          "cargo_quantity_milli": null,
+          "gear_lot_ref": null,
+          "key": "item_oats"
+        }
+      ],
+      "basis": "demo local +Z forward; simulation -Z conversion not bound",
+      "body_parts": 1,
+      "bone_names": [
+        "Hips",
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase",
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase",
+        "Spine02",
+        "Spine01",
+        "Spine",
+        "LeftShoulder",
+        "LeftArm",
+        "LeftForeArm",
+        "LeftHand",
+        "RightShoulder",
+        "RightArm",
+        "RightForeArm",
+        "RightHand",
+        "neck",
+        "Head",
+        "head_end",
+        "headfront",
+        "tail_00",
+        "tail_01",
+        "tail_02",
+        "tail_03",
+        "tail_04",
+        "tail_05",
+        "tail_06",
+        "tail_07"
+      ],
+      "bone_pose_max_change_from_first": 1.01363301277161,
+      "bones": 32,
+      "bounds_m": [
+        -0.33172881603241,
+        -0.000443503260612488,
+        -0.238797649741173,
+        0.28880912065506,
+        0.997455596923828,
+        0.349637746810913
+      ],
+      "cast": "mouse_keeper",
+      "clip": "carry_heavy_object_walk",
+      "clip_duration_s": 6.53333330154419,
+      "clip_loop_mode": 1,
+      "clip_positions_s": [
+        0.0,
+        0.0333333333333333,
+        0.0666666666666667,
+        0.1,
+        0.133333333333333,
+        0.166666666666667,
+        0.2,
+        0.233333333333333,
+        0.266666666666667,
+        0.3,
+        0.333333333333333,
+        0.366666666666667,
+        0.4,
+        0.433333333333333,
+        0.466666666666667,
+        0.5,
+        0.533333333333333,
+        0.566666666666667,
+        0.6,
+        0.633333333333333,
+        0.666666666666667,
+        0.7,
+        0.733333333333333,
+        0.766666666666667,
+        0.8,
+        0.833333333333333,
+        0.866666666666667,
+        0.9,
+        0.933333333333333,
+        0.966666666666667,
+        1.0,
+        1.03333333333333,
+        1.06666666666667,
+        1.1,
+        1.13333333333333,
+        1.16666666666667,
+        1.2,
+        1.23333333333333,
+        1.26666666666667,
+        1.3,
+        1.33333333333333,
+        1.36666666666667,
+        1.4,
+        1.43333333333333,
+        1.46666666666667,
+        1.5,
+        1.53333333333333,
+        1.56666666666667,
+        1.6,
+        1.63333333333334,
+        1.66666666666667,
+        1.7,
+        1.73333333333334,
+        1.76666666666667,
+        1.8,
+        1.83333333333334,
+        1.86666666666667,
+        1.9,
+        1.93333333333334,
+        1.96666666666667,
+        2.0,
+        2.03333333333334,
+        2.06666666666667,
+        2.1,
+        2.13333333333334,
+        2.16666666666667,
+        2.2,
+        2.23333333333334,
+        2.26666666666667,
+        2.3,
+        2.33333333333333,
+        2.36666666666667,
+        2.4,
+        2.43333333333333,
+        2.46666666666667,
+        2.5,
+        2.53333333333333,
+        2.56666666666667,
+        2.6,
+        2.63333333333333,
+        2.66666666666667,
+        2.7,
+        2.73333333333333,
+        2.76666666666667,
+        2.8,
+        2.83333333333333,
+        2.86666666666667,
+        2.9,
+        2.93333333333333,
+        2.96666666666667,
+        3.0,
+        3.03333333333333,
+        3.06666666666667,
+        3.1,
+        3.13333333333333,
+        3.16666666666667,
+        3.2,
+        3.23333333333333,
+        3.26666666666666,
+        3.3,
+        3.33333333333333,
+        3.36666666666666,
+        3.4,
+        3.43333333333333,
+        3.46666666666666,
+        3.5,
+        3.53333333333333,
+        3.56666666666666,
+        3.6,
+        3.63333333333333,
+        3.66666666666666,
+        3.7,
+        3.73333333333333,
+        3.76666666666666,
+        3.8,
+        3.83333333333333,
+        3.86666666666666,
+        3.9,
+        3.93333333333333,
+        3.96666666666666,
+        4.0,
+        4.03333333333333,
+        4.06666666666666,
+        4.1,
+        4.13333333333333,
+        4.16666666666666,
+        4.19999999999999,
+        4.23333333333333,
+        4.26666666666666,
+        4.29999999999999,
+        4.33333333333333,
+        4.36666666666666,
+        4.39999999999999,
+        4.43333333333333,
+        4.46666666666666,
+        4.49999999999999,
+        4.53333333333333,
+        4.56666666666666,
+        4.59999999999999,
+        4.63333333333333,
+        4.66666666666666,
+        4.69999999999999,
+        4.73333333333333,
+        4.76666666666666,
+        4.79999999999999,
+        4.83333333333333,
+        4.86666666666666,
+        4.89999999999999,
+        4.93333333333333,
+        4.96666666666666,
+        4.99999999999999,
+        5.03333333333333,
+        5.06666666666666,
+        5.09999999999999,
+        5.13333333333332,
+        5.16666666666666,
+        5.19999999999999,
+        5.23333333333332,
+        5.26666666666666,
+        5.29999999999999,
+        5.33333333333332,
+        5.36666666666666,
+        5.39999999999999,
+        5.43333333333332,
+        5.46666666666666,
+        5.49999999999999,
+        5.53333333333332,
+        5.56666666666666,
+        5.59999999999999,
+        5.63333333333332,
+        5.66666666666666,
+        5.69999999999999,
+        5.73333333333332,
+        5.76666666666666,
+        5.79999999999999,
+        5.83333333333332,
+        5.86666666666666,
+        5.89999999999999,
+        5.93333333333332,
+        5.96666666666666,
+        5.99999999999999,
+        6.03333333333332,
+        6.06666666666665,
+        6.09999999999999,
+        6.13333333333332,
+        6.16666666666665,
+        6.19999999999999,
+        6.23333333333332,
+        6.26666666666665,
+        6.29999999999999,
+        6.33333333333332,
+        6.36666666666665,
+        6.39999999999999,
+        6.43333333333332,
+        6.46666666666665,
+        6.49999999999999,
+        0.0000000317891304391082
+      ],
+      "deformed_vertex_max_displacement_m": 0.302909642457962,
+      "expected_palette_checks_per_sample": 32,
+      "expected_sample_count": 197,
+      "id": "mouse_keeper.carry_heavy_object_walk.plain",
+      "life_stage": "adult_presentation_candidate",
+      "production_qualified": false,
+      "raw_stoop_drop_m": 0.0,
+      "root_motion": "fixed origin, explicit pitch/turn schedule; not actual path traversal",
+      "sample_boundary": "restart exact source clip at zero after warm-up; reset transient not qualified",
+      "samples": 197,
+      "scenario": "plain",
+      "skin_engine_matrix_checks": 6304,
+      "skin_engine_matrix_max_error_m": 0.0,
+      "skin_engine_parity": "MEASURED",
+      "species": "mouse",
+      "status": "SAMPLED_RUNTIME_ONLY",
+      "tail_live": true,
+      "tail_refusal": "",
+      "tracks_resolved": 25
+    }
+  ],
+  "continuous_residual_um": null,
+  "display_driver": "macOS",
+  "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+  },
+  "error": "",
+  "finite_presentation_content": {
+    "cases": 1,
+    "frames": 197,
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/pilot-v2.ugpal",
+    "schema": 1,
+    "sha256": "f1d59fc7d790534d029f669221041d18b1cd369607cac399c3bd9f3a782f2424",
+    "status": "FINITE_SOURCE_ONLY"
+  },
+  "manifest": {
+    "path": "res://demo/assets/manifest.json",
+    "sha256": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37"
+  },
+  "missing_bindings": [
+    "CONTINUOUS_RUNTIME_RESIDUAL",
+    "TRANSITION_AND_RECOVERY_COVERAGE",
+    "ACTUAL_RESIDENT_LIFE_STAGE",
+    "GEAR_AND_CARGO_IDENTITY",
+    "AUTHORITATIVE_STATE_COST_BINDING",
+    "ACTUAL_ROOT_SUPPORT_CONTACT",
+    "ACCEPTED_PROFILE_REVISION"
+  ],
+  "production_qualified": false,
+  "qualified_profile_count": 0,
+  "rendering_driver": "opengl3",
+  "sample_hz": 30,
+  "schema": 1,
+  "sources": [
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/reproduce.py",
+      "sha256": "9a11af7b1e52f95848fb24e490155188cc8adf2d64cb61a94e335351ab9b252f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_barley.made.json",
+      "sha256": "344fa799714dccbbf34e62b85addaeed6430d56be96f5ea15b13efdbf6909955"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_beetroot.made.json",
+      "sha256": "663d9ed9a4d7c2575b428a9ddef79d5de26878a12b0ef1dd96e24b54e3b2a175"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_carrot.made.json",
+      "sha256": "239bdf5d5cf273d230654edd575a71f608a24f186deedaf1e54b05bb6ed1b9cb"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_celery.made.json",
+      "sha256": "0705bf99b15b1a7c1c1b796c749e1ca8850c0b1bbad061de806989476af8caeb"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_leek.made.json",
+      "sha256": "dda90eb4e90b7f90786b96bba9c5f9f107beec0eab2102ed6f839d08da2c94bc"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_lettuce.made.json",
+      "sha256": "7057fc245a3c777dfbe6fc276e6deeae18cd21c82223e7cba4944ca55e015e6b"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_oats.made.json",
+      "sha256": "f830daa8a8fbda01a075b711df7d61c58b45694d685e39bf040a1929a762e5de"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_onion.made.json",
+      "sha256": "5796d64ee2df1fcc2c892acd317625b3d4952f3c358410edb5ed2c6825a132c7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_peas.made.json",
+      "sha256": "b93f4645fa237c0fe5b40e36dcc0c02343a97ea124c5c08d4c144ef03d97bc7c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_radish.made.json",
+      "sha256": "e229cddab08a0d274043fceabb2e69f56ca703476fa755629ee0018c7a366c2c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_turnip.made.json",
+      "sha256": "a8ce6c81af8b4b85c1e2d40fe20d2e102f8233cf12be968522dc72dfb34639e6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/mole_pick.made.json",
+      "sha256": "963b11f1221e58e3fdfabe3868926ddb4f65d77ea7ec886ff99129445d9b222a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/demo_props_blender.py",
+      "sha256": "1669e2e973339d75b6f4249ff944ce658c94b3cdbb83718353f1cfd822b55d6d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/demo_texture_imports.py",
+      "sha256": "0a0662b2b0fabc6d6c97099eb93188008b52f0e6ce0bcf41fb160e136f5c074e"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ground_meshy_clips.py",
+      "sha256": "bd19bee47712cc5019552ab511affca2f77d249ebbaf0a0caedff20407769e0b"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/make_demo_props.py",
+      "sha256": "8a1e6187b9a0834364ca5e17125ec308e891788122f0c2c599d391f14574d832"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/repair_meshy_rig.py",
+      "sha256": "a8ed3b9aa755cb462109be6b56e23881d066284725ad507388acd2eb69359205"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/stage_demo_assets.py",
+      "sha256": "10c489d39fd650183affaf003236897828478c831032ace1bb7d2a0735d5db2e"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "1d7a5cfaaa686d2d12dfd1c16c53a04af280c310711f0189f7e04964160f4af2"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "d7bd1e8f923a1626865148052401700932d14c1b90d19fe1dc6be95cc68cc639"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_collect_object.glb",
+      "sha256": "2e63602e4974915741ae88871590375074b15eb7c42b5573940f06b81d9b0360"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_heavy_hammer_swing.glb",
+      "sha256": "f6a88ae1f74b551207403f719ffe55c0c8ceff2dff716653a5635fc6ac6be22f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_idle.glb",
+      "sha256": "15764b187abf81a5ef77607b351b1ef97868e4d91cc981432831ab5f63fef4a2"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_pull_radish.glb",
+      "sha256": "b63bd1d151d1daef32e69d747c98fb6a97313dfde657a637ba343c33551df399"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_sleep_normally.glb",
+      "sha256": "6d132518caf92c8bae9a68bd8cd51c9be7ddfeee202ec6ab38ac88136a2974c3"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_stand_and_drink.glb",
+      "sha256": "e6669292bcbacda1346ee887cb84d221bb61272464db32d1c7939f3a8429a0dc"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_swim.glb",
+      "sha256": "43f2eda44eccb1020318208299b6f17429c940bc30b71d3c2769f380baa816c6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_tread_water.glb",
+      "sha256": "88d652f3962cd6e2b6633b490b872c4354c607d12981c9ff1b4add356672db98"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_walk.glb",
+      "sha256": "0c053d902f4a83429c347e9e620d85cf868f8733e80012ced3e4ae43e1e613b7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_wave_one_hand.glb",
+      "sha256": "f29d3a84b7db62c2738de230e21756123dbb4358424d8de9e880d3602522ccfe"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/rigged.glb",
+      "sha256": "1e99fc1bb8b11a04ad6845403bce2864da9af2be3b3d089d8e733fd721f2d01e"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "931bbec29d7f1ea707a403cda2526f82e15bb91ea398395cf814dd358c2908be"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "87dc469f9cb084433875de2d63f36a9508cb79e13a6196aec8d7fa78693649c3"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_collect_object.glb",
+      "sha256": "a19ac784050f178cf0c289ca0a72443d3d254ed9f3200b8f44fa687b3d8228ee"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_heavy_hammer_swing.glb",
+      "sha256": "72286f1631c65b5f06cb10829386bcdc3806dc8bff412c7abafc331472495276"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_idle.glb",
+      "sha256": "24e5e5de06f3afe0cf03d17389e6f0271f21c9f807aece1526b18071da18ea92"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_pull_radish.glb",
+      "sha256": "4ec9ebd086204fdd4e78f4c6e4c9e41df65e03109557b2031c480b3545eded60"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_sleep_normally.glb",
+      "sha256": "8f80d9b5dc3b42a35a1641d429fbe9d42e0bf12074b3a27cd05a6f3fc1dfa220"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_stand_and_drink.glb",
+      "sha256": "8c1faaf7755e8f13c6092f5f224cc186b2bb60c27be223ccfea26c02d5e983ae"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_swim.glb",
+      "sha256": "284855daf044c13dc8338de819f26c77bf159d0ac0f23b94d79d2f49c420391d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_tread_water.glb",
+      "sha256": "5f9255824903a38d541e34e5eafd65e05c237e5d622565a3925943e34e5a9795"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_walk.glb",
+      "sha256": "aae20e79e3dc4e52a84a3f976fb6ce0ce81f126788713549ee3a40c3545f4787"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_wave_one_hand.glb",
+      "sha256": "468a63e77c5cf0c3a2e6bcbb50ab8678f22b0affbb6b87f0bf3d0b1b760dd7b4"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/rigged.glb",
+      "sha256": "a559a5f8590d3f483307f61c99552bbbf84dde3e91e010de9d4a1abdcb405941"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "cfb8710b7367973694fec1eb1cdbb7c8694e089667a7151b04050d958cf5c6c5"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "14df834ad4aea61e32e7db65ec7bc07b23284f3bd52b931d1121b06dde4f7ed5"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_collect_object.glb",
+      "sha256": "58222aa50a0e464b92dc34114f37bf590e2782372dc09d291a08539679033d4a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_idle.glb",
+      "sha256": "3a5b3b0168aee1baef6b615b2756fc60e908934200674e47d2d98c7ceb81164d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_pull_radish.glb",
+      "sha256": "3b5e579c95fc0e426edf203d39e5e0b7dc25612cfa86451eca84898cf8bd6083"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_sleep_normally.glb",
+      "sha256": "f834e14068754e64578a5a30c3995fdc35087ed8fc3e2ab72ea6fb345c78af60"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_stand_and_drink.glb",
+      "sha256": "7ca52f4d75bdd4be8d6ea62b79582ad6a369a7fbd49cb461b3346687b0ea9c0a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_swim.glb",
+      "sha256": "071474ca661dbd20b2c06da02b613ae542d457781808b92b4e87a501729ea78d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_tread_water.glb",
+      "sha256": "cb57f9606dc338ffe4449184376fcf5f86951356abca17efe8e28a91f72e8fc3"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_walk.glb",
+      "sha256": "1e6ee83639f6a8883cadb56833478ef9596d23ff1ad90b64f768a0ec36e91e40"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_wave_one_hand.glb",
+      "sha256": "3ce7fbac11985af6e3ad4bb1afd7b57285618bf8e5451da5adad30934c95cc03"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/rigged.glb",
+      "sha256": "a1b49959adda2ddafae8769c24a6498fa5ed58c1057cb122a277b3b535ada7c9"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "24bbb69af48f681756c658bafc9fb8937b8cc0aefe9a239a256602aa04ae1083"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "13bcc178d01debaa9a1cee09584a781f5bfd18a2f92ff552ccfb5b547e9e205a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_collect_object.glb",
+      "sha256": "e35620c18a233832a30abb8a90c2dc7629936d286be5c8cd5f97698173ce82d2"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_dive.glb",
+      "sha256": "9b1dbd51485b244173772539f3886ee54773374bac511e489c52d394cb4bf17f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_idle.glb",
+      "sha256": "9ba89e5a74f6b46f8926720ab9829b84a35cc4870781b86bb35f2295e9f636a6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_pull_radish.glb",
+      "sha256": "0c0df6a78e3a0eb69efdc84134b19d287d9a220a3d3c3a32f4350e2ff9e44fc9"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_sleep_normally.glb",
+      "sha256": "662c7764777943860683e19d300ed56682bcf090d701d591a239e3bc4272e214"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_stand_and_drink.glb",
+      "sha256": "c4d1bffa543c1e5a8f932bf9558c2fb66cdbf11294c38a976bf90ad7e6d46102"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_swim.glb",
+      "sha256": "94bdad4afecad43c36f6fa0b8cf0d8aa0241156057cb5962c34d0492191ab8e9"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_tread_water.glb",
+      "sha256": "5bd99e714a9b84acaef4d41b7268b2601573e0a02129b6f36afe72bb2fc66820"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_walk.glb",
+      "sha256": "cbe7c625c28679518c04f786756f2a8b404183ec1b98c25f06c75b27cee3e1bb"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_wave_one_hand.glb",
+      "sha256": "abcab55019eaaa9a4a934f7679c89e50b5ff47cdd1292967f9ec3a1b72b09408"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/rigged.glb",
+      "sha256": "27eb814700077388adf7177a5b167feaa03856b1d3ba9d3d36cc885c82011691"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "51f54d4ecfb534fb09e1e4ceeef276628f809a457e4cbfa2ae1c2c63b87a5fea"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "09026db55adddcf5aa2dcec7a09bb2399a9a73c54ab20ef9b8d193d524b28a08"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_collect_object.glb",
+      "sha256": "7b8c7dffa441c1e3a5c2e5b8d1c9daca6b13c9e9dd63f07b5db41a9d2e405fb7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_idle.glb",
+      "sha256": "f83643d36100541b38cecbbc6ef4b6fe2aeb410b4a7f658fa27d1bc7c715cf85"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_pull_radish.glb",
+      "sha256": "6bbb98b2a3e1834b8941892b8d43ef031442fad8fe9a25aff4bc59d65063cad6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_sleep_normally.glb",
+      "sha256": "757a3adbfc582d9aeb18938f37a2612e8265f66fa265b2bf8c866802c7f04c83"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_stand_and_drink.glb",
+      "sha256": "7bf638877ff45a11eb3b7dd6793ae24a5d7a9df3e204a899a63ddd2202fab75e"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_swim.glb",
+      "sha256": "dfd3f47c7c6be213b88a2b3be40c1e5fb52e2c98c69a31c8d3517186b5f9da34"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_tread_water.glb",
+      "sha256": "bdd645f84d8a2481a92fd2aa860c6bd0137b12c588558580435508f594ce16e4"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_walk.glb",
+      "sha256": "0c56e1ead40281f3e226df85c466a3bad1c6236914b539a9bdf9d9b0f5928ffe"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_wave_one_hand.glb",
+      "sha256": "cfd6703ac80642a05df3bbcb5423e87354de9944580cfc79aae01f35c0e00ad4"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/rigged.glb",
+      "sha256": "1769c046ba03988c5de4b027816e9a1ec34c3d2e666966f696b9a6edee56b6b7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_barley/highpoly.glb",
+      "sha256": "d2581846613da1b30a1044f7f255b74eb8b1b5372b5afb0ac56441d60e77639c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_beetroot/highpoly.glb",
+      "sha256": "418f0541ddfecf03d18b7ebc2c8a633f26c20c5798d0995e1d72f64c70fd2145"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_carrot/highpoly.glb",
+      "sha256": "a0898fe05e08b4d356ccf1d67ee4c4d1a728a39dbd8ebad975c8f200059573a1"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_celery/highpoly.glb",
+      "sha256": "853b5b631ea67ef684b4dee7280b0c075feecb08b9e28f194d0354db4b1ddb52"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_leek/highpoly.glb",
+      "sha256": "98145c2107859accd624698bb8d4404fdc977b0b76a2cf35daaecf19a4c962cf"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_lettuce/highpoly.glb",
+      "sha256": "c92a3974fcc0f433c79b47bf159151d36ad601320112dbe25cdb8c7fa5f39c5f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_oats/highpoly.glb",
+      "sha256": "2f7af7617cf658d3f88897585129a04494f904150d77e942c85e5114e1085e08"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_onion/highpoly.glb",
+      "sha256": "47128abbac6caae7e0c9458cc23fb4de97903fb54bba7d500499d2551953b291"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_peas/highpoly.glb",
+      "sha256": "17f7637dddc5f46ba7ca2469440d74287280598fbe5aec93029a9187820d7049"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_radish/highpoly.glb",
+      "sha256": "fc67c2a99c6364a97b067d5f4116737f9acc2efc2ef89da23b5b079dd24b1165"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_turnip/highpoly.glb",
+      "sha256": "e02c0d51c36e03ce3f76bb85e20a75238cb713adacdf3d43f9c20bc33f3f676b"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/mole_pick/highpoly.glb",
+      "sha256": "246c595145e678e84dbb069f5b19b58132786652bd12993ffbeb0b4310edf97b"
+    },
+    {
+      "path": "res://.godot/imported/body.glb-1521a68f1a229a0e05241eeb2fc220c7.scn",
+      "sha256": "0f0cd6a3c2bcdd0f6cb2233452ec9d1f1d51bcf4e3c95c573415b131383bfc72"
+    },
+    {
+      "path": "res://.godot/imported/body.glb-1e480da000f5e9eb0b9cd26255af07c9.scn",
+      "sha256": "ab370992aba3b6ee57c1ad070e791a6b2215792b126d7b8054e4431f7f2dc344"
+    },
+    {
+      "path": "res://.godot/imported/body.glb-a31352cfa404da20f479541e307f9dab.scn",
+      "sha256": "e4dd73230058ae7719c92374bf39f006ae441eea7d36b71ea30e9df3e810c7a1"
+    },
+    {
+      "path": "res://.godot/imported/body.glb-c6f3412ee31b33284e26b128ebaa6a39.scn",
+      "sha256": "fecf938e9f2df88727a2feb42f4ccfe2f8a59668e9b0bdc932e9bf9ad1165ed9"
+    },
+    {
+      "path": "res://.godot/imported/body.glb-cb5b4feabed0550d6b4f06f84cfae102.scn",
+      "sha256": "68a8486493ff3f638543edbf69cde19dd7cee29d0419d9860abc628243e990ba"
+    },
+    {
+      "path": "res://.godot/imported/carry_heavy_object_walk.glb-20e324744509356d8c5935de6768f9d5.scn",
+      "sha256": "ab5d8f97cb7d0479b28207042b582103e24af175ec1a542468df652411848a4d"
+    },
+    {
+      "path": "res://.godot/imported/carry_heavy_object_walk.glb-76171fda19efb3dfc1018b4e89f0b924.scn",
+      "sha256": "c59c0dc4d20f0c09b16b9239a8e422b22460d17382a468846b2d574442c692be"
+    },
+    {
+      "path": "res://.godot/imported/carry_heavy_object_walk.glb-8ee135d0ad0afb309c1913857df7c322.scn",
+      "sha256": "a4ddd5976aab1c07b18292bd5d5b1da78ee5a0cf163d52d76046d89368b47ee4"
+    },
+    {
+      "path": "res://.godot/imported/carry_heavy_object_walk.glb-a773319fc09942df46008e446c21c0d7.scn",
+      "sha256": "232a67cd8c24eaa9af2bdaf8371c3de2a031917324f4a029e177338e7863ec29"
+    },
+    {
+      "path": "res://.godot/imported/carry_heavy_object_walk.glb-ba361481b1e69a6f3c159dd2c58a304d.scn",
+      "sha256": "63d933867ffc2370e451ab9d7cd2a7eaae4daadb483d46159f60cd2e1b780dc4"
+    },
+    {
+      "path": "res://.godot/imported/cautious_crouch_walk_forward.glb-03ad7a6d25b37ddb9dfb8e4b1bd91ca8.scn",
+      "sha256": "19230189058f252088b53b1c4c1bf26a1686596b3aa7974e3dadd61ab9c19820"
+    },
+    {
+      "path": "res://.godot/imported/cautious_crouch_walk_forward.glb-1eaa0ec983acbcdd908d6ef7cbff6996.scn",
+      "sha256": "5a4321ffdbf06d6ab03f97a8f04127349d237170d2455e716c997e1ff6f56d08"
+    },
+    {
+      "path": "res://.godot/imported/cautious_crouch_walk_forward.glb-a97875baf89e1b87666218591b8eea51.scn",
+      "sha256": "83a50a731342e29d316d7bd7933fd1ce7402e933dc6a183859888b71fb519df3"
+    },
+    {
+      "path": "res://.godot/imported/cautious_crouch_walk_forward.glb-d6750d8f93f742c19895886606474b2b.scn",
+      "sha256": "8ad5f2c7ec8e3f1a18d484bfca8cce456d909d67edd0059ddac577d872498106"
+    },
+    {
+      "path": "res://.godot/imported/cautious_crouch_walk_forward.glb-dc3aa3d14dd789471e92ff7f19a91a8a.scn",
+      "sha256": "033eab47dd9448f33da28844d84eea5508c0e841c63db85ee0e829768fbbdd91"
+    },
+    {
+      "path": "res://.godot/imported/collect_object.glb-3f2c04806b7523dbdf8f21fcaa2f03cc.scn",
+      "sha256": "09bbbdf7fac60984772e6d04813280a605ef2b08a676134633c31c992acf777c"
+    },
+    {
+      "path": "res://.godot/imported/collect_object.glb-835de3ecf334d0392ab44654bfe8367d.scn",
+      "sha256": "606a17b89824f86e89bbbc09d12a51c1410e26edd6c4af3a5783ed542452b3c5"
+    },
+    {
+      "path": "res://.godot/imported/collect_object.glb-c25ad983357fcfa5f4c405aa1fd66cf6.scn",
+      "sha256": "0375feb2ada67e0a60a82438f5ba3aa4166111e374610c73dd48d9c2f43e2828"
+    },
+    {
+      "path": "res://.godot/imported/collect_object.glb-cc37198b6a81237bc9557f242940eeb7.scn",
+      "sha256": "10e52bb2e33bb5b8b187b3aa06079c378d978b7a212795df7be0c128962c2746"
+    },
+    {
+      "path": "res://.godot/imported/collect_object.glb-f807208744a5d12add1d50e5d9f920f7.scn",
+      "sha256": "d324a8af8995d911442a54b3ea85cad6fea78843d8df4346fef8ac0705204ff4"
+    },
+    {
+      "path": "res://.godot/imported/dive.glb-657b41a2de48a3e5642d4c8e58a5d4c5.scn",
+      "sha256": "dc3889540661502d2c14072c4429f8b46d0a27574eea3e4c4efc94a5dcbd4642"
+    },
+    {
+      "path": "res://.godot/imported/heavy_hammer_swing.glb-9dd5e9268e122a107aff279e327f17cd.scn",
+      "sha256": "e5571c819b047813251f686cf97a4e0595415e1e380ef6961b740afc04fdb97d"
+    },
+    {
+      "path": "res://.godot/imported/heavy_hammer_swing.glb-ece9346f6bb9077732f84601afd66ce5.scn",
+      "sha256": "f69ff4857c958bd470a87a90f7f268036c5d91b823b8e81e070e2cc317a23636"
+    },
+    {
+      "path": "res://.godot/imported/idle.glb-45558975ccdb84cc217f12d546967716.scn",
+      "sha256": "cd692af2bc5759ccdfc0fb173c27aa92d048985badac54886f5214cfac2cdc5d"
+    },
+    {
+      "path": "res://.godot/imported/idle.glb-8a9077a9386362b6b1fef3de75eed21b.scn",
+      "sha256": "aad65c29924a3eb2d4869aed1baf50086b77e51c75a706ccdc163da5ac833d69"
+    },
+    {
+      "path": "res://.godot/imported/idle.glb-c6af2f11f545c1cab5fa3fe9bc26bd30.scn",
+      "sha256": "24f143f1033ddeec9c315d14cd8264967dea20a9000446f17b5fe8d8c88e6621"
+    },
+    {
+      "path": "res://.godot/imported/idle.glb-ce3e81f625569b2f107aea423e53d80b.scn",
+      "sha256": "3f427db05def667327651e89dd3b038fffde13afab515a6534369d0bd9ae6a67"
+    },
+    {
+      "path": "res://.godot/imported/idle.glb-f7a13b973910a99ba6a5b715f4b8247c.scn",
+      "sha256": "84ff605cb63d66998475eac7d72aa398f60add44abbd7b41b60ca14b24743990"
+    },
+    {
+      "path": "res://.godot/imported/item_barley.glb-86a643d6e950c1d02e47acc23cad08f3.scn",
+      "sha256": "0ab1342a6af317473640f1890cb94ec2a548e002e25edf1a528c83e2c8573686"
+    },
+    {
+      "path": "res://.godot/imported/item_beetroot.glb-db8936b8885440ad999158b70c96a902.scn",
+      "sha256": "a0b67b53d1a413adc3b02955af843e776389187ec10e911b28dd1cace7389827"
+    },
+    {
+      "path": "res://.godot/imported/item_carrot.glb-7ecad4139d4df8e67ca335ebc0400937.scn",
+      "sha256": "b37c102b4e758e1d54661c73af4664268edac8109b2fb44e83bea95792a09b8d"
+    },
+    {
+      "path": "res://.godot/imported/item_celery.glb-a98d4b7c85929fdc162340e24b375d93.scn",
+      "sha256": "ed7cff992570bfd54332b0343aa7ec7b143e94148088a3635ac29b6b568c8fc5"
+    },
+    {
+      "path": "res://.godot/imported/item_leek.glb-f2e18a0619158d20f3c9ea401d123dd2.scn",
+      "sha256": "32ade57ff8f22fae1b4e6c3d1b4360435dbaf83598872fbe299f7c4df2ce3674"
+    },
+    {
+      "path": "res://.godot/imported/item_lettuce.glb-fdb1111398255ede50811c6af2916f9c.scn",
+      "sha256": "5cc4c11a6b723214449f4970877aab299a4defaa6bcad34b1f41f167ae620031"
+    },
+    {
+      "path": "res://.godot/imported/item_oats.glb-e8fdb676df307191cb45681d79c906ef.scn",
+      "sha256": "fe2fc6db2f1f54082e987f1c23693b7d5dc13ea382e1957d208c8534a738708f"
+    },
+    {
+      "path": "res://.godot/imported/item_onion.glb-eac867901150b9198bc69ecdc6caf618.scn",
+      "sha256": "542da44e2474461196f65dcfec9f0a4fae90c96a5f41c1dd27b0e2331857999e"
+    },
+    {
+      "path": "res://.godot/imported/item_peas.glb-f524585dcca8e59a1ff939dc631141d1.scn",
+      "sha256": "3939052a5947824bfbdea8d037c3f720f2973126844b260d074ede6bb6c5c9d4"
+    },
+    {
+      "path": "res://.godot/imported/item_radish.glb-17a31889079f3098314a465caf479f73.scn",
+      "sha256": "280246e30eaf1bb5afedb54a7934c0cefda5c0878361d747ee4608794057d294"
+    },
+    {
+      "path": "res://.godot/imported/item_turnip.glb-cd687b1c5172302c148bec4d4d610a97.scn",
+      "sha256": "5d88b8d9c6616df195ce8c4fe23b88a42af69881becb774911ea6af2f0691073"
+    },
+    {
+      "path": "res://.godot/imported/mole_pick.glb-6db599ef1826c7349070503b949c90c5.scn",
+      "sha256": "0efccad6357373f445777d202cd6239933bff931b98e1c582a1cbeced41afca7"
+    },
+    {
+      "path": "res://.godot/imported/pull_radish.glb-23f7088fd37f0aae78f39ca294e61d58.scn",
+      "sha256": "1000281412fb149f7c01c86f09e694270b071faa52f84df21ff98e1bc7fa18b7"
+    },
+    {
+      "path": "res://.godot/imported/pull_radish.glb-256c98db3d51f81e980fb311b2547211.scn",
+      "sha256": "8ee49dcdcee6a995f201fc75efb35f0eaa0a852dba411c524bd0cfe6d891a3d1"
+    },
+    {
+      "path": "res://.godot/imported/pull_radish.glb-45e7d7cdad984bb443058a337494c9d8.scn",
+      "sha256": "882dc65bcfd5e26878d3365bcaeb8446ab4c05412137dd4735807801149f2cd4"
+    },
+    {
+      "path": "res://.godot/imported/pull_radish.glb-d7489f461dbff439f26ded5886b3133e.scn",
+      "sha256": "e4b1dce07c1a7d4013af09e5ffb909253a395f87f4d5bcef3390eadaea1ad2a9"
+    },
+    {
+      "path": "res://.godot/imported/pull_radish.glb-e521efd4cc6c28d0d19469b0ac6c7da0.scn",
+      "sha256": "ea6b2fc7a6574a27ae2b9266a0839854bdb7f837d322b3efc6c366968cf0c931"
+    },
+    {
+      "path": "res://.godot/imported/sleep_normally.glb-020765f05a085d429389196c92773723.scn",
+      "sha256": "d68552526f3d5be882870f7feba3b95ebd8f34db2ced215c26781fb84d810a60"
+    },
+    {
+      "path": "res://.godot/imported/sleep_normally.glb-286d2e79d25822c31be7196d6bb53cc0.scn",
+      "sha256": "1d638ebfa285c1349a9da5dce894267844d3a2bb00bc66ecaa0c38dc03625785"
+    },
+    {
+      "path": "res://.godot/imported/sleep_normally.glb-76d16967e2e5b0c8ac78bae66f5f8a1d.scn",
+      "sha256": "63919642fdbc477a3fa1ff24a887e11e21b3b3d9e4f1dd70ee1f0c72ecf70c2a"
+    },
+    {
+      "path": "res://.godot/imported/sleep_normally.glb-d73bfc4f456944f8b590e4009df82b1f.scn",
+      "sha256": "9618553d65ae64011eae9e176b7bff3c7c7b57a381b385f66c0aed7119c2be41"
+    },
+    {
+      "path": "res://.godot/imported/sleep_normally.glb-dc1647b4dfb1b2f3ee548c27e7730e6e.scn",
+      "sha256": "2ed85e7a53300f51cf06cdb48821f5cfd0f2f6d647c3c93b6884ab08b4fb55b9"
+    },
+    {
+      "path": "res://.godot/imported/stand_and_drink.glb-4d7967986069edbd5a36d94a657102b3.scn",
+      "sha256": "4c676699b3e35aadb60902231bd15f468d501b2cbf06687e3d0b51980f1dea30"
+    },
+    {
+      "path": "res://.godot/imported/stand_and_drink.glb-826bdcf3c40eae0ea6691e695cd44f8c.scn",
+      "sha256": "d9fe3bad6040592cb014356f084ff14996404872cff828c74e9b4c0feb634abc"
+    },
+    {
+      "path": "res://.godot/imported/stand_and_drink.glb-989106d4a78c96e51dd3f1fc88e9a767.scn",
+      "sha256": "ee2cf81f9a800f9b8a1e0c169a60b6c09442952565155c2190d28aab1ddc6d49"
+    },
+    {
+      "path": "res://.godot/imported/stand_and_drink.glb-c5cadc21cd8f7c4a0cf5e9bf40fbec6a.scn",
+      "sha256": "70c7a1d15fae15ce4238a6166e9b9916ae4e1e303a5257907b49869d367d80de"
+    },
+    {
+      "path": "res://.godot/imported/stand_and_drink.glb-ea2693e304746e75bc124f3aed428023.scn",
+      "sha256": "5a77ce73a71abbb5ac440c382f8536e91231d5b16c0000f0a0cf24119be887fd"
+    },
+    {
+      "path": "res://.godot/imported/swim.glb-05ccf00c5f94e5ab2811b000a9d85f4c.scn",
+      "sha256": "61517cca0288e8abb1d7d868b3566a3fc0e8b25ef0e6eeac435d870f720566b3"
+    },
+    {
+      "path": "res://.godot/imported/swim.glb-0b8175e8b1ffb5138955f84aedc32e51.scn",
+      "sha256": "e236622851323e81d3088eba22a58f2c5e382e1a32ce60295eeb947c58a37ad6"
+    },
+    {
+      "path": "res://.godot/imported/swim.glb-539b4dacc3c26743def424237920d35a.scn",
+      "sha256": "27846ac99c93c8b0eb44c9e1a03616997788509b06b73beef2d690c75482f6ae"
+    },
+    {
+      "path": "res://.godot/imported/swim.glb-dd8eb434c3d22859ba0d2836bdefd8ce.scn",
+      "sha256": "b7f5e8ee5ae72b8fee85817a9cf95cdc65d8d9d6377166fd6d772ca979c43fa1"
+    },
+    {
+      "path": "res://.godot/imported/swim.glb-de327c79b537e20ce79d028d16a11e80.scn",
+      "sha256": "2f17f48001dada883daad7c8ce6f3af03a5ac508a0fbfb94eaf0be7e18c1b5a4"
+    },
+    {
+      "path": "res://.godot/imported/tread_water.glb-4327f84e8159e6d59df1a5cffe679108.scn",
+      "sha256": "6f5599f5ca162325962481a1f2dd41bccd6cb1307e38946a81cf86d8295bde53"
+    },
+    {
+      "path": "res://.godot/imported/tread_water.glb-434cd1c97d310372202975e1ada7f609.scn",
+      "sha256": "b3fd071c7609952bfc934e1de62b344522ebfcd46d756a73a2b4ab6edfd40a79"
+    },
+    {
+      "path": "res://.godot/imported/tread_water.glb-4706bd45f92b9e55dde553399e7144c3.scn",
+      "sha256": "a8ed08c17dd43625133cca2ee9cd8559c17ccdd48b0ebc47558add8e680139d6"
+    },
+    {
+      "path": "res://.godot/imported/tread_water.glb-9c36d24da8f6a981caf4da47d50d8af5.scn",
+      "sha256": "b2cfe905c68070f73dd60fef4768a20f35233571739ab17070d6f41c1d750be8"
+    },
+    {
+      "path": "res://.godot/imported/tread_water.glb-9e506da2cde50f9c8bf6e4776d17e1be.scn",
+      "sha256": "17cf34ba31de105612069298784dca0105841250255470dbf346150cd811df47"
+    },
+    {
+      "path": "res://.godot/imported/walk.glb-179d750bf7ebf25f0dd399531fdfe292.scn",
+      "sha256": "6b2a7cffb2c8228db457e07efc307dc4e0cc87ab112f372b123c7d7baa0d5e9f"
+    },
+    {
+      "path": "res://.godot/imported/walk.glb-67a71b089a336d9eec8f90583263ef12.scn",
+      "sha256": "80f6abc1b64500d56460324e1149747a46168f8e93ac0a760f9a5e9eca5e1a7f"
+    },
+    {
+      "path": "res://.godot/imported/walk.glb-87f70b59b343de0d248904b716f9d397.scn",
+      "sha256": "e40073bf70faa96d76c2de220ca46954ee7a355863069aabf2a3259f69fc2a56"
+    },
+    {
+      "path": "res://.godot/imported/walk.glb-e01e2e96c680bbdb4269478ecc0d6a88.scn",
+      "sha256": "03b0ebbfb5a8e2ded67d639dac3660c9c6beea4e8a801cc47634e1538d9f1808"
+    },
+    {
+      "path": "res://.godot/imported/walk.glb-f1b377d99eed5d3ff02958326d4b71f4.scn",
+      "sha256": "9b7a3afe7cd6bdc1b25ffc6abba173a89c5822dd8a239b6f805bfd3c76a077a5"
+    },
+    {
+      "path": "res://.godot/imported/wave_one_hand.glb-227492025817a7dd71a7d26532a11933.scn",
+      "sha256": "5b781585156c1351e3daeffa3d116bfa467af5130cf94c22c6fe7c1e98df1fbc"
+    },
+    {
+      "path": "res://.godot/imported/wave_one_hand.glb-486ed17128dbd3b53719d4ffe9a7ae35.scn",
+      "sha256": "76fce82a76cb50a6d035dc561984dc0778bb0ff44b60ca9d3fe85bacd5b9ec9d"
+    },
+    {
+      "path": "res://.godot/imported/wave_one_hand.glb-7de459d4049cd608c6ecd29da78530bc.scn",
+      "sha256": "ea57d480bb7dc85ab470d91866438678d2c4e25da26730deacd5bd1f985ff245"
+    },
+    {
+      "path": "res://.godot/imported/wave_one_hand.glb-807dfa7759756f847c7fd6e5e9d19d60.scn",
+      "sha256": "e13814c97e58baa57165592435d0c9a287a9e7b63602a300dcdab26b865d6fac"
+    },
+    {
+      "path": "res://.godot/imported/wave_one_hand.glb-971f5d3ad95f83b4d365c0f76c5c7295.scn",
+      "sha256": "7657a8ed4960055ba1f335b10d7c8bf11cc2dde1dc2de8e2270b506cee65e198"
+    },
+    {
+      "path": "res://assets/lookdev/lookdev_dimensions.gd",
+      "sha256": "2a6aa821d05f85f580a979f39a3b5105d4c6b107d961105df66608ffde635bb5"
+    },
+    {
+      "path": "res://demo/access/demo_motion.gd",
+      "sha256": "d5d52b645ede9694d667f6d41ff40ff4bb7c830924995c8b345bddf8ca2d6ddd"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/body.glb",
+      "sha256": "1e99fc1bb8b11a04ad6845403bce2864da9af2be3b3d089d8e733fd721f2d01e"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/body.glb.import",
+      "sha256": "ce0dfafdddca1ec24a2fde06e5174a66761b5f30872c3ef02ff7603287a1d695"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/carry_heavy_object_walk.glb",
+      "sha256": "3e81577c318bde17114f79b16b20b247f5305310be1d87f2876711af71c94e79"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/carry_heavy_object_walk.glb.import",
+      "sha256": "0ceeb732eed016fc7e7e34c9f6d4cbbb764dffdbb4316e5efeb5636e0172a1f1"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/cautious_crouch_walk_forward.glb",
+      "sha256": "8bf2de0f2b899ec49645c9f612a833fa724a1a3beb7af628b23528e8b14cf886"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/cautious_crouch_walk_forward.glb.import",
+      "sha256": "c57916de38f682a56d7db8f27ffdfeb6c49b6e299996ff3b6909fd0937d7a739"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/collect_object.glb",
+      "sha256": "7c9e09c4e5022f3e0e752ec6661726c11738dd8eac1adcb4c22da2b7b7852d4d"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/collect_object.glb.import",
+      "sha256": "32a4655ca22d423b6e97a8bc9b65a3b2b9a58bc3bde59c1245a80b3ff99aa6fc"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/heavy_hammer_swing.glb",
+      "sha256": "4289c598692abe26ebecc4e91f1416500f697ccaa774a55da5c9ed651a137aae"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/heavy_hammer_swing.glb.import",
+      "sha256": "dc3b54db49ebea5bd497293e3c67aa0511c48af9b138539f7273894e03bd57e0"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/idle.glb",
+      "sha256": "681d00fa0fc839bcdf51c3548fd120f8b291590a341001c179909158701f25e1"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/idle.glb.import",
+      "sha256": "0d65d6b6651b3d32123a0c7da306d281c7725fde4ceeb6ff291778494d77005e"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/pull_radish.glb",
+      "sha256": "c10ba4d14d20a10b76ea53d0265e83168d68d981d8304724879a8a9ed55a3ada"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/pull_radish.glb.import",
+      "sha256": "70175d7ccfbbf9c4d65ad2ea62f46090f6ca8c4f4a819bfccedddbadeb0a4704"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/sleep_normally.glb",
+      "sha256": "fd919bf110e20829efc8c3114370e533b7ac46da727ae39abdb00304c44830a3"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/sleep_normally.glb.import",
+      "sha256": "da18a565efba5c2a9ccd736298b8ddb6ec870b3f267f16ee62b9b26406eaedf1"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/stand_and_drink.glb",
+      "sha256": "74b45c3b480c078b5a23737978b5cf8b6ca61d283b28bda576950a1b0b30712b"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/stand_and_drink.glb.import",
+      "sha256": "30a79b76a975667542db5a9e682dd391f4dc0d02b46920d1770b4a0d2b37e630"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/swim.glb",
+      "sha256": "305b6053babd624c38c7be343d8d562b0a60fafea5c6f6914ae4c2f840edee5b"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/swim.glb.import",
+      "sha256": "ba5e1b73e3b08d73581717ceaf6d3b92bf6f53fff650520927100ef4e5a1bf77"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/tread_water.glb",
+      "sha256": "97b16a128d3033e9bb72ada3fbbfe747e2b81c167f17cbda9da48b31d2aefaff"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/tread_water.glb.import",
+      "sha256": "7987cc8fa1bfb079633c454eb2ffff7649de8287aa2b0ffea0e87edca8b37a25"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/walk.glb",
+      "sha256": "8089142b5eb0513db7816f6d71ecd5eb34abbc991e571f81fcff68ad07c8f61d"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/walk.glb.import",
+      "sha256": "4f25330c4edfc97cc08eda3da45fb3ccd4408798fdde7bd5eec4c4fc294f9712"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/wave_one_hand.glb",
+      "sha256": "247a3d02f361e37eced41fa4e90b2a8c19752cfdc19db2cdfcf29e48d0850925"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/wave_one_hand.glb.import",
+      "sha256": "99e66e1a43d46c02c54439aa8b85fbce576d8b6e409d10836394e0e3cd7d4a58"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/body.glb",
+      "sha256": "a559a5f8590d3f483307f61c99552bbbf84dde3e91e010de9d4a1abdcb405941"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/body.glb.import",
+      "sha256": "a485ee3d4bb39d0a232539aeb1f5e85d8d141f197fad12d0ae44824c3b7f1e7e"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/carry_heavy_object_walk.glb",
+      "sha256": "d42d39af1eb495b9154b44ff56888c84048d9f9a984561e27b8f252264409381"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/carry_heavy_object_walk.glb.import",
+      "sha256": "cec3a4120d18abe8fcb0605a6634070c5851e731d40fc4b9f0cdecd3e6d0fefb"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/cautious_crouch_walk_forward.glb",
+      "sha256": "b0bf71c480b58e1f1e6916b4b87328ea38feb08189a3c71f53f9e3ef9c2375f6"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/cautious_crouch_walk_forward.glb.import",
+      "sha256": "6635e92e64f6bc67284ffbeb312258bc39c29b2b99bd4b3554e2cedf061aa5eb"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/collect_object.glb",
+      "sha256": "777375e5209731cdc355c5064b57631a6580a786e6506b4ffba36b8b946e2764"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/collect_object.glb.import",
+      "sha256": "45bcf7bdb012589fe1e8808e64a9b8986313d032ac1c4b07dc9a0bff306aac62"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/heavy_hammer_swing.glb",
+      "sha256": "e7c0a188d741437e673d789a8d9306cee663c881919b27bc81399044e4ef251d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/heavy_hammer_swing.glb.import",
+      "sha256": "8375ec6560638d0ec38dbf3492d0db4f71ba618ffd7585a67ae69d72186bf830"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/idle.glb",
+      "sha256": "6fdf7525a5da4200783b9ad7d19b8776b5cc2d8441368b5ae9b2ce93c0014d06"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/idle.glb.import",
+      "sha256": "95364dc868b991e1012bc1d18b33547d1058ff286da695dbdb6bd54f088ff10d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/pull_radish.glb",
+      "sha256": "2acc4cf87f8b0cd69a23f0afddb413d4c184c335b0aa336a4f245f9573aa6401"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/pull_radish.glb.import",
+      "sha256": "1e9eb3f5daa0488d6b9fd34a795c19f004678a5a78012e0666a8ef94324f4d71"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/sleep_normally.glb",
+      "sha256": "0f38e9b70785cd0c8c08936393898970ec86140b3e4127405316e3199d43397d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/sleep_normally.glb.import",
+      "sha256": "9461e6632e0cb6cbf3376d692a64978cb55b2b48342510e505d466ace7407595"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/stand_and_drink.glb",
+      "sha256": "951b08e582c408290d3e603eae2e2c1ff0dae0a8ad6f0e9ffe87794cd8494d64"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/stand_and_drink.glb.import",
+      "sha256": "181920f3d48288960a6c4d047dada0f9bf2e64e898fe987c9e71948c30cd42da"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/swim.glb",
+      "sha256": "4d6c7364fd64297929e5ab47e3f7090cf89ca0e4e4a9aa18722f34b8a2739a7d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/swim.glb.import",
+      "sha256": "ab057920c05e1b64ab3779bed023c375546ca974036d73f9b7826dbc1986299a"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/tread_water.glb",
+      "sha256": "76831b06ea5162b1c520c6d235d440cafe4af647b2470c38e39f69ec86efa953"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/tread_water.glb.import",
+      "sha256": "5e2001a5d925ab6b3ef14ecac816a9cb37266280f5715c6ca194b30db48c37b8"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/walk.glb",
+      "sha256": "b5f6e983579d5656ee8f1268546bf2b9429fb998f14c14c86860abeb2987ac8c"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/walk.glb.import",
+      "sha256": "6053241e46479e9464932a600e12ff503c494324d890cef9e2220362fc523b7a"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/wave_one_hand.glb",
+      "sha256": "277ef216cd790bdf9bf56f249b99a54632f02ff145cfb3238f6bedeff10cd3ac"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/wave_one_hand.glb.import",
+      "sha256": "6b2a101d923749fde13f2a36089a351342cf3bc9a60989cd57945f33fc56568a"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/body.glb",
+      "sha256": "a1b49959adda2ddafae8769c24a6498fa5ed58c1057cb122a277b3b535ada7c9"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/body.glb.import",
+      "sha256": "6ea4c6f4e364f0345498f6bdef17a77f30258b4652580a6234430a541fb7b503"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/carry_heavy_object_walk.glb",
+      "sha256": "89d5929fa99e54fd51cfdc47ac8e43e452f1ebeae3655db7087f7b02dda46884"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/carry_heavy_object_walk.glb.import",
+      "sha256": "e2ceee137a6ff0b7a9952f1ed2ed7a39282db922faab4590ef7ad36e7bf3668b"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/cautious_crouch_walk_forward.glb",
+      "sha256": "62731e45579dc6a2b421d12b9bc5d8b05c15a6a86436f76d2b0464eb4a70a545"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/cautious_crouch_walk_forward.glb.import",
+      "sha256": "47c7aeb1a9e37f1c946bc05cd558186fefbefae3377332cbdf43e0d40638ceda"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/collect_object.glb",
+      "sha256": "551a12df4a59669fe23d8fa89a6ffb1c0e57c884364b93694e38574296c0d37c"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/collect_object.glb.import",
+      "sha256": "c24117f2dd72d4a11580698dd85c96021abcca2907855d9c547b00395b4ca6f7"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/idle.glb",
+      "sha256": "cbd1e701c9597abaa7673ff9b6d196330febb91c09de15c75f66ee75cff024b1"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/idle.glb.import",
+      "sha256": "22f0eb9087c4c53a2e0d8894c65da6e82ebe1ca9fcf94e94771db2b909097e23"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/pull_radish.glb",
+      "sha256": "10275a9525bf4445f9799452f325be76a6b639e9a46845a5f08c2ba203d01736"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/pull_radish.glb.import",
+      "sha256": "3f143d168b95cbd48599057e6b36955f36035077fc49d7a52c0f3ce7c795f611"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/sleep_normally.glb",
+      "sha256": "28964d45bb831a79e644af5335fc102a9f832d952cd33e304e06ae26b41ccc02"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/sleep_normally.glb.import",
+      "sha256": "a56e7ba0c9589af21a9ac67e8ee67e72780f578bfcdffc6b588b2d1b3cc1876c"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/stand_and_drink.glb",
+      "sha256": "24e96b6b51951c9b3528547098b65deac753579b04dc2c862b0823891b34c7b2"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/stand_and_drink.glb.import",
+      "sha256": "43c6060f4e072c62cd5f014f47bdce889320f7621f1beee7612c0583b05bbe83"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/swim.glb",
+      "sha256": "5166c59f9dc12ddc34f75e5be8415e694a6e14f7d71bee617c9d4525dff1152c"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/swim.glb.import",
+      "sha256": "86cb1f3ea41de9f02287495d177f2f0eb1905b9f47d382a1fb0fe49e5c84a98f"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/tread_water.glb",
+      "sha256": "187c3c9e8df78266dec4230b7a47855b945c274e378af4341302c72612ad7666"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/tread_water.glb.import",
+      "sha256": "3da4ea07d578a1b0a12872270ef6d580d59ceb9ec09d5833156d95991a705c37"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/walk.glb",
+      "sha256": "4a6a449656994cf276acf0b7dae6db1d0c56ac7f842f164fce2a7bd88ad54d2d"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/walk.glb.import",
+      "sha256": "8a2d66b3c517a2baa444a8a13e939f9979f717aa546ac007bfb93c4895c80280"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/wave_one_hand.glb",
+      "sha256": "e715a279a1ec504563351c0d955f03ada64dc98c138c05925a9e02b4273d5271"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/wave_one_hand.glb.import",
+      "sha256": "7fa205578e74c4635af231d9a1e9330fff406ac41f11f9381c8d0cfe00d29b43"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/body.glb",
+      "sha256": "27eb814700077388adf7177a5b167feaa03856b1d3ba9d3d36cc885c82011691"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/body.glb.import",
+      "sha256": "5fa4198a4029f36ad61a538f0e3b56b12d95254b3e976cebaa2e3048bd2821f0"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/carry_heavy_object_walk.glb",
+      "sha256": "e056785fb939dcadbc1572ae77f8db0098cd544fa08671296823628013882c72"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/carry_heavy_object_walk.glb.import",
+      "sha256": "ddb6301fee3f012d3590f68b28deda283e4089c78be07aad6dc4c81de1f3e0d8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/cautious_crouch_walk_forward.glb",
+      "sha256": "aaed2119dc5c36cfe57fe9eff432e5add299b14441772f99619f46e5970a121e"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/cautious_crouch_walk_forward.glb.import",
+      "sha256": "83f2ec8044649adf87a09966ac54ca7d131804ec78ed2132676ae25c460361f5"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/collect_object.glb",
+      "sha256": "4246684bf7b40949b30a914fdfe2e01db33c08c0b08954f049bd6779caf1fbec"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/collect_object.glb.import",
+      "sha256": "74e243f0e18aba51be6171d8f9624f05b9c7d705237d3c96d183252755b38e7a"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/dive.glb",
+      "sha256": "ef5bab0c5f9c25a4b94d3588ac61276b4d1a42931ea7a3abe0d54d4641be4cb8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/dive.glb.import",
+      "sha256": "aebcf8745025ec59a45c81629838cb84d019d5d723842faf695743105116fe55"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/idle.glb",
+      "sha256": "188f8193c8fa1d7e2218796073432c26e77961fce62b8c469d0fbcb899323432"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/idle.glb.import",
+      "sha256": "d5e7a9073b1e917819c10e89e0a1cdf9bef25366bca3321d4afef5ff92cdab8f"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/pull_radish.glb",
+      "sha256": "bb828ad942520a69a6096e0bcd8495fef7256e4dd2f8feb535943e805184f881"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/pull_radish.glb.import",
+      "sha256": "25fe45aa0e06afc1517fc14b99ca718cfeda50818b73f530833fca0cae88e51e"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/sleep_normally.glb",
+      "sha256": "54166075729db23bcef9ed26aad81cbdcd6f8cd78ffd6178e29de388120931bf"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/sleep_normally.glb.import",
+      "sha256": "2a36eb0093a1bf0ef35c7c65ef1ecbf143199039202b5d3070a3b08eecfd10e8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/stand_and_drink.glb",
+      "sha256": "628191d69f28ab92acebdf22cc70c51e4cd6a49df4bfc204ecf52ab506560396"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/stand_and_drink.glb.import",
+      "sha256": "79d30cfb9c0b187eb621da6d1e1034e87beb814940bdc2d52ab08a36ce60d8f8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/swim.glb",
+      "sha256": "b72580a9659cbdc1d17cc627399080b6cead5e9e2c9f97c1463b036e999f1589"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/swim.glb.import",
+      "sha256": "b1cbc5a4a1e33557bba35546d5083b46ff95655c2d1b241a5d5f8b6740a3c0d5"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/tread_water.glb",
+      "sha256": "5143bcd547dfdb679e7652c23c0cd7a59b7067b66a508c9908c0a7ac903cb7bc"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/tread_water.glb.import",
+      "sha256": "e2d03df3473c098fc5b1253bce5342259677bd4106857891caa5aaaf9ffdb7bd"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/walk.glb",
+      "sha256": "f0dea1e84aefa65f3ecffbef31471526df888e9a2b15958a477ef573fee3b77f"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/walk.glb.import",
+      "sha256": "1258454975e665b9063fa88bec83ad2c8f9b6515afbac4b0b9b06a7b4e042121"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/wave_one_hand.glb",
+      "sha256": "a95d31ff697c451246f7f4b12fe05bcd0cbb13a636d5c8b726bfe7de70203fbf"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/wave_one_hand.glb.import",
+      "sha256": "cd8ee200c031352fdadf9d6d64b2d722e48ad2af72929f8a1209294f3cb9a0b5"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/body.glb",
+      "sha256": "1769c046ba03988c5de4b027816e9a1ec34c3d2e666966f696b9a6edee56b6b7"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/body.glb.import",
+      "sha256": "5f3faf3865ed55844afd292f1d6c8279ecdc42e4b766669fc635baf417231279"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/carry_heavy_object_walk.glb",
+      "sha256": "ee988aa8eb63a5cfbf786b8d35519cd2579cd8cb5e47ef4ab5a9b520e5d7a3e1"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/carry_heavy_object_walk.glb.import",
+      "sha256": "040db6b0510b0c5fd7f4ab304838bbab82fdeb006ece0b6a37b66f1aba7df42a"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/cautious_crouch_walk_forward.glb",
+      "sha256": "a5e55d173849e88c05609fd97df03f482be07531003d7d22d5b5eef9def5deb5"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/cautious_crouch_walk_forward.glb.import",
+      "sha256": "2fe61c4326c85b03738bfcae0a9261acbc525074712da00f4d1184aadda913b2"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/collect_object.glb",
+      "sha256": "95a00343ec964d3a6183a16d440d8f30e0069c4a8a4fe976504e80ec3a6717c3"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/collect_object.glb.import",
+      "sha256": "6b8c4650203866d8fa69f39cd8b6d241cd4c826bb8e748ec543500907761d5aa"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/idle.glb",
+      "sha256": "6cdb03ddcfb396f180da8a35c37d722ef14640c50ed63d8d0973d193a70a7fa9"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/idle.glb.import",
+      "sha256": "adffe730f21f88c1efb24f86e7c3886f2baa5a6423fa930851f2ddeea236e986"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/pull_radish.glb",
+      "sha256": "bc625452e1a41604c1c3cb9a4727ede4df195068e299f4e2f51e540d48dee7b1"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/pull_radish.glb.import",
+      "sha256": "de630d8c3c53c64f5a05ce25c5a61be44bbd958671aea1dfae063f986688f9fc"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/sleep_normally.glb",
+      "sha256": "7090d74f90a5f0b0236ebe0bdfa64b97a81d0ff261ad57a02370d4bfbec13416"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/sleep_normally.glb.import",
+      "sha256": "21b9094515bee11865ab8c92e2ddebe4aadf21ba123a94dec0d8f625abb066d8"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/stand_and_drink.glb",
+      "sha256": "c670ab8a295e29f6688d760c863aff2de67c53f8145e1846359a179f593d8c34"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/stand_and_drink.glb.import",
+      "sha256": "fdfc52c8dd841ecfb930498bb0645013afe9834207073a747b1586113033b300"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/swim.glb",
+      "sha256": "3e586a0dc67173c62bd5eadf2837580041287735c62567ccfd825d0ee7b448cd"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/swim.glb.import",
+      "sha256": "cd187fb7af9361cc181463918bde8d92427a1e5a6cc3022390c27400ed23b929"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/tread_water.glb",
+      "sha256": "edd792843834ec4fdf39395cf568d4e2cd4703f220813162e993901eaa7f2a3c"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/tread_water.glb.import",
+      "sha256": "f68d6ed3d544f9fd6911ebaf7e39f1056bbd5040ea58f6ec6484028ee9d2cb38"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/walk.glb",
+      "sha256": "7bd46d2a8a7e404fc865c22e8e2d865207fa1045fbe73262c19b15f738ac1711"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/walk.glb.import",
+      "sha256": "871d0ec6a468dc443abf9f962dec7a6b582d820fefc1c2c9409f2e2221e30584"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/wave_one_hand.glb",
+      "sha256": "582f373fafba7d4cb27c2a819469f99108dd17b76a0d405cb89fdff8b7ad1b83"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/wave_one_hand.glb.import",
+      "sha256": "b764f20a1f3390388ae6db896eba12b9cfba338f3003db28334130cd70333f43"
+    },
+    {
+      "path": "res://demo/assets/props/item_barley.glb",
+      "sha256": "2358fec0f0a5d10406733618b04c3b15fbe27da9bed11cf425769971a62be06f"
+    },
+    {
+      "path": "res://demo/assets/props/item_barley.glb.import",
+      "sha256": "9df84f1a8dce879715e835cd5a84fc0ff4a5fd5c20a343166586cabb6affe952"
+    },
+    {
+      "path": "res://demo/assets/props/item_beetroot.glb",
+      "sha256": "db885b6b06f422737eefc821ec4ff63fc6b84e576fc54bc8a38d3156b5435f26"
+    },
+    {
+      "path": "res://demo/assets/props/item_beetroot.glb.import",
+      "sha256": "1aff3d64d8e45e05308646e77c4dc025f1dafcea4d6f3bf149084ee064870624"
+    },
+    {
+      "path": "res://demo/assets/props/item_carrot.glb",
+      "sha256": "4bf186e3fba94e4d9b43002f0b6462cb0daeb9340bdd415eabbfb352784455dc"
+    },
+    {
+      "path": "res://demo/assets/props/item_carrot.glb.import",
+      "sha256": "034db4e4c75287e7925bf9143ec4ff3078fe0b289848155754a1674747509b86"
+    },
+    {
+      "path": "res://demo/assets/props/item_celery.glb",
+      "sha256": "9ef3ae91ec27064159dcde8dc6981e08b72b77a80bb2d920ffd1ce5a73d03394"
+    },
+    {
+      "path": "res://demo/assets/props/item_celery.glb.import",
+      "sha256": "24ca24a42ea8f0e562cf3d90782f3059502457816701794960a2ab2e025e627c"
+    },
+    {
+      "path": "res://demo/assets/props/item_leek.glb",
+      "sha256": "adefb3176b184b0a693c8de9767877a68e4e87d211bc52e58c642b479d87f604"
+    },
+    {
+      "path": "res://demo/assets/props/item_leek.glb.import",
+      "sha256": "74b1f1b81d33a17c8ea3c0781c0ec549d93ac6aacee85899e1a7fa283c351a7a"
+    },
+    {
+      "path": "res://demo/assets/props/item_lettuce.glb",
+      "sha256": "2cb2363120bf863421fb29c6e99163c4b3411d85a30f4bdd359138178fc809d5"
+    },
+    {
+      "path": "res://demo/assets/props/item_lettuce.glb.import",
+      "sha256": "cdf8d7a38fc477cc1abd99dcd1d5b8844ddd3a6050d1733b95a148fd1cd146bd"
+    },
+    {
+      "path": "res://demo/assets/props/item_oats.glb",
+      "sha256": "64a407761b43c10e12383fd1425b7c81d903ab1d2cc8378463c2f42fec94b724"
+    },
+    {
+      "path": "res://demo/assets/props/item_oats.glb.import",
+      "sha256": "3e3c9ad8678f6143f28f0c45db11fa3cb074c0390e9c1136838eea4697f7b6cc"
+    },
+    {
+      "path": "res://demo/assets/props/item_onion.glb",
+      "sha256": "ed8a591bd4ba7c33a144de96ef436867db3da86bef7df66878d05469dac2728b"
+    },
+    {
+      "path": "res://demo/assets/props/item_onion.glb.import",
+      "sha256": "99e2a78a1f312452259e7b5fe1d8be46f1ab8f8f0f6865527c6adfbe9695cfdc"
+    },
+    {
+      "path": "res://demo/assets/props/item_peas.glb",
+      "sha256": "cfa40320d6375e789a13abb01b87db511f1d32a85892574d0b77f0ab145d072a"
+    },
+    {
+      "path": "res://demo/assets/props/item_peas.glb.import",
+      "sha256": "001d6d7074b6ce01e9bd78c68687d9b7ff27f1549d8f2b430cb8fd482303193e"
+    },
+    {
+      "path": "res://demo/assets/props/item_radish.glb",
+      "sha256": "f2bbf9605cea621b52436d7a2bca7687472c52a6a4c84efa2842f5836ddef2aa"
+    },
+    {
+      "path": "res://demo/assets/props/item_radish.glb.import",
+      "sha256": "3e7ea14764526261e55692486985f33bd6b68761b9baf54a8e887d4acf66df05"
+    },
+    {
+      "path": "res://demo/assets/props/item_turnip.glb",
+      "sha256": "1bbb0612f1e9bcb0c74577404324fba5be96e474a2af8a3215c293e71e0e1438"
+    },
+    {
+      "path": "res://demo/assets/props/item_turnip.glb.import",
+      "sha256": "61d59a40cd3202f5e516bc7d1566621dbf55ca671116403a0c08476ed805793c"
+    },
+    {
+      "path": "res://demo/assets/props/mole_pick.glb",
+      "sha256": "dc7fd045043cb1ca987f8393d1035ef2af219208fa8ae5dddd9698f14d40eeda"
+    },
+    {
+      "path": "res://demo/assets/props/mole_pick.glb.import",
+      "sha256": "99cfba9faede0e23e4281d93b49c962a8823b2251a9d2dc91c7d33d47015a66d"
+    },
+    {
+      "path": "res://demo/burrow/bed_allocation.gd",
+      "sha256": "0674e344fa40cafea5cbc2b8a54d6edbfa84e7112f9b12e9bbced14fc01d247b"
+    },
+    {
+      "path": "res://demo/burrow/door_swing.gd",
+      "sha256": "3f88a5aff7897a81973c44b4e1017962e2be958b39653374da0ff49398129048"
+    },
+    {
+      "path": "res://demo/burrow/fixture_card.gd",
+      "sha256": "14abacb607d4915ab5ddc89b0735888b9f55420f7e9a48736de5178d22ea2e91"
+    },
+    {
+      "path": "res://demo/burrow/fixture_crew.gd",
+      "sha256": "6e4ec41ee2d577f0e0acb29de722b699d742963ea8681ee36726375415aae81c"
+    },
+    {
+      "path": "res://demo/burrow/fixture_kit.gd",
+      "sha256": "443f466a8b65496744727cd9cfb6701fa3679272e68087ff9f3e389ba2ab4776"
+    },
+    {
+      "path": "res://demo/burrow/fixture_view.gd",
+      "sha256": "fa29d2ee620bd13c26f61886ed520c781916cb5e5235bdd57b90fe7f499c01a6"
+    },
+    {
+      "path": "res://demo/burrow/install_task.gd",
+      "sha256": "ae6d482653d792ec2bdc2e16a8cba33e71b95afae188f82cf6133745d940670e"
+    },
+    {
+      "path": "res://demo/burrow/night_routine.gd",
+      "sha256": "861e5453b71047f7027fb9282403abd70ff484cf4bf8e8f7ddb6dab8843af63e"
+    },
+    {
+      "path": "res://demo/burrow/room_fixtures.gd",
+      "sha256": "093f493efc3b671dff34faa93f92fb97ed7fd8399e743f14f2dca28ef609fe7c"
+    },
+    {
+      "path": "res://demo/burrow/room_mesh.gd",
+      "sha256": "b2ba10fac0d0856a0f9246cbff3d962aade4512f3ba2257c14944bc0e621455f"
+    },
+    {
+      "path": "res://demo/burrow/room_text.gd",
+      "sha256": "57a8030f7b35846fc9bee58717a8a1686621c0bfffedd7d38ec4f51cffa6386a"
+    },
+    {
+      "path": "res://demo/burrow/room_view.gd",
+      "sha256": "12b28c7df4ca9a3f40265d04c0f32884f5c0590db7361686a8bbe98db305f805"
+    },
+    {
+      "path": "res://demo/burrow/sleep_task.gd",
+      "sha256": "8b7192e501a172bfb8478ac9b063e9837f523494d501412b3a94e9fa161835ab"
+    },
+    {
+      "path": "res://demo/burrow/underground_rooms.gd",
+      "sha256": "b53552c52bc173309a50fbb917c7c1d07579ecaf9842e92ed4b863a247038108"
+    },
+    {
+      "path": "res://demo/cast/cast_grid.gd",
+      "sha256": "1677d54d308daa8e218dc31c7a0dcc45df19fa5be9e7ff59fb1ad2016fa089cb"
+    },
+    {
+      "path": "res://demo/cast/cast_nav.gd",
+      "sha256": "6edaaf45397a3abb0a7fbe006ae690469f220d3dcf4da4d78f3e6d310dbe8572"
+    },
+    {
+      "path": "res://demo/cast/cast_nav_graph.gd",
+      "sha256": "07dea0cf3623428f5e961e21ba2d7229bdd2beb6a1786802efac024be08f275d"
+    },
+    {
+      "path": "res://demo/cast/cast_orders.gd",
+      "sha256": "22b5a16d59428602526d00d2783140ebd0820e3d84773920d7da165432fccc92"
+    },
+    {
+      "path": "res://demo/cast/cast_routines.gd",
+      "sha256": "d3c21088c7254a85fcdfd97b3e4dc6e6b4e35967646849dd55d352b978600797"
+    },
+    {
+      "path": "res://demo/cast/cast_space.gd",
+      "sha256": "25bf452b1d413f42134619faf5b9e50067f1a1c15c08c5b6f5137c0f08d91cd3"
+    },
+    {
+      "path": "res://demo/cast/crossing_hook.gd",
+      "sha256": "d32483ccdd6381e695db85907030134147e4841b5fffc1fe7ab75fcb8a514f83"
+    },
+    {
+      "path": "res://demo/cast/demo_actor.gd",
+      "sha256": "1dd127464e7a9853b307af20d8f34bdd2606e7dad64910b685a810eaa93b5fb0"
+    },
+    {
+      "path": "res://demo/cast/demo_cast.gd",
+      "sha256": "cc602f2f7642884c7abeb7ee8bc389cc64553188adb04fe3998a68e50ca029ae"
+    },
+    {
+      "path": "res://demo/cast/resident_brain.gd",
+      "sha256": "ce85423ce7aed09b3985630e09a9cbc181c7a4b48ecc3f6b2e67821c05b8075a"
+    },
+    {
+      "path": "res://demo/cast/resident_cells.gd",
+      "sha256": "3eebfcc499b347ce78da7ebbbb34c7c1c13942d112c748ed0bcf9c7d160ac589"
+    },
+    {
+      "path": "res://demo/cast/route_desk.gd",
+      "sha256": "05c024c7c26ba2c517d0a4062bdd97a13d18b9d888ef1b529293ba31fef53137"
+    },
+    {
+      "path": "res://demo/cast/stoop_modifier.gd",
+      "sha256": "66240308582e017e8864aee5bd0a3828d1f21a682d0f4a06367508f63d34b852"
+    },
+    {
+      "path": "res://demo/cast/strike_clock.gd",
+      "sha256": "ed26b04b095143ff7c8ebd4a35e63f99f4bb287497e1ef746cbbfe9f97aa7843"
+    },
+    {
+      "path": "res://demo/cast/unfinished_job.gd",
+      "sha256": "9f9e03d0e7f543c60463f962a7fda73544e278a1d82dd46d312bde1303246572"
+    },
+    {
+      "path": "res://demo/control/demo_marks.gd",
+      "sha256": "94a5ff4b3230a11c9f632a073c1c1d5dd7309fc4f9efdbe20a816ee78aacd977"
+    },
+    {
+      "path": "res://demo/control/demo_pick.gd",
+      "sha256": "759ce380ca35f59acf83d4dcc3b4dd47d2f5550c490b8725f966b2c2b3020b18"
+    },
+    {
+      "path": "res://demo/demo_calendar.gd",
+      "sha256": "0ed08e6ffddcfd00524d6f17803e9a53208580c1247b9eea4654dccbac7e3a6e"
+    },
+    {
+      "path": "res://demo/demo_clock.gd",
+      "sha256": "8b38db03894bee0dfe37e8b761d247117a5282f84782c20904d4a5e0f165c909"
+    },
+    {
+      "path": "res://demo/demo_incidents.gd",
+      "sha256": "4a0d3bdf390e119bbf64efbf0ecb8aad4b9d1aebf5ab8b9d1881f44fdb563a06"
+    },
+    {
+      "path": "res://demo/demo_layers.gd",
+      "sha256": "3dd7b05bc4de4eb3c5ba7a541ca40f0d61c342485d67858dcd4fc3e65b70ab2f"
+    },
+    {
+      "path": "res://demo/demo_manifest.gd",
+      "sha256": "1e3499a65d5c2781a5109df01a530096f1c7e4e445da9e958f45a97301ddb9be"
+    },
+    {
+      "path": "res://demo/demo_news_clock.gd",
+      "sha256": "896448ce991dfd994c52f8b4809639874bfff5b11c86635c51a91dad33cd04d6"
+    },
+    {
+      "path": "res://demo/demo_notice_snoozes.gd",
+      "sha256": "c3c34b846d1d08abcfec2c49a8a203f7f8da846dd8ffbd44563410be174b0d24"
+    },
+    {
+      "path": "res://demo/demo_notices.gd",
+      "sha256": "4df72d310ff2c93e6b927d60fe8e47073fb5691d4d0b862c6b6b65c0937a9685"
+    },
+    {
+      "path": "res://demo/demo_services.gd",
+      "sha256": "e70129910557d74e6ed15115fdb02eda17634fb818998ce8547549a05fecfb6b"
+    },
+    {
+      "path": "res://demo/events/demo_events.gd",
+      "sha256": "4d81578740f6aef604d78f09af5f489535eebe3f6022807f6eea7ec77759900e"
+    },
+    {
+      "path": "res://demo/events/evacuate_task.gd",
+      "sha256": "dd5c6571f7f9f8c428c5e7e02f1a599580ffc64e1613868663f990f8dc35c735"
+    },
+    {
+      "path": "res://demo/events/events_view.gd",
+      "sha256": "fa77f6882e9ca7abb322a99ac9d10a46d87e29cbffa7906b24d7b5a8f1093234"
+    },
+    {
+      "path": "res://demo/farm/farm_catalog.gd",
+      "sha256": "f6521f04dd187d09c365b7ec6450302cb0736322ede08c40f002dce9bfac56fc"
+    },
+    {
+      "path": "res://demo/farm/farm_goods.gd",
+      "sha256": "e6e231d27a6fd58cc53739b54848230615665e275faca329552c9bd92e230432"
+    },
+    {
+      "path": "res://demo/farm/farm_weather.gd",
+      "sha256": "291003e3c0dacc12bf6f8706238fe751d2184f51a8e779a77209c0f2e75ac9ba"
+    },
+    {
+      "path": "res://demo/forestry/forest_roots.gd",
+      "sha256": "3502703e8ef3466950682916d7d28a24b269da4f3fdde9aeffdb07746be035e3"
+    },
+    {
+      "path": "res://demo/forestry/forest_rules.gd",
+      "sha256": "089ee54b5cbb11eada5808b98a5df030a77a7f2b14bfd338d56620fd09ca93bb"
+    },
+    {
+      "path": "res://demo/forestry/forest_stand.gd",
+      "sha256": "6cbcdcc1ca9d2dd01f29891e440ec79335344cb210884da4e08f0731918871b0"
+    },
+    {
+      "path": "res://demo/people/people_book.gd",
+      "sha256": "ef2a4267ae118b709c179e3b4998244c26c8ec641f02dcda221076d84f8c9198"
+    },
+    {
+      "path": "res://demo/props/demo_props.gd",
+      "sha256": "28eebe56851286d2718a89c8c5085ed3ee6e8a817bd5cf821a5dd9e76c2568da"
+    },
+    {
+      "path": "res://demo/stress/scale_probe.gd",
+      "sha256": "b36a65d1ed196e3c96da74629f82f1364154320ed9deff67f7212308d919d38c"
+    },
+    {
+      "path": "res://demo/stress/stress_cast.gd",
+      "sha256": "60af719f306de0c88e31fbe76be506b28c7ff16b77a946335ad1b15ba4869591"
+    },
+    {
+      "path": "res://demo/tunnel/bore_curve.gd",
+      "sha256": "39e035950eb1ff96f454f0e95ce4e91048519866946e674cae9e4e8132db8828"
+    },
+    {
+      "path": "res://demo/tunnel/bore_dressing.gd",
+      "sha256": "3100031766338ef037764c237a5b4c4dd2a19827ca9fd34add95b34dbc9da93c"
+    },
+    {
+      "path": "res://demo/tunnel/bore_mesh.gd",
+      "sha256": "00f1d44186baef20230db62a694d87e5f247bf46a9f71c1b356015d8bdd90809"
+    },
+    {
+      "path": "res://demo/tunnel/bore_view.gd",
+      "sha256": "1d305964fccf5ecc642b7160cfb94ddc577585c1947dbf804af845a52971f61a"
+    },
+    {
+      "path": "res://demo/tunnel/dig_skills.gd",
+      "sha256": "943a69553602125243315494d54d2138db3625a1b38d9821e67f4dc7c257eedb"
+    },
+    {
+      "path": "res://demo/tunnel/dig_theatre.gd",
+      "sha256": "25df1da431d5c782213466b38160ea435545f4e03f62351842d49257c832b056"
+    },
+    {
+      "path": "res://demo/tunnel/graph_paths.gd",
+      "sha256": "3ee07627e67d3fd72030d08f606a33c0492b93f9966b4ea4359fe4d57c1b6764"
+    },
+    {
+      "path": "res://demo/tunnel/haul_view.gd",
+      "sha256": "35d3c964df5550045864292a2a69a264c7e5f02c0824be4c24799bb253888729"
+    },
+    {
+      "path": "res://demo/tunnel/hazard_look.gd",
+      "sha256": "4e95208eff8827459fbc7fe2975c73150c7aa2bd43e6de4c03c56ed5291f8128"
+    },
+    {
+      "path": "res://demo/tunnel/hazard_view.gd",
+      "sha256": "a3f78ea638c70d24d47650aa38c76bb7e8d4a1b0de1775a769c1185221e20b2b"
+    },
+    {
+      "path": "res://demo/tunnel/piece_spec.gd",
+      "sha256": "65722c4014a91281b12ba724c2c839846481d9318be1aa504badb648671c1488"
+    },
+    {
+      "path": "res://demo/tunnel/spoil_haul.gd",
+      "sha256": "b3b516269f0852b4ec423b7d638d64f80d3a77ec6a55988d6e47dba2d8569f80"
+    },
+    {
+      "path": "res://demo/tunnel/stair_view.gd",
+      "sha256": "2512032e4de4560799350fa5e795bd85a15e44d2e11ae210842832281cd709d6"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_actions.gd",
+      "sha256": "c85fde40562f386a8935dd2a07dce986e5f810e2c3bd00ec1f1da4a3d0c23b2f"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_crew.gd",
+      "sha256": "707883d0136385af3a10343eefa5f35c0b37a86a64a9c075777d95fbaa333a79"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_crew_task.gd",
+      "sha256": "f75f642a3c4c36799d253a80d0fe42bfdef215c951d93f4e8fab9def556be147"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_ext.gd",
+      "sha256": "286d386c02ed4e4193965bc0fc196f5054369dd8842656e78b0f27b4594b9492"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_find_props.gd",
+      "sha256": "0948a3cd41df1d47f12fb294edb753894bf0b7c53e2c6b3daeacf38a38a6443a"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_finds.gd",
+      "sha256": "aacdea175c011ade9708dd7fa6397a3a0ba82827229bda3b198ef9fe27b6c834"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_ground.gd",
+      "sha256": "8592dbf73c704de6c5df0303d74d68ede076ac838cb0f8f07bc8f891aed74fec"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_ground_view.gd",
+      "sha256": "2f0bc53e824a9e1dd204e216aa552e985a2c0e55d69dda8857f9557d82f8e496"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_hazards.gd",
+      "sha256": "84cb3fb1e56c38ac93117d2315e38efaf646031ee9a183d6ace844ad70a1695b"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_heaps.gd",
+      "sha256": "8d87d86306b89ed7a2a67b6bbc400d92343a4afc51721931969758d975a7aa06"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_job_task.gd",
+      "sha256": "75c9107f83cfbc7e40d12441310e57c7684bdf58815d447bdae7bf42e5218320"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_jobs.gd",
+      "sha256": "eb510db91a6c1e06b2984e9773976341b50630d1a2382147dbcd8f9b63f08a23"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_lanterns.gd",
+      "sha256": "aefc5cfedbc0c4cc252a231f2fa113bcd49d7a6d1ba646673bd2a8ac57afffc3"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_marks.gd",
+      "sha256": "a5c30509d220b652a966ebabfd0b9e1f7a5b50de80de31d6bd6cc0ef4690d64b"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_mouth.gd",
+      "sha256": "ad20be822dfaa12e879cf82a3bfee5fae252d9c2e4c461b5d16f906ed3dd6912"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_overlay.gd",
+      "sha256": "d312e7fbcd5fdd4e66e6586d30ec94ed38659af7c934c7919051778dee70ddc9"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_panel.gd",
+      "sha256": "83edb7c2eeb6d2878f25c9b3a19ea4a1f5ccd35d8e4f7ee4f802d3f7f9a11d7c"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_plan.gd",
+      "sha256": "6cfe933a602aa516f959e8bf7b01edfc140c25fd78f522db4c475478fa716115"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_queue.gd",
+      "sha256": "6223245570546d25dc9bf74f16838f447d8618079a93d54dbdd3b44ea479cd2d"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_router.gd",
+      "sha256": "2d235ef660cafb5ef940620d9842fda6aa3e69c4e9ccb8cc1ae78cf4200ee765"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_rules.gd",
+      "sha256": "055b4f65f72333ae377efca87bbf0dfc2df3a452fea3beae4bbd490662aeedae"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_stores.gd",
+      "sha256": "e88419353a1239baa514a8663767cebd4b49ea4a77080565fe593a20b04779b2"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_task.gd",
+      "sha256": "6232c118444065bc846e563d683ee00bcebe43cba703ec059c5354d108714aab"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_view.gd",
+      "sha256": "8b346016ca4d412d77c0259fc03c6ecb926066a1638e14f9c62c6093a0a68a07"
+    },
+    {
+      "path": "res://demo/tunnel/tunnel_works.gd",
+      "sha256": "1b49733ade18f5f6d707165abb41e8a0e8226d9a99b17a8019e3afcb2884cdbc"
+    },
+    {
+      "path": "res://demo/tunnel/underground_cap.gd",
+      "sha256": "eeab38bdf51dbf095a58befaecaa3feca78d89cdd635f5f8bf0074a74eb541fa"
+    },
+    {
+      "path": "res://demo/tunnel/underground_graph.gd",
+      "sha256": "4ff223c4b1f4703ad9212db9cbfef1122e0ac2ecac219d609ead70ed099188ae"
+    },
+    {
+      "path": "res://demo/tunnel/underground_prewarm.gd",
+      "sha256": "0b5bb1a1159280438f3af68ac0281ac220a0404509be3e64a55b5b921617c356"
+    },
+    {
+      "path": "res://demo/tunnel/warren_kit.gd",
+      "sha256": "908f4402e51ca36d3ca93fae7f94646c56f906a8692fa6a28f2690a8359e5ec7"
+    },
+    {
+      "path": "res://demo/tunnel/warren_particles.gd",
+      "sha256": "fe85d0377e5e671fca3c8574a91dc4e872a65a5d376f6d5ff3a2b8ca315be59e"
+    },
+    {
+      "path": "res://demo/tunnel/warren_signs.gd",
+      "sha256": "a4f9925c9f87df9bdbe671bdc4ed891aadaeace7ca0ebaf19eb1c5009cde6a95"
+    },
+    {
+      "path": "res://demo/ui/action_card.gd",
+      "sha256": "3114a28b8f977588f28e184065570364f46165568d057f94d2b68936df41e6bf"
+    },
+    {
+      "path": "res://demo/ui/demo_detail_zone.gd",
+      "sha256": "04394f3c509b155847003092ffa6dae95cbda5dcd12a234a1fa223be5047760a"
+    },
+    {
+      "path": "res://demo/ui/demo_scroll.gd",
+      "sha256": "d918c86abb3a75666ae820a9ecc5a371dd4bc2e3ce9c16ff96e44d05da6d8960"
+    },
+    {
+      "path": "res://demo/ui/demo_ui_scale.gd",
+      "sha256": "4803a4e7fd0e58cef3e2f49009e83b3b7485234a580efc68c50d0dfbaac86056"
+    },
+    {
+      "path": "res://demo/ui/woodland_palette.gd",
+      "sha256": "0ea20a147b8e8d314200a6b98ff1524919a6c57ba22dcf4ac7bb51d431d98a1b"
+    },
+    {
+      "path": "res://demo/ui/woodland_styles.gd",
+      "sha256": "5f0c7c0cd4e00b05215437a434b6e20d16d20d318ef43a952ec8d9cec1ffee27"
+    },
+    {
+      "path": "res://demo/ui/woodland_textures.gd",
+      "sha256": "8cabd56a75ff1805a3b6ec246e9559ddfe59d72352c27c3c9888cbd4177a9d25"
+    },
+    {
+      "path": "res://demo/village_water.gd",
+      "sha256": "b918204eee42b936db1274897ff7b0107ee6d1b51a64606617e2546ba9ebd9a5"
+    },
+    {
+      "path": "res://demo/water/water_dressing.gd",
+      "sha256": "d6bf79676c5b626b008d0c5a7ab2177e1cd6b8633723625ae18e32aeb5e12433"
+    },
+    {
+      "path": "res://demo/water/water_layout.gd",
+      "sha256": "1e4529651da7270a8d7d9e1abf65172fcd3fa020244698d7077902e86a434fc7"
+    },
+    {
+      "path": "res://demo/water/water_map.gd",
+      "sha256": "01d904229f929498a77c44d0755021993dad28c4f3ce5709aa3afe4796e57e9e"
+    },
+    {
+      "path": "res://demo/water/water_rules.gd",
+      "sha256": "e60276ff612de30dcb79b75d9855f2a8ead3f281fd6836904e3c07e5b86d5f5f"
+    },
+    {
+      "path": "res://demo/water/weir_fit.gd",
+      "sha256": "a7a6c714bdac02109c0d957db5e7d54b40af2d6e72233de78bc5d3bd85d9ec34"
+    },
+    {
+      "path": "res://demo/weather/demo_weather.gd",
+      "sha256": "e0f9b69ea9bab194a4e0bc7c8b4e035f22b6ee911f8c4e180f7f36f009bb75b2"
+    },
+    {
+      "path": "res://demo/weather/weather_view.gd",
+      "sha256": "9ea5fb99fdc1572430e83b97a1173a4962221dead70d596fd2d3f170b53441f4"
+    },
+    {
+      "path": "res://demo/work/work_ids.gd",
+      "sha256": "593585177bf2a102f61a64f7c26583c55efe3027ff95b40fe74aada1a8f4b6d4"
+    },
+    {
+      "path": "res://demo/work/work_pace.gd",
+      "sha256": "c9e0eba6f65fc5201fd48d935db6e9eb5b5be10ef9f333025fbfe6eced5eed96"
+    },
+    {
+      "path": "res://demo/world/crop_cards.gd",
+      "sha256": "87e424b1fac8f99b27e8c663095d660229deb9e66276a70b2c5fd85cb015f0c3"
+    },
+    {
+      "path": "res://demo/world/daylight_curves.gd",
+      "sha256": "eca61db95ef4fa3717b57ff53d63570b73a5886917dde504000895fda48a976e"
+    },
+    {
+      "path": "res://demo/world/demo_world.gd",
+      "sha256": "024b34230f4a55f5692f86d37e1787f8fec57fc0f1ae234140a8aa392c00ff46"
+    },
+    {
+      "path": "res://demo/world/ground_cut.gd",
+      "sha256": "7226d12874006c86311b3f6fe85bfcca15a99925d74c2964d7e970302c0c92d2"
+    },
+    {
+      "path": "res://demo/world/world_layout.gd",
+      "sha256": "56790160a36ba266b73c517821cd6905378624d29fdbb7fcf5e871e7a772a51d"
+    },
+    {
+      "path": "res://demo/world/world_look.gd",
+      "sha256": "0d156e863fca2728d46034fda93715306caa94587acf6934e283e807da7bbeac"
+    },
+    {
+      "path": "res://demo/world/world_scatter.gd",
+      "sha256": "d5722c56b0b35405f0d48e807664dc30b921a84244073dd12155c57fc41bb401"
+    },
+    {
+      "path": "res://demo/world/world_sizes.gd",
+      "sha256": "d365ebae1f0312cfc57d8c149972b8d22aba4c0256edbff9d941668709199127"
+    },
+    {
+      "path": "res://project.godot",
+      "sha256": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc"
+    },
+    {
+      "path": "res://scripts/components/component.gd",
+      "sha256": "ac40ee3e146f78e7148bb90ec6f5755204f8fc55ae26eadf555f1d4f0a4bc5dc"
+    },
+    {
+      "path": "res://scripts/core/building_definitions.gd",
+      "sha256": "32fd452ec16012a4a0662a622999e6ee20216bb55ee1035ee8cc996e7de45ac9"
+    },
+    {
+      "path": "res://scripts/core/buildings.gd",
+      "sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977"
+    },
+    {
+      "path": "res://scripts/core/catalog.gd",
+      "sha256": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1"
+    },
+    {
+      "path": "res://scripts/core/catalog_ids.gd",
+      "sha256": "63dfd84986c0761316301470c8dfb845a41670a91bb0f34f08cfc2ceeba84afb"
+    },
+    {
+      "path": "res://scripts/core/command_dispatch.gd",
+      "sha256": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e"
+    },
+    {
+      "path": "res://scripts/core/commands.gd",
+      "sha256": "6562db265811481fbb1b8a62c07b36854024c6c12e9b704d171eb4d04e46881c"
+    },
+    {
+      "path": "res://scripts/core/construction.gd",
+      "sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1"
+    },
+    {
+      "path": "res://scripts/core/crop_weather.gd",
+      "sha256": "0c45822d37a26fb05a57a2f591168b555d1a2be64ac5f8ae24e392e94db646f8"
+    },
+    {
+      "path": "res://scripts/core/demolition_admissions.gd",
+      "sha256": "b80ec6961ccaf7189ba93ca052ac60d3232e93b2d2a26287224107030f10d557"
+    },
+    {
+      "path": "res://scripts/core/demolition_work.gd",
+      "sha256": "3d2b482c14fd1cff6204935cb5aac3a889fafa0cbce8f47ddca70e8f46038735"
+    },
+    {
+      "path": "res://scripts/core/ecology.gd",
+      "sha256": "88b21ac74ba75cb1fb75d4d487141ee646879616cafc947c8425dbcb04b2c800"
+    },
+    {
+      "path": "res://scripts/core/entity_directory.gd",
+      "sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2"
+    },
+    {
+      "path": "res://scripts/core/excavation_contract.gd",
+      "sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f"
+    },
+    {
+      "path": "res://scripts/core/family_rules.gd",
+      "sha256": "3e7e41a936d9bddf746257aaac5b8f5f0f79f5f2ba478831aad82351f68b4d6d"
+    },
+    {
+      "path": "res://scripts/core/farming.gd",
+      "sha256": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539"
+    },
+    {
+      "path": "res://scripts/core/fishing.gd",
+      "sha256": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe"
+    },
+    {
+      "path": "res://scripts/core/forage.gd",
+      "sha256": "fbc941117ee084e80998c91510ee7ff4a320a265c6a4c16fcee8134fd5fa115f"
+    },
+    {
+      "path": "res://scripts/core/gear.gd",
+      "sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea"
+    },
+    {
+      "path": "res://scripts/core/ground_piles.gd",
+      "sha256": "b16df7763458d02a4c82e2e3f20bb119f2bd7e2b266af4b61db0ec6234ed27cb"
+    },
+    {
+      "path": "res://scripts/core/int_math.gd",
+      "sha256": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1"
+    },
+    {
+      "path": "res://scripts/core/inventory.gd",
+      "sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf"
+    },
+    {
+      "path": "res://scripts/core/inventory_spatial_contract.gd",
+      "sha256": "0919427cbe6ea08ca7caa0f759775f5b1536373e5e174fa739bc0f420725aa0a"
+    },
+    {
+      "path": "res://scripts/core/item_definitions.gd",
+      "sha256": "e824b4f2c00278c6ce3460728bb327d1e6b960bd5416e6b4ea3676a6cb958571"
+    },
+    {
+      "path": "res://scripts/core/job_index_schema.gd",
+      "sha256": "31e567e2f8c10ecd87170fffa3b8f88e65190e9900f13be1caefa08dff77368f"
+    },
+    {
+      "path": "res://scripts/core/job_planner.gd",
+      "sha256": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591"
+    },
+    {
+      "path": "res://scripts/core/jobs.gd",
+      "sha256": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b"
+    },
+    {
+      "path": "res://scripts/core/milestones.gd",
+      "sha256": "34aabaa1d72187c984c4cbbd1f6772d96f0f9056c7af76bd9b912c1765fb4fc5"
+    },
+    {
+      "path": "res://scripts/core/modular_project_contract.gd",
+      "sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58"
+    },
+    {
+      "path": "res://scripts/core/needs.gd",
+      "sha256": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190"
+    },
+    {
+      "path": "res://scripts/core/orchard_hive.gd",
+      "sha256": "5df8ff1b6c33deef47bbde0e16c94bcd7c2392f7a6e9b60c2ebab45daa6d459d"
+    },
+    {
+      "path": "res://scripts/core/presentation_extract.gd",
+      "sha256": "a0d4b3738e841b8cbe2ede918e562bfbe8da5fa590196130d753db9baa97532a"
+    },
+    {
+      "path": "res://scripts/core/priorities.gd",
+      "sha256": "27b1bd69d315f822dc34ee59ab8e01c74cd23396f4228467a08171216605f3a4"
+    },
+    {
+      "path": "res://scripts/core/reservations.gd",
+      "sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2"
+    },
+    {
+      "path": "res://scripts/core/residents.gd",
+      "sha256": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da"
+    },
+    {
+      "path": "res://scripts/core/resource_catalog_binding.gd",
+      "sha256": "f51acf0bd1a6e6bba4cfaa60c727f4972531c773ecd135268c26c277c4dc580b"
+    },
+    {
+      "path": "res://scripts/core/resource_nodes.gd",
+      "sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465"
+    },
+    {
+      "path": "res://scripts/core/rng.gd",
+      "sha256": "4ad32c2e173774b3e30300b8516a006a68c34f4a3d8f46470fca6490d124149e"
+    },
+    {
+      "path": "res://scripts/core/save_codec.gd",
+      "sha256": "f5a6fb8d442fcb0bc7240de71566522b911537a42a00e3380050ed2d8e76432a"
+    },
+    {
+      "path": "res://scripts/core/save_header.gd",
+      "sha256": "e6677b8c2e18682a6767055b58930fd482a43272eaf308ffc84cf27d9eae20bb"
+    },
+    {
+      "path": "res://scripts/core/schedule.gd",
+      "sha256": "e6b3b67b00eb634009a33d7d0b54a08a6c6b110514266c859842d388e2108f4e"
+    },
+    {
+      "path": "res://scripts/core/scheduler_events.gd",
+      "sha256": "26247c895b25f83eec324228b9f675d95d657fc29e6a17e6e42bf948f04a2a6e"
+    },
+    {
+      "path": "res://scripts/core/sim_clock.gd",
+      "sha256": "502c526bc93ca50e2553898dc9f82e175200c674b4a646021b4ede5a185d3070"
+    },
+    {
+      "path": "res://scripts/core/spatial_world.gd",
+      "sha256": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e"
+    },
+    {
+      "path": "res://scripts/core/starter_colony.gd",
+      "sha256": "56eaf003877415970dcd079623ba3451e088976cfd1f59849a53d1f8bc459215"
+    },
+    {
+      "path": "res://scripts/core/starter_structures.gd",
+      "sha256": "f8f7183a4e0d4a34aa31836b694591d34bae58d41a039406acb045d90671bf49"
+    },
+    {
+      "path": "res://scripts/core/stock_age.gd",
+      "sha256": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e"
+    },
+    {
+      "path": "res://scripts/core/store_policy.gd",
+      "sha256": "f848574e2f45fe2eb5d6550053ca40c39fe6934ba995bf665854121f7c9ecd20"
+    },
+    {
+      "path": "res://scripts/core/transforms.gd",
+      "sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7"
+    },
+    {
+      "path": "res://scripts/core/weather.gd",
+      "sha256": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e"
+    },
+    {
+      "path": "res://scripts/core/work.gd",
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d"
+    },
+    {
+      "path": "res://scripts/core/world_init.gd",
+      "sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4"
+    },
+    {
+      "path": "res://scripts/presentation/clip_root_motion.gd",
+      "sha256": "42a87b37d17431098c7e197b36fb071d0c1679b54a6a513ce0a3198ac9a43c64"
+    },
+    {
+      "path": "res://scripts/presentation/tail_flat_roll.gd",
+      "sha256": "581c0eba0522df6a8ce9e23ad181446932dd0fdfb3ee4f215a4c0c27074cbd99"
+    },
+    {
+      "path": "res://scripts/presentation/tail_ground_constraint.gd",
+      "sha256": "f642eb73dadd9464ef2e67e7f5b95ab83de1564d83545147d26872992565aafa"
+    },
+    {
+      "path": "res://scripts/presentation/tail_rig.gd",
+      "sha256": "d39131037fe4726cb642a2df54925fb5701a005512874533a082551bf2ec78a1"
+    },
+    {
+      "path": "res://scripts/systems/economy_system.gd",
+      "sha256": "e96a21877b0ddd8aa51f40333e3c77f2ca2dcafc679662981cffc89fc4eac11d"
+    },
+    {
+      "path": "res://scripts/systems/entity_manager.gd",
+      "sha256": "b27f50ae22bba6d6ba7d702c6342e86a36c37e7f736ac727c42760e274e59022"
+    },
+    {
+      "path": "res://scripts/systems/game_manager.gd",
+      "sha256": "ce82e75af50d738d67e92c4603dcfa2d9d30d4cdf7b749c304d1f4f29713a88d"
+    },
+    {
+      "path": "res://scripts/systems/settlement_system.gd",
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a"
+    },
+    {
+      "path": "res://scripts/systems/ui_manager.gd",
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d"
+    },
+    {
+      "path": "res://scripts/ui/hud.gd",
+      "sha256": "f86edd3f1ca09c792e7e32a9b9a22b2b0dc4fefd5fa5a2ff03f82e2894574a11"
+    },
+    {
+      "path": "res://scripts/ui/ui_availability.gd",
+      "sha256": "cf134f117505fbda734ab2a0abb53bdf764b73b3dea57999f506c4900d4fd622"
+    },
+    {
+      "path": "res://scripts/ui/ui_command_bridge.gd",
+      "sha256": "78311be3b31fb253b94ab54bc238e64e696ff532b141f891577f1d11acea49f7"
+    },
+    {
+      "path": "res://scripts/ui/ui_focus_order.gd",
+      "sha256": "fe39cc2a33eb5d1b198344a63121c8999ab86eecf723d78368eed67fd0e801e9"
+    },
+    {
+      "path": "res://scripts/ui/ui_hit_test.gd",
+      "sha256": "9ba8e0e7b0ab46f6ae5a44494087ed0eb0542ca0636fbf08d244889eae5000b4"
+    },
+    {
+      "path": "res://scripts/ui/ui_layout.gd",
+      "sha256": "1b2c2adbd0e575a95c84e167776df500d6ee79a35be4f01210bf090b2e3e4130"
+    },
+    {
+      "path": "res://scripts/ui/ui_need_rate.gd",
+      "sha256": "1b65a670a551a1dce53c9de3abff3298aca9ab1da0deb2bf15e72dff2c58912e"
+    },
+    {
+      "path": "res://scripts/ui/ui_notices.gd",
+      "sha256": "cc315ea1e8dee188cc4a17a9dc5c1b52e967f6768f171f780e2edeb5cec2f055"
+    },
+    {
+      "path": "res://scripts/ui/ui_registry.gd",
+      "sha256": "2efe818f963817911283b6cbc1b3d382803696aeb2f25711c5c6f971fd688977"
+    },
+    {
+      "path": "res://scripts/ui/ui_resident_card.gd",
+      "sha256": "96d07f75a9db6459162a8c8e2b59ba6965fe182cbd6d86a981a010d4650c8cc6"
+    },
+    {
+      "path": "res://scripts/ui/ui_resident_header.gd",
+      "sha256": "3f55181ee1f5d827321f851d3c06c25c2a347916970681bdb58df3227b46cd4d"
+    },
+    {
+      "path": "res://scripts/ui/ui_resident_snapshot.gd",
+      "sha256": "7c43dcd07c0183b45d480aec9a817a3a83f5d4db51c14468befb81d80eb56023"
+    },
+    {
+      "path": "res://scripts/ui/ui_shell.gd",
+      "sha256": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db"
+    },
+    {
+      "path": "res://scripts/ui/ui_theme.gd",
+      "sha256": "fc24705bd1f04787ee6d4484b2f2857a914ad5820b15e82de1b829b2445c282d"
+    },
+    {
+      "path": "res://scripts/ui/ui_world_session.gd",
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5"
+    },
+    {
+      "path": "res://scripts/utils/perf_timer.gd",
+      "sha256": "6d3320c3d2c2a82912e8c55296b2566c6966c4184133216bcd7ebfd15d88446c"
+    },
+    {
+      "path": "res://ui/ui_art.gd",
+      "sha256": "b81436c5d504b0a06d2fa967c2c9af51a9010faa24bd03a4d7f53460309aa619"
+    },
+    {
+      "path": "res://ui/ui_frame_builder.gd",
+      "sha256": "e2e60828b468b2412aea3ab1760dd54ddc007bc25fd1ff94807cd0d286d974d3"
+    },
+    {
+      "path": "res://ui/ui_frame_geometry.gd",
+      "sha256": "1d9fcb86fae28547e575efb2dcd1a71329cffdd2712c96d25c8b9cef1bf9e3aa"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_underground_matrices.gd",
+      "sha256": "b1357076dcb9b009cb29e8a0811735b64f4d807aa37b02f9b5e3a5266cd16f5b"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/cast/underground_actor.gd",
+      "sha256": "27dca1ea2344a3b12ecb420a8aa62fa02678f2375473e615d7ea6bb39c11190c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/native_compare.gd",
+      "sha256": "5ef823ab51e1a6235c8d86546c56ef39ecc047c05d358f769b5e7e748369a413"
+    }
+  ],
+  "spec_sha256": "b46e6169de97f9966855bf1fd7da5ed374bd732e9d821ac9668fe922512bcc54",
+  "status": "SAMPLED_RUNTIME_ONLY",
+  "warm_steps": 90
+}

@@ -1,0 +1,41 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/demo/assets/underground-analysis/capture_underground_profiles.gd",
+      "godot/demo/assets/underground-analysis/bake_underground_matrices.gd",
+      "godot/demo/assets/underground-analysis/export_underground_native_source.gd",
+      "godot/data/underground/evidence/matrix-presentation/native_compare.gd"
+    ]
+  ],
+  "byte_identical_analysis_mirrors": [
+    {
+      "source": "tools/capture_underground_profiles.gd",
+      "mirror": "godot/demo/assets/underground-analysis/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    },
+    {
+      "source": "tools/bake_underground_matrices.gd",
+      "mirror": "godot/demo/assets/underground-analysis/bake_underground_matrices.gd",
+      "sha256": "434160a406fe697b70a05f1b212a4774f8a9065688829415b3202af271cefd08"
+    },
+    {
+      "source": "tools/export_underground_native_source.gd",
+      "mirror": "godot/demo/assets/underground-analysis/export_underground_native_source.gd",
+      "sha256": "276cfd5f3c2a46c66abfb510b64352a37eb75bb0d440fb93e413e3758bf8700e"
+    }
+  ]
+}

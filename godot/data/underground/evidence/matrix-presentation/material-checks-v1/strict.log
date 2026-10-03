@@ -1,0 +1,38 @@
+state_registry_coverage: PASS -- 112 modules, 543 rows, 933 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_actor.gd
+  PASS  test_palette_copies_source_and_exposes_only_counts_and_digest
+  PASS  test_invalid_source_capacity_and_components_leave_palette_unbound
+  PASS  test_matrix_blend_is_affine_not_a_hidden_quaternion_path
+  PASS  test_transition_is_a_convex_combination_of_four_final_matrices
+  PASS  test_bad_frames_weights_and_scratch_preserve_the_prior_output
+  PASS  test_finite_baker_refuses_unrecorded_attachment_surface_overrides
+  PASS  test_skin_validation_rejects_missing_eighth_influence_and_zero_weight
+  PASS  test_nonfinite_and_unproved_material_geometry_refuse_before_allocation
+  PASS  test_actual_renderer_updates_original_mesh_and_owned_palette_or_refuses_dummy_backend
+  PASS  test_static_attachment_offsets_follow_the_same_finite_palette_and_native_lifetime
+  PASS  test_actual_instance_material_is_preserved_without_modifying_the_original_mesh
+  PASS  test_configuration_outside_the_scene_tree_cannot_publish_an_orphan_skin_palette
+  PASS  test_common_grounding_uses_the_same_four_positive_frame_weights
+  PASS  test_grounding_capacity_and_nonfinite_source_refuse_before_any_publication
+  PASS  test_native_common_translation_moves_body_and_attachment_without_changing_skin_matrices
+CI_SUITE_TIME {"assertions":120,"failures":0,"suite":"test_underground_actor.gd","tests":15,"usec":240813}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+15 test(s), 120 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 15 tests, 120 assertions, 0 failures.

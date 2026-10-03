@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1076, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1069, in main
+    report = build_palette_report(args.source, args.sha256) if args.palette else build_report(args.source, args.sha256)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1041, in build_palette_report
+    pins = verify_palette_sources(source.metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1022, in verify_palette_sources
+    require(path.is_file() and path.stat().st_size <= 268435456, "PALETTE_SOURCE_MISSING_OR_CAPACITY")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 35, in require
+    raise Refused(code)
+Refused: PALETTE_SOURCE_MISSING_OR_CAPACITY

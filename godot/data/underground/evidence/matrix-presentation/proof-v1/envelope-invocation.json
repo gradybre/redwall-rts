@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/export_underground_envelopes.py",
+    "godot/demo/assets/underground-matrices/all-cast-v5.ugpal",
+    "--sha256",
+    "a8a16d1111ac1583fcc4d9dd83b6382395b9158c5d69b5af7981e2c780fd7457",
+    "--palette",
+    "--out",
+    "godot/data/underground/evidence/matrix-presentation/proof-v1/local-envelopes.json"
+  ],
+  "exit": 1
+}

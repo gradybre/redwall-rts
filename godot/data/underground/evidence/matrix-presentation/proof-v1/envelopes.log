@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1093, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1086, in main
+    report = build_palette_report(args.source, args.sha256) if args.palette else build_report(args.source, args.sha256)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1058, in build_palette_report
+    pins = verify_palette_sources(source.metadata)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1047, in verify_palette_sources
+    require(digest.hexdigest() == expected, "PALETTE_SOURCE_DRIFT")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+Refused: PALETTE_SOURCE_DRIFT

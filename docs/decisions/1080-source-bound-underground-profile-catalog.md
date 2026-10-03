@@ -408,3 +408,75 @@ changed no query behavior. The final `connector-catalog-v2/` clean run reports
 and analyzer0 warnings in0 of2 files. Final source hashes are recorded alongside
 the raw logs; v1 remains the prior broader regression evidence rather than a
 claim that its earlier source hashes describe the final cleanup.
+
+## Accepted local finite presentation enclosure
+
+The local matrix baker/exporter now encloses42 actual source cases,3566 finite
+frames and164 original body/attachment parts. Its complete stream is consumed
+with a footer and source digest, and529 original/imported/source pins are
+rechecked. Positive fixed-weight interpolation has a convex endpoint hull;
+outward Q24 operations and explicit rational CPU, native float32, UNORM16 and
+compressed-attribute residuals enclose that chosen representation on the pinned
+official4.7.2 desktop OpenGL path. The previous unrestricted live-animation
+estimates remain diagnostic history, not alternative production certificates.
+
+Independent construction-lane review found no high/medium blocker in this
+bounded local proof. Its low material follow-up now rejects every unrecorded
+attachment per-surface override before export; explicitly captured safe global
+overrides remain supported. Final `native-v8/` and `proof-v4/` retain the new
+source pins, unchanged geometry, native skin checks and comparison images.
+Clean focused validation is15 tests/120 assertions/0 failures, all strict/raw
+diagnostics and leaks0. Native adapter/lifecycle validation reports147 assertions
+with0 failures and native grounding8 assertions with0 failures. This is still
+zero qualified production profiles: exact renderer/source binding, world-root
+arithmetic, actual state unions, contact permissions and animated quality remain
+separate gates. Native heading behavior cannot borrow the ideal all-yaw rotation
+bound in this local diagnostic report.
+
+## Finite world-heading source and productive tool roles
+
+The next numerical increment uses a complete native table for the65536 possible
+16-bit Y headings. Each entry contains the exact two binary32 coefficients that
+reconstruct the native pure-Y basis. The baker checks the other seven components
+and matrix symmetries for every entry. The eventual underground Actor selects
+that exact finite entry rather than introducing an unbounded trigonometric
+operation into the physical representation. A presentation heading can still
+smooth toward the actual heading at the existing turn rate; quantizing the
+display index to1/65536 turn does not alter authoritative yaw, routes or progress.
+Source metadata pins the actual Godot build/backend and the complete baker and
+consumer. Native renderer acceptance and source hash binding remain required.
+
+The65536×2×4=524288-byte table is shared presentation content, not simulation
+storage. Its planned streaming load needs one retained524288-byte image, a
+4096-byte bounded metadata/row/control budget and a16384-byte explicit unmeasured
+native allowance:544768 bytes. It is immutable once admitted, with no replacement
+bank or per-resident copy. A failed initial load releases the partial candidate;
+full-process/native measurement and the actual loading implementation must
+verify this reservation before qualification. Nothing borrows from the existing
+simulation profile or bindings arenas.
+
+World placement will use the real finite Domain descriptor and an explicit
+top-level transform. Within the initial actual bounds, integer1/1024m root
+coordinates convert exactly to binary32. The proof must still cover matrix
+composition, skin/static attachment arithmetic and outward translation of the
+whole body/held/load extent; it must refuse a foreign or oversized domain rather
+than silently expanding it. All65536 basis entries are finite source data, so
+their exact maximum norm can be proved without treating a few sampled headings
+as a continuous trigonometric certificate. This increment does not add pitch,
+scale or an arbitrary parent transform; slope/posture remains in its explicitly
+baked content. Both close native views and actual rendered backend behavior
+remain separate acceptance evidence. No world certificate is yet published.
+
+For productive work, the owning source must identify the exact active tool.
+Travel and turn profiles retain all actual held gear and cargo. A WORK profile
+may exclude solely that identified active tool from BODY_HELD_LOAD when its
+complete physical geometry is separately enclosed by WORK_STROKE. The resident,
+nonproductive equipment and cargo cannot disappear into that exception.
+Only the exact active-tool stroke may intersect the exact paid operation target;
+other walls, floors, items and protected structure still block it. Recovery has
+an independent clear-space envelope before travel can resume. This is a geometric
+representation contract, not a new phase, digging, grip or load permission.
+The actual mole-pick source dips133u below the grounded body root: it cannot be
+clipped away or excused by generic BUILD identity. A downward target and a wall
+target require their own valid source/contact placement. Production qualification
+remains absent until these distinctions are bound and proved.

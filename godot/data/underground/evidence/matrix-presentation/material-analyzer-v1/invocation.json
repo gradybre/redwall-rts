@@ -1,0 +1,26 @@
+{
+  "command": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--port",
+    "6149",
+    "--max",
+    "0",
+    "godot/demo/assets/underground-analysis/capture_underground_profiles.gd",
+    "godot/demo/assets/underground-analysis/bake_underground_matrices.gd",
+    "godot/test/test_underground_actor.gd"
+  ],
+  "returncode": 0,
+  "byte_identical_analysis_mirrors": [
+    {
+      "source": "tools/capture_underground_profiles.gd",
+      "mirror": "godot/demo/assets/underground-analysis/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    },
+    {
+      "source": "tools/bake_underground_matrices.gd",
+      "mirror": "godot/demo/assets/underground-analysis/bake_underground_matrices.gd",
+      "sha256": "75d6334441f2983c309170dc8e2e9403ca4f3bb2a1baef442f86dfa1b5de6c1c"
+    }
+  ]
+}

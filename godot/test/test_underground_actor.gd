@@ -146,6 +146,28 @@ func _mesh(skinned: bool) -> ArrayMesh:
 	return mesh
 
 
+func test_finite_baker_refuses_unrecorded_attachment_surface_overrides() -> void:
+	"""Original attachment provenance cannot silently omit a future instance surface material."""
+	var path: String = ProjectSettings.globalize_path("res://").path_join("../tools/bake_underground_matrices.gd").simplify_path()
+	var baker: GDScript = load(path) as GDScript
+	var instance: MeshInstance3D = MeshInstance3D.new()
+	instance.mesh = _mesh(false)
+	var original: Material = instance.mesh.surface_get_material(0)
+	assert_equal(baker._attachment_material_error(instance), &"", "original surface")
+	var override: StandardMaterial3D = StandardMaterial3D.new()
+	instance.set_surface_override_material(0, override)
+	assert_equal(baker._attachment_material_error(instance), &"PALETTE_PER_SURFACE_MATERIAL_OVERRIDE", "uncaptured surface")
+	instance.material_override = StandardMaterial3D.new()
+	assert_equal(baker._attachment_material_error(instance), &"PALETTE_PER_SURFACE_MATERIAL_OVERRIDE", "even hidden surface drift refused")
+	assert_equal(instance.mesh.surface_get_material(0), original, "source material unchanged")
+	assert_equal(instance.get_surface_override_material(0), override, "input instance unchanged")
+	instance.set_surface_override_material(0, null)
+	assert_equal(baker._attachment_material_error(instance), &"", "explicit supported global override")
+	instance.material_overlay = StandardMaterial3D.new()
+	assert_equal(baker._attachment_material_error(instance), &"PALETTE_ATTACHMENT_MATERIAL", "unrecorded overlay")
+	instance.free()
+
+
 func test_skin_validation_rejects_missing_eighth_influence_and_zero_weight() -> void:
 	"""No omitted influences, undeformed fallback or normalization changes the real geometry."""
 	var arrays: Array = _surface()

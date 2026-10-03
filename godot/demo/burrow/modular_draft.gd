@@ -172,6 +172,11 @@ func snapshot() -> Dictionary:
 		"pitch_u": _pitch_u, "cells": _cells.duplicate(), "allow_holes": _allow_holes}
 
 
+func grid_domain() -> Dictionary:
+	"""Read the exact input domain without copying a growing room footprint on every pointer event."""
+	return {"configured": _configured, "level": _level, "pitch_u": _pitch_u, "bounds": _bounds}
+
+
 func visible_cells() -> PackedInt32Array:
 	"""Read the valid transient shape or the retained draft after a refused stroke."""
 	return (_preview if _drawing and _preview_error == &"" else _cells).duplicate()

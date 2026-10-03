@@ -156,7 +156,7 @@ func refresh_site() -> void:
 
 func _build_tools(max_radius: int) -> void:
 	"""Keep descriptive text and every control readable inside the detail zone at 720p."""
-	add_child(_label("Draw a room blueprint", 18))
+	add_child(_label("Draw the room on the dirt", 18))
 	_shape = OptionButton.new()
 	_shape.custom_minimum_size.y = 32.0
 	_shape.add_theme_font_size_override(&"font_size", 16)
@@ -165,7 +165,7 @@ func _build_tools(max_radius: int) -> void:
 	add_child(_shape)
 	_shape.item_selected.connect(_tool_changed)
 	_erase = CheckButton.new()
-	_erase.text = "Erase from blueprint"
+	_erase.text = "Erase planned area"
 	_erase.custom_minimum_size.y = 32.0
 	add_child(_erase)
 	_erase.toggled.connect(_erase_changed)

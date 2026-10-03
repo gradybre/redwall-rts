@@ -1,0 +1,34 @@
+state_registry_coverage: PASS -- 97 modules, 450 rows, 771 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_draft.gd
+  PASS  test_stroke_is_preview_until_released_and_snapshot_is_isolated
+  PASS  test_cancel_is_one_layer_and_preserves_earlier_paint
+  PASS  test_disconnected_draft_can_be_repaired_before_confirmation
+  PASS  test_out_of_bounds_stroke_is_not_partially_kept
+  PASS  test_undo_redo_and_new_edit_keep_consistent_geometry
+  PASS  test_topology_is_cached_and_not_recomputed_for_pointer_motion
+  PASS  test_preview_has_its_own_revision_for_cached_world_renderers
+  PASS  test_organic_tools_and_bent_tunnel_share_one_retained_plan
+  PASS  test_holes_are_explicit_and_erasing_everything_never_confirms
+  PASS  test_reconfigure_cannot_relabel_retained_room_or_level
+  PASS  test_bad_grid_bounds_tool_and_capacity_fail_closed
+CI_SUITE_TIME {"assertions":201,"failures":0,"suite":"test_modular_draft.gd","tests":11,"usec":14442}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 201 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 11 tests, 201 assertions, 0 failures.

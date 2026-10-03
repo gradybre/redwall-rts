@@ -142,3 +142,23 @@ disjoint clipping. It accepted the129-byte reused census and conservative scan
 charge; it did not rerun engine tests. The Markdown state registry check passes
 120 modules,595 rows and963 packed columns. No shared gate was weakened and no
 full-suite or production physical permission is claimed by this component.
+
+
+## Exact phase composer identity prerequisite
+
+The typed base now exposes `phase_world_owner() -> RefCounted`, returning null.
+The actual RoomBindings implementation returns its configured weak composer
+target, or null after expiry. This is identity metadata only and creates no
+lease or permission. Two WorldBindings objects over the same actual World,
+Space, source reader and Budget still have different phase scopes; root's
+delegation must require the exact object before borrowing a phase observation.
+There are no added fields, packed bytes or cold copies.
+
+The focused actual-store regression covers unbound readers, exact identity, a
+same-store replacement and expiration without a hidden strong reference. Root
+independently reviewed the exact three source pins with no high/medium finding.
+Clean strict RoomBindings17/604 plus RoomOrders25/1356 total42 tests,1960
+assertions,0 failures; strict/raw unexpected diagnostics and leaks are all zero.
+The analyzer reports0 GDScript warnings in0 of3 actual files. Corrected local
+selection/analyzer path mistakes are disclosed in the retained evidence at
+`docs/validation/evidence/underground-room-masks-2026-10-03/phase-world-identity/`.

@@ -80,6 +80,11 @@ func exact_binding(buildings: Buildings, space: Owner, construction: Constructio
 		and provider.is_bound_budget(_budget) and construction.directory().is_valid_of_kind(world, Directory.KIND_WORLD)
 
 
+func phase_world_owner() -> RefCounted:
+	"""Borrow this exact configured composer; expiration never substitutes another same-store owner."""
+	return _actual_provider()
+
+
 func layout_budget_owner() -> Budget:
 	"""Borrow only the configured actual arena; the inherited layout admission still refuses."""
 	var provider: WorldBindings = _actual_provider()

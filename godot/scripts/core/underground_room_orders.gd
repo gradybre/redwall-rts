@@ -146,6 +146,10 @@ class RoomPlan extends RefCounted:
 
 class Bindings extends RefCounted:
 
+	func phase_world_owner() -> RefCounted:
+		"""Borrow the exact phase composer identity; matching stores do not share its cold leases."""
+		return null
+
 	func phase_section_into(_site: Vector2i, _room: Vector2i, _cold_token: int,
 			_out: SpaceOwner.Region) -> StringName:
 		"""Observe the exact claimed section under the actual phase lease; metadata grants no usable floor."""

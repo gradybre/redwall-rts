@@ -628,3 +628,21 @@ func test_retired_actual_room_preserves_prior_metadata_and_clears_prior_mask() -
 	assert_equal(section.section, Vector2i(77, 78), "previous metadata preserved")
 	assert_true(_masks.finish_mask_into(_site, _room, _lease, 8, out) != &"", "retired Room mask refused")
 	assert_true(out.is_empty(), "old usable candidate cleared")
+
+
+func test_phase_composer_identity_never_substitutes_same_store_or_expired_owner() -> void:
+	"""Phase leases belong to one actual composer, not merely equal stores, World refs or budgets."""
+	assert_null(Orders.Bindings.new().phase_world_owner(), "unbound base grants no phase owner")
+	assert_null(Masks.new().phase_world_owner(), "unconfigured concrete reader is empty")
+	assert_true(_masks.phase_world_owner() == _world_bindings, "exact configured actual object")
+	var replacement: WorldBindings = WorldBindings.new()
+	assert_equal(replacement.configure(_world, _terrain, _owner, _sources, _budget), &"", "different composer over identical stores")
+	assert_true(replacement != _world_bindings and replacement.world_ref() == _world_ref, "same World is not same composer")
+	assert_true(_masks.phase_world_owner() != replacement, "replacement cannot borrow the original phase lease")
+	_world_bindings.end_cold_operation(_lease)
+	_lease = 0
+	var previous: WeakRef = weakref(_world_bindings)
+	_world_bindings = null
+	assert_null(previous.get_ref(), "borrowed identity keeps no hidden strong composer link")
+	assert_null(_masks.phase_world_owner(), "expired exact owner has no fallback")
+	_world_bindings = replacement

@@ -1,0 +1,49 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 3.954,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "126/341",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-world-routes-2026-10-03/iteration-11-exact-companion"
+      ],
+      "exit_code": 0,
+      "seconds": 6.873,
+      "log": "strict.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_underground_world_routes.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 9.826,
+      "log": "analyzer.log"
+    }
+  ],
+  "excluded_untracked_wip": [],
+  "source_unchanged": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

@@ -768,7 +768,15 @@
           "evidence_path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/"
         },
         "held_pick_visual_gap": "Root and furnishing independently see an apparent hand/shaft gap in original held-pick walk still. Renderer fidelity accepted; actual animated grip/handling quality must be checked and source fit/content regenerated if wrong before production qualification.",
-        "compact_actor_content_in_progress": "Compiler/reader source independently reviewed;29tests334assertions strict0,11Python,731nativeposes1575assertions0. Native grip rejected; authored correction required. Separate reviewed .ugactor LFS append and corrected evidence wrapper pending commit."
+        "compact_actor_content_in_progress": "Reviewed shared reader/compiler integrated; furnishing authors corrected grip candidates and must regenerate all affected geometry/palette/envelope provenance before qualification.",
+        "compact_actor_content": {
+          "source": "a6fcc938",
+          "lfs_source": "c88ab007",
+          "integration": "e95b00cf/f891c314",
+          "tests": "29 tests /334 assertions /0 failures, strict/raw0; analyzer0/2;11 compiler Python and4 wrapper regressions; native731poses1575assertions0, analyzer0/1",
+          "review": "Root accepted exact compiler/reader/sequence pins and diagnostic-failure wrapper correction. Source-faithful wrist/open-paw grip rejected; no production profile permission.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/frozen-v1/"
+        }
       },
       "lease": {
         "state": "held"
@@ -836,7 +844,7 @@
       "branch": "codex/underground-phase-structure",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
-        "in_progress": "Reviewed1093 natural support integrated. Root is validating actual WorldStructureScope and WB structural dispatch; geometry independently reviews that root packet next. Actual contacts/entry/full qualification remain open.",
+        "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
         "phase_adapter": {
           "commit": "8b14c60de10baf2c19f830bc307b1d5a529c1b6e",
           "registry": "aef88460d65bbe9cf7ae3b4ae2cfee165f1d483e",
@@ -1032,6 +1040,13 @@
           "tests": "19 tests /240 assertions /0 failures; every strict/raw diagnostic and leak count0; analyzer0/2",
           "review": "Root accepted frozen4c53a400/f40a75ac pins after exact preallocation and strong-lifetime fixes. Room-lifetime natural SUPPORT, no invented installed beam or salvage.",
           "evidence_path": "docs/validation/evidence/underground-phase-structure-2026-10-03/natural-support/"
+        },
+        "world_structure": {
+          "source": "be9a20a6",
+          "integration": "aeaba1f",
+          "tests": "88 tests /1451 assertions /0 failures; all strict/raw diagnostics and leaks0; analyzer0/4",
+          "review": "ug_geometry independently accepted four iteration5 pins after Owner lifetime, cross-operation scratch exclusivity and exact preallocation lease fixes. Qualification remains0.",
+          "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/structure-scope-iteration-5/"
         }
       },
       "lease": {

@@ -36,10 +36,16 @@ cover these later changes. Packed footprint and caller verification passed
 144 tests/203,330 assertions with zero failures, unexpected diagnostics, leaks
 or analyzer warnings.
 
-Active work is removing the temporary admission memory cap without changing
-room shapes, composing actual Room-lifetime structural support, and loading
-source-pinned worker animation content. Actual productive contacts, first
-entrance/connector construction and the first playable Kitchen remain open.
+The admission memory follow-up preserves the full existing16,384-cell ceiling
+(66 tests/2,750 assertions). Actual Room-lifetime structural support and its
+World coordinator are integrated (88 tests/1,451 assertions). The shared worker
+animation reader passes29 tests/334 assertions and a native731-pose source
+check. All have zero unexpected diagnostics/leaks and analyzer warnings.
+The source-faithful tool grip failed visual review and is being corrected.
+
+Active work now derives unique physical cut claims and resolves the actual
+first-entry/worker-contact bootstrap. First entrance/connector construction
+and the first playable Kitchen remain open.
 Furniture/removal/renovation demo integration, composed save/resume, native
 1280×720 end-to-end acceptance and256-resident qualification follow those gates.
 These verified components do not complete D20 or make the full workflow

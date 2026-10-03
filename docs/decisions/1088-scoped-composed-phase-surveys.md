@@ -114,3 +114,28 @@ cleanup method and actual arena, not a playable room or performance budget.
 Independent geometry re-review matched the corrected production/test pins and
 exported source hash, accepted the correction and closed the HIGH finding with
 no other high/medium issue in the bounded lifecycle review.
+
+## Exact RoomBindings phase scope (2026-10-03)
+
+The actual RoomBindings provider needs its configured sparse owner and World
+identity without allocating a descriptor or calling a source reader per mask
+row. WorldBindings now exposes these two borrowed identity observations only.
+A returned World reference can remain observable after retirement; it is never
+proof of liveness or permission to excavate.
+
+`cold_site_refusal(token, site, room)` requires both full generation-checked
+references to equal the current retained phase, then repeats the actual World,
+Site/Room/project, geometry and exact Budget checks through the existing cold
+operation proof. Another real Site in the same Room cannot borrow the lease.
+The readers add no stored fields, images, authoritative state or extra arena.
+
+The isolated delta passed exact clean import and the strict WorldBindings
+selection: 37 tests, 828 assertions, zero failures. Both diagnostic footers
+report zero unexpected errors/warnings and zero leaked objects/resources;
+expected/tolerated counts are zero. Analyzer: zero warnings across two files.
+The independent geometry reviewer checked the final unchanged source/test
+hashes and found no high or medium finding. Evidence is retained in
+`docs/validation/evidence/underground-room-scope-2026-10-03/iteration-1/`.
+Untracked WorldRoutes work was explicitly outside the Godot project during this
+focused delta check and restored afterwards; none of its behavior is certified
+by these results. Actual productive contacts and demo activation remain open.

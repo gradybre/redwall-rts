@@ -82,6 +82,16 @@ func sources() -> Owner.CoreSources:
 	return _source_reader.get_ref() as Owner.CoreSources if _source_reader != null else null
 
 
+func space_owner() -> Owner:
+	"""Borrow configured identity only; callers still require the exact live cold-site proof."""
+	return _actual_owner()
+
+
+func world_ref() -> Vector2i:
+	"""Read the immutable configured World generation without allocating a Domain descriptor."""
+	return _domain._world if _domain != null else NULL_REF
+
+
 func binding_refusal() -> StringName:
 	"""Reject expired or rewired actual owners; static numeric references are insufficient."""
 	var owner: Owner = _actual_owner()
@@ -142,6 +152,13 @@ func cold_operation_refusal(token: int) -> StringName:
 			or _actual_owner().revision() != _phase_geometry_revision:
 		return &"WORLD_COMPOSITION_COLD_CONTEXT"
 	return &"" if _budget.covers(token, Budget.COLD_BYTES) else REFUSE_BUDGET
+
+
+func cold_site_refusal(token: int, site: Vector2i, room: Vector2i) -> StringName:
+	"""A caller cannot borrow another site's current lease, even within the same Room."""
+	if site == NULL_REF or room == NULL_REF or site != _phase_site or room != _phase_room:
+		return &"WORLD_COMPOSITION_COLD_CONTEXT"
+	return cold_operation_refusal(token)
 
 
 func end_cold_operation(token: int) -> void:

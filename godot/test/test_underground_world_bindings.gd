@@ -352,6 +352,21 @@ func test_actual_owner_budget_and_one_time_binding() -> void:
 	assert_true(_bindings.room_refusal(_world_ref) != &"", "observation cannot invent a productive Room")
 
 
+func test_identity_readers_borrow_actual_owners_without_source_callbacks() -> void:
+	"""Metadata readers allocate no descriptor and grant no live permission after World retirement."""
+	var fresh: Bindings = Bindings.new()
+	assert_null(fresh.space_owner(), "unconfigured owner is absent")
+	assert_equal(fresh.world_ref(), NULL_REF, "unconfigured World is absent")
+	_owner.revision_reads = 0
+	_owner.refusal_reads = 0
+	assert_true(_bindings.space_owner() == _owner, "same actual sparse owner")
+	assert_equal(_bindings.world_ref(), _world_ref, "immutable full World generation")
+	assert_equal(_owner.revision_reads + _owner.refusal_reads, 0, "identity observation calls no source")
+	_world.clear()
+	assert_equal(_bindings.world_ref(), _world_ref, "retired identity is still only metadata")
+	assert_equal(_bindings.binding_refusal(), Terrain.REFUSE_BINDING, "actual World proof refuses")
+
+
 func test_original_land_and_exterior_remain_exact_and_read_only() -> void:
 	"""Surface Y is actual512u; a query does not alter source revisions or the sparse owner."""
 	var before: PackedByteArray = _owner.state_bytes()
@@ -826,6 +841,36 @@ func test_actual_phase_lease_funds_full_scoped_query_until_explicit_release() ->
 	_bindings.end_cold_operation(token)
 	assert_true(_budget.is_quiescent(), "released only after observation lifetime")
 	assert_equal(_bindings.cold_operation_refusal(token), Bindings.REFUSE_BUDGET, "released token cannot fund another copy")
+
+
+func test_cold_site_reader_rejects_other_sites_rooms_and_generations() -> void:
+	"""One phase cannot lend its allocation scope to a second paid cube in the same Room."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	var next: Construction.OpResult = _sites.claim_quantum(Vector3i(X + 1024, -1536, Z), room)
+	assert_true(next.ok, "actual second site with same Room")
+	var token: int = _start_owned_phase(site)
+	assert_equal(_bindings.cold_site_refusal(token, site, room), &"", "exact retained scope")
+	assert_equal(_bindings.cold_site_refusal(token, next.ref, room), &"WORLD_COMPOSITION_COLD_CONTEXT", "different real site")
+	assert_equal(_bindings.cold_site_refusal(token, Vector2i(site.x, site.y + 1), room),
+		&"WORLD_COMPOSITION_COLD_CONTEXT", "full site generation")
+	assert_equal(_bindings.cold_site_refusal(token, site, Vector2i(room.x, room.y + 1)),
+		&"WORLD_COMPOSITION_COLD_CONTEXT", "full Room generation")
+	assert_equal(_bindings.cold_site_refusal(token + 1, site, room), Bindings.REFUSE_BUDGET, "exact token")
+	assert_equal(_bindings.cold_site_refusal(token, site, room), &"", "refusals preserve actual phase")
+	_bindings.end_cold_operation(token)
+	assert_true(_bindings.cold_site_refusal(token, site, room) != &"", "released scope cannot be borrowed")
+
+
+func test_cold_site_reader_rechecks_actual_scope_after_claim_change() -> void:
+	"""The wrapper repeats real source checks instead of comparing only remembered numeric handles."""
+	var site: Vector2i = _site_fixture()
+	var room: Vector2i = _sites.room_of(site)
+	var token: int = _start_owned_phase(site)
+	assert_true(_sites.release_room_claim(site).ok, "release actual ownership")
+	assert_equal(_bindings.cold_site_refusal(token, site, room), &"WORLD_COMPOSITION_COLD_CONTEXT", "current source differs")
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "invalidated source still permits exact cleanup")
 
 
 func test_phase_open_reentry_and_foreign_release_preserve_exact_active_lease() -> void:

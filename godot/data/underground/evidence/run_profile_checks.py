@@ -12,7 +12,9 @@ root = Path(__file__).resolve().parents[4]
 evidence = Path(sys.argv[1]).resolve()
 evidence.mkdir(parents=True, exist_ok=False)
 assets = root / "godot/demo/assets"
-saved = root / "godot/demo/assets.profile-clean-aside"
+# Outside the Godot project: an adjacent demo folder would still be imported and
+# would rewrite generated .import source paths while pretending assets were absent.
+saved = root / ".profile-clean-assets-aside"
 if saved.exists():
     raise RuntimeError("existing saved assets; do not overwrite")
 shimdir = Path(tempfile.mkdtemp(prefix="ug1080-profile-shim-"))

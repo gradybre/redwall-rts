@@ -223,7 +223,27 @@ scalar bytes), charged by its consuming cold owner. No module columns, scratch
 image or persistent field were added. Every refusal precedes all output writes;
 catalog replacement invalidates a prior descriptor by exact content revision.
 Independent root review accepted the frozen source. `catalog-descriptor-v2/`
-records the successful exact clean import, 17 tests, 348 assertions, zero
-failures, zero unexpected diagnostics/leaks and analyzer zero warnings in two
-files. The first source-identical clean import crashed in native font import
-before any test ran; its raw log remains in `catalog-descriptor-v1/`.
+records 17 tests, 348 assertions, zero failures, zero unexpected diagnostics/leaks
+and analyzer zero warnings in two files. The first source-identical import
+crashed in native font import before any test ran; its raw log remains in
+`catalog-descriptor-v1/`. The import qualification is superseded below.
+
+
+## Corrected focused-check asset isolation
+
+The earlier focused wrapper moved assets beside their original directory inside
+`godot/demo/`. Godot still scanned that directory, so the import was not the
+required assets-absent CI import and rewrote generated source/remap paths. This
+invalidates that import-condition claim; the original logs and source hashes
+remain available. The wrapper now moves assets to the worktree root's
+`.profile-clean-assets-aside`, outside the Godot project, refuses an existing
+saved directory, deletes the project cache and restores the assets in `finally`.
+
+Independent root review accepted this narrow correction and source-identical
+`catalog-descriptor-v3/` evidence: exact clean import completed, followed by
+**17 tests / 348 assertions / 0 failures**. The strict diagnostic line reports
+**0 unexpected errors, 0 unexpected warnings, 0 expected, 0 tolerated;
+0 leaked objects and 0 leaked resources**; the raw-log footer also reports zero
+unexpected diagnostics/leaks. Analyzer: **0 GDScript warning(s) in 0 of 2 file(s)**.
+This supersedes the earlier descriptor import-condition claim without changing
+the accepted Profiles source or claiming production clearance qualification.

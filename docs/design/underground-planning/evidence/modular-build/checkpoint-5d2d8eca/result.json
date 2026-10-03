@@ -1,0 +1,43 @@
+{
+  "source_commit": "5d2d8eca7c2f25d75fe5ef98bbd1e96b70a7c29e",
+  "evidence": "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/redwall-ug-checkpoint-5d2d8eca-4qd5mazq",
+  "commands": [
+    {
+      "name": "clean-import",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 3.65
+    },
+    {
+      "name": "full-suite",
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1184.557
+    },
+    {
+      "name": "analyzer",
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6155"
+      ],
+      "exit_code": 0,
+      "seconds": 221.603
+    }
+  ],
+  "seconds": 1409.83,
+  "source_unchanged": true,
+  "assets_restored": true
+}

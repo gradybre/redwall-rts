@@ -2775,3 +2775,149 @@ func test_region_capacity_reports_only_the_actual_configured_cold_bound() -> voi
 	assert_equal(_owner.region_capacity(), R, "exact current component arena")
 	assert_equal(empty.configure(_domain, 3, 2), &"", "different explicit small technical pack")
 	assert_equal(empty.region_capacity(), 3, "actual smaller row count")
+
+
+class PreparedCopyOwner extends Owner:
+	## Count the exact staged image allocation, without replacing actual source validation.
+	var copies: int = 0
+
+	func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
+			project: Vector2i, traversal: bool = false) -> StringName:
+		"""A revoked original lease must never reach the allocating staged copy."""
+		copies += 1
+		return super._copy_prepared_snapshot_into(out, room, project, traversal)
+
+
+func _prepared_copy_owner(sources: Owner.CoreSources) -> PreparedCopyOwner:
+	"""Create another finite actual owner in the same World for the leased staged-copy tests."""
+	var counted: PreparedCopyOwner = PreparedCopyOwner.new(sources)
+	_owner = counted
+	assert_equal(counted.configure(_domain, R, O), &"", "actual staged owner")
+	return counted
+
+
+func test_prepared_leased_snapshot_preserves_full_claims_and_exact_candidate() -> void:
+	"""The World bootstrap image never borrows traversal's Room-marker exemption."""
+	var counted: PreparedCopyOwner = _prepared_copy_owner(_sources)
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	assert_equal(counted.seal(token), &"", "actual exact claim/source candidate")
+	var ordinary: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_into(token, ordinary), &"", "existing complete image")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	var before: PackedByteArray = counted.state_bytes()
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token), &"", "original held lease")
+	assert_equal(out.volumes.role, ordinary.volumes.role, "all Room/Construction claims remain blockers")
+	assert_equal(out.live_refs, ordinary.live_refs, "same full source generations")
+	assert_equal(out.live_revisions, ordinary.live_revisions, "same source revisions")
+	assert_equal(out.revision, counted.revision() + 1, "exact candidate revision")
+	for row: int in ordinary.volumes.role.size():
+		assert_equal(out.volumes.box_at(row), ordinary.volumes.box_at(row), "same full geometry")
+	assert_equal(counted.copies, 2, "one ordinary and one leased copy")
+	assert_equal(counted.state_bytes(), before, "no authoritative publication")
+	assert_true(counted.abort(token), "caller still owns candidate")
+	assert_equal(probe.budget.release(probe.token), &"", "release original arena")
+
+
+func test_prepared_leased_snapshot_requires_seal_and_original_budget_before_observers() -> void:
+	"""Wrong tokens, missing output and insufficient reservation never invoke actual Sources."""
+	var sources: CountedSources = CountedSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var token: int = _begin()
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token), &"SPACE_TRANSACTION_UNSEALED", "no unsealed observation")
+	assert_equal(counted.seal(token), &"", "seal actual World source")
+	var reads: int = sources.reads
+	assert_equal(counted.prepared_snapshot_leased_into(token + 1, out, probe.budget, probe.token), &"SPACE_TRANSACTION_UNSEALED", "wrong Space token")
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token + 1), Budget.REFUSE_TOKEN, "wrong arena token")
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, null, probe.token), Budget.REFUSE_TOKEN, "missing arena")
+	assert_equal(counted.prepared_snapshot_leased_into(token, null, probe.budget, probe.token), &"SPACE_WORLD_UNBOUND", "missing output")
+	assert_equal(sources.reads, reads, "pure refusal before Sources")
+	assert_equal(counted.copies, 0, "zero staged image allocation")
+	assert_true(counted.abort(token), "discard only exact Space candidate")
+	assert_equal(probe.budget.release(probe.token), &"", "actual arena remains held")
+
+
+func test_prepared_leased_snapshot_replacement_keeps_candidate_and_refused_output() -> void:
+	"""Actual source observation replaces the real arena; no staged copy uses the expired token."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var token: int = _begin()
+	assert_equal(counted.seal(token), &"", "sealed actual World")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	sources.target = _world
+	sources.probe = probe.replace
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 77
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token), Budget.REFUSE_TOKEN, "source expires original token")
+	assert_equal(counted.copies, 0, "no staged image allocated")
+	assert_equal(out.revision, 77, "refused output untouched")
+	assert_true(counted.has_prepared(), "candidate not stolen")
+	assert_true(probe.budget.covers(probe.replacement, probe.bytes), "replacement remains held")
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.replacement), &"", "valid independent retry")
+	assert_equal(counted.copies, 1, "one successfully admitted image")
+	assert_true(counted.abort(token), "caller drops its own candidate")
+	assert_equal(probe.budget.release(probe.replacement), &"", "release replacement only explicitly")
+
+
+func test_prepared_leased_snapshot_refuses_nested_resident_lease_replacement() -> void:
+	"""Real Resident source facts retain the same post-observer original-lease requirement."""
+	var locations: LeaseResidentLocations = LeaseResidentLocations.new()
+	locations.residents = Residents.new(_buildings.directory())
+	locations.transforms = Transforms.new(_buildings.directory())
+	var resident: Vector2i = locations.residents.spawn(&"mouse").ref
+	assert_true(locations.transforms.place(resident, 64, 64, 64, 0), "actual resident pose")
+	var sources: Owner.CoreSources = Owner.CoreSources.new(_buildings.directory(), _buildings, _construction, locations)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var token: int = _begin()
+	assert_equal(counted.stage_source(token, resident), &"", "actual full Resident source")
+	assert_equal(counted.seal(token), &"", "sealed retained actual source")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	locations.probe = probe.replace
+	assert_equal(counted.prepared_snapshot_leased_into(token, Space.Snapshot.new(), probe.budget, probe.token), Budget.REFUSE_TOKEN, "nested original-token gate")
+	assert_equal(counted.copies, 0, "no staged image before lease freshness")
+	assert_true(counted.abort(token), "retain normal abort ownership")
+	assert_equal(probe.budget.release(probe.replacement), &"", "replacement is not consumed on refusal")
+
+
+func test_prepared_leased_snapshot_reentry_and_source_drift_never_allocate() -> void:
+	"""A sealed copy cannot turn a source callback into another spatial mutation or stale source grant."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var token: int = _begin()
+	assert_equal(counted.stage_source(token, _hall), &"", "actual Building facts")
+	assert_equal(counted.seal(token), &"", "sealed candidate")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	sources.target = _world
+	sources.probe = probe.mutate
+	assert_equal(counted.prepared_snapshot_leased_into(token, Space.Snapshot.new(), probe.budget, probe.token), &"SPACE_ROOM_ADMISSION_REENTRY", "source edit poisons copy")
+	assert_equal(counted.copies, 0, "no reentrant copy")
+	var row: int = _buildings.directory().get_typed_row(_hall)
+	var rotation: int = _buildings._b_rotation[row]
+	_buildings._b_rotation[row] = (rotation + 1) % 4
+	assert_equal(counted.prepared_snapshot_leased_into(token, Space.Snapshot.new(), probe.budget, probe.token), &"SPACE_SOURCE_DRIFT", "actual facts changed under same full ref")
+	_buildings._b_rotation[row] = rotation
+	assert_equal(counted.copies, 0, "source drift never reaches copy")
+	assert_true(counted.abort(token), "guard is released for caller cleanup")
+	assert_equal(probe.budget.release(probe.token), &"", "original lease retained")
+
+
+func test_prepared_leased_snapshot_recounts_existing_and_callback_added_output() -> void:
+	"""Old or newly retained output coexists with the future image and is charged before allocation."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var token: int = _begin()
+	assert_equal(counted.seal(token), &"", "sealed actual World")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	probe.output = Space.Snapshot.new()
+	sources.target = _world
+	sources.probe = probe.retain_output
+	assert_equal(counted.prepared_snapshot_leased_into(token, probe.output, probe.budget, probe.token), Budget.REFUSE_TOKEN, "late16B retained output")
+	assert_equal(counted.copies, 0, "no copy after output growth")
+	assert_equal(probe.budget.extend(probe.token, 16), &"", "charge simultaneous original image")
+	assert_equal(counted.prepared_snapshot_leased_into(token, probe.output, probe.budget, probe.token), &"", "covered retained output")
+	assert_equal(counted.copies, 1, "exactly one valid image")
+	assert_true(counted.abort(token), "no implied publication")
+	assert_equal(probe.budget.release(probe.token), &"", "caller releases after image use")

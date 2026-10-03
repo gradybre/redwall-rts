@@ -48,11 +48,11 @@ func before_each() -> void:
 	_items = Items.new()
 	assert_true(_items.load_default(_inventory).ok, "actual adopted item definitions")
 	_world = _buildings.directory().create(Directory.KIND_WORLD)
-	_sources = Owner.CoreSources.new(_buildings.directory(), _buildings, _construction)
+	_sources = OwnerFixture.LeaseSources.new(_buildings.directory(), _buildings, _construction)
 	_domain = Space.Domain.new()
 	assert_equal(_domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8),
 		Vector3i(16, 16, 16), 64, 64, 100000), &"", "bounded synthetic domain")
-	_owner = Owner.new(_sources)
+	_owner = WorldCopyOwner.new(_sources)
 	assert_equal(_owner.configure(_domain, 64, 16), &"", "actual packed owner")
 	var token: int = _owner.begin_stage(_owner.revision()).token
 	_floor_ref = _put(token, [-4096, 0, -4096, 4096, 1, 4096], Space.FLOOR_DATUM)
@@ -1117,3 +1117,327 @@ func test_room_endpoint_binding_refuses_unbound_foreign_and_active_owners() -> v
 	assert_true(fixture.locations.begin_room_prepare(cold, 1, Vector2i(1, 1), Buildings.ROOM_TYPE_KITCHEN).error != &"", "no retained Room admission")
 	assert_equal(rooms.arena.release(cold), &"", "failed attempt retains caller lease")
 	fixture.close()
+
+
+class WorldCopyOwner extends Owner:
+	## Arm real source observation only at the leased staged-image boundary.
+	var source_attack: Callable = Callable()
+	var staged_copies: int = 0
+
+	func prepared_snapshot_leased_into(token: int, out: Space.Snapshot, budget: Budget, cold_token: int) -> StringName:
+		"""Earlier full preflights pass; the final source observation exercises the actual allocation guard."""
+		var observed: OwnerFixture.LeaseSources = _sources as OwnerFixture.LeaseSources
+		if source_attack.is_valid():
+			observed.target = Vector2i(_header[3], _header[4])
+			observed.probe = source_attack
+			source_attack = Callable()
+		return super.prepared_snapshot_leased_into(token, out, budget, cold_token)
+
+	func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
+			project: Vector2i, traversal: bool = false) -> StringName:
+		"""Count actual staged-image allocation rather than the public read entry point."""
+		staged_copies += 1
+		return super._copy_prepared_snapshot_into(out, room, project, traversal)
+
+
+class SyntheticWorldScope extends Locations.WorldScope:
+	## Component-only natural-space authorization. Production uses root's actual Terrain provider.
+	var locations: Locations = null
+	var space: Owner = null
+	var budget: Budget = null
+	var world: Vector2i = NULL_REF
+	var space_token: int = 0
+	var cold_token: int = 0
+	var publishing: bool = false
+	var refusal: StringName = &""
+	var exact_calls: int = 0
+	var prepared_calls: int = 0
+	var publication_calls: int = 0
+	var attack: Callable = Callable()
+	var attack_at: int = 0
+	var replacement: int = 0
+	var reentry_result: bool = true
+	var request: Locations.Record = null
+
+	func exact_binding(actual: RefCounted, geometry: Owner, arena: Budget, full_world: Vector2i) -> bool:
+		"""The synthetic scope still pins actual collaborators rather than coincident local references."""
+		exact_calls += 1
+		_observe(1)
+		return actual == locations and geometry == space and arena == budget and full_world == world
+
+	func prepared_refusal(actual_space: int, actual_cold: int) -> StringName:
+		"""Only the exact retained candidate and original real lease can enter preparation."""
+		prepared_calls += 1
+		_observe(2)
+		if actual_space != space_token or actual_cold != cold_token:
+			return &"SYNTHETIC_WORLD_SCOPE"
+		return refusal
+
+	func is_publishing(actual_space: int, actual_cold: int) -> bool:
+		"""Test counter only; the actual provider's final predicate invokes no source/terrain observers."""
+		publication_calls += 1
+		return publishing and actual_space == space_token and actual_cold == cold_token
+
+	func _observe(phase: int) -> void:
+		"""One adversarial observer may replace a lease or attempt public owner mutation."""
+		if attack_at == phase and attack.is_valid():
+			var once: Callable = attack
+			attack = Callable()
+			once.call()
+
+	func replace_lease() -> void:
+		"""An equal-size unrelated replacement must survive the refused original operation."""
+		budget.release(cold_token)
+		replacement = budget.acquire(COLD_BYTES)
+
+	func reenter() -> void:
+		"""Public reentry must poison the outer observation without aborting its candidate."""
+		reentry_result = locations.abort(locations._token)
+
+	func mutate_request() -> void:
+		"""Caller-owned input is mutable even when the retained spatial source facts remain valid."""
+		request.point.x += 1
+
+
+func _world_scope() -> SyntheticWorldScope:
+	"""Bind explicitly synthetic scope to the actual test World, Space, Locations and Budget."""
+	var scope: SyntheticWorldScope = SyntheticWorldScope.new()
+	scope.locations = _locations
+	scope.space = _owner
+	scope.budget = _cold
+	scope.world = _world
+	assert_equal(_locations.bind_world_scope(scope), &"", "once-bound exact World scope")
+	return scope
+
+
+func _world_candidate(scope: SyntheticWorldScope) -> int:
+	"""A held real lease precedes the exact sealed candidate; added obstruction is outside all test endpoints."""
+	scope.cold_token = _cold.acquire(COLD_BYTES)
+	assert_true(scope.cold_token > 0, "one original real arena")
+	scope.space_token = _owner.begin_stage(_owner.revision()).token
+	_put(scope.space_token, [6144, 0, 6144, 7168, 1024, 7168], Space.OBSTACLE)
+	assert_equal(_owner.seal(scope.space_token), &"", "complete actual future Space")
+	var result: Locations.Result = _locations.begin_world_prepare(scope.cold_token, scope.space_token)
+	assert_equal(result.error, &"", "exact World candidate: %s" % result.error)
+	return result.token
+
+
+func _close_world(scope: SyntheticWorldScope, token: int) -> void:
+	"""Refusal discards only its candidates; tests explicitly release any substituted operation."""
+	if _locations._token == token and token != 0:
+		assert_true(_locations.abort(token), "caller discards own endpoint candidate")
+	if _owner.has_prepared():
+		assert_true(_owner.abort(scope.space_token), "caller discards own geometry candidate")
+	var held: int = scope.replacement if scope.replacement > 0 else scope.cold_token
+	assert_equal(_cold.release(held), &"", "explicit release after scratch drops")
+
+
+func test_world_scope_requires_exact_once_bound_quiescent_actual_owner() -> void:
+	"""No default scope, foreign collaborator, active arena or expired rebinding grants natural space."""
+	assert_equal(_locations.bind_world_scope(null), &"LOCATION_WORLD_SCOPE", "no missing scope")
+	assert_equal(_locations.bind_world_scope(Locations.WorldScope.new()), &"LOCATION_WORLD_SCOPE", "base scope refuses")
+	var wrong: SyntheticWorldScope = SyntheticWorldScope.new()
+	assert_equal(_locations.bind_world_scope(wrong), &"LOCATION_WORLD_SCOPE", "foreign references refuse")
+	var cold: int = _cold.acquire(COLD_BYTES)
+	assert_equal(_locations.bind_world_scope(wrong), &"LOCATION_WORLD_SCOPE", "binding under active lease refuses")
+	assert_equal(_cold.release(cold), &"", "return unrelated arena")
+	var scope: SyntheticWorldScope = _world_scope()
+	assert_equal(_locations.bind_world_scope(scope), &"LOCATION_WORLD_SCOPE", "same instance cannot rebind")
+	scope = null
+	assert_equal(_locations.bind_world_scope(wrong), &"LOCATION_WORLD_SCOPE", "expired scope still cannot be replaced")
+	cold = _cold.acquire(COLD_BYTES)
+	var prepared: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.seal(prepared), &"", "actual sealed candidate")
+	assert_equal(_locations.begin_world_prepare(cold, prepared).error, &"LOCATION_WORLD_SCOPE", "expired scope refuses")
+	assert_true(_owner.abort(prepared), "retain caller cleanup")
+	assert_equal(_cold.release(cold), &"", "refusal retains unrelated lease")
+
+
+func test_world_prepare_checks_original_lease_and_seal_before_observers_or_bank_copy() -> void:
+	"""The World path cannot use a fake Site or pay for its copy after observer execution."""
+	var scope: SyntheticWorldScope = _world_scope()
+	scope.space_token = _owner.begin_stage(_owner.revision()).token
+	scope.cold_token = _cold.acquire(COLD_BYTES)
+	var before: PackedInt64Array = _locations._stage.header.duplicate()
+	var calls: int = scope.exact_calls
+	assert_equal(_locations.begin_world_prepare(scope.cold_token, scope.space_token).error, &"LOCATION_WORLD_SCOPE", "unsealed")
+	assert_equal(_owner.seal(scope.space_token), &"", "now sealed")
+	assert_equal(_locations.begin_world_prepare(scope.cold_token + 1, scope.space_token).error, &"LOCATION_WORLD_SCOPE", "foreign original token")
+	assert_equal(_locations.begin_world_prepare(scope.cold_token, scope.space_token + 1).error, &"LOCATION_WORLD_SCOPE", "foreign Space token")
+	assert_equal(scope.exact_calls, calls, "no scope observations before admission")
+	assert_equal(_locations._stage.header, before, "no stage-bank copy on any refusal")
+	assert_equal(_locations._next_token, 1, "no local token spent")
+	_close_world(scope, 0)
+
+
+func test_world_anchor_publishes_after_exact_space_receipt_without_post_swap_observers() -> void:
+	"""Real packed publication preserves every existing retained handle while adding a qualified test anchor."""
+	var prior: Vector2i = _add()
+	var container: Vector2i = _inventory.create_spatial_ground_staging(prior).ref
+	assert_true(container != NULL_REF, "actual retained Inventory endpoint")
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	assert_equal(_locations.stage_refresh(token, prior), &"", "existing payload refreshes without repointing")
+	var added: Locations.Result = _locations.stage_add(token, _record(2048))
+	assert_equal(added.error, &"", "complete new natural fixture endpoint")
+	assert_equal(_locations.seal(token), &"", "sealed endpoints")
+	assert_equal(_locations.prepared_refusal(token), &"", "all observers before commit")
+	var observations: int = scope.exact_calls + scope.prepared_calls
+	assert_false(_locations.publish(token), "cannot publish before Space and actual window")
+	_owner.publish(scope.space_token)
+	scope.publishing = true
+	scope.refusal = &"SYNTHETIC_OBSERVER_MUST_NOT_RUN"
+	assert_true(_locations.publish(token), "pure actual-window endpoint swap")
+	assert_equal(scope.exact_calls + scope.prepared_calls, observations, "no post-Space observer runs")
+	assert_equal(_locations.location_revision(prior), 1, "prior immutable payload identity")
+	assert_true(_inventory.has_spatial_location(prior, 1), "same real retained container")
+	assert_equal(_locations.storage_endpoint_refusal(added.location), &"", "new exact complete support proof")
+	assert_equal(_locations.last_published_token(), token, "successful receipt only")
+	assert_true(_inventory.audit().ok, "actual full-generation Inventory audit")
+	_close_world(scope, 0)
+
+
+func test_world_context_preserves_all_existing_payloads_and_requires_complete_refresh() -> void:
+	"""Create-only registration cannot silently remove, repoint or retain stale proof on an existing endpoint."""
+	var prior: Vector2i = _add()
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	assert_equal(_locations.stage_remove(token, prior), &"LOCATION_WORLD_CREATE_ONLY", "no existing endpoint removal")
+	assert_equal(_locations.seal(token), &"LOCATION_WORLD_REFRESH_REQUIRED", "every live row needs current proof")
+	assert_equal(_locations.stage_refresh(token, prior), &"", "refresh exact old full handle")
+	var old_x: int = _locations._get32(_locations._stage, Locations.X, prior.x)
+	_locations._set32(_locations._stage, Locations.X, prior.x, old_x + 1)
+	assert_equal(_locations.seal(token), &"LOCATION_IMMUTABLE_PAYLOAD", "altered payload refuses")
+	_locations._set32(_locations._stage, Locations.X, prior.x, old_x)
+	assert_equal(_locations.seal(token), &"", "unchanged payload retry")
+	_close_world(scope, token)
+
+
+func test_world_context_requires_world_rows_and_complete_physical_coverage() -> void:
+	"""A World scope cannot create an underground Room endpoint or grant unsupported space."""
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	var wrong: Locations.Record = _record()
+	wrong.room = Vector2i(1, 1)
+	assert_equal(_locations.stage_add(token, wrong).error, &"LOCATION_WORLD_CREATE_ONLY", "no Room endpoint")
+	wrong.room = NULL_REF
+	wrong.level = 1
+	assert_equal(_locations.stage_add(token, wrong).error, &"LOCATION_WORLD_CREATE_ONLY", "no non-surface level")
+	wrong.level = 0
+	wrong.point.x = 5000
+	wrong.envelope = PackedInt32Array([4744, 0, 256, 5256, 512, 768])
+	wrong.support = PackedInt32Array([4744, -128, 256, 5256, 0, 768])
+	assert_true(_locations.stage_add(token, wrong).error != &"", "metadata alone cannot create outer support/void")
+	assert_equal(_locations._stage.count, _locations._live.count, "no refused row allocated")
+	_close_world(scope, token)
+
+
+func test_world_scope_observer_replacement_and_reentry_preserve_candidate_ownership() -> void:
+	"""Exact original leases and callback poisoning survive successful-looking synthetic responses."""
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	scope.attack_at = 2
+	scope.attack = scope.reenter
+	assert_equal(_locations.stage_add(token, _record()).error, &"LOCATION_WORLD_SCOPE", "outer operation poisoned")
+	assert_false(scope.reentry_result, "callback cannot abort endpoint candidate")
+	assert_equal(_locations._token, token, "caller keeps exact prepared owner")
+	scope.attack = scope.replace_lease
+	assert_equal(_locations.stage_add(token, _record()).error, &"LOCATION_WORLD_SCOPE", "original lease was replaced")
+	assert_true(_cold.covers(scope.replacement, COLD_BYTES), "equal-size replacement preserved")
+	assert_equal(_locations._stage.count, _locations._live.count, "no rows written under expired lease")
+	_close_world(scope, token)
+
+
+func test_world_publication_refuses_other_space_transaction_at_same_revision() -> void:
+	"""Abort A followed by B cannot activate A's endpoint even when every numeric revision matches."""
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	assert_equal(_locations.stage_add(token, _record()).error, &"", "candidate endpoint")
+	assert_equal(_locations.seal(token), &"", "sealed candidate A")
+	assert_true(_owner.abort(scope.space_token), "discard A geometry")
+	var other: int = _owner.begin_stage(_owner.revision()).token
+	_put(other, [6144, 0, 6144, 7168, 1024, 7168], Space.OBSTACLE)
+	assert_equal(_owner.seal(other), &"", "same future revision for B")
+	_owner.publish(other)
+	scope.publishing = true
+	assert_false(_locations.publish(token), "exact successful receipt refuses A")
+	assert_equal(_locations._live.count, 0, "no endpoint published from old candidate")
+	_close_world(scope, token)
+
+
+func test_world_publish_rechecks_original_lease_and_preserved_rows_purely() -> void:
+	"""Final pure guards remain necessary even after the coordinator preflighted all observers."""
+	var prior: Vector2i = _add()
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	assert_equal(_locations.stage_refresh(token, prior), &"", "exact existing row")
+	assert_equal(_locations.seal(token), &"", "all copies prepared")
+	_owner.publish(scope.space_token)
+	scope.publishing = true
+	var old_x: int = _locations._get32(_locations._stage, Locations.X, prior.x)
+	_locations._set32(_locations._stage, Locations.X, prior.x, old_x + 1)
+	assert_false(_locations.publish(token), "changed retained payload refuses before swap")
+	_locations._set32(_locations._stage, Locations.X, prior.x, old_x)
+	scope.replace_lease()
+	assert_false(_locations.publish(token), "replaced original arena refuses before swap")
+	assert_true(_cold.covers(scope.replacement, COLD_BYTES), "new arena not stolen")
+	assert_equal(_locations.location_revision(prior), 1, "live payload untouched")
+	_close_world(scope, token)
+
+
+func test_world_source_callback_replaces_lease_before_actual_snapshot_allocation() -> void:
+	"""A late real Sources observer cannot spend an expired reservation even when the substitute is equally large."""
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	var observed: WorldCopyOwner = _owner as WorldCopyOwner
+	var before: int = observed.staged_copies
+	observed.source_attack = scope.replace_lease
+	assert_equal(_locations.stage_add(token, _record()).error, &"LOCATION_WORLD_SCOPE", "late original-token refusal")
+	assert_equal(observed.staged_copies, before, "no staged snapshot allocation")
+	assert_equal(_locations._stage.count, 0, "no endpoint row written")
+	assert_true(_cold.covers(scope.replacement, COLD_BYTES), "unrelated replacement lease remains held")
+	_close_world(scope, token)
+
+
+func test_world_source_callback_cannot_abort_or_mutate_caller_record() -> void:
+	"""Observer reentry and mutable request changes refuse before the candidate row is written."""
+	var scope: SyntheticWorldScope = _world_scope()
+	var token: int = _world_candidate(scope)
+	var observed: WorldCopyOwner = _owner as WorldCopyOwner
+	observed.source_attack = scope.reenter
+	assert_equal(_locations.stage_add(token, _record()).error, &"LOCATION_WORLD_SCOPE", "source callback poisons outer operation")
+	assert_false(scope.reentry_result, "public abort cannot discard the active candidate")
+	assert_equal(_locations._token, token, "exact caller candidate survives")
+	scope.request = _record()
+	observed.source_attack = scope.mutate_request
+	assert_equal(_locations.stage_add(token, scope.request).error, &"LOCATION_REQUEST_CHANGED", "input is pinned across observer")
+	assert_equal(_locations._stage.count, 0, "no partially validated row")
+	assert_equal(_locations.stage_add(token, _record()).error, &"", "fresh exact request retries")
+	_close_world(scope, token)
+
+
+func test_world_transit_anchor_preserves_actual_room_claim_blockers() -> void:
+	"""A new natural anchor does not borrow traversal permission through a confirmed Room marker."""
+	var hall: Vector2i = _buildings.place_building(int(Catalog.BUILDING_DEFINITION["hall"]), 59 * 128 + 58, 0, 1).ref
+	var room: Vector2i = _buildings.designate_room(hall, int(Catalog.ROOM_TYPE["DORMITORY"]),
+		PackedInt32Array([60 * 128 + 59])).ref
+	assert_true(_buildings.is_live_room(room), "actual Room identity")
+	var scope: SyntheticWorldScope = _world_scope()
+	scope.cold_token = _cold.acquire(COLD_BYTES)
+	scope.space_token = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_source(scope.space_token, room), &"", "real claim source")
+	var marker: Owner.Region = Owner.Region.new()
+	marker.owner = room
+	marker.claim_ref = room
+	marker.claim_kind = Owner.CLAIM_ROOM
+	marker.role = Space.OBSTACLE
+	marker.level = 0
+	marker.box = PackedInt32Array([-768, 0, 256, -256, 512, 768])
+	assert_equal(_owner.stage_add(scope.space_token, marker).error, &"", "exact retained Room marker")
+	assert_equal(_owner.seal(scope.space_token), &"", "actual sealed future claim")
+	var token: int = _locations.begin_world_prepare(scope.cold_token, scope.space_token).token
+	var record: Locations.Record = _record()
+	record.role = Locations.ROLE_TRANSIT
+	assert_equal(_locations.stage_add(token, record).error, &"LOCATION_ENVELOPE_BLOCKED", "full claim remains in World image")
+	assert_equal(_locations._stage.count, 0, "no false natural anchor")
+	_close_world(scope, token)

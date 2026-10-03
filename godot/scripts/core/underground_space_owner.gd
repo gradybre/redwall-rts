@@ -949,6 +949,43 @@ func prepared_snapshot_for_site_into(token: int, out: Space.Snapshot,
 	return _copy_prepared_snapshot_into(out, sites.room_of(site), sites.project_of(site))
 
 
+func prepared_snapshot_leased_into(token: int, out: Space.Snapshot, budget: Budget, cold_token: int) -> StringName:
+	"""Copy the exact sealed full-claim image only while the original caller lease still covers all live output."""
+	var bytes: int = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	var code: StringName = _prepared_copy_refusal(token, out, budget, cold_token, bytes)
+	if code != &"":
+		return code
+	var expected_revision: int = revision()
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	code = prepared_refusal(token)
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if code != &"":
+		return code
+	if revision() != expected_revision or token != _stage_token or not _sealed or _validation_sources >= 0:
+		return &"SPACE_REVISION_STALE"
+	bytes = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	if not budget.covers(cold_token, bytes):
+		return Budget.REFUSE_TOKEN
+	return _copy_prepared_snapshot_into(out, NULL_REF, NULL_REF)
+
+
+func _prepared_copy_refusal(token: int, out: Space.Snapshot, budget: Budget, cold_token: int, bytes: int) -> StringName:
+	"""Refuse missing sealed context, unaffordable copies and validation reentry before source observers."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if out == null or _ready_error != &"":
+		return &"SPACE_WORLD_UNBOUND"
+	if token <= 0 or token != _stage_token or not _sealed or _validation_sources >= 0:
+		return &"SPACE_TRANSACTION_UNSEALED"
+	if budget == null or not budget.covers(cold_token, bytes):
+		return Budget.REFUSE_TOKEN
+	if 2 * (_region_capacity + _source_capacity) > _header[16]:
+		return &"SPACE_OPERATION_BUDGET"
+	return &""
+
+
 func _copy_prepared_snapshot_into(out: Space.Snapshot, room: Vector2i,
 		project: Vector2i, traversal: bool = false) -> StringName:
 	"""Build one isolated complete survey; only already-proved exact reservation markers may omit."""

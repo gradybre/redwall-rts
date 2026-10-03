@@ -22,6 +22,7 @@ const I64_FIELDS: int = 2
 const ROW_BYTES: int = 106
 const MAX_LOCATIONS: int = 4096 # An engineering allocation ceiling, not a player room limit.
 const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a real floor namespace.
+const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
 const ROLE_TRANSIT: int = 0
 const ROLE_STORAGE: int = 1
 const ROLE_WORK: int = 2
@@ -124,6 +125,21 @@ class Retention extends RefCounted:
 		return true
 
 
+class WorldScope extends RefCounted:
+	## Once-bound actual natural-surface publisher. No Site, Room or constructed floor is implied.
+	func exact_binding(_locations: RefCounted, _space: Owner, _budget: Budget, _world: Vector2i) -> bool:
+		"""Prove exact collaborators without publishing or manufacturing a natural-space observation."""
+		return false
+
+	func prepared_refusal(_space_token: int, _cold_token: int) -> StringName:
+		"""Recheck the actual retained natural facts and original cold context before publication."""
+		return &"LOCATION_WORLD_SCOPE"
+
+	func is_publishing(_space_token: int, _cold_token: int) -> bool:
+		"""Pure retained-window predicate: no observers, allocation or mutation may run here."""
+		return false
+
+
 class InventoryLocations extends InventoryContract:
 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
 	var _locations: WeakRef = null
@@ -194,6 +210,8 @@ var _room_orders: WeakRef = null
 var _room_admission: bool = false
 var _admission_room: Vector2i = NULL_REF
 var _admission_type: int = -1
+var _world_scope: WeakRef = null
+var _world_preparation: bool = false
 
 
 func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
@@ -255,6 +273,22 @@ func bind_room_orders(orders: RoomOrders) -> StringName:
 			or not _cold.is_quiescent() or _owner.has_prepared():
 		return &"LOCATION_ROOM_OWNER"
 	_room_orders = weakref(orders)
+	return &""
+
+
+func bind_world_scope(scope: WorldScope) -> StringName:
+	"""Bind the actual natural-surface publisher once, including refusal to replace an expired scope."""
+	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _world_scope != null \
+			or scope == null or world_ref() == NULL_REF or not _cold.is_quiescent() or _owner.has_prepared():
+		return &"LOCATION_WORLD_SCOPE"
+	_in_retention = true
+	_retention_reentered = false
+	var matches: bool = scope.exact_binding(self, _owner, _cold, _world)
+	_in_retention = false
+	if not matches or _retention_reentered or world_ref() == NULL_REF \
+			or not _cold.is_quiescent() or _owner.has_prepared():
+		return &"LOCATION_WORLD_SCOPE"
+	_world_scope = weakref(scope)
 	return &""
 
 
@@ -468,6 +502,55 @@ func begin_room_prepare(cold_token: int, owner_token: int, room: Vector2i,
 	return result
 
 
+func begin_world_prepare(cold_token: int, owner_token: int) -> Result:
+	"""Prepare only against the once-bound World publisher and its exact sealed natural-space candidate."""
+	if _reject_retention_callback() or _capacity == 0 or world_ref() == NULL_REF or _token != 0 \
+			or _next_token == 9223372036854775807 or owner_token <= 0:
+		return Result.new(&"LOCATION_PREPARATION_BUSY")
+	var code: StringName = _world_preflight(_actual_world_scope(), cold_token, owner_token)
+	if code != &"":
+		return Result.new(code)
+	var result: Result = _start_preparation(cold_token, owner_token, NULL_REF, -1, -1)
+	if result.error == &"":
+		_world_preparation = true
+		_target_geometry_revision = _owner.revision() + 1
+	return result
+
+
+func _actual_world_scope() -> WorldScope:
+	"""Keep the weakly bound real publisher alive for the complete synchronous observation."""
+	return _world_scope.get_ref() as WorldScope if _world_scope != null else null
+
+
+func _world_scope_current(scope: WorldScope, cold_token: int, owner_token: int) -> bool:
+	"""Pure owner, capacity and original-lease pins precede every allocating source observation."""
+	return scope != null and scope == _actual_world_scope() and world_ref() != NULL_REF and owner_token > 0 \
+		and _cold.covers(cold_token, cold_peak_bytes() + WORLD_COPY_CONTROL_BYTES) \
+		and _owner.allocation_within(Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY) \
+		and _domain._regions <= Budget.PHASE_VOLUME_CAPACITY
+
+
+func _world_preflight(scope: WorldScope, cold_token: int, owner_token: int) -> StringName:
+	"""Complete all virtual observers before final pure context checks and any bank/image allocation."""
+	if not _world_scope_current(scope, cold_token, owner_token) or _owner._stage_token != owner_token \
+			or not _owner._sealed or _owner._validation_sources >= 0:
+		return &"LOCATION_WORLD_SCOPE"
+	_in_retention = true
+	_retention_reentered = false
+	var code: StringName = &"" if scope.exact_binding(self, _owner, _cold, _world) else &"LOCATION_WORLD_SCOPE"
+	if code == &"" and _world_scope_current(scope, cold_token, owner_token):
+		code = scope.prepared_refusal(owner_token, cold_token)
+	if code == &"" and _world_scope_current(scope, cold_token, owner_token):
+		code = _owner.prepared_refusal(owner_token)
+	if code == &"" and _world_scope_current(scope, cold_token, owner_token):
+		code = scope.prepared_refusal(owner_token, cold_token)
+	_in_retention = false
+	if _retention_reentered or not _world_scope_current(scope, cold_token, owner_token) \
+			or _owner._stage_token != owner_token or not _owner._sealed:
+		return &"LOCATION_WORLD_SCOPE"
+	return code
+
+
 func _actual_orders() -> RoomOrders:
 	"""Borrow the once-bound actual coordinator strongly for a complete synchronous observation."""
 	return _room_orders.get_ref() as RoomOrders if _room_orders != null else null
@@ -512,6 +595,8 @@ func stage_add(token: int, record: Record) -> Result:
 	var code: StringName = _editable(token)
 	if code == &"" and _room_admission:
 		code = &"LOCATION_ROOM_REFRESH_ONLY"
+	if code == &"" and _world_preparation and (record == null or record.room != NULL_REF or record.level != 0):
+		code = &"LOCATION_WORLD_CREATE_ONLY"
 	if code == &"":
 		code = _validate_record(record)
 	if code != &"":
@@ -547,6 +632,8 @@ func stage_remove(token: int, location: Vector2i) -> StringName:
 		return code if code != &"" else &"LOCATION_STALE"
 	if _room_admission:
 		return &"LOCATION_ROOM_REFRESH_ONLY"
+	if _world_preparation:
+		return &"LOCATION_WORLD_CREATE_ONLY"
 	if _inventory.has_spatial_location(location, _get64(_stage, PAYLOAD_REVISION, location.x)):
 		return &"LOCATION_INVENTORY_RETAINED"
 	code = _route_retention_refusal(location)
@@ -596,7 +683,24 @@ func _prepared_retention_refusal() -> StringName:
 		code = _geometry_current_refusal()
 	if code == &"" and _room_admission:
 		code = _refreshed_room_rows_refusal()
+	if code == &"" and _world_preparation:
+		code = _world_rows_refusal()
 	return _final_inventory_refusal(_cold_token, cold_peak_bytes()) if code == &"" else code
+
+
+func _world_rows_refusal() -> StringName:
+	"""Preserve every retained immutable handle; only new World/level-zero rows may be added."""
+	for row: int in _capacity:
+		if _live.present[row] != 0 and (not _row_payload_unchanged(row) \
+				or _get64(_stage, PAYLOAD_REVISION, row) != _get64(_live, PAYLOAD_REVISION, row)):
+			return &"LOCATION_WORLD_CREATE_ONLY"
+		if _stage.present[row] == 0:
+			continue
+		if _get64(_stage, GEOMETRY_REVISION, row) != _target_geometry_revision:
+			return &"LOCATION_WORLD_REFRESH_REQUIRED"
+		if _live.present[row] == 0 and (_ref_at(_stage, ROOM_SLOT, row) != NULL_REF or _get32(_stage, LEVEL, row) != 0):
+			return &"LOCATION_WORLD_CREATE_ONLY"
+	return &""
 
 
 func _refreshed_room_rows_refusal() -> StringName:
@@ -622,9 +726,10 @@ func publish(token: int) -> bool:
 	"""Swap only in the prepared actual Sites or Room callback, after the exact Space publication."""
 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return false
-	if _current_retention_refusal() != &"":
-		return false
-	if _publication_geometry_refusal() != &"":
+	if _world_preparation:
+		if _world_publication_refusal() != &"":
+			return false
+	elif _current_retention_refusal() != &"" or _publication_geometry_refusal() != &"":
 		return false
 	if _final_inventory_refusal(_cold_token, cold_peak_bytes()) != &"":
 		return false
@@ -634,6 +739,21 @@ func publish(token: int) -> bool:
 	_last_published_token = token
 	_reset_preparation()
 	return true
+
+
+func _world_publication_refusal() -> StringName:
+	"""No terrain/source/retention observer follows Space's swap in the actual World commit window."""
+	var scope: WorldScope = _actual_world_scope()
+	if not _world_scope_current(scope, _cold_token, _owner_token):
+		return &"LOCATION_WORLD_SCOPE"
+	_in_retention = true
+	_retention_reentered = false
+	var publishing: bool = scope.is_publishing(_owner_token, _cold_token)
+	_in_retention = false
+	if not publishing or _retention_reentered or not _world_scope_current(scope, _cold_token, _owner_token):
+		return &"LOCATION_WORLD_SCOPE"
+	var code: StringName = _published_owner_refusal()
+	return _world_rows_refusal() if code == &"" else code
 
 
 func _publication_geometry_refusal() -> StringName:
@@ -689,6 +809,7 @@ func _reset_preparation() -> void:
 	_room_admission = false
 	_admission_room = NULL_REF
 	_admission_type = -1
+	_world_preparation = false
 
 
 func _editable(token: int) -> StringName:
@@ -697,6 +818,8 @@ func _editable(token: int) -> StringName:
 		return &"LOCATION_RETENTION_REENTRY"
 	if token <= 0 or token != _token or _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return &"LOCATION_TOKEN_STALE"
+	if _world_preparation:
+		return _world_preflight(_actual_world_scope(), _cold_token, _owner_token)
 	return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room,
 		_admission_type, false) if _room_admission else &""
 
@@ -705,6 +828,8 @@ func _geometry_current_refusal() -> StringName:
 	"""Prepared spatial truth is immutable; live preparations retain their starting world revision."""
 	if _room_admission:
 		return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room, _admission_type)
+	if _world_preparation:
+		return _world_preflight(_actual_world_scope(), _cold_token, _owner_token)
 	if _owner_token != 0:
 		return _owner.prepared_refusal(_owner_token)
 	if _owner.has_prepared() or _base_geometry_revision != _owner.revision():
@@ -713,6 +838,48 @@ func _geometry_current_refusal() -> StringName:
 
 
 func _validate_record(record: Record) -> StringName:
+	"""World observations cannot mutate their caller input or reenter the retained endpoint candidate."""
+	if not _world_preparation:
+		return _record_geometry_refusal(record)
+	var scope: WorldScope = _actual_world_scope()
+	if record == null or not _world_scope_current(scope, _cold_token, _owner_token):
+		return &"LOCATION_WORLD_SCOPE"
+	if record.envelope.size() != 6 or record.support.size() != 6:
+		return &"LOCATION_GEOMETRY_FORMAT"
+	var pinned: Record = _copy_world_record(record)
+	_in_retention = true
+	_retention_reentered = false
+	var code: StringName = _record_geometry_refusal(pinned)
+	_in_retention = false
+	if _retention_reentered or not _world_scope_current(scope, _cold_token, _owner_token) \
+			or _owner._stage_token != _owner_token or not _owner._sealed:
+		return &"LOCATION_WORLD_SCOPE"
+	if not _world_record_matches(record, pinned):
+		return &"LOCATION_REQUEST_CHANGED"
+	return code
+
+
+func _copy_world_record(record: Record) -> Record:
+	"""Pin mutable caller geometry only after exact cold admission, without retaining another owner image."""
+	var pinned: Record = Record.new()
+	pinned.point = record.point
+	pinned.room = record.room
+	pinned.section = record.section
+	pinned.level = record.level
+	pinned.role = record.role
+	pinned.envelope = record.envelope.duplicate()
+	pinned.support = record.support.duplicate()
+	return pinned
+
+
+func _world_record_matches(record: Record, pinned: Record) -> bool:
+	"""Compare every caller input used by validation or row publication after the last source observer."""
+	return record.point == pinned.point and record.room == pinned.room and record.section == pinned.section \
+		and record.level == pinned.level and record.role == pinned.role \
+		and record.envelope == pinned.envelope and record.support == pinned.support
+
+
+func _record_geometry_refusal(record: Record) -> StringName:
 	"""Exact integer coverage and source identity qualify geometry, not movement or storage contents."""
 	if record == null or not Space.valid_box(record.envelope) or not Space.valid_box(record.support) \
 			or record.level < 0 or record.role < ROLE_TRANSIT or record.role > ROLE_WORK \
@@ -745,8 +912,7 @@ func _validate_record(record: Record) -> StringName:
 
 func _section_refusal(record: Record) -> StringName:
 	"""World surface and actual underground Room sections are disjoint identity domains."""
-	var code: StringName = _owner.prepared_region_into(_owner_token, record.section, _region) \
-		if _owner_token != 0 else _owner.region_into(record.section, _region)
+	var code: StringName = _read_section(record.section)
 	if code != &"" or _region.role != Space.FLOOR_DATUM or _region.claim_kind != Owner.CLAIM_NONE \
 			or _region.level != record.level or _region.box[1] != record.point.y:
 		return &"LOCATION_SECTION_STALE"
@@ -766,6 +932,15 @@ func _section_refusal(record: Record) -> StringName:
 	return &""
 
 
+func _read_section(section: Vector2i) -> StringName:
+	"""The World path brackets a reused pure row observation with its complete source preflight and leased image."""
+	if _world_preparation:
+		_region.box.resize(6)
+		return _owner.prepared_region_observation_into(_owner_token, section, _region)
+	return _owner.prepared_region_into(_owner_token, section, _region) \
+		if _owner_token != 0 else _owner.region_into(section, _region)
+
+
 func _survey_for(record: Record) -> StringName:
 	"""Transit omits only nonphysical Room markers; underground endpoints still need their actual Sites/Room key."""
 	_snapshot = null # Release a prior survey before requesting the next isolated image.
@@ -778,9 +953,13 @@ func _survey_for(record: Record) -> StringName:
 		var scope: StringName = _owner.site_scope_refusal(physical, site)
 		if scope != &"":
 			return scope
+	if _world_preparation and not _world_scope_current(_actual_world_scope(), _cold_token, _owner_token):
+		return &"LOCATION_WORLD_SCOPE"
 	var image: Space.Snapshot = Space.Snapshot.new()
 	var code: StringName = &""
-	if record.role == ROLE_TRANSIT:
+	if _world_preparation:
+		code = _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
+	elif record.role == ROLE_TRANSIT:
 		code = _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
 			if _owner_token != 0 else _owner.snapshot_for_traversal_into(image)
 	elif record.room == NULL_REF:

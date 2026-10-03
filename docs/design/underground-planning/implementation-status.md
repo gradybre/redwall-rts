@@ -15,18 +15,33 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `fc4fac4f` passed **9,897 tests / 694,319
+The latest full frozen source `1ea96be7` passed **10,099 tests / 712,989
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
-zero analyzer warnings across 1,101 scripts. Its
-[checkpoint logs](evidence/modular-build/checkpoint-fc4fac4f/README.md)
-record the exact clean-import, no-argument suite procedure. This includes
-site-scoped phase surveys, release-safe leases, the atomic furniture core,
-Layout lifetime corrections, endpoint retention, profile descriptor readers
-and Transform freshness. Later Terrain, Levels, Routes and coordinator changes
-retain separately scoped evidence until the next assembled checkpoint.
+zero analyzer warnings across1,119 scripts. The
+[checkpoint logs](evidence/modular-build/checkpoint-1ea96be7/README.md)
+record the exact clean-assets/cache/import and no-argument suite procedure:
 
-Actual productive contact bindings, qualified movement/profile content,
-complete furniture batches and the first playable Kitchen remain active work.
+```text
+10099 test(s), 712989 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+Later independently reviewed increments include actual Room/Job identity
+readers, operation/stage-scoped cold leases, geometric Room admission against
+actual Levels/Terrain/retained obstacles, exact held-tool presentation bounds,
+and packed footprint validation preserving the existing shape policy. Their
+focused evidence remains separately scoped; the full checkpoint does not
+cover these later changes. Packed footprint and caller verification passed
+144 tests/203,330 assertions with zero failures, unexpected diagnostics, leaks
+or analyzer warnings.
+
+Active work is removing the temporary admission memory cap without changing
+room shapes, composing actual Room-lifetime structural support, and loading
+source-pinned worker animation content. Actual productive contacts, first
+entrance/connector construction and the first playable Kitchen remain open.
+Furniture/removal/renovation demo integration, composed save/resume, native
+1280×720 end-to-end acceptance and256-resident qualification follow those gates.
 These verified components do not complete D20 or make the full workflow
 playable yet. The [draft implementation PR](https://github.com/gradybre/redwall-rts/pull/230)
 and repository queue retain the remaining requirements. The evidence in the

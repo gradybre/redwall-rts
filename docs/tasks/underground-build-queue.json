@@ -415,9 +415,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-packed-footprint",
+      "branch": "codex/underground-room-admission-scale",
       "evidence": {
-        "in_progress": "Actual static Room admission integrated; validation-only packed Footprint accepted by independent root review, awaiting actual-caller verification/commit. Next: one unfiltered retained snapshot plus actual windowed Terrain checks to remove the temporary477-cell cold bound without changing shape policy.",
+        "in_progress": "Packed validation integrated. Implementing admission-scale follow-up: one actual unfiltered snapshot, three charged plan images, exact clipped Terrain windows, existing16384-cell operation ceiling; no compositor changes or player-facing shape restriction.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -508,7 +508,12 @@
             "docs/decisions/1094-packed-room-footprint-validation.md"
           ],
           "scope": "Validation-only bounded packed adjacency/BFS/Euler scratch; preserve API/refusal order/shape semantics and existing contour rendering. Exhaustive legacy parity; no new gameplay cell cap. Actual compositor coexistence remains separate.",
-          "review": "Root accepts Footprint253eae560594d198ee7d0ac809d92a99e7c17795ef9c191cfb1c6940a0eb4b89 and testcc97ed7ca169c80bb2ac04f046d1beacefe4fe9455aaafb588411ca01811e6f8; no high/medium findings. Independent source traces plus reported101tests201369assertions strict/raw0,LSP0/2; actual caller verification pending."
+          "review": "Root accepts Footprint253eae560594d198ee7d0ac809d92a99e7c17795ef9c191cfb1c6940a0eb4b89 and testcc97ed7ca169c80bb2ac04f046d1beacefe4fe9455aaafb588411ca01811e6f8; no high/medium findings. Independent source traces plus reported101tests201369assertions strict/raw0,LSP0/2; actual caller verification pending.",
+          "source": "19752ce6",
+          "registry": "94034c71",
+          "integration": "56c8577d/ed01b16a",
+          "tests": "144 tests/203330 assertions/0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/2",
+          "status": "independently reviewed and integrated"
         },
         "actual_room_admission": {
           "source": "9b08be058fd564dd852f5b57794b938f084bb39e",
@@ -999,6 +1004,13 @@
           "tests": "52 tests/1025 assertions/0 failures; strict/raw unexpected diagnostics and all leaks0; analyzer0/2",
           "review": "ug_geometry accepted exact WBf466e872/test29ef0f84 source pins; identity alone grants no structure/contact/work permission",
           "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/world-iteration-5"
+        },
+        "exact_phase_scope": {
+          "source": "a164de68",
+          "integration": "4b2ded94",
+          "tests": "54 tests/1042 assertions/0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/2",
+          "review": "ug_furnishing accepted exact156f59e5/2d34e2b5 pins",
+          "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/phase-scope-iteration-1"
         }
       },
       "lease": {
@@ -1018,7 +1030,10 @@
               "godot/test/test_underground_world_routes.gd",
               "docs/decisions/1090-actual-route-clearance-certificates.md",
               "godot/test/test_underground_world_room_bindings.gd",
-              "godot/test/test_underground_world_identities.gd"
+              "godot/test/test_underground_world_identities.gd",
+              "godot/scripts/core/underground_world_structure_scope.gd",
+              "godot/test/test_underground_world_structure_scope.gd",
+              "godot/test/test_underground_world_structure.gd"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam.",
             "branch": "codex/underground-world-identities"

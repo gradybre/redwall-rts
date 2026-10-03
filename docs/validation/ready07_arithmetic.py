@@ -5,8 +5,8 @@ parser=argparse.ArgumentParser(description='Reproduce READY_07 static review ari
 parser.add_argument('--output',type=Path)
 args=parser.parse_args()
 sched=(r/'godot/scripts/core/scheduler_events.gd').read_text()
-def gd_const(name):
- m=re.search(r'^const %s: int = (\d+)$'%name,sched,re.M)
+def gd_const(name,source=sched):
+ m=re.search(r'^const %s: int = (\d+)$'%name,source,re.M)
  assert m,name
  return int(m.group(1))
 SCHEDULER_CAPACITY=gd_const('QUEUE_CAPACITY');SCHEDULER_RECORD=gd_const('RECORD_BYTES')
@@ -134,10 +134,47 @@ registry=json.loads((r/'docs/planning/canonical_state_registry.json').read_text(
 registry_owners=registry['owners']
 registry_fields=[f for owner in registry_owners for f in owner['fields']]
 registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in registry_owners)+sum(len(f['field_key'].encode('utf-8')) for f in registry_fields)
-# Decision 0531 appends `_c_anchor_tile` (14 key bytes): 611 -> 612 fields, 9051 -> 9065 bytes.
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(52,612,9065)
+# Decision 0531 appended `_c_anchor_tile`: 52 owners, 612 fields and 9065 key bytes.
+# Decisions 1053/1060 add one RoomProjects owner and eleven fields: +16 owner bytes,
+# +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(53,623,9236)
+assert (registry['record_count'],registry['packed_source_field_count'])==(615,566)
+assert sum(bool(field['hash']) for field in registry_fields)==615
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
-assert DECISION_0127_ADDED==19077
+assert DECISION_0127_ADDED==19429 and DECISION_0127_ADDED-19077==352
+# RoomProjects is additional mutable state, not a replacement for Construction's paid ledger.
+# Read all eleven source declarations and allocation expressions, then require exact agreement
+# with both the canonical owner's widths/capacities and the three printed auxiliary rows.
+room_source=(r/'godot/scripts/core/room_projects.gd').read_text()
+construction_source=(r/'godot/scripts/core/construction.gd').read_text()
+jobs_source=(r/'godot/scripts/core/jobs.gd').read_text()
+assert 'const PROJECT_CAPACITY: int = Construction.CONSTRUCTION_CAPACITY' in room_source
+assert 'const JOB_CAPACITY: int = Jobs.JOB_CAPACITY' in room_source
+room_capacities={'PROJECT_CAPACITY':gd_const('CONSTRUCTION_CAPACITY',construction_source),
+                 'JOB_CAPACITY':gd_const('JOB_CAPACITY',jobs_source)}
+assert room_capacities=={'PROJECT_CAPACITY':82944,'JOB_CAPACITY':8192}
+packed_widths={'PackedByteArray':1,'PackedInt32Array':4,'PackedInt64Array':8}
+room_columns=re.findall(r'^var (_\w+): (Packed\w+Array) =',room_source,re.M)
+room_resizes=re.findall(r'^\t(_\w+)\.resize\((\w+)\)$',room_source,re.M)
+assert len(room_columns)==len(room_resizes)==11
+assert len(dict(room_columns))==len(dict(room_resizes))==11
+room_shapes={name:(packed_widths[kind],room_capacities[dict(room_resizes)[name]])
+             for name,kind in room_columns}
+room_owner=next(owner for owner in registry_owners if owner['owner_key']=='room_projects')
+assert room_owner['section_id']==6 and room_owner['owner_schema_version']==1
+assert len(room_owner['fields'])==len(room_shapes)
+assert {field['source_member'] for field in room_owner['fields']}==set(room_shapes)
+for field in room_owner['fields']:
+ name=field['source_member']; capacity_name=dict(room_resizes)[name]
+ assert field['hash'] and field['source_module']=='room_projects'
+ assert room_shapes[name]==({'u8':1,'i32':4}[field['type']],room_capacities[capacity_name])
+ assert field['shape']['declared_capacity']==f'`{capacity_name}` = {room_capacities[capacity_name]}'
+for width,capacity,kind in [(1,82944,'B8'),(4,82944,'I32'),(4,8192,'I32')]:
+ names=[name for name,shape in room_shapes.items() if shape==(width,capacity)]
+ row=f'| RoomProjects | {", ".join(names)} | {kind} | {width} | {len(names)} | {capacity} | {width*len(names)*capacity} |'
+ assert row in s,row
+DECISION_1053_ADDED=sum(width*capacity for width,capacity in room_shapes.values())
+assert DECISION_1053_ADDED==(3+4*4)*82944+4*4*8192==1707008
 # 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
 DECISION_0167_CLAIM_SLOT=512*4
 assert DECISION_0167_CLAIM_SLOT==2048
@@ -248,11 +285,17 @@ assert (DECISION_1023_RECORD,DECISION_1023_SCRATCH)==(196608,34956)
 DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
-# decision 1023 adds one (39 -> 40).
-assert len(allocations)==40 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED
+# decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
+assert len(allocations)==40 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70961952
-assert live==79350560 and candidate==64716755 and live+candidate==144067315
+assert payload==72669312
+assert live==81057920 and candidate==66423763 and live+candidate==147481683
+assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
+# A valid internal trail can still omit its final step. Require its endpoint to reach the
+# independently summed allocation table; merge_gate.py separately checks every intervening row.
+trail=s.split('| Step | Governing record |',1)[1].split('\n\n',1)[0]
+trail_rows=[line.split('|') for line in trail.splitlines() if line.startswith('|')]
+assert tuple(int(cell.strip()) for cell in trail_rows[-1][-3:-1])==(payload,live)
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
@@ -283,7 +326,17 @@ for name in installed:
   links+=1
   if not (f.parent/path).resolve().exists():errors.append(f'{name}: {path}')
 assert not errors,errors
-report={'scope':'STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_TESTS','status':'PASS','revision_reviewed':'16e1efc','field_rows':len(fields),'field_bytes':sum(fields),'allocation_rows':len(allocations),'payload_bytes':payload,'live_with_reserve_bytes':live,'two_world_peak_bytes':live+candidate,'catalog_bindings':actual,'synthetic_weather_boundary_ticks':ticks,'scheduler_status':'IMPLEMENTED_AND_LEDGERED_ADR0054','scheduler_record_bytes':SCHEDULER_RECORD,'scheduler_control_bytes':SCHEDULER_CONTROL,'scheduler_total_bytes':SCHEDULER_TOTAL,'scheduler_capacity':SCHEDULER_CAPACITY,'scheduler_normal_capacity':SCHEDULER_NORMAL,'checked_local_links':links,'files_reviewed':installed,'runtime_tests':'NOT_RUN','runtime_code_changed':True,'remaining_proposed_fields_in_existing_ledger':False,'source_sha256':{n:hashlib.sha256((r/n).read_bytes()).hexdigest() for n in ['docs/game_gdd.md','docs/systems_architecture.md','godot/data/catalog_ids.json','docs/movement_direction_amendment.md','godot/scripts/core/scheduler_events.gd']}}
+report={'scope':'STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_TESTS','status':'PASS','historical_ready07_revision':'16e1efc','field_rows':len(fields),'field_bytes':sum(fields),'allocation_rows':len(allocations),'payload_bytes':payload,'live_with_reserve_bytes':live,'two_world_peak_bytes':live+candidate,'catalog_bindings':actual,'synthetic_weather_boundary_ticks':ticks,'scheduler_status':'IMPLEMENTED_AND_LEDGERED_ADR0054','scheduler_record_bytes':SCHEDULER_RECORD,'scheduler_control_bytes':SCHEDULER_CONTROL,'scheduler_total_bytes':SCHEDULER_TOTAL,'scheduler_capacity':SCHEDULER_CAPACITY,'scheduler_normal_capacity':SCHEDULER_NORMAL,'checked_local_links':links,'files_reviewed':installed,'runtime_tests':'NOT_RUN','runtime_code_changed_by_this_check':False,'remaining_proposed_fields_in_existing_ledger':False,'source_sha256':{n:hashlib.sha256((r/n).read_bytes()).hexdigest() for n in ['docs/game_gdd.md','docs/systems_architecture.md','godot/data/catalog_ids.json','docs/movement_direction_amendment.md','godot/scripts/core/scheduler_events.gd']}}
+report['room_projects_packed_bytes']=DECISION_1053_ADDED
+report['canonical_declaration_bytes']=DECISION_0127_ADDED
+report['canonical_census']={'owners':len(registry_owners),'declared_fields':len(registry_fields),
+                          'hashed_records':registry['record_count'],
+                          'persisted_packed_fields':registry['packed_source_field_count'],
+                          'key_utf8_bytes':registry_key_bytes}
+for name in ['godot/scripts/core/room_projects.gd','godot/scripts/core/construction.gd',
+             'godot/scripts/core/jobs.gd','godot/scripts/core/canonical_state_hash.gd',
+             'docs/planning/canonical_state_registry.json','docs/validation/ready07_arithmetic.py']:
+ report['source_sha256'][name]=hashlib.sha256((r/name).read_bytes()).hexdigest()
 if args.output:
  args.output.write_text(json.dumps(report,indent=2)+'\n')
-print(json.dumps({k:report[k] for k in ['status','field_rows','allocation_rows','scheduler_total_bytes','checked_local_links','runtime_tests']}))
+print(json.dumps({k:report[k] for k in ['status','field_rows','allocation_rows','scheduler_total_bytes','checked_local_links','runtime_tests','payload_bytes','room_projects_packed_bytes','canonical_declaration_bytes']}))

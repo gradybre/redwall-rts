@@ -1,0 +1,41 @@
+[
+  {
+    "command": [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    "exit_code": 0,
+    "log": "import.log",
+    "seconds": 3.674
+  },
+  {
+    "command": [
+      "./tools/run_tests.sh",
+      "--shard",
+      "25/326",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-legacy-world-codec-2026-10-03/runner"
+    ],
+    "exit_code": 0,
+    "log": "strict.log",
+    "seconds": 10.85
+  },
+  {
+    "command": [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--max",
+      "0",
+      "--port",
+      "6157",
+      "godot/test/test_save_section_01.gd"
+    ],
+    "exit_code": 0,
+    "log": "analyzer.log",
+    "seconds": 9.369
+  }
+]

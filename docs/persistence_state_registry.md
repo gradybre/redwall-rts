@@ -1187,3 +1187,17 @@ future-affecting once integrated; no codec assignment is invented here.
 | Bound source and transaction control | -- | -- | -- | No active token at save | 3 | -- | Decision 1064. Bound Sources and scratch Facts rebind to actual stores. Stage/next tokens, seal flag, operation budget, changed-row count and stage free counts are transient; tokens carry no gameplay ordering or entitlement. Completed-load composition invalidates all pre-load proofs before resuming. |
 | Changed-row indices | `_changed_rows` | 4 | `_region_capacity` runtime | Only the checked prefix is read | 3 | -- | Decision 1064. One preallocated row index per changed region; count resets before each transaction. Validated unchanged pairs need not be rechecked. |
 | Changed-row mask | `_changed_mask` | 1 | `_region_capacity` runtime | 0 before each transaction | 3 | -- | Decision 1064. Deduplicates the finite changed index list. Decoded loads compare exact spatial columns with the already validated live image; owner/source/section validation still checks every live row. |
+
+
+### `godot/scripts/core/underground_space_authority.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Derived static proof presence | `_present` | 1 | `_capacity` runtime | 0 | 2 | §1 WORLD | Decision 1064. Explicit jointly admitted proof capacity, bounded by actual Jobs and Construction. No proof persists or hashes; load invalidates all old evidence. |
+| Derived full identities and phase | `_proof_i32` | 4 | `_capacity * I32_FIELDS` runtime | 0 while absent | 2 | §1 WORLD | Eleven I32 fields per proof: full Site/Room/Construction refs, absolute XYZ, operation and physical phase. |
+| Derived proof revisions | `_proof_i64` | 8 | `_capacity * I64_FIELDS` runtime | 0 while absent | 2 | §1 WORLD | Actual geometry and qualification revisions; a mismatch refuses productive work without rebuilding. |
+| Derived proof allocation and search | `_ordered`, `_free` | 4 | `_capacity` runtime | -1 outside prefixes | 2 | §1 WORLD | Sorted actual site-slot lookup and lowest-free row heap. 69*P total fixed packed cache bytes including presence. |
+| Prepared exact proof row | `_next_i32` | 4 | `I32_FIELDS` = 11 | 0 outside operation | 3 | -- | One finite replacement row, retained outside live proofs until attested publication. |
+| Prepared exact proof revisions | `_next_i64` | 8 | `I64_FIELDS` = 2 | 0 outside operation | 3 | -- | Together with prepared I32 fields: 60 packed bytes. |
+| Cold phase check target | -- | -- | -- | Empty until bounded quantum resolves | 3 | -- | One exact six-I32 target. Snapshot/Plan inputs, qualification copies and union fragments are bounded caller-owned scratch; not authoritative state. |
+| Binding, candidate and cold controls | -- | -- | -- | No active candidate at save | 3 | -- | Actual source/space/physical/qualification references, weak Sites binding, cache counts, candidate tokens, booleans, refusal and math scratch. Declared separately in decision 1064; no production qualification is claimed. |

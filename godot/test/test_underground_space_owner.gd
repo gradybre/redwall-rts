@@ -2239,6 +2239,282 @@ class CountedSources extends Owner.CoreSources:
 		return super.read_into(ref, out)
 
 
+class SnapshotCopyOwner extends Owner:
+	## Count entry into the allocating copy, separately from public source observations.
+	var copies: int = 0
+
+	func _snapshot_image(room: Vector2i, project: Vector2i, traversal: bool) -> Space.Snapshot:
+		"""A refused original lease must never reach this allocation boundary."""
+		copies += 1
+		return super._snapshot_image(room, project, traversal)
+
+
+class SnapshotLeaseProbe extends RefCounted:
+	## Real arena replacement and same-owner reentry, without adding test state to production.
+	var budget: Budget = Budget.new()
+	var token: int = 0
+	var replacement: int = 0
+	var bytes: int = 0
+	var geometry: WeakRef = null
+	var output: Space.Snapshot = null
+	var code: StringName = &""
+
+	func replace() -> void:
+		"""Keep an equal-size replacement alive so refusal cannot accidentally clean up a foreign operation."""
+		code = budget.release(token)
+		replacement = budget.acquire(bytes)
+
+	func reenter() -> void:
+		"""A recursive leased observation must poison only this active source proof."""
+		var owner: Owner = geometry.get_ref() as Owner
+		code = owner.snapshot_for_traversal_leased_into(Space.Snapshot.new(), budget, token)
+
+	func mutate() -> void:
+		"""A source observer cannot edit the geometry being copied under its enclosing lease."""
+		var owner: Owner = geometry.get_ref() as Owner
+		code = owner.begin_stage(owner.revision()).error
+
+	func retain_output() -> void:
+		"""A callback can retain packed caller output after initial admission; count it again before copying."""
+		output.live_refs = PackedInt32Array([31, 1])
+		output.live_revisions = PackedInt64Array([1])
+
+
+class LeaseSources extends CountedSources:
+	## Observe real CoreSources facts and attack once after the chosen source is read.
+	var target: Vector2i = NULL_REF
+	var probe: Callable = Callable()
+
+	func read_into(ref: Vector2i, out: Owner.Facts) -> StringName:
+		"""The old lease expires inside the ordinary source preflight, before the snapshot copy."""
+		var code: StringName = super.read_into(ref, out)
+		if ref == target and probe.is_valid():
+			var once: Callable = probe
+			probe = Callable()
+			once.call()
+		return code
+
+
+class LeaseResidentLocations extends SyntheticLocations:
+	## A real Resident/Transform source with deliberately synthetic containment and an observed read.
+	var probe: Callable = Callable()
+	var observed: int = 0
+
+	func read_into(ref: Vector2i, out: Owner.Facts) -> StringName:
+		"""Exercise the nested ResidentLocations callback as well as the top-level Sources callback."""
+		var code: StringName = super.read_into(ref, out)
+		if probe.is_valid():
+			var once: Callable = probe
+			probe = Callable()
+			observed += 1
+			once.call()
+		return code
+
+
+func _snapshot_copy_owner(sources: Owner.CoreSources) -> SnapshotCopyOwner:
+	"""Keep the fixture's actual source binding while counting the exact allocating helper."""
+	var counted: SnapshotCopyOwner = SnapshotCopyOwner.new(sources)
+	_owner = counted
+	assert_equal(counted.configure(_domain, R, O), &"", "same actual World/domain")
+	return counted
+
+
+func _snapshot_probe() -> SnapshotLeaseProbe:
+	"""Admit the complete capacity-based copy and its bounded controls, never only the current live rows."""
+	var probe: SnapshotLeaseProbe = SnapshotLeaseProbe.new()
+	probe.bytes = 48 * R + 16 * O + Owner.SNAPSHOT_COPY_CONTROL_BYTES
+	probe.token = probe.budget.acquire(probe.bytes)
+	probe.geometry = weakref(_owner)
+	assert_true(probe.token > 0, "actual original lease")
+	return probe
+
+
+func test_leased_snapshot_keeps_the_exact_existing_traversal_filter_and_source_truth() -> void:
+	"""The additional lifetime gate must not widen traversal permission or change retained owner bytes."""
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(_sources)
+	var token: int = _begin()
+	_traversal_fixture_rows(token)
+	_publish(token)
+	var normal: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.snapshot_for_traversal_into(normal), &"", "unchanged ordinary observation")
+	var before: PackedByteArray = counted.state_bytes()
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"", "exact held copy")
+	assert_equal(counted.copies, 2, "one ordinary image and exactly one leased image")
+	assert_equal(out.world_ref, normal.world_ref, "full actual World")
+	assert_equal(out.revision, normal.revision, "same live geometry")
+	assert_equal(out.live_refs, normal.live_refs, "all actual source generations")
+	assert_equal(out.live_revisions, normal.live_revisions, "all actual source revisions")
+	assert_equal(out.volumes.role, normal.volumes.role, "physical blockers and unfinished matter remain")
+	for row: int in out.volumes.role.size():
+		assert_equal(out.volumes.box_at(row), normal.volumes.box_at(row), "exact physical extent")
+	assert_equal(counted.state_bytes(), before, "no mutation")
+	assert_equal(probe.budget.release(probe.token), &"", "release caller's original operation")
+
+
+func test_leased_snapshot_refuses_unfunded_copies_before_any_source_observation() -> void:
+	"""A one-byte deficit, missing arena or wrong token cannot enter source callbacks or change caller output."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(sources)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	assert_equal(probe.budget.release(probe.token), &"", "replace full reservation with insufficient bytes")
+	probe.token = probe.budget.acquire(probe.bytes - 1)
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 901
+	var reads: int = sources.reads
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), Budget.REFUSE_TOKEN, "full configured copy")
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, null, probe.token), Budget.REFUSE_TOKEN, "no arena")
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token + 1), Budget.REFUSE_TOKEN, "wrong full token")
+	assert_equal(counted.snapshot_for_traversal_leased_into(null, probe.budget, probe.token), &"SPACE_WORLD_UNBOUND", "missing output")
+	assert_equal(sources.reads, reads, "no allocating source observer before admission")
+	assert_equal(counted.copies, 0, "no image allocated")
+	assert_equal(out.revision, 901, "prior output survives")
+	assert_equal(probe.budget.release(probe.token), &"", "caller still owns its small lease")
+
+
+func test_leased_snapshot_source_replacement_refuses_before_copy_and_preserves_replacement() -> void:
+	"""This is the original callback-to-allocation race, using the actual shared Budget implementation."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(sources)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	sources.target = _world
+	sources.probe = probe.replace
+	var before: PackedByteArray = counted.state_bytes()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 901
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), Budget.REFUSE_TOKEN, "original token expired in source")
+	assert_equal(probe.code, &"", "actual release succeeded")
+	assert_true(probe.replacement != probe.token and probe.replacement > 0, "equal-size lease has another identity")
+	assert_equal(counted.copies, 0, "no _snapshot_image allocation under expired original token")
+	assert_equal(out.revision, 901, "refusal is output-atomic")
+	assert_equal(counted.state_bytes(), before, "source proof did not mutate geometry")
+	assert_true(probe.budget.covers(probe.replacement, probe.bytes), "new operation remains untouched")
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.replacement), &"", "independent retry with actual token")
+	assert_equal(counted.copies, 1, "retry allocates one image")
+	assert_equal(probe.budget.release(probe.replacement), &"", "caller releases replacement")
+
+
+func test_leased_snapshot_nested_resident_observation_rechecks_original_lease() -> void:
+	"""Actual full Resident/Transform facts do not bypass the post-observer allocation gate."""
+	var locations: LeaseResidentLocations = LeaseResidentLocations.new()
+	locations.residents = Residents.new(_buildings.directory())
+	locations.transforms = Transforms.new(_buildings.directory())
+	var resident: Vector2i = locations.residents.spawn(&"mouse").ref
+	assert_true(locations.transforms.place(resident, 64, 64, 64, 0), "actual resident pose")
+	var sources: Owner.CoreSources = Owner.CoreSources.new(_buildings.directory(), _buildings, _construction, locations)
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(sources)
+	var token: int = _begin()
+	assert_equal(counted.stage_source(token, resident), &"", "actual generation and transform source")
+	_publish(token)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	locations.probe = probe.replace
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 901
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), Budget.REFUSE_TOKEN, "nested observer expired original lease")
+	assert_equal(locations.observed, 1, "actual ResidentLocations callback executed")
+	assert_equal(counted.copies, 0, "no allocating image helper")
+	assert_equal(out.revision, 901, "nested refusal preserves previous result")
+	assert_true(probe.budget.covers(probe.replacement, probe.bytes), "replacement retained")
+	assert_equal(probe.budget.release(probe.replacement), &"", "release replacement")
+
+
+func test_leased_snapshot_refuses_prepared_geometry_and_poisoned_source_reentry() -> void:
+	"""The new live-copy entry point is never a way to observe or mutate an active geometry transaction."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(sources)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 901
+	var token: int = _begin()
+	var reads: int = sources.reads
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"SPACE_SNAPSHOT_BUSY", "prepared is not live observation")
+	assert_equal(sources.reads, reads, "no prepared source callbacks")
+	assert_true(counted.abort(token), "real stage remains intact and abortable")
+	sources.target = _world
+	for callback: Callable in [probe.reenter, probe.mutate]:
+		sources.probe = callback
+		assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"SPACE_ROOM_ADMISSION_REENTRY", "outer source proof poisoned")
+		assert_equal(probe.code, &"SPACE_ROOM_ADMISSION_REENTRY", "inner observation/mutation refused")
+		assert_false(counted.has_prepared(), "no source-hidden transaction")
+		assert_equal(counted.copies, 0, "no rejected image")
+		assert_equal(out.revision, 901, "original output preserved")
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"", "guard clears for independent retry")
+	assert_equal(probe.budget.release(probe.token), &"", "original operation retained")
+
+
+func test_leased_snapshot_keeps_source_drift_refusal_before_copy() -> void:
+	"""Satisfying a cold lease never overrides the existing exact actual source-facts checks."""
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(_sources)
+	var token: int = _begin()
+	assert_equal(counted.stage_source(token, _hall), &"", "actual Building")
+	_publish(token)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	assert_true(_buildings.set_building_interior_id(_hall, 29).ok, "real source facts change")
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 901
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"SPACE_SOURCE_DRIFT", "normal source validation retained")
+	assert_equal(counted.copies, 0, "no stale image")
+	assert_equal(out.revision, 901, "no partial output")
+	assert_equal(probe.budget.release(probe.token), &"", "caller releases unchanged lease")
+
+
+func test_leased_snapshot_charges_retained_output_until_replacement_is_complete() -> void:
+	"""The prior image remains live while a new snapshot is built; its packed storage cannot be charged as zero."""
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(_sources)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"", "first exact image")
+	assert_equal(counted.copies, 1, "one World-only image")
+	assert_equal(out.live_refs.size(), 2, "actual full World ref")
+	assert_equal(out.live_revisions.size(), 1, "one actual source revision")
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), Budget.REFUSE_TOKEN, "old16 bytes coexist")
+	assert_equal(counted.copies, 1, "underfunded replacement allocates nothing")
+	assert_equal(probe.budget.extend(probe.token, 16), &"", "caller explicitly retains the prior image")
+	assert_equal(counted.snapshot_for_traversal_leased_into(out, probe.budget, probe.token), &"", "old and new images now covered")
+	assert_equal(counted.copies, 2, "one additional image")
+	assert_equal(probe.budget.release(probe.token), &"", "caller returns full simultaneous reservation")
+
+
+func test_leased_snapshot_recounts_callback_retained_output_before_allocating_image() -> void:
+	"""A still-valid token cannot hide additional old-image storage retained by an observation callback."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: SnapshotCopyOwner = _snapshot_copy_owner(sources)
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	probe.output = Space.Snapshot.new()
+	probe.output.revision = 901
+	sources.target = _world
+	sources.probe = probe.retain_output
+	assert_equal(counted.snapshot_for_traversal_leased_into(probe.output, probe.budget, probe.token), Budget.REFUSE_TOKEN, "new retained16 bytes not charged")
+	assert_equal(counted.copies, 0, "no allocation after callback growth")
+	assert_equal(probe.output.revision, 901, "snapshot method leaves callback's output intact")
+	assert_equal(probe.output.live_refs, PackedInt32Array([31, 1]), "no partial real source overwrite")
+	assert_true(probe.budget.covers(probe.token, probe.bytes), "same actual token was never released")
+	assert_equal(probe.budget.release(probe.token), &"", "caller still owns original lease")
+
+
+func test_leased_snapshot_admits_the_actual_pack_and_charges_preflight_plus_copy() -> void:
+	"""R6144/O2048 needs two finite arena scans and a complete capacity-based image, not a capacity product."""
+	var sources: CountedSources = CountedSources.new(_buildings.directory(), _buildings, _construction)
+	var budget: Budget = Budget.new()
+	var bytes: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY + Owner.SNAPSHOT_COPY_CONTROL_BYTES
+	var token: int = budget.acquire(bytes)
+	assert_equal(bytes, 327936, "complete actual capacity plus256 controls")
+	for checks: int in [16383, 16384]:
+		var domain: Space.Domain = Space.Domain.new()
+		assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-8, -8, -8), Vector3i(16, 16, 16),
+			Space.MAX_CELLS, Space.MAX_REGIONS, checks), &"", "exact scan ceiling")
+		var counted: SnapshotCopyOwner = SnapshotCopyOwner.new(sources)
+		assert_equal(counted.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "actual joint pack")
+		var reads: int = sources.reads
+		var out: Space.Snapshot = Space.Snapshot.new()
+		var code: StringName = counted.snapshot_for_traversal_leased_into(out, budget, token)
+		assert_equal(code, &"SPACE_OPERATION_BUDGET" if checks == 16383 else &"", "both source proof and copy charged")
+		assert_equal(counted.copies, 0 if checks == 16383 else 1, "no copy below finite work gate")
+		assert_equal(sources.reads - reads, 0 if checks == 16383 else 1, "full World source only after complete admission")
+	assert_equal(budget.release(token), &"", "actual copy lease returned")
+
+
 func test_prepared_region_observation_uses_no_source_scan_and_requires_full_final_preflight() -> void:
 	"""Observation copies sealed scalars only; it cannot replace the batch's actual source freshness proof."""
 	var counted: CountedSources = CountedSources.new(_buildings.directory(), _buildings, _construction)

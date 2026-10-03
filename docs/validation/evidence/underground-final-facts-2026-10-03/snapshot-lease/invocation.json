@@ -1,0 +1,24 @@
+{
+  "branch": "codex/underground-snapshot-lease",
+  "base": "7d28209c41dc2ef7033bba67e9c99a7951151484",
+  "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-final-attestation",
+  "reproduce": [
+    "python3",
+    "docs/validation/evidence/underground-final-facts-2026-10-03/snapshot-lease/reproduce.py",
+    "--out",
+    "/tmp/ug1100-snapshot-lease-run1",
+    "--port",
+    "6213"
+  ],
+  "assets_present_before": false,
+  "assets_restored": true,
+  "selection": [
+    "test_underground_final_facts.gd",
+    "test_underground_space_owner.gd",
+    "test_underground_routes.gd"
+  ],
+  "code_unchanged_through_validation": {
+    "godot/scripts/core/underground_space_owner.gd": "aeaed08c4a834813dbbfdef4342841ef130d9d1bcda270d33eb5688f53905c44",
+    "godot/test/test_underground_space_owner.gd": "bb9a14804a72207152bd0598fd6eb96b80b944db62fd1a87eea8d39c4b1fc78e"
+  }
+}

@@ -108,3 +108,72 @@ refactor gave zero leaks. Keeping static dispatch but using unqualified internal
 calls removed the cycle; external bridge calls stay explicitly static. The
 final strict run retains the unchanged zero-leak gate. Do not reintroduce those
 qualified self-class calls during stylistic cleanup.
+
+## Follow-up: original-lease snapshot allocation
+
+Independent review of decision 1099 found a distinct cold-lifetime gap. A caller
+could check its Budget, enter the ordinary traversal snapshot, and encounter a
+Sources or nested ResidentLocations observer which released that token and
+acquired an equal-size replacement. The old snapshot method then allocated its
+packed image before returning to the caller's next lease check. Later refusal
+prevented permission, but did not prevent the unreserved allocation.
+
+Add `snapshot_for_traversal_leased_into(out, budget, cold_token)` to the actual
+SpaceOwner. The caller must first attest that this is its actual shared Budget;
+SpaceOwner does not invent a World-to-Budget binding or retain another arena.
+The reader requires a live, unprepared owner and enough original-token coverage
+before any source observer. It reuses the existing callback poison guard during
+the ordinary full source/claim proof, then checks unchanged geometry and the
+same original token immediately before `_snapshot_image`. No observer runs
+between that final `covers()` and image construction. Recursive leased reads
+or attempted geometry writes poison the outer operation; refusal clears the
+guard and permits an independent retry. Existing snapshot APIs are unchanged.
+
+The minimum reservation is `48*R + 16*O + 256 + prior_output_payload` bytes.
+The prior output includes every actual packed column size, including malformed
+or callback-replaced columns; it remains live until the new image is assigned.
+Its payload is counted both before observers and immediately before allocation.
+At R 6144/O 2048 with empty output the reservation is 327936 bytes, already
+inside the work-face packet's 378880 bytes. A caller retaining other images or
+objects must separately include them in the same operation's total reservation.
+The new method does not release, replace or extend the caller's lease.
+
+No retained field, packed bank, wire field, canonical ordinal or allocator was
+added. The fixed 256-byte logical copy-frame ceiling includes these simultaneous
+numeric values during the largest image append path:
+
+| Copy path values | Numeric bytes |
+|---|---:|
+| Leased reader token, byte count and expected revision | 24 |
+| Caller output and temporary image Snapshot controls | 48 |
+| Image-copy Room/project/traversal arguments, both loop slots and role | 41 |
+| One temporary six-I32 box and Volumes.append scalar arguments | 56 |
+| Nested integer box-validation loop/scalar operands | 16 |
+| Total | 185 |
+
+Other branches are smaller. Source-provider callbacks retain their existing
+owner/control obligations; no new packet or snapshot is created for them.
+Native references, GDScript/Array headers and allocator growth are still covered
+by the joint native reserve and remain unmeasured. The caller's existing fixed
+2048-byte work-face allowance includes this sequential copy frame as well as
+the separate final-facts frame; those two helpers do not run simultaneously.
+
+The immutable Domain work gate admits `2*(R+O)` row checks before observers:
+one complete source/claim preflight and one full-capacity copy scan. The actual
+6144/2048 pack therefore requires 16384 checks, with no quadratic product or
+raised work limit. As with the original snapshot, callers still account for
+the surrounding operation and bound source-specific leaf work separately.
+
+Regression coverage includes actual equal-size token replacement from both
+Sources and nested ResidentLocations, an image-allocation counter, preservation
+of the replacement lease and previous output, callback-created retained output,
+the exact one-byte and one-check admission boundaries, ordinary source drift,
+prepared geometry refusal, callback poisoning and retry, and unchanged traversal
+filtering. Component fixtures remain explicitly synthetic geometry, not a new
+production contact or first-entry qualification.
+
+The clean import and strict focused run passed 153 tests / 15295 assertions /
+0 failures: Owner 97/5176, FinalFacts 16/944 and Routes 40/9175. Both strict and
+raw diagnostics and all object/resource leaks were zero; analyzer reported
+`0 GDScript warning(s) in 0 of 2 file(s)`. The exact source pins and raw evidence
+are retained under `docs/validation/evidence/underground-final-facts-2026-10-03/snapshot-lease/`.

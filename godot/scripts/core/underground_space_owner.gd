@@ -11,6 +11,7 @@ const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const MAX_REGIONS: int = Space.MAX_REGIONS
 const HEADER_FIELDS: int = 18
 const SCHEMA: int = 1
@@ -23,6 +24,7 @@ const CLAIM_NONE: int = 0
 const CLAIM_CONSTRUCTION: int = 1
 const CLAIM_ROOM: int = 2
 const LOOKUP_BUDGET: int = -2
+const SNAPSHOT_COPY_CONTROL_BYTES: int = 256
 
 class Facts extends RefCounted:
 	## Exact source-kind facts; one caller-owned scratch object, not one object per entity.
@@ -1233,6 +1235,63 @@ func snapshot_into(out: Space.Snapshot) -> StringName:
 func snapshot_for_traversal_into(out: Space.Snapshot) -> StringName:
 	"""Observe actual physical traversal truth; this does not authorize digging, placement or unsupported travel."""
 	return _copy_snapshot_into(out, NULL_REF, NULL_REF, true)
+
+
+func snapshot_for_traversal_leased_into(out: Space.Snapshot, budget: Budget, cold_token: int) -> StringName:
+	"""Require the caller's exact bound arena before observers and again immediately before the live copy."""
+	var bytes: int = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	var code: StringName = _leased_snapshot_refusal(out, budget, cold_token, bytes)
+	if code != &"":
+		return code
+	var expected_revision: int = revision()
+	if not _begin_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	code = _snapshot_refusal()
+	if _end_room_callback():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if code != &"":
+		return code
+	if revision() != expected_revision or has_prepared() or _validation_sources >= 0:
+		return &"SPACE_REVISION_STALE"
+	bytes = 48 * _region_capacity + 16 * _source_capacity + SNAPSHOT_COPY_CONTROL_BYTES + _snapshot_output_bytes(out)
+	if not budget.covers(cold_token, bytes):
+		return Budget.REFUSE_TOKEN
+	var image: Space.Snapshot = _snapshot_image(NULL_REF, NULL_REF, true)
+	out.version = image.version
+	out.world_ref = image.world_ref
+	out.revision = image.revision
+	out.live_refs = image.live_refs
+	out.live_revisions = image.live_revisions
+	out.volumes = image.volumes
+	return &""
+
+
+func _leased_snapshot_refusal(out: Space.Snapshot, budget: Budget, token: int, bytes: int) -> StringName:
+	"""Reject incompatible state, an unaffordable full copy or a missing original lease before source callbacks."""
+	if _reject_room_reentry():
+		return &"SPACE_ROOM_ADMISSION_REENTRY"
+	if out == null or _ready_error != &"":
+		return &"SPACE_WORLD_UNBOUND"
+	if has_prepared() or _validation_sources >= 0:
+		return &"SPACE_SNAPSHOT_BUSY"
+	if budget == null or not budget.covers(token, bytes):
+		return Budget.REFUSE_TOKEN
+	if 2 * (_region_capacity + _source_capacity) > _header[16]:
+		return &"SPACE_OPERATION_BUDGET"
+	return &""
+
+
+func _snapshot_output_bytes(out: Space.Snapshot) -> int:
+	"""Count caller-retained packed columns which coexist with the new image, including a replaced output table."""
+	if out == null:
+		return 0
+	var bytes: int = 4 * out.live_refs.size() + 8 * out.live_revisions.size()
+	var rows: Space.Volumes = out.volumes
+	if rows == null:
+		return bytes
+	return bytes + 4 * (rows.lo_x.size() + rows.lo_y.size() + rows.lo_z.size() + rows.hi_x.size()
+		+ rows.hi_y.size() + rows.hi_z.size() + rows.role.size() + rows.level.size()
+		+ rows.owner_slot.size() + rows.owner_generation.size()) + 8 * rows.owner_revision.size()
 
 
 func snapshot_revision_refusal(expected_revision: int) -> StringName:

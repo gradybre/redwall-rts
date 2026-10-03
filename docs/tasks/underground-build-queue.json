@@ -517,6 +517,12 @@
           "review": "root accepted final five pins and callback-release strong Sites lifetime regression",
           "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/admission/",
           "scope": "Actual Level/Terrain/retained claim/history preflight; valid static terrain ends at missing actual prospective entry contact. No production admission;477-cell temporary conservative cold bound has required packed-validator/coexistence follow-up."
+        },
+        "admission_integrated_checks": {
+          "commit": "bd00cd20",
+          "tests": "266 tests/36807 assertions/0failures; nine strict selected suites; all strict/raw diagnostics/leaks0;analyzer0/12",
+          "evidence_path": "docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1",
+          "scope": "Focused combined integration, not a full no-argument suite; actual productive admission remains unqualified"
         }
       },
       "lease": {
@@ -742,7 +748,8 @@
           "review": "root independent frozen-source review accepted; all83 evidence pins verified",
           "scope": "Original body and held-tool source geometry; zero production profiles",
           "evidence_path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/"
-        }
+        },
+        "held_pick_visual_gap": "Root and furnishing independently see an apparent hand/shaft gap in original held-pick walk still. Renderer fidelity accepted; actual animated grip/handling quality must be checked and source fit/content regenerated if wrong before production qualification."
       },
       "lease": {
         "state": "held"

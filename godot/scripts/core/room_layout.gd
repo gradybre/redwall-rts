@@ -27,6 +27,13 @@ const STATE_FREE: int = 0
 const STATE_DRAFT: int = 1
 const STATE_ACCEPTED: int = 2
 const ENTRY_STRIDE: int = 4 # type, origin X, origin Z, rotation (0..3).
+const COLD_CELL_BYTES: int = 336
+const COLD_PLACEMENT_BYTES: int = 64
+const COLD_FIXED_BYTES: int = 512
+const REFUSE_SCOPE: StringName = &"ROOM_LAYOUT_COLD_LEASE"
+const REFUSE_PENDING: StringName = &"ROOM_LAYOUT_RESULT_PENDING"
+const REFUSE_ABANDONED: StringName = &"ROOM_LAYOUT_RESULT_ABANDONED"
+const REFUSE_PROVIDER: StringName = &"ROOM_LAYOUT_PROVIDER_CONTRACT_BREACH"
 
 
 class Profile extends RefCounted:
@@ -94,6 +101,9 @@ class Submission extends RefCounted:
 
 class Result extends RefCounted:
 
+	## A late cleanup failure cannot turn already committed local/world mutation into refusal.
+	var mutation_committed: bool = false
+	var cleanup_error: StringName = &""
 	var ok: bool = false
 	var error: StringName = &""
 	var ref: Vector2i = NULL_REF
@@ -102,6 +112,14 @@ class Result extends RefCounted:
 	var install_xy: PackedInt32Array = PackedInt32Array()
 	var use_xy: PackedInt32Array = PackedInt32Array()
 	var affected_xy: PackedInt32Array = PackedInt32Array()
+	var placement_rows: PackedInt32Array = PackedInt32Array()
+	var _lease_token: int = 0
+	var _lease_owner: WeakRef = null
+
+
+	func requires_release() -> bool:
+		"""Read-only display lifetime hint; the planner separately pins actual result and token identity."""
+		return _lease_token > 0
 
 
 class Validation extends RefCounted:
@@ -114,6 +132,58 @@ class Validation extends RefCounted:
 	var owned: PackedByteArray = PackedByteArray()
 	var contacts: PackedInt32Array = PackedInt32Array()
 	var adjacency: Dictionary = {}
+
+
+class Sources extends RefCounted:
+
+	## A reviewed actual-world provider must admit the whole simultaneous cold peak before
+	## returning a token. The planner's packed bound excludes provider snapshots/companions,
+	## dictionary/native allocations and growth; those require additional actual admission.
+	## Every method is synchronous. Base methods grant neither memory nor world permission.
+	func binding_refusal() -> StringName:
+		"""Attest exact actual owner composition without allocating a world image."""
+		return &"ROOM_LAYOUT_SOURCES_UNBOUND"
+
+
+	func begin_operation(_room: Vector2i, _packed_bytes: int,
+			_geometry_limit: int, _placement_limit: int) -> int:
+		"""Acquire the shared world lease before any snapshot, dictionary or copied batch."""
+		return 0
+
+
+	func cold_refusal() -> StringName:
+		"""Describe a refused acquisition without manufacturing a success token."""
+		return REFUSE_SCOPE
+
+
+	func scope_refusal(_token: int, _room: Vector2i, _packed_bytes: int) -> StringName:
+		"""Check exact live token, actual owner and complete retained charge without allocation."""
+		return REFUSE_SCOPE
+
+
+	func end_operation(_token: int, _room: Vector2i) -> StringName:
+		"""Drop provider companions before releasing only this operation's actual lease."""
+		return REFUSE_SCOPE
+
+
+	func read(_room: Vector2i, _token: int) -> Snapshot:
+		"""Provide one complete bounded image whose lifetime remains inside the exact scope."""
+		return null
+
+
+	func is_live(_domain: int, _ref: Vector2i, _token: int) -> bool:
+		"""Read actual generation-qualified identity in this world, never coincident slot numbers."""
+		return false
+
+
+	func can_submit(_token: int) -> bool:
+		"""A concrete atomic owner must explicitly supply acceptance, not a generic callback."""
+		return false
+
+
+	func submit(_batch: Batch, _token: int) -> Submission:
+		"""Accept the whole exact batch or leave all world owners unchanged."""
+		return null
 
 
 var _room_capacity: int = 0
@@ -132,9 +202,15 @@ var _z: PackedInt32Array = PackedInt32Array()
 var _rotation: PackedInt32Array = PackedInt32Array()
 var _project_slot: PackedInt32Array = PackedInt32Array()
 var _project_generation: PackedInt32Array = PackedInt32Array()
-var _snapshot_reader: Callable = Callable()
-var _ref_validator: Callable = Callable()
-var _submitter: Callable = Callable()
+var _sources: WeakRef = null
+var _operation_sources: Sources = null
+var _operation_snapshot: Snapshot = null
+var _operation_token: int = 0
+var _operation_room: Vector2i = NULL_REF
+var _scope_error: StringName = &""
+var _provider_fault: StringName = &""
+var _pending_result: WeakRef = null
+var _submission_disabled: bool = false
 var _definitions: BuildingDefinitions = BuildingDefinitions.new()
 var _submitting: bool = false
 
@@ -168,18 +244,224 @@ func _allocate_placements() -> void:
 	_project_slot.fill(-1)
 
 
-func bind_sources(snapshot_reader: Callable, ref_validator: Callable,
-		atomic_submitter: Callable = Callable()) -> Result:
-	"""Bind owner methods, never an auto-success fallback. Ref validator takes (domain, ref)."""
+func bind_sources(sources: Sources) -> Result:
+	"""Bind one exact typed world provider; an existing planner cannot migrate to another world."""
+	var code: StringName = _entry_refusal()
+	if code != &"":
+		return _refuse(code)
+	_submitting = true
+	if sources == null or (_sources != null and _sources.get_ref() != sources):
+		code = &"ROOM_LAYOUT_SOURCES_UNBOUND"
+	else:
+		code = sources.binding_refusal()
+	if code == &"":
+		_sources = weakref(sources)
+		_submission_disabled = false
+		_provider_fault = &""
+	_submitting = false
+	return _success() if code == &"" else _refuse(code)
+
+
+func release_result(result: Result) -> StringName:
+	"""Clear every escaped packed view before releasing its exact lease within this input call."""
 	if _submitting:
-		return _refuse(&"SUBMISSION_IN_PROGRESS")
-	_snapshot_reader = snapshot_reader
-	_ref_validator = ref_validator
-	_submitter = atomic_submitter
-	return _success()
+		return &"SUBMISSION_IN_PROGRESS"
+	if result == null or _pending_result == null or _pending_result.get_ref() != result \
+			or result._lease_owner == null or result._lease_owner.get_ref() != self \
+			or result._lease_token <= 0 or result._lease_token != _operation_token:
+		return &"ROOM_LAYOUT_RESULT_REF"
+	_submitting = true
+	_pending_result = null
+	_drop_result(result)
+	var code: StringName = _end_operation()
+	if code != &"":
+		_note_result_fault(result, code)
+	return code
+
+
+func finish_input() -> StringName:
+	"""Mandatory display/input boundary: diagnose and release an unconsumed result before the frame resumes."""
+	if _submitting:
+		return &"SUBMISSION_IN_PROGRESS"
+	if _operation_token == 0:
+		return &""
+	var result: Result = _pending_result.get_ref() as Result if _pending_result != null else null
+	_submitting = true
+	_pending_result = null
+	if result != null:
+		_drop_result(result)
+	var code: StringName = _end_operation()
+	if code != &"" and result != null:
+		_note_result_fault(result, code)
+	return REFUSE_ABANDONED
+
+
+func quiescence_refusal() -> StringName:
+	"""A display, frame, simulation or save boundary may not cross a held guide/result lease."""
+	if _submitting:
+		return &"SUBMISSION_IN_PROGRESS"
+	if _operation_token != 0:
+		return REFUSE_PENDING
+	return REFUSE_PROVIDER if _provider_fault != &"" else &""
+
+
+func _entry_refusal() -> StringName:
+	"""Establish exclusivity before calling even the first provider attestation."""
+	if _submitting:
+		return &"SUBMISSION_IN_PROGRESS"
+	if _operation_token == 0:
+		return &""
+	if _pending_result != null and _pending_result.get_ref() != null:
+		return REFUSE_PENDING
+	return finish_input()
+
+
+func _begin_operation(room_ref: Vector2i) -> StringName:
+	"""Acquire before liveness, snapshot or planning copies; never leave a failed begin partially active."""
+	var code: StringName = _entry_refusal()
+	if code != &"":
+		return code
+	if _provider_fault != &"":
+		return REFUSE_PROVIDER
+	_submitting = true
+	_operation_room = room_ref
+	_operation_sources = _sources.get_ref() as Sources if _sources != null else null
+	code = _acquire_scope()
+	if code != &"":
+		_end_operation()
+	return code
+
+
+func _acquire_scope() -> StringName:
+	"""The provider must include native/growth and its own companions beyond the packed planner bound."""
+	if _operation_sources == null:
+		return &"ROOM_LAYOUT_SOURCES_UNBOUND"
+	var code: StringName = _operation_sources.binding_refusal()
+	if code != &"":
+		return code
+	_operation_token = _operation_sources.begin_operation(_operation_room,
+		cold_packed_bytes(_geometry_capacity, _placement_capacity), _geometry_capacity, _placement_capacity)
+	if _operation_token <= 0:
+		_operation_token = 0
+		code = _operation_sources.cold_refusal()
+		return code if code != &"" else REFUSE_SCOPE
+	return _scope_refusal()
+
+
+func _scope_refusal() -> StringName:
+	"""An expired or underfunded token remains refused for the remainder of this operation."""
+	if _scope_error != &"":
+		return _scope_error
+	if _operation_sources == null or _operation_token <= 0:
+		_scope_error = REFUSE_SCOPE
+	else:
+		_scope_error = _operation_sources.scope_refusal(_operation_token, _operation_room,
+			cold_packed_bytes(_geometry_capacity, _placement_capacity))
+	if _scope_error != &"":
+		_note_provider_fault(_scope_error)
+	return _scope_error
+
+
+func _finish_operation(result: Result, retain_guides: bool) -> Result:
+	"""Drop the borrowed snapshot and stack scratch before transfer or release of the exact lease."""
+	var code: StringName = _scope_refusal()
+	_operation_snapshot = null
+	if code != &"":
+		_note_result_fault(result, code)
+	if not retain_guides or code != &"":
+		_clear_result_arrays(result)
+	if _has_result_arrays(result):
+		result._lease_owner = weakref(self)
+		result._lease_token = _operation_token
+		_pending_result = weakref(result)
+		_submitting = false
+		return result
+	code = _end_operation()
+	if code != &"":
+		_note_result_fault(result, code)
+	return result
+
+
+func _end_operation() -> StringName:
+	"""No planner image, guide or companion remains when the provider releases its actual arena."""
+	_operation_snapshot = null
+	var code: StringName = &""
+	if _operation_token > 0 and _operation_sources != null:
+		code = _operation_sources.end_operation(_operation_token, _operation_room)
+	if code != &"":
+		_note_provider_fault(code)
+	_operation_sources = null
+	_operation_token = 0
+	_operation_room = NULL_REF
+	_scope_error = &""
+	_submitting = false
+	return code
+
+
+func _note_provider_fault(code: StringName) -> void:
+	"""A broken scope cannot authorize automatic retry until its same actual owner reconciles."""
+	if _provider_fault == &"":
+		_provider_fault = code
+	_submission_disabled = true
+
+
+func _note_result_fault(result: Result, code: StringName) -> void:
+	"""Preserve committed success/ref/value; cleanup failure is separate from ordinary command refusal."""
+	_note_provider_fault(code)
+	if result.cleanup_error == &"":
+		result.cleanup_error = code
+	if not result.mutation_committed:
+		result.ok = false
+		result.error = result.cleanup_error
+
+
+static func cold_packed_bytes(geometry_limit: int, placement_limit: int) -> int:
+	"""Conservative simultaneous packed peak; native headers/dictionaries and provider images are extra."""
+	if geometry_limit < 1 or geometry_limit > MAX_OPERATION_CELLS \
+			or placement_limit < 1 or placement_limit > PLACEMENT_CAPACITY:
+		return 0
+	return COLD_CELL_BYTES * geometry_limit + COLD_PLACEMENT_BYTES * placement_limit + COLD_FIXED_BYTES
+
+
+static func cold_dictionary_entries(geometry_limit: int, placement_limit: int) -> int:
+	"""Bound simultaneous native map entries; this count is not a measured byte-allocation claim."""
+	if cold_packed_bytes(geometry_limit, placement_limit) == 0:
+		return 0
+	return maxi(6 * geometry_limit, 2 * placement_limit)
+
+
+static func _has_result_arrays(result: Result) -> bool:
+	"""Scalar receipts need no escaped lease; any geometry or row copy does."""
+	return not result.occupied_xy.is_empty() or not result.install_xy.is_empty() \
+		or not result.use_xy.is_empty() or not result.affected_xy.is_empty() \
+		or not result.placement_rows.is_empty()
+
+
+static func _drop_result(result: Result) -> void:
+	"""The input boundary releases its pinned operation even if a caller corrupted result metadata."""
+	_clear_result_arrays(result)
+	result._lease_token = 0
+	result._lease_owner = null
+
+
+static func _clear_result_arrays(result: Result) -> void:
+	"""Callers must not retain aliases or duplicate a view outside their separately admitted storage."""
+	result.occupied_xy.clear()
+	result.install_xy.clear()
+	result.use_xy.clear()
+	result.affected_xy.clear()
+	result.placement_rows.clear()
 
 
 func open_room(room_ref: Vector2i) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_open_room(room_ref), false)
+
+
+func _open_room(room_ref: Vector2i) -> Result:
 	"""Bind this exact live room identity and its permanent type, without creating any work."""
 	var checked: Result = _room_refusal(room_ref)
 	if not checked.ok:
@@ -197,10 +479,18 @@ func open_room(room_ref: Vector2i) -> Result:
 	_room_generations[row] = room_ref.y
 	_room_types[row] = snapshot.room_type
 	_room_modes[row] = MODE_LAYOUT
-	return _success(row)
+	return _success(row, true)
 
 
 func set_mode(room_ref: Vector2i, mode: int) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_set_mode(room_ref, mode), false)
+
+
+func _set_mode(room_ref: Vector2i, mode: int) -> Result:
 	"""Change this room's placement interaction only; retained drafts and orders are untouched."""
 	var checked: Result = _opened_room(room_ref)
 	if not checked.ok:
@@ -208,16 +498,32 @@ func set_mode(room_ref: Vector2i, mode: int) -> Result:
 	if mode != MODE_LAYOUT and mode != MODE_INDIVIDUAL:
 		return _refuse(&"INVALID_FURNISHING_MODE")
 	_room_modes[checked.value] = mode
-	return _success(mode)
+	return _success(mode, true)
 
 
 func mode_of(room_ref: Vector2i) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_mode_of(room_ref), false)
+
+
+func _mode_of(room_ref: Vector2i) -> Result:
 	"""Read the live room's preference without transferring it to a reused room slot."""
 	var checked: Result = _opened_room(room_ref)
 	return _success(_room_modes[checked.value]) if checked.ok else checked
 
 
 func place(room_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_place(room_ref, type_id, origin, rotation), true)
+
+
+func _place(room_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) -> Result:
 	"""Stage a layout preview, or submit one paid construction order in individual mode."""
 	var checked: Result = _opened_room(room_ref)
 	if not checked.ok:
@@ -229,6 +535,14 @@ func place(room_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) ->
 
 
 func preview(room_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_preview(room_ref, type_id, origin, rotation), true)
+
+
+func _preview(room_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) -> Result:
 	"""Get footprint/access guides and legality without altering drafts, world claims or stock."""
 	var checked: Result = _opened_room(room_ref)
 	if not checked.ok:
@@ -241,6 +555,19 @@ func preview(room_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) 
 
 
 func edit_draft(draft_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) -> Result:
+	"""Admit the actual tracked room before any provider callback or copied geometry."""
+	var code: StringName = _entry_refusal()
+	if code != &"":
+		return _refuse(code)
+	if not _is_placement(draft_ref, STATE_DRAFT):
+		return _refuse(&"STALE_DRAFT_REF")
+	code = _begin_operation(_ref_for_room(_room_row[draft_ref.x]))
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_edit_draft(draft_ref, type_id, origin, rotation), true)
+
+
+func _edit_draft(draft_ref: Vector2i, type_id: int, origin: Vector2i, rotation: int) -> Result:
 	"""Replace one draft only after the entire resulting arrangement still validates."""
 	var row: int = _draft_row(draft_ref)
 	if row < 0:
@@ -255,21 +582,31 @@ func edit_draft(draft_ref: Vector2i, type_id: int, origin: Vector2i, rotation: i
 	if checked.ok:
 		_write_entry(row, type_id, origin, rotation)
 		checked.ref = draft_ref
+		checked.mutation_committed = true
 	return checked
 
 
 func discard_draft(draft_ref: Vector2i) -> Result:
 	"""Explicitly discard one preview; a stale room may be cleaned up, never repurposed."""
-	if _submitting:
-		return _refuse(&"SUBMISSION_IN_PROGRESS")
+	var code: StringName = _entry_refusal()
+	if code != &"":
+		return _refuse(code)
 	var row: int = _draft_row(draft_ref)
 	if row < 0:
 		return _refuse(&"STALE_DRAFT_REF")
 	_free_placement(row)
-	return _success()
+	return _success(0, true)
 
 
 func confirm_layout(room_ref: Vector2i) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_confirm_layout(room_ref), false)
+
+
+func _confirm_layout(room_ref: Vector2i) -> Result:
 	"""Re-read all current owner state and atomically submit exactly this room's retained draft."""
 	var checked: Result = _opened_room(room_ref)
 	if not checked.ok:
@@ -280,19 +617,41 @@ func confirm_layout(room_ref: Vector2i) -> Result:
 	return _confirm(room_ref, checked.value, _draft_entries(checked.value), rows)
 
 
-func placements(room_ref: Vector2i, state: int = STATE_DRAFT) -> PackedInt32Array:
-	"""Copy rows as ref slot/generation, type, X, Z, rotation; never expose mutable columns."""
-	var result: PackedInt32Array = PackedInt32Array()
+func placements(room_ref: Vector2i, state: int = STATE_DRAFT) -> Result:
+	"""Return scoped rows (slot, generation, type, X, Z, rotation); release before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_placements(room_ref, state), true)
+
+
+func _placements(room_ref: Vector2i, state: int) -> Result:
+	"""Copy local tracking inside the same admitted scope as its actual room observation."""
 	var checked: Result = _opened_room(room_ref)
-	if not checked.ok or (state != STATE_DRAFT and state != STATE_ACCEPTED):
-		return result
+	if not checked.ok:
+		return checked
+	if state != STATE_DRAFT and state != STATE_ACCEPTED:
+		return _refuse(&"INVALID_PLACEMENT_STATE")
+	var result: Result = _success()
 	for row: int in _rows_with_state(checked.value, state):
-		result.append_array(PackedInt32Array([row, _generation[row], _type[row],
+		result.placement_rows.append_array(PackedInt32Array([row, _generation[row], _type[row],
 			_x[row], _z[row], _rotation[row]]))
 	return result
 
 
 func project_of(placement_ref: Vector2i) -> Vector2i:
+	"""Observe a real project only within an admitted synchronous identity scope."""
+	if not _is_placement(placement_ref, STATE_ACCEPTED):
+		return NULL_REF
+	if _begin_operation(_ref_for_room(_room_row[placement_ref.x])) != &"":
+		return NULL_REF
+	var result: Result = _success()
+	result.ref = _project_of(placement_ref)
+	result = _finish_operation(result, false)
+	return result.ref if result.ok else NULL_REF
+
+
+func _project_of(placement_ref: Vector2i) -> Vector2i:
 	"""Read an accepted receipt's live project; this receipt provides no installed service."""
 	var row: int = placement_ref.x
 	if not _is_placement(placement_ref, STATE_ACCEPTED):
@@ -302,23 +661,44 @@ func project_of(placement_ref: Vector2i) -> Vector2i:
 
 
 func forget_receipt(placement_ref: Vector2i) -> Result:
-	"""Release UI tracking only after the project retires; world occupancy remains owner-held."""
-	if _submitting:
-		return _refuse(&"SUBMISSION_IN_PROGRESS")
+	"""Admit the actual tracked room before any provider callback or copied geometry."""
+	var code: StringName = _entry_refusal()
+	if code != &"":
+		return _refuse(code)
 	if not _is_placement(placement_ref, STATE_ACCEPTED):
 		return _refuse(&"STALE_PLACEMENT_REF")
-	if project_of(placement_ref) != NULL_REF:
+	code = _begin_operation(_ref_for_room(_room_row[placement_ref.x]))
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_forget_receipt(placement_ref), false)
+
+
+func _forget_receipt(placement_ref: Vector2i) -> Result:
+	"""Release UI tracking only after the project retires; world occupancy remains owner-held."""
+	if not _is_placement(placement_ref, STATE_ACCEPTED):
+		return _refuse(&"STALE_PLACEMENT_REF")
+	if _project_of(placement_ref) != NULL_REF:
 		return _refuse(&"CONSTRUCTION_PROJECT_STILL_LIVE")
+	if _scope_refusal() != &"":
+		return _refuse(_scope_error)
 	_free_placement(placement_ref.x)
-	return _success()
+	return _success(0, true)
 
 
 func forget_room(room_ref: Vector2i) -> Result:
+	"""Run one synchronous, admitted operation; guide arrays require release_result before input returns."""
+	var code: StringName = _begin_operation(room_ref)
+	if code != &"":
+		return _refuse(code)
+	return _finish_operation(_forget_room(room_ref), false)
+
+
+func _forget_room(room_ref: Vector2i) -> Result:
 	"""Release an empty UI binding only; room removal/backfill belongs to its actual owner."""
-	if _submitting:
-		return _refuse(&"SUBMISSION_IN_PROGRESS")
 	if _live(DOMAIN_ROOM, room_ref):
 		return _refuse(&"ROOM_STILL_LIVE")
+	if _scope_refusal() != &"":
+		return _refuse(_scope_error)
 	var row: int = _find_room(room_ref)
 	if row < 0:
 		return _refuse(&"ROOM_NOT_OPEN")
@@ -329,7 +709,7 @@ func forget_room(room_ref: Vector2i) -> Result:
 	_room_generations[row] = 0
 	_room_types[row] = 0
 	_room_modes[row] = MODE_LAYOUT
-	return _success()
+	return _success(0, true)
 
 
 func _stage(room_row: int, room_ref: Vector2i, type_id: int,
@@ -349,14 +729,17 @@ func _stage(room_row: int, room_ref: Vector2i, type_id: int,
 	_room_row[row] = room_row
 	_write_entry(row, type_id, origin, rotation)
 	checked.ref = Vector2i(row, _generation[row])
+	checked.mutation_committed = true
 	return checked
 
 
 func _confirm(room_ref: Vector2i, room_row: int, entries: PackedInt32Array,
 		draft_rows: PackedInt32Array) -> Result:
 	"""Validate before calling the only world mutator; retain every draft on any refusal."""
-	if not _submitter.is_valid():
+	if _submission_disabled or not _operation_sources.can_submit(_operation_token):
 		return _refuse(&"CONSTRUCTION_COORDINATOR_UNBOUND")
+	if _scope_refusal() != &"":
+		return _refuse(_scope_error)
 	var snapshot: Snapshot = _read(room_ref)
 	var checked: Result = _validate(snapshot, room_ref, entries)
 	if not checked.ok:
@@ -368,12 +751,9 @@ func _confirm(room_ref: Vector2i, room_row: int, entries: PackedInt32Array,
 		if rows.size() != count:
 			return _refuse(&"LAYOUT_ENTRY_CAPACITY")
 	var batch: Batch = _make_batch(snapshot, entries)
-	_submitting = true
-	var answer: Variant = _submitter.call(batch)
-	_submitting = false
-	if not answer is Submission:
+	var submitted: Submission = _operation_sources.submit(batch, _operation_token)
+	if _scope_refusal() != &"" or submitted == null:
 		return _coordinator_breach()
-	var submitted: Submission = answer as Submission
 	if not submitted.ok:
 		return _refuse(submitted.error)
 	if not _receipt_valid(submitted.project_refs, rows.size()):
@@ -381,6 +761,7 @@ func _confirm(room_ref: Vector2i, room_row: int, entries: PackedInt32Array,
 	_accept_receipts(room_row, rows, entries, submitted.project_refs)
 	checked.ref = Vector2i(rows[0], _generation[rows[0]])
 	checked.value = rows.size()
+	checked.mutation_committed = true
 	return checked
 
 
@@ -430,7 +811,7 @@ func _receipt_valid(projects: PackedInt32Array, count: int) -> bool:
 
 func _coordinator_breach() -> Result:
 	"""Disable resubmission after an invalid external success until its owner reconciles/rebinds."""
-	_submitter = Callable()
+	_submission_disabled = true
 	return _refuse(&"CONSTRUCTION_COORDINATOR_CONTRACT_BREACH")
 
 
@@ -708,11 +1089,9 @@ func _basic_snapshot(snapshot: Snapshot, room_ref: Vector2i) -> bool:
 
 
 func _room_refusal(room_ref: Vector2i) -> Result:
-	"""Reject missing providers, stale identities and callback reentrancy before any mutation."""
-	if _submitting:
-		return _refuse(&"SUBMISSION_IN_PROGRESS")
-	if not _snapshot_reader.is_valid() or not _ref_validator.is_valid():
-		return _refuse(&"ROOM_LAYOUT_SOURCES_UNBOUND")
+	"""Only the already admitted exact operation may query actual room liveness."""
+	if _scope_refusal() != &"":
+		return _refuse(_scope_error)
 	return _success() if _live(DOMAIN_ROOM, room_ref) else _refuse(&"STALE_ROOM_REF")
 
 
@@ -738,15 +1117,20 @@ func _same_type(row: int, snapshot: Snapshot) -> Result:
 
 
 func _read(room_ref: Vector2i) -> Snapshot:
-	"""Read a provider result without assuming a malformed return is a valid spatial image."""
-	var value: Variant = _snapshot_reader.call(room_ref)
-	return value as Snapshot if value is Snapshot else null
+	"""Borrow exactly one bounded image per operation and recheck its lease before using it."""
+	if _scope_refusal() != &"" or room_ref != _operation_room:
+		return null
+	if _operation_snapshot == null:
+		_operation_snapshot = _operation_sources.read(room_ref, _operation_token)
+	return _operation_snapshot if _scope_refusal() == &"" else null
 
 
 func _live(domain: int, ref: Vector2i) -> bool:
-	"""References are domain-specific; a matching slot with a different generation is stale."""
-	return ref.x >= 0 and ref.y > 0 and _ref_validator.is_valid() \
-		and _ref_validator.call(domain, ref) == true
+	"""An actual identity callback cannot expire the lease then authorize another allocation."""
+	if ref.x < 0 or ref.y <= 0 or _scope_refusal() != &"":
+		return false
+	var live: bool = _operation_sources.is_live(domain, ref, _operation_token)
+	return live and _scope_refusal() == &""
 
 
 func _find_room(room_ref: Vector2i) -> int:
@@ -876,11 +1260,12 @@ static func _at(work: Validation, code: StringName, cell: Vector2i) -> StringNam
 	return code
 
 
-static func _success(value: int = 0) -> Result:
+static func _success(value: int = 0, committed: bool = false) -> Result:
 	"""Return a typed success; no resource or construction side effect is implied."""
 	var result: Result = Result.new()
 	result.ok = true
 	result.value = value
+	result.mutation_committed = committed
 	return result
 
 

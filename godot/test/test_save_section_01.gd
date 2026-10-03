@@ -785,19 +785,35 @@ func test_the_resource_adapter_refuses_each_scratch_field_by_name() -> void:
 
 # --- canonical value adapters ------------------------------------------------------------------
 
-func test_all_nine_section_one_owners_supply_a_canonical_adapter() -> void:
-	"""`missing_adapter_owners()` must stop naming any section-1 owner once these are registered."""
+func test_legacy_nine_adapters_do_not_claim_the_underground_owner() -> void:
+	"""The frozen schema3 codec supplies its nine owners; schema4 underground state stays mandatory."""
 	var walker: Digest.Walker = Digest.production_walker()
-	var before: PackedStringArray = walker.missing_adapter_owners()
-	var section_one: int = 0
-	for entry: String in before:
-		if entry.begins_with("1:"):
-			section_one += 1
-	assert_equal(section_one, RULING_STORE_COUNT, "all nine start without an adapter")
+	var expected: PackedStringArray = PackedStringArray(["1:underground_space_owner"])
+	for key: String in RULING_OWNER_KEYS:
+		expected.append("1:" + key)
+	expected.sort()
+	assert_equal(_missing_world_adapters(walker), expected, "exact nine legacy plus mandatory underground owner")
 	var refusal: Digest.Refusal = Section.register_adapters(walker, _captured())
 	assert_true(refusal.is_ok(), "register_adapters: %s %s" % [refusal.code, refusal.detail])
+	assert_equal(_missing_world_adapters(walker), PackedStringArray(["1:underground_space_owner"]),
+		"every legacy owner is supplied and no fabricated underground adapter is registered")
+	assert_false(walker.adapter_coverage_complete(), "partial owner coverage cannot qualify")
+	assert_false(walker.covers_release_state(), "legacy capture cannot claim complete release state")
+	var result: Digest.DigestResult = Digest.DigestResult.new()
+	refusal = walker.digest_into(Digest.Inputs.new(), result, 0)
+	assert_equal(refusal.code, Digest.REFUSE_NO_ADAPTER, "missing underground state is never skipped")
+	assert_true(refusal.detail.contains("1:underground_space_owner"), "refusal names the required underground owner")
+	assert_true(result.digest.is_empty(), "no subset digest is returned")
+	assert_equal(result.stream_bytes, 0, "refuses before hashing any byte")
+
+
+func _missing_world_adapters(walker: Digest.Walker) -> PackedStringArray:
+	"""Keep the legacy codec test precise while the production declaration spans newer sections."""
+	var missing: PackedStringArray = PackedStringArray()
 	for entry: String in walker.missing_adapter_owners():
-		assert_false(entry.begins_with("1:"), "'%s' still has no adapter" % entry)
+		if entry.begins_with("1:"):
+			missing.append(entry)
+	return missing
 
 
 func test_every_declared_section_one_record_is_supplied_at_its_declared_count() -> void:

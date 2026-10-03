@@ -1,0 +1,125 @@
+state_registry_coverage: PASS -- 112 modules, 543 rows, 933 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_movement.gd
+  PASS  test_pace_source_binding_requires_the_actual_directory_residents_and_transforms
+  PASS  test_the_remainder_denominator_is_thirty_ticks_times_the_diagonal_cost
+  PASS  test_the_speed_cap_is_read_from_the_resident_store_not_redefined
+  PASS  test_thirty_ticks_cover_exactly_the_cap_on_a_straight_run
+  PASS  test_a_single_tick_cannot_cover_the_cap_by_itself
+  PASS  test_the_remainder_is_carried_rather_than_reset_each_tick
+  PASS  test_an_axis_that_is_not_moving_keeps_its_remainder_untouched
+  PASS  test_travel_stops_exactly_on_the_goal_cell_centre
+  PASS  test_the_body_keeps_a_previous_pose_every_tick_it_moves
+  PASS  test_the_mover_does_not_invent_a_facing
+  PASS  test_crossing_the_ford_takes_the_body_to_the_authored_ford_height
+  PASS  test_travel_refuses_a_resident_standing_off_the_route_start
+  PASS  test_travel_refuses_an_unready_request_and_an_unplaced_body
+  PASS  test_travel_refuses_a_reference_that_is_not_a_living_resident
+  PASS  test_a_cancelled_route_stops_the_body_where_it_stands
+  PASS  test_a_successor_in_a_despawned_travellers_row_does_not_inherit_the_route
+  PASS  test_the_route_cursor_records_its_owner_and_releases_it_on_stop
+  PASS  test_one_clamp_step_publishes_both_scalars_and_leaves_no_stray_budget
+  PASS  test_a_body_off_the_authored_map_is_settled_rather_than_given_a_fabricated_height
+  PASS  test_stopping_clears_the_route_and_both_remainders
+  PASS  test_an_arrived_body_is_not_advanced_again
+  PASS  test_equal_tick_counts_agree_across_speeds_one_two_and_four
+  PASS  test_a_paused_clock_runs_no_ticks_and_changes_no_state
+  PASS  test_presentation_reads_cannot_change_what_the_simulation_committed
+  PASS  test_navigation_work_is_identical_whether_or_not_anyone_is_watching
+  PASS  test_exactly_four_starter_profiles_are_published_one_per_cohort_species
+  PASS  test_every_profile_reads_its_speed_and_carry_cap_out_of_the_resident_store
+  PASS  test_the_otter_is_medium_and_the_other_three_are_small
+  PASS  test_an_unprofiled_species_refuses_rather_than_borrowing_a_size_neighbour
+  PASS  test_no_profile_publishes_a_clearance_class
+  PASS  test_only_ground_and_ford_walking_are_profiled_and_the_rest_are_enumerated
+  PASS  test_all_twelve_starters_admit_travel_under_their_own_profile
+  PASS  test_a_mouse_cannot_travel_on_the_otters_profile
+  PASS  test_travel_refuses_an_unprofiled_mode_and_a_mode_outside_the_enum
+  PASS  test_the_profiled_adult_value_is_the_resident_stores_own_encoding
+  PASS  test_every_starter_profile_covers_the_adult_stage_and_says_so_in_its_key
+  PASS  test_a_caller_cannot_assert_adult_for_a_resident_stored_as_a_child
+  PASS  test_an_honestly_declared_child_refuses_as_unprofiled_not_as_a_mismatch
+  PASS  test_an_elder_is_refused_on_the_same_channel_as_a_child
+  PASS  test_a_caller_that_asserts_the_wrong_stage_for_an_adult_disagrees
+  PASS  test_a_stage_outside_the_domain_refuses_on_its_own_channel
+  PASS  test_a_reference_the_store_will_not_answer_for_refuses_rather_than_defaulting
+  PASS  test_the_committed_load_boundary_is_the_inherited_carry_capacity_exactly
+  PASS  test_a_negative_committed_load_refuses_rather_than_reading_as_free_capacity
+  PASS  test_an_otter_carries_more_than_a_mouse_because_its_size_class_does
+  PASS  test_travel_refuses_a_route_that_does_not_end_on_the_contacts_approach_cell
+  PASS  test_travel_refuses_a_contact_whose_owner_has_been_retired
+  PASS  test_travel_refuses_an_unbound_contact
+  PASS  test_revising_a_profile_settles_a_body_already_travelling_under_the_old_one
+  PASS  test_a_changed_destination_revision_settles_the_body_contact_stale
+  PASS  test_revalidating_a_resident_that_is_not_travelling_refuses
+  PASS  test_stopping_clears_the_whole_admission_not_only_the_route
+  PASS  test_admitted_terms_of_a_body_that_is_not_a_resident_read_as_absent
+  PASS  test_the_mode_a_body_travels_in_is_the_one_it_was_admitted_in
+  PASS  test_all_twelve_starters_agree_tick_for_tick_across_speeds_one_two_and_four
+CI_SUITE_TIME {"assertions":2302,"failures":0,"suite":"test_movement.gd","tests":55,"usec":1065163}
+test_underground_connector_catalog.gd
+  PASS  test_exact_actual_pace_uses_movement_source_and_explicit_family_rows
+  PASS  test_all_family_metadata_and_exact_output_shapes_are_copied_without_aliases
+  PASS  test_arena_admission_precedes_all_packed_allocation
+  PASS  test_foreign_actual_owners_and_rebinding_refuse
+  PASS  test_every_stale_refusal_preserves_all_output_fields
+  PASS  test_atomic_failed_replacement_preserves_live_hash_and_queries
+  PASS  test_truncation_trailing_bytes_hash_and_oversized_counts_refuse
+  PASS  test_short_record_decode_refuses_without_overwriting_destination
+  PASS  test_complete_prefix_census_endpoint_and_opening_targets_are_required
+  PASS  test_extreme_coordinates_primitive_ranges_and_material_scale_refuse
+  PASS  test_pace_identity_never_borrows_species_stage_or_unprofiled_badger
+  PASS  test_changed_movement_profile_and_replaced_physical_content_refuse_live_queries
+  PASS  test_retired_world_and_changed_source_digest_cannot_publish_content
+  PASS  test_material_scale_and_refused_shapes_preserve_caller_scratch
+CI_SUITE_TIME {"assertions":263,"failures":0,"suite":"test_underground_connector_catalog.gd","tests":14,"usec":435099}
+test_underground_level_catalog.gd
+  PASS  test_actual_pack_derives_six_levels_with_complete_local_bands
+  PASS  test_surface_entry_has_no_invented_roof_or_completed_floor
+  PASS  test_sections_keep_roof_fixed_and_require_matching_authored_short_rise
+  PASS  test_stale_world_or_foreign_domain_cannot_keep_valid_looking_heights
+  PASS  test_failed_binding_does_not_partially_publish_identity
+  PASS  test_unbound_or_extreme_lookup_never_narrows_before_refusal
+  PASS  test_offset_footing_outside_a_shallower_domain_is_not_silently_clipped
+  PASS  test_hash_schema_truncation_and_capacity_refuse_before_publication
+  PASS  test_nonquantized_spacing_or_overflowing_domain_never_creates_implicit_levels
+  PASS  test_content_hash_uses_exact_scratch_and_does_not_alias_storage
+CI_SUITE_TIME {"assertions":179,"failures":0,"suite":"test_underground_level_catalog.gd","tests":10,"usec":126246}
+test_underground_profiles.gd
+  PASS  test_actual_identity_and_nonzero_directory_slot_select_without_state_mutation
+  PASS  test_refusal_preserves_outputs_and_source_scratch
+  PASS  test_exact_orientation_is_never_rounded_to_cardinal
+  PASS  test_failed_replacement_preserves_live_bank_and_success_invalidates_old_selection
+  PASS  test_missing_proof_state_stance_and_box_census_refuse
+  PASS  test_duplicate_and_unsorted_physical_keys_refuse_atomically
+  PASS  test_configure_reserves_both_banks_and_limits_native_control
+  PASS  test_equipped_tool_cannot_disappear_behind_an_empty_hint_or_unloaded_profile
+  PASS  test_real_cargo_quantity_and_recipe_are_exact_not_mass_or_case_aliases
+  PASS  test_collaborator_rebinding_is_refused_with_no_identity_alias
+  PASS  test_absent_stage_and_wrong_connector_family_do_not_inherit_permissions
+  PASS  test_work_requires_actual_job_and_exact_contact_orientation
+  PASS  test_actual_claimed_work_query_refuses_after_tool_or_job_changes
+  PASS  test_cold_authored_contact_is_readable_before_any_job_or_owner_binding
+  PASS  test_authored_descriptor_refuses_stale_or_foreign_identity_without_output_mutation
+  PASS  test_cold_body_extent_includes_all_load_and_recovery_variants_only
+  PASS  test_cold_body_extent_refusal_never_resizes_or_overwrites_scratch
+CI_SUITE_TIME {"assertions":348,"failures":0,"suite":"test_underground_profiles.gd","tests":17,"usec":483906}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+96 test(s), 3092 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 96 tests, 3092 assertions, 0 failures.

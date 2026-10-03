@@ -349,3 +349,62 @@ assertions / 0 failures** including tree exit/re-entry. A rejected analyzer CLI
 invocation and Python module-path invocation are retained beside their corrected
 results. None of these synthetic checks grants a production profile, movement
 permission or complete source-enclosure certificate.
+
+## Fixed connector content and pace owner
+
+`underground_connector_catalog.gd` owns immutable streamed connector content in
+the existing524288-byte bindings reservation, separate from Profiles/LevelCatalog.
+Root approved190448 bytes: two86008-byte packed banks,2048 bytes for bounded row
+decoding, fixed controls and one set of caller query packets, plus16384 bytes of
+explicitly unmeasured native/loading reservation. The root's159744-byte certificate
+banks and4096-byte controls plus this catalog leave170000 bytes in the unchanged
+bindings ceiling, before other owners' separately reconciled reservations.
+There is no third bank or whole JSON/wire image. Complete render compilation
+needs its own shared cold lease; this catalog returns scalar records and fixed
+caller-owned point/box scratch.
+
+Each bank admits16 variants,512 four-integer path points,1024 eight-integer
+role/relative-level boxes,256 nine-integer parts,2048 three-integer part vertices,
+16 material periods and256 pace rows. Variants have26 int32 fields plus an int64
+revision; pace rows have7 int32 fields plus an int64 profile revision. Eleven
+int64 headers and three32-byte digests finish the86008-byte bank. Source content
+explicitly names fixed endpoints/yaws, level offsets, whole physical/opening/
+landing/support volumes, primitive parts, material metre periods and path
+vertices. No run/rise/width stretching or automatic paid-cut rounding occurs.
+The exact opening count is stored in the existing26-field variant record and
+checked against OPENING region rows, with a finite16-target maximum per variant.
+Opening rows are observed in catalog order. The catalog owns no actual target
+Room refs: placement must pin those full refs/revisions, its exact installed
+source/Room identity, catalog identity, integer origin and rotation, and the real
+paid publication. ENVELOPE includes the complete reservation and physical SOLID
+parts; it is not required to be empty. Completed clear space plus matching actual
+built solids/support must cover it, while actual body/stance/contact proof still
+checks collision separately. Arbitrary coincident support or another object's
+obstacle can never substitute the installed connector's own physical source.
+
+Ground pace uses family=-1 and variant=0 only. Each pace row pins the immutable
+physical profile id/revision/content/source, this connector content revision,
+and actual Movement species/stage/profile revision. Ground rows delegate to the
+actual inherited Movement cap. Other families require an explicit authored
+positive integer rate; no ground or demo rate fills a missing family entry.
+Catalog pace is geometry/timing content, not species, grip, load, work or route
+permission. Missing current badger Movement profiles refuse rather than borrowing
+another large species. The narrowly additive `Movement.is_bound_owners` reader
+checks exact Directory, Residents and Transforms instances; it changes no motion
+state, profile, speed or policy. All numerical production rows still require
+their actual source/proof/native quality evidence before activation.
+
+`connector-catalog-v1/` records the clean-import component run:96 tests,
+3092 assertions,0 failures; both strict/raw diagnostic and leak counts zero;
+analyzer0 warnings in0 of4 files. The catalog's14 tests use clearly synthetic
+wire fixtures and actual identity/pace owners. Bounded metadata/primitive readers
+do not replace full connector compilation, continuous body/work/gear evidence,
+actual installation, production visual review or movement authorization. No
+production row is shipped by this prerequisite. Independent root review accepted
+the four exact source/test files in this scoped contract, requesting one hot-path
+array literal be replaced by direct integer comparisons. That narrow cleanup
+changed no query behavior. The final `connector-catalog-v2/` clean run reports
+14 tests/263 assertions/0 failures, every strict/raw diagnostic and leak count0,
+and analyzer0 warnings in0 of2 files. Final source hashes are recorded alongside
+the raw logs; v1 remains the prior broader regression evidence rather than a
+claim that its earlier source hashes describe the final cleanup.

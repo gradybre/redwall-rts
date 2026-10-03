@@ -407,6 +407,14 @@ func _init(
 	_build_starter_profiles()
 
 
+func is_bound_owners(directory_owner: EntityDirectory, residents_owner: ResidentsScript,
+		transforms_owner: Transforms) -> bool:
+	"""Read exact pace-source identity; equal species tables never substitute for actual World owners."""
+	return directory_owner != null and residents_owner != null and transforms_owner != null \
+		and _directory == directory_owner and _residents == residents_owner and _transforms == transforms_owner \
+		and residents_owner.directory() == directory_owner and transforms_owner.is_bound_directory(directory_owner)
+
+
 func _allocate_motion() -> void:
 	"""Allocate ARCH-MEM-008's sixteen ResidentMotion columns, each by name (packed arrays copy)."""
 	_vx.resize(MOTION_CAPACITY)

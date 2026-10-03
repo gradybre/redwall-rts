@@ -1289,3 +1289,9 @@ Local row/generation handles are qualified by the bound actual World.
 | Reused Building identity packet | `_building_facts` | 4 | `4` = 4 | Cleared on refusal | 3 | -- |16 bytes for actual type/origin/rotation/state; full reference belongs to actual Directory/Buildings. |
 | Reused resource observation | `_resource_facts` | 8 | `4` = 4 | Cleared on refusal | 3 | -- |32 bytes for actual tile/item/quantity/regrowth. Reads live owner every query, no persistence cache. |
 | Exact owner wiring and numeric query controls | -- | -- | -- | No gameplay mutation | 3 | -- | Total packed372 bytes plus58 numeric control bytes, within existing131072-byte terrain reservation. Weak SpaceOwner/CoreSources avoid composition cycles. Fixed content/native handles and initialization peak remain subject to measurement.48 bytes per cold output row plus256 control bytes require exact shared Budget coverage before append; caller retains lease through consumption. No paid cuts, routes, support claims or world state are created. |
+
+### `godot/scripts/core/underground_space_owner.gd` — bounded validation controls
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Borrowed staged-index counts | -- | -- | -- | `_validation_regions` and `_validation_sources` are -1 outside validation | 3 | -- | Decision 1075. Two numeric integers add 16 logical control bytes inside the existing bindings reserve. Existing staged free-heap arrays temporarily hold compact present-region and sorted source-row indexes while mutations are locked. Both heaps are rebuilt on every success/refusal before later editing or publication. No added packed columns, changed wire schema or extra retained image; load never normalizes invalid saved revisions. `allocation_within` and the exact borrowed ResidentLocations reader are stateless comparisons/readers. |

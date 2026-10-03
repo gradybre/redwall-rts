@@ -1405,3 +1405,133 @@ func test_static_profile_search_preserves_output_for_short_storage_and_stale_end
 	assert_equal(fixture.path(out).error, &"", "same immutable inputs remain usable")
 	assert_equal(out, previous, "deterministic repeated full-edge output")
 	_finish_profile_fixture(fixture)
+
+
+func _actual_work_fixture() -> Array[Vector2i]:
+	"""Real command-created Job, equipment and assignment select explicitly synthetic contact geometry."""
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_priorities.spawn(row).ok, "actual priorities")
+	assert_true(_schedule.spawn(row, _schedule.default_template_id().value).ok, "actual schedule")
+	assert_true(_schedule.resolve(row, 8, false).ok, "actual work hour")
+	assert_true(_jobs.spawn_agent(row).ok, "actual JobAgent")
+	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(job.ok, "actual BUILD Job")
+	assert_true(_jobs.assign_worker(row, job.value).ok, "actual assignment")
+	var store: Vector2i = _inventory.create_container(_world, 1000000, -1, 0, true).ref
+	var tool: Vector2i = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual tool")
+	assert_true(_gear.equip(tool, _worker).ok, "actual equipment")
+	assert_true(_work.claim_tool_for_work(row, tool).ok, "actual Work claim")
+	_install_two_work_contacts()
+	return [job.ref, tool, _location(Vector3i(-512, 0, 512))]
+
+
+func _synthetic_work_contact(first: int, revision: int) -> Dictionary:
+	"""Test-only immutable contact key; source enclosures/flags confer no production qualification."""
+	var record: Dictionary = _row(Profiles.MODE_WORK)
+	record.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+	record.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+	record.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+	record.fields[Profiles.F_FIRST_BOX] = first
+	record.fields[Profiles.F_BOX_COUNT] = 7
+	record.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_BUILD
+	record.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ANCHOR_AND_PATCH
+	record.longs[Profiles.L_REVISION] = revision
+	return record
+
+
+func _synthetic_work_boxes(axis: int) -> Array[PackedInt32Array]:
+	"""The two synthetic contact patches have different target-face axes and share actual owner keys."""
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append(PackedInt32Array([-128, -20, -128, 128, 1000, 256, Profiles.WORK_APPROACH]))
+	boxes.append(PackedInt32Array([-128, 0, -256, 128, 1000, 128, Profiles.WORK_STROKE]))
+	boxes.append(PackedInt32Array([0, 0, 0, 0, 0, 0, Profiles.CONTACT_POINT]))
+	var patch: PackedInt32Array = PackedInt32Array([-5, -5, -5, 5, 5, 5, Profiles.CONTACT_PATCH])
+	patch[axis] = 0
+	patch[axis + 3] = 0
+	boxes.append(patch)
+	return boxes
+
+
+func _install_two_work_contacts(revision: int = 2) -> void:
+	"""Load two WORK choices; their source flags are deliberately synthetic component evidence."""
+	var rows: Array[Dictionary] = [_synthetic_work_contact(0, 3), _synthetic_work_contact(7, 7)]
+	var boxes: Array[PackedInt32Array] = _synthetic_work_boxes(1)
+	boxes.append_array(_synthetic_work_boxes(2))
+	assert_equal(_load(_image(rows, boxes, revision), revision), &"", "two different authored contact variants")
+	assert_equal(_routes.refresh_profile_extent(), &"", "fresh actual catalog extent")
+
+
+func _work_selection(job: Vector2i, profile: int, revision: int) -> Profiles.Selection:
+	"""The caller supplies exact contact choice; real Profile/Job/Work/Gear owns all resulting facts."""
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_profiles.query_work_profile_into(_worker, job, profile, revision, 2, 0, -1, NULL_REF, out),
+		&"", "actual selected work contact")
+	return out
+
+
+func test_exact_work_actor_contact_current_and_occupancy_keep_the_selected_contact() -> void:
+	"""Two current WORK rows cannot be arbitrarily collapsed by any committed-actor reader."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	assert_equal(_routes.admit_actor(_worker, actual[0], actual[2], Profiles.MODE_WORK, 0, -1),
+		&"PROFILE_SELECTION_AMBIGUOUS", "ordinary admission cannot choose a face")
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"", "exact first work contact")
+	var selected: Profiles.Selection = _work_selection(actual[0], 0, 3)
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"", "actual first contact")
+	var current: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_routes._current_profile_into(_residents.directory().get_typed_row(_worker), current), &"", "current exact lookup")
+	assert_equal(current.profile_id, 0, "original face retained")
+	assert_equal(_routes.occupancy_refusal(PackedInt32Array([-600, 0, 450, -500, 300, 550])), &"ROUTE_OCCUPIED", "current exact work body")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"", "explicit change to other face")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"ROUTE_CONTACT_PROFILE_STALE", "old caller choice refused")
+	selected = _work_selection(actual[0], 1, 7)
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"", "second contact remains exact")
+	assert_equal(_routes.refresh_actor(_worker, actual[0], Profiles.MODE_WORK, 0, -1), &"PROFILE_SELECTION_AMBIGUOUS", "ordinary refresh cannot silently change face")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"", "refused refresh preserved selected contact")
+
+
+func test_exact_work_admission_and_refresh_preserve_state_on_stale_pins() -> void:
+	"""Explicit negative/stale identity cannot fall back to the ordinary matching contact."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	for pins: Vector3i in [Vector3i(-1, 3, 2), Vector3i(0, 4, 2), Vector3i(1, 7, 1)]:
+		assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], pins.x, pins.y, pins.z, 0, -1),
+			&"PROFILE_SELECTION_STALE", "exact immutable admission pins")
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 1, 7, 2, 0, -1), &"", "valid choice")
+	var before: PackedInt32Array = _routes._motion.resident.duplicate()
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 0, 3, 1, 0, -1), &"PROFILE_SELECTION_STALE", "stale content")
+	assert_equal(_routes._motion.resident, before, "stale refresh did not alter actor")
+	_install_two_work_contacts(3)
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_routes._current_profile_into(_residents.directory().get_typed_row(_worker), out), &"PROFILE_SELECTION_STALE", "current lookup refuses old catalog")
+	assert_equal(_routes.occupancy_refusal(PackedInt32Array([-600, 0, 450, -500, 300, 550])), &"ROUTE_OCCUPANT_PROFILE_STALE", "old actor never hides as clear")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 3, 0, -1), &"", "explicit valid new content")
+
+
+func test_exact_work_actor_never_hides_real_tool_claim_or_assignment_loss() -> void:
+	"""Immutable contact choice does not bypass actual Gear/Work or the worker's live Job assignment."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"", "actual contact actor")
+	var selected: Profiles.Selection = _work_selection(actual[0], 0, 3)
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_work.release_tool_claim(row).ok, "actual claim released")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"PROFILE_TOOL_CLAIM", "no borrowed old claim")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1, actual[1]), &"PROFILE_TOOL_CLAIM", "hint cannot recreate claim")
+	assert_equal(_routes.occupancy_refusal(PackedInt32Array([-600, 0, 450, -500, 300, 550])), &"ROUTE_OCCUPANT_PROFILE_STALE", "uncertain occupant never becomes clear")
+	assert_true(_work.claim_tool_for_work(row, actual[1]).ok, "actual claim restored")
+	assert_true(_jobs.release_worker(row).ok, "actual Job assignment removed")
+	assert_equal(_routes.at_contact_refusal(_worker, actual[0], actual[2], selected), &"ROUTE_CONTACT_JOB_STALE", "exact assignment mandatory")
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"PROFILE_JOB_STALE", "no new contact after assignment loss")
+
+
+func test_exact_work_wrappers_reuse_actor_callback_and_pose_proofs() -> void:
+	"""Selecting an exact contact grants no bypass around the existing physical provider or poison guard."""
+	var actual: Array[Vector2i] = _actual_work_fixture()
+	_binding.actor_mutation = 1
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"ROUTE_CALLBACK_CHANGED_PACKET", "mutable selection refused")
+	_binding.actor_mutation = 3
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"ROUTE_CALLBACK_REENTRY", "ordinary reentry cannot bypass explicit admission")
+	_binding.actor_mutation = 0
+	assert_equal(_routes.admit_work_actor(_worker, actual[0], actual[2], 0, 3, 2, 0, -1), &"", "valid retry")
+	_binding.actor_mutation = 2
+	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"ROUTE_ACTOR_PROFILE_DRIFT", "real pose write refuses refresh")
+	assert_equal(_routes._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + _residents.directory().get_typed_row(_worker)], 0, "prior exact profile retained")

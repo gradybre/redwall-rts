@@ -835,3 +835,33 @@ warnings over2 files. That run used the existing CI selector through a temporary
 PATH shim with unchanged strict guards; it is not a full no-argument suite.
 The evidence records that scope and the future direct singleton-shard invocation
 improvement. Actual production source/state and geometry qualification stay open.
+
+
+### Routes preserve the selected WORK identity
+
+The actual Routes actor owner now exposes `admit_work_actor` and
+`refresh_work_actor` with explicit current profile ID, profile revision and
+content revision. Both wrappers run the existing complete admission/refresh
+proof twice around collaborator observations, using the exact Profiles selector.
+Ordinary ambiguous WORK admission still refuses. Committed contact, current
+actor and occupancy checks requery that same selected profile; they never choose
+a different face source from an ordinary WORK lookup. Travel edges already
+reject MODE_WORK and retain their existing selection path.
+
+This adds no retained fields, banks, wire bytes or capacities. Three invocation
+integers (24 logical bytes) reuse the existing fixed control allowance; the
+selected profile identity was already retained by every actor. Actual owner
+fixtures with two qualified synthetic WORK rows cover selection, refresh,
+contact and occupancy, stale pins, released tool claims, lost real assignments,
+pose changes and callback reentry. These fixtures do not qualify production
+source motion or first entry.
+
+Independent furnishing review accepted Routes source
+`4e202c64c991bdfd786ebc3d34daec194832f2d6b452e587d80a0ebe431d6639`
+and test
+`f9154863371f124ae5a7d90dae3e53c2f4efc30f3217d6081cbacaf2ab3e93b6`.
+Strict Routes 49 tests / 9507 assertions and Profiles 25 / 601 passed with all
+strict/raw diagnostics and leaks zero. Analyzer reports zero warnings across
+the pinned Owner/Routes source/test pairs. Evidence is retained in
+`docs/validation/evidence/underground-connector-placements-2026-10-03/work-choice-1/`;
+the shared analyzer and four source pins are in the adjacent `scoped-copy-4/`.

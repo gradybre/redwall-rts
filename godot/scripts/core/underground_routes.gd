@@ -677,8 +677,7 @@ func at_contact_refusal(worker: Vector2i, job: Vector2i, location: Vector2i,
 			or _jobs.worker_of(_ids.get_typed_row(job)) != worker:
 		return &"ROUTE_CONTACT_JOB_STALE"
 	var row: int = _ids.get_typed_row(worker)
-	code = _profiles.query_into(worker, job, _actor.mode, _actor.posture,
-		_motion.resident[R_FAMILY * RESIDENT_CAPACITY + row], _actor.tool, _selection)
+	code = _current_profile_into(row, _selection)
 	if code != &"":
 		return code
 	if not _same_selection(selection, _selection) or not _committed_selection(row, _selection):
@@ -1756,14 +1755,32 @@ func refresh_profile_extent() -> StringName:
 
 func admit_actor(worker: Vector2i, job: Vector2i, location: Vector2i, mode: int,
 		posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
-	"""Register an already positioned real actor after actual handoff/body proof; never teleport to an endpoint."""
+	"""Ordinary admission uses unambiguous actual selection; multiple WORK contacts require exact pins."""
+	return _admit_actor(worker, job, location, mode, posture, family, equipped_tool_hint)
+
+
+func admit_work_actor(worker: Vector2i, job: Vector2i, location: Vector2i, profile_id: int,
+		profile_revision: int, content_revision: int, posture: int, family: int,
+		equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Admit an exact authored WORK contact through the same actual pose, body and endpoint proofs."""
+	if profile_id < 0 or profile_revision <= 0 or content_revision <= 0:
+		return &"PROFILE_SELECTION_STALE"
+	return _admit_actor(worker, job, location, Profiles.MODE_WORK, posture, family,
+		equipped_tool_hint, profile_id, profile_revision, content_revision)
+
+
+func _admit_actor(worker: Vector2i, job: Vector2i, location: Vector2i, mode: int,
+		posture: int, family: int, hint: Vector2i, profile_id: int = -1,
+		profile_revision: int = 0, content_revision: int = 0) -> StringName:
+	"""Register only an already positioned actual actor; explicit profile pins never bypass qualification."""
 	var code: StringName = _actor_edit_refusal(worker)
 	if code != &"":
 		return code
 	var row: int = _ids.get_typed_row(worker)
 	if _resident_ref(row) != NULL_REF:
 		return &"ROUTE_ACTOR_ALREADY_REGISTERED"
-	code = _qualify_actor_at(worker, job, location, mode, posture, family, equipped_tool_hint)
+	code = _qualify_actor_at(worker, job, location, mode, posture, family, hint,
+		profile_id, profile_revision, content_revision)
 	if code != &"":
 		return code
 	_set_resident_pair(R_SLOT, row, worker)
@@ -1776,7 +1793,23 @@ func admit_actor(worker: Vector2i, job: Vector2i, location: Vector2i, mode: int,
 
 func refresh_actor(worker: Vector2i, job: Vector2i, mode: int, posture: int,
 		family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
-	"""Requalify an idle actor's actual changed job/posture/load without losing a queued or occupied route."""
+	"""Requalify an idle actor through ordinary unambiguous selection, preserving any refused old state."""
+	return _refresh_actor(worker, job, mode, posture, family, equipped_tool_hint)
+
+
+func refresh_work_actor(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,
+		content_revision: int, posture: int, family: int, equipped_tool_hint: Vector2i = NULL_REF) -> StringName:
+	"""Explicitly select another current WORK contact; queued/occupied routes still forbid a refresh."""
+	if profile_id < 0 or profile_revision <= 0 or content_revision <= 0:
+		return &"PROFILE_SELECTION_STALE"
+	return _refresh_actor(worker, job, Profiles.MODE_WORK, posture, family,
+		equipped_tool_hint, profile_id, profile_revision, content_revision)
+
+
+func _refresh_actor(worker: Vector2i, job: Vector2i, mode: int, posture: int,
+		family: int, hint: Vector2i, profile_id: int = -1, profile_revision: int = 0,
+		content_revision: int = 0) -> StringName:
+	"""Refresh the existing idle row only after the same complete proof used for first admission."""
 	var code: StringName = _actor_edit_refusal(worker)
 	if code != &"":
 		return code
@@ -1784,11 +1817,11 @@ func refresh_actor(worker: Vector2i, job: Vector2i, mode: int, posture: int,
 	if _resident_ref(row) != worker or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != PHASE_IDLE \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
 		return &"ROUTE_ACTOR_BUSY"
-	code = _qualify_actor_at(worker, job, _resident_pair(R_LOCATION_SLOT, row), mode, posture, family, equipped_tool_hint)
+	code = _qualify_actor_at(worker, job, _resident_pair(R_LOCATION_SLOT, row), mode, posture,
+		family, hint, profile_id, profile_revision, content_revision)
 	if code == &"":
 		_write_actor_profile(row, family)
 	return code
-
 
 func _actor_edit_refusal(worker: Vector2i) -> StringName:
 	"""Actor changes cannot run inside graph preparation or a provider attestation callback."""
@@ -1809,9 +1842,11 @@ func _actor_edit_refusal(worker: Vector2i) -> StringName:
 
 
 func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
-		mode: int, posture: int, family: int, hint: Vector2i) -> StringName:
+		mode: int, posture: int, family: int, hint: Vector2i, profile_id: int = -1,
+		profile_revision: int = 0, content_revision: int = 0) -> StringName:
 	"""Pin source values around the actual callback and re-read current identity/gear/load before publication."""
-	var code: StringName = _profiles.query_into(worker, job, mode, posture, family, hint, _selection)
+	var code: StringName = _actor_profile_into(worker, job, mode, posture, family, hint, _selection,
+		profile_id, profile_revision, content_revision)
 	if code == &"":
 		code = _profile_endpoint_refusal(location)
 	if code != &"":
@@ -1821,7 +1856,8 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 	if code == &"" and not _same_selection(_selection, _checked_selection):
 		code = &"ROUTE_CALLBACK_CHANGED_PACKET"
 	if code == &"":
-		code = _profiles.query_into(worker, job, mode, posture, family, hint, _selection)
+		code = _actor_profile_into(worker, job, mode, posture, family, hint, _selection,
+			profile_id, profile_revision, content_revision)
 	if code == &"" and not _same_selection(_selection, _checked_selection):
 		code = &"ROUTE_ACTOR_PROFILE_DRIFT"
 	if code == &"":
@@ -1831,6 +1867,16 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 	if code == &"":
 		code = _selected_bounds_into(_selection, _profile_box, _candidate_bounds)
 	return code
+
+
+func _actor_profile_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, family: int,
+		hint: Vector2i, out: Profiles.Selection, profile_id: int = -1,
+		profile_revision: int = 0, content_revision: int = 0) -> StringName:
+	"""Exact WORK selection shares the same actual identities; other modes retain ordinary lookup."""
+	if mode == Profiles.MODE_WORK and profile_id >= 0:
+		return _profiles.query_work_profile_into(worker, job, profile_id, profile_revision,
+			content_revision, posture, family, hint, out)
+	return _profiles.query_into(worker, job, mode, posture, family, hint, out)
 
 
 func _attest_actor(location: Vector2i, selection: Profiles.Selection) -> StringName:
@@ -1979,9 +2025,12 @@ func request_route(worker: Vector2i, destination: Vector2i, tick: int) -> String
 
 func _current_profile_into(row: int, out: Profiles.Selection) -> StringName:
 	"""Actual Job, held load and immutable content must still match the actor's committed observation."""
-	var code: StringName = _profiles.query_into(_resident_ref(row), _resident_pair(R_JOB_SLOT, row),
+	var code: StringName = _actor_profile_into(_resident_ref(row), _resident_pair(R_JOB_SLOT, row),
 		_motion.resident[R_MODE * RESIDENT_CAPACITY + row], _motion.resident[R_POSTURE * RESIDENT_CAPACITY + row],
-		_motion.resident[R_FAMILY * RESIDENT_CAPACITY + row], _resident_pair(R_TOOL_SLOT, row), out)
+		_motion.resident[R_FAMILY * RESIDENT_CAPACITY + row], _resident_pair(R_TOOL_SLOT, row), out,
+		_motion.resident[R_PROFILE * RESIDENT_CAPACITY + row],
+		_motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row],
+		_motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row])
 	if code != &"":
 		return code
 	return &"" if _committed_selection(row, out) else &"ROUTE_CONTACT_PROFILE_STALE"
@@ -2743,8 +2792,7 @@ func _occupant_refusal(row: int, bounds: PackedInt32Array) -> StringName:
 	var code: StringName = read_actor_into(_resident_ref(row), _actor)
 	if code != &"":
 		return code
-	code = _profiles.query_into(_actor.worker, _actor.job, _actor.mode, _actor.posture,
-		_motion.resident[R_FAMILY * RESIDENT_CAPACITY + row], _actor.tool, _occupant_selection)
+	code = _current_profile_into(row, _occupant_selection)
 	if code != &"":
 		return &"ROUTE_OCCUPANT_PROFILE_STALE"
 	for index: int in _occupant_selection.box_count:

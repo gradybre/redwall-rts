@@ -421,6 +421,33 @@ func test_blocked_modular_refund_retains_wip_and_books_loss_once_after_retry() -
 	assert_equal(_funding.purpose_wip_milli(7, earth), 0, "retired receipt account is empty")
 
 
+func test_connector_refund_has_its_own_persistent_loss_domain_and_exact_retry() -> void:
+	"""New purpose uses real existing receipts and preserves loss after actual project retirement."""
+	_router.keys = [&"wood"]
+	_router.amounts = PackedInt64Array([1001])
+	var project: Vector2i = _open(Construction.PURPOSE_CONNECTOR_INSTALL)
+	_input_lot(&"wood", 1001)
+	_deliver(project, 0, 1001)
+	assert_true(_start(project).ok, "actual full input consumed")
+	_begin(project)
+	var blocked: Vector2i = _inventory.create_container(_router.world, 1, -1, 0, true).ref
+	var before: PackedByteArray = _receipt_image()
+	assert_equal(_cancel(project, blocked).error, Inventory.REFUSE_CAPACITY_EXCEEDED, "refund cannot fit")
+	assert_equal(_receipt_image(), before, "actual inputs and WIP unchanged")
+	_router.allow(project, Contract.ACTION_REFUND)
+	assert_true(_funding.refund_wip(project, _output).ok, "same WIP retries once")
+	assert_false(_funding.refund_wip(project, _output).ok, "duplicate refund refused")
+	_router.allow(project, Contract.ACTION_RETIRE)
+	assert_true(_construction.retire_modular_phase(project, _router).ok, "real project retires")
+	_router.allow(NULL_REF, -1)
+	var wood: int = _items.compiled_id(&"wood")
+	assert_equal(_inventory.total_live_milli(wood), 800, "ordinary construction80percent refund")
+	assert_equal(_funding.purpose_cancellation_loss_milli(8, wood), 201, "connector loss retained")
+	for purpose: int in [5, 6, 7]:
+		assert_equal(_funding.purpose_cancellation_loss_milli(purpose, wood), 0, "other history namespace untouched")
+	assert_equal(_funding.cancellation_loss_milli(wood), 201, "whole-world loss includes connector once")
+
+
 func test_excavation_support_and_furniture_receipts_remain_separate_in_one_arena() -> void:
 	"""Furnishing materials and losses must never enter the physical brace conservation ledger."""
 	var project: Vector2i = _bench()

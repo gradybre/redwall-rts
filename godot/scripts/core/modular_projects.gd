@@ -42,6 +42,7 @@ var _funding: Funding = null
 var _world: Vector2i = NULL_REF
 var _furniture_owner: WeakRef = null
 var _tip_owner: WeakRef = null
+var _connector_owner: WeakRef = null
 var _ready_error: StringName = &""
 var _quote: Quote = Quote.new()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
@@ -144,6 +145,8 @@ func owner_binding_refusal(owner: Owner) -> StringName:
 		return &"" if _furniture_owner == null else REFUSE_AUTHORITY
 	if owner.purpose() == Construction.PURPOSE_SPOIL_TIP:
 		return &"" if _tip_owner == null else REFUSE_AUTHORITY
+	if owner.purpose() == Construction.PURPOSE_CONNECTOR_INSTALL:
+		return &"" if _connector_owner == null else REFUSE_AUTHORITY
 	return REFUSE_AUTHORITY
 
 
@@ -154,15 +157,18 @@ func bind_owner(owner: Owner) -> Construction.OpResult:
 		return _refuse(code)
 	if owner.purpose() == Construction.PURPOSE_SPATIAL_FURNITURE:
 		_furniture_owner = weakref(owner)
-	else:
+	elif owner.purpose() == Construction.PURPOSE_SPOIL_TIP:
 		_tip_owner = weakref(owner)
+	else:
+		_connector_owner = weakref(owner)
 	return _ok(NULL_REF)
 
 
 func _owner_for(purpose: int) -> Owner:
 	"""Read and requalify a live weak purpose owner without constructing facts or result objects."""
 	var binding: WeakRef = _furniture_owner if purpose == Construction.PURPOSE_SPATIAL_FURNITURE \
-		else _tip_owner if purpose == Construction.PURPOSE_SPOIL_TIP else null
+		else _tip_owner if purpose == Construction.PURPOSE_SPOIL_TIP \
+		else _connector_owner if purpose == Construction.PURPOSE_CONNECTOR_INSTALL else null
 	var owner: Owner = binding.get_ref() as Owner if binding != null else null
 	if owner == null or owner.purpose() != purpose or owner.construction_owner() != _construction \
 			or owner.world_ref() != _world:

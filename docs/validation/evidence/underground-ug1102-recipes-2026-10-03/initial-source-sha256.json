@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/underground_connector_recipes.gd": "368c37f08165fd97a03e66b2e10f50a79c4b92e574cf34f15f06b3f2e882c76d",
+  "godot/scripts/core/construction.gd": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
+  "godot/scripts/core/modular_projects.gd": "1e8a418c89054b310931df2356e7785bcee86fe28dd941c504d073679a25488a",
+  "godot/scripts/core/excavation_inventory.gd": "cb8c1b528a47472080ce816815ffc68cbdb19c9b29963cd7f3da75880e5aca7f",
+  "godot/test/test_underground_connector_recipes.gd": "0e6aa95be5c9edc246f9d32a7ee9f5dc0841443c8be654dfaa764b0fab289e56",
+  "godot/test/test_construction_modular.gd": "fd65fdf3309ea5d7409b4916d95664cc07e004079c7285a74d398f3ca53df6af",
+  "godot/test/test_modular_inventory.gd": "8b033329c60db2785163d87dcff4f8a8fa97c22c5b6fe8e599331355f4261865",
+  "godot/test/test_modular_projects.gd": "255f6370eb3b4c8e590db7def4ba377385517c83e7f4bf1d44f4aef892e28d0d"
+}

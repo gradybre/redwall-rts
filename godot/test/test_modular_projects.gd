@@ -113,6 +113,10 @@ class SyntheticOwner extends Contract.Owner:
 				out.input_keys[line] = construction.material_key_at(purpose_tag, operation, line)
 				construction.required_milli_into(purpose_tag, operation, line, math)
 				out.input_milli[line] = math.value
+		elif purpose_tag == Construction.PURPOSE_CONNECTOR_INSTALL:
+			out.input_count = 1
+			out.input_keys[0] = &"wood"
+			out.input_milli[0] = 1001 # Explicit fixture price, never production connector content.
 		elif quantity > 0:
 			out.job_kind = Jobs.JOB_KIND_KEEP
 			out.input_count = 1
@@ -423,6 +427,49 @@ func test_material_payment_is_actual_and_direct_construction_or_work_calls_canno
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"excavated_earth")), 0, "real input consumed")
 	_finish_labor(project, job)
 	assert_true(_router.complete_order(project).ok, "actual paid lifecycle completes")
+
+
+func test_actual_connector_purpose_shares_router_work_and_receipts_without_aliasing_tip() -> void:
+	"""Only physical permission is synthetic; the new purpose performs actual Inventory/Work/Gear."""
+	var connector: SyntheticOwner = _new_owner()
+	connector.purpose_tag = Construction.PURPOSE_CONNECTOR_INSTALL
+	assert_true(_router.bind_owner(connector).ok, "separate exact actual purpose")
+	assert_true(_router.is_bound_owner(_owner), "original tip binding remains")
+	assert_true(_router.is_bound_owner(connector), "new connector binding remains")
+	var project: Vector2i = _open(connector)
+	assert_equal(_construction.project_of_modular_subject(8, connector.subject), project, "connector namespace")
+	assert_equal(_construction.project_of_modular_subject(7, connector.subject), NULL_REF, "same local numbers do not alias tip")
+	var job: Vector2i = _job(project)
+	_start(project)
+	assert_equal(_funding.purpose_wip_milli(8, _items.compiled_id(&"wood")), 1001, "shared actual WIP")
+	_finish_labor(project, job)
+	assert_true(_router.complete_order(project).ok, "actual paid completion")
+	assert_true(connector.completion_saw_paid_clear, "receipt settles before physical publication")
+	assert_equal(connector.completed, 1, "one exact window")
+	assert_equal(_owner.completed, 0, "tip never publishes connector completion")
+	assert_false(_router.complete_order(project).ok, "stale completed project cannot repeat")
+	assert_equal(_router.state_bytes().size(), 16 * Jobs.JOB_CAPACITY, "no new worker map")
+	assert_equal(_router.legacy_save_refusal(), Router.REFUSE_SAVE, "future placement cannot be omitted from save")
+
+
+func test_connector_binding_refuses_foreign_world_replacement_and_expired_permission() -> void:
+	"""One exact connector owner binds once, independently from same-number tip/Building identities."""
+	var connector: SyntheticOwner = _new_owner()
+	connector.purpose_tag = Construction.PURPOSE_CONNECTOR_INSTALL
+	connector.world.y += 1
+	assert_false(_router.bind_owner(connector).ok, "foreign full World generation")
+	connector.world = _world
+	assert_true(_router.bind_owner(connector).ok, "valid retry after refused binding")
+	var replacement: SyntheticOwner = _new_owner()
+	replacement.purpose_tag = Construction.PURPOSE_CONNECTOR_INSTALL
+	assert_false(_router.bind_owner(replacement).ok, "live replacement refuses")
+	var project: Vector2i = _open(connector)
+	connector = null
+	var before: PackedByteArray = _image()
+	assert_false(_router.start_work(project, 100).ok, "expired purpose grants no payment")
+	assert_false(_router.bind_owner(replacement).ok, "expired binding cannot erase retained history")
+	assert_equal(_image(), before, "no accounting or worker state changed")
+	assert_true(_router.is_bound_owner(_owner), "other purpose unaffected")
 
 
 func test_missing_tool_gate_and_stale_worker_refuse_before_any_productive_state_changes() -> void:

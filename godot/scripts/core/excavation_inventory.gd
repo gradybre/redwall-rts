@@ -1,5 +1,5 @@
 extends RefCounted
-## Shared paid-operation WIP receipts (excavation, spatial furniture, spoil tips). Inventory owns loose goods; these columns own consumed inputs.
+## Shared paid-operation WIP receipts. Inventory owns loose goods; these columns own consumed inputs.
 ## Receipt capacity is an explicit world budget, never a room-size or input-lot truncation rule.
 ## All cold transactions either publish the entire receipt/account change or none of it.
 
@@ -15,7 +15,7 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NO_ROW: int = -1
 ## Explicit concurrent-receipt engineering envelope, not a per-room or historical-input limit.
 const MAX_RECEIPT_CAPACITY: int = Reservations.ROW_CAPACITY
-const LOSS_DOMAIN_COUNT: int = 3
+const LOSS_DOMAIN_COUNT: int = 4
 const LOSS_CELL_CAPACITY: int = LOSS_DOMAIN_COUNT * Inventory.ITEM_CAPACITY
 const REFUSE_WIP: StringName = &"EXCAVATION_WIP_STATE"
 const REFUSE_RECEIPTS: StringName = &"CAPACITY_EXCAVATION_RECEIPTS"
@@ -129,7 +129,9 @@ static func _loss_domain(purpose: int) -> int:
 		return 0
 	if purpose == Construction.PURPOSE_SPATIAL_FURNITURE:
 		return 1
-	return 2 if purpose == Construction.PURPOSE_SPOIL_TIP else -1
+	if purpose == Construction.PURPOSE_SPOIL_TIP:
+		return 2
+	return 3 if purpose == Construction.PURPOSE_CONNECTOR_INSTALL else -1
 
 
 func _loss_domain_of(project: Vector2i) -> int:

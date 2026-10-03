@@ -239,7 +239,8 @@ const PURPOSE_EXCAVATION: int = 5
 ## The frozen PURPOSE_COUNT / Columns codec deliberately remains 4.
 const PURPOSE_SPATIAL_FURNITURE: int = 6
 const PURPOSE_SPOIL_TIP: int = 7
-const LIVE_PURPOSE_COUNT: int = 8
+const PURPOSE_CONNECTOR_INSTALL: int = 8
+const LIVE_PURPOSE_COUNT: int = 9
 
 ## Where a project is in REQ-SET-124-127's sequence. See the header on ECON-003's separate
 ## excavation-site phases, which these are NOT.
@@ -617,7 +618,7 @@ func _bill_stride_row(purpose: int, type_id: int) -> int:
 	"""The owner-major base index of one bill, or NO_ROW when the purpose/type pair is unknown."""
 	if purpose == PURPOSE_EXCAVATION:
 		return 0 if ExcavationContract.valid_operation(type_id) else NO_ROW
-	if purpose == PURPOSE_SPOIL_TIP:
+	if purpose == PURPOSE_SPOIL_TIP or purpose == PURPOSE_CONNECTOR_INSTALL:
 		return NO_ROW
 	if is_furniture_subject(purpose):
 		if not _definitions.is_furniture_id(type_id):
@@ -648,7 +649,7 @@ func bill_size_into(purpose: int, type_id: int, out: IntMath.IntResult) -> bool:
 	"""Write the DELIVERY bill's pair count into `out`; refuse an unknown purpose or type."""
 	if purpose < 0 or purpose >= LIVE_PURPOSE_COUNT:
 		return out.refuse(REFUSE_UNKNOWN_PURPOSE)
-	if purpose == PURPOSE_SPOIL_TIP:
+	if purpose == PURPOSE_SPOIL_TIP or purpose == PURPOSE_CONNECTOR_INSTALL:
 		return out.refuse(ModularContract.REFUSE_PROJECT_CONTEXT)
 	if _bill_stride_row(purpose, type_id) == NO_ROW:
 		return out.refuse(REFUSE_UNKNOWN_FURNITURE_TYPE if is_furniture_subject(purpose)
@@ -1002,8 +1003,9 @@ func project_material_index_of_key_into(project: Vector2i, key: StringName,
 
 
 static func is_modular(purpose: int) -> bool:
-	"""The shared paid owner serves only these two explicit, independently qualified namespaces."""
-	return purpose == PURPOSE_SPATIAL_FURNITURE or purpose == PURPOSE_SPOIL_TIP
+	"""The shared paid owner serves only explicit, independently qualified purpose namespaces."""
+	return purpose == PURPOSE_SPATIAL_FURNITURE or purpose == PURPOSE_SPOIL_TIP \
+		or purpose == PURPOSE_CONNECTOR_INSTALL
 
 
 func bind_excavation_authority(authority: ExcavationContract) -> OpResult:
@@ -2151,6 +2153,7 @@ func _project_of_subject(subject_ref: Vector2i) -> int:
 			continue
 		seen += 1
 		if _purpose[row] != PURPOSE_EXCAVATION and _purpose[row] != PURPOSE_SPOIL_TIP \
+				and _purpose[row] != PURPOSE_CONNECTOR_INSTALL \
 				and _subject_slot[row] == subject_ref.x and _subject_generation[row] == subject_ref.y:
 			return row
 	return NO_ROW

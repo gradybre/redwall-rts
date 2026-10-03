@@ -194,9 +194,11 @@ func test_new_domains_append_without_widening_frozen_save_or_excavation_ids() ->
 	assert_equal(Construction.PURPOSE_EXCAVATION, 5, "excavation purpose unchanged")
 	assert_equal(Construction.PURPOSE_SPATIAL_FURNITURE, 6, "spatial furniture appended")
 	assert_equal(Construction.PURPOSE_SPOIL_TIP, 7, "tip appended separately")
-	assert_equal(Construction.LIVE_PURPOSE_COUNT, 8, "live purpose domain")
+	assert_equal(Construction.PURPOSE_CONNECTOR_INSTALL, 8, "connector installation appended separately")
+	assert_equal(Construction.LIVE_PURPOSE_COUNT, 9, "live purpose domain")
 	assert_equal(Construction.PURPOSE_COUNT, 4, "frozen save domain remains unchanged")
-	for purpose: int in [Construction.PURPOSE_SPATIAL_FURNITURE, Construction.PURPOSE_SPOIL_TIP]:
+	for purpose: int in [Construction.PURPOSE_SPATIAL_FURNITURE, Construction.PURPOSE_SPOIL_TIP,
+			Construction.PURPOSE_CONNECTOR_INSTALL]:
 		var columns: Construction.Columns = Construction.Columns.new()
 		columns.purpose[0] = purpose
 		assert_equal(Construction.columns_refusal(columns), Construction.REFUSE_COLUMN_ENUM, "old codec explicitly refuses")
@@ -312,6 +314,29 @@ func test_local_tip_numbers_do_not_alias_any_directory_subject() -> void:
 	_router.prepared = true
 	assert_equal(_construction.open_modular_phase(7, building, 1).error, Construction.REFUSE_ALREADY_UNDER_CONSTRUCTION, "duplicate exact tip refuses")
 	assert_true(_construction.is_live_project(existing), "unrelated project preserved")
+
+
+func test_connector_subject_is_local_and_requires_its_actual_project_bill() -> void:
+	"""A local placement cannot alias a Building or use its default recipe/work by numeric coincidence."""
+	var buildings: Buildings = _construction.buildings()
+	var building: Vector2i = buildings.place_building(int(Catalog.BUILDING_DEFINITION["dirt_path"]), 0, 0, 1).ref
+	var existing: Vector2i = _construction.open_build(building).ref
+	_router.subject = building
+	_router.keys = [&"wood", &"rope"]
+	_router.amounts = PackedInt64Array([1001, 501])
+	var project: Vector2i = _open(Construction.PURPOSE_CONNECTOR_INSTALL)
+	assert_equal(_construction.project_of_subject(building), existing, "legacy lookup ignores local connector")
+	assert_equal(buildings.construction_ref_of_building(building), existing, "real Building backlink preserved")
+	assert_equal(_construction.project_of_modular_subject(8, building), project, "exact namespace finds connector")
+	assert_false(_construction.bill_size_into(8, 0, _out), "no context-free bill")
+	assert_equal(StringName(_out.error), Contract.REFUSE_PROJECT_CONTEXT, "explicit context required")
+	assert_false(_construction.declared_work_mwu_into(8, 0, _out), "no borrowed Building work")
+	assert_equal(_construction.material_key_at(8, 0, 0), &"", "no borrowed Building key")
+	assert_true(_construction.project_required_milli_into(project, 1, _out), "actual owner bill")
+	assert_equal(_out.value, 501, "exact positive recipe quantity")
+	_router.prepared = true
+	assert_equal(_construction.open_modular_phase(8, building, 1).error,
+		Construction.REFUSE_ALREADY_UNDER_CONSTRUCTION, "one active connector operation")
 
 
 func test_three_line_furniture_prices_are_catalog_exact_and_legacy_doors_stay_closed() -> void:

@@ -3,6 +3,7 @@ extends "res://test/framework/test_case.gd"
 ## These inputs are never authored connector installation, body clearance or climbing permission.
 
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
+const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Residents := preload("res://scripts/core/residents.gd")
@@ -24,6 +25,27 @@ const PART_BASE: int = REGION_BASE + 30 * 32
 const VERTEX_BASE: int = PART_BASE + 5 * 36
 const MATERIAL_BASE: int = VERTEX_BASE + 20 * 12
 const PACE_BASE: int = MATERIAL_BASE + 4
+
+
+class ObservedCatalog extends Catalog:
+	"""No final attestation may invoke these public observation adapters."""
+	var observe: bool = false
+	var observation_calls: int = 0
+
+	func content_hash_into(revision: int, out: PackedByteArray) -> bool:
+		"""Count only the exact final observation-free interval."""
+		if observe:
+			observation_calls += 1
+		return super.content_hash_into(revision, out)
+
+	func part_into(row: int, variant_revision: int, revision: int, ordinal: int,
+			out: PackedInt32Array) -> StringName:
+		"""A reused part buffer must not turn into another final callback."""
+		if observe:
+			observation_calls += 1
+		return super.part_into(row, variant_revision, revision, ordinal, out)
+
+
 var _catalog: Catalog = null
 var _profiles: Profiles = null
 var _levels: Levels = null
@@ -408,3 +430,74 @@ func test_material_scale_and_refused_shapes_preserve_caller_scratch() -> void:
 	assert_equal(_catalog.part_into(0, 1, 1, 0, short), &"CONNECTOR_CATALOG_OUTPUT", "part needs nine")
 	assert_equal(_catalog.vertex_into(0, 1, 1, 0, short), &"CONNECTOR_CATALOG_OUTPUT", "vertex needs three")
 	assert_equal(short, PackedInt32Array([7]), "no implicit resizing or partial output")
+
+
+static func _bank_bytes(bank: Catalog.Bank) -> PackedByteArray:
+	"""Independent test image of every immutable bank field, not a production copy path."""
+	return var_to_bytes([bank.header, bank.variants, bank.variant_revisions, bank.points,
+		bank.regions, bank.parts, bank.vertices, bank.materials, bank.paces, bank.pace_revisions, bank.digests])
+
+
+func _digest() -> PackedByteArray:
+	"""Read source metadata before the final pure observation interval starts."""
+	var out: PackedByteArray = PackedByteArray()
+	out.resize(32)
+	assert_true(_catalog.content_hash_into(1, out), "actual source digest")
+	return out
+
+
+func test_final_source_leaf_reads_actual_banks_without_observers_or_writes() -> void:
+	"""Final facts use the actual owner and immutable packed banks, with no observation callbacks."""
+	var observed: ObservedCatalog = ObservedCatalog.new()
+	assert_equal(observed.configure(Catalog.RESERVED_BYTES), &"", "actual finite catalog")
+	assert_equal(observed.bind_actual(_profiles, _levels, _movement, _residents, _transforms, _domain), &"", "actual binding")
+	_catalog = observed
+	assert_equal(_load(synthetic_image()), &"", "actual synthetic source")
+	var digest: PackedByteArray = _digest()
+	var before: PackedByteArray = _bank_bytes(_catalog._live)
+	observed.observe = true
+	for row: int in 5:
+		assert_equal(SourceFacts.refusal(_catalog, row, 1, 1, digest), &"", "actual variant source")
+	assert_equal(observed.observation_calls, 0, "no source observer invoked")
+	assert_equal(_bank_bytes(_catalog._live), before, "all actual bank bytes preserved")
+
+
+func test_final_source_leaf_refuses_bad_tuple_digest_and_uninitialized_owner() -> void:
+	"""Malformed caller metadata cannot index past the actual bank or substitute another revision."""
+	assert_equal(_load(synthetic_image()), &"", "actual source")
+	var digest: PackedByteArray = _digest()
+	assert_equal(SourceFacts.refusal(null, 0, 1, 1, digest), SourceFacts.REFUSE, "null actual owner")
+	assert_equal(SourceFacts.refusal(Catalog.new(), 0, 1, 1, digest), SourceFacts.REFUSE, "uninitialized owner")
+	for row: int in [-1, 5, 2147483647]:
+		assert_equal(SourceFacts.refusal(_catalog, row, 1, 1, digest), SourceFacts.REFUSE, "invalid exact row")
+	assert_equal(SourceFacts.refusal(_catalog, 0, 2, 1, digest), SourceFacts.REFUSE, "variant revision")
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 2, digest), SourceFacts.REFUSE, "catalog revision")
+	for offset: int in [-1, 1, IntMath.INT64_MAX]:
+		assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, digest, offset), SourceFacts.REFUSE, "bounded digest span")
+	digest[0] ^= 1
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, digest), SourceFacts.REFUSE, "exact hash bytes")
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, PackedByteArray()), SourceFacts.REFUSE, "empty hash")
+
+
+func test_final_source_leaf_refuses_actual_profile_and_foreign_owner_changes() -> void:
+	"""Equal catalog hashes cannot excuse changed actual Movement wiring or Profile bank content."""
+	assert_equal(_load(synthetic_image()), &"", "actual source")
+	var digest: PackedByteArray = _digest()
+	var foreign: Residents = Residents.new()
+	_catalog._movement = Movement.new(foreign.directory(), null, null, _transforms, foreign)
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, digest), SourceFacts.REFUSE, "foreign actual pace ownership")
+	_catalog._movement = _movement
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, digest), &"", "same exact owners restored")
+	assert_equal(_load_profiles(synthetic_profile_image(_identity, 2), 2), &"", "actual immutable profile replacement")
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, digest), SourceFacts.REFUSE, "old profile source refused")
+
+
+func test_final_source_leaf_checks_live_full_world_identity() -> void:
+	"""Reusing the actual World slot never preserves the prior Level/catalog source qualification."""
+	assert_equal(_load(synthetic_image()), &"", "actual source")
+	var digest: PackedByteArray = _digest()
+	assert_true(_residents.directory().destroy(_world), "retire actual World")
+	var replacement: Vector2i = _residents.directory().create(Directory.KIND_WORLD)
+	assert_equal(replacement.x, _world.x, "recycled same slot")
+	assert_true(replacement.y != _world.y, "fresh generation")
+	assert_equal(SourceFacts.refusal(_catalog, 0, 1, 1, digest), SourceFacts.REFUSE, "full old World refused")

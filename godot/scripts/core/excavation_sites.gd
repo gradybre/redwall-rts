@@ -230,6 +230,21 @@ func initialization_refusal() -> StringName:
 	return _ready_error
 
 
+func construction_owner() -> Construction:
+	"""Return the exact successfully bound owner, never an equal-numbered foreign world."""
+	return _construction if _ready_error == &"" else null
+
+
+func bound_spatial_authority() -> Contract.SpatialAuthority:
+	"""Expose the live typed weak target for composition checks, without granting clearance."""
+	return _spatial() if _ready_error == &"" else null
+
+
+func is_bound_spatial(candidate: Contract.SpatialAuthority) -> bool:
+	"""Prove actual live owner identity; null, refused initialization and expired wiring fail closed."""
+	return candidate != null and bound_spatial_authority() == candidate
+
+
 func _spatial() -> SpatialAuthority:
 	"""Read the live actual space owner; a released binding is a refusal, never clearance."""
 	return _space.get_ref() as SpatialAuthority if _space != null else null

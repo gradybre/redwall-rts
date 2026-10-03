@@ -892,6 +892,30 @@ func test_refused_null_owner_public_methods_fail_safely() -> void:
 	refused.accept_work_tick(Vector2i(0, 1))
 	assert_equal(refused.earth_conservation_refusal(), Contract.REFUSE_AUTHORITY, "earth read refuses safely")
 	assert_equal(refused.support_conservation_refusal(), Contract.REFUSE_AUTHORITY, "support read refuses safely")
+	assert_true(refused.construction_owner() == null, "refused initialization exposes no bound owner")
+	assert_true(refused.bound_spatial_authority() == null, "refused initialization exposes no typed spatial target")
+	assert_false(refused.is_bound_spatial(_space), "refused initialization exposes no spatial binding")
+
+
+func test_owner_identity_readers_refuse_numeric_aliases_null_and_expired_space() -> void:
+	"""UG21 can compare actual owner objects without mistaking coincident EntityRefs for one world."""
+	var other_directory: Directory = Directory.new()
+	var other_world: Vector2i = other_directory.create(Directory.KIND_WORLD)
+	var other_construction: Construction = Construction.new(Buildings.new(other_directory))
+	var other_space: SpatialFixture = SpatialFixture.new()
+	other_space.world = other_world
+	assert_equal(other_world, _world, "foreign World identity deliberately aliases both numeric fields")
+	assert_true(_sites.construction_owner() == _construction, "reader preserves actual Construction identity")
+	assert_false(_sites.construction_owner() == other_construction, "numeric alias cannot replace actual owner")
+	assert_true(_sites.bound_spatial_authority() == _space, "typed reader returns the actual weak target")
+	assert_false(_sites.bound_spatial_authority() == other_space, "typed target never aliases a foreign object")
+	assert_true(_sites.is_bound_spatial(_space), "actual spatial owner is bound")
+	assert_false(_sites.is_bound_spatial(other_space), "equal world descriptor is not equal authority")
+	assert_false(_sites.is_bound_spatial(null), "null never proves an authority")
+	_space = null
+	assert_true(_sites.bound_spatial_authority() == null, "expired weak target reads null")
+	assert_false(_sites.is_bound_spatial(other_space), "expired owner never falls back to a matching descriptor")
+	assert_false(_sites.is_bound_spatial(null), "expired weak reference and null are not a binding")
 
 
 func test_256_resident_existing_work_baseline_microbenchmark_without_excavation() -> void:

@@ -45,6 +45,23 @@ class JointPackTests(unittest.TestCase):
         source = self.index["underground_space_owner"].text
         self.refuses("underground_space_owner", source, source + "\nvar _unbudgeted: PackedInt32Array = PackedInt32Array()\n")
 
+    def test_negative_furniture_bridge_changed_width(self) -> None:
+        self.refuses("underground_space_owner", "_furniture_pins: PackedInt32Array", "_furniture_pins: PackedInt64Array")
+
+    def test_negative_furniture_bridge_extra_input_copy(self) -> None:
+        self.refuses("underground_space_owner", "_furniture_input_entries = entries\n",
+                     "_furniture_input_entries = entries.duplicate()\n")
+
+    def test_negative_furniture_bridge_larger_tuple(self) -> None:
+        self.refuses("underground_space_owner", "_furniture_pins.resize(candidates.count * 5)",
+                     "_furniture_pins.resize(candidates.count * 6)")
+
+    def test_negative_furniture_bridge_unreleased_storage(self) -> None:
+        self.refuses("underground_space_owner", "\t_furniture_rows = PackedInt32Array()\n", "")
+
+    def test_negative_furniture_bridge_changed_charge(self) -> None:
+        self.refuses("underground_space_owner", "return 60 * pair_count + 16", "return 60 * pair_count + 8")
+
     def test_negative_unaccounted_endpoint_column(self) -> None:
         source = self.index["inventory"].text
         self.refuses("inventory", source, source + "\nvar _spatial_extra: PackedInt32Array = PackedInt32Array()\n")
@@ -77,6 +94,8 @@ class JointPackTests(unittest.TestCase):
         self.assertFalse(result["runtime_qualified"])
         self.assertEqual(budget.payload(result["quote"]["columns"]), 112)
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)
+        self.assertEqual(result["furniture_bridge_cold"]["private_bytes_per_pair"], 60)
+        self.assertEqual(result["furniture_bridge_cold"]["numeric_control_bytes"], 16)
 
 
 if __name__ == "__main__":

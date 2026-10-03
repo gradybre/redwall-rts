@@ -381,7 +381,8 @@
         "docs/decisions/1087-cold-room-layout-admission.md",
         "docs/decisions/1089-atomic-room-furniture-batches.md",
         "godot/scripts/core/underground_layout_sources.gd",
-        "godot/test/test_underground_layout_sources.gd"
+        "godot/test/test_underground_layout_sources.gd",
+        "docs/decisions/1091-room-section-metadata.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -515,7 +516,9 @@
         "godot/scripts/core/underground_level_catalog.gd",
         "godot/test/test_underground_level_catalog.gd",
         "godot/scripts/core/underground_connector_catalog.gd",
-        "godot/test/test_underground_connector_catalog.gd"
+        "godot/test/test_underground_connector_catalog.gd",
+        "godot/scripts/core/movement.gd",
+        "godot/test/test_movement.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1629,6 +1632,23 @@
       "tests": "66tests4782assertions0failures;strict/raw diagnostic/leaksall0;analyzer0/4;34spec commands and190capacitychecks plus13packtests pass",
       "memory": "99955154 logical live+reserve bytes;44846headroom;actual cold consumers and measured native peaks required before activation",
       "evidence_path": "docs/validation/evidence/underground-joint-budget-2026-10-03/README.md"
+    },
+    {
+      "id": "reviewed-furniture-and-grounding-2026-10-03",
+      "scope": "Reviewed components after full fc4fac4f checkpoint; complete demo and runtime qualification remain open.",
+      "commits": [
+        "880072da",
+        "25edcf39",
+        "4ca1cfce",
+        "16626744",
+        "6aef4599"
+      ],
+      "evidence": {
+        "space_furniture_bridge": "90 tests / 3740 assertions / 0 failures; strict and raw diagnostics and leaks all0; analyzer0/2",
+        "room_furniture_coordinator": "134 tests / 8285 assertions / 0 failures; strict and raw diagnostics and leaks all0; analyzer0/5",
+        "grounding": "14 tests /113 assertions /0 failures; strict and raw diagnostics and leaks all0; analyzer0/7; native8 assertions /0 failures"
+      },
+      "ownership": "UG08 narrow Movement exact-owner identity predicate only; UG07 decision1091 metadata envelope while exact fine claims remain unchanged."
     }
   ]
 }

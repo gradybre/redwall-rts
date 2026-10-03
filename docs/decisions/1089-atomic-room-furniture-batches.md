@@ -247,3 +247,14 @@ critical/high/medium finding. It inspected the actual transaction, same-input
 lifetime, packet arithmetic and adversarial tests without repeating the author's
 engine runs. Actual authored geometry/contact qualification, production
 composition, composed save/load and hardware performance remain open.
+
+## Integrated allocation census
+
+The joint source-derived memory checker now classifies the four exact temporary
+SpaceOwner bridge arrays separately from its unchanged 68 permanent packed
+columns. Their private copies remain 60N+16 bytes under the shared cold lease;
+the 16N input observation aliases the separately charged caller packet. Width,
+copy, tuple-count, cleanup and charge drift are adversarially checked. No
+capacity, memory ceiling or diagnostic allowance changed. Independent review
+and the actual 18-test/accounting logs are retained in
+`docs/validation/evidence/underground-furniture-batches-2026-10-03/integration-accounting/`.

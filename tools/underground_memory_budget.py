@@ -49,6 +49,29 @@ def payload(rows: dict) -> int:
     return sum(row["bytes"] for row in rows.values())
 
 
+def furniture_bridge(index: dict) -> tuple[set[str], dict]:
+    """Separate four exact lease-bound observations from the unchanged permanent SpaceOwner banks."""
+    source = index["underground_space_owner"].text
+    declarations = dict(re.findall(r"^var (_[A-Za-z0-9_]+): (Packed[A-Za-z0-9]+Array)\b", source, re.M))
+    transient = {"_furniture_input_entries", "_furniture_pins", "_furniture_entries", "_furniture_rows"}
+    assert len(declarations) == 72 and transient <= declarations.keys(), "unreconciled SpaceOwner column"
+    assert all(declarations[name] == "PackedInt32Array" for name in transient), "furniture bridge width drift"
+    pin = source.split("func _pin_furniture_packet(", 1)[1].split("\n\nfunc ", 1)[0]
+    clear = source.split("func _clear_furniture_admissions()", 1)[1].split("\n\nfunc ", 1)[0]
+    expected = ("_furniture_input_entries = entries", "_furniture_pins.resize(candidates.count * 5)",
+                "_furniture_entries = entries.duplicate()", "_furniture_rows.resize(_furniture_count)",
+                "_furniture_count = candidates.count / 2")
+    assert all(line in pin for line in expected), "furniture bridge copy or cardinality drift"
+    assert "_furniture_input_entries = entries.duplicate()" not in pin, "unaccounted copied input observation"
+    assert all(f"{name} = PackedInt32Array()" in clear for name in transient), "unreleased furniture image"
+    assert "return 60 * pair_count + 16 if pair_count > 0 and pair_count <= MAX_REGIONS else 0" in source
+    return set(declarations) - transient, {
+        "members": sorted(transient), "private_bytes_per_pair": 60, "numeric_control_bytes": 16,
+        "borrowed_entry_bytes_per_pair": 16,
+        "scope": "Exact shared cold lease only; borrowed input is owned by the caller's separately charged packet.",
+    }
+
+
 def quote_payload(index: dict) -> dict:
     """Resolve every nested Quote buffer and find its three real retained consumers."""
     source = index["modular_project_contract"].text
@@ -85,9 +108,10 @@ def build(index: dict | None = None) -> dict:
     pack = {key: resolve(index, budget.name, key) for key in keys}
     r, o, p, k, t, rooms, placements, locations, endpoints = pack.values()
     assert 0 < o <= r <= k <= 16384 and p <= 256 and locations <= 1024 and endpoints <= 1024
+    owner_members, bridge = furniture_bridge(index)
     groups = {
         "underground_space_owner": columns(index, "underground_space_owner", 68,
-                                          {"_region_capacity": r, "_source_capacity": o}),
+                                          {"_region_capacity": r, "_source_capacity": o}, owner_members),
         "underground_space_authority": columns(index, "underground_space_authority", 7, {"_capacity": p}),
         "spoil_tips": columns(index, "spoil_tips", 16, {"_capacity": t}),
         "room_layout": columns(index, "room_layout", 13,
@@ -144,6 +168,7 @@ def build(index: dict | None = None) -> dict:
     sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
+            "furniture_bridge_cold": bridge,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

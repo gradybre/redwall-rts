@@ -1628,3 +1628,24 @@ complete-state certificate and actual Job/Work/Gear obligations remain unchanged
 | Borrowed protected non-flat box image | `_boxes` | 4 | never allocated | Empty before configure and after clear | 3 | -- | Decision1107. Caller-owned private world boxes6B I32 entries, B<=Space.MAX_REGIONS16384. No cursor copy or authoritative history. All caller images must be admitted separately under the same cold lease. |
 | Active-prefix union intervals | `_intervals` | 8 | `_capacity` runtime | Empty before complete preflight and after clear | 3 | -- | One B-row bank sorts and merges normalized X endpoints in place; no full physical-key output list or second bank. |
 | Derived scalar controls and frames | -- | -- | -- | Cursor never crosses a frame/save boundary | 3 | -- | Twelve I64 controls96, four Vector3i48 and three bools3 total147 logical retained numeric bytes. The512-byte fixed logical allowance also covers copied Domain numerical facts/bounds and nested synchronous scalar frames. Actual packed/object headers, Dictionary/String/ref overhead and native growth remain separately unmeasured; no canonical/save state or production memory claim. |
+
+### `godot/scripts/core/underground_connector_placements.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Canonical Placement and opening banks | -- | -- | -- | Only a validated current source tuple can publish | 1 | §1 WORLD | Decision1105. Two banks each hold18 I32 +2 I64 +2 B8 per actual configured Placement, and8 I32 +1 I64 per actual configured opening. One256-byte header/digest image per bank pins World and immutable variant/group/recipe. Existing header15 stores the audited active Project count; all mutations reserve enough global revision increments for its terminal transitions. No WU, bill, cut ledger or duplicate geometry. Streaming canonical capture excludes derived heaps; coordinated physical restore remains mandatory. |
+| Bounded audit marks | `_marks` | 1 | `placements + openings` runtime | Audit rebuilt | 3 | -- | Actual configure caps the sum at768. Existing inactive bank receives load scalars directly, without a full raw file image. Both deterministic free heaps are preallocated in each bank. |
+| Scalar streaming window | `_stream` | 1 | `width` runtime | Reused for each scalar | 3 | -- | Width is bounded by4096; no retained complete raw-file image. |
+| Synchronous companion and source controls | -- | -- | -- | No prepared tokens at save/frame boundary | 3 | -- | One once-bound actual InstallationContext plus private original tokens, weak physical/publisher links and actual immutable owners. Source-counted logical coexistence1557 fits2048 controls: owner117, two Bank free-count pairs32, shared Context112, private Request308, caller Request308, caller Order/Assembly128, result8, digest32, nested frame ceiling512. Conditional envelope189P+89M+14848 includes provisional8192 native bytes; not measured/admitted production maximum. |
+
+### Underground paid installation companion bindings (decision1105)
+
+Space borrows the single actual `Locations.InstallationContext` weakly;
+Locations and WorldRoutes retain that same object, whose112 logical numeric
+bytes are counted once in Placement2048 above. There is no per-Placement
+context, new companion bank, wire or canonical field. Exact original tokens
+and actual Router/Construction source leaves guard static publication after
+all observers finish before Funding. Native references, WeakRefs and headers
+remain part of the explicit unmeasured bindings/native reservation. The cold
+retained Placement/target source refresh costs64(P+M) checks and uses only the
+already-admitted inactive bank.

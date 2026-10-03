@@ -410,7 +410,9 @@
         "godot/scripts/core/underground_connector_recipes.gd.uid",
         "godot/test/test_underground_connector_recipes.gd",
         "godot/test/test_underground_connector_recipes.gd.uid",
-        "docs/decisions/1102-immutable-connector-recipes.md"
+        "docs/decisions/1102-immutable-connector-recipes.md",
+        "godot/scripts/core/underground_connector_source_facts.gd",
+        "godot/scripts/core/underground_connector_source_facts.gd.uid"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -590,7 +592,8 @@
           "owner": "/root/ug_construction",
           "scope": "Immutable source-bound recipe bank and narrow append-only purpose/Funding/Router plumbing; actual placement adapter awaits matching owner contract. Existing Construction, modular_projects, excavation_inventory and associated tests remain within UG07 lease.",
           "budget_proposal": "64P+128 immutable bytes, P<=256;512 controls; Funding fourth loss domain2048 live plus each simultaneous cold image; adapter controls and native/Placement coexistence still require source census.",
-          "authoring": "Absent recipe rows refuse. No new prices or work amounts silently activated."
+          "authoring": "Absent recipe rows refuse. No new prices or work amounts silently activated.",
+          "review": "Root found MEDIUM stale source binding after final Catalog hash callback; initial final quote-shape guard accepted. Construction reproducing late Profile/World invalidation and adding narrow pure Catalog attestation before publication. Other six plumbing sources reviewed without high/medium findings."
         },
         "timber_recipe_authoring": {
           "status": "user_approved_wood_only",
@@ -890,7 +893,19 @@
         }
       },
       "lease": {
-        "state": "held"
+        "state": "held",
+        "subleases": [
+          {
+            "agent": "/root/ug_construction",
+            "branch": "codex/underground-connector-recipes",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_connector_catalog.gd",
+              "godot/test/test_underground_connector_catalog.gd"
+            ],
+            "handoff": "ug_furnishing acknowledged no edits and released both exact files on2026-10-03 for the1102 final callback-free Catalog/Profile/Level/World source attestation correction. No catalog content or motion ownership transferred."
+          }
+        ]
       }
     },
     {

@@ -468,7 +468,7 @@
     {
       "id": "UG19",
       "title": "Direct terrain painting and in-world room preview",
-      "status": "running",
+      "status": "verified",
       "depends_on": [
         "UG04",
         "UG05"
@@ -502,9 +502,17 @@
       ],
       "agent": "/root",
       "branch": "codex/underground-world-paint",
-      "evidence": {},
+      "evidence": {
+        "commit": "cf19d400",
+        "integration": "unchanged source cherry-pick into integration",
+        "tests": "9world tests/149assertions;11draft/201;10editor/104;native42checks0fail including4PNG saves",
+        "diagnostics": "each strict suite0unexpected/expected/tolerated/errors/warnings/leaks;rawall0;analyzer0/6",
+        "review": "ug_geometry independent source+nativeimage review approved after four findings fixed; root inspected all4PNGs. Actual world input only; construction unbound and legacy HUD coexistence remainsUG09.",
+        "performance": "4096cell coldpreview median10.798ms/max10.845;16384median43.624/max45.001; cache reused for camera/style; wholebudget notqualified"
+      },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "root committedcf19d400; ownworldpaint worktree clean; no furtherUG19writes"
       }
     },
     {

@@ -16,3 +16,4 @@
 *.jpeg filter=lfs diff=lfs merge=lfs -text
 *.exr filter=lfs diff=lfs merge=lfs -text
 *.gltf filter=lfs diff=lfs merge=lfs -text
+*.ugactor filter=lfs diff=lfs merge=lfs -text

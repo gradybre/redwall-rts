@@ -35,7 +35,7 @@
       "residents": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
       "resource_nodes": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de",
       "rng": "4ad32c2e173774b3e30300b8516a006a68c34f4a3d8f46470fca6490d124149e",
-      "room_layout": "33ff91234526617fd814034c710e37b1774ee829ad92a9e2b5c784511b8e288a",
+      "room_layout": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
       "room_projects": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184",
       "schedule": "e6b3b67b00eb634009a33d7d0b54a08a6c6b110514266c859842d388e2108f4e",
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
@@ -11360,7 +11360,7 @@
       "proof_chain": [
         "Buildings.ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384",
         "ROOM_CAPACITY -> godot/scripts/core/room_layout.gd:13 `const ROOM_CAPACITY = Buildings.ROOM_CAPACITY` = 16384",
-        "_room_capacity -> godot/scripts/core/room_layout.gd:146 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
+        "_room_capacity -> godot/scripts/core/room_layout.gd:222 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11372,7 +11372,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_room_capacity",
-      "source_resize_line": 149,
+      "source_resize_line": 225,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11385,7 +11385,7 @@
       "proof_chain": [
         "Buildings.ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384",
         "ROOM_CAPACITY -> godot/scripts/core/room_layout.gd:13 `const ROOM_CAPACITY = Buildings.ROOM_CAPACITY` = 16384",
-        "_room_capacity -> godot/scripts/core/room_layout.gd:146 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
+        "_room_capacity -> godot/scripts/core/room_layout.gd:222 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11397,7 +11397,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_room_capacity",
-      "source_resize_line": 151,
+      "source_resize_line": 227,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11410,7 +11410,7 @@
       "proof_chain": [
         "Buildings.ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384",
         "ROOM_CAPACITY -> godot/scripts/core/room_layout.gd:13 `const ROOM_CAPACITY = Buildings.ROOM_CAPACITY` = 16384",
-        "_room_capacity -> godot/scripts/core/room_layout.gd:146 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
+        "_room_capacity -> godot/scripts/core/room_layout.gd:222 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11422,7 +11422,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_room_capacity",
-      "source_resize_line": 152,
+      "source_resize_line": 228,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11435,7 +11435,7 @@
       "proof_chain": [
         "Buildings.ROOM_CAPACITY -> godot/scripts/core/buildings.gd:101 `const ROOM_CAPACITY = 16384` = 16384",
         "ROOM_CAPACITY -> godot/scripts/core/room_layout.gd:13 `const ROOM_CAPACITY = Buildings.ROOM_CAPACITY` = 16384",
-        "_room_capacity -> godot/scripts/core/room_layout.gd:146 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
+        "_room_capacity -> godot/scripts/core/room_layout.gd:222 `clampi(room_capacity, 1, ROOM_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11447,7 +11447,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_room_capacity",
-      "source_resize_line": 153,
+      "source_resize_line": 229,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11460,7 +11460,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11472,7 +11472,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 159,
+      "source_resize_line": 235,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11485,7 +11485,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11497,7 +11497,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 160,
+      "source_resize_line": 236,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11510,7 +11510,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11522,7 +11522,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 161,
+      "source_resize_line": 237,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11535,7 +11535,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11547,7 +11547,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 162,
+      "source_resize_line": 238,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11560,7 +11560,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11572,7 +11572,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 163,
+      "source_resize_line": 239,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11585,7 +11585,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11597,7 +11597,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 164,
+      "source_resize_line": 240,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11610,7 +11610,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11622,7 +11622,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 165,
+      "source_resize_line": 241,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11635,7 +11635,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11647,7 +11647,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 166,
+      "source_resize_line": 242,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },
@@ -11660,7 +11660,7 @@
       "proof_chain": [
         "Buildings.FURNITURE_CAPACITY -> godot/scripts/core/buildings.gd:102 `const FURNITURE_CAPACITY = 81920` = 81920",
         "PLACEMENT_CAPACITY -> godot/scripts/core/room_layout.gd:14 `const PLACEMENT_CAPACITY = Buildings.FURNITURE_CAPACITY` = 81920",
-        "_placement_capacity -> godot/scripts/core/room_layout.gd:147 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
+        "_placement_capacity -> godot/scripts/core/room_layout.gd:223 `clampi(placement_capacity, 1, PLACEMENT_CAPACITY)` max = 81920"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11672,7 +11672,7 @@
       "source_module": "room_layout",
       "source_relation": "lte",
       "source_resize_expression": "_placement_capacity",
-      "source_resize_line": 167,
+      "source_resize_line": 243,
       "source_value": 81920,
       "status": "proved_upper_bound"
     },

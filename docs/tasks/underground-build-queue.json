@@ -400,9 +400,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-identity-batches",
+      "branch": "codex/underground-furniture-batches",
       "evidence": {
-        "in_progress": "B1 typed RoomLayout cold scope before first callback/snapshot, then B2 complete pending-Furniture/Construction publication. Escaped guide results must be consumed/released synchronously before simulation/frame resumes, never hold cold arena for visible hover lifetime.",
+        "in_progress": "Reviewed B1 is integrated. B2 owns complete atomic pending-Furniture/Construction publication, followed by actual RoomOrders.Bindings and Layout.Sources. Cold preview results are consumed/released synchronously before simulation/input resumes.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -441,7 +441,15 @@
           "tests": "Batch21/7971,candidate11/358,Directory61/638; all failures/strict and raw diagnostics/leaks0; analyzer0/2",
           "review": "Root independently accepted exact source/test; packet24K+76+16controls; actual caller must charge and pin mutable observations."
         },
-        "active_batch_increment": "B1 typed Sources/cold Results under independent correction for truthful committed outcomes; B2 Router-owned atomic pending Furniture/Construction batch approved. Exact packet/bridge180N+76 bytes plus B1 receipt/provider/native coexistence in the same existing cold lease. No future Project source or extra receipt arena."
+        "active_batch_increment": "B2 Router-owned atomic pending Furniture/Construction batch under1089. Exact packet/bridge180N+76 bytes plus B1 receipt/provider/native coexistence in the same existing cold lease. No future Project source or extra receipt arena.",
+        "layout_cold_lifetime": {
+          "source": "26470492",
+          "registry": "05eb8ded",
+          "integration": "02fd0ea2/d3b9e6d2",
+          "tests": "RoomLayout57/563 and Budget6/58;63 tests621 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/2",
+          "review": "ug_furnishing accepted final exact source/test after correcting false failure on post-commit cleanup; committed outcome remains truthful and provider breach quarantines future input.",
+          "evidence_path": "docs/validation/evidence/underground-layout-cold-2026-10-03/"
+        }
       },
       "lease": {
         "state": "held"
@@ -596,6 +604,19 @@
           "integration": "397a6573/e0273b43",
           "tests": "13 tests /245 assertions /0 failures; strict/raw diagnostics and leaks all0; analyzer0/2",
           "review": "Independent geometry review accepted final actual-owner/streamed immutable catalog API;0 production-qualified content remains explicit."
+        },
+        "native_actor": {
+          "source": "eb0044bf",
+          "integration": "9126ba2b",
+          "tests": "Strict21/2713, native117 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/2",
+          "review": "ug_geometry accepted corrected in-tree native skeleton binding; two rendered cycles retain2016 green pixels and matching centroid84.6667. Actual presentation proof only; finite production profile qualification continues."
+        },
+        "catalog_extent": {
+          "source": "d486a8c8",
+          "integration": "db7b5bdb",
+          "tests": "Strict15/279 all failures/diagnostics/leaks0;analyzer0/2",
+          "review": "ug_geometry accepted exact current-catalog body/turn extent reader; output unchanged on refusal, no persistent allocation or new movement permission.",
+          "evidence_path": "godot/data/underground/evidence/catalog-extent-v1/"
         }
       },
       "lease": {
@@ -734,7 +755,17 @@
           "tests": "WorldBindings26/585 and Authority26/3090;52 tests3675 assertions0 failures;strict/raw diagnostics/leaks0;analyzer0/4",
           "scope": "Plan-first exact Sites-scoped natural/history composition; real claim/project drift and bounded cold lease regressions. Actual productive profiles/routes/contact/paid publication still required.",
           "evidence_path": "docs/validation/evidence/underground-phase-surveys-2026-10-03/iteration-3",
-          "review": "ug_geometry independently accepted final4 pins after correcting the MEDIUM cold WORK refresh guard; actual paid refresh/resume and composed WORK observation are covered."
+          "review": "ug_geometry independently accepted final4 pins after correcting the MEDIUM cold WORK refresh guard; actual paid refresh/resume and composed WORK observation are covered.",
+          "source": "a8346d37",
+          "integration": "6639648c"
+        },
+        "locations_retention": {
+          "source": "ac7a8cb0",
+          "registry": "1145652f",
+          "integration": "3fdfd5e8/51c1f580",
+          "tests": "Strict25/591 all failures/diagnostics/leaks0;analyzer0/2",
+          "review": "ug_furnishing accepted weak actual route observer with final callback-free Inventory, Budget and geometry rechecks; no retained cycle or wire change.",
+          "evidence_path": "docs/validation/evidence/underground-ug1075-bindings-2026-10-03/route-retention/"
         }
       },
       "lease": {

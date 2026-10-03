@@ -1,0 +1,25 @@
+{
+  "commit": "1c6853a73a27655e6e243012cfbd6e9a6a03e7d5",
+  "files": {
+    "godot/scripts/core/underground_space_owner.gd": "7dfcd77c063fd7bcda9182d7d555d1e26e876b4e5a4042d135c91204d08ccf7b",
+    "godot/test/test_underground_space_owner.gd": "79a4559008c10d2fa31125c091799a75e0ea9551855a2fdd511b06797b617c76"
+  },
+  "results": {
+    "tests": 28,
+    "assertions": 377,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 2
+  },
+  "logs": {
+    "analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "tests.log": "e827bcea4feca39fde79cf1cc1a562c92ab0e74ad7abb0238d24ef9465ae4c82",
+    "import.log": "69b16004c7d7bba3727503c2dfb2a6924b667f68e199706aabf267bbd2252c47"
+  }
+}

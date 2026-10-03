@@ -67,7 +67,7 @@ class ResidentLocations extends RefCounted:
 		return &"SPACE_RESIDENT_LOCATION_UNBOUND"
 
 class CoreSources extends Sources:
-	## Current real core records. UG07 can supply its truthful shared-space room identity reader.
+	## Actual core records, including explicit UG07 Room domain and paid installation status.
 	var _directory: Directory = null
 	var _buildings: Buildings = null
 	var _construction: Construction = null
@@ -125,23 +125,41 @@ class CoreSources extends Sources:
 		return &""
 
 	func _room(ref: Vector2i, out: Facts) -> StringName:
-		"""Preserve immutable purpose and membership without fabricating a Building parent."""
+		"""Preserve immutable purpose/domain; underground identity never borrows a flat tile address."""
 		if not _buildings.is_live_room(ref):
 			return &"SPACE_SOURCE_STALE"
+		var domain: Buildings.OpResult = _buildings.spatial_kind_of_room(ref)
+		if not domain.ok:
+			return &"SPACE_SOURCE_FACTS"
 		out.parent = _buildings.room_building_ref_of(ref)
 		out.a = _buildings.type_of_room(ref).value
-		out.b = _buildings.tile_offset_of_room(ref).value
-		out.c = _buildings.tile_count_of_room(ref).value
+		out.d = domain.value
+		if domain.value == Buildings.ROOM_SPACE_SURFACE:
+			var offset: Buildings.OpResult = _buildings.tile_offset_of_room(ref)
+			var count: Buildings.OpResult = _buildings.tile_count_of_room(ref)
+			if not offset.ok or not count.ok:
+				return &"SPACE_SOURCE_FACTS"
+			out.b = offset.value
+			out.c = count.value
 		return &""
 
 	func _furniture(ref: Vector2i, out: Facts) -> StringName:
-		"""Reassignment, kind, origin or rotation changes invalidate previously attached geometry."""
+		"""Pin actual installation and orientation; only surface pieces have a tile-origin fact."""
 		if not _buildings.is_live_furniture(ref):
 			return &"SPACE_SOURCE_STALE"
 		out.parent = _buildings.room_ref_of_furniture(ref)
+		var domain: Buildings.OpResult = _buildings.spatial_kind_of_room(out.parent)
+		if not domain.ok:
+			return &"SPACE_SOURCE_FACTS"
 		out.a = _buildings.type_id_of_furniture(ref).value
-		out.b = _buildings.origin_tile_of_furniture(ref).value
+		out.b = Buildings.NO_LINK
+		if domain.value == Buildings.ROOM_SPACE_SURFACE:
+			var origin: Buildings.OpResult = _buildings.origin_tile_of_furniture(ref)
+			if not origin.ok:
+				return &"SPACE_SOURCE_FACTS"
+			out.b = origin.value
 		out.c = _buildings.rotation_of_furniture(ref).value
+		out.d = 1 if _buildings.is_furniture_installed(ref) else 0
 		return &""
 
 	func _project(ref: Vector2i, out: Facts) -> StringName:
@@ -297,6 +315,11 @@ func configure(domain: Space.Domain, region_capacity: int, source_capacity: int)
 func initialization_refusal() -> StringName:
 	"""Expose missing actual bindings without pretending the empty world is safe."""
 	return _ready_error
+
+
+func is_bound_sources(candidate: Sources) -> bool:
+	"""An adapter must share this exact source reader, not merely coincident numeric references."""
+	return candidate != null and candidate == _sources and _ready_error == &""
 
 
 func domain_copy() -> Space.Domain:
@@ -510,6 +533,16 @@ func prepared_refusal(token: int) -> StringName:
 		return &"SPACE_REVISION_STALE"
 	var code: StringName = _sources_refusal(true)
 	return _claims_refusal(true) if code == &"" else code
+
+
+func prepared_has_changes(token: int) -> bool:
+	"""A sealed no-op need not invalidate every worker's static proof; source changes still count."""
+	if token == 0 or token != _stage_token or not _sealed:
+		return false
+	return _changed_count > 0 or _o_present != _s_o_present or _o_kind != _s_o_kind \
+		or _o_slot != _s_o_slot or _o_generation != _s_o_generation or _o_revision != _s_o_revision \
+		or _o_parent_slot != _s_o_parent_slot or _o_parent_generation != _s_o_parent_generation \
+		or _o_a != _s_o_a or _o_b != _s_o_b or _o_c != _s_o_c or _o_d != _s_o_d
 
 
 func publish(token: int) -> void:

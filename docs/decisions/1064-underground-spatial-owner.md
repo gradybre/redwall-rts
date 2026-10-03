@@ -6,8 +6,10 @@ Date: 2026-10-02 · Status: Accepted implementation contract; composed validatio
 UG21 implements the actual sparse geometry owner required by decision 1058 B2.
 `underground_space_owner.gd` owns physical regions, floor-section identity and
 confirmed spatial reservations. This first increment implements that store;
-the following `underground_space_authority.gd` increment must bind its
-revisioned survey to the real identity and excavation owners. Neither may copy
+the separate `underground_space_authority.gd` increment connects its revisioned
+survey to actual Room, Sites, Construction, Inventory and Work identities.
+The production profile, structural, contact and service bindings remain required.
+Neither may copy
 Sites' permanent paid-cut ledger, derive underground space from a surface tile,
 or permit a preview widget to declare supported space.
 
@@ -71,15 +73,22 @@ fact guard is an exact copied value, not a collision-prone hash used as proof.
 |---|---|
 | World | Null parent; all four facts zero |
 | Building | Null parent; BuildingDefinition ID, actual origin tile, rotation, interior ID |
-| Room | Actual parent Building; immutable purpose, actual tile-link offset and count, zero |
-| Furniture | Actual containing Room; FurnitureDefinition ID, origin tile, rotation, zero |
+| Room | Actual parent Building or null for underground; immutable purpose, surface tile-link offset/count or canonical zero/zero underground, actual `ROOM_SPACE_*` discriminator |
+| Furniture | Actual containing Room; FurnitureDefinition ID, surface origin tile or `NO_LINK` underground, authored rotation, actual installed byte as 0/1 |
 | Construction | Actual purpose-specific subject ref; purpose, type ID, zero, zero |
 | Resident | Actual containing Room or actual surface/no-room null; world X, Y, Z and spatial mode |
 
-`CoreSources` reads the existing real Buildings and Construction APIs. Their
-flat tile facts guard identity; they do not authorize underground placement.
-The current `Buildings.designate_room()` cannot register arbitrary stacked rooms;
-UG07 must extend the actual room owner instead of inventing Room/Building refs.
+`CoreSources` reads the actual Buildings and Construction APIs. Surface tile
+facts guard identity; they do not authorize underground placement. UG07 A adds
+real underground Room and pending Furniture identities through scoped owner
+commands. These have no surface TileLinks or tile origin; the reader branches
+on the actual Room discriminator before using those explicitly refused APIs.
+Installation changes invalidate prior Furniture source facts and require a new
+source revision before geometry can be republished. Coordinates and floor
+membership remain in the spatial owner. No surrogate Building is invented.
+UG07's paid fitting adapter still needs a reviewed staged-source bridge to
+prepare pending-to-installed geometry before payment. This owner cannot invent
+future Buildings facts or perform a fallible rebuild after the paid commit.
 The optional typed `ResidentLocations` reader must obtain real XYZ/mode and
 containment from actual movement/transform/room owners. Its base refuses, and
 CoreSources never fills a guessed Y, posture or containing Room from a ground
@@ -273,6 +282,42 @@ room confirmation/large-map edits must be scheduled accordingly; productive
 WORK cannot perform these operations. Native peak allocation measurement and
 actual composed contacts/occupancy/profile performance remain open.
 
+Raw import, strict-runner and analyzer logs for the accepted original owner
+commit and the final adapter increment are retained under
+[`underground-ug21-spatial-2026-10-03`](../validation/evidence/underground-ug21-spatial-2026-10-03/README.md),
+with exact source and log hashes. The final source-qualified clean import,
+following the assets-aside and deleted-cache procedure, reported zero diagnostic
+lines. Its focused runs reported:
+
+```text
+31 test(s), 418 assertion(s), 0 failure(s)
+19 test(s), 2621 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+Both suites individually emitted those zero diagnostic/leak footers. The adapter
+and owner plus their two tests reported
+`0 GDScript warning(s) in 0 of 4 file(s)` with `--max 0 --port 6152`.
+Independent source review accepted the new adapter and narrow CoreSources
+changes; its requested direct START/COMMIT phase assertions were added and
+separately re-reviewed before the final run.
+The adapter
+fixtures drive actual paid Work, Inventory, Reservations, Construction and Sites
+through all five physical operations. They cover atomic refusal/retry, retained
+cut labor, closing-marker lifetime, exact-union interior gaps, unfinished
+approaches, actual obstacle retention, stale floors, finite proof capacity and
+cold proof replacement. Their movement/profile/structure/service provider is
+explicitly synthetic; these runs do not qualify production profiles or routes.
+
+A development-machine probe executed 256 static plus dynamic proof pairs for
+one actual site/worker in 7.485 ms, with no survey rebuild or authoritative
+geometry change. It is not 256 distinct workers, does not advance Work, and
+omits the unbound production dynamic-profile cost. A prior clean-import attempt
+crashed in a native font-import thread; its raw error log is retained and is
+not counted as successful validation. The exact clean procedure passed on the
+unchanged source, then passed again after the review-requested direct phase test.
+
 ## Required evidence before completion
 
 Use actual core identities/stores for stale or reused room/furniture refs,
@@ -284,6 +329,113 @@ including free/retired generations and claims, and test each physical phase.
 Measure allocations/cold validation at explicit capacities without presenting
 them as adopted gameplay limits. UG21 remains running until the composed
 acceptance and independent review are complete.
+
+## Authority increment — allocation and publication contract
+
+The next increment uses a separate, derived static-proof cache. Its explicit
+capacity `P` is bounded by both the actual Jobs and Construction capacities;
+it has no production default. Each row contains these eleven I32 values in
+order: physical site slot/generation, Room slot/generation, phase Construction
+slot/generation, absolute quantum origin X/Y/Z, operation and physical phase.
+Two I64 values retain geometry and qualification revisions. Full identities
+are compared at use; the internal cache row is never a public handle.
+
+The row payload is `60*P`. A B8 presence column, I32 sorted-key row index and
+I32 lowest-free heap add `9*P`, for `69*P` fixed packed bytes. One prepared row
+adds 60 packed bytes. Prefix/free counts and configuration are separate scalar
+controls. A replacement keeps the prior row until publication; failed prepare
+returns a newly reserved row without changing the prior proof. No duplicate
+whole cache or authoritative undo image is needed. Successful composed load
+clears the cache before work can resume; no proof is persisted or hashed.
+
+Outside the packed cache, the adapter owns eight scalar integers (64 logical
+bytes), two booleans (2), two reusable IntResult numeric payloads (18) and a
+separate copied Domain (92): 176 known numeric bytes. The shared CoreSources
+reader owns one further reusable IntResult numeric payload (9), counted once
+for the composition rather than once per borrower. Reference, StringName,
+RefCounted, Variant and allocator headers are native storage, not included in
+these numeric widths. The owner alone has the additional 221 numeric bytes
+listed above (counters, seal, Facts and its own Domain).
+
+Cold proof input consists of the complete copied survey and a bounded
+`RoomSpace.Plan` with actual measured contacts. Plan/source copies and bounded
+box-union fragments must be counted with the owner snapshots above. The actual
+qualified binding must approve their joint allocation with `R`, `O` and `P`
+before the adapter allocates the cache; a valid local capacity alone grants
+no production budget. Native allocation and all concrete companion-owner
+staging remain additional measured obligations.
+
+The implemented adapter has a narrower paid-phase check than the separate
+prospective `RoomSpace.validate()` contract. It holds two snapshots and two
+plans only while qualifying a phase, not the latter validator's three copies.
+Let `K` be the domain's explicit volume-row limit, `n <= R` the survey rows,
+`o <= O` its source rows, `m` the phase-plan volumes and `c` its contacts. The
+adapter enforces `n + m + 2*c <= K`; cuts and connector endpoints are forbidden
+in this retained-site plan. Before creating its plan, the typed binding receives
+the remaining row limit and must honor it before allocating. The base binding
+refuses. Provider-owned retained copies and geometry/profile/route/sweep inputs
+remain separately admitted storage, even when that provider borrows these inputs.
+
+| Cold lifetime | Maximum simultaneously live packed payload, excluding fixed arenas |
+|---|---|
+| Survey plus next-face input | `S + T`, where `S = 48*n + 16*o`, `T = 48*m + 120*c` |
+| Qualification with isolated arguments | `2*(S + T)`; original and qualification snapshot/plan only |
+| Exact-union coverage before qualification | `S + T + 48*K`; two lists of at most K six-I32 fragments |
+| Physical patch after coverage | `S + T + 8*R + 144`; one full handle query and at most six outside slabs |
+| Companion preparation after physical patch | `S + 2*T`, plus the concrete companion's separately declared staging |
+
+These lifetimes are sequential. `cold_packed_peak_bytes(R, O, K)` returns the
+conservative packed bound `120*K + 32*O + 384`, after rejecting invalid counts
+before multiplication. The formula follows from `S + T <= 60*K + 16*O`,
+`R <= K`, and the table above. The final 384 bytes reserve sixteen six-I32 box
+buffers for the retained target, approach/reach, row/section packets, coverage
+intersection/core/side temporaries and bounded copy-loop scratch. This exceeds
+the maximum simultaneous box temporaries on these paths; it is an engineering
+scratch allowance, not geometry or a gameplay capacity. No full snapshot or
+plan is hidden in that constant. Typed Array/Variant headers, packed allocator
+growth, engine objects and native peak still require measurement and the shared
+reserve; this function reports logical packed payload only.
+
+Cold object numeric fields are likewise explicit: ColdCheck has five integer
+controls and one full site ref (48 bytes), each Snapshot has 24 numeric bytes,
+each Plan 32, each Region input/output packet 48 excluding its already-counted
+box, and each Owner.Result 16. Qualification holds two Snapshot/Plan pairs;
+physical patching holds one pair, at most three Region packets and two owner
+results simultaneously. The latter contributes 280 numeric bytes from those
+objects. Callee result packets, VM call frames, typed Array containers and the
+concrete binding's own controls/staging still belong to the composed transient
+and native measurement; they are not claimed to be zero by this component.
+
+The synthetic test pack `R=64, O=8, K=128, P=1` therefore declares 10,560 bytes
+for the two owner banks and heaps/mask, 129 cache bytes and 16,000 cold packed
+bytes; its test allocation allowance is explicitly not a production pack.
+The owner wire image adds `68*R + 42*O + 144` only during a save/load boundary;
+that boundary must not overlap paid-phase preparation. The final production
+pack must add concrete binding allocations, caller-retained survey/layout data,
+numeric object fields and native evidence before it can activate.
+
+ADMIT and WORK are proof-only. START, COMMIT and CANCEL prepare an exact
+operation candidate. Physical roles change only for actual committed cut,
+finish and closure transitions; FINISH consumes retained UNFINISHED truth,
+without another cut. Measured support, contacts, services and topology prepare
+through the same typed companion-owner boundary. Any missing binding refuses.
+Immediately before physical commit, all candidate identities and revisions
+must still match. Publication additionally requires ExcavationSites' exact
+synchronous publication-window attestation; calling the adapter's public
+method directly cannot open unpaid space. Aborting removes only transient
+preparation, preserving paid history and lasting Room/contact claims.
+
+WORK consults the cached static proof and fresh actual worker, posture, gear,
+load, contact and dynamic-obstruction truth. It performs no full snapshot,
+owner scan or cold validation. A stale revision refuses work until a cold
+`refresh_static_proof(actual_site)` succeeds for that exact funded phase and
+live Job. Refresh publishes only derived evidence, without geometry, payment,
+work or companion mutations. Refusal preserves the previous proof; a missing
+or unfunded phase cannot receive one. It is explicitly scheduled outside WORK,
+so a changed geometry revision cannot trigger a full rebuild per worker tick.
+These interfaces are implementation contracts,
+not evidence that qualified multilevel movement or production activation is
+already available.
 
 ## Source
 

@@ -24,6 +24,34 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const R: int = 32
 const O: int = 8
 
+class SyntheticRoomCommands extends Buildings.SpatialAuthority:
+	## Exact one-command test permit; production geometry and paid fitting installation are separate.
+	var owner: WeakRef = null
+	var action: int = -1
+	var subject: Vector2i = NULL_REF
+	var related: Vector2i = NULL_REF
+	var value: int = 0
+	var rotation: int = 0
+
+	func buildings_owner() -> RefCounted:
+		"""Return the actual store object, not a coincident Directory or numeric identity."""
+		return owner.get_ref() if owner != null else null
+
+	func mutation_refusal(next_action: int, next_subject: Vector2i, next_related: Vector2i,
+			next_value: int, next_rotation: int) -> StringName:
+		"""Only the precise operation explicitly arranged by this component test is allowed."""
+		return &"" if next_action == action and next_subject == subject and next_related == related \
+			and next_value == value and next_rotation == rotation else Buildings.REFUSE_SPATIAL_COMMAND
+
+	func permit(next_action: int, next_subject: Vector2i, next_related: Vector2i,
+			next_value: int = 0, next_rotation: int = 0) -> void:
+		"""Keep every field explicit; a fixture does not publish an unscoped production permission."""
+		action = next_action
+		subject = next_subject
+		related = next_related
+		value = next_value
+		rotation = next_rotation
+
 class SyntheticSpatial extends Contract.SpatialAuthority:
 	## Actual Rooms, but only synthetic geometry admission for claim-lifetime/identity tests.
 	var buildings: Buildings = null
@@ -727,3 +755,64 @@ func test_foreign_sites_and_changed_domain_cannot_receive_an_exemption() -> void
 	assert_equal(shifted.configure(_world, Vector3i(1024, 0, 0), Vector3i(-8, -8, -8), Vector3i(16, 16, 16), 64, 64, 100000), &"", "different datum")
 	fixture.spatial.domain = shifted
 	assert_equal(_owner.snapshot_for_site_into(image, fixture.sites, site), &"SPACE_SITE_DOMAIN", "domain identity drift")
+
+
+func test_actual_room_domains_and_furniture_installation_are_exact_source_facts() -> void:
+	"""Underground sources have real identities without flat coordinates; installation drift is visible."""
+	var commands: SyntheticRoomCommands = SyntheticRoomCommands.new()
+	commands.owner = weakref(_buildings)
+	assert_true(_buildings.bind_spatial_authority(commands).ok, "actual command owner binds")
+	commands.permit(Buildings.SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, Buildings.ROOM_TYPE_PRIVATE_ROOM)
+	var room: Vector2i = _buildings.designate_spatial_room(Buildings.ROOM_TYPE_PRIVATE_ROOM).ref
+	commands.permit(Buildings.SPATIAL_FURNITURE_CREATE, NULL_REF, room,
+		int(Catalog.FURNITURE_DEFINITION["bed"]), 3)
+	var bed: Vector2i = _buildings.stage_spatial_furniture(room, int(Catalog.FURNITURE_DEFINITION["bed"]), 3).ref
+	commands.action = -1
+	var facts: Owner.Facts = Owner.Facts.new()
+	assert_equal(_sources.read_into(room, facts), &"", "actual underground Room reads")
+	assert_equal([facts.parent, facts.a, facts.b, facts.c, facts.d],
+		[NULL_REF, Buildings.ROOM_TYPE_PRIVATE_ROOM, 0, 0, Buildings.ROOM_SPACE_UNDERGROUND], "no invented tile membership")
+	assert_false(_buildings.tile_offset_of_room(room).ok, "coordinate API correctly refuses")
+	assert_equal(_sources.read_into(bed, facts), &"", "pending actual Furniture reads despite refused tile API")
+	assert_equal([facts.parent, facts.b, facts.c, facts.d], [room, Buildings.NO_LINK, 3, 0], "pending orientation and no tile")
+	var token: int = _begin()
+	assert_equal(_owner.stage_source(token, room), &"", "actual underground source")
+	assert_equal(_owner.stage_source(token, bed), &"", "actual pending source")
+	_publish(token)
+	commands.permit(Buildings.SPATIAL_FURNITURE_INSTALL, bed, NULL_REF)
+	assert_true(_buildings.install_spatial_furniture(bed).ok, "synthetic install command changes actual flag")
+	commands.action = -1
+	assert_equal(_owner.source_refusal(bed), &"SPACE_SOURCE_DRIFT", "installation invalidates earlier evidence")
+	assert_equal(_sources.read_into(bed, facts), &"", "installed exact source")
+	assert_equal(facts.d, 1, "actual installed state")
+
+
+func test_surface_facts_remain_actual_and_unknown_room_domain_refuses() -> void:
+	"""The new discriminator keeps existing surface identity guards, and corrupted tags fail closed."""
+	var bed: Vector2i = _buildings.place_furniture(_room, int(Catalog.FURNITURE_DEFINITION["bed"]),
+		60 * 128 + 59, 0).ref
+	var facts: Owner.Facts = Owner.Facts.new()
+	assert_equal(_sources.read_into(_room, facts), &"", "surface source")
+	assert_equal([facts.parent, facts.b, facts.c, facts.d], [_hall, _buildings.tile_offset_of_room(_room).value,
+		40, Buildings.ROOM_SPACE_SURFACE], "actual surface membership")
+	assert_equal(_sources.read_into(bed, facts), &"", "actual surface furniture")
+	assert_equal([facts.b, facts.c, facts.d], [60 * 128 + 59, 0, 1], "surface origin and installed state")
+	var row: int = _buildings.directory().get_typed_row(_room)
+	_buildings._r_spatial_kind[row] = 255
+	assert_equal(_sources.read_into(_room, facts), &"SPACE_SOURCE_FACTS", "unknown Room kind refused")
+	assert_equal(_sources.read_into(bed, facts), &"SPACE_SOURCE_FACTS", "unknown containing domain refused")
+
+
+func test_prepared_change_query_distinguishes_noop_and_source_only_changes() -> void:
+	"""No-op lifecycle candidates need not invalidate every worker's static geometry proof."""
+	var token: int = _begin()
+	assert_false(_owner.prepared_has_changes(token), "unsealed candidate cannot claim exact changes")
+	assert_equal(_owner.seal(token), &"", "empty stage seals")
+	assert_false(_owner.prepared_has_changes(token), "identical packed state")
+	assert_false(_owner.prepared_has_changes(token + 1), "wrong token never proves anything")
+	assert_true(_owner.abort(token), "no-op abort")
+	token = _begin()
+	assert_equal(_owner.stage_source(token, _room), &"", "source-only stage")
+	assert_equal(_owner.seal(token), &"", "source stage seals")
+	assert_true(_owner.prepared_has_changes(token), "source facts are real state changes")
+	assert_true(_owner.abort(token), "source-only abort")

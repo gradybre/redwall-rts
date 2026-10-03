@@ -649,3 +649,35 @@ and raw footers reported zero unexpected diagnostics and object/resource leaks,
 with zero expected/tolerated diagnostics. Analyzer: **0 GDScript warning(s) in
 0 of 2 file(s)**. Exact source pins, final logs and the rejected alias-regression
 run are retained in the 1075 evidence folder's `reusable-region-reader/` child.
+
+
+## Actual Transform mutation freshness for route occupancy
+
+A cached root-cell occupancy lookup needs to detect actual Transform writes by
+another owner before it can answer that a local volume is empty. The existing
+Transform has no public mutation revision. Its new `mutation_revision()` is a
+single monotonic runtime-only integer: every successful `place`, `advance`,
+`set_yaw`, `unbind` and `reset` changes it, including same-value writes. Refused
+writes preserve it. The token is neither a saved/canonical column nor a change
+to position semantics. At int64 exhaustion it saturates and exposes zero,
+permanently refusing cache validity for that instance; whole-settlement reset
+still completes and never recycles an old token. Replacing the actual owner
+requires a fresh exact-instance binding.
+
+`invalidate_runtime_caches()` is the explicit owning boundary for a future
+in-place restore, without changing pose bytes. The current owner15 save module
+only validates inactive columns; there is no existing live Transform restore
+writer to retrofit. Any UG16 live publisher must invalidate before replacing
+columns or replace the whole owner. No completed composed-restore claim is made.
+The Transform counter costs **8 logical control bytes** in the existing binding
+reserve. Routes will retain one additional **8-byte expected revision** inside
+its fixed control/query ceiling; occupancy answers must require a positive exact
+match. Own movement commits update their derived root bucket synchronously.
+Foreign pose writes require one explicit bounded occupancy refresh, never a
+whole-world or whole-resident rescan on each productive Work query.
+
+Independent review accepted the exact two source/test pins. Clean import and
+strict Transform tests reported **30 tests /203 assertions /0 failures**, both
+strict/raw diagnostic and leak footers zero, and no expected/tolerated diagnostics.
+The analyzer reported zero warnings in both files. Raw logs and source pins are
+retained under the 1075 evidence folder's `transform-freshness/` child.

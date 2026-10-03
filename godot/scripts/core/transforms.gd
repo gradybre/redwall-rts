@@ -138,6 +138,8 @@ var _bound_persistent_id: PackedInt32Array = PackedInt32Array()
 
 var _bound_count: int = 0
 var _last_refusal: StringName = REFUSE_NONE
+# Runtime cache freshness only; never saved, hashed or allowed to wrap into an old token.
+var _mutation_revision: int = 1
 
 
 func _init(directory: EntityDirectory) -> void:
@@ -160,6 +162,22 @@ func is_bound_directory(candidate: EntityDirectory) -> bool:
 	return candidate != null and candidate == _directory
 
 
+func mutation_revision() -> int:
+	"""A positive runtime token changes on every successful write; zero permanently poisons caches."""
+	return _mutation_revision if _mutation_revision < IntMath.INT64_MAX else 0
+
+
+func invalidate_runtime_caches() -> void:
+	"""Invalidate observations before an owning in-place restore; no authoritative pose byte changes."""
+	_mark_mutated()
+
+
+func _mark_mutated() -> void:
+	"""Saturate forever on exhaustion so reset/load cannot recycle a token or leave a partial reset."""
+	if _mutation_revision < IntMath.INT64_MAX:
+		_mutation_revision += 1
+
+
 func reset() -> void:
 	"""COLD, GUARDED RESET: zero all nine columns and the derived count. Never on a tick path.
 
@@ -177,6 +195,7 @@ func reset() -> void:
 
 	Allocates nothing: every column is filled in place at the capacity `_init()` sized it to.
 	"""
+	_mark_mutated()
 	_x.fill(0)
 	_y.fill(0)
 	_z.fill(0)
@@ -270,6 +289,7 @@ func place(ref: Vector2i, x: int, y: int, z: int, yaw: int) -> bool:
 	if not _fields_fit_int32(x, y, z, yaw):
 		_last_refusal = REFUSE_OUT_OF_INT32
 		return false
+	_mark_mutated()
 	if _bound_persistent_id[row] == 0:
 		_bound_count += 1
 	_bound_persistent_id[row] = _directory.get_persistent_id(ref)
@@ -298,6 +318,7 @@ func advance(ref: Vector2i, x: int, y: int, z: int) -> bool:
 	if not _fields_fit_int32(x, y, z, _yaw[row]):
 		_last_refusal = REFUSE_OUT_OF_INT32
 		return false
+	_mark_mutated()
 	_prev_x[row] = _x[row]
 	_prev_y[row] = _y[row]
 	_prev_z[row] = _z[row]
@@ -318,6 +339,7 @@ func set_yaw(ref: Vector2i, yaw: int) -> bool:
 	if not IntMath.fits_int32(yaw):
 		_last_refusal = REFUSE_OUT_OF_INT32
 		return false
+	_mark_mutated()
 	_prev_yaw[row] = _yaw[row]
 	_yaw[row] = yaw
 	_last_refusal = REFUSE_NONE
@@ -330,6 +352,7 @@ func unbind(ref: Vector2i) -> bool:
 	if row == NOT_POSITIONED:
 		_last_refusal = _bound_refusal(ref)
 		return false
+	_mark_mutated()
 	_x[row] = 0
 	_y[row] = 0
 	_z[row] = 0

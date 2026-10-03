@@ -1073,3 +1073,9 @@ future-affecting once integrated; no codec assignment is invented here.
 | Local placement identities, room binding and geometry | `_generation`, `_room_row`, `_type`, `_x`, `_z`, `_rotation` | 4 | `_placement_capacity` <= 81920 | inactive payload 0; generation retained and never wraps; rotation 0..3 | UNRESOLVED | §4 COMPONENT_COLUMNS | Local draft/receipt namespace, distinct from EntityDirectory. INT32_MAX free slots remain retired. QUESTION: which owner/schema and ordinals retain these draft identities and canonical room-relative coordinates? |
 | Accepted project references | `_project_slot`, `_project_generation` | 4 | `_placement_capacity` <= 81920 | `(-1, 0)` outside accepted rows | UNRESOLVED | §4 COMPONENT_COLUMNS | References belong to the bound construction owner and require full generation validation. QUESTION: which saved construction owner/schema can reconstruct these receipts without installing unfinished furniture? |
 | Capacities and runtime adapters | -- | -- | -- | -- | UNRESOLVED | §4 COMPONENT_COLUMNS | `_room_capacity`, `_placement_capacity`, `_geometry_capacity` are bounded constructor inputs; `_submitting` is false at every legal save boundary. Snapshot/profile/validation/result/batch classes are ephemeral copied owner inputs or cold-operation scratch. Callables and the immutable definition object rebind after load. QUESTION: which owner declaration records capacity and rebinding requirements when this foundation is composed? |
+
+### `godot/scripts/core/excavation_contract.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable excavation operation facts and owner contract | -- | -- | -- | -- | 3 | -- | Decision 1056. ECON-001/002/005 constants and a typed abstract authority; no instance state or packed columns. The base authority refuses admission. Concrete physical state belongs to excavation_sites, not this interface. |

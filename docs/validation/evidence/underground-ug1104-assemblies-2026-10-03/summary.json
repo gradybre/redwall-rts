@@ -1,0 +1,41 @@
+{
+  "scope": "component-only, exact strict CI shard wrapper",
+  "suites": [
+    {
+      "suite": "test_underground_connector_assemblies.gd",
+      "evidence": "final/test_underground_connector_assemblies.gd.log",
+      "tests": 17,
+      "assertions": 1002,
+      "failures": 0,
+      "diagnostics": [
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_underground_connector_recipes.gd",
+      "evidence": "iteration-3/test_underground_connector_recipes.gd.log",
+      "tests": 20,
+      "assertions": 869,
+      "failures": 0,
+      "diagnostics": [
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    },
+    {
+      "suite": "test_underground_connector_catalog.gd",
+      "evidence": "iteration-3/test_underground_connector_catalog.gd.log",
+      "tests": 18,
+      "assertions": 332,
+      "failures": 0,
+      "diagnostics": [
+        "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+        "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+      ]
+    }
+  ],
+  "tests": 55,
+  "assertions": 2203,
+  "failures": 0
+}

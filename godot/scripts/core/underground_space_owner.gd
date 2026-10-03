@@ -101,78 +101,84 @@ class CoreSources extends Sources:
 		return _locations
 
 	func read_into(ref: Vector2i, out: Facts) -> StringName:
-		"""Pin structural identity facts, excluding temperature, stock and paid-work progress."""
+		"""Normal observations retain the actual multilevel Resident callback boundary."""
+		if _directory != null and _directory.is_valid_of_kind(ref, Directory.KIND_RESIDENT):
+			out.clear()
+			out.kind = Directory.KIND_RESIDENT
+			return _locations.read_into(ref, out) if _locations != null else &"SPACE_RESIDENT_LOCATION_UNBOUND"
+		return read_leaf_into(self, ref, out)
+
+	static func read_leaf_into(reader: CoreSources, ref: Vector2i, out: Facts) -> StringName:
+		"""Read actual non-Resident stores without invoking Sources or Resident observation hooks."""
 		out.clear()
-		if _directory == null or not _directory.is_valid(ref):
+		if reader == null or reader._directory == null or not reader._directory.is_valid(ref):
 			return &"SPACE_SOURCE_STALE"
-		out.kind = _directory.get_kind(ref)
+		out.kind = reader._directory.get_kind(ref)
 		match out.kind:
 			Directory.KIND_WORLD:
 				return &""
 			Directory.KIND_BUILDING:
-				return _building(ref, out)
+				return _building(reader, ref, out)
 			Directory.KIND_ROOM:
-				return _room(ref, out)
+				return _room(reader, ref, out)
 			Directory.KIND_FURNITURE:
-				return _furniture(ref, out)
+				return _furniture(reader, ref, out)
 			Directory.KIND_CONSTRUCTION:
-				return _project(ref, out)
-			Directory.KIND_RESIDENT:
-				return _locations.read_into(ref, out) if _locations != null else &"SPACE_RESIDENT_LOCATION_UNBOUND"
+				return _project(reader, ref, out)
 		return &"SPACE_SOURCE_KIND_UNBOUND"
 
-	func _building(ref: Vector2i, out: Facts) -> StringName:
+	static func _building(reader: CoreSources, ref: Vector2i, out: Facts) -> StringName:
 		"""Ground tile facts are identity guards, never underground coordinates."""
-		if not _buildings.is_live_building(ref):
+		if not reader._buildings.is_live_building(ref):
 			return &"SPACE_SOURCE_STALE"
-		out.a = _buildings.type_id_of_building(ref).value
-		out.b = _buildings.origin_tile_of_building(ref).value
-		out.c = _buildings.rotation_of_building(ref).value
-		out.d = _buildings.interior_id_of_building(ref).value
+		out.a = reader._buildings.type_id_of_building(ref).value
+		out.b = reader._buildings.origin_tile_of_building(ref).value
+		out.c = reader._buildings.rotation_of_building(ref).value
+		out.d = reader._buildings.interior_id_of_building(ref).value
 		return &""
 
-	func _room(ref: Vector2i, out: Facts) -> StringName:
+	static func _room(reader: CoreSources, ref: Vector2i, out: Facts) -> StringName:
 		"""Preserve immutable purpose/domain; underground identity never borrows a flat tile address."""
-		if not _buildings.is_live_room(ref):
+		if not reader._buildings.is_live_room(ref):
 			return &"SPACE_SOURCE_STALE"
-		if _buildings.room_identity_into(ref, _room_identity) != &"":
+		if reader._buildings.room_identity_into(ref, reader._room_identity) != &"":
 			return &"SPACE_SOURCE_FACTS"
-		out.parent = Vector2i(_room_identity[2], _room_identity[3])
-		out.a = _room_identity[1]
-		out.d = _room_identity[0]
+		out.parent = Vector2i(reader._room_identity[2], reader._room_identity[3])
+		out.a = reader._room_identity[1]
+		out.d = reader._room_identity[0]
 		if out.d == Buildings.ROOM_SPACE_SURFACE:
-			out.b = _room_identity[4]
-			out.c = _room_identity[5]
+			out.b = reader._room_identity[4]
+			out.c = reader._room_identity[5]
 		return &""
 
-	func _furniture(ref: Vector2i, out: Facts) -> StringName:
+	static func _furniture(reader: CoreSources, ref: Vector2i, out: Facts) -> StringName:
 		"""Pin actual installation and orientation; only surface pieces have a tile-origin fact."""
-		if not _buildings.is_live_furniture(ref):
+		if not reader._buildings.is_live_furniture(ref):
 			return &"SPACE_SOURCE_STALE"
-		out.parent = _buildings.room_ref_of_furniture(ref)
-		var domain: Buildings.OpResult = _buildings.spatial_kind_of_room(out.parent)
+		out.parent = reader._buildings.room_ref_of_furniture(ref)
+		var domain: Buildings.OpResult = reader._buildings.spatial_kind_of_room(out.parent)
 		if not domain.ok:
 			return &"SPACE_SOURCE_FACTS"
-		out.a = _buildings.type_id_of_furniture(ref).value
+		out.a = reader._buildings.type_id_of_furniture(ref).value
 		out.b = Buildings.NO_LINK
 		if domain.value == Buildings.ROOM_SPACE_SURFACE:
-			var origin: Buildings.OpResult = _buildings.origin_tile_of_furniture(ref)
+			var origin: Buildings.OpResult = reader._buildings.origin_tile_of_furniture(ref)
 			if not origin.ok:
 				return &"SPACE_SOURCE_FACTS"
 			out.b = origin.value
-		out.c = _buildings.rotation_of_furniture(ref).value
-		out.d = 1 if _buildings.is_furniture_installed(ref) else 0
+		out.c = reader._buildings.rotation_of_furniture(ref).value
+		out.d = 1 if reader._buildings.is_furniture_installed(ref) else 0
 		return &""
 
-	func _project(ref: Vector2i, out: Facts) -> StringName:
+	static func _project(reader: CoreSources, ref: Vector2i, out: Facts) -> StringName:
 		"""Construction subject remains in its own documented namespace, including physical sites."""
-		if _construction == null or not _construction.is_live_project(ref):
+		if reader._construction == null or not reader._construction.is_live_project(ref):
 			return &"SPACE_SOURCE_STALE"
-		out.parent = _construction.subject_ref_of(ref)
-		_construction.purpose_into(ref, _number)
-		out.a = _number.value
-		_construction.type_id_into(ref, _number)
-		out.b = _number.value
+		out.parent = reader._construction.subject_ref_of(ref)
+		reader._construction.purpose_into(ref, reader._number)
+		out.a = reader._number.value
+		reader._construction.type_id_into(ref, reader._number)
+		out.b = reader._number.value
 		return &""
 
 class Region extends RefCounted:

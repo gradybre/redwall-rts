@@ -15,40 +15,49 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `3e891a41` passed **10,227 tests / 953,231
+The latest full frozen source `cc2ffbac` passed **10,383 tests / 957,996
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
-zero analyzer warnings across 1,140 scripts. The
-[checkpoint logs](evidence/modular-build/checkpoint-3e891a41/README.md)
-record the exact clean-assets/cache/import and no-argument suite procedure:
+zero analyzer warnings across1,152 scripts. The
+[checkpoint logs](evidence/modular-build/checkpoint-cc2ffbac/README.md)
+record the exact clean-assets/cache/import and no-argument suite procedure;
+source and HEAD stayed unchanged and the original assets state was restored:
 
 ```text
-10227 test(s), 953231 assertion(s), 0 failure(s)
+10383 test(s), 957996 assertion(s), 0 failure(s)
 diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
 log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+0 GDScript warning(s) in 0 of 1152 file(s)
 ```
 
-This includes full-size painted-room admission, packed footprint validation,
-actual World structural phase observations and compact native actor content.
-It also includes unique cut mapping, endpoint preservation, the static profile-edge
-query and reviewed mole grip. Subsequent profile-path search and atomic
-Room/Sites reservation retain separate focused evidence.
+This checkpoint includes actual natural surface anchors, World-owned Locations,
+unique immutable billable connector assemblies, final actual-source/work-face
+checks and the reconciled logical memory census. It does not create a paid
+entrance or qualify an actual complete worker construction sequence.
 
-The subsequent pushed head `2f29ffd1` passed all remote CI gates in9minutes37seconds.
-The strict aggregate verified355 suite files executed exactly once across8 shards:
-10,249 tests,953,898 assertions,0 failures,0 unexpected errors/warnings and0
-object/resource leaks; the analyzer reported0 warnings in1,141 scripts.
-[Remote evidence](../../validation/evidence/underground-ci-2f29ffd1/README.md)
-retains the exact merge/head identities and diagnostic totals. This later CI
-run has no same-head local single-run comparison artifact and does not replace
-the separately pinned local full checkpoint above.
+[Remote run37152867094](https://github.com/gradybre/redwall-rts/actions/runs/37152867094)
+passed all eight suite shards and four Godot gates but failed Specification
+because a generated capacity report retained an old source hash and resize-line
+number. The final aggregate correctly failed. The reviewed provenance-only
+correction is integrated at`d20f4678`; all34 Specification workflow commands and
+the additional9-case ledger regression passed at`e9d52293` in the
+[corrected checkpoint](../../validation/evidence/underground-spec-e9d52293/README.md).
+Neither local correction retroactively changes that remote result.
 
-The next integrated source increment adds final actual-source attestation and
-solid work-face checks. The latter passed 58 tests / 2,124 assertions with zero
-failures, unexpected diagnostics, leaks or analyzer warnings in its seven files;
-[focused evidence](../../validation/evidence/underground-work-face-2026-10-03/README.md)
-records the independent review and exact scope. Source and lease changes during
-validation now refuse before a geometry image can be allocated or accepted.
-These commits are newer than the remote CI checkpoint above.
+Subsequently integrated source-local mole motion proof`c62d6236` includes the
+actual rendered loop boundary, forward/reverse transitions, real tool contact
+and native sampling evidence. Exact WORK selection`e134818f` lets distinct
+contact sources share the same worker/tool/BUILD key without silently taking
+the first file row. Its25 tests/601 assertions, strict diagnostic/leak guards
+and two-file analyzer passed. The ordinary ambiguous query refuses; committed
+Routes consumers are being updated separately. Neither component constitutes
+production profile or first-entry qualification.
+
+Independent review of the next connector Funding increment found a late
+Inventory callback after its proposed final START guard. The corrected typed
+Reservations boundary is under test and remains outside the accepted source.
+All observers must finish while Inventory can still roll back; installed
+geometry and material settlement must then publish without another fallible
+observation. The rejected iteration and review are retained.
 
 Brendan approved wood-only timber stair assemblies: 1 U of wood and 12 WU per
 tread including bearer/joinery, 4 U and 32 WU per 2×2 m landing. The current

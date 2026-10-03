@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03",
+  "updated": "2026-10-03T21:20:14.840064+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -658,6 +658,12 @@
           "state": "authorized; concrete Placement API agreed before coding",
           "scope": "Purpose8 full local PlacementRef/assembly operation; actual Funding/Jobs/Work/Gear; bill each approved wood-only assembly once; exact final leaf after final recipe observation; paid companions before prefix advance; cancellation retains committed prefix and blocked refund receipt",
           "dependencies": "Actual Placement/companion/pure publication context and installation Contacts; base refusals do not establish playable completion"
+        },
+        "funding_final_boundary_2026_10_03": {
+          "status": "first source candidate rejected; correction being strict-tested",
+          "review": "Root HIGH: final START check preceded Inventory seed-expiry observer, called even on wood. Guard must follow actual Inventory staging and precede commit; real late observer must leave goods/claims/WIP unchanged. Typed exact Router/Funding/Reservations/project/primary Job scope; no gate relaxation.",
+          "scope": "Reservations source/test lease granted. Approved16 logical transient bytes for exact Funding settling Project/Job bracket, cleared at every outer return; shared reserve/source census still required.",
+          "evidence": "docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/"
         }
       },
       "lease": {
@@ -955,6 +961,21 @@
           "scope": "Yaw0/source-local;386 actual rendered edges including loop closure. No arbitrary crossclip/other-yaw or productionpermission",
           "checks": "11source/50output pins verified;47 independentPython checks pass; native2335 poses/5349 assertions/0fail;tip9/61/0; allrawdiagnostics/leaks0",
           "remaining": "Actual state driver, full profiles, highwall qualification, physical workstations, route/native/memory acceptance"
+        },
+        "motion_proof_integration_2026_10_03": {
+          "source_commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+          "integrated_commit": "c62d6236",
+          "review": "Root accepted corrected actual penultimate-to-first rendered loop, endpoint timing, reverse recovery, native positive-count/failure guards; eleven source and fifty output pins plus historical capture helper checked.",
+          "tests": "47 Python checks; native2335 poses/5349 assertions, tip9/61, topology34119 assertions; strict/raw diagnostics/leaks0; analyzer0/4.",
+          "limits": "Source-local yaw0 component only; high-wall/source-state role union, actual frontier and production profiles remain open."
+        },
+        "exact_work_selection_2026_10_03": {
+          "source_commit": "d714e889144ac6e985700e5f51d021262875e2a1",
+          "integrated_commit": "e134818f",
+          "registry": "e9d52293",
+          "review": "Root independently accepted frozen source/test pins, exact source selection with real Job/Work/Gear reads, ordinary ambiguous WORK refusal, unchanged movement uniqueness and bounded16 variants. Registry append retains both prior integration and new stanza.",
+          "tests": "25 tests/601 assertions/0 failures; strict/raw unexpected diagnostics/leaks0; analyzer0/2. Selected-suite evidence, not full no-argument run.",
+          "limits": "Actual committed Routes consumers in progress; no production work qualification follows from selection API."
         }
       },
       "lease": {
@@ -1024,7 +1045,7 @@
         "godot/scripts/core/underground_connector_placements.gd.uid",
         "godot/test/test_underground_connector_placements.gd",
         "godot/test/test_underground_connector_placements.gd.uid",
-        "docs/decisions/1105-connector-placements.md"
+        "docs/decisions/1105-actual-connector-placements.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1363,6 +1384,10 @@
           "known_bytes": 378120,
           "remaining_bytes": 146168,
           "runtime_qualified": false
+        },
+        "placement_followup_2026_10_03": {
+          "status": "implementation in progress",
+          "scope": "Original-token InstallationContext, pure publication after payment, exact Sites/traversal marker scope, current immutable WORK selection in actual Routes actors. No production frontier or playable entry accepted."
         }
       },
       "lease": {
@@ -1394,8 +1419,8 @@
               "godot/test/test_underground_surface_anchor.gd.uid",
               "docs/decisions/1103-actual-surface-work-anchor.md"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits.",
-            "branch": "codex/underground-surface-anchor"
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held.",
+            "branch": "codex/underground-paid-cut-contact"
           }
         ]
       }
@@ -2226,6 +2251,17 @@
       "head_unchanged": true,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-499bfd73/README.md",
       "remote_ci": "37149792747 Memory ledger arithmetic failed; accepted correctionf7674d24 integratedcaa28a14 passes all34 Specification commands. Subsequent successful remote run not yet claimed."
+    },
+    {
+      "id": "full-cc2ffbac-2026-10-03",
+      "commit": "cc2ffbac9dcada03c24cfb298cba0c9bf8870d4d",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-cc2ffbac/",
+      "summary": "10383 test(s), 957996 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "analyzer": "0 GDScript warning(s) in 0 of 1152 file(s)",
+      "procedure": "Exact clean assets/cache/import/noarg; source and HEAD unchanged, assets original state restored.",
+      "limits": "Specification failed stale generated capacity source hash/line; remote37152867094 passed8 shards/4 Godot gates but aggregate correctly failed. Headless component checkpoint only."
     }
   ],
   "crosscut_fixes": [
@@ -2329,6 +2365,18 @@
         "finding": "Material coverage matches fine-cell boundaries, but rounded burrow and bent passage walls remain visibly stepped. Organic silhouette quality is not accepted.",
         "constraint": "Smooth geometry must stay consistent with authoritative solid/usable space, collision, placement and openings; renderer-only corner clipping cannot grant uncut floor."
       }
+    },
+    {
+      "id": "capacity-sidecar-and-selected-work-2026-10-03",
+      "commits": [
+        "d20f4678",
+        "c62d6236",
+        "e134818f",
+        "e9d52293"
+      ],
+      "scope": "Reviewed capacity source-provenance correction plus accepted motion proof and exact WORK source selector. No source or gate weakened.",
+      "evidence": "docs/validation/evidence/underground-spec-e9d52293/",
+      "validation": "All35 commands passed:34 Specification workflow commands plus9-case stale-ledger regression; capacity190 checks/0 failures and memory38 tests/OK. Not a new full Godot checkpoint."
     }
   ]
 }

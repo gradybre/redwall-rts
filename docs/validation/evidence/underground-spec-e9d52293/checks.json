@@ -1,0 +1,403 @@
+[
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.064,
+    "log": "01-decision_numbers.log",
+    "sha256": "17ef29d890e149b00b700935786e630669019d7128ba12ae4bbc3d114bd1de84"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/ready07_arithmetic.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-spec-e9d52293/arithmetic.json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.686,
+    "log": "02-ready07_arithmetic.log",
+    "sha256": "b59dcf596a209f76dd81925e12e34634f9a59a884b29d031dcf1f99485d6ef71"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.436,
+    "log": "03-underground_memory_budget.log",
+    "sha256": "8aa9093ac3d83908d6500b8608111cc17b7232127482b969fee7e2325bb4d5f3"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "seconds": 7.931,
+    "log": "04-test_underground_memory_budget.log",
+    "sha256": "1487a03c3f36a6d674380253cd994d336e8e96d7ea68977aa917ba20778ec6de"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "log": "05-merge_gate.log",
+    "sha256": "37e0e2161a4d7f11f3e96b9841585fe1f46f48b3d8016ba352bfb3a104a4c78d"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/setting_contract.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-spec-e9d52293/setting-contract.json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "log": "06-setting_contract.log",
+    "sha256": "a920588581bf6ae8a949c30f71d99111f7d243cf34a647581c25f0e24591fd5c"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "log": "07-dispatch_plan.log",
+    "sha256": "7a6b51c914e94ea51d6da6e2c18b8921e592e893e67ef8e598401c7f7a67618b"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "log": "08-astra_inbox.log",
+    "sha256": "ebffbd747255719e27474c78d5fdd6afbdec4a3ad7da4626104938ca1b34f11b"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.317,
+    "log": "09-validate_save_registry_handoff.log",
+    "sha256": "2af715fbdd70703967448916d4fdce30c8aef9a3fdabe4946f7da0f3fb8182b2"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "log": "10-generate_canonical_state_table.log",
+    "sha256": "4b0bd4062583ebf847051a9f9852e1971fe92966216b10f1c62af46074a597bc"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "log": "11-validate_cycle01_handoff.log",
+    "sha256": "62c9a4d4edcc57a04286cab87f727763a44af183f9fcfee0e5e3ac3df1e849dc"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "log": "12-validate_cycle02_handoff.log",
+    "sha256": "11af5a380cec4dbf7e43fdd9976a4a21a6aba3f331634bc29108b8df69ca3bb8"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "log": "13-validate_cycle03_handoff.log",
+    "sha256": "a1ffc5e6854011c19ebda221ed275b2ee8d69cfc99097e58c1175c0ded5c2630"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.611,
+    "log": "14-audit_registry_capacities.log",
+    "sha256": "7be600465d23e377044f6993a3ee0cfef32484c44afead5a2175b2366bfc4be6"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "seconds": 3.22,
+    "log": "15-test_registry_capacity_audit.log",
+    "sha256": "3d51369b9edf4cc746c61c76d2e08a4135149c944efb00e46eec2607f0cf89d0"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.613,
+    "log": "16-generate_component_columns_schema.log",
+    "sha256": "cdcac7303ddc80f5999ff3aa22f671bc624be00ecc6bd317818724dded7fdb4b"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_component_columns_schema.py"
+    ],
+    "exit_code": 0,
+    "seconds": 18.242,
+    "log": "17-test_component_columns_schema.log",
+    "sha256": "7258d6554c2c4a0aae82ca63c03fb66f9c6485b6dd0b7c4d42960d3a5906dfdc"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.032,
+    "log": "18-lane_notes.log",
+    "sha256": "f032be71a1bc0154ff2a92cc15c54f0902f1ec0f940601f55404c666c42c89ac"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.429,
+    "log": "19-test_movement_envelopes.log",
+    "sha256": "67fba71b9edb1930669764cff1508e7c9c34a1a8ad83853bbfb2fb76d45e2239"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.064,
+    "log": "20-test_movement_profile_policy.log",
+    "sha256": "36994041f0a88abcaff6c8a04c123d34e33275ff703f52ab99e1d1f8281318eb"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.306,
+    "log": "21-state_registry_coverage.log",
+    "sha256": "93c6fca7a8cfb829141fb798017d8be2a0e2765cb934ca9fc6a44431b139b447"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_headless_runner.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.031,
+    "log": "22-test_headless_runner.log",
+    "sha256": "dcd2147edfda2291b456dfb6d9f3021f0fed07760d5a1c8869fc5446f30e28fe"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_qualify.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.433,
+    "log": "23-test_qualify.log",
+    "sha256": "7b6310ad05355d672b6fae6d39c0ec0947d9c6d8f5c088a0cf8efe7acd8d8e0e"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_winter.py"
+    ],
+    "exit_code": 0,
+    "seconds": 8.334,
+    "log": "24-test_winter.log",
+    "sha256": "cf90f142bdfab89578ec77823014052ab803eb1446f1a5f7fca5bd58406aec0c"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.402,
+    "log": "25-test_merge_gate.log",
+    "sha256": "18fdfce9d7c377cb46da9cb09b14f242af17193dcf31e0dd850702921cad328a"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_repair_meshy_rig.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.038,
+    "log": "26-test_repair_meshy_rig.log",
+    "sha256": "847c0df5205c89e50789dbb4ae6dc709dd233a0f3399847358d5240ba516eea0"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_rig_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.072,
+    "log": "27-test_rig_meshy_tail.log",
+    "sha256": "366ec3b2cc132a81593c27e58a97afd21b71681871a7974d260da6f8a09ea557"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_bake_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.169,
+    "log": "28-test_bake_meshy_tail.log",
+    "sha256": "c97b6774b5dcef730741e426fd63f77dad93d456a819d543dbd9aa0ea5c13540"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_ground_meshy_clips.py"
+    ],
+    "exit_code": 0,
+    "seconds": 1.386,
+    "log": "29-test_ground_meshy_clips.log",
+    "sha256": "ba2bfe44226939205d808405abc815f1dde86ff17276c8d1d31f7cd82c1fa222"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_demo_texture_imports.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.327,
+    "log": "30-test_demo_texture_imports.log",
+    "sha256": "b0907602ca6b584d9f94b8b0b285b8b277c168659bfb09127aa39eef359a2d91"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_build_demo_windows.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.042,
+    "log": "31-test_build_demo_windows.log",
+    "sha256": "87d1f6e8ebdb0206a9918ad13607cb8fbf807a8f656c653dfd18ec1e7e36fcb0"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_balance_report.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.032,
+    "log": "32-test_balance_report.log",
+    "sha256": "ae9b468b7a4cd8b9dc762177113ca8fa9fa34a4b4fd66ffc66bf6249f602fbfa"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_soak_report.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.037,
+    "log": "33-test_soak_report.log",
+    "sha256": "ec0c79a94e93f2d2b74d0a1269f511fb362c15f9377cfa061d569c55bc57952d"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_stage_art_passes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.032,
+    "log": "34-test_stage_art_passes.log",
+    "sha256": "e164a53c5c6dda417d4e8aaa37bde97f438f5ad0fb36c8f4a0ad0a7c54f2c343"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ug1102-ledger-2026-10-03/test_stale_census.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "seconds": 4.37,
+    "log": "35-test_stale_census.log",
+    "sha256": "83ef18ea7108823dc036003f79a2e26c363e1d400fa7382b083242b9c6e51dfc"
+  }
+]

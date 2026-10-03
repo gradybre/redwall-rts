@@ -39,7 +39,8 @@ python3 tools/underground_build_queue.py ready
 | UG15 | Whole-surface renovation and coordinated item returns | UG05, UG13, UG14 |
 | UG20 | Paid spoil-tip preparation, compaction and reclamation | UG06 |
 | UG16 | Composed save/load and deterministic continuation | UG11–15, UG20 |
-| UG17 | Complete catalog, visual polish, regression and scale qualification | UG16 |
+| UG22 | Bounded Gear lookup and excavation performance qualification | UG06 |
+| UG17 | Complete catalog, visual polish, regression and scale qualification | UG16, UG22 |
 
 ## Automatic continuation
 
@@ -107,3 +108,11 @@ The analyzer reported zero warnings across1,048 files. Full exact logs are in
 Subsequently integrated geometry and WIP increments require their own assembled
 checkpoint. UG20 explicitly owns spoil-tip preparation/compaction/reclamation;
 UG06's local cut-output publication does not complete those ECON operations.
+
+UG06 physical ownership is independently reviewed and integrated at `0172e808`,
+with its registry at `8e542e98` and canonical/memory reconciliation at `56595fe5`.
+Its strict focused validation covers 417 tests / 52,821 assertions with zero
+unexpected diagnostics or leaks. All 32 assembled specification gates pass.
+UG07 is automatically released for actual Room/Furniture order composition.
+UG22 addresses measured Gear lookup costs separately; its addition does not
+mark the 256-resident whole-tick target achieved.

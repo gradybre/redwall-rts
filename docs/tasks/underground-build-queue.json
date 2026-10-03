@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-02",
+  "updated": "2026-10-03",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -211,7 +211,7 @@
     {
       "id": "UG06",
       "title": "Physical excavation and closure economy",
-      "status": "running",
+      "status": "verified",
       "depends_on": [
         "UG02"
       ],
@@ -248,7 +248,7 @@
       ],
       "acceptance": [
         "ECON immutable 1m3 ledger with brace/cut/finish and delivered resources",
-        "Finite real spoil hauling; safe support/backfill commit; no repeated virgin yield",
+        "Finite actual adjacent output; safe support/backfill commit; no repeated virgin yield. Actual hauling/travel composes in UG09/UG20.",
         "Construction/Work/Gear/Inventory integration; deterministic interruption and conservation"
       ],
       "agent": "/root/ug_construction",
@@ -275,10 +275,16 @@
             "integration": "cb10f2a1 source;7be405d5 additive registry"
           }
         ],
-        "in_progress": "Frozen physical source independently accepted by root;417 focused tests/52821 assertions, zero unexpected diagnostics/leaks and analyzer0/14. Worker preparing source/evidence and separate additive registry commits. Source review includes exact-world weak binding, save Reservations adapter forwarding and actual productive-work attestation. Root owns canonical/source capacity and memory reconciliation1066; composed geometry/save/performance remain downstream."
+        "commit": "a84b55ad;d1caab84",
+        "integration": "0172e808;8e542e98;canonical/memory56595fe5",
+        "tests": "417 tests/52821 assertions across14 strict focused suites after clean import;32 assembled specification gates pass;canonical54tests4070assertions",
+        "diagnostics": "all14focused diagnostics and raw footers:0unexpected errors/warnings,0object/resource leaks;analyzer0warnings/14files. Canonical focused/analyzer likewise0.",
+        "review": "Root independent final source review accepted frozen14-file hashes after same-world wiring, actual Work attestation and bounded-allocation fixes;ug_furnishing independently accepted canonical/memory1066. Geometry/save/performance remain downstream.",
+        "evidence_path": "docs/validation/evidence/underground-ug06-physical-2026-10-03/README.md"
       },
       "lease": {
-        "state": "held"
+        "state": "released",
+        "stop_evidence": "ug_construction reported sourcea84b55ad/registryd1caab84 committed;worktree clean andUG06writes stopped."
       }
     },
     {
@@ -328,7 +334,7 @@
     {
       "id": "UG07",
       "title": "Room and equipment atomic order coordination",
-      "status": "queued",
+      "status": "running",
       "depends_on": [
         "UG01",
         "UG03",
@@ -337,7 +343,8 @@
       ],
       "owns": [
         "godot/scripts/core/room_order_coordinator.gd",
-        "godot/test/test_room_order_coordinator.gd"
+        "godot/test/test_room_order_coordinator.gd",
+        "docs/decisions/1069-underground-room-orders.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -357,11 +364,13 @@
         "No unfinished furniture service grant; whole-room validity enforced",
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
-      "agent": null,
-      "branch": null,
-      "evidence": {},
+      "agent": "/root/ug_construction",
+      "branch": "codex/underground-orders",
+      "evidence": {
+        "in_progress": "Own worktree prepared from fetched origin/master82d60ba8 then advanced to56595fe5. After independent1067review, author actual Room/Furniture spatial lifecycle schema and memory delta before implementation. Buildings extension lease requires root schema review; no fake managed surface parent or unfinished service grants."
+      },
       "lease": {
-        "state": "free"
+        "state": "held"
       }
     },
     {
@@ -940,7 +949,8 @@
       "title": "Full catalog, setting presentation and regression qualification",
       "status": "queued",
       "depends_on": [
-        "UG16"
+        "UG16",
+        "UG22"
       ],
       "owns": [
         "godot/demo/burrow/",
@@ -1069,6 +1079,37 @@
       "kind": "qualification",
       "lease": {
         "state": "free"
+      }
+    },
+    {
+      "id": "UG22",
+      "title": "Bounded Gear lookup and excavation work performance",
+      "status": "running",
+      "depends_on": [
+        "UG06"
+      ],
+      "owns": [
+        "godot/scripts/core/gear.gd",
+        "godot/test/test_gear.gd",
+        "godot/test/test_gear_columns.gd",
+        "godot/test/test_save_owner_gear.gd",
+        "docs/decisions/1068-gear-lot-index.md",
+        "docs/validation/evidence/underground-gear-index/"
+      ],
+      "requirements": [],
+      "kind": "qualification",
+      "acceptance": [
+        "Replace repeated live Gear row scans with a budgeted derived lookup while retaining full lot/owner/Job generation checks",
+        "Create/delete/clear and both restoration paths maintain exact index bijection; atomic refusal leaves state unchanged; canonical wire unchanged",
+        "Measure same256resident equipped baseline and actual excavation workload; retain whole-tick qualification gap if present"
+      ],
+      "agent": "/root",
+      "branch": "codex/underground-work-index",
+      "lease": {
+        "state": "held"
+      },
+      "evidence": {
+        "in_progress": "MeasuredUG06worker gate and genericGear wear both scan live rows. Own branchcreated from fetched origin/master and advanced to56595fe5;root will budget derived index and load staging before code;no reduced safety gates."
       }
     }
   ],

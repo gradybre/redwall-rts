@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "75a07d3fb01806e96d0ac6aa12c7a85e4fd7073489cf1a86897c41ee501e8319",
-      "underground_space_owner": "12982609d2a988f77c2f9d1674739cd03bc12651d931e1eb7ae8864912e7d325",
+      "underground_space_owner": "9b6e62478e5e455ab48fbbb08df6ebe1927346472e2a12130780573257085991",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 2120,
+      "source_resize_line": 2125,
       "source_value": 18,
       "status": "proved_equality"
     },

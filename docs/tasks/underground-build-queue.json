@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03T22:34:09.655041+00:00",
+  "updated": "2026-10-03T23:09:26.016057+00:00",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -422,7 +422,13 @@
         "godot/scripts/core/underground_connector_work.gd.uid",
         "godot/test/test_underground_connector_work.gd",
         "godot/test/test_underground_connector_work.gd.uid",
-        "docs/decisions/1106-paid-connector-installation.md"
+        "docs/decisions/1106-paid-connector-installation.md",
+        "godot/scripts/core/underground_entry_plan.gd",
+        "godot/scripts/core/underground_entry_plan.gd.uid",
+        "godot/test/test_underground_entry_orders.gd",
+        "godot/test/test_underground_entry_orders.gd.uid",
+        "docs/decisions/1108-atomic-nonflat-entry-admission.md",
+        "docs/validation/evidence/underground-entry-orders-2026-10-03/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -682,8 +688,10 @@
           "scope": "Read-only constructibility handoff; arithmetic first-cut and T2 front-wall witnesses, actual footprint/footing/retreat gaps, unique cut-union/EntryPlan seam. No motion or playable certificate."
         },
         "entry_admission_next": {
-          "status": "authorized root sublease; implementation next",
-          "scope": "Distinct pinned EntryPlan under existing actual RoomOrders authority, future Corridor and prepared Placement before identity publication. No pre-created Corridor workaround or abstract frontier success flags."
+          "status": "root EntryPlan/RoomOrders helper implemented; independent review and pure Space/Placement tail integration pending",
+          "scope": "Distinct typed non-flat EntryPlan; original cold lease, future permanent Corridor, exact varying-height claims and unique Sites union. No pre-created Corridor workaround. Actual frontier and Placement bindings remain closed.",
+          "focused_tests": "check-2:113 tests/4514 assertions/0 failures across6 strict suites; strict/raw unexpected errors,warnings,object/resource leaks0; analyzer0/3. Check-3 includes the added post-Sites final companion gate.",
+          "review_gap": "Construction identified inherited Space Room publication observers after identity/Sites mutation. Geometry owns planned pure prepared-room leaf/static commit kernel with1108 Placement admission; new entry path will use it before atomic completion is accepted."
         }
       },
       "lease": {
@@ -721,7 +729,13 @@
               "godot/scripts/core/underground_room_bindings.gd",
               "godot/test/test_underground_room_orders.gd",
               "godot/test/test_underground_room_bindings.gd",
-              "godot/test/test_underground_room_admission.gd"
+              "godot/test/test_underground_room_admission.gd",
+              "godot/scripts/core/underground_entry_plan.gd",
+              "godot/scripts/core/underground_entry_plan.gd.uid",
+              "godot/test/test_underground_entry_orders.gd",
+              "godot/test/test_underground_entry_orders.gd.uid",
+              "docs/decisions/1108-atomic-nonflat-entry-admission.md",
+              "docs/validation/evidence/underground-entry-orders-2026-10-03/"
             ],
             "handoff": "Construction explicitly stopped all writes and granted this narrow EntryPlan/atomic future Placement admission packet on2026-10-03 after1107. Preserve the sole Buildings authority and ordinary flat RoomPlan path. Geometry retains Placement/companions; Construction retains ConnectorWork."
           }
@@ -1030,6 +1044,14 @@
           "tests": "7 Python checks; native537 poses/1283 assertions/0 failures; strict/raw diagnostics/leaks0; analyzer0/1",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-high-wall-v1/",
           "limits": "Source-local yaw0 only; production_qualified=false. Actual complete-state driver, idle/travel role union, paid support/frontier and profile qualification remain open."
+        },
+        "mole_presentation_driver": {
+          "source_commit": "01d91f6e",
+          "integration_commit": "7169d203",
+          "review": "Construction independent review accepted fixed immutable stand/ground-walk/down/high role mapping after swapped WORK-profile regression.",
+          "tests": "6 tests/117 assertions/0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/2.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/driver-check-v3/",
+          "limits": "Presentation-clock component only, synthetic geometric qualification; no Work credit or production profile. Full actual state handoffs, clip/contact/route and native-memory qualification remain open."
         }
       },
       "lease": {

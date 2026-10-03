@@ -56,6 +56,9 @@ class ObservedWorld extends WorldBindings:
 	var arena: Budget = null
 	var grow_before_copy: Orders.RoomPlan = null
 	var release_probe: ReleaseProbe = null
+	var history_sites: Sites = null
+	var history_room: Vector2i = NULL_REF
+	var history_origin: Vector3i = Vector3i.ZERO
 
 	func binding_refusal() -> StringName:
 		"""Grow only after real lease admission, before the provider's first copy."""
@@ -65,7 +68,19 @@ class ObservedWorld extends WorldBindings:
 			grow_before_copy = null
 		if release_probe != null and arena != null and not arena.is_quiescent():
 			release_probe.drop_outer_owners()
+		if history_sites != null and (history_sites as ObservedSites).reads > 0:
+			assert(history_sites.claim_quantum(history_origin, history_room).ok, "test-owned actual late history claim")
+			history_sites = null
 		return code
+
+class ObservedSites extends Sites:
+	## Count actual unique-key observations; inherited physical history and generation guards stay real.
+	var reads: int = 0
+
+	func site_at(origin_u: Vector3i) -> Vector2i:
+		"""One actual lookup per yielded quantum exposes duplicate fine-cell charging regressions."""
+		reads += 1
+		return super.site_at(origin_u)
 
 class ObservedSpace extends RoomFixture.WatchedSpace:
 	## The full actual retained owner supplies the image; callbacks inject adversarial lifetime changes.
@@ -153,6 +168,11 @@ var _world_ref: Vector2i = NULL_REF
 
 func before_each() -> void:
 	"""Build an actual generated World and every real identity/accounting owner before the provider binds."""
+	_setup(4096)
+
+
+func _setup(history_capacity: int) -> void:
+	"""A different finite test budget always belongs to fresh actual owners, never a rebound ledger."""
 	_residents = Residents.new()
 	_jobs = Jobs.new(_residents)
 	_nodes = Nodes.new(_jobs.directory())
@@ -169,7 +189,7 @@ func before_each() -> void:
 	_sources = Owner.CoreSources.new(_jobs.directory(), _buildings, _construction)
 	_budget = Budget.new()
 	_bind_space()
-	_bind_accounting()
+	_bind_accounting(history_capacity)
 	_bind_rooms()
 
 
@@ -198,7 +218,7 @@ func _bind_space() -> void:
 	assert_equal(_levels.bind_domain(domain, _jobs.directory(), domain.descriptor(), Space.VERSION), &"", "exact World/content binding")
 
 
-func _bind_accounting() -> void:
+func _bind_accounting(capacity: int = 4096) -> void:
 	"""Only unstarted Sites fixture registration is synthetic; all stores, Funding and Router are actual."""
 	var work: Work = Work.new(_jobs)
 	var gear: Gear = Gear.new(8)
@@ -208,10 +228,16 @@ func _bind_accounting() -> void:
 	_physical = MaskFixture.SyntheticSpatial.new()
 	_physical.domain = _domain()
 	_physical.buildings = _buildings
-	_sites = Sites.new(_construction, _inventory, reservations, _items, _jobs, work, _physical, 32, 8)
+	_sites = ObservedSites.new(_construction, _inventory, reservations, _items, _jobs, work, _physical, 32, capacity)
 	assert_equal(_sites.initialization_refusal(), &"", "real physical history")
 	_router = Router.new(_construction, _inventory, reservations, _items, _jobs, work, _sites)
 	assert_equal(_router.initialization_refusal(), &"", "actual shared paid operation owner")
+
+
+func _with_history_capacity(capacity: int) -> void:
+	"""Replace the entire test-owned composition; expired physical bindings intentionally cannot rebind."""
+	after_each()
+	_setup(capacity)
 
 
 func _bind_rooms() -> void:
@@ -363,7 +389,7 @@ func test_clear_actual_dirt_reaches_missing_entry_without_publishing_a_free_room
 
 func test_oversize_and_busy_refuse_before_domain_plan_or_snapshot_copy() -> void:
 	"""The complete existing footprint ceiling fits; a larger caller shape refuses before any owned copy."""
-	assert_equal(Bindings.room_admission_cold_bytes(Footprint.MAX_OPERATION_CELLS), 722944, "complete simultaneous envelope")
+	assert_equal(Bindings.room_admission_cold_bytes(Footprint.MAX_OPERATION_CELLS), 854016, "complete simultaneous envelope")
 	assert_true(Bindings.room_admission_cold_bytes(478) < Budget.COLD_BYTES, "no inherited477-cell cap")
 	assert_equal(Bindings.room_admission_cold_bytes(Footprint.MAX_OPERATION_CELLS + 1), 0, "existing public ceiling preserved")
 	var cells: PackedInt32Array = PackedInt32Array()
@@ -565,6 +591,45 @@ func test_full_existing_cell_ceiling_reaches_entry_refusal_under_one_actual_leas
 	assert_true(_terrain.calls > 3, "every fine run and authored band is observed")
 	assert_true(_terrain.maximum_tiles <= Terrain.LOCAL_TILE_LIMIT, "all actual local queries stay bounded")
 	assert_equal(_budget.peak_reserved_bytes(), Budget.COLD_BYTES, "all copies share the actual arena")
+	assert_equal((_sites as ObservedSites).reads, 4096, "one real lookup per unique whole paid cube")
+	assert_equal(Bindings.room_admission_cold_bytes(Footprint.MAX_OPERATION_CELLS), 854016,
+		"snapshot plus three fine-plan images plus one interval bank and fixed controls")
+	assert_true((1 << Bindings.HISTORY_LOOKUP_CHECKS) > Sites.MAX_SITE_CAPACITY,
+		"charged binary-search probes cover the largest real physical history store")
+
+
+func test_fine_duplicate_cells_fit_exact_remaining_physical_history_capacity() -> void:
+	"""The same1m face painted sixteen times still needs only four vertical permanent records."""
+	_with_history_capacity(4)
+	var cells: PackedInt32Array = Footprint.rectangle(0, 0, 4, 4, 16).cells
+	_assert_refusal(_plan(1, cells), Bindings.REFUSE_ENTRY)
+	assert_equal((_sites as ObservedSites).reads, 4, "one history lookup per distinct cube")
+	assert_equal(_sites.remaining_history_capacity(), 4, "preview consumes no permanent keys")
+
+
+func test_actual_history_capacity_refuses_complete_room_without_partial_claims() -> void:
+	"""A plan cannot be accepted on a count of painted cells while lacking paid-cube history rows."""
+	_with_history_capacity(4)
+	var plan: Orders.RoomPlan = _plan(1, PackedInt32Array([0, 0, 1, 0]), 1024)
+	_assert_refusal(plan, Sites.REFUSE_SITE_CAPACITY)
+	assert_equal((_sites as ObservedSites).reads, 4, "only a bounded diagnostic prefix is inspected")
+	assert_equal(_sites.remaining_history_capacity(), 4, "the entire refused room leaves capacity untouched")
+
+
+func test_final_source_callback_cannot_add_history_after_the_unique_cut_survey() -> void:
+	"""Permanent count is monotonic, so late insertions must invalidate the original admission observation."""
+	var room: Vector2i = _room()
+	var plan: Orders.RoomPlan = _plan()
+	_provider.history_sites = _sites
+	_provider.history_room = room
+	_provider.history_origin = plan.origin_u + Vector3i(16384, 0, 0)
+	var before: Array[PackedByteArray] = [_jobs.directory().state_bytes(), _space.state_bytes(),
+		_buildings.spatial_state_bytes(), _construction.state_bytes(), _inventory.state_bytes()]
+	assert_equal(_orders.confirm_room(plan).error, Bindings.REFUSE_HISTORY_CHANGED, "late actual history refuses")
+	assert_equal([_jobs.directory().state_bytes(), _space.state_bytes(), _buildings.spatial_state_bytes(),
+		_construction.state_bytes(), _inventory.state_bytes()], before, "no room, geometry, payment or inventory publication")
+	assert_equal(_sites.remaining_history_capacity(), 4095, "only external callback owns its new permanent record")
+	assert_true(_budget.is_quiescent(), "admission releases its exact original lease")
 
 
 func _long_plan() -> Orders.RoomPlan:

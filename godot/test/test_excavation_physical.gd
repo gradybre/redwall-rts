@@ -611,11 +611,13 @@ func test_sparse_history_budget_refuses_before_payment_and_never_recycles_retire
 		var site: Vector2i = _sites.claim_quantum(origin, ROOM).ref
 		assert_true(_sites.is_live_site(site), "sparse key inserted in arbitrary draw order")
 		assert_equal(_sites.origin_of(site), origin, "derived sorted index preserves physical key")
+	assert_equal(_sites.remaining_history_capacity(), 0, "all eight permanent rows are retained")
 	var before: PackedByteArray = _sites.state_bytes()
 	assert_equal(_sites.claim_quantum(ORIGIN + Vector3i(8192, 0, 0), ROOM).error,
 		Sites.REFUSE_SITE_CAPACITY, "in-domain ninth record exhausts explicit eight-record engineering budget")
 	assert_equal(_sites.state_bytes(), before, "budget refusal changes no owner state")
 	assert_true(_sites.release_room_claim(_site).ok, "unbuilt room claim may retire")
+	assert_equal(_sites.remaining_history_capacity(), 0, "retirement never reports replenished history capacity")
 	assert_equal(_sites.claim_quantum(ORIGIN, OTHER_ROOM).ref, _site, "retirement rebinds original record")
 	assert_equal(_sites.claim_quantum(ORIGIN + Vector3i(8192, 0, 0), ROOM).error,
 		Sites.REFUSE_SITE_CAPACITY, "retirement never frees a physical key to reset geology")
@@ -1073,6 +1075,7 @@ func test_refused_null_owner_public_methods_fail_safely() -> void:
 	assert_equal(refused.support_conservation_refusal(), Contract.REFUSE_AUTHORITY, "support read refuses safely")
 	assert_true(refused.construction_owner() == null, "refused initialization exposes no bound owner")
 	assert_true(refused.jobs_owner() == null, "refused initialization exposes no Job owner")
+	assert_equal(refused.remaining_history_capacity(), -1, "refused initialization cannot report usable history capacity")
 	assert_false(refused.installed_support(Vector2i(0, 1)), "refused initialization never exposes support")
 	assert_true(refused.bound_spatial_authority() == null, "refused initialization exposes no typed spatial target")
 	assert_false(refused.is_bound_spatial(_space), "refused initialization exposes no spatial binding")
@@ -1192,6 +1195,31 @@ func test_jobs_reader_returns_actual_store_without_numeric_alias_permission() ->
 	assert_true(_sites.jobs_owner() == _jobs, "exact initialized Jobs is borrowed")
 	assert_false(_sites.jobs_owner() == other_jobs, "same-shape foreign store cannot replace actual Jobs")
 	assert_equal(_sites.jobs_owner().directory(), _construction.directory(), "actual shared Directory remains explicit")
+
+
+func test_history_capacity_reader_preserves_state_and_refuses_dead_world_or_expired_owner() -> void:
+	"""Only the actual successfully initialized composition can expose its finite permanent-row remainder."""
+	var before: PackedByteArray = _sites.state_bytes()
+	assert_equal(_sites.remaining_history_capacity(), 7, "initial fixture has claimed one of eight rows")
+	assert_equal(_sites.state_bytes(), before, "capacity observation changes no physical byte")
+	var original: SpatialFixture = _space
+	_space = null
+	assert_true(original == _sites.bound_spatial_authority(), "the synchronous borrower holds the exact weak target")
+	assert_equal(_sites.remaining_history_capacity(), 7, "a live exact borrowed authority still exists")
+	original = null
+	assert_equal(_sites.remaining_history_capacity(), -1, "expired authority is refused, not zero or free capacity")
+	assert_equal(_sites.state_bytes(), before, "expired read preserves permanent history")
+
+
+func test_history_capacity_reader_rejects_recycled_world_generation() -> void:
+	"""A replacement actual World cannot inherit an old ledger's unspent rows even in the same slot."""
+	var before: PackedByteArray = _sites.state_bytes()
+	assert_true(_residents.directory().destroy(_world), "actual original World retires")
+	var replacement: Vector2i = _residents.directory().create(Directory.KIND_WORLD)
+	assert_equal(replacement.x, _world.x, "actual allocator reuses the numeric slot")
+	assert_true(replacement.y != _world.y, "full generation differs")
+	assert_equal(_sites.remaining_history_capacity(), -1, "dead full World refuses history admission")
+	assert_equal(_sites.state_bytes(), before, "no row or paid history is reset")
 
 
 func test_spatial_publication_attests_only_the_exact_committed_callback() -> void:

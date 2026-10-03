@@ -16,6 +16,7 @@ const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Footprint := preload("res://scripts/core/room_footprint.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
 const World := preload("res://scripts/core/world_init.gd")
+const CutMap := preload("res://scripts/core/underground_room_cut_map.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_MASK_BINDING: StringName = &"ROOM_MASK_WORLD_BINDING"
 const REFUSE_MASK_BUSY: StringName = &"ROOM_MASK_REENTRY"
@@ -31,11 +32,14 @@ const REFUSE_ADMISSION: StringName = &"ROOM_ADMISSION_BINDING"
 const REFUSE_LEVEL: StringName = &"ROOM_AUTHORED_LEVEL_REQUIRED"
 const REFUSE_CUT: StringName = &"ROOM_PAID_CUT_OCCUPIED"
 const REFUSE_RETAINED: StringName = &"ROOM_RETAINED_CUT_MAPPING_UNBOUND"
+const REFUSE_HISTORY_CHANGED: StringName = &"ROOM_CUT_HISTORY_CHANGED"
 const REFUSE_ABOVE: StringName = &"ROOM_PROTECTED_ABOVE_OCCUPIED"
 const REFUSE_FOOTING: StringName = &"ROOM_REQUIRED_FOOTING_OCCUPIED"
 const REFUSE_ENTRY: StringName = &"PROSPECTIVE_ENTRY_CONTACT_UNBOUND"
 const ROOM_CONTROL_BYTES: int = 2048
 const ROOM_PLAN_BYTES_PER_CELL: int = 24 # Incoming plan plus both possible protected copies.
+const ROOM_INTERVAL_BYTES_PER_CELL: int = 8 # One cold active-prefix cut-map heap, no physical ledger.
+const HISTORY_LOOKUP_CHECKS: int = 17 # ceil(log2(Sites.MAX_SITE_CAPACITY+1)) binary-search probes.
 const ROOM_SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY
 const ROOM_TERRAIN_WINDOW_TILES: int = 8 # At most64 actual tiles; never a room size limit.
 
@@ -131,7 +135,7 @@ static func room_admission_cold_bytes(cell_count: int) -> int:
 	"""One retained image and packed validation have separate peaks; all existing cell counts fit."""
 	if cell_count < 1 or cell_count > Footprint.MAX_OPERATION_CELLS:
 		return 0
-	return maxi(ROOM_SNAPSHOT_BYTES, Footprint.validation_scratch_bytes(cell_count)) \
+	return maxi(ROOM_SNAPSHOT_BYTES + ROOM_INTERVAL_BYTES_PER_CELL * cell_count, Footprint.validation_scratch_bytes(cell_count)) \
 		+ ROOM_PLAN_BYTES_PER_CELL * cell_count + ROOM_CONTROL_BYTES
 
 
@@ -254,7 +258,7 @@ func _admission_preflight(provider: WorldBindings, levels: Levels) -> StringName
 	if not Space.valid_box(bounds) or not Space.contains_box(descriptor.bounds_u, bounds):
 		return Orders.REFUSE_PLAN
 	code = _current_room_refusal()
-	return code if code != &"" else _observe_room(provider, descriptor.datum_u, bounds)
+	return code if code != &"" else _observe_room(provider, domain, bounds)
 
 
 func _level_refusal(levels: Levels, domain: Space.Domain, directory: Directory) -> StringName:
@@ -287,11 +291,14 @@ func _admission_bounds(datum: Vector3i) -> PackedInt32Array:
 	return _clip.duplicate()
 
 
-func _observe_room(provider: WorldBindings, datum: Vector3i, bounds: PackedInt32Array) -> StringName:
+func _observe_room(provider: WorldBindings, domain: Space.Domain, bounds: PackedInt32Array) -> StringName:
 	"""Original dryness is proved separately; one unfiltered image retains every actual claim and cavity."""
 	var code: StringName = _current_room_refusal()
 	if code != &"" or not Space.valid_box(bounds):
 		return code if code != &"" else Orders.REFUSE_PLAN
+	var available: int = _actual_sites().remaining_history_capacity()
+	if available < 0:
+		return REFUSE_ADMISSION
 	var snapshot: Space.Snapshot = Space.Snapshot.new()
 	code = provider.space_owner().snapshot_into(snapshot)
 	if code == &"":
@@ -301,11 +308,15 @@ func _observe_room(provider: WorldBindings, datum: Vector3i, bounds: PackedInt32
 			or snapshot.live_revisions.size() > Budget.SOURCE_CAPACITY):
 		code = REFUSE_ADMISSION
 	if code == &"":
-		code = _all_room_runs(snapshot, datum)
+		code = _all_room_runs(snapshot, domain.descriptor().datum_u)
+	if code == &"":
+		code = _room_cut_history_refusal(domain, available)
 	if code == &"":
 		code = provider.space_owner().snapshot_revision_refusal(_room_pin.space_revision)
 	if code == &"":
 		code = _current_room_refusal()
+	if code == &"" and _actual_sites().remaining_history_capacity() != available:
+		code = REFUSE_HISTORY_CHANGED
 	# No prospective contact, profile, support or first-work companion is fabricated here.
 	return code if code != &"" else REFUSE_ENTRY
 
@@ -335,8 +346,6 @@ func _room_run_refusal(snapshot: Space.Snapshot, datum: Vector3i) -> StringName:
 	var code: StringName = _terrain_dry_refusal()
 	if code == &"":
 		code = _retained_volume_refusal(snapshot.volumes, _clip, REFUSE_CUT)
-	if code == &"":
-		code = _retained_sites_refusal()
 	if code == &"":
 		code = _room_band_refusal(snapshot, _level.required_footing_low_u, _level.required_footing_high_u, REFUSE_FOOTING)
 	if code == &"":
@@ -414,16 +423,28 @@ func _retained_volume_refusal(volumes: Space.Volumes, box: PackedInt32Array, blo
 	return &""
 
 
-func _retained_sites_refusal() -> StringName:
-	"""Old physical identities cannot become virgin yield; reusing/backfilling needs the later actual room cut-map companion."""
-	for x: int in range(_clip[0], _clip[3], Space.QUANTUM_U):
-		for y: int in range(_clip[1], _clip[4], Space.QUANTUM_U):
-			for z: int in range(_clip[2], _clip[5], Space.QUANTUM_U):
-				if not _spend(1):
-					return REFUSE_MASK_BUDGET
-				if _actual_sites().site_at(Vector3i(x, y, z)) != NULL_REF:
-					return REFUSE_RETAINED
-	return &""
+func _room_cut_history_refusal(domain: Space.Domain, available: int) -> StringName:
+	"""Stream unique paid keys against actual history and finite remaining rows without claiming any of them."""
+	var code: StringName = _current_room_refusal()
+	if code != &"":
+		return code
+	var sites: Sites = _actual_sites()
+	var cuts: CutMap = CutMap.new()
+	code = cuts.configure(_room_pin.cells, _room_pin.origin_u, _room_pin.cell_size_u,
+		_room_pin.height_u, domain, _remaining, available)
+	while code == &"" and cuts.advance():
+		code = cuts.charge_checks(HISTORY_LOOKUP_CHECKS)
+		if code == &"" and sites.site_at(cuts.current_origin()) != NULL_REF:
+			code = REFUSE_RETAINED
+	if code == &"":
+		code = cuts.refusal()
+	_remaining = cuts.remaining_checks()
+	cuts.clear()
+	if code == CutMap.REFUSE_CAPACITY:
+		return Sites.REFUSE_SITE_CAPACITY
+	if code == CutMap.REFUSE_WORK:
+		return REFUSE_MASK_BUDGET
+	return code
 
 
 func _write_room_box(left: int, near: int, right: int, far: int) -> bool:

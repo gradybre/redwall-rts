@@ -243,6 +243,14 @@ func jobs_owner() -> Jobs:
 	return _jobs if _ready_error == &"" else null
 
 
+func remaining_history_capacity() -> int:
+	"""Read unused permanent rows in this exact live composition; retirement never replenishes history."""
+	if _ready_error != &"" or _spatial() == null or not _world_is_live() \
+			or _construction.excavation_authority() != self or _composition_refusal() != &"":
+		return -1
+	return _capacity - _count
+
+
 func funding_owner(construction: Construction, inventory: Inventory, pool: Reservations,
 		items: Items, jobs: Jobs, work: Work) -> Funding:
 	"""Share this one receipt arena only with the exact still-valid composed world owners."""

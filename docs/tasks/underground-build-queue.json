@@ -373,7 +373,10 @@
         "tools/measure_underground_profiles.py",
         "tools/test_measure_underground_profiles.py",
         "docs/design/underground-planning/evidence/modular-build/profiles/",
-        "docs/decisions/1063-source-bound-underground-profile-measurements.md"
+        "docs/decisions/1063-source-bound-underground-profile-measurements.md",
+        "tools/measure_underground_variants.py",
+        "tools/test_measure_underground_variants.py",
+        "docs/decisions/1067-combined-underground-profile-variants.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -407,7 +410,7 @@
       "agent": "/root/ug_furnishing",
       "branch": "codex/underground-space",
       "evidence": {
-        "in_progress": "IncrementA geometry/connector validation can run independently; UG09 composes06+08. Missing production authoring/profile binding remains explicit and is not satisfied by synthetic tests.",
+        "in_progress": "Combined source/body/gear/cargo measurements now implementing under explicit new tool/test/1067/evidence lease. B1 parser frozen; production movement profiles and connector parameter rows still require actual qualification.",
         "increments": [
           {
             "commit": "efadbab9",
@@ -427,6 +430,12 @@
             "tests": "22newPython tests plus191existing envelopechecks;zero failures; source manifest/toolhashesverified",
             "review": "root independent mathematical/source review; normalized-integer exactness and manifest-overwrite findingsfixed, regressionspass",
             "integration": "unchanged source/evidence cherry-pick; wholeUG08 stays running"
+          },
+          {
+            "commit": "cce6f3a1",
+            "scope": "Actual owner/attachment/state mapping and next executable combined-variant increment",
+            "review": "root read and matched assigned source/identity boundaries",
+            "integration": "3f1e5a5e"
           }
         ]
       },

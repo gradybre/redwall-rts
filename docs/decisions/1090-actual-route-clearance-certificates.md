@@ -170,3 +170,20 @@ provider regression accepts its exact published Space candidate and refuses an
 aborted candidate followed by another publication at the same numeric revision.
 No provider source changed after the accepted structural-support correction.
 This is not the future installed-connector or paid-Sites/Locations coordinator.
+
+
+## Correction to the range-allocation review note
+
+The earlier LOW finding about the two direct `for ... in range(...)` loops in
+Terrain is withdrawn. Before changing them, root inspected the
+[compiler at the installed engine commit](https://github.com/godotengine/godot/blob/ed1daf0bf001b61586d9930840f2f1394092c079/modules/gdscript/gdscript_compiler.cpp#L2043).
+It recognizes a direct range call as the loop iterable, emits specialized range
+iteration and does not construct the intermediate array, including the two-
+argument form used here. Ordinary separately evaluated range calls are a
+different case. No Terrain loop rewrite or claimed runtime speedup follows.
+
+This source-level correction does not close the measured256-resident tick
+shortfall or certify every transitive hot call as allocation-free. Those remain
+UG17 qualification work. The own branch was created from freshly fetched
+origin/master, then merged the reviewed integration checkpoint before this
+inspection; the user's and Claude's checkouts were not modified.

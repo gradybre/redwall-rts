@@ -403,7 +403,9 @@
         "docs/decisions/1094-packed-room-footprint-validation.md",
         "godot/scripts/core/underground_room_cut_map.gd",
         "godot/test/test_underground_room_cut_map.gd",
-        "docs/decisions/1095-derived-room-cut-map.md"
+        "docs/decisions/1095-derived-room-cut-map.md",
+        "godot/test/test_excavation_claim_batch.gd",
+        "godot/test/test_excavation_claim_batch.gd.uid"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -546,6 +548,12 @@
           "tests": "66 tests /2750 assertions /0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/2",
           "review": "Root independently accepted frozen25069f2f/487a3e62 pins. Existing16384-cell ceiling preserved; no477-cell restriction or entry permission.",
           "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/admission-scale/"
+        },
+        "claim_batch_in_progress": {
+          "scope": "Actual Sites-owned atomic virgin cut reservations composed inside actual RoomOrders; final callback-free guard then Room allocation and Sites publication before any Space/source callback. Contacts and first-entry admission remain closed until actual feasibility composes.",
+          "memory": "Sequential static854016, Locations919936, WorldRoutes773120 and post-seal batch657408 logical bytes including2048 controls; exact census and peak tests required. No cursor bank overlaps companion snapshots.",
+          "owner": "/root/ug_construction",
+          "tests": "Implementation in progress; no completion asserted."
         }
       },
       "lease": {
@@ -838,7 +846,8 @@
         "docs/decisions/1093-retained-natural-room-support.md",
         "godot/test/test_underground_world_identities.gd",
         "docs/decisions/1096-room-admission-location-companions.md",
-        "docs/decisions/1097-static-profile-route-admission.md"
+        "docs/decisions/1097-static-profile-route-admission.md",
+        "docs/decisions/1098-profile-filtered-route-search.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1078,7 +1087,14 @@
           "owner": "/root",
           "branch": "codex/underground-static-route-admission",
           "scope": "Read-only actual full-profile committed-edge eligibility without fake Selection/Job, no retained state delta. Independent geometry review pending. This is not a complete path/face proof.",
-          "tests": "65 tests10736 assertions0 failures; strict/raw unexpected/leaks0; analyzer0/2"
+          "tests": "65 tests10736 assertions0 failures; strict/raw unexpected/leaks0; analyzer0/2",
+          "review": "Independent geometry review found final-callback certificate freshness MEDIUM; root correction and regression underway. Initial pass does not close the finding."
+        },
+        "profile_path_next": {
+          "owner": "/root/ug_geometry",
+          "scope": "After reviewed1096: actual immutable profile-filtered Routes Dijkstra with current scratch, full final revision/generation checks, no actors/Jobs or face permission. Root retains WorldRoutes.",
+          "decision": "docs/decisions/1098-profile-filtered-route-search.md",
+          "controls": "One184B cold Descriptor within invoking admission2048 controls; no retained SoA/bank."
         }
       },
       "lease": {

@@ -672,6 +672,13 @@
           "integration": "1e1cd992",
           "tests": "18 tests /420 assertions /0 failures; strict/raw diagnostics and leaks all0; analyzer0/2",
           "review": "Independent accepted sealed exact endpoint read; no stored fields added."
+        },
+        "room_admission_bridge": {
+          "commit": "5d892e25",
+          "registry_commit": "6f4cebf7",
+          "integration": "0751a09c/19756b45",
+          "tests": "49/812 and24/3010;0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
+          "review": "Independent furnishing review accepted callback guard correction and four adversarial regressions. Actual future Room identity publication;50 transient logical control bytes in existing binding reserve, no packed/wire delta."
         }
       },
       "lease": {
@@ -1348,7 +1355,9 @@
         "tests": "Terrain15/302, World122/18192, Resources39/637;0 failures in each strict focused suite after clean import",
         "diagnostics": "All3 suites:0 unexpected errors/warnings,0 expected/tolerated,0 leaked objects/resources; raw-log footers0; analyzer0warnings/4files",
         "review": "Independent ug_construction source review matched4SHA256 pins, no high/medium correctness findings. Original terrain is observation only; composed paid-space subtraction, runtime/save/native performance remain open.",
-        "evidence_path": "docs/validation/evidence/underground-terrain-2026-10-03/"
+        "evidence_path": "docs/validation/evidence/underground-terrain-2026-10-03/",
+        "commit": "09174fa97c7d07f4982cdb55fa60559e262b3cbd",
+        "integration": "Fast-forwarded accepted exact source into codex/underground-modular-integration; full checkpoint next."
       },
       "lease": {
         "state": "released",

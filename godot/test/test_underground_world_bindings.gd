@@ -91,6 +91,17 @@ class LeaseAttack extends RefCounted:
 class ObservedBindings extends Bindings:
 	## Count output-copy entry without substituting any geometry or admission decisions.
 	var copies: int = 0
+	var cold_reentry_site: Vector2i = NULL_REF
+	var cold_reentry_token: int = -1
+
+	func binding_refusal() -> StringName:
+		"""The opening guard precedes the first provider callback and prevents nested lease acquisition."""
+		var code: StringName = super.binding_refusal()
+		if cold_reentry_site != NULL_REF:
+			var site: Vector2i = cold_reentry_site
+			cold_reentry_site = NULL_REF
+			cold_reentry_token = begin_cold_operation(_actual_owner(), site, Contract.OP_BRACE, Contract.STAGE_ADMIT)
+		return code
 
 	func _copy_retained(bounds: PackedInt32Array, retained: Space.Snapshot,
 			out: Space.Snapshot) -> StringName:
@@ -789,3 +800,113 @@ func test_cold_work_stage_composes_refresh_survey_without_productive_mutation() 
 	assert_equal(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE,
 		Contract.STAGE_WORK + 1, room, plan, out, _lease), &"WORLD_COMPOSITION_SITE_SCOPE", "unknown stage still refuses")
 	_assert_empty(out)
+
+
+func _start_owned_phase(site: Vector2i, stage: int = Contract.STAGE_ADMIT) -> int:
+	"""End the independent fixture survey, then acquire through the actual WorldBindings phase API."""
+	assert_equal(_budget.release(_lease), &"", "no existing caller image survives")
+	_lease = 0
+	var token: int = _bindings.begin_cold_operation(_owner, site, Contract.OP_BRACE, stage)
+	assert_true(token > 0, "actual complete phase lease")
+	return token
+
+
+func test_actual_phase_lease_funds_full_scoped_query_until_explicit_release() -> void:
+	"""A production cold provider now retains the same actual arena through the complete observation."""
+	var site: Vector2i = _site_fixture()
+	var token: int = _start_owned_phase(site)
+	assert_equal(_bindings.cold_operation_refusal(token), &"", "actual scope and lease current")
+	assert_equal(_budget.used_bytes(), Budget.COLD_BYTES, "whole simultaneous phase peak funded")
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(_bindings.phase_snapshot_into(_owner, _sites, site, Contract.OP_BRACE, Contract.STAGE_ADMIT,
+		_sites.room_of(site), _phase_plan(_sites.room_of(site)), out, token), &"", "same retained lease funds real composition")
+	assert_true(out.volumes.role.size() > 0, "actual observations produced")
+	assert_equal(_bindings.qualification_revision(), 0, "a memory lease supplies no productive qualification")
+	out = null
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "released only after observation lifetime")
+	assert_equal(_bindings.cold_operation_refusal(token), Bindings.REFUSE_BUDGET, "released token cannot fund another copy")
+
+
+func test_phase_open_reentry_and_foreign_release_preserve_exact_active_lease() -> void:
+	"""Provider callbacks and guessed tokens cannot steal or replace a real retained operation."""
+	var site: Vector2i = _site_fixture()
+	_bindings.cold_reentry_site = site
+	var token: int = _start_owned_phase(site)
+	assert_equal(_bindings.cold_reentry_token, 0, "exclusive guard precedes first callback")
+	assert_equal(_bindings.begin_cold_operation(_owner, site, Contract.OP_BRACE, Contract.STAGE_WORK), 0, "no nested lease")
+	_bindings.end_cold_operation(token + 1)
+	assert_equal(_bindings.cold_operation_refusal(token), &"", "foreign cleanup changes nothing")
+	_bindings.end_cold_operation(token)
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "exact release is idempotent")
+
+
+func test_phase_lease_refuses_busy_foreign_and_invalid_context_without_mutation() -> void:
+	"""Refused opening neither consumes the old caller's budget nor retains partial site pins."""
+	var site: Vector2i = _site_fixture()
+	assert_equal(_bindings.begin_cold_operation(_owner, site, Contract.OP_BRACE, Contract.STAGE_ADMIT), 0, "existing unrelated survey owns arena")
+	assert_true(_budget.covers(_lease, Budget.COLD_BYTES), "existing caller remains funded")
+	assert_equal(_budget.release(_lease), &"", "finish old caller")
+	_lease = 0
+	assert_equal(_bindings.begin_cold_operation(null, site, Contract.OP_BRACE, Contract.STAGE_ADMIT), 0, "foreign owner")
+	assert_equal(_bindings.begin_cold_operation(_owner, Vector2i(site.x, site.y + 1), Contract.OP_BRACE, Contract.STAGE_ADMIT), 0, "stale site")
+	assert_equal(_bindings.begin_cold_operation(_owner, site, -1, Contract.STAGE_ADMIT), 0, "unknown operation")
+	assert_equal(_bindings.begin_cold_operation(_owner, site, Contract.OP_BRACE, Contract.STAGE_WORK + 1), 0, "unknown stage")
+	assert_true(_budget.is_quiescent(), "all refusals own no memory")
+	var token: int = _bindings.begin_cold_operation(_owner, site, Contract.OP_BRACE, Contract.STAGE_WORK)
+	assert_true(token > 0, "WORK-stage cold refresh can acquire after refusal")
+	_bindings.end_cold_operation(token)
+
+
+func test_lost_phase_lease_cannot_release_an_equal_size_replacement() -> void:
+	"""Cleanup recognizes ownership by the exact token, never just arena size or a guessed next token."""
+	var site: Vector2i = _site_fixture()
+	var token: int = _start_owned_phase(site)
+	assert_equal(_budget.release(token), &"", "adversarial external lease loss")
+	_lease = _budget.acquire(Budget.COLD_BYTES)
+	assert_true(_lease != token, "new exact lease identity")
+	assert_equal(_bindings.cold_operation_refusal(token), Bindings.REFUSE_BUDGET, "old phase refuses")
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.covers(_lease, Budget.COLD_BYTES), "cleanup preserves the new owner")
+	assert_equal(_bindings.begin_cold_operation(_owner, site, Contract.OP_BRACE, Contract.STAGE_ADMIT), 0, "replacement remains exclusive")
+
+
+func test_real_project_change_invalidates_phase_scope_but_allows_cleanup() -> void:
+	"""A cold operation cannot retain a no-project exemption after an actual phase opens."""
+	var site: Vector2i = _site_fixture()
+	var token: int = _start_owned_phase(site)
+	assert_true(_sites.open_phase(site, Contract.OP_BRACE).ok, "real different project scope")
+	assert_equal(_bindings.cold_operation_refusal(token), &"WORLD_COMPOSITION_COLD_CONTEXT", "project pin changed")
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "stale scope still releases its own memory")
+
+
+func test_real_room_claim_change_invalidates_phase_scope_but_allows_cleanup() -> void:
+	"""A still-live immutable site key cannot retain the lease's former Room claim."""
+	var site: Vector2i = _site_fixture()
+	var token: int = _start_owned_phase(site)
+	assert_true(_sites.release_room_claim(site).ok, "real claim released")
+	assert_equal(_bindings.cold_operation_refusal(token), &"WORLD_COMPOSITION_COLD_CONTEXT", "actual Room pin changed")
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "released invalidated scope")
+
+
+func test_geometry_publish_invalidates_cold_proof_without_leaking_its_lease() -> void:
+	"""A phase awaiting proof cannot use observations from before another physical transaction."""
+	var site: Vector2i = _site_fixture()
+	var token: int = _start_owned_phase(site)
+	_publish([_box()], PackedInt32Array([Space.UNFINISHED]), PackedInt32Array([1]))
+	assert_equal(_bindings.cold_operation_refusal(token), &"WORLD_COMPOSITION_COLD_CONTEXT", "geometry revision changed")
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "geometry publication does not prevent cleanup")
+
+
+func test_retired_world_refuses_phase_proof_and_still_releases_own_memory() -> void:
+	"""Owner invalidation cannot strand the one cold arena during world teardown."""
+	var site: Vector2i = _site_fixture()
+	var token: int = _start_owned_phase(site)
+	_world.clear()
+	assert_equal(_bindings.cold_operation_refusal(token), Terrain.REFUSE_BINDING, "actual world no longer published")
+	_bindings.end_cold_operation(token)
+	assert_true(_budget.is_quiescent(), "cleanup is independent of invalidated gameplay owners")

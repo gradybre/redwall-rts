@@ -663,91 +663,91 @@
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 160
+        "line": 236
       },
       "_project_generation": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 167
+        "line": 243
       },
       "_project_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 166
+        "line": 242
       },
       "_room_generations": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_room_capacity",
-        "line": 151
+        "line": 227
       },
       "_room_modes": {
         "width": 1,
         "capacity": 256,
         "bytes": 256,
         "resize_expression": "_room_capacity",
-        "line": 153
+        "line": 229
       },
       "_room_row": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 161
+        "line": 237
       },
       "_room_slots": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_room_capacity",
-        "line": 149
+        "line": 225
       },
       "_room_types": {
         "width": 4,
         "capacity": 256,
         "bytes": 1024,
         "resize_expression": "_room_capacity",
-        "line": 152
+        "line": 228
       },
       "_rotation": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 165
+        "line": 241
       },
       "_state": {
         "width": 1,
         "capacity": 1024,
         "bytes": 1024,
         "resize_expression": "_placement_capacity",
-        "line": 159
+        "line": 235
       },
       "_type": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 162
+        "line": 238
       },
       "_x": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 163
+        "line": 239
       },
       "_z": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "_placement_capacity",
-        "line": 164
+        "line": 240
       }
     },
     "modular_projects": {
@@ -918,7 +918,7 @@
     "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
     "godot/scripts/core/modular_project_contract.gd": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
     "godot/scripts/core/modular_projects.gd": "f0f0af6f713d2819ec6260d0bd06ea1e54457e931bd06143e35876572fbd63b3",
-    "godot/scripts/core/room_layout.gd": "33ff91234526617fd814034c710e37b1774ee829ad92a9e2b5c784511b8e288a",
+    "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
     "godot/scripts/core/underground_space_authority.gd": "b83662ce8616f6cef68428981e05ea3420aae09a458c099714d1bd6897668d43",

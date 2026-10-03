@@ -979,3 +979,28 @@ presentation load reservation is6,908,056 bytes plus shared WorldBasis544,768;
 this is not a measured native/whole-client peak and uses no simulation reserve.
 Native complete-state quality, production-profile binding, actual terrain/work
 contact and the paid frontier remain open. The compiler emits0 qualified flags.
+
+### Complete native state-driver component accepted
+
+The eight-clip compact image now runs through the actual integer presentation
+driver, actual Job/Work/Gear/Transforms readers and original-mesh native Actor.
+The witness loads the compiler’s physical-role boxes through the real Profile
+reader using explicitly synthetic admission flags; it creates no production
+profile, support, movement or work permission. Real equipment ownership stays
+unchanged throughout entry, productive interruption, recovery and travel fades.
+
+Native evidence records1,536 poses,6,358 assertions and0 failures across all9
+phases, with no unexpected diagnostics/leaks or executable-source drift. The
+outer exact duration/phase checker passes6 adversarial tests; the new capture
+script analyzer is clean. Parent reviewed all108 packet hashes, the553-file
+pre/post closure and native three-view images, independently reran the6 tests
+and accepted this source/presentation component. PNG existence follows the
+native save-success assertions plus retained image hashes; the outer checker
+requires only a nonempty image list. Evidence lives in
+`contact-qualification/review-native-state-v1` and `native-state-program-v1`.
+
+This remains an isolated1280x720 source witness, not final HUD/multilevel or
+terrain gameplay. Native/whole-client presentation peak, real qualification
+flags, complete contact support and paid construction remain open. A following
+version uses one compact carry hub to support the separately authored planted
+front-strike; the accepted v1 data and evidence remain unchanged.

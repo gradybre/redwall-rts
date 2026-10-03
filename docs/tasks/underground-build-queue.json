@@ -513,7 +513,9 @@
         "godot/test/test_underground_actor.gd",
         "tools/bake_underground_matrices.gd",
         "godot/scripts/core/underground_level_catalog.gd",
-        "godot/test/test_underground_level_catalog.gd"
+        "godot/test/test_underground_level_catalog.gd",
+        "godot/scripts/core/underground_connector_catalog.gd",
+        "godot/test/test_underground_connector_catalog.gd"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -638,7 +640,8 @@
           "tests": "17 tests348assertions0failures;strict/raw diagnostics/leaks0;analyzer0/2",
           "review": "Root independent descriptor and outside-project asset wrapper reviews accepted; v3 supersedes earlier import-scope evidence. Geometry observation does not grant work permission.",
           "evidence_path": "godot/data/underground/evidence/catalog-descriptor-v3/"
-        }
+        },
+        "connector_catalog_in_progress": "Additive lease approved for actual source-bound fixed geometry/contact/pace reader. Ground family=-1/variant0 reads exact actual Movement species/stage/revision cap; other families require explicit authored source. Exact joint retained/decode peak pending before allocation; no added Profiles arena."
       },
       "lease": {
         "state": "held"
@@ -1572,6 +1575,18 @@
       "analyzer_seconds": 215.118,
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-9126ba2b/README.md",
       "limits": "Predates1088 phase surveys,1087 Layout lifetime,Locations retention observer and extra Profiles extent reader; playable workflow remains in progress."
+    },
+    {
+      "commit": "fc4fac4f3b80c0d732d4e7ad82460161b0164344",
+      "outcome": "passed",
+      "full_suite": "9897 test(s), 694319 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 warnings in 0 of 1101 files",
+      "procedure": "assets absent; delete own .godot; exact clean editor import; full no-argument runner; source and HEAD unchanged; original asset state restored",
+      "suite_seconds": 1223.394,
+      "analyzer_seconds": 234.777,
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-fc4fac4f/README.md",
+      "limits": "Includes scoped phase surveys and actual leases, atomic Furniture/Construction core batch, Layout lifetime, endpoint retention, immutable descriptor and Transform freshness. Predates mixed-height Terrain, Levels, actual Routes, B2 coordinator and playable activation."
     }
   ],
   "crosscut_fixes": [

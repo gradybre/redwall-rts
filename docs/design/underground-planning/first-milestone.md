@@ -3,10 +3,12 @@
 2026-10-02. D20 approves one complete small underground build before expansion
 of the whole palette. This document translates that scope into a reviewable
 test sequence. D21 approves its shared stair passage. D22 approves optional
-furniture outlines for sizing help in the blueprint view. Implementation has
+furniture outlines for sizing help over the actual room location. Implementation has
 now begun; [implementation status](implementation-status.md) separates the
 confirmation foundation from the still-unqualified complete milestone.
-See the [working agreement](README.md) for D01–D28.
+See the [working agreement](README.md) for D01–D29. The player draws directly
+on the selected level's dirt. Every blueprint reference below means that
+in-world plan overlay, never a separate drawing canvas or a sheet placed later.
 
 ## What the first build must demonstrate
 
@@ -38,7 +40,8 @@ the already chosen workflow. After the required owner contracts are complete:
 1. Establish the shared passage, stair and both landing envelopes in the
    fixture's canonical geometry. Test the legal construction approach before
    asking workers to reach a new level; a drawn landing is not a finished route.
-2. Select Kitchen and paint its draft. Show the grid, actual boundary,
+2. Select Kitchen and paint its draft directly on the dirt where it will go.
+   Show the grid, actual boundary,
    room-appropriate material preview, entrance suggestion and clearance. The
    draft can be revised before explicit confirmation with no world mutation.
    Under D25, expose one floor, wall and ceiling finish choice for the whole

@@ -15,14 +15,15 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `9126ba2b` passed **9,827 tests / 692,679
+The latest full frozen source `fc4fac4f` passed **9,897 tests / 694,319
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
-zero analyzer warnings across 1,100 scripts. Its
-[checkpoint logs](evidence/modular-build/checkpoint-9126ba2b/README.md)
-record the exact clean-import, no-argument suite procedure. Later site-scoped
-phase surveys, Layout lifetime corrections, route endpoint retention and
-profile descriptor additions have separately scoped focused evidence. They
-must not be attributed to that earlier full checkpoint.
+zero analyzer warnings across 1,101 scripts. Its
+[checkpoint logs](evidence/modular-build/checkpoint-fc4fac4f/README.md)
+record the exact clean-import, no-argument suite procedure. This includes
+site-scoped phase surveys, release-safe leases, the atomic furniture core,
+Layout lifetime corrections, endpoint retention, profile descriptor readers
+and Transform freshness. Later Terrain, Levels, Routes and coordinator changes
+retain separately scoped evidence until the next assembled checkpoint.
 
 Actual productive contact bindings, qualified movement/profile content,
 complete furniture batches and the first playable Kitchen remain active work.

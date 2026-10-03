@@ -291,6 +291,19 @@ func read_location_into(location: Vector2i, out: Record) -> StringName:
 	return &""
 
 
+func prepared_location_into(token: int, location: Vector2i, out: Record) -> StringName:
+	"""Copy an exact sealed endpoint for a nested graph candidate; never lend either bank's arrays."""
+	var code: StringName = prepared_refusal(token)
+	if code != &"":
+		return code
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+		return &"LOCATION_OUTPUT_SHAPE"
+	if not _live_ref(_stage, location):
+		return &"LOCATION_STALE"
+	_read_row(_stage, location.x, out)
+	return &""
+
+
 func storage_endpoint_refusal(location: Vector2i) -> StringName:
 	"""A stored proof cannot survive a geometry edit silently; this callback never refreshes it."""
 	if not is_live_location(location):

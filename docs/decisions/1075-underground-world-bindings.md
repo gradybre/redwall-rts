@@ -360,3 +360,74 @@ source hashes and the rejected preliminary registry invocation are under
 `docs/validation/evidence/underground-ug1075-bindings-2026-10-03/shared-budget/`.
 This is logical lifetime evidence; actual terrain/profile/route composition and
 native memory qualification remain in progress.
+
+## Proposed actual route-owner arena (not allocated yet)
+
+The next owned module is `underground_routes.gd`, with a separate focused test.
+Locations remains the immutable endpoint/containment owner. Routes owns connected
+edge identity, retained route state and integer Transform progression; it also
+supplies the actual `SpaceOwner.ResidentLocations` reader. A paid cube, matching
+X/Z or a successful profile query alone does not create a connection.
+
+The initial technical pack proposes N=1024 actual Locations, E=1536 directed
+edges, V=4096 authored polyline vertices, L=4096 pooled route links and the actual
+Residents typed capacity S=512. At most 256 residents are living, as before.
+These are finite reusable arena capacities, not a room count, floor count or
+maximum player route-length policy. Admission refuses before allocating a partial
+route. The counts leave room for the measured initial settlement workload and
+must be exercised at 256 living residents before claiming workload qualification.
+
+| Store | Exact proposed columns | Retained bytes at this pack |
+|---|---|---:|
+| Existing Locations banks | Reviewed 228N+256 | 233,728 |
+| Two directed-edge banks | Each has14 I32: generation, from slot/generation, to slot/generation, owning Room slot/generation, family, variant, rotation, path start/count, mode, posture; 3 I64: content revision, geometry revision, path length; 2 B8: present, exhausted; plus I32 free heap and deterministic order index. 180E total | 276,480 |
+| Two authored polyline banks | X/Y/Z I32 columns; compact occupied prefix with per-edge start/count. 24V total | 98,304 |
+| Resident state plus simultaneous load image | 26 I32: full Resident ref, current Location ref, current edge ref, actual Job ref, route head/tail, mode/posture/phase, profile ID/connector family, full tool/cargo/satchel refs, segment index, committed next Location ref, requested goal Location ref. 6 I64: profile/content revisions, committed cargo quantity, edge progress, displacement remainder, request tick. 304S total | 155,648 |
+| Pooled route state plus simultaneous load image and both derived heaps | Four I32: full edge ref, next link, owning Resident typed row. Actual Resident identity is validated through that row's full stored ref. Both heaps are preflighted before load publication. 40L total | 163,840 |
+| One reused Dijkstra scratch | Per Location: I64 distance, I32 predecessor edge/heap node/heap position, B8 search state. 21N | 21,504 |
+| One proposed route result | Full local edge ref per node, 8N | 8,192 |
+| Derived local occupancy lookup | I32 hash heads[N], next[S], cell XYZ[3S], query visit[S], complete actual body/held-load envelope[6S], I64 profile revision[S] | 28,672 |
+| Bounded numeric/header reservation | Source-defined fixed headers and operation controls, charged before final implementation; native objects/handles remain in the separately declared bindings reserve | 1,024 |
+| Combined proposed provider peak | Including existing Locations and simultaneous route/resident load images | **987,392** |
+
+The remaining **61,184 bytes** inside the existing1,048,576-byte provider reserve
+are unallocated headroom, not a permission to omit later columns. The final source
+will recalculate exact scalar/header counts. Cold survey/profile copies still
+borrow the actual shared decision1072 Budget; no third graph bank or per-resident
+path object is permitted. Current graph publication and cold loaded images must
+not overlap uncharged.
+
+Edges are generation-checked, directed, and split at real Room/domain boundaries;
+all five approved connector families refer to their actual source-bound content.
+Each segment retains its authored positions, never stretched between arbitrary
+floors. The graph is admitted only against complete supported geometry and exact
+profile requirements, including turns/recovery and protected landing reservations.
+Dijkstra uses positive integer path lengths and deterministic stable ties; it does
+not reuse the old flat octile heuristic. Pooled links share the finite global
+arena instead of allocating a private maximum path for every resident.
+
+An active resident's full identity, actual Transform and committed profile/load
+must agree. The derived occupancy lookup is rebuilt or updated from those actual
+owners once per movement boundary, not by a whole-geometry scan on each Work
+call. A changed profile or geometry invalidates future entry; interruption must
+retain the occupied edge, progress and safe exit. The next implementation packet
+must settle deterministic landing queues/retreat, exact pace provenance and
+legacy-Movement handoff before movement activation. Ground caps can be read from
+Residents; connector pace is an explicit authored input rather than an invented
+copy of a ground-only speed. This schema proposal grants no traversal permission.
+
+## Prepared endpoint read for atomic topology companions
+
+`Locations.prepared_location_into` now copies an exact endpoint only after the
+existing sealed-token, current geometry and Inventory-retention preflight. Its
+caller supplies fixed output scratch; refusal leaves that output unchanged.
+The method exposes neither mutable bank storage nor a live endpoint before
+publication. This lets the forthcoming topology companion validate a future
+endpoint in the same atomic transaction. There are no new stored fields.
+
+Independent source review accepted the narrow change. Clean CI import and strict
+tests reported **18 tests /420 assertions /0 failures**, zero strict/raw errors,
+warnings, expected/tolerated diagnostics and leaks. The analyzer reported
+`0 GDScript warning(s) in 0 of 2 file(s)`. Raw logs and source pins are retained
+under the1075 evidence directory's `prepared-endpoint/` child. Actual topology
+and World composition remain implementation work.

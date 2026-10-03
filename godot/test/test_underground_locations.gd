@@ -165,6 +165,30 @@ func test_actual_shared_budget_blocks_capture_overlap_and_foreign_tokens() -> vo
 	assert_equal(_cold.release(cold), &"", "release only after charged image is discarded")
 
 
+func test_prepared_endpoint_reader_requires_seal_and_preserves_bank_isolation() -> void:
+	"""Topology can bind an unborn endpoint only through this owner's still-valid sealed transaction."""
+	var cold: int = _cold.acquire(COLD_BYTES)
+	var token: int = _locations.begin_prepare(cold).token
+	var added: Locations.Result = _locations.stage_add(token, _record())
+	assert_equal(added.error, &"", "actual prepared endpoint")
+	var out: Locations.Record = _record(1024)
+	assert_equal(_locations.prepared_location_into(token, added.location, out), &"LOCATION_TOKEN_STALE", "unsealed refuses")
+	assert_equal(out.point.x, 1024, "refused output remains unchanged")
+	assert_equal(_locations.seal(token), &"", "actual current seal")
+	assert_equal(_locations.prepared_location_into(token + 1, added.location, out), &"LOCATION_TOKEN_STALE", "foreign token")
+	assert_equal(_locations.prepared_location_into(token, added.location, out), &"", "copy exact sealed endpoint")
+	assert_equal(out.point, Vector3i(-512, 0, 512), "prepared actual coordinates")
+	assert_false(_locations.is_live_location(added.location), "prepared endpoint is not public")
+	out.envelope[0] = 999
+	out.point.x = 999
+	assert_equal(_locations.prepared_location_into(token, added.location, out), &"", "caller edits do not change stage")
+	assert_equal(out.envelope[0], -768, "copied envelope never aliases stage storage")
+	assert_equal(out.point.x, -512, "scalar output restored from actual stage")
+	assert_true(_locations.abort(token), "aborted transaction publishes nothing")
+	assert_equal(_locations.prepared_location_into(token, added.location, out), &"LOCATION_TOKEN_STALE", "expired token")
+	assert_equal(_cold.release(cold), &"", "no charged output survives")
+
+
 func test_arena_and_cold_admission_refuse_before_allocation() -> void:
 	"""Technical capacity is explicit; no over-budget implicit default is allocated."""
 	var other: Locations = Locations.new()

@@ -117,3 +117,30 @@ reporting independent maxima as if they fit is not permitted.
 This packet is not implementation or runtime evidence. UG20 remains running
 until the actual economic, spatial, hauling and save-owner contracts above
 have independently reviewed source and recorded test diagnostics.
+
+
+## Isolated ledger implementation checkpoint
+
+The reviewed owner implements the stable tip identity, exact-q retained work,
+whole source/capacity claims, conservative publication guards and paid closure
+rules above. It allocates **107C+65536** live packed bytes (103C persistent plus
+derived indexes), independently of its persistent header and numeric controls.
+A cold audit needs C additional bytes. Its diagnostic image returns48+103C bytes
+but its actual capture peak is **48+119C** packed scratch: the output coexists
+with a converted32C earned-work column or the final16C exact-q column. These
+cold operations are sequential. Native buffer growth and object/Variant storage
+remain separately unmeasured; do not confuse output length with capture peak.
+
+Sixteen strict component tests passed with747 assertions, zero failures, zero
+unexpected diagnostics and zero exit leaks. The focused analyzer reported zero
+GDScript warnings in two files. These tests use actual Construction identities
+and progress with a deliberately synthetic publication/accounting adapter.
+They do not prove real Inventory funding, worker/tool eligibility, physical
+haulage, siting or save/load. The initial run failed one test's injected heap
+restoration; the corrected fixture restores the actual saved value rather than
+assuming heap layout. Both logs are retained in the evidence packet.
+
+Independent review of the exact source/test hashes found no functional blocker
+and corrected the capture-peak accounting above. Source publication remains
+inert until the exact typed paid operation owner binds. UG20 remains running;
+its actual shared modular coordinator and world integration are still required.

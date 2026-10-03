@@ -1,0 +1,39 @@
+state_registry_coverage: PASS -- 102 modules, 485 rows, 838 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_spoil_tips.gd
+  PASS  test_exact_adopted_prices_keep_fractional_quantities_and_refuse_invalid_operations
+  PASS  test_explicit_capacity_and_live_world_are_required_before_any_allocation
+  PASS  test_direct_admission_or_foreign_composition_cannot_designate_a_tip
+  PASS  test_designation_and_mid_prepare_cancel_keep_tile_generation_and_earned_work
+  PASS  test_admission_refuses_a_fresh_counter_that_would_erase_retained_work
+  PASS  test_unattested_or_unrecorded_work_cannot_cancel_or_complete
+  PASS  test_compaction_retains_exact_quantity_and_reserves_whole_incoming_amount
+  PASS  test_cancelled_reclamation_keeps_source_until_actual_output_commit
+  PASS  test_full_tip_and_busy_operation_never_admit_predicted_free_capacity
+  PASS  test_paid_empty_closure_reuses_slot_with_new_generation_and_no_legacy_save_downgrade
+  PASS  test_stock_must_be_reclaimed_before_paid_closure
+  PASS  test_retries_wrong_generations_and_lost_world_cannot_republish_source
+  FAIL  test_tile_index_heap_claim_and_conservation_corruption_are_detected_without_repairing
+        restored fixture (expected , got SPOIL_FREE_INDEX)
+        unfunded embedded source (expected SPOIL_CONSERVATION, got SPOIL_FREE_INDEX)
+        partial reservation cannot pass audit (expected SPOIL_ACTIVE_CLAIM, got SPOIL_FREE_INDEX)
+  PASS  test_expired_publisher_binding_cannot_be_replaced_with_fresh_history
+CI_SUITE_TIME {"assertions":694,"failures":1,"suite":"test_spoil_tips.gd","tests":14,"usec":621930}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 694 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

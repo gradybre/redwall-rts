@@ -373,7 +373,7 @@
         "tools/measure_underground_profiles.py",
         "tools/test_measure_underground_profiles.py",
         "docs/design/underground-planning/evidence/modular-build/profiles/",
-        "docs/decisions/1063-underground-source-profile-measurements.md"
+        "docs/decisions/1063-source-bound-underground-profile-measurements.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -414,6 +414,12 @@
             "integration": "89aa974c +44e3717f registry +de265e3e packet",
             "tests": "27 space tests/249 assertions;16 connector tests/179 assertions; zero failures, diagnostics/raw/leaks; analyzer0/4",
             "review": "root independent source/test review; helpers only, production qualification remains open"
+          },
+          {
+            "commit": "3c991a04",
+            "scope": "Ledger correction only: live snapshot owner2*I32+I64=16bytes; no runtime code",
+            "review": "root independently found/corrected arithmetic against actual source",
+            "integration": "unchanged additive docs cherry-pick"
           }
         ]
       },

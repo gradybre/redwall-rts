@@ -15,6 +15,7 @@ const Budget := preload("res://scripts/core/underground_budget.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
+const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"UNDERGROUND_ROOM_OWNER_UNBOUND"
 const REFUSE_FURNITURE: StringName = &"UNDERGROUND_PENDING_FURNITURE_REQUIRED"
@@ -213,6 +214,41 @@ class Bindings extends RefCounted:
 		"""Release only after planner views, provider images and all batch/bridge companions have dropped."""
 		return REFUSE_BINDING
 
+	func begin_entry_cold(_plan: EntryPlan.Request) -> StringName:
+		"""Admit the actual complete non-flat source/frontier/companion peak before any image is copied."""
+		return REFUSE_BINDING
+
+	func entry_cold_refusal(_plan: EntryPlan.Request, _token: int) -> StringName:
+		"""Revalidate the original entry request and exact shared World lease, without new allocation."""
+		return REFUSE_BINDING
+
+	func entry_plan_refusal(_plan: EntryPlan.Request, _candidate: Directory.CreateCandidate,
+			_section: Vector2i, _space_token: int) -> StringName:
+		"""Attest concrete frontier/contacts and prepare Placement against this exact future Corridor."""
+		return REFUSE_BINDING
+
+	func entry_prepared_refusal(_plan: EntryPlan.Request, _candidate: Directory.CreateCandidate,
+			_section: Vector2i, _space_token: int) -> StringName:
+		"""Finish every source/frontier/companion observer before actual Room/Sites publication."""
+		return REFUSE_BINDING
+
+	func entry_final_refusal(_plan: EntryPlan.Request, _candidate: Directory.CreateCandidate,
+			_section: Vector2i, _space_token: int) -> StringName:
+		"""Recheck actual prepared companion/source leaves after Sites observers; no copying or new permission."""
+		return REFUSE_BINDING
+
+	func discard_entry_plan(_room: Vector2i, _space_token: int) -> void:
+		"""The base retains no entry preparation; a concrete binding discards only its exact candidate."""
+		pass
+
+	func publish_entry_plan(_room: Vector2i, _space_token: int) -> void:
+		"""Only already-prepared actual companions may publish in the matching Room receipt window."""
+		assert(false, "Unbound entry bindings cannot publish a placement")
+
+	func end_entry_cold() -> void:
+		"""The concrete binding drops all entry images before releasing its original exact lease."""
+		assert(false, "Unbound entry bindings cannot own a cold lease")
+
 	func begin_room_cold(_plan: RoomPlan) -> StringName:
 		"""Acquire plan-copy, Footprint dictionary/native and spatial/companion peak before any copies."""
 		return REFUSE_BINDING
@@ -322,6 +358,11 @@ var _room_domain: RoomSpace.Domain = null
 var _room_sites: Sites = null
 var _room_claim_input: Sites.RoomClaimInput = null
 var _room_claim_batch: Sites.RoomClaimBatch = null
+var _entry_mode: bool = false
+var _entry_request: EntryPlan.Request = null
+var _entry_plan: EntryPlan.Request = null
+var _entry_section: Vector2i = NULL_REF
+var _entry_claim_input: Sites.EntryClaimInput = null
 var _layout_token: int = 0
 var _layout_planner_bytes: int = 0
 var _layout_geometry_limit: int = 0
@@ -447,7 +488,13 @@ func is_bound_room_bindings(candidate: Bindings) -> bool:
 func room_admission_refusal(plan: RoomPlan, candidate: Bindings) -> StringName:
 	"""Only the original synchronous confirmation request may acquire its provider's cold arena."""
 	return &"" if is_bound_room_bindings(candidate) and _stage_action == ROOM_ADMISSION_STAGE \
-		and plan != null and plan == _room_request and not _publishing else REFUSE_TRANSITION
+		and not _entry_mode and plan != null and plan == _room_request and not _publishing else REFUSE_TRANSITION
+
+
+func entry_admission_refusal(plan: EntryPlan.Request, candidate: Bindings) -> StringName:
+	"""The distinct request kind is pinned before the first callback; the flat path cannot borrow it."""
+	return &"" if is_bound_room_bindings(candidate) and _stage_action == ROOM_ADMISSION_STAGE \
+		and _entry_mode and plan != null and plan == _entry_request and not _publishing else REFUSE_TRANSITION
 
 
 func begin_layout_operation(room: Vector2i, planner_bytes: int, geometry_limit: int,
@@ -817,6 +864,79 @@ func confirm_room(plan: RoomPlan) -> Buildings.OpResult:
 	return _publish_room(bindings)
 
 
+func confirm_entry(plan: EntryPlan.Request) -> Buildings.OpResult:
+	"""Confirm one non-flat permanent Corridor with exact future Placement; never pre-create a Room."""
+	if _stage_action != -1:
+		return Buildings.OpResult.new(false, REFUSE_TRANSITION, 0, NULL_REF)
+	_stage_action = ROOM_ADMISSION_STAGE
+	_entry_mode = true
+	_entry_request = plan
+	var code: StringName = _entry_input_refusal(plan)
+	var bindings: Bindings = _actual_bindings() if code == &"" else null
+	if code != &"" or bindings == null:
+		_clear_stage()
+		return Buildings.OpResult.new(false, code if code != &"" else REFUSE_BINDING, 0, NULL_REF)
+	code = _begin_entry_cold(bindings, plan)
+	if code != &"":
+		_clear_stage()
+		return Buildings.OpResult.new(false, code, 0, NULL_REF)
+	code = _entry_input_refusal(plan)
+	if code == &"":
+		code = _room_scope_refusal(bindings)
+	if code == &"":
+		_entry_plan = EntryPlan.Request.new()
+		EntryPlan.copy_into(plan, _entry_plan)
+		code = _prepare_room(bindings)
+	if code == &"" and not EntryPlan.same(plan, _entry_plan):
+		code = EntryPlan.REFUSE
+	if code == &"":
+		code = _prepare_room_claims()
+	return _finish_entry_attempt(bindings, code)
+
+
+func _finish_entry_attempt(bindings: Bindings, code: StringName) -> Buildings.OpResult:
+	"""Every rejected entry drops private images and prepared owners before releasing its original lease."""
+	if code != &"":
+		_discard_room(bindings)
+		return Buildings.OpResult.new(false, code, 0, NULL_REF)
+	return _publish_room(bindings)
+
+
+func _begin_entry_cold(bindings: Bindings, plan: EntryPlan.Request) -> StringName:
+	"""Capture actual arena identity before asking its bound entry provider to acquire one cold operation."""
+	_room_budget = bindings.layout_budget_owner()
+	if _room_budget == null:
+		return REFUSE_ROOM_COLD
+	var code: StringName = bindings.begin_entry_cold(plan)
+	if code != &"":
+		return code
+	_cold_held = true
+	_room_cold_token = bindings.room_cold_token()
+	code = _room_scope_refusal(bindings)
+	if code != &"":
+		_discard_room(bindings)
+	return code
+
+
+func _entry_input_refusal(plan: EntryPlan.Request) -> StringName:
+	"""Repeat finite shape/source-pin arithmetic after observers and before any entry packet copy."""
+	if binding_refusal() != &"":
+		return REFUSE_BINDING
+	var code: StringName = EntryPlan.shape_refusal(plan)
+	if code != &"":
+		return code
+	if plan.world != _world or plan.space_revision != _space.revision():
+		return EntryPlan.REFUSE
+	return &"" if entry_packet_cold_bytes(plan) <= Budget.COLD_BYTES \
+		else REFUSE_ROOM_COLD
+
+
+static func entry_packet_cold_bytes(plan: EntryPlan.Request) -> int:
+	"""Sites counts four box images/cursor; also admit three digest/target images and extra typed controls."""
+	@warning_ignore("integer_division") var boxes: int = plan.claims.size() / 6
+	return Sites.entry_claim_cold_bytes(boxes) + 3 * (EntryPlan.SOURCE_BYTES + 4 * plan.opening_targets.size()) + 2048
+
+
 func _begin_room_cold(bindings: Bindings, plan: RoomPlan) -> StringName:
 	"""Pin the actual arena before acquisition; a positive token from a replacement arena never qualifies."""
 	_room_budget = bindings.layout_budget_owner()
@@ -839,18 +959,35 @@ func _room_budget_covers() -> bool:
 
 
 func _room_scope_refusal(bindings: Bindings) -> StringName:
-	"""Bracket provider callbacks with actual arena proof and immutable request checks."""
-	if not _room_budget_covers() or room_admission_refusal(_room_request, bindings) != &"":
+	"""Bracket provider callbacks with actual arena proof and immutable typed request checks."""
+	if not _room_budget_covers() or _admission_scope_refusal(bindings) != &"":
 		return REFUSE_ROOM_COLD
-	var code: StringName = bindings.room_cold_refusal(_room_request, _room_cold_token)
+	var code: StringName = bindings.entry_cold_refusal(_entry_request, _room_cold_token) if _entry_mode \
+		else bindings.room_cold_refusal(_room_request, _room_cold_token)
 	if code != &"":
 		return code
 	if bindings.layout_budget_owner() != _room_budget or bindings.room_cold_token() != _room_cold_token \
 			or not _room_budget_covers():
 		return REFUSE_ROOM_COLD
-	if not _room_plan.cells.is_empty() and not _same_room_plan(_room_request):
-		return REFUSE_PLAN
-	return &""
+	if _entry_mode:
+		return _entry_scope_input_refusal()
+	return REFUSE_PLAN if not _room_plan.cells.is_empty() and not _same_room_plan(_room_request) else &""
+
+
+func _admission_scope_refusal(bindings: Bindings) -> StringName:
+	"""Pure original request-kind proof; neither entry nor flat requests can borrow the other's stage."""
+	return entry_admission_refusal(_entry_request, bindings) if _entry_mode \
+		else room_admission_refusal(_room_request, bindings)
+
+
+func _entry_scope_input_refusal() -> StringName:
+	"""Check caller growth and every copied byte after the last provider callback without observing again."""
+	var code: StringName = EntryPlan.shape_refusal(_entry_request)
+	if code != &"":
+		return code
+	if entry_packet_cold_bytes(_entry_request) > Budget.COLD_BYTES:
+		return REFUSE_ROOM_COLD
+	return &"" if _entry_plan == null or EntryPlan.same(_entry_request, _entry_plan) else EntryPlan.REFUSE
 
 
 func _room_input_refusal(plan: RoomPlan) -> StringName:
@@ -886,21 +1023,48 @@ func _prepare_room(bindings: Bindings) -> StringName:
 	code = _prepare_room_geometry()
 	code = _room_step_refusal(bindings, code)
 	if code == &"":
-		code = bindings.room_plan_refusal(_room_plan, _stage_room, _stage_token)
+		code = _admission_plan_refusal(bindings)
 	code = _room_step_refusal(bindings, code)
 	if code == &"":
 		code = _space.seal(_stage_token)
 	code = _room_step_refusal(bindings, code)
 	if code == &"":
-		code = bindings.room_prepared_refusal(_room_plan, _stage_room, _stage_token)
+		code = _admission_prepared_refusal(bindings)
 	code = _room_step_refusal(bindings, code)
 	if code == &"":
 		code = binding_refusal()
 	if code == &"":
 		code = _space.prepared_refusal(_stage_token)
 	if code == &"":
-		code = _buildings.spatial_room_candidate_refusal(_room_plan.room_type, _room_candidate)
+		code = _buildings.spatial_room_candidate_refusal(_admission_room_type(), _room_candidate)
 	return _room_step_refusal(bindings, code)
+
+
+func _admission_plan_refusal(bindings: Bindings) -> StringName:
+	"""The entry source prepares Placement against the same future Room and metadata section."""
+	return bindings.entry_plan_refusal(_entry_plan, _room_candidate, _entry_section, _stage_token) if _entry_mode \
+		else bindings.room_plan_refusal(_room_plan, _stage_room, _stage_token)
+
+
+func _admission_prepared_refusal(bindings: Bindings) -> StringName:
+	"""Complete every actual companion observation before claiming Sites or spending the Room identity."""
+	return bindings.entry_prepared_refusal(_entry_plan, _room_candidate, _entry_section, _stage_token) if _entry_mode \
+		else bindings.room_prepared_refusal(_room_plan, _stage_room, _stage_token)
+
+
+func _admission_room_type() -> int:
+	"""An entry always remains a Corridor; the caller cannot choose another purpose."""
+	return Buildings.ROOM_TYPE_CORRIDOR if _entry_mode else _room_plan.room_type
+
+
+func _admission_world() -> Vector2i:
+	"""Read only the privately retained request while a future identity is attested."""
+	return _entry_plan.world if _entry_mode and _entry_plan != null else _room_plan.world
+
+
+func _same_admission_request() -> bool:
+	"""Publication and companion readers compare the whole original typed request without callbacks."""
+	return EntryPlan.same(_entry_request, _entry_plan) if _entry_mode else _same_room_plan(_room_request)
 
 
 func _room_step_refusal(bindings: Bindings, code: StringName) -> StringName:
@@ -910,6 +1074,8 @@ func _room_step_refusal(bindings: Bindings, code: StringName) -> StringName:
 
 func _prepare_room_geometry() -> StringName:
 	"""Preserve finer painted cells and holes; actual cut coverage is a separate mandatory provider proof."""
+	if _entry_mode:
+		return _prepare_entry_geometry()
 	var domain: RoomSpace.Domain = _space.domain_copy()
 	if domain == null or not _room_budget_covers():
 		return REFUSE_BINDING
@@ -931,6 +1097,78 @@ func _prepare_room_geometry() -> StringName:
 		return REFUSE_ROOM_COLD
 	var section: SpaceOwner.Result = _stage_room_section(descriptor.bounds_u)
 	return section.error if section.error != &"" else _stage_room_runs(descriptor.bounds_u, section.handle)
+
+
+func _prepare_entry_geometry() -> StringName:
+	"""A non-flat Corridor reserves exact boxes; its metadata never supplies a walking floor or air."""
+	var domain: RoomSpace.Domain = _space.domain_copy()
+	if domain == null or not _room_budget_covers():
+		return REFUSE_ROOM_COLD
+	var descriptor: Dictionary = domain.descriptor()
+	if descriptor.world_ref != _world or not _room_budget_covers():
+		return REFUSE_BINDING
+	_room_domain = domain
+	var code: StringName = _entry_scope_input_refusal()
+	if code != &"":
+		return code
+	var begun: SpaceOwner.Result = _space.begin_stage(_entry_plan.space_revision)
+	if begun.error != &"":
+		return begun.error
+	_stage_token = begun.token
+	code = _space.stage_room_admission(_stage_token, _room_candidate, Buildings.ROOM_TYPE_CORRIDOR, self)
+	if code != &"":
+		return code
+	var section: SpaceOwner.Result = _stage_entry_section(descriptor.bounds_u)
+	if section.error != &"":
+		return section.error
+	_entry_section = section.handle
+	for offset: int in range(0, _entry_plan.claims.size(), 6):
+		code = _stage_entry_box(offset, descriptor.bounds_u)
+		if code != &"":
+			return code
+	return &""
+
+
+func _stage_entry_section(bounds: PackedInt32Array) -> SpaceOwner.Result:
+	"""Only X/Z claim bounds and the explicit base datum identify this excavation section."""
+	if not _room_budget_covers() or not RoomSpace.int32(int(_entry_plan.origin_u.y) + 1):
+		return SpaceOwner.Result.new(REFUSE_ROOM_COLD)
+	var region: SpaceOwner.Region = SpaceOwner.Region.new()
+	region.owner = _stage_room
+	region.level = _entry_plan.base_level
+	region.role = RoomSpace.FLOOR_DATUM
+	region.box = _entry_section_box()
+	return _space.stage_add(_stage_token, region) if RoomSpace.contains_box(bounds, region.box) \
+		else SpaceOwner.Result.new(EntryPlan.REFUSE)
+
+
+func _entry_section_box() -> PackedInt32Array:
+	"""Envelope metadata spans no implied usable volume; absent interior gaps retain no claim."""
+	var box: PackedInt32Array = PackedInt32Array([_entry_plan.claims[0], _entry_plan.origin_u.y,
+		_entry_plan.claims[2], _entry_plan.claims[3], int(_entry_plan.origin_u.y) + 1, _entry_plan.claims[5]])
+	for offset: int in range(6, _entry_plan.claims.size(), 6):
+		box[0] = mini(box[0], _entry_plan.claims[offset])
+		box[2] = mini(box[2], _entry_plan.claims[offset + 2])
+		box[3] = maxi(box[3], _entry_plan.claims[offset + 3])
+		box[5] = maxi(box[5], _entry_plan.claims[offset + 5])
+	return box
+
+
+func _stage_entry_box(offset: int, bounds: PackedInt32Array) -> StringName:
+	"""Every 3D box stays exact, including overlap and varying heights; unique paid cubes belong to Sites."""
+	if not _room_budget_covers():
+		return REFUSE_ROOM_COLD
+	var region: SpaceOwner.Region = SpaceOwner.Region.new()
+	region.owner = _stage_room
+	region.level = _entry_plan.base_level
+	region.role = RoomSpace.OBSTACLE
+	region.section = _entry_section
+	region.claim_kind = SpaceOwner.CLAIM_ROOM
+	region.claim_ref = _stage_room
+	region.box.resize(6)
+	for axis: int in 6:
+		region.box[axis] = _entry_plan.claims[offset + axis]
+	return _space.stage_add(_stage_token, region).error if RoomSpace.contains_box(bounds, region.box) else EntryPlan.REFUSE
 
 
 func _stage_room_section(bounds: PackedInt32Array) -> SpaceOwner.Result:
@@ -1010,7 +1248,7 @@ func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int
 	"""Attest retained identity without provider/Space callbacks; fresh physical proof precedes publication."""
 	if _identity_binding_refusal() != &"" or _stage_action != ROOM_ADMISSION_STAGE or not _room_budget_covers() \
 			or candidate == null or candidate != _room_candidate or candidate.ref != _stage_room \
-			or room_type != _room_plan.room_type or _room_plan.world != _world:
+			or room_type != _admission_room_type() or _admission_world() != _world:
 		return REFUSE_TRANSITION
 	return &""
 
@@ -1034,7 +1272,7 @@ func room_companion_refusal(room: Vector2i, room_type: int, space_token: int,
 	if code != &"":
 		return code
 	if _room_candidate.kind != Directory.KIND_ROOM or _room_candidate.directory_owner() != _construction.directory() \
-			or not _same_room_plan(_room_request):
+			or not _same_admission_request():
 		return REFUSE_TRANSITION
 	return &""
 
@@ -1046,21 +1284,27 @@ func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
 
 func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 	"""Publish actual Room then its sealed exact future source, without fallible reconstruction afterward."""
-	var refusal: StringName = _room_claims_final_refusal()
+	var refusal: StringName = bindings.entry_final_refusal(_entry_plan, _room_candidate, _entry_section, _stage_token) \
+		if _entry_mode else &""
+	if refusal == &"":
+		refusal = _room_claims_final_refusal()
 	if refusal != &"":
 		_discard_room(bindings)
 		return Buildings.OpResult.new(false, refusal, 0, NULL_REF)
 	_publishing = true
-	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(_room_plan.room_type, _room_candidate)
+	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(_admission_room_type(), _room_candidate)
 	if not made.ok:
 		_publishing = false
 		_discard_room(bindings)
 		return made
 	var reserved: StringName = _room_sites.publish_room_claim_batch(_room_claim_batch)
 	assert(reserved == &"", "preflighted exact Room cuts publish before the first spatial/source callback")
-	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _room_plan.room_type, self)
+	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _admission_room_type(), self)
 	assert(code == &"", "preflighted exact future Room geometry must publish after identity")
-	bindings.publish_room_plan(_stage_room, _stage_token)
+	if _entry_mode:
+		bindings.publish_entry_plan(_stage_room, _stage_token)
+	else:
+		bindings.publish_room_plan(_stage_room, _stage_token)
 	_publishing = false
 	_finish_room_cold(bindings)
 	return made
@@ -1068,6 +1312,8 @@ func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 
 func _prepare_room_claims() -> StringName:
 	"""All allocating companion surveys must already be sealed/dropped before the fourth input/cursor image."""
+	if _entry_mode:
+		return _prepare_entry_claims()
 	if not _room_budget_covers() or _room_domain == null:
 		return REFUSE_ROOM_COLD
 	_room_sites = _construction.excavation_authority() as Sites
@@ -1087,8 +1333,42 @@ func _prepare_room_claims() -> StringName:
 		self, _room_domain, _room_budget, _room_cold_token, _room_claim_batch)
 
 
+func _prepare_entry_claims() -> StringName:
+	"""Prepare the distinct concrete union cursor only after every allocating companion image has dropped."""
+	if not _room_budget_covers() or _room_domain == null or not _same_admission_request():
+		return REFUSE_ROOM_COLD
+	_room_sites = _construction.excavation_authority() as Sites
+	if _room_sites == null or _room_sites.construction_owner() != _construction:
+		return REFUSE_BINDING
+	_entry_claim_input = Sites.EntryClaimInput.new()
+	_entry_claim_input.world = _entry_plan.world
+	_entry_claim_input.base_level = _entry_plan.base_level
+	_entry_claim_input.space_revision = _entry_plan.space_revision
+	_entry_claim_input.boxes = _entry_plan.claims
+	_room_claim_batch = Sites.RoomClaimBatch.new()
+	return _room_sites.prepare_entry_claim_batch_into(_entry_claim_input, _room_candidate,
+		self, _room_domain, _room_budget, _room_cold_token, _room_claim_batch)
+
+
+func _entry_claims_final_refusal() -> StringName:
+	"""The final pure original input/history/candidate guard precedes the actual Room identity allocation."""
+	if not _room_budget_covers():
+		return REFUSE_ROOM_COLD
+	if not EntryPlan.same(_entry_request, _entry_plan) or _entry_claim_input == null \
+			or _entry_claim_input.world != _entry_plan.world or _entry_claim_input.base_level != _entry_plan.base_level \
+			or _entry_claim_input.space_revision != _entry_plan.space_revision or _entry_claim_input.boxes != _entry_plan.claims:
+		return EntryPlan.REFUSE
+	if _room_sites == null or _construction.excavation_authority() != _room_sites \
+			or _room_claim_batch == null or not _room_claim_batch.matches_entry_input(_entry_claim_input, _room_candidate):
+		return REFUSE_BINDING
+	var code: StringName = room_candidate_refusal(_room_candidate, Buildings.ROOM_TYPE_CORRIDOR)
+	return code if code != &"" else _room_sites.room_claim_batch_refusal(_room_claim_batch)
+
+
 func _room_claims_final_refusal() -> StringName:
 	"""No provider callback separates this complete local/Sites guard from real Directory creation."""
+	if _entry_mode:
+		return _entry_claims_final_refusal()
 	if not _room_budget_covers():
 		return REFUSE_ROOM_COLD
 	if not _same_room_plan(_room_request) or _room_claim_input == null \
@@ -1108,7 +1388,10 @@ func _room_claims_final_refusal() -> StringName:
 
 func _discard_room(bindings: Bindings) -> void:
 	"""Abort only this candidate; every Room/Directory/geometry refusal leaves the live owners unchanged."""
-	bindings.discard_room_plan(_stage_room, _stage_token)
+	if _entry_mode:
+		bindings.discard_entry_plan(_stage_room, _stage_token)
+	else:
+		bindings.discard_room_plan(_stage_room, _stage_token)
 	if _stage_token > 0:
 		_space.abort(_stage_token)
 	_finish_room_cold(bindings)
@@ -1120,11 +1403,16 @@ func _finish_room_cold(bindings: Bindings) -> void:
 		_room_sites.discard_room_claim_batch(_room_claim_batch)
 	_room_claim_batch = null
 	_room_claim_input = null
+	_entry_claim_input = null
+	_entry_plan = null
 	_room_domain = null
 	_room_plan.reset()
 	_room_candidate.reset()
 	if _cold_held:
-		bindings.end_room_cold()
+		if _entry_mode:
+			bindings.end_entry_cold()
+		else:
+			bindings.end_room_cold()
 	_room_sites = null
 	_clear_stage()
 
@@ -1387,5 +1675,9 @@ func _clear_stage() -> void:
 	_stage_token = 0
 	_cold_held = false
 	_room_request = null
+	_entry_request = null
+	_entry_plan = null
+	_entry_mode = false
+	_entry_section = NULL_REF
 	_room_budget = null
 	_room_cold_token = 0

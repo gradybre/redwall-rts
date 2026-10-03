@@ -1621,6 +1621,13 @@ per-worker heap allocation or saved selection cache. Source/content identity,
 complete-state certificate and actual Job/Work/Gear obligations remain unchanged.
 
 
+### `godot/scripts/core/underground_entry_plan.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Distinct synchronous non-flat request | -- | -- | -- | No request/copy retained at a frame/save boundary | 3 | -- | Decision1108. Caller/private/provider images each carry100 logical scalar bytes,128 source-digest bytes,24B per claim box and16B per opening target. The request grants no source, work, support or route permission. Exact RoomOrders/Bindings use the original shared cold lease; Sites separately owns the canonical paid union. No per-Room state object or save column. |
+| RoomOrders entry operation controls | -- | -- | -- | Entry mode false and references cleared after success/refusal | 3 | -- | The existing RoomOrders exclusive Room admission stage also owns an entry-mode boolean, one section EntityRef and transient typed request/claim references. The packet peak includes three digest/target copies plus2048 additional logical controls beyond Sites four-box-image/cursor allowance. Actual binding must add sequential Space/Placement/Location/Route peaks and native headers before production activation. |
+
 ### `godot/scripts/core/underground_entry_cut_map.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |

@@ -212,21 +212,37 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     assert bank == 64 * capacity + 128 and fixed == 512, "recipe frame/storage contract drift"
     assemblies = connector_assembly_reservation(index)
     anchor = surface_anchor_reservation(index)
+    settlement = funding_settlement_reservation(index)
     consumers = {
         "connector_catalog": resolve(index, "underground_connector_catalog", "RESERVED_BYTES"),
         "world_routes": resolve(index, "underground_world_routes", "RESERVED_BYTES"),
         "connector_recipes": bank + fixed,
         "connector_assemblies": assemblies["reserved_bytes"],
         "surface_anchor": anchor["reserved_bytes"],
+        "connector_settlement": settlement["reserved_bytes"],
     }
     used = sum(consumers.values())
     assert used <= binding_reserve, "known binding consumers exceed their shared reserve"
     return {"columns": rows, "part_capacity": capacity, "bank_bytes": bank,
             "fixed_bytes": fixed, "assembly_reservation": assemblies, "surface_anchor_reservation": anchor,
+            "funding_settlement_reservation": settlement,
             "known_binding_consumers": consumers,
             "known_binding_used_bytes": used,
             "remaining_binding_reserve_bytes": binding_reserve - used,
             "scope": "Known logical consumers only; actual placement, other controls and native growth still require joint admission."}
+
+
+def funding_settlement_reservation(index: dict) -> dict:
+    """Charge the two actual synchronous full refs without recounting the existing Funding buffers."""
+    source = index["excavation_inventory"].text
+    names = re.findall(r"^var[ \t]+(_settling_\w+)\b", source, re.M)
+    declarations = re.findall(r"^var[ \t]+(_settling_\w+)[ \t]*:[ \t]*([\w.]+)\b", source, re.M)
+    fields = dict(declarations)
+    expected = {"_settling_project": "Vector2i", "_settling_job": "Vector2i"}
+    assert len(names) == len(declarations) == len(fields) and fields == expected, \
+        ("unreconciled connector settlement control", names, fields)
+    return {"fields": fields, "reserved_bytes": 8 * len(fields),
+            "scope": "Same-stack input settlement only; existing refund scratch is reused. Native references and helper frames remain unmeasured."}
 
 
 def build(index: dict | None = None) -> dict:

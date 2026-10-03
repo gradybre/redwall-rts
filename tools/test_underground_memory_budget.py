@@ -69,6 +69,32 @@ class JointPackTests(unittest.TestCase):
     def test_negative_loss_domain_count(self) -> None:
         self.refuses("excavation_inventory", "LOSS_DOMAIN_COUNT: int = 4", "LOSS_DOMAIN_COUNT: int = 5")
 
+    def test_negative_settlement_control_width(self) -> None:
+        self.refuses("excavation_inventory", "_settling_project: Vector2i", "_settling_project: Vector3i")
+
+    def test_negative_missing_settlement_control(self) -> None:
+        self.refuses("excavation_inventory", "var _settling_job: Vector2i = NULL_REF", "")
+
+    def test_negative_extra_settlement_control(self) -> None:
+        source = self.index["excavation_inventory"].text
+        self.refuses("excavation_inventory", source,
+                     source + "\nvar _settling_extra: Vector2i = NULL_REF\n")
+
+    def test_negative_compact_settlement_declaration(self) -> None:
+        source = self.index["excavation_inventory"].text
+        self.refuses("excavation_inventory", source,
+                     source + "\nvar _settling_extra:Vector2i = Vector2i(-1, 0)\n")
+
+    def test_negative_untyped_settlement_declaration(self) -> None:
+        source = self.index["excavation_inventory"].text
+        self.refuses("excavation_inventory", source,
+                     source + "\nvar _settling_extra = Vector2i(-1, 0)\n")
+
+    def test_negative_duplicate_settlement_declaration(self) -> None:
+        source = self.index["excavation_inventory"].text
+        self.refuses("excavation_inventory", source,
+                     source + "\nvar _settling_job: Vector2i = NULL_REF\n")
+
     def test_negative_unaccounted_recipe_column(self) -> None:
         source = self.index["underground_connector_recipes"].text
         self.refuses("underground_connector_recipes", source,
@@ -179,8 +205,9 @@ class JointPackTests(unittest.TestCase):
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
-        self.assertEqual(recipes["known_binding_used_bytes"], 378120)
-        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 146168)
+        self.assertEqual(recipes["known_binding_used_bytes"], 378136)
+        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 146152)
+        self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         assemblies = recipes["assembly_reservation"]
         self.assertEqual(budget.payload(assemblies["columns"]), 4316)
         self.assertEqual(assemblies["reserved_bytes"], 4760)

@@ -1045,15 +1045,24 @@
       "logical_helper_allowance_bytes": 1024,
       "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."
     },
+    "funding_settlement_reservation": {
+      "fields": {
+        "_settling_project": "Vector2i",
+        "_settling_job": "Vector2i"
+      },
+      "reserved_bytes": 16,
+      "scope": "Same-stack input settlement only; existing refund scratch is reused. Native references and helper frames remain unmeasured."
+    },
     "known_binding_consumers": {
       "connector_catalog": 190448,
       "world_routes": 163840,
       "connector_recipes": 17024,
       "connector_assemblies": 4760,
-      "surface_anchor": 2048
+      "surface_anchor": 2048,
+      "connector_settlement": 16
     },
-    "known_binding_used_bytes": 378120,
-    "remaining_binding_reserve_bytes": 146168,
+    "known_binding_used_bytes": 378136,
+    "remaining_binding_reserve_bytes": 146152,
     "scope": "Known logical consumers only; actual placement, other controls and native growth still require joint admission."
   },
   "contributions": {
@@ -1078,10 +1087,10 @@
   "headroom_bytes": 40750,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
-    "godot/scripts/core/excavation_inventory.gd": "cb8c1b528a47472080ce816815ffc68cbdb19c9b29963cd7f3da75880e5aca7f",
+    "godot/scripts/core/excavation_inventory.gd": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
     "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
-    "godot/scripts/core/modular_project_contract.gd": "f4209b09cc46b898dac45c51fbd7eafc4de44ca8238ec9dfdf1731afa8d4cdb5",
-    "godot/scripts/core/modular_projects.gd": "1e8a418c89054b310931df2356e7785bcee86fe28dd941c504d073679a25488a",
+    "godot/scripts/core/modular_project_contract.gd": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
+    "godot/scripts/core/modular_projects.gd": "6eb595ba9f4933af46184b2585b2d81a9dfd9ddc9987aa96314ef5433ace00e5",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",

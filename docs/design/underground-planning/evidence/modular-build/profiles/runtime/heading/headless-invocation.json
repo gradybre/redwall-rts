@@ -1,0 +1,23 @@
+{
+  "clean_import": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "runner": [
+    "./tools/run_tests.sh"
+  ],
+  "selection": [
+    "test_demo_actor_underground_heading.gd",
+    "test_demo_bore.gd",
+    "test_demo_night.gd",
+    "test_demo_p7_assets.gd",
+    "test_demo_cast.gd"
+  ],
+  "selection_method": "temporary executable shim changes only test/run_tests.gd to existing strict CI selector; all shell/worker diagnostic guards unchanged",
+  "engine": "/opt/homebrew/bin/godot",
+  "temporary": "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug08-heading-final-w0kk8jpw"
+}

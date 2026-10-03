@@ -1,0 +1,30 @@
+{
+  "schema": 1,
+  "command": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--project",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+    "--editor-project",
+    "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug08-heading-analyzer-_kkuwp8e/godot",
+    "--port",
+    "6149",
+    "--max",
+    "0",
+    "--json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/capture-analyzer.json",
+    "tools/capture_underground_heading.gd"
+  ],
+  "reason": "LSP relative inheritance uses res://tools in an exact-byte owned project copy. No production or frozen evaluator source edits.",
+  "source_sha256": {
+    "tools/capture_underground_profiles.gd": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c",
+    "tools/capture_underground_transitions.gd": "9df0694b5db617d46ae1beb65d671af7648247b230f08cce3d5d7eaa9f81d84d",
+    "tools/capture_underground_heading.gd": "f1c52b5a0b3f6060ff4cb098a1f0e928553c661d4f8a9545fc7f7bc7e4d8fe05"
+  },
+  "copy_sha256": {
+    "tools/capture_underground_profiles.gd": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c",
+    "tools/capture_underground_transitions.gd": "9df0694b5db617d46ae1beb65d671af7648247b230f08cce3d5d7eaa9f81d84d",
+    "tools/capture_underground_heading.gd": "f1c52b5a0b3f6060ff4cb098a1f0e928553c661d4f8a9545fc7f7bc7e4d8fe05"
+  },
+  "returncode": 0
+}

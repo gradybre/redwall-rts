@@ -407,3 +407,29 @@ retained under `docs/validation/evidence/underground-room-masks-2026-10-03/admis
 No full game suite or native allocation qualification is claimed by these
 component checks. Actual first-work contact, qualified profile, entry/connector
 and prepared support companions remain required before confirmation can succeed.
+
+
+## Pure Room confirmation companion scope (2026-10-03 prerequisite)
+
+RoomOrders now exposes
+`room_companion_refusal(room, room_type, space_token, cold_token, space, budget)`.
+It compares the exact actual SpaceOwner and Budget objects, original positive
+tokens, retained full future Room/type/private candidate, actual Directory
+identity and unchanged original/private plan. Existing local owner and
+cold coverage checks remain required. It calls no provider, copies no
+Domain, and does not ask Directory to revalidate an already consumed future
+identity after actual Room creation.
+
+This is local preparation/publication scope only. Locations and Routes must
+bind the actual RoomOrders instance and separately prove all prepared source,
+geometry and receipt conditions. Final publication additionally requires
+`is_publishing_room_admission`. No live Room void, new endpoint, route,
+profile/contact permission or generic success flag is introduced.
+
+The reader adds no persistent/reused scalar, packed state, allocation or
+wire field. Existing synchronous arguments/helper frames remain inside
+the already admitted cold/native reservation. Root independently accepted
+the exact two source hashes. Clean strict RoomOrders:30 tests,1533 assertions,
+0 failures; all strict/raw unexpected diagnostics and leaks0. Analyzer:0
+warnings in0 of2 files. Evidence and final hashes:
+[`companion-scope`](../validation/evidence/underground-room-masks-2026-10-03/companion-scope/README.md).

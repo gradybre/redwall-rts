@@ -49,10 +49,18 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 	var room_publications: int = 0
 	var exact_room_windows: PackedByteArray = PackedByteArray()
 	var wrong_room_windows: PackedByteArray = PackedByteArray()
+	var observe_companions: bool = false
+	var companion_good: PackedByteArray = PackedByteArray()
+	var companion_bad: PackedByteArray = PackedByteArray()
+	var companion_pure: PackedByteArray = PackedByteArray()
+	var foreign_space: SpaceOwner = null
+	var foreign_budget: Budget = null
+	var binding_reads: int = 0
 
 	func exact_binding(buildings: Buildings, candidate: SpaceOwner, actual: Construction,
 			world_ref: Vector2i) -> bool:
 		"""An adversarial provider would mutate the plan if its callback leaked into Room publication."""
+		binding_reads += 1
 		var coordinator: RoomOrders = orders.get_ref() as RoomOrders if orders != null else null
 		if probe_entry_binding and coordinator != null:
 			entry_binding_calls += 1
@@ -113,6 +121,7 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 		pending_token = token
 		var actual: RoomOrders = orders.get_ref() as RoomOrders
 		exact_room_windows.append(1 if actual.is_publishing_room_admission(room, pending_type) else 0)
+		_observe_companion(actual)
 		if probe_reentry:
 			reentry_refused = not actual.confirm_room(plan).ok
 			actual.discard_transition(NULL_REF, RoomOrders.ROOM_ADMISSION_STAGE)
@@ -124,6 +133,7 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 		"""Inject real stale-candidate and request-drift cases after the spatial candidate was sealed."""
 		var actual: RoomOrders = orders.get_ref() as RoomOrders
 		_replace_lease(3)
+		_observe_companion(actual)
 		if tamper_candidate:
 			actual._room_candidate.persistent_id += 1
 		if tamper_snapshot:
@@ -146,11 +156,53 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 		assert(room == pending_room and token == pending_token, "exact room companion publication")
 		var actual: RoomOrders = orders.get_ref() as RoomOrders
 		assert(construction.buildings().is_live_room(room) and space.source_refusal(room) == &"", "actual owners already committed")
+		_observe_companion(actual)
 		exact_room_windows.append(1 if actual.is_publishing_room_admission(room, pending_type) else 0)
 		wrong_room_windows.append(1 if actual.is_publishing_room_admission(Vector2i(room.x, room.y + 1), pending_type) else 0)
 		wrong_room_windows.append(1 if actual.is_publishing_room_admission(room, (pending_type + 1) % Buildings.ROOM_TYPE_COUNT) else 0)
 		room_publications += 1
 		_clear_room_companion()
+
+	func _scope(actual: RoomOrders, room: Vector2i, room_type: int, token: int,
+			cold: int, actual_space: SpaceOwner, actual_budget: Budget) -> bool:
+		"""This test helper creates no permission; every result comes from the real pure coordinator reader."""
+		return actual.room_companion_refusal(room, room_type, token, cold, actual_space, actual_budget) == &""
+
+	func _observe_companion(actual: RoomOrders) -> void:
+		"""Probe actual preparation and post-identity publication without any new provider/source callback."""
+		if not observe_companions:
+			return
+		var reads: int = binding_reads
+		var domains: int = (space as FixtureScript.WatchedSpace).domain_calls
+		companion_good.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, space, arena) else 0)
+		_observe_wrong_companions(actual)
+		_observe_mutated_companions(actual)
+		companion_pure.append(1 if reads == binding_reads \
+			and domains == (space as FixtureScript.WatchedSpace).domain_calls else 0)
+
+	func _observe_wrong_companions(actual: RoomOrders) -> void:
+		"""Same-number tokens cannot replace either actual owner or the full Room/type/stage identities."""
+		companion_bad.append(1 if _scope(actual, Vector2i(pending_room.x, pending_room.y + 1), pending_type,
+			pending_token, arena_token, space, arena) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type + 1, pending_token, arena_token, space, arena) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token + 1, arena_token, space, arena) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token + 1, space, arena) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, foreign_space, arena) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, space, foreign_budget) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, null, arena) else 0)
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, space, null) else 0)
+
+	func _observe_mutated_companions(actual: RoomOrders) -> void:
+		"""Temporary test-only changes must refuse even before the ordinary enclosing preflight catches drift."""
+		original_plan.origin_u.x += 1
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, space, arena) else 0)
+		original_plan.origin_u.x -= 1
+		actual._room_plan.height_u += 1
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, space, arena) else 0)
+		actual._room_plan.height_u -= 1
+		actual._room_candidate.kind = Directory.KIND_BUILDING
+		companion_bad.append(1 if _scope(actual, pending_room, pending_type, pending_token, arena_token, space, arena) else 0)
+		actual._room_candidate.kind = Directory.KIND_ROOM
 
 	func _clear_room_companion() -> void:
 		"""Drop companion scratch before the provider's current shared peak is released."""
@@ -220,6 +272,8 @@ func test_default_bindings_and_refused_initializers_grant_no_geometry_or_service
 	assert_false(empty.area_of_room(Vector2i(0, 1)).ok, "unknown room area is unavailable")
 	assert_true(empty.service_refusal(Vector2i(0, 1)) != &"", "unknown room is not service-ready")
 	assert_false(empty.is_publishing(NULL_REF, Contract.COMMIT, NULL_REF, NULL_REF), "null publication never qualifies")
+	assert_true(empty.room_companion_refusal(NULL_REF, Buildings.ROOM_TYPE_KITCHEN, 1, 1,
+		_f.space, _room_bindings.arena) != &"", "refused initialization exposes no companion scope")
 	var base: RoomOrders.Bindings = RoomOrders.Bindings.new()
 	assert_equal(empty.configure(_f.router, _f.space, _f.sources, _f.catalog, base), RoomOrders.REFUSE_BINDING, "default contact binding refuses")
 	assert_true(_f.buildings.spatial_authority() == _f.orders, "refusal does not replace actual authority")
@@ -648,6 +702,46 @@ func test_publication_attestation_never_calls_a_mutating_provider_binding() -> v
 	assert_equal(_room_bindings.publication_binding_calls, 0, "same-stack attestation reads only actual local identities")
 	assert_equal(_claims_at(made.ref, PackedInt32Array([512, -4095, 1024, 768, -4094, 1280])), 1, "sealed original cell retained")
 	assert_equal(_room_bindings.room_publications, 1, "one exact physical companion publication")
+
+
+func _prepare_companion_probe() -> void:
+	"""Use real distinct owners with the same World/source identity and coincident first cold token."""
+	_room_bindings.observe_companions = true
+	_room_bindings.foreign_space = SpaceOwner.new(_f.sources)
+	assert_equal(_room_bindings.foreign_space.configure(_f.space.domain_copy(), 64, 64), &"", "second actual same-World Space")
+	_room_bindings.foreign_budget = Budget.new()
+	assert_equal(_room_bindings.foreign_budget.acquire(Budget.COLD_BYTES), 1, "same numeric first token on a foreign actual arena")
+
+
+func test_room_companion_reader_pins_exact_local_scope_without_callbacks_or_future_identity_queries() -> void:
+	"""The same pure scope works before and after real Room creation, but nowhere outside the exact operation."""
+	_prepare_companion_probe()
+	var plan: RoomOrders.RoomPlan = _plan()
+	assert_true(_f.orders.room_companion_refusal(NULL_REF, plan.room_type, 1, 1,
+		_f.space, _room_bindings.arena) != &"", "idle owner cannot expose a companion scope")
+	var made: Buildings.OpResult = _f.orders.confirm_room(plan)
+	assert_true(made.ok, "real Room and exact pending markers publish")
+	assert_equal(_room_bindings.companion_good, PackedByteArray([1, 1, 1]), "unsealed, sealed and actual committed window")
+	assert_equal(_room_bindings.companion_bad.size(), 33, "eleven adversarial probes at three boundaries")
+	assert_false(_room_bindings.companion_bad.has(1), "wrong identity/input/candidate/owners always refuse")
+	assert_equal(_room_bindings.companion_pure, PackedByteArray([1, 1, 1]), "reader invokes no binding or Domain-copy callback")
+	assert_true(_f.orders.room_companion_refusal(made.ref, plan.room_type, 1, 1,
+		_f.space, _room_bindings.arena) != &"", "released operation never lends a stale permit")
+	assert_equal(_room_bindings.foreign_budget.release(1), &"", "probe never releases the foreign arena")
+
+
+func test_room_companion_reader_rejects_replaced_token_before_any_actual_room_is_created() -> void:
+	"""A newly acquired lease in the correct arena cannot authorize a retained older Room candidate."""
+	_prepare_companion_probe()
+	_room_bindings.replace_at = 3
+	var before: PackedByteArray = _admission_image()
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_ROOM_COLD, "stale original cold token refuses")
+	assert_equal(_room_bindings.companion_good, PackedByteArray([1, 0]), "replacement invalidates the retained exact scope")
+	assert_false(_room_bindings.companion_bad.has(1), "no wrong argument can revive a replaced scope")
+	assert_equal(_admission_image(), before, "no Directory generation, Room, Space or payment mutation")
+	assert_true(_room_bindings.arena.covers(_room_bindings.replacement_token, Budget.COLD_BYTES), "cleanup preserves another lease")
+	assert_equal(_room_bindings.arena.release(_room_bindings.replacement_token), &"", "test owns the replacement token")
+	assert_equal(_room_bindings.foreign_budget.release(1), &"", "test owns the unrelated arena")
 
 
 func test_late_provider_binding_loss_refuses_before_identity_publication() -> void:

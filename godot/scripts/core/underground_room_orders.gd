@@ -1007,6 +1007,22 @@ func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int
 	return &""
 
 
+func room_companion_refusal(room: Vector2i, room_type: int, space_token: int,
+		cold_token: int, space: SpaceOwner, budget: Budget) -> StringName:
+	"""Attest only this exact local preparation/publication scope; allocator/source proofs remain separate."""
+	if space == null or space != _space or budget == null or budget != _room_budget \
+			or space_token <= 0 or space_token != _stage_token \
+			or cold_token <= 0 or cold_token != _room_cold_token or room != _stage_room:
+		return REFUSE_ROOM_COLD
+	var code: StringName = room_candidate_refusal(_room_candidate, room_type)
+	if code != &"":
+		return code
+	if _room_candidate.kind != Directory.KIND_ROOM or _room_candidate.directory_owner() != _construction.directory() \
+			or not _same_room_plan(_room_request):
+		return REFUSE_TRANSITION
+	return &""
+
+
 func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
 	"""Preparation/direct calls cannot borrow the exact synchronous Room identity/marker publication."""
 	return _publishing and room == _stage_room and room_candidate_refusal(_room_candidate, room_type) == &""

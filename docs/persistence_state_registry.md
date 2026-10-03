@@ -1191,7 +1191,7 @@ service mutation; accepted receipts must resolve actual live projects on load.
 | Bound source and transaction control | -- | -- | -- | No active token at save | 3 | -- | Decision 1064. Bound Sources and scratch Facts rebind to actual stores. Stage/next tokens, seal flag, operation budget, changed-row count and stage free counts are transient; tokens carry no gameplay ordering or entitlement. Completed-load composition invalidates all pre-load proofs before resuming. |
 | Changed-row indices | `_changed_rows` | 4 | `_region_capacity` runtime | Only the checked prefix is read | 3 | -- | Decision 1064. One preallocated row index per changed region; count resets before each transaction. Validated unchanged pairs need not be rechecked. |
 | Changed-row mask | `_changed_mask` | 1 | `_region_capacity` runtime | 0 before each transaction | 3 | -- | Decision 1064. Deduplicates the finite changed index list. Decoded loads compare exact spatial columns with the already validated live image; owner/source/section validation still checks every live row. |
-
+| Pending Furniture installation control | -- | -- | -- | Source row -1 and null bindings outside a sealed operation | 3 | -- | Decision1075. One transient source-row int8, full project ref8 and IntResult numeric9 add25 logical bytes; two weak actual Router/purpose-owner bindings and native handles remain in the explicit binding/control reservation. Only staged installed0→1 is anticipated; generic publication refuses it, exact actual COMMIT plus installed1 publishes, and abort clears controls. No new packed or wire state. |
 
 ### `godot/scripts/core/underground_space_authority.gd`
 

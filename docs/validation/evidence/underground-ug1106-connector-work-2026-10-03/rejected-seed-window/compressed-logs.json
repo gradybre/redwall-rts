@@ -1,0 +1,14 @@
+[
+  {
+    "path": "test_modular_projects.gd.log",
+    "size": 82809354,
+    "sha256": "87c3eb3f3bcf447ee7a957863e5120304804665b80cead5af1c85d5a49c615d2",
+    "gzip": "test_modular_projects.gd.log.gz"
+  },
+  {
+    "path": "shards/shard-95.log",
+    "size": 82809245,
+    "sha256": "cc83ceaf6d6f933e47eaea81b82fdf5710bf9b0bab35aef0f6d1756e0d237d60",
+    "gzip": "shards/shard-95.log.gz"
+  }
+]

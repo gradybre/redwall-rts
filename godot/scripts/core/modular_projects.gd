@@ -367,6 +367,36 @@ func mutation_refusal(project: Vector2i, action: int) -> StringName:
 	return &""
 
 
+func final_funding_refusal(project: Vector2i, action: int) -> StringName:
+	"""Only the exact permitted connector settlement may finish its last fallible owner attestation."""
+	if mutation_refusal(project, action) != &"" or not _construction.purpose_into(project, _math) \
+			or _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
+		return REFUSE_AUTHORITY
+	if action != ACTION_WIP and action != ACTION_OUTPUT and action != ACTION_REFUND:
+		return REFUSE_AUTHORITY
+	return _project_owner(project).final_funding_refusal(project, action)
+
+
+func connector_inputs_refusal(project: Vector2i, job: Vector2i,
+		inventory: RefCounted, pool: RefCounted) -> StringName:
+	"""A same-number foreign pool, stale Job or early bill callback cannot borrow a Funding permit."""
+	if inventory != _inventory or pool != _pool or mutation_refusal(project, ACTION_WIP) != &"" \
+			or not _construction.purpose_into(project, _math) or _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
+		return REFUSE_AUTHORITY
+	var row: int = _job_row(job)
+	if row < 0 or _bound_job(row) != job or _project(row) != project or _jobs.is_member(row) \
+			or not _funding.is_settling_connector_inputs(project, job, _inventory, _pool):
+		return REFUSE_AUTHORITY
+	return &""
+
+
+func final_input_refusal(project: Vector2i, job: Vector2i,
+		inventory: RefCounted, pool: RefCounted) -> StringName:
+	"""The final owner source/contact observation is inside Inventory's uncommitted claims journal."""
+	var code: StringName = connector_inputs_refusal(project, job, inventory, pool)
+	return final_funding_refusal(project, ACTION_WIP) if code == &"" else code
+
+
 func _allow(project: Vector2i, action: int) -> void:
 	"""The caller has already preflighted the exact transaction; permission remains synchronous."""
 	_permit_project = project
@@ -1006,11 +1036,21 @@ func _refund_contact_refusal(project: Vector2i, primary: int, destination: Vecto
 func _settle_cancellation(project: Vector2i, destination: Vector2i, tile: int) -> StringName:
 	"""Consumed goods refund atomically; unstarted goods merely lose their actual claims in place."""
 	if not _funding.is_funded(project):
-		return _release_claims(project)
+		return _settle_unfunded_cancellation(project)
 	_allow(project, ACTION_REFUND)
 	var refunded: Inventory.OpResult = _funding.refund_wip(project, destination, tile)
 	_disallow()
 	return &"" if refunded.ok else refunded.error
+
+
+func _settle_unfunded_cancellation(project: Vector2i) -> StringName:
+	"""A late connector source refusal preserves every unconsumed claim before physical cancellation."""
+	var code: StringName = &""
+	if _construction.purpose_into(project, _math) and _math.value == Construction.PURPOSE_CONNECTOR_INSTALL:
+		_allow(project, ACTION_REFUND)
+		code = final_funding_refusal(project, ACTION_REFUND)
+		_disallow()
+	return _release_claims(project) if code == &"" else code
 
 
 func _stop_refusal(project: Vector2i, primary: int, require_no_claims: bool) -> StringName:

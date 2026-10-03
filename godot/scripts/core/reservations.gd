@@ -67,6 +67,7 @@ extends RefCounted
 
 const Inventory := preload("res://scripts/core/inventory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 ## Reservation rows, GDD §4.2 / ARCH-MEM-002.
 const ROW_CAPACITY: int = 32768
@@ -237,6 +238,12 @@ func _remember_inventory(inventory: Inventory) -> void:
 	"""Publish world wiring only after successful composition or a committed Inventory operation."""
 	if _bound_inventory == null:
 		_bound_inventory = weakref(inventory)
+
+
+func _bound_transaction_open() -> bool:
+	"""Metadata-only claim changes must not invalidate an in-flight debit's untouched pool rows."""
+	var inventory: Inventory = _bound_inventory.get_ref() as Inventory if _bound_inventory != null else null
+	return inventory != null and inventory.is_transaction_open()
 
 
 func _allocate_columns() -> void:
@@ -569,6 +576,27 @@ func consume_job_inputs(job_ref: Vector2i, purpose: int, now_tick: int,
 	It changes no row until Inventory commits; journal/capacity refusal preserves both owners.
 	An empty input set is valid for material-free work. The Job owner still proves liveness.
 	"""
+	return _consume_inputs_transaction(job_ref, purpose, now_tick, output_container,
+		output_mass_g, inventory, null, NULL_REF)
+
+
+func consume_connector_inputs(job_ref: Vector2i, now_tick: int, output_container: Vector2i,
+		output_mass_g: int, inventory: Inventory, guard: ModularContract,
+		project: Vector2i) -> Inventory.OpResult:
+	"""Keep the connector's final actual-source proof after all removal observers, before payment."""
+	if guard == null:
+		return _refuse(ModularContract.REFUSE_AUTHORITY)
+	var code: StringName = guard.connector_inputs_refusal(project, job_ref, inventory, self)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _consume_inputs_transaction(job_ref, PURPOSE_MODULAR_INPUT, now_tick, output_container,
+		output_mass_g, inventory, guard, project)
+
+
+func _consume_inputs_transaction(job_ref: Vector2i, purpose: int, now_tick: int,
+		output_container: Vector2i, output_mass_g: int, inventory: Inventory,
+		guard: ModularContract, project: Vector2i) -> Inventory.OpResult:
+	"""Publish neither claim retirement nor a partial input debit before the complete journal commits."""
 	var code: StringName = _consume_inputs_refusal(job_ref, purpose, now_tick,
 		output_container, output_mass_g, inventory)
 	if code != REFUSE_NONE:
@@ -577,6 +605,8 @@ func consume_job_inputs(job_ref: Vector2i, purpose: int, now_tick: int,
 	if not opened.ok:
 		return opened
 	code = _consume_inputs_inventory(job_ref, purpose, output_container, output_mass_g, inventory)
+	if code == REFUSE_NONE and guard != null:
+		code = guard.final_input_refusal(project, job_ref, inventory, self)
 	if code != REFUSE_NONE:
 		inventory.abort()
 		return _refuse(code)
@@ -878,6 +908,8 @@ func renew_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, new_expiry:
 	later is refused explicitly rather than silently ignored -- a caller that shortened a lease
 	by accident would otherwise lose reserved ingredients on the next sweep with no signal.
 	"""
+	if _bound_transaction_open():
+		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	if new_expiry < 0:
 		return _refuse(REFUSE_INVALID_EXPIRY)
 	var row: int = _find_row(job_ref, lot_ref, purpose)
@@ -995,6 +1027,8 @@ func repurpose_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int,
 	already keyed `new_purpose` for the same job and lot coalesces with it. `.value` is the
 	quantity. Refuses NO_SUCH_CLAIM and an out-of-range purpose, writing nothing.
 	"""
+	if _bound_transaction_open():
+		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	if new_purpose < INT32_MIN or new_purpose > INT32_MAX:
 		return _refuse(REFUSE_INVALID_PURPOSE)
 	var row: int = _find_row(job_ref, lot_ref, purpose)

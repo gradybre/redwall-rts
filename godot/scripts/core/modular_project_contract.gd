@@ -197,6 +197,10 @@ class Owner extends RefCounted:
 		"""Prove a real worker's current route and operation contact."""
 		return REFUSE_AUTHORITY
 
+	func final_funding_refusal(_project: Vector2i, _action: int) -> StringName:
+		"""Connector-only final source/contact proof after observers and before irreversible payment."""
+		return REFUSE_AUTHORITY
+
 	func discard_transition(_project: Vector2i, _action: int) -> void:
 		"""Discard prepared scratch after failure, retaining real ownership and earned work."""
 		assert(false, "Unbound modular owner cannot own transition scratch")
@@ -286,6 +290,23 @@ func project_facts_into(_project: Vector2i, _out: Quote) -> StringName:
 
 func mutation_refusal(_project: Vector2i, _action: int) -> StringName:
 	"""Generic Construction/Funding calls require the router's exact active transaction."""
+	return REFUSE_AUTHORITY
+
+
+func final_funding_refusal(_project: Vector2i, _action: int) -> StringName:
+	"""A connector's final paid boundary requires the actual router and its exact prepared owner."""
+	return REFUSE_AUTHORITY
+
+
+func connector_inputs_refusal(_project: Vector2i, _job: Vector2i,
+		_inventory: RefCounted, _pool: RefCounted) -> StringName:
+	"""Only actual Funding's synchronous exact connector settlement may enter the claims transaction."""
+	return REFUSE_AUTHORITY
+
+
+func final_input_refusal(_project: Vector2i, _job: Vector2i,
+		_inventory: RefCounted, _pool: RefCounted) -> StringName:
+	"""Repeat the exact composition and final owner proof after every Inventory removal observer."""
 	return REFUSE_AUTHORITY
 
 

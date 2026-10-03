@@ -37,6 +37,50 @@ class FaultWork extends Work:
 		"""Exercise a legitimate zero-accepted callback without inventing any completed work."""
 		return 0 if zero_potential else super._produce_potential(resident, factor)
 
+class LateSeedObserver extends RefCounted:
+	## Real Inventory invokes this on reserved wood consumption, after the early accounting preflight.
+	var owner: WeakRef = null
+	var armed: bool = true
+	var calls: int = 0
+	var check_bindings: bool = false
+	var inventory: Inventory = null
+	var pool: Reservations = null
+	var foreign_inventory: Inventory = null
+	var foreign_pool: Reservations = null
+	var foreign_router: Router = null
+	var job: Vector2i = NULL_REF
+	var binding_results: Array[StringName] = []
+	var mutate_claims: bool = false
+	var claim_results: Array[StringName] = []
+
+	func refuses_seed_consumption(lot: Vector2i) -> bool:
+		"""Accept the actual lot while invalidating the connector's separate physical contact/source."""
+		calls += 1
+		var target: SyntheticOwner = owner.get_ref() as SyntheticOwner if owner != null else null
+		if armed and target != null:
+			target.final_block = &"SYNTHETIC_FINAL_SOURCE_CHANGED"
+		if check_bindings and target != null:
+			_probe_bindings(target)
+		if mutate_claims:
+			claim_results.append(pool.renew_claim(job, lot, Reservations.PURPOSE_MODULAR_INPUT, 9000).error)
+			claim_results.append(pool.repurpose_claim(job, lot, Reservations.PURPOSE_MODULAR_INPUT,
+				Reservations.PURPOSE_HAUL_SOURCE).error)
+		return false
+
+	func _probe_bindings(target: SyntheticOwner) -> void:
+		"""Only the exact original primary Job and real stores may enter the actual Funding bracket."""
+		var router: Router = target.route.get_ref() as Router
+		binding_results.append(router.connector_inputs_refusal(target.project, job, inventory, pool))
+		binding_results.append(router.connector_inputs_refusal(target.project, job, foreign_inventory, pool))
+		binding_results.append(router.connector_inputs_refusal(target.project, job, inventory, foreign_pool))
+		binding_results.append(router.connector_inputs_refusal(target.project, job + Vector2i(0, 1), inventory, pool))
+		binding_results.append(router.connector_inputs_refusal(target.project + Vector2i(0, 1), job, inventory, pool))
+		binding_results.append(foreign_pool.consume_connector_inputs(job, 100, NULL_REF, 0,
+			inventory, router, target.project).error)
+		binding_results.append(pool.consume_connector_inputs(job, 100, NULL_REF, 0,
+			inventory, foreign_router, target.project).error)
+		binding_results.append(target.funding.consume_to_wip(target.project, job, 100, NULL_REF).error)
+
 class SyntheticOwner extends Contract.Owner:
 	## This labeled permission fixture never enters production; real Tips is independently composed.
 	var construction: Construction = null
@@ -64,6 +108,17 @@ class SyntheticOwner extends Contract.Owner:
 	var completion_saw_paid_clear: bool = false
 	var spatial: BuildingsFixture.Authority = null
 	var math: IntMath.IntResult = IntMath.IntResult.new()
+	var final_block: StringName = &""
+	var final_calls: int = 0
+	var late_quote_block: bool = false
+	var late_quotes: int = 0
+	var probe_input_reentry: bool = false
+	var probe_job: Vector2i = NULL_REF
+	var probe_inventory: Inventory = null
+	var probe_pool: Reservations = null
+	var early_pool_error: StringName = &""
+	var early_funding_error: StringName = &""
+	var early_probe_count: int = 0
 
 	func construction_owner() -> RefCounted:
 		"""Even synthetic physical permission must name the exact actual owner composition."""
@@ -95,7 +150,23 @@ class SyntheticOwner extends Contract.Owner:
 		_fill(out)
 		construction.remaining_mwu_into(candidate, math)
 		out.remaining_mwu = math.value
+		if late_quote_block and stage >= 0:
+			late_quotes += 1
+			final_block = &"SYNTHETIC_FINAL_SOURCE_CHANGED"
+		if probe_input_reentry:
+			_probe_early_inputs(candidate)
 		return &""
+
+	func _probe_early_inputs(candidate: Vector2i) -> void:
+		"""A Recipe observer sees a real WIP permit, but not the later exact settlement Job bracket."""
+		var router: Router = route.get_ref() as Router
+		if stage != Contract.START or router.mutation_refusal(candidate, Contract.ACTION_WIP) != &"":
+			return
+		probe_input_reentry = false
+		early_probe_count += 1
+		early_pool_error = probe_pool.consume_connector_inputs(probe_job, 100, NULL_REF, 0,
+			probe_inventory, router, candidate).error
+		early_funding_error = funding.consume_to_wip(candidate, probe_job, 100, NULL_REF).error
 
 	func _fill(out: Contract.Quote) -> void:
 		"""Use adopted prepare/compact facts or the actual protected furniture catalog."""
@@ -142,6 +213,16 @@ class SyntheticOwner extends Contract.Owner:
 	func worker_refusal(candidate: Vector2i, _job: Vector2i, _worker: Vector2i) -> StringName:
 		"""Only contact is synthetic; actual Work/Gear must prove every worker and tool."""
 		return block_worker if candidate == project else &"SYNTHETIC_PROJECT_STALE"
+
+	func final_funding_refusal(candidate: Vector2i, action: int) -> StringName:
+		"""Only this named test contact is synthetic; actual funding still owns all transaction writes."""
+		final_calls += 1
+		var expected: int = Contract.START if action == Contract.ACTION_WIP else Contract.COMMIT
+		if action == Contract.ACTION_REFUND:
+			expected = Contract.CANCEL
+		if candidate != project or stage_project != candidate or stage != expected:
+			return &"SYNTHETIC_FINAL_CONTEXT"
+		return final_block
 
 	func discard_transition(candidate: Vector2i, action: int) -> void:
 		"""Only the exact prepared candidate clears; an unrelated Job cannot discard another project."""
@@ -257,6 +338,14 @@ func _new_owner() -> SyntheticOwner:
 	owner.world = _world
 	owner.route = weakref(_router)
 	owner.funding = _funding
+	return owner
+
+
+func _new_connector() -> SyntheticOwner:
+	"""Bind the connector namespace to the named synthetic contact fixture, with real shared accounting."""
+	var owner: SyntheticOwner = _new_owner()
+	owner.purpose_tag = Construction.PURPOSE_CONNECTOR_INSTALL
+	assert_true(_router.bind_owner(owner).ok, "actual connector purpose binding")
 	return owner
 
 
@@ -468,8 +557,189 @@ func test_connector_binding_refuses_foreign_world_replacement_and_expired_permis
 	var before: PackedByteArray = _image()
 	assert_false(_router.start_work(project, 100).ok, "expired purpose grants no payment")
 	assert_false(_router.bind_owner(replacement).ok, "expired binding cannot erase retained history")
-	assert_equal(_image(), before, "no accounting or worker state changed")
+	assert_true(_image() == before, "no accounting or worker state changed")
 	assert_true(_router.is_bound_owner(_owner), "other purpose unaffected")
+
+
+func test_connector_final_start_guard_follows_late_recipe_observation_without_spending() -> void:
+	"""A successful stale bill cannot consume actual claimed inputs before the last current-source check."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	_job(project)
+	_deliver(project)
+	connector.late_quote_block = true
+	var before: PackedByteArray = _image()
+	assert_equal(_router.start_work(project, 100).error, &"SYNTHETIC_FINAL_SOURCE_CHANGED", "late source refuses")
+	assert_true(connector.late_quotes > 0, "bill observer ran after physical preparation")
+	assert_equal(connector.final_calls, 1, "final attestation follows the bill")
+	assert_true(_image() == before, "all actual state unchanged before payment")
+	assert_false(_funding.is_funded(project), "no fake paid receipt")
+	connector.late_quote_block = false
+	connector.final_block = &""
+	assert_true(_router.start_work(project, 100).ok, "same exact claims retry")
+	assert_true(_funding.is_funded(project), "inputs paid exactly once")
+
+
+func test_connector_seed_observer_cannot_change_contact_after_the_final_input_guard() -> void:
+	"""The real Inventory removal observer accepts wood but invalidates its independent installation proof."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	var job: Vector2i = _job(project)
+	_deliver(project)
+	var observer: LateSeedObserver = LateSeedObserver.new()
+	observer.owner = weakref(connector)
+	assert_true(_inventory.set_seed_expiry_authority(observer).ok, "actual bound Inventory observer")
+	var before: PackedByteArray = _image()
+	assert_equal(_router.start_work(project, 100).error, &"SYNTHETIC_FINAL_SOURCE_CHANGED", "post-staging proof refuses")
+	assert_equal(observer.calls, 1, "actual reserved wood triggers the observer")
+	assert_true(_image() == before, "Inventory journal and every paid/worker owner are unchanged")
+	assert_false(_funding.is_funded(project), "no receipt or work start escapes")
+	assert_false(_funding.is_settling_connector_inputs(project, job, _inventory, _pool), "refused scope cleared")
+	observer.armed = false
+	connector.final_block = &""
+	assert_true(_router.start_work(project, 100).ok, "same complete claims retry")
+	assert_true(_funding.is_funded(project), "one real input payment")
+	assert_true(_inventory.set_seed_expiry_authority(null).ok, "explicit test wiring cleanup")
+
+
+func test_connector_recipe_observer_cannot_borrow_the_wip_permit_or_reenter_funding() -> void:
+	"""Only the later real settlement exposes its primary Job; early bill callbacks cannot pay twice."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	var job: Vector2i = _job(project)
+	_deliver(project)
+	connector.probe_input_reentry = true
+	connector.probe_job = job
+	connector.probe_inventory = _inventory
+	connector.probe_pool = _pool
+	assert_true(_router.start_work(project, 100).ok, "outer actual payment succeeds once")
+	assert_equal(connector.early_probe_count, 1, "actual late bill supplied the WIP permit")
+	assert_equal(connector.early_pool_error, Contract.REFUSE_AUTHORITY, "early direct settlement refuses")
+	assert_equal(connector.early_funding_error, Funding.REFUSE_WIP, "recursive Funding refuses")
+	assert_equal(_funding.purpose_wip_milli(8, _items.compiled_id(&"wood")), 1001, "one receipt")
+	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"wood")), 0, "one debit")
+	assert_false(_funding.is_settling_connector_inputs(project, job, _inventory, _pool), "bracket cleared")
+	assert_equal(_router.connector_inputs_refusal(project, job, _inventory, _pool),
+		Contract.REFUSE_AUTHORITY, "no settlement permission after return")
+
+
+func test_connector_late_observer_cannot_renew_or_rekey_unjournaled_claims() -> void:
+	"""The Inventory rollback must not leave callback-written expiry or purpose changes in its pool."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	var observer: LateSeedObserver = LateSeedObserver.new()
+	observer.owner = weakref(connector)
+	observer.job = _job(project)
+	observer.pool = _pool
+	observer.mutate_claims = true
+	_deliver(project)
+	assert_true(_inventory.set_seed_expiry_authority(observer).ok, "actual late removal observer")
+	var before: PackedByteArray = _image()
+	assert_equal(_router.start_work(project, 100).error, &"SYNTHETIC_FINAL_SOURCE_CHANGED", "late source abort")
+	assert_equal(observer.claim_results, [Reservations.REFUSE_INVENTORY_TRANSACTION_OPEN,
+		Reservations.REFUSE_INVENTORY_TRANSACTION_OPEN], "expiry and rekey both refuse inside debit")
+	assert_true(_image() == before, "claims, goods and all paid owners byte identical")
+	assert_false(_funding.is_funded(project), "no WIP or work begins")
+	observer.armed = false
+	observer.mutate_claims = false
+	connector.final_block = &""
+	assert_true(_router.start_work(project, 100).ok, "exact original claims retry")
+	assert_equal(_funding.purpose_wip_milli(8, _items.compiled_id(&"wood")), 1001, "one actual receipt")
+	assert_true(_inventory.set_seed_expiry_authority(null).ok, "test wiring cleanup")
+
+
+func test_connector_input_settlement_rejects_foreign_owners_stale_refs_and_reentry() -> void:
+	"""The real seed callback probes the live bracket without changing any foreign accounting owner."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	var observer: LateSeedObserver = LateSeedObserver.new()
+	observer.owner = weakref(connector)
+	observer.job = _job(project)
+	_deliver(project)
+	observer.armed = false
+	observer.check_bindings = true
+	observer.inventory = _inventory
+	observer.pool = _pool
+	observer.foreign_inventory = Inventory.new(2, 2)
+	observer.foreign_pool = Reservations.new(2)
+	observer.foreign_router = Router.new(_construction, _inventory, _pool, _items, _jobs, _work, _sites)
+	assert_equal(observer.foreign_router.initialization_refusal(), Contract.REFUSE_AUTHORITY, "other router refuses")
+	var foreign_before: PackedByteArray = observer.foreign_pool.state_bytes()
+	assert_true(_inventory.set_seed_expiry_authority(observer).ok, "actual removal callback")
+	assert_true(_router.start_work(project, 100).ok, "one actual exact settlement")
+	assert_equal(observer.binding_results, [&"", Contract.REFUSE_AUTHORITY, Contract.REFUSE_AUTHORITY,
+		Contract.REFUSE_AUTHORITY, Contract.REFUSE_AUTHORITY, Contract.REFUSE_AUTHORITY,
+		Contract.REFUSE_AUTHORITY, Funding.REFUSE_WIP],
+		"only the original scope qualifies")
+	assert_true(observer.foreign_pool.state_bytes() == foreign_before, "foreign pool untouched")
+	assert_false(_funding.is_settling_connector_inputs(project, observer.job, _inventory, _pool), "scope cleared")
+	assert_true(_inventory.set_seed_expiry_authority(null).ok, "remove callback before teardown")
+
+
+func test_connector_final_completion_guard_retains_paid_work_and_refuses_direct_calls() -> void:
+	"""All late observers finish before receipt settlement and the physical installation callback."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	var job: Vector2i = _job(project)
+	_start(project)
+	_finish_labor(project, job)
+	for action: int in [Contract.ACTION_WIP, Contract.ACTION_OUTPUT, Contract.ACTION_REFUND]:
+		assert_equal(_router.final_funding_refusal(project, action), Contract.REFUSE_AUTHORITY, "no naked permit")
+	connector.late_quote_block = true
+	var before: PackedByteArray = _image()
+	assert_equal(_router.complete_order(project).error, &"SYNTHETIC_FINAL_SOURCE_CHANGED", "stale final bill refuses")
+	assert_true(_image() == before, "Inventory, receipts, work, tool and project remain exact")
+	assert_equal(connector.completed, 0, "no installation publication")
+	connector.late_quote_block = false
+	connector.final_block = &""
+	assert_true(_router.complete_order(project).ok, "same earned paid operation retries")
+	assert_equal(connector.completed, 1, "one actual completion window")
+
+
+func _paid_image() -> PackedByteArray:
+	"""Cancellation may safely release workers first, but paid goods and claims remain atomically owned."""
+	var bytes: PackedByteArray = _inventory.state_bytes()
+	bytes.append_array(_pool.state_bytes())
+	bytes.append_array(_funding.state_bytes())
+	return bytes
+
+
+func test_connector_final_refund_guard_aborts_material_return_and_preserves_installed_truth() -> void:
+	"""Late-source refusal rolls back refund lots and loss while keeping the active operation retryable."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	_job(project)
+	_start(project)
+	connector.late_quote_block = true
+	var before: PackedByteArray = _paid_image()
+	assert_equal(_router.cancel_order(project, _output).error, &"SYNTHETIC_FINAL_SOURCE_CHANGED", "last bill changed")
+	assert_true(_paid_image() == before, "journal abort restores goods, claims and WIP")
+	assert_true(_funding.is_funded(project), "frozen WIP remains owned")
+	assert_equal(connector.cancelled, 0, "no physical prefix/project publication")
+	connector.late_quote_block = false
+	connector.final_block = &""
+	assert_true(_router.cancel_order(project, _output).ok, "same cancellation retries")
+	assert_equal(connector.cancelled, 1, "one cancellation window")
+	var wood: int = _items.compiled_id(&"wood")
+	assert_equal(_inventory.total_live_milli(wood), 800, "actual ordinary80percent refund")
+	assert_equal(_funding.purpose_cancellation_loss_milli(8, wood), 201, "loss booked once")
+
+
+func test_connector_unfunded_final_refusal_keeps_delivered_claims_for_retry() -> void:
+	"""Unstarted cancellation cannot bypass the final source check just because no WIP exists."""
+	var connector: SyntheticOwner = _new_connector()
+	var project: Vector2i = _open(connector)
+	_job(project)
+	_deliver(project)
+	connector.final_block = &"SYNTHETIC_FINAL_SOURCE_CHANGED"
+	var before: PackedByteArray = _paid_image()
+	assert_equal(_router.cancel_order(project).error, connector.final_block, "unfunded final source refuses")
+	assert_true(_paid_image() == before, "claimed loose input remains exactly owned")
+	assert_equal(connector.cancelled, 0, "no false physical cancellation")
+	connector.final_block = &""
+	assert_true(_router.cancel_order(project).ok, "unfunded retry releases only actual claims")
+	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"wood")), 1001, "unstarted inputs stay whole")
+	assert_equal(_funding.purpose_cancellation_loss_milli(8, _items.compiled_id(&"wood")), 0, "no loss before work")
 
 
 func test_missing_tool_gate_and_stale_worker_refuse_before_any_productive_state_changes() -> void:

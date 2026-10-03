@@ -20,6 +20,7 @@ const IntMathScript := preload("res://scripts/core/int_math.gd")
 const SaveAdapter := preload("res://scripts/core/save_reservations_restore.gd")
 const SaveCodec := preload("res://scripts/core/save_section_inventories.gd")
 const Clock := preload("res://scripts/core/sim_clock.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 const ITEM_GRAIN: int = 0
 const ITEM_WOOD: int = 3
@@ -130,6 +131,46 @@ func _assert_pool_and_inventory_sound(context: String) -> void:
 
 
 # --- Allocation ledger ------------------------------------------------------------------------
+
+func test_connector_input_entry_requires_typed_bound_settlement_before_any_journal() -> void:
+	"""Neither an absent guard nor its fail-closed base consumes real owned modular claims."""
+	var lot: Vector2i = _lot(1000, ITEM_WOOD)
+	assert_true(_claim_one(JOB_A, lot, 1000, ReservationsScript.PURPOSE_MODULAR_INPUT).ok, "actual claim")
+	var pool_before: PackedByteArray = _pool.state_bytes()
+	var inventory_before: PackedByteArray = _inv.state_bytes()
+	var project: Vector2i = Vector2i(77, 1)
+	assert_equal(_pool.consume_connector_inputs(JOB_A, 100, Vector2i(-1, 0), 0,
+		_inv, null, project).error, ModularContract.REFUSE_AUTHORITY, "null typed guard")
+	assert_equal(_pool.consume_connector_inputs(JOB_A, 100, Vector2i(-1, 0), 0,
+		_inv, ModularContract.new(), project).error, ModularContract.REFUSE_AUTHORITY, "unbound base")
+	assert_true(_pool.state_bytes() == pool_before, "claims byte identical")
+	assert_true(_inv.state_bytes() == inventory_before, "Inventory byte identical")
+	assert_false(_inv.is_transaction_open(), "no escaped journal")
+	_assert_pool_and_inventory_sound("refused connector input guards")
+
+
+func test_claim_metadata_mutation_observes_only_its_actual_inventory_transaction() -> void:
+	"""Rekey and expiry writes cannot escape a debit rollback; another Inventory's journal is unrelated."""
+	var lot: Vector2i = _lot(1000, ITEM_WOOD)
+	assert_true(_claim_one(JOB_A, lot, 1000).ok, "actual bound claim")
+	var before: PackedByteArray = _pool.state_bytes()
+	assert_true(_inv.begin().ok, "actual transaction")
+	assert_equal(_pool.renew_claim(JOB_A, lot, PURPOSE_A, 600).error,
+		ReservationsScript.REFUSE_INVENTORY_TRANSACTION_OPEN, "renew refuses")
+	assert_equal(_pool.repurpose_claim(JOB_A, lot, PURPOSE_A, PURPOSE_B).error,
+		ReservationsScript.REFUSE_INVENTORY_TRANSACTION_OPEN, "rekey refuses")
+	assert_true(_pool.state_bytes() == before, "no unjournaled claim writes")
+	_inv.abort()
+	assert_false(_inv.is_transaction_open(), "original transaction aborted")
+	var foreign: InventoryScript = _make_inventory()
+	assert_true(foreign.begin().ok, "different Inventory journal")
+	assert_true(_pool.renew_claim(JOB_A, lot, PURPOSE_A, 600).ok, "normal renewal on original owner")
+	assert_true(_pool.repurpose_claim(JOB_A, lot, PURPOSE_A, PURPOSE_B).ok, "normal rekey on original owner")
+	foreign.abort()
+	assert_false(foreign.is_transaction_open(), "foreign cleanup")
+	assert_true(_pool.has_claim(JOB_A, lot, PURPOSE_B), "original quantity still claimed under new purpose")
+	_assert_pool_and_inventory_sound("ordinary metadata mutation after original abort")
+
 
 func test_indexing_allocation_matches_the_decision_0019_budget() -> void:
 	"""The packed layout must cost exactly the 786,436 indexing bytes decision 0019 budgets."""

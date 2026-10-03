@@ -21,16 +21,43 @@ class Router extends AccountingFixture.SyntheticRouter:
 	var output_items: PackedInt32Array = PackedInt32Array()
 	var output_quantities: PackedInt64Array = PackedInt64Array()
 	var provenance: int = Catalog.PROVENANCE_SPOIL_RECLAIM
+	var observed_inventory: Inventory = null
+	var observed_refund_item: int = -1
+	var observed_refund_quantity: int = 0
+	var refund_quotes_after_commit: int = 0
+	var input_funding: WeakRef = null
 
 	func _fill(out: Quote) -> void:
 		"""The isolated source fixture supplies exact metadata; no actual tip stock is claimed here."""
 		super._fill(out)
+		if observed_inventory != null and observed_refund_item >= 0 \
+				and not observed_inventory.is_transaction_open() \
+				and observed_inventory.total_live_milli(observed_refund_item) >= observed_refund_quantity:
+			refund_quotes_after_commit += 1
 		out.output_count = output_items.size()
 		for index: int in output_items.size():
 			out.output_item[index] = output_items[index]
 			out.output_milli[index] = output_quantities[index]
 			out.output_quality[index] = int(Catalog.QUALITY["PLAIN"])
 			out.output_provenance[index] = provenance
+
+	func final_funding_refusal(project: Vector2i, action: int) -> StringName:
+		"""This store test supplies explicit synthetic source proof within the exact existing test permit."""
+		return mutation_refusal(project, action)
+
+	func connector_inputs_refusal(project: Vector2i, job: Vector2i,
+			inventory: RefCounted, pool: RefCounted) -> StringName:
+		"""The isolated permission fixture still requires actual Funding's exact original settlement."""
+		var funding: Funding = input_funding.get_ref() as Funding if input_funding != null else null
+		if funding == null or job != JOB or not funding.is_settling_connector_inputs(
+				project, job, inventory as Inventory, pool as Reservations):
+			return REFUSE_AUTHORITY
+		return mutation_refusal(project, ACTION_WIP)
+
+	func final_input_refusal(project: Vector2i, job: Vector2i,
+			inventory: RefCounted, pool: RefCounted) -> StringName:
+		"""Repeat the exact synthetic fixture scope at the real precommit point."""
+		return connector_inputs_refusal(project, job, inventory, pool)
 
 class PaidSite extends Excavation:
 	func is_live_site(site: Vector2i) -> bool:
@@ -90,6 +117,7 @@ func before_each() -> void:
 	_items = Items.new()
 	assert_true(_items.load_default(_inventory).ok, "actual catalog registers")
 	_funding = Funding.new(_construction, _inventory, _pool, _items, 16)
+	_router.input_funding = weakref(_funding)
 	_input = _inventory.create_container(_router.world, 100000, -1, 0, true).ref
 	_output = _inventory.create_container(_router.world, 100000, -1, 0, true).ref
 
@@ -430,12 +458,16 @@ func test_connector_refund_has_its_own_persistent_loss_domain_and_exact_retry() 
 	_deliver(project, 0, 1001)
 	assert_true(_start(project).ok, "actual full input consumed")
 	_begin(project)
+	_router.observed_inventory = _inventory
+	_router.observed_refund_item = _items.compiled_id(&"wood")
+	_router.observed_refund_quantity = 800
 	var blocked: Vector2i = _inventory.create_container(_router.world, 1, -1, 0, true).ref
 	var before: PackedByteArray = _receipt_image()
 	assert_equal(_cancel(project, blocked).error, Inventory.REFUSE_CAPACITY_EXCEEDED, "refund cannot fit")
 	assert_equal(_receipt_image(), before, "actual inputs and WIP unchanged")
 	_router.allow(project, Contract.ACTION_REFUND)
 	assert_true(_funding.refund_wip(project, _output).ok, "same WIP retries once")
+	assert_equal(_router.refund_quotes_after_commit, 0, "committed refund never invokes another fallible bill observer")
 	assert_false(_funding.refund_wip(project, _output).ok, "duplicate refund refused")
 	_router.allow(project, Contract.ACTION_RETIRE)
 	assert_true(_construction.retire_modular_phase(project, _router).ok, "real project retires")

@@ -59,6 +59,9 @@ var _s_returned: PackedInt64Array = PackedInt64Array()
 var _s_carry: PackedInt64Array = PackedInt64Array()
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _quote: ModularContract.Quote = ModularContract.Quote.new()
+## Same-stack settlement scope; never authoritative, saved or retained after a call returns.
+var _settling_project: Vector2i = NULL_REF
+var _settling_job: Vector2i = NULL_REF
 
 
 func _init(construction: Construction, inventory: Inventory, pool: Reservations,
@@ -112,6 +115,16 @@ func _owner_mutation_refusal(project: Vector2i, action: int) -> StringName:
 		var modular: ModularContract = _construction.modular_authority()
 		return modular.mutation_refusal(project, action) if modular != null else Construction.REFUSE_COORDINATOR_ONLY
 	return Construction.REFUSE_COORDINATOR_ONLY
+
+
+func _final_connector_refusal(project: Vector2i, action: int) -> StringName:
+	"""Recipes and endpoint observers must finish before the exact connector's final pure payment guard."""
+	if not _construction.purpose_into(project, _math):
+		return REFUSE_WIP
+	if _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
+		return &""
+	var owner: ModularContract = _construction.modular_authority()
+	return owner.final_funding_refusal(project, action) if owner != null else Construction.REFUSE_COORDINATOR_ONLY
 
 
 func _claim_purpose(project: Vector2i) -> int:
@@ -182,6 +195,22 @@ func is_funded(project: Vector2i) -> bool:
 func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 		output: Vector2i) -> Inventory.OpResult:
 	"""Capture actual owned delivered inputs, consume once, and reserve the operation's output."""
+	if _settling_project != NULL_REF:
+		return _refuse(REFUSE_WIP)
+	var connector: bool = _ready_error == &"" and _construction.purpose_into(project, _math) \
+		and _math.value == Construction.PURPOSE_CONNECTOR_INSTALL
+	if connector:
+		_settling_project = project
+	var result: Inventory.OpResult = _consume_to_wip(project, job, now_tick, output)
+	if connector:
+		_settling_project = NULL_REF
+		_settling_job = NULL_REF
+	return result
+
+
+func _consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
+		output: Vector2i) -> Inventory.OpResult:
+	"""The connector's exclusive preparation scope starts before any bill or Inventory observer."""
 	var refusal: StringName = _start_refusal(project, job)
 	if refusal != &"":
 		return _refuse(refusal)
@@ -196,12 +225,35 @@ func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 		refusal = output_placement_refusal(output)
 		if refusal != &"":
 			return _refuse(refusal)
-	var consumed: Inventory.OpResult = _pool.consume_job_inputs(job,
-		purpose, now_tick, output, mass, _inventory)
+	var consumed: Inventory.OpResult = _consume_inputs(project, job, purpose, now_tick, output, mass)
 	if not consumed.ok:
 		return consumed
 	_publish_wip(project, output, mass)
 	return Inventory.OpResult.new(true, &"", project, _s_count)
+
+
+func _consume_inputs(project: Vector2i, job: Vector2i, purpose: int,
+		now_tick: int, output: Vector2i, mass: int) -> Inventory.OpResult:
+	"""Connector input settlement brackets the exact owner call, not earlier Recipe observations."""
+	if not _construction.purpose_into(project, _math):
+		return _refuse(REFUSE_WIP)
+	if _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
+		return _pool.consume_job_inputs(job, purpose, now_tick, output, mass, _inventory)
+	if _settling_project != project or _settling_job != NULL_REF:
+		return _refuse(REFUSE_WIP)
+	_settling_job = job
+	var result: Inventory.OpResult = _pool.consume_connector_inputs(job, now_tick, output, mass,
+		_inventory, _construction.modular_authority(), project)
+	_settling_job = NULL_REF
+	return result
+
+
+func is_settling_connector_inputs(project: Vector2i, job: Vector2i,
+		inventory: Inventory, pool: Reservations) -> bool:
+	"""Exact original input scope only; a prepayment Recipe callback cannot manufacture this bracket."""
+	return _ready_error == &"" and project != NULL_REF and job != NULL_REF \
+		and _settling_project == project and _settling_job == job \
+		and inventory == _inventory and pool == _pool
 
 
 func _start_refusal(project: Vector2i, job: Vector2i) -> StringName:
@@ -427,6 +479,8 @@ func refund_wip(project: Vector2i, destination: Vector2i, promotion_tile: int = 
 	if not opened.ok:
 		return opened
 	code = _refund_and_finish_staging(project, destination, promotion_tile)
+	if code == &"":
+		code = _final_connector_refusal(project, ModularContract.ACTION_REFUND)
 	if code != &"":
 		_inventory.abort()
 		return _refuse(code)
@@ -471,6 +525,7 @@ func _prepare_refund(project: Vector2i) -> StringName:
 			return Inventory.REFUSE_OVERFLOW
 		if not IntMath.checked_add_into(_lost_milli[domain * Inventory.ITEM_CAPACITY + item], loss, _math):
 			return Inventory.REFUSE_OVERFLOW
+		_s_totals[item] = loss
 	return &""
 
 
@@ -507,14 +562,10 @@ func _return_receipt(row: int, destination: Vector2i, numerator: int) -> StringN
 
 
 func _publish_refund(project: Vector2i) -> void:
-	"""Book cancellation loss only once, after exact returned goods committed."""
+	"""Publish preflighted loss once without a fallible bill/source callback after Inventory committed."""
 	var domain: int = _loss_domain_of(project)
-	_construction.project_bill_size_into(project, _math)
-	var count: int = _math.value
-	for line: int in count:
-		var item: int = _items.compiled_id(_construction.project_material_key_at(project, line))
-		_construction.cancellation_refund_milli_into(project, line, _math)
-		_lost_milli[domain * Inventory.ITEM_CAPACITY + item] += _s_totals[item] - _math.value
+	for item: int in Inventory.ITEM_CAPACITY:
+		_lost_milli[domain * Inventory.ITEM_CAPACITY + item] += _s_totals[item]
 	_clear_wip(project)
 
 
@@ -630,6 +681,8 @@ func commit_modular_outputs(project: Vector2i, promotion_tile: int = -1) -> Inve
 	if not opened.ok:
 		return opened
 	code = _modular_output_inventory(project, promotion_tile)
+	if code == &"":
+		code = _final_connector_refusal(project, ModularContract.ACTION_OUTPUT)
 	if code != &"":
 		_inventory.abort()
 		return _refuse(code)

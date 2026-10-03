@@ -1549,3 +1549,40 @@ func test_equipment_binding_matches_actual_owners_not_equal_numeric_references()
 		_residents.directory(), _residents), "different Inventory fails")
 	var other: ResidentsScript = ResidentsScript.new()
 	assert_false(_store.equipment_binding_matches(_inv, other.directory(), other), "different world fails")
+
+
+func test_lot_index_survives_independent_gear_and_lot_reuse_then_clear() -> void:
+	"""Reused private rows never make an old generation or another lot resolve as the new gear."""
+	var old: Vector2i = _gear(&"tool")
+	var kept: Vector2i = _gear(&"net")
+	_retire_lot(old)
+	assert_true(_store.destroy_gear(_inv, _defs, old).ok, "retired lot releases its indexed Gear row")
+	var replacement: Vector2i = _gear(&"tool")
+	assert_equal(replacement.x, old.x, "actual Inventory reuses the retired lot slot")
+	assert_true(replacement.y != old.y, "actual generation changes")
+	assert_false(_store.has_gear(old), "old generation never aliases replacement")
+	assert_true(_store.has_gear(replacement), "replacement resolves")
+	assert_true(_store.has_gear(kept), "unrelated retained lot still resolves")
+	assert_true(_store.audit().ok, "both directions of the derived index agree")
+	_store.clear()
+	assert_false(_store.has_gear(replacement), "clear removes indexed membership")
+	assert_false(_store.has_gear(kept), "clear also removes the other entry")
+	assert_true(_store.audit().ok, "empty index is coherent")
+	assert_equal((_store.get("_lot_row") as PackedInt32Array).size() * 4, 65536,
+		"fixed lot-domain index is budgeted even in a small Gear-row fixture")
+
+
+func test_wrong_index_target_cannot_grant_another_lots_gear() -> void:
+	"""A stale derived target cannot bypass recorded identity, occupancy or bounds checks."""
+	var first: Vector2i = _gear(&"tool")
+	var second: Vector2i = _gear(&"net")
+	var original: PackedInt32Array = _store.get("_lot_row")
+	for wrong: int in [original[second.x], SMALL_POOL - 1, SMALL_POOL, -2]:
+		var corrupt: PackedInt32Array = original.duplicate()
+		corrupt[first.x] = wrong
+		_store.set("_lot_row", corrupt)
+		assert_false(_store.has_gear(first), "wrong, free, outside or negative target grants no membership")
+		assert_equal(_store.audit().error, GearScript.REFUSE_AUDIT_LOT_INDEX, "audit identifies derived corruption")
+	_store.set("_lot_row", original)
+	assert_true(_store.has_gear(first), "correct index resolves its exact live lot")
+	assert_true(_store.audit().ok, "restored derived relation audits clean")

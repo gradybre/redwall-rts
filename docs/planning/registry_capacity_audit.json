@@ -20,7 +20,7 @@
       "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
       "fishing": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
       "forage": "fbc941117ee084e80998c91510ee7ff4a320a265c6a4c16fcee8134fd5fa115f",
-      "gear": "ee39ba5584f807300703cc1166aceb43b353f676a1829ecc381e41fce5d213d8",
+      "gear": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
       "injury": "e881a967099df59cadb9440f4d69632ca19c1ea2b3c8eddfe79dde3857603447",
       "inventory": "e819f9938029375e08b4edd16e6f5d217206b8fd7ee508da8b9213208ab695fb",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
@@ -11257,8 +11257,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11270,7 +11270,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 481,
+      "source_resize_line": 482,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11281,8 +11281,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11294,7 +11294,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 472,
+      "source_resize_line": 473,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11305,8 +11305,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11318,7 +11318,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 473,
+      "source_resize_line": 474,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11329,8 +11329,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11342,7 +11342,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 474,
+      "source_resize_line": 475,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11353,8 +11353,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11366,7 +11366,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 475,
+      "source_resize_line": 476,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11377,8 +11377,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11390,7 +11390,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 476,
+      "source_resize_line": 477,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11401,8 +11401,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11414,7 +11414,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 477,
+      "source_resize_line": 478,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11425,8 +11425,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11438,7 +11438,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 478,
+      "source_resize_line": 479,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11449,8 +11449,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11462,7 +11462,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 479,
+      "source_resize_line": 480,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11473,8 +11473,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11486,7 +11486,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 480,
+      "source_resize_line": 481,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11497,8 +11497,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11510,7 +11510,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 485,
+      "source_resize_line": 486,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },
@@ -11521,8 +11521,8 @@
       "owner_key": "gear",
       "parsed_expression": "_row_capacity",
       "proof_chain": [
-        "ROW_CAPACITY -> godot/scripts/core/gear.gd:219 `const ROW_CAPACITY = 16384` = 16384",
-        "_row_capacity -> godot/scripts/core/gear.gd:465 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
+        "ROW_CAPACITY -> godot/scripts/core/gear.gd:216 `const ROW_CAPACITY = 16384` = 16384",
+        "_row_capacity -> godot/scripts/core/gear.gd:466 `clampi(p_row_capacity, 1, ROW_CAPACITY)` max = 16384"
       ],
       "proof_kind": "clamped_runtime_bound",
       "prose_relation": "lte",
@@ -11534,7 +11534,7 @@
       "source_module": "gear",
       "source_relation": "lte",
       "source_resize_expression": "_row_capacity",
-      "source_resize_line": 486,
+      "source_resize_line": 487,
       "source_value": 16384,
       "status": "proved_upper_bound"
     },

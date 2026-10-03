@@ -259,6 +259,21 @@ for module,label,shapes,scratch in [('excavation_inventory','ExcavationFunding',
   assert len(matches)==1,(module,name,matches)
   cells=[v.strip() for v in matches[0].split('|')]
   assert (int(cells[4]),int(cells[6]))==(width,capacity),(module,name,cells)
+# Decision1068 adds a derived live index and a separate cold restore index.
+# Resolve the actual source allocation; neither buffer adds canonical fields.
+gear_source=source_index['gear'].text
+gear_index_binding=audit_module.resize_binding(source_index,'gear','_lot_row')
+assert isinstance(gear_index_binding,audit_module.Binding)
+gear_index_relation,gear_index_bound=audit_module.classify_from_source(source_index,'gear',gear_index_binding.expression)
+assert isinstance(gear_index_bound,audit_module.Proved)
+assert gear_index_bound.value==16384 and gear_index_binding.expression=='LOT_CAPACITY'
+assert 'lot_rows.resize(LOT_CAPACITY)' in gear_source
+assert 'var _lot_row: PackedInt32Array' in gear_source
+assert '| GearInstanceIndex | lot_row | I32 | 4 | 1 | 16384 | 65536 |' in s
+assert '| Gear restore index staging | 16384 | 4 | 65536 |' in s
+assert not any(f.get('source_module')=='gear' and f.get('source_member')=='_lot_row' for f in registry_fields)
+DECISION_1068_ADDED=2*4*gear_index_bound.value
+assert DECISION_1068_ADDED==131072
 # 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
 DECISION_0167_CLAIM_SLOT=512*4
 assert DECISION_0167_CLAIM_SLOT==2048
@@ -370,10 +385,10 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
-assert len(allocations)==41 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED
+assert len(allocations)==42 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==86274006
-assert live==94662614 and candidate==80026783 and live+candidate==174689397
+assert payload==86405078
+assert live==94793686 and candidate==80157855 and live+candidate==174951541
 assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
 # A valid internal trail can still omit its final step. Require its endpoint to reach the
 # independently summed allocation table; merge_gate.py separately checks every intervening row.
@@ -415,6 +430,7 @@ report['room_projects_packed_bytes']=DECISION_1053_ADDED
 report['canonical_declaration_bytes']=DECISION_0127_ADDED
 report['excavation_packed_bytes']=DECISION_1066_PACKED
 report['excavation_numeric_controls_and_transients']=DECISION_1066_CONTROLS+DECISION_1066_TRANSIENTS
+report['gear_lot_index_and_restore_bytes']=DECISION_1068_ADDED
 report['canonical_census']={'owners':len(registry_owners),'declared_fields':len(registry_fields),
                           'hashed_records':registry['record_count'],
                           'persisted_packed_fields':registry['packed_source_field_count'],
@@ -422,7 +438,7 @@ report['canonical_census']={'owners':len(registry_owners),'declared_fields':len(
 for name in ['godot/scripts/core/room_projects.gd','godot/scripts/core/construction.gd',
              'godot/scripts/core/jobs.gd','godot/scripts/core/canonical_state_hash.gd',
              'godot/scripts/core/excavation_inventory.gd','godot/scripts/core/excavation_sites.gd',
-             'godot/scripts/core/excavation_contract.gd','tools/audit_registry_capacities.py',
+             'godot/scripts/core/excavation_contract.gd','godot/scripts/core/gear.gd','tools/audit_registry_capacities.py',
              'docs/planning/canonical_state_registry.json','docs/validation/ready07_arithmetic.py']:
  report['source_sha256'][name]=hashlib.sha256((r/name).read_bytes()).hexdigest()
 if args.output:

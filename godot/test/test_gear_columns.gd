@@ -101,6 +101,42 @@ func _bind() -> void:
 	_residents = Residents.new()
 	assert_true(_store.bind_equipment(_inv,_residents.directory(),_residents).ok,"real collaborators bound")
 
+func test_derived_lot_index_capture_refuses_but_restore_rebuilds_exact_relation() -> void:
+	"""Derived corruption cannot enter a capture and does not block a valid whole-image replacement."""
+	var first: Vector2i = _make(&"tool")
+	var second: Vector2i = _make(&"net")
+	_capture()
+	var original: PackedInt32Array = _store.get("_lot_row")
+	for variant: int in 3:
+		var corrupt: PackedInt32Array = original.duplicate()
+		if variant == 0:
+			corrupt[first.x] = -1
+		elif variant == 1:
+			corrupt[first.x] = original[second.x]
+		else:
+			corrupt[Gear.LOT_CAPACITY - 1] = original[first.x]
+		_store.set("_lot_row", corrupt)
+		_reject_capture(Gear.REFUSE_COLUMN_GEAR_SOURCE_DERIVED)
+		assert_true(_store.restore_gear_columns(_columns, _defs), "valid incoming columns replace a corrupt old index")
+		assert_equal(_store.get("_lot_row"), original, "complete two-way index is rebuilt")
+		assert_true(_store.has_gear(first) and _store.has_gear(second), "both actual lot generations resolve")
+		assert_true(_store.audit().ok, "restored state audits clean")
+
+func test_failed_restore_preserves_index_and_successful_restore_owns_its_index() -> void:
+	"""Malformed input cannot alter derived membership; successful publication aliases no input column."""
+	var first: Vector2i = _make(&"tool")
+	_capture()
+	var old: PackedInt32Array = _store.get("_lot_row")
+	_columns.lot_generation[old[first.x]] = 0
+	_reject_restore(Gear.REFUSE_COLUMN_GEAR_REF)
+	assert_equal(_store.get("_lot_row"), old, "failed restore preserves every index entry")
+	_columns.lot_generation[old[first.x]] = first.y
+	assert_true(_store.restore_gear_columns(_columns, _defs), "valid exact columns restore")
+	_columns.lot_slot[old[first.x]] = Gear.LOT_CAPACITY - 1
+	assert_true(_store.has_gear(first), "mutating caller-owned columns cannot reach live relation")
+	assert_equal(_store.recorded_lot_ref_at_lot_slot(Gear.LOT_CAPACITY - 1), Gear.NULL_REF,
+		"mutated input does not invent another indexed Gear record")
+
 func _block(rows: int = 8) -> Codec.OwnerRecord:
 	return Codec.OwnerRecord.new(2,rows,PackedInt64Array())
 

@@ -1,0 +1,4 @@
+FAIL C3 underground_world_bindings.gd declares `_room_identity` with no registry row
+FAIL C4 underground_world_routes.gd line 1443: `_room_identity` is not a packed column there
+FAIL C6 underground_world_routes.gd line 1443: `_room_identity` has no resize() call; say 'never allocated'
+state_registry_coverage: 3 failure(s)

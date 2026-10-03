@@ -12,6 +12,9 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Contract := preload("res://scripts/core/excavation_contract.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NATURAL_ROW_LIMIT: int = 512
 const COMPOSED_ROW_LIMIT: int = Budget.PHASE_VOLUME_CAPACITY
@@ -55,6 +58,9 @@ var _phase_geometry_revision: int = 0
 var _room_bindings: WeakRef = null
 var _room_region: Owner.Region = null
 var _room_reading: bool = false
+var _room_identity: PackedInt32Array = PackedInt32Array()
+var _identity_reading: bool = false
+var _worker_reading: bool = false
 
 
 func configure(world: World, terrain: Terrain, owner: Owner, reader: Owner.CoreSources,
@@ -79,6 +85,7 @@ func configure(world: World, terrain: Terrain, owner: Owner, reader: Owner.CoreS
 	_budget = budget
 	_clip.resize(6)
 	_intersection.resize(6)
+	_room_identity.resize(Buildings.ROOM_IDENTITY_FIELDS)
 	return &""
 
 
@@ -95,6 +102,71 @@ func space_owner() -> Owner:
 func terrain_owner() -> Terrain:
 	"""Borrow configured identity only; callers must still prove actual World, Budget and current exclusions."""
 	return _terrain
+
+
+func room_refusal(room: Vector2i) -> StringName:
+	"""Require actual registered underground identity and unchanged permanent purpose, without granting service."""
+	if _identity_reading:
+		return REFUSE_BUSY
+	_identity_reading = true
+	var code: StringName = _room_identity_refusal(room)
+	_identity_reading = false
+	return code
+
+
+func _room_identity_refusal(room: Vector2i) -> StringName:
+	"""This path never calls Sites.room_of, which itself asks the physical authority to validate this Room."""
+	var code: StringName = binding_refusal()
+	if code != &"":
+		return code
+	var reader: Owner.CoreSources = sources()
+	var construction: Construction = reader.construction_owner() if reader != null else null
+	if construction == null or construction.directory() != reader.directory():
+		return REFUSE_BINDING
+	code = construction.buildings().room_identity_into(room, _room_identity)
+	if code != &"":
+		return code
+	if _room_identity[0] != Buildings.ROOM_SPACE_UNDERGROUND:
+		return &"SPACE_UNDERGROUND_ROOM_REQUIRED"
+	code = _actual_owner().source_refusal(room)
+	return binding_refusal() if code == &"" else code
+
+
+func assigned_worker(site: Vector2i, job: Vector2i) -> Vector2i:
+	"""Read only an actual reciprocal living Job assignment; contact, gear and work permission remain separate."""
+	if _worker_reading:
+		return NULL_REF
+	_worker_reading = true
+	var worker: Vector2i = _assigned_worker(site, job)
+	_worker_reading = false
+	return worker
+
+
+func _assigned_worker(site: Vector2i, job: Vector2i) -> Vector2i:
+	"""Use the actual Sites Jobs owner, full Directory kinds/generations and both row mirrors."""
+	if binding_refusal() != &"":
+		return NULL_REF
+	var sites: Sites = _actual_sites()
+	if sites == null or not sites.is_live_site(site) or sites.job_of(site) != job or job == NULL_REF:
+		return NULL_REF
+	var room: Vector2i = sites.room_of(site)
+	if room_refusal(room) != &"":
+		return NULL_REF
+	var jobs: Jobs = sites.jobs_owner()
+	var ids: Directory = sources().directory()
+	if jobs == null or jobs.directory() != ids or not ids.is_valid_of_kind(job, Directory.KIND_JOB):
+		return NULL_REF
+	var row: int = ids.get_typed_row(job)
+	if jobs.ref_of(row) != job:
+		return NULL_REF
+	var worker: Vector2i = jobs.worker_of(row)
+	if not ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT):
+		return NULL_REF
+	var resident: int = ids.get_typed_row(worker)
+	if jobs.residents().ref_of(resident) != worker or not jobs.residents().is_alive(resident) \
+			or not jobs.is_agent_present(resident) or jobs.job_of(resident) != job:
+		return NULL_REF
+	return worker if sites.job_of(site) == job and binding_refusal() == &"" else NULL_REF
 
 
 func bind_room_bindings(reader: RoomOrders.Bindings) -> StringName:

@@ -210,3 +210,44 @@ Independent construction review accepted the exact production/test hashes
 recorded in `docs/validation/evidence/underground-world-identities-2026-10-03/iteration-1/review.json`. The actual live wrong-kind regression closes its
 initial low test-coverage note. Sources remained unchanged through testing and
 assets were absent; these checks do not qualify the prospective consumers.
+
+
+## Actual Room and assigned Job identity composition
+
+WorldBindings now implements its actual Room identity refusal and the actual
+Site Job's assigned resident reader. Room checks validate the configured World,
+actual Buildings domain and permanent purpose, then the registered sparse source
+facts. The reader deliberately never asks Sites.room_of, avoiding the recursive
+Sites-to-SpatialAuthority-to-WorldBindings cycle. Surface rooms, unregistered
+allocations, stale generations and changed purpose cannot enter the underground
+phase namespace. Identity never implies completed shell, service, route or work
+qualification.
+
+The worker reader borrows Sites' exact Jobs owner, validates the actual shared
+Directory, Site/Project/Job relationship and full Job row mirror, then the living
+Resident and reciprocal JobAgent assignment. Release or reassignment is read
+fresh. No nominated worker, cached last assignment, tool-gate flag or identity
+success substitutes for the separate physical work-contact proof. Independent
+query guards prevent callbacks from recursively entering either reader.
+
+One six-I32 Room output adds24 logical bytes, and two booleans add2, for26 in
+the existing1072 bindings reservation. WorldBindings' logical retained/reused
+total becomes297 bytes. These controls are transient and introduce no canonical
+columns or save ordinals. The broader source lookup remains bounded linear;
+this increment is not a256-resident performance qualification.
+
+The final focused candidate ran52 tests and1025 assertions with0 failures;
+every strict/raw unexpected diagnostic and object/resource leak count is0,
+expected/tolerated counts0, and analyzer0 warnings across2 files. Sources were
+unchanged and assets absent/restored. Earlier failed attempts are retained:
+iteration1 crashed during native font reimport before tests; iterations2–4
+were stopped by registry coverage (missing row, then incorrect/duplicate table
+section placement). No test or diagnostics gate was relaxed. Final iteration5
+contains the successful raw logs and hashes. Independent review is recorded
+alongside that evidence before commit.
+
+Independent geometry review accepted exact source `f466e8726244bdd7d20f09a8705e87be4eda3a989b197304bee4c4a5086349cc` and test
+`29ef0f8475a3d10974df513643300aca3037c30b62968fa4df6662acfd8e31ed`,
+with no high/medium finding. It traced actual source drift, both assignment
+mirrors, living identity, callback guards and absence of the Sites recursion;
+it did not repeat the engine run or qualify contacts.

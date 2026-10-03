@@ -1136,8 +1136,19 @@ future-affecting once integrated; no codec assignment is invented here.
 | Owner wiring and synchronous permit | -- | -- | -- | Null permit and action -1 | 3 | -- | Construction/Inventory/Reservations/Items/Jobs/Work/Funding and weak SpatialAuthority wiring. Permits and prepared-candidate row/stage exist only during the current physical-owner call stack; decision 1069 adds `_publishing_spatial`, one logical bool byte of category-3 synchronous callback control, false outside the exact committed spatial publication and excluded from save/hash; `_earned_capacity` is a derived 8-byte scalar cache recomputed from admitted site capacity times five operations. Initialization refusal and transient math/result scratch are excluded from local state image. All collaborator bindings are revalidated on live phase/work entry. |
 
 
+
 ### `godot/scripts/core/connector_geometry.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---:|---|---|:-:|---|---|
 | Cold fixed-content mesh and footprint compilation | -- | -- | -- | Refusal has no candidate; unnamed or incomplete content refuses | 3 | -- | Decision 1070. Stateless integer compiler over explicit caller-owned polygon parts, fixed RoomConnectors metadata and full RoomSpace contracts. Packed input is 12 bytes per top vertex, 32 per part plus 4 for the offset sentinel, and 4 per material. Triangle output is 44 bytes per triangle, plus 4 per part, 4 per material, optional 24-byte hinge and 24-byte sweep. Compiled geometry additionally holds copied 48-byte volume rows and full contact/cut metadata; each part adds one SOLID row, a hatch one ENVELOPE row. Bounds are caller-selected under 128 parts, 2048 top vertices, 8192 triangles, 16 materials and RoomSpace region ceilings; no resident arrays or module-level persistent state. The eventual accepted content/geometry owner must retain the catalog revision, never rebuild authority from a mutable display mesh. Native object/material/renderer memory is separate, unmeasured presentation overhead. |
+
+### `godot/scripts/core/modular_project_contract.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Quote input quantities | -- | 8 | `INPUT_CAPACITY` = 4 | 0 | 3 | -- | Nested scratch `Quote.input_milli`. Decision 1069. One bounded component-owned cold quote, reset before the actual typed owner fills it. Not per-project state or a price source. |
+| Quote output identifiers | -- | 4 | `OUTPUT_CAPACITY` = 2 | Item/recipe -1, other metadata 0 | 3 | -- | Nested scratch `Quote.output_item`, `output_quality`, `output_provenance`, `output_recipe`. Finite actual-owner output candidate; Inventory validates catalog/metadata before any transaction. |
+| Quote output quantities and ages | -- | 8 | `OUTPUT_CAPACITY` = 2 | 0 | 3 | -- | Nested scratch `Quote.output_milli`, `output_age`, `output_remainder`. Exact caller-owned scratch with 112 packed bytes per quote, never an output buffer or an authoritative receipt arena. |
+| Quote named inputs, facts and abstract owner/router methods | -- | -- | -- | null/empty outside initialized quote | 3 | -- | Four named catalog input keys, actual full subject, operation/q/work/Job-kind/count scalars and fail-closed typed methods. Construction holds one reusable quote and a weak router; neither is saved or hashed. Concrete operation owners remain responsible for immutable source quantities/type and persistence. |
+

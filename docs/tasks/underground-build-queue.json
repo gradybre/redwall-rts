@@ -394,7 +394,10 @@
         "docs/decisions/1092-actual-room-phase-masks.md",
         "godot/test/test_underground_room_admission.gd",
         "godot/test/test_room_footprint_packed.gd",
-        "docs/decisions/1094-packed-room-footprint-validation.md"
+        "docs/decisions/1094-packed-room-footprint-validation.md",
+        "godot/scripts/core/underground_room_cut_map.gd",
+        "godot/test/test_underground_room_cut_map.gd",
+        "docs/decisions/1095-derived-room-cut-map.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -415,9 +418,9 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-room-admission-scale",
+      "branch": "codex/underground-room-cut-map",
       "evidence": {
-        "in_progress": "Packed validation integrated. Implementing admission-scale follow-up: one actual unfiltered snapshot, three charged plan images, exact clipped Terrain windows, existing16384-cell operation ceiling; no compositor changes or player-facing shape restriction.",
+        "in_progress": "Approved1095 derived unique paid-cube cursor and actual Sites remaining-capacity preflight; cold-only packed interval bank, no duplicate persistent ledger. Batch-claim publication and actual prospective entry remain required.",
         "identity_prerequisite": {
           "commit": "0bef602b",
           "integration": "a16c16ba",
@@ -529,6 +532,14 @@
           "tests": "266 tests/36807 assertions/0failures; nine strict selected suites; all strict/raw diagnostics/leaks0;analyzer0/12",
           "evidence_path": "docs/validation/evidence/underground-admission-integration-2026-10-03/iteration-1",
           "scope": "Focused combined integration, not a full no-argument suite; actual productive admission remains unqualified"
+        },
+        "admission_scale": {
+          "source": "3b035537",
+          "registry": "ef0e30ff",
+          "integration": "f1f2ed8b/a655cf05",
+          "tests": "66 tests /2750 assertions /0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/2",
+          "review": "Root independently accepted frozen25069f2f/487a3e62 pins. Existing16384-cell ceiling preserved; no477-cell restriction or entry permission.",
+          "evidence_path": "docs/validation/evidence/underground-room-masks-2026-10-03/admission-scale/"
         }
       },
       "lease": {
@@ -593,7 +604,8 @@
         "tools/compile_underground_actor_content.py",
         "tools/test_compile_underground_actor_content.py",
         "godot/demo/cast/underground_actor_content.gd",
-        "godot/test/test_underground_actor_content.gd"
+        "godot/test/test_underground_actor_content.gd",
+        ".gitattributes"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -755,7 +767,8 @@
           "scope": "Original body and held-tool source geometry; zero production profiles",
           "evidence_path": "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/"
         },
-        "held_pick_visual_gap": "Root and furnishing independently see an apparent hand/shaft gap in original held-pick walk still. Renderer fidelity accepted; actual animated grip/handling quality must be checked and source fit/content regenerated if wrong before production qualification."
+        "held_pick_visual_gap": "Root and furnishing independently see an apparent hand/shaft gap in original held-pick walk still. Renderer fidelity accepted; actual animated grip/handling quality must be checked and source fit/content regenerated if wrong before production qualification.",
+        "compact_actor_content_in_progress": "Compiler/reader source independently reviewed;29tests334assertions strict0,11Python,731nativeposes1575assertions0. Native grip rejected; authored correction required. Separate reviewed .ugactor LFS append and corrected evidence wrapper pending commit."
       },
       "lease": {
         "state": "held"
@@ -823,7 +836,7 @@
       "branch": "codex/underground-phase-structure",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
-        "in_progress": "Geometry builds actual Room-owned natural footing/roof support provider under1093 with reviewed early survey release4a702647; root owns WorldBindings actual Room/Job identity and weak Scope delegation in separate own worktree. CoreSources fixed Room reader independently accepted pending focused checks.",
+        "in_progress": "Reviewed1093 natural support integrated. Root is validating actual WorldStructureScope and WB structural dispatch; geometry independently reviews that root packet next. Actual contacts/entry/full qualification remain open.",
         "phase_adapter": {
           "commit": "8b14c60de10baf2c19f830bc307b1d5a529c1b6e",
           "registry": "aef88460d65bbe9cf7ae3b4ae2cfee165f1d483e",
@@ -1011,6 +1024,14 @@
           "tests": "54 tests/1042 assertions/0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/2",
           "review": "ug_furnishing accepted exact156f59e5/2d34e2b5 pins",
           "evidence_path": "docs/validation/evidence/underground-world-identities-2026-10-03/phase-scope-iteration-1"
+        },
+        "natural_support": {
+          "source": "ab6eef10",
+          "registry": "12ad8182",
+          "integration": "ece2d135/9d9fb9d9",
+          "tests": "19 tests /240 assertions /0 failures; every strict/raw diagnostic and leak count0; analyzer0/2",
+          "review": "Root accepted frozen4c53a400/f40a75ac pins after exact preallocation and strong-lifetime fixes. Room-lifetime natural SUPPORT, no invented installed beam or salvage.",
+          "evidence_path": "docs/validation/evidence/underground-phase-structure-2026-10-03/natural-support/"
         }
       },
       "lease": {

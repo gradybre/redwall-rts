@@ -104,3 +104,88 @@ synthetic fixtures; none qualifies a production body or connector.
 The continuous native-source exporter, numerical/presentation enclosure, authored
 profile/stance/contact content and five-family engineering pack remain active work.
 This record does not mark UG08, production profiles or those families complete.
+
+## Underground presentation representation
+
+The initial actual native source inspection covers seven case variants, 1,920
+animation tracks and 113,826 mesh vertices. Godot 4.7.2 mixes rotations as a product
+of rest-relative quaternion powers, not a direct convex quaternion blend. Its live
+tail also includes a spring and a final ground constraint. Source-math enclosures
+of unrestricted clip products and tail rotations remain too broad to choose useful
+connector dimensions. They are retained as unqualified diagnostics, not production
+clearance and not a reason to widen tunnels. Exact native tail-scale premisses are
+also checked rather than treating near-unit imported scales as exactly one.
+
+For the bounded underground presentation adapter, use the global-matrix blending
+representation already adopted in crowd architecture sections 2.4–2.5. Bake the
+actual final poses of each exact source body, skin, clip and modifier configuration.
+Between baked frames and during transitions, linearly blend those global skin
+matrices. This is a deliberately specified renderer: its source poses are finite
+content, not samples claimed to bound a different live quaternion/spring continuum.
+Matrix blending can shrink joints under large rotations, so close-view error and
+visible animation quality are acceptance gates before activation.
+
+The adapter retains the original mesh, bind-index mapping, weights and materials.
+For vertex `p`, bind `b`, source pose `f` and inverse bind `I[b]`, its native skin
+matrix is `S[f,b] = G[f,b] * I[b]`; its local position remains
+`sum_b weight[b] * S[f,b] * p`. An owned RenderingServer skeleton RID receives the
+linearly blended final matrices directly. The implementation must not decompose
+them through a Skeleton3D quaternion path or introduce a substitute shader. Rigid
+tools use the same global hand socket and authored fitting transform. Held goods
+use the actual hand-midpoint/forward-offset equation. The dynamic log basis needs
+its own baked final matrix rather than a new unproved nonlinear interpolation.
+
+`godot/demo/cast/underground_actor.gd` and its tests own only this presentation
+adapter. `tools/bake_underground_matrices.gd` records the real final matrices and
+attachments using the existing source-pinned capture harness; evidence lives under
+`godot/data/underground/evidence/matrix-presentation/`. No source state silently
+inherits another species, life-stage, rig, equipment or cargo qualification. The
+actual renderer/palette digest must equal the profile's content binding during
+underground work/travel. Surface Actor behavior remains a regression requirement.
+
+Qualification still requires exact interpolation coverage, all attachment envelopes,
+an outward arithmetic residual, actual backend/palette update and RID cleanup tests,
+and native close-view comparison of the real cast and transitions. No gameplay
+capability, grip/load permission, speed or economy recipe changes follow from this
+presentation choice. The standard-level and local-offset pack will be authored
+against the completed envelopes, relative to the immutable World datum at Y=512u.
+
+The new underground content and its endpoint headings use the GDD's 65,536 yaw
+units per turn and −Z forward convention explicitly: yaw 0 faces −Z, 16,384
+faces −X, 32,768 faces +Z and 49,152 faces +X. Positive yaw is a right-hand
+rotation around +Y, matching Godot's native positive-Y basis. The existing demo
+cast faces +Z in local space, so baking multiplies by the exact diagonal basis
+`diag(-1, 1, -1)` before storing final matrices; no approximate `sin(PI)` is used.
+The new route provider may adopt this engineering convention without changing
+the existing surface mover's historical behavior. Deriving a noncardinal heading
+must use an integer algorithm with a documented tie rule; physical selection
+never rounds an unsupported heading to a cardinal. All-yaw envelopes can cover
+the continuous presentation turn, while work contacts keep exact authored yaw.
+
+This heading convention does not settle connector speed. Decision0212's demo
+ramp-at-walk-speed and stair-at-500-permille behavior is explicitly labeled
+`DEMO VALUES` in `tunnel_rules.gd`; it is evidence of existing presentation, not
+a production climbing or load permission. The initial compiled connector pack
+must carry an explicit, separately justified pace/duration contract, including
+ladder/hatch movement, before the new route provider activates those edges.
+
+## Native matrix adapter component evidence
+
+The new adapter and tests passed independent component review after correcting a
+SceneTree lifecycle defect: MeshInstance3D resolves an empty skeleton path on
+entry, so configuring outside the tree could detach an already assigned native
+skeleton. Configuration now requires the actor to be in the tree before any native
+allocation, and the child enters before attachment. Exit releases owned RIDs and
+parts; re-entry requires fresh configuration. A native rendered-pixel regression
+proves deformation after both entry and re-entry, in addition to matrix readback.
+Original mesh and material identities are preserved, including actual instance
+material overrides. Unsupported displacement and later material passes refuse.
+
+`matrix-presentation/adapter-component-v1/` records source/log hashes and the
+native command. The final assets-aside, fresh-import strict check reports 21 tests,
+2,713 assertions, zero failures, all diagnostic/leak counts zero; the analyzer
+reports zero warnings in two files. Native execution reports 117 assertions with
+zero failures and the expected displaced pixels on both lifecycle cycles.
+This verifies the bounded presentation component only. Source extraction,
+continuous bounds, shared presentation-palette admission, original-cast visual
+quality and the production profile binding remain separate content gates.

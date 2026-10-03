@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "status": "independent component review accepted",
+  "review_scope": "Finite matrix interpolation, original mesh/material binding, native scene lifecycle and cleanup. No authored production clearance qualification.",
+  "qualified_profiles": 0,
+  "native_command": [
+    "godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "res://data/underground/evidence/matrix-presentation/native_adapter_check.gd"
+  ],
+  "sources_and_logs": [
+    {
+      "path": "godot/demo/cast/underground_actor.gd",
+      "sha256": "870b955c558f046f3b54b0933ed10b146c9d1b98a8453c42b958fa63a37612b2"
+    },
+    {
+      "path": "godot/test/test_underground_actor.gd",
+      "sha256": "f79024cfff31bcd5ad64d07e65274c36c6d31dce4c0426ec34514d8f7c9ca76d"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native_adapter_check.gd",
+      "sha256": "7682084740062789d40778943853ce03b75b3bb3f496cbb4bca4c6cb86e98739"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/run_checks.py",
+      "sha256": "3a17999bc9c778857eda003a906b25212ec4c62c307be864524c46de31e89707"
+    },
+    {
+      "path": "godot/test/test_demo_actor_underground_heading.gd",
+      "sha256": "3edb9e811dcbcfe00011a6a13fecd5910c0139f5d9bc753aeb690cc2edb9e7c2"
+    },
+    {
+      "path": "godot/demo/cast/demo_actor.gd",
+      "sha256": "1dd127464e7a9853b307af20d8f34bdd2606e7dad64910b685a810eaa93b5fb0"
+    },
+    {
+      "path": "tools/run_tests.sh",
+      "sha256": "aa38a6ccb26636bfbfab7e9c3046479bf63dc6614a104bd7273e342068090f01"
+    },
+    {
+      "path": "tools/ci_test_shard_runner.gd",
+      "sha256": "18e9a1c77dfa6a675e52d434704dfabbe4a7a8ed3707c0d00372f10f2a44b3c1"
+    },
+    {
+      "path": "tools/gdscript_warnings.py",
+      "sha256": "397533007567fe19c1bb7a492441d5c540b0e408b2239f97d59ca80d1c31a9e6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v1/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v1/import.log",
+      "sha256": "5e526c4977d07d5dc355501acedf2fcfa086ae7f9559c7f96f6bb354564c8ff3"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v1/invocation.json",
+      "sha256": "76447238098aebc298c0b7117b11f9856c637ae2664a7307e7f8a0cf136a4f1b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v1/strict.log",
+      "sha256": "afb602b5c47a0d42aa0db055707b266d1f0708cf4b15395714db831bbe798b73"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v2/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v2/import.log",
+      "sha256": "8a79a9cf80861dc56538f040e5ab1469c507091e26d6fad641cbea232d43ae9f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v2/invocation.json",
+      "sha256": "76447238098aebc298c0b7117b11f9856c637ae2664a7307e7f8a0cf136a4f1b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v2/strict.log",
+      "sha256": "6ae73355f9c3c0260cfc5a687d6f21a9e676daec535c330fb0c1ec83fac94783"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v3/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v3/import.log",
+      "sha256": "945b9b6cdcea108ea6a3de7d8bee23a98f4b3a18b4a22cf8401f5b49525744a8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v3/invocation.json",
+      "sha256": "76447238098aebc298c0b7117b11f9856c637ae2664a7307e7f8a0cf136a4f1b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/checks-v3/strict.log",
+      "sha256": "c8a80771cd718a9fed2cb5d9078c32467bac3f92c251acd553a1bb58fb0d11bb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/adapter-component-v1/native-adapter.log",
+      "sha256": "75946b255ccdd53ac613e7559233e2500b02bc3a0997edbba56544cea4ea3d7f"
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+PASS Cycle3: 76 checks; design geometry/format/grammar/handoff only.
+Observed registry: 673 canonical fields; 567 capacity strings = 494 exact + 73 upper bounds. Source proofs still owned by REGISTRY-CAPACITY-AUDIT.

@@ -1,6 +1,6 @@
 {
- "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-02-UG1",
- "registry_version": 8,
+ "registry_id": "RWL-CANONICAL-REGISTRY-2026-10-02-UG2",
+ "registry_version": 9,
  "status": "ADOPTED_KEYS_TYPES_AND_ORDINALS_FOR_NAMED_SNAPSHOT",
  "release_save_ready": false,
  "source_commit": "reconciled_to_integration_head_from_197472b9d7f2",
@@ -54,11 +54,13 @@
   "weather": "f2c1bf034645b897c80edcce861cd488a01b0d280e8eb7dcc5067c9e8aa7ca3e",
   "work": "378c6ca26b77e8cc0fdfbe269c38e0da19efddfafa46aacc9da1f3b2a3f02151",
   "world_init": "21a88aebbacb757c552056144379b57251119fdc606aa4344fe3c698fb387e5a",
-  "room_projects": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184"
+  "room_projects": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184",
+  "excavation_inventory": "f64f0da1e5f975aa78dfaa82b0bc625a47a18fa3e2edfa658e41fdb24b0e6ef6",
+  "excavation_sites": "41020ce8597374f0297835d40f2c7d7ac769ff4c5e1dc3112d204b0d1bfea0b5"
  },
  "canonical_stream": "RWL-STATE-1",
- "record_count": 615,
- "packed_source_field_count": 566,
+ "record_count": 673,
+ "packed_source_field_count": 602,
  "policy": "Fixed per compatible build; add owners/fields explicitly on arrival, change rules identity and affected versions; refuse incompatible development saves. Never infer registry at runtime. source_module_sha256 records the named reconciliation snapshot, not current HEAD; current acceptance source hashes are retained with each task evidence ledger.",
  "owners": [
   {
@@ -5777,6 +5779,833 @@
   },
   {
    "section_id": 6,
+   "owner_key": "excavation_inventory",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 0,
+     "scalar": true
+    },
+    {
+     "field_key": "_free_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_free_count",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 1,
+     "scalar": true
+    },
+    {
+     "field_key": "_free",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_free",
+     "shape": {
+      "count_field": "_free_count",
+      "max_count": 32768,
+      "order": "used_stack_prefix_preserve_pop_order"
+     },
+     "ordinal": 2,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_project_slot",
+     "shape": {
+      "declared_capacity": "`Construction.CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 3,
+     "source_contract": "C179"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_project_generation",
+     "shape": {
+      "declared_capacity": "`Construction.CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 4,
+     "source_contract": "C179"
+    },
+    {
+     "field_key": "_head",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_head",
+     "shape": {
+      "declared_capacity": "`Construction.CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 5,
+     "source_contract": "C179"
+    },
+    {
+     "field_key": "_output_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_output_slot",
+     "shape": {
+      "declared_capacity": "`Construction.CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 6,
+     "source_contract": "C179"
+    },
+    {
+     "field_key": "_output_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_output_generation",
+     "shape": {
+      "declared_capacity": "`Construction.CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 7,
+     "source_contract": "C179"
+    },
+    {
+     "field_key": "_output_mass_g",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_output_mass_g",
+     "shape": {
+      "declared_capacity": "`Construction.CONSTRUCTION_CAPACITY` = 82944",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 8,
+     "source_contract": "C179"
+    },
+    {
+     "field_key": "_r_next",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_next",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 9,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_item",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_item",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 10,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_quality",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_quality",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 11,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_provenance",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_provenance",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 12,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_recipe",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_recipe",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 13,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_quantity",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_quantity",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 14,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_age",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_age",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 15,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_r_remainder",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_r_remainder",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 32768",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 16,
+     "source_contract": "C178"
+    },
+    {
+     "field_key": "_lost_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_inventory",
+     "source_member": "_lost_milli",
+     "shape": {
+      "declared_capacity": "`Inventory.ITEM_CAPACITY` = 256",
+      "order": "ascending_item_id"
+     },
+     "ordinal": 17,
+     "source_contract": "C180"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
+   "owner_key": "excavation_sites",
+   "owner_schema_version": 1,
+   "fields": [
+    {
+     "field_key": "_capacity",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 0,
+     "scalar": true
+    },
+    {
+     "field_key": "_count",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_count",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 1,
+     "scalar": true
+    },
+    {
+     "field_key": "_domain_capacity",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain_capacity",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 2,
+     "scalar": true
+    },
+    {
+     "field_key": "_initial_earth_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_initial_earth_milli",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 3,
+     "scalar": true
+    },
+    {
+     "field_key": "_virgin_sourced_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_virgin_sourced_milli",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 4,
+     "scalar": true
+    },
+    {
+     "field_key": "_funded_braces",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_funded_braces",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 5,
+     "scalar": true
+    },
+    {
+     "field_key": "_completed_braces",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_completed_braces",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 6,
+     "scalar": true
+    },
+    {
+     "field_key": "_salvaged_braces",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_salvaged_braces",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 7,
+     "scalar": true
+    },
+    {
+     "field_key": "_returned_brace_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_returned_brace_milli",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 8,
+     "scalar": true
+    },
+    {
+     "field_key": "_world_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.world_ref.x",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 9,
+     "scalar": true
+    },
+    {
+     "field_key": "_world_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.world_ref.y",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 10,
+     "scalar": true
+    },
+    {
+     "field_key": "_datum_u_x",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.datum_u.x",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 11,
+     "scalar": true
+    },
+    {
+     "field_key": "_datum_u_y",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.datum_u.y",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 12,
+     "scalar": true
+    },
+    {
+     "field_key": "_datum_u_z",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.datum_u.z",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 13,
+     "scalar": true
+    },
+    {
+     "field_key": "_minimum_quantum_x",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.minimum_quantum.x",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 14,
+     "scalar": true
+    },
+    {
+     "field_key": "_minimum_quantum_y",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.minimum_quantum.y",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 15,
+     "scalar": true
+    },
+    {
+     "field_key": "_minimum_quantum_z",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.minimum_quantum.z",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 16,
+     "scalar": true
+    },
+    {
+     "field_key": "_size_quanta_x",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.size_quanta.x",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 17,
+     "scalar": true
+    },
+    {
+     "field_key": "_size_quanta_y",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.size_quanta.y",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 18,
+     "scalar": true
+    },
+    {
+     "field_key": "_size_quanta_z",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_domain.size_quanta.z",
+     "shape": {
+      "count": 1,
+      "order": "scalar"
+     },
+     "ordinal": 19,
+     "scalar": true
+    },
+    {
+     "field_key": "_site_key",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_site_key",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 20,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_present",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_present",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 21,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_phase",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_phase",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 22,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_installed",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_installed",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 23,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_ever_cut",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_ever_cut",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 24,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_closure_before",
+     "type": "u8",
+     "type_code": 0,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_closure_before",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 25,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_embedded_milli",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_embedded_milli",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 26,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_earned_mwu",
+     "type": "i64",
+     "type_code": 4,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_earned_mwu",
+     "shape": {
+      "declared_capacity": "`_earned_capacity` <= 369545",
+      "order": "ascending_physical_slot_then_operation"
+     },
+     "ordinal": 27,
+     "source_contract": "C182"
+    },
+    {
+     "field_key": "_room_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_room_slot",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 28,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_room_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_room_generation",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 29,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_project_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_project_slot",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 30,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_project_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_project_generation",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 31,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_operation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_operation",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 32,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_job_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_job_slot",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 33,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_job_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_job_generation",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 34,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_output_slot",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_output_slot",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 35,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_output_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_output_generation",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 36,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_promotion_tile",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_promotion_tile",
+     "shape": {
+      "declared_capacity": "`_capacity` <= 73909",
+      "order": "ascending_physical_slot"
+     },
+     "ordinal": 37,
+     "source_contract": "C181"
+    },
+    {
+     "field_key": "_worker_site",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_worker_site",
+     "shape": {
+      "declared_capacity": "`Work.RESIDENT_CAPACITY` = 512",
+      "order": "ascending_resident_row"
+     },
+     "ordinal": 38,
+     "source_contract": "C183"
+    },
+    {
+     "field_key": "_worker_generation",
+     "type": "i32",
+     "type_code": 2,
+     "hash": true,
+     "source_module": "excavation_sites",
+     "source_member": "_worker_generation",
+     "shape": {
+      "declared_capacity": "`Work.RESIDENT_CAPACITY` = 512",
+      "order": "ascending_resident_row"
+     },
+     "ordinal": 39,
+     "source_contract": "C183"
+    }
+   ]
+  },
+  {
+   "section_id": 6,
    "owner_key": "room_projects",
    "owner_schema_version": 1,
    "fields": [
@@ -9213,7 +10042,8 @@
   "Implement all required save section bodies and restore orchestration; this is a logical record registry, not a claim those bodies exist.",
   "Register progression, community, economy/hazard and other future authoritative state at implementation arrival; reserved undeclared state must not be fabricated as zeros.",
   "Produce complete rules and lookup manifests and prove section15 plus cross-process continuation parity; no subset digest qualifies release.",
-  "UG16: bind and validate all11 room_projects fields, independent pause reasons and revision tokens in actual composed save/load before activation. RoomLayout draft/mode/receipt serialization remains explicitly UNRESOLVED in the source registry. Decision1060 registers declarations, not release save parity."
+  "UG16: bind and validate all11 room_projects fields, independent pause reasons and revision tokens in actual composed save/load before activation. RoomLayout draft/mode/receipt serialization remains explicitly UNRESOLVED in the source registry. Decision1060 registers declarations, not release save parity.",
+  "UG16: implement and validate the actual excavation_inventory and excavation_sites codecs, immutable world/domain binding, physical phase/WIP/output/worker ownership, receipt free order and conservation; rebuild derived key/Job indexes. Decision1066 declares state and bounds, not save completion. No partial digest qualifies release."
  ],
  "source_contracts": {
   "C001": {
@@ -9920,6 +10750,30 @@
   "C177": {
    "unused": "Unused binding: Job and Construction slot -1, generation0.",
    "notes": "Decision1053/1060: full real Job and Construction identities, including old Job generations awaiting claim resolution. Namespace and generation validation belongs to the composed adapter, not slot-only interpretation."
+  },
+  "C178": {
+   "unused": "Retired receipts: next -1; other metadata and quantity/age/remainder 0. Free stack hashes only its used prefix in exact pop order.",
+   "notes": "Decision1066 registers decision1056. Preserve full receipt attributes and chain membership; capacity/free_count and disjoint used/free partition require actual codec validation. Requested budget is1..32768 and bounded by the actual Reservations pool; no truncation."
+  },
+  "C179": {
+   "unused": "Absent funded project: slots/head -1; generations and reserved output mass0.",
+   "notes": "Decision1066. Full live Construction identity, first receipt and finite output reservation; inventory/WIP/conservation must be validated together at UG16, not reconstructed from a UI progress counter."
+  },
+  "C180": {
+   "unused": "Zero loss for untouched compiled item.",
+   "notes": "Decision1066. Authoritative cumulative cancellation loss per compiled item, separate from embedded stock and inventory source/sink totals; checked integer nonnegative accumulation."
+  },
+  "C181": {
+   "unused": "Absent physical rows: key/identity slots/operation/promotion tile -1; generations/quantities/flags0; phase and closure_before SOLID(7).",
+   "notes": "Decision1066 registers permanent immutable-datum physical history. Rows never recycle or evict, and a released room claim does not remove earned work/source history. Exact world ref/domain scalars, active prefix, phase/support/source and live counterpart references require composed validation."
+  },
+  "C182": {
+   "unused": "Zero earned work for untouched operation; completed operation resets its counter per physical phase lifecycle.",
+   "notes": "Decision1066. Five protected operation ordinals per physical row, capacity*5<=369545. The derived _earned_capacity has its own single source clamp to MAX_SITE_CAPACITY * Contract.OP_COUNT; unchanged capacity proof and independent memory arithmetic both validate its bound. No adapter/codec or release parity is claimed."
+  },
+  "C183": {
+   "unused": "Unregistered resident: site -1 and generation0.",
+   "notes": "Decision1066. Actual registered worker face and full resident generation;512 allocated rows with256 living maximum. Revalidate against Residents, Jobs, Work/Gear and physical history; never infer a worker from an unversioned slot."
   }
  },
  "section_schema_versions": [
@@ -9928,7 +10782,7 @@
   1,
   2,
   1,
-  2,
+  3,
   5,
   2,
   2,

@@ -632,12 +632,12 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 	"""
 	built = real_audit()
 	observed = built["census"]["observed"]
-	check("P05 532 prose records", observed["prose_records"] == 532)
-	check("P05 485 equality", observed["equality"] == 485)
-	check("P05 47 upper bounds", observed["upper_bound"] == 47)
-	check("P05 83 other canonical shapes", observed["other_canonical_shapes"] == 83)
-	check("P05 56 distinct expressions", observed["distinct_expressions"] == 56)
-	check("P05 615 canonical records and 8 non-hash", observed["canonical_records"] == 615 and observed["non_hash_fields"] == 8)
+	check("P05 567 prose records", observed["prose_records"] == 567)
+	check("P05 494 equality", observed["equality"] == 494)
+	check("P05 73 upper bounds", observed["upper_bound"] == 73)
+	check("P05 106 other canonical shapes", observed["other_canonical_shapes"] == 106)
+	check("P05 62 distinct expressions", observed["distinct_expressions"] == 62)
+	check("P05 673 canonical records and 8 non-hash", observed["canonical_records"] == 673 and observed["non_hash_fields"] == 8)
 	check("P05 no non-hash row was swept in", observed["non_hash_fields_admitted_to_audit"] == 0)
 	# The census no longer equals Astra's 388f4f4 snapshot, and must not be made to. Decision
 	# 0142 removed three packed fields; 0157 added three packed fields and three scalars.
@@ -648,14 +648,14 @@ def test_p05_real_census_matches_astra_or_says_so_loudly() -> None:
 	# correct registry change or editing Astra's evidence to match the code.
 	check("P05 every difference from Astra Cycle 3 is explained by a recorded decision",
 		built["census"]["disagreements"] == [])
-	check("P05 the seven drift categories follow decisions 0142, 0157, 0167, 0531 and1060",
-		len(built["census"]["explained_since_census"]) == 7)
+	check("P05 the eight drift categories follow decisions 0142, 0157, 0167, 0531,1060 and1066",
+		len(built["census"]["explained_since_census"]) == 8)
 	check("P05 equality plus bounds is the whole prose set",
 		observed["equality"] + observed["upper_bound"] == observed["prose_records"])
 
 
 def test_p06_real_proof_status_is_exactly_reported() -> None:
-	"""The real proof outcome under REG-C4-R01: 485 equalities, 47 bounds, 0 unproved, 0 contradictions.
+	"""The real proof outcome under REG-C4-R01: 494 equalities, 73 bounds, 0 unproved, 0 contradictions.
 
 	Before REG-C4-R01, the two orchard_hive link capacities (`_link_hive_generation`,
 	`_link_hive_slot`) halted on a nested constant's own `+` and were quarantined as
@@ -665,10 +665,10 @@ def test_p06_real_proof_status_is_exactly_reported() -> None:
 	"""
 	built = real_audit()
 	counts = built["status_counts"]
-	check("P06 485 proved equalities", counts.get("proved_equality") == 485)
-	check("P06 47 proved upper bounds", counts.get("proved_upper_bound") == 47)
+	check("P06 494 proved equalities", counts.get("proved_equality") == 494)
+	check("P06 73 proved upper bounds", counts.get("proved_upper_bound") == 73)
 	check("P06 no other status appears", set(counts) == {"proved_equality", "proved_upper_bound"})
-	check("P06 the statuses sum to 532", sum(counts.values()) == 532)
+	check("P06 the statuses sum to 567", sum(counts.values()) == 567)
 	check("P06 nothing is quarantined or contradicted", built["unproved_or_contradicted"] == [])
 	links = [row for row in built["rows"] if row["field_key"] in ("_link_hive_generation", "_link_hive_slot")]
 	check("P06 both orchard link capacities are present and proved",
@@ -683,7 +683,7 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 	"""A proved row without a file, line and chain is an assertion, not a proof."""
 	built = real_audit()
 	proved = [row for row in built["rows"] if row["status"].startswith("proved_")]
-	check("P07 all 532 rows are proved", len(proved) == 532)
+	check("P07 all 567 rows are proved", len(proved) == 567)
 	check("P07 every proved row names a real source file",
 		all((ROOT / row["source_file"]).is_file() for row in proved))
 	check("P07 every proved row cites a resize line", all(row["source_resize_line"] >= 1 for row in proved))
@@ -692,18 +692,18 @@ def test_p07_every_proved_row_carries_its_provenance() -> None:
 		all(row["parsed_expression"] == row["source_resize_expression"] for row in proved))
 	check("P07 every proved row agrees on relation and value",
 		all(row["prose_relation"] == row["source_relation"] and row["prose_value"] == row["source_value"] for row in proved))
-	check("P07 the 47 bounds are all clamped runtime bounds",
-		[row["proof_kind"] for row in proved].count("clamped_runtime_bound") == 47)
+	check("P07 the 73 bounds are all clamped runtime bounds",
+		[row["proof_kind"] for row in proved].count("clamped_runtime_bound") == 73)
 
 
 def test_p08_keys_are_unique_and_nothing_is_lost() -> None:
-	"""Every audit key is unique, and the 615 canonical records are fully accounted for."""
+	"""Every audit key is unique, and the 673 canonical records are fully accounted for."""
 	built = real_audit()
 	keys = [(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in built["rows"]]
-	check("P08 532 keys, all unique", len(keys) == 532 and len(set(keys)) == 532)
+	check("P08 567 keys, all unique", len(keys) == 567 and len(set(keys)) == 567)
 	other = built["non_capacity_canonical_records"]
-	check("P08 83 non-capacity records are listed, not dropped", len(other) == 83)
-	check("P08 the two lists partition the 615 canonical records", len(keys) + len(other) == 615)
+	check("P08 106 non-capacity records are listed, not dropped", len(other) == 106)
+	check("P08 the two lists partition the 673 canonical records", len(keys) + len(other) == 673)
 	overlap = set(keys) & {(row["section_id"], row["owner_key"], row["ordinal"], row["field_key"]) for row in other}
 	check("P08 the two lists do not overlap", overlap == set())
 

@@ -1079,18 +1079,18 @@ static func production_walker() -> Walker:
 # Generated from docs/planning/canonical_state_registry.json by
 # tools/generate_canonical_state_table.py. Do not hand-edit: test_canonical_state_hash.gd
 # re-reads that JSON and proves every entry below equals it.
-#   registry_id RWL-CANONICAL-REGISTRY-2026-10-02-UG1, registry_version 8
-#   53 owners, 623 declared fields, 615 canonical records, 566 persisted packed fields.
+#   registry_id RWL-CANONICAL-REGISTRY-2026-10-02-UG2, registry_version 9
+#   55 owners, 681 declared fields, 673 canonical records, 602 persisted packed fields.
 
-const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-02-UG1"
-const DECLARATION_VERSION: int = 8
-const CANONICAL_OWNER_COUNT: int = 53
-const CANONICAL_FIELD_COUNT: int = 623
-const CANONICAL_RECORD_COUNT: int = 615
+const DECLARATION_ID: String = "RWL-CANONICAL-REGISTRY-2026-10-02-UG2"
+const DECLARATION_VERSION: int = 9
+const CANONICAL_OWNER_COUNT: int = 55
+const CANONICAL_FIELD_COUNT: int = 681
+const CANONICAL_RECORD_COUNT: int = 673
 
 const OWNER_SECTIONS: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5,
-	5, 5, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
+	5, 5, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 9, 9, 10, 11, 12, 12, 13, 14
 ]
 
 const OWNER_KEYS: Array = [
@@ -1099,19 +1099,20 @@ const OWNER_KEYS: Array = [
 	"construction", "farming", "field_policy", "fishing", "forage", "injury", "jobs", "movement",
 	"needs", "orchard_hive", "priorities", "residents", "resource_nodes", "schedule", "transforms",
 	"work", "world_init", "buildings", "construction", "forage", "jobs", "orchard_hive",
-	"command_dispatch", "crop_weather", "ecology", "room_projects", "fishing", "forage", "gear",
-	"inventory", "reservations", "stock_age", "job_planner", "movement", "navigation", "rng",
-	"event_schedule", "commands", "scheduler_events", "chronicle", "residents"
+	"command_dispatch", "crop_weather", "ecology", "excavation_inventory", "excavation_sites",
+	"room_projects", "fishing", "forage", "gear", "inventory", "reservations", "stock_age",
+	"job_planner", "movement", "navigation", "rng", "event_schedule", "commands",
+	"scheduler_events", "chronicle", "residents"
 ]
 
 const OWNER_VERSIONS: Array = [
 	1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 2, 1, 1, 4, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
+	1, 1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 4, 1, 1, 2, 1, 2, 1, 1, 2, 1, 1, 1
 ]
 
 const OWNER_FIELD_COUNTS: Array = [
 	3, 1, 10, 1, 1, 5, 2, 9, 12, 1, 6, 29, 16, 15, 20, 22, 20, 11, 38, 16, 20, 25, 4, 19, 10, 6, 9,
-	9, 9, 15, 1, 10, 4, 2, 4, 2, 1, 11, 8, 11, 12, 31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2, 1
+	9, 9, 15, 1, 10, 4, 2, 4, 2, 1, 18, 40, 11, 8, 11, 12, 31, 8, 6, 35, 9, 57, 2, 8, 20, 14, 2, 1
 ]
 
 const FIELD_KEYS: Array = [
@@ -1195,9 +1196,20 @@ const FIELD_KEYS: Array = [
 	"_link_zone_next", "_coordinator_slot", "_coordinator_generation", "_member_head",
 	"_member_next", "_link_hive_slot", "_link_hive_generation", "_intent_player_id",
 	"_intent_sequence_high", "_intent_sequence_low", "_intent_zone_generation", "_last_day",
-	"_last_hour_tick", "_last_day", "_present", "_project_slot", "_project_generation",
-	"_room_type", "_pause_reasons", "_revision_state", "_revision_epoch", "_job_slot",
-	"_job_generation", "_job_project_slot", "_job_project_generation", "_effort_claim_active",
+	"_last_hour_tick", "_last_day", "_capacity", "_free_count", "_free", "_project_slot",
+	"_project_generation", "_head", "_output_slot", "_output_generation", "_output_mass_g",
+	"_r_next", "_r_item", "_r_quality", "_r_provenance", "_r_recipe", "_r_quantity", "_r_age",
+	"_r_remainder", "_lost_milli", "_capacity", "_count", "_domain_capacity",
+	"_initial_earth_milli", "_virgin_sourced_milli", "_funded_braces", "_completed_braces",
+	"_salvaged_braces", "_returned_brace_milli", "_world_slot", "_world_generation", "_datum_u_x",
+	"_datum_u_y", "_datum_u_z", "_minimum_quantum_x", "_minimum_quantum_y", "_minimum_quantum_z",
+	"_size_quanta_x", "_size_quanta_y", "_size_quanta_z", "_site_key", "_present", "_phase",
+	"_installed", "_ever_cut", "_closure_before", "_embedded_milli", "_earned_mwu", "_room_slot",
+	"_room_generation", "_project_slot", "_project_generation", "_operation", "_job_slot",
+	"_job_generation", "_output_slot", "_output_generation", "_promotion_tile", "_worker_site",
+	"_worker_generation", "_present", "_project_slot", "_project_generation", "_room_type",
+	"_pause_reasons", "_revision_state", "_revision_epoch", "_job_slot", "_job_generation",
+	"_job_project_slot", "_job_project_generation", "_effort_claim_active",
 	"_effort_claim_expedition_generation", "_effort_claim_habitat_slot",
 	"_effort_claim_habitat_generation", "_effort_claim_job_slot", "_effort_claim_job_generation",
 	"_effort_claim_slot_count", "_effort_claim_expedition_slot", "_claim_active", "_claim_job_slot",
@@ -1259,14 +1271,16 @@ const FIELD_TYPES: Array = [
 	2, 0, 0, 0, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 0, 2, 4, 4, 2, 2, 0, 2, 2, 2, 0, 0, 2, 2,
 	0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2,
 	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 4, 2, 0, 2, 2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4,
-	4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2,
-	2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2,
-	2, 0, 0, 2, 2, 0, 2, 2, 0, 2, 2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2,
-	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
-	1, 4, 4, 1, 2, 2, 2, 2, 4, 4, 1, 1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1,
-	1, 1, 1, 1, 4, 4, 1, 1, 2, 2, 2, 2, 3, 0, 5
+	2, 2, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 2, 2, 2, 2, 2, 4, 4, 4, 4, 2, 2, 4, 4, 4, 4, 4, 4, 4, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 4, 0, 0, 0, 0, 0, 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2,
+	2, 2, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 0, 2, 2, 2,
+	2, 2, 2, 2, 2, 0, 2, 2, 1, 1, 0, 0, 2, 2, 2, 2, 2, 2, 2, 4, 4, 4, 4, 0, 2, 2, 2, 2, 2, 2, 2, 2,
+	4, 4, 4, 4, 2, 2, 2, 0, 2, 2, 2, 2, 2, 4, 4, 1, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0,
+	2, 2, 0, 2, 2, 0, 0, 2, 2, 4, 2, 2, 2, 2, 2, 4, 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 4, 4, 1, 2, 2,
+	2, 2, 4, 4, 1, 1, 3, 1, 4, 2, 1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 1, 1, 1, 1, 4, 4,
+	1, 1, 2, 2, 2, 2, 3, 0, 5
 ]
 
 ## Field indexes the registry marks hash=false: emitted by no record. See hash_location.
@@ -1277,17 +1291,19 @@ const FIELD_EXCLUDED_INDEXES: Array = [
 ## Sparse (index, value) pairs for fields whose shape declares an exact element count.
 const FIELD_COUNT_INDEXES: Array = [
 	3, 16, 23, 24, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 365, 366, 367, 385, 386, 387,
-	430, 431, 469, 470, 505, 507, 509, 519, 520, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530,
-	531, 578, 579, 586, 587, 588, 589, 606, 607, 608, 609, 610, 611, 612, 620, 621
+	388, 389, 406, 407, 408, 409, 410, 411, 412, 413, 414, 415, 416, 417, 418, 419, 420, 421, 422,
+	423, 424, 425, 488, 489, 527, 528, 563, 565, 567, 577, 578, 579, 580, 581, 582, 583, 584, 585,
+	586, 587, 588, 589, 636, 637, 644, 645, 646, 647, 664, 665, 666, 667, 668, 669, 670, 678, 679
 ]
 const FIELD_COUNT_VALUES: Array = [
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 32
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 32
 ]
 
 ## Sparse (index, value) pairs for type-5 fields' declared UTF-8 byte cap (SAVE-R09-002).
 const FIELD_MAX_UTF8_INDEXES: Array = [
-	622
+	680
 ]
 const FIELD_MAX_UTF8_VALUES: Array = [
 	128

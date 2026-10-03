@@ -118,14 +118,17 @@ EXPLAINED_SINCE_CENSUS = {
 	# leaves distinct_expressions alone.
 	# Decision1060 registers RoomProjects'11 columns: +11 equalities/prose/packed/records,
 	# +1 owner and +1 new capacity expression (PROJECT_CAPACITY). JOB_CAPACITY was present.
-	"prose_records": 13,
-	"equality": 12,
-	"upper_bound": 1,
-	"packed_source_fields": 13,
-	"canonical_records": 16,
-	"other_canonical_shapes": 3,
-	"distinct_expressions": 0,
-	"owners": 1,
+	# Decision1066 adds36 packed and22 scalar/domain records over2 excavation owners.
+	# Free-stack prefix adds1 non-capacity shape;35 new capacity rows add9 equalities
+	# and26 upper bounds. Six new expression texts are independently source-proved.
+	"prose_records": 48,
+	"equality": 21,
+	"upper_bound": 27,
+	"packed_source_fields": 49,
+	"canonical_records": 74,
+	"other_canonical_shapes": 26,
+	"distinct_expressions": 6,
+	"owners": 3,
 }
 
 RELATION_EQ = "eq"
@@ -621,7 +624,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167, 0531 and 1060: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, and 11 RoomProjects fields")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060 and 1066: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars")
 		else:
 			unexplained.append(line)
 	return {

@@ -1,0 +1,36 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+capture: mouse_keeper.walk_turn.body 124 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.carry_turn.log 613 sampled pose(s), 1 attachment(s)
+capture: mouse_keeper.carry_turn.item_radish 613 sampled pose(s), 1 attachment(s)
+capture: mouse_keeper.tunnel_reversal.body 195 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.tunnel_retreat.body 195 sampled pose(s), 0 attachment(s)
+capture: mole_digger.walk_turn.body 124 sampled pose(s), 0 attachment(s)
+capture: mole_digger.carry_turn.log 613 sampled pose(s), 1 attachment(s)
+capture: mole_digger.carry_turn.item_radish 613 sampled pose(s), 1 attachment(s)
+capture: mole_digger.swing_return.mole_pick 196 sampled pose(s), 1 attachment(s)
+capture: mole_digger.tunnel_reversal.body 263 sampled pose(s), 0 attachment(s)
+capture: mole_digger.tunnel_retreat.body 263 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.walk_turn.body 124 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.carry_turn.log 613 sampled pose(s), 1 attachment(s)
+capture: squirrel_gatherer.carry_turn.item_radish 613 sampled pose(s), 1 attachment(s)
+capture: squirrel_gatherer.tunnel_reversal.body 226 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.tunnel_retreat.body 226 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.walk_turn.body 124 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.carry_turn.log 613 sampled pose(s), 1 attachment(s)
+capture: otter_boatwright.carry_turn.item_radish 613 sampled pose(s), 1 attachment(s)
+capture: otter_boatwright.tunnel_reversal.body 164 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.tunnel_retreat.body 164 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.walk_turn.body 124 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.carry_turn.log 613 sampled pose(s), 1 attachment(s)
+capture: badger_quarryman.carry_turn.item_radish 613 sampled pose(s), 1 attachment(s)
+capture: badger_quarryman.swing_return.mole_pick 196 sampled pose(s), 1 attachment(s)
+capture: badger_quarryman.tunnel_reversal.body 99 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.tunnel_retreat.body 99 sampled pose(s), 0 attachment(s)
+capture: 27 runtime case(s), 0 qualified; complete

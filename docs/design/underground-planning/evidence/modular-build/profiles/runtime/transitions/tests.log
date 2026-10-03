@@ -1,0 +1,30 @@
+test_lone_report_also_preserves_all_bytes (__main__.BundleTests) ... ok
+test_prior_bundle_preserved_before_subprocess_or_input_write (__main__.BundleTests) ... ok
+test_relative_output_directory_is_resolved_before_engine_changes_working_directory (__main__.BundleTests) ... ok
+test_actual_core_identity_readers_fail_stale_refs_and_unbound_physical_variants (__main__.EngineGuardTests) ... ok
+test_changed_driver_source_refuses (__main__.EngineGuardTests) ... ok
+test_missing_actual_item_catalog_refuses (__main__.EngineGuardTests) ... ok
+test_missing_fade_clip_cannot_inherit_walk (__main__.EngineGuardTests) ... ok
+test_missing_inherited_evaluator_refuses (__main__.EngineGuardTests) ... ok
+test_missing_reader_dependency_refuses (__main__.EngineGuardTests) ... ok
+test_unknown_transition_refuses_before_fake_mesh_load (__main__.EngineGuardTests) ... ok
+test_absent_actual_played_clip_refuses (__main__.ReportGuardTests) ... ok
+test_changed_actual_gear_generation_refuses (__main__.ReportGuardTests) ... ok
+test_changed_cargo_quantity_refuses (__main__.ReportGuardTests) ... ok
+test_complete_synthetic_shape_is_not_qualification (__main__.ReportGuardTests) ... ok
+test_engine_error_cannot_hide_behind_complete_rows (__main__.ReportGuardTests) ... ok
+test_frozen_animation_timeline_refuses (__main__.ReportGuardTests) ... ok
+test_missing_exit_or_reverse_event_refuses (__main__.ReportGuardTests) ... ok
+test_nan_root_refuses (__main__.ReportGuardTests) ... ok
+test_no_observed_turn_refuses (__main__.ReportGuardTests) ... ok
+test_partial_motion_rejects_positive_counts (__main__.ReportGuardTests) ... ok
+test_partial_palette_rejects_native_success (__main__.ReportGuardTests) ... ok
+test_physical_binding_cannot_be_fabricated (__main__.ReportGuardTests) ... ok
+test_reversal_cannot_reset_committed_progress (__main__.ReportGuardTests) ... ok
+test_sampled_residual_cannot_be_promoted (__main__.ReportGuardTests) ... ok
+test_slot_only_gear_ref_refuses (__main__.ReportGuardTests) ... ok
+
+----------------------------------------------------------------------
+Ran 25 tests in 10.512s
+
+OK

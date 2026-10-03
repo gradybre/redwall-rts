@@ -1,0 +1,2 @@
+transition input: 27 cases; 527 pins; no production permission
+transition verified: 27 cases; 9036 poses; 258624 native matrix checks; 0 unexpected diagnostics/leaks; 0 qualified

@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scope": "sampled actual demo transitions in explicit synthetic fixtures",
+  "command": [
+    "godot",
+    "--path",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_transitions.gd",
+    "--",
+    "/tmp/ug08-transition-pilot-v1/capture-spec.json",
+    "/tmp/ug08-transition-pilot-v1/capture-native.json"
+  ],
+  "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+  },
+  "cases": 1,
+  "source_count": 527,
+  "sampled_poses": 124,
+  "matrix_checks": 3968,
+  "unexpected_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "qualified_profile_count": 0,
+  "report": {
+    "path": "/tmp/ug08-transition-pilot-v1/capture-native.json",
+    "sha256": "4b37b1561fa9e4c3c5df3860cd469008fbd3d44156206ca20278daa39a4ebe02"
+  },
+  "log": {
+    "path": "/tmp/ug08-transition-pilot-v1/capture-native.log",
+    "sha256": "86cdb05a2b74cf9933da9f72c2108105d7cf69a5e931b8574b4f21276620ecf5"
+  },
+  "spec": {
+    "path": "/tmp/ug08-transition-pilot-v1/capture-spec.json",
+    "sha256": "bb55058210f849b96423608eddd630740dcc14bdb541b20f3b35c5884abda5c9"
+  }
+}

@@ -488,3 +488,46 @@ The actual mole-pick source dips133u below the grounded body root: it cannot be
 clipped away or excused by generic BUILD identity. A downward target and a wall
 target require their own valid source/contact placement. Production qualification
 remains absent until these distinctions are bound and proved.
+
+### Exact world-source renderer binding
+
+The next Actor increment will stream the reviewed finite heading format into one
+immutable shared presentation array. Complete digest, producer digest, byte count,
+footer, finite coefficients and source backend are checked before the table is
+observable. An exact actual Domain descriptor and palette/table digests bind the
+renderer; this attests presentation source only, never physical permission.
+Roots must stay in the bound half-open Domain and its integer bounds must remain
+within the exact binary32 integer range before conversion from1024 units/metre.
+
+Each world-bound MeshInstance becomes top-level and receives an explicitly
+computed global transform. Body skin palettes remain unchanged. Static held
+parts receive the same table coefficients, root and post-skin grounding. Scalar
+composition is binary64 followed by explicit binary32 Vector3 storage; arbitrary
+parent transforms, scales and rotations are excluded from this representation.
+This keeps the renderer equation finite and source auditable while retaining the
+original meshes, materials, skin weights, visible gear and blend weights.
+Existing local presentation remains unchanged. Bound parts stay hidden until
+both root and pose are initialized, and rejected updates preserve the prior
+visible state. Native transformed-parent and body/attachment pixel checks are
+required alongside unit tests. World enclosure remains unqualified until the
+exporter includes these exact operations and the complete source/table hashes.
+
+The exact world-source Actor implementation is independently reviewed. Its final
+clean run reports20 tests/213 assertions/0 failures, both strict/raw unexpected
+diagnostic and leak totals0, and analyzer0/4. Actual native table/pixel tests
+report21 assertions/0; the complete native suite plus tree-entry/re-entry checks
+report256 assertions/0, no unexpected diagnostics/leaks and analyzer0/3. The
+visible witness keeps body and held-item placement despite extreme parent
+transforms, mirrors both through the native half-turn, and moves both32 pixels
+for each half-metre root or grounding change. These are synthetic meshes testing
+the actual rendering equation, not production pose or contact qualification.
+
+The reader admits at most1,024 text bytes, four JSON containers, two levels and64
+member separators before parsing; its4,096-byte decoder/control plus16,384-byte
+native reservation remains explicit. Actual observed retained allocator growth
+is524,564 bytes, but an earlier larger process peak prevents isolated transient
+loading qualification. Added per-Actor numeric state is53 bytes and one shared
+source handle; it belongs to future presentation-pool admission, never the
+simulation arenas. The exact evidence and rejected import/warning iterations are
+in `matrix-presentation/world-basis/ACTOR_BINDING.md`. World enclosure, production
+profiles, tight original-frame culling and full presentation budget remain open.

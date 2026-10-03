@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/opt/homebrew/bin/godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--rendering-driver",
+    "opengl3",
+    "--script",
+    "res://data/underground/evidence/matrix-presentation/native_adapter_check.gd"
+  ]
+}

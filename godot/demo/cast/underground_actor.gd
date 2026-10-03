@@ -10,6 +10,172 @@ const MAX_VERTICES: int = 200000
 const BLEND_ONE: int = 65536
 const MATRIX_SCALARS: int = 12
 const SOURCE_LIMIT: float = 1024.0
+const Space := preload("res://scripts/core/room_space.gd")
+const EXACT_ROOT_U: int = 16777216
+
+
+class WorldBasis extends RefCounted:
+
+	const HEADINGS: int = 65536
+	const COEFFICIENT_BYTES: int = HEADINGS * 8
+	const METADATA_BYTES: int = 4096
+	const TEXT_BYTES: int = 1024
+	const RESERVED_BYTES: int = COEFFICIENT_BYTES + METADATA_BYTES + 16384
+	const ENGINE_HASH: String = "ed1daf0bf001b61586d9930840f2f1394092c079"
+	var _coefficients: PackedFloat32Array = PackedFloat32Array()
+	var _source: String = ""
+	var _producer: String = ""
+	var _backend: String = ""
+
+	func load_file(path: String, digest: String, producer: String, reserved_bytes: int) -> StringName:
+		"""Stream one immutable source image, with no second coefficient bank or whole-file byte buffer."""
+		if not _source.is_empty():
+			return &"UNDERGROUND_WORLD_BASIS_ALREADY_LOADED"
+		if reserved_bytes < RESERVED_BYTES or not valid_digest(digest) or not valid_digest(producer):
+			return &"UNDERGROUND_WORLD_BASIS_ADMISSION"
+		var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+		if file == null:
+			return &"UNDERGROUND_WORLD_BASIS_FILE"
+		var hashing: HashingContext = HashingContext.new()
+		hashing.start(HashingContext.HASH_SHA256)
+		var metadata: Dictionary = _header(file, hashing, producer)
+		var code: StringName = &"UNDERGROUND_WORLD_BASIS_HEADER" if metadata.is_empty() else _read_rows(file, hashing)
+		if code == &"" and hashing.finish().hex_encode() != digest:
+			code = &"UNDERGROUND_WORLD_BASIS_DIGEST"
+		file.close()
+		if code != &"":
+			_coefficients.clear()
+			return code
+		_source = digest
+		_producer = producer
+		_backend = backend_key(metadata)
+		return &""
+
+	static func valid_digest(value: String) -> bool:
+		"""Source keys are exact lowercase SHA256 values, never permissive labels or implicit defaults."""
+		if value.length() != 64:
+			return false
+		for character: String in value:
+			if character not in "0123456789abcdef":
+				return false
+		return true
+
+	static func _header(file: FileAccess, hashing: HashingContext, producer: String) -> Dictionary:
+		"""Validate bounded metadata and exact wire size before allocating the coefficient array."""
+		if file.get_length() < 28 + COEFFICIENT_BYTES or file.get_length() > 28 + COEFFICIENT_BYTES + METADATA_BYTES:
+			return {}
+		var header: PackedByteArray = file.get_buffer(20)
+		if header.size() != 20 or header.slice(0, 8).get_string_from_ascii() != "UGYAW001" \
+				or header.decode_u32(8) != 1 or header.decode_u32(12) != HEADINGS:
+			return {}
+		var count: int = header.decode_u32(16)
+		if count < 1 or count > TEXT_BYTES or file.get_length() != 28 + COEFFICIENT_BYTES + count:
+			return {}
+		hashing.update(header)
+		var bytes: PackedByteArray = file.get_buffer(count)
+		if bytes.size() != count or not metadata_shape_admitted(bytes):
+			return {}
+		hashing.update(bytes)
+		var value: Variant = JSON.parse_string(bytes.get_string_from_utf8())
+		if not value is Dictionary or not value.get("source") is Dictionary \
+				or value.source.get("sha256") != producer or backend_refusal(value) != &"":
+			return {}
+		return value
+
+	static func metadata_shape_admitted(bytes: PackedByteArray) -> bool:
+		"""Bound JSON container/member work before its decoder allocates; string contents never count as syntax."""
+		var quoted: bool = false
+		var escaped: bool = false
+		var depth: int = 0
+		var containers: int = 0
+		var members: int = 0
+		for character: int in bytes:
+			if quoted:
+				if escaped:
+					escaped = false
+				elif character == 92:
+					escaped = true
+				elif character == 34:
+					quoted = false
+			elif character == 34:
+				quoted = true
+			elif character == 123 or character == 91:
+				depth += 1
+				containers += 1
+			elif character == 125 or character == 93:
+				depth -= 1
+			elif character == 58 or character == 44:
+				members += 1
+			if depth < 0 or depth > 2 or containers > 4 or members > 64:
+				return false
+		return not quoted and depth == 0 and bytes.size() <= TEXT_BYTES
+
+	func _read_rows(file: FileAccess, hashing: HashingContext) -> StringName:
+		"""Every binary32 pair and footer participates in the same open-file hash before publication."""
+		_coefficients.resize(HEADINGS * 2)
+		for yaw: int in HEADINGS:
+			var row: PackedByteArray = file.get_buffer(8)
+			if row.size() != 8:
+				return &"UNDERGROUND_WORLD_BASIS_TRUNCATED"
+			hashing.update(row)
+			var c: float = row.decode_float(0)
+			var s: float = row.decode_float(4)
+			if not is_finite(c) or not is_finite(s) or absf(c) > 1.0 or absf(s) > 1.0:
+				return &"UNDERGROUND_WORLD_BASIS_NONFINITE"
+			_coefficients[yaw * 2] = c
+			_coefficients[yaw * 2 + 1] = s
+		var footer: PackedByteArray = file.get_buffer(8)
+		hashing.update(footer)
+		return &"" if footer.get_string_from_ascii() == "UGYEND01" and file.get_position() == file.get_length() \
+			else &"UNDERGROUND_WORLD_BASIS_FOOTER"
+
+	static func backend_refusal(metadata: Dictionary) -> StringName:
+		"""Only the reviewed official single-precision desktop GL source contract is supported."""
+		var raw: Variant = metadata.get("engine")
+		if not raw is Dictionary:
+			return &"UNDERGROUND_WORLD_BASIS_ENGINE"
+		var engine: Dictionary = raw
+		if engine.get("major") != 4 or engine.get("minor") != 7 or engine.get("patch") != 2 \
+				or engine.get("hash") != ENGINE_HASH or engine.get("build") != "official" or engine.get("status") != "stable":
+			return &"UNDERGROUND_WORLD_BASIS_ENGINE"
+		if metadata.get("rendering_driver") != "opengl3" or metadata.get("rendering_method") != "gl_compatibility" \
+				or metadata.get("display_server") not in ["macOS", "Windows", "X11", "Wayland"]:
+			return &"UNDERGROUND_WORLD_BASIS_BACKEND"
+		var raw_api: Variant = metadata.get("api_version")
+		if not raw_api is String:
+			return &"UNDERGROUND_WORLD_BASIS_PRECISION"
+		var api: String = raw_api
+		return &"" if api.begins_with("4.") and api.length() >= 3 and api[2] in "123456" \
+			else &"UNDERGROUND_WORLD_BASIS_PRECISION"
+
+	static func backend_key(metadata: Dictionary) -> String:
+		"""The source and actual consumer backend must match exactly; no platform inheritance is assumed."""
+		return String(metadata.rendering_driver) + "\n" + String(metadata.rendering_method) + "\n" \
+			+ String(metadata.display_server) + "\n" + String(metadata.api_version)
+
+	func matches_runtime() -> bool:
+		"""Cold binding compares the actual engine/backend, independently of the source-file declaration."""
+		var metadata: Dictionary = {"engine": Engine.get_version_info(),
+			"rendering_driver": RenderingServer.get_current_rendering_driver_name(),
+			"rendering_method": RenderingServer.get_current_rendering_method(),
+			"display_server": DisplayServer.get_name(), "api_version": RenderingServer.get_video_adapter_api_version()}
+		return not _source.is_empty() and backend_refusal(metadata) == &"" and backend_key(metadata) == _backend
+
+	func source_digest() -> String:
+		"""An unbound or refused candidate never exposes a successful immutable source identity."""
+		return _source
+
+	func producer_digest() -> String:
+		"""Physical proof must pin this exact producer, not only a coincidentally compatible wire format."""
+		return _producer
+
+	func coefficients_into(yaw: int, out: PackedFloat32Array) -> StringName:
+		"""Borrowed two-scalar caller scratch; invalid headings leave the previous output untouched."""
+		if _source.is_empty() or yaw < 0 or yaw >= HEADINGS or out.size() != 2:
+			return &"UNDERGROUND_WORLD_BASIS_SELECTION"
+		out[0] = _coefficients[yaw * 2]
+		out[1] = _coefficients[yaw * 2 + 1]
+		return &""
 
 
 class Palette extends RefCounted:
@@ -143,6 +309,12 @@ var _skeletons: Array[RID] = []
 var _scratch: PackedFloat32Array = PackedFloat32Array()
 var _visible_parts: int = 0
 var _pose_ready: bool = false
+var _world_basis: WorldBasis = null
+var _world_ref: Vector2i = Vector2i(-1, 0)
+var _world_bounds: PackedInt32Array = PackedInt32Array()
+var _world_root: Vector3i = Vector3i.ZERO
+var _world_heading: PackedFloat32Array = PackedFloat32Array([1.0, 0.0])
+var _world_ready: bool = false
 
 
 func configure(palette: Palette, meshes: Array[Mesh], source_sha256: String,
@@ -163,6 +335,73 @@ func configure(palette: Palette, meshes: Array[Mesh], source_sha256: String,
 		_create_part(meshes[part], bounds[part], palette.bind_count(part), materials[part] if not materials.is_empty() else null)
 	_visible_parts = (1 << palette.part_count()) - 1
 	return &""
+
+
+func bind_world_source(heading_source: WorldBasis, domain: Space.Domain, descriptor: Dictionary,
+		palette_digest: String, basis_digest: String) -> StringName:
+	"""Bind exact rendering sources and real Domain; the caller separately owns physical certificate authority."""
+	if _palette == null or _world_basis != null or not is_inside_tree() or not _parts_live():
+		return &"UNDERGROUND_ACTOR_WORLD_BINDING"
+	if heading_source == null or heading_source.source_digest() != basis_digest or not heading_source.matches_runtime() \
+			or _palette.source_digest() != palette_digest:
+		return &"UNDERGROUND_ACTOR_WORLD_SOURCE"
+	var code: StringName = world_domain_refusal(domain, descriptor)
+	if code != &"":
+		return code
+	var actual: Dictionary = domain.descriptor()
+	_world_bounds = actual.bounds_u
+	_world_ref = actual.world_ref
+	_world_basis = heading_source
+	_world_ready = false
+	_apply_visibility()
+	for node: MeshInstance3D in _nodes:
+		node.top_level = true
+	return &""
+
+
+static func world_domain_refusal(domain: Space.Domain, descriptor: Dictionary) -> StringName:
+	"""Exact immutable World, datum, extents and work budgets bind the parameterized source proof."""
+	if domain == null or descriptor.size() != 8:
+		return &"UNDERGROUND_ACTOR_WORLD_DOMAIN"
+	var actual: Dictionary = domain.descriptor()
+	for key: String in actual:
+		if not descriptor.has(key) or typeof(actual[key]) != typeof(descriptor[key]) or actual[key] != descriptor[key]:
+			return &"UNDERGROUND_ACTOR_WORLD_DOMAIN"
+	var bounds: PackedInt32Array = actual.bounds_u
+	if not Space.Value.valid_ref(actual.world_ref) or bounds.size() != 6:
+		return &"UNDERGROUND_ACTOR_WORLD_DOMAIN"
+	for coordinate: int in bounds:
+		if coordinate < -EXACT_ROOT_U or coordinate > EXACT_ROOT_U:
+			return &"UNDERGROUND_ACTOR_WORLD_PRECISION"
+	return &""
+
+
+func set_world_root(world: Vector2i, root_u: Vector3i, yaw: int) -> StringName:
+	"""Actual integer root and exact 16-bit heading are presentation inputs, never movement authorization."""
+	if _world_basis == null or world != _world_ref or not _parts_live():
+		return &"UNDERGROUND_ACTOR_WORLD_BINDING"
+	for axis: int in 3:
+		if root_u[axis] < _world_bounds[axis] or root_u[axis] >= _world_bounds[axis + 3]:
+			return &"UNDERGROUND_ACTOR_WORLD_ROOT"
+	var code: StringName = _world_basis.coefficients_into(yaw, _world_heading)
+	if code != &"":
+		return code
+	_world_root = root_u
+	_world_ready = true
+	if _pose_ready:
+		var grounding: float = _palette.grounding_y(_scratch)
+		for part: int in _nodes.size():
+			_apply_part_transform(part, grounding)
+	_apply_visibility()
+	return &""
+
+
+func _parts_live() -> bool:
+	"""A removed actual mesh refuses before a pose or root update changes any retained visible part."""
+	for node: MeshInstance3D in _nodes:
+		if not is_instance_valid(node):
+			return false
+	return true
 
 
 static func _content_error(palette: Palette, meshes: Array[Mesh], source_sha256: String,
@@ -281,9 +520,8 @@ func apply_pose(frames: PackedInt32Array) -> StringName:
 	"""Only explicit caller time advances a pose; a paused caller issues no update."""
 	if _palette == null:
 		return &"UNDERGROUND_ACTOR_UNBOUND"
-	for node: MeshInstance3D in _nodes:
-		if not is_instance_valid(node):
-			return &"UNDERGROUND_ACTOR_PART_RETIRED"
+	if not _parts_live():
+		return &"UNDERGROUND_ACTOR_PART_RETIRED"
 	var code: StringName = _palette.sample_into(frames, _scratch)
 	if code != &"":
 		return code
@@ -298,15 +536,41 @@ func apply_pose(frames: PackedInt32Array) -> StringName:
 func _apply_part_pose(part: int, grounding: float) -> void:
 	"""Identical post-skin translation for the body and held items, independent of source weight sums."""
 	var offset: int = _palette.part_offset(part)
-	if _palette.bind_count(part) == 0:
-		var value: Transform3D = matrix_at(_scratch, offset)
-		value.origin.y += grounding
-		_nodes[part].transform = value
-	else:
-		_nodes[part].transform = Transform3D(Basis.IDENTITY, Vector3(0, grounding, 0))
+	_apply_part_transform(part, grounding)
+	if _palette.bind_count(part) != 0:
 		for bind: int in _palette.bind_count(part):
 			RenderingServer.skeleton_bone_set_transform(_skeletons[part], bind,
 				matrix_at(_scratch, offset + bind * MATRIX_SCALARS))
+
+
+func _apply_part_transform(part: int, grounding: float) -> void:
+	"""Only bound world presentation bypasses parents; existing local behavior preserves its exact equation."""
+	var value: Transform3D = Transform3D.IDENTITY if _palette.bind_count(part) != 0 \
+		else matrix_at(_scratch, _palette.part_offset(part))
+	if _world_basis != null:
+		_nodes[part].global_transform = world_transform(value, grounding, _world_root,
+			_world_heading[0], _world_heading[1])
+	else:
+		value.origin.y += grounding
+		_nodes[part].transform = value
+
+
+static func world_transform(local: Transform3D, grounding: float, root_u: Vector3i,
+		c: float, s: float) -> Transform3D:
+	"""Pinned scalar binary64 equations, each Vector3 store binary32; no hidden hierarchy or trigonometry."""
+	var rotated: Basis = Basis(world_column(local.basis.x, c, s), world_column(local.basis.y, c, s),
+		world_column(local.basis.z, c, s))
+	var point: Vector3 = local.origin
+	var origin: Vector3 = Vector3(c * float(point.x) + s * float(point.z) + float(root_u.x) / 1024.0,
+		float(point.y) + grounding + float(root_u.y) / 1024.0,
+		-s * float(point.x) + c * float(point.z) + float(root_u.z) / 1024.0)
+	return Transform3D(rotated, origin)
+
+
+static func world_column(column: Vector3, c: float, s: float) -> Vector3:
+	"""Exact stored table coefficients rotate one original affine column before its binary32 store."""
+	return Vector3(c * float(column.x) + s * float(column.z), column.y,
+		-s * float(column.x) + c * float(column.z))
 
 
 func set_parts_visible(mask: int) -> StringName:
@@ -322,7 +586,8 @@ func _apply_visibility() -> void:
 	"""Retain a requested visibility mask while keeping an uninitialized or retired part hidden."""
 	for part: int in _nodes.size():
 		if is_instance_valid(_nodes[part]):
-			_nodes[part].visible = _pose_ready and (_visible_parts & (1 << part)) != 0
+			_nodes[part].visible = _pose_ready and (_world_basis == null or _world_ready) \
+				and (_visible_parts & (1 << part)) != 0
 
 
 func native_matrix(part: int, bind: int) -> Transform3D:
@@ -350,6 +615,13 @@ func release() -> void:
 	_palette = null
 	_visible_parts = 0
 	_pose_ready = false
+	_world_basis = null
+	_world_ref = Vector2i(-1, 0)
+	_world_bounds.clear()
+	_world_root = Vector3i.ZERO
+	_world_heading[0] = 1.0
+	_world_heading[1] = 0.0
+	_world_ready = false
 
 
 func _exit_tree() -> void:

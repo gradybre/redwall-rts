@@ -3,6 +3,7 @@ extends "res://test/framework/test_case.gd"
 
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const HASH: String = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+const Space := preload("res://scripts/core/room_space.gd")
 
 
 func _attach_native(actor: Actor) -> void:
@@ -17,6 +18,177 @@ func _matrix(transform: Transform3D) -> PackedFloat32Array:
 	for column: Vector3 in [transform.basis.x, transform.basis.y, transform.basis.z, transform.origin]:
 		values.append_array([column.x, column.y, column.z])
 	return values
+
+
+func _world_metadata() -> Dictionary:
+	"""Synthetic complete wire fixture; source declarations alone never qualify production coefficients."""
+	return {"engine": Engine.get_version_info(), "source": {"sha256": HASH},
+		"rendering_driver": "opengl3", "rendering_method": "gl_compatibility",
+		"display_server": DisplayServer.get_name() if DisplayServer.get_name() != "headless" else "macOS",
+		"api_version": RenderingServer.get_video_adapter_api_version() if DisplayServer.get_name() != "headless" else "4.1 fixture"}
+
+
+func _world_file(modifier: int = 0) -> String:
+	"""Write every actual finite heading as a disposable fixture, optionally corrupting one bounded contract."""
+	var path: String = "user://underground-world-fixture-%d-%d.bin" % [get_instance_id(), modifier]
+	var metadata: Dictionary = _world_metadata()
+	if modifier == 4:
+		metadata.source.sha256 = "f".repeat(64)
+	if modifier == 5:
+		metadata.rendering_driver = "vulkan"
+	if modifier == 7:
+		metadata.extra = [[[]]]
+	if modifier == 8:
+		metadata.extra = "x".repeat(2048)
+	var bytes: PackedByteArray = JSON.stringify(metadata).to_utf8_buffer()
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_buffer("UGYAW001".to_ascii_buffer())
+	file.store_32(1)
+	file.store_32(65535 if modifier == 3 else 65536)
+	file.store_32(bytes.size())
+	file.store_buffer(bytes)
+	for yaw: int in 65536:
+		var basis: Basis = Basis(Vector3.UP, float(yaw) * TAU / 65536.0)
+		file.store_float(INF if modifier == 1 and yaw == 32769 else basis.x.x)
+		file.store_float(basis.z.x)
+	file.store_buffer(("INVALID!" if modifier == 2 else "UGYEND01").to_ascii_buffer())
+	if modifier == 6:
+		file.store_8(0)
+	file.close()
+	return path
+
+
+func _world_basis() -> Actor.WorldBasis:
+	"""Load the complete fixture through the actual streaming reader, then discard only its own source file."""
+	var path: String = _world_file()
+	var basis: Actor.WorldBasis = Actor.WorldBasis.new()
+	assert_equal(basis.load_file(path, FileAccess.get_sha256(path), HASH, Actor.WorldBasis.RESERVED_BYTES), &"", "full source")
+	assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(path)), OK, "fixture removed")
+	return basis
+
+
+func _world_domain(minimum: Vector3i = Vector3i(0, -32, 0)) -> Space.Domain:
+	"""The real Domain type validates the finite initial pack; fixture World identity grants no live authority."""
+	var domain: Space.Domain = Space.Domain.new()
+	assert_equal(domain.configure(Vector2i(5, 9), Vector3i(0, 512, 0), minimum,
+		Vector3i(256, 48, 256), 8192, 6144, Space.MAX_CHECKS), &"", "exact immutable descriptor")
+	return domain
+
+
+func test_complete_world_basis_source_is_immutable_and_selection_preserves_refused_output() -> void:
+	"""All finite native entries survive streaming without idealizing the tiny nonzero cardinal components."""
+	var basis: Actor.WorldBasis = _world_basis()
+	var out: PackedFloat32Array = PackedFloat32Array([19, 20])
+	for yaw: int in [0, 1, 16384, 32768, 49152, 65535]:
+		var native: Basis = Basis(Vector3.UP, float(yaw) * TAU / 65536.0)
+		assert_equal(basis.coefficients_into(yaw, out), &"", "exact heading")
+		assert_equal(out, PackedFloat32Array([native.x.x, native.z.x]), "native coefficient retained")
+	var previous: PackedFloat32Array = out.duplicate()
+	for yaw: int in [-1, 65536]:
+		assert_equal(basis.coefficients_into(yaw, out), &"UNDERGROUND_WORLD_BASIS_SELECTION", "finite heading only")
+	assert_equal(out, previous, "refusal preserves output")
+	assert_equal(basis.coefficients_into(0, PackedFloat32Array()), &"UNDERGROUND_WORLD_BASIS_SELECTION", "two-scalar output")
+	assert_equal(basis.producer_digest(), HASH, "exact expected producer")
+	assert_equal(basis.load_file("missing", HASH, HASH, Actor.WorldBasis.RESERVED_BYTES),
+		&"UNDERGROUND_WORLD_BASIS_ALREADY_LOADED", "no replacement or second bank")
+
+
+func test_world_basis_reader_refuses_corrupt_rows_metadata_footer_and_source_atomically() -> void:
+	"""No positive count or format-compatible buffer can replace a complete source and its exact provenance."""
+	var basis: Actor.WorldBasis = Actor.WorldBasis.new()
+	for modifier: int in [1, 2, 3, 4, 5, 6, 7, 8]:
+		var path: String = _world_file(modifier)
+		assert_true(basis.load_file(path, FileAccess.get_sha256(path), HASH, Actor.WorldBasis.RESERVED_BYTES) != &"", "refused corruption")
+		assert_equal(basis.source_digest(), "", "partial candidate never published")
+		var out: PackedFloat32Array = PackedFloat32Array([17, 18])
+		assert_equal(basis.coefficients_into(0, out), &"UNDERGROUND_WORLD_BASIS_SELECTION", "unbound partial data")
+		assert_equal(out, PackedFloat32Array([17, 18]), "unchanged refused output")
+		assert_equal(basis._coefficients.size(), 0, "failed source releases partial numeric bank")
+		assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(path)), OK, "own corrupt fixture removed")
+	var valid_path: String = _world_file()
+	assert_equal(basis.load_file(valid_path, HASH, HASH, Actor.WorldBasis.RESERVED_BYTES), &"UNDERGROUND_WORLD_BASIS_DIGEST", "same-stream hash")
+	assert_equal(basis.load_file(valid_path, FileAccess.get_sha256(valid_path), HASH, Actor.WorldBasis.RESERVED_BYTES - 1),
+		&"UNDERGROUND_WORLD_BASIS_ADMISSION", "reserve before allocation")
+	assert_equal(basis.load_file(valid_path, FileAccess.get_sha256(valid_path), HASH, Actor.WorldBasis.RESERVED_BYTES), &"", "valid retry")
+	assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(valid_path)), OK, "own fixture removed")
+
+
+func test_world_binding_requires_the_entire_actual_domain_descriptor_and_exact_root_range() -> void:
+	"""World generation, datum, extents and technical budgets cannot borrow another descriptor's proof."""
+	var domain: Space.Domain = _world_domain()
+	assert_equal(Actor.world_domain_refusal(domain, domain.descriptor()), &"", "exact initial domain")
+	for key: String in domain.descriptor():
+		var changed: Dictionary = domain.descriptor()
+		changed.erase(key)
+		assert_equal(Actor.world_domain_refusal(domain, changed), &"UNDERGROUND_ACTOR_WORLD_DOMAIN", "missing bound field")
+	var descriptor: Dictionary = domain.descriptor()
+	descriptor.world_ref.y += 1
+	assert_equal(Actor.world_domain_refusal(domain, descriptor), &"UNDERGROUND_ACTOR_WORLD_DOMAIN", "foreign generation")
+	descriptor = domain.descriptor()
+	descriptor.max_checks -= 1
+	assert_equal(Actor.world_domain_refusal(domain, descriptor), &"UNDERGROUND_ACTOR_WORLD_DOMAIN", "different capacity contract")
+	var large: Space.Domain = _world_domain(Vector3i(20000, -32, 0))
+	assert_equal(Actor.world_domain_refusal(large, large.descriptor()), &"UNDERGROUND_ACTOR_WORLD_PRECISION", "unproved int32 root precision")
+	assert_equal(Actor.world_domain_refusal(Space.Domain.new(), Space.Domain.new().descriptor()),
+		&"UNDERGROUND_ACTOR_WORLD_DOMAIN", "unconfigured domain")
+
+
+func test_explicit_world_equation_keeps_grounding_after_skin_and_identical_attachment_root() -> void:
+	"""Rotation uses actual table coefficients and one scalar double expression before each native store."""
+	var local: Transform3D = Transform3D(Basis(Vector3(2, 1, 0), Vector3(0, 3, 1), Vector3(1, 0, 4)), Vector3(0.25, -0.5, 0.75))
+	var root_u: Vector3i = Vector3i(262143, -32256, 131073)
+	var basis: Basis = Basis(Vector3.UP, TAU / 4.0)
+	var composed: Transform3D = Actor.world_transform(local, 0.75, root_u, basis.x.x, basis.z.x)
+	assert_equal(composed.basis.x, Actor.world_column(local.basis.x, basis.x.x, basis.z.x), "same actual coefficients")
+	assert_equal(composed.origin.y, -31.25, "grounded Y and root in one expression")
+	assert_true(absf(composed.origin.x - 256.7490234375) < 0.0001, "positive Z rotates toward positive X")
+	var body: Transform3D = Actor.world_transform(Transform3D.IDENTITY, 0.75, root_u, basis.x.x, basis.z.x)
+	assert_equal(body.origin, Vector3(float(root_u.x) / 1024.0, -30.75, float(root_u.z) / 1024.0), "post-skin body origin")
+
+
+func test_native_world_binding_keeps_global_parts_independent_of_parent_and_refused_updates() -> void:
+	"""Runs in the real native harness; headless explicitly proves only backend refusal, never deformation."""
+	var actor: Actor = Actor.new()
+	var parent: Node3D = Node3D.new()
+	if DisplayServer.get_name() != "headless":
+		(Engine.get_main_loop() as SceneTree).root.add_child(parent)
+	parent.add_child(actor)
+	var palette: Actor.Palette = _palette([Transform3D(Basis.IDENTITY, Vector3(0.25, 0.5, -0.75))])
+	var code: StringName = actor.configure(palette, [_mesh(true)], HASH, [AABB(Vector3(-2, -2, -2), Vector3(4, 4, 4))])
+	if DisplayServer.get_name() == "headless":
+		assert_equal(code, &"UNDERGROUND_RENDERER_UNAVAILABLE", "no dummy source binding")
+	else:
+		assert_equal(code, &"", "actual native palette")
+		_check_native_world(actor, parent, palette)
+	parent.free()
+
+
+func _check_native_world(actor: Actor, parent: Node3D, palette: Actor.Palette) -> void:
+	"""Hidden-before-root, source identity and all rejected updates precede immutable global comparisons."""
+	var basis: Actor.WorldBasis = _world_basis()
+	var domain: Space.Domain = _world_domain()
+	assert_equal(actor.bind_world_source(basis, domain, domain.descriptor(), "f".repeat(64), basis.source_digest()),
+		&"UNDERGROUND_ACTOR_WORLD_SOURCE", "different palette source")
+	assert_equal(actor.bind_world_source(basis, domain, domain.descriptor(), palette.source_digest(), basis.source_digest()),
+		&"", "actual exact runtime and finite source")
+	assert_equal(actor.apply_pose(PackedInt32Array([0, 0, 0, 0, 0, 0, 0])), &"", "pose before root")
+	var node: MeshInstance3D = actor.get_child(0) as MeshInstance3D
+	assert_false(node.visible, "bound part needs a root")
+	assert_true(node.top_level, "arbitrary parent is excluded")
+	assert_equal(actor.set_world_root(Vector2i(5, 9), Vector3i(16384, -4608, 8192), 16384), &"", "exact root")
+	var before: Transform3D = node.global_transform
+	parent.transform = Transform3D(Basis(Vector3.RIGHT, 0.7).scaled(Vector3(2, 3, 4)), Vector3(1900, -1000, 800))
+	actor.transform = Transform3D(Basis(Vector3.BACK, 1.1), Vector3(17, 19, 23))
+	assert_equal(node.global_transform, before, "parent changes cannot alter the proof equation")
+	assert_true(node.visible, "initialized exact root and pose")
+	assert_equal(actor.set_world_root(Vector2i(5, 10), Vector3i(16384, -4608, 8192), 0),
+		&"UNDERGROUND_ACTOR_WORLD_BINDING", "full World generation")
+	assert_equal(actor.set_world_root(Vector2i(5, 9), Vector3i(262144, -4608, 8192), 0),
+		&"UNDERGROUND_ACTOR_WORLD_ROOT", "half-open root maximum")
+	assert_equal(actor.set_world_root(Vector2i(5, 9), Vector3i(16384, -4608, 8192), 65536),
+		&"UNDERGROUND_WORLD_BASIS_SELECTION", "no heading rounding")
+	assert_equal(node.global_transform, before, "all rejected updates preserve visible world pose")
+	assert_equal(actor.native_matrix(0, 0), Transform3D(Basis.IDENTITY, Vector3(0.25, 0.5, -0.75)), "original skin matrix")
 
 
 func _palette(transforms: Array[Transform3D], binds: PackedInt32Array = PackedInt32Array([1])) -> Actor.Palette:

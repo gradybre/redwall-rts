@@ -1,0 +1,11 @@
+{
+	"changed_vertices": [
+		845,
+		845
+	],
+	"hand_geometry": "authored distal palm contraction; original rig, weights and materials",
+	"poses": 642,
+	"production_qualified": false,
+	"schema": 1,
+	"status": "VISUAL_CANDIDATE_ONLY_REQUIRES_INDEPENDENT_REVIEW_AND_REBAKE"
+}

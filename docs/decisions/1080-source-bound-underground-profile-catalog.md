@@ -609,3 +609,57 @@ peak or complete client budget. A separate reviewed wrapper fix and four mocked
 regressions ensure zero exit cannot hide final-command diagnostics. The original
 open-paw grip remains rejected visual quality; no production Profiles flags or
 new worker capability are created by this accepted content owner.
+
+### Authored mole hand grip correction
+
+Root's independent inspection accepts the firmer hand variant in
+`mole-worker/evidence/grip-closed-v4/idle-030.png`, `walk-018.png` and
+`heavy_hammer_swing-042.png`, plus `grip-angles-v1/left-side/walk-018.png`,
+left-side and rear `heavy_hammer_swing-012.png`, `-030.png` and `-048.png`.
+The shaft visibly passes through the gathered palm with a projecting butt;
+these sampled views show no obvious wrist/forearm penetration. This is visual
+approval of this grip change only, not exact intersection, physical contact,
+full asset polish, gameplay camera or first-playable evidence.
+
+The explicit additive ownership is
+`godot/data/underground/mole-worker/mole_grip_source.gd` and
+`godot/test/test_mole_grip_source.gd` plus its UID. The source recipe and original
+fingerprint are recorded in `mole-worker/evidence/grip-authoring/README.md`.
+The helper must keep original geometry and material resources immutable,
+refuse another body/hand-bind/source-fit identity, and emit a separately pinned
+fixed derivative. Only the actual right-hand distal geometry changes; skin,
+rig, costume, scale and gameplay capabilities remain the original source.
+Future native bakes and the renderer must consume that same derivative and
+corrected socket fit. Old palettes, state unions and envelopes do not certify
+the changed representation and must be regenerated before downstream use.
+
+The additional exact baker lease is `tools/bake_mole_grip_content.gd` plus UID.
+It subclasses the accepted finite baker without editing it, rejects every
+non-mole/non-pick or mismatched derivative request, applies the source-pinned
+mesh before body caching, and supplies the same corrected fit before attachment
+capture. The seven selected actual mole states are rebaked under new case IDs;
+the other 47 source cases retain their prior evidence. The new create-only
+reproducer closes the imported Python palette helper as well as the GDScript
+helper/renderer dependency graph, and preserves rejected/superseded evidence.
+
+The helper's clean component checks report 36 tests/384 assertions/0 failures,
+zero unexpected strict/raw diagnostics and leaks, and analyzer0/2. The new
+baker's analyzer is0/1. Seven actual source cases produce354 frames and8,496
+exact native skin-matrix checks with zero diagnostics/leaks. The final local
+and finite-World envelope proof is regenerated from the new5,906,853-byte raw
+source, with complete source/input hashes and0 production-qualified profiles.
+The compact derivative image is426,888 bytes, retaining the existing6,920,048
+byte content-reader presentation admission plus one separate shared WorldBasis.
+That reader figure does not include new derivative mesh creation or the complete
+client/presentation pool; those remain explicit separate native peak obligations.
+
+Independent root review accepts this exact helper, test, narrow baker and
+reproduction/native packet. The final runner correction pins sources before
+engine execution and compares them afterward, refusing changes or deletion and
+rejecting a dangling output link before resolution. Seven mocked regressions
+pass. The fresh `grip-native-v2` records 731 poses, 1,578 assertions and zero
+failures; all raw diagnostics/leaks are zero, analyzer is 0/2, and the pre/post
+source pins match. V1 and its executed runner remain historical evidence.
+`mole-worker/evidence/grip-final-v1/` records the accepted source and artifact
+identities, exact reproduction commands, reviewed views and unqualified gates.
+The compact image alone still provides zero production profile qualifications.

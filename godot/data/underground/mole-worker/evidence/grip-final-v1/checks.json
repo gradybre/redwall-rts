@@ -1,0 +1,13 @@
+{
+  "scope": "source, artifact and original pre/post execution provenance; no production qualification",
+  "current_source_pins": 15,
+  "unchanged_native_source_pins": 13,
+  "raw_source_bytes": 5906853,
+  "raw_source_sha256": "6d5ae0e52e50d715e7d9832cc62f08e9a4e1a0a95f4bc2a199efec1d75a8c9c8",
+  "verified_capture_source_pins": 537,
+  "native_screenshots_verified": 46,
+  "poses": 731,
+  "assertions": 1578,
+  "failures": 0,
+  "production_qualified": false
+}

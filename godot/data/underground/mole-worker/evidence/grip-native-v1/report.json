@@ -1,0 +1,290 @@
+{
+	"assertions": 1578,
+	"content_sha256": "004ea5955ba8877ec3998be179945eb846ed4b8f88c82555dba2d07be4947d0a",
+	"derived_mesh_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+	"failures": [],
+	"grip_quality": "AUTHORED_SOURCE_APPROVED; MATRIX_REPLAY_REQUIRES_REVIEW",
+	"poses": 731,
+	"production_qualified": false,
+	"schema": 1,
+	"screenshots": [
+		{
+			"clip": 0,
+			"half_tick": 0,
+			"path": "idle-00.png",
+			"sha256": "820ed257824e27587731dc9a20c02367a20410e04d0cb894217896a9d17dfdde"
+		},
+		{
+			"clip": 0,
+			"half_tick": 12,
+			"path": "idle-12.png",
+			"sha256": "a4c17a3904e450037c26666ba4e08671e28d1726b85e5b65bf39fc9d459b464e"
+		},
+		{
+			"clip": 0,
+			"half_tick": 24,
+			"path": "idle-24.png",
+			"sha256": "2ce1e34b740718a537764df5ce7a149ce6adf0cd02448d6ed7421967b7c3f67a"
+		},
+		{
+			"clip": 0,
+			"half_tick": 36,
+			"path": "idle-36.png",
+			"sha256": "f617e99288b48b445aacb0a22d2690b7ab312add3e8943fbd998fbef9e4b0929"
+		},
+		{
+			"clip": 0,
+			"half_tick": 48,
+			"path": "idle-48.png",
+			"sha256": "4871c688ee3d2f852608930ed0eb07e0382858248af38d3a79d5191c98ed9de4"
+		},
+		{
+			"clip": 0,
+			"half_tick": 60,
+			"path": "idle-60.png",
+			"sha256": "9cbe3ade6f4c205686ddb278020b27add3440352942809d840fc005fae4dba86"
+		},
+		{
+			"clip": 0,
+			"half_tick": 72,
+			"path": "idle-72.png",
+			"sha256": "d4fa7290e4fa533d6d8b24aca81fe3d2a4fda739e75cd8fd6d4c1f46ba06d724"
+		},
+		{
+			"clip": 0,
+			"half_tick": 84,
+			"path": "idle-84.png",
+			"sha256": "77ae7ac79c739bb6a18865cadb3ce32824bb4aadb8ef066f550a329d08d3ba9d"
+		},
+		{
+			"clip": 0,
+			"half_tick": 96,
+			"path": "idle-96.png",
+			"sha256": "43fa04dfd4d91ac25e6a03c440dafe2adb1c053171f878de35981df67e0889cd"
+		},
+		{
+			"clip": 0,
+			"half_tick": 108,
+			"path": "idle-108.png",
+			"sha256": "41fdb5543086d646ca554362a57774cef9957d89d90cdde364809f155e07fef5"
+		},
+		{
+			"clip": 0,
+			"half_tick": 120,
+			"path": "idle-120.png",
+			"sha256": "087ea9419a05119fec978452fca2e425fd85b6439fc15ec545cf4c51a7d8b74e"
+		},
+		{
+			"clip": 0,
+			"half_tick": 132,
+			"path": "idle-132.png",
+			"sha256": "19950c2233c0eb072244a38787f244ee9e0cdb6db427124e8f964fed6d147d80"
+		},
+		{
+			"clip": 0,
+			"half_tick": 144,
+			"path": "idle-144.png",
+			"sha256": "2c03c29c415e7e276159dfffc2caf3ce61d0e7a2440622acf9f99481d48462b1"
+		},
+		{
+			"clip": 0,
+			"half_tick": 156,
+			"path": "idle-156.png",
+			"sha256": "6e1ed005f78c5c4398356f72611f2a643896a06608d301002286309811416684"
+		},
+		{
+			"clip": 0,
+			"half_tick": 168,
+			"path": "idle-168.png",
+			"sha256": "298dd56d71c0e3c58f61367a021bce23605b0b59196da6494149ac0bf836507d"
+		},
+		{
+			"clip": 0,
+			"half_tick": 180,
+			"path": "idle-180.png",
+			"sha256": "3346442994ddaa16f11fc7a0574e8b5187a19ece8790e86e526132d008b97c24"
+		},
+		{
+			"clip": 0,
+			"half_tick": 192,
+			"path": "idle-192.png",
+			"sha256": "f5b567fbde3f06e24bbccfe2715df6bc35f8e55e792757a2c4c45a2bc9142f46"
+		},
+		{
+			"clip": 0,
+			"half_tick": 204,
+			"path": "idle-204.png",
+			"sha256": "5ba66f6cf55a8fb11eefcc999dfe46dd1d391f2ec42f4591874a213e678b4a31"
+		},
+		{
+			"clip": 0,
+			"half_tick": 216,
+			"path": "idle-216.png",
+			"sha256": "8b3b71fe2ae3b71b03e48ecf68680a185952c1759dbb7698a12e1999edf075a9"
+		},
+		{
+			"clip": 0,
+			"half_tick": 228,
+			"path": "idle-228.png",
+			"sha256": "58483037a4a574e0856ac91d13abdcc43a93dbdfea40f7fdf7d5f6f851ee3bd1"
+		},
+		{
+			"clip": 0,
+			"half_tick": 240,
+			"path": "idle-240.png",
+			"sha256": "29d3fcac3325169841ebea7ce3c2a299919360e2014957ad9a8ebd3faac59db3"
+		},
+		{
+			"clip": 1,
+			"half_tick": 0,
+			"path": "walk-00.png",
+			"sha256": "186369b2da27bc445744b6bf7f820af70e93370771fb50753b873ae891b95d09"
+		},
+		{
+			"clip": 1,
+			"half_tick": 12,
+			"path": "walk-12.png",
+			"sha256": "cdc86a85571e5b7a78139b9a225b868a03f3e0fe4212dade170bb1ebe61d3854"
+		},
+		{
+			"clip": 1,
+			"half_tick": 24,
+			"path": "walk-24.png",
+			"sha256": "d790c69aa1b24112403c272b60ba2275a8055f0a28c5525ff504690a6b32e993"
+		},
+		{
+			"clip": 1,
+			"half_tick": 36,
+			"path": "walk-36.png",
+			"sha256": "c8b3f8a70ec82f65dac2fbdc2659d6acaa1656b77c73c297beba3900879c5254"
+		},
+		{
+			"clip": 1,
+			"half_tick": 48,
+			"path": "walk-48.png",
+			"sha256": "58730db8f9bc373ceb1e79691bc21088f18d5f49781c926612d56fd822e7b18e"
+		},
+		{
+			"clip": 1,
+			"half_tick": 60,
+			"path": "walk-60.png",
+			"sha256": "10f37fb00c015bd60024d5f5c095fb9d949fd84db34eed443fddee7a9d338d27"
+		},
+		{
+			"clip": 4,
+			"half_tick": 0,
+			"path": "crouch-00.png",
+			"sha256": "2742e3a98acae4d2b065cb460a8dd7bf0fe0fab39647ccf9cf742cfa688d7f4a"
+		},
+		{
+			"clip": 4,
+			"half_tick": 12,
+			"path": "crouch-12.png",
+			"sha256": "9256ef1f94fa5ac98d4a0c6c9aa9a8ba955145683a90411e7e00b50bf1ed9a94"
+		},
+		{
+			"clip": 4,
+			"half_tick": 24,
+			"path": "crouch-24.png",
+			"sha256": "fe008c79563317279c29bba1b75ce9dda83f4f6c23d7bdf0be10fcb13dea746c"
+		},
+		{
+			"clip": 4,
+			"half_tick": 36,
+			"path": "crouch-36.png",
+			"sha256": "9081b7ffbca4ac89e2cbaf48e9774c93a78e51ca105904ba4c034ee396be6567"
+		},
+		{
+			"clip": 4,
+			"half_tick": 48,
+			"path": "crouch-48.png",
+			"sha256": "99a907e77b902800fb8bb43a80c20d464d4626a8ffdc5eb2f42902e54e03db0f"
+		},
+		{
+			"clip": 4,
+			"half_tick": 60,
+			"path": "crouch-60.png",
+			"sha256": "dd650e3dcd8b04f47e8bd78b288319e8e4e444529961784cc732ac1ffa2eb919"
+		},
+		{
+			"clip": 6,
+			"half_tick": 0,
+			"path": "hammer-00.png",
+			"sha256": "b2f2884188fe34aa9291ecce7c7a3d3cefc023971db72695d10e96e79066c3dc"
+		},
+		{
+			"clip": 6,
+			"half_tick": 12,
+			"path": "hammer-12.png",
+			"sha256": "df87cbd63209540e39b118ea80643e48a9718e22f539f59010b2510082cc47e3"
+		},
+		{
+			"clip": 6,
+			"half_tick": 24,
+			"path": "hammer-24.png",
+			"sha256": "f006e0e9e1955a7fb384c5c7796428803babf87a5d02e61c8dc8f61e90a8d64f"
+		},
+		{
+			"clip": 6,
+			"half_tick": 36,
+			"path": "hammer-36.png",
+			"sha256": "907d154ee08eea3b4fc598755f64dfa35116007fbcb1a05da84c2d257c218407"
+		},
+		{
+			"clip": 6,
+			"half_tick": 48,
+			"path": "hammer-48.png",
+			"sha256": "3c0968f93330cdb57c27ed03698afaea769cb00efe8ac9a5c94615b1ffdb9369"
+		},
+		{
+			"clip": 6,
+			"half_tick": 60,
+			"path": "hammer-60.png",
+			"sha256": "1d2e8e01b41ca01562b84c5d7a1be0da6065a6352d7c642deb6022efc335b790"
+		},
+		{
+			"clip": 6,
+			"half_tick": 72,
+			"path": "hammer-72.png",
+			"sha256": "4e0fc7320cc7f89b904b895ab0d75205cb9686070e6fec487f0fe65d7d05dca5"
+		},
+		{
+			"clip": 6,
+			"half_tick": 84,
+			"path": "hammer-84.png",
+			"sha256": "f34dd48972ad85ddaeb82e2fb8337be55db8afc716c3a2cae8e073152675d8f2"
+		},
+		{
+			"clip": 6,
+			"half_tick": 96,
+			"path": "hammer-96.png",
+			"sha256": "8fcd1498de8ed0c5fc810d05c8c5bf03108656f28ba11142685961f00cf2adaa"
+		},
+		{
+			"clip": 6,
+			"half_tick": 108,
+			"path": "hammer-108.png",
+			"sha256": "f8f59afe0f97d1452a12c1e28e9bbfe99b9433b1200906d3a31daa6f45de53de"
+		},
+		{
+			"clip": 1,
+			"half_tick": 4,
+			"path": "blend-1.png",
+			"sha256": "6ab32d7326cdeab0f2b8f3e83eb1e5de0fe29f98077a28f667ab946b3eeccfad"
+		},
+		{
+			"clip": 6,
+			"half_tick": 4,
+			"path": "blend-6.png",
+			"sha256": "8fc51e70aeeddf28a7ce4a1de4a410a31f549db17418e9f8f6d88d33161fee43"
+		},
+		{
+			"clip": 0,
+			"half_tick": 4,
+			"path": "blend-0.png",
+			"sha256": "fc2d3388da1bd73deb888f4f945cff4e32e053469a01f9b03f935dc65a848a8e"
+		}
+	],
+	"source_mesh_sha256": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+	"world_identity": "synthetic fixture with actual finite pack bounds; no route/work permission"
+}

@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/compile_underground_actor_content.py",
+    "--source",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v2.ugpal",
+    "--source-sha256",
+    "6d5ae0e52e50d715e7d9832cc62f08e9a4e1a0a95f4bc2a199efec1d75a8c9c8",
+    "--proof",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-proof-v1/envelopes.json",
+    "--proof-sha256",
+    "f82767962c7f990bba853bc33384f2c1efafe5a726fcc0bf5967820e800266a1",
+    "--plan",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-bake-v2/source-plan.json",
+    "--plan-sha256",
+    "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5",
+    "--import-archive",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v2.inputs",
+    "--out",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/firm-v1"
+  ],
+  "returncode": 0
+}

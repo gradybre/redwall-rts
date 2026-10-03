@@ -1,0 +1,7 @@
+{
+  "status": "REJECTED_COMPARISON_CAPTIONS",
+  "reason": "The camera views from negative Z so world X reverses screen ordering. Original/variant captions are opposite to actual rendered order. Closed variant also inherited the original-open-paw footer. Native poses remain raw diagnostic evidence; do not use these captions as review evidence.",
+  "source_sha256": {
+    "preview_grip.gd": "dbcf23ac63a0e42f8260b3d99e360a60138ebf1ce7b569217e0c5777f6013ea6"
+  }
+}

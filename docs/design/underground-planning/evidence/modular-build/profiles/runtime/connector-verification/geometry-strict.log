@@ -1,0 +1,36 @@
+state_registry_coverage: PASS -- 98 modules, 451 rows, 771 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_connector_geometry.gd
+  PASS  test_every_approved_family_compiles_actual_parts_and_full_solid_boxes
+  PASS  test_ramp_top_is_sloped_and_texture_surface_geometry_is_exact
+  PASS  test_reversed_loop_winding_still_produces_outward_top_normals
+  PASS  test_nonplanar_ramp_and_concave_tread_refuse_without_partial_candidate
+  PASS  test_coordinate_and_top_depth_overflow_refuse_before_narrowing
+  PASS  test_finite_triangle_and_region_budgets_refuse_whole_operation
+  PASS  test_profile_contact_and_opening_contract_cannot_be_omitted
+  PASS  test_missing_parts_do_not_masquerade_as_an_approved_family
+  PASS  test_material_scale_and_slot_are_explicit
+  PASS  test_hatch_sweep_includes_thickness_and_all_four_hinge_edges
+  PASS  test_hatch_cannot_swing_outside_the_reserved_multilevel_envelope
+  PASS  test_exact_paid_cut_coordinates_and_contact_index_survive_compilation
+  PASS  test_malformed_offsets_and_short_columns_are_named_atomic_refusals
+CI_SUITE_TIME {"assertions":101,"failures":0,"suite":"test_connector_geometry.gd","tests":13,"usec":25291}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 101 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 101 assertions, 0 failures.

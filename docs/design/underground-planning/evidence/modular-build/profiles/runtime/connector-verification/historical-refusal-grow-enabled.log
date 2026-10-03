@@ -1,0 +1,680 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_connector_view.gd
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf (res://test/test_connector_view.gd:27)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_sloping_ramp_uv_edges_preserve_actual_metre_length (res://test/test_connector_view.gd:38)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_sloping_ramp_uv_edges_preserve_actual_metre_length (res://test/test_connector_view.gd:38)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_sloping_ramp_uv_edges_preserve_actual_metre_length (res://test/test_connector_view.gd:38)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_sloping_ramp_uv_edges_preserve_actual_metre_length
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_material_copy_clears_hidden_uv_stretch_without_editing_source (res://test/test_connector_view.gd:55)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_material_copy_clears_hidden_uv_stretch_without_editing_source (res://test/test_connector_view.gd:58)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_material_copy_clears_hidden_uv_stretch_without_editing_source (res://test/test_connector_view.gd:58)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'grow_enabled' on a base object of type 'StandardMaterial3D'.
+          at: test_material_copy_clears_hidden_uv_stretch_without_editing_source (res://test/test_connector_view.gd:63)
+          GDScript backtrace (most recent call first):
+              [0] test_material_copy_clears_hidden_uv_stretch_without_editing_source (res://test/test_connector_view.gd:63)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_material_copy_clears_hidden_uv_stretch_without_editing_source
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_every_sampled_angle_fits_complete_integer_sweep (res://test/test_connector_view.gd:77)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_hatch_every_sampled_angle_fits_complete_integer_sweep
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_fixed_rotation_and_translation_match_integer_placement_convention (res://test/test_connector_view.gd:99)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_fixed_rotation_and_translation_match_integer_placement_convention (res://test/test_connector_view.gd:99)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_fixed_rotation_and_translation_match_integer_placement_convention (res://test/test_connector_view.gd:99)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_fixed_rotation_and_translation_match_integer_placement_convention
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_bad_material_and_partial_geometry_leave_existing_preview_intact (res://test/test_connector_view.gd:122)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_bad_material_and_partial_geometry_leave_existing_preview_intact (res://test/test_connector_view.gd:122)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_bad_material_and_partial_geometry_leave_existing_preview_intact (res://test/test_connector_view.gd:122)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_bad_material_and_partial_geometry_leave_existing_preview_intact (res://test/test_connector_view.gd:128)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_bad_material_and_partial_geometry_leave_existing_preview_intact
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _materials (res://test/test_connector_view.gd:16)
+         [1] test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize (res://test/test_connector_view.gd:138)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize (res://test/test_connector_view.gd:138)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:26)
+         [3] test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize (res://test/test_connector_view.gd:138)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize (res://test/test_connector_view.gd:138)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+WARNING: Godot 3.x SpatialMaterial remapped parameter not found: grow_enabled
+     at: _set (scene/resources/material.cpp:4096)
+     GDScript backtrace (most recent call first):
+         [0] _uv_material (res://demo/burrow/connector_view.gd:169)
+         [1] _mesh (res://demo/burrow/connector_view.gd:138)
+         [2] configure (res://demo/burrow/connector_view.gd:27)
+         [3] test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize (res://test/test_connector_view.gd:138)
+         [4] _run_test (res://test/run_tests.gd:194)
+         [5] _run_suite (res://test/run_tests.gd:168)
+         [6] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [7] _run_worker (res://test/run_tests.gd:121)
+         [8] _initialize (res://test/run_tests.gd:108)
+  PASS  test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize
+CI_SUITE_TIME {"assertions":16261,"failures":0,"suite":"test_connector_view.gd","tests":7,"usec":37627}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+ERROR: Pages in use exist at exit in PagedAllocator: N20RasterizerSceneDummy21GeometryInstanceDummyE
+   at: ~PagedAllocator (./core/templates/paged_allocator.h:170)
+WARNING: Leaked instance dependency: Bug - did not call instance_notify_deleted when freeing.
+   at: ~Dependency (servers/rendering/storage/utilities.cpp:56)
+WARNING: 10 ObjectDB instances were leaked at exit (run with `--verbose` for details).
+   at: cleanup (core/object/object.cpp:2536)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:822)
+ERROR: 2 RID allocations of type 'N13RendererDummy15MaterialStorage13DummyMaterialE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N13RendererDummy15MaterialStorage11DummyShaderE' were leaked at exit.
+ERROR: 1 RID allocations of type 'N13RendererDummy9DummyMeshE' were leaked at exit.
+ERROR: 2 RID allocations of type 'N17RendererSceneCull8InstanceE' were leaked at exit.
+
+
+7 test(s), 16261 assertion(s), 1 failure(s)
+diagnostics: 6 unexpected error(s), 57 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 10 object(s), 1 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

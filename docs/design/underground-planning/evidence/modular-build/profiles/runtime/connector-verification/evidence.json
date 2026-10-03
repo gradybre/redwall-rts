@@ -1,0 +1,47 @@
+{
+  "schema": 1,
+  "scope": "cold synthetic connector compiler, renderer, strict focused suites and native renderer capture; no production content qualification",
+  "source_head": "a09958455ea9903b904a195096a4ef87f705d893",
+  "engine": "4.7.2.stable.official.ed1daf0bf",
+  "strict": {
+    "geometry": {
+      "tests": 13,
+      "assertions": 101,
+      "failures": 0
+    },
+    "view": {
+      "tests": 8,
+      "assertions": 16536,
+      "failures": 0
+    },
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "analyzer": {
+    "warnings": 0,
+    "files": 4
+  },
+  "historical_failure": "grow_enabled was not a valid Godot 4 BaseMaterial3D property; this failed attempt is preserved and is not counted as a pass. Reviewed final source uses grow.",
+  "hashes": {
+    "godot/scripts/core/connector_geometry.gd": "0ad18857dd936f9f6df235a8ec4130955df2c3106c15229ef53fb554ce0e5c35",
+    "godot/demo/burrow/connector_view.gd": "6806011726e1ec51c01061831d000a408c08b34739b340fa15d745744e259d75",
+    "godot/test/test_connector_geometry.gd": "980228de92cc4e2ac8c54ac107d6d4759d7406161f2efd676a3c3155456ec70c",
+    "godot/test/test_connector_view.gd": "22de49115e826401860fdd88afb45d8cdb1e0f51dfd3f881f3c3579053c9e777",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/analyzer.log": "77771551fcde99b8d9f7f6c8a245f17e7847017408188b493b2068226c178eca",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/clean-import.log": "84d8b320dd48a81e81b73f2b91cde3e93ec7cfd1638c65e7fa0e7d89b92208db",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/geometry-manifest.json": "468fbae1f01ce8893ea0865609dfeebe9462dc9ea923e5a0d4b944557e526d00",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/geometry-shard.json": "ff65d398fa036a24ac427f7dfba4838a89eefb2dd46e2cc58d866ddc0c803625",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/geometry-strict.log": "d12d8705efe1d9120146ba9928ade472e68b753c35f13244e32df45826b19c1a",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/historical-refusal-grow-enabled.log": "30d4f6f2137e62a9bd758389d02a8f1630b1f5ba879fac3779b979e058e86a1f",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/view-manifest.json": "1b7d526fb827dba6db8c8e40aba4cfa323edc35ace33e164775a6d2afd613546",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/view-shard.json": "f94fe0da27d7c083a80177c60185f08218b085362704f52bbc7adc5160e3cff5",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connector-verification/view-strict.log": "e89b165235d154b67dc123227aa87891f47560606de94d7e9c1db793aa377dd1",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-connectors.gd": "b7d683cce8e6350170c2107191dc2aef6b35b389afcfe713cdc4f596a96dba78",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connectors-native.png": "2e0fa949c920bd406a22375c3ed3fc5fdde3f0acfe36835ebcdf18f2d667ac45",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connectors-native.json": "036eb104ec4d83f04cd4f71cd07a95bb1c5ddbd5c89510356b2b3c14ef7ba18a",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/connectors-native.log": "51e19fe96b6d28f33ed8cfac7e88bd6b60389321ef482efb595761149e91de58"
+  }
+}

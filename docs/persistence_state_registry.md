@@ -1066,6 +1066,7 @@ interpretation is retained as superseded evidence in the dated ruling.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---|---|---|---|---|---|
 | Cold room-footprint geometry | -- | -- | -- | Empty result on refusal | 3 | -- | Decision 1052. Stateless integer helpers only; caller-owned packed cell/edge/loop values and temporary bounded membership scratch. No module-level mutable columns, room identity, spatial publication, material account or paid-cut state. Confirmed footprint and grid identity remain the integrating owner's persistence obligation. |
+| One-call packed validation packet | -- | -- | -- | Invalid requested count allocates no packed rows; neighbor sentinel -1 | 3 | -- | Decision1094. The nested, temporary ValidationScratch object owns three exact I32 arrays (_validation_up, _validation_down, _validation_queue) and one exact byte array (_validation_flags), all sized to its source-clamped _validation_capacity, at most 16384 cells. Original invalid requests refuse before allocation. Logical payload is13N packed bytes plus one I64 capacity8; the packet dies with the synchronous validation call. These are not module-level columns or persistent geometry. Native headers and helper frames remain separately admitted controls. Existing contour/editing helpers retain their original cold contracts. |
 
 
 ### `godot/scripts/core/room_layout.gd`

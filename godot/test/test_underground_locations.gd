@@ -2,6 +2,7 @@ extends "res://test/framework/test_case.gd"
 ## Actual packed space/Inventory identities with explicit synthetic surface geometry. This
 ## proves endpoint ownership and transactions, not production terrain or traversal profiles.
 
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
@@ -25,7 +26,7 @@ var _world: Vector2i = NULL_REF
 var _sources: Owner.CoreSources = null
 var _owner: Owner = null
 var _domain: Space.Domain = null
-var _cold: Locations.ColdLease = null
+var _cold: Budget = null
 var _locations: Locations = null
 var _adapter: Locations.InventoryLocations = null
 var _floor_ref: Vector2i = NULL_REF
@@ -54,7 +55,7 @@ func before_each() -> void:
 	_support_ref = _put(token, [-4096, -256, -4096, 4096, 0, 4096], Space.SUPPORT)
 	assert_equal(_owner.seal(token), &"", "actual initial geometry")
 	_owner.publish(token)
-	_cold = Locations.ColdLease.new(COLD_BYTES)
+	_cold = Budget.new()
 	_locations = Locations.new()
 	assert_equal(_configure(_locations, CAPACITY, 228 * CAPACITY + 256), &"", "explicit jointly reserved endpoint arena")
 	_adapter = Locations.InventoryLocations.new(_locations)
@@ -63,6 +64,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	"""Drop weak adapters and borrowed owners in an acyclic order."""
+	assert_true(_cold.is_quiescent(), "all borrowed cold leases released")
 	_adapter = null
 	_locations = null
 	_cold = null
@@ -115,7 +117,7 @@ func _add(record: Locations.Record = null) -> Vector2i:
 	assert_equal(added.error, &"", "supported endpoint: %s" % added.error)
 	assert_equal(_locations.seal(prepared.token), &"", "sealed metadata")
 	assert_true(_locations.publish(prepared.token), "publish metadata")
-	assert_true(_cold.release(cold), "consume cold output before release")
+	assert_equal(_cold.release(cold), &"", "consume cold output before release")
 	return added.location
 
 
@@ -124,7 +126,7 @@ func _image() -> PackedByteArray:
 	var lease: int = _cold.acquire(COLD_BYTES)
 	var bytes: PackedByteArray = PackedByteArray()
 	assert_equal(_locations.capture_state_into(lease, bytes), &"", "local endpoint image")
-	assert_true(_cold.release(lease), "test retains image within its separately generous fixture budget")
+	assert_equal(_cold.release(lease), &"", "test retains image within its separately generous fixture budget")
 	return bytes
 
 
@@ -135,10 +137,32 @@ func test_exact_real_binding_and_full_local_refs() -> void:
 	assert_true(_adapter.exact_binding(_inventory, _world), "actual Inventory")
 	assert_false(_adapter.exact_binding(Inventory.new(16, 16), _world), "foreign Inventory")
 	assert_false(_locations.is_live_location(Vector2i(location.x, location.y + 1)), "reused local generation")
+	assert_true(_locations.is_bound_budget(_cold), "the exact shared Budget instance")
+	assert_false(_locations.is_bound_budget(Budget.new()), "matching capacity does not bind a foreign arena")
+	assert_false(_locations.is_bound_budget(null), "no unbound cold consumer")
 	assert_equal(_adapter.location_revision(location), 1, "immutable payload")
 	assert_equal(_adapter.storage_endpoint_refusal(location), &"", "actual support proof")
 	assert_equal(_locations.configure(null, null, null, null, null, null, null, 1, 512),
 		&"LOCATION_ALREADY_BOUND", "no collaborator rebind")
+
+
+func test_actual_shared_budget_blocks_capture_overlap_and_foreign_tokens() -> void:
+	"""Captured output keeps the one actual reservation; another consumer cannot allocate beside it."""
+	var foreign: Budget = Budget.new()
+	var unrelated: int = foreign.acquire(COLD_BYTES)
+	assert_true(unrelated > 0, "foreign world can independently reserve its own budget")
+	assert_equal(_locations.begin_prepare(unrelated).error, &"LOCATION_COLD_CAPACITY",
+		"numeric token coincidence does not activate this world's unreserved Budget")
+	assert_equal(foreign.release(unrelated), &"", "release unrelated operation")
+	var cold: int = _cold.acquire(_locations.wire_bytes())
+	var image: PackedByteArray = PackedByteArray()
+	assert_equal(_locations.capture_state_into(cold, image), &"", "real borrowed capture reservation")
+	assert_equal(_cold.acquire(_locations.cold_peak_bytes()), 0, "captured image excludes unrelated operations")
+	assert_equal(_locations.begin_prepare(cold).error, &"LOCATION_COLD_CAPACITY", "wire-only charge cannot fund a survey")
+	assert_equal(_cold.extend(cold, _locations.cold_peak_bytes()), &"", "nested work must explicitly reserve coexistence")
+	assert_equal(_locations.restore_state_bytes(cold, image), &"", "same lease accounts for retained input plus validation")
+	image.clear()
+	assert_equal(_cold.release(cold), &"", "release only after charged image is discarded")
 
 
 func test_arena_and_cold_admission_refuse_before_allocation() -> void:
@@ -152,8 +176,8 @@ func test_arena_and_cold_admission_refuse_before_allocation() -> void:
 	var lease: int = _cold.acquire(1)
 	assert_equal(_locations.begin_prepare(lease).error, &"LOCATION_COLD_CAPACITY", "undersized lease")
 	assert_equal(_cold.acquire(COLD_BYTES), 0, "one operation at a time")
-	assert_true(_cold.release(lease), "release own token")
-	assert_false(_cold.release(lease), "no duplicate release")
+	assert_equal(_cold.release(lease), &"", "release own token")
+	assert_equal(_cold.release(lease), Budget.REFUSE_TOKEN, "no duplicate release")
 
 
 func test_reads_do_not_alias_packed_geometry() -> void:
@@ -202,7 +226,7 @@ func test_support_hole_refuses_despite_supported_corners() -> void:
 	var prepared: Locations.Result = _locations.begin_prepare(lease)
 	assert_equal(_locations.stage_add(prepared.token, _record()).error, &"LOCATION_COVERAGE_MISSING", "hole cannot inherit support")
 	assert_true(_locations.abort(prepared.token), "no partial location")
-	assert_true(_cold.release(lease), "release cold operation")
+	assert_equal(_cold.release(lease), &"", "release cold operation")
 
 
 func test_water_unfinished_obstacle_and_boundary_refuse() -> void:

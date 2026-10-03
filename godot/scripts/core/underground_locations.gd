@@ -2,6 +2,7 @@ extends RefCounted
 ## Actual immutable multilevel endpoints. These local handles never stand in for Directory
 ## identities, paid cuts, a traversal profile or a surface tile. Decision 1075.
 
+const Budget := preload("res://scripts/core/underground_budget.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
@@ -64,40 +65,6 @@ class Result extends RefCounted:
 		error = code
 		token = next_token
 		location = ref
-
-
-class ColdLease extends RefCounted:
-	## One shared composition lease. Holding it across capture consumption prevents raw images
-	## from silently coexisting with phase/survey scratch. The orchestrator releases it explicitly.
-	var _limit: int = 0
-	var _token: int = 0
-	var _next: int = 1
-	var _reserved: int = 0
-
-	func _init(limit: int) -> void:
-		"""Require a finite caller-admitted bound; no absent provider receives free capacity."""
-		_limit = limit if limit > 0 and limit <= 8388608 else 0
-
-	func acquire(bytes: int) -> int:
-		"""Reserve the whole simultaneous operation peak before copying any owner data."""
-		if _token != 0 or bytes < 1 or bytes > _limit or _next == 9223372036854775807:
-			return 0
-		_token = _next
-		_next += 1
-		_reserved = bytes
-		return _token
-
-	func covers(token: int, bytes: int) -> bool:
-		"""A borrowed token is valid only for this actual lease and its admitted allocation."""
-		return token > 0 and token == _token and bytes > 0 and bytes <= _reserved
-
-	func release(token: int) -> bool:
-		"""Release only the exact active lease after all owned cold outputs are consumed."""
-		if token == 0 or token != _token:
-			return false
-		_token = 0
-		_reserved = 0
-		return true
 
 
 class Bank extends RefCounted:
@@ -187,7 +154,7 @@ var _owner: Owner = null
 var _sources: Owner.CoreSources = null
 var _sites: WeakRef = null
 var _domain: Space.Domain = null
-var _cold: ColdLease = null
+var _cold: Budget = null
 var _capacity: int = 0
 var _live: Bank = Bank.new()
 var _stage: Bank = Bank.new()
@@ -211,7 +178,7 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 
 func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
 		inventory: Inventory, owner: Owner, sources: Owner.CoreSources,
-		cold: ColdLease, capacity: int, arena_bytes: int) -> StringName:
+		cold: Budget, capacity: int, arena_bytes: int) -> StringName:
 	"""Bind exact real stores and admit both banks before any allocation."""
 	if _capacity > 0:
 		return &"LOCATION_ALREADY_BOUND"
@@ -282,6 +249,11 @@ func exact_inventory_binding(inventory: RefCounted, world: Vector2i) -> bool:
 func is_bound_world(ids: Directory, world: Vector2i, owner: Owner) -> bool:
 	"""Expose actual collaborator equality without allowing a rebind or state mutation."""
 	return ids != null and ids == _ids and owner == _owner and world != NULL_REF and world == world_ref()
+
+
+func is_bound_budget(candidate: Budget) -> bool:
+	"""The actual World composer must give every cold consumer this same exact Budget instance."""
+	return candidate != null and _capacity > 0 and candidate == _cold
 
 
 func packed_memory_bytes() -> int:

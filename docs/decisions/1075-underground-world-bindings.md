@@ -175,8 +175,8 @@ The endpoint-only cold operation uses at most one snapshot (48K region bytes
 plus 16K source bytes, conservatively using the owner's enforced O<=K), two
 fragment lists bounded to K/2 six-I32 boxes each (24K), and 384 box-scratch bytes:
 **88K + 384 packed bytes**. This excludes native Array/packed-handle overhead,
-which must fit the separately admitted native/control reservation. The shared
-1072 Budget will replace the provisional component ColdLease; it must reserve
+which must fit the separately admitted native/control reservation. The actual shared
+1072 Budget replaces the provisional component ColdLease; the composer must reserve
 the actual simultaneous caller plan/survey and companion peak before the first
 copy, and retain the token until charged output is consumed. An independent
 maximum phase plus maximum endpoint copy cannot coexist merely because each
@@ -332,3 +332,31 @@ lease releases exactly once, and covers refusal before the first copy. Its
 budget/contact provider is explicitly synthetic; actual World binding is still
 implementation work. Raw logs and source pins are retained under
 `docs/validation/evidence/underground-ug1075-bindings-2026-10-03/cold-operation/`.
+
+## Actual Locations / shared Budget binding
+
+Locations now takes the reviewed decision1072 `Budget` type directly. The
+provisional nested component lease is removed; there is one actual shared arena,
+not a second token allocator hidden in Locations. The read-only
+`is_bound_budget(candidate)` compares the exact configured object. Production
+WorldBindings must require it before coordinating nested phase/endpoint work.
+There are no new endpoint columns or persistent fields. Budget's four numeric
+controls are counted once by decision1072; the obsolete component lease is not
+also allocated or charged.
+
+All existing `covers` checks apply to the actual shared lease. A captured image
+retains that lease until consumed; restore requires its wire bytes plus the
+bounded survey peak to fit the same reservation. Another acquisition refuses
+while an image is retained. A nested operation must extend the same lease
+before its additional allocation, and release only after all charged objects
+are gone. This preserves the exact endpoint lifetime and Inventory retention
+checks rather than treating equal capacity numbers as a common arena.
+
+The independent narrow review accepted the replacement. Clean CI import and
+strict tests reported Locations **17 tests /396 assertions** and unchanged
+Budget **6 tests /58 assertions**, all failures, strict/raw diagnostics and leaks
+zero. The analyzer reported `0 GDScript warning(s) in 0 of 2 file(s)`. Raw evidence,
+source hashes and the rejected preliminary registry invocation are under
+`docs/validation/evidence/underground-ug1075-bindings-2026-10-03/shared-budget/`.
+This is logical lifetime evidence; actual terrain/profile/route composition and
+native memory qualification remain in progress.

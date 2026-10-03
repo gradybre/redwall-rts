@@ -215,8 +215,10 @@ class Fixture extends RefCounted:
 	var tool: Vector2i = NULL_REF
 	var math: IntMath.IntResult = IntMath.IntResult.new()
 
-	func _init(test_case: TestCase, bind_furniture: bool = true) -> void:
+	func _init(test_case: TestCase, bind_furniture: bool = true, room_bindings: SyntheticBindings = null) -> void:
 		"""Build real accounting, physical history, catalog, labor and sparse geometry ownership."""
+		if room_bindings != null:
+			bindings = room_bindings
 		check_owner = weakref(test_case)
 		world = residents.directory().create(Directory.KIND_WORLD)
 		schedule = Schedule.new(residents.needs())

@@ -1515,3 +1515,10 @@ and the Profiles+Level arena ceiling are unchanged. Contact metadata is excluded
 from body/turn broadphase; actual face consumers must separately validate its
 complete translated patch. This registry entry records storage semantics only,
 not source geometry or gameplay qualification.
+
+
+### `godot/scripts/core/underground_final_facts.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless final actual-source and endpoint attestation | -- | -- | -- | No instance, retained field, array, epoch or saved state | 3 | -- | Decision1100. Static helpers borrow actual Space/CoreSources/Routes/Locations and reuse existing Facts/Pose scratch. Final nonresident facts use the exact CoreSources leaf schemas; Resident containment reads committed packed actor/endpoint/span data without observation hooks. Two capacity scans and each actual leaf have explicit precharged work. A256-byte logical helper-frame ceiling is inside the invoking1099 existing2048 controls; native getter result/reference headers remain in the existing bindings/growth obligation. No new snapshot, buffer or canonical/save field. |

@@ -1,6 +1,6 @@
 # 1056 — Physical excavation owns paid phase projects
 
-Date: 2026-10-02 · Status: Increment A implemented; physical transaction and worker bridges in progress
+Date: 2026-10-02 · Status: Increments A/B1/B2 implemented; concrete physical-site/worker integration in progress
 
 ## Authority
 
@@ -71,6 +71,48 @@ recipe-agnostic primitive. It admits no arbitrary quantity argument and has no p
 cap: fragmentation reaches the existing global reservation/Inventory capacities, which refuse
 atomically. It also handles material-free work that still needs a real output reservation.
 
+## Increment B2: real WIP and first-pile output ownership
+
+`excavation_inventory.gd` holds only consumed phase inputs: generation-qualified
+Construction ownership, exact per-input-lot metadata receipts, and real reserved Inventory
+output mass. Loose quantities remain in Inventory. The explicit receipt budget is a finite
+world engineering budget; there is no fixed per-phase fragmentation cap. Exhaustion refuses
+before payment. Canonical per-item rounding carry returns exactly floor(80% of the whole
+phase input), even across 500 single-milli receipts, without erasing source quality,
+provenance, recipe or the age observed at consumption. Claimed inputs aging between delivery
+and work start keep that later age. Failed refund publication retains all WIP and loss accounts.
+Material-free cancellation has no refund-capacity requirement; it still releases its actual
+output reservation and retires an owned empty pending pile where applicable.
+
+An empty ordinary finite World-owned material container is permitted at a space-owner-held
+output contact. It has exactly ground-pile capacity, filter, anchor and ownership shape but
+is not yet in the ground-pile map. A cut reserves real mass there before productive work.
+At completion, one Inventory transaction releases only that reservation, creates actual earth,
+and `promote_to_ground_pile` turns the **same nonempty row** into a pile. The existing ban on
+committing an empty claimed ground pile is unchanged. Promotion revalidates the actual pile
+spatial authority, journals both container and tile map, and requires an explicit transaction;
+an invalid size, occupied contact or later output failure rolls back all of them. Cancelling
+before any output releases the reservation and destroys the still-empty staging row.
+
+Actual phase output publication also lives in this helper: one fresh/reclaimed earth output,
+or the paired wood/stone support salvage. A refusal while creating the second salvage lot
+rolls back the first, the mass release and all WIP publication. Another phase reserving the
+same container keeps its own mass claim. Successful output clears funding exactly once;
+work-ready retries and duplicate calls cannot create a second output.
+
+The generic Construction delivery, work, cancellation, material-container and retirement
+mutators now consult the bound typed authority's synchronous action permit for excavation.
+Passing the authority object's identity alone is insufficient to retire a phase. The concrete
+Sites owner opens these permits only around its own fully preflighted transaction. Unit
+fixtures explicitly label their synthetic authority permission; they supply no runtime
+geometry or worker admission. Legacy building/furniture accounting remains on its existing
+path. The abstract spatial/domain and Work publication interfaces are declared here to keep
+the next owner composition typed and fail closed, without activating them in a demo.
+
+The independent review found and corrected an unnecessary reachable-refund-container check
+for zero-input phases, and added direct helper output tests rather than relying on a manually
+recreated Inventory sequence. Both findings were independently rechecked as resolved.
+
 ## Following increments and integration gates
 
 Increment B owns immutable-datum 1024u physical quantum keys, installed support, committed
@@ -118,3 +160,15 @@ claim on the same lot survives consumption, and Inventory's commit-time
 `GROUND_PILE_EMPTY_WITH_CLAIM` refusal restores the complete Inventory and pool states. Both
 pass. First-cut output staging/promotion is a following owner transaction, not a relaxation of
 the existing prohibition on committing a lotless ground pile.
+
+
+Increment B2: strict primitive owner tests report
+`24 test(s), 3783 assertion(s), 0 failure(s)`. With the focused Construction excavation,
+existing ground-pile and Inventory suites, the exercised boundary comprises **206 tests,
+5143 assertions, 0 failures**. All diagnostic and raw-log footers have zero unexpected
+errors/warnings, zero expected/tolerated diagnostics and zero object/resource leaks.
+Evidence: `/tmp/ug-excavation-b2-current/` and
+`/tmp/ug-excavation-b2-reviewed/test_excavation_sites.log`.
+The analyzer reports `0 GDScript warning(s) in 0 of 6 file(s)` on dedicated LSP port 6146.
+This verifies Inventory/WIP owner composition; concrete Sites/Work, live geometry and
+production persistence are not asserted by these synthetic spatial fixtures.

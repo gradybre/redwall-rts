@@ -31,6 +31,10 @@ class SyntheticSite extends Contract:
 		"""Record that Construction publishes its actual generational project identity."""
 		attached = project
 
+	func mutation_refusal(_project: Vector2i, _action: int) -> StringName:
+		"""This labeled accounting fixture has no production physical transaction to attest."""
+		return &""
+
 var _construction: Construction = null
 var _site: SyntheticSite = null
 var _out: IntMath.IntResult = IntMath.IntResult.new()

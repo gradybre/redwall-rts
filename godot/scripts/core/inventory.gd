@@ -444,6 +444,7 @@ const REFUSE_AUDIT_GROUND_PILE: StringName = &"AUDIT_GROUND_PILE_MAP"
 ## A commit would leave a pile with no lot but an outstanding reserved mass: it can neither keep
 ## its row (ARCH-MEM-002) nor be destroyed with a claim on it, so the operation is refused.
 const REFUSE_GROUND_PILE_EMPTY_WITH_CLAIM: StringName = &"GROUND_PILE_EMPTY_WITH_CLAIM"
+const REFUSE_GROUND_PILE_STAGING: StringName = &"GROUND_PILE_STAGING_INVALID"
 ## The site authority's two methods (decision 0532). `ground_pile_tile_refusal(tile) ->
 ## StringName` answers REFUSE_NONE only for an in-bounds, passable tile on no DEMOLISHING,
 ## destroyed or inaccessible footprint; `ground_pile_owner_ref() -> Vector2i` is the World ref.
@@ -1550,6 +1551,59 @@ func create_ground_pile(tile: int) -> OpResult:
 	"""
 	var owned: bool = _enter()
 	return _leave(owned, _create_ground_pile_checked(tile, owned))
+
+
+func promote_to_ground_pile(container_ref: Vector2i, tile: int) -> OpResult:
+	"""Atomically publish a paid cut's real nonempty staging container as a ground pile.
+
+	The caller holds the pending contact through the actual space owner. It first releases its
+	output reservation and creates the cut's real lot in this SAME explicit transaction, then
+	calls this door. No empty ground pile is ever committed; the ordinary row/capacity was real
+	throughout the work. Ground geometry and World ownership are rechecked by the bound owner.
+	"""
+	var owned: bool = _enter()
+	var code: StringName = _promotion_refusal(container_ref, tile, owned)
+	if code != REFUSE_NONE:
+		return _leave(owned, code)
+	var slot: int = container_ref.x
+	_journal_container(slot)
+	_c_policy[slot] = POLICY_GROUND_PILE
+	_set_pile_cell(tile, slot)
+	_note_pile_candidate(slot)
+	return _leave(owned, _succeed(container_ref, 0))
+
+
+func _promotion_refusal(container_ref: Vector2i, tile: int, owned: bool) -> StringName:
+	"""Require the exact finite staging contract before changing policy or the ground map."""
+	var code: StringName = _guard()
+	if code != REFUSE_NONE:
+		return code
+	if owned:
+		return REFUSE_GROUND_PILE_NEEDS_TRANSACTION
+	if not is_container_valid(container_ref):
+		return REFUSE_INVALID_CONTAINER
+	if tile < 0 or tile >= ANCHOR_TILE_COUNT:
+		return REFUSE_INVALID_ANCHOR_TILE
+	if _pile_at_tile[tile] != NO_PILE:
+		return REFUSE_GROUND_PILE_TILE_TAKEN
+	code = _ground_pile_site_refusal(tile)
+	if code != REFUSE_NONE:
+		return code
+	return _staging_shape_refusal(container_ref, tile)
+
+
+func _staging_shape_refusal(container_ref: Vector2i, tile: int) -> StringName:
+	"""A staging row cannot increase capacity, change owners, relocate goods, or stay lotless."""
+	var slot: int = container_ref.x
+	if container_owner(container_ref) != _site_owner or not is_well_formed_owner(_site_owner):
+		return REFUSE_INVALID_OWNER_REF
+	if _c_policy[slot] != UNSET_POLICY or _c_max_mass_g[slot] != GROUND_PILE_MAX_MASS_G:
+		return REFUSE_GROUND_PILE_STAGING
+	if _c_filters[slot] != FILTERS_ACCEPT_ALL or _c_anchor_tile[slot] != tile or _c_reachable[slot] != 1:
+		return REFUSE_GROUND_PILE_STAGING
+	if _c_lot_count[slot] == 0:
+		return REFUSE_GROUND_PILE_STAGING
+	return REFUSE_NONE
 
 
 func _create_ground_pile_checked(tile: int, owned: bool) -> StringName:

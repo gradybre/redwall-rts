@@ -18,6 +18,65 @@ const SALVAGE_STONE_MILLI: int = 125
 const MAX_PROJECT_BUILDERS: int = 4
 const MAX_QUANTUM_WORKERS: int = 1
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+const ACTION_DELIVER: int = 0
+const ACTION_BEGIN_WORK: int = 1
+const ACTION_WORK: int = 2
+const ACTION_CANCEL: int = 3
+const ACTION_RETIRE: int = 4
+const ACTION_CONTAINER: int = 5
+const ACTION_WIP: int = 6
+const ACTION_OUTPUT: int = 7
+const ACTION_REFUND: int = 8
+const STAGE_ADMIT: int = 0
+const STAGE_START: int = 1
+const STAGE_COMMIT: int = 2
+const STAGE_CANCEL: int = 3
+
+class Domain extends RefCounted:
+	## Whole-world immutable lattice descriptor, supplied by an actual geometry owner.
+	var world_ref: Vector2i = Vector2i(-1, 0)
+	var datum_u: Vector3i = Vector3i.ZERO
+	var minimum_quantum: Vector3i = Vector3i.ZERO
+	var size_quanta: Vector3i = Vector3i.ZERO
+
+class SpatialAuthority extends RefCounted:
+	## Fail-closed typed adapter. UG08/09 must bind actual geometry, room, route and contact owners.
+	func domain_into(_out: Domain) -> bool:
+		"""Describe the immutable world domain; the abstract authority supplies no geometry."""
+		return false
+
+	func room_refusal(_room: Vector2i) -> StringName:
+		"""Validate a full owning room/project generation in the actual room namespace."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func retirement_refusal(_room: Vector2i) -> StringName:
+		"""Prove safe room retirement through actual room, item, route and support owners."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func operation_refusal(_origin_u: Vector3i, _operation: int, _stage: int,
+			_room: Vector2i) -> StringName:
+		"""Prove dry/support/occupancy/escape and phase-specific contact/topology prerequisites."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func material_refusal(_origin_u: Vector3i, _room: Vector2i,
+			_container: Vector2i, _job: Vector2i) -> StringName:
+		"""Prove actual delivered material location and legal access, never a caller boolean."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func output_refusal(_origin_u: Vector3i, _operation: int, _room: Vector2i,
+			_container: Vector2i, _job: Vector2i, _promotion_tile: int) -> StringName:
+		"""Prove local output contact, full container identity and any held first-pile tile lease."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func worker_refusal(_origin_u: Vector3i, _operation: int, _room: Vector2i,
+			_job: Vector2i, _worker: Vector2i) -> StringName:
+		"""Prove the live worker's legal route/work contact from the actual movement owner."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func publish_transition(_origin_u: Vector3i, _operation: int, _stage: int,
+			_room: Vector2i) -> void:
+		"""Non-failing publication after immediate preflight and the physical transaction commit."""
+		assert(false, "Unbound geometry cannot publish a physical transition")
 
 ## ASCII order in this owner domain; not BuildingState or a repurposed furniture catalog ID.
 const OP_BACKFILL_CLOSE: int = 0
@@ -98,3 +157,18 @@ func remaining_work_into(_site: Vector2i, _operation: int, out: IntMath.IntResul
 func attach_project(_site: Vector2i, _operation: int, _project: Vector2i) -> void:
 	"""Non-failing publication hook, reachable only after this authority's admission succeeded."""
 	assert(false, "An unbound excavation authority cannot publish a project")
+
+
+func mutation_refusal(_project: Vector2i, _action: int) -> StringName:
+	"""Only an active physical-owner transaction may mutate generic phase accounting."""
+	return REFUSE_AUTHORITY
+
+
+func work_tick_refusal(_job: Vector2i) -> StringName:
+	"""Validate bound productive work before Work mutates carries, XP, durability or Job WU."""
+	return REFUSE_AUTHORITY
+
+
+func accept_work_tick(_job: Vector2i) -> void:
+	"""Read actual Work/Job progress after a successful tick; no caller work amount is accepted."""
+	assert(false, "Unbound excavation authority cannot accept productive work")

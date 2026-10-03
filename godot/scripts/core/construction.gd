@@ -785,6 +785,9 @@ func retire_excavation_phase(project: Vector2i, authority: ExcavationContract) -
 		return _refuse(REFUSE_STALE_PROJECT_REF)
 	if _purpose[row] != PURPOSE_EXCAVATION:
 		return _refuse(REFUSE_UNKNOWN_PURPOSE)
+	var owner_refusal: StringName = authority.mutation_refusal(project, ExcavationContract.ACTION_RETIRE)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if _phase[row] != PHASE_WORK_DONE and _phase[row] != PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_retire(row, project, Vector2i(_subject_slot[row], _subject_generation[row]))
@@ -793,6 +796,14 @@ func retire_excavation_phase(project: Vector2i, authority: ExcavationContract) -
 	_phase[row] = PHASE_AWAITING_MATERIALS
 	_refund_policy[row] = REFUND_FULL
 	return OpResult.new(true, REFUSE_NONE, row, NULL_REF)
+
+
+func _excavation_mutation_refusal(row: int, project: Vector2i, action: int) -> StringName:
+	"""A generic accounting call cannot bypass the physical owner's actual transaction."""
+	if _purpose[row] != PURPOSE_EXCAVATION:
+		return REFUSE_NONE
+	var authority: ExcavationContract = excavation_authority()
+	return authority.mutation_refusal(project, action) if authority != null else ExcavationContract.REFUSE_AUTHORITY
 
 
 func project_of_excavation_site(site: Vector2i) -> Vector2i:
@@ -1094,6 +1105,9 @@ func deliver_material(project_ref: Vector2i, index: int, quantity_milli: int) ->
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _excavation_mutation_refusal(row, project_ref, ExcavationContract.ACTION_DELIVER)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	var code: StringName = _refuse_delivery(row, index, quantity_milli)
 	if code != REFUSE_NONE:
 		return _refuse(code)
@@ -1141,6 +1155,9 @@ func begin_work(project_ref: Vector2i) -> OpResult:
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _excavation_mutation_refusal(row, project_ref, ExcavationContract.ACTION_BEGIN_WORK)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if _phase[row] != PHASE_READY:
 		return _refuse(REFUSE_WRONG_PHASE)
 	if _paused[row] == 1:
@@ -1183,6 +1200,9 @@ func add_work_mwu_into(project_ref: Vector2i, mwu: int, out: IntMath.IntResult) 
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return out.refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _excavation_mutation_refusal(row, project_ref, ExcavationContract.ACTION_WORK)
+	if owner_refusal != REFUSE_NONE:
+		return out.refuse(owner_refusal)
 	if _phase[row] != PHASE_WORKING:
 		return out.refuse(REFUSE_WRONG_PHASE)
 	if _paused[row] == 1:
@@ -1361,6 +1381,9 @@ func begin_refund(project_ref: Vector2i) -> OpResult:
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _excavation_mutation_refusal(row, project_ref, ExcavationContract.ACTION_CANCEL)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if _phase[row] == PHASE_REFUNDING:
 		return _refuse(REFUSE_WRONG_PHASE)
 	_phase[row] = PHASE_REFUNDING
@@ -1685,6 +1708,9 @@ func set_material_container(project_ref: Vector2i, container_ref: Vector2i) -> O
 	var row: int = _row_of(project_ref)
 	if row == NO_ROW:
 		return _refuse(REFUSE_STALE_PROJECT_REF)
+	var owner_refusal: StringName = _excavation_mutation_refusal(row, project_ref, ExcavationContract.ACTION_CONTAINER)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse(owner_refusal)
 	if container_ref != NULL_REF and (container_ref.x < 0 or container_ref.y <= 0
 			or container_ref.x > INT32_MAX or container_ref.y > INT32_MAX):
 		return _refuse(REFUSE_INVALID_CONTAINER_REF)

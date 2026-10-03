@@ -3,7 +3,9 @@
 Date: 2026-10-03
 
 Status: engineering packet; candidate geometry and content require qualification.
-No production entrance, recipe price or stair-motion certificate is accepted by this record.
+No production entrance or stair-motion certificate is accepted by this record.
+The timber recipe balance below is user-approved; active content still needs
+qualified assemblies and construction integration.
 
 ## Purpose and ownership
 
@@ -92,36 +94,44 @@ remain downstream gates. A source module or synthetic fixture closes none of
 those playable requirements.
 
 
-## Proposed timber recipe balance — awaiting Brendan
+## Approved wood-only timber recipe balance
 
 No adopted timber stair/entrance installation row was found. ECON-001 expressly
-requires separate recipes. Its wood1/rope2/cloth1U and40WU protected-climb
+requires separate recipes. Its wood 1/rope 2/cloth 1 U and 40 WU protected-climb
 assistance row prices rescue equipment, not stair treads. Existing GDD timber
-analogues include an interior door wood2U/12WU, shelf wood2U/16WU, fence
-wood1U/12WU, and gate wood6U+iron1U/90WU. Demo stair multipliers do not supply
-production installation prices.
+analogues include an interior door wood 2 U/12 WU, shelf wood 2 U/16 WU, fence
+wood 1 U/12 WU, and gate wood 6 U+iron 1 U/90 WU. Demo stair multipliers do not
+supply production installation prices.
 
-The following concrete starting balance was presented to Brendan for approval
-on2026-10-03. It is **proposed, not active content** until answered:
+On 2026-10-03, Brendan answered the proposed timber recipe with **“Make it cost
+wood only”**. The wood and BUILD work amounts are retained; rope is removed,
+with no extra wood surcharge. The assemblies use timber joinery. These are
+approved starting game-balance values, not claims about biological timber density.
 
-| Installed assembly | Wood milli-U | Rope milli-U | BUILD milli-WU |
-|---|---:|---:|---:|
-| 2m-wide ×0.5m timber tread, authored bearer/lashings included | 1000 | 250 | 12000 |
-| 2×2m timber landing assembly | 4000 | 1000 | 32000 |
+| Installed assembly | Wood milli-U | BUILD milli-WU |
+|---|---:|---:|
+| 2 m-wide × 0.5 m timber tread with authored bearer and joinery | 1000 | 12000 |
+| 2×2 m timber landing assembly | 4000 | 32000 |
 
-The candidate20 treads and6 timber landings total wood44000milli-U,
-rope11000milli-U and432000milli-WU. Five four-tread/lower-landing modules are
-wood8000/rope2000/80000milli-WU each; the top landing adds4000/1000/32000.
-These values are game balance, not claims about biological timber density.
+The candidate 20 treads and 6 timber landings total **44000 milli-U of wood and
+432000 milli-WU**. Each of the five four-tread/lower-landing modules costs
+8000 milli-U of wood and 80000 milli-WU; the top landing adds 4000 and 32000.
+There is no rope cost.
+
+A recipe prices an installed assembly, not each visual or collision prism.
+Immutable frontier content must name the canonical recipe anchor and the
+complete unique included part set. The actual purpose owner bills that assembly
+once. Included bearers and joinery cannot be charged again through an inferred
+per-part loop. This grouping/source proof must be fixed with the placement
+contract before emitting active recipe content or binding the installation owner.
 
 Excavation/bracing, entrance portal/roof/shell, rail/edge protection and any
 additional separately installed structural parts remain explicit extra rows.
-The bearer/lashing wording is not permission to omit physical support geometry.
-A genuinely retained natural landing can omit its timber assembly only after
-actual geometry proof; material inside a completed cut cube is not natural dirt.
-Existing cancellation rules continue to apply.
+Included joinery is not permission to omit physical support geometry. A retained
+natural landing can omit its timber assembly only after actual geometry proof;
+material inside a completed cut cube is not natural dirt. The top timber landing
+also needs real bearing and clearance for its thickness: it cannot intersect
+natural ground for free. Existing cancellation rules continue to apply.
 
-The pending choices are these starting costs (recommended), all these costs20%
-lower, or all20% higher. No response has been received or inferred here. Recipe
-loader, construction plumbing and geometry/motion qualification continue while
-this authoring decision is pending; the proposed costs will not activate silently.
+This approval settles these material and labour amounts. It does not certify the
+candidate stair geometry, gait, contact, paid cut dependencies, or playable route.

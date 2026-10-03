@@ -593,19 +593,22 @@
           "authoring": "Absent recipe rows refuse. No new prices or work amounts silently activated."
         },
         "timber_recipe_authoring": {
-          "status": "awaiting_user_answer",
-          "proposal": "docs/decisions/1101-first-paid-surface-entry.md#proposed-timber-recipe-balance--awaiting-brendan",
-          "proposed_tread_milli": {
+          "status": "user_approved_wood_only",
+          "decision": "docs/decisions/1101-first-paid-surface-entry.md#approved-wood-only-timber-recipe-balance",
+          "user_answer": "Make it cost wood only",
+          "tread_milli": {
             "wood": 1000,
-            "rope": 250,
             "work": 12000
           },
-          "proposed_landing_milli": {
+          "landing_milli": {
             "wood": 4000,
-            "rope": 1000,
             "work": 32000
           },
-          "scope": "Starting in-game balance only; not active content. Excavation and entrance/shell/rail geometry recipes remain separate. Independent reader/plumbing/motion work continues."
+          "candidate_total_milli": {
+            "wood": 44000,
+            "work": 432000
+          },
+          "scope": "Approved starting in-game balance, timber joinery, no rope or wood surcharge. Active content awaits exact assembly grouping and placement/frontier proof. Excavation and entrance/shell/rail geometry recipes remain separate."
         }
       },
       "lease": {

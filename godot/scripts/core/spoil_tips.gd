@@ -128,13 +128,21 @@ func initialization_refusal() -> StringName:
 	return _ready_error
 
 
-func bind_publisher(publisher: Publisher) -> StringName:
-	"""Bind one actual owner weakly; expired or foreign bindings cannot be replaced."""
+func publisher_binding_refusal(publisher: Publisher) -> StringName:
+	"""Preflight a once-bound actual owner without publishing half of a composed binding."""
 	if _ready_error != &"" or publisher == null \
 			or not publisher.exact_binding(self, _world, _construction):
 		return REFUSE_BINDING
 	if _publisher != null and _publisher.get_ref() != publisher:
 		return REFUSE_BINDING
+	return &""
+
+
+func bind_publisher(publisher: Publisher) -> StringName:
+	"""Bind one actual owner weakly; expired or foreign bindings cannot be replaced."""
+	var code: StringName = publisher_binding_refusal(publisher)
+	if code != &"":
+		return code
 	_publisher = weakref(publisher)
 	return &""
 

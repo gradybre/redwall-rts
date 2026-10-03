@@ -205,6 +205,23 @@ func test_candidate_preparation_is_read_only_and_does_not_mint_a_project() -> vo
 	assert_equal(_tips.candidate_prepare_refusal(31), Tips.REFUSE_BINDING, "expired composition refuses")
 
 
+func test_publisher_binding_preflight_is_read_only_and_preserves_the_accepted_owner() -> void:
+	"""A composed adapter can test both bindings before either owner publishes its link."""
+	var before: PackedByteArray = _tips.state_bytes()
+	assert_equal(_tips.publisher_binding_refusal(_publisher), &"", "same exact live publisher qualifies")
+	assert_equal(_tips.publisher_binding_refusal(null), Tips.REFUSE_BINDING, "null grants no publication")
+	var foreign: SyntheticPublisher = SyntheticPublisher.new()
+	foreign.owner = _tips
+	foreign.construction = _construction
+	foreign.world = _world
+	assert_equal(_tips.publisher_binding_refusal(foreign), Tips.REFUSE_BINDING, "different object cannot replace accepted history")
+	assert_equal(_tips.state_bytes(), before, "preflight consumes no source or identity")
+	assert_equal(_tips.candidate_prepare_refusal(30), &"", "original accepted publisher remains bound")
+	_publisher.live = false
+	assert_equal(_tips.publisher_binding_refusal(_publisher), Tips.REFUSE_BINDING, "late invalidation refuses")
+	_publisher.live = true
+
+
 func test_candidate_orders_prove_phase_source_capacity_and_exact_retained_contract() -> void:
 	"""An impossible or changed-q order refuses before Construction allocation or source claims."""
 	var tip: Vector2i = _prepared()

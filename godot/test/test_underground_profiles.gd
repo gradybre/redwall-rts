@@ -404,6 +404,71 @@ func test_actual_claimed_work_query_refuses_after_tool_or_job_changes() -> void:
 	assert_true(_work.release_tool_claim(_slot).ok, "release actual retained tool claim")
 
 
+func test_cold_authored_contact_is_readable_before_any_job_or_owner_binding() -> void:
+	"""Admission may inspect feasible authored work geometry without inventing an assigned worker."""
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(32, 256, 8, Profiles.ARENA_BYTES), &"", "cold catalog only")
+	_install_work_profile()
+	var out: Profiles.Descriptor = Profiles.Descriptor.new()
+	assert_equal(_profiles.profile_count(1), 1, "finite exact-version search")
+	assert_equal(_profiles.descriptor_into(0, 1, out), &"", "authored descriptor before Sites creates a Job")
+	assert_equal(out.profile_id, 0, "exact row identity")
+	assert_equal(out.profile_revision, 1, "authored identity revision")
+	assert_equal(out.content_revision, 1, "immutable content version")
+	assert_equal(out.species, _identity[0], "source species")
+	assert_equal(out.life_stage, _identity[1], "source life stage")
+	assert_equal(out.rig, _identity[2], "source rig")
+	_assert_work_descriptor(out)
+	var point: Profiles.Box = Profiles.Box.new()
+	assert_equal(_profiles.box_into(out.profile_id, out.profile_revision, out.content_revision, 5, point), &"", "exact contact")
+	assert_equal(point.role, Profiles.CONTACT_POINT, "authored contact role")
+	assert_equal(point.low, point.high, "no invented reach radius")
+	assert_equal(_query(Profiles.Selection.new(), NULL_REF, Profiles.MODE_WORK), &"PROFILE_OWNER_UNBOUND", "descriptor grants no actual work")
+
+
+func _assert_work_descriptor(out: Profiles.Descriptor) -> void:
+	"""Check all geometry key classes, independently of the actual worker selection type."""
+	assert_equal(out.source_id, 0, "source bundle")
+	assert_equal(out.mode, Profiles.MODE_WORK, "work geometry mode")
+	assert_equal(out.posture, Profiles.POSTURE_UPRIGHT, "authored posture")
+	assert_equal(out.tool_item, _items.compiled_id(&"tool"), "authored actual catalog tool")
+	assert_equal(out.tool_variant, Gear.MANUFACTURE_BASIC, "physical manufacture variant")
+	assert_equal(out.cargo_item, -1, "no cargo variant")
+	assert_equal(out.cargo_variant, -1, "no cargo recipe")
+	assert_equal(out.quantity_min_milli + out.quantity_max_milli, 0, "empty load")
+	assert_equal(out.yaw_kind, Profiles.YAW_EXACT, "work contact cannot round yaw")
+	assert_equal(out.yaw, 0, "exact orientation")
+	assert_equal(out.family_mask, 31, "explicit synthetic family coverage")
+	assert_equal(out.state_mask, 511, "explicit synthetic state coverage")
+	assert_equal(out.work_kind, Jobs.JOB_KIND_BUILD, "owning Job kind")
+	assert_equal(out.contact_kind, 1, "authored contact classification")
+	assert_equal(out.box_count, 6, "all six required roles")
+	assert_equal(out.certificate_flags, Profiles.CERT_REQUIRED, "synthetic complete certificate")
+
+
+func test_authored_descriptor_refuses_stale_or_foreign_identity_without_output_mutation() -> void:
+	"""A new catalog cannot inherit an older descriptor or its contact coordinates."""
+	assert_equal(_profiles.profile_count(0), -1, "unloaded search refused")
+	assert_equal(_load(_image([_row()], _boxes())), &"", "first content")
+	var out: Profiles.Descriptor = Profiles.Descriptor.new()
+	assert_equal(_profiles.descriptor_into(0, 1, out), &"", "read first content")
+	out.tool_item = 888
+	out.quantity_max_milli = 999
+	for row: int in [-1, 1, 2147483647]:
+		assert_equal(_profiles.descriptor_into(row, 1, out), &"PROFILE_SELECTION_STALE", "invalid identity")
+		assert_equal(out.tool_item, 888, "refused output unchanged")
+	assert_equal(_profiles.descriptor_into(0, 1, null), &"PROFILE_SELECTION_STALE", "null scratch")
+	var changed: Dictionary = _row()
+	changed.longs[0] = 2
+	assert_equal(_load(_image([changed], _boxes(), 2), 2), &"", "complete replacement")
+	assert_equal(_profiles.profile_count(1), -1, "old content search refuses")
+	assert_equal(_profiles.descriptor_into(0, 1, out), &"PROFILE_SELECTION_STALE", "old version cannot read reused row")
+	assert_equal(out.quantity_max_milli, 999, "stale refusal preserves every prior field")
+	assert_equal(_profiles.descriptor_into(0, 2, out), &"", "new exact identity")
+	assert_equal(out.profile_revision, 2, "new profile revision")
+	assert_equal(out.tool_item, -1, "caller scratch did not alias the prior bank")
+
+
 func test_cold_body_extent_includes_all_load_and_recovery_variants_only() -> void:
 	"""A broadphase cannot index only the currently equipped smaller actor variant."""
 	var first: Dictionary = _row(Profiles.MODE_STAND)

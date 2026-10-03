@@ -205,3 +205,25 @@ Independent review accepted the reader and replacement/refusal tests. Evidence
 `catalog-extent-v1/` records the exact source hashes, clean import, 15 tests,
 279 assertions, zero failures, zero unexpected diagnostics/leaks and analyzer
 zero warnings in two files. Fixture bounds remain explicitly synthetic.
+
+## Cold authored contact inspection
+
+Static excavation admission precedes the Construction/Job that would assign an
+actual worker. `profile_count(content_revision)` and
+`descriptor_into(profile_id, content_revision, caller_descriptor)` therefore
+expose the immutable authored physical key and constraints without fabricating a
+Job. The returned exact profile/content revisions pair with `box_into` for the
+body, stance, approach, stroke and contact roles. This cold descriptor is a
+different type from the actual-worker Selection; it has no worker, Job or lot
+reference and provides no permission to perform work. START/WORK still use the
+actual owner-bound query and fresh route/support/contact checks.
+
+The descriptor consists of 23 caller-owned GDScript integer fields (184 logical
+scalar bytes), charged by its consuming cold owner. No module columns, scratch
+image or persistent field were added. Every refusal precedes all output writes;
+catalog replacement invalidates a prior descriptor by exact content revision.
+Independent root review accepted the frozen source. `catalog-descriptor-v2/`
+records the successful exact clean import, 17 tests, 348 assertions, zero
+failures, zero unexpected diagnostics/leaks and analyzer zero warnings in two
+files. The first source-identical clean import crashed in native font import
+before any test ran; its raw log remains in `catalog-descriptor-v1/`.

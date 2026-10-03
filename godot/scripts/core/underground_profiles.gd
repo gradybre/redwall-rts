@@ -110,6 +110,34 @@ class Box extends RefCounted:
 	var high: Vector3i = Vector3i.ZERO
 
 
+class Descriptor extends RefCounted:
+	## Cold authored geometry only: no worker, Job, equipped claim or movement permission.
+	## Caller-owned 23 integer fields; no new retained catalog image or module scratch.
+	var profile_id: int = -1
+	var profile_revision: int = 0
+	var content_revision: int = 0
+	var source_id: int = -1
+	var species: int = -1
+	var life_stage: int = -1
+	var rig: int = -1
+	var mode: int = -1
+	var posture: int = -1
+	var tool_item: int = -1
+	var tool_variant: int = -1
+	var cargo_item: int = -1
+	var cargo_variant: int = -1
+	var quantity_min_milli: int = 0
+	var quantity_max_milli: int = 0
+	var yaw_kind: int = -1
+	var yaw: int = 0
+	var family_mask: int = 0
+	var state_mask: int = 0
+	var work_kind: int = -1
+	var contact_kind: int = -1
+	var box_count: int = 0
+	var certificate_flags: int = 0
+
+
 class Bank extends RefCounted:
 	var header: PackedInt64Array = PackedInt64Array([0, 0, 0, 0]) # revision, profiles, boxes, sources
 	var fields: PackedInt32Array = PackedInt32Array()
@@ -592,6 +620,47 @@ func box_into(profile_id: int, profile_revision: int, revision: int, ordinal: in
 		_live.boxes[5 * _box_capacity + row])
 	out.role = _live.boxes[6 * _box_capacity + row]
 	return &""
+
+
+func profile_count(revision: int) -> int:
+	"""Bound a cold admission search in this exact content version; -1 means absent or stale."""
+	return int(_live.header[1]) if revision > 0 and revision == content_revision() else -1
+
+
+func descriptor_into(profile_id: int, revision: int, out: Descriptor) -> StringName:
+	"""Read immutable content before a Job exists; actual START/WORK still require query_into."""
+	if out == null or revision <= 0 or revision != content_revision() \
+			or profile_id < 0 or profile_id >= _live.header[1]:
+		return &"PROFILE_SELECTION_STALE"
+	out.profile_id = profile_id
+	out.profile_revision = _long(_live, profile_id, L_REVISION)
+	out.content_revision = revision
+	out.source_id = _field(_live, profile_id, F_SOURCE)
+	out.species = _field(_live, profile_id, F_SPECIES)
+	out.life_stage = _field(_live, profile_id, F_STAGE)
+	out.rig = _field(_live, profile_id, F_RIG)
+	out.mode = _field(_live, profile_id, F_MODE)
+	out.posture = _field(_live, profile_id, F_POSTURE)
+	out.tool_item = _field(_live, profile_id, F_TOOL)
+	out.tool_variant = _field(_live, profile_id, F_TOOL_VARIANT)
+	out.cargo_item = _field(_live, profile_id, F_CARGO)
+	out.cargo_variant = _field(_live, profile_id, F_CARGO_VARIANT)
+	out.quantity_min_milli = _long(_live, profile_id, L_QUANTITY_MIN)
+	out.quantity_max_milli = _long(_live, profile_id, L_QUANTITY_MAX)
+	_write_descriptor_geometry(profile_id, out)
+	return &""
+
+
+func _write_descriptor_geometry(row: int, out: Descriptor) -> void:
+	"""All output checks precede the first write; these are authored constraints, not live facts."""
+	out.yaw_kind = _field(_live, row, F_YAW_KIND)
+	out.yaw = _field(_live, row, F_YAW)
+	out.family_mask = _field(_live, row, F_FAMILIES)
+	out.state_mask = _field(_live, row, F_STATES)
+	out.work_kind = _field(_live, row, F_WORK_KIND)
+	out.contact_kind = _field(_live, row, F_CONTACT_KIND)
+	out.box_count = _field(_live, row, F_BOX_COUNT)
+	out.certificate_flags = _live.flags[row]
 
 
 func source_hash_into(source_id: int, revision: int, out: PackedByteArray) -> bool:

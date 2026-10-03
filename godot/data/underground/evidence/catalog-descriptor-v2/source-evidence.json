@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "cold immutable authored descriptor only; no worker or Job permission; synthetic geometric fixture certificates",
+  "independent_review": "root accepted exact source hashes before this successful validation",
+  "tests": 17,
+  "assertions": 348,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 2,
+  "files": [
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v1/import.log",
+      "sha256": "ec27f54aa3c3b8c52bc8beb6fba0ffb88b5336455e4a447e6f9bed51d211b05c"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v1/invocation.json",
+      "sha256": "e17d8ca7de71487cbfbdd4261812af9ecd38538701ee51e6250c0dc4014a2089"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v2/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v2/import.log",
+      "sha256": "23d6c2badb3cedd38bc10341ce77a74a71895311ba84e9d1f438e5afcdba41e6"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v2/invocation.json",
+      "sha256": "9365519c3dcf5bd375f3fcaaa88c16b695850da9a90a6fcb290c78da5d1d5189"
+    },
+    {
+      "path": "godot/data/underground/evidence/catalog-descriptor-v2/strict.log",
+      "sha256": "81d7a8846812ceee32e891a8ccf04e3b285647f503515fe2c07a7042527531fd"
+    },
+    {
+      "path": "godot/scripts/core/underground_profiles.gd",
+      "sha256": "b9fd366f9cbb53951feeae6236d57b49766300949107736c1067c78724c95044"
+    },
+    {
+      "path": "godot/test/test_underground_profiles.gd",
+      "sha256": "db8a078a8640c238140e6e3abb3da3d112a0d139b5d0a22541cfab09135a318b"
+    }
+  ]
+}

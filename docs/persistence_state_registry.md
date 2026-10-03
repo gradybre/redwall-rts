@@ -1315,3 +1315,10 @@ Local row/generation handles are qualified by the bound actual World.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Weak typed retention and callback controls | -- | -- | -- | Callback booleans false outside synchronous observation; no observer by default | 3 | -- | Decision 1075. One weak actual graph observer plus `_in_retention` and `_retention_reentered` (2 logical numeric bytes) inside the existing bindings/control reserve. Once attached, an expired or foreign observer refuses retirement. Final actual Inventory, geometry and exact shared-lease checks follow all observer callbacks. No packed/canonical/wire change; restore must rebind the real graph owner. `allocation_within` is a stateless exact-capacity reader. |
+
+
+### `godot/scripts/core/transforms.gd` — runtime cache freshness
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Runtime mutation revision | -- | -- | -- | Positive until permanent exhaustion poison; public0 refuses cached observations | 3 | -- | Decision1075. One8-byte integer inside the bindings/control reserve, not a packed/canonical/saved field. All successful actual pose writes and reset invalidate, including same-value mutations; refusals preserve. Explicit future in-place restore invalidation is provided; current owner15 only validates inactive columns. Saturation never prevents a whole owner reset or recycles an old token. Routes' separate expected8-byte token is charged inside its own fixed controls. |

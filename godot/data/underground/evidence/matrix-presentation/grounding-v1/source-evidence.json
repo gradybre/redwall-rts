@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "review": "accepted; independent construction-lane read-only review",
+  "scope": "Actor common post-skin translation, atomic sampling, finite scalar cap, native rendered lifecycle and translation; no production profile qualification",
+  "qualified_profiles": 0,
+  "files": [
+    {
+      "path": "godot/demo/cast/underground_actor.gd",
+      "sha256": "51570fa0f8ca2b0d7017caf26aedc51a945a7dbf01fa60749fc7310a9b95acb7"
+    },
+    {
+      "path": "godot/test/test_underground_actor.gd",
+      "sha256": "7656798d0760f958a7e46a8d39c81e60fca69f52a853eb074ff400d2ecc80475"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native_grounding_check.gd",
+      "sha256": "81526abc472f0c067f4bb1fec35b0416335f792203d98187a40d25f772adf99d"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native_adapter_check.gd",
+      "sha256": "7682084740062789d40778943853ce03b75b3bb3f496cbb4bca4c6cb86e98739"
+    },
+    {
+      "path": "docs/decisions/1080-source-bound-underground-profile-catalog.md",
+      "sha256": "2364f98cdef98215560a4d3cd9b4e35c28298f9044c5893d96abac4f854d895d"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/README.md",
+      "sha256": "1c898e8e3a150f8104f15a1fdbbf6f72079f61ca6770472e5530cc36ffc1b9de"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/analyzer-corrected.log",
+      "sha256": "09dc469cd6e2fa6600221dc50d1e2fc5c53eae69065aec92908f6c042f639364"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/analyzer.log",
+      "sha256": "8befc86f31c28eea28716c4065757c678e5a4ff2efe71e49067a13aba92f6550"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/import.log",
+      "sha256": "7a5c360dc887481738e3d388026a9ef306f371bb3c84e0bc483d51448cc89c37"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/invocation.json",
+      "sha256": "3fd59247b8429c42c30c11da4af7079571b894070f8c1b289395f3685bf1314b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/native-adapter.log",
+      "sha256": "762dbb01a92b2aa2ef1c51c0a2444201daa4d8a7ef00adf14bc4d2a8ea98ffc7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/native-grounding.log",
+      "sha256": "7cb8a2a81b68931a8e45e1a517b9a570de4aaefed0c4fd604481818248780988"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/python-envelopes-corrected.log",
+      "sha256": "46bafecd029aff12778b4298d577006d12762d71c9629c6c6d66492148718cef"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/python-envelopes.log",
+      "sha256": "5e73c1fd0958ba8bba77da6311af1e9ab89a6f69d2f94a4484649742fa48cb7f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/python-reproduce.log",
+      "sha256": "f30d010c0822f8e179b3a8911294020a5abd4b3751001cab66864ada6397acb2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/grounding-v1/strict.log",
+      "sha256": "e3561fb2b611e12a47ac0985cac64de70a5cab052ea9e6ba6b2b39fcf1e6c70c"
+    }
+  ]
+}

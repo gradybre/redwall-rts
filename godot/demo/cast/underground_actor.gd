@@ -20,13 +20,16 @@ class Palette extends RefCounted:
 	var _binds: PackedInt32Array = PackedInt32Array()
 	var _offsets: PackedInt32Array = PackedInt32Array()
 	var _matrices: PackedFloat32Array = PackedFloat32Array()
+	var _grounding: PackedFloat32Array = PackedFloat32Array()
 
 	func configure(source_sha256: String, frames: int, binds: PackedInt32Array,
-			matrices: PackedFloat32Array) -> StringName:
+			matrices: PackedFloat32Array, grounding: PackedFloat32Array = PackedFloat32Array()) -> StringName:
 		"""One immutable source image; validate before copying any caller-owned content."""
 		if _frames != 0:
 			return &"UNDERGROUND_PALETTE_ALREADY_CONFIGURED"
 		var code: StringName = _format_error(source_sha256, frames, binds, matrices)
+		if code == &"":
+			code = _grounding_error(frames, matrices.size(), grounding)
 		if code != &"":
 			return code
 		_source = source_sha256
@@ -37,6 +40,7 @@ class Palette extends RefCounted:
 			_offsets[part] = _stride
 			_stride += maxi(1, binds[part]) * MATRIX_SCALARS
 		_matrices = matrices.duplicate()
+		_grounding = grounding.duplicate()
 		return &""
 
 	static func _format_error(source_sha256: String, frames: int, binds: PackedInt32Array,
@@ -61,6 +65,19 @@ class Palette extends RefCounted:
 				return &"UNDERGROUND_PALETTE_NONFINITE"
 		return &""
 
+	static func _grounding_error(frames: int, scalars: int, grounding: PackedFloat32Array) -> StringName:
+		"""Optional legacy-zero or one common post-skin Y per frame; count within the same scalar ceiling."""
+		if (not grounding.is_empty() and grounding.size() != frames) or scalars + grounding.size() > MAX_SCALARS:
+			return &"UNDERGROUND_PALETTE_GROUNDING_FORMAT"
+		for value: float in grounding:
+			if not is_finite(value) or absf(value) > SOURCE_LIMIT:
+				return &"UNDERGROUND_PALETTE_GROUNDING_NONFINITE"
+		return &""
+
+	func grounding_y(out: PackedFloat32Array) -> float:
+		"""Read the common Y only from an already successful exact scratch sample; zero for legacy content."""
+		return out[_stride] if not _grounding.is_empty() and out.size() == scratch_count() else 0.0
+
 	func frame_count() -> int:
 		"""No missing or implicit wrap frame exists outside this finite source image."""
 		return _frames
@@ -83,7 +100,7 @@ class Palette extends RefCounted:
 
 	func scratch_count() -> int:
 		"""One fixed float32 frame scratch; no per-frame full palette copy."""
-		return _stride
+		return _stride + int(not _grounding.is_empty())
 
 	func sample_into(frames: PackedInt32Array, out: PackedFloat32Array) -> StringName:
 		"""[now0,now1,t,old0,old1,u,blend]; exact 16-bit weights, with no quaternion decomposition."""
@@ -97,11 +114,15 @@ class Palette extends RefCounted:
 			var current: float = _at(frames[0], scalar) * (1.0 - t) + _at(frames[1], scalar) * t
 			var previous: float = _at(frames[3], scalar) * (1.0 - u) + _at(frames[4], scalar) * u
 			out[scalar] = previous * (1.0 - blend) + current * blend
+		if not _grounding.is_empty():
+			var current: float = _grounding[frames[0]] * (1.0 - t) + _grounding[frames[1]] * t
+			var previous: float = _grounding[frames[3]] * (1.0 - u) + _grounding[frames[4]] * u
+			out[_stride] = previous * (1.0 - blend) + current * blend
 		return &""
 
 	func _sample_error(frames: PackedInt32Array, out: PackedFloat32Array) -> StringName:
 		"""Invalid frames, extrapolation and wrong scratch leave the previous visible pose intact."""
-		if _frames == 0 or frames.size() != 7 or out.size() != _stride:
+		if _frames == 0 or frames.size() != 7 or out.size() != scratch_count():
 			return &"UNDERGROUND_PALETTE_SAMPLE_FORMAT"
 		if frames[0] < 0 or frames[0] >= _frames or frames[1] < 0 or frames[1] >= _frames \
 				or frames[3] < 0 or frames[3] >= _frames or frames[4] < 0 or frames[4] >= _frames:
@@ -266,17 +287,26 @@ func apply_pose(frames: PackedInt32Array) -> StringName:
 	var code: StringName = _palette.sample_into(frames, _scratch)
 	if code != &"":
 		return code
+	var grounding: float = _palette.grounding_y(_scratch)
 	for part: int in _nodes.size():
-		var offset: int = _palette.part_offset(part)
-		if _palette.bind_count(part) == 0:
-			_nodes[part].transform = matrix_at(_scratch, offset)
-		else:
-			for bind: int in _palette.bind_count(part):
-				RenderingServer.skeleton_bone_set_transform(_skeletons[part], bind,
-					matrix_at(_scratch, offset + bind * MATRIX_SCALARS))
+		_apply_part_pose(part, grounding)
 	_pose_ready = true
 	_apply_visibility()
 	return &""
+
+
+func _apply_part_pose(part: int, grounding: float) -> void:
+	"""Identical post-skin translation for the body and held items, independent of source weight sums."""
+	var offset: int = _palette.part_offset(part)
+	if _palette.bind_count(part) == 0:
+		var value: Transform3D = matrix_at(_scratch, offset)
+		value.origin.y += grounding
+		_nodes[part].transform = value
+	else:
+		_nodes[part].transform = Transform3D(Basis.IDENTITY, Vector3(0, grounding, 0))
+		for bind: int in _palette.bind_count(part):
+			RenderingServer.skeleton_bone_set_transform(_skeletons[part], bind,
+				matrix_at(_scratch, offset + bind * MATRIX_SCALARS))
 
 
 func set_parts_visible(mask: int) -> StringName:

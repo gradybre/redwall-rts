@@ -273,3 +273,59 @@ func test_configuration_outside_the_scene_tree_cannot_publish_an_orphan_skin_pal
 		else &"UNDERGROUND_ACTOR_OUTSIDE_TREE", "no manual palette before mesh tree entry")
 	assert_equal(actor.get_child_count(), 0, "refusal allocated no mesh or native skeleton")
 	actor.free()
+
+
+func test_common_grounding_uses_the_same_four_positive_frame_weights() -> void:
+	"""The extra root translation preserves the endpoint hull without multiplying source skin weights."""
+	var values: PackedFloat32Array = PackedFloat32Array()
+	for index: int in 4:
+		values.append_array(_matrix(Transform3D(Basis.IDENTITY, Vector3(index, 0, 0))))
+	var grounding: PackedFloat32Array = PackedFloat32Array([2, 6, -2, -6])
+	var palette: Actor.Palette = Actor.Palette.new()
+	assert_equal(palette.configure(HASH, 4, PackedInt32Array([1]), values, grounding), &"", "grounded content")
+	grounding.fill(999.0)
+	var out: PackedFloat32Array = _scratch(palette)
+	assert_equal(palette.scratch_count(), 13, "one shared scalar beyond the skin frame")
+	assert_equal(palette.sample_into(PackedInt32Array([0, 1, 16384, 2, 3, 49152, 32768]), out), &"", "same nested blend")
+	assert_equal(palette.grounding_y(out), -1.0, "(-5 + 3) / 2, isolated original values")
+	assert_equal(Actor.matrix_at(out, 0).origin.y, 0.0, "grounding never modifies a bone coefficient")
+	var before: PackedFloat32Array = out.duplicate()
+	assert_equal(palette.sample_into(PackedInt32Array([0, 8, 0, 0, 0, 0, 0]), out), &"UNDERGROUND_PALETTE_FRAME", "invalid frame")
+	assert_equal(out, before, "matrix and common root stay atomic on refusal")
+	assert_equal(_palette([Transform3D.IDENTITY]).grounding_y(PackedFloat32Array()), 0.0, "legacy no-offset content preserved")
+
+
+func test_grounding_capacity_and_nonfinite_source_refuse_before_any_publication() -> void:
+	"""The existing scalar ceiling includes the new root sequence; no larger hidden palette is admitted."""
+	var values: PackedFloat32Array = _matrix(Transform3D.IDENTITY)
+	var palette: Actor.Palette = Actor.Palette.new()
+	assert_equal(palette.configure(HASH, 1, PackedInt32Array([1]), values, PackedFloat32Array([0, 1])),
+		&"UNDERGROUND_PALETTE_GROUNDING_FORMAT", "exact frame count")
+	for value: float in [NAN, INF, -INF, 1025.0]:
+		assert_equal(palette.configure(HASH, 1, PackedInt32Array([1]), values, PackedFloat32Array([value])),
+			&"UNDERGROUND_PALETTE_GROUNDING_NONFINITE", "bad common root refuses")
+	assert_equal(Actor.Palette._grounding_error(1, Actor.MAX_SCALARS, PackedFloat32Array([0])),
+		&"UNDERGROUND_PALETTE_GROUNDING_FORMAT", "same total scalar budget, tested without huge allocation")
+	assert_equal(palette.frame_count(), 0, "no source partially published")
+	assert_equal(palette.configure(HASH, 1, PackedInt32Array([1]), values, PackedFloat32Array([0.25])), &"", "valid retry")
+
+
+func test_native_common_translation_moves_body_and_attachment_without_changing_skin_matrices() -> void:
+	"""Real native parts receive one post-skin transform; dummy headless rendering still refuses."""
+	var values: PackedFloat32Array = _matrix(Transform3D.IDENTITY)
+	values.append_array(_matrix(Transform3D.IDENTITY))
+	var palette: Actor.Palette = Actor.Palette.new()
+	assert_equal(palette.configure(HASH, 1, PackedInt32Array([1, 0]), values, PackedFloat32Array([0.75])), &"", "two actual parts")
+	var actor: Actor = Actor.new()
+	_attach_native(actor)
+	var bounds: AABB = AABB(Vector3(-2, -2, -2), Vector3(4, 4, 4))
+	var code: StringName = actor.configure(palette, [_mesh(true), _mesh(false)], HASH, [bounds, bounds])
+	if DisplayServer.get_name() == "headless":
+		assert_equal(code, &"UNDERGROUND_RENDERER_UNAVAILABLE", "no false native evidence")
+	else:
+		assert_equal(code, &"", "native original parts")
+		assert_equal(actor.apply_pose(PackedInt32Array([0, 0, 0, 0, 0, 0, 0])), &"", "actual common shift")
+		assert_equal(actor.native_matrix(0, 0), Transform3D.IDENTITY, "original bone matrix stays exact")
+		assert_equal((actor.get_child(0) as MeshInstance3D).position.y, 0.75, "body common translation")
+		assert_equal(actor.native_matrix(1, 0).origin.y, 0.75, "attachment identical translation")
+	actor.free()

@@ -305,3 +305,47 @@ arithmetic. `levels-v1/` records exact assets-outside-project clean import,
 and leaks, and **0 GDScript warning(s) in 0 of 2 file(s)**. Six Python compiler
 checks also passed. This verifies the metadata component; continuous profiles,
 contacts, all five connector families and gameplay/save integration remain open.
+
+
+## Common finite grounding transform
+
+The finite underground renderer needs one actual floor root rather than preserving
+a source clip that dips through that floor. Baking therefore records one binary32
+Y offset per frame from the actual deformed body minimum. Body skin matrices and
+attachment/socket matrices remain otherwise unchanged. The offset is applied as
+a common instance translation after skinning, not once inside each bone matrix:
+source weights need not sum exactly to one, so bone-wise translation would give
+different vertices different shifts. Every held item receives the identical
+common translation. No source weight is normalized, no limb is rescaled, and the
+existing surface Actor remains untouched.
+
+The Y sequence uses exactly the same positive fixed time/transition weights as
+the final matrices. Thus each complete output vertex is still a convex combination
+of complete grounded endpoints before bounded native arithmetic error. The finite
+source format versions this additional sequence; original ungrounded records and
+failed proof attempts remain evidence. A numerical residual and visual/native
+checks are still required; a sampled minimum is not asserted to bound another
+animation system. The additional frame scalars count within the existing finite
+palette ceiling, with no increase to that ceiling. Physical contacts will retain
+the complete resulting bounds, including any certified below-root residual.
+
+The renderer's culling AABBs use the MeshInstance's coordinates before its instance
+transform. A skinned part needs the pre-common-translation palette envelope; a
+static item needs its original mesh-local envelope before its complete item
+matrix. The final grounded actor-space physical envelope must not be supplied as
+either culling AABB: the renderer would translate it again. Current generous
+synthetic native culling boxes establish deformation and lifecycle behavior,
+not tight production culling. Production binding must supply these distinct,
+source-derived bounds.
+
+Independent construction-lane review accepted the exact Actor/test/native-probe
+source delta. `matrix-presentation/grounding-v1/` preserves the clean-import
+**14 tests / 113 assertions / 0 failures**, every strict/raw diagnostic and leak
+count zero, and corrected analyzer **0 warnings in 0 of 7 files**. The native
+probe renders a synthetic body with non-unit weights and a static attachment:
+both shift exactly 32 pixels under the same common translation, **8 assertions /
+0 failures**. The separate existing native lifecycle harness reports **140 total
+assertions / 0 failures** including tree exit/re-entry. A rejected analyzer CLI
+invocation and Python module-path invocation are retained beside their corrected
+results. None of these synthetic checks grants a production profile, movement
+permission or complete source-enclosure certificate.

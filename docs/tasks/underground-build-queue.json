@@ -920,7 +920,7 @@
         "docs/decisions/1099-source-bound-solid-work-face.md",
         "godot/scripts/core/underground_final_facts.gd",
         "godot/test/test_underground_final_facts.gd",
-        "docs/decisions/1100-final-actual-source-attestation.md"
+        "docs/decisions/1100-final-underground-source-attestation.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1189,11 +1189,18 @@
           "evidence_path": "docs/validation/evidence/underground-profile-paths-2026-10-03/iteration-3/"
         },
         "final_source_attestation": {
-          "owner": "/root/ug_geometry",
-          "branch": "codex/underground-final-attestation",
-          "scope": "Stateless actual source/claim/actor/Location leaf attestation after public callbacks; no new arrays, epochs, or authoritative fields. Actual unchanged-Space-revision Building/source drift must refuse.",
-          "status": "implementation in progress; no verification claimed",
-          "controls": "256B temporary ceiling proposed within1099 existing2048; source-counted work and census required."
+          "commit": "87ed6d13",
+          "registry_commit": "197418df",
+          "integration_commits": [
+            "e8201222",
+            "4f2512f9"
+          ],
+          "review": "Root independent review accepted exact Owner940c4363ed3e85c48c31f9c00cc3f0bd982ed7310a57e22f8af7d3f62b6584d3, FinalFacts034d743016fa6c2868698ffc88da3a29ef075f7121fbe0616ba63efbfe2fca02 and test6f27530106fb606d63e36a380fbdef4e5a731e2aba6ed53fd20d260ebafa5600.",
+          "tests": "149 test(s),15296 assertion(s),0 failure(s); strict/raw0 unexpected errors/warnings and0 object/resource leaks;0 expected/tolerated. Analyzer0 warnings in3 files.",
+          "evidence": "docs/validation/evidence/underground-final-facts-2026-10-03/",
+          "scope": "Callback-free final actual source/claim/endpoint facts, including256 actual Resident identity test. No production motion or full256-resident performance qualification.",
+          "memory": "No fields/packed buffers; largest logical scalar helper chain248B inside reserved256B; native overhead remains separately obligated.",
+          "integration": "Registry append conflict reconciled by retaining both complete planar-contact and FinalFacts stanzas; source unchanged."
         },
         "claims_paths_integration": {
           "source": "4f44fae6",

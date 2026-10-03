@@ -1,6 +1,6 @@
 # Final actual-source attestation — decision 1100
 
-Frozen three-file source hashes are in `source-sha 256.json`. Final validation
+Frozen three-file source hashes are in `source-sha256.json`. Final validation
 used Godot 4.7.2 on macOS, a fresh `.godot` import, and CI assets-aside conditions
 (no staged `godot/demo/assets` directory was present in this isolated checkout).
 The strict shell gate remains unchanged; only its external copy's repository
@@ -30,7 +30,7 @@ source hashes were rechecked after the analyzer before packaging.
 Reproduce into a new output directory:
 
 ```
-python 3 docs/validation/evidence/underground-final-facts-2026-10-03/reproduce.py --out /tmp/ug 1100-reproduction --port 6211
+python3 docs/validation/evidence/underground-final-facts-2026-10-03/reproduce.py --out /tmp/ug1100-reproduction --port 6211
 ```
 
 Only the caller-created editor/processes are used. The reproducer restores any

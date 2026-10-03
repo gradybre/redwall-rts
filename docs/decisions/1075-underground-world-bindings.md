@@ -300,3 +300,35 @@ assertions / 0 failures, zero strict/raw diagnostics and leaks, and analyzer
 [Raw installation-source evidence](../validation/evidence/underground-ug1075-bindings-2026-10-03/furniture-source/README.md)
 pins the actual source and rejected fixture iteration. Physical placement and
 contact/profile truth remain the real coordinator/bindings owners' responsibility.
+
+## Shared cold-operation boundary
+
+The actual Sites spatial adapter now requests an exact bound cold reservation
+before allocating `ColdCheck`, its snapshot or its plan. Base Bindings refuses.
+Production WorldBindings must use the same actual World-owned decision1072 Budget
+as Locations and all companion readers. It must reserve the simultaneous peak
+before the first copy, extend that same lease before additional companion
+allocations, and keep every charged object inside the admitted lifetime.
+
+Proof-only admission and explicit static-proof refresh release after their
+survey/plan are discarded. Successful START/COMMIT/CANCEL preparation retains the
+token until exact Sites publication or exact discard; refused preparation first
+aborts its owner/companions, then drops the caller's original `ColdCheck`, and
+only then releases. Productive WORK neither acquires a lease nor constructs a
+survey. Foreign discard calls cannot release another prepared transaction.
+
+One transient int token adds **8 logical control bytes**, inside the existing
+binding/control reservation. No packed cache, authoritative or wire fields change.
+A reservation is a finite logical allocation contract, not measured native memory.
+The source review and actual shared-provider composition remain separate gates.
+
+Clean assets-aside import and the unchanged strict runner reported
+`24 test(s), 3010 assertion(s), 0 failure(s)`; both strict/raw diagnostic footers
+reported zero unexpected errors/warnings and object/resource leaks, with zero
+expected/tolerated diagnostics. The analyzer reported
+`0 GDScript warning(s) in 0 of 2 file(s)` under `--max 0`. The regression fixture
+observes survey/plan destruction with weak references, verifies every acquired
+lease releases exactly once, and covers refusal before the first copy. Its
+budget/contact provider is explicitly synthetic; actual World binding is still
+implementation work. Raw logs and source pins are retained under
+`docs/validation/evidence/underground-ug1075-bindings-2026-10-03/cold-operation/`.

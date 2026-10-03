@@ -44,6 +44,18 @@ class Bindings extends Space.Authority:
 		"""Prove the joint owner/cache/cold-input/companion peak fits the composed allocation pack."""
 		return &"SPACE_COMPOSITION_BUDGET_UNBOUND"
 
+	func begin_cold_operation(_owner: Owner, _site: Vector2i, _operation: int, _stage: int) -> int:
+		"""Reserve the actual simultaneous world-owned cold peak before the first survey allocation."""
+		return 0
+
+	func cold_operation_refusal(_token: int) -> StringName:
+		"""Attest the same actual Budget token and all nested companion charges without mutation."""
+		return &"SPACE_COMPOSITION_COLD_UNBOUND"
+
+	func end_cold_operation(_token: int) -> void:
+		"""Release only after every charged survey/plan and retained companion has been discarded."""
+		assert(false, "Unbound geometry cannot hold a cold-operation lease")
+
 	func qualification_revision() -> int:
 		"""Actual static profile, structural and route qualification revision; zero is unavailable."""
 		return 0
@@ -163,6 +175,7 @@ var _cache_row: int = NO_ROW
 var _cache_position: int = NO_ROW
 var _new_cache_row: bool = false
 var _geometry_changed: bool = false
+var _cold_token: int = 0
 var _phase_number: IntMath.IntResult = IntMath.IntResult.new()
 var _operation_number: IntMath.IntResult = IntMath.IntResult.new()
 
@@ -292,16 +305,48 @@ func operation_refusal(origin: Vector3i, operation: int, stage: int, room: Vecto
 	var site: Vector2i = _physical().site_at(origin)
 	if stage == Contract.STAGE_WORK:
 		return _work_refusal(site, operation, room)
-	if _stage != -1 or _owner.has_prepared():
+	if _stage != -1 or _owner.has_prepared() or _cold_token != 0:
 		return &"SPACE_TRANSITION_BUSY"
 	code = _phase_refusal(site, operation, stage)
 	if code != &"":
 		return code
+	return _run_cold_operation(site, operation, stage, room)
+
+
+func _begin_cold(site: Vector2i, operation: int, stage: int) -> StringName:
+	"""Acquire before any ColdCheck copies; a refused reservation leaves no charged objects behind."""
+	if _cold_token != 0:
+		return &"SPACE_TRANSITION_BUSY"
+	_cold_token = _bindings.begin_cold_operation(_owner, site, operation, stage)
+	if _cold_token <= 0:
+		_cold_token = 0
+		return &"SPACE_COLD_RESERVATION_REFUSED"
+	var code: StringName = _bindings.cold_operation_refusal(_cold_token)
+	if code != &"":
+		_release_cold()
+	return code
+
+
+func _release_cold() -> void:
+	"""The caller has already dropped every charged temporary and any retained companion."""
+	if _cold_token > 0:
+		_bindings.end_cold_operation(_cold_token)
+		_cold_token = 0
+
+
+func _run_cold_operation(site: Vector2i, operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Proof-only calls release their survey; successful prepared phases retain the same shared lease."""
+	var code: StringName = _begin_cold(site, operation, stage)
+	if code != &"":
+		return code
 	var check: ColdCheck = ColdCheck.new()
 	code = _cold_refusal(check, site, operation, stage, room)
+	if code == &"" and stage != Contract.STAGE_ADMIT:
+		code = _prepare(check, site, operation, stage, room)
+	check = null
 	if code != &"" or stage == Contract.STAGE_ADMIT:
-		return code
-	return _prepare(check, site, operation, stage, room)
+		_release_cold()
+	return code
 
 
 func _phase_refusal(site: Vector2i, operation: int, stage: int) -> StringName:
@@ -832,7 +877,9 @@ func _final_preflight(check: ColdCheck, site: Vector2i, operation: int, stage: i
 	if _bindings.qualification_revision() != check.qualification_revision \
 			or check.snapshot.revision != _owner.revision() or _next_i64[QUALIFICATION_REVISION] < 1:
 		return &"SPACE_GEOMETRY_STALE"
-	var code: StringName = _context_refusal(_physical().origin_of(site), operation, room)
+	var code: StringName = _bindings.cold_operation_refusal(_cold_token)
+	if code == &"":
+		code = _context_refusal(_physical().origin_of(site), operation, room)
 	if code == &"":
 		code = _phase_refusal(site, operation, stage)
 	if code == &"":
@@ -844,7 +891,7 @@ func _final_preflight(check: ColdCheck, site: Vector2i, operation: int, stage: i
 
 func _failed_prepare(code: StringName) -> StringName:
 	"""Local failure cleans its own scratch even if the caller never invokes the later discard hook."""
-	_discard_prepared()
+	_discard_prepared(false) # The caller's ColdCheck is still alive until _run_cold_operation returns here.
 	return code
 
 
@@ -854,7 +901,7 @@ func discard_transition(origin: Vector3i, operation: int, stage: int, room: Vect
 		_discard_prepared()
 
 
-func _discard_prepared() -> void:
+func _discard_prepared(release_lease: bool = true) -> void:
 	"""Drop transient companions/owner staging and return a reserved unused cache row exactly once."""
 	if _companion_token > 0:
 		_bindings.discard_companions(_companion_token)
@@ -863,6 +910,8 @@ func _discard_prepared() -> void:
 	if _new_cache_row:
 		_heap_push(_cache_row)
 	_reset_candidate()
+	if release_lease:
+		_release_cold()
 
 
 func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
@@ -881,6 +930,7 @@ func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vect
 	elif _cache_row != NO_ROW:
 		_release_cache_row()
 	_reset_candidate()
+	_release_cold()
 
 
 func _candidate_matches(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> bool:
@@ -917,7 +967,7 @@ static func _started_phase(operation: int) -> int:
 
 func invalidate_proofs() -> StringName:
 	"""A completed load or changed qualification pack must explicitly discard all derived old proofs."""
-	if _ready_error != &"" or _stage != -1 or _owner.has_prepared():
+	if _ready_error != &"" or _stage != -1 or _owner.has_prepared() or _cold_token != 0:
 		return &"SPACE_TRANSITION_BUSY"
 	_clear_cache()
 	return &""
@@ -925,14 +975,30 @@ func invalidate_proofs() -> StringName:
 
 func refresh_static_proof(site: Vector2i) -> StringName:
 	"""Cold revalidation recovers funded work after revision/load changes; it publishes no physical state."""
+	if _cold_token != 0:
+		return &"SPACE_TRANSITION_BUSY"
 	var code: StringName = _refresh_context_refusal(site)
 	if code != &"":
 		return code
 	var operation: int = _operation_number.value
 	var room: Vector2i = _physical().room_of(site)
 	var project: Vector2i = _physical().project_of(site)
+	code = _begin_cold(site, operation, Contract.STAGE_WORK)
+	if code != &"":
+		return code
 	var check: ColdCheck = ColdCheck.new()
 	code = _cold_refusal(check, site, operation, Contract.STAGE_WORK, room)
+	if code == &"":
+		code = _refresh_proof_from_check(check, site, operation, room, project)
+	check = null
+	_release_cold()
+	return code
+
+
+func _refresh_proof_from_check(check: ColdCheck, site: Vector2i, operation: int,
+		room: Vector2i, project: Vector2i) -> StringName:
+	"""Replace the bounded proof only after fresh actual identity and retained lease checks."""
+	var code: StringName = _bindings.cold_operation_refusal(_cold_token)
 	if code == &"":
 		code = _refresh_context_refusal(site)
 	if code != &"" or _operation_number.value != operation or _physical().project_of(site) != project \

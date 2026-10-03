@@ -26,6 +26,18 @@ const NULL_REF: Vector2i = Vector2i(-1, 0)
 const ORIGIN: Vector3i = Vector3i.ZERO
 
 
+class ObservedSpace extends Owner:
+	## Read-only fixture observation proves denied cold allocation never calls the snapshot builder.
+	var snapshot_reads: int = 0
+	var last_snapshot: WeakRef = null
+
+	func snapshot_for_site_into(out: Space.Snapshot, sites: Sites, site: Vector2i) -> StringName:
+		"""Observe the real public survey path without changing its exact output or refusal."""
+		snapshot_reads += 1
+		last_snapshot = weakref(out)
+		return super.snapshot_for_site_into(out, sites, site)
+
+
 class SyntheticRoomCommands extends Buildings.SpatialAuthority:
 	## Fixture registration only; no actual movement, service, geometry or paid work permission.
 	var owner: WeakRef = null
@@ -68,6 +80,14 @@ class SyntheticBindings extends Authority.Bindings:
 	var staged_floor: Vector2i = NULL_REF
 	var staged_support: Vector2i = NULL_REF
 	var saw_sealed_candidate: bool = false
+	var cold_denied: bool = false
+	var cold_next: int = 1
+	var cold_active: int = 0
+	var cold_opened: int = 0
+	var cold_closed: int = 0
+	var cold_attestation: StringName = &""
+	var cold_objects_released: bool = true
+	var last_plan: WeakRef = null
 
 	func sources() -> Owner.CoreSources:
 		"""Use the actual reader that owns this fixture's directory and structural facts."""
@@ -77,6 +97,30 @@ class SyntheticBindings extends Authority.Bindings:
 		"""A small explicit fixture allowance; this is not the production joint memory qualification."""
 		return &"" if store == owner and proof_rows <= 8 and cache_bytes + owner.packed_memory_bytes() < 1048576 \
 			else &"SYNTHETIC_BUDGET"
+
+	func begin_cold_operation(store: Owner, _site: Vector2i, _operation: int, _stage: int) -> int:
+		"""Observe one explicit synthetic reservation; production uses the real World-owned Budget."""
+		if cold_denied or cold_active != 0 or store != owner:
+			return 0
+		cold_active = cold_next
+		cold_next += 1
+		cold_opened += 1
+		last_plan = null
+		(owner as ObservedSpace).last_snapshot = null
+		return cold_active
+
+	func cold_operation_refusal(token: int) -> StringName:
+		"""An exact active token is necessary; fault injection can revoke its independent proof."""
+		return cold_attestation if token > 0 and token == cold_active else &"SYNTHETIC_COLD_TOKEN"
+
+	func end_cold_operation(token: int) -> void:
+		"""Weak references prove the adapter releases after its original survey/plan and companions."""
+		assert(token > 0 and token == cold_active, "exact cold release once")
+		var snapshot: WeakRef = (owner as ObservedSpace).last_snapshot
+		cold_objects_released = cold_objects_released and (last_plan == null or last_plan.get_ref() == null) \
+			and (snapshot == null or snapshot.get_ref() == null) and not pending
+		cold_active = 0
+		cold_closed += 1
 
 	func qualification_revision() -> int:
 		"""Fixture-controlled revision deliberately stands in for unavailable production measurements."""
@@ -99,6 +143,7 @@ class SyntheticBindings extends Authority.Bindings:
 			volume_rows_limit: int, out: Space.Plan) -> StringName:
 		"""Synthetic one-metre reach envelopes test exact geometry, never authorize real body dimensions."""
 		cold_reads += 1
+		last_plan = weakref(out)
 		out.owner_ref = room
 		out.owner_revision = owner.source_revision(room)
 		out.expected_revision = owner.revision()
@@ -269,7 +314,7 @@ func _create_room_and_geometry() -> void:
 	_room_commands.registering = false
 	assert_true(_buildings.is_live_room(_room), "real Room")
 	_sources = Owner.CoreSources.new(_buildings.directory(), _buildings, _construction)
-	_owner = Owner.new(_sources)
+	_owner = ObservedSpace.new(_sources)
 	var domain: Space.Domain = Space.Domain.new()
 	assert_equal(domain.configure(_world, Vector3i.ZERO, Vector3i(-4, -4, -4), Vector3i(8, 8, 8),
 		32, 128, 100000), &"", "explicit synthetic domain")
@@ -319,6 +364,7 @@ func _bind_space() -> void:
 
 func after_each() -> void:
 	"""Release shared actual stores and synthetic qualification without ownership cycles."""
+	_assert_cold_released()
 	_bindings.sites = null
 	_sites = null
 	_authority = null
@@ -340,6 +386,13 @@ func after_each() -> void:
 	_tools.clear()
 
 
+func _assert_cold_released() -> void:
+	"""Every completed or refused call must release once, after its charged objects have died."""
+	assert_equal(_bindings.cold_active, 0, "no cold reservation escapes the operation")
+	assert_equal(_bindings.cold_opened, _bindings.cold_closed, "all acquired leases release exactly once")
+	assert_true(_bindings.cold_objects_released, "surveys, plans and companions die before release")
+
+
 func test_unbound_or_foreign_owner_and_unadmitted_capacity_cannot_allocate_proofs() -> void:
 	"""No finite local count or coincident numeric ref grants a real composition budget."""
 	var refused: Authority = Authority.new()
@@ -354,6 +407,57 @@ func test_unbound_or_foreign_owner_and_unadmitted_capacity_cannot_allocate_proof
 	assert_equal(Authority.cold_packed_peak_bytes(64, 8, 128), 16000, "all accepted cold paths bounded")
 	assert_equal(Authority.cold_packed_peak_bytes(65, 8, 64), -1, "capacity relation checked")
 	assert_equal(Authority.cold_packed_peak_bytes(1, 1, 9223372036854775807), -1, "no overflow in estimator")
+
+
+func test_cold_reservation_refuses_before_snapshot_or_plan_allocation() -> void:
+	"""Missing or revoked admission cannot construct even the first complete cold survey."""
+	var observed: ObservedSpace = _owner as ObservedSpace
+	var snapshots: int = observed.snapshot_reads
+	var plans: int = _bindings.cold_reads
+	var before: PackedByteArray = _owner.state_bytes()
+	var base: Authority.Bindings = Authority.Bindings.new()
+	assert_equal(base.begin_cold_operation(_owner, _site, Contract.OP_BRACE, Contract.STAGE_ADMIT), 0,
+		"an unbound provider grants no cold storage")
+	_bindings.cold_denied = true
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		&"SPACE_COLD_RESERVATION_REFUSED", "reserve before allocating")
+	_bindings.cold_denied = false
+	_bindings.cold_attestation = &"SYNTHETIC_COLD_REVOKED"
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		_bindings.cold_attestation, "an issued token still requires exact live attestation")
+	assert_equal(observed.snapshot_reads, snapshots, "no full snapshot builder call")
+	assert_equal(_bindings.cold_reads, plans, "no plan builder call")
+	assert_equal(_owner.state_bytes(), before, "live state is unchanged")
+	_assert_cold_released()
+
+
+func test_cold_proof_only_and_qualification_refusals_release_after_last_copy() -> void:
+	"""ADMIT and a rejected qualification hold the reservation until original survey/plan release."""
+	var opened: int = _bindings.cold_opened
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		&"", "actual exact survey accepts the synthetic qualified approach")
+	_assert_cold_released()
+	_bindings.refusal = &"SYNTHETIC_COLD_PROFILE_REFUSED"
+	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_ADMIT, _room),
+		_bindings.refusal, "late qualification refusal releases the same lease")
+	assert_equal(_bindings.cold_opened, opened + 2, "each cold attempt owns one reservation")
+	_assert_cold_released()
+
+
+func test_cold_refresh_reserves_before_copy_and_work_never_acquires() -> void:
+	"""Funded proof replacement is a cold operation; productive Work stays allocation-free."""
+	var job: int = _start(Contract.OP_BRACE)
+	var snapshots: int = (_owner as ObservedSpace).snapshot_reads
+	var opened: int = _bindings.cold_opened
+	_bindings.cold_denied = true
+	assert_equal(_authority.refresh_static_proof(_site), &"SPACE_COLD_RESERVATION_REFUSED", "refresh needs admission")
+	assert_equal((_owner as ObservedSpace).snapshot_reads, snapshots, "denied refresh never copies geometry")
+	assert_true(_work.tick_solo(job).ok, "existing exact proof continues to permit actual work")
+	assert_equal(_bindings.cold_opened, opened, "productive tick does not acquire cold memory")
+	_bindings.cold_denied = false
+	assert_equal(_authority.refresh_static_proof(_site), &"", "fresh admitted refresh succeeds")
+	assert_equal(_bindings.cold_opened, opened + 1, "only explicit refresh acquired memory")
+	_assert_cold_released()
 
 
 func test_actual_work_cycle_changes_only_the_paid_cube_and_keeps_room_claim() -> void:
@@ -673,13 +777,17 @@ func test_wrong_identity_or_stage_cannot_discard_another_candidate() -> void:
 	_deliver(Contract.OP_BRACE, job)
 	assert_true(_sites.bind_worker(_site).ok, "actual assigned worker")
 	assert_equal(_authority.operation_refusal(ORIGIN, Contract.OP_BRACE, Contract.STAGE_START, _room), &"", "prepare exact")
+	var cold_token: int = _bindings.cold_active
+	assert_true(cold_token > 0, "preparation retains its actual cold reservation")
 	_authority.discard_transition(Vector3i(0, 0, 1024), Contract.OP_BRACE, Contract.STAGE_START, _room)
 	_authority.discard_transition(ORIGIN, Contract.OP_CUT, Contract.STAGE_START, _room)
 	_authority.discard_transition(ORIGIN, Contract.OP_BRACE, Contract.STAGE_START, Vector2i(_room.x, _room.y + 1))
 	assert_true(_owner.has_prepared(), "wrong identities preserve pending candidate")
+	assert_equal(_bindings.cold_active, cold_token, "wrong discard cannot release another lease")
 	assert_equal(_authority.invalidate_proofs(), &"SPACE_TRANSITION_BUSY", "load cannot overlap a physical transition")
 	_authority.discard_transition(ORIGIN, Contract.OP_BRACE, Contract.STAGE_START, _room)
 	assert_false(_owner.has_prepared(), "exact discard releases preparation")
+	_assert_cold_released()
 	assert_equal(_authority.worker_refusal(ORIGIN, Contract.OP_BRACE, _room, _jobs.ref_of(job),
 		Vector2i(_residents.ref_of(_resident).x, _residents.ref_of(_resident).y + 1)),
 		&"SPACE_WORKER_IDENTITY", "stale resident generation cannot qualify")

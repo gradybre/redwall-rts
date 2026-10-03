@@ -1097,3 +1097,16 @@ future-affecting once integrated; no codec assignment is invented here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---:|---|---|:-:|---|---|
 | Cold fixed-piece transforms | -- | -- | -- | Refusal has no plan; unnamed catalog defaults refuse | 3 | -- | Decision 1058. Stateless exact quarter-turn/translation over caller-owned catalog definitions and placement inputs. Output is only a RoomSpace candidate with catalog revision, actual endpoint floors and full target refs. No production catalog defaults, dynamic resizing, occupancy, installation, work, traversal or saved identity is created. Accepted connector identity/geometry and catalog version remain the eventual owning store's persistence obligation. |
+### `godot/scripts/core/excavation_inventory.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Funded project identity, receipt head and reserved output | `_project_slot`, `_project_generation`, `_head`, `_output_slot`, `_output_generation` | 4 | `Construction.CONSTRUCTION_CAPACITY` = 82944 | Slot/head -1; generations 0 | 1 | §6 AUXILIARY_STATE | Decision 1056. Full Construction generation owns consumed material WIP and actual Inventory output reservation; codec/hash composition required before activation. |
+| Reserved output mass | `_output_mass_g` | 8 | `Construction.CONSTRUCTION_CAPACITY` = 82944 | 0 | 1 | §6 AUXILIARY_STATE | Already reserved finite Inventory headroom, never a virtual output buffer. |
+| Receipt free arena and metadata | `_free`, `_r_next`, `_r_item`, `_r_quality`, `_r_provenance`, `_r_recipe` | 4 | `_capacity` runtime | Next -1; unused metadata 0 | 1 | §6 AUXILIARY_STATE | Deterministic fixed SoA receipt pool, no per-input-lot truncation. Free count and capacity are saved control scalars; capacity exhaustion refuses before consumption. |
+| Receipt input quantities and exact ages | `_r_quantity`, `_r_age`, `_r_remainder` | 8 | `_capacity` runtime | 0 | 1 | §6 AUXILIARY_STATE | Actual consumed input metadata for cancellation; not another loose-goods ledger. |
+| Declared cancellation losses | `_lost_milli` | 8 | `Inventory.ITEM_CAPACITY` = 256 | 0 | 1 | §6 AUXILIARY_STATE | Per-item physical conservation account distinct from Inventory's generic source/sink audit. |
+| Staged metadata | `_s_item`, `_s_quality`, `_s_provenance`, `_s_recipe` | 4 | `_capacity` runtime | 0 outside populated prefix | 3 | -- | Cold transaction scratch, overwritten before read. |
+| Staged quantities and ages | `_s_quantity`, `_s_age`, `_s_remainder` | 8 | `_capacity` runtime | 0 outside populated prefix | 3 | -- | Captured before Inventory may retire input lots; becomes authoritative only after commit. |
+| Staged item totals, returns and rounding carries | `_s_totals`, `_s_returned`, `_s_carry` | 8 | `Inventory.ITEM_CAPACITY` = 256 | 0 | 3 | -- | Cleared for each transaction; scratch count and IntResult are transient. |
+| Bound owner references | -- | -- | -- | null | 3 | -- | Construction, Inventory, Reservations and compiled item definitions are world wiring; no production codec or live activation is claimed. |

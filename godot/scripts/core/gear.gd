@@ -34,9 +34,10 @@ extends RefCounted
 ##
 ## The cost of that choice is honest: `_resolve_row()` is a bounded ascending scan, stopping once
 ## it has passed every live row, because the ruling explicitly excludes "later reverse indexes"
-## from this allocator's budget. Gear operations happen at cycle start, cycle completion, repair
-## and manufacture -- never inside a per-tick loop -- and at realistic live counts (the 24 starter
-## tools plus a handful of nets and traps) the scan ends after a couple of dozen comparisons. A
+## from this allocator's budget. Most Gear operations happen at cycle start, cycle completion,
+## repair and manufacture; excavation now performs one combined claim read per productive tick
+## (decision 1056). At the original starter count (24 tools plus a handful of nets and traps)
+## the scan ends after a couple of dozen comparisons. Larger populations need measurement. A
 ## lot-indexed reverse column is a separate, budgeted increment.
 ##
 ## ---------------------------------------------------------------------------------------
@@ -910,6 +911,13 @@ func is_equipment_bound() -> bool:
 	return _inventory != null and _directory_binding != null and _residents != null
 
 
+func equipment_binding_matches(inventory: Inventory, directory: EntityDirectory,
+		residents: Residents) -> bool:
+	"""Compare actual world owners; equal numeric lot/resident references do not prove composition."""
+	return inventory != null and directory != null and residents != null \
+		and _inventory == inventory and _directory_binding == directory and _residents == residents
+
+
 func equipped_count() -> int:
 	"""Number of live gear rows currently equipped by a resident."""
 	return _equipped_count
@@ -1675,6 +1683,22 @@ func is_equipped(lot_ref: Vector2i) -> bool:
 	"""
 	var row: int = _resolve_row(lot_ref)
 	return row != NULL_ROW and _equipped[row] == 1
+
+
+func equipped_work_claim_refusal(lot_ref: Vector2i, owner_ref: Vector2i,
+		job_ref: Vector2i) -> StringName:
+	"""Resolve once, checking full lot/owner/Job generations, equipment and positive durability.
+
+	The caller separately validates Job liveness. No raw Gear row, cached clearance, allocation
+	or mutation escapes; this combines the same four reads required by the excavation gate.
+	"""
+	var row: int = _resolve_row(lot_ref)
+	if row == NULL_ROW or _equipped[row] != 1:
+		return REFUSE_GEAR_CLAIM_MISMATCH
+	if _owner_slot[row] != owner_ref.x or _owner_generation[row] != owner_ref.y \
+			or _claim_job_slot[row] != job_ref.x or _claim_job_generation[row] != job_ref.y:
+		return REFUSE_GEAR_CLAIM_MISMATCH
+	return REFUSE_INSUFFICIENT_DURABILITY if _durability[row] <= 0 else REFUSE_NONE
 
 
 func _wear_model_of_row(row: int) -> int:

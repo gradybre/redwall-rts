@@ -12,6 +12,8 @@ const Catalog := preload("res://scripts/core/catalog.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NO_ROW: int = -1
+## Explicit concurrent-receipt engineering envelope, not a per-room or historical-input limit.
+const MAX_RECEIPT_CAPACITY: int = Reservations.ROW_CAPACITY
 const REFUSE_WIP: StringName = &"EXCAVATION_WIP_STATE"
 const REFUSE_RECEIPTS: StringName = &"CAPACITY_EXCAVATION_RECEIPTS"
 const REFUSE_INPUTS: StringName = &"EXCAVATION_INPUT_OWNERSHIP"
@@ -22,6 +24,7 @@ var _inventory: Inventory = null
 var _pool: Reservations = null
 var _items: Items = null
 var _capacity: int = 0
+var _ready_error: StringName = REFUSE_RECEIPTS
 var _free_count: int = 0
 var _free: PackedInt32Array = PackedInt32Array()
 var _project_slot: PackedInt32Array = PackedInt32Array()
@@ -61,7 +64,10 @@ func _init(construction: Construction, inventory: Inventory, pool: Reservations,
 	_inventory = inventory
 	_pool = pool
 	_items = items
-	_capacity = maxi(0, receipt_capacity)
+	_capacity = clampi(receipt_capacity, 0, MAX_RECEIPT_CAPACITY)
+	if not valid_receipt_budget(receipt_capacity, pool):
+		return
+	_ready_error = &""
 	_free_count = _capacity
 	_allocate_projects()
 	_allocate_receipts()
@@ -69,6 +75,17 @@ func _init(construction: Construction, inventory: Inventory, pool: Reservations,
 	_lost_milli.resize(Inventory.ITEM_CAPACITY)
 	for row: int in _capacity:
 		_free[row] = _capacity - row - 1
+
+
+static func valid_receipt_budget(requested: int, pool: Reservations) -> bool:
+	"""Refuse invalid or oversized configuration before allocation; never silently truncate inputs."""
+	return pool != null and requested > 0 and requested <= MAX_RECEIPT_CAPACITY \
+		and requested <= pool.row_capacity()
+
+
+func initialization_refusal() -> StringName:
+	"""Report refused capacity explicitly; callers cannot mistake empty storage for funded work."""
+	return _ready_error
 
 
 func _allocate_projects() -> void:
@@ -105,6 +122,8 @@ func _allocate_scratch() -> void:
 
 func is_funded(project: Vector2i) -> bool:
 	"""Only the exact live Construction generation can own retained material WIP."""
+	if _ready_error != &"":
+		return false
 	var row: int = _project_row(project)
 	return row != NO_ROW and _project_slot[row] == project.x and _project_generation[row] == project.y
 
@@ -132,11 +151,11 @@ func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 
 func _start_refusal(project: Vector2i, job: Vector2i) -> StringName:
 	"""Do not publish receipts against a wrong phase, reused owner, or external transaction."""
+	if _ready_error != &"":
+		return REFUSE_RECEIPTS
 	var authority: Contract = _construction.excavation_authority()
 	if authority == null or authority.mutation_refusal(project, Contract.ACTION_WIP) != &"":
 		return Construction.REFUSE_COORDINATOR_ONLY
-	if _capacity <= 0:
-		return REFUSE_RECEIPTS
 	if _inventory.is_transaction_open():
 		return Inventory.REFUSE_TRANSACTION_OPEN
 	if _project_row(project) == NO_ROW or _operation(project) < 0 or is_funded(project):
@@ -501,7 +520,7 @@ func _clear_receipt(row: int) -> void:
 
 func cancellation_loss_milli(item: int) -> int:
 	"""Physical per-item loss, independent of generic Inventory source/sink bookkeeping."""
-	return _lost_milli[item] if item >= 0 and item < Inventory.ITEM_CAPACITY else 0
+	return _lost_milli[item] if item >= 0 and item < _lost_milli.size() else 0
 
 
 func total_wip_milli(item: int) -> int:

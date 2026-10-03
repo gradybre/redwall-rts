@@ -1,0 +1,1 @@
+state_registry_coverage: PASS -- 96 modules, 465 rows, 808 packed columns checked

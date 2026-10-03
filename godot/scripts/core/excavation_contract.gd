@@ -31,6 +31,7 @@ const STAGE_ADMIT: int = 0
 const STAGE_START: int = 1
 const STAGE_COMMIT: int = 2
 const STAGE_CANCEL: int = 3
+const STAGE_WORK: int = 4
 
 class Domain extends RefCounted:
 	## Whole-world immutable lattice descriptor, supplied by an actual geometry owner.
@@ -55,7 +56,7 @@ class SpatialAuthority extends RefCounted:
 
 	func operation_refusal(_origin_u: Vector3i, _operation: int, _stage: int,
 			_room: Vector2i) -> StringName:
-		"""Prove dry/support/occupancy/escape and phase-specific contact/topology prerequisites."""
+		"""ADMIT/WORK prove only; START/COMMIT/CANCEL may stage a finite no-fail publication."""
 		return &"EXCAVATION_SPATIAL_UNBOUND"
 
 	func material_refusal(_origin_u: Vector3i, _room: Vector2i,
@@ -72,6 +73,11 @@ class SpatialAuthority extends RefCounted:
 			_job: Vector2i, _worker: Vector2i) -> StringName:
 		"""Prove the live worker's legal route/work contact from the actual movement owner."""
 		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func discard_transition(_origin_u: Vector3i, _operation: int, _stage: int,
+			_room: Vector2i) -> void:
+		"""Drop only operation scratch after refusal; never release lasting phase/contact ownership."""
+		assert(false, "Unbound geometry cannot own a prepared transition")
 
 	func publish_transition(_origin_u: Vector3i, _operation: int, _stage: int,
 			_room: Vector2i) -> void:

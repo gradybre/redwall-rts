@@ -574,3 +574,19 @@ func test_backfill_second_salvage_output_failure_rolls_back_first_and_all_wip() 
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"wood")), 125, "exact half wood salvage")
 	assert_equal(_inventory.total_live_milli(_items.compiled_id(&"stone")), 125, "exact half stone salvage")
 	_sound()
+
+
+func test_receipt_configuration_refuses_huge_or_pool_exceeding_budget_before_allocation() -> void:
+	"""The existing reservation envelope bounds allocation without silently truncating requested WIP."""
+	var phase: Vector2i = _paid_phase(Contract.OP_BRACE)
+	for requested: int in [-1, 0, Funding.MAX_RECEIPT_CAPACITY + 1, 9223372036854775807]:
+		var refused: Funding = Funding.new(_construction, _inventory, _pool, _items, requested)
+		assert_equal(refused.initialization_refusal(), Funding.REFUSE_RECEIPTS, "invalid engineering budget refuses")
+		assert_equal(refused.state_bytes().size(), 16, "only fixed scalar image exists; no packed arena allocated")
+		assert_false(refused.is_funded(phase), "refused configuration cannot own a paid project")
+		assert_equal(refused.consume_to_wip(phase, JOB, 0, NULL_REF).error,
+			Funding.REFUSE_RECEIPTS, "no fallback to a truncated usable budget")
+	var small_pool: Reservations = Reservations.new(4)
+	var small_refusal: Funding = Funding.new(_construction, _inventory, small_pool, _items, 5)
+	assert_equal(small_refusal.initialization_refusal(), Funding.REFUSE_RECEIPTS, "actual smaller reservation owner also bounds receipts")
+	assert_equal(small_refusal.state_bytes().size(), 16, "smaller-owner refusal precedes all packed allocation")

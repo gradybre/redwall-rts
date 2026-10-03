@@ -1,0 +1,19 @@
+{
+  "branch": "codex/underground-construction",
+  "reviewed_files": {
+    "godot/scripts/core/excavation_sites.gd": "41020ce8597374f0297835d40f2c7d7ac769ff4c5e1dc3112d204b0d1bfea0b5",
+    "godot/scripts/core/excavation_contract.gd": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+    "godot/scripts/core/excavation_inventory.gd": "f64f0da1e5f975aa78dfaa82b0bc625a47a18fa3e2edfa658e41fdb24b0e6ef6",
+    "godot/scripts/core/construction.gd": "e48c66184f168b6ad99939fc95f758813ddd6d62d40e4887458089376fbc8b8a",
+    "godot/scripts/core/work.gd": "a6ba8228dba7436aa9abf25f51279f379cc8747ab52f0589f57fe966b3e91360",
+    "godot/scripts/core/gear.gd": "ee39ba5584f807300703cc1166aceb43b353f676a1829ecc381e41fce5d213d8",
+    "godot/scripts/core/item_definitions.gd": "e824b4f2c00278c6ce3460728bb327d1e6b960bd5416e6b4ea3676a6cb958571",
+    "godot/scripts/core/reservations.gd": "5a90d48ed7ae32416aa35a7a03ca398f82144aa0054324e83ea95edde7932121",
+    "godot/scripts/core/save_reservations_restore.gd": "b1dd3970fe08f145a37f335d731b269a400fed89a7b42aa3b4d22e3673f9f9bf",
+    "godot/test/test_excavation_physical.gd": "56cec04d8d24bb7efa3d6d12e2274da8432c6cc5d4bbfba1c5460defc27959a2",
+    "godot/test/test_excavation_sites.gd": "988db9252191cda4ed33e8b8142187f4f0f2540115774ed2b4e00903c2871e38",
+    "godot/test/test_gear.gd": "43bace053f76518053fb2ace5719b2081cd0558013ba30945773ad414c39ca12",
+    "godot/test/test_item_definitions.gd": "813a28eba9ba143be6f8e1f1a0bdc7b3af8db93420e08dce1ac329b0f35e4f3f",
+    "godot/test/test_reservations.gd": "ecc2b01dd6bbde23e01267acd4b57064f512e0629344bf269ad943fc9b7b1404"
+  }
+}

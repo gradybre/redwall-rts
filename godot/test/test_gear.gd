@@ -1515,3 +1515,37 @@ func test_accrual_can_break_a_tool_without_giving_the_claim_back() -> void:
 	assert_true(_wear.broke, "and reporting the shortfall rather than a clean debit")
 	assert_true(_store.is_claimed(tool), "the claim is still the job's to release")
 	assert_true(_store.cancel_claim(tool, JOB_A).ok, "and cancelling it works normally")
+
+
+func test_combined_equipped_work_claim_checks_every_full_identity_without_mutation() -> void:
+	"""The one-scan productive proof rejects each stale generation while retaining exact ownership."""
+	_bind_residents()
+	var owner: Vector2i = _resident()
+	var tool: Vector2i = _gear(&"tool")
+	assert_true(_store.equip(tool, owner).ok, "actual tool equips")
+	assert_true(_store.claim_for_job(tool, JOB_A).ok, "actual Job claims tool")
+	var before: PackedByteArray = _store.state_bytes()
+	assert_equal(_store.equipped_work_claim_refusal(tool, owner, JOB_A), &"", "current relation qualifies")
+	assert_equal(_store.equipped_work_claim_refusal(Vector2i(tool.x, tool.y + 1), owner, JOB_A),
+		GearScript.REFUSE_GEAR_CLAIM_MISMATCH, "stale lot generation refuses")
+	assert_equal(_store.equipped_work_claim_refusal(tool, Vector2i(owner.x, owner.y + 1), JOB_A),
+		GearScript.REFUSE_GEAR_CLAIM_MISMATCH, "stale owner generation refuses")
+	assert_equal(_store.equipped_work_claim_refusal(tool, owner, JOB_A_STALE),
+		GearScript.REFUSE_GEAR_CLAIM_MISMATCH, "stale Job generation refuses")
+	assert_equal(_store.state_bytes(), before, "qualification changes no Gear state")
+	assert_true(_store.accrue_general_wear_into(tool, JOB_A, 10000000, 0, _wear), "actual wear breaks tool")
+	assert_equal(_store.equipped_work_claim_refusal(tool, owner, JOB_A),
+		GearScript.REFUSE_INSUFFICIENT_DURABILITY, "broken claimed tool refuses")
+	assert_true(_store.cancel_claim(tool, JOB_A).ok, "claim cancellation remains legal")
+	assert_equal(_store.equipped_work_claim_refusal(tool, owner, JOB_A),
+		GearScript.REFUSE_GEAR_CLAIM_MISMATCH, "unclaimed equipped gear refuses")
+
+
+func test_equipment_binding_matches_actual_owners_not_equal_numeric_references() -> void:
+	"""Foreign Inventory or Residents with equal row capacities cannot qualify this Gear owner."""
+	_bind_residents()
+	assert_true(_store.equipment_binding_matches(_inv, _residents.directory(), _residents), "exact owners match")
+	assert_false(_store.equipment_binding_matches(InventoryScript.new(8, 256),
+		_residents.directory(), _residents), "different Inventory fails")
+	var other: ResidentsScript = ResidentsScript.new()
+	assert_false(_store.equipment_binding_matches(_inv, other.directory(), other), "different world fails")

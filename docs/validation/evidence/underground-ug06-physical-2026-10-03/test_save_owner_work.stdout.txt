@@ -1,0 +1,33 @@
+state_registry_coverage: PASS -- 96 modules, 463 rows, 808 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_owner_work.gd
+  PASS  test_layout_version_and_null_defaults
+  PASS  test_endpoints_memory_and_retained_unbound_carries
+  PASS  test_every_physical_domain_and_reserved_skill_position
+  PASS  test_eight_zero_argument_and_nine_value_clause_witnesses
+  PASS  test_numeric_upper_limits_and_typed_reference_halves
+  PASS  test_global_gate_precedence_at_opposite_rows
+  PASS  test_all_shapes_and_direct_memory_extent_before_values
+  PASS  test_null_wrong_owner_and_bucket_cardinality
+  PASS  test_public_fractional_release_and_stale_job_history
+  PASS  test_public_broken_tool_binding_remains_valid_history
+CI_SUITE_TIME {"assertions":12786,"failures":0,"suite":"test_save_owner_work.gd","tests":10,"usec":1460930}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 12786 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 12786 assertions, 0 failures.

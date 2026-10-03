@@ -741,10 +741,16 @@ func declared_work_mwu_into(purpose: int, type_id: int, out: IntMath.IntResult) 
 
 func bind_excavation_authority(authority: ExcavationContract) -> OpResult:
 	"""Bind one physical-site owner weakly; one Construction store cannot serve duplicate ledgers."""
-	if authority == null or _excavation_authority != null:
-		return _refuse(ExcavationContract.REFUSE_AUTHORITY)
+	var code: StringName = excavation_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
 	_excavation_authority = weakref(authority)
 	return OpResult.new(true, REFUSE_NONE, 0, NULL_REF)
+
+
+func excavation_binding_refusal(authority: ExcavationContract) -> StringName:
+	"""Read-only preflight for atomic composition with Work; expired bindings still refuse reuse."""
+	return ExcavationContract.REFUSE_AUTHORITY if authority == null or _excavation_authority != null else REFUSE_NONE
 
 
 func excavation_authority() -> ExcavationContract:

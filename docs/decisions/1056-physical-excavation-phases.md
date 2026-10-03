@@ -1,6 +1,6 @@
 # 1056 — Physical excavation owns paid phase projects
 
-Date: 2026-10-02 · Status: Increments A/B1/B2 implemented; concrete physical-site/worker integration in progress
+Date: 2026-10-02 · Status: Paid-cut physical owner independently reviewed and accepted; production geometry/runtime/save and performance qualification remain queued
 
 ## Authority
 
@@ -113,20 +113,189 @@ The independent review found and corrected an unnecessary reachable-refund-conta
 for zero-input phases, and added direct helper output tests rather than relying on a manually
 recreated Inventory sequence. Both findings were independently rechecked as resolved.
 
-## Following increments and integration gates
+## Increments B3/C: physical sites and productive workers
 
-Increment B owns immutable-datum 1024u physical quantum keys, installed support, committed
-virgin-source versus embedded-earth history, current phase/progress and generation-qualified
-project binding. It must perform real Inventory transactions for delivered/WIP materials,
-reserved local spoil output, refunds and coupled backfill/support salvage. Cancellation
-preserves physical progress; restarting a project never creates a new virgin-earth source.
-Increment C binds actual Jobs/Work/Gear contributions with mandatory tools and retains the
-contributing resident's wear/XP remainders. No per-frame demo timer may substitute for it.
+`excavation_sites.gd` is the sole physical quantum history owner. It binds actual shared
+Construction/Jobs/Work owners and validates a real World directory generation. The typed
+spatial adapter supplies the whole world datum, minimum quantum and extent; Sites copies
+those values once. A picked world origin must lie exactly on the 1024u lattice and within
+that extent. It is never rounded or reinterpreted using a tool-local or room-local datum.
+A new room claim, cancelled project or safely retired room reuses the original permanent
+physical key, including retained work, installed support, embedded earth and virgin-source
+history. History rows never evict or recycle into another quantum.
+
+Storage is sparse packed records rather than dense 3D world cells. The caller supplies an
+explicit finite record budget; an in-bounds key that cannot fit refuses before any project
+payment. A binary sorted index maps absolute lattice ranks to permanent record rows; cold
+insertion is O(n), while bound productive work uses direct generation-validated references.
+This technical capacity is not a number-of-rooms or underground-depth rule. Geometry and the
+actual world memory profile remain separate qualification work.
+
+A paid operation is a real BUILD Job, not a timed event. Its requester must name the current
+Construction generation, its remaining work must agree with Construction, and it cannot be
+a coordinator/member or use an unset tool requirement. Actual Job assignment, equipped
+Gear ownership, the Gear Job claim and Work's matching claim must all agree. Each face has
+one registered worker and each room project has at most four. CHILD excavation is refused
+unconditionally under HAZ-001. Other species/life-stage profile and contact qualification
+must come from the real spatial/movement adapter; no adult fallback is provided here.
+
+`record_deliveries` derives delivery deltas from the actual reservation rows and bound
+material container. `begin_phase_work` consumes those claims into WIP and reserves finite
+output before enabling actual Work. Productive Work now checks the live tool gate: missing
+required equipment is no longer implicitly bare-hand work. It also asks Sites to validate
+funding, pause, current support/contact/output proof, worker generation and progress agreement
+before changing WU, XP or durability. After the real Work transaction, a synchronous Work-owned
+publication window lets Sites read the actual accepted Job delta. A manually altered Job
+counter followed by a public callback cannot impersonate that window.
+
+Physical transitions implement brace/cut/finish and the coupled safe-backfill/support-salvage
+operation, including the never-opened solid exception. Material-free cut and finish
+cancellation refund no goods and require no invented refund container. Started material
+phases return the adopted amount, keep physical earned work and require full inputs again.
+That applies even when retained work is already ready: no new tick is needed, but new inputs
+are. Output-blocked completion retains WIP and WORK_DONE. A released worker is not required
+to spend another tick to retry the same ready output. Recutting paid backfill withdraws its
+embedded earth and emits BACKFILL_RECLAIM, never another virgin source.
+
+Earth has the cold identity initial+virgin = Inventory+WIP+embedded+cancellation loss for the
+currently composed owner set. Wood and stone separately account consumed brace funding,
+current WIP, committed returns, cancellation loss, installed support, committed salvage and
+the unrecoverable half of removed support. These identities do not confuse Inventory's generic
+recipe source/sink audit with new geology. The future spoil-tip owner must participate in the
+global earth identity; this implementation does not claim tip preparation/compaction/reclaim.
+
+Pause reaches actual Work immediately through Construction; the Sites pause API additionally
+releases the real worker/tool ownership. Resumption requires real reassignment and tool/contact
+revalidation, preserving input WIP and the contributor's wear/XP carries. Unexpected external
+worker detach or stale owner generations are diagnosed, not silently overwritten. Before
+refund/output retirement, an event-driven scan checks all 8192 Jobs for late requester links;
+no matching Job or its claims can be orphaned by closing a project.
+
+## Allocation, load and performance envelope
+
+The receipt request must be positive, no larger than the actual Reservations owner's
+row capacity, and no larger than the existing global `Reservations.ROW_CAPACITY = 32768`.
+Invalid requests refuse before any packed allocation. This bounds concurrent consumed-input
+metadata, not all historical deliveries or the size of a room. Exhausted receipt capacity
+refuses payment; it never truncates claims or refunds. Its canonical free-stack permutation,
+free count and allocated capacity affect the next receipt allocation and must be preserved.
+
+Sites receives a caller-selected history capacity within a separate **8388608-byte packed
+arena ceiling**, including its fixed indexes and scratch and excluding separately counted
+Funding. This is an engineering allocation/refusal envelope, not a production default or
+an authored room/level limit. No history eviction permits another virgin-source event.
+One record costs 113 packed bytes and the fixed arena costs 36880 bytes, so:
+`MAX_SITE_CAPACITY = floor((8388608 - 36880) / 113) = 73909`.
+That maximum allocates 8388597 bytes, 11 bytes below the ceiling. Both the original request
+and the copied world domain are validated; a larger request never silently becomes a usable
+smaller owner. Budgets and both Construction/Work binding preflights run before allocation
+or either one-time binding, preventing a refused initializer from stranding the other owner.
+
+For requested site capacity S and receipt capacity R, the exact packed accounting is:
+
+| Owner and category | Bytes |
+|---|---:|
+| Sites authoritative columns | 101*S +4096 |
+| Sites derived sorted-key and Job indexes | 12*S +32768 |
+| Sites transaction scratch | 16 |
+| Funding authoritative columns | 2324480 +48*R |
+| Funding transaction scratch | 6144 +40*R |
+| Combined actual packed backing | 2367504 +113*S +88*R |
+
+At S=256 and R=512 this is 2441488 actual packed bytes. The diagnostic local state image measures
+2415024 bytes because it excludes transaction scratch, includes derived indexes, and adds
+160 bytes of Sites scalar image plus 16 bytes of Funding scalar image. Object/Variant headers,
+collaborator stores and allocator overhead are not packed-byte measurements. At both allocation
+maxima the combined packed backing is 13602805 bytes. The derived `_earned_capacity`
+cache adds one 8-byte numeric scalar outside packed columns and is not independently saved;
+it is recomputed as five operations times the admitted history capacity. This maximum is not permission to exceed
+the composed world's memory budget alongside other underground owners.
+
+No physical restore candidate or production decoder is implemented here: additional restore
+staging is presently zero implemented bytes, not a claim that a future loader needs none.
+UG16 must budget live plus staged columns, allocator/free-list validation, derived-index rebuild,
+codec buffers and whole-world reconciliation before save activation. The local `state_bytes`
+is a cold diagnostic allocation and is not the loader. Sites' domain/capacity/count, physical
+history and conservation scalars remain required even with no active paid phase. Its sorted
+key and Job indexes can rebuild; registered worker generations are authoritative. Funding
+requires all project/output references, receipt chain metadata, losses, capacity/free count,
+and free-stack order. Synchronous permission/publication candidates and math scratch are not
+future state and must be absent at capture.
+
+The initial measured paid Work batch for 256 actual working residents was 13878 microseconds
+mean; the same real resident/Job/equipped-tool fixture without excavation was 2364 microseconds.
+Both paths use required general tools and actual WU, XP and wear carries. Assertions are outside
+the measured interval. Attribution identified four repeated Gear `_resolve_row` scans inside
+the original worker gate: its 256-worker cost was about 6596 microseconds. The combined
+`Gear.equipped_work_claim_refusal` reads the same full lot, owner and Job generations, equipped
+flag and positive durability after one row resolution, adding no persistent state or raw handle.
+It preserves Sites' existing stale-claim versus broken-tool refusal mapping.
+
+With that change the instrumented 256-worker batch measured 10378 microseconds mean
+(maximum 10478), versus 2366 microseconds mean for the same equipped-tool Work baseline.
+The separately measured worker gate fell to 2576 microseconds; bound owner/identity checks
+were 1275, synthetic space qualification 310, zero-output brace checks 88, and the complete
+productive preflight 3039 microseconds. Actual Work-stage attribution measured 6505
+microseconds in excavation preflight, 1202 in paid progress publication and 504 in Work's
+accepted-work commit; these figures are diagnostic, not additive independent proofs of the
+total. Synthetic geometry callbacks contain only constant-time scalar/range checks.
+
+This still exceeds the **2 ms whole-tick target**, before real 3D qualification. No performance
+closure is claimed. The bound spatial owner must supply safe revision-bound qualification
+without per-tick geometry allocation, and further profiling/index qualification remains
+required. A Gear reverse index is explicitly outside this increment and needs its own memory
+ledger/decision. Cold cancellation scans the full 8192-Job domain; its roughly 3.9 ms cost is
+an event-driven lifecycle operation, never a per-frame UI query or an unbudgeted 256-project
+completion burst.
+
+## Actual world-owner wiring
+
+Numerically identical EntityRefs and lot references in separate worlds do not prove shared
+ownership. Sites now preflights the actual Construction/Jobs/Work directory relation, Gear's
+Inventory/Directory/Residents binding, the catalog's last successful Inventory registration,
+and Reservations' Inventory binding before allocating paid state or binding any owner. The
+same constant-time composition checks run again on every bound phase mutation and productive
+work tick, so later generic Work/Gear or catalog rewiring cannot redirect excavation.
+
+ItemDefinitions retains a weak reference to its last successfully registered Inventory. Failed
+loads, including a null target, preserve that reference; a later explicit successful registration
+into another Inventory remains supported and causes an existing Sites composition to refuse.
+This is derived world wiring, not a new catalog value or serialized pointer.
+
+Reservations records its exact Inventory after a successful first claim, actual committed
+Inventory operation, explicit empty-pool composition, or Inventory-aware column restore.
+Failed claims/imports publish no binding. Every later Inventory-taking claim, consumption,
+release, carry or import checks the exact owner before mutation, even when foreign numeric refs
+and reserved totals coincide. Emptying a pool or calling its teardown `clear()` preserves the
+binding; another world needs a new pool. An expired weak owner refuses reuse.
+
+The optional Inventory argument to `restore_reservation_columns` preserves existing pure-column
+fixtures. Omission retains existing wiring; an unbound nonempty import cannot compose with
+Sites. Explicit restore may repair malformed old payload but cannot change an already-bound
+world. The production save adapter passes its actual Inventory into that owner restore. UG16
+must reconstruct and validate these owner bindings after loading; pointer addresses are not
+hashed or serialized, and binding alone does not prove whole-world reconciliation.
+
+## Spatial publication and remaining integration gates
+
+The adapter's ADMIT and WORK stages only validate. START, COMMIT and CANCEL may prepare a
+bounded candidate tied to the exact operation, room/quantum identities and current revision.
+Only after actual payment/output/refund succeeds does Sites call the synchronous non-failing
+publication hook. Any refusal after preparation calls `discard_transition`, releasing only
+operation scratch and preserving lasting phase/contact/output leases. Retried settlement
+revalidates and prepares again. No productive tick prepares topology, and an economic cube
+never grants navigation by itself. The adapter must reserve all necessary destination storage
+and topology capacity before attesting that publication cannot fail.
 
 Real dry substrate, support, occupied volumes, legal work contact, output adjacency and safe
-closure routes require UG08's concrete spatial authority. Synthetic owner fixtures exercise
-phase accounting while that lane is built; they are explicitly not registered in the demo.
-The first runtime activation remains UG09 only after those actual bindings exist.
+closure routes require UG08/UG21's concrete owner plus UG09's actual world adapter. These
+synthetic spatial fixtures are never installed in the demo. Room revision handshake wiring
+still must release the permitted actual phase claims and register all child Construction Jobs;
+the existing same-value direct pause-writer limitation is not erased by the Work gate.
+Production movement/profile, geometry, runtime dispatch and versioned save composition remain
+queued gates. After all phase projects retire, Sites still holds future-affecting physical
+history, so its explicit legacy-save refusal must remain wired until UG16 supplies its codec.
+The local state image is test evidence, not a production save/restore format.
 
 ## Validation
 
@@ -172,3 +341,32 @@ Evidence: `/tmp/ug-excavation-b2-current/` and
 The analyzer reports `0 GDScript warning(s) in 0 of 6 file(s)` on dedicated LSP port 6146.
 This verifies Inventory/WIP owner composition; concrete Sites/Work, live geometry and
 production persistence are not asserted by these synthetic spatial fixtures.
+
+
+Increment C final frozen source: after moving demo assets aside if present, deleting the local
+`godot/.godot` cache and running `godot --headless --path godot --editor --quit`, the focused
+strict shell runner reports **417 tests, 52821 assertions, 0 failures** across 14 suites.
+The concrete physical suite is `34 test(s), 22295 assertion(s), 0 failure(s)`; the consumed-WIP
+suite is `25 test(s), 3804 assertion(s), 0 failure(s)`. Existing Construction, paid ledger,
+Work, Gear, catalog, Reservations, carry, column restore, save-owner and demolition-completion
+regressions are included. Every shard reports:
+
+```
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+```
+
+Evidence is in `/tmp/ug-excavation-final-clean/`; the clean import log contains zero
+error/warning lines. Final clean-run instrumentation measured 10336 microseconds mean and
+10696 maximum for 256 paid workers, compared with 2386 mean and 2588 maximum for 256 actual
+equipped-tool workers without Sites. Packed reflection measures Sites 65808 bytes plus Funding
+2375680 bytes, totaling exactly 2441488 bytes at S=256/R=512. The parent integration owns the
+full no-argument suite and canonical/whole-world budget qualification; these focused results
+are not substituted for those gates.
+The final frozen-source analyzer reports `0 GDScript warning(s) in 0 of 14 file(s)` on
+isolated LSP port 6146 (`/tmp/ug-excavation-final-frozen-analyzer.log`). The strict Markdown
+state registry reports `PASS -- 96 modules, 465 rows, 808 packed columns checked`.
+
+The final independent review accepted the frozen 14-file source boundary without a remaining
+blocker. Repository-retained raw logs, source hashes, review scope and the exact focused
+summary are under [UG06 evidence](../validation/evidence/underground-ug06-physical-2026-10-03/README.md).

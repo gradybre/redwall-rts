@@ -1,0 +1,103 @@
+state_registry_coverage: PASS -- 96 modules, 463 rows, 808 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_gear.gd
+  PASS  test_allocator_and_claim_bytes_match_the_ruling
+  PASS  test_eligibility_predicate_is_not_the_gear_category
+  PASS  test_candle_cannot_be_given_a_gear_instance
+  PASS  test_wear_models_are_assigned_per_item
+  PASS  test_cycle_wear_matches_the_gear_table
+  PASS  test_durability_caps_follow_manufacture_and_model
+  PASS  test_iron_manufacture_belongs_to_tool_alone
+  PASS  test_new_gear_starts_at_its_cap_and_unclaimed
+  PASS  test_gear_lot_must_be_indivisible
+  PASS  test_one_lot_carries_at_most_one_instance
+  PASS  test_create_refuses_inside_an_open_inventory_transaction
+  PASS  test_allocates_through_slot_16383
+  PASS  test_full_pool_creation_refuses_atomically
+  PASS  test_lowest_freed_row_is_reused_deterministically
+  PASS  test_no_row_is_published_before_it_is_initialised
+  PASS  test_stale_lot_handle_fails
+  PASS  test_stale_job_handle_fails
+  PASS  test_stale_owner_handle_fails
+  PASS  test_installed_owner_kinds_are_refused_not_guessed
+  PASS  test_two_jobs_cannot_claim_one_gear_object
+  PASS  test_exact_wear_starts_and_one_below_refuses
+  PASS  test_repeated_completion_cannot_double_debit
+  PASS  test_repeated_cancellation_cannot_double_release
+  PASS  test_repair_and_ownership_change_refused_while_claimed
+  PASS  test_outfit_tier2_keeps_identity_but_never_wears
+  PASS  test_a_broken_general_tool_cannot_start_work
+  PASS  test_general_wear_is_one_point_per_ten_work_units
+  PASS  test_general_wear_preserves_its_remainder_across_tasks
+  PASS  test_repeated_general_wear_cannot_double_debit
+  PASS  test_general_wear_floors_at_zero_and_reports_breaking
+  PASS  test_the_two_wear_models_never_cross
+  PASS  test_general_wear_rejects_an_out_of_range_remainder
+  PASS  test_repair_clamps_to_the_basic_general_cap
+  PASS  test_repair_clamps_to_the_iron_general_cap
+  PASS  test_repair_clamps_to_the_fishing_cap
+  PASS  test_repair_is_not_a_durability_reset
+  PASS  test_the_two_repair_recipes_stay_distinct
+  PASS  test_destroy_refuses_while_the_lot_is_still_live
+  PASS  test_destroy_refuses_while_claimed
+  PASS  test_restore_rebuilds_the_free_heap_ascending
+  PASS  test_restore_refuses_an_impossible_row
+  PASS  test_a_row_is_never_published_without_its_identity
+  PASS  test_state_image_is_row_history_independent
+  PASS  test_a_created_gear_row_is_not_equipped_and_keeps_its_container
+  PASS  test_equip_preserves_identity_age_provenance_quantity_and_durability
+  PASS  test_an_equipped_lot_has_a_null_container_and_charges_no_mass
+  PASS  test_unequip_returns_the_same_lot_without_resetting_durability
+  PASS  test_equip_and_unequip_move_the_equipment_mirror_together
+  PASS  test_wear_and_repair_write_through_to_the_equipment_mirror
+  PASS  test_the_mirror_audit_catches_a_hand_written_mirror
+  PASS  test_the_mirror_audit_catches_a_mirror_with_no_equipped_instance
+  PASS  test_a_refused_equip_leaves_every_store_byte_identical
+  PASS  test_an_equip_that_fails_after_the_mirror_write_rolls_all_three_back
+  PASS  test_an_unequip_that_fails_to_shelve_restores_the_equipped_relation
+  PASS  test_equip_and_unequip_refuse_while_a_job_holds_the_claim
+  PASS  test_set_owner_clear_owner_and_destroy_refuse_while_equipped
+  PASS  test_a_dead_owner_stops_attesting_and_the_inventory_audit_reports_the_orphan
+  PASS  test_only_the_general_tool_may_be_equipped
+  PASS  test_equipping_refuses_an_owner_who_is_not_a_live_resident
+  PASS  test_equip_refuses_without_its_bindings
+  PASS  test_unequip_lands_in_a_reserved_destination
+  PASS  test_rebinding_the_equip_collaborators_refuses_while_gear_is_equipped
+  PASS  test_the_starter_allotment_constants_are_the_gdd_numbers
+  PASS  test_seeding_creates_24_tools_with_12_equipped_and_12_stored
+  PASS  test_every_seeded_tool_starts_at_durability_1000
+  PASS  test_starter_seeding_mints_no_outfit_tier2_item
+  PASS  test_seeding_refuses_a_cohort_that_is_not_twelve_residents
+  PASS  test_seeding_refuses_a_repeated_owner
+  PASS  test_a_seeding_that_runs_out_of_container_space_undoes_itself_whole
+  PASS  test_seeding_refuses_whole_when_the_gear_pool_cannot_hold_24
+  PASS  test_owned_but_unequipped_gear_attests_nothing
+  PASS  test_equipping_a_worn_tool_carries_its_wear_with_it
+  PASS  test_accrued_wear_keeps_the_claim_and_applied_wear_releases_it
+  PASS  test_accrual_carries_the_remainder_exactly_as_the_applied_form_does
+  PASS  test_preflight_general_wear_reports_durability_and_writes_nothing
+  PASS  test_preflight_general_wear_refuses_a_wrong_job_and_a_wrong_wear_model
+  PASS  test_accrual_refuses_a_fishing_model_and_an_out_of_range_remainder
+  PASS  test_accrual_can_break_a_tool_without_giving_the_claim_back
+  PASS  test_combined_equipped_work_claim_checks_every_full_identity_without_mutation
+  PASS  test_equipment_binding_matches_actual_owners_not_equal_numeric_references
+CI_SUITE_TIME {"assertions":1139,"failures":0,"suite":"test_gear.gd","tests":80,"usec":5101962}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+80 test(s), 1139 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 80 tests, 1139 assertions, 0 failures.

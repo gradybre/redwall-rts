@@ -1086,3 +1086,14 @@ future-affecting once integrated; no codec assignment is invented here.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---|---|---|---|---|---|
 | Read-only room-purpose and furniture queries | -- | -- | -- | Refused query has no usable ID or palette | 3 | -- | Decision 1059. No module-level packed columns or live room/furniture/project state. One immutable BuildingDefinitions reference; caller-owned cold query records copy existing catalog footprints, bills, purpose compatibility and necessary service prerequisites. Actual room type, construction, installed services, material selections and placement profiles remain their existing owners' state and persistence obligations. |
+### `godot/scripts/core/room_space.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---:|---|---|:-:|---|---|
+| Cold multilevel validation | -- | -- | -- | Refusal has no candidate; owner null is `(-1,0)` | 3 | -- | Decision 1058. Stateless helper with caller-owned immutable domain, versioned packed snapshot/plan/contact records and bounded union-coverage scratch. Volume rows are 48 logical bytes, cuts 16, contact metadata 24 beyond its volume rows, live owners 12. No module-level persistent columns, terrain, reservations, material account, physical history or route publication. Integrating owners must serialize the domain and accepted geometry/content/owner revisions; no codec assignment is invented by this foundation. |
+
+### `godot/scripts/core/room_connectors.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---:|---|---|:-:|---|---|
+| Cold fixed-piece transforms | -- | -- | -- | Refusal has no plan; unnamed catalog defaults refuse | 3 | -- | Decision 1058. Stateless exact quarter-turn/translation over caller-owned catalog definitions and placement inputs. Output is only a RoomSpace candidate with catalog revision, actual endpoint floors and full target refs. No production catalog defaults, dynamic resizing, occupancy, installation, work, traversal or saved identity is created. Accepted connector identity/geometry and catalog version remain the eventual owning store's persistence obligation. |

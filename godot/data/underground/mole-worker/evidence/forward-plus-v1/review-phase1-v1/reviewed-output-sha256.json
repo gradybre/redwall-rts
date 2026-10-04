@@ -1,7 +1,6 @@
 {
-  "docs/decisions/1132-default-forward-plus-profile-qualification.md": "568f8eb5ead188a1a1727840e2e42c7ce301039596358456a2ea8bb0a41a100d",
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/.gdignore": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-  "godot/data/underground/mole-worker/evidence/forward-plus-v1/README.md": "2d18324f1871b2011081857f03bd3fbf8b3e7c783b23ab65b2d0fbe232084a6d",
+  "godot/data/underground/mole-worker/evidence/forward-plus-v1/README.md": "96dafed088c9d09cd682bc19e09ef8d39dd5775314a32f2a61ba418964eef6de",
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/coefficient-comparison.json": "cab9ac58a79314f05d1f3abca6a90bec301d29de223022a608eef4401ee12003",
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/drivers__metal__metal_device_profile.cpp": "7bbb30fdde53f9fe343b245559687c24533e147b238444df5f4a670e4877c079",
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/drivers__metal__rendering_device_driver_metal.cpp": "3e1332160b0baacbbcb8499e13441564c71336730441aff9d22a39765c35b393",
@@ -50,6 +49,5 @@
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/math-v2/proof.log": "7b3c489552bac8d3b73dd6e00c83a776ac89e229a2acbc4b9fc1295e93e75e0d",
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/math-v2/tests.log": "ea92f34427368a5f1056cc1a84fb960df493ff763c2399e71fba509713b68b2d",
   "godot/data/underground/mole-worker/evidence/forward-plus-v1/precision-source.json": "4eb284dca49c2153b25afcc232b6d0c1042259385e150408778412de94dce89c",
-  "godot/data/underground/mole-worker/evidence/forward-plus-v1/review-phase1-v1/review-acceptance.json": "f1ee77c8e5eaddfe552295f79f46d8e908073e46839a381c5634805a3d26c4d1",
-  "godot/data/underground/mole-worker/evidence/forward-plus-v1/review-phase1-v1/reviewed-output-sha256.json": "aa4e67dceb5c0c3e3d4bee6b8fb0593d45b72582a1b7ec741958d66f32d1ccf1"
+  "docs/decisions/1132-default-forward-plus-profile-qualification.md": "0f505a8757bd0886a25fd039cf5322ef6df96e2cc10240d804c0db8be62f836e"
 }

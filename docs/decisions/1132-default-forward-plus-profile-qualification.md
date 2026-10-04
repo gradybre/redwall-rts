@@ -87,3 +87,10 @@ the analyzer has0warnings in2files and14Python tests pass. Earlier typed-script
 and refusal-expectation failures are retained. Actual Metal source generation
 is clean; runtime Actor, complete numerical/source enclosure and native rendered
 attachment remain the next explicit proof obligations. No production bit changes.
+
+Independent root review accepted the phase-one source/expression checkpoint
+on2026-10-04 after reading all four executable files and exact Apple source,
+rehashing4source/51output pins and rerunning14Python tests. The reviewed output
+manifest is preserved byte-exact before this annotation. This acceptance does
+not close arbitrary optimizer rewrites, source-input/UNORM/model error, complete
+continuous enclosure or runtime/presentation qualification.

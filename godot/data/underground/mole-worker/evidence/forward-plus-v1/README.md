@@ -119,5 +119,11 @@ simulation owner or canonical/save data. The Python proof is offline bounded
 work, not the256-worker tick path. Native allocation/loading peak and actual
 full-client performance remain unmeasured by this packet.
 
-Independent review is pending. Source/table/math evidence remains distinct from
-complete numerical, presentation and gameplay qualification.
+Independent root review accepted this source/expression checkpoint on2026-10-04.
+The reviewer read all four executable sources, verified all four source and51
+output pins, independently reran all14Python tests and independently read the
+exact pinned Apple specification. No high/medium finding remains within this
+scope. `review-phase1-v1/reviewed-output-sha256.json` preserves the byte-exact
+pre-annotation manifest; `review-acceptance.json` records its digest. Raw logs
+and accepted executable sources are unchanged. Source/table/math evidence
+remains distinct from complete numerical, presentation and gameplay qualification.

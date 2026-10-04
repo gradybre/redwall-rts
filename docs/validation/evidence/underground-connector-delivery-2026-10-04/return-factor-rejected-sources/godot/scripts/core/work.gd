@@ -1668,12 +1668,11 @@ func _prepare_handling_numbers(job_slot: int) -> StringName:
 	_capture_handling_inputs(self, job_slot, row)
 	var code: StringName = _compute_factor(row, JobsScript.JOB_KIND_HAUL)
 	if code != &"": return code
-	_party_fraction[14] = _factor_out
 	if _party_fraction[12] <= 0: return REFUSE_NO_WORK_REMAINING
 	if _party_fraction[13] != JOB_STATE_WORK and _party_fraction[13] != JobsScript.JOB_STATE_HAUL_OUTPUT:
 		return REFUSE_JOB_NOT_WORKING
 	@warning_ignore("integer_division")
-	_party_potential[0] = (_party_fraction[10] + BASE_MWU_PER_TICK * _party_fraction[14]) / WORK_FACTOR_DENOMINATOR
+	_party_potential[0] = (_party_fraction[10] + BASE_MWU_PER_TICK * _factor_out) / WORK_FACTOR_DENOMINATOR
 	_party_share[0] = mini(_party_potential[0], _party_fraction[12])
 	@warning_ignore("integer_division")
 	var earned: int = ((_party_fraction[11] + _party_share[0]) / MILLI_WU_PER_WU) * XP_PER_WU
@@ -1740,7 +1739,7 @@ static func _publish_handling_tick(actual: RefCounted, job: int, out: TickResult
 	var accepted: int = actual._party_share[0]
 	var xp_accumulator: int = actual._party_fraction[11] + accepted
 	@warning_ignore("integer_division") var whole: int = xp_accumulator / MILLI_WU_PER_WU
-	actual._potential_remainder[row] = actual._party_fraction[10] + BASE_MWU_PER_TICK * actual._party_fraction[14] \
+	actual._potential_remainder[row] = actual._party_fraction[10] + BASE_MWU_PER_TICK * actual._factor_out \
 		- actual._party_potential[0] * WORK_FACTOR_DENOMINATOR
 	actual._xp_remainder[skill] = xp_accumulator - whole * MILLI_WU_PER_WU
 	actual._residents._skill_xp[skill] = actual._party_fraction[8] + whole * XP_PER_WU

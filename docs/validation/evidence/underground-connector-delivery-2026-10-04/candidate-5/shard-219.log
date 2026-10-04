@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_delivery.gd
+  FAIL  test_actual_capacity_limited_spatial_shipment_uses_haul_output_unload
+        actual supported turn before handling (expected , got ROUTE_TURN_PROFILE)
+        exact synthetic HAUL source (expected , got PROFILE_VARIANT_UNAUTHORED)
+        actual handling Work: CONNECTOR_DELIVERY_HANDLING_SOURCE (expected true, got false)
+        actual HAUL_OUTPUT unload work (expected 2000, got 0)
+        actual guarded unload: CONNECTOR_DELIVERY_JOB (expected true, got false)
+        goods commit completes the Job (expected 5, got 4)
+        existing Planner receipt is cleared (expected false, got true)
+  PASS  test_wrong_owner_binding_refuses_without_allocating_and_valid_retry_binds
+CI_SUITE_TIME {"assertions":541,"failures":1,"suite":"test_underground_connector_delivery.gd","tests":2,"usec":11575268}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+2 test(s), 541 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

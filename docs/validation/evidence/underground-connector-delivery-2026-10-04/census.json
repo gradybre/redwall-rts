@@ -1,0 +1,282 @@
+{
+  "scope": "Declared logical numeric/packed fields only; references, objects, expressions/interpreter/native frames remain unmeasured.",
+  "members": {
+    "_placements": "Placements",
+    "_frontier": "Frontier",
+    "_planner": "Planner",
+    "_provider": "WorldRoutes",
+    "_work": "RefCounted",
+    "_clock": "Clock",
+    "_decision_tick": "int",
+    "_configured": "bool",
+    "_busy": "bool",
+    "_poisoned": "bool",
+    "_work_tick": "bool",
+    "_job": "Vector2i",
+    "_worker": "Vector2i",
+    "_project": "Vector2i",
+    "_placement": "Vector2i",
+    "_source_lot": "Vector2i",
+    "_source_container": "Vector2i",
+    "_destination": "Vector2i",
+    "_source_location": "Vector2i",
+    "_destination_location": "Vector2i",
+    "_action": "int",
+    "_quantity": "int",
+    "_grams": "int",
+    "_expiry": "int",
+    "_geometry_revision": "int",
+    "_frontier_revision": "int",
+    "_location_receipt": "int",
+    "_route_receipt": "int",
+    "_job_remaining": "int",
+    "_job_state": "int",
+    "_claim_row": "int",
+    "_checks": "int",
+    "_order": "Placements.OrderRecord",
+    "_selection": "Profiles.Selection",
+    "_location": "Locations.Record",
+    "_box": "Profiles.Box",
+    "_number": "IntMath.IntResult",
+    "_frame": "PackedInt32Array",
+    "_install": "PackedInt32Array",
+    "_endpoint": "PackedInt32Array",
+    "_bounds": "PackedInt32Array",
+    "_support": "PackedInt32Array",
+    "_remaining": "PackedInt32Array"
+  },
+  "numeric": {
+    "_decision_tick": 8,
+    "_configured": 1,
+    "_busy": 1,
+    "_poisoned": 1,
+    "_work_tick": 1,
+    "_job": 8,
+    "_worker": 8,
+    "_project": 8,
+    "_placement": 8,
+    "_source_lot": 8,
+    "_source_container": 8,
+    "_destination": 8,
+    "_source_location": 8,
+    "_destination_location": 8,
+    "_action": 8,
+    "_quantity": 8,
+    "_grams": 8,
+    "_expiry": 8,
+    "_geometry_revision": 8,
+    "_frontier_revision": 8,
+    "_location_receipt": 8,
+    "_route_receipt": 8,
+    "_job_remaining": 8,
+    "_job_state": 8,
+    "_claim_row": 8,
+    "_checks": 8
+  },
+  "packed": {
+    "_frame": 36,
+    "_install": 36,
+    "_endpoint": 28,
+    "_bounds": 24,
+    "_support": 24,
+    "_remaining": 4
+  },
+  "packets": {
+    "order": 96,
+    "selection": 168,
+    "location": 116,
+    "box": 32,
+    "number": 9
+  },
+  "fixed": 753,
+  "work_new_numeric": 1,
+  "work_new_references": [
+    "_delivery_script",
+    "_spatial_delivery"
+  ],
+  "own_chain": {
+    "bytes": 216,
+    "path": [
+      "unload_payload",
+      "_transfer",
+      "_observe_handling",
+      "_operation_leaf",
+      "_roles_leaf",
+      "_terrain_exclusions",
+      "_terrain_tile",
+      "_terrain_building"
+    ],
+    "frames": {
+      "unload_payload": {
+        "bytes": 8,
+        "fields": [
+          [
+            "job",
+            "Vector2i"
+          ]
+        ]
+      },
+      "_transfer": {
+        "bytes": 24,
+        "fields": [
+          [
+            "job",
+            "Vector2i"
+          ],
+          [
+            "action",
+            "int"
+          ],
+          [
+            "row",
+            "int"
+          ]
+        ]
+      },
+      "_observe_handling": {
+        "bytes": 16,
+        "fields": [
+          [
+            "row",
+            "int"
+          ],
+          [
+            "endpoint",
+            "Vector2i"
+          ]
+        ]
+      },
+      "_operation_leaf": {
+        "bytes": 0,
+        "fields": []
+      },
+      "_roles_leaf": {
+        "bytes": 24,
+        "fields": [
+          [
+            "roles",
+            "int"
+          ],
+          [
+            "ordinal",
+            "int"
+          ],
+          [
+            "required",
+            "int"
+          ]
+        ]
+      },
+      "_terrain_exclusions": {
+        "bytes": 48,
+        "fields": [
+          [
+            "first_x",
+            "int"
+          ],
+          [
+            "last_x",
+            "int"
+          ],
+          [
+            "first_z",
+            "int"
+          ],
+          [
+            "last_z",
+            "int"
+          ],
+          [
+            "z",
+            "int"
+          ],
+          [
+            "x",
+            "int"
+          ]
+        ]
+      },
+      "_terrain_tile": {
+        "bytes": 24,
+        "fields": [
+          [
+            "tile",
+            "int"
+          ],
+          [
+            "kind",
+            "int"
+          ],
+          [
+            "floor_y",
+            "int"
+          ]
+        ]
+      },
+      "_terrain_building": {
+        "bytes": 72,
+        "fields": [
+          [
+            "tile",
+            "int"
+          ],
+          [
+            "ref",
+            "Vector2i"
+          ],
+          [
+            "type_id",
+            "int"
+          ],
+          [
+            "width",
+            "int"
+          ],
+          [
+            "depth",
+            "int"
+          ],
+          [
+            "original",
+            "int"
+          ],
+          [
+            "origin",
+            "int"
+          ],
+          [
+            "dz",
+            "int"
+          ],
+          [
+            "dx",
+            "int"
+          ]
+        ]
+      }
+    }
+  },
+  "work_frames": {
+    "_tick_spatial_handling_into": 16,
+    "_prepare_handling_numbers": 32,
+    "_handling_numbers_leaf": 32,
+    "_publish_handling_tick": 48,
+    "_capture_handling_inputs": 24,
+    "_handling_contributor_leaf": 24,
+    "tick_solo": 9,
+    "tick_solo_into": 8
+  },
+  "coupled_helper_bound": 817,
+  "helper_reservation": 1024,
+  "native_provisional": 2048,
+  "total_admitted": 4096,
+  "payload_and_reservations": 3826,
+  "lower_transfer_packet_counted_in1141": 216,
+  "lower_frame_counted_in1141": 115,
+  "sha256": {
+    "underground_connector_delivery": "335870c7c28d53c8c6b328914f8a7dcb3d5db91ecb2ef3061e118d7f42aa1dc2",
+    "work": "6bd7a29c6398dd1a8f795b40021bcf8602b85f5d51bf99aa9d6a0fb4fe074a6b",
+    "haul_planner": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59"
+  },
+  "runtime_qualified": false
+}

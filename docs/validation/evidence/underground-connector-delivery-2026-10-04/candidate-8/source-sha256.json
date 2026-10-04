@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/underground_connector_delivery.gd": "3aea619a47abc0f65abbdcd34bc89987c7bf72a8c78447ecc46e5c7893bedd9f",
+  "godot/scripts/core/haul_planner.gd": "44d3497ab27088ab0af061b79e8b12c20befc538fd4295c75ce37877eb708f59",
+  "godot/scripts/core/work.gd": "8d061037d5b3ca7d1b195b5e19c4138fdcb8b4e7f521b3219fa14ca7cb6e3c5b",
+  "godot/test/test_underground_connector_delivery.gd": "6f1d01de8b5b2bd0214cd90df9637505205d83bba0149624a8d81ec8f1bcf291",
+  "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
+  "godot/scripts/core/inventory.gd": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55",
+  "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534"
+}

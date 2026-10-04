@@ -1,0 +1,33 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_delivery.gd
+  PASS  test_actual_capacity_limited_spatial_shipment_uses_haul_output_unload
+  PASS  test_wrong_owner_binding_refuses_without_allocating_and_valid_retry_binds
+  PASS  test_final_terrain_observer_cannot_move_worker_then_commit_loading
+  PASS  test_cancel_carried_goods_repost_partial_payload_without_second_load
+  PASS  test_ordinary_terrain_observation_move_refuses_loading_then_exact_retry
+  PASS  test_expiry_equal_to_clock_tick_being_committed_refuses_work_before_sweep
+  PASS  test_real_inventory_observers_refuse_each_staged_transfer_without_payment_or_extra_work
+  PASS  test_inventory_observer_reentry_poisons_original_admission_and_preserves_retry
+  PASS  test_two_actual_shipments_supply_one_paid_static_workpiece_without_extra_wood
+  FAIL  test_productive_observer_cannot_release_original_claim_then_credit_work
+        lost current claim grants no productive work (expected false, got true)
+        no accepted WU after release (expected 2000, got 1920)
+        no fractional or XP remainder credit (expected true, got false)
+CI_SUITE_TIME {"assertions":4086,"failures":1,"suite":"test_underground_connector_delivery.gd","tests":10,"usec":94613896}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 4086 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

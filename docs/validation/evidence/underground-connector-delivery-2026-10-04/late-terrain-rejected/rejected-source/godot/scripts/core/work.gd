@@ -1668,12 +1668,11 @@ func _prepare_handling_numbers(job_slot: int) -> StringName:
 	_capture_handling_inputs(self, job_slot, row)
 	var code: StringName = _compute_factor(row, JobsScript.JOB_KIND_HAUL)
 	if code != &"": return code
-	_party_fraction[14] = _factor_out
 	if _party_fraction[12] <= 0: return REFUSE_NO_WORK_REMAINING
 	if _party_fraction[13] != JOB_STATE_WORK and _party_fraction[13] != JobsScript.JOB_STATE_HAUL_OUTPUT:
 		return REFUSE_JOB_NOT_WORKING
 	@warning_ignore("integer_division")
-	_party_potential[0] = (_party_fraction[10] + BASE_MWU_PER_TICK * _party_fraction[14]) / WORK_FACTOR_DENOMINATOR
+	_party_potential[0] = (_party_fraction[10] + BASE_MWU_PER_TICK * _factor_out) / WORK_FACTOR_DENOMINATOR
 	_party_share[0] = mini(_party_potential[0], _party_fraction[12])
 	@warning_ignore("integer_division")
 	var earned: int = ((_party_fraction[11] + _party_share[0]) / MILLI_WU_PER_WU) * XP_PER_WU
@@ -1698,7 +1697,6 @@ static func _capture_handling_inputs(actual: RefCounted, job: int, row: int) -> 
 static func _handling_numbers_leaf(actual: RefCounted, job: int) -> StringName:
 	"""Reject copied-old rate/progress facts after all contact observations without invoking another reader."""
 	var row: int = actual._party_resident[0]
-	if not _handling_contributor_leaf(actual, job, row): return &"HAUL_WORK_CHANGED"
 	if actual._jobs._job_present[job] != 1 or actual._jobs._kind[job] != JobsScript.JOB_KIND_HAUL \
 			or actual._jobs._remaining_mwu[job] != actual._party_fraction[12] \
 			or actual._jobs._state[job] != actual._party_fraction[13] \
@@ -1718,21 +1716,6 @@ static func _handling_numbers_leaf(actual: RefCounted, job: int) -> StringName:
 	return &""
 
 
-static func _handling_contributor_leaf(actual: RefCounted, job: int, row: int) -> bool:
-	"""The originally calculated contributor must still be the full Job's actual assigned Resident."""
-	if row < 0 or row >= RESIDENT_CAPACITY or actual._residents._present[row] != 1: return false
-	var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
-	var ids: EntityDirectory = actual._directory
-	if worker.x < 0 or worker.x >= EntityDirectory.DIRECTORY_CAPACITY or ids._active[worker.x] != 1 \
-			or ids._generation[worker.x] != worker.y or ids._kind[worker.x] != EntityDirectory.KIND_RESIDENT \
-			or ids._typed_row[worker.x] != row or ids._typed_owner_slot[ids._kind_base[EntityDirectory.KIND_RESIDENT] + row] != worker.x:
-		return false
-	return actual._jobs._worker_slot[job] == worker.x and actual._jobs._worker_generation[job] == worker.y \
-		and actual._jobs._agent_present[row] == 1 and actual._jobs._agent_persistent_id[row] == ids._persistent_id[worker.x] \
-		and actual._jobs._agent_job_slot[row] == actual._jobs._job_ref_slot[job] \
-		and actual._jobs._agent_job_generation[row] == actual._jobs._job_ref_generation[job]
-
-
 static func _publish_handling_tick(actual: RefCounted, job: int, out: TickResult) -> void:
 	"""Publish established integer WU/XP columns only; zero remaining waits for the actual guarded goods transfer."""
 	var row: int = actual._party_resident[0]
@@ -1740,7 +1723,7 @@ static func _publish_handling_tick(actual: RefCounted, job: int, out: TickResult
 	var accepted: int = actual._party_share[0]
 	var xp_accumulator: int = actual._party_fraction[11] + accepted
 	@warning_ignore("integer_division") var whole: int = xp_accumulator / MILLI_WU_PER_WU
-	actual._potential_remainder[row] = actual._party_fraction[10] + BASE_MWU_PER_TICK * actual._party_fraction[14] \
+	actual._potential_remainder[row] = actual._party_fraction[10] + BASE_MWU_PER_TICK * actual._factor_out \
 		- actual._party_potential[0] * WORK_FACTOR_DENOMINATOR
 	actual._xp_remainder[skill] = xp_accumulator - whole * MILLI_WU_PER_WU
 	actual._residents._skill_xp[skill] = actual._party_fraction[8] + whole * XP_PER_WU

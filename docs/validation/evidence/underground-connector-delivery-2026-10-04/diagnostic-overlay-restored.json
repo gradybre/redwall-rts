@@ -1,0 +1,21 @@
+{
+  "restored_before_accepted_cherry_pick": "064f0c0d1b5e71059215b23755a249ea3a066c65",
+  "files": {
+    "godot/scripts/core/haul_transfer_contract.gd": {
+      "dependency": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
+      "original": null
+    },
+    "godot/scripts/core/inventory.gd": {
+      "dependency": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55",
+      "original": "9f0c90374608154dd2ab65b57b6ea93b883fd627a01130a60deb1d50b2c67f34"
+    },
+    "godot/scripts/core/reservations.gd": {
+      "dependency": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
+      "original": "dd30bb3ce6df57c0df9418d1def4787309fa973f6aced30f73573c66706eff54"
+    },
+    "godot/scripts/core/haul_transfer_contract.gd.uid": {
+      "dependency": "b79efd797853588ab0377d8750465123bed968c6a15c20dacefabb8f5bbc4df4",
+      "original": null
+    }
+  }
+}

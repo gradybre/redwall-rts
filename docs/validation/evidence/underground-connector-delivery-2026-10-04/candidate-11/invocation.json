@@ -1,0 +1,85 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.085,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "115/389",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-delivery/docs/validation/evidence/underground-connector-delivery-2026-10-04/candidate-11"
+      ],
+      "exit_code": 0,
+      "seconds": 108.781,
+      "log": "test_underground_connector_delivery.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "165/389",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-delivery/docs/validation/evidence/underground-connector-delivery-2026-10-04/candidate-11"
+      ],
+      "exit_code": 0,
+      "seconds": 3.688,
+      "log": "test_haul_planner.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "85/389",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-delivery/docs/validation/evidence/underground-connector-delivery-2026-10-04/candidate-11"
+      ],
+      "exit_code": 0,
+      "seconds": 4.754,
+      "log": "test_work.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6165",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-delivery/docs/validation/evidence/underground-connector-delivery-2026-10-04/candidate-11/analyzer.json",
+        "godot/scripts/core/underground_connector_delivery.gd",
+        "godot/scripts/core/haul_planner.gd",
+        "godot/scripts/core/work.gd",
+        "godot/test/test_underground_connector_delivery.gd",
+        "godot/test/test_haul_planner.gd",
+        "godot/test/test_work.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.056,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "registry_sha256_before": "3f7d42e8f6916f405061f32ee33fffba399f0f27bf0ed145f72ec30a0ff4b9d6",
+  "diagnostic_registry_appendix_sha256": "556eeb48471413dabe43d82471da953c5adbb0531815d9e3eb95445350df7d4c",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-connector-delivery",
+  "project_test_sha256": "a691aa8ac141fced52dac6c4d425bf4bc1a5b75a8c3580b4089449e7ba9f4a4d",
+  "assets_present_before": false,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

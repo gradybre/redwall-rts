@@ -1325,6 +1325,9 @@ func _observe_workers() -> StringName:
 			if not _fragments.spend(256): return REFUSE_CAPACITY
 			var code: StringName = _placements._profiles._prepare_query(worker, job, Profiles.MODE_WORK,
 				_station[6], -1, NULL_REF, _selection)
+			if code == &"":
+				code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
+					_profile_revision, _frontier._header[5])
 			if code != &"": return code
 		if jobs._is_coordinator[primary] == 0: break
 		row = jobs._member_next[row]
@@ -1570,8 +1573,7 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 			or row < 0 or row >= Routes.RESIDENT_CAPACITY or graph._resident_ref(row) != worker \
 			or graph._resident_pair(Routes.R_JOB_SLOT, row) != job \
 			or graph._resident_pair(Routes.R_LOCATION_SLOT, row) != _station_location \
-			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
-			or graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] != Routes.PHASE_IDLE:
+			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF:
 		return REFUSE_WORKER
 	if _phase_mode and _phase_needs_worker() and (_sites._worker_site[row] != _phase_site.x \
 			or _sites._worker_generation[row] != worker.y):
@@ -1586,7 +1588,9 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 			or graph._resident_pair(Routes.R_SECTION_SLOT, row) != _location.section \
 			or graph._motion.resident[Routes.R_LEVEL * Routes.RESIDENT_CAPACITY + row] != _location.level:
 		return code if code != &"" else REFUSE_WORKER
-	code = _worker_retreat_leaf(worker, job)
+	code = Routes.source_work_leaf_refusal(graph, worker, job, _station[5],
+		_profile_revision, _frontier._header[5])
+	if code == &"": code = _worker_retreat_leaf(worker, job)
 	if code == &"": code = _occupancy_leaf(worker)
 	return _handling_leaf(worker, job) if code == &"" else code
 

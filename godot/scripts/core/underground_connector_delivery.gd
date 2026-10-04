@@ -718,7 +718,7 @@ static func _worker_leaf(a: RefCounted, transfer: Transfer) -> StringName:
 	if code != &"": return code
 	if transfer == null and not Routes._same_selection(a._selection, graph._checked_selection): return REFUSE_HANDLING
 	if graph._resident_ref(row) != a._worker or graph._resident_pair(Routes.R_JOB_SLOT, row) != a._job \
-			or graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] != Routes.PHASE_IDLE \
+			or Routes.actor_phase_in(graph, a._worker) != Routes.PHASE_IDLE \
 			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
 			or graph._motion.resident[Routes.R_HEAD * Routes.RESIDENT_CAPACITY + row] >= 0: return REFUSE_ARRIVAL
 	var endpoint: Vector2i = graph._resident_pair(Routes.R_LOCATION_SLOT, row)

@@ -2016,9 +2016,10 @@
         "entry_structure_1122": {
           "owner": "/root",
           "branch": "codex/underground-entry-admission",
-          "state": "implementation in progress",
+          "state": "independently accepted component; actual phase composition pending",
           "scope": "Actual non-flat EPISODE natural-bearing proof and paid Room-lifetime protection; no invented flat roof or free support",
-          "dependency": "Geometry1121 phase companions, Construction1119 integration fixture; isolated owned new files"
+          "dependency": "Geometry1121 phase companions, Construction1119 integration fixture; isolated owned new files",
+          "source_commit": "7bc87e3f"
         },
         "entry_structure_in_progress": {
           "branch": "codex/underground-entry-admission",
@@ -2027,10 +2028,17 @@
           "tests": "21 tests / 1728 assertions / 0 failures (Entry16/1314 + actual first-prefix5/414)",
           "diagnostics": "Each strict and raw footer: zero unexpected errors/warnings and zero leaks; no expected/tolerated diagnostics",
           "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
-          "memory": "113 Python tests pass; separate384 logical binding bytes, CHECK1048912/1048960; source-branch pack99959638/head40362, runtime_qualified false",
-          "review": "Construction found opposite quarter1/3 transform; corrected and independently-oracled asymmetric episode regression now passes. Remaining independent review and actual1121 composition pending.",
+          "memory": "119 Python tests pass; separately reserved384 logical binding bytes, CHECK1048912/1048960; source-branch pack99959638/head40362, runtime_qualified false",
+          "review": "Construction independently accepted frozen GDScript source/test and complete memory-tool/pack pins after rotation and exact-formula corrections. Actual1121 composition remains pending.",
           "path": "docs/validation/evidence/underground-entry-structure-2026-10-04/candidate-7/",
-          "limits": "Not integrated or accepted yet. Source branch contains1117/1120 guards but pending concrete1121 hooks: retained candidate3 ordinary PhaseStructure19/191 has9failures and2 downstream script aborts from EXCAVATION_SPATIAL_UNBOUND. Candidate4 native import crash retained; candidate5 test tree-depth assumption corrected to actual penetrating stone vein. Ordinary tests and composed paid entry remain required."
+          "limits": "Accepted component, not yet integrated. Quiescent Placement only; real prepared-phase exception and full ordinary regression rerun remain required. Rejected candidate3 ordinary phase failure without1121 hooks and candidate4 native import crash retained. No playable or paid sequence completion claimed.",
+          "source_commit": "7bc87e3f"
+        },
+        "phase_companions_1121_review": {
+          "state": "revision in progress",
+          "reviewer": "/root/ug_construction",
+          "finding": "HIGH: discarding prepared companions cleared their context and could expose still-sealed Authority-owned Space to generic prepayment publication. Geometry is retaining ownership independently in the actual Authority and adding discarded-context publication regressions. Candidate2 is not accepted.",
+          "scope": "Ordinary room component suites passed, but final independent review and composed entry proof remain open."
         }
       },
       "lease": {

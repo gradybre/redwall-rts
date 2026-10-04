@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+"""ADR1142: source-only supported approach/turn/retreat; never a runtime motion grant."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import importlib.util
+import json
+import math
+from pathlib import Path
+import struct
+import sys
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+COMPILER_SHA = "576481ccebff74d8c131e8c646d7ee37a0a4ae541567bede236fd63f257bb34a"
+COMPILER = HERE / "compile_stair_program.py"
+if hashlib.sha256(COMPILER.read_bytes()).hexdigest() != COMPILER_SHA:
+    raise ValueError("HANDOFF_COMPILER_SOURCE")
+SPEC = importlib.util.spec_from_file_location("accepted_stair_tables", COMPILER)
+D = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(D)
+A, M, P, S = D.A, D.M, D.P, D.S
+SPEC = importlib.util.spec_from_file_location("accepted_descent_joints", HERE / "author_stair_descent.py")
+G = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(G)
+ONE, PHASE_FRAMES, MAX_FRAMES = 65536, 30, 256
+ROOT_EQUATION = "fixed_program_root_then_moving_body_basis_v1"
+BASIS = D.ROOT / "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw"
+BASIS_SHA = "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
+MAX_LOCAL_U = 8192
+
+
+def phase_keys(q, frames):
+    P.require(type(frames) is int and 2 <= frames <= MAX_FRAMES and type(q) is int and
+              0 <= q <= (frames-1)*ONE, "HANDOFF_PHASE")
+    return (frames-1, frames-1, 0) if q == (frames-1)*ONE else (q//ONE, q//ONE+1, q % ONE)
+
+
+def phase_root_heading(roots, headings, q):
+    P.require(type(roots) is list and type(headings) is list and len(roots) == len(headings) and
+              all(type(row) is list and len(row) == 3 and all(type(v) is int and abs(v) <= MAX_LOCAL_U
+                  for v in row) for row in roots) and all(type(v) is int and 0 <= v <= 32768
+                  for v in headings), "HANDOFF_ROOT_HEADING")
+    first, last, share = phase_keys(q, len(roots))
+    root = [-(-(a*(ONE-share)+b*share)//ONE) for a, b in zip(roots[first], roots[last])]
+    yaw = -(-(headings[first]*(ONE-share)+headings[last]*share)//ONE)
+    return root, yaw
+
+
+def read_basis():
+    producer = D.ROOT / "tools/bake_underground_world_basis.gd"
+    with BASIS.open("rb") as stream:
+        source = P.envelope.WorldBasisSource(stream, BASIS_SHA, D.sha(producer))
+    raw = BASIS.read_bytes()
+    P.require(len(raw) <= 526336 and hashlib.sha256(raw).hexdigest() == BASIS_SHA, "HANDOFF_BASIS_DRIFT")
+    size = struct.unpack_from("<I", raw, 16)[0]
+    values = np.frombuffer(raw, dtype="<f4", count=131072, offset=20+size).reshape(65536, 2).copy()
+    P.require(values.shape == (65536, 2) and np.isfinite(values).all(), "HANDOFF_BASIS_CENSUS")
+    return values, source.certificate()
+
+
+def basis_matrix(table, yaw):
+    P.require(table.shape == (65536, 2) and type(yaw) is int and 0 <= yaw < 65536, "HANDOFF_YAW")
+    cosine, sine = [float(v) for v in table[yaw]]
+    return np.array([[cosine, 0., sine], [0., 1., 0.], [-sine, 0., cosine]])
+
+
+def proper_heading(table, yaw):
+    """Only the source joint author uses this proper rotation; playback uses the actual nonunit native row."""
+    result = basis_matrix(table, yaw)
+    norm = math.hypot(result[0, 0], result[0, 2])
+    P.require(.99 < norm < 1.01, "HANDOFF_AUTHOR_BASIS")
+    result[np.ix_([0, 2], [0, 2])] /= norm
+    return result
+
+
+def program_points(local_u, root_u, yaw, table):
+    """Root is in the fixed fixture frame: it is never rotated by the moving body heading."""
+    P.require(local_u.ndim == 2 and local_u.shape[1] == 3 and len(root_u) == 3 and
+              np.isfinite(local_u).all(), "HANDOFF_POINT_CENSUS")
+    return local_u @ basis_matrix(table, yaw).T + np.asarray(root_u)
+
+
+def episode_controls(name):
+    """Explicit finite authored stations, not a path planner, adopted speed or support certificate."""
+    if name == "approach":
+        return [[0, 0, z] for z in (-1536, -1664, -1879, -1879)], [0]*4, 0
+    if name == "retreat":
+        return [[0, 0, z] for z in (-1705, -1641, -1536, -1536)], [32768]*4, 0
+    P.require(name == "turn", "HANDOFF_EPISODE")
+    roots = [[0, -128, -2391+29*i] for i in range(7)] + [[0, -128, -2217]]
+    return roots, [round(i*32768/6) for i in range(7)] + [32768], 7
+
+
+def foot_stations(name, roots, headings, actual, table):
+    """Alternate real feet; narrow ankle stations while turning without changing any source geometry."""
+    ankles = [actual[ankle][:3, 3]*1024 for _, _, _, ankle, _ in M.LEGS]
+    current = [program_points(value[None, :], roots[0], headings[0], table)[0] for value in ankles]
+    current_yaw = [headings[0], headings[0]]
+    result = [(np.array(current), list(current_yaw))]
+    for phase in range(len(roots)-1):
+        side = 1-phase % 2
+        local = ankles[side].copy()
+        if name == "turn":
+            local[0] *= 1-.4*math.sin(math.pi*headings[phase+1]/32768)
+        target_root = list(roots[phase+1])
+        if name == "approach" and phase == 0:
+            target_root[2] = -1536-272
+        if name == "retreat" and phase == 0:
+            target_root[2] = -1705+96
+        current[side] = program_points(local[None, :], target_root, headings[phase+1], table)[0]
+        current_yaw[side] = headings[phase+1]
+        result.append((np.array(current), list(current_yaw)))
+    return result
+
+
+def frame_track(frame, controls, headings, stations):
+    phases = len(controls)-1
+    P.require(type(frame) is int and 0 <= frame <= phases*PHASE_FRAMES, "HANDOFF_FRAME")
+    phase = min(phases-1, frame//PHASE_FRAMES)
+    share = (frame-phase*PHASE_FRAMES)/PHASE_FRAMES
+    blend = A.smooth(share)
+    root = [round((1-blend)*a+blend*b) for a, b in zip(controls[phase], controls[phase+1])]
+    yaw = round((1-blend)*headings[phase]+blend*headings[phase+1])
+    feet, angles = stations[phase][0].copy(), list(stations[phase][1])
+    side = 1-phase % 2
+    feet[side] = A.swing(stations[phase][0][side], stations[phase+1][0][side], share)
+    angles[side] = round((1-blend)*stations[phase][1][side]+blend*stations[phase+1][1][side])
+    mask = (1 << (1-side)) if 0 < share < 1 else 3
+    if frame in (0, phases*PHASE_FRAMES):
+        mask = 1  # Exact ready has the right foot slightly raised; no invented second contact.
+    lift = np.zeros(2)
+    nominal = (1-blend)*stations[phase][0][side, 1]+blend*stations[phase+1][0][side, 1]
+    lift[side] = max(0., feet[side, 1]-nominal)
+    return root, yaw, feet, angles, mask, lift
+
+
+def joint_palette(ready, actual, inverse, root, yaw, feet, angles, table):
+    body = basis_matrix(table, yaw)
+    proper = proper_heading(table, yaw)
+    moved, error = [value.copy() for value in actual], 0.
+    for side, (_, hip, knee, ankle, toe) in enumerate(M.LEGS):
+        target = np.linalg.solve(body, (feet[side]-root)/1024)
+        middle = G.guided_knee(actual[hip][:3, 3], actual[knee][:3, 3], actual[ankle][:3, 3], target, 0., side)
+        for bone, start, end, old_start, old_end in ((hip, actual[hip][:3, 3], middle, actual[hip][:3, 3], actual[knee][:3, 3]),
+                (knee, middle, target, actual[knee][:3, 3], actual[ankle][:3, 3])):
+            moved[bone][:3, :3] = A.rotation_between(old_end-old_start, end-start) @ actual[bone][:3, :3]
+            moved[bone][:3, 3] = start
+            error = max(error, abs(float(np.linalg.norm(end-start)-np.linalg.norm(old_end-old_start))))
+        rotation = proper.T @ proper_heading(table, angles[side])
+        moved[ankle][:3, :3], moved[ankle][:3, 3] = rotation @ actual[ankle][:3, :3], target
+        moved[toe][:3, :3] = rotation @ actual[toe][:3, :3]
+        moved[toe][:3, 3] = target+rotation @ (actual[toe][:3, 3]-actual[ankle][:3, 3])
+    palette = ready["matrices"][8].copy()
+    for bone in range(1, 9):
+        transform = moved[bone] @ inverse[bone]
+        palette[bone, :9], palette[bone, 9:] = transform[:3, :3].T.reshape(-1), transform[:3, 3]
+    P.require(error < 1e-10 and np.isfinite(palette).all(), "HANDOFF_LINK_DRIFT")
+    return palette, error
+
+
+def solve_pose(ready, actual, inverse, track, vertices, part, table):
+    root, yaw, feet, angles, mask, lift = track
+    corrected = feet.copy()
+    for iteration in range(A.SOLE_ITERATIONS):
+        palette, error = joint_palette(ready, actual, inverse, np.asarray(root), yaw, corrected, angles, table)
+        points = program_points(A.source_positions(part, palette, ready["grounding"][8]), root, yaw, table)
+        minimum = [float(points[ids, 1].min()) for ids in vertices]
+        desired = [root[1]+lift[side]+(float(A.SOLE_SOURCE_LIFT_U) if mask & (1 << side) else 0.) for side in (0, 1)]
+        residual = np.asarray(desired)-minimum
+        if float(np.abs(residual).max()) <= float(A.SOLE_SOLVE_TOLERANCE_U):
+            return palette, error, iteration+1, minimum
+        corrected[:, 1] += residual
+        P.require(float(np.abs(corrected-feet).max()) < 64, "HANDOFF_SOLE_CAPACITY")
+    raise ValueError("HANDOFF_SOLE_CONVERGENCE")
+
+
+def source_case(name, ready, rig, topology, table):
+    parents, inverse, inverse_inverse = A.A.hierarchy(rig)
+    actual, _, _ = A.A.joints(ready, 8, parents, inverse_inverse)
+    controls, headings, support = episode_controls(name)
+    stations = foot_stations(name, controls, headings, actual, table)
+    frames = (len(controls)-1)*PHASE_FRAMES+1
+    P.require(frames <= MAX_FRAMES, "HANDOFF_FRAME_CAPACITY")
+    part = ready["geometry"][0]
+    vertices = [np.unique(topology[0][0][M.anatomical_foot_triangles(part, topology[0][0], (ankle, toe))])
+                for _, _, _, ankle, toe in M.LEGS]
+    case = dict(ready, id="mole_worker.handoff."+name, frames=frames, source_loop_mode=0,
+                source_duration_s=Fraction(frames-1, 30), duration_q16=(frames-1)*ONE,
+                matrices=np.empty((frames, 25, 12), dtype=np.float32),
+                grounding=np.full(frames, ready["grounding"][8], dtype=np.float32))
+    rows, iterations, maximum_error = [], [], 0.
+    for frame in range(frames):
+        track = frame_track(frame, controls, headings, stations)
+        try:
+            palette, error, count, minimum = solve_pose(ready, actual, inverse, track, vertices, part, table)
+        except ValueError as failure:
+            raise ValueError(str(failure)+"_FRAME_"+str(frame)) from failure
+        case["matrices"][frame] = palette
+        maximum_error = max(maximum_error, error)
+        root, yaw, feet, angles, mask, lift = track
+        rows.append({"root_u": root, "yaw": yaw, "planted_mask": mask, "support_primitive": support,
+                     "ankle_u": feet.tolist(), "foot_yaw": angles, "lift_u": lift.tolist(), "minimum_u": minimum})
+        iterations.append(count)
+    case["matrices"][0] = case["matrices"][-1] = ready["matrices"][8]
+    case["handoff_recipe"] = {"name": name, "root_equation": ROOT_EQUATION, "keys": rows,
+        "controls_u": controls, "heading_controls": headings, "phase_frames": PHASE_FRAMES,
+        "foot_vertex_counts": [len(value) for value in vertices], "sole_solver_iterations": iterations,
+        "max_link_error_m": maximum_error, "endpoint_pose_sha256": D.pose_digest(ready, 8),
+        "source_rule": "original upper body/tool and ankle-toe links; alternating whole-foot source solve with proper local leg rotations"}
+    return case
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "HANDOFF_OUTPUT_EXISTS")
+    records, pins = D.load_inputs()
+    paths = [Path(__file__), Path(G.__file__)]
+    D.add_pins(pins, {str(path.relative_to(D.ROOT)): D.sha(path) for path in paths})
+    cases, parts, rig, topology, roots, sources, historical, boundary = D.actual_source(pins)
+    cases[0]["geometry"] = parts
+    table, basis = read_basis()
+    candidates, attempts = [], []
+    for name in ("approach", "turn", "retreat"):
+        try:
+            case = source_case(name, cases[0], rig, topology, table)
+            candidates.append(case)
+            attempts.append({"status": "SOURCE_CANDIDATE_ONLY", **case["handoff_recipe"]})
+        except ValueError as failure:
+            attempts.append({"name": name, "status": "REFUSED", "error": str(failure)})
+        print(json.dumps({k: attempts[-1][k] for k in ("name", "status", "error") if k in attempts[-1]}), flush=True)
+    command = A.W.read_record(HERE/"analysis-carry-arm-v7/invocation.json")["command"]
+    proof = P.content.read_json(Path(command[command.index("--proof")+1]), command[command.index("--proof-sha256")+1])
+    report = {"schema": 1, "attempts": attempts, "producer_sources": pins, "basis": basis,
+              "source_boundary": boundary, "verified_original_sources": sources, "historical_sources": historical,
+              "root_equation": ROOT_EQUATION, "qualification_bits": 0, "production_qualified": False,
+              "remaining": ["CONTINUOUS_ALL_PRIMITIVES_AND_SUPPORT", "NATIVE_QUALITY", "ACTUAL_PAID_PARTS",
+                            "DEFAULT_BACKEND", "AUTHORITATIVE_PHASE_AND_PACE", "REVIEWED_RUNTIME_RESERVE"]}
+    plan = {"revision": 102, "world_root_bounds_u": roots, "clips": [case["id"] for case in candidates]}
+    raw_report, raw_plan = [(json.dumps(value, indent=2)+"\n").encode() for value in (report, plan)]
+    D.add_pins({}, pins); D.check_current_sources(boundary)
+    args.out.mkdir(parents=True)
+    (args.out/"candidate.json").write_bytes(raw_report); (args.out/"plan.json").write_bytes(raw_plan)
+    (args.out/"author_stair_handoffs.py.txt").write_bytes(Path(__file__).read_bytes())
+    if candidates:
+        image, budget = P.content.encode(candidates, plan, proof, M.COMPACT_SHA,
+                                        hashlib.sha256(raw_report).hexdigest(), hashlib.sha256(raw_plan).hexdigest())
+        (args.out/"mole-worker.ugactor").write_bytes(image)
+        (args.out/"compilation.json").write_text(json.dumps({"content_sha256": hashlib.sha256(image).hexdigest(),
+            "content_bytes": len(image), "presentation_budget": budget, "production_qualified": False}, indent=2)+"\n")
+
+
+if __name__ == "__main__":
+    main()

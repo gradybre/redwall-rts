@@ -1,0 +1,140 @@
+{
+  "candidate5_6": [
+    {
+      "name": "approach",
+      "frames": 91,
+      "exact_f32_palette_grounding_equal": true
+    },
+    {
+      "name": "turn",
+      "frames": 271,
+      "exact_f32_palette_grounding_equal": true
+    },
+    {
+      "name": "retreat",
+      "frames": 91,
+      "exact_f32_palette_grounding_equal": true
+    }
+  ],
+  "original_approach_refusal": "DESCENT_LEG_REACH_FRAME_51",
+  "requested_u": 256.4858597071568,
+  "actual_link_sum_u": 253.52263556278874,
+  "rejected_candidates": [
+    {
+      "candidate": 2,
+      "exit_code": 2,
+      "unresolved": 32,
+      "executed_sources_preserved": true,
+      "source_image_matches": true
+    },
+    {
+      "candidate": 3,
+      "exit_code": 2,
+      "unresolved": 32,
+      "executed_sources_preserved": true,
+      "source_image_matches": true
+    },
+    {
+      "candidate": 4,
+      "exit_code": 2,
+      "unresolved": 32,
+      "executed_sources_preserved": true,
+      "source_image_matches": true
+    }
+  ],
+  "sampled_intrusion_witnesses_not_certificates": [
+    {
+      "interval": 233,
+      "triangle": 6819,
+      "primitive": 0,
+      "share": 49152,
+      "sampled_polygon_mean_u": [
+        189.11536196631997,
+        -57.96736535149171,
+        -2047.9827734974326
+      ]
+    },
+    {
+      "interval": 233,
+      "triangle": 6820,
+      "primitive": 0,
+      "share": 49152,
+      "sampled_polygon_mean_u": [
+        189.118673867328,
+        -57.98308716612706,
+        -2047.9827734974326
+      ]
+    },
+    {
+      "interval": 233,
+      "triangle": 6983,
+      "primitive": 0,
+      "share": 49152,
+      "sampled_polygon_mean_u": [
+        189.11827681533032,
+        -57.95450363408653,
+        -2047.9827734974326
+      ]
+    },
+    {
+      "interval": 233,
+      "triangle": 6997,
+      "primitive": 0,
+      "share": 49152,
+      "sampled_polygon_mean_u": [
+        189.1268848487966,
+        -57.960535829065236,
+        -2047.9827734974326
+      ]
+    },
+    {
+      "interval": 233,
+      "triangle": 6998,
+      "primitive": 0,
+      "share": 49152,
+      "sampled_polygon_mean_u": [
+        189.13152980142465,
+        -57.97331473927698,
+        -2047.9827734974326
+      ]
+    },
+    {
+      "interval": 233,
+      "triangle": 7007,
+      "primitive": 0,
+      "share": 49152,
+      "sampled_polygon_mean_u": [
+        189.12338996504147,
+        -57.985639885912065,
+        -2047.9827734974326
+      ]
+    }
+  ],
+  "coverage": [
+    {
+      "name": "approach",
+      "intervals": 90,
+      "terrain_support_checks": 869,
+      "tool_body_checks": 522,
+      "complete_primitive_and_interval_census": true
+    },
+    {
+      "name": "turn",
+      "intervals": 270,
+      "terrain_support_checks": 3048,
+      "tool_body_checks": 1566,
+      "complete_primitive_and_interval_census": true
+    },
+    {
+      "name": "retreat",
+      "intervals": 90,
+      "terrain_support_checks": 874,
+      "tool_body_checks": 522,
+      "complete_primitive_and_interval_census": true
+    }
+  ],
+  "numeric_bank_bytes": 48548,
+  "numeric_coexistence_bytes": 101368,
+  "manifests_unchanged": true,
+  "engine_or_native_run": false
+}

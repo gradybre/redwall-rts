@@ -1,0 +1,24 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-5/result",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/tool-body-candidate5-approach/result",
+    "--name",
+    "approach",
+    "--kind",
+    "tool-body"
+  ],
+  "exit_code": 0,
+  "seconds": 7.300729274749756,
+  "source_before": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "c5560fd23dbfd346b71b2f07dc33aa0364e8b0fd2f28b21a56d7b7d16273d952",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "3ed8fd04a0fbce5d62c79a9dac96814b358d463a9380f1bf5d8f8275c18323a6"
+  },
+  "source_after": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "c5560fd23dbfd346b71b2f07dc33aa0364e8b0fd2f28b21a56d7b7d16273d952",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "3ed8fd04a0fbce5d62c79a9dac96814b358d463a9380f1bf5d8f8275c18323a6"
+  },
+  "source_unchanged": true
+}

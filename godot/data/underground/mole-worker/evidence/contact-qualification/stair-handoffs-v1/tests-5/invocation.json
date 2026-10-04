@@ -1,0 +1,22 @@
+[
+  {
+    "command": [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-B",
+      "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.11265993118286133,
+    "sha256": "d2a7a8e72a688b172c6935b5e77a99ddfeec7717d9b85d40b4c01d92df7e31e2"
+  },
+  {
+    "command": [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "-B",
+      "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.1634659767150879,
+    "sha256": "3e2a31ed5ac60ac4f3c52b7938eccc94ff34134b5c19ad0e442b18aa471fb6fd"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py"
+  ],
+  "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+  "elapsed_seconds": 0.1774637089110911,
+  "exit_code": 0,
+  "log_sha256": "be23c52c198958daaec4e79b26f3a0fc87c2184160a52a034e6040b00a3d2d97"
+}

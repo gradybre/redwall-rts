@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/summarize_program.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/proof-v1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/column-proposal-v1/result"
+  ],
+  "exit_code": 0,
+  "seconds": 2.825868844985962,
+  "source_before": "ac4d328c7656a74d85aa59126fe4059886fd6a4e9267e99bf6725eb378986e9a",
+  "source_after": "ac4d328c7656a74d85aa59126fe4059886fd6a4e9267e99bf6725eb378986e9a",
+  "source_unchanged": true
+}

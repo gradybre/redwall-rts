@@ -1,0 +1,553 @@
+{
+  "schema": 1,
+  "name": "approach",
+  "proof_kind": "tool-body",
+  "result": {
+    "clear": true,
+    "chunks": [
+      {
+        "first": 0,
+        "last": 31,
+        "clear": true,
+        "unresolved": [],
+        "checks": 174,
+        "floor": [
+          {
+            "kind": "body",
+            "full_bounds_u": [
+              -409,
+              -1,
+              -395,
+              364,
+              840,
+              242
+            ],
+            "floor_intersection_u": [
+              -197,
+              -1,
+              -80,
+              108,
+              0,
+              197
+            ],
+            "native_residual_m": [
+              {
+                "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+                "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+              },
+              {
+                "numerator": 27041000162059753850445069400396516160227176887328496068702094189340225377964195160415,
+                "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+              },
+              {
+                "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+                "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+              }
+            ],
+            "local_padding_q24": [
+              12922,
+              1505,
+              12922
+            ]
+          },
+          {
+            "kind": "attachment",
+            "full_bounds_u": [
+              184,
+              379,
+              -733,
+              548,
+              810,
+              -249
+            ],
+            "floor_intersection_u": null,
+            "native_residual_m": [
+              {
+                "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              },
+              {
+                "numerator": 8216140651323755430392011821568161611987830834560696810619866422719235365981075827927263791816269336534117624810563220612241,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              },
+              {
+                "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              }
+            ],
+            "local_padding_q24": [
+              12765,
+              1393,
+              12765
+            ]
+          }
+        ],
+        "body_triangles": 9761,
+        "tool_triangles": 1150,
+        "intentional_grip_triangles": 448,
+        "pose_corners": 32
+      },
+      {
+        "first": 31,
+        "last": 62,
+        "clear": true,
+        "unresolved": [],
+        "checks": 174,
+        "floor": [
+          {
+            "kind": "body",
+            "full_bounds_u": [
+              -409,
+              -1,
+              -395,
+              364,
+              840,
+              259
+            ],
+            "floor_intersection_u": [
+              -134,
+              -1,
+              -151,
+              172,
+              0,
+              235
+            ],
+            "native_residual_m": [
+              {
+                "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+                "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+              },
+              {
+                "numerator": 27041000162059753850445069400396516160227176887328496068702094189340225377964195160415,
+                "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+              },
+              {
+                "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+                "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+              }
+            ],
+            "local_padding_q24": [
+              12922,
+              1505,
+              12922
+            ]
+          },
+          {
+            "kind": "attachment",
+            "full_bounds_u": [
+              184,
+              379,
+              -733,
+              548,
+              810,
+              -249
+            ],
+            "floor_intersection_u": null,
+            "native_residual_m": [
+              {
+                "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              },
+              {
+                "numerator": 8216140651323755430392011821568161611987830834560696810619866422719235365981075827927263791816269336534117624810563220612241,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              },
+              {
+                "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              }
+            ],
+            "local_padding_q24": [
+              12765,
+              1393,
+              12765
+            ]
+          }
+        ],
+        "body_triangles": 9761,
+        "tool_triangles": 1150,
+        "intentional_grip_triangles": 448,
+        "pose_corners": 32
+      },
+      {
+        "first": 62,
+        "last": 90,
+        "clear": true,
+        "unresolved": [],
+        "checks": 174,
+        "floor": [
+          {
+            "kind": "body",
+            "full_bounds_u": [
+              -409,
+              -1,
+              -395,
+              364,
+              840,
+              247
+            ],
+            "floor_intersection_u": [
+              -134,
+              -1,
+              41,
+              -125,
+              0,
+              61
+            ],
+            "native_residual_m": [
+              {
+                "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+                "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+              },
+              {
+                "numerator": 27041000162059753850445069400396516160227176887328496068702094189340225377964195160415,
+                "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+              },
+              {
+                "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+                "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+              }
+            ],
+            "local_padding_q24": [
+              12922,
+              1505,
+              12922
+            ]
+          },
+          {
+            "kind": "attachment",
+            "full_bounds_u": [
+              184,
+              379,
+              -733,
+              548,
+              810,
+              -249
+            ],
+            "floor_intersection_u": null,
+            "native_residual_m": [
+              {
+                "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              },
+              {
+                "numerator": 8216140651323755430392011821568161611987830834560696810619866422719235365981075827927263791816269336534117624810563220612241,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              },
+              {
+                "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+                "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+              }
+            ],
+            "local_padding_q24": [
+              12765,
+              1393,
+              12765
+            ]
+          }
+        ],
+        "body_triangles": 9761,
+        "tool_triangles": 1150,
+        "intentional_grip_triangles": 448,
+        "pose_corners": 29
+      }
+    ],
+    "checks": 522,
+    "intervals": 90,
+    "inverse_heading_norm": {
+      "numerator": 398065705943040,
+      "denominator": 281474953696313
+    },
+    "production_qualified": false
+  },
+  "source_sha256": "c6c631bb87fae5eb8fcbf03233a0d15cb22f03ddfae1d3c791a9b5c6467bd993",
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/source-inputs.json": "19e70bb13c0bf6e089c504a5d8a343f9638e59a5996d20fe74fde1b9f9832aa8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py": "576481ccebff74d8c131e8c646d7ee37a0a4ae541567bede236fd63f257bb34a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/source-sha256.json": "93597572925d214984f3e015af569c1d8cd631a5f282cf50ae4f20384fe43aac",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/output-sha256.json": "2323432455f6b09a91aefa1ae734dd40c16dc449bc5492d48f5181661c3401b1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/source-sha256.json": "def65c0ee0479e8c9df45e818b86aedceaf6895b13080e4777967bd5a7742a96",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/output-sha256.json": "c02ef973f4807d2f15d07fbae6e9437dc078f5ef42dff3c5dc5abcb7d0a7ca8f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/source-sha256.json": "2880bae71e5a63ad84abbe22599e071f0fa9a1e05a918a1ad5144b6220fdfc64",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/output-sha256.json": "944a0d460732c54a3977d2cd9c253e96aff05e5a93381f6e585f93aa81eb79ca",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/capture_stair_motion.gd": "30ba059c19b75608f3eef01c67780817c1257b4a0b490d63f0f1e1ab5adb339d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/capture_stair_motion.gd.uid": "1e0582858318c48fd46cafbcea8a490fb287f38f6e8d22879d7c407bb1178cae",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_self.py": "0cdc4cf8b69c1b5227fc1b0bacecae47e614203bc94a00324d27e6169f9d89ef",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/reproduce_anatomy.py": "a54dd768db31dcd2e4c2496347bebe926030c23fe830e3c9626c325b216d473f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/run_stair_capture.py": "9289450a8f684e33a2ad06216283a51bd32db2eef47d8a7135f51b114428dd56",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_capture.py": "c9ff03af94d56ccb1a16fa910c9f6a8def159bdbe8ac0e6ec6031b46b5eecca8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_motion.py": "cfc131e410d8eed72bb04396d6e23f3ff918ca428d57d529e834b4be450c6a10",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_rig_assessment.py": "ebad2a624c26eedda2877a2d2417c8a5d64b20ea593c532d1691ea365a0a5222",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_terrain.py": "3275d0403ec9f06159e763c26b8e6ff15987a6958bf3e2815e257ca928e2880f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/.gdignore": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/analyzer.log": "4149412bf2bc9a0c789283f8568f060c85bc89a8abcac221bba1a021b522df15",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/import-cache-restoration.json": "22f5ee10c3225fd3682f5762a44db21b45f8691d6c7772e772721ddfc6a525ad",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/import.log": "3e11136176635812f2f1a52166e84e6bc60f8d749674cd2e7aff1a99f4aa1103",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/invocation.json": "650f750d39aa92ad4668a2588e3f9544f393a755910ed92e64d7c4182976179d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/native.log": "75e3a6af927c2a94bbeaf4dcc49aa49ca555d0b25a9f03affe1a2bbf663c8238",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-000.png": "fece89724d3a9575c0042e861886440e190541f37a8b347220647b138769cf8a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-020.png": "8dc1f8ee213426f8a2797f4572b2785e0e141f7ff591986a2f76e11fa6bca767",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-040.png": "1c8f4fe4993c3bb1071787a77a562297726d90198246645af6b6070f5e8a89f8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-060.png": "9280f1d14e449169234e6acfdaae88c43ccad8c8d10852dd90d24ea184f47acd",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-080.png": "dd315c88de4273471b6b3942f8147501810ff103782c19ef5ec7ba523a1e661b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-100.png": "8d99f9adc5a9d448bf1e8ecc3cb442a0403bdbc1d58f31803d90ef250d170fcc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-120.png": "ed9623aca3bd44bb70335adf61c19ae1a7bb05cb4fe94fa34eb879f7f06ea68d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-140.png": "0433bcd2099a6ab0ad3f437fd180d5af5dfc51aad792cdf33e9a26e2a37f34f3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-160.png": "134630859b5f72e5c8561b66d37941239f5df9b388a59197e095be05a4659104",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step0-180.png": "bde99ca438e2de99d6a9f3ae323629199b22218745b075331402f060f5ca5b5a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-000.png": "b0ebc7befb87a0336ac7febcfca65dbe9ecce0b41ccbd076bfe817b78a749920",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-020.png": "c2e38f238d31e1962342e846e088b73345f9ac89761964f343819c5d4fb1765f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-040.png": "0ef6a8ebadd2ff309971045e3bffeb5eb3cc83e88323a86c56cc96f447d6aafc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-060.png": "a7c3a2364f4cec6a3e8f9552e87b4c7da82b98118f9788119a9896a792974af1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-080.png": "e627a9a86b45ec81def639ca52e5128f883acde31eaa30f21683f4eaa9849be4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-100.png": "f9ac6de23bf22d47c7c69605d61ddfbb289821614065accef1eed72e67b814fc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-120.png": "0e99a436fcc2a0a77a6da2e7d86b1d36146bf3a109a9ee4ee17661abf82ed18b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-140.png": "fbd20a98ff2b85f7077c2c860b9fb80373dacc6e6220a3619d61d53292517b74",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-160.png": "719ee9afec892fca6b672cf74a24fbf5274b312a9d56edf44500dd668afee747",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/opposite-step1-180.png": "f128534071887d52e612eb553b25e6d9a0bd92bbbc2f7ed1bfa989865eeba4c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/pre-import-after.json": "8d722bed2d3055666bb1f810a3d95f7c000bff414ed02e1a451f41e378f24b06",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/pre-import-sources.json": "8d722bed2d3055666bb1f810a3d95f7c000bff414ed02e1a451f41e378f24b06",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/report.json": "19ddfa0efae9faeacee66f9d669680f1aaa6db44e83c6f4c9c321cc69c50cbf9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-000.png": "8e3b2d3a12173d1383fe1cd5f978c94157e1c26291b9d16c68e55086b9b244d8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-020.png": "9e62a1cb5a9faa0d2f5f2e27891bd4dfdedd058479a401ae61adfc38c0eeeead",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-040.png": "1f613688e54dc79146fcf6a00768ec5eed063171d5d72a27e8474bb5914f4418",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-060.png": "65ee89c25158e31420492392b62c7a1184c9765c3078a729594089b5b64ebd15",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-080.png": "178b4e30252d05c70ed4d0d4a24719ef89c6d5899f47819254284c9a6ae447d7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-100.png": "eea6559a5390ee6e79be6b34beaeb9e96025dda39020163fdecf83a68de2b4bf",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-120.png": "99e032dd215fe9d3950788f073e19b170e5293010511d8f2052a0e4582d35508",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-140.png": "51a6d9fe1cbfa5acd7e07b50946c004da05778c73640cb659589ca0699eadfd8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-160.png": "c0113db12a27c13de785199eedcde99634913cd7dbf965b0d885fe0bf4cee5f4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step0-180.png": "798d0b5345d028661eb77e014e3a70bce0ee7f92c7dcd999344f6116f840fe8d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-000.png": "7908a686bd3ed3cdc0267748f2b1f6f52bdbabaaf872afe0fe8fb028abca7774",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-020.png": "15ffd528716e8fe3d50c968b5092043f58fe118e13cfe51996750ead906b4320",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-040.png": "246f1a96af8e814f7bcc3d52129abdcfe1e8d4dbc596d8364cc56174edbeda23",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-060.png": "7cdd5bdb3eb3945cb18993fe85a522dbaafdb67a36dd6b740703f6fe73810f93",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-080.png": "f18a3335d4f9080e9b45ec64f4a44a5270a63014f57771e07283dbc351ba1771",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-100.png": "46568fd7552c15470d1b54ab80ef0dc98488777c32ce5ee22e74df3c005ec18e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-120.png": "5ad01cd2654a3ac2f8a6f1f601a094be1d3414b36d73092cf653afc4947133f9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-140.png": "f8ee9cd1c526b89c0066c557d446f8dd5d91ed83151caf41ec2446104b127db5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-160.png": "bbda13058352a277f4ae9fb5856f45d82802e5b290e153bf24fcb3d13408205b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/rts-step1-180.png": "38c5a1b320162c830d6340827f54a266c31c3ef47b46c09da2e20b6f7a10a7b3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-000.png": "08ea6ac22187b51851d1f704aef2fe9aee783c443897a03269ac29c3fc6bd33b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-020.png": "c60cecc88b09087b947f06efd3cc7455e9561853bf14bcab3829d8f2d6632396",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-040.png": "978ccef0001278591230ff0dfbd3240c3d264eb66d17a3c286bb21b2be2e586e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-060.png": "92ed9cec28da6cf18f46db602d291dd2c64a77b271c27148dcb9a685f7230252",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-080.png": "ff36b0cef75b74c12117392be63968f0148e826728da235306abe284b271401b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-100.png": "4c87e3791d9256287bd27b03c8fa1765afb09ef08dbf69b6ac376df2097d6daf",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-120.png": "1185ee3470426be0cd32a195ececf77527dc5c0e181dd89881da636fc324d05c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-140.png": "a715a23e0a28a1e398f6e9c72bcfc3d4deb82747c84c61710594535fc5e57a4e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-160.png": "312c630671f7127b013637cd1d5b73b9f0d41bde5d6d387c15327c35be80e7b8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step0-180.png": "8b39d05dd5464d27c4c5bd4e8a75a81d2e5008271b4fca7cf11bc6232511f3cd",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-000.png": "4f345108300ecb7f7bc107faf0fcfddf56984112fcb74a88a307e3147ec5d0d6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-020.png": "ba555dddab75a311ef10b156f4ec92243968f20bacaa750d0bebac3601fb7167",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-040.png": "ef22435f67384dd9448aa802e68e8f2d923b2a0a224715cac53e7edc259f8eca",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-060.png": "0770bb48008ff45bd359e344a738b6985834d949e4936175946e6fce77c07e4b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-080.png": "548ec18152a483c359e35794b59e875d8cd64a5de6c47932eaab5fd0650752b5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-100.png": "31acca710c3b7504a0b10f1473e692039ef4ba99153cc125b95b09b5f012459d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-120.png": "94f7fabbbc09136066c79c87b9530d6646cf18473cd4a5787556ce4cb4f372a2",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-140.png": "ae819a0be6d3cc8277c5e78b333555c3afb4eb71979b1d2f994b3818972e9ad9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-160.png": "e2df9254979d9531b0ea90572cd798c530662f236e417dfc8d0bbaab7cef3e05",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/side-step1-180.png": "93d3ee88a1885553a73ae24c751fba94e70906e1c87ffd7d8af044d26db90a26",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/sources-after.json": "1790e84d2e880f2806aa4bb631d6fbaec804dd48166d0485e31c554307e75288",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/sources.json": "1790e84d2e880f2806aa4bb631d6fbaec804dd48166d0485e31c554307e75288",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/spec.json": "e12c86a968e474d8dc29b4d9137ac98b3cc1c31590f702ead012f263165a6f64",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-v2/verification.json": "25115328194b3e61a2930e8aadb1473c029b78d1881f2828baa74785f7297d52",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/anatomy-reproduced.json": "5f37bf63ca5f57e8f542a95c2f5eefe17c1999c36fbbba1662aabba6b6b1c01f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/commands.json": "cd8b41afc20265d3f7a5f836c097dcb289aaea3c79c7efc80e27e659ab91a90e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/setup-rejected.log": "08d1b60ba4e571402b7124fc83824607312709f68d721405d72f79c7afa8653b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/tests.log": "3d7d2c8249c03499b0fb2cec7820720720a0704c4f674699418195fbe8f45b26",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/anatomy-label.json": "5f37bf63ca5f57e8f542a95c2f5eefe17c1999c36fbbba1662aabba6b6b1c01f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/candidate.json": "3f66b788004e971f8291f81b714aedaaaef77185974aae47cf540521508e0334",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/compilation.json": "eebaf6368442b9fc51a567375623186b115a044d19b236b03de685947f6e9108",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/plan.json": "8aa50f9d5bb508bdb2cd6e34d047f73f18a8ae45a784c1b790057aa136251ef4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/self-v1.json": "6ad8b1930aa8f00c120afbe7905da9e3b5b720d26397e04a4b82216cec4f09c3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/self-v1.log": "453501ad4b19a3f170396b5411ad08dce63683c3b637a42ca96cd8d496fb23dd",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v1-producer.py": "b34e573557910e274ecd7b259b0cd34974b6d5875c6b2f31520ff0273c158b90",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v1-tests.py": "e2bb0edd3b82670e5ab83d4a43ada73afe5fc6015f6e83805d072cc811a551b1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v1.json": "e8cdbb9fb52adc2c470dc8c2946cd2d017cb8b11dd87cc29363be1b2ce4195c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v1.log": "004e8487cc67c278b0448ddf0afc1bc422bc8a7458080f63255945118fe5b38a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v2-producer.py": "8331fa19a5c5f52dfe8157a23ab0dbf6d1ba304e294121b602321aadf7f9c065",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v2-tests.py": "58423846ed538a5b98a0c2c57a55381d8a6f2d38fa68377af08794ceb418f209",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v2.json": "ee18dc90ddf6cda25f433604828dd481c7d5a09c43b0596b604c6e504ddcfdb7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v2.log": "004e8487cc67c278b0448ddf0afc1bc422bc8a7458080f63255945118fe5b38a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v3.json": "caef0c5208a06a15d62f63b86a12673179dee929506a527dfac918e1077d9258",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/terrain-v3.log": "004e8487cc67c278b0448ddf0afc1bc422bc8a7458080f63255945118fe5b38a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py": "6a1a5608c87261222c7eab4cb5568467c1770b669d7e825ce3918bd46d6e5bdc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/study_stair_descent.py": "b226524925c0dbc7f4c25ae1b96800567f47fe9e6eba2f9bca41b3c4ae2550b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_descent.py": "1c7e6ddd53ec729ae6ca31e1afa4f0380df6729591942c933e38a15feba2abfa",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/.gdignore": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/import-cache-restoration.json": "22f5ee10c3225fd3682f5762a44db21b45f8691d6c7772e772721ddfc6a525ad",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/import.log": "0e9619b3491283555b643b1bdec015bda2ac1c8f308977064c61eb06e57c665d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/invocation.json": "8f55d202a4913db8f247dbb7cf02e41459de74101d1c870c7ba060c37ec720d1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/native.log": "35c0798e352ed4b8fcc7201f4c8b5318d1a34011c04c95cc07c3d307e8ffb0a1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-000.png": "af52e0989bee78b90d8b06957fb3ef020cb6a6ea4b3b9d7cf339341b5683b514",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-020.png": "12488802389b0157cd5f2b211e7b8129efb0692fa13fe908e3b7b3788f983777",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-040.png": "bea82bf8518b904d86010543836281599c617486a520d9139b4bf2d03e240588",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-060.png": "0874472464351f8c52046bcfc99a8bd11f434e1023931ec77d45ea667db95909",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-080.png": "b197289770e82a5fbc36ddbe1b8e551c3baadd73f28c5032b7014696ed9b81f5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-100.png": "da0aec01366fa87a9c317341ea0e1beda864bdcae0c5752997a83d28d0b144aa",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-120.png": "8e4a9ebb17ee1f1329e1e94af7301e3034ab228d6cbcbcc4fcdad425f73eafc1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-140.png": "e97117e1fdd711a00d7a2bbab4c35b9f8be6fb292d38e61fea258f70b91d7c60",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-160.png": "a1c214404f383151b819a5d46630448584d3b3953184f95b1ab03bc05321db2d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/opposite-step0-180.png": "22a065e3909fd5ad9ae93ebeb153291e0d40eac23a44de503bcb7f880930da55",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/pre-import-after.json": "6ea5c1414bfa79d8fec2cf8592b3ca134021d0550f3cf84eb2a52a5fa373816f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/pre-import-sources.json": "6ea5c1414bfa79d8fec2cf8592b3ca134021d0550f3cf84eb2a52a5fa373816f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/report.json": "a208da66a711a8ac9b4c25d2b3b2fd3f6f3d9d850f5600b57846d2d11f940d9f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-000.png": "f5f3ec5fa4c8115530b198df7a8b2776758d6a3f4a61280fc0b3786ec5fe2e5c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-020.png": "2c93930fa2213a57b0170ce81a189a769246fc924f1577333660fc33bacb6479",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-040.png": "8d110d8e12dacb7051f8d9400ab4a102e0d34d14ff163ea58f995469d26183c7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-060.png": "d1c176c759536ca84a26506a2df7469c396632187dbb9afac7434800f4ea94a1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-080.png": "9b4bb9a84a76f2cd6bd1c09c243da8205206356078a4a541b91dfe7923925b76",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-100.png": "7ff489cfaa2f010a709455cd5b103bfba3caa0c4ef1ebb5473871f73a83e8c07",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-120.png": "68e876335531f9efab3fdbbc359f88a38b7e76a7e9e1d41253aaaf2d7fbb34ef",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-140.png": "2073b4b02c04ffed344270992f71c12a7f44011ad1c53aa5d4a46ec1359b5c6c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-160.png": "cb1b54efb1e18b01a63a738ae00b12817acdf579dceac6ba5d10b551787cfd5d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/rts-step0-180.png": "3a2b6e51dac988f9a8aa08d40acca59ec05a8cd4a8c808d9556ba22a65930b6f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-000.png": "ed36ebebf59c6652e74383a54553638fb59b839d6e86472455e8c32f602e73b4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-020.png": "5dd9953bd5f6d3f48b321d1d06cb3e0a7c3b56ca9b36037827e1162e5a5665fb",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-040.png": "98d421648e97a7fb2aed70d1948f8c194a68729bcb8966f0571f035ffc1b55a5",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-060.png": "d1e4ca3df02d7161f9cee3987c0a14bcbd84962a2984033d99c69cce28e90074",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-080.png": "92fa174d40b1ce93d1368d93099122bf2d37e4b017e49a25ccbe8d52ea9051e8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-100.png": "a1b46f9f68e2076f837123408ccc482a5ff9f84b6b9e49de6488d2718579a9eb",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-120.png": "b5905927dc869682198de19cb3589ef4d990f36c51d2ecc34a2188708cd8727d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-140.png": "7e14ba05eacc1c3a691c9f51a0d18cd83c216a8a34d5bbfbe0fc5d59d6344900",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-160.png": "38dfa04a2cd08150728de7ab6c3d93117c7f64dd2f8676b581c43f032a4e19ab",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/side-step0-180.png": "aa7e576164fbd325e6804c988a427d69cc27314dc4e3a254c13abf991553275f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/sources-after.json": "8bef029bf086dca39bec1c58000960be658f39bd3a3e499a4fa0564be7f9de43",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/sources.json": "8bef029bf086dca39bec1c58000960be658f39bd3a3e499a4fa0564be7f9de43",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/spec.json": "6e12e127a10ba6fc4358d932f07d21d541c776d2e6d6138649d65ea0e31862e2",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/verification.json": "8d4f372509c4cd50111e3e27c7c91b792f22725f02dbd9570ce376a5c4472c36",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/commands.json": "ce7a706d88b8124d518b7f25366f1987ef432fb2434404a69d59453ab69c7f85",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/pin-check.json": "3d652fe03843b3a30ea3e5344ee895856e9745bdb73d72183b4596167b021b4d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/tests.log": "b95b5805bef96b568b1b2424b637003cd6f306e6312d682e4f2e4e23f635b26a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/author.log": "376b88caebed0c568240ff43d264a9d2d4e7b6cb8b516afb09d195eb8b43c64f",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/candidate.json": "c6a58567a036c38fc3d61d74f48202cecfeb080e162866acbc117d22f7fa4196",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/compilation.json": "1541cb1daa1b78e66fa67285bd5870844b035ce1e12a798b1eb399c1b9b60fc8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/plan.json": "638c7e1c9f74f2248b583086e5e75e928f90504beb5dc3b616ff11497db6df03",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/self-v1.json": "278f616404492054207e7cb2e417b3f84a79654da7e39314a08071c5d12f4db3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/self-v1.log": "453501ad4b19a3f170396b5411ad08dce63683c3b637a42ca96cd8d496fb23dd",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/terrain-v1.json": "a79a7f4fe233cf3ff2172173631cfde2d8392edc50e355b7082e0370f806c7ae",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/terrain-v1.log": "0450b5b5e261668e25fd6a37c34627fe065c85d74bbc9cb71dbf0ebba9b51558",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_sequence.py": "60f1867515e7e7576a1beb9cf607ab7d91c6866afd626f2f8495d1611d7da1ff",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_sequence.py": "e4a7703053f2cbc6ef25c6d32e3bb6f4187649beaf70648c8a051fdc47651375",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/pin-check.json": "04a48e49372dccb3c15bef56a8d49ab5bc0504afb4b7695c82f10bd9deaca6e7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/tests.log": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-command.json": "f86f87a19a3a163587f5457d6feaac80bec6e9e69d86eff2523e5b3de75f9ad1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-fixture.json": "8b1afca6f6d1f280a5ba6a463e5b3997d3b2ae92ad43d342e120d7f7af57c235",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-proof.json": "a89ce7143fbcd9f322aaf874a63f5d58c7cf9e15b629b69366de9d10f713c434",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-proof.log": "dd78b45aea1aae96dc780ac05be644ac18e70dbb3025ce4a9ee2c6dbffa98e90",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-command.json": "2c15dcbc12858d88b1e88dd7c7885864a210a1b4ec25634f58e759389da34e6b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-fixture.json": "58ce062868be6ff08a07fce5411d31d0c05ae495839127129a0aee7e3d9fa787",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-proof.json": "276911c3fe2c939bb8fed2643a13256644389e5f54cfa6b0cd9601668f8e0f89",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-proof.log": "c43e0f739efb14ee736c2633f165096fbaa20d7fba9bf7ace029070fd7d3255a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/first-entry-prefix-v1.source.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/projection.json": "aa695ef70079863bbd95cfc46685e06c70d51702847c74310cf167efde12cfc1",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/ascent-command.json": "48be429897f9e8ac215d52cb65114c7b5d7d70917cc358447dc69d3ced2b4a05",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/ascent-fixture.json": "7fc279bda4c53d1dcdb20ee1cec64396c0f91a2f001c1cb8188d5cc58793a901",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/ascent-proof.json": "30040fd4ca69c25502961f4f67d2d8f5e136744b5ced57f12e9bc63018a86607",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/ascent-proof.log": "6b55eedc43614be042f7393c829fa7ab453117e0a0723bbaf2e693ed52db3cab",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/descent-command.json": "a7e8a3d93ed0016aa1bb6b8b3c7afbdb8fe84eb945ee9f811600c7463a5e0a31",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/descent-fixture.json": "f45f5710ce79a7ee4f58eed8ffdae26fe105b974d9e9ffca433b11bfb37c3c71",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/descent-proof.json": "b7d72d6a54bcbea22820d97224f4fc7138747cfcb8d04b0e158e60a329720571",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/descent-proof.log": "22df05debe08909e6bbafb44fbdc1d08df4545ea1ff455149893166f18883009",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/obstacle-command.json": "89ad88b8f84c0bdd60fc30d86655606d86f17f0c33f5ead7cda978e80c0e8fdc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/obstacle-fixture.json": "e10a4c624742895ee2ea70f7ad7f86fa9a1748b03d64aa90ce8f77e6181f179b",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/obstacle-proof.json": "d726c1f18aea44032d1f3c2ef5215987d982ce22b6fb57135a121398e0bab577",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/obstacle-proof.log": "a97e22d1f324a79073b907e4211c9646e02b5fae065895a2b5202ec012f88077",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/tests.log": "c6b9b1f09add0403cc07e90bfdf272129b1ddfa2f8f7675ea8218862f2516371",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py": "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/historical-source-locators.json": "46741887b362bfbc32a175b7fdeb48824d54d4b39564fd5f79fe8c439139467a",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/invocation.json": "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py": "c5560fd23dbfd346b71b2f07dc33aa0364e8b0fd2f28b21a56d7b7d16273d952",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py": "3ed8fd04a0fbce5d62c79a9dac96814b358d463a9380f1bf5d8f8275c18323a6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-5/result/mole-worker.ugactor": "c6c631bb87fae5eb8fcbf03233a0d15cb22f03ddfae1d3c791a9b5c6467bd993",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-5/result/candidate.json": "9f313256a411bf85f9e2d71f407f966e2b6568af18fd969c1727466f099bdf08",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-5/result/plan.json": "bece055f840ef0fddda139ec5896b049b3cdab7b15a1673c0ea153bf7f756430",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-5/result/compilation.json": "dc71879abe2df066a5d1bf525935f6ec974fb12618ced22aa4e45c1d79a7d875",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
+  },
+  "basis": {
+    "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "producer_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "heading_count": 65536,
+    "exact_norm_squared": {
+      "numerator": 281475000105385,
+      "denominator": 281474976710656
+    },
+    "max_norm_yaw": 40791,
+    "max_component": {
+      "numerator": 1,
+      "denominator": 1
+    },
+    "metadata": {
+      "api_version": "4.1 Metal - 90.5",
+      "coefficient_order": [
+        "basis.x.x",
+        "basis.z.x"
+      ],
+      "display_server": "macOS",
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "heading_count": 65536,
+      "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+      "orientation": "0=-Z,+quarter=-X; +Y remains up",
+      "rendering_driver": "opengl3",
+      "rendering_method": "gl_compatibility",
+      "schema": 1,
+      "source": {
+        "path": "res://../tools/bake_underground_world_basis.gd",
+        "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+      }
+    },
+    "backend_certificate": {
+      "engine": {
+        "build": "official",
+        "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+        "hex": 263938,
+        "major": 4,
+        "minor": 7,
+        "patch": 2,
+        "status": "stable",
+        "string": "4.7.2-stable (official)",
+        "timestamp": 0
+      },
+      "driver": "opengl3",
+      "api_version": "4.1 Metal - 90.5",
+      "specification": "https://registry.khronos.org/OpenGL/specs/gl/GLSLangSpec.4.10.pdf",
+      "attribute_specification": "https://registry.khronos.org/OpenGL/specs/gl/glspec41.core.pdf#page=28",
+      "sections": [
+        "4.5",
+        "4.5.1"
+      ],
+      "single_precision_rounding": "directed or nearest; unit bound 2^-23",
+      "shader_contract": "Godot4.7.2 original no-displacement desktop OpenGL skin and scene shaders"
+    }
+  },
+  "source_count": 537,
+  "production_qualified": false,
+  "scope": "selected finite source proof only; other proof kind, native quality, paid parts, rate and runtime allocation remain separate"
+}

@@ -1,0 +1,17 @@
+{
+  "README.md": "2c6d34c3f76d9c92e5211ebfcaa4ee0ce00dc8bf0a4959a81360f861bfc25b1e",
+  "audit.json": "9cfc0f72d84fb68807e13a91d95817ab8a1fabf161b81aab186e9b4b509199c2",
+  "audit.py": "324e446baf917c2a66cc2d16b1e3d6ec8feb30f100c11ff7d72e91a1f0a69e81",
+  "census.log": "de815df0a576c4b885f8ec90dfdbf97a55b51cd5bd8b11091ff70479fde455d1",
+  "compile.log": "82b3aad801638145eaa622d2b9c9ae169137346c4035fb878781a9fbf219a103",
+  "compiled/compilation.json": "6c177aac4f4629fca86d61c5d6dd06777f9792583e11fc2e6046ff5d8dab2ff8",
+  "compiled/haul-handling.ugactor": "4bfa1a208dbb32d44efa2d1bc780b7bac7922d30134b26e69d8428cbf3be3056",
+  "compiled/plan.json": "2ed4a71c7f9f6e62073f02047bf4c56a0ccd84a928347f5f8e92d0af4f2d58a8",
+  "compiled/program.json": "7bac881ddcdb6c9b4d8237f0da31d5a258ff98933975fa76e80d016c11128b63",
+  "compiled/proof.json": "fc0392410632df980b763e9e4722e7e2c145579dd4cb3e0f6610690efaf85fc6",
+  "invocation.json": "feaf0837be35892c163b61e8c28db23f3a4b4df14c16ad6d4e7949e33103c0df",
+  "reproduce.py": "2f9e856ec8cdca9a386a8a7e2b4e6775e7d531adc5ec9791b51331de603d3309",
+  "tests.log": "8849b4105965a3fed08cef18f3a400b872e8e37c6712a70109baf92e262fd249",
+  "verification.json": "48e62e0c823c0a3aac7609ae300e5b193e1b412dc25110437911e90da620d4dc",
+  "verify.log": "2bf7141989d5e0f74bd5354db4635af6967be5a9acd93283778c8358f80b3764"
+}

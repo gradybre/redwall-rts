@@ -1,0 +1,1870 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_canonical_state_hash.gd
+  PASS  test_fixture_record_stream_is_exactly_the_pinned_bytes
+  PASS  test_fixture_digest_is_the_pinned_sha256
+  PASS  test_fixture_digest_matches_sha256_of_the_captured_stream
+  PASS  test_one_changed_value_changes_the_digest
+  PASS  test_alphabetical_field_order_produces_a_different_digest
+  PASS  test_utf8_prefix_is_a_byte_count_not_a_character_count
+  PASS  test_empty_string_value_is_a_zero_length_prefix
+  PASS  test_u32_high_bit_column_emits_its_bit_pattern
+  PASS  test_excluded_field_is_never_consulted_and_never_hashed
+  PASS  test_fixture_result_never_claims_release_coverage
+  PASS  test_generated_table_matches_the_registry_json
+  PASS  test_generated_fields_match_the_registry_json
+  PASS  test_registry_counts_are_the_ones_the_ruling_reconciled
+  PASS  test_the_active_rules_identity_and_counts_match_their_independent_pins
+  PASS  test_spatial_inventory_declaration_requires_a_new_codec_while_legacy_surface_stays_frozen
+  PASS  test_section_seven_keeps_its_thirty_inventory_fields_and_appends_the_anchor
+  PASS  test_section_one_resource_nodes_declares_only_the_tile_inverse_at_schema_two
+  PASS  test_production_declaration_validates_and_excludes_section_fifteen
+  PASS  test_world_runtime_exclusions_are_declared_but_unhashed
+  PASS  test_construction_section_four_columns_are_declared_in_order
+  PASS  test_construction_delivered_arena_is_its_own_section_five_owner
+  PASS  test_spatial_buildings_flags_have_mandatory_extension_without_rewriting_surface_codec
+  PASS  test_room_revision_holds_and_job_generations_have_explicit_canonical_fields
+  PASS  test_excavation_funding_preserves_receipt_order_and_all_paid_lot_metadata
+  PASS  test_excavation_history_keeps_immutable_domain_phases_work_and_worker_generations
+  PASS  test_underground_space_declares_live_identity_and_geometry_without_prepared_banks
+  PASS  test_spatial_inventory_requires_full_world_and_location_revision
+  PASS  test_modular_job_bindings_preserve_both_full_generations
+  PASS  test_spoil_tips_preserve_lifetime_losses_claims_and_retained_work
+  PASS  test_layout_keeps_per_room_mode_drafts_and_full_accepted_project_receipts
+  PASS  test_production_walker_refuses_because_no_owner_has_an_adapter
+  PASS  test_missing_adapter_list_is_in_walk_order_and_names_section_and_owner
+  PASS  test_one_missing_adapter_refuses_the_whole_walk
+  PASS  test_section_fifteen_owner_refuses_self_inclusion
+  PASS  test_section_outside_one_to_fourteen_refuses
+  PASS  test_owners_out_of_ascii_order_refuse
+  PASS  test_sections_out_of_order_refuse
+  PASS  test_duplicate_owner_and_duplicate_field_refuse
+  PASS  test_ascii_compare_is_byte_order_not_case_folded
+  PASS  test_type_five_without_a_declared_cap_refuses
+  PASS  test_type_five_value_over_its_declared_cap_refuses
+  PASS  test_storage_form_must_match_the_declared_type
+  PASS  test_value_count_must_match_a_declared_count
+  PASS  test_u32_logical_value_out_of_range_refuses
+  PASS  test_u32_logical_value_at_the_boundary_is_accepted
+  PASS  test_negative_u64_refuses_rather_than_emitting_a_huge_value
+  PASS  test_adapter_refusal_propagates_and_names_the_field
+  PASS  test_registering_an_undeclared_owner_refuses
+  PASS  test_duplicate_and_malformed_adapter_registration_refuse
+  PASS  test_short_compatibility_digest_refuses
+  PASS  test_engine_identity_line_rules_are_enforced
+  PASS  test_negative_completed_tick_refuses
+  PASS  test_completed_tick_enters_the_prefix_and_changes_the_digest
+  PASS  test_capture_limit_refuses_rather_than_truncating
+  PASS  test_verify_accepts_the_pinned_digest_and_refuses_any_other
+  PASS  test_verify_refuses_a_wrong_length_expected_digest
+  PASS  test_stream_tag_is_eleven_bytes_with_no_terminator
+  PASS  test_module_has_no_float_and_no_dictionary
+  PASS  test_economic_high_declaration_and_value_preserve_exhaustion
+  PASS  test_full_expedition_slot_is_eighth_hashed_fishing_field
+CI_SUITE_TIME {"assertions":4724,"failures":0,"suite":"test_canonical_state_hash.gd","tests":60,"usec":334159}
+test_catalog_ids.gd
+  PASS  test_shuffled_registry_order_produces_identical_bytes_and_digest
+  PASS  test_shuffled_entry_insertion_order_produces_identical_bytes
+  PASS  test_encode_canonical_writes_the_exact_canonical_form
+  PASS  test_generated_artifact_matches_the_committed_file_byte_for_byte
+  PASS  test_committed_length_digest_domains_and_row_count_are_pinned
+  PASS  test_registered_domains_is_exactly_the_committed_domain_list
+  PASS  test_one_byte_mutation_fails_verification
+  PASS  test_one_key_mutation_fails_verification
+  PASS  test_one_id_mutation_fails_verification
+  PASS  test_verification_compares_bytes_not_a_reparsed_structure
+  PASS  test_platform_json_printing_of_the_same_mapping_is_refused
+  PASS  test_speed_preserves_its_gap_at_three
+  PASS  test_reserved_entries_survive_unchanged
+  PASS  test_every_protected_enum_is_carried_verbatim
+  PASS  test_compiled_enums_are_dense_ascending_ascii_ids
+  PASS  test_definition_domains_are_dense_ascending_ascii_ids
+  PASS  test_duplicate_json_keys_are_rejected
+  PASS  test_object_keys_must_be_in_ascending_ascii_order
+  PASS  test_catalog_digest_cannot_prove_numeric_definitions_unchanged
+  PASS  test_the_rules_hash_lives_at_a_separate_non_overlapping_header_offset
+  PASS  test_the_digest_covers_the_canonical_bytes_and_nothing_else
+  PASS  test_a_load_mismatch_leaves_the_installed_catalog_and_artifact_intact
+  PASS  test_a_refused_build_produces_no_partial_artifact
+  PASS  test_verify_embedded_validates_the_digest_before_the_mapping
+  PASS  test_verify_embedded_refuses_a_malformed_header_digest_or_section
+  PASS  test_save_section_payload_round_trips_through_its_length_prefix
+  PASS  test_short_escapes_for_quote_backslash_and_named_controls
+  PASS  test_other_controls_use_lowercase_four_digit_u00xx
+  PASS  test_the_reader_refuses_every_non_canonical_escape
+  PASS  test_a_unicode_escape_must_be_four_lowercase_hex_digits
+Unicode parsing error, some characters were replaced with � (U+FFFD): Unexpected NUL character
+  PASS  test_a_control_escape_still_has_to_pass_the_ascii_key_validator
+  PASS  test_the_minus_one_sentinel_is_never_a_catalog_entry
+  PASS  test_an_omitted_required_domain_refuses
+  PASS  test_an_unknown_domain_refuses
+  PASS  test_non_integer_ids_refuse
+  PASS  test_out_of_range_ids_refuse
+  PASS  test_duplicate_ids_within_a_domain_refuse
+  PASS  test_unknown_schema_versions_refuse
+  PASS  test_a_foreign_or_missing_ruleset_refuses
+  PASS  test_insignificant_whitespace_refuses
+  PASS  test_the_final_lf_is_required_and_there_is_exactly_one
+  PASS  test_a_bom_and_non_ascii_bytes_refuse
+  PASS  test_non_canonical_integer_spellings_refuse
+  PASS  test_is_ascii_key_accepts_printable_ascii_and_nothing_else
+  PASS  test_validate_domains_refuses_every_illegal_shape
+  PASS  test_row_count_of_counts_every_entry_across_every_domain
+  PASS  test_verify_file_refuses_a_missing_artifact_without_writing_one
+  PASS  test_the_artifact_carries_all_four_starter_domains_complete
+  PASS  test_the_starter_domain_ids_in_the_artifact_are_the_owning_catalog_order
+  PASS  test_the_digest_moved_exactly_once_for_this_change
+  PASS  test_building_it_twice_produces_byte_identical_output
+  PASS  test_a_partial_building_domain_fails_verification
+  PASS  test_a_renumbered_building_id_fails_verification
+  PASS  test_the_artifact_carries_milestone_and_station_complete
+  PASS  test_the_committed_milestone_and_station_ids_are_the_ruled_values
+  PASS  test_station_ids_are_not_building_ids_in_the_committed_bytes
+  PASS  test_the_artifact_carries_injury_kind_whole
+  PASS  test_injury_kind_moved_the_digest_by_exactly_its_own_rows
+  PASS  test_a_renumbered_injury_kind_fails_verification
+  PASS  test_the_committed_injury_kind_is_not_its_own_ascii_order
+  PASS  test_the_artifact_carries_inventory_provenance_whole
+  PASS  test_inventory_provenance_moved_the_digest_by_exactly_its_own_rows
+  PASS  test_the_committed_provenance_is_not_its_own_ascii_order
+  PASS  test_a_sorted_provenance_domain_fails_verification
+  PASS  test_a_three_member_provenance_domain_fails_verification
+  PASS  test_a_seventh_provenance_member_fails_verification
+  PASS  test_a_renumbered_provenance_member_fails_verification
+CI_SUITE_TIME {"assertions":1843,"failures":0,"suite":"test_catalog_ids.gd","tests":67,"usec":315073}
+test_clip_root_motion.gd
+  PASS  test_a_travelling_clip_reports_its_root_motion
+  PASS  test_a_clip_in_place_reports_nothing
+  PASS  test_the_playback_rate_matches_the_ground_speed
+  PASS  test_a_clip_that_does_not_travel_plays_at_one
+CI_SUITE_TIME {"assertions":8,"failures":0,"suite":"test_clip_root_motion.gd","tests":4,"usec":2519}
+test_demo_camera.gd
+  PASS  test_clamp_focus_keeps_inside_points_and_clamps_outside_ones
+  PASS  test_zoom_steps_are_multiplicative_and_limited
+  PASS  test_pitch_is_held_between_its_limits
+  PASS  test_damping_is_frame_rate_independent
+  PASS  test_rig_owns_a_perspective_camera_at_forty_degrees
+  PASS  test_camera_looks_at_its_focus
+  PASS  test_configure_clamps_the_start_focus
+  PASS  test_make_current_off_tree_marks_the_camera_current
+  PASS  test_every_bound_zoom_event_zooms
+  PASS  test_zoom_out_and_its_limit
+  PASS  test_held_pan_moves_toward_the_view_and_stops_on_release
+  PASS  test_pan_is_clamped_to_the_bounds
+  PASS  test_view_eases_toward_the_target
+  PASS  test_pitch_steps_and_home_resets
+  PASS  test_rotation_turns_the_heading
+  PASS  test_alt_page_up_pitches_and_does_not_zoom
+  PASS  test_focus_loss_releases_every_held_key
+  PASS  test_unrelated_input_is_left_alone
+  PASS  test_every_action_the_rig_reads_exists_in_the_project
+  PASS  test_the_rig_reports_its_distance_for_the_shadow_fit
+  PASS  test_a_middle_drag_turns_the_view
+  PASS  test_the_drag_ends_on_release_or_a_lost_button
+  PASS  test_focus_loss_ends_the_drag
+  PASS  test_other_buttons_do_not_start_a_drag
+  PASS  test_a_diagonal_pan_is_no_faster_than_a_straight_one
+  PASS  test_the_players_pans_count_and_the_modes_moves_do_not
+  PASS  test_the_players_turns_count
+  PASS  test_track_moves_only_the_centre_and_is_held_in_the_box
+  PASS  test_aim_sets_a_whole_view_inside_the_limits
+  PASS  test_aim_turns_the_shorter_way_round
+  PASS  test_turn_target_turns_without_counting
+  PASS  test_the_edge_push_pans_like_a_held_key_and_is_clamped
+  PASS  test_the_drag_turns_per_logical_pixel_off_the_tree
+  PASS  test_the_targets_read_back
+  PASS  test_a_frame_of_motion_retains_nothing
+CI_SUITE_TIME {"assertions":115,"failures":0,"suite":"test_demo_camera.gd","tests":35,"usec":24594}
+test_demo_care.gd
+  PASS  test_everyone_starts_well_and_the_supplies_are_the_gdd_s_starting_stocks
+  PASS  test_the_cited_numbers_are_the_core_modules
+  PASS  test_an_injury_takes_its_loss_once_and_merges_by_severity
+  PASS  test_equal_severity_keeps_the_lower_kind
+  PASS  test_untreated_minor_drains_one_an_hour_but_recovers_two_when_fed_and_rested
+  PASS  test_health_never_falls_below_the_floor_and_nobody_dies
+  PASS  test_starving_costs_four_an_hour
+  PASS  test_quiet_ticks_are_skipped_and_nothing_is_retained
+  PASS  test_airless_is_one_serious_exposure_and_a_hundred_and_twenty_nine_an_hour
+  PASS  test_exhaustion_is_one_incident_until_rest_four_thousand
+  PASS  test_treatment_pays_once_at_work_start_and_takes_an_hour_at_factor_one_thousand
+  PASS  test_a_healer_called_away_leaves_the_work_with_the_patient
+  PASS  test_the_supplies_short_stop_a_treatment_starting
+  PASS  test_the_skill_and_pace_set_the_work_factor
+  PASS  test_the_infirmary_doubles_recovery
+  PASS  test_the_health_factor_bands
+  PASS  test_the_herb_patch_regrows_by_the_ruled_formula
+  PASS  test_herbs_reach_the_shelf_only_above_the_patch_floor
+  PASS  test_the_herb_work_and_forage_hazard_numbers
+  PASS  test_forage_rolls_once_per_sixty_wu
+  PASS  test_the_work_pace_multiplies_its_factors
+  PASS  test_the_card_and_news_words
+  PASS  test_exactly_enough_supplies_pay_and_a_new_injury_pays_again
+  PASS  test_the_work_remainder_is_kept_tick_by_tick
+  PASS  test_up_at_exactly_seventy
+  PASS  test_the_forage_rolls_are_the_forage_stream_s_draws
+  PASS  test_a_jump_is_taken_in_closed_form_but_its_last_ticks_one_by_one
+CI_SUITE_TIME {"assertions":156,"failures":0,"suite":"test_demo_care.gd","tests":27,"usec":1500120}
+test_demo_command.gd
+  PASS  test_a_ray_down_onto_a_capsule_hits_its_top
+  PASS  test_a_level_ray_hits_the_side_and_a_near_miss_misses
+  PASS  test_the_nearest_capsule_on_the_ray_wins
+  PASS  test_the_ground_ray_meets_the_plane
+  PASS  test_box_membership_is_by_screen_position
+  PASS  test_formations_are_distinct_clear_and_inside_for_one_to_eight
+  PASS  test_a_spot_closer_than_the_spacing_to_one_taken_is_refused
+  PASS  test_a_move_order_releases_held_slots_and_holds_without_wandering
+  PASS  test_release_hands_a_holder_back_to_wandering
+  PASS  test_a_work_order_fills_the_free_slots_and_the_rest_queue_facing_it
+  PASS  test_unreachable_orders_snap_and_hopeless_ones_are_refused
+  PASS  test_a_click_near_a_poi_is_a_work_order_there
+  PASS  test_matching_pairs_the_nearest_first
+  PASS  test_panel_text_for_nobody_one_and_several
+  PASS  test_state_words
+  PASS  test_panel_placement_keeps_clear_of_the_hud_at_every_size
+  PASS  test_panel_text_contrast_on_parchment
+  PASS  test_friendly_names
+  PASS  test_the_notice_line_is_each_resident_s_own
+  PASS  test_one_resident_s_orders_are_listed_with_the_gated_ones_explained
+  PASS  test_the_panel_lists_one_resident_s_orders_in_full_and_never_hides
+  PASS  test_a_state_splits_into_its_command_and_its_progress
+  PASS  test_a_refusal_step_reads_as_why_not_progress
+  PASS  test_the_fed_rows_follow_what_a_resident_is_doing
+  PASS  test_a_group_summary_tallies_its_activities_most_first
+  PASS  test_every_member_is_a_row_that_picks_it
+  PASS  test_the_ledger_never_hides_the_panel
+  PASS  test_the_panel_says_what_a_resident_will_go_back_to
+  PASS  test_the_dig_button_says_what_it_does_and_its_key
+  PASS  test_a_tunnel_s_own_news_is_kept_for_its_mole
+CI_SUITE_TIME {"assertions":157,"failures":0,"suite":"test_demo_command.gd","tests":30,"usec":2269892}
+test_demo_farm_ui.gd
+  PASS  test_a_selected_resident_sows_a_bed_and_goes_back_to_its_routine
+  PASS  test_a_harvest_is_carried_to_the_store_as_its_own_item
+  PASS  test_watering_fetches_water_at_the_well_first
+  PASS  test_a_resident_drains_a_waterlogged_bed
+  PASS  test_a_drain_ends_if_the_bed_dried_on_the_way
+  PASS  test_a_worker_called_away_keeps_the_work_done_for_the_next
+  PASS  test_the_farm_raises_harvest_and_clearing_jobs_for_the_crew
+  PASS  test_orders_explain_refusals_and_queues
+  PASS  test_the_routine_crew_takes_work_only_when_wandering
+  PASS  test_a_worker_ordered_elsewhere_on_the_way_drops_the_job
+  PASS  test_a_blocked_walk_is_tried_again_before_giving_up
+  PASS  test_a_harvest_is_hauled_with_the_carry_walk
+  PASS  test_spoil_from_a_heap_raises_a_bed_and_the_heap_shrinks
+  PASS  test_cancelling_a_bed_lets_a_harvest_in_hand_finish_its_delivery
+  PASS  test_order_carry_carries_only_with_a_carry_clip
+TOLERATED ERROR: Camera is not inside scene.
+   at: project_ray_origin (scene/3d/camera_3d.cpp:430)
+   GDScript backtrace (most recent call first):
+       [0] pick (res://demo/control/demo_command.gd:663)
+       [1] _finish_select (res://demo/control/demo_command.gd:542)
+       [2] test_the_command_layer_hands_ground_clicks_and_orders_to_the_farm (res://test/test_demo_farm_ui.gd:439)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Camera is not inside scene.
+   at: project_local_ray_normal (scene/3d/camera_3d.cpp:412)
+   GDScript backtrace (most recent call first):
+       [0] pick (res://demo/control/demo_command.gd:664)
+       [1] _finish_select (res://demo/control/demo_command.gd:542)
+       [2] test_the_command_layer_hands_ground_clicks_and_orders_to_the_farm (res://test/test_demo_farm_ui.gd:439)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] pick (res://demo/control/demo_command.gd:664)
+       [1] _finish_select (res://demo/control/demo_command.gd:542)
+       [2] test_the_command_layer_hands_ground_clicks_and_orders_to_the_farm (res://test/test_demo_farm_ui.gd:439)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_command_layer_hands_ground_clicks_and_orders_to_the_farm
+  PASS  test_plants_grow_with_the_crop
+  PASS  test_the_label_says_what_the_bed_needs
+  PASS  test_the_panel_words_come_from_the_rules
+  PASS  test_alerts_warn_once_with_the_response
+  PASS  test_alerts_name_the_answer_to_a_bed_out_of_its_band
+  PASS  test_a_ripe_bed_past_its_grace_is_called_out
+  PASS  test_the_recipe_index_loads_in_the_catalog_s_order
+  PASS  test_the_food_command_opens_the_pantry
+  PASS  test_a_bed_visual_draws_each_stage
+  PASS  test_wet_soil_darkens_and_a_waterlogged_bed_shows_puddles
+  PASS  test_the_ground_works_are_built_once_and_shown_when_done
+  PASS  test_the_view_hides_the_world_beds_and_redraws_on_change
+  PASS  test_the_view_s_key_covers_the_ditch_alone
+  PASS  test_heaps_are_drawn_at_what_is_left_after_spoil_is_taken
+  PASS  test_the_bed_panel_offers_only_what_the_bed_can_take
+  PASS  test_the_bed_panel_shows_only_its_bed_not_the_feed
+  PASS  test_the_needs_line_names_each_bed_s_most_pressing_verb
+  PASS  test_the_needs_line_times_a_ripe_bed
+  PASS  test_the_needs_line_calls_for_straw_when_a_frost_is_announced
+  PASS  test_the_bed_panel_s_drain_button
+  PASS  test_the_bed_panel_s_close_clears_the_farm_s_bed
+  PASS  test_the_words_for_a_ditch_and_a_span_of_hours
+  PASS  test_the_pantry_panel_breaks_the_food_out_by_item
+  PASS  test_a_long_step_ages_each_hour_at_its_own_season
+  PASS  test_the_most_pressing_work_on_a_bed
+  PASS  test_before_a_frost_night_cover_comes_first_unless_the_bed_is_dry
+  PASS  test_a_waterlogged_bed_s_most_pressing_work_is_drain
+  PASS  test_a_farm_hour_ages_the_pantry_and_reads_the_tunnels
+  PASS  test_keys_cycle_the_overlay_and_open_the_pantry
+  PASS  test_one_key_cycles_every_map_overlay
+  PASS  test_planting_from_the_picker_orders_the_sowing
+  PASS  test_the_pantry_close_button_closes_it_and_is_drawn_above_the_hud
+  PASS  test_a_farm_job_called_away_is_taken_back_when_the_other_work_is_done
+  PASS  test_a_farm_job_given_to_another_is_not_taken_back_and_r_forgets
+  PASS  test_a_farm_job_done_takes_up_the_job_it_interrupted
+CI_SUITE_TIME {"assertions":363,"failures":0,"suite":"test_demo_farm_ui.gd","tests":51,"usec":9020113}
+test_demo_fitout.gd
+  PASS  test_a_home_and_a_cellar_have_their_places
+  PASS  test_the_costs_are_the_table_s
+  PASS  test_a_fixture_is_paid_for_all_or_nothing
+  PASS  test_a_hearth_pays_stone_and_a_rug_wood
+  PASS  test_refusals_come_before_the_cost_and_in_words
+  PASS  test_the_short_refusal_says_what_is_needed_and_held
+  PASS  test_the_suggested_layout_plans_every_empty_place_or_none
+  PASS  test_taking_one_out_gives_its_cost_back_the_planned_first
+  PASS  test_a_cellar_keeps_racks_for_the_food_it_holds
+  PASS  test_a_cellar_s_capacity_is_the_sum_of_its_installed_racks
+  PASS  test_the_cool_rule_on_its_facts
+  PASS  test_a_hearth_within_three_metres_warms_a_cellar
+  PASS  test_a_cellar_that_opens_onto_a_hearth_is_warm
+  PASS  test_comfort_is_a_bed_a_hearth_and_capped_decorations
+  PASS  test_a_home_s_comfort_counts_what_is_installed
+  PASS  test_work_puts_a_fixture_in_for_the_one_on_it
+  PASS  test_a_room_laid_again_starts_bare
+  PASS  test_a_home_laid_again_forgets_its_large_bed
+  PASS  test_waiting_fixtures_are_listed_in_place_order
+  PASS  test_a_place_is_drawn_as_it_stands_and_only_when_it_changes
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_a_lit_hearth_glows_and_smokes_and_a_cold_one_does_not (res://test/test_demo_fitout.gd:505)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_lit_hearth_glows_and_smokes_and_a_cold_one_does_not
+  PASS  test_a_cellar_s_racks_fill_in_place_as_its_stock_rises
+  PASS  test_a_passage_not_yet_dug_does_not_open_onto_a_hearth
+TOLERATED ERROR: Condition "!is_inside_tree()" is true. Returning: Transform3D()
+   at: get_global_transform (scene/3d/node_3d.cpp:649)
+   GDScript backtrace (most recent call first):
+       [0] _light (res://demo/burrow/fixture_view.gd:378)
+       [1] refresh (res://demo/burrow/fixture_view.gd:173)
+       [2] test_the_hearth_lights_in_its_own_colour (res://test/test_demo_fitout.gd:571)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_hearth_lights_in_its_own_colour
+  PASS  test_a_cellar_id_names_its_room_and_its_rack
+  PASS  test_the_last_planned_is_taken_out_first
+  PASS  test_a_rack_only_planned_is_no_store_and_keeps_nothing_cool
+  PASS  test_a_cellar_does_not_open_onto_a_hearth_through_another_room
+  PASS  test_a_hearth_on_another_level_does_not_warm_a_cellar
+  PASS  test_the_smoke_follows_the_clock
+  PASS  test_the_housing_count_is_the_beds_put_in
+  PASS  test_a_hearth_taken_out_gives_its_stone_back
+  PASS  test_a_malformed_cellar_id_names_no_room
+  PASS  test_the_palette_says_what_is_in_coming_and_can_be_done
+  PASS  test_a_large_bed_digs_its_alcove_into_a_nook_and_costs_four_planks
+  PASS  test_a_nook_is_refused_where_it_may_not_go
+  PASS  test_a_refused_large_bed_names_its_first_alcove_s_reason
+  PASS  test_a_home_with_a_large_bed_is_not_suggested_another
+  PASS  test_a_place_emptied_of_a_large_bed_is_a_burrow_bed_s_again
+  PASS  test_a_tunnel_by_the_back_alcove_sends_the_large_bed_by_the_door
+  PASS  test_another_room_by_the_alcove_refuses_its_nook
+  PASS  test_a_nook_is_part_of_its_room_s_void
+  PASS  test_a_large_bed_taken_out_gives_its_planks_back_and_its_nook_stays
+  PASS  test_a_large_bed_is_a_big_bed_lying_out_in_its_nook
+CI_SUITE_TIME {"assertions":298,"failures":0,"suite":"test_demo_fitout.gd","tests":44,"usec":65792}
+test_demo_input_live.gd
+  PASS  test_the_real_scene_routes_input_menu_and_focus_at_1280x720
+  PASS  test_the_real_scene_routes_input_menu_focus_and_scale_at_1920x1080
+  PASS  test_room_blueprints_use_real_clicks_and_fit_at_1280x720
+CI_SUITE_TIME {"assertions":555,"failures":0,"suite":"test_demo_input_live.gd","tests":3,"usec":39599565}
+test_demo_lens_live.gd
+  PASS  test_the_layers_read_and_compare_at_1280x720
+  PASS  test_the_layers_read_and_compare_at_1920x1080
+CI_SUITE_TIME {"assertions":66,"failures":0,"suite":"test_demo_lens_live.gd","tests":2,"usec":30209885}
+test_demo_lens_probes.gd
+  PASS  test_the_base_probe_says_nothing_and_cannot_outline
+  PASS  test_a_reading_compares_and_copies_every_field
+  PASS  test_a_bed_is_read_inside_its_square_and_nowhere_else
+  PASS  test_the_moisture_words_give_the_bed_s_own_band_edges
+  PASS  test_the_reading_follows_the_sim_and_the_field_moves_only_on_a_new_colour
+  PASS  test_choosing_a_crop_re_words_the_bed_with_its_moisture_unchanged
+  PASS  test_ripeness_entries_split_at_the_grace_and_the_loss
+  PASS  test_the_ripeness_words_give_growth_hours_or_hours_ripe
+  PASS  test_the_service_words_quote_the_leat_s_figures
+  PASS  test_reading_a_bed_allocates_nothing
+  PASS  test_the_water_is_read_to_the_unit_with_its_zone
+  PASS  test_the_pond_reads_as_its_ice_and_the_stream_as_water
+  PASS  test_the_water_words_hold_the_shallower_zone_at_a_threshold
+  PASS  test_the_water_legend_and_field_follow_the_painted_body_and_the_ice
+  PASS  test_reading_the_water_allocates_nothing
+  PASS  test_a_tree_and_its_zone_are_read
+  PASS  test_the_woods_outline_samples_zones_only_and_a_fell_re_words
+  PASS  test_the_woods_field_is_its_zones
+  PASS  test_the_scales_reach_their_layers_and_quote_the_rules
+  PASS  test_the_overlays_paint_with_the_tokens
+  PASS  test_every_ramp_passes_the_colour_blind_check
+  PASS  test_the_woods_marks_pass_the_colour_blind_check
+  PASS  test_the_old_woods_marks_fail_where_decision_0581_measured
+  PASS  test_the_old_ramps_fail_the_check_that_the_new_ones_pass
+  PASS  test_the_colour_maths_matches_its_references
+CI_SUITE_TIME {"assertions":174,"failures":0,"suite":"test_demo_lens_probes.gd","tests":25,"usec":994353}
+test_demo_manifest.gd
+  PASS  test_the_manifest_always_has_both_halves
+  PASS  test_an_empty_manifest_is_not_staged
+  PASS  test_one_staged_half_counts
+CI_SUITE_TIME {"assertions":5,"failures":0,"suite":"test_demo_manifest.gd","tests":3,"usec":2373}
+test_demo_notices_live.gd
+  PASS  test_the_notices_on_the_real_scene_at_1280x720
+  PASS  test_the_notices_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":48,"failures":0,"suite":"test_demo_notices_live.gd","tests":2,"usec":19054720}
+test_demo_opening_pantry.gd
+  PASS  test_the_opening_stock_is_wheat_and_carrots_in_the_covered_store
+  PASS  test_the_opening_stock_is_not_the_first_day_s_harvest
+  PASS  test_a_store_without_room_is_not_forced
+  PASS  test_what_is_left_of_the_opening_stock_is_counted_on_its_lots
+  PASS  test_the_real_village_opens_with_the_stock
+  PASS  test_the_kitchen_cooking_a_younger_warm_lot_first_leaves_the_opening_lot_counted
+  PASS  test_the_younger_warm_lot_spoiling_first_leaves_the_opening_lot_counted
+  PASS  test_a_split_carry_and_a_withdrawal_move_the_opening_share_exactly
+  PASS  test_a_delivery_merged_into_an_opening_lot_shares_its_withdrawals_proportionally
+CI_SUITE_TIME {"assertions":192,"failures":0,"suite":"test_demo_opening_pantry.gd","tests":9,"usec":9170526}
+test_demo_orchard_live.gd
+  PASS  test_the_orchard_on_the_real_scene_at_1280x720
+  PASS  test_the_orchard_on_the_real_scene_at_1920x1080
+CI_SUITE_TIME {"assertions":50,"failures":0,"suite":"test_demo_orchard_live.gd","tests":2,"usec":38758840}
+test_demo_playtest_live.gd
+  PASS  test_the_real_logger_captures_every_kind_of_line_and_f12_marks
+CI_SUITE_TIME {"assertions":18,"failures":0,"suite":"test_demo_playtest_live.gd","tests":1,"usec":2120925}
+test_demo_sound_cost.gd
+TOLERATED WARNING: sound cue chop: 5 of 5 files missing (res://demo/assets/sound/chop_01.wav, res://demo/assets/sound/chop_02.ogg, res://demo/assets/sound/chop_03.ogg, res://demo/assets/sound/chop_04.ogg, res://demo/assets/sound/chop_05.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue gnaw: 5 of 5 files missing (res://demo/assets/sound/gnaw_01.wav, res://demo/assets/sound/gnaw_02.wav, res://demo/assets/sound/gnaw_03.wav, res://demo/assets/sound/gnaw_04.wav, res://demo/assets/sound/gnaw_05.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue saw: 3 of 3 files missing (res://demo/assets/sound/saw_01.wav, res://demo/assets/sound/saw_02.wav, res://demo/assets/sound/saw_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue dig: 3 of 3 files missing (res://demo/assets/sound/dig_01.wav, res://demo/assets/sound/dig_02.wav, res://demo/assets/sound/dig_03.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue tree_fall: 1 of 1 files missing (res://demo/assets/sound/tree_fall_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue pickup: 3 of 3 files missing (res://demo/assets/sound/pickup_01.ogg, res://demo/assets/sound/pickup_02.ogg, res://demo/assets/sound/pickup_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue drop: 4 of 4 files missing (res://demo/assets/sound/drop_01.ogg, res://demo/assets/sound/drop_02.ogg, res://demo/assets/sound/drop_03.ogg, res://demo/assets/sound/drop_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_grass: 4 of 4 files missing (res://demo/assets/sound/step_grass_01.ogg, res://demo/assets/sound/step_grass_02.ogg, res://demo/assets/sound/step_grass_03.ogg, res://demo/assets/sound/step_grass_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_dirt: 4 of 4 files missing (res://demo/assets/sound/step_dirt_01.ogg, res://demo/assets/sound/step_dirt_02.ogg, res://demo/assets/sound/step_dirt_03.ogg, res://demo/assets/sound/step_dirt_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_wood: 4 of 4 files missing (res://demo/assets/sound/step_wood_01.wav, res://demo/assets/sound/step_wood_02.wav, res://demo/assets/sound/step_wood_03.wav, res://demo/assets/sound/step_wood_04.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_tunnel: 4 of 4 files missing (res://demo/assets/sound/step_tunnel_01.ogg, res://demo/assets/sound/step_tunnel_02.ogg, res://demo/assets/sound/step_tunnel_03.ogg, res://demo/assets/sound/step_tunnel_04.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue step_wade: 3 of 3 files missing (res://demo/assets/sound/step_wade_01.ogg, res://demo/assets/sound/step_wade_02.ogg, res://demo/assets/sound/step_wade_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue splash: 3 of 3 files missing (res://demo/assets/sound/splash_01.ogg, res://demo/assets/sound/splash_02.ogg, res://demo/assets/sound/splash_03.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue water_in: 2 of 2 files missing (res://demo/assets/sound/water_in_01.ogg, res://demo/assets/sound/water_in_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue water_out: 2 of 2 files missing (res://demo/assets/sound/water_out_01.ogg, res://demo/assets/sound/water_out_02.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_stream: 1 of 1 files missing (res://demo/assets/sound/amb_stream_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_wind: 1 of 1 files missing (res://demo/assets/sound/amb_wind_01.wav); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue amb_rain: 1 of 1 files missing (res://demo/assets/sound/amb_rain_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue warning: 1 of 1 files missing (res://demo/assets/sound/warning_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+TOLERATED WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] _load_row (res://demo/sound/sound_table.gd:153)
+         [1] load_streams (res://demo/sound/sound_table.gd:134)
+         [2] warm (res://demo/sound/sound_director.gd:121)
+         [3] _crowd (res://test/test_demo_sound_cost.gd:71)
+         [4] test_twenty_workers_at_four_x_cost_little_per_frame (res://test/test_demo_sound_cost.gd:118)
+         [5] _run_test (res://test/run_tests.gd:194)
+         [6] _run_suite (res://test/run_tests.gd:168)
+         [7] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+         [8] _run_worker (res://test/run_tests.gd:121)
+         [9] _initialize (res://test/run_tests.gd:108)
+SOUND-COST the boot prewarm step (streams and the path grid): 17382 us
+SOUND-COST 20 workers at 4x: p50 48 us, p95 91 us, p99 100 us, max 248 us; 2678 events, 196 played, 2146 folded
+  PASS  test_twenty_workers_at_four_x_cost_little_per_frame
+CI_SUITE_TIME {"assertions":19,"failures":0,"suite":"test_demo_sound_cost.gd","tests":1,"usec":1158745}
+test_demo_tending.gd
+  PASS  test_everything_is_off_at_the_start
+  PASS  test_water_below_the_band_orders_a_watering_within_the_budget
+  PASS  test_a_spent_budget_is_an_exception_said_once_and_refilled_at_midnight
+  PASS  test_protect_from_frost_covers_growing_beds_not_raised
+  PASS  test_avoid_waterlogging_opens_a_fitted_drain_and_says_the_rest
+  PASS  test_the_next_day_s_most_is_shown_before_anything_is_spent
+  PASS  test_groups_and_words
+  PASS  test_an_idle_hour_allocates_nothing
+  PASS  test_the_tending_tab_sets_and_shows_the_policies
+  PASS  test_water_skips_a_bed_tended_today
+  PASS  test_a_refused_order_is_said
+CI_SUITE_TIME {"assertions":82,"failures":0,"suite":"test_demo_tending.gd","tests":11,"usec":952553}
+test_demo_village_cloth.gd
+  PASS  test_one_opening_stock_of_24_u_serves_both_buildings
+  PASS  test_a_reservation_is_never_free_to_another_claimant
+  PASS  test_a_treatment_cancellation_and_loads_in_transit_conserve_the_cloth
+  PASS  test_a_cancel_after_work_loses_the_fifth_and_releases_reservations
+  PASS  test_an_unpaid_treatment_s_reservation_is_given_back
+  PASS  test_the_stores_cloth_api_is_all_or_nothing
+  PASS  test_a_paid_treatment_sent_a_healer_again_reserves_nothing_more
+CI_SUITE_TIME {"assertions":72,"failures":0,"suite":"test_demo_village_cloth.gd","tests":7,"usec":57206}
+test_family_hunger_wiring.gd
+PC04 SETTLEMENT_DIGEST e9e1b8cb20bf5cfc9b3c37dc34dc7d57c49dadde619159682d528a98b8a33ffd
+  PASS  test_an_all_adult_settlement_run_matches_the_base_digest
+PC04 STANDALONE_DIGEST 58ed43f84a22f88e881447d1634d61bd534e2128925a14128420ad2a271c5ec1
+  PASS  test_an_all_adult_seeded_standalone_run_matches_the_base_digest
+  PASS  test_the_needs_stage_ids_are_the_residents_stage_ids
+  PASS  test_every_stage_size_and_season_hunger_rate_is_the_literal
+  PASS  test_a_bad_stage_or_size_is_refused_stage_first
+  PASS  test_a_child_releases_three_quarters_of_the_adult_hunger_exactly
+  PASS  test_winter_raises_a_childs_rate_by_the_same_multiplier
+  PASS  test_a_composed_store_refuses_the_stage_blind_sweep_and_changes_nothing
+  PASS  test_a_bad_stage_column_refuses_the_whole_sweep_before_any_row_moves
+  PASS  test_a_standalone_store_keeps_its_stage_blind_adult_fixture_path
+  PASS  test_daily_demand_sums_each_residents_own_stage_row
+  PASS  test_the_non_allocating_stage_reader_answers_minus_one_for_an_empty_row
+  PASS  test_the_refuge_start_stays_twelve_adults
+CI_SUITE_TIME {"assertions":2655,"failures":0,"suite":"test_family_hunger_wiring.gd","tests":13,"usec":2497997}
+test_forage.gd
+  PASS  test_the_published_capacities_match_the_registry
+  PASS  test_zone_capacity_refuses_the_one_hundred_and_twenty_ninth_designation
+  PASS  test_a_freed_zone_slot_is_reused_and_the_old_reference_stops_validating
+  PASS  test_destroying_a_zone_twice_is_refused
+  PASS  test_a_reserved_1_zone_is_refused_before_anything_is_allocated
+  PASS  test_every_other_zone_type_is_accepted
+  PASS  test_an_unknown_zone_type_is_refused
+  PASS  test_a_zone_reads_back_every_field_it_was_designated_with
+  PASS  test_a_danger_band_outside_zero_to_three_is_refused
+  PASS  test_a_negative_quota_is_refused
+  PASS  test_the_enabled_and_protected_flags_can_be_set_after_designation
+  PASS  test_the_tile_index_formula_is_the_gdd_grid
+  PASS  test_tile_links_refuse_the_sixteen_thousand_three_hundred_and_eighty_fifth
+  PASS  test_a_released_link_returns_to_the_budget
+  PASS  test_a_zone_refuses_the_same_tile_twice
+  PASS  test_an_off_grid_tile_is_refused
+  PASS  test_two_zones_may_cover_the_same_tile
+  PASS  test_destroying_a_zone_releases_every_tile_link_it_held
+  PASS  test_zones_intersect_only_when_they_share_a_tile
+  PASS  test_a_forage_zone_holds_at_most_the_five_patches_of_the_table
+  PASS  test_patch_rows_are_owner_major_at_zone_slot_times_five
+  PASS  test_the_six_hundred_and_forty_row_block_holds_every_zone_at_five_patches
+  PASS  test_initial_patch_stock_is_eighty_percent_of_the_table_capacity
+  PASS  test_patches_are_refused_on_a_zone_that_is_not_a_forage_zone
+  PASS  test_a_patch_set_is_all_or_nothing
+  PASS  test_a_negative_item_id_is_refused
+  PASS  test_destroying_a_basin_clears_its_patch_block
+  PASS  test_overlapping_zones_share_one_stock_instead_of_multiplying_it
+  PASS  test_a_second_zone_cannot_restart_the_shared_quota
+  PASS  test_a_bound_zone_cannot_be_given_patches_of_its_own
+  PASS  test_a_basin_that_already_owns_patches_cannot_be_rebound
+  PASS  test_basin_chains_are_refused
+  PASS  test_a_basin_of_a_different_zone_type_is_refused
+  PASS  test_a_new_zone_is_its_own_basin
+  PASS  test_a_zone_whose_basin_was_destroyed_refuses_rather_than_resolving
+  PASS  test_the_effective_quota_is_the_stricter_of_the_zone_and_its_basin
+  PASS  test_seasonal_availability_matches_the_gdd_table
+  PASS  test_availability_refuses_an_unknown_kind_or_season
+  PASS  test_dormant_kinds_are_exactly_the_zero_columns
+  PASS  test_a_dormant_patch_refuses_harvest_but_keeps_its_stock
+  PASS  test_winter_stock_is_harvested_where_availability_is_positive
+  PASS  test_daily_regrowth_matches_the_stated_formula
+  PASS  test_regrowth_adds_the_one_unit_minimum_rather_than_flooring_at_it
+  PASS  test_regrowth_applies_the_one_unit_minimum_below_the_formula_term
+  PASS  test_a_dormant_patch_does_not_regrow
+  PASS  test_regrowth_never_carries_a_patch_above_its_capacity
+  PASS  test_regrowth_refuses_a_stock_above_its_own_capacity
+  PASS  test_the_daily_sweep_grows_every_live_patch_of_every_basin
+  PASS  test_regrowth_across_real_calendar_days_waits_for_the_season_to_turn
+  PASS  test_the_sustainable_floor_is_twenty_percent_of_capacity
+  PASS  test_the_intensive_floor_is_five_percent_of_capacity
+  PASS  test_harvestable_reports_what_the_floor_and_quota_actually_allow
+  PASS  test_a_reached_quota_stops_further_harvest
+  PASS  test_a_zero_quota_permits_nothing
+  PASS  test_the_year_accumulator_is_reset_by_its_owner_and_is_not_the_quota
+  PASS  test_a_protected_zone_refuses_automatic_harvest
+  PASS  test_a_disabled_zone_refuses_harvest
+  PASS  test_harvest_refuses_a_non_positive_amount
+  PASS  test_the_non_allocating_harvest_form_debits_the_same_shared_stock
+  PASS  test_harvest_refuses_a_kind_the_basin_has_no_patch_for
+  PASS  test_work_per_u_matches_the_stated_formula
+  PASS  test_work_per_u_refuses_arguments_outside_the_stated_domains
+  PASS  test_natural_danger_is_read_from_the_basin_not_the_designation
+  PASS  test_dangerous_work_permission_is_required_at_danger_two_and_three
+  PASS  test_the_injury_chance_matches_the_requirement
+  PASS  test_the_injury_constants_are_the_ones_the_requirement_states
+  PASS  test_completed_segments_count_whole_sixty_wu_crossings
+  PASS  test_the_forage_stream_advances_once_per_completed_segment
+  PASS  test_natural_danger_zero_consumes_no_forage_draw
+  PASS  test_the_rolls_use_the_basins_natural_danger
+  PASS  test_each_roll_injures_exactly_when_the_draw_is_below_the_chance
+  PASS  test_the_injury_tally_over_five_thousand_segments_is_the_recorded_one
+  PASS  test_the_first_injury_of_the_tutorial_seed_lands_on_its_recorded_segment
+  PASS  test_an_absent_rng_is_refused_rather_than_treated_as_no_injury
+  PASS  test_an_unseeded_rng_refuses_without_inventing_an_outcome
+  PASS  test_clear_returns_every_column_and_the_directory_to_empty
+  PASS  test_a_shared_directory_is_adopted_rather_than_rebuilt
+  PASS  test_the_quota_mode_ids_are_the_catalog_compilers_own_ascending_ascii_ids
+  PASS  test_the_quota_mode_domain_is_not_a_protected_enum
+  PASS  test_every_automatic_allowance_matches_the_hand_computed_table
+  PASS  test_the_automatic_daily_quota_matches_the_four_ruled_season_totals
+  PASS  test_a_created_zone_defaults_to_automatic_and_uses_the_seasonal_quota
+  PASS  test_binding_a_zone_to_another_basin_makes_it_inherit
+  PASS  test_unbinding_a_designation_returns_it_to_automatic
+  PASS  test_the_mode_table_refuses_a_mode_that_is_not_valid_for_the_zone
+  PASS  test_a_manual_quota_is_accepted_only_between_zero_and_the_combined_capacity
+  PASS  test_a_zone_created_above_the_manual_ceiling_cannot_switch_to_manual
+  PASS  test_a_manual_setting_survives_a_season_change
+  PASS  test_r05_qtest_01_one_daily_allowance_covers_all_five_kinds
+  PASS  test_a_collection_through_the_basin_itself_moves_its_totals_once
+  PASS  test_a_collection_through_a_designation_debits_both_applicable_limits
+  PASS  test_r05_qtest_03_a_stricter_designation_limit_binds_below_its_basin
+  PASS  test_a_designation_with_a_larger_manual_limit_cannot_widen_its_basin
+  PASS  test_the_available_quota_reader_never_reports_a_negative_allowance
+  PASS  test_a_store_without_a_job_store_refuses_every_claim_operation
+  PASS  test_a_claim_reserves_the_complete_intended_collection_on_both_limits
+  PASS  test_a_claim_on_the_basin_itself_reserves_once
+  PASS  test_r05_qtest_02_a_second_designation_cannot_reserve_past_the_shared_allowance
+  PASS  test_one_job_owns_at_most_one_claim_and_a_member_owns_none
+  PASS  test_r05_qtest_07_a_partial_collection_keeps_only_the_uncollected_quantity
+  PASS  test_collecting_the_whole_claim_closes_it
+  PASS  test_a_collection_larger_than_the_claim_is_refused_not_clamped
+  PASS  test_a_claim_does_not_bypass_collection_time_validation
+  PASS  test_releasing_a_claim_returns_its_allowance_and_produces_nothing_else
+  PASS  test_r05_qtest_08_a_worker_change_keeps_the_owning_jobs_claim_and_cancellation_ends_it
+  PASS  test_r05_qtest_13_a_reused_job_row_cannot_act_under_the_previous_generation_claim
+  PASS  test_r05_qtest_15_a_failed_preflight_leaves_every_quantity_unchanged
+  PASS  test_an_unclaimed_harvest_cannot_take_stock_another_claim_promised
+  PASS  test_r05_qtest_05_a_quota_cut_releases_whole_claims_newest_first
+  PASS  test_the_release_order_breaks_a_created_tick_tie_by_persistent_id
+  PASS  test_r05_qtest_06_a_cut_below_todays_collected_total_releases_everything
+  PASS  test_a_zero_quota_releases_every_claim_that_limit_reaches
+  PASS  test_a_claim_released_by_reconciliation_must_be_reacquired_before_collecting
+  PASS  test_reconciliation_considers_both_applicable_limits
+  PASS  test_the_affected_job_reader_counts_without_changing_anything
+  PASS  test_deleting_or_rebinding_a_designation_releases_its_claims_first
+  PASS  test_r05_qtest_09_deleting_and_redrawing_a_designation_creates_no_stock_or_allowance
+  PASS  test_midnight_is_an_offset_calendar_crossing_and_not_a_tick_multiple
+  PASS  test_r05_qtest_04_claims_survive_midnight_and_consume_the_new_days_allowance
+  PASS  test_midnight_does_not_reset_the_annual_counter_or_renew_a_lease
+  PASS  test_r05_qtest_10_a_boundary_releases_closed_and_excess_claims_deterministically
+  PASS  test_a_lower_automatic_quota_at_a_boundary_releases_the_excess_claim
+  PASS  test_midnight_refuses_an_unknown_season_without_resetting_anything
+  PASS  test_r05_qtest_12_restored_claims_rebuild_the_reservation_aggregates
+  PASS  test_the_rebuild_counts_a_claim_once_when_its_two_references_are_identical
+  PASS  test_the_rebuild_discards_a_stale_cached_total_instead_of_adding_to_it
+  PASS  test_restore_claim_validates_its_references_kind_and_quantity
+  PASS  test_r05_qtest_16_the_packed_payload_matches_the_ruled_allocation
+  PASS  test_the_claim_readers_refuse_an_empty_row_rather_than_describing_one
+  PASS  test_a_cut_releases_as_many_whole_claims_as_it_takes
+  PASS  test_a_reference_of_another_kind_is_never_read_as_a_claim_owner
+  PASS  test_the_affected_job_reader_counts_claims_held_through_a_designation
+  PASS  test_collection_checks_both_limits_against_a_restored_claim_that_exceeds_one
+CI_SUITE_TIME {"assertions":1064,"failures":0,"suite":"test_forage.gd","tests":133,"usec":5502773}
+test_gear_columns.gd
+  PASS  test_derived_lot_index_capture_refuses_but_restore_rebuilds_exact_relation
+  PASS  test_failed_restore_preserves_index_and_successful_restore_owns_its_index
+  PASS  test_exact_payload_restores_without_compacting_rows
+  PASS  test_all_record_and_live_array_shapes_are_total
+  PASS  test_payload_flags_blanks_refs_and_wear_refuse_atomically
+  PASS  test_duplicate_lot_slot_refuses_even_different_generation
+  PASS  test_structural_bounds_preserve_stale_and_unusual_values
+  PASS  test_source_heap_and_native_counts_validate_but_restore_rebuilds
+  PASS  test_cache_refresh_failure_atomicity_and_scratch_preservation
+  PASS  test_restore_window_and_definitions_refuse_without_mutation
+  PASS  test_equipped_tool_survives_exact_restore_and_real_unequip
+  PASS  test_stale_equipped_owner_is_preserved_but_world_audit_refuses
+  PASS  test_completed_starter_seed_residue_does_not_block_capture
+  PASS  test_real_claim_wear_repair_and_allocator_continuation_match
+  PASS  test_aliases_do_not_turn_publication_into_shared_mutable_state
+  PASS  test_adapter_refusal_precedence_busy_and_bound_inventory_identity
+  PASS  test_adapter_all_group_shapes_refuse_before_indexing
+  PASS  test_codec_valid_ref_counterexamples_are_refused_without_repair
+  PASS  test_adapter_success_uses_exact_ordinals_and_independent_arrays
+  PASS  test_default_capacity_and_literal_wire_goldens
+  PASS  test_loaded_catalog_with_unresolved_gear_keys_is_legal
+  PASS  test_success_clears_diagnostics_and_default_constructors_are_exact
+  PASS  test_whole_flag_pass_and_all_rows_precede_duplicate_lot_check
+  PASS  test_bound_refusals_preserve_directory_residents_and_all_borrowed_refs
+  PASS  test_adapter_refusals_carry_useful_detail_and_owner_echo
+CI_SUITE_TIME {"assertions":1322,"failures":0,"suite":"test_gear_columns.gd","tests":25,"usec":1581188}
+test_haul_carry.gd
+  PASS  test_binding_reader_rejects_each_foreign_store_and_null_without_mutation
+  PASS  test_a_satchel_is_minted_only_by_its_own_door
+  PASS  test_the_satchel_door_refuses_a_bad_owner_or_carry
+  PASS  test_a_satchel_cannot_be_placed_and_only_a_satchel_is_destroyed_as_one
+  PASS  test_a_saved_satchel_on_a_tile_is_refused_on_restore
+  PASS  test_the_audit_refuses_a_satchel_on_a_tile
+  PASS  test_the_anchored_cursor_walks_placed_containers_in_slot_order
+  PASS  test_loading_mints_a_satchel_at_the_species_carry_limit
+  PASS  test_a_partial_load_splits_exactly_and_carries_the_claim
+  PASS  test_a_whole_lot_load_moves_the_lot_itself
+  PASS  test_a_load_over_the_carry_limit_refuses_and_changes_nothing
+  PASS  test_a_hauler_already_carrying_cannot_load_a_second_satchel
+  PASS  test_a_load_refuses_without_a_claim_a_hauler_or_with_a_transaction_open
+  PASS  test_a_load_refused_inside_its_transaction_leaves_no_satchel
+  PASS  test_unloading_into_a_store_delivers_releases_and_destroys_the_satchel
+  PASS  test_an_unload_refuses_without_a_satchel_or_a_claim
+  PASS  test_a_pair_naming_someone_elses_satchel_is_stale
+  PASS  test_an_unload_the_store_cannot_take_refuses_and_keeps_the_goods_carried
+  PASS  test_unloading_into_piles_moves_the_goods_and_frees_the_satchel
+  PASS  test_a_pile_unload_with_nowhere_to_go_refuses_and_keeps_the_claim
+  PASS  test_a_dying_haulers_satchel_drops_onto_a_pile_at_its_tile
+  PASS  test_a_drop_inside_a_footprint_starts_at_that_buildings_ring
+  PASS  test_a_hauler_carrying_nothing_drops_nothing
+  PASS  test_a_reposted_haul_loads_by_re_keying_the_goods_already_carried
+  PASS  test_only_the_satchels_owner_hauls_its_goods
+  PASS  test_a_drop_with_nowhere_to_go_refuses_and_keeps_every_claim
+  PASS  test_dropping_an_empty_satchel_just_destroys_it
+  PASS  test_a_second_claim_on_the_satchel_lot_rolls_the_unload_back
+  PASS  test_a_pile_unload_reports_the_claimed_quantity
+CI_SUITE_TIME {"assertions":173,"failures":0,"suite":"test_haul_carry.gd","tests":29,"usec":1181980}
+test_households.gd
+  PASS  test_the_owner_payload_is_the_specified_48400_bytes
+  PASS  test_care_decays_250_per_hour_with_a_signed_remainder
+  PASS  test_the_package_worked_example_reaches_9000_in_more_than_one_turn
+  PASS  test_1500_served_ticks_a_day_exactly_balance_a_days_decay
+  PASS  test_care_clamps_and_discards_only_the_outward_remainder
+  PASS  test_a_bad_care_input_refuses_and_writes_nothing
+  PASS  test_warning_latches_follow_their_hysteresis
+  PASS  test_eligibility_sets_at_6000_and_clears_at_9000
+  PASS  test_the_child_sort_key_orders_critical_then_care_then_id
+  PASS  test_binding_writes_each_stages_defaults
+  PASS  test_binding_refuses_a_stale_ref_or_an_already_bound_resident
+  PASS  test_a_household_holds_at_most_eight_living_members
+  PASS  test_members_are_stored_in_persistent_id_order_whatever_the_input_order
+  PASS  test_a_household_refuses_duplicates_housed_unbound_and_dead_members
+  PASS  test_a_shared_surname_implies_no_membership
+  PASS  test_household_ids_are_monotonic_and_a_reused_row_is_a_new_identity
+  PASS  test_detaching_one_member_keeps_the_survivors_and_their_links
+  PASS  test_preferences_are_ascending_bounded_and_adult_or_elder_only
+  PASS  test_willingness_is_an_adult_or_elder_switch
+  PASS  test_two_idle_hours_bring_a_new_child_to_eligibility
+  PASS  test_a_turn_ends_at_750_paired_ticks_and_completion_ends_at_9000
+  PASS  test_service_assignment_refuses_each_structural_violation
+  PASS  test_a_paired_flag_without_service_refuses_the_whole_tick
+  PASS  test_zero_care_raises_warnings_but_never_touches_health
+  PASS  test_the_midnight_reset_zeroes_daily_shares_and_keeps_the_turn
+  PASS  test_a_dead_providers_detach_ends_its_service_and_a_dead_child_stops_integrating
+  PASS  test_a_reused_slot_inherits_nothing
+  PASS  test_a_captured_image_restores_byte_identically
+  PASS  test_restore_needs_the_held_load_barrier
+  PASS  test_an_older_or_newer_owner_schema_is_refused_not_migrated
+  PASS  test_a_misshaped_capture_buffer_is_refused_and_left_alone
+  PASS  test_hostile_household_images_refuse
+  PASS  test_hostile_dependent_images_refuse
+  PASS  test_cross_row_and_scalar_images_refuse
+  PASS  test_exhausted_generations_and_ids_refuse_creation
+  PASS  test_images_that_only_a_strict_or_bound_rule_catches_refuse
+  PASS  test_every_household_rule_refuses_its_own_hostile_image
+  PASS  test_every_latch_and_care_rule_refuses_its_own_hostile_image
+  PASS  test_every_stage_rule_refuses_its_own_hostile_image
+  PASS  test_provider_and_preference_references_refuse_dead_and_wrong_stage_targets
+  PASS  test_a_dead_household_member_refuses_the_image
+  PASS  test_a_fresh_store_captures_a_valid_day_one_image
+  PASS  test_a_full_daily_share_refuses_assignment_and_the_paired_tick
+  PASS  test_a_dead_provider_or_a_dead_child_cannot_be_paired
+  PASS  test_detaching_a_served_child_ends_its_own_service
+  PASS  test_end_service_keeps_received_care_and_the_daily_share
+  PASS  test_a_slot_reused_without_unbind_inherits_nothing_and_can_be_released
+  PASS  test_a_housed_row_reused_under_another_slot_inherits_nothing
+  PASS  test_an_unhoused_childs_row_reused_under_another_slot_inherits_no_care
+  PASS  test_a_binding_stores_and_captures_the_whole_directory_ref
+  PASS  test_a_swapped_slot_and_generation_refuses_the_image
+CI_SUITE_TIME {"assertions":1097,"failures":0,"suite":"test_households.gd","tests":51,"usec":4666438}
+test_input_map.gd
+  PASS  test_every_action_named_by_section_5_is_registered
+  PASS  test_every_action_is_declared_by_the_project_file
+  PASS  test_the_four_prototype_action_ids_are_gone
+  PASS  test_pause_is_time_pause_on_space
+  PASS  test_escape_belongs_to_the_dismissal_ladder_and_never_to_pause
+  PASS  test_no_two_actions_share_an_exact_chord_outside_the_specified_ladders
+  PASS  test_modifier_shadowing_pairs_are_exactly_the_documented_set
+  PASS  test_movement_keys_use_physical_positions
+  PASS  test_arrow_keys_pan_in_the_specified_directions
+  PASS  test_text_editing_actions_use_logical_keys_with_both_modifiers
+  PASS  test_os_reserved_chords_are_not_captured
+  PASS  test_control_group_families_carry_their_specified_digits
+  PASS  test_router_only_actions_are_registered_but_unbound
+  PASS  test_only_the_wheel_is_bound_as_a_raw_pointer_event
+  PASS  test_ui_accept_drops_the_engine_default_space_binding
+  PASS  test_speed_actions_cover_one_two_and_four_with_no_third_speed
+  PASS  test_the_boot_scene_consumes_time_pause_and_no_prototype_action
+CI_SUITE_TIME {"assertions":606,"failures":0,"suite":"test_input_map.gd","tests":17,"usec":29054}
+test_inventory_stock_counts.gd
+  PASS  test_empty_record_sizes_and_payload
+  PASS  test_multiple_stores_reservations_and_owner_read_only
+  PASS  test_shape_and_busy_refusals_have_defined_precedence
+  PASS  test_real_open_and_poisoned_transactions_are_untouched
+  PASS  test_malformed_live_rows_refuse_without_partial_output
+  PASS  test_structural_equipment_counts_do_not_claim_cross_owner_validation
+  PASS  test_checked_sum_boundary_overflow_and_row_precedence
+  PASS  test_retired_reused_rows_and_different_allocation_orders
+  PASS  test_reused_and_aliased_outputs_publish_independent_new_snapshots
+  PASS  test_actual_attestation_reentry_refuses_without_lowering_guard
+  PASS  test_real_gear_equip_destroy_empty_store_and_unequip
+CI_SUITE_TIME {"assertions":1400,"failures":0,"suite":"test_inventory_stock_counts.gd","tests":11,"usec":127226}
+test_modular_draft.gd
+  PASS  test_stroke_is_preview_until_released_and_snapshot_is_isolated
+  PASS  test_cancel_is_one_layer_and_preserves_earlier_paint
+  PASS  test_disconnected_draft_can_be_repaired_before_confirmation
+  PASS  test_out_of_bounds_stroke_is_not_partially_kept
+  PASS  test_undo_redo_and_new_edit_keep_consistent_geometry
+  PASS  test_topology_is_cached_and_not_recomputed_for_pointer_motion
+  PASS  test_preview_has_its_own_revision_for_cached_world_renderers
+  PASS  test_organic_tools_and_bent_tunnel_share_one_retained_plan
+  PASS  test_holes_are_explicit_and_erasing_everything_never_confirms
+  PASS  test_reconfigure_cannot_relabel_retained_room_or_level
+  PASS  test_bad_grid_bounds_tool_and_capacity_fail_closed
+CI_SUITE_TIME {"assertions":201,"failures":0,"suite":"test_modular_draft.gd","tests":11,"usec":34390}
+test_modular_projects.gd
+  PASS  test_actual_work_completion_releases_tools_jobs_and_receipts_exactly_once
+  PASS  test_material_payment_is_actual_and_direct_construction_or_work_calls_cannot_bypass_it
+  PASS  test_actual_connector_purpose_shares_router_work_and_receipts_without_aliasing_tip
+  PASS  test_connector_binding_refuses_foreign_world_replacement_and_expired_permission
+  PASS  test_connector_final_start_guard_follows_late_recipe_observation_without_spending
+  PASS  test_connector_seed_observer_cannot_change_contact_after_the_final_input_guard
+  PASS  test_connector_recipe_observer_cannot_borrow_the_wip_permit_or_reenter_funding
+  PASS  test_connector_late_observer_cannot_renew_or_rekey_unjournaled_claims
+  PASS  test_connector_input_settlement_rejects_foreign_owners_stale_refs_and_reentry
+  PASS  test_connector_final_completion_guard_retains_paid_work_and_refuses_direct_calls
+  PASS  test_connector_final_refund_guard_aborts_material_return_and_preserves_installed_truth
+  PASS  test_connector_unfunded_final_refusal_keeps_delivered_claims_for_retry
+  PASS  test_missing_tool_gate_and_stale_worker_refuse_before_any_productive_state_changes
+  PASS  test_post_gate_refusal_and_zero_acceptance_discard_only_the_prepared_work_candidate
+  PASS  test_direct_reduced_job_counter_and_false_publication_never_become_paid_work
+  PASS  test_pause_releases_actual_workers_and_rebind_resume_preserves_paid_material_and_work
+  PASS  test_cancel_unassigned_order_and_blocked_started_refund_leave_no_fake_completion
+  PASS  test_late_requester_job_prevents_completion_and_every_direct_unbound_job_tick
+  PASS  test_party_has_one_progress_owner_and_departure_does_not_halt_the_other_workers
+  PASS  test_party_rejects_unaccepted_fifth_and_member_direct_work_without_mutating_any_owner
+  PASS  test_stale_job_generation_and_orphan_tool_claim_cannot_be_silently_retired_or_rebound
+  PASS  test_refused_initializer_and_foreign_numeric_aliases_never_replace_actual_bindings
+  PASS  test_late_catalog_rebinding_refuses_work_before_any_payment_xp_or_tool_change
+  PASS  test_actual_pending_furniture_installs_after_paid_work_and_retirement_needs_no_post_install_quote
+  PASS  test_wrong_job_and_owner_cannot_discard_or_publish_another_prepared_productive_stage
+  PASS  test_work_binding_preflight_cannot_strand_an_unbound_construction_owner
+  PASS  test_retained_zero_work_requires_full_actual_repayment_and_can_complete_without_productive_tick
+  PASS  test_late_generic_tool_gate_or_child_never_contributes_to_a_paid_party
+  PASS  test_unrelated_actual_jobs_keep_existing_work_behavior_and_expired_purpose_never_becomes_permission
+CI_SUITE_TIME {"assertions":2339,"failures":0,"suite":"test_modular_projects.gd","tests":29,"usec":3015497}
+test_resident_crowd.gd
+  PASS  test_the_buffer_is_sized_once_to_the_resident_row_capacity
+  PASS  test_nothing_is_visible_before_the_first_refresh
+  PASS  test_every_instance_starts_with_an_identity_basis_and_no_owner
+  PASS  test_an_unbound_crowd_refuses_rather_than_drawing_nobody
+  PASS  test_binding_refuses_a_missing_store_rather_than_half_binding
+  PASS  test_unbinding_stops_drawing_without_touching_a_store
+  PASS  test_an_alpha_outside_its_own_fraction_is_refused
+  PASS  test_the_alpha_is_applied_between_the_two_committed_poses
+  PASS  test_the_alpha_interpolates_all_three_axes
+  PASS  test_one_instance_is_drawn_for_each_living_resident
+  PASS  test_the_instance_count_follows_the_living_count_down
+  PASS  test_the_instance_count_follows_the_living_count_up
+  PASS  test_a_living_resident_with_no_placed_pose_is_counted_not_drawn
+  PASS  test_a_dead_but_still_present_resident_is_not_drawn
+  PASS  test_the_filled_buffer_reaches_the_multimesh_itself
+  PASS  test_each_instance_holds_its_own_residents_pose
+  PASS  test_instances_compact_over_a_gap_in_the_resident_rows
+  PASS  test_the_instance_to_slot_column_records_who_was_drawn
+  PASS  test_an_instance_outside_the_buffer_is_refused_not_answered
+  PASS  test_yaw_is_never_turned_into_a_rotation
+  PASS  test_a_thousand_refreshes_change_no_authoritative_field
+  PASS  test_a_thousand_refreshes_move_no_byte_of_any_column
+  PASS  test_an_invisible_view_and_a_drawn_one_commit_the_same_state
+  PASS  test_a_null_crowd_mesh_is_refused
+  PASS  test_a_mesh_is_adopted_by_the_multimesh_itself
+CI_SUITE_TIME {"assertions":78,"failures":0,"suite":"test_resident_crowd.gd","tests":25,"usec":1070451}
+test_residents.gd
+  PASS  test_species_catalog_compiles_in_ascending_ascii_order
+  PASS  test_sentence_order_is_not_the_id_order
+  PASS  test_species_size_classes_follow_the_six_six_four_split
+  PASS  test_unknown_species_is_refused_not_defaulted
+  PASS  test_size_tables_match_the_specification
+  PASS  test_spawn_allocates_through_the_entity_directory
+  PASS  test_spawn_attaches_the_needs_columns
+  PASS  test_persistent_ids_are_monotonic_and_never_reused
+  PASS  test_stale_reference_is_rejected_after_despawn
+  PASS  test_living_population_caps_at_256_with_an_explicit_refusal
+  PASS  test_a_freed_slot_reopens_the_living_cap
+  PASS  test_clear_returns_the_store_to_empty
+  PASS  test_initial_settlement_is_twelve_adults_of_the_specified_species
+  PASS  test_initial_settlement_is_ten_small_and_two_medium
+  PASS  test_initial_settlement_needs_and_health
+  PASS  test_rowan_is_the_warden_and_the_only_named_resident
+  PASS  test_initial_skill_levels_and_xp
+  PASS  test_initial_settlement_refuses_a_second_cohort
+  PASS  test_a_refused_cohort_leaves_no_resident_behind
+  PASS  test_a_refused_spawn_does_not_burn_a_directory_slot
+  PASS  test_home_and_bed_stay_null_because_no_building_store_exists
+  PASS  test_skill_level_curve_matches_the_cumulative_table
+  PASS  test_setting_skill_xp_rederives_the_level
+  PASS  test_skill_into_readers_match_wrappers_at_the_level_cap
+  PASS  test_skill_into_reuse_clears_refusals_and_stale_values
+  PASS  test_skill_allocating_wrappers_stay_fresh
+  PASS  test_reserved_skill_index_and_bad_input_are_refused
+  PASS  test_readers_refuse_an_absent_row_instead_of_returning_zero
+  PASS  test_starter_cohort_daily_demand_reproduces_the_gdd_fixture
+  PASS  test_population_demand_fixture_two_hundred_small_residents
+  PASS  test_population_demand_fixture_mixed_cohort
+  PASS  test_projected_cohort_demand_matches_the_spawned_cohort
+  PASS  test_per_resident_demand_matches_the_size_multipliers
+  PASS  test_daily_demand_agrees_with_the_needs_hunger_rate
+  PASS  test_demand_is_refused_when_no_resident_is_alive
+  PASS  test_wounded_residents_count_and_dead_residents_do_not
+  PASS  test_season_multiplier_follows_the_shared_needs_store
+  PASS  test_despawned_residents_leave_the_demand
+  PASS  test_the_equipment_mirror_occupies_its_ledgered_columns_and_no_more
+  PASS  test_a_spawned_resident_carries_no_tool_and_no_satchel
+  PASS  test_the_mirror_records_an_equipped_tool_and_gives_it_back
+  PASS  test_the_mirror_refuses_a_second_tool_for_one_resident
+  PASS  test_refreshing_or_clearing_a_mirror_that_holds_no_tool_refuses
+  PASS  test_the_mirror_refuses_a_negative_item_id_or_durability
+  PASS  test_despawning_a_resident_empties_its_equipment_mirror
+  PASS  test_a_satchel_reference_is_stored_and_cleared_but_never_guessed
+  PASS  test_the_equipment_image_changes_with_the_mirror_and_only_with_it
+  PASS  test_the_life_stage_domain_is_exactly_the_three_ruled_values
+  PASS  test_the_bound_is_not_itself_a_stage
+  PASS  test_a_plain_spawn_is_adult_and_names_the_stage_it_uses
+  PASS  test_every_ruled_stage_is_storable_and_reads_back_exactly
+  PASS  test_an_out_of_domain_stage_refuses_and_allocates_nothing
+  PASS  test_a_stage_that_would_truncate_into_a_byte_is_refused
+  PASS  test_the_int32_sign_trap_does_not_smuggle_a_stage_through
+  PASS  test_the_twelve_starters_are_all_adults
+  PASS  test_a_reused_slot_initializes_its_stage_explicitly
+  PASS  test_a_retired_row_holds_the_canonical_unused_zero
+  PASS  test_a_dead_resident_keeps_the_stage_it_was_given
+  PASS  test_a_stale_reference_is_refused_rather_than_answered
+  PASS  test_the_null_reference_is_not_a_resident
+  PASS  test_a_reference_of_another_kind_is_refused
+  PASS  test_the_life_stage_column_costs_the_ruled_512_bytes
+  PASS  test_there_is_no_way_to_change_a_stage_after_creation
+  PASS  test_all_sixteen_species_bind_the_ruled_rig_key
+  PASS  test_rig_ids_are_ascending_ascii_over_the_rig_keys
+  PASS  test_no_species_shares_another_species_rig
+  PASS  test_an_unknown_rig_key_refuses_rather_than_resolving
+  PASS  test_child_and_elder_rig_variants_refuse_instead_of_inheriting_the_adult_rig
+  PASS  test_a_missing_rig_does_not_deny_a_legal_resident
+  PASS  test_rig_binding_refuses_an_unknown_species_and_an_invalid_stage_separately
+  PASS  test_binding_by_species_id_agrees_with_binding_by_key
+  PASS  test_no_per_resident_rig_column_exists
+  PASS  test_a_reference_resolves_to_its_row_only_while_it_is_valid
+  PASS  test_row_zero_is_never_mistaken_for_a_refusal
+  PASS  test_a_malformed_home_or_bed_reference_is_refused_not_stored
+  PASS  test_the_null_reference_still_clears_a_home_or_bed
+  PASS  test_a_stored_destination_stops_being_live_when_its_owner_retires
+  PASS  test_a_replacement_owner_does_not_inherit_the_stored_reference
+  PASS  test_a_retired_row_leaves_a_canonical_zero_byte_behind
+  PASS  test_a_forty_character_ascii_name_is_refused_at_the_setter
+  PASS  test_the_scalar_bounds_are_one_two_thirty_two_and_thirty_three
+  PASS  test_c0_del_and_c1_control_scalars_are_all_rejected
+  PASS  test_the_neighbours_of_every_control_block_are_admitted
+  PASS  test_scalar_length_is_neither_byte_length_nor_grapheme_clusters
+  PASS  test_a_multibyte_name_is_bounded_by_bytes_before_scalars
+  PASS  test_the_byte_cap_is_the_ruled_128_and_the_computation_is_exact
+  PASS  test_an_unpaired_surrogate_cannot_be_admitted_as_a_name
+  PASS  test_nothing_is_normalized_truncated_or_replaced
+  PASS  test_an_anonymous_live_resident_is_legal_and_round_trips
+  PASS  test_the_starter_settlement_is_eleven_anonymous_founders_and_one_name
+  PASS  test_the_occupancy_table_refuses_both_mismatch_directions
+  PASS  test_restore_name_never_derives_the_flag_from_the_string
+  PASS  test_a_name_cannot_be_set_on_a_row_that_holds_no_resident
+  PASS  test_a_retained_dead_row_keeps_its_name_and_its_flag
+  PASS  test_spatial_identity_reads_actual_species_stage_and_logical_rig_without_changing_state
+  PASS  test_spatial_identity_refuses_missing_stage_rigs_without_touching_output
+  PASS  test_spatial_identity_refuses_stale_wrong_kind_and_malformed_scratch
+  PASS  test_spatial_identity_refuses_unbound_catalog_and_inconsistent_row_identity
+CI_SUITE_TIME {"assertions":2019,"failures":0,"suite":"test_residents.gd","tests":98,"usec":3159123}
+test_residents_columns.gd
+  PASS  test_column_order_matches_the_canonical_registry_artifact
+  PASS  test_the_name_column_is_not_one_of_the_section_four_columns
+  PASS  test_a_populated_store_round_trips_into_a_different_instance
+  PASS  test_a_released_rows_retained_bytes_survive_and_no_reader_can_see_them
+  PASS  test_the_live_list_is_rebuilt_ascending_and_not_carried
+  PASS  test_an_empty_columns_object_matches_a_cleared_store
+  PASS  test_a_restored_named_row_is_counted_until_section_fourteen_completes_it
+  PASS  test_a_restore_empties_a_name_left_by_the_previous_world
+  PASS  test_a_named_free_row_refuses_through_the_shared_validator
+  PASS  test_a_short_column_refuses_on_shape
+  PASS  test_a_named_byte_that_is_neither_zero_nor_one_refuses
+  PASS  test_a_size_class_disagreeing_with_the_species_refuses
+  PASS  test_a_skill_level_that_is_not_the_curves_answer_refuses
+  PASS  test_experience_on_the_reserved_skill_index_refuses
+  PASS  test_a_reference_pair_with_a_zero_generation_refuses
+  PASS  test_a_self_reference_the_directory_does_not_honour_refuses
+  PASS  test_two_rows_claiming_one_directory_slot_refuse
+  PASS  test_a_tool_durability_without_a_tool_refuses
+  PASS  test_a_negative_species_id_refuses_and_the_test_proves_it_is_negative
+  PASS  test_an_out_of_domain_life_stage_refuses_rather_than_defaulting_to_adult
+  PASS  test_more_than_the_cap_of_residents_refuses
+  PASS  test_a_column_refusal_does_not_touch_the_operation_channel
+  PASS  test_every_published_column_refusal_code_is_prefixed
+CI_SUITE_TIME {"assertions":152,"failures":0,"suite":"test_residents_columns.gd","tests":23,"usec":1677335}
+test_resource_claim_lifecycle.gd
+  PASS  test_claim_order_key_uses_the_owning_job_despite_different_directory_slot
+  PASS  test_destroying_basin_releases_other_designations_claims_first
+  PASS  test_destroying_designation_releases_its_claim_without_resetting_basin_usage
+  PASS  test_rebinding_designation_releases_old_claim_and_retains_old_basin
+  PASS  test_claimed_basin_cannot_be_rebound_away_from_its_patch
+  PASS  test_cancelled_job_claim_waits_for_normal_release_pipeline
+  PASS  test_claim_owner_can_become_member_after_admission
+CI_SUITE_TIME {"assertions":95,"failures":0,"suite":"test_resource_claim_lifecycle.gd","tests":7,"usec":233174}
+test_room_space.gd
+  PASS  test_exact_paid_cube_yields_only_a_copied_candidate
+  PASS  test_unbound_authority_and_missing_profile_never_authorize
+  PASS  test_adapter_cannot_mutate_checked_geometry_or_callers
+  PASS  test_domain_is_immutable_and_signed_datum_is_exact
+  PASS  test_domain_capacity_and_int32_far_corner_refuse
+  PASS  test_fine_plan_cannot_charge_a_larger_rounded_cube
+  PASS  test_plan_cannot_gain_unpriced_void_past_its_cubes
+  PASS  test_offset_and_duplicate_cube_keys_are_rejected
+  PASS  test_completed_void_can_be_reused_but_never_dug_for_new_output
+  PASS  test_survey_coverage_is_union_not_bounding_box_or_sample_points
+  PASS  test_hidden_interior_hole_is_not_paid_solid_coverage
+  PASS  test_contradictory_solid_and_void_survey_fails_closed
+  PASS  test_stacked_horizontal_overlap_is_allowed_when_heights_clear
+  PASS  test_intermediate_level_obstruction_reports_actual_owner_and_level
+  PASS  test_water_resources_occupants_pending_work_and_protected_landings_block
+  PASS  test_opening_requires_exact_target_and_does_not_excuse_overlapping_furniture
+  PASS  test_opening_cannot_claim_extra_wall_outside_actual_project
+  PASS  test_support_must_cover_required_actual_extent
+  PASS  test_stale_snapshot_room_generation_and_obstruction_revision_refuse
+  PASS  test_unknown_or_unfinished_worker_approach_is_not_a_construction_route
+  PASS  test_work_point_belongs_to_actual_cut_face_and_authored_reach
+  PASS  test_later_obstacle_at_worker_approach_blocks_the_whole_plan
+  PASS  test_future_opening_does_not_make_current_worker_approach_empty
+  PASS  test_malformed_columns_and_missing_contact_are_refused_before_indexing
+  PASS  test_operation_and_region_budgets_leave_request_unchanged
+  PASS  test_face_tangency_is_not_intersection_and_integer_extremes_are_ordered
+  PASS  test_public_box_helpers_refuse_malformed_and_narrowing_inputs
+CI_SUITE_TIME {"assertions":249,"failures":0,"suite":"test_room_space.gd","tests":27,"usec":22567}
+test_save_section_01.gd
+  PASS  test_the_nine_owners_their_versions_and_their_counts_are_the_ruled_ones
+  PASS  test_only_resource_nodes_moved_to_owner_schema_two
+  PASS  test_every_wrapper_block_and_payload_offset_matches_the_ruling
+  PASS  test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself
+  PASS  test_resource_nodes_declares_one_field_and_the_three_scratch_arrays_are_absent
+  PASS  test_every_declared_field_lands_at_the_rulings_count_and_value_offsets
+  PASS  test_the_section_carries_forty_four_stored_fields_and_thirty_six_records
+  PASS  test_the_encoded_section_is_exactly_the_ruled_length
+  PASS  test_the_provenance_prefix_and_store_count_sit_at_their_absolute_offsets
+  PASS  test_every_wrapper_is_pinned_at_its_absolute_offset
+  PASS  test_every_element_count_prefix_is_pinned_at_its_absolute_offset
+  PASS  test_the_two_fixed_format_payloads_carry_no_count_prefix
+  PASS  test_the_weather_block_is_one_aggregate_row_of_eight_and_two
+  PASS  test_the_mixed_grid_owners_declare_grid_primary_counts_not_singletons
+  PASS  test_the_module_declares_no_float_path
+  PASS  test_every_owner_round_trips_with_boundary_sentinels_intact
+  PASS  test_a_decoded_section_re_encodes_to_the_same_bytes
+  PASS  test_the_section_decodes_at_the_offset_a_real_file_puts_it_at
+  PASS  test_a_store_count_other_than_nine_is_refused
+  PASS  test_two_owner_keys_swapped_in_place_are_refused
+  PASS  test_a_wrong_key_byte_count_is_refused
+  PASS  test_a_wrong_owner_schema_version_is_refused_for_each_owner
+  PASS  test_a_wrong_primary_count_or_payload_length_is_refused
+  PASS  test_singleton_primary_counts_for_the_mixed_grids_are_rejected
+  PASS  test_every_element_count_prefix_must_equal_its_declared_count
+  PASS  test_a_section_one_byte_short_is_refused_rather_than_measured
+  PASS  test_a_refused_decode_leaves_the_callers_state_byte_identical
+  PASS  test_an_out_of_domain_value_is_refused_by_its_owners_own_validator
+  PASS  test_changing_only_the_deposit_scratch_changes_no_section_byte
+  PASS  test_a_placement_that_really_lands_does_change_the_section
+  PASS  test_the_resource_adapter_refuses_each_scratch_field_by_name
+  PASS  test_legacy_nine_adapters_do_not_claim_the_underground_owner
+  PASS  test_every_declared_section_one_record_is_supplied_at_its_declared_count
+  PASS  test_an_unknown_field_key_is_refused_by_every_owner_adapter
+  PASS  test_the_runtime_adapter_emits_four_records_and_never_debt
+  PASS  test_a_published_seed_must_agree_with_provenance_and_with_the_runtime
+  PASS  test_an_unpublished_map_asserts_nothing_about_the_seed
+  PASS  test_a_validated_section_restores_into_a_second_world_and_captures_identically
+  PASS  test_a_refused_restore_leaves_the_target_world_unchanged
+  PASS  test_a_restore_that_refuses_late_still_leaves_the_earlier_owners_alone
+  PASS  test_an_unbound_store_refuses_rather_than_skipping_an_owner
+CI_SUITE_TIME {"assertions":872,"failures":0,"suite":"test_save_section_01.gd","tests":41,"usec":11451993}
+test_save_section_directory.gd
+  PASS  test_section_identity_matches_arch_save_002
+  PASS  test_capacity_is_read_from_the_directory_not_restated
+  PASS  test_column_order_is_save_layout_r01s
+  PASS  test_section_carries_no_allocator_heap
+  PASS  test_field_offsets_are_the_pinned_byte_map
+  PASS  test_byte_order_probe_accepts_this_build
+  PASS  test_canonical_type_codes_are_save_r09s
+  PASS  test_framing_bytes_are_pinned
+  PASS  test_populated_column_bytes_are_pinned
+  PASS  test_unequal_width_columns_pin_column_major_bytes
+  PASS  test_round_trip_re_encodes_byte_identically
+  PASS  test_chunk_cursor_streams_within_the_arch_save_003_bound
+  PASS  test_chunk_stream_concatenates_to_the_materialised_section
+  PASS  test_incremental_crc_over_chunks_equals_the_whole
+  PASS  test_column_cursor_emits_only_one_columns_values
+  PASS  test_a_generation_off_by_one_changes_the_bytes
+  PASS  test_a_retired_slot_cannot_load_as_reusable
+  PASS  test_a_retirement_swap_that_keeps_the_counts_balanced_is_still_refused
+  PASS  test_a_live_slot_may_hold_the_last_generation_without_being_retired
+  PASS  test_a_free_slots_null_typed_row_stays_minus_one
+  PASS  test_a_never_used_slot_holds_its_declared_canonical_values
+  PASS  test_a_free_slot_loaded_as_row_zero_is_refused
+  PASS  test_a_full_length_invalid_section_leaves_the_record_untouched
+  PASS  test_a_full_length_section_with_a_duplicate_typed_row_is_refused
+  PASS  test_a_duplicate_persistent_id_is_refused
+  PASS  test_truncation_at_every_stage_is_refused_without_writing
+  PASS  test_extent_refusal_is_public_and_overflow_safe
+  PASS  test_decoding_at_a_nonzero_offset_reads_the_same_section
+  PASS  test_framing_fields_are_each_validated
+  PASS  test_a_wrong_element_count_is_refused
+  PASS  test_section_length_refusal_checks_a_descriptor
+  PASS  test_the_high_bit_pattern_is_read_signed_and_refused
+  PASS  test_the_last_generation_survives_as_itself
+  PASS  test_occupancy_and_retirement_bytes_are_zero_or_one
+  PASS  test_live_slot_identity_fields_are_each_validated
+  PASS  test_a_free_slot_carrying_a_stale_identity_is_refused
+  PASS  test_the_living_resident_cap_is_enforced
+  PASS  test_a_short_column_is_refused_before_anything_indexes_it
+  PASS  test_rebuild_reproduces_the_reverse_owner_map
+  PASS  test_rebuild_reproduces_every_counter
+  PASS  test_the_free_set_alone_decides_the_next_allocation
+  PASS  test_agrees_with_a_live_directory_and_catches_a_single_wrong_value
+  PASS  test_agreement_catches_a_generation_that_is_one_step_off
+  PASS  test_agreement_catches_a_live_count_that_does_not_match
+  PASS  test_capture_columns_validates_before_it_copies
+  PASS  test_capture_from_a_live_store_reads_every_column
+  PASS  test_the_round_trip_returns_a_byte_identical_section_and_the_same_allocation_order
+  PASS  test_apply_refuses_an_invalid_record_and_leaves_the_store_alone
+  PASS  test_module_source_holds_no_float
+  PASS  test_module_names_the_closed_blocker_and_the_open_one
+CI_SUITE_TIME {"assertions":480,"failures":0,"suite":"test_save_section_directory.gd","tests":50,"usec":1034327}
+test_save_section_name_pool.gd
+  PASS  test_section_identity_and_framing_constants
+  PASS  test_the_name_r02_owner_wrapper_is_registered_exactly_as_ruled
+  PASS  test_the_canonical_record_identity_is_reg_r01s_and_carries_no_framing_count
+  PASS  test_section_length_bounds_are_name_r02s_stated_arithmetic
+  PASS  test_empty_pool_encodes_to_the_exact_all_empty_vector
+  PASS  test_representative_encode_matches_a_restated_byte_vector
+  PASS  test_save_r09_002_pinned_string_fixtures_reproduce
+  PASS  test_canonical_bytes_drop_the_wrapper_and_both_framing_counts
+  PASS  test_capture_of_the_starter_settlement_names_only_the_warden
+  PASS  test_round_trip_preserves_names_slot_positions_and_empties
+  PASS  test_an_empty_name_round_trips_as_a_present_anonymous_row_not_an_absent_one
+  PASS  test_clearing_a_name_round_trips_as_anonymous
+  PASS  test_extent_refusal_is_public_and_separates_its_four_refusals
+  PASS  test_extent_check_does_not_overflow_on_a_huge_offset
+  PASS  test_the_encoded_wrapper_carries_the_ruled_field_values_at_the_ruled_offsets
+  PASS  test_a_wrapper_payload_length_that_disagrees_with_the_body_is_refused
+  PASS  test_each_wrapper_field_has_its_own_refusal_and_none_is_inferred
+  PASS  test_the_wrapper_and_the_inner_row_count_are_both_validated
+  PASS  test_a_truncated_section_refuses_instead_of_decoding_as_a_shorter_pool
+  PASS  test_a_row_prefix_cannot_reach_past_the_section_into_the_next_one
+  PASS  test_trailing_bytes_after_the_last_row_are_refused
+  PASS  test_an_off_by_one_length_prefix_is_caught_both_directions
+  PASS  test_a_row_count_other_than_the_capacity_is_refused
+  PASS  test_a_row_count_with_the_high_u32_bit_set_is_read_as_unsigned
+  PASS  test_a_full_length_section_with_an_over_long_name_refuses_without_writing_out
+  PASS  test_a_full_length_section_with_a_control_character_refuses_without_writing_out
+  PASS  test_save_r09_002_malformed_utf8_vectors_fail
+  PASS  test_a_multibyte_name_counts_scalars_not_bytes
+  PASS  test_the_128_byte_cap_and_the_32_scalar_cap_are_separate_rules
+  PASS  test_the_empty_name_is_accepted_and_a_single_scalar_is_not
+  PASS  test_control_scalar_classification_covers_c0_del_and_c1
+  PASS  test_a_control_character_inside_an_otherwise_legal_name_refuses
+  PASS  test_the_arena_limit_is_enforced_independently_of_the_per_name_cap
+  PASS  test_capture_refuses_a_store_whose_named_flag_and_key_disagree
+  PASS  test_the_live_store_can_no_longer_hold_a_name_the_codec_would_refuse
+  PASS  test_the_codec_still_refuses_an_over_long_name_that_reaches_it_in_a_record
+  PASS  test_apply_refuses_a_name_on_a_slot_the_store_has_no_resident_in
+  PASS  test_apply_refuses_an_invalid_record_before_touching_the_store
+  PASS  test_apply_refuses_a_named_row_whose_pool_entry_is_empty
+  PASS  test_apply_refuses_an_anonymous_row_the_pool_names
+  PASS  test_the_agreement_is_checked_before_the_first_write_not_after_it
+  PASS  test_apply_installs_a_valid_anonymous_starter_snapshot_unchanged
+  PASS  test_a_decoded_pool_applies_onto_a_store_with_holes
+  PASS  test_the_module_source_contains_no_float
+CI_SUITE_TIME {"assertions":466,"failures":0,"suite":"test_save_section_name_pool.gd","tests":44,"usec":1455830}
+test_save_section_navigation.gd
+  PASS  test_section_identity_matches_the_ruling
+  PASS  test_owner_schema_version_is_the_route_semantics_gate
+  PASS  test_field_tables_are_the_declared_registry_order
+  PASS  test_declared_ordinal_is_not_gdscript_declaration_order
+  PASS  test_every_group_slot_is_used_exactly_once
+  PASS  test_canonical_type_codes
+  PASS  test_byte_order_is_little_endian_on_this_build
+  PASS  test_block_and_section_byte_arithmetic
+  PASS  test_section_bytes_track_the_two_used_prefixes
+  PASS  test_wire_offsets_walk_the_declared_layout
+  PASS  test_pinned_framing_vector
+  PASS  test_blocks_tile_the_section_with_no_gaps
+  PASS  test_each_declared_ordinal_lands_on_its_own_column
+  PASS  test_empty_navigator_round_trip
+  PASS  test_populated_round_trip_is_byte_identical
+  PASS  test_round_trip_preserves_the_route_generation_namespace
+  PASS  test_decode_at_a_nonzero_offset
+  PASS  test_arena_tail_garbage_is_dropped_at_capture
+  PASS  test_heap_tail_garbage_is_dropped_at_capture
+  PASS  test_a_record_carrying_tail_residue_is_refused
+  PASS  test_decode_restores_a_zero_tail
+  PASS  test_prefix_count_beyond_capacity_is_refused
+  PASS  test_wrong_store_count_is_refused
+  PASS  test_blocks_out_of_ascii_order_are_refused
+  PASS  test_wrong_owner_schema_versions_are_refused
+  PASS  test_primary_counts_are_designated_tables_not_a_census
+  PASS  test_wire_primary_counts_are_pinned_at_absolute_offsets
+  PASS  test_section_descriptor_row_count_is_8192_and_not_the_sum
+  PASS  test_a_descriptor_claiming_8704_is_refused_at_the_header_boundary
+  PASS  test_wrong_primary_counts_are_refused
+  PASS  test_payload_length_disagreeing_with_the_body_is_refused
+  PASS  test_payload_length_outside_the_compiled_bounds_is_refused_before_reading
+  PASS  test_wrong_element_count_is_refused
+  PASS  test_extent_and_truncation_gates
+  PASS  test_section_length_refusal_compares_against_this_state
+  PASS  test_full_length_invalid_section_leaves_the_record_untouched
+  PASS  test_full_length_invalid_arena_window_leaves_the_record_untouched
+  PASS  test_the_int32_sign_trap_on_a_route_generation
+  PASS  test_start_cell_must_equal_exact_start
+  PASS  test_a_route_hold_is_checked_against_the_descriptor_generation
+  PASS  test_a_route_hold_outside_ready_is_refused
+  PASS  test_descriptor_refcounts_must_match_their_holders
+  PASS  test_retired_descriptor_rules
+  PASS  test_overlapping_route_blocks_are_refused
+  PASS  test_the_free_list_threads_exactly_the_free_rows
+  PASS  test_the_pending_queue_holds_exactly_the_queued_rows
+  PASS  test_queue_order_is_state
+  PASS  test_one_request_holds_the_builder
+  PASS  test_heap_positions_must_agree_with_the_heap
+  PASS  test_a_stamp_above_the_search_serial_is_refused
+  PASS  test_a_state_byte_outside_the_enum_is_refused
+  PASS  test_a_detached_cursor_carries_the_whole_null_tuple
+  PASS  test_an_attached_cursor_names_a_real_request_and_admission
+  PASS  test_a_stale_cursor_is_legal_state
+  PASS  test_movement_columns_are_installed_in_declared_ordinal_order
+  PASS  test_a_serviced_navigator_captures_encodes_and_decodes
+  PASS  test_a_captured_navigator_agrees_with_the_live_store
+  PASS  test_a_captured_partial_search_keeps_its_heap_and_progress
+  PASS  test_a_disagreeing_store_is_reported
+  PASS  test_the_source_holds_no_float
+  PASS  test_record_copy_and_equality_cover_every_block
+CI_SUITE_TIME {"assertions":644,"failures":0,"suite":"test_save_section_navigation.gd","tests":61,"usec":3880688}
+test_settlement_demolition_complete.gd
+  PASS  test_a_finished_well_goes_and_its_return_lands_in_the_reserved_store
+  PASS  test_a_hall_with_rooms_and_no_furniture_takes_its_rooms_and_their_stores
+  PASS  test_a_tier_two_hall_returns_half_of_base_plus_upgrade
+  PASS  test_with_no_store_the_return_is_placed_on_ground_piles_from_the_door
+  PASS  test_a_dirt_path_with_an_empty_bill_completes_returning_nothing
+  PASS  test_a_store_sized_exactly_to_the_return_takes_it_through_the_released_claim
+  PASS  test_a_project_material_container_reached_twice_is_destroyed_once
+  PASS  test_a_second_completion_finds_no_building
+  PASS  test_completion_refuses_until_the_work_is_done
+  PASS  test_completion_refuses_a_demolition_the_coordinator_did_not_admit
+  PASS  test_completion_refuses_inside_a_callers_transaction_and_a_missing_claim
+  PASS  test_goods_that_arrive_after_admission_block_the_commit_until_moved
+  PASS  test_occupants_after_admission_block_the_commit
+  PASS  test_a_foreign_container_on_the_footprint_after_admission_blocks_the_commit
+  PASS  test_a_hall_with_furniture_returns_half_of_each_piece_and_takes_it_out
+  PASS  test_furniture_adds_items_the_building_never_named
+  PASS  test_two_pieces_of_one_kind_each_return_their_half
+  PASS  test_a_piece_with_a_live_furniture_project_refuses_by_name
+  PASS  test_a_piece_placed_after_admission_blocks_the_commit_until_removed
+  PASS  test_a_piece_placed_after_a_pile_admission_is_caught_too
+  PASS  test_recorded_grams_that_differ_from_the_snapshots_charge_refuse
+  PASS  test_a_pile_fallback_that_no_longer_places_stays_commit_pending_and_retries
+  PASS  test_a_store_that_can_no_longer_take_the_return_stays_commit_pending
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3816)
+       [1] _abandon_after_first_block (res://test/test_settlement_demolition_complete.gd:601)
+       [2] test_an_abandoned_store_commit_restores_inventory_and_re_records_the_admission (res://test/test_settlement_demolition_complete.gd:611)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_an_abandoned_store_commit_restores_inventory_and_re_records_the_admission
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3816)
+       [1] _abandon_after_first_block (res://test/test_settlement_demolition_complete.gd:601)
+       [2] test_an_abandoned_pile_commit_re_records_the_fallback_shape (res://test/test_settlement_demolition_complete.gd:628)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_an_abandoned_pile_commit_re_records_the_fallback_shape
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3816)
+       [1] _abandon_after_first_block (res://test/test_settlement_demolition_complete.gd:601)
+       [2] test_the_abandon_guard_zeroes_the_reports_counters_and_rereads_the_revision (res://test/test_settlement_demolition_complete.gd:649)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_the_abandon_guard_zeroes_the_reports_counters_and_rereads_the_revision
+CI_SUITE_TIME {"assertions":413,"failures":0,"suite":"test_settlement_demolition_complete.gd","tests":26,"usec":5810424}
+test_stock_age.gd
+  PASS  test_the_store_factors_are_the_four_the_gdd_tabulates
+  PASS  test_an_undeclared_storage_class_refuses_instead_of_answering_zero
+  PASS  test_the_temperature_factors_are_the_four_seasons_the_gdd_tabulates
+  PASS  test_a_heated_interior_substitutes_only_in_winter
+  PASS  test_the_crossing_is_the_offset_hour_and_never_a_plain_midnight_modulo
+  PASS  test_a_tick_that_is_not_an_hour_crossing_ages_nothing
+  PASS  test_a_replayed_hour_is_refused_rather_than_aged_twice
+  PASS  test_an_unbound_catalog_refuses_before_the_hour_latch_is_consumed
+  PASS  test_one_pantry_hour_in_spring_is_the_gdd_product
+  PASS  test_the_four_store_classes_age_at_four_different_rates_in_one_season
+  PASS  test_summer_and_winter_move_the_same_store_at_different_rates
+  PASS  test_a_heated_interior_ages_faster_in_winter_than_an_unheated_one
+  PASS  test_midnight_ages_with_the_elapsed_intervals_season_not_the_new_days
+  PASS  test_changing_stores_never_resets_age_and_the_new_store_decides_the_next_hour
+  PASS  test_the_retained_fraction_is_carried_rather_than_floored_away
+  PASS  test_an_undeclared_container_is_not_aged_and_is_counted
+  PASS  test_a_food_lot_becomes_spoiled_food_of_identical_mass_at_its_shelf_life
+  PASS  test_a_heavier_item_converts_to_more_milli_units_of_the_same_mass
+  PASS  test_a_lot_one_hour_short_of_its_shelf_life_is_still_food
+  PASS  test_an_unlimited_shelf_item_ages_and_never_expires
+  PASS  test_spoiled_food_is_removed_as_waste_after_two_hundred_and_forty_hours
+  PASS  test_an_inexact_equal_mass_conversion_refuses_instead_of_rounding
+  PASS  test_expiry_invalidates_the_lots_reservations_in_the_same_transaction
+  PASS  test_a_container_filter_cannot_veto_a_spoilage_conversion
+  PASS  test_every_equippable_item_has_an_unlimited_shelf_life
+  PASS  test_an_equipped_lot_refuses_to_age_rather_than_ageing_at_a_guessed_factor
+  PASS  test_the_hourly_sweep_cannot_reach_an_equipped_lot_at_all
+  PASS  test_a_declaration_needs_a_live_container_and_a_real_storage_class
+  PASS  test_a_recycled_container_slot_does_not_inherit_the_old_storage_class
+  PASS  test_the_sweep_drops_a_declaration_whose_container_is_gone
+  PASS  test_a_withdrawn_declaration_stops_the_container_ageing
+  PASS  test_binding_a_different_inventory_drops_every_declaration
+  PASS  test_clear_drops_every_declaration_and_the_hourly_latch
+  PASS  test_the_catalog_masses_still_make_the_expiry_divisor_exactly_ten
+  PASS  test_the_rulings_expiry_boundary_table_holds_row_by_row
+  PASS  test_the_nominal_mass_invariant_holds_on_every_tabulated_row
+  PASS  test_a_zero_or_negative_mass_refuses_instead_of_answering_a_quantity
+  PASS  test_a_yield_that_overflows_int64_refuses_rather_than_saturating
+  PASS  test_all_five_seed_items_become_compost_on_their_shelf_hour
+  PASS  test_an_expired_seed_lot_is_sunk_whole_and_compost_sourced_floored
+  PASS  test_the_floored_remainder_is_decay_loss_carried_by_the_seed_sink
+  PASS  test_a_seed_lot_whose_yield_floors_to_zero_is_retired_not_left_at_zero
+  PASS  test_splitting_a_seed_lot_can_only_lose_compost_never_gain_it
+  PASS  test_a_seed_conversion_invalidates_its_reservations_in_the_same_transaction
+  PASS  test_a_reserved_zero_yield_seed_lot_retires_with_its_claim_released
+  PASS  test_a_seed_lot_one_hour_short_of_its_shelf_life_is_not_converted
+  PASS  test_a_seed_conversion_never_charges_the_container_more_mass
+  PASS  test_a_refused_expiry_hour_leaves_the_inventory_byte_identical
+  PASS  test_an_expired_seed_lot_is_refused_to_every_seed_consumer
+  PASS  test_the_seed_guard_has_no_opinion_about_food_and_fails_closed
+  PASS  test_reading_the_seed_guard_converts_nothing
+CI_SUITE_TIME {"assertions":335,"failures":0,"suite":"test_stock_age.gd","tests":51,"usec":107581}
+test_stock_authority_lifetime.gd
+  PASS  test_the_bound_pair_is_released_once_external_references_are_dropped
+  PASS  test_a_live_binding_is_still_consulted_on_every_admission
+  PASS  test_a_live_binding_that_re_enters_the_store_is_still_refused
+  PASS  test_clear_preserves_a_live_binding
+  PASS  test_an_explicit_unbind_enforces_nothing
+  PASS  test_an_expired_binding_refuses_instead_of_admitting
+  PASS  test_an_expired_binding_is_distinguishable_from_an_explicit_unbind
+  PASS  test_rebinding_a_live_authority_restores_enforcement
+CI_SUITE_TIME {"assertions":49,"failures":0,"suite":"test_stock_authority_lifetime.gd","tests":8,"usec":10483}
+test_ui_manager.gd
+  PASS  test_food_days_reaches_the_label_exactly_as_the_economy_derived_it
+  PASS  test_every_supplied_counter_matches_the_starter_fixture
+  PASS  test_an_unpopulated_food_days_reaches_the_label_as_the_marker
+  PASS  test_the_counters_track_the_stores_rather_than_a_constant
+  PASS  test_a_lost_population_returns_the_label_to_the_marker
+  PASS  test_status_readout_forwards_the_game_managers_own_values
+EXPECTED ERROR: UIManager.register_hud() was given null; the HUD will not update.
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] register_hud (res://scripts/systems/ui_manager.gd:159)
+       [1] test_register_hud_refuses_null_and_stays_unbound (res://test/test_ui_manager.gd:262)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/home/runner/work/redwall-rts/redwall-rts/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_register_hud_refuses_null_and_stays_unbound
+  PASS  test_unregister_hud_stops_further_repaints
+  PASS  test_a_freed_hud_is_never_written_to
+  PASS  test_depletion_and_diagnostics_reach_the_alert_zone
+  PASS  test_the_world_opens_paused_for_inspection_with_the_player_reason
+  PASS  test_the_opening_pause_retains_the_requested_speed
+  PASS  test_the_first_resume_hands_time_to_the_player_and_is_not_undone
+  PASS  test_the_opening_pause_refuses_before_the_clock_has_started
+  PASS  test_the_interface_exposes_a_command_bridge_and_starts_with_no_orders
+  PASS  test_a_refusal_reaches_the_accessible_error_display_with_its_code
+  PASS  test_an_unknown_refusal_code_is_still_displayed_rather_than_swallowed
+  PASS  test_the_create_action_generates_the_authored_world_into_the_live_stores
+  PASS  test_a_generated_world_is_populated_and_beds_stay_unpopulated
+  PASS  test_create_materialises_the_starter_colony_and_rebinds_the_stores_to_it
+  PASS  test_create_repaints_the_new_settlements_figures
+  PASS  test_a_create_refused_before_its_reset_keeps_the_running_stores
+  PASS  test_a_create_that_loses_the_old_colony_drops_the_stores_it_owned
+  PASS  test_a_create_whose_colony_refuses_leaves_nothing_half_made
+  PASS  test_create_stands_the_cohort_exactly_where_boot_stands_it
+  PASS  test_the_generation_report_reaches_the_player_with_its_own_counts
+  PASS  test_a_refused_generation_reports_the_generators_own_code
+  PASS  test_the_roster_lists_the_living_residents_from_the_store
+  PASS  test_choosing_a_roster_row_opens_that_residents_real_detail
+  PASS  test_all_five_need_rows_reach_the_card_for_a_real_resident
+  PASS  test_all_five_need_rows_carry_a_published_rate_on_screen
+  PASS  test_a_real_residents_species_medallion_is_loaded_and_identified_as_generic
+  PASS  test_the_card_states_that_age_is_unavailable_rather_than_inventing_one
+  PASS  test_health_and_activity_reach_their_own_lines_from_the_stores
+  PASS  test_an_empty_settlement_shows_no_roster_rows_rather_than_placeholders
+  PASS  test_an_absent_residents_store_is_unpopulated_and_an_empty_one_is_zero
+  PASS  test_a_refused_generation_becomes_an_error_notice_with_the_ruling_s_title
+  PASS  test_the_refusal_still_fills_the_error_panel_as_well_as_the_card
+  PASS  test_a_command_refusal_is_retained_as_a_retrievable_error_notice
+  PASS  test_a_depletion_names_the_item_as_its_source_so_two_items_stay_two_notices
+  PASS  test_create_still_succeeds_in_a_running_game
+  PASS  test_create_still_succeeds_while_a_demolition_is_admitted
+  PASS  test_the_create_button_gives_the_cohort_persistent_ids_one_to_twelve
+  PASS  test_a_roster_row_caches_the_generation_and_persistent_id_of_its_resident
+  PASS  test_a_reused_slot_refuses_the_stale_click_instead_of_selecting_the_replacement
+  PASS  test_the_reused_slot_refusal_reaches_the_player_as_its_own_notice
+  PASS  test_a_refreshed_roster_selects_the_resident_that_now_holds_the_reused_slot
+  PASS  test_an_emptied_roster_slot_still_refuses_with_the_stale_code
+  PASS  test_a_replaced_directory_identity_refuses_even_though_the_reference_validates
+CI_SUITE_TIME {"assertions":328,"failures":0,"suite":"test_ui_manager.gd","tests":49,"usec":8035420}
+test_ui_theme_resource.gd
+  PASS  test_all_four_weights_are_present_at_the_specified_paths
+  PASS  test_each_file_reports_its_own_weight_rather_than_a_renamed_regular
+  PASS  test_the_four_weights_are_four_distinct_files
+  PASS  test_the_font_licence_travels_with_the_files
+  PASS  test_the_theme_loads_and_carries_section_two_twos_body_typography
+  PASS  test_every_profile_has_a_variation_in_the_committed_theme
+  PASS  test_every_button_state_background_matches_the_token_it_was_built_from
+  PASS  test_a_selected_toggle_is_gold_with_ink_text
+  PASS  test_disabled_text_in_the_theme_is_muted_and_still_readable
+  PASS  test_the_focus_outline_in_the_theme_is_the_gold_two_pixel_rule
+  PASS  test_the_typographic_roles_carry_their_documented_sizes
+  PASS  test_the_counter_role_uses_tabular_figures
+  PASS  test_the_readout_profile_also_uses_tabular_figures
+  PASS  test_every_icon_the_shell_names_exists
+  PASS  test_the_disabled_lock_and_the_refusal_warning_are_present
+  PASS  test_the_icons_are_authored_on_the_documented_grid
+CI_SUITE_TIME {"assertions":208,"failures":0,"suite":"test_ui_theme_resource.gd","tests":16,"usec":121617}
+test_underground_actor.gd
+  PASS  test_complete_world_basis_source_is_immutable_and_selection_preserves_refused_output
+  PASS  test_world_basis_reader_refuses_corrupt_rows_metadata_footer_and_source_atomically
+  PASS  test_world_binding_requires_the_entire_actual_domain_descriptor_and_exact_root_range
+  PASS  test_explicit_world_equation_keeps_grounding_after_skin_and_identical_attachment_root
+  PASS  test_native_world_binding_keeps_global_parts_independent_of_parent_and_refused_updates
+  PASS  test_palette_copies_source_and_exposes_only_counts_and_digest
+  PASS  test_invalid_source_capacity_and_components_leave_palette_unbound
+  PASS  test_matrix_blend_is_affine_not_a_hidden_quaternion_path
+  PASS  test_transition_is_a_convex_combination_of_four_final_matrices
+  PASS  test_bad_frames_weights_and_scratch_preserve_the_prior_output
+  PASS  test_finite_baker_refuses_unrecorded_attachment_surface_overrides
+  PASS  test_finite_baker_requires_explicit_persistent_pick_binding_and_separate_carry_states
+  PASS  test_skin_validation_rejects_missing_eighth_influence_and_zero_weight
+  PASS  test_nonfinite_and_unproved_material_geometry_refuse_before_allocation
+  PASS  test_actual_renderer_updates_original_mesh_and_owned_palette_or_refuses_dummy_backend
+  PASS  test_static_attachment_offsets_follow_the_same_finite_palette_and_native_lifetime
+  PASS  test_actual_instance_material_is_preserved_without_modifying_the_original_mesh
+  PASS  test_configuration_outside_the_scene_tree_cannot_publish_an_orphan_skin_palette
+  PASS  test_common_grounding_uses_the_same_four_positive_frame_weights
+  PASS  test_grounding_capacity_and_nonfinite_source_refuse_before_any_publication
+  PASS  test_native_common_translation_moves_body_and_attachment_without_changing_skin_matrices
+CI_SUITE_TIME {"assertions":225,"failures":0,"suite":"test_underground_actor.gd","tests":21,"usec":262664}
+test_underground_actor_content.gd
+  PASS  test_streamed_source_is_immutable_and_has_explicit_full_peak_admission
+  PASS  test_refused_corrupt_candidate_keeps_no_partial_palette_or_identity
+  PASS  test_hash_and_last_byte_of_presentation_reserve_are_mandatory
+  PASS  test_fixed_presentation_phase_preserves_loop_clamp_and_ping_pong_source_modes
+  PASS  test_short_final_source_interval_reaches_the_actual_finite_endpoint
+  PASS  test_provenance_readers_preserve_failed_outputs_and_do_not_bless_unbound_profiles
+  PASS  test_borrowed_mesh_geometry_and_skin_must_match_every_source_byte
+  PASS  test_actor_configuration_refuses_before_native_allocation_when_source_or_tree_is_missing
+CI_SUITE_TIME {"assertions":109,"failures":0,"suite":"test_underground_actor_content.gd","tests":8,"usec":58966}
+test_underground_phase_structure.gd
+  PASS  test_real_pack_cold_estimates_and_unbound_provider
+  PASS  test_paid_brace_protects_exact_fine_floor_and_roof
+  PASS  test_paid_cut_and_fine_finish_retain_natural_protections
+  PASS  test_identity_only_provider_readers_and_exact_scope
+  PASS  test_material_free_query_allocates_no_fragment_banks_and_checks_budget_before_handles
+  PASS  test_existing_paid_cavity_cannot_be_mistaken_for_original_natural_earth
+  PASS  test_another_confirmed_section_protects_its_footing_before_any_brace
+  PASS  test_unauthored_clear_height_is_not_silently_shortened_or_inferred
+  PASS  test_same_column_braces_reuse_room_protection_and_one_close_cannot_release_it
+  PASS  test_sealed_candidate_cannot_remove_protection_or_exact_claims
+  PASS  test_original_token_replaced_after_handles_prevents_bank_allocation_and_payment
+  PASS  test_split_support_union_passes_but_duplicate_volume_cannot_hide_a_hole
+  PASS  test_reentry_poison_refuses_outer_observation_and_clean_retry_remains_possible
+  PASS  test_late_sparse_capacity_refusal_keeps_real_paid_work_and_retries_without_double_inputs
+  PASS  test_prepared_claim_removal_refuses_without_reinterpreting_floor_envelope_as_footprint
+  PASS  test_content_and_actual_world_retirement_refuse_rebinding_or_publication
+  PASS  test_direct_start_or_commit_requires_current_actual_paid_work_phase
+  PASS  test_bad_token_mode_or_capacity_refuses_before_allocating_scope_identity_callback
+  PASS  test_scope_lifetime_is_borrowed_for_complete_run_then_expires_without_a_cycle
+CI_SUITE_TIME {"assertions":240,"failures":0,"suite":"test_underground_phase_structure.gd","tests":19,"usec":7542878}
+test_underground_world_structure.gd
+  PASS  test_actual_structure_query_remains_separate_from_full_work_qualification
+  PASS  test_real_paid_brace_cut_finish_use_the_actual_world_structural_delegates
+  PASS  test_reentrant_delegate_cannot_hide_behind_outer_success
+  PASS  test_delegate_replacing_phase_lease_preserves_foreign_token
+  PASS  test_bind_holds_actual_owner_until_all_reciprocal_callbacks_finish
+  PASS  test_structural_callbacks_cannot_overlap_other_world_scratch
+CI_SUITE_TIME {"assertions":64,"failures":0,"suite":"test_underground_world_structure.gd","tests":6,"usec":2169038}
+test_weather.gd
+  PASS  test_row_width_matches_the_schema
+  PASS  test_a_new_store_has_no_event_and_no_forecast
+  PASS  test_clear_returns_a_used_row_to_empty
+  PASS  test_event_ids_are_the_generated_ascii_order
+  PASS  test_the_event_keys_are_in_compiled_id_order
+  PASS  test_the_selection_traversal_is_the_printed_order_not_the_id_order
+  PASS  test_event_weights_are_the_raw_stated_integers
+  PASS  test_event_durations_are_the_stated_days
+  PASS  test_start_day_is_six_except_early_frost_at_ten
+  PASS  test_forecast_day_is_three_days_before_the_start
+  PASS  test_eligible_seasons_match_the_stated_column
+  PASS  test_eligible_counts_match_the_stated_column
+  PASS  test_weight_sums_are_the_ruled_values
+  PASS  test_weight_sum_equals_the_hand_added_eligible_weights
+  PASS  test_every_roll_of_every_season_maps_to_the_ruled_row
+  PASS  test_both_sides_of_every_interval_boundary
+  PASS  test_the_comparison_is_strictly_less_than_cumulative
+  PASS  test_each_interval_is_exactly_as_wide_as_its_raw_weight
+  PASS  test_a_roll_outside_the_weight_sum_is_refused
+  PASS  test_an_invalid_season_is_refused_by_the_mapping
+  PASS  test_the_forced_first_spring_consumes_no_draw
+  PASS  test_an_ordinary_season_consumes_exactly_one_draw
+  PASS  test_selection_replays_the_stream_without_reseeding
+  PASS  test_a_season_change_does_not_reseed_the_stream
+  PASS  test_selection_touches_no_other_stream
+  PASS  test_the_module_uses_the_weather_stream
+  PASS  test_a_refused_schedule_consumes_no_draw
+  PASS  test_an_unseeded_rng_is_refused_without_writing_the_row
+  PASS  test_the_same_seed_replays_the_same_seasons
+  PASS  test_is_forced_first_spring_names_year_one_spring_only
+  PASS  test_the_forecast_is_not_due_before_three_days_out
+  PASS  test_the_disclosed_forecast_holds_event_start_and_duration
+  PASS  test_disclosure_is_idempotent_and_consumes_no_draw
+  PASS  test_early_frost_is_disclosed_on_day_seven
+  PASS  test_disclosure_without_a_scheduled_event_is_refused
+  PASS  test_scheduling_a_new_event_clears_the_previous_forecast
+  PASS  test_the_event_window_covers_start_through_start_plus_duration_minus_one
+  PASS  test_early_frost_occupies_days_ten_and_eleven
+  PASS  test_an_out_of_range_day_is_never_active
+  PASS  test_season_baseline_temperatures_are_the_stated_tenths
+  PASS  test_season_baseline_rain_is_the_stated_column
+  PASS  test_daylight_windows_match_the_stated_hours
+  PASS  test_both_sides_of_every_daylight_boundary
+  PASS  test_an_hour_outside_the_day_is_never_daylight
+  PASS  test_the_darkness_work_factor_is_seven_hundred_and_fifty_per_thousand
+  PASS  test_winter_hunger_demand_is_multiplied_by_one_point_two
+  PASS  test_ideal_spell_temperature_is_eighteen_degrees_except_two_in_winter
+  PASS  test_heavy_rain_is_three_degrees_below_its_season_baseline
+  PASS  test_the_absolute_event_temperatures_are_the_stated_degrees
+  PASS  test_blight_and_calm_days_leave_the_baseline_temperature_alone
+  PASS  test_no_event_reports_the_plain_season_baseline
+  PASS  test_event_rain_follows_the_stated_additions
+  PASS  test_an_ineligible_event_is_refused_rather_than_evaluated
+  PASS  test_the_reported_effect_factors_are_the_stated_numbers
+  PASS  test_effect_factors_are_neutral_with_no_event_and_refused_for_a_non_row
+  PASS  test_the_stated_access_flags_belong_to_one_row_each
+  PASS  test_affected_system_masks_name_each_rows_stated_effects
+  PASS  test_blight_is_reported_active_only_inside_its_window
+  PASS  test_a_non_blight_event_never_reports_blight
+  PASS  test_daily_evaporation_is_six_hundred_and_nine_hundred_in_summer
+  PASS  test_the_net_daily_moisture_change_evaporates_before_rain
+  PASS  test_the_published_moisture_probe_is_reproduced_day_by_day
+  PASS  test_moisture_is_clamped_to_the_stated_range
+  PASS  test_a_moisture_outside_the_stated_range_is_refused
+  PASS  test_the_daily_row_records_the_baseline_outside_the_event_window
+  PASS  test_the_daily_row_records_the_event_inside_its_window
+  PASS  test_refresh_daily_refuses_an_impossible_day_or_season
+  PASS  test_refresh_daily_never_applies_another_seasons_event
+  PASS  test_ending_an_event_removes_its_modifiers_and_keeps_the_forecast
+  PASS  test_ending_an_event_twice_is_refused_and_consumes_no_draw
+  PASS  test_an_ended_event_leaves_the_window_readers_empty
+  PASS  test_season_days_run_from_one_to_twelve
+  PASS  test_the_season_enum_comes_from_the_protected_catalog_table
+  PASS  test_the_season_boundary_is_the_exact_midnight_of_a_new_season
+  PASS  test_an_ordinary_midnight_is_not_a_season_boundary
+  PASS  test_the_amended_row_is_eight_i32_columns_plus_two_i64_columns
+  PASS  test_a_cleared_row_has_no_temporal_identity_at_all
+  PASS  test_the_absolute_season_is_the_floor_of_day_minus_one_over_twelve
+  PASS  test_the_matching_season_ordinal_is_the_absolute_season_modulo_four
+  PASS  test_a_scheduled_event_is_not_active_in_another_absolute_season
+  PASS  test_the_event_window_is_half_open_at_start_plus_duration
+  PASS  test_the_scheduled_once_latch_refuses_a_second_draw_for_one_season
+  PASS  test_the_latch_survives_expiry_and_moves_only_on_a_new_schedule
+  PASS  test_a_disclosed_forecast_keeps_its_absolute_season_after_expiry
+  PASS  test_disclosure_refuses_a_season_the_row_was_not_scheduled_for
+  PASS  test_the_forced_first_spring_refuses_any_other_absolute_season
+  PASS  test_the_twelve_effect_bits_are_the_ruled_positions_zero_to_eleven
+  PASS  test_the_effect_mask_strips_mussel_harvest_for_non_summer_blight
+  PASS  test_a_temperature_or_rain_event_is_never_reported_as_crops_only
+  PASS  test_calm_days_has_no_modifiers_and_still_gets_its_forecast
+  PASS  test_closes_mussel_harvest_on_is_summer_blight_and_nothing_else
+  PASS  test_a_non_blight_event_never_closes_the_mussel_harvest
+  PASS  test_an_old_snapshot_without_season_identity_is_refused
+  PASS  test_a_snapshot_season_that_its_event_contradicts_is_refused
+  PASS  test_adopting_a_consistent_snapshot_identity_writes_both_columns
+  PASS  test_an_event_eligible_in_several_seasons_is_named_as_such
+  PASS  test_the_event_catalog_is_verifiable_for_the_boundary_preflight
+CI_SUITE_TIME {"assertions":1377,"failures":0,"suite":"test_weather.gd","tests":97,"usec":41418}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1380 test(s), 28205 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 4 expected, 26 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 1380 tests, 28205 assertions, 0 failures.

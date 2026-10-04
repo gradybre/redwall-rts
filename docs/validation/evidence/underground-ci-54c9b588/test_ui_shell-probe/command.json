@@ -1,0 +1,7 @@
+[
+  "./tools/run_tests.sh",
+  "--shard",
+  "58/365",
+  "--output-dir",
+  "docs/validation/evidence/underground-ci-54c9b588/test_ui_shell-probe"
+]

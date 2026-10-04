@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03T23:54:27.962342+00:00",
+  "updated": "2026-10-03",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -428,7 +428,11 @@
         "godot/test/test_underground_entry_orders.gd",
         "godot/test/test_underground_entry_orders.gd.uid",
         "docs/decisions/1108-atomic-nonflat-entry-admission.md",
-        "docs/validation/evidence/underground-entry-orders-2026-10-03/"
+        "docs/validation/evidence/underground-entry-orders-2026-10-03/",
+        "godot/scripts/core/underground_connector_contacts.gd",
+        "godot/scripts/core/underground_connector_contacts.gd.uid",
+        "godot/test/test_underground_connector_contacts.gd",
+        "godot/test/test_underground_connector_contacts.gd.uid"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -703,6 +707,11 @@
           "review": "Construction independently accepted exact Sites6c80934c/Orders1991f95a/EntryTest8d0a09cd/sharedFixture88dfa8ce; actual post-allocation reader and final-candidate observer regressions cannot run inside the pure entry tail.",
           "evidence_path": "docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/",
           "scope": "Actual identities, Sites claims and Space publication; synthetic frontier/Placement permission. No playable entry qualification."
+        },
+        "connector_contacts_in_progress": {
+          "owner": "/root/ug_construction",
+          "branch": "codex/underground-connector-work",
+          "scope": "Actual finite Frontier/Placement/World contact observation; no per-project bank.4096 proposed controls. Actual INSTALL and varying-height gait remain unqualified."
         }
       },
       "lease": {
@@ -1176,7 +1185,16 @@
         "godot/test/test_excavation_entry_claim_batch.gd.uid",
         "docs/decisions/1107-entry-plan-paid-cut-unions.md",
         "godot/test/test_underground_entry_placements.gd",
-        "godot/test/test_underground_entry_placements.gd.uid"
+        "godot/test/test_underground_entry_placements.gd.uid",
+        "godot/scripts/core/underground_entry_frontier.gd",
+        "godot/scripts/core/underground_entry_frontier.gd.uid",
+        "godot/test/test_underground_entry_frontier.gd",
+        "godot/test/test_underground_entry_frontier.gd.uid",
+        "godot/scripts/core/underground_entry_bindings.gd",
+        "godot/scripts/core/underground_entry_bindings.gd.uid",
+        "godot/test/test_underground_entry_bindings.gd",
+        "godot/test/test_underground_entry_bindings.gd.uid",
+        "docs/decisions/1109-immutable-entry-work-frontier.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1601,6 +1619,23 @@
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held.",
             "branch": "codex/underground-paid-cut-contact"
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-entry-admission",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_entry_frontier.gd",
+              "godot/scripts/core/underground_entry_frontier.gd.uid",
+              "godot/test/test_underground_entry_frontier.gd",
+              "godot/test/test_underground_entry_frontier.gd.uid",
+              "godot/scripts/core/underground_entry_bindings.gd",
+              "godot/scripts/core/underground_entry_bindings.gd.uid",
+              "godot/test/test_underground_entry_bindings.gd",
+              "godot/test/test_underground_entry_bindings.gd.uid",
+              "docs/decisions/1109-immutable-entry-work-frontier.md"
+            ],
+            "handoff": "New source-only immutable frontier and actual EntryBindings owned by root; Geometry retains Placement/Locations/Routes. Corrected bindings remainder36789 includes Placement108800 and ConnectorWork563; prospective frontier may not overbook it."
           }
         ]
       }
@@ -2483,6 +2518,34 @@
       "seconds": 686,
       "evidence": "docs/validation/evidence/underground-ci-f9854b4b/",
       "limits": "No same-head full-run baseline supplied; baseline_matches:false is not a failed comparison. New driver, Placement and EntryPlan source require next integrated full checkpoint."
+    },
+    {
+      "id": "full-54c9b588",
+      "commit": "54c9b58800f6a2fcd0baf2b147c77a8ff71328c9",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-54c9b588/",
+      "summary": "10497 test(s), 966438 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "analyzer": "note: the editor crashed after 110 of 1167 file(s) ([Errno 54] Connection reset by peer); restarting\n0 GDScript warning(s) in 0 of 1167 file(s)",
+      "procedure": "Exact CI assets/cache/import/noarg/analyzer; assets restored; sources/HEAD unchanged; clean import diagnostics0.",
+      "seconds": 1314.697,
+      "analyzer_seconds": 246.793,
+      "specification": "All35 commands pass; docs/validation/evidence/underground-spec-54c9b588/",
+      "limits": "Component checkpoint; later Placement/ConnectorWork/compact11clip not included. Playable/native720p/persistence/256 remain open."
+    },
+    {
+      "id": "remote-54c9b588",
+      "commit": "54c9b58800f6a2fcd0baf2b147c77a8ff71328c9",
+      "run": "https://github.com/gradybre/redwall-rts/actions/runs/37164071315",
+      "evidence": "docs/validation/evidence/underground-ci-54c9b588/",
+      "outcome": "all-remote-jobs-pass; exact-assertion-equivalence-refused",
+      "suite_files": 365,
+      "shards": 8,
+      "summary": "10497 tests,966427 assertions,0 failures",
+      "diagnostics": "unexpected errors/warnings0;expected272;tolerated353;leaked objects/resources0",
+      "analyzer": "0 GDScript warning(s) in0 of1167 file(s)",
+      "seconds": 731,
+      "limits": "Same full test and diagnostic counts; local assertion count+11. F11 platform InputMap probe explains10; remaining1 open. No comparison weakened."
     }
   ],
   "crosscut_fixes": [

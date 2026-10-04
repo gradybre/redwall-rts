@@ -1,0 +1,7 @@
+{
+  "godot/data/underground/mole-worker/mole_profile_catalog.gd": "41128ff7ea0732896ba2c2ccb183cc939677f750cf8ee11adf2e2ebd771d932f",
+  "godot/data/underground/mole-worker/profile-publication-v1/catalog_source.gd": "7f28744d8933fcbb1385da91dd0f0892aa86e87107f818660232c6670c267d00",
+  "godot/data/underground/mole-worker/publish_mole_profiles.py": "c35114ec819b7912fc8675b840d88203927dcc332aa51605d682dfd53e179e4b",
+  "godot/data/underground/mole-worker/test_publish_mole_profiles.py": "2e3500cc0f20b2586928125d0c474d9a7815bd3684b28ad6e385e2ed77bc968a",
+  "godot/test/test_mole_qualified_profiles.gd": "eb8a3e366e42843bd301c799fe8706b0bafc05e63e60cbc59e46c065617dc779"
+}

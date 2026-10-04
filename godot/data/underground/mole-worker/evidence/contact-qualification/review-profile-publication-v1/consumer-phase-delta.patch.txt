@@ -1,0 +1,102 @@
+diff --git a/godot/scripts/core/underground_routes.gd b/godot/scripts/core/underground_routes.gd
+index 35724901..e87c61fb 100644
+--- a/godot/scripts/core/underground_routes.gd
++++ b/godot/scripts/core/underground_routes.gd
+@@ -1341,6 +1341,8 @@ func publish(token: int) -> StringName:
+ 		return &"ROUTE_TRANSACTION_STALE"
+ 	if _locations._installation != null and _locations._installation.route_token == token:
+ 		return &"ROUTE_INSTALLATION_WINDOW"
++	if _locations._phase_context != null and _locations._phase_context.route_token == token:
++		return &"ROUTE_PHASE_WINDOW"
+ 	if _binding_refusal() != &"" or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
+ 		return &"ROUTE_GEOMETRY_STALE"
+ 	var code: StringName = _companion_publications_refusal()
+@@ -1435,6 +1437,37 @@ static func publish_room_preflighted(actual: RefCounted, context: Locations.Room
+ 	return true
+ 
+ 
++static func phase_prepared_leaf_refusal(actual: RefCounted, context: Locations.PhaseContext) -> StringName:
++	"""A phase refresh cannot create a path, delete a queue/occupied edge or change an old span payload."""
++	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
++			or not actual._sealed or actual._operation_error != &"" or actual._in_callback or actual._callback_reentered \
++			or actual._searching or actual._advancing or actual._occupancy_reading or actual._cold != context.budget \
++			or actual._cold_token != context.cold_token or actual._space_token != context.space_token \
++			or actual._location_token != context.location_token or actual._base_geometry_revision != context.base_revision \
++			or actual._target_geometry_revision != context.target_revision or actual._profiles._loading \
++			or actual._profiles._live.header[0] != context.profile_revision:
++		return &"ROUTE_PHASE_CONTEXT"
++	var code: StringName = Locations.phase_scope_leaf_refusal(actual._locations, context)
++	if code != &"":
++		return code
++	if actual._stage.edge_count != actual._live.edge_count or actual._stage.vertex_count != actual._live.vertex_count \
++			or actual._stage.free_count != actual._live.free_count:
++		return &"ROUTE_PHASE_REFRESH_ONLY"
++	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
++
++
++static func publish_phase_preflighted(actual: RefCounted, context: Locations.PhaseContext) -> bool:
++	"""Only the same preflighted phase's actual Space and endpoint receipts can publish the refreshed path bank."""
++	if phase_prepared_leaf_refusal(actual, context) != &"" \
++			or Locations.phase_scope_leaf_refusal(actual._locations, context, true) != &"" \
++			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
++			or actual._owner._last_published_token != context.space_token \
++			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
++		return false
++	_commit_preflighted_bank(actual, context.route_token)
++	return true
++
++
+ static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
+ 	"""Static paid tail follows actual Space and Locations receipts; no provider or endpoint observer runs."""
+ 	if installation_leaf_refusal(actual, context) != &"" \
+diff --git a/godot/scripts/core/underground_world_routes.gd b/godot/scripts/core/underground_world_routes.gd
+index acaa241b..8bd6d9e2 100644
+--- a/godot/scripts/core/underground_world_routes.gd
++++ b/godot/scripts/core/underground_world_routes.gd
+@@ -492,6 +492,37 @@ static func publish_room_preflighted(actual: RefCounted, context: Locations.Room
+ 	return true
+ 
+ 
++static func phase_prepared_leaf_refusal(actual: RefCounted, context: Locations.PhaseContext) -> StringName:
++	"""Exact existing paths and complete current masks are refreshed before phase payment; metadata opens no edge."""
++	if actual == null or context == null or not actual._sealed or actual._opening or actual._compiling \
++			or actual._publishing or actual._reading or actual._proof != null or actual._route_token != context.route_token \
++			or actual._space_token != context.space_token or actual._location_token != context.location_token \
++			or actual._cold_token != context.cold_token or actual._budget != context.budget \
++			or actual._base_revision != context.base_revision or actual._target_revision != context.target_revision \
++			or actual._content_revision != context.profile_revision or actual._catalog_revision != context.catalog_revision:
++		return REFUSE_CONTEXT
++	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual._routes_ref != null else null
++	if graph == null or graph._bindings != actual or graph._profiles != actual._profiles \
++			or actual._profiles._loading or actual._profiles._live.header[0] != context.profile_revision \
++			or actual._catalog._loading or actual._catalog._live.header[0] != context.catalog_revision \
++			or not SourceFacts._same_actual_owners(actual._catalog) \
++			or not SourceFacts._source_storage_matches(actual._catalog) or not SourceFacts._source_digests_match(actual._catalog):
++		return REFUSE_BINDING
++	var code: StringName = Routes.phase_prepared_leaf_refusal(graph, context)
++	return _prepared_masks_refusal(actual, graph, context.target_revision, context.profile_revision) if code == &"" else code
++
++
++static func publish_phase_preflighted(actual: RefCounted, context: Locations.PhaseContext) -> bool:
++	"""Exact preflighted phase receipts authorize both graph and certificate bank swaps without any observer."""
++	if phase_prepared_leaf_refusal(actual, context) != &"":
++		return false
++	var graph: Routes = actual._routes_ref.get_ref() as Routes
++	if not Routes.publish_phase_preflighted(graph, context):
++		return false
++	_commit_preflighted_certificates(actual, context.catalog_revision)
++	return true
++
++
+ static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
+ 	"""Only static kernels run after payment; successful actual graph publication promotes the same mask bank."""
+ 	if installation_prepared_leaf_refusal(actual, context) != &"":
+@@ -866,6 +897,8 @@ func publish(token: int) -> StringName:
+ 		return REFUSE_CONTEXT
+ 	if _installation != null and _installation.route_token == token:
+ 		return REFUSE_CONTEXT
++	if _locations()._phase_context != null and _locations()._phase_context.route_token == token:
++		return REFUSE_CONTEXT
+ 	var code: StringName = _publication_context_refusal()
+ 	if code != &"":
+ 		return code

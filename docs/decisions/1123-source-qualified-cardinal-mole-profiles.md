@@ -132,3 +132,58 @@ not publish the final immutable catalog. Continuous source proofs remain
 separate from this finite native witness. World support, paid targets, WIP,
 material handling, stair motion/pace and gameplay-camera/HUD qualification
 are not granted by these isolated actor captures.
+
+## Immutable publication and actual cached-source binding (implementation)
+
+The next bounded source component publishes only the exact18 rows/194 boxes
+from the separately accepted cardinal, all-yaw ground and native proofs.
+Its create-only compiler rechecks accepted source/output manifests, rederives
+all14 original clips and exact tool/body provenance, repeats the native
+phase/contact validator and pins the current immutable consumers. No caller
+boolean or matching filename can supply a certificate. Its candidate wire
+carries the four source/continuous/numerical/presentation bits only after
+these source gates pass; it grants no World, WIP, handling or movement state.
+Independent root review accepted the five unchanged executable pins on
+2026-10-04: complete source inspection, five source/33 output hashes verified,
+and9 independent Python checks passed with no high/medium finding. The source
+geometry qualification and whole-game activation remain separate; historical
+producer metadata retains its candidate-review status.
+
+`publish_mole_profiles.py`, its Python tests, generated
+`profile-publication-v1/{mole-worker.ugprof,catalog_source.gd,manifest.json}`,
+`mole_profile_catalog.gd` and `test_mole_qualified_profiles.gd` implement this
+slice. The runtime helper consumes the existing two-bank Profiles reader;
+there is no new persisted owner, third image, per-resident content copy or
+JSON runtime decoder. The exact18 role/heading tuples remain protocol4.
+Wire7,268 bytes and paired banks14,520 bytes are unchanged. The fixed generated
+source constants are bounded to4KiB UTF-8; their String/Array/native presence
+and source-hash scratch use the existing32KiB control reservation, not an
+additional simulation arena. Native allocator peak remains unmeasured.
+
+At cold binding, eight exact Script resources must already be cached. Their
+actual loaded source is borrowed and hashed in1,024-character chunks (at most
+4KiB UTF-32 substring plus4KiB UTF-8 bytes simultaneously), then released;
+no disk-only assertion or fresh transitive script load substitutes for the
+executed resource. Exact concrete Profile/Content script identity, actual
+source digest and finite Domain are also required. Stripped or unavailable
+source refuses; exported debug/release compatibility is an explicit remaining
+activation gate. Presentation attachment separately checks the actual exact
+WorldBasis/engine/backend. A headless geometry reader cannot claim a rendered
+attachment. Runtime owners still independently prove support, target, Job,
+Gear, cargo, paid state and movement; this component does not mutate them.
+
+The concrete initial loader checks pass48 selected tests/1,300 assertions,
+with all strict/raw diagnostics/leaks zero, plus9 Python tests and analyzer0/3;
+`review-profile-publication-v1` records exact pins and the candidate wire.
+Existing32KiB control admission explicitly budgets4,756 bytes of constant
+scalar text,168 bytes of handles,8,192 chunk bytes,1,024 row/descriptor/scalar
+scratch and16,384 native/control reserve (30,524 total,2,244 remaining). This
+is a conservative reservation, not a measured native allocator certificate.
+
+Root's isolated export probe confirms the current mode2 script pack yields
+empty cached source and its include filter omits `.ugprof`. These are actual
+export activation failures; they must not be hidden by relaxing source checks.
+A separate scoped export follow-up must prove raw binary inclusion and exact
+cached source under debug/release settings. No shared export file is changed
+by this content component. Actual renderer attachment and whole-demo activation
+remain separate from successful headless source-geometry loading.

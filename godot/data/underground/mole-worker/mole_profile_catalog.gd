@@ -1,0 +1,209 @@
+extends RefCounted
+## Source-qualified mole geometry only. Actual support, paid targets, Job/Gear and presentation remain separate.
+## Eight borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
+
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Actor := preload("res://demo/cast/underground_actor.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Pins := preload("./profile-publication-v1/catalog_source.gd")
+const PROFILE_COUNT: int = 18
+const BOX_COUNT: int = 194
+const CONTENT_REVISION: int = 1
+const PROFILE_REVISION: int = 1
+const WIRE_BYTES: int = 7268
+const PAIRED_BANK_BYTES: int = 14520
+const SOURCE_CHARS: int = 262144
+const HASH_CHARS: int = 1024
+const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
+const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v1/mole-worker.ugprof"
+
+
+static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
+	"""Cold source geometry publication: all fixed source checks precede the existing atomic file loader."""
+	if profiles == null or profiles.get_script() != Profiles or profiles.content_revision() != 0:
+		return &"MOLE_CATALOG_OWNER"
+	var code: StringName = content_refusal(content, domain)
+	if code == &"":
+		code = runtime_sources_refusal()
+	return profiles.load_file(WIRE_PATH, Pins.WIRE_SHA, CONTENT_REVISION) if code == &"" else code
+
+
+static func content_refusal(content: Content, domain: Space.Domain) -> StringName:
+	"""An actual finite content image and exact datum/extents are required; this does not attest a World owner."""
+	if content == null or content.get_script() != Content or content.source_digest() != Pins.ACTOR_SHA \
+			or content.part_count() != 2 or content.clip_count() != 14 or domain == null:
+		return &"MOLE_CATALOG_CONTENT"
+	var descriptor: Dictionary = domain.descriptor()
+	if not Space.Value.valid_ref(descriptor.world_ref) or descriptor.datum_u != Vector3i(0, 512, 0) \
+			or descriptor.min_quantum != Vector3i(0, -32, 0) or descriptor.size_quanta != Vector3i(256, 48, 256) \
+			or not content.domain_matches(descriptor.bounds_u):
+		return &"MOLE_CATALOG_DOMAIN"
+	var basis: PackedByteArray = PackedByteArray()
+	basis.resize(32)
+	return &"" if content.source_hash_into(0, basis) and basis.hex_encode() == Pins.BASIS_SHA else &"MOLE_CATALOG_BASIS"
+
+
+static func presentation_refusal(content: Content, basis: Actor.WorldBasis, domain: Space.Domain) -> StringName:
+	"""A headless geometry catalog cannot impersonate an actual native renderer attachment."""
+	var code: StringName = content_refusal(content, domain)
+	if code != &"":
+		return code
+	if basis == null or basis.source_digest() != Pins.BASIS_SHA or basis.producer_digest() != Pins.BASIS_PRODUCER \
+			or not basis.matches_runtime():
+		return &"MOLE_CATALOG_RENDERER"
+	return runtime_sources_refusal()
+
+
+static func runtime_sources_refusal() -> StringName:
+	"""Use the already cached actual Script source, not mutable disk bytes or a fresh transitive load."""
+	if Pins.PATHS.size() != 8 or Pins.DIGESTS.size() != 8:
+		return &"MOLE_CATALOG_SOURCE_COUNT"
+	for index: int in 8:
+		var path: String = Pins.PATHS[index]
+		if path.length() > 128 or not ResourceLoader.has_cached(path):
+			return &"MOLE_CATALOG_SOURCE_UNCACHED"
+		var script: Script = ResourceLoader.load(path, "Script", ResourceLoader.CACHE_MODE_REUSE) as Script
+		if script == null or script.resource_path != path:
+			return &"MOLE_CATALOG_SCRIPT_IDENTITY"
+		var code: StringName = _source_refusal(script.get_source_code(), Pins.DIGESTS[index])
+		if code != &"":
+			return code
+	return &""
+
+
+static func _source_refusal(source: String, expected: String) -> StringName:
+	"""Borrow the source String; only one <=4KiB substring and <=4KiB UTF-8 chunk coexist."""
+	if source.is_empty() or source.length() > SOURCE_CHARS or not Actor.WorldBasis.valid_digest(expected):
+		return &"MOLE_CATALOG_SOURCE_CAPACITY"
+	var hashing: HashingContext = HashingContext.new()
+	hashing.start(HashingContext.HASH_SHA256)
+	var offset: int = 0
+	while offset < source.length():
+		var chunk: String = source.substr(offset, mini(HASH_CHARS, source.length() - offset))
+		hashing.update(chunk.to_utf8_buffer())
+		offset += chunk.length()
+	return &"" if hashing.finish().hex_encode() == expected else &"MOLE_CATALOG_SOURCE_DRIFT"
+
+
+static func profile_id(source_role: int, yaw: int) -> int:
+	"""Explicit immutable role/heading map; ordinary movement permits every native heading, work only four."""
+	if yaw < 0 or yaw >= 65536 or source_role < 0 or source_role > 5:
+		return -1
+	if source_role < 2:
+		return source_role
+	if yaw % 16384 != 0:
+		return -1
+	@warning_ignore("integer_division") var heading: int = yaw / 16384
+	return 2 + 4 * heading + source_role - 2
+
+
+static func pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
+	"""Cold binding also hashes actual loaded rows; equal revisions/source names cannot replace the authored geometry."""
+	if out.size() != PROFILE_COUNT * 3:
+		return &"MOLE_CATALOG_PINS_SIZE"
+	var code: StringName = catalog_refusal(profiles)
+	if code != &"":
+		return code
+	for index: int in PROFILE_COUNT:
+		out[index * 3] = index
+		out[index * 3 + 1] = PROFILE_REVISION
+		out[index * 3 + 2] = CONTENT_REVISION
+	return &""
+
+
+static func catalog_refusal(profiles: Profiles) -> StringName:
+	"""Reconstruct the canonical small wire through public immutable readers without retaining another image."""
+	if profiles == null or profiles.get_script() != Profiles or profiles.content_revision() != CONTENT_REVISION \
+			or profiles.profile_count(CONTENT_REVISION) != PROFILE_COUNT:
+		return &"MOLE_CATALOG_OWNER"
+	var source: PackedByteArray = PackedByteArray()
+	source.resize(32)
+	if not profiles.source_hash_into(0, CONTENT_REVISION, source) or source.hex_encode() != Pins.ACTOR_SHA \
+			or profiles.source_hash_into(1, CONTENT_REVISION, source):
+		return &"MOLE_CATALOG_CONTENT"
+	var hashing: HashingContext = HashingContext.new()
+	hashing.start(HashingContext.HASH_SHA256)
+	hashing.update(_wire_header())
+	hashing.update(source)
+	var code: StringName = _hash_rows(profiles, hashing)
+	if code == &"":
+		code = _hash_boxes(profiles, hashing)
+	if code != &"":
+		return code
+	hashing.update("UGPEND01".to_ascii_buffer())
+	return &"" if hashing.finish().hex_encode() == Pins.WIRE_SHA else &"MOLE_CATALOG_GEOMETRY_DRIFT"
+
+
+static func _wire_header() -> PackedByteArray:
+	"""Fixed32-byte wire header is reused only during this cold exact-content check."""
+	var bytes: PackedByteArray = "UGPROF01".to_ascii_buffer()
+	bytes.resize(32)
+	bytes.encode_u32(8, 1)
+	bytes.encode_s64(12, CONTENT_REVISION)
+	bytes.encode_u32(20, PROFILE_COUNT)
+	bytes.encode_u32(24, BOX_COUNT)
+	bytes.encode_u32(28, 1)
+	return bytes
+
+
+static func _hash_rows(profiles: Profiles, hashing: HashingContext) -> StringName:
+	"""One184-byte descriptor and98-byte output row; caller content cannot alias this scratch."""
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var bytes: PackedByteArray = PackedByteArray()
+	bytes.resize(98)
+	var first: int = 0
+	for index: int in PROFILE_COUNT:
+		if profiles.descriptor_into(index, CONTENT_REVISION, descriptor) != &"":
+			return &"MOLE_CATALOG_DESCRIPTOR"
+		_encode_fields(descriptor, first, bytes)
+		bytes.encode_s64(72, descriptor.profile_revision)
+		bytes.encode_s64(80, descriptor.quantity_min_milli)
+		bytes.encode_s64(88, descriptor.quantity_max_milli)
+		bytes[96] = descriptor.certificate_flags
+		bytes[97] = 0 # The immutable Profiles loader rejects every nonzero reserved byte.
+		hashing.update(bytes)
+		first += descriptor.box_count
+	return &"" if first == BOX_COUNT else &"MOLE_CATALOG_BOX_CENSUS"
+
+
+static func _encode_fields(row: Profiles.Descriptor, first: int, bytes: PackedByteArray) -> void:
+	"""Exact existing UGPROF01 field order; no temporary field Array or private bank reader."""
+	bytes.encode_s32(0, row.source_id)
+	bytes.encode_s32(4, row.species)
+	bytes.encode_s32(8, row.life_stage)
+	bytes.encode_s32(12, row.rig)
+	bytes.encode_s32(16, row.mode)
+	bytes.encode_s32(20, row.posture)
+	bytes.encode_s32(24, row.tool_item)
+	bytes.encode_s32(28, row.tool_variant)
+	bytes.encode_s32(32, row.cargo_item)
+	bytes.encode_s32(36, row.cargo_variant)
+	bytes.encode_s32(40, row.yaw_kind)
+	bytes.encode_s32(44, row.yaw)
+	bytes.encode_s32(48, row.family_mask)
+	bytes.encode_s32(52, row.state_mask)
+	bytes.encode_s32(56, first)
+	bytes.encode_s32(60, row.box_count)
+	bytes.encode_s32(64, row.work_kind)
+	bytes.encode_s32(68, row.contact_kind)
+
+
+static func _hash_boxes(profiles: Profiles, hashing: HashingContext) -> StringName:
+	"""Every mandatory volume/anchor/patch is included once; no phase may borrow another role's presence."""
+	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+	var box: Profiles.Box = Profiles.Box.new()
+	var bytes: PackedByteArray = PackedByteArray()
+	bytes.resize(28)
+	for index: int in PROFILE_COUNT:
+		if profiles.descriptor_into(index, CONTENT_REVISION, descriptor) != &"":
+			return &"MOLE_CATALOG_DESCRIPTOR"
+		for ordinal: int in descriptor.box_count:
+			if profiles.box_into(index, descriptor.profile_revision, CONTENT_REVISION, ordinal, box) != &"":
+				return &"MOLE_CATALOG_BOX"
+			for axis: int in 3:
+				bytes.encode_s32(axis * 4, box.low[axis])
+				bytes.encode_s32(12 + axis * 4, box.high[axis])
+			bytes.encode_s32(24, box.role)
+			hashing.update(bytes)
+	return &""

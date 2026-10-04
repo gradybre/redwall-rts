@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 139 modules, 697 rows, 1035 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_mole_qualified_profiles.gd
+  PASS  test_actual_source_rows_and_headings_keep_every_contact_distinct
+  PASS  test_all_yaw_ground_profile_preserves_full_tool_and_ground_stance
+  PASS  test_stale_claim_or_job_preserves_previous_selected_source
+  PASS  test_wrong_domain_content_and_renderer_refuse_before_profile_publication
+  PASS  test_cold_descriptor_does_not_create_actual_worker_permission
+  PASS  test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_larger_box
+  PASS  test_actual_cached_source_hashes_and_bounded_unicode_chunks
+  PASS  test_driver_uses_the_published_source_tuple_without_work_credit
+CI_SUITE_TIME {"assertions":227,"failures":0,"suite":"test_mole_qualified_profiles.gd","tests":8,"usec":882290}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 227 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 227 assertions, 0 failures.

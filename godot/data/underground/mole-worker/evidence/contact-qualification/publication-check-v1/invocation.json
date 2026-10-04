@@ -1,0 +1,57 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "241/377",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v1/shards"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "124/377",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v1/shards"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "162/377",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v1/shards"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+      "godot/test/test_mole_qualified_profiles.gd",
+      "godot/data/underground/mole-worker/profile-publication-v1/catalog_source.gd",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "--json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v1/analyzer.json"
+    ]
+  ],
+  "codes": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "source_unchanged": true,
+  "project_unchanged": true,
+  "assets_restored": true,
+  "isolated_override_restored": true
+}

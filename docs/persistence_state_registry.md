@@ -1960,3 +1960,9 @@ reference/header costs and whole-client peak qualification remain open.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
 | Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived joint233972/262144B. Native allocation and composed persistence remain open. |
+
+### `godot/scripts/core/underground_motion_clock.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless source-time query | -- | -- | -- | No retained state | 3 | -- | ADR1147: no fields or packed banks. Checked integer commands sample the unchanged source into one44B caller packet inside existing176B. Additional208B scalar/helper estimate joins current Motion1090B inside the same4096B reserve; source-only timing creates no actor progress or movement permit. Native and whole-game qualification remain open. |

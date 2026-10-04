@@ -1,0 +1,68 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.391,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "258/394",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-motion-clock-integration-2026-10-04/focused"
+      ],
+      "exit_code": 0,
+      "seconds": 3.923,
+      "log": "test_underground_motion_clock.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "211/394",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-motion-clock-integration-2026-10-04/focused"
+      ],
+      "exit_code": 0,
+      "seconds": 3.992,
+      "log": "test_underground_motion_catalog.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6203",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-motion-clock-integration-2026-10-04/focused/analyzer.json",
+        "godot/scripts/core/underground_motion_clock.gd",
+        "godot/test/test_underground_motion_clock.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.975,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-clock-integration-20261004",
+  "project_test_sha256": "beafaba39939dc39316bd2d7ad9c00b3854cd7f9fb56f0e30bc125833ed12769",
+  "assets_present_before": false,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

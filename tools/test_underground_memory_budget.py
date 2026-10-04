@@ -72,6 +72,42 @@ class JointPackTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             session.census(source, 262144 - 1536 + 1, 262144)
 
+    def test_clock_reuses_current_motion_helper_and_caller_reservations(self) -> None:
+        result = budget.build(self.index)
+        clock = result["motion_clock_reservation"]
+        self.assertEqual((clock["additional_logical_counted"], clock["combined_logical_counted"]), (208, 1298))
+        self.assertEqual((clock["clock_caller_bytes"], clock["shared_caller_reservation"]), (44, 176))
+        self.assertEqual(clock["joint"], result["profile_motion_reservation"]["joint"])
+        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+
+    def test_clock_cannot_retain_per_actor_ticks(self) -> None:
+        self.refuses("underground_motion_clock", "const TREAD_TICKS", "var _ticks: int = 0\nconst TREAD_TICKS")
+
+    def test_clock_cannot_allocate_another_packet(self) -> None:
+        self.refuses("underground_motion_clock", "var ticks: int", "var extra: PackedInt32Array = PackedInt32Array()\n\tvar ticks: int")
+
+    def test_clock_range_array_cannot_escape_allocation_census(self) -> None:
+        self.refuses("underground_motion_clock", "var ticks: int", "var extra: Array = range(1000000)\n\tif extra.is_empty():\n\t\treturn &\"CLOCK_EXTRA\"\n\tvar ticks: int")
+
+    def test_clock_spaced_duplicate_cannot_escape_allocation_census(self) -> None:
+        self.refuses("underground_motion_clock", "var ticks: int", "var extra: PackedInt32Array = pose_out.duplicate ()\n\tvar ticks: int")
+
+    def test_clock_literal_array_cannot_escape_allocation_census(self) -> None:
+        self.refuses("underground_motion_clock", "var ticks: int", "var extra: Array = [0, 1, 2, 3]\n\tvar ticks: int")
+
+    def test_clock_constant_collection_cannot_escape_allocation_census(self) -> None:
+        self.refuses("underground_motion_clock", "const TREAD_TICKS", "const EXTRA: Array[int] = [0, 1, 2, 3]\nconst TREAD_TICKS")
+
+    def test_clock_cannot_coerce_authoritative_noninteger_ticks(self) -> None:
+        self.refuses("underground_motion_clock", "typeof(from_tick) != TYPE_INT", "false")
+
+    def test_clock_caller_shape_drift_refuses(self) -> None:
+        self.refuses("underground_motion_clock", "intervals_out.size() != 2", "intervals_out.size() != 3")
+
+    def test_clock_helper_growth_cannot_hide_in_existing_motion_reserve(self) -> None:
+        extra = "".join(f"\tvar extra_{i}: int = {i}\n" for i in range(8))
+        self.refuses("underground_motion_clock", "\tif program == 0 or program == 1:", extra + "\tif program == 0 or program == 1:")
+
     def test_motion_unaccounted_member_is_rejected(self) -> None:
         self.refuses("underground_motion_catalog", "var _busy: bool = false",
                      "var _busy: bool = false\nvar _extra: PackedInt32Array = PackedInt32Array()")

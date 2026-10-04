@@ -1773,6 +1773,51 @@
     },
     "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
   },
+  "motion_clock_reservation": {
+    "clock_source_sha256": "51e9d783a79b9d74e26a64b88eb05f8927f18ca968dccabc32f9bdbfe5f74973",
+    "motion_source_sha256": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
+    "scope": "Logical source census only; no native allocation, route or presentation qualification",
+    "retained_fields_or_banks": 0,
+    "accepted_variant_payload_bytes": 32,
+    "own_numeric_frames": {
+      "sample_into": 56,
+      "_duration": 8
+    },
+    "maximum_own_numeric_chain": 64,
+    "existing_motion_phase_numeric_chain": 120,
+    "composed_phase_numeric_chain": 176,
+    "numeric_constant_bytes": 16,
+    "additional_expression_allowance": 128,
+    "additional_logical_counted": 208,
+    "additional_helper_ceiling": 256,
+    "existing_motion_logical_counted": 1090,
+    "combined_logical_counted": 1298,
+    "combined_with_full_helper_ceiling": 1346,
+    "shared_logical_helper_reservation": 4096,
+    "clock_caller_bytes": 44,
+    "shared_caller_reservation": 176,
+    "joint": {
+      "profiles": 47288,
+      "levels": 2292,
+      "paired_motion": 141720,
+      "decode": 4096,
+      "caller": 176,
+      "logical_helper": 4096,
+      "native": 32768,
+      "total": 232436,
+      "reservation": 262144,
+      "headroom": 29708,
+      "independent_maxima_total_refuses": 444284
+    },
+    "native_measured": false,
+    "native_additions_within_existing_provisional_32768": [
+      "One shared Script/preload and one 64-character source digest, no instantiated clock",
+      "Interned StringNames, two shared numeric constants, and bounded interpreter frames",
+      "Four transient Variant command slots (numeric payload counted above; representation overhead remains native)",
+      "Borrowed Motion and two caller packed-array handles; no retained or duplicated buffers"
+    ],
+    "lifetime": "One synchronous caller; no resident clock. Motion phase frame and clock frame coexist. The existing maximum Motion chain is conservatively retained in the total, plus the entire clock-only maximum. The clock 44-byte output replaces, rather than adds to, the existing 176-byte caller ceiling."
+  },
   "session_reservation": {
     "source_sha256": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
     "retained_numeric_bytes": 27,
@@ -2096,6 +2141,7 @@
     "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
     "godot/scripts/core/underground_locations.gd": "35eb766bbb9db19b3c3669f42a6bb31eaba8aa40e4d19f735359943c6a68c167",
     "godot/scripts/core/underground_motion_catalog.gd": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
+    "godot/scripts/core/underground_motion_clock.gd": "51e9d783a79b9d74e26a64b88eb05f8927f18ca968dccabc32f9bdbfe5f74973",
     "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",

@@ -11,6 +11,7 @@ import re
 import audit_registry_capacities as audit
 import underground_motion_memory as motion_memory
 import underground_session_memory as session_memory
+import underground_motion_clock_memory as clock_memory
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
@@ -950,6 +951,7 @@ def build(index: dict | None = None) -> dict:
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
     try:
         motion = motion_memory.build(index)
+        clock = clock_memory.build(index, motion)
         session = session_memory.build(index, motion, reserves["PROFILE_BYTES"])
     except ValueError as error:
         raise AssertionError(str(error)) from error
@@ -993,7 +995,7 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_contacts", "underground_profiles", "int_math", "reservations", "haul_transfer_contract",
                     "underground_connector_delivery", "work", "haul_planner",
                     "underground_motion_catalog", "underground_level_catalog", "mole_profile_catalog",
-                    "underground_session", "underground_terrain", "underground_routes", "room_space",
+                    "underground_session", "underground_terrain", "underground_routes", "room_space", "underground_motion_clock",
                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
@@ -1005,6 +1007,7 @@ def build(index: dict | None = None) -> dict:
             "haul_transfer_reservation": haul_transfer,
             "connector_delivery_reservation": delivery,
             "profile_motion_reservation": motion,
+            "motion_clock_reservation": clock,
             "session_reservation": session,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,

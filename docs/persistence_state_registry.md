@@ -1722,3 +1722,22 @@ need actual joint admission. Full-generation/source checks and finite work
 apply on every call. Correctness is component-tested; the measured256-caller
 three-span workload failed runtime timing qualification and cannot authorize
 unbudgeted searches for every productive worker.
+
+### Bounded source lookup and immutable attestation (decisions1098/1105)
+
+Locations adds an unsaved full source-ref8 plus row-hint8. Its actual fixed
+topology control census is2102/2112; the reserved combined1041728 is unchanged.
+The hint rechecks packed presence/full generation and all current source facts;
+SourceOwner seal/load uniqueness remains mandatory. WorldRoutes adds four
+unsaved I64 controls32 inside its existing4096 fixed allowance: original
+Catalog/Profile/Levels native instance IDs and last fully checked immutable
+Catalog revision. Monotonic/load-once source contracts allow reuse of digest
+comparison only; all live wiring, source revisions and generation checks stay.
+No authoritative array, retained path map, save/hash field or extra cold arena
+is added. The48 logical retained bytes do not change Placement1670/2048 or the
+invoking helper-frame ceiling512. Native capacity and timing remain unqualified.
+WorldRoutes' existing Catalog reference is inherited from Routes.Bindings,
+replacing its former direct declaration without duplicating the per-provider
+reference. The cold caller reads that typed field directly after callbacks;
+unbound base providers retain null and refuse. Native object headers/reference
+storage remain inside the existing provider controls/native obligation.

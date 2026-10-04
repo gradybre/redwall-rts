@@ -1,0 +1,11 @@
+test_clock_caller_shape_drift_refuses (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_cannot_allocate_another_packet (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_cannot_coerce_authoritative_noninteger_ticks (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_cannot_retain_per_actor_ticks (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_helper_growth_cannot_hide_in_existing_motion_reserve (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_reuses_current_motion_helper_and_caller_reservations (test_underground_memory_budget.JointPackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 2.121s
+
+OK

@@ -1,0 +1,8 @@
+{
+  "command": "python3 -B tools/underground_memory_budget.py --check",
+  "exit_code": 0,
+  "rendered_bytes_match": true,
+  "json_round_trip_matches": true,
+  "artifact_sha256": "bea6e2ba05926df6e5cacfd4f7f7a4586c1802eb211ab555274f4269e204593f",
+  "comparison_note": "The earlier direct Python-object comparison was false because the source result contains tuples serialized as JSON arrays. The exact official rendered byte comparison passes."
+}

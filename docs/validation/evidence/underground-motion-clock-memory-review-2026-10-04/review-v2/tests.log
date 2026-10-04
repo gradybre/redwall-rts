@@ -1,0 +1,15 @@
+test_clock_caller_shape_drift_refuses (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_cannot_allocate_another_packet (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_cannot_coerce_authoritative_noninteger_ticks (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_cannot_retain_per_actor_ticks (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_constant_collection_cannot_escape_allocation_census (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_helper_growth_cannot_hide_in_existing_motion_reserve (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_literal_array_cannot_escape_allocation_census (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_range_array_cannot_escape_allocation_census (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_reuses_current_motion_helper_and_caller_reservations (test_underground_memory_budget.JointPackTests) ... ok
+test_clock_spaced_duplicate_cannot_escape_allocation_census (test_underground_memory_budget.JointPackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 3.433s
+
+OK

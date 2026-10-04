@@ -1,0 +1,7 @@
+# Independent corrected clock accounting review
+
+Accepted for logical source accounting at the pins in `source-sha256.json`. The complete normalized executable SHA closes the three reproduced allocation bypasses; no production source was edited. Ten focused clock mutation tests passed in 3.433 seconds, and all three original mutants now refuse before a census result. The official `python3 -B tools/underground_memory_budget.py --check` also passes and the artifact is byte-identical; `artifact-check.json` explains why comparing the raw Python object to parsed JSON was not equivalent.
+
+Clock adds 208 logical bytes to the existing 1090-byte Motion helper estimate, for 1298 within the same 4096-byte reservation. Its 44-byte caller replaces the existing 176-byte caller maximum. No new global reserve is added: the joint declaration remains 99,998,782 bytes, with 1,218 bytes of headroom and runtime qualification false. Native execution/memory, actual route permissions and presentation are outside this review.
+
+Reviewed source declaration and both function bodies against the complete normalized code pin, explicit numeric/Variant census, current Motion chain and caller lifetime, no-state registry text, whole-pack integration and ten tests. No remaining high or medium finding in this narrow correction. Root files and source pins remained unchanged. Earlier rejected probes are retained in sibling `review-v1/`.

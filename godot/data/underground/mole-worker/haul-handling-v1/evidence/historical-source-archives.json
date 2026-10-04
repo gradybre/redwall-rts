@@ -1,0 +1,54 @@
+{
+  "reason": "Historical rejected source snapshots are retained as data, not executable GDScript. Original bytes and original manifests remain exact. Current native_replay/capture_native_program.gd and accepted v7 snapshot are unchanged.",
+  "base_commit": "b03fbc2b0322381248998bfc57ce0a89ee3e76c0",
+  "files": [
+    {
+      "original_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v1/source/capture_native_program.gd",
+      "archive_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v1/source/capture_native_program.gd.gz",
+      "original_bytes": 10447,
+      "original_sha256": "0e06eac61835895769849a728d76666abd5a6ae5e6de7e4f218e58a82f75c6f5",
+      "archive_sha256": "0ba02a8bf007974d1e47c76d534eddd8438c8e046021d7b2efc91c8bbc091ef4",
+      "original_manifest": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v1/source-sha256.json"
+    },
+    {
+      "original_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v2/source/capture_native_program.gd",
+      "archive_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v2/source/capture_native_program.gd.gz",
+      "original_bytes": 10447,
+      "original_sha256": "0e06eac61835895769849a728d76666abd5a6ae5e6de7e4f218e58a82f75c6f5",
+      "archive_sha256": "0ba02a8bf007974d1e47c76d534eddd8438c8e046021d7b2efc91c8bbc091ef4",
+      "original_manifest": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v2/source-sha256.json"
+    },
+    {
+      "original_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v3/source/capture_native_program.gd",
+      "archive_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v3/source/capture_native_program.gd.gz",
+      "original_bytes": 10711,
+      "original_sha256": "bc3143be660da44dcc178ef829bce9d3ffafc6af31c1c4da1c6a3f7c058fa911",
+      "archive_sha256": "1b092ae0e722e0b3861fc335898eaece0e3b373b24e1c543c6896f7bc0b9aeda",
+      "original_manifest": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v3/source-sha256.json"
+    },
+    {
+      "original_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v4/source/capture_native_program.gd",
+      "archive_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v4/source/capture_native_program.gd.gz",
+      "original_bytes": 11633,
+      "original_sha256": "b1f4a23dc64fcb4650ece0ddafeb53cb691a2a9c69e0de667e9aec8a5c0e4e9c",
+      "archive_sha256": "87debe40496bd0d44897df534794a54019903b4ae0f49892532f3bab06d6f802",
+      "original_manifest": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v4/source-sha256.json"
+    },
+    {
+      "original_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v5/source/capture_native_program.gd",
+      "archive_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v5/source/capture_native_program.gd.gz",
+      "original_bytes": 11633,
+      "original_sha256": "b1f4a23dc64fcb4650ece0ddafeb53cb691a2a9c69e0de667e9aec8a5c0e4e9c",
+      "archive_sha256": "87debe40496bd0d44897df534794a54019903b4ae0f49892532f3bab06d6f802",
+      "original_manifest": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v5/source-sha256.json"
+    },
+    {
+      "original_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v6/source/capture_native_program.gd",
+      "archive_path": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v6/source/capture_native_program.gd.gz",
+      "original_bytes": 11633,
+      "original_sha256": "b1f4a23dc64fcb4650ece0ddafeb53cb691a2a9c69e0de667e9aec8a5c0e4e9c",
+      "archive_sha256": "87debe40496bd0d44897df534794a54019903b4ae0f49892532f3bab06d6f802",
+      "original_manifest": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v6/source-sha256.json"
+    }
+  ]
+}

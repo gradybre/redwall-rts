@@ -204,3 +204,20 @@ The frozen candidate README and output manifest remain unchanged; its separate
 acceptance note records the later verdict. Every runtime/source/contact,
 finite-world, loaded-turn, BUILD set-down, timing and memory limitation above
 remains open.
+
+## Historical source archives and the whole-project analyzer
+
+Integration CI run `37223870212` at `b03fbc2b` correctly failed the unchanged
+zero-warning gate: six historical rejected native capture snapshots (v1–v6)
+still contained twelve intentional integer-division warnings. The accepted v7
+capture and current executable already contained their reviewed annotations.
+The offline importer exclusion does not exclude `.gd` files from the analyzer.
+
+Retain those six historical sources as lossless `.gd.gz` data beside their
+original manifests. Do not edit their contents to make an old rejected result
+look clean. `haul-handling-v1/evidence/historical-source-archives.json` records
+both compressed and original hashes, byte counts and original paths. The
+original `source-sha256.json` files remain decoded-byte provenance. No active
+source, accepted output, replay reader, analyzer option or diagnostic allowance
+changes. Extraction and verification are documented in the evidence directory;
+the failed CI log remains in the host checkpoint evidence.

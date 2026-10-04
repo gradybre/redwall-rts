@@ -1,0 +1,730 @@
+{
+  "schema": 1,
+  "result": {
+    "clear": true,
+    "unresolved": [],
+    "checks": 27,
+    "pairs": 674,
+    "numerical_contact_pairs": 663,
+    "supports": [
+      {
+        "segment": 0,
+        "interval": 0,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 1,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 2,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 3,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 4,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 5,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 6,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 7,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 8,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 9,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 10,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 11,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 12,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 13,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 14,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 15,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 16,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 17,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 18,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 19,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 20,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 21,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 22,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 23,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 24,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 25,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 26,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 27,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 28,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 29,
+        "foot": 0,
+        "solid": 0,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 30,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 31,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 32,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 33,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 34,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 35,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 36,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 37,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 38,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 39,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 40,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 41,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 42,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 43,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 44,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 45,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 46,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 47,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 48,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 49,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 50,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 51,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 52,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 53,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 54,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 55,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 56,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 57,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 58,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 59,
+        "foot": 1,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 60,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 61,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 62,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 63,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 64,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 65,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 66,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 67,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 68,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 69,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 70,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 71,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 72,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 73,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 74,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 75,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 76,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 77,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 78,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 79,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 80,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 81,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 82,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 83,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 84,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 85,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 86,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 87,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 88,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      },
+      {
+        "segment": 0,
+        "interval": 89,
+        "foot": 0,
+        "solid": 7,
+        "projection_inside": true
+      }
+    ],
+    "parts": [
+      {
+        "part": 0,
+        "triangles": 10209,
+        "native_padding_q24": [
+          9137,
+          1505,
+          9137
+        ],
+        "native_residual_m": [
+          {
+            "numerator": 328637050851164844990003513799356023832278712118520198584799974368122302354260659458295,
+            "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+          },
+          {
+            "numerator": 27041332962949244674435541480176919825660373660825251607337600529573801199508452647263,
+            "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+          },
+          {
+            "numerator": 328637050851164844990003513799356023832278712118520198584799974368122302354260659458295,
+            "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+          }
+        ]
+      },
+      {
+        "part": 1,
+        "triangles": 1150,
+        "native_padding_q24": [
+          9026,
+          1393,
+          9026
+        ],
+        "native_residual_m": [
+          {
+            "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+            "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+          },
+          {
+            "numerator": 8216140651323755430392011821568161611987830834560696810619866422719235365981075827927263791816269336534117624810563220612241,
+            "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+          },
+          {
+            "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+            "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+          }
+        ]
+      }
+    ],
+    "segments": 1,
+    "intervals_per_segment": 90,
+    "exact_endpoint_pose_match": true,
+    "exact_endpoint_root_and_support_match": true,
+    "exact_source_vertices": 0,
+    "fixture_prisms": 22,
+    "native_source_yaw": 0,
+    "exact_fixture_turns_are_native_yaw_permissions": false
+  },
+  "content_sha256": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+  "baseline_proof_sha256": "a79a7f4fe233cf3ff2172173631cfde2d8392edc50e355b7082e0370f806c7ae",
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py": "6a1a5608c87261222c7eab4cb5568467c1770b669d7e825ce3918bd46d6e5bdc",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/candidate.json": "c6a58567a036c38fc3d61d74f48202cecfeb080e162866acbc117d22f7fa4196",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_sequence.py": "60f1867515e7e7576a1beb9cf607ab7d91c6866afd626f2f8495d1611d7da1ff",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/terrain-v1.json": "a79a7f4fe233cf3ff2172173631cfde2d8392edc50e355b7082e0370f806c7ae",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-fixture.json": "58ce062868be6ff08a07fce5411d31d0c05ae495839127129a0aee7e3d9fa787"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "scope": "complete unchanged source triangles against explicit surrounding engineering prisms, inherited continuous contact witnesses and exact repeated endpoints; source-local yaw0, no native rotated-heading, landing turn, pace, installed support or production permission",
+  "production_qualified": false
+}

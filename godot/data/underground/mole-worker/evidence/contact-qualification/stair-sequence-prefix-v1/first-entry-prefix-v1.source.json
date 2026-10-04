@@ -1,0 +1,567 @@
+{
+  "schema": 1,
+  "engineering_only": true,
+  "production_qualified": false,
+  "id": "earth_timber_first_prefix_v1",
+  "revision": 1,
+  "coordinate_contract": {
+    "units_per_metre": 1024,
+    "order": "min_x,min_y,min_z,max_x,max_y,max_z",
+    "bounds": "half_open_positive_prisms",
+    "descent_axis": "negative_z",
+    "surface_origin_y_u": 512,
+    "source_local_surface_y_u": 0,
+    "removed_cube_floor_local_y_u": -1024
+  },
+  "scope": "Candidate included physical geometry for a first 2x2m landing and one 128u descent tread; not an active Catalog/Frontier, build permission, full staircase or accepted motion.",
+  "assemblies": [
+    {
+      "id": 0,
+      "name": "L0",
+      "kind": "landing",
+      "wood_milli": 4000,
+      "build_milli_wu": 32000,
+      "included_parts": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "id": 1,
+      "name": "T0",
+      "kind": "tread",
+      "wood_milli": 1000,
+      "build_milli_wu": 12000,
+      "included_parts": [
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ]
+    }
+  ],
+  "parts": [
+    {
+      "id": 0,
+      "name": "L0_deck",
+      "assembly": 0,
+      "bounds_u": [
+        -1024,
+        -64,
+        -2048,
+        1024,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 1,
+      "name": "L0_left_bearer",
+      "assembly": 0,
+      "bounds_u": [
+        -896,
+        -192,
+        -2048,
+        -768,
+        -64,
+        0
+      ]
+    },
+    {
+      "id": 2,
+      "name": "L0_right_bearer",
+      "assembly": 0,
+      "bounds_u": [
+        768,
+        -192,
+        -2048,
+        896,
+        -64,
+        0
+      ]
+    },
+    {
+      "id": 3,
+      "name": "L0_left_near_post",
+      "assembly": 0,
+      "bounds_u": [
+        -896,
+        -1024,
+        -256,
+        -768,
+        -192,
+        -128
+      ]
+    },
+    {
+      "id": 4,
+      "name": "L0_left_far_post",
+      "assembly": 0,
+      "bounds_u": [
+        -896,
+        -1024,
+        -1920,
+        -768,
+        -192,
+        -1792
+      ]
+    },
+    {
+      "id": 5,
+      "name": "L0_right_near_post",
+      "assembly": 0,
+      "bounds_u": [
+        768,
+        -1024,
+        -256,
+        896,
+        -192,
+        -128
+      ]
+    },
+    {
+      "id": 6,
+      "name": "L0_right_far_post",
+      "assembly": 0,
+      "bounds_u": [
+        768,
+        -1024,
+        -1920,
+        896,
+        -192,
+        -1792
+      ]
+    },
+    {
+      "id": 7,
+      "name": "T0_deck",
+      "assembly": 1,
+      "bounds_u": [
+        -1024,
+        -192,
+        -2560,
+        1024,
+        -128,
+        -2048
+      ]
+    },
+    {
+      "id": 8,
+      "name": "T0_left_bearer",
+      "assembly": 1,
+      "bounds_u": [
+        -896,
+        -320,
+        -2560,
+        -768,
+        -192,
+        -2048
+      ]
+    },
+    {
+      "id": 9,
+      "name": "T0_right_bearer",
+      "assembly": 1,
+      "bounds_u": [
+        768,
+        -320,
+        -2560,
+        896,
+        -192,
+        -2048
+      ]
+    },
+    {
+      "id": 10,
+      "name": "T0_left_near_post",
+      "assembly": 1,
+      "bounds_u": [
+        -896,
+        -1024,
+        -2240,
+        -768,
+        -320,
+        -2112
+      ]
+    },
+    {
+      "id": 11,
+      "name": "T0_left_far_post",
+      "assembly": 1,
+      "bounds_u": [
+        -896,
+        -1024,
+        -2496,
+        -768,
+        -320,
+        -2368
+      ]
+    },
+    {
+      "id": 12,
+      "name": "T0_right_near_post",
+      "assembly": 1,
+      "bounds_u": [
+        768,
+        -1024,
+        -2240,
+        896,
+        -320,
+        -2112
+      ]
+    },
+    {
+      "id": 13,
+      "name": "T0_right_far_post",
+      "assembly": 1,
+      "bounds_u": [
+        768,
+        -1024,
+        -2496,
+        896,
+        -320,
+        -2368
+      ]
+    }
+  ],
+  "natural_bearings": [
+    {
+      "part": 3,
+      "kind": "retained_natural",
+      "bounds_u": [
+        -896,
+        -1152,
+        -256,
+        -768,
+        -1024,
+        -128
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 4,
+      "kind": "retained_natural",
+      "bounds_u": [
+        -896,
+        -1152,
+        -1920,
+        -768,
+        -1024,
+        -1792
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 5,
+      "kind": "retained_natural",
+      "bounds_u": [
+        768,
+        -1152,
+        -256,
+        896,
+        -1024,
+        -128
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 6,
+      "kind": "retained_natural",
+      "bounds_u": [
+        768,
+        -1152,
+        -1920,
+        896,
+        -1024,
+        -1792
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 10,
+      "kind": "retained_natural",
+      "bounds_u": [
+        -896,
+        -1152,
+        -2240,
+        -768,
+        -1024,
+        -2112
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 11,
+      "kind": "retained_natural",
+      "bounds_u": [
+        -896,
+        -1152,
+        -2496,
+        -768,
+        -1024,
+        -2368
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 12,
+      "kind": "retained_natural",
+      "bounds_u": [
+        768,
+        -1152,
+        -2240,
+        896,
+        -1024,
+        -2112
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    },
+    {
+      "part": 13,
+      "kind": "retained_natural",
+      "bounds_u": [
+        768,
+        -1152,
+        -2496,
+        896,
+        -1024,
+        -2368
+      ],
+      "face": "positive_y",
+      "requires_never_cut": true
+    }
+  ],
+  "cut_groups": [
+    {
+      "assembly": 0,
+      "bounds_u": [
+        -1024,
+        -1024,
+        -2048,
+        1024,
+        0,
+        0
+      ],
+      "whole_1024u_cubes": 4
+    },
+    {
+      "assembly": 1,
+      "bounds_u": [
+        -1024,
+        -1024,
+        -3072,
+        1024,
+        0,
+        -2048
+      ],
+      "whole_1024u_cubes": 2
+    }
+  ],
+  "fastening_candidates": [
+    {
+      "assembly": 0,
+      "existing_target_kind": "retained_natural",
+      "target_bounds_u": [
+        -1024,
+        -128,
+        0,
+        -512,
+        0,
+        128
+      ],
+      "face": "positive_y",
+      "station_root_u": [
+        -832,
+        0,
+        512
+      ],
+      "yaw_u16": 0,
+      "meaning": "Set the first frame against the retained near-side earth abutment from the exterior surface. This is a target for a separately authored installation motion; it does not assert tool reach, fastening geometry or paid support."
+    },
+    {
+      "assembly": 1,
+      "existing_target_kind": "installed_part",
+      "target_part": 0,
+      "target_bounds_u": [
+        -256,
+        -64,
+        -2048,
+        256,
+        0,
+        -1920
+      ],
+      "face": "positive_y",
+      "station_root_u": [
+        0,
+        0,
+        -1536
+      ],
+      "yaw_u16": 0,
+      "meaning": "Join the new tread frame to the existing landing at its forward top edge. The worker stands on the completed L0, never on pending T0."
+    }
+  ],
+  "construction_obligations": [
+    "All post bases bear on current never-cut natural volume below the exact paid cube floor. Future whole-entry cuts must preserve it.",
+    "Every cut requires its own BRACE/CUT/FINISH contact, real supported external worker stance, local finite output and retreat. A broad cut group is not one long-reach work face.",
+    "L0 construction stations and their entire stance/retreat footprint must be outside all six future paid cubes.",
+    "L0 and T0 installation each consume one assembly bill through purpose8; included parts never receive separate bills.",
+    "L0 installation requires an independently qualified BUILD/tool motion and actual frame/ground fastening face; the candidate natural target alone grants no permission.",
+    "T0 installation requires an independently qualified BUILD/tool motion at the existing L0 target, exact full worker stance and current installed bearing.",
+    "Only completed paid parts may publish actual support/FLOOR_DATUM/Location/Routes; the residual half metre beyond T0 remains nontraversable.",
+    "An actual turn and ascent retreat must be qualified separately before exposing this prefix to a live worker."
+  ],
+  "sequence_fixture": {
+    "schema": 1,
+    "engineering_only": true,
+    "rise_u": -128,
+    "solids_u": [
+      [
+        -1024,
+        -64,
+        -2048,
+        1024,
+        0,
+        0
+      ],
+      [
+        -896,
+        -192,
+        -2048,
+        -768,
+        -64,
+        0
+      ],
+      [
+        768,
+        -192,
+        -2048,
+        896,
+        -64,
+        0
+      ],
+      [
+        -896,
+        -1024,
+        -256,
+        -768,
+        -192,
+        -128
+      ],
+      [
+        -896,
+        -1024,
+        -1920,
+        -768,
+        -192,
+        -1792
+      ],
+      [
+        768,
+        -1024,
+        -256,
+        896,
+        -192,
+        -128
+      ],
+      [
+        768,
+        -1024,
+        -1920,
+        896,
+        -192,
+        -1792
+      ],
+      [
+        -1024,
+        -192,
+        -2560,
+        1024,
+        -128,
+        -2048
+      ],
+      [
+        -896,
+        -320,
+        -2560,
+        -768,
+        -192,
+        -2048
+      ],
+      [
+        768,
+        -320,
+        -2560,
+        896,
+        -192,
+        -2048
+      ],
+      [
+        -896,
+        -1024,
+        -2240,
+        -768,
+        -320,
+        -2112
+      ],
+      [
+        -896,
+        -1024,
+        -2496,
+        -768,
+        -320,
+        -2368
+      ],
+      [
+        768,
+        -1024,
+        -2240,
+        896,
+        -320,
+        -2112
+      ],
+      [
+        768,
+        -1024,
+        -2496,
+        896,
+        -320,
+        -2368
+      ]
+    ],
+    "segments": [
+      {
+        "origin_u": [
+          0,
+          0,
+          -1879
+        ],
+        "quarter_turn": 0,
+        "support_solids": [
+          0,
+          7
+        ]
+      }
+    ]
+  },
+  "not_included": [
+    "Additional treads, entrance shell, roof, rails or edge protection",
+    "Installed source Catalog/Grouping/Recipes/Frontier and runtime handles",
+    "Motion pace, nonzero-yaw native certificate, turn/entry/exit/repeated-step or loaded travel permission",
+    "Final full-entry quantities or room completion"
+  ]
+}

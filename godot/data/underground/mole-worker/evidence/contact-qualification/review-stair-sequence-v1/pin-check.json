@@ -1,0 +1,54 @@
+{
+  "producer_mismatches": [],
+  "producer_pins": 26,
+  "production_qualified": false,
+  "results": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/ascent-proof.json": {
+      "checks": 56,
+      "clear": true,
+      "fixture_prisms": 22,
+      "numerical_contact_pairs": 725,
+      "pairs": 781,
+      "segments": 1,
+      "unresolved": 0
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/descent-proof.json": {
+      "checks": 27,
+      "clear": true,
+      "fixture_prisms": 22,
+      "numerical_contact_pairs": 663,
+      "pairs": 674,
+      "segments": 1,
+      "unresolved": 0
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/ascent-proof.json": {
+      "checks": 168,
+      "clear": true,
+      "fixture_prisms": 20,
+      "numerical_contact_pairs": 2175,
+      "pairs": 2343,
+      "segments": 3,
+      "unresolved": 0
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/descent-proof.json": {
+      "checks": 81,
+      "clear": true,
+      "fixture_prisms": 20,
+      "numerical_contact_pairs": 1989,
+      "pairs": 2022,
+      "segments": 3,
+      "unresolved": 0
+    },
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-v1/obstacle-proof.json": {
+      "checks": 352,
+      "clear": false,
+      "fixture_prisms": null,
+      "numerical_contact_pairs": 9,
+      "pairs": 41,
+      "segments": null,
+      "unresolved": 32
+    }
+  },
+  "root_candidate_current_unchanged": true,
+  "root_candidate_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
+}

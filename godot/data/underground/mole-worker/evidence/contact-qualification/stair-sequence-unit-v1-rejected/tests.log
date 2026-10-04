@@ -1,0 +1,18 @@
+...F..
+======================================================================
+FAIL: test_missing_one_original_triangle_or_support_record_is_rejected (__main__.SequenceTests.test_missing_one_original_triangle_or_support_record_is_rejected)
+----------------------------------------------------------------------
+export_underground_envelopes.Refused: CONTACT_CLIP_DURATION
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_sequence.py", line 78, in test_missing_one_original_triangle_or_support_record_is_rejected
+    with self.assertRaisesRegex(ValueError, 'SEQUENCE_BASE_PROOF'):
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: "SEQUENCE_BASE_PROOF" does not match "CONTACT_CLIP_DURATION"
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.001s
+
+FAILED (failures=1)

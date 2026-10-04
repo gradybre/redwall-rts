@@ -1182,3 +1182,30 @@ actual native/loading/whole-client peak is unqualified. This source-local yaw0
 component does not adopt pace, source-phase save/runtime storage, entry/exit,
 turning, repeated-step/retreat transitions, actual installed bearing or INSTALL
 contact. No production profile is emitted.
+
+### Surrounding-timber and repeated-endpoint source check
+
+A separate offline sequence verifier consumes the unchanged accepted ascent or
+descent image, its exact pinned baseline contact proof and a bounded explicit
+positive-prism fixture. It checks every original triangle against all supplied
+parts and transfers the complete source-foot projection/witness to the exact
+start/destination deck. Repeated segments require identical source endpoint
+palettes/grounding, exact integer root continuity and the same shared support
+part. Exact cardinal fixture transforms are source geometry only, never native
+yaw or turn permissions. No gait source is reauthored.
+
+The initial diagnostic extends the provisional treads to three repeated spans;
+it does not adopt an entry shape or alter per-part economics. Root is separately
+authoring the actual complete L0/T0 deck/bearer/post and fastening candidate.
+That full source must be checked before any first-prefix permission. The new
+files are prove_stair_sequence.py and test_stair_sequence.py under existing
+contact-qualification ownership. Runtime pace, program storage and current
+installed support remain separate.
+
+The independently accepted supplement is pinned in review-stair-sequence-v1.
+All2 source,25 inherited,25 output and4 rejected-history pins match. Six
+Python tests pass. The new ordinary body-obstacle case refuses32 witnesses;
+three repeated spans clear270 support rows each. Full source-owned L0/T0
+geometry plus8 natural bearing prisms clears90 rows for each source direction.
+The ascent comparison still needs the actual native half-turn and174u
+reposition; endpoint numerical equality is not a byte-identity or turn claim.

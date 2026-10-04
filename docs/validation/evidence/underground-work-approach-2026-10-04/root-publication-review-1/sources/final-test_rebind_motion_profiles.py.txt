@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""The profile migration must preserve every source-only stair sample and permission field."""
+import importlib.util
+import json
+from pathlib import Path
+import struct
+import unittest
+from unittest import mock
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("motion_rebind", HERE / "rebind_motion_profiles.py")
+M = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(M)
+DIAGNOSTIC = M.ROOT / "docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-profile-diagnostic-2/mole-worker.ugprof"
+
+
+def columns(wire):
+    """Decode the three columns independently of the migration's byte offsets."""
+    at, found = 32, {}
+    for _ in range(struct.unpack_from("<I", wire, 24)[0]):
+        tag, width, count = struct.unpack_from("<4sII", wire, at)
+        at += 12
+        found[tag] = wire[at:at + width * count]
+        at += width * count
+    if wire[at:] != b"UGMEND01":
+        raise ValueError("footer")
+    return found
+
+
+class RebindTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.original = (M.OLD / "candidate-2/motion.ugmotion").read_bytes()
+        cls.profile = DIAGNOSTIC.read_bytes()
+
+    def test_all_geometry_motion_permissions_and_timing_remain_byte_exact(self):
+        wire, _ = M.rebind(self.original, self.profile, "12" * 32)
+        old, new = columns(self.original), columns(wire)
+        self.assertEqual(new[b"I032"], old[b"I032"])
+        before = struct.unpack("<67q", old[b"I064"])
+        after = struct.unpack("<67q", new[b"I064"])
+        self.assertEqual(after, (before[0], 2, 2, *before[3:]))
+        self.assertEqual(after[9:11] + after[18:20], (0, 0, 0, 0))
+        self.assertEqual(new[b"BYTE"][:160], old[b"BYTE"][:160])
+        self.assertEqual(new[b"BYTE"][192:384], old[b"BYTE"][192:384])
+        self.assertEqual(new[b"BYTE"][416:], old[b"BYTE"][416:])
+        self.assertEqual(new[b"BYTE"][160:192].hex(), M.PROFILE_SHA)
+        self.assertEqual(new[b"BYTE"][384:416], bytes.fromhex("12" * 32))
+        self.assertEqual(struct.unpack_from("<q", wire, 16), (2,))
+        self.assertEqual(len(wire), len(self.original))
+
+    def test_source_mutants_and_caller_recomputed_hash_never_authorize_rebinding(self):
+        for offset in [0, 16, 44, 1000, len(self.original) - 9]:
+            changed = bytearray(self.original)
+            changed[offset] ^= 1
+            with self.subTest(offset=offset), self.assertRaisesRegex(ValueError, "MOTION_REBIND_ORIGINAL"):
+                M.rebind(changed, self.profile, M.digest(changed))
+
+    def test_valid_shaped_but_changed_profile_cannot_borrow_source_qualification(self):
+        for offset in [12, 64, 64 + 26 * 98, len(self.profile) - 9]:
+            changed = bytearray(self.profile)
+            changed[offset] ^= 1
+            with self.subTest(offset=offset), self.assertRaisesRegex(ValueError, "MOTION_REBIND_PROFILE"):
+                M.rebind(self.original, changed, M.digest(changed))
+
+    def test_short_or_noncanonical_manifest_identity_refuses(self):
+        for identity in ["", "0" * 63, "0" * 65, "G" * 64, "AB" * 32]:
+            with self.subTest(identity=identity), self.assertRaisesRegex(ValueError, "MOTION_REBIND_MANIFEST"):
+                M.rebind(self.original, self.profile, identity)
+
+    def test_old_source_only_tables_still_reproduce_from_all_original_inputs(self):
+        spec = importlib.util.spec_from_file_location("original_motion", M.OLD / "pack_catalog.py")
+        producer = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(producer)
+        wire, manifest = producer.compile_image(M.ROOT)
+        self.assertEqual(wire, self.original)
+        self.assertTrue(manifest["source_pins"])
+        for path, expected in manifest["source_pins"].items():
+            self.assertEqual(M.digest((M.ROOT / path).read_bytes()), expected, path)
+
+    def test_stripped_manifest_with_recomputed_digest_cannot_claim_review(self):
+        path = M.PROFILES / "manifest.json"
+        original_read = Path.read_bytes
+        altered = json.loads(original_read(path))
+        # Keep a valid wire and the claimed qualification, but remove the review
+        # and all except one valid source pin: this previously passed inputs().
+        altered.pop("source_review_sha256")
+        altered["prerequisite_pins"] = dict(list(altered["prerequisite_pins"].items())[:1])
+        raw = (json.dumps(altered, indent=2) + "\n").encode()
+        self.assertNotEqual(M.digest(raw), M.PROFILE_MANIFEST_SHA)
+        with mock.patch.object(Path, "read_bytes", lambda item: raw if item == path else original_read(item)):
+            with self.assertRaisesRegex(ValueError, "MOTION_REBIND_SOURCE_HASH"):
+                M.inputs()
+
+    def test_published_constants_must_match_the_reviewed_manifest(self):
+        path = M.PROFILES / "catalog_source.gd"
+        original_read = Path.read_bytes
+        raw = original_read(path) + b"# changed consumer closure\n"
+        with mock.patch.object(Path, "read_bytes", lambda item: raw if item == path else original_read(item)):
+            with self.assertRaisesRegex(ValueError, "MOTION_REBIND_SOURCE_HASH"):
+                M.inputs()
+
+
+if __name__ == "__main__":
+    unittest.main()

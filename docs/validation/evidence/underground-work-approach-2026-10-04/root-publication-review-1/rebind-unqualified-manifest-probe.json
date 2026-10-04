@@ -1,0 +1,18 @@
+{
+  "accepted_self_declared_profile_manifest": true,
+  "new_wire_bytes": 70936,
+  "runtime_activation": false,
+  "missing_current_consumers": true,
+  "missing_source_review": true,
+  "manifest": {
+    "source_geometry_qualified": true,
+    "world_activation_qualified": false,
+    "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+    "content_revision": 2,
+    "profile_count": 26,
+    "box_count": 250,
+    "prerequisite_pins": {
+      "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
+    }
+  }
+}

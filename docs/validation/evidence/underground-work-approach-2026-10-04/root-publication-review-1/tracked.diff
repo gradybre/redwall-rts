@@ -1,0 +1,331 @@
+diff --git a/godot/data/underground/mole-worker/mole_profile_catalog.gd b/godot/data/underground/mole-worker/mole_profile_catalog.gd
+index 262d7cd6..29c25238 100644
+--- a/godot/data/underground/mole-worker/mole_profile_catalog.gd
++++ b/godot/data/underground/mole-worker/mole_profile_catalog.gd
+@@ -1,22 +1,22 @@
+ extends RefCounted
+ ## Source-qualified mole geometry only. Actual support, paid targets, Job/Gear and presentation remain separate.
+-## Eight borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
++## Nine borrowed cached Scripts, bounded hashing scratch, existing streamed two-bank Profiles; no third image.
+ 
+ const Profiles := preload("res://scripts/core/underground_profiles.gd")
+ const Content := preload("res://demo/cast/underground_actor_content.gd")
+ const Actor := preload("res://demo/cast/underground_actor.gd")
+ const Space := preload("res://scripts/core/room_space.gd")
+-const Pins := preload("./profile-publication-v2/catalog_source.gd")
+-const PROFILE_COUNT: int = 18
+-const BOX_COUNT: int = 194
+-const CONTENT_REVISION: int = 1
++const Pins := preload("./profile-publication-v3/catalog_source.gd")
++const PROFILE_COUNT: int = 26
++const BOX_COUNT: int = 250
++const CONTENT_REVISION: int = 2
+ const PROFILE_REVISION: int = 1
+-const WIRE_BYTES: int = 7268
+-const PAIRED_BANK_BYTES: int = 14520
++const WIRE_BYTES: int = 9620
++const PAIRED_BANK_BYTES: int = 19224
+ const SOURCE_CHARS: int = 262144
+ const HASH_CHARS: int = 1024
+ const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
+-const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof"
++const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v3/mole-worker.ugprof"
+ 
+ 
+ static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:
+@@ -57,9 +57,9 @@ static func presentation_refusal(content: Content, basis: Actor.WorldBasis, doma
+ 
+ static func runtime_sources_refusal() -> StringName:
+ 	"""Use the already cached actual Script source, not mutable disk bytes or a fresh transitive load."""
+-	if Pins.PATHS.size() != 8 or Pins.DIGESTS.size() != 8:
++	if Pins.PATHS.size() != 9 or Pins.DIGESTS.size() != 9:
+ 		return &"MOLE_CATALOG_SOURCE_COUNT"
+-	for index: int in 8:
++	for index: int in 9:
+ 		var path: String = Pins.PATHS[index]
+ 		if path.length() > 128 or not ResourceLoader.has_cached(path):
+ 			return &"MOLE_CATALOG_SOURCE_UNCACHED"
+@@ -95,7 +95,15 @@ static func profile_id(source_role: int, yaw: int) -> int:
+ 	if yaw % 16384 != 0:
+ 		return -1
+ 	@warning_ignore("integer_division") var heading: int = yaw / 16384
+-	return 2 + 4 * heading + source_role - 2
++	return 10 + 4 * heading + source_role - 2
++
++
++static func approach_profile_id(yaw: int, backward: bool = false) -> int:
++	"""Exact body heading selects the complete forward/backward source; path heading is a separate route fact."""
++	if yaw < 0 or yaw >= 65536 or yaw % 16384 != 0:
++		return -1
++	@warning_ignore("integer_division") var heading: int = yaw / 16384
++	return (6 if backward else 2) + heading
+ 
+ 
+ static func pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
+@@ -112,6 +120,20 @@ static func pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
+ 	return &""
+ 
+ 
++static func driver_pins_into(profiles: Profiles, out: PackedInt64Array) -> StringName:
++	"""The existing eighteen-role driver packet names STAND/WALK and WORK; Routes owns directed travel state."""
++	if out.size() != 54:
++		return &"MOLE_CATALOG_PINS_SIZE"
++	var code: StringName = catalog_refusal(profiles)
++	if code != &"":
++		return code
++	for index: int in 18:
++		out[index * 3] = index if index < 2 else index + 8
++		out[index * 3 + 1] = PROFILE_REVISION
++		out[index * 3 + 2] = CONTENT_REVISION
++	return &""
++
++
+ static func catalog_refusal(profiles: Profiles) -> StringName:
+ 	"""Reconstruct the canonical small wire through public immutable readers without retaining another image."""
+ 	if profiles == null or profiles.get_script() != Profiles or profiles.content_revision() != CONTENT_REVISION \
+@@ -139,7 +161,7 @@ static func _wire_header() -> PackedByteArray:
+ 	"""Fixed32-byte wire header is reused only during this cold exact-content check."""
+ 	var bytes: PackedByteArray = "UGPROF01".to_ascii_buffer()
+ 	bytes.resize(32)
+-	bytes.encode_u32(8, 1)
++	bytes.encode_u32(8, 2)
+ 	bytes.encode_s64(12, CONTENT_REVISION)
+ 	bytes.encode_u32(20, PROFILE_COUNT)
+ 	bytes.encode_u32(24, BOX_COUNT)
+@@ -161,7 +183,10 @@ static func _hash_rows(profiles: Profiles, hashing: HashingContext) -> StringNam
+ 		bytes.encode_s64(80, descriptor.quantity_min_milli)
+ 		bytes.encode_s64(88, descriptor.quantity_max_milli)
+ 		bytes[96] = descriptor.certificate_flags
+-		bytes[97] = 0 # The immutable Profiles loader rejects every nonzero reserved byte.
++		var policy: int = profiles.selection_policy_of(index, descriptor.profile_revision, CONTENT_REVISION)
++		if policy < 0:
++			return &"MOLE_CATALOG_DESCRIPTOR"
++		bytes[97] = policy
+ 		hashing.update(bytes)
+ 		first += descriptor.box_count
+ 	return &"" if first == BOX_COUNT else &"MOLE_CATALOG_BOX_CENSUS"
+diff --git a/godot/scripts/core/underground_connector_contacts.gd b/godot/scripts/core/underground_connector_contacts.gd
+index b38208ae..555b2862 100644
+--- a/godot/scripts/core/underground_connector_contacts.gd
++++ b/godot/scripts/core/underground_connector_contacts.gd
+@@ -1325,6 +1325,9 @@ func _observe_workers() -> StringName:
+ 			if not _fragments.spend(256): return REFUSE_CAPACITY
+ 			var code: StringName = _placements._profiles._prepare_query(worker, job, Profiles.MODE_WORK,
+ 				_station[6], -1, NULL_REF, _selection)
++			if code == &"":
++				code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
++					_profile_revision, _frontier._header[5])
+ 			if code != &"": return code
+ 		if jobs._is_coordinator[primary] == 0: break
+ 		row = jobs._member_next[row]
+@@ -1570,8 +1573,7 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
+ 			or row < 0 or row >= Routes.RESIDENT_CAPACITY or graph._resident_ref(row) != worker \
+ 			or graph._resident_pair(Routes.R_JOB_SLOT, row) != job \
+ 			or graph._resident_pair(Routes.R_LOCATION_SLOT, row) != _station_location \
+-			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
+-			or graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] != Routes.PHASE_IDLE:
++			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF:
+ 		return REFUSE_WORKER
+ 	if _phase_mode and _phase_needs_worker() and (_sites._worker_site[row] != _phase_site.x \
+ 			or _sites._worker_generation[row] != worker.y):
+@@ -1586,7 +1588,9 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
+ 			or graph._resident_pair(Routes.R_SECTION_SLOT, row) != _location.section \
+ 			or graph._motion.resident[Routes.R_LEVEL * Routes.RESIDENT_CAPACITY + row] != _location.level:
+ 		return code if code != &"" else REFUSE_WORKER
+-	code = _worker_retreat_leaf(worker, job)
++	code = Routes.source_work_leaf_refusal(graph, worker, job, _station[5],
++		_profile_revision, _frontier._header[5])
++	if code == &"": code = _worker_retreat_leaf(worker, job)
+ 	if code == &"": code = _occupancy_leaf(worker)
+ 	return _handling_leaf(worker, job) if code == &"" else code
+ 
+diff --git a/godot/scripts/core/underground_connector_delivery.gd b/godot/scripts/core/underground_connector_delivery.gd
+index d4f9ae88..3e7ea246 100644
+--- a/godot/scripts/core/underground_connector_delivery.gd
++++ b/godot/scripts/core/underground_connector_delivery.gd
+@@ -718,7 +718,7 @@ static func _worker_leaf(a: RefCounted, transfer: Transfer) -> StringName:
+ 	if code != &"": return code
+ 	if transfer == null and not Routes._same_selection(a._selection, graph._checked_selection): return REFUSE_HANDLING
+ 	if graph._resident_ref(row) != a._worker or graph._resident_pair(Routes.R_JOB_SLOT, row) != a._job \
+-			or graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] != Routes.PHASE_IDLE \
++			or Routes.actor_phase_in(graph, a._worker) != Routes.PHASE_IDLE \
+ 			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
+ 			or graph._motion.resident[Routes.R_HEAD * Routes.RESIDENT_CAPACITY + row] >= 0: return REFUSE_ARRIVAL
+ 	var endpoint: Vector2i = graph._resident_pair(Routes.R_LOCATION_SLOT, row)
+diff --git a/godot/test/test_mole_qualified_profiles.gd b/godot/test/test_mole_qualified_profiles.gd
+index 2a1fe35f..fc34c63b 100644
+--- a/godot/test/test_mole_qualified_profiles.gd
++++ b/godot/test/test_mole_qualified_profiles.gd
+@@ -2,7 +2,7 @@ extends "res://test/framework/test_case.gd"
+ ## Actual source artifact + real Resident/Job/Work/Gear identity. No World, paid target, support or WIP is fabricated.
+ 
+ const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
+-const Pins := preload("res://data/underground/mole-worker/profile-publication-v2/catalog_source.gd")
++const Pins := preload("res://data/underground/mole-worker/profile-publication-v3/catalog_source.gd")
+ const Profiles := preload("res://scripts/core/underground_profiles.gd")
+ const Fixture := preload("res://test/test_underground_profiles.gd")
+ const Content := preload("res://demo/cast/underground_actor_content.gd")
+@@ -56,8 +56,8 @@ func after_each() -> void:
+ func _empty_catalog() -> Profiles:
+ 	"""Exactly two minimal banks; the stated native/control reservation is not a measured allocation result."""
+ 	var profiles: Profiles = Profiles.new()
+-	assert_equal(profiles.configure(18, 194, 1, Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
+-	assert_equal(profiles.packed_memory_bytes(), 14520, "paired source-derived payload")
++	assert_equal(profiles.configure(26, 250, 1, Catalog.PAIRED_BANK_BYTES + Catalog.CONTROL_RESERVE), &"", "complete peak admission")
++	assert_equal(profiles.packed_memory_bytes(), 19224, "paired source-derived payload")
+ 	return profiles
+ 
+ 
+@@ -77,14 +77,14 @@ func test_actual_source_rows_and_headings_keep_every_contact_distinct() -> void:
+ 		assert_true(_fixture._transforms.place(_fixture._worker, 4096, 512, 4096, yaw), "actual heading")
+ 		for role: int in range(2, 6):
+ 			var profile: int = Catalog.profile_id(role, yaw)
+-			assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, profile, 1, 1,
++			assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, profile, 1, 2,
+ 				0, -1, _tool, out), &"", "exact qualified source contact")
+ 			assert_equal(out.profile_id, profile, "no first-match contact substitution")
+ 			assert_equal(out.yaw, yaw, "no cardinal rounding")
+ 			assert_equal(out.tool, _tool, "actual equipped/claimed BASIC source")
+ 			assert_equal(out.job, _job, "actual assigned job")
+ 	assert_equal(_fixture._profiles.query_into(_fixture._worker, _job, Profiles.MODE_WORK, 0, -1, _tool, out),
+-		&"PROFILE_SELECTION_AMBIGUOUS", "ordinary lookup cannot choose among contacts")
++		&"PROFILE_VARIANT_UNAUTHORED", "source-clock WORK requires an explicit authored contact")
+ 
+ 
+ func test_all_yaw_ground_profile_preserves_full_tool_and_ground_stance() -> void:
+@@ -95,28 +95,46 @@ func test_all_yaw_ground_profile_preserves_full_tool_and_ground_stance() -> void
+ 	assert_equal(out.profile_id, 1, "unique exact ground source")
+ 	assert_equal(out.yaw, 12345, "actual yaw retained")
+ 	var support: Profiles.Box = Profiles.Box.new()
+-	assert_equal(_fixture._profiles.box_into(1, 1, 1, 3, support), &"", "full stance row")
++	assert_equal(_fixture._profiles.box_into(1, 1, 2, 3, support), &"", "full stance row")
+ 	assert_equal(support.role, Profiles.STANCE_SUPPORT, "source support role")
+ 	assert_equal(support.high.x - support.low.x, 812, "wider than a512u tread")
+ 	assert_equal(support.high.z - support.low.z, 812, "no implicit varying-height foot proof")
+ 	assert_equal(Catalog.profile_id(2, 12345), -1, "intermediate productive yaw unauthored")
+-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 2, 1, 1, 0, -1, _tool, out),
++	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 10, 1, 2, 0, -1, _tool, out),
+ 		&"PROFILE_VARIANT_UNAUTHORED", "real pose cannot borrow cardinal contact")
+ 
+ 
++func test_directed_approach_mapping_preserves_body_heading_and_explicit_policy() -> void:
++	"""Forward and backward share a body heading but remain distinct complete travel sources."""
++	var selected: Profiles.Selection = Profiles.Selection.new()
++	for heading: int in 4:
++		var yaw: int = heading * 16384
++		assert_true(_fixture._transforms.place(_fixture._worker, 4096, 512, 4096, yaw), "actual cardinal body heading")
++		for backward: bool in [false, true]:
++			var profile: int = Catalog.approach_profile_id(yaw, backward)
++			assert_equal(profile, (6 if backward else 2) + heading, "explicit direction has its own row")
++			assert_equal(_fixture._profiles.query_travel_profile_into(_fixture._worker, _job,
++				profile, 1, 2, 0, -1, _tool, selected), &"", "actual actor/tool/Job selection")
++			assert_equal(selected.yaw, yaw, "backward path does not reverse body heading")
++			assert_equal(_fixture._profiles.selection_policy_of(profile, 1, 2), 2 if backward else 1, "versioned policy")
++	for yaw: int in [-1, 1, 12345, 65536]:
++		assert_equal(Catalog.approach_profile_id(yaw), -1, "no implicit heading rounding")
++		assert_equal(Catalog.approach_profile_id(yaw, true), -1, "invalid backward heading refuses")
++
++
+ func test_stale_claim_or_job_preserves_previous_selected_source() -> void:
+ 	"""Source geometry does not restore a released economic claim or an old assignment."""
+ 	var out: Profiles.Selection = Profiles.Selection.new()
+-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 2, 1, 1, 0, -1, _tool, out), &"", "real source selected")
++	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 10, 1, 2, 0, -1, _tool, out), &"", "real source selected")
+ 	assert_true(_fixture._work.release_tool_claim(_fixture._slot).ok, "actual claim release")
+-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 5, 1, 1, 0, -1, _tool, out),
++	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 13, 1, 2, 0, -1, _tool, out),
+ 		&"PROFILE_TOOL_CLAIM", "no source flag recreates ownership")
+-	assert_equal(out.profile_id, 2, "refused source output unchanged")
++	assert_equal(out.profile_id, 10, "refused source output unchanged")
+ 	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual claim reacquired")
+ 	assert_true(_fixture._jobs.release_worker(_fixture._slot).ok, "actual assignment removed")
+-	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 5, 1, 1, 0, -1, _tool, out),
++	assert_equal(_fixture._profiles.query_work_profile_into(_fixture._worker, _job, 13, 1, 2, 0, -1, _tool, out),
+ 		&"PROFILE_JOB_STALE", "source is not labor permission")
+-	assert_equal(out.profile_id, 2, "prior exact source remains intact")
++	assert_equal(out.profile_id, 10, "prior exact source remains intact")
+ 
+ 
+ func test_wrong_domain_content_and_renderer_refuse_before_profile_publication() -> void:
+@@ -135,17 +153,17 @@ func test_cold_descriptor_does_not_create_actual_worker_permission() -> void:
+ 	var cold: Profiles = _empty_catalog()
+ 	assert_equal(Catalog.load_into(cold, _content, _domain), &"", "unbound immutable source")
+ 	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
+-	assert_equal(cold.descriptor_into(5, 1, descriptor), &"", "authored INSTALL source")
++	assert_equal(cold.descriptor_into(13, 2, descriptor), &"", "authored INSTALL source")
+ 	assert_equal(descriptor.contact_kind, Profiles.CONTACT_ANCHOR_AND_PATCH, "actual source patch")
+ 	assert_equal(descriptor.certificate_flags, 15, "four reviewed source gates")
+-	assert_equal(cold.query_work_profile_into(_fixture._worker, _job, 5, 1, 1, 0, -1, _tool, Profiles.Selection.new()),
++	assert_equal(cold.query_work_profile_into(_fixture._worker, _job, 13, 1, 2, 0, -1, _tool, Profiles.Selection.new()),
+ 		&"PROFILE_OWNER_UNBOUND", "no allocated World support or worker binding")
+ 
+ 
+ func test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_larger_box() -> void:
+ 	"""A structurally valid synthetic alteration is refused by the source catalog's complete live wire hash."""
+ 	var pins: PackedInt64Array = PackedInt64Array()
+-	pins.resize(54)
++	pins.resize(78)
+ 	assert_equal(Catalog.pins_into(_fixture._profiles, pins), &"", "all exact authored tuples")
+ 	var before: PackedInt64Array = pins.duplicate()
+ 	var changed: Profiles = _changed_geometry()
+@@ -157,21 +175,21 @@ func test_exact_wire_identity_cannot_be_replaced_by_same_actor_revision_with_lar
+ func _changed_geometry() -> Profiles:
+ 	"""Only this negative fixture mutates source bytes; the real artifact and its digest remain untouched."""
+ 	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Catalog.WIRE_PATH)
+-	var first_box: int = 32 + 32 + 18 * 98
++	var first_box: int = 32 + 32 + 26 * 98
+ 	bytes.encode_s32(first_box + 12, bytes.decode_s32(first_box + 12) + 1)
+ 	var path: String = "user://mole-qualified-mutant-%d.bin" % get_instance_id()
+ 	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+ 	file.store_buffer(bytes)
+ 	file.close()
+ 	var changed: Profiles = _empty_catalog()
+-	assert_equal(changed.load_file(path, FileAccess.get_sha256(path), 1), &"", "explicit negative-fixture certificate")
++	assert_equal(changed.load_file(path, FileAccess.get_sha256(path), 2), &"", "explicit negative-fixture certificate")
+ 	assert_equal(DirAccess.remove_absolute(ProjectSettings.globalize_path(path)), OK, "owned fixture deleted")
+ 	return changed
+ 
+ 
+ func test_actual_cached_source_hashes_and_bounded_unicode_chunks() -> void:
+ 	"""The loader checks already loaded code and refuses missing/changed source, including stripped exports."""
+-	assert_equal(Catalog.runtime_sources_refusal(), &"", "all eight actual cached sources")
++	assert_equal(Catalog.runtime_sources_refusal(), &"", "all nine actual cached sources")
+ 	var source: String = "é🦡一".repeat(1500)
+ 	assert_equal(Catalog._source_refusal(source, source.sha256_text()), &"", "UTF-8 chunk boundaries preserve exact text")
+ 	assert_equal(Catalog._source_refusal(source, "0".repeat(64)), &"MOLE_CATALOG_SOURCE_DRIFT", "changed executed source refuses")
+@@ -183,14 +201,29 @@ func test_driver_uses_the_published_source_tuple_without_work_credit() -> void:
+ 	"""Real driver observes actual owners and the qualified artifact; ready/pose change does not pay or credit Work."""
+ 	var pins: PackedInt64Array = PackedInt64Array()
+ 	pins.resize(54)
+-	assert_equal(Catalog.pins_into(_fixture._profiles, pins), &"", "exact source map")
++	assert_equal(Catalog.driver_pins_into(_fixture._profiles, pins), &"", "exact source map without another driver bank")
+ 	var driver: Driver = Driver.new()
+ 	assert_equal(driver.configure(_content, _fixture._profiles, _fixture._residents, _fixture._worker, _tool,
+-		pins, Pins.ACTOR_SHA, Driver.PROGRAM_CARDINAL), &"", "same actual source driver")
++		pins, Pins.ACTOR_SHA, Driver.PROGRAM_APPROACH), &"", "same actual source driver")
+ 	var frame: Driver.Frame = Driver.Frame.new()
+-	assert_equal(driver.step_profile_into(5, _job, 32768, false, frame), &"", "actual INSTALL entry pose")
+-	assert_equal(frame.profile_id, 5, "exact authored installation source")
+-	assert_equal(frame.phase, Driver.ENTRY, "presentation entry only")
+-	assert_false(frame.ready, "no immediate handoff")
++	assert_equal(driver.step_profile_into(13, _job, 32768, false, frame),
++		&"MOLE_DRIVER_CANONICAL_ROUTES_REQUIRED", "render calls cannot advance source-clock WORK")
++	assert_false(frame.ready, "presentation cannot manufacture readiness")
+ 	assert_equal(_fixture._work.tool_job_of(_fixture._slot), _job, "Work claim remains authoritative")
+ 	driver.retire()
++
++
++func test_driver_subset_pins_preserve_output_on_geometry_or_shape_refusal() -> void:
++	"""The fixed driver packet excludes travel rows and cannot silently accept a different source image."""
++	var pins: PackedInt64Array = PackedInt64Array()
++	pins.resize(54)
++	assert_equal(Catalog.driver_pins_into(_fixture._profiles, pins), &"", "all eighteen source roles")
++	for index: int in 18:
++		assert_equal(pins[index * 3], index if index < 2 else index + 8, "only exact legacy geometry roles")
++		assert_equal(pins[index * 3 + 1], 1, "unchanged source row revision")
++		assert_equal(pins[index * 3 + 2], 2, "current complete content image")
++	var before: PackedInt64Array = pins.duplicate()
++	assert_equal(Catalog.driver_pins_into(_changed_geometry(), pins), &"MOLE_CATALOG_GEOMETRY_DRIFT", "whole source still checked")
++	assert_equal(pins, before, "failed geometry emits no partial pin tuple")
++	assert_equal(Catalog.driver_pins_into(_fixture._profiles, PackedInt64Array([55])),
++		&"MOLE_CATALOG_PINS_SIZE", "caller packet remains exactly fifty-four scalars")

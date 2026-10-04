@@ -1,0 +1,18 @@
+{
+  "producer_sha256": "abd8f8812d778a35575b045245bc7ab903a3f597029a15e036de1c61236389ee",
+  "stripped_manifest": {
+    "source_geometry_qualified": true,
+    "world_activation_qualified": false,
+    "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+    "content_revision": 2,
+    "profile_count": 26,
+    "box_count": 250,
+    "prerequisite_pins": {
+      "godot/data/underground/initial_level_pack.uglvl": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
+    }
+  },
+  "foreign_writes": false,
+  "accepted": true,
+  "wire_bytes": 70936,
+  "runtime_activation": false
+}

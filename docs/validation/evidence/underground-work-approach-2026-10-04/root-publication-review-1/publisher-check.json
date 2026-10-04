@@ -1,0 +1,25 @@
+{
+  "publisher_sha256": "7584179cca9ae4f46abe9a034433f93481705937546e2ae2b278e13bc127cf3a",
+  "consumer_commit": "721038a4198df17d9bfab6c9994cc9916f875447",
+  "consumer_count": 9,
+  "all_proof_pins_verified": 509,
+  "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+  "wire_bytes": 9620,
+  "constants_sha256": "fca8e5410940b8dfa98a1e7796b4138f25464402e784de46447d020402c06e0c",
+  "constants_bytes": 1725,
+  "prior_rows_geometry_preserved": 18,
+  "whole_new_rows_checked": 8,
+  "whole_new_boxes_checked": 56,
+  "qualification": "source geometry only; no output publication performed",
+  "refusals": {
+    "pending_commit": "APPROACH_PUBLICATION_COMMIT",
+    "wrong_commit": "Command '['git', 'show', '0000000000000000000000000000000000000000:godot/scripts/core/underground_profiles.gd']' returned non-zero exit status 128.",
+    "path_traversal": "APPROACH_PUBLICATION_PATH",
+    "absolute_path": "APPROACH_PUBLICATION_PATH",
+    "noncanonical_path": "APPROACH_PUBLICATION_PATH",
+    "wrong_digest": "APPROACH_PUBLICATION_HASH:godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof",
+    "conflicting_pin": "APPROACH_PUBLICATION_PIN_CONFLICT",
+    "invalid_digest": "APPROACH_PUBLICATION_DIGEST",
+    "missing_consumer": "APPROACH_PUBLICATION_CONSUMER_CENSUS"
+  }
+}

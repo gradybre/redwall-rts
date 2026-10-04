@@ -97,6 +97,8 @@ const REFUSE_NONE: StringName = &""
 ## The cohort refused after the world was prepared. The settlement owns the specific
 ## reason; this names the stage so the report is not silent about which half failed.
 const REFUSE_COHORT: StringName = &"SETTLEMENT_COHORT_REFUSED"
+const REFUSE_RESET: StringName = &"SETTLEMENT_RESET_REFUSED"
+const REFUSE_WORLD_BINDING: StringName = &"UI_GENERATOR_BINDING"
 
 ## Directory kinds the `reset` Callable clears that `world_init.gd` does not own itself.
 ##
@@ -323,7 +325,8 @@ func create_into(directory: EntityDirectoryScript, nodes: ResourceNodesScript,
 func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNodesScript,
 		forage: ForageScript, fishing: FishingScript, rng: RngScript,
 		farming: FarmingScript, orchards: OrchardHiveScript, jobs: JobsScript,
-		commands: CommandsScript, out: Report, reset: Callable, cohort: Callable) -> bool:
+		commands: CommandsScript, out: Report, reset: Callable, cohort: Callable,
+		actual_world: WorldInitScript) -> bool:
 	"""Generate §5.1's world with its cohort allocated FIRST, so residents take ids 1-12.
 
 	R-INIT-ID-001 orders initialization preflight -> single reset -> seed -> cohort -> publish,
@@ -334,9 +337,9 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 	same authored scenario producing two different identities, which §5.3's
 	`hash(persistent_id, world_seed)` naming hangs off.
 
-	This session still owns the published map, the attempt report and the generator's own
-	refusal codes. Delegating the whole operation to `SettlementSystem` was tried and reverted
-	because it lost all three; the caller supplies its reset and cohort as Callables instead.
+	This session shares the host's actual map and retains its attempt report and refusal codes.
+	Generation uses that map's existing staged banks; it allocates no second WorldInit.
+	The caller supplies its reset and cohort as Callables, retaining the ruled transaction order.
 
 	`cohort` RECEIVES THE PREPARED WORLD. INIT-POSE-R01 places the twelve against the prepared
 	plan before publication, and this session's `_world` is that plan; a cohort callable that
@@ -348,30 +351,40 @@ func create_with_cohort_into(directory: EntityDirectoryScript, nodes: ResourceNo
 		return _report_refusal(out, form_refusal(), inline_reason(form_refusal()))
 	if directory == null or nodes == null or forage == null or fishing == null or rng == null:
 		return _report_refusal(out, REFUSE_NO_STORES, inline_reason(REFUSE_NO_STORES))
+	if actual_world == null or actual_world.get_script() != WorldInitScript \
+			or actual_world._directory != directory or actual_world._nodes != nodes \
+			or actual_world._forage != forage or actual_world._fishing != fishing or actual_world._rng != rng \
+			or actual_world._farming != farming or actual_world._orchards != orchards \
+			or actual_world._jobs != jobs or actual_world._commands != commands \
+			or (_world != null and _world != actual_world) or not reset.is_valid() or not cohort.is_valid():
+		return _report_refusal(out, REFUSE_WORLD_BINDING, "the form must use its settlement's actual World")
 	if not _open_catalog():
 		return _report_refusal(out, REFUSE_CATALOG, inline_reason(REFUSE_CATALOG))
-	_world = WorldInitScript.new(directory, nodes, forage, fishing, rng, farming, orchards,
-		jobs, commands)
-	_world.declare_externally_cleared(_caller_cleared_kinds)
+	var candidate: WorldInitScript = actual_world
+	candidate.declare_externally_cleared(_caller_cleared_kinds)
 	var request: WorldInitScript.RequestResult = WorldInitScript.bound_request(_items, _seed)
 	if not request.ok:
 		return _report_refusal(out, request.error, request.detail)
-	var planned: WorldInitScript.GenerateResult = _world.preflight(request.request)
+	var planned: WorldInitScript.GenerateResult = candidate.preflight(request.request)
 	out.attempts = planned.attempts
 	if not planned.ok:
 		return _report_refusal(out, planned.error, "generation refused during preflight")
-	reset.call()
-	var seeded: StringName = _world.seed_prepared_streams()
+	var reset_result: Variant = reset.call()
+	if not (reset_result is bool) or not reset_result:
+		candidate.discard_prepared_plan()
+		return _report_refusal(out, REFUSE_RESET, "the current settlement is busy; its world was retained")
+	var seeded: StringName = candidate.seed_prepared_streams()
 	if seeded != REFUSE_NONE:
-		_world.discard_prepared_plan()
+		candidate.discard_prepared_plan()
 		return _report_refusal(out, seeded, "the prepared world could not seed its streams")
-	if not cohort.call(_world):
-		_world.discard_prepared_plan()
+	if not cohort.call(candidate):
+		candidate.discard_prepared_plan()
 		return _report_refusal(out, REFUSE_COHORT,
 			"the world was prepared but its cohort could not be allocated")
-	var published: WorldInitScript.GenerateResult = _world.publish_prepared()
+	var published: WorldInitScript.GenerateResult = candidate.publish_prepared()
 	if not published.ok:
 		return _report_refusal(out, published.error, "publication refused after the cohort")
+	_world = candidate
 	out.ok = true
 	out.accepted_seed = published.accepted_seed
 	out.resource_nodes = published.resource_nodes_created
@@ -439,9 +452,8 @@ func _open_catalog() -> bool:
 func world() -> WorldInitScript:
 	"""The generator that published the current world, or null before the first generation.
 
-	The UI owns this instance until the integration lead composes `world_init.gd` into
-	`settlement_system.gd`. It is the only source of the published terrain, soil, basin and
-	danger masks the minimap and the tile detail read.
+	The composed UI borrows SettlementSystem's generator and its existing staged banks. Both
+	readers therefore observe the same published terrain, soil, basin and danger masks.
 	"""
 	return _world
 

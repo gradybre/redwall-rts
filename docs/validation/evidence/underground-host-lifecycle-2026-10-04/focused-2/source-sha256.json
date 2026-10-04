@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/underground_session.gd": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c",
+  "godot/scripts/systems/settlement_system.gd": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e",
+  "godot/scripts/main.gd": "9acdb093f492a2d56520c210c7b541c4be15f6ce5bb3f8a9f7c9fe1a50cbd688",
+  "godot/scripts/ui/ui_world_session.gd": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1",
+  "godot/scripts/systems/ui_manager.gd": "d7709fe49dbdafd6aee8918da136a2ea2148a8f2734b83895d46d6332d424437",
+  "godot/demo/demo_village.gd": "78f4930147aaf5201cdb5aaccaadf54ff74ffd8668709a5cab25a3ed150c75f9",
+  "godot/test/test_underground_host.gd": "fe82c153cf1af7457ddf5a30b218c7db9dc9418700e166705e269f00c029237f",
+  "godot/test/test_ui_manager.gd": "ec883136099166ddf29f801aeb5cc7324449f5c370360caa1cda4fde2d9b27c3"
+}

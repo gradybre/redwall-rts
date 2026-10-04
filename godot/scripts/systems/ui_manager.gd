@@ -28,6 +28,7 @@ const HudScript := preload("res://scripts/ui/hud.gd")
 const GameManagerScript := preload("res://scripts/systems/game_manager.gd")
 const UiCommandBridge := preload("res://scripts/ui/ui_command_bridge.gd")
 const UiWorldSession := preload("res://scripts/ui/ui_world_session.gd")
+const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const UiShell := preload("res://scripts/ui/ui_shell.gd")
 const UiNotices := preload("res://scripts/ui/ui_notices.gd")
 const WorldInitScript := preload("res://scripts/core/world_init.gd")
@@ -196,34 +197,26 @@ func _on_shell_action(element_id: int) -> void:
 func create_world() -> bool:
 	"""UI-SET-103's Create: discard the current settlement and create §5.1's world AND cohort.
 
-	THE COHORT AND THEN ITS WORLD, in that order (R-INIT-ID-001). This generated the world and no residents,
-	so pressing Create emptied the settlement it had just made and the HUD read
-	"Residents 0" against a fully generated map. Decision 0071 fixed boot; the UI kept the
-	poorer path.
-
-	The session still generates, because it owns the published map, the attempt report and
-	the generator's own refusal codes -- calling `create_generated_settlement()` instead
-	bypassed all three and broke two tests that had every right to fail. The cohort is
-	spawned after it, and a cohort refusal fails the WHOLE action rather than leaving a
-	generated map with nobody on it.
-
-	The reset is the PLAYER'S OWN DISCARD and happens first, because `world_init.gd` refuses to
-	publish over live rows it does not own -- a settlement's residents are exactly that. One
-	consequence is stated rather than hidden: if generation then refuses, the previous world is
-	already gone and the settlement is left EMPTY, not restored. The refusal says so.
+	R-INIT-ID-001 requires preflight, reset, stream seeding, cohort creation, then World publication.
+	The UI shares the host's generator and retains its attempt report and refusal codes.
+	A preflight or reset refusal preserves the live settlement. After the player's discard
+	succeeds, a later failure leaves it empty and reports that outcome explicitly.
+	An already mounted underground foundation is restored using its same immutable Content.
 	"""
 	if SettlementSystem == null:
 		return _refuse(REFUSE_NO_SETTLEMENT)
+	var underground_content: UndergroundContent = SettlementSystem.underground_content()
 	var report: UiWorldSession.Report = _session.last_report()
 	var ok: bool = _session.create_with_cohort_into(SettlementSystem.directory(),
 		SettlementSystem.ecology().resource_nodes(), SettlementSystem.ecology().forage(),
 		SettlementSystem.ecology().fishing(), SettlementSystem.rng(),
 		SettlementSystem.crop_weather().farming(), SettlementSystem.ecology().orchard_hive(),
 		SettlementSystem.jobs(), SettlementSystem.commands(), report,
-		SettlementSystem.reset, SettlementSystem.create_placed_cohort_on)
+		SettlementSystem.reset.bind(true), SettlementSystem.create_placed_cohort_on, SettlementSystem.world())
 	if not ok and report.error == UiWorldSession.REFUSE_COHORT:
 		report.error = SettlementSystem.last_refusal()
 	ok = _materialize_after_create(ok, report)
+	ok = _restore_underground_after_create(ok, report, underground_content)
 	_reconcile_economy_after_create(ok)
 	_report_generation(ok, report)
 	if ok:
@@ -247,6 +240,19 @@ func _materialize_after_create(ok: bool, report: UiWorldSession.Report) -> bool:
 	SettlementSystem.reset()
 	return _session.refuse_published_world(report, code,
 		"the world was generated but its starter colony could not be placed.")
+
+
+func _restore_underground_after_create(ok: bool, report: UiWorldSession.Report,
+		content: UndergroundContent) -> bool:
+	"""A mounted demo retains its one immutable image across reset and opens a fresh World-bound Session."""
+	if not ok or content == null:
+		return ok
+	if SettlementSystem.mount_underground(content):
+		return true
+	var code: StringName = SettlementSystem.last_refusal()
+	SettlementSystem.reset()
+	return _session.refuse_published_world(report, code,
+		"the world was generated but its underground foundation could not be restored.")
 
 
 func _reconcile_economy_after_create(ok: bool) -> void:

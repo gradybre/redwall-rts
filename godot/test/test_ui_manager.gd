@@ -36,6 +36,8 @@ const UiNoticesScript := preload("res://scripts/ui/ui_notices.gd")
 const ColonyFixture := preload("res://test/fixtures/starter_colony_fixture.gd")
 const StarterColonyScript := preload("res://scripts/core/starter_colony.gd")
 const CatalogScript := preload("res://scripts/core/catalog.gd")
+const UndergroundSessionScript := preload("res://scripts/core/underground_session.gd")
+const UndergroundContentScript := preload("res://demo/cast/underground_actor_content.gd")
 const BuildingsScript := preload("res://scripts/core/buildings.gd")
 
 const HUD_SCENE_PATH: String = "res://scenes/ui/hud.tscn"
@@ -423,6 +425,8 @@ func test_the_create_action_generates_the_authored_world_into_the_live_stores() 
 	assert_equal(SettlementSystem.ecology().resource_nodes().count(), GENERATED_RESOURCE_NODES,
 		"and they are in the running settlement's own store")
 	assert_true(_ui.world_session().has_world(), "the session holds the published map")
+	assert_equal(SettlementSystem.world(), _ui.world_session().world(), "UI and simulation share the actual generator")
+	assert_true(SettlementSystem.world().is_published(), "production Terrain sees the UI-created World")
 	SettlementSystem.reset()
 
 
@@ -444,6 +448,42 @@ func test_a_generated_world_is_populated_and_beds_stay_unpopulated() -> void:
 	assert_true(_rendered_counters().contains("Beds %s" % UNPOPULATED),
 		"while beds stay unpopulated, not drawn as a zero nothing measured")
 	SettlementSystem.reset()
+
+
+func test_create_refuses_busy_underground_reset_and_retains_actual_world_and_stores() -> void:
+	"""The actual Create path cannot continue seeding after its host refused to discard the current World."""
+	assert_true(_ui.create_world(), "first actual UI World")
+	var content: UndergroundContentScript = UndergroundContentScript.new()
+	assert_equal(content.load_file(UndergroundSessionScript.ACTOR_PATH,
+		UndergroundSessionScript.Catalog.Pins.ACTOR_SHA, UndergroundSessionScript.PRESENTATION_BYTES), &"", "actual source")
+	assert_true(SettlementSystem.mount_underground(content), "actual foundation on UI-created World")
+	var session: UndergroundSessionScript = SettlementSystem.underground_session()
+	var token: int = session._budget.acquire(64)
+	assert_true(token > 0, "own operation")
+	var original: RefCounted = _ui.world_session().world()
+	var world_ref: Vector2i = SettlementSystem.world_ref()
+	var ids: PackedByteArray = SettlementSystem.directory().state_bytes()
+	var stock: PackedByteArray = SettlementSystem.inventory().state_bytes()
+	assert_false(_ui.create_world(), "Create stops at refused reset")
+	assert_equal(_ui.world_session().last_report().error, UiWorldSessionScript.REFUSE_RESET, "reset refusal reported")
+	assert_equal(_ui.world_session().world(), original, "published UI map retained")
+	assert_equal(SettlementSystem.world(), original, "same simulation World retained")
+	assert_equal(SettlementSystem.world_ref(), world_ref, "same full identity")
+	assert_equal(SettlementSystem.directory().state_bytes(), ids, "no identity writes")
+	assert_equal(SettlementSystem.inventory().state_bytes(), stock, "no stock writes")
+	assert_true(EconomySystem.stores_open(), "existing stores remain bound")
+	assert_equal(session._budget.release(token), &"", "release only own token")
+	assert_true(_ui.create_world(), "retry after retirement")
+	assert_equal(SettlementSystem.world(), _ui.world_session().world(), "replacement shares one actual World")
+	assert_equal(SettlementSystem.world(), original, "generation reuses the original World object's staging")
+	assert_true(SettlementSystem.world_ref() != world_ref, "fresh full World identity")
+	assert_equal(session.current_refusal(), &"UNDERGROUND_SESSION_UNAVAILABLE", "old foundation retired")
+	var replacement: UndergroundSessionScript = SettlementSystem.underground_session()
+	assert_not_null(replacement, "successful Create remounts the underground foundation")
+	assert_true(replacement != session, "new full World receives a new Session")
+	assert_equal(replacement.current_refusal(), &"", "replacement is currently bound")
+	assert_equal(replacement._content, content, "same immutable image, no second palette allocation")
+	assert_true(SettlementSystem.reset(), "test cleanup")
 
 
 func test_create_materialises_the_starter_colony_and_rebinds_the_stores_to_it() -> void:

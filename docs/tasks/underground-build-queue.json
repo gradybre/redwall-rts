@@ -1793,6 +1793,23 @@
           "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
           "memory_tests": 225,
           "runtime_qualified": false
+        },
+        "native_haul_input_replay": {
+          "source_commit": "aad85696ae4cd53cdbe7cfa3c32c0a3392e9e620",
+          "review_commit": "d16d751d8661ef61c3493225be6e15e792c7a0f0",
+          "evidence": "godot/data/underground/mole-worker/haul-handling-v1/evidence/native-program-v7/",
+          "review_evidence": "docs/validation/evidence/underground-room-publication-2026-10-04/native-haul-review-v1/",
+          "source_pins": 6,
+          "native_input_pins": 83,
+          "output_pins": 39,
+          "native_samples": 7068,
+          "native_assertions": 21251,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "python_tests": 16,
+          "analyzer": "0 GDScript warning(s) in 0 of 1 file(s)",
+          "scope": "Source and sampled native-input packet; no runtime haul/profile/World permission, GPU/all-Q16 or loaded stairs/turns qualification"
         }
       },
       "lease": {
@@ -1956,7 +1973,8 @@
         "godot/test/test_underground_room_publication.gd",
         "godot/test/test_underground_room_publication.gd.uid",
         "docs/decisions/1151-ordinary-room-publication.md",
-        "docs/validation/evidence/underground-room-publication-2026-10-04/"
+        "docs/validation/evidence/underground-room-publication-2026-10-04/",
+        "docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -2751,7 +2769,6 @@
               "godot/scripts/core/underground_world_bindings.gd",
               "godot/test/test_underground_world_bindings.gd",
               "docs/decisions/1085-actual-underground-world-composition.md",
-              "godot/scripts/core/underground_terrain.gd",
               "godot/test/test_underground_terrain.gd",
               "docs/decisions/1088-scoped-composed-phase-surveys.md",
               "docs/decisions/1090-actual-route-clearance-certificates.md",
@@ -2778,7 +2795,7 @@
               "godot/test/test_underground_entry_structure.gd.uid",
               "docs/decisions/1122-source-bound-entry-structure.md"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease. Root and Geometry explicitly stopped Terrain source writes2026-10-04; narrow final static prepared-local seam transferred to Furnishing below after rejected1150 candidate13 review.",
             "branch": "codex/underground-paid-cut-contact"
           },
           {
@@ -2883,6 +2900,15 @@
               "godot/scripts/core/inventory.gd"
             ],
             "stop_evidence": "Root stopped all Inventory/Reservations source writes after accepted1117/1118; no root edits since. Explicit2026-10-04 handoff to ug_geometry for narrow1141 guarded haul journal only; other root leases remain held."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-room-approach",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_terrain.gd"
+            ],
+            "handoff": "Root and Geometry source write-stop acknowledged2026-10-04. Add concrete/static final prepared-local facts reader only, preserving existing early observed readers, finite role/vertical bounds and original Space/cold tokens. Regression tests and full helper census in own UG07 approach subtree. No additional ownership or gameplay permission."
           }
         ]
       }
@@ -2975,7 +3001,16 @@
         "godot/test/test_settlement_equipment.gd",
         "godot/test/test_settlement_equipment.gd.uid",
         "docs/decisions/1148-settlement-equipment-and-hauling-ownership.md",
-        "docs/validation/evidence/underground-host-equipment-2026-10-04/"
+        "docs/validation/evidence/underground-host-equipment-2026-10-04/",
+        "godot/scripts/main.gd",
+        "godot/scripts/ui/ui_world_session.gd",
+        "godot/scripts/systems/ui_manager.gd",
+        "godot/test/test_ui_manager.gd",
+        "godot/test/test_underground_host.gd",
+        "godot/test/test_underground_host.gd.uid",
+        "docs/decisions/1149-underground-host-world-lifecycle.md",
+        "docs/validation/evidence/underground-host-lifecycle-2026-10-04/",
+        "docs/validation/evidence/underground-host-checkpoint-2026-10-04/"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -3044,6 +3079,27 @@
           "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)",
           "reviewer": "/root/ug_geometry",
           "scope": "one actual Gear/Carry; no new stock or Session activation"
+        },
+        "host_lifecycle": {
+          "status": "independently reviewed foundation lifecycle; strict focused and real scene restart passed; operational dispatch/teardown remain open",
+          "owner": "/root",
+          "decision": 1149,
+          "branch": "codex/underground-modular-integration",
+          "evidence": "docs/validation/evidence/underground-host-lifecycle-2026-10-04/",
+          "reviewer": "/root/ug_construction",
+          "tests": 287,
+          "assertions": 7038,
+          "failures": 0,
+          "unexpected_errors": 0,
+          "unexpected_warnings": 0,
+          "expected_diagnostics": 6,
+          "leaks": 0,
+          "final_host_rerun": "8 tests / 82 assertions / 0 failures; analyzer0/8; final UIManager prose-only correction separately pinned",
+          "actual_scene": "Headless1280x720 actual DemoVillage boot/restart14checks0failures;44 explicitly classified unstaged asset/audio warnings; no script errors, unexpected diagnostics or leak reports",
+          "memory": "225 source census tests;190 actual capacity checks; no second World bank; limits unchanged",
+          "final_pins": "final-source-sha256.json",
+          "review_commit": "0f53608f9642fa6d085ebe6c1e4a30219595ea7c",
+          "review_integrated_commit": "c4e84b59"
         }
       },
       "lease": {
@@ -4177,6 +4233,23 @@
       "leaked_resources": 0,
       "analyzer": "0 GDScript warning(s) in 0 of 1225 file(s)",
       "scope": "Session/Gear/Clock included; later ordinary Room sources excluded; no exact same-head local baseline claimed"
+    },
+    {
+      "commit": "f44efa7d0e29177bb97c499442078565099b3f12",
+      "outcome": "FAILED: seven entry claim fixture assertions in shard4; aggregate correctly failed; all other jobs passed",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37221084815",
+      "evidence": "docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/ci-f44efa7d/",
+      "failed_shard_tests": 1327,
+      "failed_shard_assertions": 76020,
+      "failed_shard_failures": 7,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "failed_shard_expected_diagnostics": 0,
+      "failed_shard_tolerated_diagnostics": 1,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "follow_up": "Old synthetic fixture injected EntryClaimInput under confirm_room; test migration uses actual confirm_entry and retains final guards. Strict four-suite83/3460/0 +LSP0/8 passed. New integrated CI remains required.",
+      "follow_up_commit": "fbc2281a"
     }
   ],
   "crosscut_fixes": [

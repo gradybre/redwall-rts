@@ -34,6 +34,8 @@ const LEVEL_PATH: String = "res://data/underground/initial_level_pack.uglvl"
 const LEVEL_SHA: String = "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
 const LEVEL_REVISION: int = 1
 const PROFILE_SOURCE_COUNT: int = 1
+const ACTOR_PATH: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
+const PRESENTATION_BYTES: int = 7141920
 const CONTROL_BYTES: int = 1024
 const HELPER_BYTES: int = 512
 const RESERVED_BYTES: int = CONTROL_BYTES + HELPER_BYTES
@@ -132,9 +134,9 @@ func _input_refusal() -> StringName:
 	return _initial_authority_refusal() if code == &"" else code
 
 
-func _owners_refusal() -> StringName:
+func _owners_refusal(allow_prepared_world: bool = false) -> StringName:
 	"""Direct actual owner fields close every earlier observing collaborator method."""
-	if _world_identity_refusal() != &"" or _world._directory != _directory or _world._jobs != _jobs \
+	if _world_identity_refusal(allow_prepared_world) != &"" or _world._directory != _directory or _world._jobs != _jobs \
 			or _world._nodes == null or _world._nodes._directory != _directory \
 			or _buildings._directory != _directory or _construction._directory != _directory \
 			or _construction._buildings != _buildings or _residents._directory != _directory \
@@ -166,11 +168,11 @@ func _equipment_refusal() -> StringName:
 	return &""
 
 
-func _world_identity_refusal() -> StringName:
+func _world_identity_refusal(allow_prepared_world: bool = false) -> StringName:
 	"""Check the full current World generation, row, reverse owner and persistent identity directly."""
 	var slot: int = _world_ref.x
 	if slot < 0 or slot >= Directory.DIRECTORY_CAPACITY or _world_ref.y <= 0 \
-			or not _world._published or _world._prepared or _directory._active[slot] != 1 \
+			or not _world._published or (_world._prepared and not allow_prepared_world) or _directory._active[slot] != 1 \
 			or _directory._generation[slot] != _world_ref.y or _directory._kind[slot] != Directory.KIND_WORLD \
 			or _directory._typed_row[slot] != 0 or _directory._persistent_id[slot] <= 0 \
 			or _directory._typed_owner_slot[_directory._kind_base[Directory.KIND_WORLD]] != slot:
@@ -255,11 +257,11 @@ func _content_refusal() -> StringName:
 	return Catalog.content_refusal(_content, _domain) if code == &"" else code
 
 
-func _original_refusal() -> StringName:
+func _original_refusal(allow_prepared_world: bool = false) -> StringName:
 	"""No callbacks: retain the captured World/PID/seed and actual original collaborator tuple."""
 	if _poisoned:
 		return &"UNDERGROUND_SESSION_REENTRANT"
-	var code: StringName = _owners_refusal()
+	var code: StringName = _owners_refusal(allow_prepared_world)
 	if code != &"":
 		return code
 	if _directory._persistent_id[_world_ref.x] != _world_pid or _world._published_seed != _seed:
@@ -267,7 +269,7 @@ func _original_refusal() -> StringName:
 	return &""
 
 
-func _observe_current() -> StringName:
+func _observe_current(allow_prepared_world: bool = false) -> StringName:
 	"""All bounded cold observations finish before the original direct field checks."""
 	var code: StringName = _content_refusal()
 	if code == &"" and not _levels.binding_matches(_domain, _directory, Space.VERSION):
@@ -275,7 +277,7 @@ func _observe_current() -> StringName:
 	if code == &"":
 		code = _terrain.binding_refusal()
 	if code == &"":
-		code = _original_refusal()
+		code = _original_refusal(allow_prepared_world)
 	return _foundation_refusal() if code == &"" else code
 
 
@@ -358,6 +360,11 @@ func _drop_borrowed() -> void:
 
 func current_refusal() -> StringName:
 	"""Cold current binding/source observation; success creates no operational authority or permission."""
+	return _current_refusal(false)
+
+
+func _current_refusal(allow_prepared_world: bool) -> StringName:
+	"""Only explicit whole-world retirement may observe an unchanged live World with a staged replacement."""
 	if _busy:
 		_poisoned = true
 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
@@ -365,14 +372,14 @@ func current_refusal() -> StringName:
 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
 	_busy = true
 	_poisoned = false
-	var code: StringName = _observe_current()
+	var code: StringName = _observe_current(allow_prepared_world)
 	_busy = false
 	return &"UNDERGROUND_SESSION_REENTRANT" if _poisoned else code
 
 
-func reset_refusal() -> StringName:
-	"""Report quiescence only; coordinated host replacement still owns the actual reset and lifetime."""
-	var code: StringName = current_refusal()
+func reset_refusal(allow_prepared_world: bool = false) -> StringName:
+	"""Prove quiescent unbound foundations before the host retires them and clears its actual stores."""
+	var code: StringName = _current_refusal(allow_prepared_world)
 	if code != &"":
 		return code
 	if not _budget.is_quiescent() or _space.has_prepared() or _routes._edge_capacity != 0 \
@@ -380,6 +387,19 @@ func reset_refusal() -> StringName:
 			or _space._source_free_count != Budget.SOURCE_CAPACITY - 1 or _space._header[17] != 1:
 		return &"UNDERGROUND_SESSION_NOT_QUIESCENT"
 	return _initial_authority_refusal()
+
+
+func retire_foundation(allow_prepared_world: bool = false) -> StringName:
+	"""Retire only this Session's unbound foundation; never clear a borrowed store or authority link."""
+	if not _ready and not _busy and _world == null and _budget == null:
+		return &""
+	var code: StringName = reset_refusal(allow_prepared_world)
+	if code != &"":
+		return code
+	_ready = false
+	_drop_foundations()
+	_drop_borrowed()
+	return &""
 
 
 func space_owner() -> Owner:

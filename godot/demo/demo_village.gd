@@ -299,6 +299,8 @@ const FuelPanelScript := preload("res://demo/winter/fuel_panel.gd")
 const DayNightScript := preload("res://demo/world/day_night.gd")
 const NightLightsScript := preload("res://demo/world/night_lights.gd")
 const WorldLayout := preload("res://demo/world/world_layout.gd")
+const ModularSession := preload("res://scripts/core/underground_session.gd")
+const ModularContent := preload("res://demo/cast/underground_actor_content.gd")
 const DaylightCurves := preload("res://demo/world/daylight_curves.gd")
 const HearthFuelScript := preload("res://demo/winter/hearth_fuel.gd")
 const HallScript := preload("res://demo/hall/demo_hall.gd")
@@ -432,6 +434,7 @@ func _ready() -> void:
 		push_warning("demo assets are not staged (tools/stage_demo_assets.py); running on placeholders")
 	DemoWorldScript.Look.apply_shadow_quality()
 	_build_world(manifest)
+	_mount_modular_foundation()
 	_build_cast(manifest)
 	_command = DemoCommandScript.new()
 	add_child(_command)
@@ -506,6 +509,18 @@ func _warm_and_open() -> void:
 func prewarm() -> PrewarmScript:
 	"""The boot prewarm and its report (demo_prewarm.gd)."""
 	return _prewarm
+
+
+func _mount_modular_foundation() -> void:
+	"""Give the actual settlement its single source-qualified underground foundation, without free construction."""
+	var content: ModularContent = ModularContent.new()
+	var code: StringName = content.load_file(ModularSession.ACTOR_PATH,
+		ModularSession.Catalog.Pins.ACTOR_SHA, ModularSession.PRESENTATION_BYTES)
+	if code == &"" and not SettlementSystem.mount_underground(content):
+		code = SettlementSystem.last_refusal()
+	if code != &"":
+		UIManager.push_refusal(code)
+		push_warning("Underground foundation unavailable: %s" % code)
 
 
 func _build_world(manifest: Dictionary) -> void:

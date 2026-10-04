@@ -1819,7 +1819,7 @@
     "lifetime": "One synchronous caller; no resident clock. Motion phase frame and clock frame coexist. The existing maximum Motion chain is conservatively retained in the total, plus the entire clock-only maximum. The clock 44-byte output replaces, rather than adds to, the existing 176-byte caller ceiling."
   },
   "session_reservation": {
-    "source_sha256": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
+    "source_sha256": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c",
     "retained_numeric_bytes": 27,
     "strong_reference_or_alias_members": 24,
     "own_packed_columns": 0,
@@ -1827,10 +1827,11 @@
     "control_reservation_bytes": 1024,
     "provisional_reference_native_header_bytes_in_control": 997,
     "helper_reservation_bytes": 512,
-    "own_longest_numeric_and_name_chain_bytes": 48,
+    "own_longest_numeric_and_name_chain_bytes": 55,
     "own_longest_numeric_and_name_chain": [
-      "configure",
-      "_prepare",
+      "retire_foundation",
+      "reset_refusal",
+      "_current_refusal",
       "_observe_current",
       "_original_refusal",
       "_owners_refusal",
@@ -1890,7 +1891,7 @@
         "returns": "StringName"
       },
       "_owners_refusal": {
-        "numeric_and_name_bytes": 0,
+        "numeric_and_name_bytes": 1,
         "borrowed_reference_values": 0,
         "own_calls": [
           "_equipment_refusal",
@@ -1905,7 +1906,7 @@
         "returns": "StringName"
       },
       "_world_identity_refusal": {
-        "numeric_and_name_bytes": 8,
+        "numeric_and_name_bytes": 9,
         "borrowed_reference_values": 0,
         "own_calls": [],
         "returns": "StringName"
@@ -1951,7 +1952,7 @@
         "returns": "StringName"
       },
       "_original_refusal": {
-        "numeric_and_name_bytes": 8,
+        "numeric_and_name_bytes": 9,
         "borrowed_reference_values": 0,
         "own_calls": [
           "_owners_refusal"
@@ -1959,7 +1960,7 @@
         "returns": "StringName"
       },
       "_observe_current": {
-        "numeric_and_name_bytes": 8,
+        "numeric_and_name_bytes": 9,
         "borrowed_reference_values": 0,
         "own_calls": [
           "_content_refusal",
@@ -2004,7 +2005,15 @@
         "returns": "void"
       },
       "current_refusal": {
-        "numeric_and_name_bytes": 8,
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_current_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_current_refusal": {
+        "numeric_and_name_bytes": 9,
         "borrowed_reference_values": 0,
         "own_calls": [
           "_observe_current"
@@ -2012,11 +2021,21 @@
         "returns": "StringName"
       },
       "reset_refusal": {
-        "numeric_and_name_bytes": 8,
+        "numeric_and_name_bytes": 9,
         "borrowed_reference_values": 0,
         "own_calls": [
-          "_initial_authority_refusal",
-          "current_refusal"
+          "_current_refusal",
+          "_initial_authority_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "retire_foundation": {
+        "numeric_and_name_bytes": 9,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_drop_borrowed",
+          "_drop_foundations",
+          "reset_refusal"
         ],
         "returns": "StringName"
       },
@@ -2145,7 +2164,7 @@
     "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
-    "godot/scripts/core/underground_session.gd": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
+    "godot/scripts/core/underground_session.gd": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c",
     "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
     "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
     "godot/scripts/core/underground_surface_anchor.gd": "3632681aa3d56d680d58e220f4aae58e5894baa23422ecd34c128404da8d40d0",

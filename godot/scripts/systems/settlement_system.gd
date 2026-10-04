@@ -586,6 +586,8 @@ const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
 const GearScript := preload("res://scripts/core/gear.gd")
 const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
+const UndergroundSession := preload("res://scripts/core/underground_session.gd")
+const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
 const StarterStructuresScript := preload("res://scripts/core/starter_structures.gd")
@@ -908,6 +910,8 @@ var _ground_piles: GroundPilesScript = null
 ## ADR1148: one existing-budget Gear and Carry owner; wiring creates no stock or tool instances.
 var _gear: GearScript = null
 var _haul_carry: HaulCarryScript = null
+## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
+var _underground_session: UndergroundSession = null
 ## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
 var _starter_producer: StarterStructuresScript = StarterStructuresScript.new()
 ## ARCH-SYS-001's ONE authoritative pose store, bound to the SAME directory as the resident store.
@@ -1382,7 +1386,9 @@ func _run_initialization_transaction() -> bool:
 	it. Any failure inside the transaction abandons the whole thing through
 	`_abandon_transaction()`; nothing is published by halves.
 	"""
-	reset()
+	if not reset():
+		_world.discard_prepared_plan()
+		return false
 	var seeded: StringName = _world.seed_prepared_streams()
 	if seeded != REFUSE_NONE:
 		return _abandon_transaction(seeded)
@@ -1808,12 +1814,50 @@ func _attach_resident(slot: int) -> bool:
 	return true
 
 
-func reset() -> void:
+func mount_underground(content: UndergroundContent) -> bool:
+	"""Compose the one actual foundation without seeding stock, duplicating a World or opening work."""
+	if _underground_session != null:
+		return _refuse(&"UNDERGROUND_SESSION_ALREADY_BOUND")
+	_underground_session = UndergroundSession.new()
+	var code: StringName = _underground_session.configure(_world, world_ref(), _buildings,
+		_construction, _inventory, _item_definitions, _residents, _jobs, _work, _reservations,
+		_transforms, _gear, _haul_carry, _ground_piles, content)
+	if code != &"":
+		_underground_session = null
+		return _refuse(code)
+	_last_refusal = REFUSE_NONE
+	return true
+
+
+func underground_session() -> UndergroundSession:
+	"""Borrow the one foundation; its own current checks reject retired or partially configured state."""
+	return _underground_session
+
+
+func underground_content() -> UndergroundContent:
+	"""Borrow the immutable loaded image for synchronous World replacement, never another palette allocation."""
+	return _underground_session._content if _underground_session != null and _underground_session._ready else null
+
+
+func prepare_world_reset(allow_prepared_world: bool = false) -> bool:
+	"""Retire foundations before any caller clears Economy/Entity/settlement state; refusal writes none."""
+	if _underground_session == null:
+		return true
+	var code: StringName = _underground_session.retire_foundation(allow_prepared_world)
+	if code != &"":
+		return _refuse(code)
+	_underground_session = null
+	return true
+
+
+func reset(allow_prepared_world: bool = false) -> bool:
 	"""Empty every settlement store, index and counter, without reallocating a column.
 
 	`_clear_stores()`'s `residents.clear()` also clears the directory and needs rows, because this
 	system built the residents store with neither collaborator supplied and it therefore owns both.
 	"""
+	if not prepare_world_reset(allow_prepared_world):
+		return false
 	_clear_stores()
 	_release_critical_pause()
 	_live_slots.fill(EntityDirectoryScript.NULL_SLOT)
@@ -1821,6 +1865,7 @@ func reset() -> void:
 	_daily_leg_count = 0
 	_boundary_tick = 0
 	_clear_counters()
+	return true
 
 
 func _clear_stores() -> void:

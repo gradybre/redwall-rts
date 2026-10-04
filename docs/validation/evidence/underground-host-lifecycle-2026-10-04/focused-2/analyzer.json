@@ -1,0 +1,20 @@
+{
+ "test/test_underground_host.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_GLOBAL_IDENTIFIER): The variable \"seed\" has the same name as a built-in function.",
+   "range": {
+    "end": {
+     "character": 9,
+     "line": 183
+    },
+    "start": {
+     "character": 5,
+     "line": 183
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

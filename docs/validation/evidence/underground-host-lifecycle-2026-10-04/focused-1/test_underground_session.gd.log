@@ -1,0 +1,37 @@
+state_registry_coverage: PASS -- 146 modules, 721 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_session.gd
+  PASS  test_actual_foundation_preserves_all_settlement_bytes_and_uses_current_catalog
+  PASS  test_missing_gear_refuses_before_foundations_and_same_inputs_can_retry
+  PASS  test_foreign_directory_jobs_refuse_despite_equal_numeric_capacities
+  PASS  test_actual_content_is_required_and_failed_load_does_not_bind_authorities
+  PASS  test_cached_consumer_drift_refuses_current_catalog_and_restoration_retries
+  PASS  test_observer_reentry_poison_releases_private_candidates_without_host_mutation
+  PASS  test_successful_observer_cannot_substitute_actual_borrowed_owner
+  PASS  test_current_actual_work_gear_and_carry_rewiring_close_getters
+  PASS  test_full_world_generation_and_seed_are_not_replaceable
+  PASS  test_original_profile_bank_and_revision_survive_refused_live_reload
+  PASS  test_active_inventory_and_cold_or_space_operations_block_reset_without_clearing
+  PASS  test_expired_one_way_binding_is_not_cleared_or_replaced
+  PASS  test_session_strong_lifetime_keeps_exact_borrowed_content_and_world
+  PASS  test_successful_space_publication_keeps_session_but_prevents_foundation_reset
+CI_SUITE_TIME {"assertions":211,"failures":0,"suite":"test_underground_session.gd","tests":14,"usec":4461127}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 211 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 14 tests, 211 assertions, 0 failures.

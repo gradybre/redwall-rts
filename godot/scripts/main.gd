@@ -20,9 +20,14 @@ func _ready() -> void:
 	EconomySystem is reset BEFORE SettlementSystem: its reset drops the borrowed residents
 	binding, so the old settlement is unbound before it is cleared, never after.
 	"""
+	if not SettlementSystem.prepare_world_reset():
+		push_error("Settlement restart refused: %s" % SettlementSystem.last_refusal())
+		return
 	EntityManager.clear()
 	EconomySystem.reset()
-	SettlementSystem.reset()
+	if not SettlementSystem.reset():
+		push_error("Settlement reset refused: %s" % SettlementSystem.last_refusal())
+		return
 	if _hud == null:
 		push_error("main.tscn has no HUD at UI/HUD; the interface will not update.")
 	UIManager.register_hud(_hud)

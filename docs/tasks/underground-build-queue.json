@@ -439,7 +439,8 @@
         "godot/scripts/core/excavation_contract.gd",
         "godot/test/test_excavation_phase_start_guard.gd",
         "godot/test/test_excavation_phase_start_guard.gd.uid",
-        "docs/decisions/1117-final-excavation-start-payment-guard.md"
+        "docs/decisions/1117-final-excavation-start-payment-guard.md",
+        "godot/test/test_excavation_sites.gd"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -754,6 +755,15 @@
             "docs/validation/evidence/underground-first-prefix-2026-10-03/"
           ],
           "scope": "six paid cuts and two timber assemblies,actual finite stores/Jobs/Work/XP/output,source-profile fixture explicitly synthetic until qualified content;no production owner changes or playable claim"
+        },
+        "excavation_start_guard_1117": {
+          "status": "accepted component; integration waits for concrete phase adapters",
+          "source_commit": "00c6e49db6609ac00f2fc32bf925708568213d68",
+          "tests": "251 tests /29176 assertions /0 failures across5 strict singleton suites; every unexpected diagnostic and both leak counts0; analyzer0/9",
+          "review": "Furnishing independently accepted all9 source pins after HIGH journal-close fix, nested audit barrier preservation and original scope/final physical phase guards",
+          "memory": "99 tests; logical +2 bytes, total99959252/head40748/runtime_qualified=false; registry138modules693rows1032packedcolumnsPASS",
+          "evidence": "docs/validation/evidence/underground-start-guard-2026-10-04/",
+          "dependency": "Concrete Authority/World phase START final observation and pure leaf; existing purpose8 journal-close aperture tracked in1118"
         }
       },
       "lease": {
@@ -824,9 +834,16 @@
               "godot/scripts/core/construction.gd",
               "godot/test/test_excavation_phase_start_guard.gd",
               "godot/test/test_excavation_phase_start_guard.gd.uid",
-              "docs/decisions/1117-final-excavation-start-payment-guard.md"
+              "docs/decisions/1117-final-excavation-start-payment-guard.md",
+              "godot/test/test_excavation_physical.gd",
+              "godot/test/test_excavation_sites.gd",
+              "godot/scripts/core/inventory.gd",
+              "docs/decisions/1118-final-connector-input-payment-guard.md",
+              "godot/test/test_underground_connector_payment_guard.gd",
+              "godot/test/test_underground_connector_payment_guard.gd.uid",
+              "docs/validation/evidence/underground-connector-payment-2026-10-04/"
             ],
-            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes."
+            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes. Inventory-owned final observation barrier and nested audit preservation added after independent HIGH journal-escape finding; no other agent owns Inventory edits. Inventory remains in UG21 root ownership; this cross-lane note records the same root writer without a duplicate lane lease. Root continues the confirmed purpose8 journal-close follow-up1118 using unchanged Contacts fixture; no concurrent Contacts writes."
           }
         ]
       }
@@ -1231,6 +1248,14 @@
           "analyzer": "0 warnings in0of9ownedcontentfiles;full integrated analyzer pending",
           "scope": "archive .gd/.uid renamed .txt;current capture and all historical source bytes unchanged;957f03d rejection retained",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/"
+        },
+        "timber_install_source_1116": {
+          "source_commit": "efda092f3284f81e6e21f08adb6b731d72a1e144",
+          "integration_commit": "db328088a092d2b0f19f140d1d71bba36cb7b1c2",
+          "review": "Root independently accepted six source pins and 531 evidence pins; inspected side/opposite/RTS views and reran 11 adversarial Python cases with dependency runtime",
+          "native": "1131 poses, 2581 assertions, 0 failures; unexpected diagnostics and object/resource leaks0; analyzer0/1",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-install-source-v1/",
+          "scope": "Source-local yaw-zero adze-fitting motion at existing paid-bearer target; actual WIP, physical delivery/placement, profile, pace and whole-game visual qualification still open"
         }
       },
       "lease": {
@@ -1914,9 +1939,10 @@
               "godot/test/test_underground_entry_cut_map.gd.uid",
               "godot/test/test_excavation_entry_claim_batch.gd",
               "godot/test/test_excavation_entry_claim_batch.gd.uid",
-              "docs/decisions/1107-entry-plan-paid-cut-unions.md"
+              "docs/decisions/1107-entry-plan-paid-cut-unions.md",
+              "godot/scripts/core/inventory.gd"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up.",
             "branch": "codex/underground-paid-cut-contact"
           },
           {

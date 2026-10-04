@@ -1,0 +1,304 @@
+extends "res://test/framework/test_case.gd"
+## Actual generated SettlementSystem, shipped catalogs and real borrowed Content. No fixture geometry/source flags.
+
+const Session := preload("res://scripts/core/underground_session.gd")
+const Settlement := preload("res://scripts/systems/settlement_system.gd")
+const Content := preload("res://demo/cast/underground_actor_content.gd")
+const Catalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const Carry := preload("res://scripts/core/haul_carry.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Jobs := preload("res://scripts/core/jobs.gd")
+const Residents := preload("res://scripts/core/residents.gd")
+const Inventory := preload("res://scripts/core/inventory.gd")
+const Reservations := preload("res://scripts/core/reservations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Contacts := preload("res://scripts/core/underground_connector_contacts.gd")
+const ACTOR_PATH: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
+const PRESENTATION_BYTES: int = 7141920
+
+class ObservedGear extends Gear:
+	## Preserve real equipment matching while exercising a successful observing owner method.
+	var observation: Callable = Callable()
+	var observations: int = 0
+
+	func equipment_binding_matches(inventory: Inventory, directory: Directory, residents: Residents) -> bool:
+		"""One real preflight result may be followed by reentry or a real collaborator rebind."""
+		var matched: bool = super.equipment_binding_matches(inventory, directory, residents)
+		if observation.is_valid():
+			observations += 1
+			var action: Callable = observation
+			observation = Callable()
+			action.call()
+		return matched
+
+var _host: Settlement = null
+var _gear: ObservedGear = null
+var _carry: Carry = null
+var _content: Content = null
+var _session: Session = null
+var _nested: StringName = &""
+var _exposed: Owner = null
+var _foreign_pool: Reservations = null
+
+
+func before_each() -> void:
+	"""Generate the real starter settlement, then supply the explicit host Gear/Carry/content dependencies."""
+	_host = Settlement.new()
+	assert_true(_host.create_generated_settlement(_host.item_definitions()), "production World/cohort/stock/colony")
+	_gear = ObservedGear.new()
+	assert_true(_gear.bind_equipment(_host.inventory(), _host.directory(), _host.residents()).ok, "actual host equipment")
+	assert_true(_host.work().bind_gear(_gear).ok, "actual Work uses this Gear")
+	_carry = Carry.new()
+	assert_true(_carry.bind(_host.inventory(), _host.reservations(), _host.residents(), _host.ground_piles()), "actual Carry")
+	_content = Content.new()
+	assert_equal(_content.load_file(ACTOR_PATH, Catalog.Pins.ACTOR_SHA, PRESENTATION_BYTES), &"", "published same-file Content")
+	_session = Session.new()
+	_nested = &""
+	_exposed = null
+	_foreign_pool = null
+
+
+func after_each() -> void:
+	"""Release the Session before freeing its test-owned host; no authority WeakRef is cleared by the factory."""
+	_gear.observation = Callable()
+	_session = null
+	_exposed = null
+	_content = null
+	_carry = null
+	_gear = null
+	_foreign_pool = null
+	_host.free()
+	_host = null
+
+
+func _configure(gear: Gear) -> StringName:
+	"""Pass actual typed host inputs, with only the explicitly tested Gear argument variable."""
+	return _session.configure(_host.world(), _host.world_ref(), _host.buildings(), _host.construction(),
+		_host.inventory(), _host.item_definitions(), _host.residents(), _host.jobs(), _host.work(),
+		_host.reservations(), _host.transforms(), gear, _carry, _host.ground_piles(), _content)
+
+
+func _host_bytes() -> Array[PackedByteArray]:
+	"""Independent caller-owned test snapshots include every affected actual identity/economic/pose store."""
+	return [_host.directory().state_bytes(), _host.residents().state_bytes(), _host.jobs().state_bytes(),
+		_host.inventory().state_bytes(), _building_bytes(), _host.construction().state_bytes(),
+		_host.transforms().state_bytes(), _host.reservations().state_bytes()]
+
+
+func _building_bytes() -> PackedByteArray:
+	"""Buildings has no generic state_bytes API; hash every actual packed/numeric property directly."""
+	var hashing: HashingContext = HashingContext.new()
+	hashing.start(HashingContext.HASH_SHA256)
+	for property: Dictionary in _host.buildings().get_property_list():
+		var value: Variant = _host.buildings().get(property.name)
+		if value is PackedByteArray or value is PackedInt32Array or value is PackedInt64Array \
+				or value is int or value is bool:
+			hashing.update(var_to_bytes(value))
+	return hashing.finish()
+
+
+func _empty_candidates() -> void:
+	"""Every refused attempt drops all private allocations and original strong borrows."""
+	assert_false(_session._ready, "not published")
+	assert_false(_session._busy, "bracket closed")
+	assert_equal(_session._space, null, "no private Space survives refusal")
+	assert_equal(_session._profiles, null, "no private Profile bank survives refusal")
+	assert_equal(_session._routes, null, "no private Routes receiver survives refusal")
+	assert_equal(_session._world, null, "failed borrows released")
+	assert_equal(_session.space_owner(), null, "no candidate exposure")
+
+
+func test_actual_foundation_preserves_all_settlement_bytes_and_uses_current_catalog() -> void:
+	"""One real World gets only sparse foundations and complete immutable source geometry."""
+	var before: Array[PackedByteArray] = _host_bytes()
+	assert_equal(_configure(_gear), &"", "actual current production foundation")
+	assert_equal(_host_bytes(), before, "no identity/stock/Job/pose/claim change")
+	assert_equal(_session.current_refusal(), &"", "original actual tuple current")
+	assert_equal(_session.reset_refusal(), &"", "foundation alone is quiescent")
+	assert_equal(_session._content, _content, "borrowed actual Content, no second image")
+	assert_equal(_session.source_owner()._locations, _session.route_owner(), "permanent actual Routes receiver")
+	assert_equal(_session.terrain_owner()._world, _host.world(), "same published World")
+	assert_equal(_session.space_owner()._domain, _session._domain, "one retained Domain image")
+	assert_equal(_session._domain._datum, Terrain.DATUM, "actual terrain datum")
+	assert_equal(_session.level_catalog().level_count(), 6, "immutable level engineering menu")
+	assert_equal(Catalog.catalog_refusal(_session.profile_catalog()), &"", "all actual profile rows/hashes")
+	assert_equal(_session.profile_catalog().packed_memory_bytes(), Catalog.PAIRED_BANK_BYTES, "minimal exact bank configuration")
+	assert_equal(_session.cold_budget().used_bytes(), 0, "no cold lease retained")
+	assert_equal(_session.route_owner()._edge_capacity, 0, "no graph allocation or travel permission")
+	var facts: Owner.Facts = Owner.Facts.new()
+	assert_true(_session.source_owner().read_into(_host.residents().ref_of(0), facts) != &"", "no invented resident Location")
+	assert_equal(_host.buildings()._spatial_authority, null, "authority composition remains root-owned")
+	assert_equal(_host.construction()._modular_authority, null, "no partial one-way binding")
+
+
+func test_missing_gear_refuses_before_foundations_and_same_inputs_can_retry() -> void:
+	"""The host must actually supply Work Gear; no fabricated default or second store is created."""
+	var before: Array[PackedByteArray] = _host_bytes()
+	assert_equal(_configure(null), &"UNDERGROUND_SESSION_INPUT", "missing Gear")
+	_empty_candidates()
+	assert_equal(_host_bytes(), before, "all actual host bytes unchanged")
+	assert_equal(_configure(_gear), &"", "explicit actual Gear permits retry")
+	assert_equal(_configure(_gear), &"UNDERGROUND_SESSION_ALREADY_BOUND", "source-once Session")
+
+
+func test_foreign_directory_jobs_refuse_despite_equal_numeric_capacities() -> void:
+	"""A distinct actual Jobs/Resident/Directory instance cannot impersonate the host tuple."""
+	var other_residents: Residents = Residents.new()
+	var other_jobs: Jobs = Jobs.new(other_residents)
+	var before: Array[PackedByteArray] = _host_bytes()
+	var code: StringName = _session.configure(_host.world(), _host.world_ref(), _host.buildings(),
+		_host.construction(), _host.inventory(), _host.item_definitions(), _host.residents(), other_jobs,
+		_host.work(), _host.reservations(), _host.transforms(), _gear, _carry, _host.ground_piles(), _content)
+	assert_equal(code, &"UNDERGROUND_SESSION_OWNER", "exact Jobs identity")
+	_empty_candidates()
+	assert_equal(_host_bytes(), before, "no partial original publication")
+
+
+func test_actual_content_is_required_and_failed_load_does_not_bind_authorities() -> void:
+	"""The reader's real source image must already exist in the host's presentation lifetime."""
+	var actual: Content = _content
+	_content = Content.new()
+	assert_equal(_configure(_gear), &"MOLE_CATALOG_CONTENT", "absent image cannot supply source flags")
+	_empty_candidates()
+	assert_equal(_host.buildings()._spatial_authority, null, "no one-way bind on failure")
+	_content = actual
+	assert_equal(_configure(_gear), &"", "retry reuses already loaded actual image")
+
+
+func test_cached_consumer_drift_refuses_current_catalog_and_restoration_retries() -> void:
+	"""The actual cached consumer text is authoritative, not the still-valid file on disk."""
+	var script: Script = Contacts
+	var original: String = script.get_source_code()
+	script.set_source_code(original + "\n# actual cached Session test drift\n")
+	var code: StringName = _configure(_gear)
+	script.set_source_code(original)
+	assert_equal(code, &"MOLE_CATALOG_SOURCE_DRIFT", "current cached source must match")
+	_empty_candidates()
+	assert_equal(_configure(_gear), &"", "same original tuple retries after actual restoration")
+	script.set_source_code(original + "\n# late cached Session test drift\n")
+	code = _session.current_refusal()
+	script.set_source_code(original)
+	assert_equal(code, &"MOLE_CATALOG_SOURCE_DRIFT", "readiness does not hide later drift")
+	assert_equal(_session.current_refusal(), &"", "restored current closure")
+
+
+func _reenter() -> void:
+	"""The actual observing Gear asks for an unexposed candidate and reenters the same configure."""
+	_exposed = _session.space_owner()
+	_nested = _configure(_gear)
+
+
+func test_observer_reentry_poison_releases_private_candidates_without_host_mutation() -> void:
+	"""Nested success-looking observations cannot retain a partially composed Session."""
+	var before: Array[PackedByteArray] = _host_bytes()
+	_gear.observation = _reenter
+	assert_equal(_configure(_gear), &"UNDERGROUND_SESSION_REENTRANT", "outer attempt poisoned")
+	assert_equal(_nested, &"UNDERGROUND_SESSION_REENTRANT", "nested attempt rejected")
+	assert_equal(_exposed, null, "candidate stayed private")
+	assert_equal(_gear.observations, 1, "actual equipment observer ran")
+	_empty_candidates()
+	assert_equal(_host_bytes(), before, "canonical state preserved")
+	assert_equal(_configure(_gear), &"", "complete retry after synchronous cleanup")
+
+
+func _replace_carry_pool() -> void:
+	"""Use the actual public Carry binding API after a valid earlier equipment match."""
+	_foreign_pool = Reservations.new()
+	assert_true(_carry.bind(_host.inventory(), _foreign_pool, _host.residents(), _host.ground_piles()), "actual callback rebind")
+
+
+func test_successful_observer_cannot_substitute_actual_borrowed_owner() -> void:
+	"""Coincident reservation capacities still cannot replace the original actual pool during setup."""
+	var before: Array[PackedByteArray] = _host_bytes()
+	_gear.observation = _replace_carry_pool
+	assert_true(_configure(_gear) != &"", "late actual Carry substitution refused")
+	_empty_candidates()
+	assert_equal(_host_bytes(), before, "no host canonical publication")
+	assert_true(_carry.bind(_host.inventory(), _host.reservations(), _host.residents(), _host.ground_piles()), "restore exact original")
+	assert_equal(_configure(_gear), &"", "same-tuple retry")
+
+
+func test_current_actual_work_gear_and_carry_rewiring_close_getters() -> void:
+	"""A configured Session retains exact dynamic collaborators even before any actor is admitted."""
+	assert_equal(_configure(_gear), &"", "actual foundation")
+	var original: Owner = _session.space_owner()
+	var other: Gear = Gear.new()
+	assert_true(_host.work().bind_gear(other).ok, "actual quiescent Work rebind")
+	assert_equal(_session.current_refusal(), &"UNDERGROUND_SESSION_OWNER", "current Work Gear changed")
+	assert_equal(_session.space_owner(), null, "getter closes")
+	assert_true(_host.work().bind_gear(_gear).ok, "restore real original")
+	_replace_carry_pool()
+	assert_equal(_session.current_refusal(), &"UNDERGROUND_SESSION_EQUIPMENT", "actual Carry pool changed")
+	assert_true(_carry.bind(_host.inventory(), _host.reservations(), _host.residents(), _host.ground_piles()), "restore real Carry")
+	assert_equal(_session.space_owner(), original, "no bank replacement during refusal/retry")
+
+
+func test_full_world_generation_and_seed_are_not_replaceable() -> void:
+	"""The same slot and type do not retain a retired World's Session identity."""
+	assert_equal(_configure(_gear), &"", "actual foundation")
+	var seed_value: int = _host.world()._published_seed
+	_host.world()._published_seed = seed_value + 1
+	assert_equal(_session.current_refusal(), &"TERRAIN_OWNER_BINDING", "changed actual World seed")
+	_host.world()._published_seed = seed_value
+	assert_equal(_session.current_refusal(), &"", "original seed restored")
+	var original: Vector2i = _host.world_ref()
+	assert_true(_host.directory().destroy(original), "retire actual full World")
+	var replacement: Vector2i = _host.directory().create(Directory.KIND_WORLD)
+	assert_equal(replacement.x, original.x, "same finite slot reused")
+	assert_true(replacement.y != original.y, "new generation")
+	assert_true(_session.current_refusal() != &"", "replacement World cannot borrow foundation")
+	assert_equal(_session.profile_catalog(), null, "stale World getter closed")
+
+
+func test_original_profile_bank_and_revision_survive_refused_live_reload() -> void:
+	"""A successful later Profiles reload is a different source identity even on the same object."""
+	assert_equal(_configure(_gear), &"", "actual foundation")
+	var bytes: PackedByteArray = FileAccess.get_file_as_bytes(Catalog.WIRE_PATH)
+	bytes.encode_s64(12, 2)
+	var path: String = "user://ug_session_profile_revision2.ugprof"
+	var file: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	file.store_buffer(bytes)
+	file.close()
+	var hashing: HashingContext = HashingContext.new()
+	hashing.start(HashingContext.HASH_SHA256)
+	hashing.update(bytes)
+	assert_equal(_session._profiles.load_file(path, hashing.finish().hex_encode(), 2), &"", "actual immutable loader publishes revision2")
+	assert_equal(_session.current_refusal(), &"UNDERGROUND_SESSION_PROFILES", "original source bank/revision remains mandatory")
+	assert_equal(_session.profile_catalog(), null, "no new source silently adopted")
+	assert_equal(DirAccess.remove_absolute(path), OK, "caller-owned mutant removed")
+
+
+func test_active_inventory_and_cold_or_space_operations_block_reset_without_clearing() -> void:
+	"""All three existing arenas keep their original tokens and images on a refused lifecycle boundary."""
+	assert_true(_host.inventory().begin().ok, "actual Inventory journal")
+	assert_equal(_configure(_gear), &"UNDERGROUND_SESSION_INVENTORY", "pre-allocation journal gate")
+	_host.inventory().abort()
+	assert_false(_host.inventory().is_transaction_open(), "test closes its own journal")
+	assert_equal(_configure(_gear), &"", "quiescent retry")
+	var token: int = _session._budget.acquire(64)
+	assert_true(token > 0, "actual cold token")
+	assert_equal(_session.reset_refusal(), &"UNDERGROUND_SESSION_NOT_QUIESCENT", "original lease cannot be cleared")
+	assert_true(_session._budget.covers(token, 64), "lease preserved")
+	assert_equal(_session._budget.release(token), &"", "caller releases its token")
+	var stage: Owner.Result = _session._space.begin_stage(_session._space.revision())
+	assert_equal(stage.error, &"", "actual Space candidate")
+	assert_equal(_session.reset_refusal(), &"UNDERGROUND_SESSION_NOT_QUIESCENT", "candidate blocks reset")
+	assert_equal(_session._space._stage_token, stage.token, "original candidate survives")
+	assert_true(_session._space.abort(stage.token), "caller aborts its candidate")
+	assert_equal(_session.reset_refusal(), &"", "fully quiescent again")
+
+
+func test_expired_one_way_binding_is_not_cleared_or_replaced() -> void:
+	"""The existing authority lifetime is retained even when its weak target is already gone."""
+	var authority: RefCounted = RefCounted.new()
+	_host.buildings()._spatial_authority = weakref(authority)
+	authority = null
+	var original: WeakRef = _host.buildings()._spatial_authority
+	assert_equal(original.get_ref(), null, "deliberately expired historical binding")
+	assert_equal(_configure(_gear), &"UNDERGROUND_SESSION_AUTHORITY_LIFETIME", "explicit root-owned replacement required")
+	assert_equal(_host.buildings()._spatial_authority, original, "factory never clears private owner binding")
+	_empty_candidates()

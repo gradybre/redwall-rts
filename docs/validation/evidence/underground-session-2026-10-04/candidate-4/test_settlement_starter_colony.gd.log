@@ -1,0 +1,50 @@
+state_registry_coverage: PASS -- 144 modules, 715 rows, 1050 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_settlement_starter_colony.gd
+  PASS  test_generation_materialises_the_colony_at_its_planned_tiles
+  PASS  test_generation_creates_the_world_row_and_binds_the_composer_to_it
+  PASS  test_a_building_over_a_live_pile_is_refused_by_name
+  PASS  test_a_reset_unbinds_the_world_and_piles_refuse_until_the_next_colony
+  PASS  test_a_second_materialisation_is_refused_and_changes_nothing
+  PASS  test_a_site_with_a_stray_building_is_refused_before_any_write
+  PASS  test_a_live_world_row_alone_also_means_the_colony_is_present
+  PASS  test_an_ungenerated_settlement_can_materialise_the_colony_alone
+  PASS  test_the_store_binding_opens_the_economy_on_the_colonys_buildings
+  PASS  test_no_binding_is_published_without_a_colony
+  PASS  test_the_directory_round_trip_keeps_the_world_row_and_every_structure_ref
+  PASS  test_section_1_carries_every_footprint_room_and_furniture_tile
+  PASS  test_section_4_accepts_the_colonys_building_room_and_furniture_columns
+  PASS  test_section_7_round_trips_the_owned_anchored_stores
+  PASS  test_the_same_seed_builds_the_same_colony_rows_and_ids
+  PASS  test_the_colony_is_authored_not_seeded
+  PASS  test_a_refusal_after_the_first_write_resets_the_settlement_to_empty
+  PASS  test_the_world_row_and_the_colony_take_the_ids_after_every_world_entity
+  PASS  test_the_starter_stores_block_the_hall_and_the_stockpiles
+  PASS  test_the_well_is_admitted_into_the_last_stockpiles_headroom
+  PASS  test_the_workbench_then_falls_back_to_ground_piles
+  PASS  test_the_starter_well_completes_into_the_fourth_stockpile
+  PASS  test_the_starter_workbench_completes_onto_ground_piles
+  PASS  test_the_emptied_starter_hall_is_demolished_with_its_31_pieces
+  PASS  test_a_starter_bed_is_removed_into_the_fourth_stockpile
+  PASS  test_a_starter_pantry_shelf_cannot_leave_a_full_pantry
+  PASS  test_without_the_adoption_the_hall_would_read_as_empty
+CI_SUITE_TIME {"assertions":288,"failures":0,"suite":"test_settlement_starter_colony.gd","tests":27,"usec":59672649}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+27 test(s), 288 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 27 tests, 288 assertions, 0 failures.

@@ -1,0 +1,42 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.607,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "221/390",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-session/docs/validation/evidence/underground-session-2026-10-04/candidate-1"
+      ],
+      "exit_code": 1,
+      "seconds": 7.284,
+      "log": "test_underground_session.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-session",
+  "project_test_sha256": "33d0556c7bdde01cd4ec1fb1b408543be17e1f83a24433fd1997924b27abac6c",
+  "assets_present_before": false,
+  "registry_sha256_before": "6d2e672352ed7ee5674df3444d79a2ae0940a9e248519544ef2e41390ceb8668",
+  "registry_diagnostic_append_sha256": "2624af1bd8101ec2a99e7dae1bf0bfa786d6260f0ea77055da2c50c069ff524a",
+  "clean_import_raw_diagnostics": 0,
+  "error": "test_underground_session.gd.log",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

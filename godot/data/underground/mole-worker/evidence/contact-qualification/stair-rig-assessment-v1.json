@@ -1,0 +1,362 @@
+{
+  "ready_clip": 0,
+  "ready_frame": 8,
+  "grounding_u": -0.85589599609375,
+  "hip_origin_u": [
+    -0.8455331080472591,
+    290.77117048559603,
+    32.19841677856138
+  ],
+  "legs": [
+    {
+      "side": "left",
+      "bones": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "names": [
+        "LeftUpLeg",
+        "LeftLeg",
+        "LeftFoot",
+        "LeftToeBase"
+      ],
+      "hip_u": [
+        -94.82307573708023,
+        257.4673990022722,
+        25.45743780220033
+      ],
+      "knee_u": [
+        -177.56403138762306,
+        183.22052428191174,
+        -49.02660818109008
+      ],
+      "ankle_u": [
+        -169.5980927794632,
+        73.05548907592747,
+        6.297410547208969
+      ],
+      "toe_u": [
+        -188.93646547136626,
+        24.458374325204147,
+        -79.61333851049811
+      ],
+      "segments_u": [
+        133.8153102367099,
+        123.53355094100513
+      ],
+      "local_translations_m": [
+        [
+          4.480953059993187e-08,
+          0.13067899105376143,
+          1.2478862596032592e-08
+        ],
+        [
+          -5.246718864926336e-09,
+          0.12063818781740629,
+          -1.2594198937204704e-08
+        ],
+        [
+          1.252849549104873e-08,
+          0.09822249393258972,
+          -6.420022700959205e-09
+        ]
+      ],
+      "whole_foot_triangles": 982,
+      "whole_foot_vertices": 1866,
+      "whole_foot_bounds_u": [
+        -274,
+        -1,
+        -169,
+        23,
+        223,
+        141
+      ],
+      "source_padding_q24": [
+        9137,
+        1505,
+        9137
+      ],
+      "native_residual_m": [
+        {
+          "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        },
+        {
+          "numerator": 27041000162059753850445069400396516160227176887328496068702094189340225377964195160415,
+          "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+        },
+        {
+          "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        }
+      ]
+    },
+    {
+      "side": "right",
+      "bones": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "names": [
+        "RightUpLeg",
+        "RightLeg",
+        "RightFoot",
+        "RightToeBase"
+      ],
+      "hip_u": [
+        96.73224829610366,
+        264.0469319998851,
+        25.823093015369707
+      ],
+      "knee_u": [
+        177.2625424363734,
+        164.30242900559153,
+        1.6053967558859767
+      ],
+      "ankle_u": [
+        157.15395844182981,
+        80.27567509664813,
+        89.23431089882793
+      ],
+      "toe_u": [
+        207.23042287884735,
+        28.276468041145773,
+        20.00682825653394
+      ],
+      "segments_u": [
+        130.46298695037459,
+        123.05964861241415
+      ],
+      "local_translations_m": [
+        [
+          6.084814291318352e-09,
+          0.12740522339910298,
+          -1.8510532343030128e-09
+        ],
+        [
+          -2.1057975169158638e-08,
+          0.12017543744422766,
+          -2.7308377385792948e-08
+        ],
+        [
+          -5.670221486786531e-09,
+          0.09767584095069312,
+          4.069554887520255e-09
+        ]
+      ],
+      "whole_foot_triangles": 1013,
+      "whole_foot_vertices": 1918,
+      "whole_foot_bounds_u": [
+        -144,
+        3,
+        -120,
+        299,
+        211,
+        174
+      ],
+      "source_padding_q24": [
+        9137,
+        1505,
+        9137
+      ],
+      "native_residual_m": [
+        {
+          "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        },
+        {
+          "numerator": 27041000162059753850445069400396516160227176887328496068702094189340225377964195160415,
+          "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+        },
+        {
+          "numerator": 328636385249385863342022569639795216501412318571526687507528961687655150711172144484599,
+          "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+        }
+      ]
+    }
+  ],
+  "fixed_pelvis_reach_diagnostics": [
+    {
+      "leading_foot": "left",
+      "rise_u": 128,
+      "ankle_advance_u": 128,
+      "root_sphere_center_distance_u": 280.7824915907569,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 128,
+      "ankle_advance_u": 128,
+      "root_sphere_center_distance_u": 192.06859301004536,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 128,
+      "ankle_advance_u": 256,
+      "root_sphere_center_distance_u": 386.1723013621725,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 128,
+      "ankle_advance_u": 256,
+      "root_sphere_center_distance_u": 254.76284200294077,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 128,
+      "ankle_advance_u": 384,
+      "root_sphere_center_distance_u": 502.1825216938555,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 128,
+      "ankle_advance_u": 384,
+      "root_sphere_center_distance_u": 354.5220259870637,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 128,
+      "ankle_advance_u": 512,
+      "root_sphere_center_distance_u": 622.9073156178556,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": true,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 128,
+      "ankle_advance_u": 512,
+      "root_sphere_center_distance_u": 468.2260438661322,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 256,
+      "ankle_advance_u": 128,
+      "root_sphere_center_distance_u": 357.52874067688305,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 256,
+      "ankle_advance_u": 128,
+      "root_sphere_center_distance_u": 293.6091817276395,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 256,
+      "ankle_advance_u": 256,
+      "root_sphere_center_distance_u": 445.1034027789958,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 256,
+      "ankle_advance_u": 256,
+      "root_sphere_center_distance_u": 337.96466211622027,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 256,
+      "ankle_advance_u": 384,
+      "root_sphere_center_distance_u": 548.7943858321476,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": true,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 256,
+      "ankle_advance_u": 384,
+      "root_sphere_center_distance_u": 418.3322532197199,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": false,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "left",
+      "rise_u": 256,
+      "ankle_advance_u": 512,
+      "root_sphere_center_distance_u": 661.0609023957832,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": true,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    },
+    {
+      "leading_foot": "right",
+      "rise_u": 256,
+      "ankle_advance_u": 512,
+      "root_sphere_center_distance_u": 518.2196786387456,
+      "sum_segment_radii_u": 510.87149674050374,
+      "disjoint_diagnostic": true,
+      "scope": "floating source-authoring diagnostic; fixed ready pelvis orientation, no gameplay qualification"
+    }
+  ],
+  "rig_measurement_scope": "F32 source-derived diagnostic joint positions/lengths; outward integer foot mesh bounds include accepted native residual at yaw0",
+  "requirements": [
+    "real finite root track",
+    "source-derived separate left/right foot contacts at each support height",
+    "swing foot/riser clearance",
+    "knee and full body/tool primitive clearance",
+    "landing turn and retreat",
+    "actual integer movement phase ownership",
+    "exact installed tread/landing support",
+    "native visual review"
+  ],
+  "production_qualified": false,
+  "schema": 1,
+  "compact_source_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "c164a8d83b7af6fa38fc7362105c64264900a8ca1197442a0a3e8f74cf18f8c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  }
+}

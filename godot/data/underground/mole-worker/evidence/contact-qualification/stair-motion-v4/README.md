@@ -1,0 +1,3 @@
+# Rejected single-sole-anchor experiment
+
+The source preserves the reference sole point, but another shin-weighted sole vertex becomes lower during weight transfer. Against the explicit64u open-timber decks plus eight side posts,21 actual body vertex/pose enclosures penetrate the upper deck; the held tool has no sampled vertex intrusions. This is retained as rejection, not a clearance certificate. The next source authoring iteration constrains the complete foot-influenced geometry over each currently planted deck while still retaining every body/tool primitive in independent probes. Swing phases do not pretend the entire shin must sit above the lifted sole plane.

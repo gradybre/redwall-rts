@@ -1,0 +1,172 @@
+{
+  "schema": 1,
+  "content_sha256": "6e45e405cca415d9b77ec6bc4f3d6844fa55df96d7b832675b277d923964226d",
+  "clips": [
+    {
+      "rise_u": 128,
+      "unpaid_fixture_boxes_u": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          -2,
+          343
+        ],
+        [
+          -1024,
+          64,
+          -681,
+          1024,
+          126,
+          -169
+        ],
+        [
+          -896,
+          -1024,
+          151,
+          -768,
+          -64,
+          279
+        ],
+        [
+          -896,
+          -1024,
+          -105,
+          -768,
+          -64,
+          23
+        ],
+        [
+          768,
+          -1024,
+          151,
+          896,
+          -64,
+          279
+        ],
+        [
+          768,
+          -1024,
+          -105,
+          896,
+          -64,
+          23
+        ],
+        [
+          -896,
+          -1024,
+          -361,
+          -768,
+          64,
+          -233
+        ],
+        [
+          -896,
+          -1024,
+          -617,
+          -768,
+          64,
+          -489
+        ],
+        [
+          768,
+          -1024,
+          -361,
+          896,
+          64,
+          -233
+        ],
+        [
+          768,
+          -1024,
+          -617,
+          896,
+          64,
+          -489
+        ]
+      ],
+      "upper_thickness_u": 64,
+      "two_unit_deck_contact_band_omitted_from_probe_only": true,
+      "parts": [
+        {
+          "kind": "body",
+          "confirmed_vertex_pose_intrusions": 0,
+          "affected_frames": 0,
+          "witnesses": [],
+          "native_residual_m": [
+            {
+              "numerator": 329211986318334536516916613094813730910508217404025565823092104863160293592706921713911,
+              "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+            },
+            {
+              "numerator": 27112948074202876432199049823305493260157337591897715679905084461294231184292297154911,
+              "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+            },
+            {
+              "numerator": 329211986318334536516916613094813730910508217404025565823092104863160293592706921713911,
+              "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+            }
+          ],
+          "source_padding_q24": [
+            9153,
+            1509,
+            9153
+          ]
+        },
+        {
+          "kind": "attachment",
+          "confirmed_vertex_pose_intrusions": 0,
+          "affected_frames": 0,
+          "witnesses": [],
+          "native_residual_m": [
+            {
+              "numerator": 55110348928875631885063541062803453910486643586130101850431338568650252352184249503014793203201106865690456405263772710675601,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            },
+            {
+              "numerator": 10058402556684320905043882426749489312017069568179516717206439646586680698453277777552598327780683171480479447568175744492689,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            },
+            {
+              "numerator": 55110348928875631885063541062803453910486643586130101850431338568650252352184249503014793203201106865690456405263772710675601,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            }
+          ],
+          "source_padding_q24": [
+            9338,
+            1705,
+            9338
+          ]
+        }
+      ],
+      "reference": "engineering open-timber candidate: root s343, lower tread s[0,512], upper s[512,1024], eight side posts to Y-1024; no production geometry",
+      "scope": "stored source poses at yaw0, definite full vertex-enclosure intrusion only; no continuous/triangle/stance/clearance success",
+      "production_qualified": false
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/probe_stair_contacts.py": "9d477350c4ff00d8c42437a4baf60056fa4992d9f411c9cbbb09f708ecd76014",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "c164a8d83b7af6fa38fc7362105c64264900a8ca1197442a0a3e8f74cf18f8c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v5/mole-worker.ugactor": "6e45e405cca415d9b77ec6bc4f3d6844fa55df96d7b832675b277d923964226d",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v5/candidate.json": "d06dd8eaea0076a3ed1175d9d4a039fb42dff724aab88d898f25b3eda9033ebc"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "production_qualified": false
+}

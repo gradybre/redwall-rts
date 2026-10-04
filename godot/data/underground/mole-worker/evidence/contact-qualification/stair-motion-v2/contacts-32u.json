@@ -1,0 +1,804 @@
+{
+  "schema": 1,
+  "content_sha256": "a216ca189ddc5e3cb329b3de7a990a43158d642d2b1ded16296edbf615bdc1ab",
+  "clips": [
+    {
+      "rise_u": 128,
+      "unpaid_fixture_boxes_u": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          -2,
+          343
+        ],
+        [
+          -1024,
+          96,
+          -681,
+          1024,
+          126,
+          -169
+        ]
+      ],
+      "upper_thickness_u": 32,
+      "two_unit_contact_band_omitted_from_probe_only": true,
+      "parts": [
+        {
+          "kind": "body",
+          "confirmed_vertex_pose_intrusions": 156,
+          "affected_frames": 29,
+          "witnesses": [
+            {
+              "frame": 26,
+              "section": 0,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -135,
+                -3,
+                56,
+                -133,
+                -2,
+                58
+              ],
+              "exact_q24_low": [
+                -2210641,
+                -37095,
+                931810
+              ],
+              "exact_q24_high": [
+                -2192327,
+                -34069,
+                950125
+              ]
+            },
+            {
+              "frame": 27,
+              "section": 0,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -136,
+                -3,
+                56,
+                -134,
+                -2,
+                58
+              ],
+              "exact_q24_low": [
+                -2215524,
+                -42033,
+                927519
+              ],
+              "exact_q24_high": [
+                -2197210,
+                -39006,
+                945834
+              ]
+            },
+            {
+              "frame": 28,
+              "section": 0,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -136,
+                -3,
+                56,
+                -134,
+                -2,
+                58
+              ],
+              "exact_q24_low": [
+                -2216350,
+                -42609,
+                928360
+              ],
+              "exact_q24_high": [
+                -2198036,
+                -39582,
+                946675
+              ]
+            },
+            {
+              "frame": 29,
+              "section": 0,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -136,
+                -3,
+                56,
+                -134,
+                -2,
+                58
+              ],
+              "exact_q24_low": [
+                -2221521,
+                -47673,
+                923750
+              ],
+              "exact_q24_high": [
+                -2203207,
+                -44646,
+                942065
+              ]
+            },
+            {
+              "frame": 30,
+              "section": 0,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -136,
+                -3,
+                56,
+                -134,
+                -2,
+                58
+              ],
+              "exact_q24_low": [
+                -2221501,
+                -48189,
+                923686
+              ],
+              "exact_q24_high": [
+                -2203187,
+                -45163,
+                942000
+              ]
+            },
+            {
+              "frame": 59,
+              "section": 1,
+              "vertex": 8359,
+              "count": 4,
+              "enclosure_u": [
+                -137,
+                121,
+                -465,
+                -135,
+                122,
+                -463
+              ],
+              "exact_q24_low": [
+                -2238508,
+                1993758,
+                -7616236
+              ],
+              "exact_q24_high": [
+                -2220194,
+                1996784,
+                -7597923
+              ]
+            },
+            {
+              "frame": 60,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -138,
+                118,
+                -465,
+                -136,
+                119,
+                -463
+              ],
+              "exact_q24_low": [
+                -2252044,
+                1938185,
+                -7608241
+              ],
+              "exact_q24_high": [
+                -2233729,
+                1941211,
+                -7589927
+              ]
+            },
+            {
+              "frame": 61,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -138,
+                118,
+                -465,
+                -136,
+                119,
+                -463
+              ],
+              "exact_q24_low": [
+                -2252088,
+                1938429,
+                -7608206
+              ],
+              "exact_q24_high": [
+                -2233774,
+                1941455,
+                -7589893
+              ]
+            },
+            {
+              "frame": 62,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -138,
+                118,
+                -465,
+                -136,
+                119,
+                -462
+              ],
+              "exact_q24_low": [
+                -2249668,
+                1939353,
+                -7602521
+              ],
+              "exact_q24_high": [
+                -2231354,
+                1942379,
+                -7584207
+              ]
+            },
+            {
+              "frame": 63,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -138,
+                118,
+                -464,
+                -135,
+                119,
+                -462
+              ],
+              "exact_q24_low": [
+                -2245097,
+                1940867,
+                -7591121
+              ],
+              "exact_q24_high": [
+                -2226782,
+                1943893,
+                -7572809
+              ]
+            },
+            {
+              "frame": 64,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -137,
+                118,
+                -463,
+                -135,
+                119,
+                -461
+              ],
+              "exact_q24_low": [
+                -2240966,
+                1942557,
+                -7579620
+              ],
+              "exact_q24_high": [
+                -2222651,
+                1945584,
+                -7561307
+              ]
+            },
+            {
+              "frame": 65,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -137,
+                118,
+                -462,
+                -135,
+                119,
+                -460
+              ],
+              "exact_q24_low": [
+                -2235491,
+                1944779,
+                -7562267
+              ],
+              "exact_q24_high": [
+                -2217177,
+                1947805,
+                -7543953
+              ]
+            },
+            {
+              "frame": 66,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -137,
+                118,
+                -461,
+                -134,
+                120,
+                -459
+              ],
+              "exact_q24_low": [
+                -2229493,
+                1947661,
+                -7538921
+              ],
+              "exact_q24_high": [
+                -2211179,
+                1950688,
+                -7520608
+              ]
+            },
+            {
+              "frame": 67,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -136,
+                119,
+                -460,
+                -134,
+                120,
+                -457
+              ],
+              "exact_q24_low": [
+                -2225900,
+                1950015,
+                -7521279
+              ],
+              "exact_q24_high": [
+                -2207585,
+                1953043,
+                -7502966
+              ]
+            },
+            {
+              "frame": 68,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -136,
+                119,
+                -458,
+                -134,
+                120,
+                -456
+              ],
+              "exact_q24_low": [
+                -2221422,
+                1953936,
+                -7491741
+              ],
+              "exact_q24_high": [
+                -2203108,
+                1956963,
+                -7473429
+              ]
+            },
+            {
+              "frame": 69,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -136,
+                119,
+                -456,
+                -134,
+                120,
+                -454
+              ],
+              "exact_q24_low": [
+                -2219095,
+                1957665,
+                -7468243
+              ],
+              "exact_q24_high": [
+                -2200780,
+                1960691,
+                -7449930
+              ]
+            },
+            {
+              "frame": 70,
+              "section": 1,
+              "vertex": 8359,
+              "count": 9,
+              "enclosure_u": [
+                -136,
+                119,
+                -455,
+                -134,
+                121,
+                -452
+              ],
+              "exact_q24_low": [
+                -2217544,
+                1963159,
+                -7439081
+              ],
+              "exact_q24_high": [
+                -2199230,
+                1966184,
+                -7420768
+              ]
+            },
+            {
+              "frame": 71,
+              "section": 1,
+              "vertex": 8359,
+              "count": 8,
+              "enclosure_u": [
+                -136,
+                120,
+                -453,
+                -134,
+                121,
+                -451
+              ],
+              "exact_q24_low": [
+                -2217291,
+                1969607,
+                -7410315
+              ],
+              "exact_q24_high": [
+                -2198977,
+                1972633,
+                -7392001
+              ]
+            },
+            {
+              "frame": 72,
+              "section": 1,
+              "vertex": 8359,
+              "count": 4,
+              "enclosure_u": [
+                -136,
+                120,
+                -451,
+                -134,
+                121,
+                -449
+              ],
+              "exact_q24_low": [
+                -2218115,
+                1977015,
+                -7382062
+              ],
+              "exact_q24_high": [
+                -2199802,
+                1980041,
+                -7363748
+              ]
+            },
+            {
+              "frame": 73,
+              "section": 1,
+              "vertex": 8359,
+              "count": 4,
+              "enclosure_u": [
+                -136,
+                121,
+                -449,
+                -134,
+                122,
+                -447
+              ],
+              "exact_q24_low": [
+                -2220246,
+                1987155,
+                -7348848
+              ],
+              "exact_q24_high": [
+                -2201932,
+                1990182,
+                -7330534
+              ]
+            },
+            {
+              "frame": 74,
+              "section": 1,
+              "vertex": 8359,
+              "count": 4,
+              "enclosure_u": [
+                -136,
+                121,
+                -447,
+                -134,
+                123,
+                -445
+              ],
+              "exact_q24_low": [
+                -2222774,
+                1996614,
+                -7322078
+              ],
+              "exact_q24_high": [
+                -2204460,
+                1999641,
+                -7303765
+              ]
+            },
+            {
+              "frame": 75,
+              "section": 1,
+              "vertex": 8359,
+              "count": 4,
+              "enclosure_u": [
+                -136,
+                122,
+                -446,
+                -134,
+                123,
+                -443
+              ],
+              "exact_q24_low": [
+                -2226467,
+                2009145,
+                -7290894
+              ],
+              "exact_q24_high": [
+                -2208151,
+                2012170,
+                -7272581
+              ]
+            },
+            {
+              "frame": 76,
+              "section": 1,
+              "vertex": 15936,
+              "count": 4,
+              "enclosure_u": [
+                -128,
+                123,
+                -465,
+                -126,
+                124,
+                -463
+              ],
+              "exact_q24_low": [
+                -2083201,
+                2015793,
+                -7607324
+              ],
+              "exact_q24_high": [
+                -2064887,
+                2018819,
+                -7589010
+              ]
+            },
+            {
+              "frame": 77,
+              "section": 1,
+              "vertex": 15936,
+              "count": 4,
+              "enclosure_u": [
+                -128,
+                123,
+                -464,
+                -126,
+                124,
+                -461
+              ],
+              "exact_q24_low": [
+                -2085878,
+                2021306,
+                -7586208
+              ],
+              "exact_q24_high": [
+                -2067565,
+                2024332,
+                -7567894
+              ]
+            },
+            {
+              "frame": 78,
+              "section": 1,
+              "vertex": 15936,
+              "count": 3,
+              "enclosure_u": [
+                -128,
+                123,
+                -462,
+                -126,
+                125,
+                -460
+              ],
+              "exact_q24_low": [
+                -2089246,
+                2028927,
+                -7561617
+              ],
+              "exact_q24_high": [
+                -2070932,
+                2031954,
+                -7543303
+              ]
+            },
+            {
+              "frame": 79,
+              "section": 1,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -128,
+                124,
+                -461,
+                -126,
+                125,
+                -459
+              ],
+              "exact_q24_low": [
+                -2092107,
+                2036019,
+                -7541989
+              ],
+              "exact_q24_high": [
+                -2073792,
+                2039045,
+                -7523676
+              ]
+            },
+            {
+              "frame": 80,
+              "section": 1,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -128,
+                124,
+                -460,
+                -126,
+                125,
+                -458
+              ],
+              "exact_q24_low": [
+                -2094956,
+                2043770,
+                -7523043
+              ],
+              "exact_q24_high": [
+                -2076642,
+                2046797,
+                -7504728
+              ]
+            },
+            {
+              "frame": 81,
+              "section": 1,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -129,
+                125,
+                -459,
+                -126,
+                126,
+                -456
+              ],
+              "exact_q24_low": [
+                -2097746,
+                2052137,
+                -7504750
+              ],
+              "exact_q24_high": [
+                -2079432,
+                2055163,
+                -7486436
+              ]
+            },
+            {
+              "frame": 82,
+              "section": 1,
+              "vertex": 15936,
+              "count": 2,
+              "enclosure_u": [
+                -129,
+                125,
+                -458,
+                -127,
+                126,
+                -456
+              ],
+              "exact_q24_low": [
+                -2099910,
+                2059228,
+                -7490591
+              ],
+              "exact_q24_high": [
+                -2081597,
+                2062255,
+                -7472276
+              ]
+            }
+          ],
+          "native_residual_m": [
+            {
+              "numerator": 329212626374629463432139226774903121328889333586742140441107513645443204874227007541495,
+              "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+            },
+            {
+              "numerator": 27113268102350339889810356663350188469347895683256002988912788852435686825052340068703,
+              "denominator": 301780193610895493697740080163901365351750268679522735420230465980236529747719852954484736
+            },
+            {
+              "numerator": 329212626374629463432139226774903121328889333586742140441107513645443204874227007541495,
+              "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+            }
+          ],
+          "source_padding_q24": [
+            9153,
+            1509,
+            9153
+          ]
+        },
+        {
+          "kind": "attachment",
+          "confirmed_vertex_pose_intrusions": 0,
+          "affected_frames": 0,
+          "witnesses": [],
+          "native_residual_m": [
+            {
+              "numerator": 55110348928875631885063541062803453910486643586130101850431338568650252352184249503014793203201106865690456405263772710675601,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            },
+            {
+              "numerator": 10058402556684320905043882426749489312017069568179516717206439646586680698453277777552598327780683171480479447568175744492689,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            },
+            {
+              "numerator": 55110348928875631885063541062803453910486643586130101850431338568650252352184249503014793203201106865690456405263772710675601,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            }
+          ],
+          "source_padding_q24": [
+            9338,
+            1705,
+            9338
+          ]
+        }
+      ],
+      "scope": "stored source poses at yaw0, definite full vertex-enclosure intrusion only; no continuous/triangle/stance/clearance success",
+      "production_qualified": false
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/probe_stair_contacts.py": "cf8028a5611b374bc70546c48b91a2fb9eca3ededf2410b5d8c3a4d4f0dae986",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "c164a8d83b7af6fa38fc7362105c64264900a8ca1197442a0a3e8f74cf18f8c9",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v2/mole-worker.ugactor": "a216ca189ddc5e3cb329b3de7a990a43158d642d2b1ded16296edbf615bdc1ab",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v2/candidate.json": "f3403314cbc986e2868b3df8c051a7ead48b010d86ab58db7b62be55984f3a7f"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "production_qualified": false
+}

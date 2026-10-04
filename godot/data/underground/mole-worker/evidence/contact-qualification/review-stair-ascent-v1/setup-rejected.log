@@ -1,0 +1,1 @@
+The initial test command used a root-relative mkdir from the evidence working directory. Redirection refused before Python ran: zsh:2: no such file or directory: review-stair-ascent-v1/tests.log. The empty, newly created nested directories were removed and the correct directory created. No source or test output was overwritten.

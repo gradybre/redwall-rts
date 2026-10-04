@@ -1092,3 +1092,67 @@ reviewed four isolated1280×720 views. Source mesh/grip and complete-state motio
 remain visible. This is not a full HUD/game-camera, terrain, gait or paid entry
 qualification. The source remains443 frames/f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37;
 process-memory counters remain explicitly non-isolated and production flags0.
+
+### Stair-source anatomy assessment (engineering work, not admission)
+
+The proposed256u riser and512u run are provisional connector geometry. The
+actual compact mole has approximately254–257u combined thigh/shin length, so
+no flat-ground profile, planted work stance or bounding-box fit establishes a
+credible climb. `contact-qualification/assess_stair_rig.py` reads the accepted
+full source/import closure and measures the actual ready joints plus complete
+left/right foot triangles. Its floating joint/reach calculations are diagnostic
+source-authoring evidence only. Whole-foot integer bounds separately include
+the accepted source/native residual at yaw0. No source mesh, animation, price,
+profile flag or gameplay owner is changed by this reader.
+
+The assessment compares128u and256u rise with finite ankle advances. A fixed
+pelvis-orientation two-leg sphere test can reject a specific simultaneous
+plant pair; overlap cannot accept a gait, joint limit, balance or clearance.
+Actual stair content still needs a finite rooted joint motion, separate
+source-derived left/right contacts at the real tread heights, swing/riser and
+whole body/held-tool clearance, landing turn, entry and retreat. The current
+single-height static stance union cannot encode that phase-dependent support.
+Any later interface or fixed whole-entry geometry change must be reconciled
+with the actual route/frontier owners; per-part wood economics remain intact.
+INSTALL separately uses the actual generic equipped tool/BUILD identity and
+requires an authored fastening patch on real prior timber/bearing. A digging
+patch and an unbuilt future landing never supply that permission.
+
+### Open-timber128u ascent source component accepted
+
+The first root-local stair candidate now retains the actual mole's fixed leg
+lengths, all original body/clothing/tool triangles and the accepted firm grip.
+The provisional fixture is two512u-run,2m-wide,64u-thick timber decks with
+eight128u side posts toY-1024;128u rise is compared with the rejected256u rise.
+This is engineering source content, not a changed installed connector, per-part
+price, movement pace or production profile. Independent root review accepted
+the12 exact source,94 output and146 historical pins in
+`contact-qualification/review-stair-ascent-v1`, with no blocking source-scope
+finding. Descent and all actual traversal/installed-support gates remain open.
+
+`separate_integer_ceil_v1` adds the finite integer root once after skinning and
+retains its[0,1)u interpolation error. Actual native Actor root rendering uses
+that equation; an eventual authoritative mover must consume the identical
+phase/root track and support facts. No Transforms/Routes owner is moved here.
+The128u candidate proves all90 intervals against the whole positive deck/post
+prisms, with56 separating checks,0 unresolved and a fixed near-plane source
+vertex plus supported whole-foot projection throughout every interval.
+Native error may straddle the sole plane; genuine source penetration refuses.
+All10,209 body/clothing and1,150 pick triangles remain collision geometry.
+Anatomical contact labels use actual dominant foot/toe influence, retaining
+ties and complete mixed boundary triangles, rather than counting a remotely
+weighted crotch as a foot. The exact masks and diagnostic example are pinned.
+
+The full held-pick/non-palm-body proof separately clears13,590 checks. Native
+root-split evidence records1,086 poses,3,409 assertions,0 failures,552 equal
+pre/post source pins, zero diagnostic/leak lines and analyzer0/1;27 focused
+Python tests pass. The256u comparison and prior wrong-root/contact/clearance
+candidates remain rejected. The final support prover additionally refuses
+different endpoint minima without one continuous source contact witness.
+
+Presentation allowance is6,712,720 bytes plus shared WorldBasis544,768; native
+resources/loading/whole-client peak is explicitly unqualified. Root and foot
+phase metadata need their own future movement-owner admission. Independent
+forward-facing descent, internal body/joint quality, all landing/entry/retreat
+transitions, real paid bearing/installed geometry and distinct INSTALL source
+remain open. This packet emits0 production-qualified profiles.

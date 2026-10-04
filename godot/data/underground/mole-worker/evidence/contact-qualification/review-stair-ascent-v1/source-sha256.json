@@ -1,0 +1,14 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_stair_motion.gd": "30ba059c19b75608f3eef01c67780817c1257b4a0b490d63f0f1e1ab5adb339d",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_stair_motion.gd.uid": "1e0582858318c48fd46cafbcea8a490fb287f38f6e8d22879d7c407bb1178cae",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_self.py": "0cdc4cf8b69c1b5227fc1b0bacecae47e614203bc94a00324d27e6169f9d89ef",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/reproduce_anatomy.py": "a54dd768db31dcd2e4c2496347bebe926030c23fe830e3c9626c325b216d473f",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/run_stair_capture.py": "9289450a8f684e33a2ad06216283a51bd32db2eef47d8a7135f51b114428dd56",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_capture.py": "c9ff03af94d56ccb1a16fa910c9f6a8def159bdbe8ac0e6ec6031b46b5eecca8",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_motion.py": "cfc131e410d8eed72bb04396d6e23f3ff918ca428d57d529e834b4be450c6a10",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_rig_assessment.py": "ebad2a624c26eedda2877a2d2417c8a5d64b20ea593c532d1691ea365a0a5222",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_terrain.py": "3275d0403ec9f06159e763c26b8e6ff15987a6958bf3e2815e257ca928e2880f"
+}

@@ -1699,6 +1699,15 @@
           "owner": "/root",
           "scope": "Concrete non-flat surface entrance admission uses real World/Terrain/Room/Sites/Placement owners; installation and retirement remain closed pending Contacts and qualified production motion.",
           "status": "Initial strict source fixture 17 tests / 571 assertions / 0 failures; all diagnostics/leaks zero, analyzer 0/2. Further contact and adversarial tests plus independent review pending."
+        },
+        "hot_route_reachability": {
+          "source": "ccb98d03",
+          "registry": "2f957023",
+          "integration": "9411c305/2b217921",
+          "review": "Construction independently accepted the five frozen source/test pins; hot-3 only corrects the Objects-counter diagnostic label.",
+          "tests": "137 tests / 13326 assertions / 0 failures; all strict/raw diagnostics/leaks 0; analyzer 0/5",
+          "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/hot-3/",
+          "limits": "No cold copies or retained route map. Diagnostic 256-caller p95 46.419ms fails timing; follow-on +48B hint/memo and cold callback source-identity fix in independent review. No runtime qualification."
         }
       },
       "lease": {

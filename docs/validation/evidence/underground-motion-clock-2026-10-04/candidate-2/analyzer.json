@@ -1,0 +1,20 @@
+{
+ "test/test_underground_motion_clock.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE_BASE_CLASS): The local function parameter \"_revision\" is shadowing an already-declared variable at line 72 in the base class \"res://scripts/core/underground_motion_catalog.gd\".",
+   "range": {
+    "end": {
+     "character": 41,
+     "line": 12
+    },
+    "start": {
+     "character": 32,
+     "line": 12
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

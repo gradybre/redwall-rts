@@ -1,0 +1,6 @@
+{
+  "original_path": "godot/test/test_underground_motion_clock.gd",
+  "preserved_path": "docs/validation/evidence/underground-motion-clock-2026-10-04/candidate-2/test_underground_motion_clock.gd.snapshot",
+  "sha256": "2dbe4f6ef5dfc922750aa44d020e2f900981a2362412b550af7c9b3a401a9b7c",
+  "change": "Rename only unused subclass _revision parameter after SHADOWED_VARIABLE_BASE_CLASS warning."
+}

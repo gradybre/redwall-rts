@@ -1,0 +1,91 @@
+{
+  "head_before": "798220a753fdfc44e4d324d8e9e560c8f4fef298",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 6.987,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "257/392",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/docs/validation/evidence/underground-motion-clock-2026-10-04/candidate-3"
+      ],
+      "exit_code": 0,
+      "seconds": 3.728,
+      "log": "strict.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/docs/validation/evidence/underground-motion-clock-2026-10-04/test_census.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.236,
+      "log": "census-tests.log"
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/docs/validation/evidence/underground-motion-clock-2026-10-04/census.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.187,
+      "log": "census.json"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6317",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-motion-clock/docs/validation/evidence/underground-motion-clock-2026-10-04/candidate-3/analyzer.json",
+        "godot/scripts/core/underground_motion_clock.gd",
+        "godot/test/test_underground_motion_clock.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.68,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1147-5bd7a6bc4f81375a",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "registry_sha256_before": "b5981912c5c35baa42b85813482f7abcae01d58693fdfd915d5db9eed16c705e",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "import_raw_findings": [],
+  "strict_counts": {
+    "tests": 14,
+    "assertions": 2090,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "project_restored": true,
+  "registry_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

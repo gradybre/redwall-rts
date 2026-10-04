@@ -1,0 +1,18 @@
+{
+  "reviewer": "/root",
+  "date": "2026-10-04",
+  "outcome": "accepted",
+  "source_manifest_sha256": "a88e36db97e541355d534829715559c0052532b0b9c7ddc1d9c7c011b63e3ff9",
+  "source_pins": {
+    "godot/scripts/core/underground_motion_clock.gd": "51e9d783a79b9d74e26a64b88eb05f8927f18ca968dccabc32f9bdbfe5f74973",
+    "godot/scripts/core/underground_motion_clock.gd.uid": "48b5577ba3c750a61b6ca44e1a1bf05e362c618d3fafbd953ff994004985295b",
+    "godot/test/test_underground_motion_clock.gd": "3eff02944acac81d6ae1bb9f5338565c437c179fde3dbb9509f9e1125c1039d3",
+    "godot/test/test_underground_motion_clock.gd.uid": "56c99a15dd487269b5768ca9fc2329cc6c9a2db0261ac13d8a512cad7512c712",
+    "docs/validation/evidence/underground-motion-clock-2026-10-04/census.py": "7f814f3e36d96cdb40ffdb9f4d63f1520b086b59c6a5ced61b3415c2ad749b5b",
+    "docs/validation/evidence/underground-motion-clock-2026-10-04/test_census.py": "f1389936bfa7581dc8c78622e65b4fe4a737105b0a8875a84c944809204df439",
+    "docs/validation/evidence/underground-motion-clock-2026-10-04/reproduce.py": "5e8fcf79b77f284dc3fb6db968b12bbadf6f0fbb76a94fea0cb86a3eacbf02a4"
+  },
+  "independent_tests": "Six source census tests rerun successfully by reviewer; no duplicate engine run.",
+  "scope": "Source/time-only mapping with original source/World identity and complete crossed intervals. No actual route, presentation, gameplay or native allocation qualification.",
+  "findings": "No blocking findings. Root owns permanent no-state registry and shared helper accounting."
+}

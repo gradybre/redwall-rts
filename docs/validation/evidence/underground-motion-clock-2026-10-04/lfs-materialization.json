@@ -1,0 +1,2989 @@
+{
+  "scope": "Existing local LFS objects, only visible scanned files in own worktree",
+  "files": [
+    {
+      "path": "godot/assets/lookdev/captures/elevation_front.png",
+      "sha256": "6c258439f1234ad52825a7569b727011a9008dd1cd0ffa0042d387c7f5ecfbc6"
+    },
+    {
+      "path": "godot/assets/lookdev/captures/rts_orbit_008m_pitch35_yaw225_work_contact.png",
+      "sha256": "0c4c750c4b5eef18f25a9dccbceb47d6b174dda26fed7edbc2a8cf5c6841d970"
+    },
+    {
+      "path": "godot/assets/lookdev/captures/rts_orbit_008m_pitch48_yaw225.png",
+      "sha256": "1e4a332a470baa758c771b0752ac51d5496249e4b2bbadcf3a2d79f252c6f6d2"
+    },
+    {
+      "path": "godot/assets/lookdev/captures/rts_orbit_040m_pitch48_yaw045.png",
+      "sha256": "fd413bd5e9f206c9100836875b5459ca307d134ae2c8dbfb9ea1fd8137af2ff0"
+    },
+    {
+      "path": "godot/assets/lookdev/captures/rts_orbit_040m_pitch65_yaw045.png",
+      "sha256": "9df669860cb64cab2331833ee3c6f80492ba8070447b4f43c60d43975d54ed1e"
+    },
+    {
+      "path": "godot/assets/lookdev/captures/rts_orbit_120m_pitch48_yaw045.png",
+      "sha256": "1d09afcab6e64b58a1a773c4b805125a93217a3e02c2da42417253b138b80b61"
+    },
+    {
+      "path": "godot/assets/units/species_mouse_body_a_lod0.glb",
+      "sha256": "6e71d409142efc2b870c800e68961d77b9ebdd72da81711cd330bc4b40a36b9b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v2/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "6f614db3136d6125872e80452248e925181d131dded1fd58705208bb47e522d0"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v3/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "55548fc1362632502986a0e6c1bc2066d56d20c8d0edc85798404c67843bb504"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v4/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "73629321d7cb07af7db19a21ebd7e6d62c0f8ba6751b9334933ca872adc4fab1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.carry_heavy_object_walk.plain.png",
+      "sha256": "fba9e18d79d034ab8ce7fc009a72d94389726e9ab20698ba3b4827d35a25de04"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "8952009930b1c6c1306cff56cb59f03f237e444eadbbc15f58f68a28799eaed9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.cautious_crouch_walk_forward.plain.png",
+      "sha256": "9014c6c8524346a71596ae388f711ee29a6d1615f3661fe43aae5a47c118ce4a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "03f46b993e0ae09b8085fce011db9fd79428b8866a3899a980e5ff7689965685"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.heavy_hammer_swing.plain.png",
+      "sha256": "1012e27f7710c812d624f79e92749fd1b54f0c871e54ea3398dce3e4d1210124"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.idle.plain.png",
+      "sha256": "5db8f9b9b0c6214829743a7355f1237ebbbff5d3d7177cbc1a710949f439f38e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.walk.plain.png",
+      "sha256": "1bad656148fdeb9488026592b25222497f2332ba080c0f5cf675ea9b9fa642f2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.walk.ramp_down.png",
+      "sha256": "de8398e50cc760242eb0a730b455cbd8a7b2cbc9221b350b3e37aec423ae107b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/badger_quarryman.walk.ramp_up.png",
+      "sha256": "f1e3a40f52e660b1cf3cecb74b93e997fa7e16d457d87095339ec9cdb07e31d7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.carry_heavy_object_walk.plain.png",
+      "sha256": "90cc08094d29607ec025a3d25061e236d9b92ff18c72eccc8f26c7cdae1817e7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3432620d85b076f1da0755967ae56424ebdad5e082159ece6983493bd27cd915"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.cautious_crouch_walk_forward.plain.png",
+      "sha256": "af7e00eb8fde7156ea8b7ca09ddad0d79d2e14722c8ea39fe5bbee24f13ecf40"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "fe05a6dde12d4c5a271e9b201fa72a5da7762523bcbfe739f87fd52bc601516c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.heavy_hammer_swing.plain.png",
+      "sha256": "422e8b64f8aa7d35b1e87ccc32b0eaaf0b3873354b37974ef3ba12bee5db613f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.idle.plain.png",
+      "sha256": "3cb5256436d78b95f28f23bd4ba3e90f32f01bf2038c0e88ff659d350798262e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.walk.plain.png",
+      "sha256": "965ac845bc438218f99759f2416e1f3b2fa40fefbe8b7defa9dc6841f6cea76c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.walk.ramp_down.png",
+      "sha256": "7665c2e1a1035d2c75d087f1e782a01e150f19cac38470fa7821a38565abbfdb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mole_digger.walk.ramp_up.png",
+      "sha256": "99f3411d62b8c2f8d0e9a3f32ac354b72c5f9130227cb9b623e73d4e367140ec"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "73629321d7cb07af7db19a21ebd7e6d62c0f8ba6751b9334933ca872adc4fab1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "1d411199814bde562d1c4c17020a10ee1964a1440d90cdafc5f1b2b0ce020305"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.cautious_crouch_walk_forward.plain.png",
+      "sha256": "f201ecea2ceb0355d4b53f21974ce991e1b1cefc08a637484d28d8d569db9e9a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "2fdecd6dd6d6280a5c4b16da0cd5c3731d43b380cf5fc69d657902e17fdd11a5"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.idle.plain.png",
+      "sha256": "e8d6bb932d6f1b271d7d06686c397f457e8c97da0b8145bf1bfbcc642ba1c863"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.walk.plain.png",
+      "sha256": "10aa45e17b1b175166ec8ae3e97d5554bf8a259005fd2b71478de932ab712e2d"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.walk.ramp_down.png",
+      "sha256": "e2399995cb3a5b328369657a9547bc1d5f50754716ed80ebfc1d31cbd318913f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/mouse_keeper.walk.ramp_up.png",
+      "sha256": "42c37aec7174cbe0fbafd38a57737e7b41a70d0c138d4cf676f19713209802d4"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.carry_heavy_object_walk.plain.png",
+      "sha256": "0eb8f7eec57b6f8e556ab6d20dd0f6b8eabf0082bfd7aaafec74157f778308d8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3679baadecff671659abdfb34dc075222140c855c2ff5d473e58ba0a50161b55"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.cautious_crouch_walk_forward.plain.png",
+      "sha256": "76a0b21248521f0828e77d49f36caee8a76f2a40391fa2663a28faf3f95229ed"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "edb6180f37c29a38550d015544a052936a82e009232d783f67a21499b3b3cf4f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.idle.plain.png",
+      "sha256": "e7ea56c88d022e9b9c00e6eac7d6e8104691b44c78e971d28aae1bdb19844ed7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.walk.plain.png",
+      "sha256": "68dde2fbdf1e1f738022eadca8fac528b941bc9eb6624927de04dd98c63714b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.walk.ramp_down.png",
+      "sha256": "e8ece7e14775433990780733a464187d9fb7969e4217f1d008557ef42b02c148"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/otter_boatwright.walk.ramp_up.png",
+      "sha256": "5742b8b9739d3f33eab209f84225e5d2645d9a570d1820c1496b93c648455df1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.carry_heavy_object_walk.plain.png",
+      "sha256": "ac4403cbe640931d62770647e996b2487d9f99ae3554985444d3ee546e9e217b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "65bd24ca5e71e852819daf4df99164d87a31ebc66cb1db258ade54aa3d92bf99"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.cautious_crouch_walk_forward.plain.png",
+      "sha256": "7acc8153ba4020ba9624cc5c61425f6c908ef3cb62addd8c33a8b9a68e5728e6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "2dc7a1e95836271d8758e79bc73a3b016caa8f16f7d38851c2a5fdaea45ce7db"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.idle.plain.png",
+      "sha256": "3688728f7a7d831a9094f9a2578df8cd84f1cd18e48da7d1fd89afcfcb9ccccc"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.walk.plain.png",
+      "sha256": "40e0ee351f823b99ad78eaf93fb13fb10c10792757270d5dad8b0b5b30272d52"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.walk.ramp_down.png",
+      "sha256": "365752ed7db3c41efad827c3a9785be49437fa298f71317cc064fd011ccd387b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v5/squirrel_gatherer.walk.ramp_up.png",
+      "sha256": "d26d2686b5640e53b398ea642c42de4f571d171bcf49bc1f49787312debd0cc5"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.carry_heavy_object_walk.plain.png",
+      "sha256": "fba9e18d79d034ab8ce7fc009a72d94389726e9ab20698ba3b4827d35a25de04"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "8952009930b1c6c1306cff56cb59f03f237e444eadbbc15f58f68a28799eaed9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.cautious_crouch_walk_forward.plain.png",
+      "sha256": "9014c6c8524346a71596ae388f711ee29a6d1615f3661fe43aae5a47c118ce4a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "03f46b993e0ae09b8085fce011db9fd79428b8866a3899a980e5ff7689965685"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.heavy_hammer_swing.plain.png",
+      "sha256": "1012e27f7710c812d624f79e92749fd1b54f0c871e54ea3398dce3e4d1210124"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.idle.plain.png",
+      "sha256": "5db8f9b9b0c6214829743a7355f1237ebbbff5d3d7177cbc1a710949f439f38e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.walk.plain.png",
+      "sha256": "1bad656148fdeb9488026592b25222497f2332ba080c0f5cf675ea9b9fa642f2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.walk.ramp_down.png",
+      "sha256": "de8398e50cc760242eb0a730b455cbd8a7b2cbc9221b350b3e37aec423ae107b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/badger_quarryman.walk.ramp_up.png",
+      "sha256": "f1e3a40f52e660b1cf3cecb74b93e997fa7e16d457d87095339ec9cdb07e31d7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.carry_heavy_object_walk.plain.png",
+      "sha256": "90cc08094d29607ec025a3d25061e236d9b92ff18c72eccc8f26c7cdae1817e7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3432620d85b076f1da0755967ae56424ebdad5e082159ece6983493bd27cd915"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.cautious_crouch_walk_forward.plain.png",
+      "sha256": "af7e00eb8fde7156ea8b7ca09ddad0d79d2e14722c8ea39fe5bbee24f13ecf40"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "fe05a6dde12d4c5a271e9b201fa72a5da7762523bcbfe739f87fd52bc601516c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.heavy_hammer_swing.plain.png",
+      "sha256": "422e8b64f8aa7d35b1e87ccc32b0eaaf0b3873354b37974ef3ba12bee5db613f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.idle.plain.png",
+      "sha256": "3cb5256436d78b95f28f23bd4ba3e90f32f01bf2038c0e88ff659d350798262e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.walk.plain.png",
+      "sha256": "965ac845bc438218f99759f2416e1f3b2fa40fefbe8b7defa9dc6841f6cea76c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.walk.ramp_down.png",
+      "sha256": "7665c2e1a1035d2c75d087f1e782a01e150f19cac38470fa7821a38565abbfdb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mole_digger.walk.ramp_up.png",
+      "sha256": "99f3411d62b8c2f8d0e9a3f32ac354b72c5f9130227cb9b623e73d4e367140ec"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "73629321d7cb07af7db19a21ebd7e6d62c0f8ba6751b9334933ca872adc4fab1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "1d411199814bde562d1c4c17020a10ee1964a1440d90cdafc5f1b2b0ce020305"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.cautious_crouch_walk_forward.plain.png",
+      "sha256": "f201ecea2ceb0355d4b53f21974ce991e1b1cefc08a637484d28d8d569db9e9a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "2fdecd6dd6d6280a5c4b16da0cd5c3731d43b380cf5fc69d657902e17fdd11a5"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.idle.plain.png",
+      "sha256": "e8d6bb932d6f1b271d7d06686c397f457e8c97da0b8145bf1bfbcc642ba1c863"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.walk.plain.png",
+      "sha256": "10aa45e17b1b175166ec8ae3e97d5554bf8a259005fd2b71478de932ab712e2d"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.walk.ramp_down.png",
+      "sha256": "e2399995cb3a5b328369657a9547bc1d5f50754716ed80ebfc1d31cbd318913f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/mouse_keeper.walk.ramp_up.png",
+      "sha256": "42c37aec7174cbe0fbafd38a57737e7b41a70d0c138d4cf676f19713209802d4"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.carry_heavy_object_walk.plain.png",
+      "sha256": "0eb8f7eec57b6f8e556ab6d20dd0f6b8eabf0082bfd7aaafec74157f778308d8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3679baadecff671659abdfb34dc075222140c855c2ff5d473e58ba0a50161b55"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.cautious_crouch_walk_forward.plain.png",
+      "sha256": "76a0b21248521f0828e77d49f36caee8a76f2a40391fa2663a28faf3f95229ed"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "edb6180f37c29a38550d015544a052936a82e009232d783f67a21499b3b3cf4f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.idle.plain.png",
+      "sha256": "e7ea56c88d022e9b9c00e6eac7d6e8104691b44c78e971d28aae1bdb19844ed7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.walk.plain.png",
+      "sha256": "68dde2fbdf1e1f738022eadca8fac528b941bc9eb6624927de04dd98c63714b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.walk.ramp_down.png",
+      "sha256": "e8ece7e14775433990780733a464187d9fb7969e4217f1d008557ef42b02c148"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/otter_boatwright.walk.ramp_up.png",
+      "sha256": "5742b8b9739d3f33eab209f84225e5d2645d9a570d1820c1496b93c648455df1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.carry_heavy_object_walk.plain.png",
+      "sha256": "ac4403cbe640931d62770647e996b2487d9f99ae3554985444d3ee546e9e217b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "65bd24ca5e71e852819daf4df99164d87a31ebc66cb1db258ade54aa3d92bf99"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.cautious_crouch_walk_forward.plain.png",
+      "sha256": "7acc8153ba4020ba9624cc5c61425f6c908ef3cb62addd8c33a8b9a68e5728e6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "2dc7a1e95836271d8758e79bc73a3b016caa8f16f7d38851c2a5fdaea45ce7db"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.idle.plain.png",
+      "sha256": "3688728f7a7d831a9094f9a2578df8cd84f1cd18e48da7d1fd89afcfcb9ccccc"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.walk.plain.png",
+      "sha256": "40e0ee351f823b99ad78eaf93fb13fb10c10792757270d5dad8b0b5b30272d52"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.walk.ramp_down.png",
+      "sha256": "365752ed7db3c41efad827c3a9785be49437fa298f71317cc064fd011ccd387b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v6/squirrel_gatherer.walk.ramp_up.png",
+      "sha256": "d26d2686b5640e53b398ea642c42de4f571d171bcf49bc1f49787312debd0cc5"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.carry_heavy_object_walk.plain.png",
+      "sha256": "97804de83060e4af3187c89a4ef005b5654d13c6869340047cef23314f4205b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3e578b436042c8b3fef31311567ad8af09e2afa3e97394269a2ce23da697e676"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.cautious_crouch_walk_forward.plain.png",
+      "sha256": "a6b1c843c3bb596dc2b19c0832a086609c94feab637c0574eade5b3a01b17b82"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "b02ff82dff5981ba00778d66fe66cbee0ab6f2d721fc631017e4c4f056dbb2e8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.heavy_hammer_swing.plain.png",
+      "sha256": "5cff394a8846a7b342a336ac1bebb693d5c041857bf08d3b21634183252f892b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.idle.plain.png",
+      "sha256": "e9e910a2d607e5bc24cbe77a3ada57c31b709e0ff43a146b0d0f83af4b5251d9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.walk.plain.png",
+      "sha256": "86c643d09c60ef2743f359b2c4a093f08505a3205ca2fb3c7520cd6711679993"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.walk.ramp_down.png",
+      "sha256": "322b09332eb92ca80fef5359dcf228b55f6baefdd68d3ccab4ad6756535807b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/badger_quarryman.walk.ramp_up.png",
+      "sha256": "3ab77687e705f940f18ff9df8be2557c8b6d194724357afa63447d7179d51f42"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.carry_heavy_object_walk.plain.png",
+      "sha256": "b60e985f70ccab25483af4e740540179408f98ba688cad64e4d628f136dab4bb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "4f03f3c186bb96a0ffadc87523b7cc5577ed26bfd52883e30b2c875f4df9bf85"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.cautious_crouch_walk_forward.plain.png",
+      "sha256": "6d6cfb6624ff3c58223337b719363dd742d42a4c1b513bb7fe35c546c6ad1b2c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "264bdc71791812a0e75a9aabae0b23d3bc3cd68cf22fb830a82986ff40d81582"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.heavy_hammer_swing.plain.png",
+      "sha256": "a5010ddfb7b37cb83c3b20d1eb424f5492a592fe8db4045e09557c50f4c1470e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.idle.plain.png",
+      "sha256": "af0699b27d6e5f5ea61234ba32ed628e0a1acc25bf73e5d9abe728732d486c69"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.walk.plain.png",
+      "sha256": "4d84d66994a2bfdcb1271b82d285df2642cb7f63fbb92688ed6d4e15ccdebaa4"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.walk.ramp_down.png",
+      "sha256": "de618a58f654f7997d3560b2caa0e6f497d571e366986635f6c50eef60fb6bda"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mole_digger.walk.ramp_up.png",
+      "sha256": "deb5878cbd895a4621beee14f579ddfc2ebb3f7156dbdd402c63c6f7beb0291e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "574fc48f1a70e5d975d3b27fb39f7884809c7bc66a48cbe3d89c1b7fb4915080"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "a1fab55fb596eabfd574f0f23d3938fbeecde860b10d728be759f851c426d5a8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.cautious_crouch_walk_forward.plain.png",
+      "sha256": "916d8bd9f39ea4513b0979c50b8ff3fd9775c8faac8d7e4de5bc5b168fc2f3ca"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "9d8b7cac9b4126fcfaa9d7444639bca73725a3c3912e7437ffbd9fcf783cf29f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.idle.plain.png",
+      "sha256": "9568963b0405bbe7d83a577d5988f5fb7e7cba2c7502d8bb91ead934a34f0484"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.walk.plain.png",
+      "sha256": "79271fd816ba07dc527b71231ca3bd67b3a905193a743fec61290c20c25d8ac9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.walk.ramp_down.png",
+      "sha256": "eea190ce5c79f4b73528eadba93c05ac7acc41e20c491397feaaefb8bf6f13c2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/mouse_keeper.walk.ramp_up.png",
+      "sha256": "a8ce11ce133b808c760377fa9dc917a5a875cecaac07aca7efac9e3dda6b0bd8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.carry_heavy_object_walk.plain.png",
+      "sha256": "1a8f1cc85d19ce6a952f0b1fb0d2b4cba0892e272719de117ca7b1ef2220115f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "1f73ee9963d3a911cf609e3e4f22467fb7e9593d184d5e58e48358192b8326d7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.cautious_crouch_walk_forward.plain.png",
+      "sha256": "27edf006c8fd970575bbbdaac62e2638b0a719dea720e967b7727eb714a5eaae"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "90973a6fe720df26672ee5a529ea92fe2db3eccf6b5e8ea4373926df691c5029"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.idle.plain.png",
+      "sha256": "f3bde132fa8b61e9d613468efda9dfd8c815e0973a4887205f699a099d576862"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.walk.plain.png",
+      "sha256": "b4d6b086197a1b03b9a65355363c0a461e882db2ab009591f76396421cf280b6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.walk.ramp_down.png",
+      "sha256": "56799ce861efd730ae68e1ffd8456b2dcfb3c4615c5529b3b8233080de85869a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/otter_boatwright.walk.ramp_up.png",
+      "sha256": "f3a5899aa0618cc0d2953f43560f3ee29e1dfa5f7de8491d41b4a624156d7c14"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.carry_heavy_object_walk.plain.png",
+      "sha256": "a28fd4f9c1ddae43e33ece0cb9c4563c610caed3b56d6144431de8beb50ce562"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "e4d75d2778d7115d6a4fb8352b9b8e773a0902713debe9db17aaa28154567932"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.cautious_crouch_walk_forward.plain.png",
+      "sha256": "e600583842e506bb02894f9bf553f9f7491efc0d0ad1888c66958f658f55c6a3"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "1d65dc6d4bb27857e727f287630b6388ca53f3140a172e93a5f5fbaf5a599f68"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.idle.plain.png",
+      "sha256": "666efddfca56bde4f23b82eae48ec85523f417b4e4f79c2822fcf98e67c5a48b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.walk.plain.png",
+      "sha256": "1e395b85cc40cb2e57a2ea905ff2c7b87b2df957d187a4421e17ed067a0a9ae1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.walk.ramp_down.png",
+      "sha256": "46e8e8ed2e8f0064b4aeb07a7e5629b829c340656246a10cfd1e2cca6df27f8b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v7/squirrel_gatherer.walk.ramp_up.png",
+      "sha256": "d3af384b43d56d662aed85252b0d403441923cf522384b28e83a590439c0511a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.carry_heavy_object_walk.plain.png",
+      "sha256": "97804de83060e4af3187c89a4ef005b5654d13c6869340047cef23314f4205b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3e578b436042c8b3fef31311567ad8af09e2afa3e97394269a2ce23da697e676"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.cautious_crouch_walk_forward.plain.png",
+      "sha256": "a6b1c843c3bb596dc2b19c0832a086609c94feab637c0574eade5b3a01b17b82"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "b02ff82dff5981ba00778d66fe66cbee0ab6f2d721fc631017e4c4f056dbb2e8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.heavy_hammer_swing.plain.png",
+      "sha256": "5cff394a8846a7b342a336ac1bebb693d5c041857bf08d3b21634183252f892b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.idle.plain.png",
+      "sha256": "e9e910a2d607e5bc24cbe77a3ada57c31b709e0ff43a146b0d0f83af4b5251d9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.walk.plain.png",
+      "sha256": "86c643d09c60ef2743f359b2c4a093f08505a3205ca2fb3c7520cd6711679993"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.walk.ramp_down.png",
+      "sha256": "322b09332eb92ca80fef5359dcf228b55f6baefdd68d3ccab4ad6756535807b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/badger_quarryman.walk.ramp_up.png",
+      "sha256": "3ab77687e705f940f18ff9df8be2557c8b6d194724357afa63447d7179d51f42"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.carry_heavy_object_walk.plain.png",
+      "sha256": "b60e985f70ccab25483af4e740540179408f98ba688cad64e4d628f136dab4bb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "4f03f3c186bb96a0ffadc87523b7cc5577ed26bfd52883e30b2c875f4df9bf85"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.cautious_crouch_walk_forward.plain.png",
+      "sha256": "6d6cfb6624ff3c58223337b719363dd742d42a4c1b513bb7fe35c546c6ad1b2c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "264bdc71791812a0e75a9aabae0b23d3bc3cd68cf22fb830a82986ff40d81582"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.heavy_hammer_swing.plain.png",
+      "sha256": "a5010ddfb7b37cb83c3b20d1eb424f5492a592fe8db4045e09557c50f4c1470e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.idle.plain.png",
+      "sha256": "af0699b27d6e5f5ea61234ba32ed628e0a1acc25bf73e5d9abe728732d486c69"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.walk.plain.png",
+      "sha256": "4d84d66994a2bfdcb1271b82d285df2642cb7f63fbb92688ed6d4e15ccdebaa4"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.walk.ramp_down.png",
+      "sha256": "de618a58f654f7997d3560b2caa0e6f497d571e366986635f6c50eef60fb6bda"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mole_digger.walk.ramp_up.png",
+      "sha256": "deb5878cbd895a4621beee14f579ddfc2ebb3f7156dbdd402c63c6f7beb0291e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "574fc48f1a70e5d975d3b27fb39f7884809c7bc66a48cbe3d89c1b7fb4915080"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "a1fab55fb596eabfd574f0f23d3938fbeecde860b10d728be759f851c426d5a8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.cautious_crouch_walk_forward.plain.png",
+      "sha256": "916d8bd9f39ea4513b0979c50b8ff3fd9775c8faac8d7e4de5bc5b168fc2f3ca"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "9d8b7cac9b4126fcfaa9d7444639bca73725a3c3912e7437ffbd9fcf783cf29f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.idle.plain.png",
+      "sha256": "9568963b0405bbe7d83a577d5988f5fb7e7cba2c7502d8bb91ead934a34f0484"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.walk.plain.png",
+      "sha256": "79271fd816ba07dc527b71231ca3bd67b3a905193a743fec61290c20c25d8ac9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.walk.ramp_down.png",
+      "sha256": "eea190ce5c79f4b73528eadba93c05ac7acc41e20c491397feaaefb8bf6f13c2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/mouse_keeper.walk.ramp_up.png",
+      "sha256": "a8ce11ce133b808c760377fa9dc917a5a875cecaac07aca7efac9e3dda6b0bd8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.carry_heavy_object_walk.plain.png",
+      "sha256": "1a8f1cc85d19ce6a952f0b1fb0d2b4cba0892e272719de117ca7b1ef2220115f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "1f73ee9963d3a911cf609e3e4f22467fb7e9593d184d5e58e48358192b8326d7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.cautious_crouch_walk_forward.plain.png",
+      "sha256": "27edf006c8fd970575bbbdaac62e2638b0a719dea720e967b7727eb714a5eaae"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "90973a6fe720df26672ee5a529ea92fe2db3eccf6b5e8ea4373926df691c5029"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.idle.plain.png",
+      "sha256": "f3bde132fa8b61e9d613468efda9dfd8c815e0973a4887205f699a099d576862"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.walk.plain.png",
+      "sha256": "b4d6b086197a1b03b9a65355363c0a461e882db2ab009591f76396421cf280b6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.walk.ramp_down.png",
+      "sha256": "56799ce861efd730ae68e1ffd8456b2dcfb3c4615c5529b3b8233080de85869a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/otter_boatwright.walk.ramp_up.png",
+      "sha256": "f3a5899aa0618cc0d2953f43560f3ee29e1dfa5f7de8491d41b4a624156d7c14"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.carry_heavy_object_walk.plain.png",
+      "sha256": "a28fd4f9c1ddae43e33ece0cb9c4563c610caed3b56d6144431de8beb50ce562"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "e4d75d2778d7115d6a4fb8352b9b8e773a0902713debe9db17aaa28154567932"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.cautious_crouch_walk_forward.plain.png",
+      "sha256": "e600583842e506bb02894f9bf553f9f7491efc0d0ad1888c66958f658f55c6a3"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "1d65dc6d4bb27857e727f287630b6388ca53f3140a172e93a5f5fbaf5a599f68"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.idle.plain.png",
+      "sha256": "666efddfca56bde4f23b82eae48ec85523f417b4e4f79c2822fcf98e67c5a48b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.walk.plain.png",
+      "sha256": "1e395b85cc40cb2e57a2ea905ff2c7b87b2df957d187a4421e17ed067a0a9ae1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.walk.ramp_down.png",
+      "sha256": "46e8e8ed2e8f0064b4aeb07a7e5629b829c340656246a10cfd1e2cca6df27f8b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v8/squirrel_gatherer.walk.ramp_up.png",
+      "sha256": "d3af384b43d56d662aed85252b0d403441923cf522384b28e83a590439c0511a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.carry_heavy_object_walk.plain.png",
+      "sha256": "97804de83060e4af3187c89a4ef005b5654d13c6869340047cef23314f4205b1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "3e578b436042c8b3fef31311567ad8af09e2afa3e97394269a2ce23da697e676"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.plain.held_pick.png",
+      "sha256": "1f1f198c321a44dc00ae52906eff6291659b1a8b025e9cc053c0677b55139bec"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.plain.png",
+      "sha256": "a6b1c843c3bb596dc2b19c0832a086609c94feab637c0574eade5b3a01b17b82"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.standard_bore.held_pick.png",
+      "sha256": "609430fc545268232e54fbea9c1a207ad80e101e5308e1be57e176b6bb7b2005"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "b02ff82dff5981ba00778d66fe66cbee0ab6f2d721fc631017e4c4f056dbb2e8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.heavy_hammer_swing.plain.png",
+      "sha256": "5cff394a8846a7b342a336ac1bebb693d5c041857bf08d3b21634183252f892b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.idle.plain.held_pick.png",
+      "sha256": "cc8521165c11284c812716215e012c6599cabf1f74dbdde8785986114036e374"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.idle.plain.png",
+      "sha256": "e9e910a2d607e5bc24cbe77a3ada57c31b709e0ff43a146b0d0f83af4b5251d9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.plain.held_pick.png",
+      "sha256": "195a9cd81dcefef3c603cc79e51c6cfed06ced1e598e0a1e563dae30a21607e1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.plain.png",
+      "sha256": "86c643d09c60ef2743f359b2c4a093f08505a3205ca2fb3c7520cd6711679993"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_down.held_pick.png",
+      "sha256": "d3de2fa9b819695dc8538d58b01399173b13effac6daa01fa4fa42663bd01c08"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_down.png",
+      "sha256": "a6afcbe251387559dafec2c558a06b9ae1a7d43e37338890e11741a63d55f519"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_up.held_pick.png",
+      "sha256": "7596bb93fa988881158476b4df6be9868b2f63f8a4f05f9bca3e5ccae71774d5"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/badger_quarryman.walk.ramp_up.png",
+      "sha256": "3ab77687e705f940f18ff9df8be2557c8b6d194724357afa63447d7179d51f42"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.carry_heavy_object_walk.plain.png",
+      "sha256": "b60e985f70ccab25483af4e740540179408f98ba688cad64e4d628f136dab4bb"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "4f03f3c186bb96a0ffadc87523b7cc5577ed26bfd52883e30b2c875f4df9bf85"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.plain.held_pick.png",
+      "sha256": "a5f0253daa20683ebc5145d381c06a3f73ff95618300e72b373de490e51fb455"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.plain.png",
+      "sha256": "6d6cfb6624ff3c58223337b719363dd742d42a4c1b513bb7fe35c546c6ad1b2c"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick.png",
+      "sha256": "08b44d8c7a1b97b803f01a09299d3e0316d51473ab9ff77cef4b2601b958bb34"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "264bdc71791812a0e75a9aabae0b23d3bc3cd68cf22fb830a82986ff40d81582"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.heavy_hammer_swing.plain.png",
+      "sha256": "a5010ddfb7b37cb83c3b20d1eb424f5492a592fe8db4045e09557c50f4c1470e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.idle.plain.held_pick.png",
+      "sha256": "927f4e0824395dbe37d991486e7eb4ad74ce6d28fbbae77a7a1bae4efc86e3c9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.idle.plain.png",
+      "sha256": "af0699b27d6e5f5ea61234ba32ed628e0a1acc25bf73e5d9abe728732d486c69"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.plain.held_pick.png",
+      "sha256": "f871f9bd67d7c6a82b7c1eb24f0284c47243b5cf80195e330e61ca5f5c79296a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.plain.png",
+      "sha256": "4d84d66994a2bfdcb1271b82d285df2642cb7f63fbb92688ed6d4e15ccdebaa4"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_down.held_pick.png",
+      "sha256": "10b79a8e033db83b60b1f158852e776d6be0912c6e3b519f75443e4bd20f3683"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_down.png",
+      "sha256": "de618a58f654f7997d3560b2caa0e6f497d571e366986635f6c50eef60fb6bda"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_up.held_pick.png",
+      "sha256": "ac6125c0b00530c64b3f92fddd589ab963fb2d89a0d6891dc6fe35847c45bae9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mole_digger.walk.ramp_up.png",
+      "sha256": "deb5878cbd895a4621beee14f579ddfc2ebb3f7156dbdd402c63c6f7beb0291e"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.carry_heavy_object_walk.plain.png",
+      "sha256": "574fc48f1a70e5d975d3b27fb39f7884809c7bc66a48cbe3d89c1b7fb4915080"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "a1fab55fb596eabfd574f0f23d3938fbeecde860b10d728be759f851c426d5a8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.cautious_crouch_walk_forward.plain.png",
+      "sha256": "916d8bd9f39ea4513b0979c50b8ff3fd9775c8faac8d7e4de5bc5b168fc2f3ca"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "9d8b7cac9b4126fcfaa9d7444639bca73725a3c3912e7437ffbd9fcf783cf29f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.idle.plain.png",
+      "sha256": "9568963b0405bbe7d83a577d5988f5fb7e7cba2c7502d8bb91ead934a34f0484"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.walk.plain.png",
+      "sha256": "79271fd816ba07dc527b71231ca3bd67b3a905193a743fec61290c20c25d8ac9"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.walk.ramp_down.png",
+      "sha256": "eea190ce5c79f4b73528eadba93c05ac7acc41e20c491397feaaefb8bf6f13c2"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/mouse_keeper.walk.ramp_up.png",
+      "sha256": "a8ce11ce133b808c760377fa9dc917a5a875cecaac07aca7efac9e3dda6b0bd8"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.carry_heavy_object_walk.plain.png",
+      "sha256": "1a8f1cc85d19ce6a952f0b1fb0d2b4cba0892e272719de117ca7b1ef2220115f"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "1f73ee9963d3a911cf609e3e4f22467fb7e9593d184d5e58e48358192b8326d7"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.cautious_crouch_walk_forward.plain.png",
+      "sha256": "27edf006c8fd970575bbbdaac62e2638b0a719dea720e967b7727eb714a5eaae"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "90973a6fe720df26672ee5a529ea92fe2db3eccf6b5e8ea4373926df691c5029"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.idle.plain.png",
+      "sha256": "f3bde132fa8b61e9d613468efda9dfd8c815e0973a4887205f699a099d576862"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.walk.plain.png",
+      "sha256": "b4d6b086197a1b03b9a65355363c0a461e882db2ab009591f76396421cf280b6"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.walk.ramp_down.png",
+      "sha256": "56799ce861efd730ae68e1ffd8456b2dcfb3c4615c5529b3b8233080de85869a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/otter_boatwright.walk.ramp_up.png",
+      "sha256": "f3a5899aa0618cc0d2953f43560f3ee29e1dfa5f7de8491d41b4a624156d7c14"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.carry_heavy_object_walk.plain.png",
+      "sha256": "a28fd4f9c1ddae43e33ece0cb9c4563c610caed3b56d6144431de8beb50ce562"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.carry_heavy_object_walk.standard_bore.png",
+      "sha256": "e4d75d2778d7115d6a4fb8352b9b8e773a0902713debe9db17aaa28154567932"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.cautious_crouch_walk_forward.plain.png",
+      "sha256": "e600583842e506bb02894f9bf553f9f7491efc0d0ad1888c66958f658f55c6a3"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.cautious_crouch_walk_forward.standard_bore.png",
+      "sha256": "1d65dc6d4bb27857e727f287630b6388ca53f3140a172e93a5f5fbaf5a599f68"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.idle.plain.png",
+      "sha256": "666efddfca56bde4f23b82eae48ec85523f417b4e4f79c2822fcf98e67c5a48b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.walk.plain.png",
+      "sha256": "1e395b85cc40cb2e57a2ea905ff2c7b87b2df957d187a4421e17ed067a0a9ae1"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.walk.ramp_down.png",
+      "sha256": "46e8e8ed2e8f0064b4aeb07a7e5629b829c340656246a10cfd1e2cca6df27f8b"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/native-v9/squirrel_gatherer.walk.ramp_up.png",
+      "sha256": "d3af384b43d56d662aed85252b0d403441923cf522384b28e83a590439c0511a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/actor-native-v1/native-world.png",
+      "sha256": "96e2b26973721b684f9d879a5fde8ee9b514b1c4921939f6ae6d0d52b5b98a5a"
+    },
+    {
+      "path": "godot/data/underground/evidence/matrix-presentation/world-basis/actor-native-v2/native-world.png",
+      "sha256": "96e2b26973721b684f9d879a5fde8ee9b514b1c4921939f6ae6d0d52b5b98a5a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-source-v1/mole-worker.ugactor",
+      "sha256": "bfc63b149233655ef2507456de43f33028cde104ffec0e868273c38e09731529"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-source-v2/mole-worker.ugactor",
+      "sha256": "afda4e830e606370a5a16e0e9b160a0e9209f2d6c2a61e1be4c93152708513cf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-source-v3/mole-worker.ugactor",
+      "sha256": "7aa7146bd159978e9ee6b0d30678ce62d720d6bb1864733e8263ec1682cddc87"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-source-v4/mole-worker.ugactor",
+      "sha256": "f46626f6181fa8f79d664d91154fe5db7fbd7009ac84501b8221c651cdb08d1b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result/mole-worker.ugactor",
+      "sha256": "816751dbb5cee29d5f5f296001ca454aba42317f369f67a15a225daee87c3c12"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor",
+      "sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-inspection-v1/source-pick-orthographic.png",
+      "sha256": "254267958548c600de4e4a92139fc7104f728d659b084a502d0a09e618d8f486"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v1/mole-worker.ugactor",
+      "sha256": "486c37efc80effc5efa559fee3b0f805655d4c63f8d399099686ee64130fba31"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v2/mole-worker.ugactor",
+      "sha256": "20b291e3304c1d3ab3e159f910b6c610ee93b9a79bfc4298cac0a2eebe2051ec"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v3/mole-worker.ugactor",
+      "sha256": "5524125266d672f4beb25614c3a89367c9ea33a6d0666207ae839f62f70e232f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v4/mole-worker.ugactor",
+      "sha256": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-000-source030.png",
+      "sha256": "56bbd7de9fcb342107ba802dd40336fbca2a7d51810ddd38d52751ae31ae044f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-003-source033.png",
+      "sha256": "3e89353033910826411ea6191af32366c8691933908aff980cb72fade91d2ca5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-006-source036.png",
+      "sha256": "46b5d83d23a7ed2bacfedd2ff9c4251d73af62ff1008e2a4efb376b8f14befb3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-009-source039.png",
+      "sha256": "308d2d1499d496294cfcb520153ed2022ff2fbfe7ff3ee756d5367f16b2be5f2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-012-source042.png",
+      "sha256": "aede955565b8476b8308065bb32b86ca1c46e8c3b6e7c4bcaa98db5dbf6d6c5d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-015-source041.png",
+      "sha256": "febb2999120eac451574ba7c561008d39bca79cc4040c462859962892ca8ae1f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-018-source038.png",
+      "sha256": "030493349a13401f4261754aeb0a2a75c8a86790b784f6c7573871e509a6458a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-021-source035.png",
+      "sha256": "c2cb803b6657bbba02d59aaffe1d62ebebb99ddba1d0e0b6819831a533fd849a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-024-source032.png",
+      "sha256": "9a3752f0e1bd9f6c64f0cfc991376073428ca0a1df495f0e41beef67708384d4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-00.png",
+      "sha256": "0ee0ee6613092a1e07b063eeaf4990968a26b0de40a6f1b9509819f32e5b50ca"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-06.png",
+      "sha256": "153ea3a0707aeb364a3a90e2194a38ad4aff000b4a9dbf454a328f3e27ae4f20"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-12.png",
+      "sha256": "4e663dce72d63ab0296e63d071770e5987108448e529d3bda4d995c0c04e4969"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-18.png",
+      "sha256": "3b81ca0633675818c77380fc1e283974981b5a99ca1ba66b604121ebe0d4b6e7"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-24.png",
+      "sha256": "d8c6879491162cc39392d227152d8398273e83ed1cdc5e715b0e73e5f8d7490c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-30.png",
+      "sha256": "ee40fe87e8170ba84bf79bb52eb1ee50dabb821154ae6e15238a74a8415b38d2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-36.png",
+      "sha256": "f0c670ea2a0a53f045be39cb394500cf61a468a98d64af23902346035d93b91b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-42.png",
+      "sha256": "0d6c8fadc512922ea35f1a92641a1cab935697c654bd5ae6f8d1c9699a2ca84d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-48.png",
+      "sha256": "6f03736afaaae1314c86d3bae9aa1ed8bdf6b648f6bdcd145d6a7539dfed4ee0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-54.png",
+      "sha256": "c19dbaea8f0a7b656e406749e3f3bd1533334100380b343bc16fa44aa2a4f49b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-entry-60.png",
+      "sha256": "56bbd7de9fcb342107ba802dd40336fbca2a7d51810ddd38d52751ae31ae044f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-00.png",
+      "sha256": "56bbd7de9fcb342107ba802dd40336fbca2a7d51810ddd38d52751ae31ae044f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-06.png",
+      "sha256": "c19dbaea8f0a7b656e406749e3f3bd1533334100380b343bc16fa44aa2a4f49b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-12.png",
+      "sha256": "6f03736afaaae1314c86d3bae9aa1ed8bdf6b648f6bdcd145d6a7539dfed4ee0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-18.png",
+      "sha256": "0d6c8fadc512922ea35f1a92641a1cab935697c654bd5ae6f8d1c9699a2ca84d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-24.png",
+      "sha256": "f0c670ea2a0a53f045be39cb394500cf61a468a98d64af23902346035d93b91b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-30.png",
+      "sha256": "6b235040242d94ff9c166b4de5c2119c39ff0902ea0f78e00f348be17cf16f98"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-36.png",
+      "sha256": "d8c6879491162cc39392d227152d8398273e83ed1cdc5e715b0e73e5f8d7490c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-42.png",
+      "sha256": "3b81ca0633675818c77380fc1e283974981b5a99ca1ba66b604121ebe0d4b6e7"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-48.png",
+      "sha256": "4e663dce72d63ab0296e63d071770e5987108448e529d3bda4d995c0c04e4969"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-54.png",
+      "sha256": "153ea3a0707aeb364a3a90e2194a38ad4aff000b4a9dbf454a328f3e27ae4f20"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/opposite-recovery-60.png",
+      "sha256": "0ee0ee6613092a1e07b063eeaf4990968a26b0de40a6f1b9509819f32e5b50ca"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-000-source030.png",
+      "sha256": "b970bf51023c2bab4a919be327dc31c46722e1029035ed45c28e139ef4d1976c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-003-source033.png",
+      "sha256": "32bdc1decd6cbf0eb857b3f670484bfe72ea497a54cef8b762c1378a94cfe9e8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-006-source036.png",
+      "sha256": "e44f57070fe54ca3b8641d9a5eb3eb64b566b8e598ed05c21db503d412210b4c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-009-source039.png",
+      "sha256": "d6d3b0426d2fa183e986e71df7809a750e8686bb7d5017d06c8e88fd47597946"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-012-source042.png",
+      "sha256": "df3d05c648bbd7f03e60d2e9e5e208ee532d6f689b788b9daab2041e92143c26"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-015-source041.png",
+      "sha256": "0313e977bba42655c4750e203678b631cbbe3019a50eb26214d2cfc1f71602d0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-018-source038.png",
+      "sha256": "622acdb428a4e02ddd6446ec93f8c8e7d939d70ebdb37ef4be126c2de7a5a806"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-021-source035.png",
+      "sha256": "a4577c44fc37c0f762fc7430b4ac69fb3602ba2d6d607de3c51fcbec22c92ae4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-024-source032.png",
+      "sha256": "d23bd3564535155fcc0bca50c3076bfe5e9e278ee51a3055b53d74d98ad615ac"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-00.png",
+      "sha256": "dc134f1da8c04c16bacb4ae18f57572356b00101175724354f1eba4eacc78a07"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-06.png",
+      "sha256": "15d0e49515a7413aecba6e6bb43542fa75b7231fb416492189ab50c7bed81ff3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-12.png",
+      "sha256": "2e75529cfce1aa762ebe30321bf2061cd62dc92c47b4081048de17b6ff8e2f09"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-18.png",
+      "sha256": "761b516212b27f263fe583d87981dde664249c5a7667b66736d99f2c2f4fd29b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-24.png",
+      "sha256": "1aae9f207f8655b84e7cb1626abb0f3f0f6353f825f80a86fb8a49269c17369a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-30.png",
+      "sha256": "714d07c5c453dac027887c5a78aae7f0b443fe4ac0cbe6c19b180053cbb7f14f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-36.png",
+      "sha256": "3e2ff9df224c71cbfb58031574382040a3da1d696cfad7851f0126e4ee540afa"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-42.png",
+      "sha256": "1a71b43e00912ba213cac6916664a9d4e3f22b46c7951200ee3f30ed31621b01"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-48.png",
+      "sha256": "cf635e95292f4a83b6fc426c5d0e3501a6ecbaf85e2d81f77068f05479881ffc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-54.png",
+      "sha256": "cfb28febfde143721e7d671508f7278bd0382c139317b0e571916a6670735ae1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-entry-60.png",
+      "sha256": "b970bf51023c2bab4a919be327dc31c46722e1029035ed45c28e139ef4d1976c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-00.png",
+      "sha256": "b970bf51023c2bab4a919be327dc31c46722e1029035ed45c28e139ef4d1976c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-06.png",
+      "sha256": "cfb28febfde143721e7d671508f7278bd0382c139317b0e571916a6670735ae1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-12.png",
+      "sha256": "cf635e95292f4a83b6fc426c5d0e3501a6ecbaf85e2d81f77068f05479881ffc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-18.png",
+      "sha256": "1a71b43e00912ba213cac6916664a9d4e3f22b46c7951200ee3f30ed31621b01"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-24.png",
+      "sha256": "3e2ff9df224c71cbfb58031574382040a3da1d696cfad7851f0126e4ee540afa"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-30.png",
+      "sha256": "714d07c5c453dac027887c5a78aae7f0b443fe4ac0cbe6c19b180053cbb7f14f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-36.png",
+      "sha256": "1aae9f207f8655b84e7cb1626abb0f3f0f6353f825f80a86fb8a49269c17369a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-42.png",
+      "sha256": "761b516212b27f263fe583d87981dde664249c5a7667b66736d99f2c2f4fd29b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-48.png",
+      "sha256": "2e75529cfce1aa762ebe30321bf2061cd62dc92c47b4081048de17b6ff8e2f09"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-54.png",
+      "sha256": "15d0e49515a7413aecba6e6bb43542fa75b7231fb416492189ab50c7bed81ff3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/rts-recovery-60.png",
+      "sha256": "dc134f1da8c04c16bacb4ae18f57572356b00101175724354f1eba4eacc78a07"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-000-source030.png",
+      "sha256": "ea5887b3ec3a8868fd26187cd51cf74eba3f23c4db1fcf3ab6436e8a5c40540c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-003-source033.png",
+      "sha256": "fb558d95f849949a62f457c3c17ca426d7f0f6b2646d8da63d1d564eb2650bae"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-006-source036.png",
+      "sha256": "ca055fae7e736431dab4ab5ad51b173fdf218538c43efc9be3111372ccb87007"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-009-source039.png",
+      "sha256": "1b1360bdeab02e90e58a49e3474e3b83668ca12bd7e05d3ad6f4d78f9874a11b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-012-source042.png",
+      "sha256": "7dbf3d257eece3d4b2f4ee10c841eb15a549496ba4635575b34eb04c768a30de"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-015-source041.png",
+      "sha256": "1e1fb3ff5f9758ed16fd1bc6e4eeb9d3c671ceb593363cdefe37c7aa2d5b8685"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-018-source038.png",
+      "sha256": "4e19ef899dbc2166211fcd7c7bb2abe4e445e7ca7490b370fd17d4f054923a07"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-021-source035.png",
+      "sha256": "2f97c253891980cba17728f1aadee5a969b6ae52374ff4cba0283f96fd547bc7"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-024-source032.png",
+      "sha256": "107401c3e9fcbf9038fa9cb3a43827e5763fd1074fa6fcfab1b2fb50238be317"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-00.png",
+      "sha256": "7cb4f75cd027350028e88b2dd4456f811a2a917cc118f5f2243f9801871fb92f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-06.png",
+      "sha256": "714d2c58b39b4f470fc34e8e05910a3e7ed3daeedcd9d07a06a0cea161a1e6f1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-12.png",
+      "sha256": "c9a322d4085131abc06bd8f3ef79263b46877056f6ee10d8989a0970a4956001"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-18.png",
+      "sha256": "cb5f9ba5884ef9a772235e818ec48f64e6d39b6d7a64ea3cc72c996d98aa06c6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-24.png",
+      "sha256": "27164bb270b73b962db0890ef8acfb8467611b0f487000b5870e34ffea87c939"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-30.png",
+      "sha256": "98f47178a067e623974b8e0d233b021ff005eb1c3065ca2f82c875ad8940a9e0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-36.png",
+      "sha256": "cc28f2dd7a0ac5b27fc114a0fd49a41bf515733860c2b1398c2ba4732dc96abe"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-42.png",
+      "sha256": "394c3d4b73d7f95f953c23a77417c8dcb7ca8ef091e03af7fbc999b667470fe8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-48.png",
+      "sha256": "c2db7106d71459ccf3cbda9bd70b9a8257438aa051dd93f90c45407858212ed9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-54.png",
+      "sha256": "0d5a282f53648db4cf34650e37d86a1b9c624d9fe3fb250dc078e060aebe6c8a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-entry-60.png",
+      "sha256": "ea5887b3ec3a8868fd26187cd51cf74eba3f23c4db1fcf3ab6436e8a5c40540c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-00.png",
+      "sha256": "ea5887b3ec3a8868fd26187cd51cf74eba3f23c4db1fcf3ab6436e8a5c40540c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-06.png",
+      "sha256": "0d5a282f53648db4cf34650e37d86a1b9c624d9fe3fb250dc078e060aebe6c8a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-12.png",
+      "sha256": "c2db7106d71459ccf3cbda9bd70b9a8257438aa051dd93f90c45407858212ed9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-18.png",
+      "sha256": "394c3d4b73d7f95f953c23a77417c8dcb7ca8ef091e03af7fbc999b667470fe8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-24.png",
+      "sha256": "cc28f2dd7a0ac5b27fc114a0fd49a41bf515733860c2b1398c2ba4732dc96abe"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-30.png",
+      "sha256": "98f47178a067e623974b8e0d233b021ff005eb1c3065ca2f82c875ad8940a9e0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-36.png",
+      "sha256": "27164bb270b73b962db0890ef8acfb8467611b0f487000b5870e34ffea87c939"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-42.png",
+      "sha256": "cb5f9ba5884ef9a772235e818ec48f64e6d39b6d7a64ea3cc72c996d98aa06c6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-48.png",
+      "sha256": "c9a322d4085131abc06bd8f3ef79263b46877056f6ee10d8989a0970a4956001"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-54.png",
+      "sha256": "714d2c58b39b4f470fc34e8e05910a3e7ed3daeedcd9d07a06a0cea161a1e6f1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v1/side-recovery-60.png",
+      "sha256": "7cb4f75cd027350028e88b2dd4456f811a2a917cc118f5f2243f9801871fb92f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-source-v1/mole-worker.ugactor",
+      "sha256": "32fec59f8e5e85da5420a628710076f8c749644adcedb6fe286cda63c0315c5c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-source-v2/mole-worker.ugactor",
+      "sha256": "81d87330afa90c2fe3f1a7bd68c17358c4a56f1c314cbc190a7bf12b7ea412bf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-source-v3/mole-worker.ugactor",
+      "sha256": "c9f52e4597baba34b18aca48f05cdf61067ff2ca7e74480a820ef14bf1bcd424"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v1/mole-worker.ugactor",
+      "sha256": "8072e8bf1be6aa2695bf1ad800c5b07485987acbad96491eb5d67e5e85ad533c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v2/mole-worker.ugactor",
+      "sha256": "841e6c9ebc014b6e0110ef09409449d8c9c7d0e0966e79242fab74f7ee568c28"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v4/mole-worker.ugactor",
+      "sha256": "9d3d67a23913c2a34b7c7b9f2214dd8012f7f667583768ccd39dcaf250875931"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v5/mole-worker.ugactor",
+      "sha256": "c605f27f68acd104a983d5a0b91f6b5c6b3e1c800e794f0198654e4969717e68"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v6/mole-worker.ugactor",
+      "sha256": "5e686fb9215ddac7361593dd91b9c7c6464525456dbf75589de0368d23a4d02f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor",
+      "sha256": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-1/result/mole-worker.ugactor",
+      "sha256": "51fa5067934a14e19f75dec3e04e744c8e1a76ec1b4946cd341652423c44b013"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-2/result/mole-worker.ugactor",
+      "sha256": "5599c2e53384787deef8ffdf3ece4f4f38493a036fc0672d66cc9f52ccfc7c5d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-3/result/mole-worker.ugactor",
+      "sha256": "dca34ff051dd286b8fe86cc85354815fc83357aa8cce73df5a62a9bbb59f1cfc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-4/result/mole-worker.ugactor",
+      "sha256": "91e587d817c8ed66361194c690f0f37710e2208f8dc6259ca82749f8d6b0c78a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-5/result/mole-worker.ugactor",
+      "sha256": "c6c631bb87fae5eb8fcbf03233a0d15cb22f03ddfae1d3c791a9b5c6467bd993"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/mole-worker.ugactor",
+      "sha256": "c0d74030fc7e0a56a24d08315af197b82530aae682067f94e2bcd2faedd543af"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v1/mole-worker.ugactor",
+      "sha256": "05bda47ad9a3442832b751708f9e92d5075129be9e4670d527db1458adb2b782"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v10/mole-worker.ugactor",
+      "sha256": "fa44692f51b648cba987b99835a221e5da4277d9e8bedd64f0c995ef359b2e54"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v11/mole-worker.ugactor",
+      "sha256": "6335d6e299556c91a92953725c2d29d576e2a3b4f67973ea9834533f6da8d7e6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v12/mole-worker.ugactor",
+      "sha256": "f8828dcf63ee7146e964f211b4a3b0228cdbd2de9d5d527b60060532d51236e8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v14/mole-worker.ugactor",
+      "sha256": "a22558712e1c5e957bb0b856621e339ed237403cf4fdaa05cd1f6bba2e245d18"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor",
+      "sha256": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v2/mole-worker.ugactor",
+      "sha256": "a216ca189ddc5e3cb329b3de7a990a43158d642d2b1ded16296edbf615bdc1ab"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v4/mole-worker.ugactor",
+      "sha256": "a48387066709e27afdaa51ff11a2415e67c82eb42e7a4aca4cbd703cdd39352d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v5/mole-worker.ugactor",
+      "sha256": "6e45e405cca415d9b77ec6bc4f3d6844fa55df96d7b832675b277d923964226d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v9/mole-worker.ugactor",
+      "sha256": "2a249517ac0de7f5b85b1843edad1e37371ca017a8934455866763b780f10484"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-000.png",
+      "sha256": "37fe616a0792e077a1a0b5204ae198c05985d7bd9b7cdba31ad459401002dd81"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-006.png",
+      "sha256": "f7c804cedd0cd3eb074b30d94b2452216112a1d4c8a8f815b918db51a57f0d74"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-012.png",
+      "sha256": "7e2c35ce68d7dc7751432321fd654a77628d555dbb1600fd1f133327496fb71b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-018.png",
+      "sha256": "f87fe50bc9c11cf65b499cd574caf49f62f9c1a561ba4ccb7e07c4818d3ebca6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-024.png",
+      "sha256": "c9e1a116895f02aca8518a66e526bdc628b852954e016a15bd065e535a49d2d1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-030.png",
+      "sha256": "70bb31b4f503a7a2c6d2d4cc298cfde202c748e6b72f84a4f0af363d75731809"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-036.png",
+      "sha256": "6834a4a683012700e206867ffcef38b0b8e829dc154c9dfef8615a717dd00887"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-042.png",
+      "sha256": "c24bdeacf1431a5edd0e61ed6702f109464050473eb3fb8c0dd7992c57d39152"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-048.png",
+      "sha256": "b156c828711929362911d1f2b59396adbe0f13906a3e570ef17809b38b091a41"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-054.png",
+      "sha256": "741c9697fc8f674075aa6435614414ecb9cd30358a3a5386c7f92bfd4026bc3d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/heavy_hammer_swing-057.png",
+      "sha256": "de6eefeac87e84b327c892556e55e261a387f05b779521cb7b5f30858009cdd5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-000.png",
+      "sha256": "2f542160ff90752648aa703eed2c5699c2a68b80531cdf573f7e6bec3cbef166"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-006.png",
+      "sha256": "b102ed11ddad11632e170d3331fd8e7dd669334103c83988ac2eac092d30b2e4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-012.png",
+      "sha256": "67c5ff566f13bca9c655ae345ebb66943f9f248d1720489bd93addab9c042d85"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-018.png",
+      "sha256": "f00f31c37d0f6e28c3a6048edf0f802e638d4346a4f79b72888a14c7ab1e75a0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-024.png",
+      "sha256": "d16342489e134baf2c5520b27896035d84ffa92aaebfb573cb09ced88345d67b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-030.png",
+      "sha256": "a32e32c23fbb1d1eec393fc6ff133a1959549326522b65ab00114a190757804c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-036.png",
+      "sha256": "2812cd3ff8c9ee7d8bc5f5d118753e97911946089429c6f1a726232ec43cb085"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-042.png",
+      "sha256": "850799d22a027f93ee858d23bacb6e3cb2643f96d7edb6e86d4a19fee6cb13e2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-048.png",
+      "sha256": "8996d73e62e291948df68532dab7ad5ae0b5af4520c8b2f78c96d9f624c573f3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-054.png",
+      "sha256": "8f18f1f91d9840fd8bb8667b3d24a01a46e70d1330039feae32e606d9ce47442"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-060.png",
+      "sha256": "37e30798503fc30c6ff00ad1e6acda48d9e16266328076429336a41dc0903c4b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-066.png",
+      "sha256": "7531269d7c631a54cf17b756e6d0779c653f999d6c602217e4eb496564db7d5c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-072.png",
+      "sha256": "0fe22b47867635e52ef784e4261b2bd37b477e9b2c095e4ebfdf6cec278d7472"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-078.png",
+      "sha256": "7366ac8e1f45d4a209b7bc7ae20552c8afe108c4b61580b3af8ea611a81ca0a1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-084.png",
+      "sha256": "738dadb4c5fb1ce99a19814b7838b63f9f5b669d4a8d0a0e8818d301a28d5b44"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-090.png",
+      "sha256": "0a3b23187ba673e197670d127c9fe4e6f22fd76743e40a80357a395e8ee685ef"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-096.png",
+      "sha256": "18dd7749fc969a9813b6906376a4992dd81c6a3cbf4e23a7b8eb3ffacd69e11a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-102.png",
+      "sha256": "9c51179b2192c30b59670b93f50ec77a205301491c7d309991a63b3393575785"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-108.png",
+      "sha256": "158ff889c2f3b079d5159d48af3320fece30784076f4611a83b9630ecc453b8b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-114.png",
+      "sha256": "4757740c67cb7d3a689c4cffdbea0fb9b705b366239698e564d1f95db4cb2029"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-120.png",
+      "sha256": "9828bb154c41f258e6259b23c31968240e4d069ccf178e936b24e270382f79fc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/idle-121.png",
+      "sha256": "dde06cfb03d06ff1fa00c2a683e2a4ebf22006fa3b2ff2c2cb85eac88a630023"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-000.png",
+      "sha256": "4768865fd2f0bde51e77a3ec3fde4f7181d41e426a9bcae954058c6c7da6664f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-006.png",
+      "sha256": "b31232e8037d06cdbea77bde7fec04c90835cbe27565f3d7b61f58605076fdb6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-012.png",
+      "sha256": "ac8cc8010c05feecb15213cfc8b01232874ea48d422ea11cb01e10048bc3b5ca"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-018.png",
+      "sha256": "2b429808283a90ad930c340dfc2fc05ded7c24cf542aeb40180047984f86efb5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-024.png",
+      "sha256": "731f88a84e3de621eca4a3ebc41c9d96727a6f54f1c5659fbacfb8ff76110ba0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-030.png",
+      "sha256": "0fde6ef189a28ac88e30a5c0749483b4b8f8d4af7731b0f177269b30d74ed4d8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/left-side/walk-033.png",
+      "sha256": "bd81d86dbe8a5eeb70ee38c757f26c079f8a5196e0507836af83bc10a04ad025"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-000.png",
+      "sha256": "f86e624e55dbca24127a70c625a74cae03574e504512374c0879acfbb6fee58a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-006.png",
+      "sha256": "40650a5b1d00833df7094ab5c5e57b3c52768f9515ae71c96d141c00ea982faa"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-012.png",
+      "sha256": "c3b0700fefac658c9d52d0efa5d3a5535ecd4f9a517fd9c1ee9b4d5bace05b7f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-018.png",
+      "sha256": "0aeb04d210ded2cbb1b29166bed7ee05d4a2004b9634df9dcb39536e4b8fe8f5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-024.png",
+      "sha256": "d5a13cdea571d741bdbd14ade8ea21eb8e5a8943dda900734757ff507b39087d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-030.png",
+      "sha256": "894b9dc298b427e53befcbe53b76510b68e1ec336ad011867dd0b0ad4f787754"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-036.png",
+      "sha256": "2af673534cd62aebeeb69a0918e2e96e18349063b7c195a85743921a1dc5a924"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-042.png",
+      "sha256": "fe5045e6bd0ef1c4cb085d7d291e33267de5b2eee95713b8abd1d47f89f63a0d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-048.png",
+      "sha256": "565b5dfda7ced4ae65efb696aedae7cde78f9a956f01162aee10ef05c76a20ac"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-054.png",
+      "sha256": "a38b4cd631902febb14b4db8c60d1d113049a95e75b09ed2798c0c740a20e3b7"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/heavy_hammer_swing-057.png",
+      "sha256": "6305d8a0ca4f1c089ad3d9cdbdf3d017a5aaaafb2ed3468b18bd793441d3d1d6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-000.png",
+      "sha256": "8b817bed6df6abfde7507e79783e4c6ea52c09811e53200ce61943a6a7581cd0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-006.png",
+      "sha256": "9dac702f287abb2964683528c11a188c02ce965d95b545002bc5d414d83e9980"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-012.png",
+      "sha256": "960a608c04c8871c23eb6dc28ee2be674b63c068b067df16e69faf5d44e23b8a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-018.png",
+      "sha256": "b88f0ff4f76ba1f497bf17771e2ea4dbe9d1092175b9d715767125f9b01ab1bc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-024.png",
+      "sha256": "2083b46e15ba825676a97236cd6108d894d31c252c11efa45ea946b689ee2bd9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-030.png",
+      "sha256": "04a0d0456526618d9a6441821ee27943f7a032b798e5ab9b641e0224a047bdc8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-036.png",
+      "sha256": "a0b03226a19573ca48fbbcf86c619ed0196f03e7a5cb395293d820633aa373ed"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-042.png",
+      "sha256": "a134121943dddb3c7db63606de8e89d67594c94c22cf7ab99ab9d4714804fd5f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-048.png",
+      "sha256": "b084f072a302422224dfed1c58209f34e581080ab1bd5dd72b3dcbc8ddc86110"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-054.png",
+      "sha256": "cac8c4e1d6fb1b4e8b141651d6131633fbffd77fc28bb1afccbbd5e34476f8ad"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-060.png",
+      "sha256": "c3a86433b9b269448f3130331477c6c500629eb8b5007239a1525adc34066649"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-066.png",
+      "sha256": "7e2748a8042066c187ef6fc16d7caa670fe4f2c5d72b2c8df3cd5fbbd2070a2c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-072.png",
+      "sha256": "62f47d17d767723916bb1b963092bc8383ad057ca1ce7d92c156174b4520b9da"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-078.png",
+      "sha256": "aeebcd4db195f5d00612ee829c2d0088bdf0d263b144fbdc7d344be8b200c152"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-084.png",
+      "sha256": "532e1e5c56c15a13c9652a1cb216589556adb61cb861b929ed94bc9527e89dff"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-090.png",
+      "sha256": "7c3b201dd967d11ee4bce2fe943cdb901eb7ec8760f061f8d9a5e304ca4fd953"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-096.png",
+      "sha256": "d08745dda5f13f86b73aef7e39aa2e15a623cb20581e73cfcffaa0f84e4f986b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-102.png",
+      "sha256": "a39011231c574c1f5c4cf3e1344ca48cead49acfc9fbee4c2952ea10e28745cc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-108.png",
+      "sha256": "e09b1b41ec566781e8a097008036ee547716070e1ecf20975d76d85026af574f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-114.png",
+      "sha256": "d095fa6c422c8b233edda735143ef53d62714da6b893cbf63eb048d39ada77bc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-120.png",
+      "sha256": "74b531a9578a73a724407d31dd3cd3817aa354b78d540194b37d4ac921aec14e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/idle-121.png",
+      "sha256": "78440b367e9dbb0bda89fd7d50b420d238027908243029e18159e8f1c00928d1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-000.png",
+      "sha256": "c8ec16dff78a96d582fce87097b589257b1f52f261fc2530c3b50f662d0e6b75"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-006.png",
+      "sha256": "0c15d1b8fe28b1137d3600998d1da437fb980bad6e1e4d880da3fe050bd1421c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-012.png",
+      "sha256": "43e94603e3a300f3d65eac3aa1d36bd6f333d5b49d5250ea1e96c747909493e2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-018.png",
+      "sha256": "2d89d9f9c11c5f396f3116361177081306281d5f0f960b5958e858e8c0507e2f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-024.png",
+      "sha256": "e62557c8a762f9b31bf55393fed24fd89228b78870ea7db21a3a62226d694093"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-030.png",
+      "sha256": "742a7485041e8b44bf0143474a61dec2b5262e9b8b38a5780d91a47989b83016"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/rear/walk-033.png",
+      "sha256": "d34f8572d231974bff84f76f70913ba08e8d14803c2306c4fa3cb4de06e12bac"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-000.png",
+      "sha256": "5310b35d9ac72aac2f81c26db2713f39d43f1747a4c82a6e48542b822a34f7a5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-006.png",
+      "sha256": "119d923ba068292c3f9c74c8cd9ed6f979010da0a26b7416becdeba9c621b423"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-012.png",
+      "sha256": "61be2486fe909313c72848a29a88d3ac3a1227811d5cee3b14725907900f34db"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-018.png",
+      "sha256": "c9f58267dfc441dd6be5622c504a5ff7b92bbe349cfc2a43a41b5ced9d838d87"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-024.png",
+      "sha256": "da9fbbd6e734bcb543d7fe824682ee07e18765a3b44967043cc1ba22eaa48512"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-030.png",
+      "sha256": "97de1b125fc53281e708f6832c10bb83fe121effa28a7a9af29c8505653ac230"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-036.png",
+      "sha256": "b88989e0dabd9a4fd42a774c22c1ad0a53d8affef166c2e53c3bc8b6392cdf2b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-042.png",
+      "sha256": "61f89e3c4244adda88df595a8b672fb86ce3f5a482ede557b1b5b0deb9a420a9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-048.png",
+      "sha256": "3f9202119a77995850819117de6cebafca5f2a46a66310a16b88b18d8a51274d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-054.png",
+      "sha256": "bbe2f2273467e943cd8cb2ff9174096234f0052a44167dd44681b3cd3804a988"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/heavy_hammer_swing-057.png",
+      "sha256": "fe99f0abae974382e984b3ff28a8535b7feffc15443668ba5ef9cfd74e5fa2ef"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-000.png",
+      "sha256": "770c4e669ded59a25e427284192bead4b3b97d32f465513df04257534338fbc9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-006.png",
+      "sha256": "a74e705f942d066a27c5756413f1642b4982b030ea38f2793abc674ec0ad6998"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-012.png",
+      "sha256": "be80688286c5b72fe1021a14de0e46526e1e5361dfbbbb480d882a8a67623d2a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-018.png",
+      "sha256": "92a63c621de743ba081c2ac0aa3542e21cb499acb2621fc6eb1d1432aad94e65"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-024.png",
+      "sha256": "d92aac456297d05eeac7efb321e17e2dc7bc80fd99b4836e745170e447123d1d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-030.png",
+      "sha256": "12193cd6e507c6b91765420b00ed40563475df5f01f1aee083126464c71052cb"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-036.png",
+      "sha256": "2839f41bdfa6534a97c0e3f090f4523b1dc04b4a6fcb15e8cfcf9e349d2d1110"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-042.png",
+      "sha256": "89108db573d4a364ad36f102e99655c2a4070534cd749edb02266e3c2692cb49"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-048.png",
+      "sha256": "ce1e1194cb5cf19b50019acce3390ccce2628afc23eaa83d5a76175ab24c8612"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-054.png",
+      "sha256": "cff80e1b40ce107203f9c530a51eebcd2a59f5dbc79c0a60d2785a47dcb5652f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-060.png",
+      "sha256": "9d046f979185deb8b9e050c6cb19e491c3c77166a964f18946c88a269c65827e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-066.png",
+      "sha256": "ddc0b9e92ddc0701d0915228ab1f8b56f652936c5b43b87f1b422f66a4ece929"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-072.png",
+      "sha256": "33a5613870b1dff59c8c92ff925163aa9d3671a30b9c3d1d0891e1e731847a20"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-078.png",
+      "sha256": "d17b2dc422d18f11a5c2370bdfdc5062cc2126eee33aff76b427ca4707e49f12"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-084.png",
+      "sha256": "c8d90feef6038e4e0805f620c8f1215995dffff3904475fbbd7669752185d19b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-090.png",
+      "sha256": "aa96b8dc48542bc0c88c6109fba52846d91965a07b96c0197c9979e46ff3a31c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-096.png",
+      "sha256": "1e265b709fb2f8c98268f959bbd12fa2bf798d51869167738d05e9e04caa415c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-102.png",
+      "sha256": "a9c700111a226151f965fafd063b191d4a93f597cbc446562e180cdb4a7ac0bf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-108.png",
+      "sha256": "eb60ee5e439b5c34ecd742c41822a6b3c90327d8b7b0b8e13e48d10270b9c35e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-114.png",
+      "sha256": "99b299d36e6d1f054f0580492ee38bc1ba3d76c7c5ac1811ada8cd7b4c3672e5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-120.png",
+      "sha256": "6349aa8e4d3c5ea8936f030820a5c5b0dfc24e8b202e788f3993634ec171544a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/idle-121.png",
+      "sha256": "4405f0c19d995738edfe3bf1ca13743b8fcf0cc4b52970a67fd1ea5a757a8fa1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-000.png",
+      "sha256": "a1215d8113d3a43c67a7302e0e429d1517979f84f1b634c6025ec673c0fde060"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-006.png",
+      "sha256": "6a92b63bf957d9fecd582a3211cac1bbc84ecd477046e48b7c24fad90fc9c11d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-012.png",
+      "sha256": "436c1e1df50b24c3bb879be67a6acc3e02a95fddc5a5cf5932b489f916d33be9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-018.png",
+      "sha256": "a42e9ef13f7a76690336a7d84d54f189c0310467bd8b9d44437d4d480625568b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-024.png",
+      "sha256": "c483f0302b13674b534aba81bca9af33d7f1e6758b60e894a9ff7d91b51710e8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-030.png",
+      "sha256": "bf54fae78bc7af743d5ac65c2d44bf07202c7abb162c9eb8cd826fc11e808a89"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-angles-v1/right-side/walk-033.png",
+      "sha256": "bb4cc6b2f70eb1260e648f2a73e9279349782dbf8a5797895fb025ebbf998c56"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-000.png",
+      "sha256": "2cc162d19b9cc4a760af981be0cb0f8d6111d62cbcf882f85e293b09d421b8f2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-006.png",
+      "sha256": "f3fdeab33f82e379a3d17af3f30460fff1520d26055922c4d880320c2dfa8dbc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-012.png",
+      "sha256": "1c3a41e8b578d7f454d8e6a6f64da96994e0f1a2f992dd9a1ae03328e03093e4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-018.png",
+      "sha256": "9dc6bb063328ccd640e1f3be41fba5ed9653b3d5fe755f8201a255880441364b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-024.png",
+      "sha256": "ff3428f66c562e8a7b4e299af1d14cef7ae5225f316c98ea7d4cad34af36f320"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-030.png",
+      "sha256": "4b60a0eafaf754073723a18dbf87caec5fa2ce1368773410596a7c8bda7aea03"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-036.png",
+      "sha256": "7358b0f95764497b112fd80b42ffc7c91b2bf62a4dbcfadb2dfafacd6397b864"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-042.png",
+      "sha256": "18a0b663c7782cd6a17d0af2be2b39ab510a4c4ddeaee2d0859dde3521ec4903"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-048.png",
+      "sha256": "9a6e11ef812799b303a4d69fe45a7a84ab7e09d085407a0cc4c50bf00828af0e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-054.png",
+      "sha256": "72ff1c2494c88d7947e59621585c0cacddfe9b63266128d2d4c4a9a5b039546b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/heavy_hammer_swing-057.png",
+      "sha256": "914054deac62f27cfac7fe53a854d64131e640a3937393ead8c7032314e5d99e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-000.png",
+      "sha256": "a39bc9c9bb07f102e6f92a46cd6c64769b4db3e44023749d4ec9151e9ae51a8b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-006.png",
+      "sha256": "ddd4ae57b0a9e7e469aebdfcad20d60f60f3c891e4aa2d132543f4083ea8568c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-012.png",
+      "sha256": "2516cce7bddf361852e6a45b695d1294d95f132a3c2ff508ae7a7d1eba441a9b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-018.png",
+      "sha256": "075918feacb5f672898cb345eec412527f7dcaf05c2eee4dafc6a342d918dca5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-024.png",
+      "sha256": "c28914e895c3dd9204588449422538b2eb9c3118ec621a761e3e6e8d34cd29eb"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-030.png",
+      "sha256": "f1bd3c7493e690d1ff8298f70c7354bcaad02384df38928e248c5efe9ccfc0d1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-036.png",
+      "sha256": "37c9da40da583ec66692bdfea8ac64a188a14f7d1f305198704660d0bbae7076"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-042.png",
+      "sha256": "eebf313c735d49a9158249160b7f1a66af9d3b0d8db32533dc3743fc4cc4911b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-048.png",
+      "sha256": "e0c2aea4ec69e5ca54dd0ea93f66a06e99b2a22e175d94090170389744b0aa18"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-054.png",
+      "sha256": "3ec175c52a665ccfa16a159680ba84fe018b8c76c3572b18a7f9e6cb875b10ef"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-060.png",
+      "sha256": "7b09a823e3e05ef509132a4810ad15420b4e40cdb058767fe0ecbf58beb9b9fd"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-066.png",
+      "sha256": "f7f034aa1fb630313b198b0342478b9a257ff355859f07bb71404b1532965e98"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-072.png",
+      "sha256": "43eed76b641ac7560c55c3a0c81467d091f16c53d308f0f0ece84d525c51a17e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-078.png",
+      "sha256": "3842578661c74c3c1410732954d41afa22cc99e0e08aefac583130f1721aa30d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-084.png",
+      "sha256": "1b8eba4ce994ce48d6e5c425d5974363b9efa3c05b904e1b7bbc0675d52095a1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-090.png",
+      "sha256": "69f6b1cf2eaa7ee4d734e5019ca4bd3b3498c1086d070acc9024e8e384930c3f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-096.png",
+      "sha256": "878d15cd3952b402bb7c0b92ce84dba33d770ecf9aa27c6063fb6b99dbbee171"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-102.png",
+      "sha256": "9d21d9ae875588cd9863274e948879cb87391dddddc874a662d50ddc537b4ad5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-108.png",
+      "sha256": "3e4da6165db3677a05903b0525494c993e15afae2f526c840a5eddfbe4893eb5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-114.png",
+      "sha256": "c010a8cb7938fd9919fb562787d235ece539469873acf6afb9e3a01dc52c383d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-120.png",
+      "sha256": "4acd7f31897ae013ccdd26e23d48f14edb747d63dde6397cdd762ca609c43897"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/idle-121.png",
+      "sha256": "1a1deff3bfbbc59ace4139c63d00d81d5071adfa89fbc2cb6f7a969e7a177bf2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-000.png",
+      "sha256": "82911d3bfb8d5a35e3a3014946cf1618c2738df7061750dd7622bad2985a0b2c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-006.png",
+      "sha256": "b1ae05a421ccaf8e6fa1ed8574ddebdac564a27ee65e0069fb32a0a8127494cd"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-012.png",
+      "sha256": "894cef37cac425d6b44c220028559879da4f870911153d693c0c5c1eb8db94e1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-018.png",
+      "sha256": "d437955734ea91118837cb7e3f76c303b2d86f5a61f933a3046f36ac00bf1494"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-024.png",
+      "sha256": "9c24d226a0adbd267a088c1dedbb76b14d8d112bc6589bf17e7e1deeda5c4187"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-030.png",
+      "sha256": "afe25206d739db711275208fd843996ba09ffd8ea66d950aef4b78b608f9ea25"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v1/walk-033.png",
+      "sha256": "986afb5a885f5228a4e9b4d7f6de553702b86a83250b526f62b6f037c36070a3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-000.png",
+      "sha256": "2553fe0a661c6f2547c4f9b94d44a36d458f9272fd8736718b435371cf6700ab"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-006.png",
+      "sha256": "3e66ae1e89b6777d67df8a6f0566c5fa1b8baab55899180b5679618ff10cd196"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-012.png",
+      "sha256": "e60da952f82d2ad9938e99e612362da09b1f4621d428666e92575f258f2ba457"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-018.png",
+      "sha256": "249833c85c1b638b7739b69ad55d71527c76876d81aa0f964e641e6ca74b5218"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-024.png",
+      "sha256": "7fb97dcec60b7469d1bf9b06907af3a2788c816962121efa18f71409d10d9f56"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-030.png",
+      "sha256": "a37c23c8e1fc5789c77b958b9c20bba9aed2a02d6907de4bdf3c9ca485462349"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-036.png",
+      "sha256": "42d2299484e5b1c4eea864ec84fba155c5b6d52fd134a795b2a0ed4a9d8c27fe"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-042.png",
+      "sha256": "d2de81ed16668454b22cb4cad9fb28efb0056a03e0257c35ac477953759fca7e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-048.png",
+      "sha256": "3851e9a41863797718cf51e77ca3a985453aa42e41e55c6fbe60efd3cbf88792"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-054.png",
+      "sha256": "18b0941d24a060050166291ea59c0bb04fcec7a19fcb2f0447f96987d0a271dd"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/heavy_hammer_swing-057.png",
+      "sha256": "d7e3f2e56675e7fc5b3ca09271c0d7e644003ab7ba2928f161dd8aa6eeed8be0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-000.png",
+      "sha256": "08c2dbccaf0f54e18646fcd8573c6da8e1f1cd11f4f2c2a779536d0fbef27b7b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-006.png",
+      "sha256": "e7dd74aacc1227042d000f93c3be3d162f98eb622f2080f5871a99afc0757959"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-012.png",
+      "sha256": "ed0be7953b7dbca71bb8473c788e66314a27226cc8595c4347a30d3316cc72cd"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-018.png",
+      "sha256": "da62433fee54ef31513b52f055441517454111bcd8aabf748b168c908b337391"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-024.png",
+      "sha256": "159db090c78f4ef9921aded50ad53497ac36e0b203e507a00fd37a929ac4ddf4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-030.png",
+      "sha256": "31ed2a768db633bee39d2971d630303b6df0c062018eb4b524305092d266f0f5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-036.png",
+      "sha256": "794c981750970304706224f786ab2729f611f9cb03c8b6eac36e16402e0fd16b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-042.png",
+      "sha256": "09ee8cf4c05d85f3a1efd05fbc528eabb939fa06a4d55e4a35f87ae3090d7d97"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-048.png",
+      "sha256": "f2060b41d4ea9e88d62abc473c00fbe17e27fa78d7664085ea9fef8228a53361"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-054.png",
+      "sha256": "4e4e58139bb4ed57f802533065af1502d5e1aae9f1468741dfa4e30f5845110d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-060.png",
+      "sha256": "3d198d45b184e2d1c73de2282799a5a82932bf516386112fd48fd0e350b92096"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-066.png",
+      "sha256": "90d9d146840d8aee4cd4aa29b4c2b2a2a1ba45cdfb34c051c35d27adbc864345"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-072.png",
+      "sha256": "bf52e7f2bebb805fdd7c7c250e4382c00c34f2a77ce60245a87b5f6c8f2e1d0d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-078.png",
+      "sha256": "4671e3b79c6c43f931deabe96127a4b58c1f3dfab23c8636ae9cd5a715f14b94"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-084.png",
+      "sha256": "7ee2f9f73a8463ad8580643363496201eefdb84ab11f85eaaddf7a2e811d348c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-090.png",
+      "sha256": "07fdc7dba730f8ba2b9e5a6d5588434b412e6cccd1550f51fcf56a4fda2ccccb"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-096.png",
+      "sha256": "7bd5930a722be378f2acd047dda7440e5524c0c9b303cbc3877982ab5ce4873e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-102.png",
+      "sha256": "94c6cb9c1c7f1eb011e4a1b7fb6951fef8bb3b3a1334086a5616122f7348136e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-108.png",
+      "sha256": "464248d1e87e8b240b9200c8d68441e82b86bf25ad88f012b1e6d0be99448ebb"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-114.png",
+      "sha256": "5c936bed8502292f208bfdbb00c52231d29d031dc355e0479b02177ecfc02758"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-120.png",
+      "sha256": "3251145d9e6602f33e1da1361373d509fd5cddd9453ba8f94500893f907eb8a5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/idle-121.png",
+      "sha256": "d60c9ce5da7e6222ed6e9a24616f7005c95bea640cbdef4bacace8f96a5f1a54"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-000.png",
+      "sha256": "318c8a39d1b1c713d21f215a20827d73a7e3c063342468f13eb548c96aedb7be"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-006.png",
+      "sha256": "9805e9b5dfc3196f61825c56b947bf754e7ed0b9c20774779a42f8c532d051d3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-012.png",
+      "sha256": "de9de3258d3e0582ccb3c72759d34cdbc48a1b83feefece743ee80417ce9b6a7"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-018.png",
+      "sha256": "55ec25e9ab2a14794c1d61dc2ffc4eaa3f1d62ae213ea960a6aba8753bf950a8"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-024.png",
+      "sha256": "9d992e0f3f5f21db13176dbde4416e24d5ad4711347f4dc20a916c441b075b72"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-030.png",
+      "sha256": "2d325806b8fcf2495782e6c399f693866ed257705f7c43181715d50c716fe59f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-closed-v4/walk-033.png",
+      "sha256": "f3d1315240f01ebcf7c4287bde85b1fe11470d431d3744b3ed29a96c9f168128"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/blend-0.png",
+      "sha256": "fc2d3388da1bd73deb888f4f945cff4e32e053469a01f9b03f935dc65a848a8e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/blend-1.png",
+      "sha256": "6ab32d7326cdeab0f2b8f3e83eb1e5de0fe29f98077a28f667ab946b3eeccfad"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/blend-6.png",
+      "sha256": "8fc51e70aeeddf28a7ce4a1de4a410a31f549db17418e9f8f6d88d33161fee43"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/crouch-00.png",
+      "sha256": "2742e3a98acae4d2b065cb460a8dd7bf0fe0fab39647ccf9cf742cfa688d7f4a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/crouch-12.png",
+      "sha256": "9256ef1f94fa5ac98d4a0c6c9aa9a8ba955145683a90411e7e00b50bf1ed9a94"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/crouch-24.png",
+      "sha256": "fe008c79563317279c29bba1b75ce9dda83f4f6c23d7bdf0be10fcb13dea746c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/crouch-36.png",
+      "sha256": "9081b7ffbca4ac89e2cbaf48e9774c93a78e51ca105904ba4c034ee396be6567"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/crouch-48.png",
+      "sha256": "99a907e77b902800fb8bb43a80c20d464d4626a8ffdc5eb2f42902e54e03db0f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/crouch-60.png",
+      "sha256": "dd650e3dcd8b04f47e8bd78b288319e8e4e444529961784cc732ac1ffa2eb919"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-00.png",
+      "sha256": "b2f2884188fe34aa9291ecce7c7a3d3cefc023971db72695d10e96e79066c3dc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-108.png",
+      "sha256": "f8f59afe0f97d1452a12c1e28e9bbfe99b9433b1200906d3a31daa6f45de53de"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-12.png",
+      "sha256": "df87cbd63209540e39b118ea80643e48a9718e22f539f59010b2510082cc47e3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-24.png",
+      "sha256": "f006e0e9e1955a7fb384c5c7796428803babf87a5d02e61c8dc8f61e90a8d64f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-36.png",
+      "sha256": "907d154ee08eea3b4fc598755f64dfa35116007fbcb1a05da84c2d257c218407"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-48.png",
+      "sha256": "3c0968f93330cdb57c27ed03698afaea769cb00efe8ac9a5c94615b1ffdb9369"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-60.png",
+      "sha256": "1d2e8e01b41ca01562b84c5d7a1be0da6065a6352d7c642deb6022efc335b790"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-72.png",
+      "sha256": "4e0fc7320cc7f89b904b895ab0d75205cb9686070e6fec487f0fe65d7d05dca5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-84.png",
+      "sha256": "f34dd48972ad85ddaeb82e2fb8337be55db8afc716c3a2cae8e073152675d8f2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/hammer-96.png",
+      "sha256": "8fcd1498de8ed0c5fc810d05c8c5bf03108656f28ba11142685961f00cf2adaa"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-00.png",
+      "sha256": "820ed257824e27587731dc9a20c02367a20410e04d0cb894217896a9d17dfdde"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-108.png",
+      "sha256": "41fdb5543086d646ca554362a57774cef9957d89d90cdde364809f155e07fef5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-12.png",
+      "sha256": "a4c17a3904e450037c26666ba4e08671e28d1726b85e5b65bf39fc9d459b464e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-120.png",
+      "sha256": "087ea9419a05119fec978452fca2e425fd85b6439fc15ec545cf4c51a7d8b74e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-132.png",
+      "sha256": "19950c2233c0eb072244a38787f244ee9e0cdb6db427124e8f964fed6d147d80"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-144.png",
+      "sha256": "2c03c29c415e7e276159dfffc2caf3ce61d0e7a2440622acf9f99481d48462b1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-156.png",
+      "sha256": "6e1ed005f78c5c4398356f72611f2a643896a06608d301002286309811416684"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-168.png",
+      "sha256": "298dd56d71c0e3c58f61367a021bce23605b0b59196da6494149ac0bf836507d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-180.png",
+      "sha256": "3346442994ddaa16f11fc7a0574e8b5187a19ece8790e86e526132d008b97c24"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-192.png",
+      "sha256": "f5b567fbde3f06e24bbccfe2715df6bc35f8e55e792757a2c4c45a2bc9142f46"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-204.png",
+      "sha256": "5ba66f6cf55a8fb11eefcc999dfe46dd1d391f2ec42f4591874a213e678b4a31"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-216.png",
+      "sha256": "8b3b71fe2ae3b71b03e48ecf68680a185952c1759dbb7698a12e1999edf075a9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-228.png",
+      "sha256": "58483037a4a574e0856ac91d13abdcc43a93dbdfea40f7fdf7d5f6f851ee3bd1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-24.png",
+      "sha256": "2ce1e34b740718a537764df5ce7a149ce6adf0cd02448d6ed7421967b7c3f67a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-240.png",
+      "sha256": "29d3fcac3325169841ebea7ce3c2a299919360e2014957ad9a8ebd3faac59db3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-36.png",
+      "sha256": "f617e99288b48b445aacb0a22d2690b7ab312add3e8943fbd998fbef9e4b0929"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-48.png",
+      "sha256": "4871c688ee3d2f852608930ed0eb07e0382858248af38d3a79d5191c98ed9de4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-60.png",
+      "sha256": "9cbe3ade6f4c205686ddb278020b27add3440352942809d840fc005fae4dba86"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-72.png",
+      "sha256": "d4fa7290e4fa533d6d8b24aca81fe3d2a4fda739e75cd8fd6d4c1f46ba06d724"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-84.png",
+      "sha256": "77ae7ac79c739bb6a18865cadb3ce32824bb4aadb8ef066f550a329d08d3ba9d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/idle-96.png",
+      "sha256": "43fa04dfd4d91ac25e6a03c440dafe2adb1c053171f878de35981df67e0889cd"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/walk-00.png",
+      "sha256": "186369b2da27bc445744b6bf7f820af70e93370771fb50753b873ae891b95d09"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/walk-12.png",
+      "sha256": "cdc86a85571e5b7a78139b9a225b868a03f3e0fe4212dade170bb1ebe61d3854"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/walk-24.png",
+      "sha256": "d790c69aa1b24112403c272b60ba2275a8055f0a28c5525ff504690a6b32e993"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/walk-36.png",
+      "sha256": "c8b3f8a70ec82f65dac2fbdc2659d6acaa1656b77c73c297beba3900879c5254"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/walk-48.png",
+      "sha256": "58730db8f9bc373ceb1e79691bc21088f18d5f49781c926612d56fd822e7b18e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v1/walk-60.png",
+      "sha256": "10f37fb00c015bd60024d5f5c095fb9d949fd84db34eed443fddee7a9d338d27"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/blend-0.png",
+      "sha256": "fc2d3388da1bd73deb888f4f945cff4e32e053469a01f9b03f935dc65a848a8e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/blend-1.png",
+      "sha256": "6ab32d7326cdeab0f2b8f3e83eb1e5de0fe29f98077a28f667ab946b3eeccfad"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/blend-6.png",
+      "sha256": "8fc51e70aeeddf28a7ce4a1de4a410a31f549db17418e9f8f6d88d33161fee43"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/crouch-00.png",
+      "sha256": "2742e3a98acae4d2b065cb460a8dd7bf0fe0fab39647ccf9cf742cfa688d7f4a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/crouch-12.png",
+      "sha256": "9256ef1f94fa5ac98d4a0c6c9aa9a8ba955145683a90411e7e00b50bf1ed9a94"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/crouch-24.png",
+      "sha256": "fe008c79563317279c29bba1b75ce9dda83f4f6c23d7bdf0be10fcb13dea746c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/crouch-36.png",
+      "sha256": "9081b7ffbca4ac89e2cbaf48e9774c93a78e51ca105904ba4c034ee396be6567"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/crouch-48.png",
+      "sha256": "99a907e77b902800fb8bb43a80c20d464d4626a8ffdc5eb2f42902e54e03db0f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/crouch-60.png",
+      "sha256": "dd650e3dcd8b04f47e8bd78b288319e8e4e444529961784cc732ac1ffa2eb919"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-00.png",
+      "sha256": "b2f2884188fe34aa9291ecce7c7a3d3cefc023971db72695d10e96e79066c3dc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-108.png",
+      "sha256": "f8f59afe0f97d1452a12c1e28e9bbfe99b9433b1200906d3a31daa6f45de53de"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-12.png",
+      "sha256": "df87cbd63209540e39b118ea80643e48a9718e22f539f59010b2510082cc47e3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-24.png",
+      "sha256": "f006e0e9e1955a7fb384c5c7796428803babf87a5d02e61c8dc8f61e90a8d64f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-36.png",
+      "sha256": "907d154ee08eea3b4fc598755f64dfa35116007fbcb1a05da84c2d257c218407"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-48.png",
+      "sha256": "3c0968f93330cdb57c27ed03698afaea769cb00efe8ac9a5c94615b1ffdb9369"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-60.png",
+      "sha256": "1d2e8e01b41ca01562b84c5d7a1be0da6065a6352d7c642deb6022efc335b790"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-72.png",
+      "sha256": "4e0fc7320cc7f89b904b895ab0d75205cb9686070e6fec487f0fe65d7d05dca5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-84.png",
+      "sha256": "f34dd48972ad85ddaeb82e2fb8337be55db8afc716c3a2cae8e073152675d8f2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/hammer-96.png",
+      "sha256": "8fcd1498de8ed0c5fc810d05c8c5bf03108656f28ba11142685961f00cf2adaa"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-00.png",
+      "sha256": "820ed257824e27587731dc9a20c02367a20410e04d0cb894217896a9d17dfdde"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-108.png",
+      "sha256": "41fdb5543086d646ca554362a57774cef9957d89d90cdde364809f155e07fef5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-12.png",
+      "sha256": "a4c17a3904e450037c26666ba4e08671e28d1726b85e5b65bf39fc9d459b464e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-120.png",
+      "sha256": "087ea9419a05119fec978452fca2e425fd85b6439fc15ec545cf4c51a7d8b74e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-132.png",
+      "sha256": "19950c2233c0eb072244a38787f244ee9e0cdb6db427124e8f964fed6d147d80"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-144.png",
+      "sha256": "2c03c29c415e7e276159dfffc2caf3ce61d0e7a2440622acf9f99481d48462b1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-156.png",
+      "sha256": "6e1ed005f78c5c4398356f72611f2a643896a06608d301002286309811416684"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-168.png",
+      "sha256": "429c854c305603488e8c387112f4b71ae9a7faae93b320d66e2ce957cd7f7f01"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-180.png",
+      "sha256": "3346442994ddaa16f11fc7a0574e8b5187a19ece8790e86e526132d008b97c24"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-192.png",
+      "sha256": "f5b567fbde3f06e24bbccfe2715df6bc35f8e55e792757a2c4c45a2bc9142f46"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-204.png",
+      "sha256": "5ba66f6cf55a8fb11eefcc999dfe46dd1d391f2ec42f4591874a213e678b4a31"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-216.png",
+      "sha256": "8b3b71fe2ae3b71b03e48ecf68680a185952c1759dbb7698a12e1999edf075a9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-228.png",
+      "sha256": "58483037a4a574e0856ac91d13abdcc43a93dbdfea40f7fdf7d5f6f851ee3bd1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-24.png",
+      "sha256": "2ce1e34b740718a537764df5ce7a149ce6adf0cd02448d6ed7421967b7c3f67a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-240.png",
+      "sha256": "29d3fcac3325169841ebea7ce3c2a299919360e2014957ad9a8ebd3faac59db3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-36.png",
+      "sha256": "f617e99288b48b445aacb0a22d2690b7ab312add3e8943fbd998fbef9e4b0929"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-48.png",
+      "sha256": "4871c688ee3d2f852608930ed0eb07e0382858248af38d3a79d5191c98ed9de4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-60.png",
+      "sha256": "9cbe3ade6f4c205686ddb278020b27add3440352942809d840fc005fae4dba86"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-72.png",
+      "sha256": "d4fa7290e4fa533d6d8b24aca81fe3d2a4fda739e75cd8fd6d4c1f46ba06d724"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-84.png",
+      "sha256": "77ae7ac79c739bb6a18865cadb3ce32824bb4aadb8ef066f550a329d08d3ba9d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/idle-96.png",
+      "sha256": "43fa04dfd4d91ac25e6a03c440dafe2adb1c053171f878de35981df67e0889cd"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/walk-00.png",
+      "sha256": "186369b2da27bc445744b6bf7f820af70e93370771fb50753b873ae891b95d09"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/walk-12.png",
+      "sha256": "cdc86a85571e5b7a78139b9a225b868a03f3e0fe4212dade170bb1ebe61d3854"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/walk-24.png",
+      "sha256": "d790c69aa1b24112403c272b60ba2275a8055f0a28c5525ff504690a6b32e993"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/walk-36.png",
+      "sha256": "c8b3f8a70ec82f65dac2fbdc2659d6acaa1656b77c73c297beba3900879c5254"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/walk-48.png",
+      "sha256": "58730db8f9bc373ceb1e79691bc21088f18d5f49781c926612d56fd822e7b18e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-native-v2/walk-60.png",
+      "sha256": "10f37fb00c015bd60024d5f5c095fb9d949fd84db34eed443fddee7a9d338d27"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-000.png",
+      "sha256": "52336de042becdb07a87c2d9a47680516af189d287ec97e2fe0484c7d2d4221a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-006.png",
+      "sha256": "d17e35bd7e24f1382bd826ba9ab77d2ccf64e78b08892269014a342cde9a0585"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-012.png",
+      "sha256": "e329f4a6a35691037d8a11ea7f77989f759b53566044d58761762143b6099dc6"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-018.png",
+      "sha256": "5377d39ae85d29651e484198cb1215bfb9a20973fa7d1cbb2044626d13047a99"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-024.png",
+      "sha256": "eb13809f93f4b8ddbed25a4168ce2d8359f8bbbe223ae853de63a6b7b4913b3d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-030.png",
+      "sha256": "96b4d01220249b52b44075d195486021cd566bc2403c9b9e57a59434bff7ebbf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-036.png",
+      "sha256": "f9f9f5b35aced2394236df5dc37899dcfa8366e6cded2f6907d9d85050a3be16"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-042.png",
+      "sha256": "88bf11d9a2ae1ec25471fc2902494c9036d26b3150aabd78ac7917f28993b8e3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-048.png",
+      "sha256": "31b741cc559218f91418fcd22106f3cae50d678d9118247ad3cd75ef8959ea4f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-054.png",
+      "sha256": "f3f8763e74c67d236d4b1991c7f2892d6439da8e126cc376dd03d36189ed3f49"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/heavy_hammer_swing-057.png",
+      "sha256": "fda3f41a751e61a7e6a5b2ca8a317cb1f9e93f3e151e4a4dc7b0e7ae8d97eb57"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-000.png",
+      "sha256": "43d51bcc29adf630b3b375947e9a1cbf2cc002851c2b522075097341303aaa66"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-006.png",
+      "sha256": "280eea2c41e5668256642680421cdff85e2ebfe08db2563a39d991431b306756"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-012.png",
+      "sha256": "b23f9bed8a5a25b4f1c9f4388017a1e560b1761352a1e9568dbff6431468bf46"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-018.png",
+      "sha256": "0c24c21ad5f9459e4763980b0952a5eb7fbec70c45273602e6cc4545a9010651"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-024.png",
+      "sha256": "6f482ec4011508ae2a8f864333e473425d7b62981ecabb03fbb6d550140b059c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-030.png",
+      "sha256": "e9e6b01aedeabbc6c7af688d7ab34d1809b263246568075a5b9ae3d5738be80b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-036.png",
+      "sha256": "f468f0ef47b5a479a641fbfd281ed4075f68b6c8b4ed5a52909870aa9e1fceb4"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-042.png",
+      "sha256": "ad9fc2d0dabb0100de2785d526d9b09813e89d4e4d44625400e9ef889161591c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-048.png",
+      "sha256": "0d6fbc13da53d8f0f12e57312ca4a58f49b6834c5afda49d63bf12eb901bd2af"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-054.png",
+      "sha256": "13f2da295be6ba8d9643d018644ffadaeaba12b0f732e51b4df9f89238446378"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-060.png",
+      "sha256": "18198879b3a5bd07f434dfdae71bc786dbd2de97022bc8411b4bc4278a0e0479"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-066.png",
+      "sha256": "2a0b247c0fefc9ddb5e5e8f07417ffe2c92954e4d9ee17bf4149a813f8bfcd81"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-072.png",
+      "sha256": "8d1efa608942afa4cc02008fa008b8d7f3c8f8d35265bcf4c5c5218203ca3f1a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-078.png",
+      "sha256": "08adfb6454aa8326d0904b0a86f1abc5edf1a6d64a8aa4852b234fefde6eacaf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-084.png",
+      "sha256": "d9dc7321c959eaa518ee02551dd1deed1eba202cc8d460e4091cf2dfbf2893a1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-090.png",
+      "sha256": "5dd3aa0baca6029c6c4418a82a7d101ba56895c035c2f4d9350f20008b4332b5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-096.png",
+      "sha256": "1e51cb230bc5a0bce36861a760a9a7cdec0d618955f4f9af99ab9e10d41fac17"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-102.png",
+      "sha256": "c996ad1fd7f82ed7c2f9f1a2f545670a38af9087a8c0ca157fe3559515adc253"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-108.png",
+      "sha256": "9c2cb85ae5f7645b560d8c5a441146ddd7d93e4598d8c8b936a46d876d1124c0"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-114.png",
+      "sha256": "9d66e82dbbd764de1182ef76eb35ed7804806abee83a65df9b7878a8e744a157"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-120.png",
+      "sha256": "ad05b35f6b76f1852a0e5b4f0017409a85e2142ede686d6efc0d545ffe769166"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/idle-121.png",
+      "sha256": "0fdd3dad611ca7bcd6dad689bf4498611eda7f848f9f72ddb4073faa5bed91b9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-000.png",
+      "sha256": "ad3374238a5858048b575996620bee4af5469fe84dd59e99170419c4b52acd24"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-006.png",
+      "sha256": "8bea1e58e4709230bcb0a4d700c04d98262537c5b7581501beb1227cc8baadaf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-012.png",
+      "sha256": "0e022f78a7611fe5bfcca6dbc1a7a48356df3c9dd2a23ab834348a6816ca1e8b"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-018.png",
+      "sha256": "0975d36f973fe720df69229fa053a75223aa538d8c27a904224e96b88d89409c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-024.png",
+      "sha256": "fb89367f12df593cfbad50edb18717e05cde38a768757ae437cd4e9dcc2931e2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-030.png",
+      "sha256": "dc039677a384a0d706443af73025076af9193ed378945c60de2cc8fa6275355d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-preview-v1/walk-033.png",
+      "sha256": "23a19def57421f463bcf39b318161085ed55cdc0bd1e80e95b9d68721ea35008"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/grip-probe-v2/hand-local-projections.png",
+      "sha256": "e34915d4b0e7e88a2de05271782075a2c930f271bbfbe8381d0310eaba3292fe"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/blend-0.png",
+      "sha256": "cb04b336db9572e3adaabb059721c537a75e72b8d552e11cfb08e88d6c4250ad"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/blend-1.png",
+      "sha256": "0fac7f9619623916b2a39a48cebc44ce7b01baba75f026bcd72a280fe7e0293a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/blend-6.png",
+      "sha256": "768b72a1d13d8bb4bacc6ffa89ab76a118d0bd0e588e20b82e6f2d526618d5ea"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/crouch-00.png",
+      "sha256": "77549624000dd5ebc1e914e25e7768b44e836bef51bc48308374270977005804"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/crouch-12.png",
+      "sha256": "eb2d1786f45b91c96759612a744b5cef472dac21f240eeff1017d5ed8048c4bc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/crouch-24.png",
+      "sha256": "b4612791cece72ad69697480d49aa850d057b0ac73c902163086770665d7355c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/crouch-36.png",
+      "sha256": "ad1d75a86f10e0901a305e08cb28f418f01bb9d4196a8d44b1f249fef3968769"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/crouch-48.png",
+      "sha256": "59211f3b78a8fc970f8cc077aa4b1f7309a1b29f3dea1a9e1c1bbcd534471ba1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/crouch-60.png",
+      "sha256": "b509e8f0ae8ca65ae890513a532b17e2e600e631cabb489b0fec1860f9621bbb"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-00.png",
+      "sha256": "14aa16dc6c2eb0854f158e2053a3848ed0dfbd6f0a9d809db0203191e41d0e41"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-108.png",
+      "sha256": "d3b3b6464a0872da19ecb663c54b347d557d47cdf5dbf2ca5b9e29636a45bb7f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-12.png",
+      "sha256": "fe1c86228ed0191f7718969a2fbcfd3ce0cc456cd138f1cd7a0f7f62f1bac7e9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-24.png",
+      "sha256": "e91512ce01ed42fda3025dd062a05ea35c8be0a4f8d54212f7ef270884798d29"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-36.png",
+      "sha256": "637c0dbbadd2426f7605c61529df10d5b4361850ddbb89564873b5c30ab6c569"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-48.png",
+      "sha256": "5bcb0264c2b536b06a7518a41873b85ea37bc61e5cbdf8ccd297d4bf035ba136"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-60.png",
+      "sha256": "6da0839059cbfc3ce930bb1dd76fb393ee180e363533f42b5f718615041247d3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-72.png",
+      "sha256": "b256e2bfcef90c2114ede17db525c0a877af7ccbd27876c88808cda19495b40a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-84.png",
+      "sha256": "8d5e1e8db119cedbf0a60fcb4cd87661a7070846abeb22ed08b495de5750d210"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/hammer-96.png",
+      "sha256": "8329ff136d4a8410e14969aab68f8a8abc360c7bd5827bbc9ec784b134f19941"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-00.png",
+      "sha256": "13e51572d49ccc26c62ea105e4a85c423c01e9ffeba75e8720231cbb56ae69a9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-108.png",
+      "sha256": "d8b2f567fc475224b23c7cfda645a26bce734861641f648ebecff6d81ae9855a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-12.png",
+      "sha256": "ffe586afd0185788c2d05c9fb2dcc40180c756ea3dd4364e3adf36ef71715673"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-120.png",
+      "sha256": "fc654e1f7f849380651fbd5ddc9010d98eddeadd96ae50659ed0778b0b3089ad"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-132.png",
+      "sha256": "a702683508f9b8981e540742f9eaeeadf24e24edc09fa6773d78d726546fa3d1"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-144.png",
+      "sha256": "c2b003c04f11e218ed74fb88f11852e7828b9865e53d2fa7b181e82e422cc747"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-156.png",
+      "sha256": "cd950d1d28b1f7ed9b75e2571f0010406344daab89e715252f884bc3e29e2bc3"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-168.png",
+      "sha256": "037b44f1afad83ca4223069b97e03d82ab1c277c779ced6869add423cdae1eb9"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-180.png",
+      "sha256": "cb6ea7b11c6228a1b17a41cd55edebacb5a1771f73325b696c671cef3903c773"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-192.png",
+      "sha256": "d8460424c95ea9dea56e9f1d69c689afee6c517b863c892558a1f40bb9f5205c"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-204.png",
+      "sha256": "29dd7b7704cb68077514cb00c77fd0212dd961c828e75ee52f4f7b53ceb5cd02"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-216.png",
+      "sha256": "b71f25ea530b0a000c43ced7b901e069aa4979047a2e78ff21e42601920d627d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-228.png",
+      "sha256": "f58500c7b56dda686c20d84a7e97320b4714c29147ae00267058a7f86ce5f369"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-24.png",
+      "sha256": "2f57a1c52f669b55fcc7949e773de322964884042bef8b4b3acd3ec93da74664"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-240.png",
+      "sha256": "abb15e64b030a7e15002f73ea5901a7dfdde346e6a0b5438f691bb184eff9baf"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-36.png",
+      "sha256": "74b05ff00aa2cdd2d02d2a38df5972a8982e6033933313b890bb0ce4b15c3f87"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-48.png",
+      "sha256": "8047d4ead37e28e1a6977e2f75a2ad69fbc29dfc0ee6f784c74518661d7e12c2"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-60.png",
+      "sha256": "c6367f6ebe1d11ad7c2bab0b78c8d384d839977699abfe2a1f0b39bcbac9c858"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-72.png",
+      "sha256": "d5076c5727a150cea8e035486b16451a21e0b5ff6288b10d9809440325e81369"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-84.png",
+      "sha256": "7122da277aa966c158b9bd6abd42dff8584f3f73076e12ff3de491119e1a32dc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/idle-96.png",
+      "sha256": "a8bf11ff2f088d424aa943dc24d39984d0c573e4d3ab5d7e3d5b1de2e56ffd9f"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/walk-00.png",
+      "sha256": "bb8deeced5d06f005bebb990d826cf684c56ea11ffbf1ea2be2ce50bbf74de9e"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/walk-12.png",
+      "sha256": "74575f0126929d5dc39f27935e8cd5429dfa1e6c46a71e48de6bd11d2080f53d"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/walk-24.png",
+      "sha256": "169a5a67b66adde2bf80f384a4216579f75ae508956e7e6a4ae891e0d71f1167"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/walk-36.png",
+      "sha256": "b7ccf22c635d6e95d346e8010ce6bcf3cf9e0c0dbcf6a809c746ed8b76c0e8dc"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/walk-48.png",
+      "sha256": "33ac68ce93b8c8e809652f05d42106e01e8101d374b4e05c3163717e56423570"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/evidence/native-v1/walk-60.png",
+      "sha256": "01934337917aecb5c3a8beeca3b7c741f64a74a7da282a9945c2656053a70b59"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/firm-v1/mole-worker.ugactor",
+      "sha256": "004ea5955ba8877ec3998be179945eb846ed4b8f88c82555dba2d07be4947d0a"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/v1/mole-worker.ugactor",
+      "sha256": "3847981dab629f07b4e23fc52d53da8741ed129d5adc91708074421bfeb94379"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/v2/mole-worker.ugactor",
+      "sha256": "8a2718034943c7398f99a07511bcd4c3e655f9ec538f304f36c375333c9a8bb5"
+    },
+    {
+      "path": "godot/data/underground/mole-worker/v3/mole-worker.ugactor",
+      "sha256": "8a2718034943c7398f99a07511bcd4c3e655f9ec538f304f36c375333c9a8bb5"
+    }
+  ]
+}

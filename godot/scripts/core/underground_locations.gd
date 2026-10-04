@@ -1767,8 +1767,10 @@ func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
 	var found: Vector2i = NULL_REF
 	var matches: int = 0
 	for row: int in issuer._capacity:
+		if not _spend(): return NULL_REF
+		if issuer._live.present[row] != 1: continue
 		if not _spend(32): return NULL_REF
-		if issuer._live.present[row] != 1 or issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
+		if issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
 				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
 		var prefix: int = issuer._live.i32[issuer.INSTALLED * issuer._capacity + row]
 		if _installation_active() and _installation.placement == Vector2i(row, issuer._live.i32[row]):
@@ -1801,8 +1803,10 @@ func _installed_record_kind(record: Record) -> int:
 	var matches: int = 0
 	var current: bool = false
 	for row: int in issuer._capacity:
+		if not _spend(): return -1
+		if issuer._live.present[row] != 1: continue
 		if not _spend(32): return -1
-		if issuer._live.present[row] != 1 or issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
+		if issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
 				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
 		if not current:
 			if not _installed_sources_current(issuer): return -1
@@ -1910,9 +1914,10 @@ func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> i
 	var count: int = catalog._live.variants[ConnectorCatalog.V_REGION_COUNT * ConnectorCatalog.MAX_VARIANTS + variant]
 	var matched: int = 0
 	for index: int in count:
-		if not _spend(32): return -1
+		if not _spend(): return -1
 		var at: int = first + index
 		if catalog._live.regions[6 * ConnectorCatalog.MAX_REGIONS + at] != Space.LANDING: continue
+		if not _spend(32): return -1
 		if _installed_datum_matches(issuer, row, at, record): matched += 1
 	return matched
 

@@ -1070,6 +1070,55 @@ func _location_image(cold: int) -> PackedByteArray:
 	return image
 
 
+func _landing_scan_charge() -> int:
+	"""Read the real installed variant's kinds to calculate presence plus full LANDING metadata work."""
+	var catalog: Placements.Catalog = _placements._catalog
+	var variant: int = _placements._live.i32[Placements.CATALOG_ROW * _placements._capacity]
+	var first: int = catalog._live.variants[catalog.V_REGION_START * catalog.MAX_VARIANTS + variant]
+	var count: int = catalog._live.variants[catalog.V_REGION_COUNT * catalog.MAX_VARIANTS + variant]
+	var charge: int = count
+	for row: int in range(first, first + count):
+		if catalog._live.regions[6 * catalog.MAX_REGIONS + row] == Space.LANDING: charge += 32
+	return charge
+
+
+func test_installed_landing_scan_keeps_exact_metadata_cost_and_full_generation_proof() -> void:
+	"""Real paid geometry gets only actual role/full-metadata work, and stale full sections still refuse."""
+	if not _completed_timber(): return
+	var record: Locations.Record = Locations.Record.new()
+	record.envelope.resize(6)
+	record.support.resize(6)
+	assert_equal(_f._locations.read_location_into(_installed_contact_ref(), record), &"", "actual installed endpoint")
+	var charge: int = _landing_scan_charge()
+	_f._locations._remaining = charge
+	assert_equal(_f._locations._installed_landing_count(_placements, 0, record), 1, "one exact actual landing")
+	assert_equal(_f._locations._remaining, 0, "every role and complete actual LANDING metadata charged")
+	_f._locations._remaining = charge - 1
+	assert_equal(_f._locations._installed_landing_count(_placements, 0, record), -1, "one missing check refuses")
+	record.section.y += 1
+	_f._locations._remaining = charge
+	assert_equal(_f._locations._installed_landing_count(_placements, 0, record), 0, "wrong full section cannot inherit geometry")
+
+
+func test_installed_kind_scan_charges_all_presence_and_live_metadata_before_permission() -> void:
+	"""All actual Placement slots are read, and the one real live source retains its complete metadata allowance."""
+	if not _completed_timber(): return
+	var record: Locations.Record = Locations.Record.new()
+	record.envelope.resize(6)
+	record.support.resize(6)
+	assert_equal(_f._locations.read_location_into(_installed_contact_ref(), record), &"", "actual installed endpoint")
+	var live: int = 0
+	for row: int in _placements._capacity:
+		if _placements._live.present[row] == 1: live += 1
+	assert_equal(live, 1, "one actual completed Placement")
+	var charge: int = 1024 + _placements._capacity + 32 * live + _landing_scan_charge()
+	_f._locations._remaining = charge
+	assert_equal(_f._locations._installed_record_kind(record), 1, "full immutable installed-kind proof")
+	assert_equal(_f._locations._remaining, 0, "all empty presence and live metadata work charged")
+	_f._locations._remaining = charge - 1
+	assert_equal(_f._locations._installed_record_kind(record), -1, "insufficient allowance never grants witness")
+
+
 func test_installed_contact_refresh_and_restore_use_actual_lower_paid_site() -> void:
 	"""A published deck can refresh and restore without inventing an above-ground air Site."""
 	if not _completed_timber(): return

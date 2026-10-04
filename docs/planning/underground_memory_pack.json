@@ -1196,11 +1196,11 @@
     "godot/scripts/core/underground_connector_placements.gd": "ca35c77244b0644da291551c1c741a704d7a332eb9b146b72a132ca8af9a7762",
     "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
     "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
-    "godot/scripts/core/underground_locations.gd": "1be2f339658c14e5a61553bb4b4812c39fcb76107f6e09f46fa2ea8250ae045a",
+    "godot/scripts/core/underground_locations.gd": "d474e3396ff70d61d7cbe180372c7ca8096a2a5384811d52b7128bef11398284",
     "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
     "godot/scripts/core/underground_space_owner.gd": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",
     "godot/scripts/core/underground_surface_anchor.gd": "d928d4f0ebe6fc55183486c33a49596305682bcd70dfa298b7c1dbe785d29a1e",
-    "godot/scripts/core/underground_world_routes.gd": "3bdf4ee19984dd288f77ae63b6dd07fc0f1e0ec2cbd9a9e9904a040fc91ef32d"
+    "godot/scripts/core/underground_world_routes.gd": "7ee66e9918e45002b9afb68fdd168eb90b5078ed395a78802899297645db612f"
   },
   "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
   "limitations": [

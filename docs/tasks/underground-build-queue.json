@@ -1698,7 +1698,7 @@
         "entry_bindings_in_progress": {
           "owner": "/root",
           "scope": "Concrete non-flat surface entrance admission uses real World/Terrain/Room/Sites/Placement owners; installation and retirement remain closed pending Contacts and qualified production motion.",
-          "status": "Initial strict source fixture 17 tests / 571 assertions / 0 failures; all diagnostics/leaks zero, analyzer 0/2. Further contact and adversarial tests plus independent review pending."
+          "status": "Corrected four independent review findings; checks6 clean-import 28 tests /843 assertions /0 failures; strict/raw unexpected diagnostics/leaks0; analyzer0/2. Corrected frozen delta undergoing independent re-review; not integrated."
         },
         "hot_route_reachability": {
           "source": "ccb98d03",
@@ -1717,6 +1717,15 @@
           "tests": "144 tests / 13550 assertions / 0 failures; all strict/raw diagnostics/leaks 0; analyzer 0/5",
           "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6/",
           "limits": "Locations +16 logical bytes within 2112 controls; WorldRoutes +32 within 4096. p95 26.018ms per 256 live queries still fails timing. Direct typed source-identity check closes late observer change before cold output."
+        },
+        "direct_route_reads": {
+          "source": "36ecd0ed",
+          "registry": "fcbf477c",
+          "integration": "43412346/90c95678",
+          "review": "Construction independently accepted the five frozen pins; no retained state or predicate/work-budget change.",
+          "tests": "145 tests / 13835 assertions / 0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/5.",
+          "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/hot-profile-2/",
+          "limits": "256-query p95 improved from25.710ms to21.465ms; still fails runtime qualification. One additional stride scalar makes declared helper chain344/512B; native overhead unmeasured."
         }
       },
       "lease": {

@@ -420,6 +420,7 @@ func _publish(project: Vector2i, action: int, owner: Owner) -> void:
 	_publishing_owner = owner
 	match action:
 		ADMIT: owner.publish_open(project)
+		START: owner.publish_start(project)
 		PRODUCTIVE: owner.publish_work(project)
 		COMMIT: owner.publish_completion(project)
 		CANCEL: owner.publish_cancellation(project)
@@ -661,8 +662,17 @@ func start_work(project: Vector2i, now_tick: int, output: Vector2i = NULL_REF,
 	assert(begun.ok, "preflighted paid start cannot fail after Inventory consumption")
 	_disallow()
 	_start_job_states(project, row)
-	owner.discard_transition(project, START)
+	_publish_started(project, owner)
 	return _finish(_ok(project))
+
+
+func _publish_started(project: Vector2i, owner: Owner) -> void:
+	"""Only the original paid connector owner gets START; no purpose/bill observer runs after payment."""
+	var row: int = _construction._directory.get_typed_row(project)
+	if row >= 0 and _construction._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL:
+		_publish(project, START, owner)
+	else:
+		owner.discard_transition(project, START)
 
 
 func _begin_paid_work(project: Vector2i, job: Vector2i) -> Construction.OpResult:

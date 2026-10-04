@@ -27,7 +27,7 @@ const ADMIT: int = 0
 const CANCEL: int = 1
 const COMMIT: int = 2
 const PRODUCTIVE: int = 3
-## Contact/material preparation before payment; no physical source/installation publication.
+## Prepare before payment; a connector may publish its prepared workpiece after paid start.
 const START: int = 4
 
 class Quote extends RefCounted:
@@ -208,6 +208,10 @@ class Owner extends RefCounted:
 	func publish_open(_project: Vector2i) -> void:
 		"""Attach the real project during the router's exact ADMIT publication window."""
 		assert(false, "Unbound modular owner cannot admit a project")
+
+	func publish_start(project: Vector2i) -> void:
+		"""Legacy owners have no start geometry; a bound workpiece owner overrides this prepared-only tail."""
+		discard_transition(project, START)
 
 	func publish_work(_project: Vector2i) -> void:
 		"""Retain only actual Construction progress during the PRODUCTIVE window."""

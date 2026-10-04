@@ -1,0 +1,51 @@
+state_registry_coverage: PASS -- 112 modules, 543 rows, 933 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_mole_profile_driver.gd
+  PASS  test_pause_and_refusal_preserve_exact_visible_frame_and_integer_phase
+  PASS  test_productive_interruption_completes_retrace_before_contact_or_job_handoff
+  PASS  test_actual_tool_assignment_content_and_pose_drift_never_become_a_successful_recovery
+  PASS  test_ground_walk_uses_complete_fade_and_safe_hub_before_switching_to_work
+  PASS  test_cold_pins_are_copied_and_retirement_releases_no_actual_owner_state
+  PASS  test_swapped_work_tuples_cannot_pair_a_downward_clip_with_the_upper_contact
+  FAIL  test_compact_version_requires_explicit_protocol_and_preserves_original_refusals
+        complete synthetic rows through actual immutable reader (expected , got PROFILE_SOURCE_IDENTITY)
+        front/down source cannot swap (expected MOLE_DRIVER_PROFILE_ROLE, got MOLE_DRIVER_PROFILE_SOURCE)
+        retry exact compact binding after refusal (expected , got MOLE_DRIVER_PROFILE_SOURCE)
+        exact five-role bound (expected MOLE_DRIVER_INPUT, got MOLE_DRIVER_UNBOUND)
+  FAIL  test_compact_front_uses_its_own_clip_then_recovers_to_the_single_shared_hub
+        complete synthetic rows through actual immutable reader (expected , got PROFILE_SOURCE_IDENTITY)
+        compact protocol (expected , got MOLE_DRIVER_PROFILE_SOURCE)
+        front ready observation (expected , got MOLE_DRIVER_UNBOUND)
+        full front entry (expected , got MOLE_DRIVER_UNBOUND)
+        front productive source (expected 6, got 9)
+        actual selected front descriptor (expected 4, got -1)
+        front clip8, never down clip2 or high clip5 (expected 42, got 0)
+        active front stroke (expected , got MOLE_DRIVER_UNBOUND)
+        no buried front-to-down switch (expected MOLE_DRIVER_HANDOFF_REQUIRED, got MOLE_DRIVER_UNBOUND)
+        finish front loop (expected , got MOLE_DRIVER_UNBOUND)
+        exact front recovery clip10 (expected 7, got 9)
+        complete front recovery (expected , got MOLE_DRIVER_UNBOUND)
+        actual source handoff point only (expected true, got false)
+        down entry from shared hub (expected , got MOLE_DRIVER_UNBOUND)
+        exact partial down retrace (expected , got MOLE_DRIVER_UNBOUND)
+        high work remains separately selected (expected , got MOLE_DRIVER_UNBOUND)
+        high clip5 preserved (expected 28, got 0)
+CI_SUITE_TIME {"assertions":167,"failures":2,"suite":"test_mole_profile_driver.gd","tests":8,"usec":339521}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 167 assertion(s), 2 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 2 failing test(s).

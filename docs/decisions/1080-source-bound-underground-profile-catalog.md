@@ -1029,3 +1029,20 @@ The accepted packet emits0 production flags. Complete versioned state unions,
 actual footprint support, paid approach/retreat and step traversal still need
 qualification. Its logical presentation allowance is6,969,508 bytes plus shared
 WorldBasis544,768, with native/whole-client peak explicitly unmeasured.
+
+### Explicit compact source-driver protocol accepted
+
+The driver now accepts an explicit version2 with eleven clips and five stable
+roles; its default original version remains eight clips/four roles. The new
+planted-front productive/entry/recovery triple uses the same ready hub and
+integer phase machine, without a second STAND or immediate source switch.
+Every actual Job/tool/profile/root guard and refusal-preserving output remains.
+Maximum retained packed data rises36 bytes to396; existing numeric controls
+and cold scratch are unchanged. No simulation storage or work credit is added.
+
+Root independently accepted source7a056fc0/testfef7438a. Final clean singleton
+CI evidence in `contact-qualification/driver-compact-check-v2` reports8 tests,
+167 assertions,0 failures, all strict/raw diagnostics/leaks0 and analyzer0/2.
+The rejected same-revision replacement fixture is preserved in v1; the real
+Profiles owner correctly required a new content revision. Native eleven-clip
+source, complete role/profile and actual stair traversal remain separate work.

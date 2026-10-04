@@ -242,8 +242,8 @@ func _use_compact_source() -> PackedInt64Array:
 	"""Replace only this fixture's presentation and synthetic certificate image; core identities are unchanged."""
 	_driver.retire()
 	_source = _content(true)
-	_install_profiles(2, 5)
-	return PackedInt64Array([0, 1, 2, 1, 1, 2, 2, 1, 2, 3, 1, 2, 4, 1, 2])
+	_install_profiles(1, 5)
+	return PackedInt64Array([0, 1, 1, 1, 1, 1, 2, 1, 1, 3, 1, 1, 4, 1, 1])
 
 
 func test_compact_version_requires_explicit_protocol_and_preserves_original_refusals() -> void:

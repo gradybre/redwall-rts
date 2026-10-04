@@ -274,7 +274,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(recipes["remaining_binding_reserve_bytes"], 0)
         contacts = recipes["connector_contacts_reservation"]
         self.assertEqual(contacts["reserved_bytes"], 4096)
-        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 2910)
+        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 3051)
         self.assertEqual(contacts["fragment_banks_and_controls"], 1633)
         self.assertEqual(contacts["logical_helper_allowance_bytes"], 1024)
         self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
@@ -371,6 +371,12 @@ class JointPackTests(unittest.TestCase):
 
     def test_negative_contacts_missing_scratch_allocation(self) -> None:
         self.refuses("underground_connector_contacts", "\t_frame.resize(9)", "")
+
+    def test_negative_contacts_wider_episode(self) -> None:
+        self.refuses("underground_connector_contacts", "_episode: PackedInt32Array", "_episode: PackedInt64Array")
+
+    def test_negative_contacts_episode_growth(self) -> None:
+        self.refuses("underground_connector_contacts", "\t_episode.resize(19)", "\t_episode.resize(20)")
 
     def test_negative_contacts_duplicate_scratch_allocation(self) -> None:
         line = "\t_frame.resize(9)"

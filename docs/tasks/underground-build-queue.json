@@ -764,6 +764,27 @@
           "memory": "99 tests; logical +2 bytes, total99959252/head40748/runtime_qualified=false; registry138modules693rows1032packedcolumnsPASS",
           "evidence": "docs/validation/evidence/underground-start-guard-2026-10-04/",
           "dependency": "Concrete Authority/World phase START final observation and pure leaf; existing purpose8 journal-close aperture tracked in1118"
+        },
+        "connector_payment_guard_1118": {
+          "source_commit": "36f439f2a45c55eedb48fbeffa091b004dcd0c62",
+          "status": "independently accepted; integration after1117/concrete adapters",
+          "tests": "309tests38951assertions0failures across8strict suites; strict/raw unexpected diagnostics and leaks0; analyzer0/4",
+          "review": "Furnishing accepted four exact source pins covering Inventory-owned input, paid refund and completion guards. Seven actual-accounting regressions retain goods/claims/WIP/physical Space on refusal and permit one retry.",
+          "evidence": "docs/validation/evidence/underground-connector-payment-2026-10-04/",
+          "scope": "No retained memory delta; source/installation fixture remains synthetic, no playable acceptance."
+        },
+        "phase_contacts_reuse_1106": {
+          "source_commit": "3cdbbeef",
+          "registry_commit": "9c3597c3",
+          "integration_commits": [
+            "d7492b66",
+            "0b7c0ba5"
+          ],
+          "review": "Root independently accepted exact Contacts a6454ab7 and test285f6a4f after current full Site/Room/Project/Job/source/lease/worker/output checks",
+          "component_tests": "52tests7680assertions0failures; final invocation additionally first-prefix preparation5/414, total57/8094; strict/raw0,analyzer0/2",
+          "memory": "3051fixed +1024helper =4075 in unchanged4096reserve; no second Contacts or per-Site bank",
+          "scope": "Live unprepared phase observation only; all prepared Space companion contexts explicitly refuse",
+          "evidence": "docs/validation/evidence/underground-first-prefix-2026-10-03/phase-contacts-final-1/"
         }
       },
       "lease": {
@@ -1350,7 +1371,12 @@
         "docs/decisions/1111-concrete-surface-entry-admission.md",
         "docs/decisions/1114-installed-timber-contact-publication.md",
         "docs/decisions/1115-shared-natural-surface-sections.md",
-        "docs/decisions/1116-raised-first-prefix-assembly-target.md"
+        "docs/decisions/1116-raised-first-prefix-assembly-target.md",
+        "godot/scripts/core/underground_entry_world_bindings.gd",
+        "godot/scripts/core/underground_entry_world_bindings.gd.uid",
+        "godot/test/test_underground_entry_world_bindings.gd",
+        "godot/test/test_underground_entry_world_bindings.gd.uid",
+        "docs/decisions/1119-concrete-entry-phase-composition.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1887,11 +1913,11 @@
           "scope": "engineering physical/price candidate only;whole-game installation,turn/reposition andpaid-route permission remain pending"
         },
         "entry_phase_composition_next": {
-          "agent": "/root",
-          "branch": "codex/underground-entry-admission",
-          "state": "Contacts phase reuse assigned; root owns actual phase dispatch and purpose5 payment/START guard",
-          "gap": "WorldBindings phase provider and sealed Space/Locations/Routes companions are not composed. Inventory observers currently run after phase preflight before purpose5 payment; root owns final guard closure.",
-          "scope": "Root-owned WorldBindings and separately recorded provider source; Construction owns first-prefix fixture; Geometry owns Entry installation. No seeded Site/payment bytes or synthetic SpatialAuthority."
+          "agent": "/root/ug_construction",
+          "branch": "codex/underground-connector-work",
+          "state": "Contacts phase reuse accepted/integrated; Construction owns new concrete EntryWorldBindings1119; Geometry owns final Authority and prepared Space companions; root START/input guards1117/1118 reviewed but held pending adapters",
+          "gap": "Actual Site/EPISODE dispatch, prepared Space/Locations/Routes/Placement companions, and first-prefix paid phase sequence remain open",
+          "scope": "One actual Contacts packet; no synthetic phase permission or seeded paid Site history. New2048 controls/helper proposal must be counted outside fully assigned524288 binding reserve; native unqualified."
         },
         "shared_natural_surface_1115": {
           "source_commit": "b096363ae726c5a755468db24ba9ced61ca9d6fd",
@@ -1903,6 +1929,19 @@
           "review": "Construction independently accepted exact source/test/census pins with no high/medium finding",
           "evidence": "docs/validation/evidence/underground-shared-surface-2026-10-04/",
           "scope": "Shared FLOOR_DATUM metadata with independently proved local air/support; gap remains unprotected dirt; actual paid phase/first-prefix workflow still open"
+        },
+        "phase_contacts_memory_reconciliation": {
+          "source_head": "0b7c0ba558451cee44321fe42ef4252866e9f7a0",
+          "review": "Furnishing independently accepted all three exact census source pins; retained4096 reservation unchanged",
+          "fixed_bytes": 3051,
+          "helper_bytes": 1024,
+          "reserved_bytes": 4096,
+          "specification_commands": 34,
+          "python_memory_tests": 96,
+          "registry": "138 modules;694 rows;1033 packed columns",
+          "whole_logical_bytes": 99959250,
+          "runtime_qualified": false,
+          "evidence": "docs/validation/evidence/underground-phase-contacts-memory-2026-10-04/"
         }
       },
       "lease": {
@@ -1974,6 +2013,19 @@
               "docs/decisions/1114-installed-timber-contact-publication.md"
             ],
             "handoff": "Root stop acknowledged before explicit handoff: implement complete paid rectangular/horizontal Catalog parts using existing cold banks, exact installed-surface proof and guarded observer-free publication. Existing Locations/Placement/SpaceOwner leases remain Geometry. No fabricated air Sites/World-owned timber, no ground-only Routes bypass. Root memory tools remain independently owned."
+          },
+          {
+            "agent": "/root/ug_construction",
+            "branch": "codex/underground-connector-work",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_entry_world_bindings.gd",
+              "godot/scripts/core/underground_entry_world_bindings.gd.uid",
+              "godot/test/test_underground_entry_world_bindings.gd",
+              "godot/test/test_underground_entry_world_bindings.gd.uid",
+              "docs/decisions/1119-concrete-entry-phase-composition.md"
+            ],
+            "handoff": "After1114 read-only review, implement new concrete WorldBindings subclass using actual Site/Placement/EPISODE and same Contacts packet. Geometry keeps Authority/Space/Placement/Locations/Routes; root keeps base WorldBindings and payment owners. Cross-owner APIs agreed before mutation. No synthetic phase permission in actual first-prefix; exact census/native scope retained."
           }
         ]
       }

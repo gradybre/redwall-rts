@@ -1171,11 +1171,11 @@
       "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
     },
     "connector_contacts_reservation": {
-      "numeric_controls": 148,
-      "packed_rows": 376,
+      "numeric_controls": 213,
+      "packed_rows": 452,
       "fragment_banks_and_controls": 1633,
       "owned_packet_bytes": 753,
-      "fixed_numeric_and_packed_bytes": 2910,
+      "fixed_numeric_and_packed_bytes": 3051,
       "logical_helper_allowance_bytes": 1024,
       "reserved_bytes": 4096,
       "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."
@@ -1231,7 +1231,7 @@
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
     "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
     "godot/scripts/core/underground_connector_catalog.gd": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
-    "godot/scripts/core/underground_connector_contacts.gd": "680114461ecaf8d96bea6ed45b1edba60f057d89f76fc59aa3e0e2fd03233c39",
+    "godot/scripts/core/underground_connector_contacts.gd": "a6454ab756cdc242aeb2078916b2a89a1da4968ecdff7eeeb6427854235856aa",
     "godot/scripts/core/underground_connector_placements.gd": "ca35c77244b0644da291551c1c741a704d7a332eb9b146b72a132ca8af9a7762",
     "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
     "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",

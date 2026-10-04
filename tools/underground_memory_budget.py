@@ -398,7 +398,7 @@ def connector_contacts_reservation(index: dict) -> dict:
     borrowed = {"_placements": "Placements", "_router": "WeakRef", "_frontier": "Frontier", "_sites": "Sites", "_terrain": "Terrain"}
     fields = explicit_members(source)
     numeric = {"int", "bool", "Vector2i", "Vector3i"}
-    arrays = {"_frame": 9, "_install": 9, "_station": 9, "_endpoint": 7, "_cut": 7, "_bearing": 9,
+    arrays = {"_frame": 9, "_install": 9, "_station": 9, "_episode": 19, "_endpoint": 7, "_cut": 7, "_bearing": 9,
               "_part": 9, "_region": 8, "_pair": 2, "_remaining": 1,
               "_bounds": 6, "_support": 6, "_target": 6, "_scratch": 6}
     expected = {**packets, **borrowed, **{key: "PackedInt32Array" for key in arrays}}

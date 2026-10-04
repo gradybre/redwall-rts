@@ -1,0 +1,41 @@
+{
+  "coefficient_bytes": 524288,
+  "diagnostic_max_norm_squared": 1.00000008311477,
+  "metadata": {
+    "api_version": "4.1 Metal - 90.5",
+    "coefficient_order": [
+      "basis.x.x",
+      "basis.z.x"
+    ],
+    "display_server": "macOS",
+    "engine": {
+      "build": "official",
+      "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+      "hex": 263938,
+      "major": 4,
+      "minor": 7,
+      "patch": 2,
+      "status": "stable",
+      "string": "4.7.2-stable (official)",
+      "timestamp": 0
+    },
+    "heading_count": 65536,
+    "meaning": "every finite native Y basis, immutable presentation source; not a contact or clearance certificate",
+    "orientation": "0=-Z,+quarter=-X; +Y remains up",
+    "rendering_driver": "opengl3",
+    "rendering_method": "gl_compatibility",
+    "schema": 1,
+    "source": {
+      "path": "res://../tools/bake_underground_world_basis.gd",
+      "sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+    }
+  },
+  "native_reservation_measured": false,
+  "planned_presentation_reserve": 544768,
+  "qualified_profiles": 0,
+  "rows": 65536,
+  "schema": 1,
+  "sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "source_bytes": 525013,
+  "status": "FINITE_NATIVE_YAW_SOURCE_ONLY"
+}

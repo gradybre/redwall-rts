@@ -1,0 +1,12 @@
+{
+  "commit": "97a95b921536f72178e7c1bc7f1a968ff25960e4",
+  "seconds": 1183.9,
+  "outcome": "failed",
+  "summary": "9289 test(s), 619925 assertion(s), 1 failure(s)",
+  "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+  "failure": "test_haul_planner.test_the_purpose_domain_is_numbered_explicitly expected count3, got4 after excavation input purpose appended",
+  "wrapper_raw_summary": "not reached: strict wrapper rejected the failing test first",
+  "raw_unexpected_errors": 0,
+  "raw_unexpected_warnings": 0,
+  "source_unchanged_for_run": true
+}

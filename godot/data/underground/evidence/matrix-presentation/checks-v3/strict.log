@@ -1,0 +1,46 @@
+state_registry_coverage: PASS -- 110 modules, 534 rows, 927 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_actor_underground_heading.gd
+  PASS  test_first_pose_and_explicit_replacement_initialize_without_a_turn
+  PASS  test_surface_heading_keeps_its_existing_brain_turn_behavior
+  PASS  test_bore_reversal_uses_shortest_arc_existing_rate_and_shared_pitch_progress
+  PASS  test_pause_keeps_an_in_progress_visible_turn_and_pitch_still
+  PASS  test_pending_reversal_finishes_after_leaving_the_bore_without_an_exit_snap
+  PASS  test_wrap_and_retarget_do_not_choose_the_long_arc_or_overshoot
+  PASS  test_tail_pull_follows_the_rendered_heading_during_recovery
+  PASS  test_stoop_counterlean_uses_the_same_rendered_pitch_during_the_turn
+  PASS  test_actual_reversal_does_not_change_progress_route_or_grants
+  PASS  test_actual_nearest_exit_retreat_does_not_change_progress_route_or_grants
+CI_SUITE_TIME {"assertions":2619,"failures":0,"suite":"test_demo_actor_underground_heading.gd","tests":10,"usec":189983}
+test_underground_actor.gd
+  PASS  test_palette_copies_source_and_exposes_only_counts_and_digest
+  PASS  test_invalid_source_capacity_and_components_leave_palette_unbound
+  PASS  test_matrix_blend_is_affine_not_a_hidden_quaternion_path
+  PASS  test_transition_is_a_convex_combination_of_four_final_matrices
+  PASS  test_bad_frames_weights_and_scratch_preserve_the_prior_output
+  PASS  test_skin_validation_rejects_missing_eighth_influence_and_zero_weight
+  PASS  test_nonfinite_and_unproved_material_geometry_refuse_before_allocation
+  PASS  test_actual_renderer_updates_original_mesh_and_owned_palette_or_refuses_dummy_backend
+  PASS  test_static_attachment_offsets_follow_the_same_finite_palette_and_native_lifetime
+  PASS  test_actual_instance_material_is_preserved_without_modifying_the_original_mesh
+  PASS  test_configuration_outside_the_scene_tree_cannot_publish_an_orphan_skin_palette
+CI_SUITE_TIME {"assertions":94,"failures":0,"suite":"test_underground_actor.gd","tests":11,"usec":9425}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+21 test(s), 2713 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 21 tests, 2713 assertions, 0 failures.

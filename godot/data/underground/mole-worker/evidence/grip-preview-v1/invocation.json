@@ -1,0 +1,18 @@
+{
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--fixed-fps",
+    "30",
+    "--script",
+    "res://data/underground/mole-worker/evidence/preview_grip.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-preview-v1"
+  ],
+  "returncode": 0
+}

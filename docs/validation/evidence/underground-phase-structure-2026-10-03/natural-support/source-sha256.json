@@ -1,0 +1,15 @@
+{
+  "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
+  "godot/test/test_underground_phase_structure.gd": "f40a75ace13d2f8fdcc995a4d2b5cdaca681bc0fca684c2319fa90505528eac6",
+  "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
+  "godot/test/test_underground_space_authority.gd": "ff41776d8062ce4b2ef30426ca486c8aaa1c79b75a70b615843292635dd61221",
+  "godot/scripts/core/underground_space_owner.gd": "d2e30c4940a41bd0afa8c4bc63e57e62d1ec1eaacd4d09462b0602d3adf573ed",
+  "godot/scripts/core/underground_world_bindings.gd": "299ff1a38870edf88c05fca4b6a345aebac1daf702459c3f3cd705be96b9a7ec",
+  "godot/scripts/core/underground_terrain.gd": "a8c9c2f5793cc11e2f1fb362e65fd4ff45a9bf0a782e2e68809a90de3dcf0a16",
+  "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+  "godot/scripts/core/excavation_sites.gd": "9e73f3228cb39a4b9cb5ae4d8f1f900a8f969620aacb867de561860ba9552bbd",
+  "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+  "godot/scripts/core/buildings.gd": "1b7720ed2d7b56d96eba67e3c0e594376a1a60b65eb74f5d99faeb066c73ca85",
+  "tools/run_tests.sh": "aa38a6ccb26636bfbfab7e9c3046479bf63dc6614a104bd7273e342068090f01",
+  "tools/ci_test_shards.py": "71748fa88fee3568717b4d84e9e292fbe68966605f0b4aa59e97735cffe23d16"
+}

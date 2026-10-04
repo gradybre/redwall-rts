@@ -1,0 +1,1 @@
+The2,000,000-check offline budget was exhausted after48 complete source handoffs with no unresolved primitive contacts. This refused run has no final proof artifact. The complete275-handoff program is re-run with an explicit16,000,000-check offline ceiling, unchanged geometry, native residuals, dyadic depth and separation predicate. No simulation budget is raised.

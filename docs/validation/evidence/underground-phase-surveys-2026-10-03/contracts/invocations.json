@@ -1,0 +1,322 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "log": "01-decision_numbers.log",
+    "seconds": 0.063
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "exit_code": 0,
+    "log": "02-ready07_arithmetic.log",
+    "seconds": 0.607
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "03-underground_memory_budget.log",
+    "seconds": 0.363
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "log": "04-test_underground_memory_budget.log",
+    "seconds": 2.338
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "log": "05-merge_gate.log",
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      "docs/validation/setting_contract.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-phase-surveys-2026-10-03/contracts/setting-contract.json"
+    ],
+    "exit_code": 0,
+    "log": "06-setting_contract.log",
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "log": "07-dispatch_plan.log",
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "08-astra_inbox.log",
+    "seconds": 0.029
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "log": "09-validate_save_registry_handoff.log",
+    "seconds": 0.306
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "10-generate_canonical_state_table.log",
+    "seconds": 0.03
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "exit_code": 0,
+    "log": "11-validate_cycle01_handoff.log",
+    "seconds": 0.035
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "exit_code": 0,
+    "log": "12-validate_cycle02_handoff.log",
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "log": "13-validate_cycle03_handoff.log",
+    "seconds": 0.034
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "14-audit_registry_capacities.log",
+    "seconds": 1.635
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "log": "15-test_registry_capacity_audit.log",
+    "seconds": 3.217
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "16-generate_component_columns_schema.log",
+    "seconds": 1.608
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_component_columns_schema.py"
+    ],
+    "exit_code": 0,
+    "log": "17-test_component_columns_schema.log",
+    "seconds": 17.929
+  },
+  {
+    "command": [
+      "python3",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "18-lane_notes.log",
+    "seconds": 0.037
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "log": "19-test_movement_envelopes.log",
+    "seconds": 0.42
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "log": "20-test_movement_profile_policy.log",
+    "seconds": 0.069
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "log": "21-state_registry_coverage.log",
+    "seconds": 0.29
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_headless_runner.py"
+    ],
+    "exit_code": 0,
+    "log": "22-test_headless_runner.log",
+    "seconds": 0.034
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_qualify.py"
+    ],
+    "exit_code": 0,
+    "log": "23-test_qualify.log",
+    "seconds": 0.433
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_winter.py"
+    ],
+    "exit_code": 0,
+    "log": "24-test_winter.log",
+    "seconds": 8.605
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "exit_code": 0,
+    "log": "25-test_merge_gate.log",
+    "seconds": 0.355
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_repair_meshy_rig.py"
+    ],
+    "exit_code": 0,
+    "log": "26-test_repair_meshy_rig.log",
+    "seconds": 0.042
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_rig_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "log": "27-test_rig_meshy_tail.log",
+    "seconds": 0.074
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_bake_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "log": "28-test_bake_meshy_tail.log",
+    "seconds": 0.161
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_ground_meshy_clips.py"
+    ],
+    "exit_code": 0,
+    "log": "29-test_ground_meshy_clips.log",
+    "seconds": 1.409
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_demo_texture_imports.py"
+    ],
+    "exit_code": 0,
+    "log": "30-test_demo_texture_imports.log",
+    "seconds": 0.276
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_build_demo_windows.py"
+    ],
+    "exit_code": 0,
+    "log": "31-test_build_demo_windows.log",
+    "seconds": 0.045
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_balance_report.py"
+    ],
+    "exit_code": 0,
+    "log": "32-test_balance_report.log",
+    "seconds": 0.037
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_soak_report.py"
+    ],
+    "exit_code": 0,
+    "log": "33-test_soak_report.log",
+    "seconds": 0.047
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_stage_art_passes.py"
+    ],
+    "exit_code": 0,
+    "log": "34-test_stage_art_passes.log",
+    "seconds": 0.043
+  }
+]

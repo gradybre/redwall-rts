@@ -1,0 +1,52 @@
+{
+ "test/test_underground_entry_frontier.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_GLOBAL_IDENTIFIER): The variable \"hash\" has the same name as a built-in function.",
+   "range": {
+    "end": {
+     "character": 9,
+     "line": 130
+    },
+    "start": {
+     "character": 5,
+     "line": 130
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_GLOBAL_IDENTIFIER): The variable \"hash\" has the same name as a built-in function.",
+   "range": {
+    "end": {
+     "character": 9,
+     "line": 179
+    },
+    "start": {
+     "character": 5,
+     "line": 179
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_GLOBAL_IDENTIFIER): The variable \"hash\" has the same name as a built-in function.",
+   "range": {
+    "end": {
+     "character": 9,
+     "line": 322
+    },
+    "start": {
+     "character": 5,
+     "line": 322
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

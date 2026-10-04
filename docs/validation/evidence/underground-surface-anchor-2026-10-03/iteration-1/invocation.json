@@ -1,0 +1,90 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.204,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "209/359",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-surface-anchor-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 6.186,
+      "log": "test_underground_surface_anchor.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "125/359",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-surface-anchor-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 9.804,
+      "log": "test_underground_terrain.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "78/359",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-surface-anchor-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.643,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "117/359",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-surface-anchor-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.829,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6222",
+        "godot/scripts/core/underground_surface_anchor.gd",
+        "godot/test/test_underground_surface_anchor.gd",
+        "godot/scripts/core/underground_terrain.gd",
+        "godot/test/test_underground_terrain.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/test/test_underground_locations.gd",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/test/test_underground_space_owner.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.558,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

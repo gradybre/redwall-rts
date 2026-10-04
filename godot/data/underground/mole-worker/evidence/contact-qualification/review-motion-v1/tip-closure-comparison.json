@@ -1,0 +1,7 @@
+{
+  "prior": "16b7b79c3c833bd324e47e818a55fa548a46c06cc46fb581587b69d62eaa63f3",
+  "current": "393761659a439d9488f7985a972749a01e738cc74b9ebe59d0099c9573b7b22c",
+  "equal_except_producer_closure": true,
+  "native_witness": "native-tip-v1/report.json",
+  "production_qualified": false
+}

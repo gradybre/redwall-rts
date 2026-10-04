@@ -1,0 +1,71 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-00.log",
+    "seconds": 1.549
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-01.log",
+    "seconds": 1.523
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-02.log",
+    "seconds": 0.322
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "spec-03.log",
+    "seconds": 0.322
+  },
+  {
+    "command": [
+      "python3",
+      "-m",
+      "unittest",
+      "tools.test_registry_capacity_audit",
+      "tools.test_underground_memory_budget"
+    ],
+    "exit_code": 1,
+    "log": "spec-04.log",
+    "seconds": 0.041
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "log": "spec-05.log",
+    "seconds": 0.278
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_build_queue.py",
+      "validate"
+    ],
+    "exit_code": 0,
+    "log": "spec-06.log",
+    "seconds": 0.028
+  }
+]

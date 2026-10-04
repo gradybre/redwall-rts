@@ -1,0 +1,25 @@
+state_registry_coverage: PASS -- 137 modules, 689 rows, 1029 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_contacts.gd
+  FAIL  test_actual_source_and_live_contacts_admit_and_pay_one_assembly
+        actual paid START: MODULAR_OPERATION_OWNER_UNBOUND (expected true, got false)
+        actual helper checks: ["actual contact-gated order: CONNECTOR_CONTACT_PROFILE (expected true, got false)", "actual wood-only bill (expected , got MODULAR_OPERATION_OWNER_UNBOUND)", "actual requested Job (expected true, got false)", "actual Job mapping (expected true, got false)", "actual worker/tool claim (expected true, got false)", "actual exact WORK actor (expected , got PROFILE_JOB_REQUIRED)", "one immutable bill (expected , got MODULAR_OPERATION_OWNER_UNBOUND)", "actual selected storage: MODULAR_OPERATION_OWNER_UNBOUND (expected true, got false)", "actual stock: UNKNOWN_ITEM (expected true, got false)", "real wood reservation (expected true, got false)", "actual delivery: MODULAR_OPERATION_OWNER_UNBOUND (expected true, got false)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":3,"failures":1,"suite":"test_underground_connector_contacts.gd","tests":1,"usec":925624}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 3 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

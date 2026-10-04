@@ -1,0 +1,80 @@
+state_registry_coverage: PASS -- 117 modules, 571 rows, 941 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_room_layout.gd
+  PASS  test_unbound_sources_and_unbound_construction_fail_closed
+  PASS  test_layout_preview_and_staging_are_non_authoritative
+  PASS  test_unknown_or_forbidden_furniture_is_refused
+  PASS  test_an_unfinished_shell_cannot_be_furnished
+  PASS  test_all_four_rotations_use_the_full_catalog_footprint_and_contact
+  PASS  test_concave_finished_boundary_beats_the_bounding_rectangle
+  PASS  test_rotated_second_tile_detects_overlap
+  PASS  test_protected_entrance_and_stair_landing_are_never_occupied
+  PASS  test_every_footprint_cell_needs_support_at_the_same_height
+  PASS  test_full_footprint_requires_headroom_including_other_level_obstructions
+  PASS  test_install_contact_cannot_float_across_a_riser
+  PASS  test_same_room_or_nearby_cells_do_not_invent_walk_connections
+  PASS  test_later_furniture_must_preserve_existing_furniture_access
+  PASS  test_open_boundary_allows_real_access_from_a_neighboring_room
+  PASS  test_neighboring_walk_context_does_not_authorize_neighboring_floor_occupation
+  PASS  test_required_circulation_must_reach_a_distant_landing
+  PASS  test_confirmed_unfinished_projects_block_new_footprints
+  PASS  test_stale_object_generation_refuses_the_whole_image
+  PASS  test_group_confirmation_revalidates_after_world_changes
+  PASS  test_group_success_submits_one_transaction_and_retains_individual_projects
+  PASS  test_coordinator_refusal_retains_all_drafts_and_creates_no_receipts
+  PASS  test_atomic_owner_refuses_revision_change_at_commit
+  PASS  test_malformed_success_is_a_coordinator_contract_breach
+  PASS  test_mode_changes_preserve_drafts_and_accepted_projects
+  PASS  test_each_room_has_an_independent_mode
+  PASS  test_draft_edits_and_stale_draft_handles_are_atomic
+  PASS  test_room_reuse_never_inherits_drafts_or_mode
+  PASS  test_existing_room_type_cannot_change_by_emptying_or_reopening
+  PASS  test_room_cleanup_and_project_receipts_do_not_cancel_real_work
+  PASS  test_capacity_refuses_before_world_submission
+  PASS  test_unknown_profile_opening_geometry_and_grid_pitch_fail_closed
+  PASS  test_finer_grid_subdivides_existing_catalog_dimensions_without_scaling_furniture
+  PASS  test_invalid_floor_and_link_columns_are_refused_before_indexing
+  PASS  test_floor_link_object_and_contact_operation_budgets_are_enforced
+  PASS  test_tiny_grid_cannot_expand_a_single_piece_beyond_the_operation_budget
+  PASS  test_combined_contact_budget_covers_many_individually_bounded_profiles
+  PASS  test_reentrant_draft_edits_and_rebinding_are_refused_during_acceptance
+  PASS  test_rotation_and_translation_check_int64_before_int32_narrowing
+  PASS  test_empty_confirmation_and_unopened_room_have_explicit_refusals
+  PASS  test_typed_base_and_foreign_sources_cannot_replace_world_ownership
+  PASS  test_actual_busy_arena_refuses_before_any_snapshot_or_liveness_callback
+  PASS  test_packed_peak_admission_refuses_before_copies_at_unqualified_default_maximum
+  PASS  test_entry_guard_precedes_binding_begin_snapshot_and_release_callbacks
+  PASS  test_snapshot_is_read_once_and_guides_hold_only_their_exact_synchronous_scope
+  PASS  test_release_clears_all_views_before_provider_companion_and_arena_cleanup
+  PASS  test_forged_duplicate_and_foreign_result_release_cannot_release_another_lease
+  PASS  test_input_boundary_diagnoses_and_clears_an_unreleased_live_result
+  PASS  test_dropped_result_is_diagnosed_without_starting_another_copying_operation
+  PASS  test_expired_snapshot_token_cannot_authorize_draft_mutation_or_release_replacement
+  PASS  test_placement_list_copies_are_scoped_and_confirm_receipts_escape_without_geometry
+  PASS  test_input_boundary_releases_pinned_scope_even_if_result_metadata_was_mutated
+  PASS  test_failed_guided_preview_keeps_scope_until_highlight_is_consumed
+  PASS  test_expired_weak_provider_refuses_before_liveness_or_snapshot_fallback
+  PASS  test_binding_itself_is_exclusive_before_the_initial_provider_attestation
+  PASS  test_scope_failure_after_successful_project_acceptance_preserves_outcome_and_quarantines
+  PASS  test_end_operation_failure_after_acceptance_cannot_report_an_atomic_refusal
+  PASS  test_late_scope_failure_after_local_draft_write_preserves_the_committed_draft
+CI_SUITE_TIME {"assertions":563,"failures":0,"suite":"test_room_layout.gd","tests":57,"usec":53714}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+57 test(s), 563 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 57 tests, 563 assertions, 0 failures.

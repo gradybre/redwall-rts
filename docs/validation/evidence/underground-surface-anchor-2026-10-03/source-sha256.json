@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_surface_anchor.gd": "d928d4f0ebe6fc55183486c33a49596305682bcd70dfa298b7c1dbe785d29a1e",
+  "godot/test/test_underground_surface_anchor.gd": "4f4926b99fb78eee16ddbaba50de83ba55cc6ec6c250d3dc550fea1af39d9cad",
+  "godot/scripts/core/underground_terrain.gd": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+  "godot/test/test_underground_terrain.gd": "3c792bf53b86178d819fdf3e04fee1bc2f0d39ab12e0a3aa477b7dfd3062d16d"
+}

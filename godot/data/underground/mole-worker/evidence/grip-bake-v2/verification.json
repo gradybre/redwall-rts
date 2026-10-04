@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "command": [
+    "godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_mole_grip_content.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-bake-v2/bake-spec.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-bake-v2/bake-report.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v2.ugpal"
+  ],
+  "cases": 7,
+  "frames": 354,
+  "native_matrix_checks": 8496,
+  "content_path": "godot/demo/assets/underground-matrices/mole-grip-v2.ugpal",
+  "content_bytes": 5906853,
+  "content_sha256": "6d5ae0e52e50d715e7d9832cc62f08e9a4e1a0a95f4bc2a199efec1d75a8c9c8",
+  "spec_sha256": "ec92088e6c776d17f8312432ced925b940c8c4f35417ed02f1f374248c91b1ab",
+  "report_sha256": "a196b50ce7b107543b660c008d45685e02245c5a654fec02ef606fca898e8937",
+  "import_archive": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v2.inputs",
+    "files": 150,
+    "bytes": 5419752
+  },
+  "qualified_profiles": 0,
+  "unexpected_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "source_geometry_sha256": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+  "derived_geometry_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14"
+}

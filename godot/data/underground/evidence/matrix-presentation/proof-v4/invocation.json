@@ -1,0 +1,15 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/export_underground_envelopes.py",
+    "godot/demo/assets/underground-matrices/all-cast-v8.ugpal",
+    "--sha256",
+    "d675d4e6019d5f58e27e6d8faf9a7f37b1465fc451c0816bca06c68cdc0c48fe",
+    "--palette",
+    "--import-archive",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v8.inputs",
+    "--out",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/proof-v4/envelopes.json"
+  ],
+  "exit_code": 0
+}

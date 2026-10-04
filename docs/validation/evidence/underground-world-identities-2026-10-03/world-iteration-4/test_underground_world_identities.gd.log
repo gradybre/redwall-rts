@@ -1,0 +1,4 @@
+FAIL line 1439: duplicate registry section for underground_world_bindings.gd
+FAIL C3 underground_world_bindings.gd declares `_clip` with no registry row
+FAIL C3 underground_world_bindings.gd declares `_intersection` with no registry row
+state_registry_coverage: 3 failure(s)

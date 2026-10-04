@@ -1,0 +1,7 @@
+[
+  "./tools/run_tests.sh",
+  "--shard",
+  "342/365",
+  "--output-dir",
+  "docs/validation/evidence/underground-ci-54c9b588/test_input_map-probe"
+]

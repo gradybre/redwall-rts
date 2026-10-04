@@ -1,0 +1,9 @@
+{
+  "godot/demo/burrow/modular_world_tool.gd": "500fdb2342ba1e7f3b7967a089a7c5c30c0ba8ff077a76a0dffc71b48ab70896",
+  "godot/demo/burrow/modular_world_overlay.gd": "9de9afa18188bb94a1fe28d538f46db97d1b67360aa34d355be12c7076b4310b",
+  "godot/demo/burrow/modular_plan.gdshader": "d3dd6cbf0cee2e6f0035ffbce23c9addbfc6f367a93a75e931e9f6324b0136f4",
+  "godot/demo/burrow/modular_draft.gd": "3fd5ba312145a3f2692413ba3287a5ad5dabbe4e9462a2364f48f54b279c7366",
+  "godot/demo/burrow/modular_editor.gd": "691232044e57d9de427d717105d950599473e1843aa8c8f51c40b07fef688af6",
+  "godot/test/test_modular_world_tool.gd": "69ce652430f85b14a769fee9ebed0f0ffa83deb735e3a417127e26254457430e",
+  "godot/test/live/modular_world_live.gd": "e9f7782ce7ea36b1de4a5cc816da20a7a552224c3ce061e4b03f2217c5a818fa"
+}

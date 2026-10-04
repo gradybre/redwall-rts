@@ -1,0 +1,23 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/compile_underground_actor_content.py",
+    "--source",
+    "godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+    "--source-sha256",
+    "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "--proof",
+    "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/envelopes.json",
+    "--proof-sha256",
+    "1591622423b580c5c44889f580f8bb1f8f171b2cc19cad69042451d0fd9b52e3",
+    "--plan",
+    "godot/data/underground/mole-worker/source-plan.json",
+    "--plan-sha256",
+    "922f4855fdf4f8202ccf8b8761ec2974438f8df4134b74d9c99b6c51d4c14b1c",
+    "--import-archive",
+    "godot/demo/assets/underground-matrices/all-cast-v9.inputs",
+    "--out",
+    "godot/data/underground/mole-worker/v3"
+  ],
+  "returncode": 0
+}

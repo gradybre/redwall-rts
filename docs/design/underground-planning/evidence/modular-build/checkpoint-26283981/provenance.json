@@ -1,0 +1,6 @@
+{
+  "commit": "26283981f313ba7744ae1f569b920945ca6336d6",
+  "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+  "supervisor_pid": 66553,
+  "procedure": "assets aside; remove .godot; clean import; no-argument ./tools/run_tests.sh; restore assets"
+}

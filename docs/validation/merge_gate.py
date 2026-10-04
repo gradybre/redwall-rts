@@ -55,11 +55,9 @@ def _trail_rows(text: str) -> list[list[str]]:
 		if not line.startswith("|"):
 			break
 		cells = [c.strip() for c in line.strip().strip("|").split("|")]
-		# Stop at the first row that is not shaped like a trail step. Without
-		# this the scan runs on into whatever table follows and tries to read
-		# "I32" as a byte delta.
-		if len(cells) != 5 or not all(re.fullmatch(r"\d+", cells[i]) for i in (3, 4)):
-			break
+		# A non-table line ends this Markdown table. A malformed row inside it
+		# must be reported, or an accidental allocation-table paste hides every
+		# later reconciliation step from the arithmetic check (decision1071).
 		rows.append(cells)
 	return rows
 
@@ -74,6 +72,9 @@ def check_trail(text: str) -> list[str]:
 	problems: list[str] = []
 	previous: int | None = None
 	for cells in _trail_rows(text):
+		if len(cells) != 5 or not all(re.fullmatch(r"\d+", cells[i]) for i in (3, 4)):
+			problems.append(f"L1 malformed trail row: {cells!r}")
+			continue
 		label, delta, payload, live = cells[0], cells[2], int(cells[3]), int(cells[4])
 		if delta not in ("—", "--"):
 			# A delta may now be NEGATIVE: decision 0138 deletes the presentation pose

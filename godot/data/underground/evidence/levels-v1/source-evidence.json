@@ -1,0 +1,74 @@
+{
+  "schema": 1,
+  "scope": "Finite engineering level metadata with actual Directory/Domain identity; no terrain, support, completed void, route, movement or work permission.",
+  "independent_review": "Root accepted exact c067c3e0/3a09b629 and 353a50be/e0b0a02c source pins.",
+  "asset_isolation": "Own assets moved outside Godot project, cache deleted, exact headless editor import, unchanged strict runner with existing CI suite selector, assets restored.",
+  "tests": 10,
+  "assertions": 179,
+  "failures": 0,
+  "strict_and_raw_unexpected_errors": 0,
+  "strict_and_raw_unexpected_warnings": 0,
+  "expected_diagnostics": 0,
+  "tolerated_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 2,
+  "compiler_tests": 6,
+  "qualified_production_profiles": 0,
+  "maximum_level_retained_bytes": 244,
+  "level_native_loading_reservation_bytes": 2048,
+  "combined_profile_and_level_reservation_bytes": 261428,
+  "shared_ceiling_bytes": 262144,
+  "native_memory_measured": false,
+  "files": [
+    {
+      "path": "godot/data/underground/compile_initial_levels.py",
+      "sha256": "353a50be8690375dd500405d0dc8be766d11690166798bb71a00909543a1a209"
+    },
+    {
+      "path": "godot/data/underground/evidence/levels-v1/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/levels-v1/compiler-tests.log",
+      "sha256": "62cfbeb2911bb226088bfb0918eb4b05008ea70b20bce854ee2ca8a564bd37a5"
+    },
+    {
+      "path": "godot/data/underground/evidence/levels-v1/import.log",
+      "sha256": "1ccdf685978dad48ec071663c3b23e7255ab66077e41d580b0a3bd8b69180ed6"
+    },
+    {
+      "path": "godot/data/underground/evidence/levels-v1/invocation.json",
+      "sha256": "7a231c75221115ed87a9e6c91e8ce74829d63f19dfd1303b08b4271b91c8ceef"
+    },
+    {
+      "path": "godot/data/underground/evidence/levels-v1/strict.log",
+      "sha256": "ab35f2ec3464dae6aa38a1fa6bb35149713f4e83154fa5e1090acf699afcfc72"
+    },
+    {
+      "path": "godot/data/underground/evidence/run_level_catalog_checks.py",
+      "sha256": "193ef89fc4ef948089a07ad3b7227627710600d0026eb298eb1f59aac578aa89"
+    },
+    {
+      "path": "godot/data/underground/initial_level_pack.json",
+      "sha256": "8cfdae9b221480ef2510867ede2b8309c00c6fd76aece8799c47f6a06ad8fe7a"
+    },
+    {
+      "path": "godot/data/underground/initial_level_pack.uglvl",
+      "sha256": "c5deb094b335bf6e5db018eeed591a115086b79bd909f829ed6e34166db81f94"
+    },
+    {
+      "path": "godot/data/underground/test_compile_initial_levels.py",
+      "sha256": "e0b0a02c2116b51cd38889919b356602b9e07f58dc31b3afd02dfd7fb6b9ff91"
+    },
+    {
+      "path": "godot/scripts/core/underground_level_catalog.gd",
+      "sha256": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f"
+    },
+    {
+      "path": "godot/test/test_underground_level_catalog.gd",
+      "sha256": "3a09b6291f7be2d5f77c1b4445cec7782a8b9aa68a4b1148e267d6b39a131a04"
+    }
+  ]
+}

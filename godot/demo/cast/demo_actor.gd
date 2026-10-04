@@ -195,6 +195,10 @@ var _crouch_drop: float = 0.0
 var _strike: StrikeClockScript = null
 ## Whether the body is drawn on the surface too, walking an open cutting (see IN A CUTTING).
 var _in_cut: bool = false
+## Presentation-only heading history. A bore reversal must not rotate the mesh by pi in one frame;
+## the brain keeps its committed direction/progress while this catches up at its existing turn rate.
+var _heading_ready: bool = false
+var _heading_turning: bool = false
 
 
 func setup_creature(index: int, key: StringName, row: Dictionary, space: CastSpaceScript, seed_value: int) -> bool:
@@ -369,7 +373,7 @@ func draw(clock: DemoClockScript) -> void:
 	"""The drawing half of `advance`: stand, stoop, strike and play the clip where the brain says (see TIME)."""
 	if brain == null:
 		return
-	_apply_transform()
+	_apply_transform(clock.delta_s())
 	_step_strike(clock.delta_s())
 	ease_stoop(clock.delta_s())
 	_apply_clip(clock.speed)
@@ -377,24 +381,46 @@ func draw(clock: DemoClockScript) -> void:
 		_place_load()
 
 
-func _apply_transform() -> void:
+func _apply_transform(delta_s: float = -1.0) -> void:
 	"""Stand on the ground -- or a bore's floor -- at the brain's position; local +Z along its yaw. Lying, laid on
-	what it lies on (see ASLEEP)."""
+	what it lies on (see ASLEEP). A negative delta explicitly places an actor without turn history."""
 	position.x = brain.position.x
 	position.y = lie_y() if brain.lying else brain.ground_y_m
 	position.z = brain.position.y
-	rotation.y = brain.yaw
-	rotation.x = LIE_BACK_RAD if brain.lying and not _lies_by_clip else brain.pitch
+	_apply_heading(delta_s)
 	visible = not brain.indoors
 	_apply_view()
 	if _tail == null:
 		return
-	if brain.in_water != _tail_in_water or (brain.in_water and absf(angle_difference(_tail_yaw, brain.yaw)) > WATER_TAIL_TURN_RAD):
+	if brain.in_water != _tail_in_water or (brain.in_water and absf(angle_difference(_tail_yaw, rotation.y)) > WATER_TAIL_TURN_RAD):
 		_apply_tail_water()
 	var floor_y: float = brain.lie_top_y_m if brain.lying else brain.ground_y_m - (WATER_FLOOR_BELOW_M if brain.in_water else 0.0)
 	if floor_y != _floor_y:
 		_floor_y = floor_y
 		_tail.set_floor(_floor_y)
+
+
+func _apply_heading(delta_s: float) -> void:
+	"""Smooth only an underground heading change (and its unfinished exit), without writing any brain state."""
+	var target_pitch: float = LIE_BACK_RAD if brain.lying and not _lies_by_clip else brain.pitch
+	if delta_s < 0.0 or not _heading_ready or brain.lying:
+		rotation.y = brain.yaw
+		rotation.x = target_pitch
+		_heading_ready = true
+		_heading_turning = false
+		return
+	var difference: float = absf(angle_difference(rotation.y, brain.yaw))
+	if brain.underground and difference > 0.0:
+		_heading_turning = true
+	if not _heading_turning:
+		rotation.y = brain.yaw
+		rotation.x = target_pitch
+		return
+	var amount: float = minf(difference, BrainScript.SPOT_TURN_RATE * delta_s)
+	var share: float = amount / difference if difference > 0.0 else 1.0
+	rotation.y = BrainScript.turn_toward(rotation.y, brain.yaw, amount)
+	rotation.x = lerpf(rotation.x, target_pitch, share)
+	_heading_turning = amount < difference
 
 
 func lie_y() -> float:
@@ -445,7 +471,8 @@ func ease_stoop(delta_s: float) -> void:
 		_stoop_drop = target
 	_stoop_ease = move_toward(_stoop_ease, 1.0 if target > 0.0 else 0.0, delta_s / STOOP_EASE_S)
 	if _stoop != null:
-		_stoop.set_pose(_stoop_drop * smoothstep(0.0, 1.0, _stoop_ease), -brain.pitch * LEAN_BACK_SHARE)
+		var rendered_pitch: float = rotation.x if _heading_turning and not brain.lying else brain.pitch
+		_stoop.set_pose(_stoop_drop * smoothstep(0.0, 1.0, _stoop_ease), -rendered_pitch * LEAN_BACK_SHARE)
 
 
 func stoop_now_m() -> float:
@@ -461,8 +488,8 @@ func stoop() -> StoopScript:
 func _apply_tail_water() -> void:
 	"""The tail in or out of water mode, pulled back along the body's heading (see IN THE WATER)."""
 	_tail_in_water = brain.in_water
-	_tail_yaw = brain.yaw
-	_tail.set_water(_tail_in_water, Vector3(-sin(brain.yaw), 0.0, -cos(brain.yaw)))
+	_tail_yaw = rotation.y
+	_tail.set_water(_tail_in_water, Vector3(-sin(rotation.y), 0.0, -cos(rotation.y)))
 
 
 func tail_in_water() -> bool:

@@ -1,0 +1,152 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.005,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "162/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 7.765,
+      "log": "test_underground_entry_orders.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "104/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 5.431,
+      "log": "test_underground_room_orders.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "131/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 11.767,
+      "log": "test_underground_room_admission.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "146/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 7.871,
+      "log": "test_underground_room_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "193/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 4.935,
+      "log": "test_excavation_entry_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "210/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 4.259,
+      "log": "test_excavation_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "46/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 7.959,
+      "log": "test_underground_space_owner.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "152/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 4.658,
+      "log": "test_underground_final_facts.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "122/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/shards"
+      ],
+      "exit_code": 0,
+      "seconds": 4.841,
+      "log": "test_underground_furniture_work.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6291",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-orders-2026-10-03/publication-1/analyzer.json",
+        "godot/scripts/core/underground_entry_plan.gd",
+        "godot/scripts/core/underground_room_orders.gd",
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/scripts/core/underground_space_owner.gd",
+        "godot/scripts/core/underground_final_facts.gd",
+        "godot/test/test_underground_entry_orders.gd",
+        "godot/test/test_underground_furniture_work.gd",
+        "godot/test/test_underground_space_owner.gd",
+        "godot/test/test_underground_final_facts.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.153,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

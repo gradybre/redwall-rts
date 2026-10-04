@@ -1,0 +1,45 @@
+{
+  "assets_present": false,
+  "outputs": "temporary output directory retained in the recorded commands",
+  "head": "f9f3949e4e059419fae6f40d6c216b563075cfcd",
+  "checks": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit": 0,
+      "diagnostic_lines": [],
+      "log": "import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "106/314",
+        "--output-dir",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug21-reviewed-final-1uqtaf42/test_underground_space_owner.gd-shard"
+      ],
+      "suite": "test_underground_space_owner.gd",
+      "exit": 0,
+      "log": "owner-tests.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "110/314",
+        "--output-dir",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug21-reviewed-final-1uqtaf42/test_underground_space_authority.gd-shard"
+      ],
+      "suite": "test_underground_space_authority.gd",
+      "exit": 0,
+      "log": "authority-tests.log"
+    }
+  ],
+  "assets_restored": true
+}

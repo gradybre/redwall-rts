@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 104 modules, 490 rows, 833 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_spatial_outputs.gd
+  PASS  test_actual_router_commits_outputs_on_distinct_stacked_locations
+  PASS  test_surface_alias_and_stale_payload_refuse_before_payment
+  PASS  test_commit_time_spatial_failure_restores_all_actual_owners_then_retries
+  PASS  test_existing_spatial_pile_accepts_another_paid_output_without_repromotion
+  PASS  test_zero_input_cancel_retires_only_owned_empty_staging_and_keeps_source_claims
+  PASS  test_positive_cancel_refund_promotes_actual_spatial_destination
+  PASS  test_positive_refund_support_refusal_restores_receipts_goods_and_loss_until_retry
+  PASS  test_spatial_cancellation_retains_another_purposes_actual_input_claims
+CI_SUITE_TIME {"assertions":415,"failures":0,"suite":"test_modular_spatial_outputs.gd","tests":8,"usec":542415}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 415 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 415 assertions, 0 failures.

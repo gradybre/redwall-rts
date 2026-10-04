@@ -1,0 +1,49 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_inventory_anchor.gd
+  PASS  test_anchor_domain_is_the_exterior_grid_buildings_indexes
+  PASS  test_domain_predicate_accepts_unplaced_and_both_grid_ends_only
+  PASS  test_a_container_created_without_an_anchor_is_unplaced
+  PASS  test_create_container_records_the_anchor_at_both_ends_of_the_grid
+  PASS  test_create_container_refuses_an_out_of_domain_anchor_before_writing
+  PASS  test_create_container_checks_the_anchor_before_store_capacity
+  PASS  test_a_reused_slot_does_not_inherit_the_retired_rows_anchor
+  PASS  test_the_query_reports_the_current_generation_of_a_reused_slot
+  PASS  test_clear_resets_every_anchor_to_unplaced
+  PASS  test_an_anchor_beyond_int32_is_refused_not_truncated
+  PASS  test_set_container_anchor_places_moves_and_unplaces
+  PASS  test_set_container_anchor_refuses_an_out_of_domain_tile_without_writing
+  PASS  test_set_container_anchor_refuses_a_dead_or_stale_container
+  PASS  test_a_poisoned_transaction_restores_the_anchor_byte_for_byte
+  PASS  test_a_committed_transaction_keeps_the_anchor
+  PASS  test_the_refusal_carrying_reader_tells_unplaced_from_missing
+  PASS  test_the_query_finds_every_container_on_a_footprint_in_slot_order
+  PASS  test_an_unplaced_container_is_never_reported_whatever_the_mask_marks
+  PASS  test_any_nonzero_mask_byte_marks_a_tile
+  PASS  test_a_clear_footprint_is_a_complete_scan_reporting_zero
+  PASS  test_the_query_refuses_a_mask_of_the_wrong_size
+  PASS  test_the_query_refuses_an_undersized_buffer_without_truncating
+  PASS  test_the_query_is_read_only_on_success_and_refusal
+  PASS  test_audit_refuses_an_out_of_domain_anchor_on_a_live_row_only
+  PASS  test_the_rollback_image_includes_the_anchor
+  PASS  test_the_canonical_projection_copies_live_anchors_and_masks_dead_ones
+  PASS  test_restore_refuses_an_out_of_domain_live_anchor_and_a_dead_anchor_residue
+CI_SUITE_TIME {"assertions":229,"failures":0,"suite":"test_inventory_anchor.gd","tests":27,"usec":23432}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+27 test(s), 229 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 27 tests, 229 assertions, 0 failures.

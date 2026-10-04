@@ -1,0 +1,51 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_inventory_ground_piles.gd
+  PASS  test_a_pile_is_world_owned_400000_g_reachable_and_anchored_on_its_tile
+  PASS  test_creation_outside_an_explicit_transaction_refuses_and_writes_nothing
+  PASS  test_one_pile_per_tile_within_and_across_transactions
+  PASS  test_an_out_of_domain_tile_refuses_before_the_site_is_asked
+  PASS  test_the_sites_refusal_is_returned_by_name
+  PASS  test_a_malformed_world_ref_refuses_invalid_owner
+  PASS  test_an_unbound_or_released_authority_fails_closed
+  PASS  test_binding_refuses_half_an_authority_and_an_open_transaction
+  PASS  test_an_authority_that_reenters_the_store_is_refused
+  PASS  test_a_full_container_store_refuses_capacity
+  PASS  test_create_container_refuses_the_reserved_pile_policy
+  PASS  test_a_piles_anchor_cannot_be_moved
+  PASS  test_destroying_a_pile_clears_its_cell_and_rollback_restores_it
+  PASS  test_aborting_a_pile_creation_is_byte_identical
+  PASS  test_an_empty_pile_is_reclaimed_by_the_commit_that_created_it
+  PASS  test_a_pile_emptied_by_an_implicit_operation_is_reclaimed_at_once
+  PASS  test_a_pile_emptied_by_a_transfer_inside_a_transaction_is_reclaimed_at_commit
+  PASS  test_a_partial_withdrawal_keeps_the_pile
+  PASS  test_emptying_a_claimed_pile_is_refused_not_unclaimed
+  PASS  test_a_new_pile_holding_only_a_claim_is_refused_at_commit
+  PASS  test_the_audit_refuses_a_lotless_pile_at_rest
+  PASS  test_a_rolled_back_transaction_reclaims_nothing
+  PASS  test_the_audit_refuses_a_map_that_disagrees_with_the_rows
+  PASS  test_clear_empties_the_map
+  PASS  test_restore_rebuilds_the_map_identically_to_the_live_one
+  PASS  test_restore_refuses_two_piles_on_one_tile_and_an_unplaced_pile
+  PASS  test_a_reused_slot_that_is_no_longer_a_pile_is_never_reclaimed
+  PASS  test_state_bytes_covers_the_tile_map
+  PASS  test_a_reclaimed_piles_slot_returns_to_the_allocator_under_a_new_generation
+CI_SUITE_TIME {"assertions":233,"failures":0,"suite":"test_inventory_ground_piles.gd","tests":29,"usec":19109}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+29 test(s), 233 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 29 tests, 233 assertions, 0 failures.

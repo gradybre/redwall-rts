@@ -1,0 +1,9 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-pko47j8e
+import exit 0 diagnostics []
+test_underground_routes.gd exit 0
+CI_SUITE_TIME {"assertions":5693,"failures":0,"suite":"test_underground_routes.gd","tests":30,"usec":2256014}
+30 test(s), 5693 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 30 tests, 5693 assertions, 0 failures.
+assets restored True

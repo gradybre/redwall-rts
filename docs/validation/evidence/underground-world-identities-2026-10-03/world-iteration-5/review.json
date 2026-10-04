@@ -1,0 +1,9 @@
+{
+  "reviewer": "ug_geometry",
+  "result": "accepted; no critical/high/medium findings",
+  "source_sha256": "f466e8726244bdd7d20f09a8705e87be4eda3a989b197304bee4c4a5086349cc",
+  "test_sha256": "29ef0f8475a3d10974df513643300aca3037c30b62968fa4df6662acfd8e31ed",
+  "method": "independent read-only source and test review; no repeated engine run",
+  "scope": "Six-field actual Room source/dimension/purpose identity; exact Sites/Jobs/Directory and reciprocal living JobAgent assignment; no contact or physical permission",
+  "logical_retained_bytes_added": 26
+}

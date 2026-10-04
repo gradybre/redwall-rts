@@ -1,0 +1,64 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/1-audit_registry_capacities.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/2-test_registry_capacity_audit.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/3-state_registry_coverage.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/4-validate_save_registry_handoff.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/5-generate_canonical_state_table.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/6-underground_memory_budget.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_build_queue.py",
+      "validate"
+    ],
+    "exit_code": 0,
+    "log": "docs/validation/evidence/underground-claims-paths-integration-2026-10-03/7-underground_build_queue.log"
+  }
+]

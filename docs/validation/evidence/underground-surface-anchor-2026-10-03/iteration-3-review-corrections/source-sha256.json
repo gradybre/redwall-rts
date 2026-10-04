@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/underground_surface_anchor.gd": "d928d4f0ebe6fc55183486c33a49596305682bcd70dfa298b7c1dbe785d29a1e",
+  "godot/test/test_underground_surface_anchor.gd": "773b0d2ab74d4c96b6ce7f442b291415a49584f1ff65652a3d530e52b698d655",
+  "godot/scripts/core/underground_terrain.gd": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+  "godot/test/test_underground_terrain.gd": "3c792bf53b86178d819fdf3e04fee1bc2f0d39ab12e0a3aa477b7dfd3062d16d",
+  "godot/scripts/core/underground_locations.gd": "0401ceb0468447b0ced4d18a2216c6aab61029a6fa3e29e151292de8aacfe184",
+  "godot/test/test_underground_locations.gd": "9dfe3e0c32ee7858f01b5942dd732fa81e8414663da277b298ebed25513a72f3",
+  "godot/scripts/core/underground_space_owner.gd": "725850066ac27f24db48c237d0601c78a8c34efe783b7b142e246f4503d82a07",
+  "godot/test/test_underground_space_owner.gd": "ff13392b62d839997b1ff9d7fcfc4e530e4f943b21fc04451df40f4c8a2cc66c"
+}

@@ -1,0 +1,14 @@
+{
+  "prefix-source.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/design/underground-planning/first-entry-prefix-v1.json",
+    "sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
+  },
+  "down-constituent.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/result/candidate.json",
+    "sha256": "09ead39bc8ea4700e12efd7651654ec5451c821f871157accf239466dfa45182"
+  },
+  "entry-constituent.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7/result/entry-primitive-proof.json",
+    "sha256": "86d2221c04c91b7ed707fa24c486078f282cc687e71707b72594146298a64cf1"
+  }
+}

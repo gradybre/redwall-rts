@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_entry_cut_map.gd": "6e72d422ec66cd4faced91f8608a571739a0c7f010748297684b336ff7122a9e",
+  "godot/scripts/core/excavation_sites.gd": "813958c19a17f15396cb46e68a6af099a561bb3078cf174f8e7ffe31df10fc37",
+  "godot/test/test_underground_entry_cut_map.gd": "4ee54467ce06572e8bad2be675f53fe3f432cc73be8bbd72d533ba010b6e3588",
+  "godot/test/test_excavation_entry_claim_batch.gd": "b0644b0374ec56ae3711c20f02e266c828d04ef3547d0e465e09a72defd86936",
+  "godot/test/test_excavation_claim_batch.gd": "0054068f201561cfde8113acddb08a8dae327b180d15c88c7f6b0e3b9f07e20c"
+}

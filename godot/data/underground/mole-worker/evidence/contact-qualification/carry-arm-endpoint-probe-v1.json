@@ -1,0 +1,261 @@
+{
+  "scope": "diagnostic endpoints only; no native or continuous qualification",
+  "results": [
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.11019509163589802,
+        0.5115299350985951,
+        -0.6060288995279524,
+        0.38222389442162674,
+        1.022337681576733,
+        -0.1866448578552662
+      ],
+      "min_tool_y_u": 523.8066535409614,
+      "work_source_frame": 36,
+      "carry_clip": 0,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.12556296089399188,
+        0.6394491407695506,
+        -0.4421244904483599,
+        0.4283786084541066,
+        1.120474984901189,
+        -0.046022791982276434
+      ],
+      "min_tool_y_u": 654.7959201480198,
+      "work_source_frame": 36,
+      "carry_clip": 1,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.25141264086904247,
+        0.531799196583543,
+        -0.23392639266663706,
+        0.6711972785176952,
+        1.07983770286299,
+        -0.06448981213045157
+      ],
+      "min_tool_y_u": 544.562377301548,
+      "work_source_frame": 36,
+      "carry_clip": 4,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.084280173540489,
+        0.5346834967136345,
+        -0.6015077417506227,
+        0.31375827048708027,
+        1.0721119664441776,
+        -0.1901401656251558
+      ],
+      "min_tool_y_u": 547.5159006347617,
+      "work_source_frame": 40,
+      "carry_clip": 0,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.09839608966945557,
+        0.6577106985498382,
+        -0.4360980847111673,
+        0.36168079223388006,
+        1.1763798402736794,
+        -0.04547047668454507
+      ],
+      "min_tool_y_u": 673.4957553150343,
+      "work_source_frame": 40,
+      "carry_clip": 1,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.2043627630231169,
+        0.5363274136698556,
+        -0.3134184700803586,
+        0.6285289324454961,
+        1.0702561931654553,
+        -0.11555890783775702
+      ],
+      "min_tool_y_u": 549.1992715979321,
+      "work_source_frame": 40,
+      "carry_clip": 4,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        -0.002811939327955315,
+        0.4763914503175313,
+        -0.6942495579011227,
+        0.2532390700550309,
+        1.0048623331843731,
+        -0.3151934915287842
+      ],
+      "min_tool_y_u": 487.824845125152,
+      "work_source_frame": 44,
+      "carry_clip": 0,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.020521398463529295,
+        0.6029313230002427,
+        -0.5581483930941802,
+        0.30970339822099313,
+        1.1500071519638364,
+        -0.18072591669407778
+      ],
+      "min_tool_y_u": 617.4016747522485,
+      "work_source_frame": 44,
+      "carry_clip": 1,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.28004079118153125,
+        0.4803817487034104,
+        -0.4162164985505754,
+        0.7061120129805265,
+        0.9545411490687323,
+        -0.0918261967205316
+      ],
+      "min_tool_y_u": 491.91091067229223,
+      "work_source_frame": 44,
+      "carry_clip": 4,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        -0.09970559611096519,
+        0.42570750105260347,
+        -0.8031980970011245,
+        0.14916831770675598,
+        0.9045209247425792,
+        -0.3603866254752415
+      ],
+      "min_tool_y_u": 435.92448107786595,
+      "work_source_frame": 46,
+      "carry_clip": 0,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        -0.06368335799282576,
+        0.5581373990830014,
+        -0.707470319303174,
+        0.2156746176640414,
+        1.076228556418967,
+        -0.3395539365661442
+      ],
+      "min_tool_y_u": 571.5326966609935,
+      "work_source_frame": 46,
+      "carry_clip": 1,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.3677931683224418,
+        0.4301773405567535,
+        -0.5165975395099873,
+        0.7879252349996949,
+        0.79770117111077,
+        -0.08178494784144963
+      ],
+      "min_tool_y_u": 440.5015967301156,
+      "work_source_frame": 46,
+      "carry_clip": 4,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        -0.235140528871276,
+        0.3711271085861716,
+        -0.8872047527939264,
+        0.11001149447457736,
+        0.7903420991290986,
+        -0.3969065917338339
+      ],
+      "min_tool_y_u": 380.0341591922397,
+      "work_source_frame": 48,
+      "carry_clip": 0,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        -0.19194249987557566,
+        0.5154636319938026,
+        -0.858174288649681,
+        0.126992583840289,
+        0.9683211143577761,
+        -0.3959799140716411
+      ],
+      "min_tool_y_u": 527.8347591616539,
+      "work_source_frame": 48,
+      "carry_clip": 1,
+      "carry_frame": 8
+    },
+    {
+      "contact_pairs": 0,
+      "first_pairs": [],
+      "omitted_grip_triangles": 448,
+      "tool_box_u": [
+        0.41982471336976035,
+        0.36698332262872757,
+        -0.6291933511140597,
+        0.8231572642187465,
+        0.6192137787544398,
+        -0.10574712226549177
+      ],
+      "min_tool_y_u": 375.79092237181703,
+      "work_source_frame": 48,
+      "carry_clip": 4,
+      "carry_frame": 8
+    }
+  ],
+  "production_qualified": false
+}

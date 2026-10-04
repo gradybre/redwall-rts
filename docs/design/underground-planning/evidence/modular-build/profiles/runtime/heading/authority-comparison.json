@@ -1,0 +1,97 @@
+{
+  "schema": 1,
+  "baseline": {
+    "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/native-v2/capture-native.json",
+    "sha256": "e731e4a97025af1a75e673216d0dded7e36a39f56e29768ecffc75a79e1c09da",
+    "bytes": 14719263
+  },
+  "current": {
+    "path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-native.json",
+    "sha256": "3f77304a72a65e76ae0faca8b0ef0157c66a9ad5f0cdbbff275df0082f83545c",
+    "bytes": 3080041
+  },
+  "inherited_field_comparisons": 34142,
+  "inherited_field_differences": 0,
+  "cases": [
+    {
+      "id": "mouse_keeper.tunnel_reversal.body",
+      "poses": 195,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 3515,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "mouse_keeper.tunnel_retreat.body",
+      "poses": 195,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 3515,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "mole_digger.tunnel_reversal.body",
+      "poses": 263,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 4739,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "mole_digger.tunnel_retreat.body",
+      "poses": 263,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 4739,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "squirrel_gatherer.tunnel_reversal.body",
+      "poses": 226,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 4073,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "squirrel_gatherer.tunnel_retreat.body",
+      "poses": 226,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 4073,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "otter_boatwright.tunnel_reversal.body",
+      "poses": 164,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 2957,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "otter_boatwright.tunnel_retreat.body",
+      "poses": 164,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 2957,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "badger_quarryman.tunnel_reversal.body",
+      "poses": 99,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 1787,
+      "inherited_field_differences": []
+    },
+    {
+      "id": "badger_quarryman.tunnel_retreat.body",
+      "poses": 99,
+      "authority_max_yaw_step_rad": 3.14159265358979,
+      "rendered_max_yaw_step_rad": 0.10666561126709,
+      "inherited_field_comparisons": 1787,
+      "inherited_field_differences": []
+    }
+  ]
+}

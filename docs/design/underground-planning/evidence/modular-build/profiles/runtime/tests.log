@@ -1,0 +1,35 @@
+test_fresh_evidence_directory_supports_one_create_only_input (__main__.BundleTests) ... ok
+test_preserved_output_bundle_refuses_before_changing_any_prior_bytes (__main__.BundleTests) ... ok
+test_prior_report_alone_prevents_creating_a_new_input (__main__.BundleTests) ... ok
+test_absent_clip_cannot_inherit_another_state (__main__.CaptureTests) ... ok
+test_case_capacity_refuses_before_any_resource_load (__main__.CaptureTests) ... ok
+test_changed_source_bytes_refuse (__main__.CaptureTests) ... ok
+test_child_cannot_inherit_adult_presentation (__main__.CaptureTests) ... ok
+test_duplicate_case_refuses (__main__.CaptureTests) ... ok
+test_duplicate_source_pin_refuses (__main__.CaptureTests) ... ok
+test_eight_influences_and_missing_bind_state_geometry_are_guarded (__main__.CaptureTests) ... ok
+test_hardlinked_source_output_is_preserved (__main__.CaptureTests) ... ok
+test_manifest_format_refuses (__main__.CaptureTests) ... ok
+test_manifest_output_is_never_truncated_by_a_refusal (__main__.CaptureTests) ... ok
+test_missing_actual_implementation_pin_refuses (__main__.CaptureTests) ... ok
+test_missing_actual_imported_scene_pin_refuses (__main__.CaptureTests) ... ok
+test_missing_indirect_hand_or_clip_helper_pin_refuses (__main__.CaptureTests) ... ok
+test_missing_state_source_pin_refuses (__main__.CaptureTests) ... ok
+test_omitted_loaded_neighbor_clip_pin_refuses (__main__.CaptureTests) ... ok
+test_source_output_remains_intact_even_before_first_pin_failure (__main__.CaptureTests) ... ok
+test_species_cannot_inherit_another_rig (__main__.CaptureTests) ... ok
+test_symlinked_source_output_is_preserved (__main__.CaptureTests) ... ok
+test_unloaded_clip_cannot_borrow_carried_mesh (__main__.CaptureTests) ... ok
+test_complete_synthetic_report_has_valid_shape_only (__main__.ReportTests) ... ok
+test_nonlooping_hammer_needs_observed_pose_change (__main__.ReportTests) ... ok
+test_partial_skin_palette_count_refuses (__main__.ReportTests) ... ok
+test_positive_counts_cannot_hide_a_frozen_nonlooping_clip (__main__.ReportTests) ... ok
+test_script_error_rejects_even_a_complete_zero_error_report (__main__.ReportTests) ... ok
+test_silently_skipped_attachment_rejects (__main__.ReportTests) ... ok
+test_synthetic_residual_cannot_promote_sampled_bounds (__main__.ReportTests) ... ok
+test_unverified_renderer_palette_rejects_native_evidence (__main__.ReportTests) ... ok
+
+----------------------------------------------------------------------
+Ran 30 tests in 25.612s
+
+OK

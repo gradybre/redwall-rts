@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_modular.gd
+  PASS  test_new_domains_append_without_widening_frozen_save_or_excavation_ids
+  PASS  test_context_free_tip_bill_refuses_and_actual_project_bill_is_exact
+  PASS  test_unprepared_direct_calls_and_malformed_quotes_are_atomic
+  PASS  test_delivery_is_full_exact_and_all_mutations_require_the_actual_window
+  PASS  test_complete_and_cancel_cannot_retire_before_real_owner_publication
+  PASS  test_retained_completed_work_still_requires_full_repayment_and_pause_is_respected
+  PASS  test_local_tip_numbers_do_not_alias_any_directory_subject
+  PASS  test_connector_subject_is_local_and_requires_its_actual_project_bill
+  PASS  test_three_line_furniture_prices_are_catalog_exact_and_legacy_doors_stay_closed
+  PASS  test_changed_subject_foreign_world_expiration_and_rebinding_refuse
+  PASS  test_quote_shape_and_unused_metadata_are_validated_before_use
+  PASS  test_base_binding_and_publication_queries_refuse_without_actual_router
+CI_SUITE_TIME {"assertions":150,"failures":0,"suite":"test_construction_modular.gd","tests":12,"usec":816117}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+12 test(s), 150 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 12 tests, 150 assertions, 0 failures.

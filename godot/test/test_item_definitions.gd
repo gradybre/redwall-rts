@@ -246,3 +246,22 @@ func test_compiled_ids_are_ascending_ascii_and_order_independent() -> void:
 		var key: StringName = StringName(sorted_ids[index])
 		assert_equal(defs_a.compiled_id(key), expected_id, "forward-order id for %s" % key)
 		assert_equal(defs_b.compiled_id(key), expected_id, "reversed-order id for %s" % key)
+
+
+func test_registration_binding_tracks_only_successful_inventory_registration() -> void:
+	"""Failed loads leave world wiring untouched; a later successful catalog reuse is explicit."""
+	var definitions: ItemDefinitionsScript = ItemDefinitionsScript.new()
+	var first: InventoryScript = InventoryScript.new(8, 64)
+	var second: InventoryScript = InventoryScript.new(8, 64)
+	assert_false(definitions.registered_into(first), "unloaded catalog has no registered target")
+	assert_false(definitions.load_from_file(_write_user_file("binding_bad.json", "{}"), first).ok,
+		"malformed catalog fails without binding")
+	assert_false(definitions.registered_into(first), "failed first load retains no target")
+	assert_true(definitions.load_default(first).ok, "real registration succeeds on retry")
+	assert_true(definitions.registered_into(first), "exact successful Inventory matches")
+	assert_false(definitions.registered_into(second), "equal-capacity foreign Inventory does not match")
+	assert_false(definitions.load_default(null).ok, "failed later registration is refused")
+	assert_true(definitions.registered_into(first), "failure preserves previous successful wiring")
+	assert_true(definitions.load_default(second).ok, "legitimate explicit catalog reuse remains supported")
+	assert_true(definitions.registered_into(second), "successful target changes only at publication")
+	assert_false(definitions.registered_into(first), "old target is no longer this catalog composition")

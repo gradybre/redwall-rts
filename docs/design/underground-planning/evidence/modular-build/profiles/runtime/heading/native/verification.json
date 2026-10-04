@@ -1,0 +1,49 @@
+{
+  "schema": 1,
+  "scope": "sampled actual demo transitions in explicit synthetic fixtures",
+  "command": [
+    "godot",
+    "--path",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--audio-driver",
+    "Dummy",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_heading.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-spec.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-native.json"
+  ],
+  "engine": {
+    "build": "official",
+    "hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+    "hex": 263938,
+    "major": 4,
+    "minor": 7,
+    "patch": 2,
+    "status": "stable",
+    "string": "4.7.2-stable (official)",
+    "timestamp": 0
+  },
+  "cases": 10,
+  "source_count": 529,
+  "sampled_poses": 1894,
+  "matrix_checks": 54816,
+  "unexpected_diagnostics": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "qualified_profile_count": 0,
+  "report": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-native.json",
+    "sha256": "3f77304a72a65e76ae0faca8b0ef0157c66a9ad5f0cdbbff275df0082f83545c"
+  },
+  "log": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-native.log",
+    "sha256": "5b0e6f877db059b651b6b10f6348fdfd5e43e77566bdadf2dba137772a59f8fc"
+  },
+  "spec": {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/heading/native/capture-spec.json",
+    "sha256": "f63992b22026c23c1c8ab865c07c9d935b917b74eb15ab3f0d674af91e6cdc4a"
+  }
+}

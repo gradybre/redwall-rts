@@ -1,0 +1,8 @@
+{
+  "branch": "codex/underground-ledger-reconcile",
+  "base_commit": "2a5d382c8698a611b223d0d0f3c75d55997082f9",
+  "fetched_origin_master": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
+  "failed_ci_run": 37149792747,
+  "failed_ci_head": "499bfd737cb25f444f44f581be3cd11e6fe537cd",
+  "scope": "Ledger and strict static check reconciliation only; no Godot source, workflow or canonical edits."
+}

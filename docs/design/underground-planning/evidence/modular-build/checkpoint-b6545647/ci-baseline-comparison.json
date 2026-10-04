@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "tools/ci_test_shards.py",
+    "verify",
+    "--reports",
+    "docs/design/underground-planning/evidence/modular-build/checkpoint-b6545647/ci-artifacts",
+    "--count",
+    "8",
+    "--baseline-log",
+    "docs/design/underground-planning/evidence/modular-build/checkpoint-b6545647/full-suite.log"
+  ],
+  "exit_code": 1,
+  "test_counts_equal": true,
+  "diagnostics_and_leak_counts_equal": true,
+  "assertion_delta_local_minus_ci": 8,
+  "exact_equivalence": false
+}

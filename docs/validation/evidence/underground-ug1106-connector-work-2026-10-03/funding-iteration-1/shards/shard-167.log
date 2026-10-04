@@ -1,0 +1,34 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_modular_inventory.gd
+  PASS  test_three_line_catalog_bill_consumes_all_inputs_and_refunds_exact_metadata
+  PASS  test_extra_input_wrong_purpose_and_expired_claims_refuse_without_consumption
+  PASS  test_direct_output_calls_cannot_clear_paid_wip_and_no_output_completion_is_once_only
+  PASS  test_first_pile_refusal_rolls_back_outputs_reservation_and_wip_before_retry
+  PASS  test_shared_container_keeps_another_projects_output_claim_and_source_claim
+  PASS  test_second_output_allocation_failure_rolls_back_first_output_and_every_receipt
+  PASS  test_zero_input_cancel_requires_no_destination_and_does_not_debit_source_stock
+  PASS  test_output_provenance_and_overflow_refuse_before_reserving_or_consuming
+  PASS  test_foreign_inventory_composition_is_rejected_even_with_matching_numeric_lots
+  PASS  test_blocked_modular_refund_retains_wip_and_books_loss_once_after_retry
+  PASS  test_connector_refund_has_its_own_persistent_loss_domain_and_exact_retry
+  PASS  test_excavation_support_and_furniture_receipts_remain_separate_in_one_arena
+CI_SUITE_TIME {"assertions":292,"failures":0,"suite":"test_modular_inventory.gd","tests":12,"usec":628636}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+12 test(s), 292 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 12 tests, 292 assertions, 0 failures.

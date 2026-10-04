@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "revision": 1,
+  "cast": "mole_digger",
+  "species": "mole",
+  "life_stage": "adult_presentation_candidate",
+  "active_tool": "mole_pick",
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "clips": [
+    "mole_digger.idle.plain.held_pick",
+    "mole_digger.walk.plain.held_pick",
+    "mole_digger.walk.ramp_up.held_pick",
+    "mole_digger.walk.ramp_down.held_pick",
+    "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+    "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick",
+    "mole_digger.heavy_hammer_swing.plain"
+  ],
+  "groups": [
+    {
+      "id": "held_pick_upright",
+      "mode": "walk",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick"
+        ],
+        "walk": [
+          "mole_digger.walk.plain.held_pick",
+          "mole_digger.walk.ramp_up.held_pick",
+          "mole_digger.walk.ramp_down.held_pick"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.walk.plain.held_pick"
+        ],
+        "reversal": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.walk.plain.held_pick",
+          "mole_digger.walk.ramp_up.held_pick",
+          "mole_digger.walk.ramp_down.held_pick"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.walk.plain.held_pick"
+        ]
+      }
+    },
+    {
+      "id": "held_pick_stooped",
+      "mode": "walk",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick"
+        ],
+        "walk": [
+          "mole_digger.walk.plain.held_pick"
+        ],
+        "crouch": [
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick"
+        ],
+        "reversal": [
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick"
+        ]
+      }
+    },
+    {
+      "id": "held_pick_work",
+      "mode": "work",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick"
+        ],
+        "work": [
+          "mole_digger.heavy_hammer_swing.plain"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.heavy_hammer_swing.plain"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.heavy_hammer_swing.plain"
+        ]
+      }
+    }
+  ],
+  "scope": "Exact finite source-state and mesh binding only. These named states grant no gameplay ability. Production Profiles and actual work-contact qualification are separate."
+}

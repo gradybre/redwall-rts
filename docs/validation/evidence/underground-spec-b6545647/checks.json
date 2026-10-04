@@ -1,0 +1,368 @@
+[
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/decision_numbers.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.028,
+    "log": "01-decision_numbers.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/ready07_arithmetic.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-spec-b6545647/arithmetic.json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.753,
+    "log": "02-ready07_arithmetic.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.49,
+    "log": "03-underground_memory_budget.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "exit_code": 0,
+    "seconds": 24.391,
+    "log": "04-test_underground_memory_budget.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "log": "05-merge_gate.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/setting_contract.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-spec-b6545647/setting-contract.json"
+    ],
+    "exit_code": 0,
+    "seconds": 0.025,
+    "log": "06-setting_contract.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "log": "07-dispatch_plan.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.022,
+    "log": "08-astra_inbox.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.329,
+    "log": "09-validate_save_registry_handoff.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.026,
+    "log": "10-generate_canonical_state_table.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "log": "11-validate_cycle01_handoff.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.024,
+    "log": "12-validate_cycle02_handoff.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "exit_code": 0,
+    "seconds": 0.027,
+    "log": "13-validate_cycle03_handoff.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.688,
+    "log": "14-audit_registry_capacities.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "exit_code": 0,
+    "seconds": 3.385,
+    "log": "15-test_registry_capacity_audit.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.641,
+    "log": "16-generate_component_columns_schema.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_component_columns_schema.py"
+    ],
+    "exit_code": 0,
+    "seconds": 18.662,
+    "log": "17-test_component_columns_schema.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.033,
+    "log": "18-lane_notes.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.438,
+    "log": "19-test_movement_envelopes.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.066,
+    "log": "20-test_movement_profile_policy.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.321,
+    "log": "21-state_registry_coverage.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_headless_runner.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.031,
+    "log": "22-test_headless_runner.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_qualify.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.428,
+    "log": "23-test_qualify.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_winter.py"
+    ],
+    "exit_code": 0,
+    "seconds": 8.496,
+    "log": "24-test_winter.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.353,
+    "log": "25-test_merge_gate.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_repair_meshy_rig.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.035,
+    "log": "26-test_repair_meshy_rig.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_rig_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.068,
+    "log": "27-test_rig_meshy_tail.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_bake_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.155,
+    "log": "28-test_bake_meshy_tail.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_ground_meshy_clips.py"
+    ],
+    "exit_code": 0,
+    "seconds": 1.354,
+    "log": "29-test_ground_meshy_clips.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_demo_texture_imports.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.36,
+    "log": "30-test_demo_texture_imports.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_build_demo_windows.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.043,
+    "log": "31-test_build_demo_windows.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_balance_report.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.034,
+    "log": "32-test_balance_report.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_soak_report.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.039,
+    "log": "33-test_soak_report.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "tools/test_stage_art_passes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.034,
+    "log": "34-test_stage_art_passes.log"
+  },
+  {
+    "command": [
+      "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+      "-B",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-ug1102-ledger-2026-10-03/test_stale_census.py",
+      "-v"
+    ],
+    "exit_code": 0,
+    "seconds": 4.964,
+    "log": "35-test_stale_census.log"
+  }
+]

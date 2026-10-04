@@ -1,0 +1,27 @@
+{
+  "sources": [
+    {
+      "name": "analysis-carry-arm-v6",
+      "content_sha256": "fa84815a4b9cb10c4126a341475122fa3e89e0ac2c53b434921424fe598321d2",
+      "geometry_tables_sha256": "ab212a8ba51533ed39e8ad41f40893e24c4be82b57a0f536f10f5136d3457352",
+      "timing_tables_sha256": "cbee714d04ad7df5e4636759ce711e6963e7f6b48164488281eee9932a6534af",
+      "matrices_and_grounding_sha256": "904ae194d4dfa3c20af6b4afd2f9f34b91b518b462f223e15dc8dccc1b06efcf",
+      "parts": 2,
+      "clips": 9,
+      "frames": 395,
+      "stride": 300
+    },
+    {
+      "name": "analysis-carry-arm-v7",
+      "content_sha256": "f5f7c985b08df561956f6e057ff4acaee18948393125a9c41c6bce9c2e8e3433",
+      "geometry_tables_sha256": "ab212a8ba51533ed39e8ad41f40893e24c4be82b57a0f536f10f5136d3457352",
+      "timing_tables_sha256": "cbee714d04ad7df5e4636759ce711e6963e7f6b48164488281eee9932a6534af",
+      "matrices_and_grounding_sha256": "904ae194d4dfa3c20af6b4afd2f9f34b91b518b462f223e15dc8dccc1b06efcf",
+      "parts": 2,
+      "clips": 9,
+      "frames": 395,
+      "stride": 300
+    }
+  ],
+  "identical_geometry_timing_matrices_grounding": true
+}

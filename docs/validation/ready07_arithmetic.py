@@ -1,12 +1,12 @@
 from pathlib import Path
-import argparse,hashlib,json,re,struct
+import argparse,hashlib,importlib.util,json,re,struct
 r=Path(__file__).resolve().parents[2]
 parser=argparse.ArgumentParser(description='Reproduce READY_07 static review arithmetic; not game tests.')
 parser.add_argument('--output',type=Path)
 args=parser.parse_args()
 sched=(r/'godot/scripts/core/scheduler_events.gd').read_text()
-def gd_const(name):
- m=re.search(r'^const %s: int = (\d+)$'%name,sched,re.M)
+def gd_const(name,source=sched):
+ m=re.search(r'^const %s: int = (\d+)$'%name,source,re.M)
  assert m,name
  return int(m.group(1))
 SCHEDULER_CAPACITY=gd_const('QUEUE_CAPACITY');SCHEDULER_RECORD=gd_const('RECORD_BYTES')
@@ -134,10 +134,188 @@ registry=json.loads((r/'docs/planning/canonical_state_registry.json').read_text(
 registry_owners=registry['owners']
 registry_fields=[f for owner in registry_owners for f in owner['fields']]
 registry_key_bytes=sum(len(owner['owner_key'].encode('utf-8')) for owner in registry_owners)+sum(len(f['field_key'].encode('utf-8')) for f in registry_fields)
-# Decision 0531 appends `_c_anchor_tile` (14 key bytes): 611 -> 612 fields, 9051 -> 9065 bytes.
-assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(52,612,9065)
+# Decision 0531 appended `_c_anchor_tile`: 52 owners, 612 fields and 9065 key bytes.
+# Decisions 1053/1060 add one RoomProjects owner and eleven fields: +16 owner bytes,
+# +165 field bytes and +171 UTF-8 key bytes. Decision 1062 reconciles the actual buffers.
+assert (len(registry_owners),len(registry_fields),registry_key_bytes)==(61,764,11137)
+assert (registry['record_count'],registry['packed_source_field_count'])==(756,671)
+assert sum(bool(field['hash']) for field in registry_fields)==756
 DECISION_0127_ADDED=len(registry_owners)*16+len(registry_fields)*15+registry_key_bytes
-assert DECISION_0127_ADDED==19077
+assert DECISION_0127_ADDED==23573 and DECISION_0127_ADDED-21185==2388
+# RoomProjects is additional mutable state, not a replacement for Construction's paid ledger.
+# Read all eleven source declarations and allocation expressions, then require exact agreement
+# with both the canonical owner's widths/capacities and the three printed auxiliary rows.
+room_source=(r/'godot/scripts/core/room_projects.gd').read_text()
+construction_source=(r/'godot/scripts/core/construction.gd').read_text()
+jobs_source=(r/'godot/scripts/core/jobs.gd').read_text()
+assert 'const PROJECT_CAPACITY: int = Construction.CONSTRUCTION_CAPACITY' in room_source
+assert 'const JOB_CAPACITY: int = Jobs.JOB_CAPACITY' in room_source
+room_capacities={'PROJECT_CAPACITY':gd_const('CONSTRUCTION_CAPACITY',construction_source),
+                 'JOB_CAPACITY':gd_const('JOB_CAPACITY',jobs_source)}
+assert room_capacities=={'PROJECT_CAPACITY':82944,'JOB_CAPACITY':8192}
+packed_widths={'PackedByteArray':1,'PackedInt32Array':4,'PackedInt64Array':8}
+room_columns=re.findall(r'^var (_\w+): (Packed\w+Array) =',room_source,re.M)
+room_resizes=re.findall(r'^\t(_\w+)\.resize\((\w+)\)$',room_source,re.M)
+assert len(room_columns)==len(room_resizes)==11
+assert len(dict(room_columns))==len(dict(room_resizes))==11
+room_shapes={name:(packed_widths[kind],room_capacities[dict(room_resizes)[name]])
+             for name,kind in room_columns}
+room_owner=next(owner for owner in registry_owners if owner['owner_key']=='room_projects')
+assert room_owner['section_id']==6 and room_owner['owner_schema_version']==1
+assert len(room_owner['fields'])==len(room_shapes)
+assert {field['source_member'] for field in room_owner['fields']}==set(room_shapes)
+for field in room_owner['fields']:
+ name=field['source_member']; capacity_name=dict(room_resizes)[name]
+ assert field['hash'] and field['source_module']=='room_projects'
+ assert room_shapes[name]==({'u8':1,'i32':4}[field['type']],room_capacities[capacity_name])
+ assert field['shape']['declared_capacity']==f'`{capacity_name}` = {room_capacities[capacity_name]}'
+for width,capacity,kind in [(1,82944,'B8'),(4,82944,'I32'),(4,8192,'I32')]:
+ names=[name for name,shape in room_shapes.items() if shape==(width,capacity)]
+ row=f'| RoomProjects | {", ".join(names)} | {kind} | {width} | {len(names)} | {capacity} | {width*len(names)*capacity} |'
+ assert row in s,row
+DECISION_1053_ADDED=sum(width*capacity for width,capacity in room_shapes.values())
+assert DECISION_1053_ADDED==(3+4*4)*82944+4*4*8192==1707008
+# Decision1066: account for every actual packed column of both excavation owners,
+# including derived indexes and transaction scratch. The unchanged source-proof grammar
+# supplies bounds; literal independent totals and exact member sets catch missing columns.
+audit_spec=importlib.util.spec_from_file_location('capacity_source_proof',r/'tools/audit_registry_capacities.py')
+audit_module=importlib.util.module_from_spec(audit_spec);audit_spec.loader.exec_module(audit_module)
+source_index=audit_module.load_source_index()
+excavation_shapes={}
+for module,expected_columns,expected_bytes in [('excavation_inventory',26,5220352),('excavation_sites',24,8388597)]:
+ source=source_index[module].text
+ columns=dict(re.findall(r'^var (_\w+): (Packed\w+Array) =',source,re.M))
+ assert len(columns)==expected_columns,(module,len(columns))
+ shapes={}
+ for name,kind in columns.items():
+  binding=audit_module.resize_binding(source_index,module,name)
+  assert isinstance(binding,audit_module.Binding),(module,name,binding)
+  relation,bound=audit_module.classify_from_source(source_index,module,binding.expression)
+  assert isinstance(bound,audit_module.Proved),(module,name,bound)
+  shapes[name]=(packed_widths[kind],bound.value)
+ assert sum(width*capacity for width,capacity in shapes.values())==expected_bytes,module
+ excavation_shapes[module]=shapes
+fund_shapes=excavation_shapes['excavation_inventory'];site_shapes=excavation_shapes['excavation_sites']
+fund_scratch={'_s_item','_s_quality','_s_provenance','_s_recipe','_s_quantity','_s_age','_s_remainder','_s_totals','_s_returned','_s_carry'}
+site_derived={'_ordered_key','_ordered_row','_job_site'}
+site_scratch={'_delivery_totals'}
+for module,shapes,excluded,expected_scalars in [
+ ('excavation_inventory',fund_shapes,fund_scratch,2),
+ ('excavation_sites',site_shapes,site_derived|site_scratch,20)]:
+ owner=next(o for o in registry_owners if o['owner_key']==module)
+ packed=[f for f in owner['fields'] if 'source_contract' in f]
+ assert owner['section_id']==6 and owner['owner_schema_version']==(3 if module=='excavation_inventory' else 1)
+ assert {f['source_member'] for f in packed}==shapes.keys()-excluded
+ assert sum(bool(f.get('scalar')) for f in owner['fields'])==expected_scalars
+ for field in packed:
+  assert field['hash'] and field['source_module']==module
+  assert {'u8':1,'i32':4,'i64':8}[field['type']]==shapes[field['source_member']][0]
+site_source=source_index['excavation_sites'].text
+fund_source=source_index['excavation_inventory'].text
+assert gd_const('MAX_SITE_CAPACITY',site_source)==73909
+assert gd_const('MAX_SITE_ARENA_BYTES',site_source)==8388608
+assert gd_const('SITE_RECORD_BYTES',site_source)==113
+assert 'const MAX_RECEIPT_CAPACITY: int = Reservations.ROW_CAPACITY' in fund_source
+assert 'const MAX_EARNED_CAPACITY: int = MAX_SITE_CAPACITY * Contract.OP_COUNT' in site_source
+assert 'var earned_request: int = _capacity * OP_COUNT' in site_source
+assert '_earned_capacity = clampi(earned_request, 0, MAX_EARNED_CAPACITY)' in site_source
+assert gd_const('OP_COUNT',(r/'godot/scripts/core/excavation_contract.gd').read_text())==5
+assert site_shapes['_earned_mwu']==(8,73909*5)
+assert 113*73909+36880==8388597<=8388608<113*73910+36880
+assert fund_shapes['_free']==(4,32768)
+# Numeric control widths come from declarations, not the canonical wire's narrower
+# bounded-capacity encodings. Any new member forces a fresh ledger decision.
+site_ints={'_capacity','_earned_capacity','_count','_domain_capacity','_initial_earth_milli',
+           '_virgin_sourced_milli','_funded_braces','_completed_braces','_salvaged_braces',
+           '_returned_brace_milli','_permit_action','_candidate_row','_candidate_stage'}
+assert set(re.findall(r'^var (_\w+): int\b',site_source,re.M))==site_ints
+assert set(re.findall(r'^var (_\w+): int\b',fund_source,re.M))=={'_capacity','_free_count','_s_count'}
+assert set(re.findall(r'^var (_\w+): Vector2i\b',site_source,re.M))=={'_permit_project'}
+assert len(re.findall(r'^var (_\w+): IntMath.IntResult\b',site_source,re.M))==2
+assert len(re.findall(r'^var (_\w+): IntMath.IntResult\b',fund_source,re.M))==1
+domain_source=(r/'godot/scripts/core/excavation_contract.gd').read_text().split('class Domain extends RefCounted:',1)[1].split('\nclass ',1)[0]
+assert re.findall(r'var (\w+): Vector2i\b',domain_source)==['world_ref']
+assert re.findall(r'var (\w+): Vector3i\b',domain_source)==['datum_u','minimum_quantum','size_quanta']
+assert 'var _publishing_excavation_job: Vector2i' in (r/'godot/scripts/core/work.gd').read_text()
+# Scalar numeric payload is additional to packed storage, not hidden in the reserve:
+# Sites nine int64 controls +11 int32 domain components; Funding two int64 controls;
+# one derived int64 earned-capacity bound. Native object/Variant/String headers remain
+# unmeasured. Synchronous permits32, three IntResults27, staged-count8 and Work ref8
+# add75 numeric scratch bytes; local test state_bytes images are not a release codec.
+DECISION_1066_CONTROLS=9*8+11*4+2*8+8
+DECISION_1066_TRANSIENTS=32+3*(8+1)+8+8
+assert (DECISION_1066_CONTROLS,DECISION_1066_TRANSIENTS)==(140,75)
+# Keep1066 historical;1072 adds two loss domains and1102 adds a fourth.
+# Their live growth is already in the current packed census; subtract it once here.
+CURRENT_EXCAVATION_PACKED=sum(w*c for shapes in excavation_shapes.values() for w,c in shapes.values())
+CURRENT_FUNDING_LOSS_GROWTH=fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-256*8
+assert CURRENT_FUNDING_LOSS_GROWTH==6144
+DECISION_1066_PACKED=CURRENT_EXCAVATION_PACKED-CURRENT_FUNDING_LOSS_GROWTH
+DECISION_1066_SCRATCH=sum(w*c for name,(w,c) in fund_shapes.items() if name in fund_scratch)+16+DECISION_1066_TRANSIENTS
+DECISION_1066_ADDED=DECISION_1066_PACKED+DECISION_1066_CONTROLS+DECISION_1066_TRANSIENTS
+assert (DECISION_1066_PACKED,DECISION_1066_SCRATCH,DECISION_1066_ADDED)==(13602805,1316955,13603020)
+assert '| Excavation transaction scratch | 1 | 1316955 | 1316955 |' in s
+for module,label,shapes,scratch in [('excavation_inventory','ExcavationFunding',fund_shapes,fund_scratch),
+                                 ('excavation_sites','ExcavationSites',site_shapes,site_scratch)]:
+ for name,(width,capacity) in shapes.items():
+  if name in scratch: continue
+  matches=[line for line in s.splitlines() if line.startswith('| '+label)
+           and name in [n.strip() for n in line.split('|')[2].split(',')]]
+  assert len(matches)==1,(module,name,matches)
+  cells=[v.strip() for v in matches[0].split('|')]
+  assert (int(cells[4]),int(cells[6]))==(width,capacity),(module,name,cells)
+# Decision1068 adds a derived live index and a separate cold restore index.
+# Resolve the actual source allocation; neither buffer adds canonical fields.
+gear_source=source_index['gear'].text
+gear_index_binding=audit_module.resize_binding(source_index,'gear','_lot_row')
+assert isinstance(gear_index_binding,audit_module.Binding)
+gear_index_relation,gear_index_bound=audit_module.classify_from_source(source_index,'gear',gear_index_binding.expression)
+assert isinstance(gear_index_bound,audit_module.Proved)
+assert gear_index_bound.value==16384 and gear_index_binding.expression=='LOT_CAPACITY'
+assert 'lot_rows.resize(LOT_CAPACITY)' in gear_source
+assert 'var _lot_row: PackedInt32Array' in gear_source
+assert '| GearInstanceIndex | lot_row | I32 | 4 | 1 | 16384 | 65536 |' in s
+assert '| Gear restore index staging | 16384 | 4 | 65536 |' in s
+assert not any(f.get('source_module')=='gear' and f.get('source_member')=='_lot_row' for f in registry_fields)
+DECISION_1068_ADDED=2*4*gear_index_bound.value
+assert DECISION_1068_ADDED==131072
+# Decision1071 registers mandatory Room/Furniture extension flags and counts both
+# actual live bytes and the conservative cold image. The Sites publication bool
+# is transient, not a new hashed field. No legacy section4 layout is weakened.
+buildings_source=source_index['buildings'].text
+spatial_flag_shapes={}
+for name,expected in [('_r_spatial_kind',16384),('_f_installed',81920)]:
+ assert f'var {name}: PackedByteArray' in buildings_source
+ binding=audit_module.resize_binding(source_index,'buildings',name)
+ assert isinstance(binding,audit_module.Binding)
+ relation,bound=audit_module.classify_from_source(source_index,'buildings',binding.expression)
+ assert relation=='eq' and isinstance(bound,audit_module.Proved) and bound.value==expected
+ spatial_flag_shapes[name]=bound.value
+ extension=next(o for o in registry_owners if (o['section_id'],o['owner_key'])==(6,'buildings'))
+ assert [(f['field_key'],f['type']) for f in extension['fields']]==[('_r_spatial_kind','u8'),('_f_installed','u8')]
+assert set(re.findall(r'^var (_\w+): bool\b',site_source,re.M))=={'_publishing_spatial'}
+assert 'var out: PackedByteArray = _r_spatial_kind.duplicate()' in buildings_source
+assert 'out.append_array(_f_installed)' in buildings_source
+DECISION_1071_MUTABLE=2*sum(spatial_flag_shapes.values())+1
+assert DECISION_1071_MUTABLE==196609
+assert '| Spatial Room/Furniture flag image | 98304 | 1 | 98304 |' in s
+assert '| Sites spatial publication guard | 1 | 1 | 1 |' in s
+# Decision1072: the selected joint source-derived pack and outstanding finite envelopes.
+# Module import shares the strict source-proof grammar; this does not prove runtime RAM.
+import sys
+sys.path.insert(0,str(r/'tools'))
+import underground_memory_budget
+underground_pack=underground_memory_budget.build()
+CURRENT_UNDERGROUND_MUTABLE=underground_pack['new_mutable_and_reserved_bytes']
+# Preserve1072's trail;1102 adds256 I64 cells in both live and conservative cold state.
+DECISION_1102_MUTABLE=2*(fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-3*256*8)
+assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==4966485
+DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE
+assert DECISION_1072_MUTABLE==4962389
+assert underground_pack['declaration_bytes']==DECISION_0127_ADDED
+assert not underground_pack['runtime_qualified']
+assert '| Joint underground pack and remaining envelopes | 1 | 4960341 | 4960341 |' in s
+assert fund_shapes['_lost_milli']==(8,1024)
 # 179 prior omitted bytes plus44 new field metadata enter the term above ONCE.
 DECISION_0167_CLAIM_SLOT=512*4
 assert DECISION_0167_CLAIM_SLOT==2048
@@ -248,11 +426,17 @@ assert (DECISION_1023_RECORD,DECISION_1023_SCRATCH)==(196608,34956)
 DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
-# decision 1023 adds one (39 -> 40).
-assert len(allocations)==40 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED
+# decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
+assert len(allocations)==45 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==70961952
-assert live==79350560 and candidate==64716755 and live+candidate==144067315
+assert payload==91570642
+assert live==99959250 and candidate==85320949 and live+candidate==185280199
+assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
+# A valid internal trail can still omit its final step. Require its endpoint to reach the
+# independently summed allocation table; merge_gate.py separately checks every intervening row.
+trail=s.split('| Step | Governing record |',1)[1].split('\n\n',1)[0]
+trail_rows=[line.split('|') for line in trail.splitlines() if line.startswith('|')]
+assert tuple(int(cell.strip()) for cell in trail_rows[-1][-3:-1])==(payload,live)
 # The cursor row is four I32 columns over 512 rows; a fifth column or a capacity change fails here.
 assert '| ResidentRouteCursor | request_row, route_generation, route_cell_index, owner_persistent_id | I32 | 4 | 4 | 512 | 8192 |' in s
 assert f'| Scheduler event queue and control header | 1 | {SCHEDULER_TOTAL} | {SCHEDULER_TOTAL} |' in s
@@ -283,7 +467,24 @@ for name in installed:
   links+=1
   if not (f.parent/path).resolve().exists():errors.append(f'{name}: {path}')
 assert not errors,errors
-report={'scope':'STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_TESTS','status':'PASS','revision_reviewed':'16e1efc','field_rows':len(fields),'field_bytes':sum(fields),'allocation_rows':len(allocations),'payload_bytes':payload,'live_with_reserve_bytes':live,'two_world_peak_bytes':live+candidate,'catalog_bindings':actual,'synthetic_weather_boundary_ticks':ticks,'scheduler_status':'IMPLEMENTED_AND_LEDGERED_ADR0054','scheduler_record_bytes':SCHEDULER_RECORD,'scheduler_control_bytes':SCHEDULER_CONTROL,'scheduler_total_bytes':SCHEDULER_TOTAL,'scheduler_capacity':SCHEDULER_CAPACITY,'scheduler_normal_capacity':SCHEDULER_NORMAL,'checked_local_links':links,'files_reviewed':installed,'runtime_tests':'NOT_RUN','runtime_code_changed':True,'remaining_proposed_fields_in_existing_ledger':False,'source_sha256':{n:hashlib.sha256((r/n).read_bytes()).hexdigest() for n in ['docs/game_gdd.md','docs/systems_architecture.md','godot/data/catalog_ids.json','docs/movement_direction_amendment.md','godot/scripts/core/scheduler_events.gd']}}
+report={'scope':'STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_TESTS','status':'PASS','historical_ready07_revision':'16e1efc','field_rows':len(fields),'field_bytes':sum(fields),'allocation_rows':len(allocations),'payload_bytes':payload,'live_with_reserve_bytes':live,'two_world_peak_bytes':live+candidate,'catalog_bindings':actual,'synthetic_weather_boundary_ticks':ticks,'scheduler_status':'IMPLEMENTED_AND_LEDGERED_ADR0054','scheduler_record_bytes':SCHEDULER_RECORD,'scheduler_control_bytes':SCHEDULER_CONTROL,'scheduler_total_bytes':SCHEDULER_TOTAL,'scheduler_capacity':SCHEDULER_CAPACITY,'scheduler_normal_capacity':SCHEDULER_NORMAL,'checked_local_links':links,'files_reviewed':installed,'runtime_tests':'NOT_RUN','runtime_code_changed_by_this_check':False,'remaining_proposed_fields_in_existing_ledger':False,'source_sha256':{n:hashlib.sha256((r/n).read_bytes()).hexdigest() for n in ['docs/game_gdd.md','docs/systems_architecture.md','godot/data/catalog_ids.json','docs/movement_direction_amendment.md','godot/scripts/core/scheduler_events.gd']}}
+report['room_projects_packed_bytes']=DECISION_1053_ADDED
+report['canonical_declaration_bytes']=DECISION_0127_ADDED
+report['excavation_packed_bytes']=CURRENT_EXCAVATION_PACKED
+report['joint_underground_pack_bytes']=CURRENT_UNDERGROUND_MUTABLE
+report['underground_pack_runtime_qualified']=underground_pack['runtime_qualified']
+report['excavation_numeric_controls_and_transients']=DECISION_1066_CONTROLS+DECISION_1066_TRANSIENTS
+report['gear_lot_index_and_restore_bytes']=DECISION_1068_ADDED
+report['canonical_census']={'owners':len(registry_owners),'declared_fields':len(registry_fields),
+                          'hashed_records':registry['record_count'],
+                          'persisted_packed_fields':registry['packed_source_field_count'],
+                          'key_utf8_bytes':registry_key_bytes}
+for name in ['godot/scripts/core/room_projects.gd','godot/scripts/core/construction.gd',
+             'godot/scripts/core/jobs.gd','godot/scripts/core/canonical_state_hash.gd',
+             'godot/scripts/core/excavation_inventory.gd','godot/scripts/core/excavation_sites.gd',
+             'godot/scripts/core/excavation_contract.gd','godot/scripts/core/gear.gd','tools/audit_registry_capacities.py',
+             'docs/planning/canonical_state_registry.json','docs/validation/ready07_arithmetic.py']:
+ report['source_sha256'][name]=hashlib.sha256((r/name).read_bytes()).hexdigest()
 if args.output:
  args.output.write_text(json.dumps(report,indent=2)+'\n')
-print(json.dumps({k:report[k] for k in ['status','field_rows','allocation_rows','scheduler_total_bytes','checked_local_links','runtime_tests']}))
+print(json.dumps({k:report[k] for k in ['status','field_rows','allocation_rows','scheduler_total_bytes','checked_local_links','runtime_tests','payload_bytes','room_projects_packed_bytes','excavation_packed_bytes','canonical_declaration_bytes']}))

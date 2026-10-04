@@ -67,6 +67,7 @@ extends RefCounted
 
 const Inventory := preload("res://scripts/core/inventory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 ## Reservation rows, GDD §4.2 / ARCH-MEM-002.
 const ROW_CAPACITY: int = 32768
@@ -97,8 +98,12 @@ const INT32_MAX: int = 2147483647
 const PURPOSE_UNSPECIFIED: int = 0
 const PURPOSE_HAUL_SOURCE: int = 1
 const PURPOSE_HAUL_DESTINATION: int = 2
+## Paid excavation input claims; consumed atomically into physical-site WIP (decision 1056).
+const PURPOSE_EXCAVATION_INPUT: int = 3
+## Shared spatial furnishing / spoil operation inputs (decision 1069); distinct from site phases.
+const PURPOSE_MODULAR_INPUT: int = 4
 ## One past the highest numbered member.
-const PURPOSE_NUMBERED_COUNT: int = 3
+const PURPOSE_NUMBERED_COUNT: int = 5
 
 ## A batch is a flat int64 array of `claim_count` records of CLAIM_STRIDE fields. Passing the
 ## claims as one caller-owned buffer keeps this module free of a staging arena that the memory
@@ -117,6 +122,7 @@ const BUDGET_INDEXING_BYTES: int = 786436
 const BUDGET_PAYLOAD_BYTES: int = 1179648
 
 const REFUSE_NONE: StringName = &""
+const REFUSE_INVENTORY_BINDING: StringName = &"RESERVATION_INVENTORY_BINDING"
 const REFUSE_NO_INVENTORY: StringName = &"NO_INVENTORY"
 const REFUSE_INVENTORY_TRANSACTION_OPEN: StringName = &"INVENTORY_TRANSACTION_OPEN"
 const REFUSE_EMPTY_BATCH: StringName = &"EMPTY_BATCH"
@@ -142,6 +148,7 @@ const REFUSE_AUDIT_JOB_LIST: StringName = &"AUDIT_JOB_LIST_BROKEN"
 const REFUSE_AUDIT_LOT_LIST: StringName = &"AUDIT_LOT_LIST_BROKEN"
 const REFUSE_AUDIT_RESERVED_TOTAL: StringName = &"AUDIT_RESERVED_TOTAL_MISMATCH"
 const REFUSE_AUDIT_RESERVED_EXCEEDS: StringName = &"AUDIT_RESERVED_EXCEEDS_QUANTITY"
+const REFUSE_INPUT_CLAIM_EXPIRED: StringName = &"INPUT_CLAIM_EXPIRED"
 
 # --- Reservation payload columns (systems_architecture.md §2.1: 5 x I32 + 2 x I64) ------------
 var _r_job_slot: PackedInt32Array = PackedInt32Array()
@@ -184,6 +191,8 @@ var _active_count: int = 0
 ## fresh rows the batch needs here for `claim_batch()` to report.
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _pending_new_rows: int = 0
+## Derived world wiring, never a serialized pointer; clear() deliberately preserves it.
+var _bound_inventory: WeakRef = null
 
 
 func _init(p_row_capacity: int = ROW_CAPACITY, p_job_capacity: int = JOB_CAPACITY, p_lot_capacity: int = LOT_CAPACITY) -> void:
@@ -197,6 +206,44 @@ func _init(p_row_capacity: int = ROW_CAPACITY, p_job_capacity: int = JOB_CAPACIT
 	_lot_capacity = clampi(p_lot_capacity, 1, LOT_CAPACITY)
 	_allocate_columns()
 	clear()
+
+
+func inventory_binding_refusal(inventory: Inventory) -> StringName:
+	"""Reject another world even when all numeric container, lot and Job references coincide."""
+	if inventory == null:
+		return REFUSE_NO_INVENTORY
+	if _bound_inventory != null and _bound_inventory.get_ref() != inventory:
+		return REFUSE_INVENTORY_BINDING
+	return REFUSE_NONE
+
+
+func composition_refusal(inventory: Inventory) -> StringName:
+	"""An unbound nonempty legacy import needs explicit Inventory-aware restore, not inferred identity."""
+	var code: StringName = inventory_binding_refusal(inventory)
+	if code != REFUSE_NONE:
+		return code
+	return REFUSE_INVENTORY_BINDING if _bound_inventory == null and _active_count > 0 else REFUSE_NONE
+
+
+func bind_inventory(inventory: Inventory) -> Inventory.OpResult:
+	"""Bind an empty pool or confirm its existing world, without changing any claim or quantity."""
+	var code: StringName = composition_refusal(inventory)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_remember_inventory(inventory)
+	return _ok(NULL_REF, _active_count)
+
+
+func _remember_inventory(inventory: Inventory) -> void:
+	"""Publish world wiring only after successful composition or a committed Inventory operation."""
+	if _bound_inventory == null:
+		_bound_inventory = weakref(inventory)
+
+
+func _bound_transaction_open() -> bool:
+	"""Metadata-only claim changes must not invalidate an in-flight debit's untouched pool rows."""
+	var inventory: Inventory = _bound_inventory.get_ref() as Inventory if _bound_inventory != null else null
+	return inventory != null and inventory.is_transaction_open()
 
 
 func _allocate_columns() -> void:
@@ -223,7 +270,8 @@ func clear() -> void:
 
 	This releases nothing in any inventory: it is a world teardown, not a gameplay operation.
 	A caller holding a live inventory must release its claims first, or that inventory's
-	`reserved_milli` will outlive the rows that justified it.
+	`reserved_milli` will outlive the rows that justified it. Existing world wiring is retained;
+	a new world needs a new pool, including when this pool is already empty.
 	"""
 	_r_job_slot.fill(NULL_SLOT)
 	_r_job_generation.fill(NULL_GENERATION)
@@ -319,13 +367,15 @@ func claim_batch(job_ref: Vector2i, claims: PackedInt64Array, claim_count: int, 
 	if refusal != REFUSE_NONE:
 		return _refuse(refusal)
 	_apply_pool_rows(job_ref, claims, claim_count)
+	_remember_inventory(inventory)
 	return _ok(job_ref, new_rows)
 
 
 func _preflight_batch(job_ref: Vector2i, claims: PackedInt64Array, claim_count: int, inventory: Inventory) -> StringName:
 	"""Validate the complete transaction without writing anything. REFUSE_NONE means it may run."""
-	if inventory == null:
-		return REFUSE_NO_INVENTORY
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return binding_code
 	if inventory.is_transaction_open():
 		# The pool's rows are not journaled by inventory's undo log, so joining a caller's open
 		# transaction would let a later rollback restore `reserved_milli` while the rows stay --
@@ -517,10 +567,130 @@ func _upsert_row(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, quantity_mi
 
 # --- Releasing --------------------------------------------------------------------------------
 
+func consume_job_inputs(job_ref: Vector2i, purpose: int, now_tick: int,
+		output_container: Vector2i, output_mass_g: int, inventory: Inventory) -> Inventory.OpResult:
+	"""Consume matching actual claims and reserve finite output in one Inventory transaction.
+
+	The owning coordinator has already proved its recipe and captured the lots' metadata for
+	WIP. This pool supplies ownership, expiry and all-or-nothing accounting, never a recipe.
+	It changes no row until Inventory commits; journal/capacity refusal preserves both owners.
+	An empty input set is valid for material-free work. The Job owner still proves liveness.
+	"""
+	return _consume_inputs_transaction(job_ref, purpose, now_tick, output_container,
+		output_mass_g, inventory, null, NULL_REF)
+
+
+func consume_connector_inputs(job_ref: Vector2i, now_tick: int, output_container: Vector2i,
+		output_mass_g: int, inventory: Inventory, guard: ModularContract,
+		project: Vector2i) -> Inventory.OpResult:
+	"""Keep the connector's final actual-source proof after all removal observers, before payment."""
+	if guard == null:
+		return _refuse(ModularContract.REFUSE_AUTHORITY)
+	var code: StringName = guard.connector_inputs_refusal(project, job_ref, inventory, self)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _consume_inputs_transaction(job_ref, PURPOSE_MODULAR_INPUT, now_tick, output_container,
+		output_mass_g, inventory, guard, project)
+
+
+func _consume_inputs_transaction(job_ref: Vector2i, purpose: int, now_tick: int,
+		output_container: Vector2i, output_mass_g: int, inventory: Inventory,
+		guard: ModularContract, project: Vector2i) -> Inventory.OpResult:
+	"""Publish neither claim retirement nor a partial input debit before the complete journal commits."""
+	var code: StringName = _consume_inputs_refusal(job_ref, purpose, now_tick,
+		output_container, output_mass_g, inventory)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	var opened: Inventory.OpResult = inventory.begin()
+	if not opened.ok:
+		return opened
+	code = _consume_inputs_inventory(job_ref, purpose, output_container, output_mass_g, inventory)
+	if code == REFUSE_NONE and guard != null:
+		code = guard.final_input_refusal(project, job_ref, inventory, self)
+	if code != REFUSE_NONE:
+		inventory.abort()
+		return _refuse(code)
+	var committed: Inventory.OpResult = inventory.commit()
+	if not committed.ok:
+		return committed
+	_remember_inventory(inventory)
+	return _ok(job_ref, _free_input_rows(job_ref, purpose))
+
+
+func _consume_inputs_refusal(job_ref: Vector2i, purpose: int, now_tick: int,
+		output_container: Vector2i, output_mass_g: int, inventory: Inventory) -> StringName:
+	"""Check the full matching claim list and arguments without mutating any owner."""
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return binding_code
+	if inventory.is_transaction_open():
+		return REFUSE_INVENTORY_TRANSACTION_OPEN
+	if purpose < INT32_MIN or purpose > INT32_MAX:
+		return REFUSE_INVALID_PURPOSE
+	if now_tick < 0:
+		return REFUSE_INVALID_EXPIRY
+	if output_mass_g < 0 or (output_mass_g == 0 and output_container != NULL_REF):
+		return REFUSE_INVALID_QUANTITY
+	if output_mass_g > 0 and not inventory.is_container_valid(output_container):
+		return Inventory.REFUSE_INVALID_CONTAINER
+	var code: StringName = _check_job_ref(job_ref)
+	if code != REFUSE_NONE:
+		return code
+	return _input_rows_refusal(job_ref, purpose, now_tick, inventory)
+
+
+func _input_rows_refusal(job_ref: Vector2i, purpose: int, now_tick: int,
+		inventory: Inventory) -> StringName:
+	"""Validate owned quantities and absolute-tick leases before the first Inventory write."""
+	var row: int = _list_head(job_ref, true)
+	while row != NULL_ROW:
+		if _r_purpose[row] == purpose:
+			var lot: Vector2i = row_lot_ref(row)
+			if not inventory.is_lot_valid(lot):
+				return REFUSE_INVALID_LOT
+			if inventory.lot_reserved_milli(lot) < _r_quantity_milli[row]:
+				return REFUSE_AUDIT_RESERVED_TOTAL
+			if now_tick >= _r_expiry[row]:
+				return REFUSE_INPUT_CLAIM_EXPIRED
+		row = _job_next[row]
+	return REFUSE_NONE
+
+
+func _consume_inputs_inventory(job_ref: Vector2i, purpose: int, output_container: Vector2i,
+		output_mass_g: int, inventory: Inventory) -> StringName:
+	"""Write only journaled Inventory state while the reservation rows remain untouched."""
+	if output_mass_g > 0:
+		var reserved: Inventory.OpResult = inventory.reserve_container_mass(output_container, output_mass_g)
+		if not reserved.ok:
+			return reserved.error
+	var row: int = _list_head(job_ref, true)
+	while row != NULL_ROW:
+		if _r_purpose[row] == purpose:
+			var consumed: Inventory.OpResult = inventory.consume_reserved(row_lot_ref(row), _r_quantity_milli[row])
+			if not consumed.ok:
+				return consumed.error
+		row = _job_next[row]
+	return REFUSE_NONE
+
+
+func _free_input_rows(job_ref: Vector2i, purpose: int) -> int:
+	"""Publish pool retirement after the matching Inventory transaction has committed."""
+	var freed: int = 0
+	var row: int = _list_head(job_ref, true)
+	while row != NULL_ROW:
+		var next: int = _job_next[row]
+		if _r_purpose[row] == purpose:
+			_free_row(row)
+			freed += 1
+		row = next
+	return freed
+
+
 func release_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, inventory: Inventory) -> Inventory.OpResult:
 	"""Release one `(job, lot, purpose)` claim in full. `.value` is the quantity released."""
-	if inventory == null:
-		return _refuse(REFUSE_NO_INVENTORY)
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return _refuse(binding_code)
 	if inventory.is_transaction_open():
 		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	var row: int = _find_row(job_ref, lot_ref, purpose)
@@ -533,6 +703,7 @@ func release_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, inventory
 	if not released.ok:
 		return _refuse(released.error)
 	_free_row(row)
+	_remember_inventory(inventory)
 	return _ok(lot_ref, quantity)
 
 
@@ -558,8 +729,9 @@ func release_lot_claims(lot_ref: Vector2i, inventory: Inventory) -> Inventory.Op
 
 func _release_list(owner_ref: Vector2i, by_job: bool, inventory: Inventory) -> Inventory.OpResult:
 	"""Release a whole job list or lot list all-or-nothing. `by_job` selects which list."""
-	if inventory == null:
-		return _refuse(REFUSE_NO_INVENTORY)
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return _refuse(binding_code)
 	if inventory.is_transaction_open():
 		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	var head: int = _list_head(owner_ref, by_job)
@@ -578,6 +750,7 @@ func _release_list(owner_ref: Vector2i, by_job: bool, inventory: Inventory) -> I
 	var committed: Inventory.OpResult = inventory.commit()
 	if not committed.ok:
 		return _refuse(committed.error)
+	_remember_inventory(inventory)
 	return _ok(owner_ref, _free_list_rows(head, by_job))
 
 
@@ -644,8 +817,9 @@ func drop_retired_lot_claims(lot_ref: Vector2i, inventory: Inventory) -> Invento
 	the only way to drop them, and it refuses while the lot is still live so it cannot be used
 	to quietly desynchronise a live lot's reserved total.
 	"""
-	if inventory == null:
-		return _refuse(REFUSE_NO_INVENTORY)
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return _refuse(binding_code)
 	if lot_ref.x < 0 or lot_ref.x >= _lot_capacity:
 		return _refuse(REFUSE_LOT_OUT_OF_RANGE)
 	if inventory.is_lot_valid(lot_ref):
@@ -658,6 +832,8 @@ func drop_retired_lot_claims(lot_ref: Vector2i, inventory: Inventory) -> Invento
 			_free_row(row)
 			dropped += 1
 		row = next
+	if dropped > 0:
+		_remember_inventory(inventory)
 	return _ok(lot_ref, dropped)
 
 
@@ -669,8 +845,9 @@ func release_expired_for_job(job_ref: Vector2i, now_tick: int, inventory: Invent
 	calls. Within the job the rows go in the job list's canonical order. `.value` is the number
 	of rows released; a job with nothing expired releases none and is not a refusal.
 	"""
-	if inventory == null:
-		return _refuse(REFUSE_NO_INVENTORY)
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return _refuse(binding_code)
 	if inventory.is_transaction_open():
 		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	var head: int = _list_head(job_ref, true)
@@ -694,6 +871,7 @@ func _release_expired_checked(job_ref: Vector2i, head: int, now_tick: int, inven
 	var committed: Inventory.OpResult = inventory.commit()
 	if not committed.ok:
 		return _refuse(committed.error)
+	_remember_inventory(inventory)
 	return _ok(job_ref, _free_expired_rows(head, now_tick))
 
 
@@ -730,6 +908,8 @@ func renew_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, new_expiry:
 	later is refused explicitly rather than silently ignored -- a caller that shortened a lease
 	by accident would otherwise lose reserved ingredients on the next sweep with no signal.
 	"""
+	if _bound_transaction_open():
+		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	if new_expiry < 0:
 		return _refuse(REFUSE_INVALID_EXPIRY)
 	var row: int = _find_row(job_ref, lot_ref, purpose)
@@ -806,6 +986,7 @@ func _carry(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, dest_ref: Vector
 		return _refuse(moved.error)
 	_free_row(row)
 	_upsert_row(job_ref, moved.ref, carried_purpose, quantity, expiry)
+	_remember_inventory(inventory)
 	return _ok(moved.ref, quantity)
 
 
@@ -832,6 +1013,7 @@ func deliver_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, dest_ref:
 		return _refuse(moved.error)
 	var quantity: int = _r_quantity_milli[row]
 	_free_row(row)
+	_remember_inventory(inventory)
 	return _ok(moved.ref, quantity)
 
 
@@ -845,6 +1027,8 @@ func repurpose_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int,
 	already keyed `new_purpose` for the same job and lot coalesces with it. `.value` is the
 	quantity. Refuses NO_SUCH_CLAIM and an out-of-range purpose, writing nothing.
 	"""
+	if _bound_transaction_open():
+		return _refuse(REFUSE_INVENTORY_TRANSACTION_OPEN)
 	if new_purpose < INT32_MIN or new_purpose > INT32_MAX:
 		return _refuse(REFUSE_INVALID_PURPOSE)
 	var row: int = _find_row(job_ref, lot_ref, purpose)
@@ -860,8 +1044,9 @@ func repurpose_claim(job_ref: Vector2i, lot_ref: Vector2i, purpose: int,
 func _preflight_carry(job_ref: Vector2i, lot_ref: Vector2i, purpose: int, carried_purpose: int,
 		inventory: Inventory) -> StringName:
 	"""Everything the carry doors check before their transaction opens."""
-	if inventory == null:
-		return REFUSE_NO_INVENTORY
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return binding_code
 	if inventory.is_transaction_open():
 		return REFUSE_INVENTORY_TRANSACTION_OPEN
 	if carried_purpose < INT32_MIN or carried_purpose > INT32_MAX:
@@ -1322,8 +1507,9 @@ func audit(inventory: Inventory) -> Inventory.OpResult:
 	round this pool straight to `inventory.reserve_lot()` are outside its authority and are not
 	visible here; `inventory.audit()` still bounds those by quantity.
 	"""
-	if inventory == null:
-		return _refuse(REFUSE_NO_INVENTORY)
+	var binding_code: StringName = inventory_binding_refusal(inventory)
+	if binding_code != REFUSE_NONE:
+		return _refuse(binding_code)
 	var refusal: StringName = _audit_occupancy()
 	if refusal != REFUSE_NONE:
 		return _refuse(refusal)
@@ -1681,8 +1867,12 @@ func copy_reservation_columns_into(out: ReservationColumns) -> bool:
 	return true
 
 
-func restore_reservation_columns(columns: ReservationColumns) -> bool:
+func restore_reservation_columns(columns: ReservationColumns, inventory: Inventory = null) -> bool:
 	"""Replace this pool's canonical payload and rebuild every derived index, or change nothing.
+
+	A supplied Inventory must match any existing world binding and is remembered only after
+	publication. Omitting it preserves the legacy pure-column boundary and all existing wiring;
+	an unbound nonempty result cannot compose with Sites until explicitly restored with Inventory.
 
 	ORDER, fixed: the supplied record's shape (SHAPE); this object's own construction extents and
 	array shapes, which remain required (SOURCE_DERIVED); the supplied payload, with its specific
@@ -1703,6 +1893,8 @@ func restore_reservation_columns(columns: ReservationColumns) -> bool:
 		return _refuse_column(COLUMN_RESERVATION_SHAPE)
 	if not _reservation_live_shape_ok():
 		return _refuse_column(COLUMN_RESERVATION_SOURCE_DERIVED)
+	if inventory != null and inventory_binding_refusal(inventory) != REFUSE_NONE:
+		return _refuse_column(REFUSE_INVENTORY_BINDING)
 	var derived: ReservationDerived = _derive_reservation_indexes(columns.occupied,
 		columns.r_job_slot, columns.r_job_generation, columns.r_lot_slot, columns.r_lot_generation,
 		columns.r_purpose, columns.r_quantity_milli, columns.r_expiry, _row_capacity,
@@ -1726,6 +1918,8 @@ func restore_reservation_columns(columns: ReservationColumns) -> bool:
 	_lot_next = derived._lot_next
 	_active_count = derived.active_count
 	_free_count = derived.free_count
+	if inventory != null:
+		_remember_inventory(inventory)
 	_last_column_refusal = REFUSE_NONE
 	return true
 

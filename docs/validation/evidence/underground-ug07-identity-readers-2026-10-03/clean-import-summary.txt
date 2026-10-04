@@ -1,0 +1,5 @@
+Godot 4.7.2; own worktree demo/assets absent; deleted godot/.godot.
+Command: godot --headless --path godot --editor --quit
+Process exit: 0
+Error/warning/script-error lines in complete import output: 0
+Complete import output SHA-256: e7611c02eb7015fcc00c75b1ae97d996625433b5e618b9ebdd8dcdaf291474a4

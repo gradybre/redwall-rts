@@ -1,0 +1,58 @@
+state_registry_coverage: PASS -- 116 modules, 559 rows, 937 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_furniture_batches.gd
+  FAIL  test_actual_mixed_pending_rows_and_protected_catalog_projects_publish_together
+        actual project bill count (expected true, got false)
+        entire adopted recipe (expected 1, got 0)
+        actual deliveries (expected true, got false)
+        actual project bill count (expected true, got false)
+        entire adopted recipe (expected 3, got 0)
+        actual deliveries (expected true, got false)
+        actual deliveries (expected true, got false)
+        actual deliveries (expected true, got false)
+        actual project bill count (expected true, got false)
+        entire adopted recipe (expected 1, got 0)
+        actual deliveries (expected true, got false)
+  PASS  test_direct_preparation_or_publication_never_allocates_any_identity
+  PASS  test_null_foreign_and_wrong_purpose_owner_cannot_open_the_real_batch
+  PASS  test_unfinished_shell_and_late_geometry_refusal_leave_all_owner_bytes_unchanged
+  PASS  test_wrong_room_generation_surface_room_and_foreign_packet_are_rejected
+  PASS  test_wrong_kind_order_or_tuple_shape_never_publishes_a_prefix
+  PASS  test_unknown_type_edge_piece_and_rotation_refuse_the_whole_layout
+  PASS  test_stale_single_allocation_and_retirement_never_roll_back_generations
+  PASS  test_duplicate_observation_cannot_allocate_again_or_invent_pending_services
+  PASS  test_mutation_in_final_provider_callback_refuses_without_an_identity_prefix
+  PASS  test_callback_reentry_is_closed_before_any_provider_runs
+  PASS  test_missing_typed_row_capacity_and_pid_capacity_refuse_before_first_write
+  PASS  test_live_typed_owner_mirror_conflict_refuses_in_either_store
+  FAIL  test_reused_free_typed_rows_reset_all_paid_delivery_and_installed_flags
+        actual project bill count (expected true, got false)
+        entire adopted recipe (expected 1, got 0)
+        actual deliveries (expected true, got false)
+        actual project bill count (expected true, got false)
+        entire adopted recipe (expected 3, got 0)
+        actual deliveries (expected true, got false)
+        actual deliveries (expected true, got false)
+        actual deliveries (expected true, got false)
+        actual project bill count (expected true, got false)
+        entire adopted recipe (expected 1, got 0)
+        actual deliveries (expected true, got false)
+CI_SUITE_TIME {"assertions":409,"failures":2,"suite":"test_construction_furniture_batches.gd","tests":14,"usec":987573}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 409 assertion(s), 2 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 2 failing test(s).

@@ -1,0 +1,174 @@
+extends "../grip-authoring/native_grip_sequence.gd"
+## Native authored work preview. The actual compact image is separate from the preserved imported cycle.
+
+const TARGET: Array[int] = [-512, -1024, -1374, 512, 0, -350]
+
+var _loop_intervals: Array[Dictionary] = []
+
+
+func _build_stage() -> void:
+	"""Expose the one-metre work target and complete approach without pretending these meshes are paid support."""
+	super._build_stage()
+	root.size = Vector2i(1280, 720)
+	var ground_color: Color = Color("5b5a42")
+	_add_ground(Vector3i(-2048, -64, -2048), Vector3i(-512, 0, 2048), ground_color)
+	_add_ground(Vector3i(512, -64, -2048), Vector3i(2048, 0, 2048), ground_color)
+	_add_ground(Vector3i(-512, -64, -2048), Vector3i(512, 0, -1374), ground_color)
+	_add_ground(Vector3i(-512, -64, -350), Vector3i(512, 0, 2048), ground_color)
+	_add_ground(Vector3i(TARGET[0], TARGET[1], TARGET[2]), Vector3i(TARGET[3], TARGET[4], TARGET[5]), Color("936642"))
+
+
+func _add_ground(low: Vector3i, high: Vector3i, color: Color) -> void:
+	"""The presentation-only dirt fixture has explicit integer extents and never confers clearance."""
+	var mesh: BoxMesh = BoxMesh.new()
+	mesh.size = Vector3(high - low) / 1024.0
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_color = color
+	material.roughness = 1.0
+	mesh.material = material
+	var node: MeshInstance3D = MeshInstance3D.new()
+	node.mesh = mesh
+	node.position = Vector3(ORIGIN_U) / 1024.0 + Vector3(low + high) / 2048.0
+	_world.add_child(node)
+
+
+func _observe_clips() -> void:
+	"""Show every finite interval in the exact corrected source, then its positive idle handoff."""
+	var root_point: Vector3 = Vector3(ORIGIN_U) / 1024.0
+	var views: Array[Vector3] = [Vector3(-1.45, 1.05, 1.9), Vector3(1.65, 0.8, -0.5), Vector3(1.4, 1.2, -1.9), Vector3(3.9, 5.0, 4.0)]
+	var labels: PackedStringArray = ["rear", "side", "front", "rts"]
+	for view: int in views.size():
+		_camera.position = root_point + views[view]
+		_camera.size = 10.0 if labels[view] == "rts" else 1.9
+		_camera.look_at(root_point + Vector3(0.05, 0.5, -0.05), Vector3.UP)
+		await _observe_strike(labels[view])
+		await _observe_handoff(labels[view])
+		await _observe_carry(labels[view])
+
+
+func _observe_carry(label: String) -> void:
+	"""Show actual derived carrying frames; a plausible strike cannot excuse a broken carried pose."""
+	var now: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var timing: PackedInt32Array = PackedInt32Array([0, 0])
+	var pose: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, 65536])
+	for clip: int in [0, 1, 4]:
+		_suite.assert_true(_content.clip_timing_into(clip, timing), "complete authored carrying duration")
+		@warning_ignore("integer_division") var half_ticks: int = timing[0] / 32768 + 1
+		for tick: int in half_ticks:
+			_suite.assert_equal(_content.clip_into(clip, tick * 32768, now), &"", "exact authored carried source")
+			for index: int in 3:
+				pose[index] = now[index]
+				pose[index + 3] = now[index]
+			_suite.assert_equal(_actor.apply_pose(pose), &"", "actual carried-arm native pose")
+			_observed += 1
+			await process_frame
+			if tick % 12 == 0:
+				await _save_frame("%s-carry%d-%03d" % [label, clip, tick], clip, tick)
+
+
+func _observe_strike(label: String) -> void:
+	"""The already compiled derivative owns its frames and complete pick transform; no native fit substitutes for it."""
+	var now: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var pose: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, 65536])
+	for tick: int in _spec.source_frame_indices.size() * 2:
+		_suite.assert_equal(_content.clip_into(6, tick * 32768, now), &"", "exact authored source time")
+		for index: int in 3:
+			pose[index] = now[index]
+			pose[index + 3] = now[index]
+		_suite.assert_equal(_actor.apply_pose(pose), &"", "actual authored native pose")
+		_observed += 1
+		await process_frame
+		if tick % 6 == 0:
+			@warning_ignore("integer_division") var at: int = tick / 2
+			await _save_frame("%s-%03d-source%03d" % [label, at, _spec.source_frame_indices[at]], 6, tick)
+
+
+func _observe_handoff(label: String) -> void:
+	"""The finite local-rig entry and exact retrace preserve the grip; no far-pose global blend is used."""
+	if not _spec.rig_entry:
+		await _observe_linear_handoff(label)
+		return
+	var now: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var timing: PackedInt32Array = PackedInt32Array([0, 0])
+	var pose: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, 65536])
+	for clip: int in [7, 8]:
+		_suite.assert_true(_content.clip_timing_into(clip, timing), "authored complete handoff duration")
+		@warning_ignore("integer_division") var half_ticks: int = timing[0] / 32768 + 1
+		for tick: int in half_ticks:
+			_suite.assert_equal(_content.clip_into(clip, tick * 32768, now), &"", "actual local-rig finite source")
+			for index: int in 3:
+				pose[index] = now[index]
+				pose[index + 3] = now[index]
+			_suite.assert_equal(_actor.apply_pose(pose), &"", "actual local-rig native handoff")
+			_observed += 1
+			await process_frame
+			if tick % 6 == 0:
+				await _save_frame("%s-%s-%02d" % [label, "entry" if clip == 7 else "recovery", tick], clip, tick)
+
+
+func _observe_linear_handoff(label: String) -> void:
+	"""Retained rejected baseline branch for explicit authoring comparison; never selected by a qualified driver."""
+	var work: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var idle: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	_suite.assert_equal(_content.clip_into(6, 0, work), &"", "actual work ready endpoint")
+	_suite.assert_equal(_content.clip_into(0, 8 * 65536, idle), &"", "actual original idle endpoint")
+	var pose: PackedInt32Array = PackedInt32Array([work[0], work[1], work[2], idle[0], idle[1], idle[2], 0])
+	for step: int in 9:
+		pose[6] = step * 8192
+		_suite.assert_equal(_actor.apply_pose(pose), &"", "actual idle-to-work positive blend")
+		_observed += 1
+		await process_frame
+		await _save_frame("%s-entry-%02d" % [label, step], 6, step)
+
+
+func _observe_transitions() -> void:
+	"""The per-view handoff above is a quality witness, never an actual state-driver permission."""
+	_suite.assert_true(_spec.source_frame_indices.size() > 2, "explicit complete corrected sequence")
+	for clip: int in _content.clip_count():
+		var timing: PackedInt32Array = PackedInt32Array([0, 0])
+		_suite.assert_true(_content.clip_timing_into(clip, timing), "exact native wire timing")
+		if timing[1] == 1:
+			await _observe_loop_interval(clip, timing[0])
+
+
+func _observe_loop_interval(clip: int, duration: int) -> void:
+	"""Inspect the renderer's actual closing edge, including an outward-rounded one-Q16-unit final interval."""
+	@warning_ignore("integer_division") var count: int = (duration + 65535) / 65536 + 1
+	var start_time: int = (count - 2) * 65536
+	var first: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var now: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	var pose: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, 65536])
+	_suite.assert_equal(_content.clip_into(clip, 0, first), &"", "exact first source frame")
+	var observed: Array[Array] = []
+	for step: int in 5:
+		@warning_ignore("integer_division") var time: int = start_time + mini(duration - start_time - 1, (duration - start_time) * step / 4)
+		_suite.assert_equal(_content.clip_into(clip, time, now), &"", "actual loop-closing source query")
+		_suite.assert_equal(now[0], first[0] + count - 2, "loop starts at penultimate stored pose")
+		_suite.assert_equal(now[1], first[0], "loop closes to FIRST, never stored last")
+		for index: int in 3:
+			pose[index] = now[index]
+			pose[index + 3] = now[index]
+		_suite.assert_equal(_actor.apply_pose(pose), &"", "actual native closing interval")
+		observed.append([time, now[0], now[1], now[2]])
+		_observed += 1
+		await process_frame
+	_suite.assert_equal(_content.clip_into(clip, duration, now), &"", "exact wrap boundary")
+	_suite.assert_equal(now, first, "native loop boundary resets to its first pose")
+	_loop_intervals.append({"clip": clip, "duration_q16": duration, "frames": count, "samples": observed})
+
+
+func _finish() -> void:
+	"""No source-math or visual preview is promoted into a gameplay profile by this harness."""
+	var report: Dictionary = {"schema": 1, "content_sha256": _content.source_digest(), "poses": _observed,
+		"assertions": _suite.assertions, "failures": _suite.failures, "screenshots": _shots,
+		"source_frame_indices": _spec.source_frame_indices, "production_qualified": false,
+		"loop_intervals": _loop_intervals,
+		"candidate_target_u": TARGET, "native_motion_review": "PENDING",
+		"world_identity": "synthetic target/support fixture; no paid operation, real stance or work permission"}
+	var output: FileAccess = FileAccess.open(_out + "/report.json", FileAccess.WRITE)
+	output.store_string(JSON.stringify(report, "\t") + "\n")
+	output.close()
+	for failure: String in _suite.failures:
+		printerr("FAIL: ", failure)
+	print("mole-forward-motion: %d poses, %d assertions, %d failures; qualified=0" % [_observed, _suite.assertions, _suite.failures.size()])
+	quit(0 if _suite.failures.is_empty() else 2)

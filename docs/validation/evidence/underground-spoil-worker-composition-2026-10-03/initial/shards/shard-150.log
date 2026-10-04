@@ -1,0 +1,47 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_spoil_work.gd
+  PASS  test_actual_admission_has_separate_purpose_and_no_payment_or_direct_publication
+  PASS  test_contact_refusal_precedes_project_and_tip_generation_allocation
+  PASS  test_quotes_read_adopted_price_and_actual_catalog_without_extra_accounts
+  PASS  test_expired_contacts_fail_closed_without_source_or_accounting_changes
+  FAIL  test_paid_preparation_requires_real_work_and_releases_worker_for_next_operation
+        actual claims credited: WRONG_PHASE (expected true, got false)
+  FAIL  test_actual_compaction_and_reclamation_conserve_source_and_normalize_only_earth
+        actual claims credited: WRONG_PHASE (expected true, got false)
+        actual claims credited: WRONG_PHASE (expected true, got false)
+  FAIL  test_blocked_productive_contact_preserves_xp_wear_wip_and_source
+        actual claims credited: WRONG_PHASE (expected true, got false)
+  FAIL  test_blocked_reclamation_commit_keeps_source_and_reserved_output_for_retry
+        actual claims credited: WRONG_PHASE (expected true, got false)
+        actual claims credited: WRONG_PHASE (expected true, got false)
+  FAIL  test_cancelled_compaction_keeps_work_and_requires_same_full_input_on_resume
+        actual claims credited: WRONG_PHASE (expected true, got false)
+        actual input claim (expected true, got false)
+        actual paid work starts: WRONG_PHASE (expected true, got false)
+        actual productive work: JOB_NOT_IN_WORK_STATE (expected true, got false)
+        real source commit: WRONG_PHASE (expected true, got false)
+        project retires after publication (expected false, got true)
+        source releases only the completed project (expected (-1, 0), got (2, 3))
+        full replacement input compacted once (expected 1001, got 0)
+        loose plus embedded plus loss conserved (expected 8798, got 9799)
+  FAIL  test_actual_empty_closure_retires_footprint_and_stale_generation_refuses
+        actual claims credited: WRONG_PHASE (expected true, got false)
+        actual claims credited: WRONG_PHASE (expected true, got false)
+CI_SUITE_TIME {"assertions":879,"failures":6,"suite":"test_spoil_work.gd","tests":10,"usec":788490}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 879 assertion(s), 6 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

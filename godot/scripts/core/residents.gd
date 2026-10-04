@@ -1148,6 +1148,31 @@ func rig_binding_by_species_id(species_id_value: int, life_stage: int) -> OpResu
 	return rig_binding(key, life_stage)
 
 
+func spatial_profile_identity_into(ref: Vector2i, out: PackedInt32Array) -> bool:
+	"""Read species, actual stage and existing logical rig into exact three-value scratch, without allocation.
+	Every refusal preserves `out`; absent child/elder rigs remain absent, never adult aliases."""
+	if out.size() != 3 or _catalog_error != "" or _rig_catalog_error != "" \
+			or not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESIDENT):
+		return false
+	var slot: int = _directory.get_typed_row(ref)
+	if not is_present(slot) or _ref_slot[slot] != ref.x or _ref_generation[slot] != ref.y \
+			or _life_stage[slot] != LIFE_STAGE_ADULT:
+		return false
+	var species: int = _species[slot]
+	if species < 0 or species >= _species_key.size():
+		return false
+	var key: StringName = StringName(_species_key[species])
+	if not SPECIES_RIG_KEY.has(key):
+		return false
+	var rig: StringName = SPECIES_RIG_KEY[key] as StringName
+	if not _rig_ids.has(rig):
+		return false
+	out[0] = species
+	out[1] = _life_stage[slot]
+	out[2] = int(_rig_ids[rig])
+	return true
+
+
 func role_of(slot: int) -> IntMath.IntResult:
 	"""Role enum of a row, or an explicit refusal."""
 	if not is_present(slot):

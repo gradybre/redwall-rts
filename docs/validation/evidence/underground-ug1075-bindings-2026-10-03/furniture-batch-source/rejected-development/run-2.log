@@ -1,0 +1,77 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-isi6v2hv
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 1
+FAIL line 1278: duplicate registry section for underground_space_owner.gd
+FAIL C3 underground_space_owner.gd declares `_changed_rows` with no registry row
+FAIL C3 underground_space_owner.gd declares `_changed_mask` with no registry row
+FAIL C3 underground_space_owner.gd declares `_header` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_header` with no registry row
+FAIL C3 underground_space_owner.gd declares `_region_free_heap` with no registry row
+FAIL C3 underground_space_owner.gd declares `_source_free_heap` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_region_free_heap` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_source_free_heap` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_present` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_retired` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_role` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_claim_kind` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_lo_x` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_lo_y` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_lo_z` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_hi_x` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_hi_y` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_hi_z` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_level` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_section_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_section_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_owner_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_owner_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_owner_revision` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_claim_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_r_claim_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_present` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_kind` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_revision` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_parent_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_parent_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_a` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_b` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_c` with no registry row
+FAIL C3 underground_space_owner.gd declares `_o_d` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_present` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_retired` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_role` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_claim_kind` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_lo_x` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_lo_y` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_lo_z` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_hi_x` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_hi_y` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_hi_z` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_level` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_section_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_section_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_owner_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_owner_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_owner_revision` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_claim_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_r_claim_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_present` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_kind` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_revision` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_parent_slot` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_parent_generation` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_a` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_b` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_c` with no registry row
+FAIL C3 underground_space_owner.gd declares `_s_o_d` with no registry row
+FAIL C6 underground_space_owner.gd line 1282: `_furniture_pins` is resized to `candidates.count * 5`, registry quotes `10 * _furniture_count`
+FAIL C6 underground_space_owner.gd line 1283: `_furniture_entries` has no resize() call; say 'never allocated'
+FAIL C6 underground_space_owner.gd line 1285: `_furniture_input_entries` has no resize() call; say 'never allocated'
+state_registry_coverage: 72 failure(s)
+assets restored True

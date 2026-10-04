@@ -1,0 +1,325 @@
+{
+  "counts": {
+    "assertions": 84216,
+    "expected": 4,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1180,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "eb59a64c86d4bc9394c7ed74a5dad00f5fdbbf93d119fe2765c3896baaeb13c8",
+  "shard_count": 8,
+  "shard_index": 0,
+  "suite_counts": {
+    "test_appoint_warden.gd": {
+      "assertions": 340,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_connector_geometry.gd": {
+      "assertions": 101,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_construction_demolition_completion.gd": {
+      "assertions": 232,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_construction_retired_histories.gd": {
+      "assertions": 1276,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_demo_camera_modes.gd": {
+      "assertions": 280,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_demo_care_live.gd": {
+      "assertions": 80,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_chronicle.gd": {
+      "assertions": 310,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_integration.gd": {
+      "assertions": 274,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_lens_kit.gd": {
+      "assertions": 212,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_demo_object_list.gd": {
+      "assertions": 33,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_demo_people_pairs.gd": {
+      "assertions": 4919,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_playtest_live.gd": {
+      "assertions": 18,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_tunnel.gd": {
+      "assertions": 929,
+      "failures": 0,
+      "tests": 119
+    },
+    "test_demo_winter.gd": {
+      "assertions": 297,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_entity_directory_batch.gd": {
+      "assertions": 7971,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_excavation_claim_batch.gd": {
+      "assertions": 329,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_excavation_sites.gd": {
+      "assertions": 3804,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_family_rules.gd": {
+      "assertions": 451,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_forest_root_field.gd": {
+      "assertions": 56,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_game_manager.gd": {
+      "assertions": 267,
+      "failures": 0,
+      "tests": 73
+    },
+    "test_ground_piles.gd": {
+      "assertions": 547,
+      "failures": 0,
+      "tests": 42
+    },
+    "test_int_math.gd": {
+      "assertions": 1499,
+      "failures": 0,
+      "tests": 42
+    },
+    "test_modular_editor.gd": {
+      "assertions": 104,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_modular_world_tool.gd": {
+      "assertions": 149,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_mole_grip_source.gd": {
+      "assertions": 50,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_proportion_comparison.gd": {
+      "assertions": 195,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_resource_catalog_binding.gd": {
+      "assertions": 400,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_room_footprint.gd": {
+      "assertions": 4038,
+      "failures": 0,
+      "tests": 36
+    },
+    "test_save_owner_movement.gd": {
+      "assertions": 24406,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_settlement_furniture_removal.gd": {
+      "assertions": 359,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_settlement_starter_colony.gd": {
+      "assertions": 288,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_spatial_world.gd": {
+      "assertions": 16755,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_ui_focus_order.gd": {
+      "assertions": 207,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_ui_frame_geometry.gd": {
+      "assertions": 3070,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_ui_need_rate.gd": {
+      "assertions": 64,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_ui_notices.gd": {
+      "assertions": 1210,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_ui_world_session.gd": {
+      "assertions": 78,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_underground_connector_recipes.gd": {
+      "assertions": 869,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_underground_locations.gd": {
+      "assertions": 1588,
+      "failures": 0,
+      "tests": 53
+    },
+    "test_underground_profiles.gd": {
+      "assertions": 601,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_underground_space_owner.gd": {
+      "assertions": 5461,
+      "failures": 0,
+      "tests": 113
+    },
+    "test_underground_world_basis.gd": {
+      "assertions": 35,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_underground_world_structure.gd": {
+      "assertions": 64,
+      "failures": 0,
+      "tests": 6
+    }
+  },
+  "suite_usec": {
+    "test_appoint_warden.gd": 2210083,
+    "test_connector_geometry.gd": 68420,
+    "test_construction_demolition_completion.gd": 3127285,
+    "test_construction_retired_histories.gd": 6930008,
+    "test_demo_camera_modes.gd": 2051954,
+    "test_demo_care_live.gd": 178003310,
+    "test_demo_chronicle.gd": 7825938,
+    "test_demo_integration.gd": 19205223,
+    "test_demo_lens_kit.gd": 1328009,
+    "test_demo_object_list.gd": 33006,
+    "test_demo_people_pairs.gd": 234957,
+    "test_demo_playtest_live.gd": 2966297,
+    "test_demo_tunnel.gd": 15061796,
+    "test_demo_winter.gd": 5049575,
+    "test_entity_directory_batch.gd": 1666991,
+    "test_excavation_claim_batch.gd": 3362075,
+    "test_excavation_sites.gd": 2824912,
+    "test_family_rules.gd": 6879,
+    "test_forest_root_field.gd": 270757,
+    "test_game_manager.gd": 357183,
+    "test_ground_piles.gd": 5397708,
+    "test_int_math.gd": 19577,
+    "test_modular_editor.gd": 3088152,
+    "test_modular_world_tool.gd": 15572171,
+    "test_mole_grip_source.gd": 48076,
+    "test_proportion_comparison.gd": 125141,
+    "test_resource_catalog_binding.gd": 1373269,
+    "test_room_footprint.gd": 256448,
+    "test_save_owner_movement.gd": 8454373,
+    "test_settlement_furniture_removal.gd": 6926224,
+    "test_settlement_starter_colony.gd": 129647230,
+    "test_spatial_world.gd": 1017091,
+    "test_ui_focus_order.gd": 40180,
+    "test_ui_frame_geometry.gd": 63138,
+    "test_ui_need_rate.gd": 4946,
+    "test_ui_notices.gd": 240121,
+    "test_ui_world_session.gd": 4141490,
+    "test_underground_connector_recipes.gd": 1318080,
+    "test_underground_locations.gd": 4529099,
+    "test_underground_profiles.gd": 1609125,
+    "test_underground_space_owner.gd": 12538580,
+    "test_underground_world_basis.gd": 74672,
+    "test_underground_world_structure.gd": 4199016
+  },
+  "suites": [
+    "test_appoint_warden.gd",
+    "test_connector_geometry.gd",
+    "test_construction_demolition_completion.gd",
+    "test_construction_retired_histories.gd",
+    "test_demo_camera_modes.gd",
+    "test_demo_care_live.gd",
+    "test_demo_chronicle.gd",
+    "test_demo_integration.gd",
+    "test_demo_lens_kit.gd",
+    "test_demo_object_list.gd",
+    "test_demo_people_pairs.gd",
+    "test_demo_playtest_live.gd",
+    "test_demo_tunnel.gd",
+    "test_demo_winter.gd",
+    "test_entity_directory_batch.gd",
+    "test_excavation_claim_batch.gd",
+    "test_excavation_sites.gd",
+    "test_family_rules.gd",
+    "test_forest_root_field.gd",
+    "test_game_manager.gd",
+    "test_ground_piles.gd",
+    "test_int_math.gd",
+    "test_modular_editor.gd",
+    "test_modular_world_tool.gd",
+    "test_mole_grip_source.gd",
+    "test_proportion_comparison.gd",
+    "test_resource_catalog_binding.gd",
+    "test_room_footprint.gd",
+    "test_save_owner_movement.gd",
+    "test_settlement_furniture_removal.gd",
+    "test_settlement_starter_colony.gd",
+    "test_spatial_world.gd",
+    "test_ui_focus_order.gd",
+    "test_ui_frame_geometry.gd",
+    "test_ui_need_rate.gd",
+    "test_ui_notices.gd",
+    "test_ui_world_session.gd",
+    "test_underground_connector_recipes.gd",
+    "test_underground_locations.gd",
+    "test_underground_profiles.gd",
+    "test_underground_space_owner.gd",
+    "test_underground_world_basis.gd",
+    "test_underground_world_structure.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 459
+}

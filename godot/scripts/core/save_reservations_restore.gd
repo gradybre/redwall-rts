@@ -10,8 +10,9 @@ extends RefCounted
 ##
 ## ONE BLOCK, NOT SIX, AND NEVER A SECOND INVENTORY. Every entry point takes a single
 ## `Codec.OwnerRecord`, never a `Codec.Record`, so saving or testing this owner never allocates
-## the other five blocks. The supplied Inventory is read for two pure boolean flags and is not
-## bound, mutated, attested or assumed to be the world these rows belong to.
+## the other five blocks. Capture reads two pure Inventory flags. Successful apply additionally
+## binds the target pool to the supplied Inventory owner (decision 1056); a foreign already-bound
+## owner refuses before publication. This wiring does not attest full-world reconciliation.
 ##
 ## J AND L COME FROM THE TARGET. The wire carries no job or lot extent, so the TARGET pool's
 ## constructor extents are the explicit interpretation context and `apply()` refuses any row
@@ -19,7 +20,7 @@ extends RefCounted
 ## otherwise.
 ##
 ## WHAT THIS ADAPTER DOES NOT DO. It does not acquire or release the load barrier -- it only asks
-## the SUPPLIED clock whether one is held -- and it does not pause, tick, bind, claim, release,
+## the SUPPLIED clock whether one is held -- and it does not pause, tick, claim, release,
 ## restore Inventory, publish a valid world or roll back a file. It makes no callback and no
 ## yield, and it must not be re-entered: the caller guarantees a quiescent boundary, because the
 ## public transaction flags alone do not prove that stronger condition. Full-world identity, every
@@ -190,9 +191,9 @@ static func apply(block: Codec.OwnerRecord, store: ReservationsScript, clock: Si
 	duplicates what it installs, and never writes into its input. The view does not escape.
 
 	The barrier is only QUERIED: this adapter never acquires or releases one, never ticks, and
-	binds nothing. The clock is required for the barrier alone -- not to expire or validate a
-	lease -- and the Inventory is read for two pure flags. Both identities, and every value field
-	of either, are left exactly as they were.
+	never mutates Clock or Inventory. The clock is required for the barrier alone, not to expire
+	or validate a lease. Inventory supplies its quiescence flags and the exact owner binding
+	that a successful pool restore retains. This is world wiring, not a serialized pointer.
 
 	A failure leaves the block, the live pool and every collaborator unchanged, except the owner's
 	own `_last_column_refusal` when its API was actually reached. A codec-stage rejection leaves
@@ -238,7 +239,7 @@ static func apply(block: Codec.OwnerRecord, store: ReservationsScript, clock: Si
 	columns.r_quantity_milli = \
 		block.i64_columns[Codec.storage_index_of(OWNER, ORDINAL_QUANTITY_MILLI)]
 	columns.r_expiry = block.i64_columns[Codec.storage_index_of(OWNER, ORDINAL_EXPIRY)]
-	if not store.restore_reservation_columns(columns):
+	if not store.restore_reservation_columns(columns, inventory):
 		return _refuse(store.last_column_refusal(), store.canonical_detail())
 	return _accepted()
 

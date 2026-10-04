@@ -1,0 +1,9 @@
+{
+  "source_path": "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/design/underground-planning/first-entry-prefix-v1.json",
+  "source_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+  "projection": "copy sequence_fixture, append natural_bearings.bounds_u in order; exact ids0..13; ascent comparison replaces only rise with128 and segment with origin[0,-128,-2217], quarter2, support[7,0]",
+  "source_unchanged": true,
+  "timber_prisms": 14,
+  "natural_base_prisms": 8,
+  "production_qualified": false
+}

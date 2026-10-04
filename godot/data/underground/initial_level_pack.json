@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "content_revision": 1,
+  "domain": {
+    "datum_u": [0, 512, 0],
+    "min_quantum": [0, -32, 0],
+    "size_quanta": [256, 48, 256]
+  },
+  "level_spacing_u": 5120,
+  "clear_height_u": 4096,
+  "protected_roof_band_u": 1024,
+  "required_footing_u": 1024,
+  "section_offsets_u": [-1024, 0, 1024],
+  "short_stair_rises_u": [1024, 2048],
+  "scope": "Engineering heights only. No terrain, finished void, support region, route, material permission or completed connector is created by this catalog.",
+  "qualification": "Initial 4m clear shell and 5m spacing are grounded in the actual finite cast measurements and retain a 1m local structural band. Continuous body, load, productive-contact and five-family connector qualification remain separate."
+}

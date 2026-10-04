@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "label": "largest actual positive foot/toe influence; every touched triangle kept whole; ties retained",
+  "source_sha256": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+  "topology_sha256": "747d05ead3df4f9715db405e14f2e9d572dde214f9ec9224c5054a3e831b4d95",
+  "whole_collision_triangles": 10209,
+  "whole_collision_vertices": 17172,
+  "foot_contacts": [
+    {
+      "side": "left",
+      "triangles": 835,
+      "vertices": 1666,
+      "triangle_mask_sha256": "eed3b48ff183254417459c42e410ef0efec509d5c7ff6950200abd6123b54213",
+      "contains_crotch_vertex_5862": false
+    },
+    {
+      "side": "right",
+      "triangles": 783,
+      "vertices": 1559,
+      "triangle_mask_sha256": "53ae491fd322bcd3c7c55d068c0c9c69af6005f535c8c18f9656cd5e6b09570a",
+      "contains_crotch_vertex_5862": false
+    }
+  ],
+  "original_overbroad_example": {
+    "vertex": 5862,
+    "influences": [
+      {
+        "bone": "RightLeg",
+        "weight": 0.400869756937027
+      },
+      {
+        "bone": "Hips",
+        "weight": 0.364309161901474
+      },
+      {
+        "bone": "LeftLeg",
+        "weight": 0.23479056358337402
+      }
+    ]
+  },
+  "collision_omissions": 0,
+  "production_qualified": false
+}

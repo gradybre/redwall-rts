@@ -1,0 +1,12 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-qhbmk2ep
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 1
+SCRIPT ERROR: Parse Error: Identifier "AdmissionBatchSparseSpace" not declared in the current scope.
+ERROR: Failed to load script "res://test/test_underground_space_owner.gd" with error "Parse error".
+  FAIL  <suite did not load>
+CI_SUITE_TIME {"assertions":0,"failures":1,"suite":"test_underground_space_owner.gd","tests":1,"usec":95487}
+  FAIL  <test run>
+1 test(s), 0 assertion(s), 2 failure(s)
+diagnostics: 1 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 2 failing test(s).
+assets restored True

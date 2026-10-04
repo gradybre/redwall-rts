@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_stair_capture.py", line 121, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_stair_capture.py", line 91, in main
+    raise ValueError("STEP_NATIVE_IMPORT_DRIFT")
+ValueError: STEP_NATIVE_IMPORT_DRIFT

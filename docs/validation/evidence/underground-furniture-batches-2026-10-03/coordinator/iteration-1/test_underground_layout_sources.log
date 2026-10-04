@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 117 modules, 571 rows, 941 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_layout_sources.gd
+  PASS  test_unbound_or_expired_coordinator_cannot_manufacture_a_scope_or_success
+  PASS  test_exact_source_scope_rejects_copied_tokens_foreign_rooms_and_wrong_peak
+  PASS  test_read_uses_actual_room_type_and_generation_in_the_current_finite_scope
+  PASS  test_source_keeps_actual_coordinator_alive_only_until_synchronous_release
+  PASS  test_hover_preview_does_not_hold_the_shared_arena_after_consumption
+  PASS  test_abandoned_guide_is_diagnosed_and_released_at_the_input_boundary
+  PASS  test_layout_mode_accepts_all_real_pairs_and_individual_mode_uses_the_same_owner
+  PASS  test_late_physical_refusal_retains_drafts_and_can_retry_without_partial_world_rows
+CI_SUITE_TIME {"assertions":340,"failures":0,"suite":"test_underground_layout_sources.gd","tests":8,"usec":550148}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 340 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 340 assertions, 0 failures.

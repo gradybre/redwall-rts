@@ -1,0 +1,33 @@
+{
+  "commands": [
+    [
+      "/opt/homebrew/bin/godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/demo/cast/underground_actor.gd",
+      "godot/test/test_underground_actor.gd",
+      "godot/data/underground/evidence/matrix-presentation/native_compare.gd",
+      "godot/data/underground/evidence/matrix-presentation/native_grounding_check.gd"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0,
+    1
+  ],
+  "selector": "[\"test_underground_actor.gd\"]"
+}

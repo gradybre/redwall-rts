@@ -1,0 +1,12 @@
+{
+  "godot/data/underground/mole-worker/compile_profiles.py": "0e5dab6d43f2651f1e55c2017a8c1976fc195b739d519067f65f5f88a4bd555d",
+  "godot/data/underground/mole-worker/test_compile_profiles.py": "50f030af39ee5c7ef0cd67c30117ed7122ed7383ced49843e32bc539834b6bda",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "08a9f10d56391092bcc0072e521a6950565aa7edfb253d7554525d0fa6757c46",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_self_clearance.py": "4d2a2ef88093d802eae04708e41faaee48afe25188b99c35d289a0aca9ade3e4",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/prove_tip_contact.py": "79be038ab8bd519f9bd8c08d271950af24f11933d162880c85f5e0d370af32e2",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/test_tip_contact.py": "0831ed66a71a2a4695777604f104917d12c4e6d60f41b09fa47c6fa46c3289ff",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_topology.gd": "eb45730d8729f2162362fe0a5bda7069f8f36f436f7d583aa6898435315753ce",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_work_motion.gd": "c53d44c5a08ee1009e8fa877d0328dda9cbec89ce1c8a1c6ccb2f6bcdd1d5247",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/capture_tip_witness.gd": "9a43d678a28db24b4eae2f2e47580e54eef3dc200df7adadd61131695bddf503",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/run_capture.py": "2c46583a7b77a1db4c391f911b45a62f70354b0f981fc3567809025047637901"
+}

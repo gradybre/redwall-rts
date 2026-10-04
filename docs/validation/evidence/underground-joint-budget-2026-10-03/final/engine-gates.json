@@ -1,0 +1,39 @@
+[
+  {
+    "command": [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    "exit_code": 0,
+    "log": "clean-import.log",
+    "seconds": 3.75
+  },
+  {
+    "command": [
+      "./tools/run_tests.sh",
+      "--shard",
+      "248/325",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-joint-budget/docs/validation/evidence/underground-joint-budget-2026-10-03/final/shards"
+    ],
+    "exit_code": 0,
+    "log": "test_underground_budget.gd.log",
+    "seconds": 2.808
+  },
+  {
+    "command": [
+      "./tools/run_tests.sh",
+      "--shard",
+      "237/325",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-joint-budget/docs/validation/evidence/underground-joint-budget-2026-10-03/final/shards"
+    ],
+    "exit_code": 1,
+    "log": "test_canonical_state_hash.gd.log",
+    "seconds": 2.72
+  }
+]

@@ -1,0 +1,5 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_room_orders.gd:62: Too few arguments for "new()" call. Expected at least 4 but received 2.
+scripts/core/underground_room_orders.gd:394: Too few arguments for "new()" call. Expected at least 4 but received 2.
+scripts/core/underground_room_orders.gd:397: Too few arguments for "new()" call. Expected at least 4 but received 2.
+3 GDScript warning(s) in 1 of 4 file(s)

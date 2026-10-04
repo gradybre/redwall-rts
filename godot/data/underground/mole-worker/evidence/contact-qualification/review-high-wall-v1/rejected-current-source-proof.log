@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py", line 131, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py", line 77, in main
+    original, _, pins = P.content.extract(Path(value("source")), value("source-sha256"), proof, plan,
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/compile_underground_actor_content.py", line 169, in extract
+    raw_sources = envelope.verify_palette_sources(reader.metadata, import_archive=archive)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 1246, in verify_palette_sources
+    require(digest.hexdigest() == expected, "PALETTE_SOURCE_DRIFT")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: PALETTE_SOURCE_DRIFT

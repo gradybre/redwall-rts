@@ -1,0 +1,30 @@
+{
+  "base": "4f44fae67c703a33ad76a0944712ef62cb7dcef6",
+  "godot": "4.7.2.stable.official.ed1daf0bf",
+  "assets_present": false,
+  "import": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "strict_selection": [
+    "test_underground_final_facts.gd",
+    "test_underground_space_owner.gd",
+    "test_underground_routes.gd"
+  ],
+  "strict_wrapper": "Unchanged tools/run_tests.sh diagnostics/leak gates; external copy substitutes only repository root and existing ci_test_shard_runner.gd entry point. REDWALL_TEST_SHARD_SUITES selects three suites.",
+  "analyzer": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--max",
+    "0",
+    "--port",
+    "6211",
+    "godot/scripts/core/underground_space_owner.gd",
+    "godot/scripts/core/underground_final_facts.gd",
+    "godot/test/test_underground_final_facts.gd"
+  ]
+}

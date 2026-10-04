@@ -1,0 +1,17 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1092-scale-final-u0fao7zs
+import 0 []
+test_underground_room_admission.gd
+21 test(s), 689 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 21 tests, 689 assertions, 0 failures.
+test_underground_room_orders.gd
+28 test(s), 1457 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 28 tests, 1457 assertions, 0 failures.
+test_underground_room_bindings.gd
+17 test(s), 604 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 17 tests, 604 assertions, 0 failures.

@@ -1,0 +1,292 @@
+state_registry_coverage: PASS -- 98 modules, 451 rows, 771 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_actor_underground_heading.gd
+  PASS  test_first_pose_and_explicit_replacement_initialize_without_a_turn
+  PASS  test_surface_heading_keeps_its_existing_brain_turn_behavior
+  PASS  test_bore_reversal_uses_shortest_arc_existing_rate_and_shared_pitch_progress
+  PASS  test_pause_keeps_an_in_progress_visible_turn_and_pitch_still
+  PASS  test_pending_reversal_finishes_after_leaving_the_bore_without_an_exit_snap
+  PASS  test_wrap_and_retarget_do_not_choose_the_long_arc_or_overshoot
+  PASS  test_tail_pull_follows_the_rendered_heading_during_recovery
+  PASS  test_stoop_counterlean_uses_the_same_rendered_pitch_during_the_turn
+  PASS  test_actual_reversal_does_not_change_progress_route_or_grants
+  PASS  test_actual_nearest_exit_retreat_does_not_change_progress_route_or_grants
+CI_SUITE_TIME {"assertions":2619,"failures":0,"suite":"test_demo_actor_underground_heading.gd","tests":10,"usec":187910}
+test_demo_bore.gd
+  PASS  test_the_profile_is_a_sixteen_point_horseshoe
+  PASS  test_the_profile_s_normals_face_inward
+  PASS  test_a_swept_bore_holds_its_rings_and_faces_in
+  PASS  test_the_rough_walls_are_rough_but_the_floor_is_flat
+  PASS  test_a_32_m_bore_builds_in_under_2_ms
+  PASS  test_the_centreline_follows_the_route_and_rounds_its_corners
+  PASS  test_a_ramp_is_never_steeper_than_one_in_two_and_a_half
+  PASS  test_a_route_too_short_for_its_ramps_is_refused_with_words
+  PASS  test_each_species_stoops_by_its_height_in_a_standard_bore
+  PASS  test_the_stoop_lowers_the_head_and_keeps_the_feet
+  PASS  test_a_lean_tilts_the_spine_alone
+  PASS  test_a_resident_on_a_ramp_leans_its_spine_back_by_half_its_pitch
+  PASS  test_a_deeper_stoop_bends_further_and_is_capped
+  PASS  test_a_resident_below_eases_into_its_stoop_on_the_demo_clock
+  PASS  test_a_ramp_is_walked_along_its_slope_and_the_body_tilts_with_it
+  PASS  test_the_void_keeps_the_nearest_bore_its_rise_and_crown
+  PASS  test_a_dug_tunnel_is_stamped_down_its_ramps_too
+  PASS  test_only_the_chunk_at_the_face_is_rebuilt
+  PASS  test_each_ring_carries_the_day_it_was_dug
+  PASS  test_stones_bed_in_the_walls_and_roots_come_only_near_trees
+  PASS  test_the_lanterns_light_the_nearest_spots_up_to_the_cap
+  PASS  test_the_lanterns_flicker_gently_and_hold_while_paused
+  PASS  test_a_lit_tunnel_hangs_its_lanterns_under_the_ground_and_lights_them
+  PASS  test_a_mouth_is_a_gateway_over_its_ramp_s_cutting
+  PASS  test_the_u_view_has_its_own_environment_and_the_surface_keeps_its
+  PASS  test_every_new_underground_material_is_registered_for_the_prewarm
+  PASS  test_each_ring_is_jittered_along_its_normals
+  PASS  test_a_fillet_never_takes_more_than_its_share_of_a_short_leg
+  PASS  test_chunks_hold_whole_bands_and_the_widened_and_flooded_rings_show
+  PASS  test_stones_bed_only_where_the_bore_is_under_the_ground
+  PASS  test_an_instanced_sample_is_drawn_with_its_override
+  PASS  test_a_right_angled_corner_folds_nothing_and_walkers_follow_the_bore
+  PASS  test_the_shared_curve_follows_its_tunnel_and_samples_back_and_forth
+  PASS  test_only_steps_whose_roots_stay_under_the_cut_are_dressed
+EXPECTED WARNING: bore_mesh: more than 160 rings in one build
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] add_ring (res://demo/tunnel/bore_mesh.gd:260)
+         [1] test_a_build_holds_at_most_max_rings (res://test/test_demo_bore.gd:983)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: bore_mesh: more than 160 rings in one build
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] add_ring (res://demo/tunnel/bore_mesh.gd:260)
+         [1] test_a_build_holds_at_most_max_rings (res://test/test_demo_bore.gd:983)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+EXPECTED WARNING: bore_mesh: more than 160 rings in one build
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] add_ring (res://demo/tunnel/bore_mesh.gd:260)
+         [1] test_a_build_holds_at_most_max_rings (res://test/test_demo_bore.gd:983)
+         [2] _run_test (res://test/run_tests.gd:194)
+         [3] _run_suite (res://test/run_tests.gd:168)
+         [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [5] _run_worker (res://test/run_tests.gd:121)
+         [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_build_holds_at_most_max_rings
+  PASS  test_the_u_view_s_focus_is_where_the_camera_looks_on_the_floor
+  PASS  test_the_hub_cuts_a_bore_s_floor_however_its_jitter_falls
+  PASS  test_a_branch_breaking_ground_cuts_the_bores_it_joins
+  PASS  test_a_hub_is_rebuilt_only_when_what_it_depends_on_changes
+CI_SUITE_TIME {"assertions":478,"failures":0,"suite":"test_demo_bore.gd","tests":39,"usec":1310526}
+test_demo_cast.gd
+  PASS  test_walking_round_a_circle_never_enters_it
+  PASS  test_a_step_aimed_into_a_circle_is_stopped_at_its_edge
+  PASS  test_the_constraint_never_pushes_anyone_out_who_started_closer
+  PASS  test_a_plan_threads_a_wall_of_overlapping_circles_without_crossing_one
+  PASS  test_a_standing_resident_is_planned_round_but_a_walker_is_not
+  PASS  test_two_residents_crossing_paths_never_overlap
+  PASS  test_separation_pushes_away_and_passes_on_the_right
+  PASS  test_turning_is_rate_limited_and_happens_before_setting_off
+  PASS  test_turn_toward_goes_the_short_way_across_the_seam
+  PASS  test_choosing_a_poi_skips_full_ones_and_the_current_one
+  PASS  test_many_residents_never_overfill_a_poi
+  PASS  test_slots_line_up_across_the_face_direction
+  PASS  test_stockpiles_are_recognised_by_name_or_carry_activity
+  PASS  test_a_trip_runs_idle_turn_walk_face_act_in_order
+  PASS  test_an_activity_lasts_whole_loops_of_its_clip
+  PASS  test_an_activity_the_creature_lacks_plays_idle
+  PASS  test_with_nowhere_to_go_a_resident_waits_in_place
+  PASS  test_a_carry_trip_follows_the_clips_root_path_at_its_playback_rate
+  PASS  test_without_root_motion_nobody_carries
+  PASS  test_with_nothing_staged_six_placeholders_stand_at_distinct_pois
+  PASS  test_a_cast_built_twice_moves_identically
+EXPECTED WARNING: demo cast: nobody has no loadable body; using a placeholder
+     at: push_warning (core/variant/variant_utility.cpp:1033)
+     GDScript backtrace (most recent call first):
+         [0] setup_creature (res://demo/cast/demo_actor.gd:211)
+         [1] build (res://demo/cast/demo_cast.gd:159)
+         [2] test_a_creature_whose_body_cannot_load_becomes_a_placeholder (res://test/test_demo_cast.gd:523)
+         [3] _run_test (res://test/run_tests.gd:194)
+         [4] _run_suite (res://test/run_tests.gd:168)
+         [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+         [6] _run_worker (res://test/run_tests.gd:121)
+         [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_creature_whose_body_cannot_load_becomes_a_placeholder
+  PASS  test_body_radius_scales_with_height_within_bounds
+  PASS  test_a_body_cannot_squeeze_through_a_gap_narrower_than_itself
+  PASS  test_the_constraint_lets_a_body_right_up_to_a_goal_tucked_against_a_circle
+  PASS  test_a_step_into_a_resident_stops_at_contact
+  PASS  test_an_obstacle_push_never_shoves_a_body_into_a_resident
+EXPECTED ERROR: demo cast: obstacle at (0.00, 0.00) has radius -1.000; a circle is (x, radius, z) -- ignored
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] setup (res://demo/cast/cast_space.gd:159)
+       [1] _space (res://test/test_demo_cast.gd:59)
+       [2] test_a_circle_without_a_positive_radius_is_refused (res://test/test_demo_cast.gd:590)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+EXPECTED ERROR: demo cast: obstacle at (3.00, 3.00) has radius 0.000; a circle is (x, radius, z) -- ignored
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] setup (res://demo/cast/cast_space.gd:159)
+       [1] _space (res://test/test_demo_cast.gd:59)
+       [2] test_a_circle_without_a_positive_radius_is_refused (res://test/test_demo_cast.gd:590)
+       [3] _run_test (res://test/run_tests.gd:194)
+       [4] _run_suite (res://test/run_tests.gd:168)
+       [5] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+       [6] _run_worker (res://test/run_tests.gd:121)
+       [7] _initialize (res://test/run_tests.gd:108)
+  PASS  test_a_circle_without_a_positive_radius_is_refused
+  PASS  test_a_plan_reaches_a_goal_tucked_behind_a_wall
+  PASS  test_line_clear_sees_open_ground_and_not_through_a_circle
+  PASS  test_a_brain_marks_itself_walking_only_while_it_walks
+  PASS  test_a_walker_asked_to_turn_back_stops_and_turns
+  PASS  test_a_walker_blocked_by_someone_who_stops_in_its_way_replans_promptly
+  PASS  test_a_walker_jammed_in_a_lane_gives_up_within_seconds
+  PASS  test_a_walled_in_walker_gives_up_and_frees_its_slot
+  PASS  test_the_real_village_is_well_formed_for_the_cast
+  PASS  test_a_carry_motion_without_a_period_is_refused
+  PASS  test_walk_turn_flips_are_bounded_by_a_replan
+  PASS  test_a_turn_that_never_finishes_counts_as_stuck
+  PASS  test_leaving_a_tight_slot_never_stalls
+  PASS  test_a_big_turn_finishes_walking_when_the_way_is_clear
+  PASS  test_a_turn_facing_a_wall_does_not_set_off_early
+  PASS  test_a_big_turn_on_the_spot_uses_the_shuffle
+  PASS  test_routines_resolve_homes_and_socials_by_name
+  PASS  test_choosing_from_a_pool_prefers_near_and_respects_capacity
+  PASS  test_work_bouts_cycle_through_a_pois_activities
+  PASS  test_ten_minutes_on_the_real_village_never_stall_away_from_residents
+  PASS  test_a_routine_keeps_a_resident_to_its_homes
+  PASS  test_a_slow_walker_works_longer
+  PASS  test_a_resident_works_twice_as_long_as_it_walked_to_get_there
+  PASS  test_a_resident_boxed_in_waits_for_the_way_out_instead_of_walking_into_it
+  PASS  test_every_circle_the_village_gives_the_cast_is_a_circle
+  PASS  test_the_cabbage_bed_slot_stands_outside_the_bed
+  PASS  test_the_slot_margin_is_the_ordered_spots_margin
+  PASS  test_a_wider_body_walks_a_tight_slot_out_until_it_fits
+  PASS  test_a_slot_held_short_only_by_the_water_stays_put
+  PASS  test_every_slot_in_the_village_clears_every_cast_body
+  PASS  test_a_shared_slot_stays_reachable_with_its_neighbour_standing
+  PASS  test_the_badger_works_its_homes_beside_a_neighbour
+  PASS  test_a_graph_built_in_slices_is_the_graph_built_at_once
+  PASS  test_new_circles_rebuild_a_class_s_graph_a_slice_a_frame
+  PASS  test_the_cast_s_frames_carry_the_rebuilds_on
+  PASS  test_a_plan_made_while_its_graph_is_rebuilt_keeps_off_the_new_circles
+CI_SUITE_TIME {"assertions":265,"failures":0,"suite":"test_demo_cast.gd","tests":63,"usec":8025755}
+test_demo_night.gd
+  PASS  test_a_resident_keeps_its_bed_then_takes_the_nearest_free_one
+  PASS  test_a_tie_goes_to_the_lower_room_then_the_lower_place
+  PASS  test_a_bed_gone_or_not_permitted_is_no_bed
+  PASS  test_each_body_is_sized_for_its_bed
+  PASS  test_big_residents_take_large_beds_and_small_ones_burrow_beds
+  PASS  test_the_night_allocates_the_home_s_beds_by_place
+  PASS  test_night_runs_from_dusk_to_dawn_and_the_hearths_from_evening
+  PASS  test_a_walk_of_18_m_takes_about_a_game_hour
+  PASS  test_a_resident_15_m_from_home_is_in_bed_within_an_hour_of_dusk
+  PASS  test_residents_rest_all_night_and_only_then
+  PASS  test_at_dusk_they_walk_home_and_lie_down_in_their_beds
+  PASS  test_in_the_morning_they_get_up_and_take_up_the_parked_job
+  PASS  test_at_dawn_one_still_on_the_way_home_turns_back_to_its_job
+  PASS  test_a_work_order_at_a_spot_is_parked_and_taken_up
+  PASS  test_an_order_wakes_a_sleeper_and_once_free_it_goes_back_to_bed
+  PASS  test_the_alarm_gets_sleepers_up_until_it_clears
+  PASS  test_emergencies_and_the_water_are_left_alone_at_dusk
+  PASS  test_the_bedless_sleep_in_the_hall_and_come_out_in_the_morning
+  PASS  test_the_badger_sleeps_in_the_large_bed_in_its_nook
+  PASS  test_without_a_hall_the_bedless_stay_up
+  PASS  test_a_bed_it_cannot_reach_is_no_bed_tonight
+  PASS  test_the_nearest_free_resident_walks_in_and_puts_a_fixture_in
+  PASS  test_the_selected_take_the_fixtures_and_called_away_keep_them
+  PASS  test_a_kept_place_waits_for_its_resident_then_lapses
+  PASS  test_a_carrier_walks_its_load_into_a_cellar_and_out_again
+  PASS  test_a_badger_cannot_haul_below
+  PASS  test_a_sleeper_or_one_on_a_crossing_is_not_sent_again
+  PASS  test_the_alarm_leaves_the_hall_s_sleepers_inside
+  PASS  test_in_the_morning_a_sleeper_walks_to_the_middle_before_its_night_ends
+  PASS  test_a_night_lost_on_the_way_goes_back_to_the_routine
+  PASS  test_a_placeholder_lies_down_procedurally_and_hides_indoors
+  PASS  test_the_squared_distance_decides_not_the_steps
+  PASS  test_a_planned_bed_is_no_bed_yet
+  PASS  test_a_player_s_order_at_night_is_carried_out_not_undone
+  PASS  test_one_held_by_the_rescue_is_not_parked
+  PASS  test_the_bedless_go_in_at_the_hall_side_by_side
+  PASS  test_at_dawn_a_sleeper_gets_up_and_walks_across_its_floor
+  PASS  test_a_sleeper_crosses_the_floor_before_lying_down
+  PASS  test_each_home_lists_its_own_sleepers
+  PASS  test_the_installer_stands_before_the_place_and_walks_back_after
+  PASS  test_an_install_lost_on_the_way_goes_back_to_the_routine
+  PASS  test_the_crew_hands_out_on_time_three_at_most
+  PASS  test_nobody_who_cannot_reach_the_room_is_given_a_fixture
+  PASS  test_the_selected_take_only_the_room_s_own_fixtures
+  PASS  test_a_stroll_turns_on_the_spot_and_stops_short
+  PASS  test_an_evacuee_home_at_night_goes_to_bed_and_keeps_its_job_for_morning
+  PASS  test_an_installer_whose_fixture_is_taken_out_gives_up_and_goes
+  PASS  test_one_held_by_the_rescue_is_given_no_fixture
+  PASS  test_a_keeper_that_takes_its_place_back_keeps_it_afresh_when_called_away
+  PASS  test_a_carrier_holding_in_a_cellar_lets_others_pass
+  PASS  test_a_fixture_taken_out_before_its_installer_arrives_leaves_nothing_to_come_back_to
+  PASS  test_a_kept_place_outlasts_the_night
+CI_SUITE_TIME {"assertions":260,"failures":0,"suite":"test_demo_night.gd","tests":52,"usec":210564}
+test_demo_p7_assets.gd
+  PASS  test_the_underground_props_are_sized_by_their_rule
+  PASS  test_a_model_in_parts_is_staged_only_with_every_part
+  PASS  test_every_part_shares_the_whole_model_s_fit
+  PASS  test_fitted_bakes_the_fit_into_one_mesh_with_its_materials
+  PASS  test_the_staged_hand_lantern_glows_from_its_panes
+  PASS  test_the_staged_basket_is_the_library_s_and_holds_its_spoil_at_the_rim
+  PASS  test_the_staged_hanging_stores_hang_string_by_string_from_the_beam
+  PASS  test_the_hanging_stores_back_meets_the_ring_beam
+  PASS  test_the_root_bin_rug_chimney_and_large_bed_swap_in_where_staged
+  PASS  test_a_door_swings_open_for_a_resident_below_and_shuts_behind
+  PASS  test_a_dug_home_hangs_its_door_leaf_on_a_hinge_at_the_cutting_s_foot
+  PASS  test_the_cutting_follows_the_ramp_down_to_the_portal_and_its_throat
+  PASS  test_the_ground_is_cut_by_the_cutting_s_footprint_and_conserved
+  PASS  test_a_replaced_ground_is_read_again_as_uncut
+  PASS  test_a_dug_tunnel_opens_its_mouths_and_cuts_the_ground_over_them
+  PASS  test_a_walker_is_in_the_open_cutting_until_the_bore_goes_under
+  PASS  test_nobody_is_sent_to_stand_over_an_open_cutting
+  PASS  test_a_resident_in_the_cutting_is_drawn_on_the_surface_too
+  PASS  test_the_stairs_have_timber_treads_with_a_nosing_over_their_risers
+  PASS  test_a_walk_crouches_where_the_resident_stoops_and_a_dig_swings
+  PASS  test_a_mouse_crouches_in_a_bore_and_a_mole_walks_upright
+  PASS  test_the_dig_swings_once_a_strike_landing_on_the_cut
+  PASS  test_a_quick_dig_swings_back_to_back_with_a_rest_between
+  PASS  test_the_prewarm_covers_every_new_prop_s_material
+  PASS  test_a_hole_moved_or_wound_the_other_way_is_cut_again
+  PASS  test_the_cutting_s_width_floor_and_ends
+  PASS  test_an_exit_s_cutting_a_planned_mouth_and_a_room_being_dug
+  PASS  test_the_staged_arch_s_forecourt_is_its_piers_width
+  PASS  test_a_whole_model_has_no_parts_and_a_parted_one_its_whole_bound
+  PASS  test_a_digger_strikes_only_at_an_underground_face
+  PASS  test_the_swing_plays_once_and_the_walks_loop
+  PASS  test_a_cellar_s_hatch_has_no_cutting_and_heaps_keep_off_a_cutting_s_banks
+  PASS  test_a_new_face_begun_within_a_frame_is_owed_its_first_swing
+  PASS  test_a_hole_splits_no_triangle_it_misses_and_leaves_no_slivers
+CI_SUITE_TIME {"assertions":969,"failures":0,"suite":"test_demo_p7_assets.gd","tests":34,"usec":86382}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+198 test(s), 4591 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 6 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 198 tests, 4591 assertions, 0 failures.

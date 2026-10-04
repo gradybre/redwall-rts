@@ -1,0 +1,47 @@
+{
+  "iteration": 47,
+  "residual": [
+    0.0048828125,
+    0.0
+  ],
+  "anchors": [
+    15936,
+    3622
+  ],
+  "root": [
+    0,
+    -115,
+    -320
+  ],
+  "corrected": [
+    [
+      0.0,
+      22.4677734375,
+      -355.97274074074073
+    ],
+    [
+      0.0,
+      -131.411376953125,
+      -343.0
+    ]
+  ],
+  "original": [
+    [
+      0.0,
+      64.0,
+      -355.97274074074073
+    ],
+    [
+      0.0,
+      -128.0,
+      -343.0
+    ]
+  ],
+  "frame": 47,
+  "error": "STEP_SOLE_CONVERGENCE",
+  "source_sha256": "4b285d09dcff8ae691da6beb224b6ea6136c08adaa2f1fe314b4a95eb9816dc8",
+  "rise_u": -128,
+  "lead_advance": 200,
+  "lead_lift": 96,
+  "production_qualified": false
+}

@@ -1,0 +1,62 @@
+{"handoff": 1, "checks": 86158, "unresolved": 0}
+{"handoff": 2, "checks": 87005, "unresolved": 0}
+{"handoff": 3, "checks": 173222, "unresolved": 0}
+{"handoff": 4, "checks": 174049, "unresolved": 0}
+{"handoff": 5, "checks": 260309, "unresolved": 0}
+{"handoff": 6, "checks": 261114, "unresolved": 0}
+{"handoff": 7, "checks": 347437, "unresolved": 0}
+{"handoff": 8, "checks": 348195, "unresolved": 0}
+{"handoff": 9, "checks": 434467, "unresolved": 0}
+{"handoff": 10, "checks": 435149, "unresolved": 0}
+{"handoff": 11, "checks": 520830, "unresolved": 0}
+{"handoff": 12, "checks": 521355, "unresolved": 0}
+{"handoff": 13, "checks": 606212, "unresolved": 0}
+{"handoff": 14, "checks": 606591, "unresolved": 0}
+{"handoff": 15, "checks": 690603, "unresolved": 0}
+{"handoff": 16, "checks": 690848, "unresolved": 0}
+{"handoff": 17, "checks": 773895, "unresolved": 0}
+{"handoff": 18, "checks": 774122, "unresolved": 0}
+{"handoff": 19, "checks": 856373, "unresolved": 0}
+{"handoff": 20, "checks": 856710, "unresolved": 0}
+{"handoff": 21, "checks": 938127, "unresolved": 0}
+{"handoff": 22, "checks": 938565, "unresolved": 0}
+{"handoff": 23, "checks": 1019179, "unresolved": 0}
+{"handoff": 24, "checks": 1019688, "unresolved": 0}
+{"handoff": 25, "checks": 1099644, "unresolved": 0}
+{"handoff": 26, "checks": 1100300, "unresolved": 0}
+{"handoff": 27, "checks": 1179880, "unresolved": 0}
+{"handoff": 28, "checks": 1180586, "unresolved": 0}
+{"handoff": 29, "checks": 1259908, "unresolved": 0}
+{"handoff": 30, "checks": 1260761, "unresolved": 0}
+{"handoff": 31, "checks": 1339594, "unresolved": 0}
+{"handoff": 32, "checks": 1340671, "unresolved": 0}
+{"handoff": 33, "checks": 1418724, "unresolved": 0}
+{"handoff": 34, "checks": 1420093, "unresolved": 0}
+{"handoff": 35, "checks": 1496982, "unresolved": 0}
+{"handoff": 36, "checks": 1498468, "unresolved": 0}
+{"handoff": 37, "checks": 1575387, "unresolved": 0}
+{"handoff": 38, "checks": 1576743, "unresolved": 0}
+{"handoff": 39, "checks": 1653862, "unresolved": 0}
+{"handoff": 40, "checks": 1655030, "unresolved": 0}
+{"handoff": 41, "checks": 1732324, "unresolved": 0}
+{"handoff": 42, "checks": 1733275, "unresolved": 0}
+{"handoff": 43, "checks": 1810565, "unresolved": 0}
+{"handoff": 44, "checks": 1811827, "unresolved": 0}
+{"handoff": 45, "checks": 1888883, "unresolved": 0}
+{"handoff": 46, "checks": 1891240, "unresolved": 0}
+{"handoff": 47, "checks": 1968803, "unresolved": 0}
+{"handoff": 48, "checks": 1972962, "unresolved": 0}
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py", line 279, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py", line 257, in main
+    result = prove_handoffs(case_union(cases, (0, 1)), cases, geometry, topology, native["rig_binding"],
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py", line 223, in prove_handoffs
+    if not separated_simplex(alo[body], ahi[body], blo[tool], bhi[tool], counter):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py", line 68, in separated_simplex
+    P.require(counter[0] <= MAX_CHECKS, "STATE_CHECK_CAPACITY")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: STATE_CHECK_CAPACITY

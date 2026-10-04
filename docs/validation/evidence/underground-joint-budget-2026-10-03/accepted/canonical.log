@@ -1,0 +1,83 @@
+state_registry_coverage: PASS -- 110 modules, 532 rows, 925 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_canonical_state_hash.gd
+  PASS  test_fixture_record_stream_is_exactly_the_pinned_bytes
+  PASS  test_fixture_digest_is_the_pinned_sha256
+  PASS  test_fixture_digest_matches_sha256_of_the_captured_stream
+  PASS  test_one_changed_value_changes_the_digest
+  PASS  test_alphabetical_field_order_produces_a_different_digest
+  PASS  test_utf8_prefix_is_a_byte_count_not_a_character_count
+  PASS  test_empty_string_value_is_a_zero_length_prefix
+  PASS  test_u32_high_bit_column_emits_its_bit_pattern
+  PASS  test_excluded_field_is_never_consulted_and_never_hashed
+  PASS  test_fixture_result_never_claims_release_coverage
+  PASS  test_generated_table_matches_the_registry_json
+  PASS  test_generated_fields_match_the_registry_json
+  PASS  test_registry_counts_are_the_ones_the_ruling_reconciled
+  PASS  test_the_active_rules_identity_and_counts_match_their_independent_pins
+  PASS  test_spatial_inventory_declaration_requires_a_new_codec_while_legacy_surface_stays_frozen
+  PASS  test_section_seven_keeps_its_thirty_inventory_fields_and_appends_the_anchor
+  PASS  test_section_one_resource_nodes_declares_only_the_tile_inverse_at_schema_two
+  PASS  test_production_declaration_validates_and_excludes_section_fifteen
+  PASS  test_world_runtime_exclusions_are_declared_but_unhashed
+  PASS  test_construction_section_four_columns_are_declared_in_order
+  PASS  test_construction_delivered_arena_is_its_own_section_five_owner
+  PASS  test_spatial_buildings_flags_have_mandatory_extension_without_rewriting_surface_codec
+  PASS  test_room_revision_holds_and_job_generations_have_explicit_canonical_fields
+  PASS  test_excavation_funding_preserves_receipt_order_and_all_paid_lot_metadata
+  PASS  test_excavation_history_keeps_immutable_domain_phases_work_and_worker_generations
+  PASS  test_underground_space_declares_live_identity_and_geometry_without_prepared_banks
+  PASS  test_spatial_inventory_requires_full_world_and_location_revision
+  PASS  test_modular_job_bindings_preserve_both_full_generations
+  PASS  test_spoil_tips_preserve_lifetime_losses_claims_and_retained_work
+  PASS  test_layout_keeps_per_room_mode_drafts_and_full_accepted_project_receipts
+  PASS  test_production_walker_refuses_because_no_owner_has_an_adapter
+  PASS  test_missing_adapter_list_is_in_walk_order_and_names_section_and_owner
+  PASS  test_one_missing_adapter_refuses_the_whole_walk
+  PASS  test_section_fifteen_owner_refuses_self_inclusion
+  PASS  test_section_outside_one_to_fourteen_refuses
+  PASS  test_owners_out_of_ascii_order_refuse
+  PASS  test_sections_out_of_order_refuse
+  PASS  test_duplicate_owner_and_duplicate_field_refuse
+  PASS  test_ascii_compare_is_byte_order_not_case_folded
+  PASS  test_type_five_without_a_declared_cap_refuses
+  PASS  test_type_five_value_over_its_declared_cap_refuses
+  PASS  test_storage_form_must_match_the_declared_type
+  PASS  test_value_count_must_match_a_declared_count
+  PASS  test_u32_logical_value_out_of_range_refuses
+  PASS  test_u32_logical_value_at_the_boundary_is_accepted
+  PASS  test_negative_u64_refuses_rather_than_emitting_a_huge_value
+  PASS  test_adapter_refusal_propagates_and_names_the_field
+  PASS  test_registering_an_undeclared_owner_refuses
+  PASS  test_duplicate_and_malformed_adapter_registration_refuse
+  PASS  test_short_compatibility_digest_refuses
+  PASS  test_engine_identity_line_rules_are_enforced
+  PASS  test_negative_completed_tick_refuses
+  PASS  test_completed_tick_enters_the_prefix_and_changes_the_digest
+  PASS  test_capture_limit_refuses_rather_than_truncating
+  PASS  test_verify_accepts_the_pinned_digest_and_refuses_any_other
+  PASS  test_verify_refuses_a_wrong_length_expected_digest
+  PASS  test_stream_tag_is_eleven_bytes_with_no_terminator
+  PASS  test_module_has_no_float_and_no_dictionary
+  PASS  test_economic_high_declaration_and_value_preserve_exhaustion
+  PASS  test_full_expedition_slot_is_eighth_hashed_fishing_field
+CI_SUITE_TIME {"assertions":4724,"failures":0,"suite":"test_canonical_state_hash.gd","tests":60,"usec":194353}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+60 test(s), 4724 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 60 tests, 4724 assertions, 0 failures.

@@ -1,0 +1,5 @@
+error: more than the allowed 0 warning(s)
+demo/cast/underground_actor.gd:311: (SHADOWED_VARIABLE_BASE_CLASS): The local function parameter "basis" is shadowing an already-declared property in the base class "Node3D".
+demo/cast/underground_actor.gd:532: (SHADOWED_VARIABLE_BASE_CLASS): The local variable "basis" is shadowing an already-declared property in the base class "Node3D".
+test/test_underground_actor.gd:96: (CONFUSABLE_LOCAL_DECLARATION): The variable "path" is declared below in the parent block.
+3 GDScript warning(s) in 2 of 4 file(s)

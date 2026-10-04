@@ -1,0 +1,228 @@
+{
+  "source": "godot/scripts/core/underground_connector_contacts.gd",
+  "source_sha256": "16a6c3a5e5792b1c938502edee32e8f6d4b251596b6078435cd4e6f531c989b2",
+  "scope": "Numeric arguments and typed locals in direct own-file calls; refs, native frames and temporaries are not measured",
+  "runtime_reflection_test": "test_reflected_fixed_packets_fit_the_admitted_control_reserve",
+  "reused_packet_bytes": {
+    "top_level_packed": 376,
+    "numeric_members": 148,
+    "order_record": 96,
+    "two_location_records": 232,
+    "descriptor": 184,
+    "selection": 168,
+    "two_box_records": 64,
+    "int_result": 9,
+    "fragments": 1633
+  },
+  "reused_total": 2910,
+  "longest_own_chain_bytes": 289,
+  "chain": [
+    {
+      "function": "material_refusal",
+      "bytes": 40,
+      "numeric_fields": [
+        [
+          "placement",
+          "Vector2i"
+        ],
+        [
+          "project",
+          "Vector2i"
+        ],
+        [
+          "assembly",
+          "int"
+        ],
+        [
+          "container",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ]
+      ]
+    },
+    {
+      "function": "_resolve_proof",
+      "bytes": 1,
+      "numeric_fields": [
+        [
+          "require_worker",
+          "bool"
+        ]
+      ]
+    },
+    {
+      "function": "_physical_leaf",
+      "bytes": 0,
+      "numeric_fields": []
+    },
+    {
+      "function": "_bearing_dependencies",
+      "bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_bearing_refusal",
+      "bytes": 8,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_installed_part_refusal",
+      "bytes": 40,
+      "numeric_fields": [
+        [
+          "group",
+          "int"
+        ],
+        [
+          "part",
+          "int"
+        ],
+        [
+          "at",
+          "int"
+        ],
+        [
+          "field",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_part_box_refusal",
+      "bytes": 72,
+      "numeric_fields": [
+        [
+          "count",
+          "int"
+        ],
+        [
+          "first",
+          "int"
+        ],
+        [
+          "top",
+          "int"
+        ],
+        [
+          "orientation",
+          "int"
+        ],
+        [
+          "edge",
+          "int"
+        ],
+        [
+          "a",
+          "int"
+        ],
+        [
+          "b",
+          "int"
+        ],
+        [
+          "point",
+          "int"
+        ],
+        [
+          "cross",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_bearing_in_prism",
+      "bytes": 72,
+      "numeric_fields": [
+        [
+          "first",
+          "int"
+        ],
+        [
+          "count",
+          "int"
+        ],
+        [
+          "orientation",
+          "int"
+        ],
+        [
+          "edge",
+          "int"
+        ],
+        [
+          "a",
+          "int"
+        ],
+        [
+          "b",
+          "int"
+        ],
+        [
+          "corner",
+          "int"
+        ],
+        [
+          "x",
+          "int"
+        ],
+        [
+          "z",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_part_cross",
+      "bytes": 48,
+      "numeric_fields": [
+        [
+          "a",
+          "int"
+        ],
+        [
+          "b",
+          "int"
+        ],
+        [
+          "x",
+          "int"
+        ],
+        [
+          "z",
+          "int"
+        ],
+        [
+          "ax",
+          "int"
+        ],
+        [
+          "az",
+          "int"
+        ]
+      ]
+    }
+  ],
+  "existing_nested_reader_helper_allowance": 512,
+  "conservative_nested_sum": 801,
+  "admitted_helper_allowance": 1024,
+  "total_with_allowance": 3934,
+  "contacts_reserve": 4096,
+  "native_qualification": false
+}

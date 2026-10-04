@@ -1,0 +1,24 @@
+Specification contracts	Registry capacity audit sidecar	﻿2026-10-03T20:49:09.3151675Z ##[group]Run set -euo pipefail
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:09.3152024Z ^[[36;1mset -euo pipefail^[[0m
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:09.3152338Z ^[[36;1mpython3 tools/audit_registry_capacities.py --check^[[0m
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:09.3153026Z ^[[36;1mpython3 tools/test_registry_capacity_audit.py^[[0m
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:09.3215935Z shell: /usr/bin/bash -e {0}
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:09.3216215Z ##[endgroup]
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:12.6164027Z REFUSED: docs/planning/registry_capacity_audit.json is not what this source produces
+Specification contracts	Registry capacity audit sidecar	2026-10-03T20:49:12.6258807Z ##[error]Process completed with exit code 1.
+Godot headless suite	Require every shard and existing gate to succeed	﻿2026-10-03T20:58:24.5845864Z ##[group]Run set -euo pipefail
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5846661Z ^[[36;1mset -euo pipefail^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5847503Z ^[[36;1mfor result in "$SHARDS_RESULT" "$GATES_RESULT" "$CONTRACTS_RESULT"; do^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5848406Z ^[[36;1m  if [[ "$result" != success ]]; then^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5849418Z ^[[36;1m    echo "error: a required shard or gate was failed, cancelled, or skipped ($result)." >&2^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5850391Z ^[[36;1m    exit 1^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5850902Z ^[[36;1m  fi^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.5851383Z ^[[36;1mdone^[[0m
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6100073Z shell: /usr/bin/bash -e {0}
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6101083Z env:
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6101787Z   SHARDS_RESULT: success
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6102462Z   GATES_RESULT: success
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6103398Z   CONTRACTS_RESULT: failure
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6104135Z ##[endgroup]
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6267091Z error: a required shard or gate was failed, cancelled, or skipped (failure).
+Godot headless suite	Require every shard and existing gate to succeed	2026-10-03T20:58:24.6287086Z ##[error]Process completed with exit code 1.

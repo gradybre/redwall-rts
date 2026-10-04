@@ -1,0 +1,40 @@
+{
+  "scope": "Immutable packed catalog and actual owner identity selection only; no production profile qualification",
+  "head_prerequisite": "ecb8fe26",
+  "review": {
+    "initial_source": "accepted by ug_geometry",
+    "low_followups": "accepted by ug_geometry at frozen source 37cf81e2ca4c4486ed6641b08c74b31f6e083430da065f5a6cde60780776db4b and test d15a89c2f65d1a371ddd0bb2229213696bbe1588b5e61c5ab504c5aca58a310d; read-only, no duplicate engine run"
+  },
+  "validation": {
+    "tests": 13,
+    "assertions": 245,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzed_files": 2
+  },
+  "files": {
+    "godot/scripts/core/underground_profiles.gd": "37cf81e2ca4c4486ed6641b08c74b31f6e083430da065f5a6cde60780776db4b",
+    "godot/test/test_underground_profiles.gd": "d15a89c2f65d1a371ddd0bb2229213696bbe1588b5e61c5ab504c5aca58a310d",
+    "docs/decisions/1080-source-bound-underground-profile-catalog.md": "745ea2a7aceb6e2c5343116db78ccbcc5a09c876e33fdb9e6885cfc8c661d458",
+    "godot/data/underground/evidence/run_catalog_checks.py": "0533503a28aec0e7c9faaf9c5bb0e52bd7bd91cce6795691495d78f3e7248dda",
+    "godot/scripts/core/residents.gd": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+    "godot/data/underground/evidence/catalog-v1/import.log": "f63eaa646aa940286f6ca51674c92d11e6ba8384e855b1679c19b553d0f12317",
+    "godot/data/underground/evidence/catalog-v1/strict.log": "461322c8cb68275041b08f09994fcd2167eb75e53d8a2cab9a7c0853ea0c7254",
+    "godot/data/underground/evidence/catalog-v2/analyzer.log": "53c232e3882c02f014d949ebc2bacfc846ee4296e18690f9d9ed117e5e106b4a",
+    "godot/data/underground/evidence/catalog-v2/import.log": "f63eaa646aa940286f6ca51674c92d11e6ba8384e855b1679c19b553d0f12317",
+    "godot/data/underground/evidence/catalog-v2/invocation.json": "d424a02a8a273ede8ebe4be0ee50e706ddc9b2d60a13e353cda4230be3a98726",
+    "godot/data/underground/evidence/catalog-v2/strict.log": "251c1f0789b0766aba6d5d8eec6054d641406669c61d546620314bacb1cf1d61",
+    "godot/data/underground/evidence/catalog-v3/analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "godot/data/underground/evidence/catalog-v3/import.log": "a6926ae21cefd5071038065c66a033324bfbffae245fc19bce9f610ef3acc9de",
+    "godot/data/underground/evidence/catalog-v3/invocation.json": "9365519c3dcf5bd375f3fcaaa88c16b695850da9a90a6fcb290c78da5d1d5189",
+    "godot/data/underground/evidence/catalog-v3/strict.log": "a7935c1d371b61c8372cf83161b569568324ec968f655c43a9f9958d8ce151a3",
+    "godot/data/underground/evidence/catalog-v4/analyzer.log": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e",
+    "godot/data/underground/evidence/catalog-v4/import.log": "a6926ae21cefd5071038065c66a033324bfbffae245fc19bce9f610ef3acc9de",
+    "godot/data/underground/evidence/catalog-v4/invocation.json": "9365519c3dcf5bd375f3fcaaa88c16b695850da9a90a6fcb290c78da5d1d5189",
+    "godot/data/underground/evidence/catalog-v4/strict.log": "6fcf432c1aa084c6a64aaa11b3be371e7f326e3012db165327dedfb22c407605"
+  }
+}

@@ -1,0 +1,7 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-vfnnbil2
+import exit 0 diagnostics []
+assets restored True
+Traceback (most recent call last):
+  File "/tmp/ug1075_validate.py", line 14, in <module>
+    index=next(i for i,shard in enumerate(plan['shards']) if name in shard)
+StopIteration

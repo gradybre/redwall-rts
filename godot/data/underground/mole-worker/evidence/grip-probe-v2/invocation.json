@@ -1,0 +1,13 @@
+{
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--script",
+    "res://data/underground/mole-worker/evidence/probe_grip.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-probe-v2/probe.json"
+  ],
+  "returncode": 0
+}

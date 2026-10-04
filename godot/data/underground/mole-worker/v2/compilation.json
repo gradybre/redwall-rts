@@ -1,0 +1,219 @@
+{
+  "schema": 1,
+  "source_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "proof_sha256": "1591622423b580c5c44889f580f8bb1f8f171b2cc19cad69042451d0fd9b52e3",
+  "plan_sha256": "922f4855fdf4f8202ccf8b8761ec2974438f8df4134b74d9c99b6c51d4c14b1c",
+  "content_sha256": "8a2718034943c7398f99a07511bcd4c3e655f9ec538f304f36c375333c9a8bb5",
+  "content_bytes": 426888,
+  "frames": 354,
+  "verified_source_files": 530,
+  "clips": [
+    "mole_digger.idle.plain.held_pick",
+    "mole_digger.walk.plain.held_pick",
+    "mole_digger.walk.ramp_up.held_pick",
+    "mole_digger.walk.ramp_down.held_pick",
+    "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+    "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick",
+    "mole_digger.heavy_hammer_swing.plain"
+  ],
+  "state_unions": [
+    {
+      "id": "held_pick_upright",
+      "mode": "walk",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick"
+        ],
+        "walk": [
+          "mole_digger.walk.plain.held_pick",
+          "mole_digger.walk.ramp_up.held_pick",
+          "mole_digger.walk.ramp_down.held_pick"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.walk.plain.held_pick"
+        ],
+        "reversal": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.walk.plain.held_pick",
+          "mole_digger.walk.ramp_up.held_pick",
+          "mole_digger.walk.ramp_down.held_pick"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.walk.plain.held_pick"
+        ]
+      },
+      "state_mask": 451,
+      "all_parts_u": [
+        -852,
+        -1,
+        -852,
+        852,
+        965,
+        852
+      ],
+      "body_non_target_u": [
+        -852,
+        -1,
+        -852,
+        852,
+        965,
+        852
+      ],
+      "active_tool_stroke_u": null,
+      "recovery_all_parts_u": [
+        -852,
+        -1,
+        -852,
+        852,
+        965,
+        852
+      ],
+      "qualification": "SOURCE_STATE_UNION_ONLY",
+      "remaining": [
+        "EXACT_WORK_YAW_AND_CONTACT",
+        "ACTUAL_STANCE_SUPPORT",
+        "DYNAMIC_OWNER_KEY",
+        "ANIMATED_QUALITY_AND_MODE_HANDOFF"
+      ],
+      "production_qualified": false
+    },
+    {
+      "id": "held_pick_stooped",
+      "mode": "walk",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick"
+        ],
+        "walk": [
+          "mole_digger.walk.plain.held_pick"
+        ],
+        "crouch": [
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick"
+        ],
+        "reversal": [
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.plain.held_pick",
+          "mole_digger.cautious_crouch_walk_forward.standard_bore.held_pick"
+        ]
+      },
+      "state_mask": 467,
+      "all_parts_u": [
+        -890,
+        -1,
+        -890,
+        890,
+        941,
+        890
+      ],
+      "body_non_target_u": [
+        -890,
+        -1,
+        -890,
+        890,
+        941,
+        890
+      ],
+      "active_tool_stroke_u": null,
+      "recovery_all_parts_u": [
+        -890,
+        -1,
+        -890,
+        890,
+        941,
+        890
+      ],
+      "qualification": "SOURCE_STATE_UNION_ONLY",
+      "remaining": [
+        "EXACT_WORK_YAW_AND_CONTACT",
+        "ACTUAL_STANCE_SUPPORT",
+        "DYNAMIC_OWNER_KEY",
+        "ANIMATED_QUALITY_AND_MODE_HANDOFF"
+      ],
+      "production_qualified": false
+    },
+    {
+      "id": "held_pick_work",
+      "mode": "work",
+      "states": {
+        "idle": [
+          "mole_digger.idle.plain.held_pick"
+        ],
+        "work": [
+          "mole_digger.heavy_hammer_swing.plain"
+        ],
+        "entry": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.heavy_hammer_swing.plain"
+        ],
+        "recovery": [
+          "mole_digger.idle.plain.held_pick",
+          "mole_digger.heavy_hammer_swing.plain"
+        ]
+      },
+      "state_mask": 329,
+      "all_parts_u": [
+        -976,
+        -133,
+        -976,
+        976,
+        1157,
+        976
+      ],
+      "body_non_target_u": [
+        -976,
+        -1,
+        -976,
+        976,
+        1157,
+        976
+      ],
+      "active_tool_stroke_u": [
+        -965,
+        -133,
+        -965,
+        965,
+        977,
+        965
+      ],
+      "recovery_all_parts_u": [
+        -976,
+        -133,
+        -976,
+        976,
+        1157,
+        976
+      ],
+      "qualification": "SOURCE_STATE_UNION_ONLY",
+      "remaining": [
+        "EXACT_WORK_YAW_AND_CONTACT",
+        "ACTUAL_STANCE_SUPPORT",
+        "DYNAMIC_OWNER_KEY",
+        "ANIMATED_QUALITY_AND_MODE_HANDOFF"
+      ],
+      "production_qualified": false
+    }
+  ],
+  "presentation_budget": {
+    "retained_palette_bytes": 426216,
+    "decode_staging_bytes": 426216,
+    "borrowed_mesh_array_allowance_bytes": 4396032,
+    "packed_tables_bytes": 648,
+    "reader_native_control_reserve_bytes": 2097152,
+    "admitted_peak_bytes": 6920048,
+    "world_basis_separately_shared_bytes": 544768,
+    "native_peak_measured": false,
+    "excluded_borrowed_resources": "original meshes/textures and per-Actor RIDs; separate actual presentation-owner admission"
+  },
+  "production_qualified": false
+}

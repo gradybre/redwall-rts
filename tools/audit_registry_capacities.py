@@ -116,13 +116,23 @@ EXPLAINED_SINCE_CENSUS = {
 	# capacity prose "`_c_capacity` <= 101376" is an upper bound already in use, so it moves
 	# prose_records, upper_bound, packed_source_fields and canonical_records by one each and
 	# leaves distinct_expressions alone.
-	"prose_records": 2,
-	"equality": 1,
-	"upper_bound": 1,
-	"packed_source_fields": 2,
-	"canonical_records": 5,
-	"other_canonical_shapes": 3,
-	"distinct_expressions": -1,
+	# Decision1060 registers RoomProjects'11 columns: +11 equalities/prose/packed/records,
+	# +1 owner and +1 new capacity expression (PROJECT_CAPACITY). JOB_CAPACITY was present.
+	# Decision1066 adds36 packed and22 scalar/domain records over2 excavation owners.
+	# Free-stack prefix adds1 non-capacity shape;35 new capacity rows add9 equalities
+	# and26 upper bounds. Six new expression texts are independently source-proved.
+	# Decision1071 adds two fixed Buildings extension flags and one section6 owner.
+	# Decision1072 adds18 capacity declarations (5 equalities,13 clamped bounds)
+	# plus63 explicit scalar/dynamic-count records. Dynamic counts/strides require
+	# joint allocation and codec validation; they are listed, not claimed as proved maxima.
+	"prose_records": 68,
+	"equality": 28,
+	"upper_bound": 40,
+	"packed_source_fields": 118,
+	"canonical_records": 157,
+	"other_canonical_shapes": 89,
+	"distinct_expressions": 9,
+	"owners": 9,
 }
 
 RELATION_EQ = "eq"
@@ -618,7 +628,7 @@ def _census(registry: dict, rows: list) -> dict:
 		delta = seen - value
 		line = "%s: this audit %d, Astra Cycle 3 %d (%+d)" % (key, seen, value, delta)
 		if EXPLAINED_SINCE_CENSUS.get(key) == delta:
-			explained.append(line + " -- decisions 0142, 0157, 0167 and 0531: retire three deposit members; persist three dirty lists/counts, full Expedition claim slot and the container anchor tile")
+			explained.append(line + " -- decisions 0142, 0157, 0167, 0531, 1060, 1066, 1071 and 1072: retire three deposit members; persist dirty lists/counts, Expedition claim slot, container anchor, 11 RoomProjects fields, 36 excavation packed fields and22 domain/control scalars, plus two mandatory Buildings extension flags and67 packed/14 scalar underground records")
 		else:
 			unexplained.append(line)
 	return {

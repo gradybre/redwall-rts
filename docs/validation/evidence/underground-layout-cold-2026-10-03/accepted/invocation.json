@@ -1,0 +1,18 @@
+{
+  "cwd": "/Users/brendan/Developer/redwall-rts-codex-ug-orders",
+  "demo_assets": "absent",
+  "cache_removed": true,
+  "import": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "focused": [
+    "test_room_layout.gd",
+    "test_underground_budget.gd"
+  ],
+  "analyzer_port": 6156
+}

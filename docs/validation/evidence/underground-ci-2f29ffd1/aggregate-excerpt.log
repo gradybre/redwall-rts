@@ -1,0 +1,3 @@
+Godot headless suite	Check out the repository	2026-10-03T18:21:51.0227027Z HEAD is now at 9dc8ac5 Merge 2f29ffd121658a047e1887c1aff4eac9342bd8d7 into 82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2
+Godot headless suite	Every discovered test file executed exactly once	2026-10-03T18:21:51.7583852Z ok: 355 suite files executed exactly once across 8 shards
+Godot headless suite	Every discovered test file executed exactly once	2026-10-03T18:21:51.7585358Z {"baseline_matches": false, "counts": {"assertions": 953898, "expected": 272, "failures": 0, "leaked_objects": 0, "leaked_resources": 0, "tests": 10249, "tolerated": 353, "unexpected_errors": 0, "unexpected_warnings": 0}, "shard_count": 8, "suite_count": 355, "version": 1, "wall_seconds": [485, 392, 329, 369, 300, 206, 303, 190]}

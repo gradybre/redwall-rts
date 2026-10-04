@@ -1,0 +1,86 @@
+{
+  "scope": "isolated actual cleanup, not full room construction",
+  "rejected_assert": false,
+  "source_sha256": {
+    "data/catalog_ids.json": "4b25ab62a4a0330c3acf5ebeba83ddd1019c29cc9650b8b9ce4822d8b035677d",
+    "data/item_definitions.json": "a44243af22c22258ce2999f42504b22e33f7584d6d374b2063c01efefaa981ab",
+    "scripts/core/building_definitions.gd": "32fd452ec16012a4a0662a622999e6ee20216bb55ee1035ee8cc996e7de45ac9",
+    "scripts/core/buildings.gd": "fb9646811e2e7af4979672aa2159403114d2124f43cad3d763be103de0db18e8",
+    "scripts/core/catalog.gd": "3fcc06650e93ffd78a973c53a21544ba0d8d31a8095c549820292e2d63926cb1",
+    "scripts/core/catalog_ids.gd": "63dfd84986c0761316301470c8dfb845a41670a91bb0f34f08cfc2ceeba84afb",
+    "scripts/core/commands.gd": "6562db265811481fbb1b8a62c07b36854024c6c12e9b704d171eb4d04e46881c",
+    "scripts/core/construction.gd": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+    "scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+    "scripts/core/excavation_contract.gd": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+    "scripts/core/excavation_inventory.gd": "b39ac39149a4203226b428b92982a8aa706d0db450b9b104d2df5d82efeed5f5",
+    "scripts/core/excavation_sites.gd": "72d2a5a2c795ffe9afcf6c9bd55a88276c1534d7da363aaf3c8b9a325a27de93",
+    "scripts/core/family_rules.gd": "3e7e41a936d9bddf746257aaac5b8f5f0f79f5f2ba478831aad82351f68b4d6d",
+    "scripts/core/farming.gd": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
+    "scripts/core/fishing.gd": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
+    "scripts/core/forage.gd": "fbc941117ee084e80998c91510ee7ff4a320a265c6a4c16fcee8134fd5fa115f",
+    "scripts/core/gear.gd": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+    "scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
+    "scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+    "scripts/core/inventory_spatial_contract.gd": "0919427cbe6ea08ca7caa0f759775f5b1536373e5e174fa739bc0f420725aa0a",
+    "scripts/core/item_definitions.gd": "e824b4f2c00278c6ce3460728bb327d1e6b960bd5416e6b4ea3676a6cb958571",
+    "scripts/core/jobs.gd": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
+    "scripts/core/milestones.gd": "34aabaa1d72187c984c4cbbd1f6772d96f0f9056c7af76bd9b912c1765fb4fc5",
+    "scripts/core/modular_project_contract.gd": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+    "scripts/core/needs.gd": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190",
+    "scripts/core/orchard_hive.gd": "5df8ff1b6c33deef47bbde0e16c94bcd7c2392f7a6e9b60c2ebab45daa6d459d",
+    "scripts/core/priorities.gd": "27b1bd69d315f822dc34ee59ab8e01c74cd23396f4228467a08171216605f3a4",
+    "scripts/core/reservations.gd": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+    "scripts/core/residents.gd": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+    "scripts/core/resource_catalog_binding.gd": "f51acf0bd1a6e6bba4cfaa60c727f4972531c773ecd135268c26c277c4dc580b",
+    "scripts/core/resource_nodes.gd": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de",
+    "scripts/core/rng.gd": "4ad32c2e173774b3e30300b8516a006a68c34f4a3d8f46470fca6490d124149e",
+    "scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+    "scripts/core/schedule.gd": "e6b3b67b00eb634009a33d7d0b54a08a6c6b110514266c859842d388e2108f4e",
+    "scripts/core/sim_clock.gd": "502c526bc93ca50e2553898dc9f82e175200c674b4a646021b4ede5a185d3070",
+    "scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "scripts/core/underground_space_authority.gd": "b83662ce8616f6cef68428981e05ea3420aae09a458c099714d1bd6897668d43",
+    "scripts/core/underground_space_owner.gd": "09e17f6f61be075699717cd857ce4494841edc841140f6abf81861ecffbc35d0",
+    "scripts/core/underground_terrain.gd": "fba6958d61b079b8e981af09af5575428f9bd1f8e8dbaaca702973a899a63838",
+    "scripts/core/underground_world_bindings.gd": "8510288ba8bed46a612e8825c38710e92cd57b43b0cc48aefedaec0ca70652f7",
+    "scripts/core/work.gd": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
+    "scripts/core/world_init.gd": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
+  },
+  "exported_entry_sha256": "8510288ba8bed46a612e8825c38710e92cd57b43b0cc48aefedaec0ca70652f7",
+  "fixture_sha256": "d4e86eeb6ea88794f73dc8779f62d72d3c3da057dc0560b0f1f234cf9e849e1e",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/codex-phase-release-dfrwexqy/project",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "log": "import.log"
+    },
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/codex-phase-release-dfrwexqy/project",
+        "--export-release",
+        "phase-release",
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/codex-phase-release-dfrwexqy/PhaseLeaseProbe.app"
+      ],
+      "exit_code": 0,
+      "log": "export.log"
+    },
+    {
+      "command": [
+        "/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/codex-phase-release-dfrwexqy/PhaseLeaseProbe.app/Contents/MacOS/PhaseLeaseProbe",
+        "--headless"
+      ],
+      "exit_code": 0,
+      "log": "release.log"
+    }
+  ],
+  "passed": true
+}

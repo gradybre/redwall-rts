@@ -1,0 +1,42 @@
+{
+  "base": "e9bf9f5f58c6d1ab3744b129c3add86299610835",
+  "branch": "codex/underground-room-bindings",
+  "godot": "4.7.2-stable",
+  "assets_present": false,
+  "clean_import": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "cache_removed": "godot/.godot",
+  "selection_tool": "tools/ci_test_shards.py discover/make_plan(total-discovered-files), unchanged tools/run_tests.sh --shard INDEX/COUNT --output-dir PATH",
+  "suites": [
+    "test_underground_room_bindings.gd",
+    "test_underground_room_orders.gd",
+    "test_underground_world_bindings.gd",
+    "test_underground_furniture_work.gd",
+    "test_underground_layout_sources.gd"
+  ],
+  "analyzer": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "godot/scripts/core/underground_room_bindings.gd",
+    "godot/scripts/core/underground_room_orders.gd",
+    "godot/test/test_underground_room_bindings.gd",
+    "--max",
+    "0",
+    "--port",
+    "6156"
+  ],
+  "total_tests": 101,
+  "total_assertions": 7725,
+  "failures": 0,
+  "unexpected_diagnostics": 0,
+  "raw_unexpected_diagnostics": 0,
+  "object_leaks": 0,
+  "resource_leaks": 0,
+  "scope": "Focused actual-owner component regression only. No full-suite, production contacts, physical FINISH publication or playable demo qualification."
+}

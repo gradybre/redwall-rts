@@ -39,6 +39,11 @@ UNICODE_MINUS = HEADER + (
 BROKEN_RESERVE = HEADER + (
 	"| Baseline | — | — | 1000 | 8389608 |\n"
 	"| First | decision 0001 | +24 | 1024 | 8389999 |\n")
+MISPLACED_ALLOCATION = HEADER + (
+	"| Baseline | — | — | 1000 | 8389608 |\n"
+	"| Declaration | 1 | 24 | 24 | shared immutable | allocation detail |\n"
+	"| Second | decision 0002 | +16 | 1040 | 8389648 |\n")
+BAD_TRAIL_VALUE = GOOD_TRAIL.replace("1024 | 8389632", "unknown | 8389632")
 
 CLEAN_ROWS = "| Injury | _kind, _severity | I32 | 4 | 2 | 512 | 4096 |\n"
 CROSS_FORM = (
@@ -87,14 +92,16 @@ def main() -> int:
 	expect("L1 broken reserve", *run(BROKEN_RESERVE), refuse=True, needle="L1 reserve mismatch")
 	expect("L1 negative delta", *run(NEGATIVE_DELTA), refuse=False)
 	expect("L1 unicode minus", *run(UNICODE_MINUS), refuse=True, needle="unreadable delta")
-	expect("L2 one spelling only", *run(GOOD_TRAIL + CLEAN_ROWS), refuse=False)
-	expect("L2 same bare name, different owners", *run(GOOD_TRAIL + SAME_BARE_NAME_TWICE),
+	expect("L1 misplaced allocation", *run(MISPLACED_ALLOCATION), refuse=True, needle="malformed trail row")
+	expect("L1 unreadable total", *run(BAD_TRAIL_VALUE), refuse=True, needle="malformed trail row")
+	expect("L2 one spelling only", *run(GOOD_TRAIL + "\n" + CLEAN_ROWS), refuse=False)
+	expect("L2 same bare name, different owners", *run(GOOD_TRAIL + "\n" + SAME_BARE_NAME_TWICE),
 		refuse=False)
-	expect("L2 cross-form double budget", *run(GOOD_TRAIL + CROSS_FORM),
+	expect("L2 cross-form double budget", *run(GOOD_TRAIL + "\n" + CROSS_FORM),
 		refuse=True, needle="written both ways")
-	expect("L2 cross-form on unrelated owners", *run(GOOD_TRAIL + DIFFERENT_OWNERS_CROSS_FORM),
+	expect("L2 cross-form on unrelated owners", *run(GOOD_TRAIL + "\n" + DIFFERENT_OWNERS_CROSS_FORM),
 		refuse=False)
-	expect("L3 row arithmetic", *run(GOOD_TRAIL + BAD_ARITHMETIC), refuse=True, needle="L3")
+	expect("L3 row arithmetic", *run(GOOD_TRAIL + "\n" + BAD_ARITHMETIC), refuse=True, needle="L3")
 
 	with tempfile.TemporaryDirectory() as directory:
 		report = pathlib.Path(directory) / "report.md"

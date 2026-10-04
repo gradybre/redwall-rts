@@ -509,6 +509,8 @@ func has_room_selected() -> bool:
 
 func on_action(action: StringName) -> void:
 	"""A panel button (tunnel_panel.gd ACTION_*)."""
+	if String(action).begins_with("blueprint:"):
+		return # The room tool owns these commands, including the Enter path.
 	var selection := _selection.call() as PackedInt32Array
 	if String(action).begins_with(RoomTextScript.FIT_PREFIX):
 		fit_action(action, selection)

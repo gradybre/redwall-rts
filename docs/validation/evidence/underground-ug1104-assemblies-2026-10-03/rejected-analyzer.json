@@ -1,0 +1,20 @@
+{
+ "test/test_underground_connector_assemblies.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"bytes\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 11,
+     "line": 268
+    },
+    "start": {
+     "character": 6,
+     "line": 268
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

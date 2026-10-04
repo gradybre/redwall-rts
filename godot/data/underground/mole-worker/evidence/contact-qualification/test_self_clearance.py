@@ -1,0 +1,112 @@
+"""Adversarial swept-primitive separation tests; all fixtures are synthetic and grant no permission."""
+from pathlib import Path
+import importlib.util
+import hashlib
+import struct
+import tempfile
+import unittest
+
+import numpy as np
+
+SPEC = importlib.util.spec_from_file_location("self_proof", Path(__file__).with_name("prove_self_clearance.py"))
+S = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(S)
+
+
+def triangle():
+    return np.array([[0, 0, 0], [0, 1000, 0], [0, 0, 1000]], dtype=np.int64)
+
+
+class Separation(unittest.TestCase):
+    def test_real_loop_edge_collides_while_every_stored_adjacency_is_clear(self):
+        body = np.array([[0, -1000, 0], [0, 1000, 0], [0, 0, 2000]], dtype=np.int64)
+        tool = np.array([[0, -10, 0], [0, 10, 0], [0, 0, 10]], dtype=np.int64)
+        frames = [tool + pos for pos in [(1000, 0, 500), (1000, 0, 3000), (-1000, 0, 3000), (-1000, 0, 500)]]
+        a = np.stack([body, body])
+        case = {"frames": 4, "source_loop_mode": 1, "source_duration_s": S.P.Fraction(3, 30)}
+        for start, end in [(0, 1), (1, 2), (2, 3)]:
+            b = np.stack([frames[start], frames[end]])
+            self.assertTrue(S.separated(a, a, b, b, [0]))
+        outcomes = []
+        for start, end in S.P.rendered_intervals(case):
+            b = np.stack([frames[start], frames[end]])
+            outcomes.append(S.separated(a, a, b, b, [0]))
+        self.assertEqual(outcomes, [True, True, False])
+
+    def test_reuse_requires_same_wire_timing_and_reverse_loop_never_assumes_same_edges(self):
+        case = {"frames": 4, "source_loop_mode": 1, "source_duration_s": S.P.Fraction(3, 30)}
+        self.assertTrue(S.reusable_timing(case, dict(case)))
+        self.assertFalse(S.reusable_timing(case, dict(case), reverse=True))
+        self.assertFalse(S.reusable_timing(case, dict(case, source_loop_mode=0)))
+        self.assertFalse(S.reusable_timing(case, dict(case, source_duration_s=S.P.Fraction(5, 60))))
+        case["source_loop_mode"] = 0
+        self.assertTrue(S.reusable_timing(case, dict(case), reverse=True))
+
+    def test_compact_decoder_preserves_wire_duration_and_loop_metadata(self):
+        part = {"binds": 0, "kind": "attachment", "surface_formats": [1], "mesh_aabb": [0, 0, 0, 1, 1, 1],
+                "geometry": [{"points": np.zeros((3, 3), dtype=np.float32),
+                              "ids": np.zeros((3, 0), dtype=np.uint32), "weights": np.zeros((3, 0), dtype=np.float32)}]}
+        raw = bytearray(b"UGACNT01" + struct.pack("<6I", 1, 1, 1, 1, 4, 12) + bytes(152))
+        raw += struct.pack("<4I", 0, 3, 1, 1) + S.P.content.geometry_fingerprint(part) + bytes(24)
+        raw += struct.pack("<4I", 0, 4, 1, 163840) + bytes(32)
+        raw += bytes(4 * 13 * 4) + b"UGAEND01"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "synthetic.ugactor"
+            path.write_bytes(raw)
+            result = S.read_image(path, hashlib.sha256(raw).hexdigest(), [part])[0]
+        self.assertEqual(result["source_loop_mode"], 1)
+        self.assertEqual(result["duration_q16"], 163840)
+        self.assertEqual(result["source_duration_s"], S.P.Fraction(5, 60))
+        self.assertEqual(S.P.rendered_intervals(result)[-1], (2, 0))
+
+    def test_integer_axis_proves_static_nonintersecting_triangles(self):
+        a = np.stack([triangle(), triangle()])
+        b = a + [1000, 0, 0]
+        counter = [0]
+        self.assertTrue(S.separated(a, a, b, b, counter))
+        self.assertEqual(counter, [1])
+
+    def test_shared_large_motion_cancels_exactly_without_losing_separation(self):
+        a = np.stack([triangle(), triangle() + [10000, 0, 0]])
+        b = a + [1000, 0, 0]
+        counter = [0]
+        self.assertTrue(S.separated(a, a, b, b, counter))
+        self.assertEqual(counter[0], 1)
+
+    def test_nonuniform_vertex_motion_still_proves_every_interior_at_common_time(self):
+        a = np.stack([triangle(), triangle() + [100000, -50000, 10000]])
+        a[1, 1] += [0, 10, 0]
+        b = a + [1000, 0, 0]
+        self.assertTrue(S.separated(a - 1, a + 1, b - 1, b + 1, [0]))
+        b[1, :, 0] -= 2000
+        self.assertFalse(S.separated(a - 1, a + 1, b - 1, b + 1, [0]))
+
+    def test_clear_endpoints_never_hide_an_intermediate_collision(self):
+        a = np.stack([triangle() + [-1000, 0, 0], triangle() + [1000, 0, 0]])
+        b = np.stack([triangle(), triangle()])
+        self.assertFalse(S.separated(a, a, b, b, [0]))
+
+    def test_numerical_residuals_cannot_be_discarded_to_create_clearance(self):
+        a = np.stack([triangle(), triangle()])
+        b = a + [1, 0, 0]
+        self.assertFalse(S.separated(a - 1, a + 1, b - 1, b + 1, [0], S.MAX_DEPTH))
+
+    def test_refused_capacity_and_invalid_interval_cannot_report_clear(self):
+        a = np.stack([triangle(), triangle()])
+        with self.assertRaises(S.P.envelope.Refused):
+            S.separated(a, a, a, a, [S.MAX_CHECKS])
+        with self.assertRaises(S.P.envelope.Refused):
+            S.separated(a + 1, a, a, a, [0])
+        a[0, 0, 0] = -(1 << 63)
+        with self.assertRaises(S.P.envelope.Refused):
+            S.separated(a, a, a, a, [0])
+
+    def test_oblique_integer_projection_is_independent_of_axis_normalization(self):
+        a = np.stack([triangle(), triangle()])
+        b = a + [10000, 10000, 10000]
+        self.assertTrue(S.projected_separation(a, a, b, b, np.array([1, 2, 3], dtype=np.int64)))
+        self.assertTrue(S.projected_separation(a, a, b, b, np.array([100, 200, 300], dtype=np.int64)))
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,0 +1,31 @@
+{
+  "counts": {
+    "assertions": 1204,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 20,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "d3a29d9c47f6c0387b00e14240b9affd496f0c079eebb78d5d37519b09277691",
+  "shard_count": 341,
+  "shard_index": 135,
+  "suite_counts": {
+    "test_underground_world_routes.gd": {
+      "assertions": 1204,
+      "failures": 0,
+      "tests": 20
+    }
+  },
+  "suite_usec": {
+    "test_underground_world_routes.gd": 3247934
+  },
+  "suites": [
+    "test_underground_world_routes.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 6
+}

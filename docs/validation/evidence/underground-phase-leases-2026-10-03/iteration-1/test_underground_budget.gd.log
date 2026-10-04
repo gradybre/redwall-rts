@@ -1,0 +1,29 @@
+state_registry_coverage: PASS -- 116 modules, 562 rows, 937 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_budget.gd
+  PASS  test_joint_pack_keeps_actual_known_buffers_and_positive_remaining_budget
+  PASS  test_invalid_and_oversized_requests_leave_the_shared_arena_unchanged
+  PASS  test_two_consumers_cannot_each_claim_the_full_cold_budget
+  PASS  test_nested_companions_charge_their_full_simultaneous_peak
+  PASS  test_stale_or_unissued_token_cannot_grow_or_release_the_next_operation
+  PASS  test_exhausted_token_space_refuses_without_wrapping
+CI_SUITE_TIME {"assertions":58,"failures":0,"suite":"test_underground_budget.gd","tests":6,"usec":2457}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 58 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 6 tests, 58 assertions, 0 failures.

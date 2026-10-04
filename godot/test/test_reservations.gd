@@ -17,6 +17,10 @@ extends "res://test/framework/test_case.gd"
 const ReservationsScript := preload("res://scripts/core/reservations.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const IntMathScript := preload("res://scripts/core/int_math.gd")
+const SaveAdapter := preload("res://scripts/core/save_reservations_restore.gd")
+const SaveCodec := preload("res://scripts/core/save_section_inventories.gd")
+const Clock := preload("res://scripts/core/sim_clock.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 const ITEM_GRAIN: int = 0
 const ITEM_WOOD: int = 3
@@ -127,6 +131,46 @@ func _assert_pool_and_inventory_sound(context: String) -> void:
 
 
 # --- Allocation ledger ------------------------------------------------------------------------
+
+func test_connector_input_entry_requires_typed_bound_settlement_before_any_journal() -> void:
+	"""Neither an absent guard nor its fail-closed base consumes real owned modular claims."""
+	var lot: Vector2i = _lot(1000, ITEM_WOOD)
+	assert_true(_claim_one(JOB_A, lot, 1000, ReservationsScript.PURPOSE_MODULAR_INPUT).ok, "actual claim")
+	var pool_before: PackedByteArray = _pool.state_bytes()
+	var inventory_before: PackedByteArray = _inv.state_bytes()
+	var project: Vector2i = Vector2i(77, 1)
+	assert_equal(_pool.consume_connector_inputs(JOB_A, 100, Vector2i(-1, 0), 0,
+		_inv, null, project).error, ModularContract.REFUSE_AUTHORITY, "null typed guard")
+	assert_equal(_pool.consume_connector_inputs(JOB_A, 100, Vector2i(-1, 0), 0,
+		_inv, ModularContract.new(), project).error, ModularContract.REFUSE_AUTHORITY, "unbound base")
+	assert_true(_pool.state_bytes() == pool_before, "claims byte identical")
+	assert_true(_inv.state_bytes() == inventory_before, "Inventory byte identical")
+	assert_false(_inv.is_transaction_open(), "no escaped journal")
+	_assert_pool_and_inventory_sound("refused connector input guards")
+
+
+func test_claim_metadata_mutation_observes_only_its_actual_inventory_transaction() -> void:
+	"""Rekey and expiry writes cannot escape a debit rollback; another Inventory's journal is unrelated."""
+	var lot: Vector2i = _lot(1000, ITEM_WOOD)
+	assert_true(_claim_one(JOB_A, lot, 1000).ok, "actual bound claim")
+	var before: PackedByteArray = _pool.state_bytes()
+	assert_true(_inv.begin().ok, "actual transaction")
+	assert_equal(_pool.renew_claim(JOB_A, lot, PURPOSE_A, 600).error,
+		ReservationsScript.REFUSE_INVENTORY_TRANSACTION_OPEN, "renew refuses")
+	assert_equal(_pool.repurpose_claim(JOB_A, lot, PURPOSE_A, PURPOSE_B).error,
+		ReservationsScript.REFUSE_INVENTORY_TRANSACTION_OPEN, "rekey refuses")
+	assert_true(_pool.state_bytes() == before, "no unjournaled claim writes")
+	_inv.abort()
+	assert_false(_inv.is_transaction_open(), "original transaction aborted")
+	var foreign: InventoryScript = _make_inventory()
+	assert_true(foreign.begin().ok, "different Inventory journal")
+	assert_true(_pool.renew_claim(JOB_A, lot, PURPOSE_A, 600).ok, "normal renewal on original owner")
+	assert_true(_pool.repurpose_claim(JOB_A, lot, PURPOSE_A, PURPOSE_B).ok, "normal rekey on original owner")
+	foreign.abort()
+	assert_false(foreign.is_transaction_open(), "foreign cleanup")
+	assert_true(_pool.has_claim(JOB_A, lot, PURPOSE_B), "original quantity still claimed under new purpose")
+	_assert_pool_and_inventory_sound("ordinary metadata mutation after original abort")
+
 
 func test_indexing_allocation_matches_the_decision_0019_budget() -> void:
 	"""The packed layout must cost exactly the 786,436 indexing bytes decision 0019 budgets."""
@@ -857,3 +901,102 @@ func test_row_accessors_refuse_an_inactive_row() -> void:
 func _assert_checked_total(result: IntMathScript.IntResult, expected: int, label: String) -> void:
 	assert_true(result.ok, label + " checked success")
 	assert_equal(result.value, expected, label)
+
+
+func _foreign_inventory_with_matching_claim(lot: Vector2i) -> InventoryScript:
+	"""Build another world whose numeric refs and reserved quantities deliberately coincide."""
+	var other: InventoryScript = _make_inventory()
+	var container: Vector2i = other.create_container(OWNER, BIG_MASS, -1, TEST_POLICY, true).ref
+	var other_lot: Vector2i = other.create_lot(container, ITEM_GRAIN, 1000, 0, TEST_PROVENANCE, 0, 0, 0).ref
+	assert_equal(other_lot, lot, "the foreign lot reference is numerically identical")
+	assert_true(other.reserve_lot(other_lot, 500).ok, "the foreign reserved total also matches")
+	return other
+
+
+func test_foreign_inventory_refuses_all_reservation_mutation_doors_before_changes() -> void:
+	"""Matching serialized fields never license spending or releasing another world's inventory."""
+	var lot: Vector2i = _lot(1000)
+	assert_true(_claim_one(JOB_A, lot, 500).ok, "first actual claim binds this Inventory")
+	var other: InventoryScript = _foreign_inventory_with_matching_claim(lot)
+	var local_before: PackedByteArray = _inv.state_bytes()
+	var other_before: PackedByteArray = other.state_bytes()
+	var pool_before: PackedByteArray = _pool.state_bytes()
+	var attempts: Array[InventoryScript.OpResult] = [
+		_pool.claim_batch(JOB_A, _claims, 1, other),
+		_pool.consume_job_inputs(JOB_A, PURPOSE_A, 0, Vector2i(-1, 0), 0, other),
+		_pool.release_claim(JOB_A, lot, PURPOSE_A, other), _pool.release_job_claims(JOB_A, other),
+		_pool.release_lot_claims(lot, other), _pool.release_expired_for_job(JOB_A, 300, other),
+		_pool.drop_retired_lot_claims(lot, other),
+		_pool.carry_claim(JOB_A, lot, PURPOSE_A, _container, PURPOSE_B, other),
+		_pool.load_claim_into_new_satchel(JOB_A, lot, PURPOSE_A, OWNER, 1000, PURPOSE_B, other),
+		_pool.deliver_claim(JOB_A, lot, PURPOSE_A, _container, 0, other)]
+	for attempt: InventoryScript.OpResult in attempts:
+		assert_equal(attempt.error, ReservationsScript.REFUSE_INVENTORY_BINDING, "foreign owner explicitly refuses")
+	assert_equal(_inv.state_bytes(), local_before, "local Inventory unchanged")
+	assert_equal(other.state_bytes(), other_before, "foreign Inventory unchanged")
+	assert_equal(_pool.state_bytes(), pool_before, "every pool claim unchanged")
+
+
+func test_failed_claim_does_not_bind_and_empty_bound_pool_never_switches_world() -> void:
+	"""Binding publishes only after success and survives release/clear; a new world needs a new pool."""
+	var lot: Vector2i = _lot(1000)
+	assert_false(_claim_one(JOB_A, lot, 1001).ok, "overclaim fails before Inventory commit")
+	var other: InventoryScript = _make_inventory()
+	assert_equal(_pool.composition_refusal(other), &"", "failed claim did not bind a world")
+	assert_true(_claim_one(JOB_A, lot, 500).ok, "retry commits the real claim")
+	assert_true(_pool.release_job_claims(JOB_A, _inv).ok, "actual claims release")
+	assert_equal(_pool.active_row_count(), 0, "pool is now empty")
+	assert_equal(_pool.bind_inventory(other).error, ReservationsScript.REFUSE_INVENTORY_BINDING,
+		"empty bound pool cannot change worlds")
+	_pool.clear()
+	assert_equal(_pool.bind_inventory(other).error, ReservationsScript.REFUSE_INVENTORY_BINDING,
+		"clear preserves world binding rather than licensing numeric aliases")
+
+
+func test_inventory_aware_restore_binds_only_success_and_rejects_foreign_recovery() -> void:
+	"""Restore may repair payload but cannot replace another world's weak owner binding."""
+	var lot: Vector2i = _lot(1000)
+	assert_true(_claim_one(JOB_A, lot, 500).ok, "actual claim exists")
+	var columns: ReservationsScript.ReservationColumns = ReservationsScript.ReservationColumns.new()
+	assert_true(_pool.copy_reservation_columns_into(columns), "canonical claims capture")
+	var other: InventoryScript = _foreign_inventory_with_matching_claim(lot)
+	var before: PackedByteArray = _pool.state_bytes()
+	assert_false(_pool.restore_reservation_columns(columns, other), "foreign explicit restore refuses")
+	assert_equal(_pool.last_column_refusal(), ReservationsScript.REFUSE_INVENTORY_BINDING, "refusal identifies wiring")
+	assert_equal(_pool.state_bytes(), before, "failed foreign restore preserves claims")
+	assert_equal(_pool.inventory_binding_refusal(_inv), &"", "original binding survives")
+	var restored: ReservationsScript = ReservationsScript.new()
+	assert_false(restored.restore_reservation_columns(null, other), "bad restore does not bind")
+	assert_equal(restored.composition_refusal(_inv), &"", "failed restore left wiring unbound")
+	assert_true(restored.restore_reservation_columns(columns, other), "explicit valid restore adopts target Inventory")
+	assert_equal(restored.inventory_binding_refusal(_inv), ReservationsScript.REFUSE_INVENTORY_BINDING,
+		"successful restore now rejects original source Inventory")
+	assert_true(restored.restore_reservation_columns(columns), "omitted Inventory retains legacy pure-column API")
+	assert_equal(restored.inventory_binding_refusal(_inv), ReservationsScript.REFUSE_INVENTORY_BINDING,
+		"pure-column recovery never erases existing world wiring")
+
+
+func test_save_adapter_passes_actual_inventory_binding_before_restore_publication() -> void:
+	"""The public save adapter cannot use another world's identical reservation quantities."""
+	var lot: Vector2i = _lot(1000)
+	assert_true(_claim_one(JOB_A, lot, 500).ok, "actual claim binds source world")
+	var other: InventoryScript = _foreign_inventory_with_matching_claim(lot)
+	var block: SaveCodec.OwnerRecord = SaveCodec.OwnerRecord.new(SaveCodec.OWNER_RESERVATIONS,
+		_pool.row_capacity(), PackedInt64Array())
+	assert_true(SaveAdapter.capture_into(_pool, block, _inv).is_ok(), "real owner block captures")
+	var clock: Clock = Clock.new()
+	clock.acquire_load_barrier()
+	var before: PackedByteArray = _pool.state_bytes()
+	assert_equal(SaveAdapter.apply(block, _pool, clock, other).code,
+		ReservationsScript.REFUSE_INVENTORY_BINDING, "public save adapter forwards the actual foreign Inventory")
+	assert_equal(_pool.state_bytes(), before, "refused apply publishes no columns")
+	assert_true(SaveAdapter.apply(block, _pool, clock, _inv).is_ok(), "actual original owner still restores")
+
+
+func test_expired_weak_inventory_binding_never_licenses_a_new_world() -> void:
+	"""Derived weak wiring avoids cycles but retains the refusal after its owner disappears."""
+	var abandoned: InventoryScript = _make_inventory()
+	assert_true(_pool.bind_inventory(abandoned).ok, "an empty pool explicitly composes")
+	abandoned = null
+	assert_equal(_pool.bind_inventory(_inv).error, ReservationsScript.REFUSE_INVENTORY_BINDING,
+		"expired weak owner is a wiring failure, never permission to adopt unrelated refs")

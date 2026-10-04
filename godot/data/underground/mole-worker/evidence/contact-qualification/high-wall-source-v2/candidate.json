@@ -1,0 +1,221 @@
+{
+  "schema": 1,
+  "source": "fa84815a4b9cb10c4126a341475122fa3e89e0ac2c53b434921424fe598321d2",
+  "source_frame_indices": [
+    30,
+    31,
+    32,
+    33,
+    34,
+    35,
+    36,
+    37,
+    38,
+    39,
+    40,
+    41,
+    42,
+    43,
+    42,
+    41,
+    40,
+    39,
+    38,
+    37,
+    36,
+    35,
+    34,
+    33,
+    32,
+    31,
+    30
+  ],
+  "candidate_face_z_u": -536,
+  "candidate_target_course_y_u": [
+    1024,
+    2048
+  ],
+  "actual_support": "NOT AUTHORED/ADMITTED; engineering fixture only",
+  "tip": {
+    "vertex": 148,
+    "source_frame_pair": [
+      42,
+      43
+    ],
+    "clip_frame_pair": [
+      12,
+      13
+    ],
+    "anchor_u": [
+      122,
+      1039,
+      -536
+    ],
+    "patch_u": [
+      120,
+      1038,
+      -536,
+      123,
+      1041,
+      -536
+    ],
+    "residual_m": [
+      {
+        "numerator": 388382309962370759860446323940116747497972913555259122558811953032758885264245843138867127811292404358876896319980303788015607,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 73018685357031583000308713487738995308685895429605026626237660578313883688129041060631763683349438499407057616111125024735223,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 388382309962370759860446323940116747497972913555259122558811953032758885264245843138867127811292404358876896319980303788015607,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      }
+    ],
+    "endpoint_ideal_m": [
+      [
+        {
+          "numerator": 9385101398021749,
+          "denominator": 72057594037927936
+        },
+        {
+          "numerator": 1232078014793117,
+          "denominator": 1125899906842624
+        },
+        {
+          "numerator": -1008965436012039,
+          "denominator": 2251799813685248
+        }
+      ],
+      [
+        {
+          "numerator": 1014942524879589,
+          "denominator": 9007199254740992
+        },
+        {
+          "numerator": 2190329757633861,
+          "denominator": 2251799813685248
+        },
+        {
+          "numerator": -317291300674769,
+          "denominator": 562949953421312
+        }
+      ]
+    ],
+    "share_range": [
+      {
+        "numerator": 168449248102905,
+        "denominator": 260199766687037
+      },
+      {
+        "numerator": 170972809824761,
+        "denominator": 260199766687037
+      }
+    ],
+    "source_point_f32_m": [
+      -0.6314398050308228,
+      0.1740776002407074,
+      -0.7260041832923889
+    ]
+  },
+  "portions": {
+    "work": [
+      {
+        "kind": "body",
+        "forward": null,
+        "behind": [
+          -208,
+          -1,
+          -536,
+          367,
+          1157,
+          648
+        ]
+      },
+      {
+        "kind": "attachment",
+        "forward": [
+          -11,
+          949,
+          -578,
+          128,
+          1043,
+          -536
+        ],
+        "behind": [
+          -198,
+          660,
+          -536,
+          328,
+          1422,
+          909
+        ]
+      }
+    ],
+    "entry": [
+      {
+        "kind": "body",
+        "forward": [
+          18,
+          463,
+          -543,
+          46,
+          483,
+          -536
+        ],
+        "behind": [
+          -452,
+          -1,
+          -536,
+          514,
+          1157,
+          648
+        ]
+      },
+      {
+        "kind": "attachment",
+        "forward": [
+          -242,
+          447,
+          -910,
+          561,
+          1028,
+          -536
+        ],
+        "behind": [
+          -188,
+          379,
+          -536,
+          696,
+          1245,
+          909
+        ]
+      }
+    ]
+  },
+  "entry_recipe": {
+    "id": "high_wall_clavicle_retraction_v1",
+    "maximum_yaw_degrees": 10,
+    "pivot": "actual RightShoulder origin",
+    "curve": "negative sin(pi*share)",
+    "changed_bones": [
+      16,
+      17,
+      18,
+      19
+    ],
+    "tool": "same full transform around same pivot",
+    "endpoints": "exact original matrices",
+    "foot_and_grounding": "unchanged"
+  },
+  "verified_source_files": 537,
+  "production_qualified": false,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "4029a48e2f82092737d2f46dbd72f352124427d1523c08ff093d2853d5db9e08",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "08a9f10d56391092bcc0072e521a6950565aa7edfb253d7554525d0fa6757c46",
+    "godot/data/underground/mole-worker/compile_profiles.py": "0e5dab6d43f2651f1e55c2017a8c1976fc195b739d519067f65f5f88a4bd555d",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  }
+}

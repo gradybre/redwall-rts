@@ -1,0 +1,14 @@
+{
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "diagnostic_failure": false,
+  "source_unchanged": true,
+  "source_after": {
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "e518e92b571bbaecdeb9f77d667679d816d2c793d422d36f41a84852dba33434",
+    "godot/test/test_mole_profile_driver.gd": "74e559e2d67390326e4561440f801895a6c8d13d177abe32b0710ebd4d008566"
+  },
+  "assets_restored": true
+}

@@ -1,0 +1,37 @@
+state_registry_coverage: PASS -- 137 modules, 689 rows, 1029 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_contacts.gd
+  PASS  test_actual_source_and_live_contacts_admit_and_pay_one_assembly
+  PASS  test_source_observer_cannot_rewrite_a_station_or_spend_identity
+  PASS  test_callback_resize_and_reentry_refuse_before_allocation
+  PASS  test_exact_current_cut_phase_and_room_identity_are_required
+  PASS  test_catalog_source_drift_does_not_reuse_contact_permission
+  PASS  test_material_requires_actual_selected_finite_spatial_storage
+  PASS  test_late_inventory_worker_move_preserves_every_paid_byte_and_retries
+  PASS  test_productive_source_observer_pose_drift_earns_no_work_xp_or_tool_wear
+  PASS  test_last_productive_pause_and_wrong_heading_refuse_current_work
+  PASS  test_late_commit_endpoint_change_retains_wip_and_original_arena
+  PASS  test_paused_cancellation_preserves_prefix_and_actual_refund
+  PASS  test_complete_profile_motion_does_not_ignore_negative_foot_residual
+  PASS  test_positive_contact_patch_must_fit_whole_selected_face
+  PASS  test_finite_fragment_union_matches_independent_small_cell_oracle
+CI_SUITE_TIME {"assertions":7034,"failures":0,"suite":"test_underground_connector_contacts.gd","tests":14,"usec":7209071}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+14 test(s), 7034 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 14 tests, 7034 assertions, 0 failures.

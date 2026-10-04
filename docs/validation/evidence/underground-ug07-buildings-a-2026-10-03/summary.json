@@ -1,0 +1,45 @@
+{
+  "suites": [
+    {
+      "suite": "test_buildings",
+      "tests": 63,
+      "assertions": 906,
+      "failures": 0
+    },
+    {
+      "suite": "test_buildings_spatial",
+      "tests": 15,
+      "assertions": 287,
+      "failures": 0
+    },
+    {
+      "suite": "test_construction",
+      "tests": 48,
+      "assertions": 515,
+      "failures": 0
+    },
+    {
+      "suite": "test_excavation_physical",
+      "tests": 36,
+      "assertions": 22404,
+      "failures": 0
+    },
+    {
+      "suite": "test_save_owner_buildings",
+      "tests": 6,
+      "assertions": 19242,
+      "failures": 0
+    },
+    {
+      "suite": "test_world_owner_columns",
+      "tests": 43,
+      "assertions": 200,
+      "failures": 0
+    }
+  ],
+  "totals": {
+    "tests": 211,
+    "assertions": 43554,
+    "failures": 0
+  }
+}

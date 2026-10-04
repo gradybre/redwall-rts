@@ -141,22 +141,25 @@ Neither needs new state.
 | Building columns | `_b_type_id`, `_b_tier`, `_b_origin_tile`, `_b_rotation`, `_b_state`, `_b_condition`, `_b_construction_slot`, `_b_construction_generation`, `_b_interior_id` | 4 | `BUILDING_CAPACITY` = 1024 | `_b_construction_slot == -1` with generation 0 is the null ref; `_b_interior_id == -1` is GDD §4.2's empty catalog id | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's Building row verbatim, and `systems_architecture.md` §2.2's nine-column I32 group at 1024 rows. `_b_condition`'s SCALE IS UNSTATED -- no document gives a building maximum, damage rate or repair threshold -- so the store validates non-negativity only and a loader must not clamp it to an invented ceiling. |
 | Building occupancy | `_b_present` | 1 | `BUILDING_CAPACITY` = 1024 | 0 = free row | 1 | §4 COMPONENT_COLUMNS | Occupied bitset; what says a row is free, exactly as `resource_nodes.gd`'s `_present` does. |
 | Building identity and room chain head | `_b_ref_slot`, `_b_ref_generation`, `_b_room_head`, `_b_room_count` | 4 | `BUILDING_CAPACITY` = 1024 | `-1` slot with generation 0 is the null ref; `_b_room_head == -1` means no rooms | 1 | §5 CHILD_ARENAS | The directory reference copy plus the head of this building's intrusive room chain and its length. The count enforces GDD §4.2's "Up to 16 rooms/managed building"; the head is re-derivable in ascending row order, but `rooms_of_building()` returns chain order and a caller choosing "the first room" would observe it, so the conservative reading writes it. |
-| Room columns | `_r_type`, `_r_building_slot`, `_r_building_generation`, `_r_tile_offset`, `_r_tile_count`, `_r_temperature_tenths`, `_r_furniture_mask`, `_r_occupants` | 4 | `ROOM_CAPACITY` = 16384 | `_r_building_slot == -1` with generation 0 is the null ref; `_r_tile_count == 0` is a room with no tiles, which `designate_room()` refuses to create | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's Room row, and §2.2's eight-column I32 group at 16384. `_r_furniture_mask` is R-BUILD-DOM-003's presence summary, bit i for FurnitureDefinition i, known mask 511; on load it is RECOMPUTED from the staged furniture rows and compared by `verify_room_masks()`, which refuses a mismatch rather than repairing it. |
+| Room columns | `_r_type`, `_r_building_slot`, `_r_building_generation`, `_r_tile_offset`, `_r_tile_count`, `_r_temperature_tenths`, `_r_furniture_mask`, `_r_occupants` | 4 | `ROOM_CAPACITY` = 16384 | `_r_building_slot == -1` with generation 0 is the null ref; `_r_tile_count == 0` is refused by surface `designate_room()`; actual underground rooms have no flat links and use the explicit spatial-kind discriminator | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's Room row, and §2.2's eight-column I32 group at 16384. `_r_furniture_mask` is R-BUILD-DOM-003's presence summary, bit i for FurnitureDefinition i, known mask 511; on load it is RECOMPUTED from the staged furniture rows and compared by `verify_room_masks()`, which refuses a mismatch rather than repairing it. |
 | Room validity and occupancy | `_r_valid`, `_r_present` | 1 | `ROOM_CAPACITY` = 16384 | `_r_present == 0` is a free row; `_r_valid == 0` is "not validated", which is also every new room's value | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's `valid: bool` and §2.2's separate B8 Room row, plus the occupancy bitset. `_r_valid` has no deterministic rebuild owner today: §5.9's validity list mixes countable rules with topology that no module evaluates, so it is written rather than derived. |
+| Room spatial domain | `_r_spatial_kind` | 1 | `ROOM_CAPACITY` = 16384 | SURFACE=0; UNDERGROUND=1; free rows 0 | 1 | §6 AUXILIARY_STATE | Decisions 1069/1071. Mandatory Buildings extension loaded atomically with its existing Room/Furniture state. Actual underground Room identities have a null exterior parent and no ground TileLinks. The discriminator is authoritative and requires a versioned composed codec; legacy capture refuses it. |
 | Room identity and chains | `_r_ref_slot`, `_r_ref_generation`, `_r_building_next`, `_r_building_prev`, `_r_furniture_head`, `_r_furniture_count` | 4 | `ROOM_CAPACITY` = 16384 | `-1` slot with generation 0 is the null ref; `-1` in any link is a chain end | 1 | §5 CHILD_ARENAS | The directory reference copy, this room's links in its building's chain, and the head/length of its own furniture chain. `_r_furniture_count` is the bound `_recompute_mask_row()` walks, which is how R-BUILD-DOM-003's "recompute from the owning bounded rows" avoids a per-room nine-counter arena. |
-| Furniture columns | `_f_type_id`, `_f_room_slot`, `_f_room_generation`, `_f_origin_tile`, `_f_rotation`, `_f_user_slot`, `_f_user_generation`, `_f_condition` | 4 | `FURNITURE_CAPACITY` = 81920 | `_f_user_slot == -1` with generation 0 means unoccupied; `_f_room_slot` is never null on a live row | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's Furniture row and §2.2's eight-column I32 group at 81920. `_f_room_generation` is the ROOM's directory generation, and it is what makes a reused room slot unable to inherit the previous room's mask bits. A damaged row still contributes its presence bit; usability is a separate check. |
+| Furniture columns | `_f_type_id`, `_f_room_slot`, `_f_room_generation`, `_f_origin_tile`, `_f_rotation`, `_f_user_slot`, `_f_user_generation`, `_f_condition` | 4 | `FURNITURE_CAPACITY` = 81920 | `_f_user_slot == -1` with generation 0 means unoccupied; `_f_room_slot` is never null on a live row | 1 | §4 COMPONENT_COLUMNS | GDD §4.2's Furniture row and §2.2's eight-column I32 group at 81920. `_f_room_generation` is the ROOM's directory generation, and it is what makes a reused room slot unable to inherit the previous room's mask bits. An installed damaged row still contributes its presence bit; pending installation does not, and usability is a separate check. |
 | Furniture occupancy | `_f_present` | 1 | `FURNITURE_CAPACITY` = 81920 | 0 = free row | 1 | §4 COMPONENT_COLUMNS | Occupied bitset. |
+| Furniture installation | `_f_installed` | 1 | `FURNITURE_CAPACITY` = 81920 | Pending/free 0; installed 1 | 1 | §6 AUXILIARY_STATE | Decisions 1069/1071. Mandatory Buildings extension loaded atomically with its existing Room/Furniture state. Pending actual identities reserve membership and Directory capacity but supply no presence mask, user, kind count or service. Legacy live surface rows initialize to installed; an unknown flag refuses legacy load. |
 | Furniture identity and room chain | `_f_ref_slot`, `_f_ref_generation`, `_f_room_next`, `_f_room_prev` | 4 | `FURNITURE_CAPACITY` = 81920 | `-1` slot with generation 0 is the null ref; `-1` in either link is a chain end | 1 | §5 CHILD_ARENAS | The directory reference copy and this row's links in its room's intrusive chain. Same conservative reading as the room chain: the mask is order-independent because OR is commutative, but `furniture_rows_in_room()` exposes the order. |
 | Tile ownership maps | `_building_slot`, `_room_slot`, `_furniture_slot` | 4 | `TILE_COUNT` = 16384 | `-1` for a tile with no building / no room / no floor furniture | 1 | §1 WORLD | `WorldTileMaps.building_slot` and `.room_slot` in §3's ledger, which `resource_nodes.gd` deliberately left to "the stores that will" own them. `_furniture_slot` is a THIRD tile map with no existing ledger row: GDD §5.9's "furniture cannot overlap" needs a per-tile occupant and `WorldTileMaps` has only four columns. All three are inverses of a stored column (`_b_origin_tile`, the room tile run, `_f_origin_tile`), so a loader cross-checks rather than choosing one. |
 | RoomTileLinks arena | `_room_tile_id` | 4 | `ROOM_TILE_LINK_CAPACITY` = 16384 | `-1` outside `[0, _room_tile_used)`; a live room's run is `[tile_offset, tile_offset + tile_count)` | 1 | §5 CHILD_ARENAS | `RoomTileLinks.tile_id` in §3's ledger: GDD §5.9's "One tile belongs to exactly one room". Runs are bump-allocated and the arena is COMPACTED on room removal, which rewrites every later room's `_r_tile_offset` in the same call -- so offsets are only meaningful together with this arena and the two must be written as a pair. |
-| Per-kind furniture counters | `_f_kind_count` | 4 | `FURNITURE_KIND_COUNT` = 9 | 0 means no live row of that kind anywhere | 2 | §4 COMPONENT_COLUMNS | Nine totals so a HUD bed counter costs a lookup instead of an 81920-row scan. Exactly recomputable from `_f_present` and `_f_type_id`, so writing it would create a second source of truth for a number the rows already state. |
+| Per-kind furniture counters | `_f_kind_count` | 4 | `FURNITURE_KIND_COUNT` = 9 | 0 means no installed row of that kind anywhere | 2 | §4 COMPONENT_COLUMNS | Nine totals so a HUD bed counter costs a lookup instead of an 81920-row scan. Exactly recomputable from `_f_present`, `_f_installed` and `_f_type_id`, so writing it would create a second source of truth for a number the rows already state. |
 | Store counts and collaborators | -- | -- | -- | -- | 2 | §4 COMPONENT_COLUMNS | `_b_live_count`, `_r_live_count`, `_f_live_count` are recomputed from the three occupancy bitsets and `_room_tile_used` from the live rooms' runs. `_directory`, `_owns_directory` and `_definitions` are wiring: the shared allocator, the construction flag, and the immutable catalog facts, all re-bound on load. |
+| Spatial owner wiring and diagnostic image | -- | -- | -- | No bound authority | 3 | -- | Decision 1069. `_spatial_authority` is a once-bound weak exact-object bridge, never serialized. `spatial_state_bytes()` allocates a cold caller-owned 98304-byte image of the two authoritative flags. The legacy codec refuses spatial/pending/unknown flags and retained non-surface furniture; it never omits them. UG16 owns versioned composed capture/restore and rebind validation. |
 
 ### `godot/scripts/core/canonical_state_hash.gd`
 
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
 |---|---|---:|---|---|:-:|---|---|
-| §15 canonical field walker | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond `_production`, the once-built `Declaration` cached from the generated table. That table is REG-R01's checked-in declaration compiled from `planning/canonical_state_registry.json`: build-time constant data, not simulation state, so losing it on reload changes no outcome. Its packed columns live inside `Declaration` and total **10012 fixed bytes** (52 owners x 4 x i32 = 832; 612 fields x 3 x u8 = 1836; 612 x i64 declared counts = 4896; 612 x i32 UTF-8 caps = 2448) plus **9065 bytes** of key text in two `PackedStringArray`s -- **19077 bytes resident**, built once and never resized. Decision 0167 reconciles the actual listed-field census, including eight non-hash records, and accounts for a prior 179-byte ledger omission plus that repair's 44-byte declaration append; decision 0531 appends `_c_anchor_tile` for 29 more (15 fixed + 14 key bytes); the table is compiled by `tools/generate_canonical_state_table.py` and is never hand-edited. The 65536-byte `Emitter` chunk is per-walk scratch allocated in its `_init`, not a resident column. The module WRITES §15 -- exactly 32 raw SHA-256 bytes over SAVE-R09's RWL-STATE-1 stream -- but owns none of the state it hashes: every value arrives from the owning store's adapter, and a declared owner with no adapter refuses (`CANONICAL_NO_ADAPTER`) instead of hashing a subset. ARCH-SAVE-007's "a memory allocation row alone does not make a field persisted or canonical" applies in both directions here. See [decision 0127](decisions/0127-the-canonical-field-walker-refuses-what-it-cannot-hash.md). |
+| §15 canonical field walker | -- | -- | -- | -- | 3 | -- | Holds no module-level `var` beyond `_production`, the once-built `Declaration` cached from the generated table. That table is REG-R01's checked-in declaration compiled from `planning/canonical_state_registry.json`: build-time constant data, not simulation state, so losing it on reload changes no outcome. Its packed columns live inside `Declaration` and total **12436 fixed bytes** (61 owners x 4 x i32 =976;764 fields x3 x u8 =2292;764 x i64 declared counts =6112;764 x i32 UTF-8 caps =3056) plus **11137 bytes** of key text in two `PackedStringArray`s -- **23573 logical bytes resident**, built once and never resized. Decision1072 reconciles this current census; native container/String/object costs remain separately reserved and unmeasured. Decision 0167 reconciles the actual listed-field census, including eight non-hash records, and accounts for a prior 179-byte ledger omission plus that repair's 44-byte declaration append; decision 0531 appends `_c_anchor_tile` for 29 more (15 fixed + 14 key bytes); the table is compiled by `tools/generate_canonical_state_table.py` and is never hand-edited. The 65536-byte `Emitter` chunk is per-walk scratch allocated in its `_init`, not a resident column. The module WRITES §15 -- exactly 32 raw SHA-256 bytes over SAVE-R09's RWL-STATE-1 stream -- but owns none of the state it hashes: every value arrives from the owning store's adapter, and a declared owner with no adapter refuses (`CANONICAL_NO_ADAPTER`) instead of hashing a subset. ARCH-SAVE-007's "a memory allocation row alone does not make a field persisted or canonical" applies in both directions here. See [decision 0127](decisions/0127-the-canonical-field-walker-refuses-what-it-cannot-hash.md). |
 
 ### `godot/scripts/core/catalog.gd`
 
@@ -264,6 +267,8 @@ Neither needs new state.
 | Directory live counters | -- | -- | -- | -- | 2 | §3 ENTITY_DIRECTORY | `_free_count` and `_live_count`, recomputed with the heaps from `_active` and `_retired`. |
 | Directory refusal code | -- | -- | -- | `REFUSAL_NONE` is the empty StringName | 3 | -- | `_last_refusal`, the code from the most recent refused `create()`. |
 | Directory column refusal code | -- | -- | -- | `REFUSAL_NONE` is the empty StringName | 3 | -- | `_last_column_refusal`, the code from the most recent refused `copy_columns_into()` or `restore_columns()` (decision 0105). Deliberately a SEPARATE namespace from `_last_refusal` above, every code prefixed `COLUMN_`: sharing one field would let a save or a load clobber a `create()` refusal the caller had not read yet. A `StringName` scalar, not a packed column, so it owes no §2.3 allocation row and no ledger byte. |
+| Cold future-allocation observation | -- | -- | -- | Null ref, kind/row -1 and PID0 when reset | 3 | -- | Decision1083. Caller-owned CreateCandidate carries32 logical numeric bytes (future full ref8, kind/typed row/PID8 each) plus exact weak Directory/native object overhead. This adds no Directory member, heap copy, reservation, allocator epoch or save column. Every consume rechecks actual owner, capacities, both heap roots, generation and PID. Each caller counts its own packet instance; RoomOrders includes one in its separate92-byte extension below. Candidates and sealed observations are discarded across reset/restore; no pointer or future identity is serialized. |
+| Cold mixed-kind future-allocation packet | -- | -- | -- | Count0 and null weak owner invalidate every tuple; unused tails are scratch | 3 | -- | Decision1086. Caller-owned CreateBatch allocates five I32 tuple columns at explicit K, an I32[K+1] heap frontier and I32[18] requested-kind counts:24K+76 packed bytes plus16 logical numeric capacity/count bytes. K is refused outside1..352418 before allocation; this is an engineering ceiling, never a production default. Actual caller cold admission must precede construction and separately count input/pinned copies, WeakRef/object/packed headers, helper frames and native growth. No extra result-reference copy, Directory member, full heap copy, reservation, epoch, history rollback or save bytes. Peek/revalidation touches only packet scratch; all ordered actual-owner slot/generation/kind/typed-row/PID choices are rechecked before callback-free publication. Consuming owners separately pin the mutable observation and actual World; packets are discarded across reset/restore and never serialized. |
 
 ### `godot/scripts/core/event_schedule.gd`
 
@@ -366,6 +371,7 @@ Neither needs new state.
 | Gear occupancy and equip flag | `_equipped`, `_occupied` | 1 | `_row_capacity` <= 16384 | `_occupied == 0` is a free row; `_equipped == 0` is stowed | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | Occupied bitset plus the equip state a reload must preserve. |
 | Gear job claims | `_claim_job_slot`, `_claim_job_generation` | 4 | `_row_capacity` <= 16384 | `_claim_job_slot == -1` with generation 0 means unclaimed | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | A live tool claim by a job: task 09.1's "claims". The existing live Gear API bounds the claim slot by 8192; the codec bounds 352418. The prior DIRECTORY-generation interpretation requires explicit Jobs/Work integration reconciliation. SAVE-GEAR-R01v2 preserves the existing numeric pair and refuses incompatible slots without remapping. |
 | Gear free heap | `_free_heap` | 4 | `_row_capacity` <= 16384 | Only `[0, _free_count)` is live | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | A min-heap like `entity_directory.gd`'s, so ARCH-SAVE-002's rebuild permission applies: allocation order depends on the free set, not the permutation. |
+| Gear lot index | `_lot_row` | 4 | `LOT_CAPACITY` = 16384 | -1 means no Gear row for the lot slot | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | Decision 1068. Exact private lot-slot to Gear-row relation; reads recheck occupancy and full recorded lot identity. Rebuilt from validated occupied rows on both restoration paths; never saved or hashed. Whole-column restore privately stages one additional 65536-byte index before publication. Capture/audit verify both directions. |
 | Starter-seed rollback buffer | `_seed_lot_slot`, `_seed_lot_generation` | 4 | `STARTER_TOOL_TOTAL` = 24 | Only `[0, _seed_count)` is meaningful during seeding; successful completion leaves 24 as residue, while clear/rollback reset it | 3 | -- | CONSTRUCTION-TIME RECORD, NOT AUTHORITATIVE STATE. That is an explicit call, made by the author of the column (decision 0061), not a default. It holds the lot references that one in-flight `seed_starter_tools()` has created so far, so `_rollback_seed()` can undo exactly those and nothing else; nothing reads it once the call returns, and it records no fact that is not already in the gear rows above and `inventory.gd`'s lot rows. `seed_starter_tools()` is a single synchronous call and ARCH-SAVE-003 saves only at a completed tick boundary, so no save can observe a half-seeded state. Domain, per the 2026-09-11 addendum: the pair is an INVENTORY LOT reference (`_l_generation`), not a container ref and not a directory ref, so anything that ever does validate it must validate it there. RESOLVED by STATE-COHORT-R01 (2026-09-11): residents.gd's analogous `_cohort_slots` rollback buffer is category 3 too; the earlier category-1 founder-history interpretation is superseded. |
 | Gear derived scalars | -- | -- | -- | `_id_* == -1` means the item key was not resolved | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | `_row_capacity` is a construction argument; `_free_count` and `_active_count` derive from occupancy, `_equipped_count` from equipped rows. Five `_id_*` fields are re-resolved from the verified loaded catalog by exact bulk restoration. Missing catalog keys may remain -1. Capture compares these caches without changing them. |
 | Gear transient state and bindings | -- | -- | -- | `_restoring` must be false at a legal boundary | 3 | -- | `_restoring`, `_last_column_refusal`, `_wear_math`, `_inventory`, `_directory_binding`, `_residents` are transient guard/diagnostic/scratch and borrowed wiring. SAVE-GEAR-R01v2 preserves scratch and bindings, refreshes derived catalog IDs only on successful restore, and requires existing bindings before installing equipped rows. It does not attest mirrors, liveness or a whole world. |
@@ -441,6 +447,8 @@ Neither needs new state.
 | Container occupancy | `_c_live` | 1 | `_c_capacity` <= 101376 | 0 = free row | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | Occupied bitset, and INV-CANON-R01's SOLE test of liveness. A row at 1 is copied into the save/hash projection exactly; a row at 0 is emitted at the ruling's unused-value table -- `_c_owner_slot` -1, `_c_owner_generation` 0, `_c_policy` 0, `_c_lot_count` 0, `_c_first_lot` -1, `_c_max_mass_g` 0, `_c_filters` 0, `_c_reserved_mass_g` 0, `_c_used_mass_g` 0, `_c_reachable` 0, and (decision 0531) `_c_anchor_tile` -1 -- while `_c_generation` is copied UNCHANGED. The mask is never applied on container nullness, quantity, reachability or list membership. |
 | Container reachability | `_c_reachable` | 1 | `_c_capacity` <= 101376 | 0 = unreachable, and also the value every row starts at | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | GDD §4.2 / decision 0063: explicit container state, no current deterministic rebuild owner. Save/hash live 0/1 exactly; canonical zero for unused payload. Future topology derivation requires an explicit owning-contract/schema amendment, not a default. |
 | Container anchor | `_c_anchor_tile` | 4 | `_c_capacity` <= 101376 | `-1` (`UNPLACED_TILE`) = a container on no tile -- a satchel, an expedition pack -- and the value every row starts at | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | DEMO-CONTAIN-R01 #1/#2/#8, [decision 0531](decisions/0531-demolition-containment-is-adopted-and-containers-carry-an-anchor-tile.md): one placement cell per container, `0..16383` = GDD §5.1's `z*128+x`, interiors on the same grid. NOT derivable from any other store -- Buildings holds no Inventory ref, and owner equality proves ownership, not placement (decision 0145) -- so it is written, hashed and refused rather than rebuilt. Inventory owner schema 4 / section schema 5 append it as ordinal 30; schema 3/4 bodies are refused, never migrated. Live rows save their exact cell; an inactive row's residue is emitted as -1. Written only by `create_container()` and `set_container_anchor()`, both domain-checked and journaled; read by the bounded cold-path `containers_anchored_in_into()`. A placement CELL, so MOVE-G02's level encoding may later widen its meaning without widening the column. |
+| Spatial endpoint identities | `_spatial_container_slot`, `_spatial_container_generation`, `_spatial_location_slot`, `_spatial_location_generation` | 4 | `capacity` runtime | slot -1/generation 0 | 1 | §6 AUXILIARY_STATE | Decisions1076/1072 amend the preceding surface-anchor row: four sparse full-ref columns. Actual Locations owns XYZ/Room/section. The dedicated spatial admission door writes container anchor -2-row, which is private and reverse-validated; ordinary setters cannot write it. No surface alias. Requires a new mandatory versioned extension in UG16; legacy capture/restore refuse live endpoints and the flat complete-footprint query refuses partial results. |
+| Spatial endpoint payload revision | `_spatial_location_revision` | 8 | `capacity` runtime | 0 for unused | 1 | §6 AUXILIARY_STATE | Positive immutable location-payload revision; actual geometry qualification is fresh. The existing shared 14-cell journal snapshots all five fields atomically. Together 24C live bytes. `_spatial_authority` and `_spatial_checked_revision` are category3 wiring/transient scratch. Decision1072 additionally persists the configured capacity and full `_spatial_world` binding in this mandatory extension; it must agree with the actual World, never act as a second world/position owner. |
 | Ground-pile tile map | `_pile_at_tile` | 4 | `ANCHOR_TILE_COUNT` = 16384 | `-1` (`NO_PILE`) = no pile on that tile | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | DEMO-CONTAIN-R01 #9's OPTIONAL derived tile -> pile map, approved with #9, [decision 0532](decisions/0532-ground-piles-are-placed-breadth-first-and-reclaimed-at-commit.md). The container SLOT of the live `POLICY_GROUND_PILE` row anchored on each tile. Fully derivable from category-1 `_c_live`, `_c_policy` and `_c_anchor_tile`, so it is NEVER written: `restore_canonical_columns()` refuses an unplaced pile or two piles on one tile BEFORE adopting, then `_rebuild_derived_state()` rebuilds it. Journaled per cell so a rollback restores it with the rows; `audit()` re-derives it; `state_bytes()` includes it because rollback must restore it exactly. 65536 B, ledgered in ARCH §2.3. |
 | Ground-pile reclaim candidates | `_pile_candidates` | 4 | `JOURNAL_CAPACITY` = 4096 | Only `[0, _pile_candidate_count)` is live | 3 | -- | Decision 0532 / ARCH-MEM-002: the slots of the piles the open transaction created or took a lot out of, so a successful commit retires the ones left with no lot and no reserved mass. Transaction scratch like the undo journal: cleared at begin, rollback, clear and restore, empty at every legal save point. `_pile_candidate_count`, `_pile_candidates_overflowed`, `_site_owner` and the borrowed `_ground_pile_authority` belong to the same transient group. 16384 B, ledgered in ARCH §2.3. |
 | Lot identity and chain | `_l_item_id`, `_l_quality`, `_l_provenance`, `_l_recipe_id`, `_l_container_slot`, `_l_container_generation`, `_l_generation`, `_l_next`, `_l_prev` | 4 | `_l_capacity` <= 16384 | `_l_next`/`_l_prev` hold `-1` at the ends of a container's chain; `_l_container_slot == -1` with generation 0 on a LIVE lot means EQUIPPED, not free | 1 | §7 INVENTORIES_AND_LEASE_INDEXES | `_l_generation` is the second local generation space described above. The doubly linked chain order is observable to merge and withdrawal order, so it is written as a chain rather than re-derived from `_l_container_slot` ascending. DECISION 0061 GAVE `_l_container_slot == -1` A MEANING: a live lot with a null container is an equipped gear record held by a resident, threaded into no chain and charging no container's mass. A loader must not read it as a free row -- `_l_live` is what says free -- and must not attach it to a container. The pairing is exact in both directions: the container is null if and only if `gear.gd` attests an equipped record with a live owner, which `inventory.audit()` re-derives per lot and refuses as `AUDIT_ORPHAN_LOT` otherwise.  Value domain `InventoryProvenance` (decision 0113), members 0..5 inclusive: ORDINARY, STARTER, COASTAL_BRINE, EXCAVATION, BACKFILL_RECLAIM, SPOIL_RECLAIM. A stored value outside that set is REFUSED at load, never clamped -- `UNSET_PROVENANCE` is the compatibility spelling of ORDINARY, not a seventh member and not an unknown wildcard. |
@@ -471,6 +479,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Compiled item facts (i32) | `_nutrition_per_u`, `_shelf_hours`, `_effect_id`, `_effect_value` | 4 | `count` runtime | `_effect_id` holds the compiled `none` effect for items with no effect | 2 | §2 CATALOG_IDS | Loaded from `res://data/item_definitions.json` and sized to that file's key count, which is why the count is not a compile-time constant. Rebuilt by reloading the catalog whose hash the save header pins at offset 72; writing them would duplicate the artifact §2 already carries. |
 | Compiled item facts (u8) | `_raw_edible`, `_seed` | 1 | `count` runtime | `_effect_id` holds the compiled `none` effect for items with no effect | 2 | §2 CATALOG_IDS | See the first row of this group. |
 | Catalog dictionaries and load flag | -- | -- | -- | -- | 2 | §2 CATALOG_IDS | `_item_ids`, `_category_ids`, `_effect_ids`, `_item_count`, `_loaded`. Same argument: rebuilt by `load()` against the verified artifact. |
+| Successful registration owner wiring | -- | -- | -- | Unbound before successful registration | 3 | -- | Decision 1056. `_registered_inventory` is a weak reference to the actual target of the last successful catalog registration. Failure leaves it unchanged. It is reconstructed and checked after load, never hashed or serialized as a pointer; a catalog rebound to another Inventory invalidates existing excavation composition. |
 
 ### `godot/scripts/core/job_index_schema.gd`
 
@@ -635,6 +644,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Reservation chain links | `_job_prev`, `_job_next`, `_lot_prev`, `_lot_next` | 4 | `_row_capacity` <= 32768 | `-1` at either end of a chain | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | Both chains are pure indexes over canonical reservation rows; sorted semantic keys, not appending ascending row indices, define their order. SAVE-RES-R01v2 rebuilds them with bounded packed merge sorting. Capture refuses malformed source indexes. |
 | Reservation counts and capacities | -- | -- | -- | -- | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | `_row_capacity`, `_job_capacity` and `_lot_capacity` are construction arguments; `_active_count` and `_free_count` are recomputed from `_occupied`. |
 | Reservation scratch | -- | -- | -- | -- | 3 | -- | `_math` and `_pending_new_rows`, both consumed inside one call; `_last_column_refusal` is a separate category3 diagnostic. Column restore preserves existing scratch; the next claim recomputes pending fresh-row count. |
+| Exact Inventory owner wiring | -- | -- | -- | Unbound only before composition/first successful operation | 3 | -- | Decision 1056. `_bound_inventory` is weak world wiring; first successful claim/Inventory operation, explicit empty-pool composition or Inventory-aware restore binds it. Failed operations cannot bind, clear/pure-column recovery retain it, and expired/foreign owners refuse. Production save apply supplies the actual Inventory; whole-world load must reconstruct and validate this relation without serializing or hashing pointers. |
 
 ### `godot/scripts/core/residents.gd`
 
@@ -998,6 +1008,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Tool wear carry (i32) | `_wear_remainder` | 4 | `RESIDENT_CAPACITY` = 512 | 0-9999 each; 0 is a real value | 1 | §4 COMPONENT_COLUMNS | GDD §5.7's sub-point tool-wear carry in milli-WU. This IS architecture §3's `ResidentRuntime.wear_remainder`, which no store implements and which `gear.gd` explicitly refuses to allocate a second copy of. Decision 0110 moved it OUT of that I64 budget rather than counting it twice. Dropping it loses up to 9999 milli-WU per resident and shifts the tick a durability point falls on. |
 | Tool settlement binding (i32) | `_tool_lot_slot`, `_tool_lot_generation`, `_tool_job_slot`, `_tool_job_generation` | 4 | `RESIDENT_CAPACITY` = 512 | `-1` slot with generation 0 is the null ref, meaning no binding | 1 | §4 COMPONENT_COLUMNS | SET-MOVE-ECON-001 ECON-002, decision 0110. The InventoryLot reference of the tool a resident bound for wear settlement and the Job reference holding the matching `gear.gd` claim. Both are full generation-carrying refs, NOT row indices -- `gear.gd`'s own rows stay bare indices and never escape it. Must be saved with `gear.gd`'s claim columns or a load leaves a claim in one store with no binding in the other. |
 | Tool broken flag (u8) | `_tool_broken` | 1 | `RESIDENT_CAPACITY` = 512 | 0 is "not broken", a real value | 1 | §4 COMPONENT_COLUMNS | 1 once a bound tool has been worn to 0. §5.7's "Broken tools block tool-required work" as an O(1) per-tick gate; sound because `gear.gd` refuses every repair, re-owning, unequip and destroy while the claim stands. Derivable from the bound tool's durability at load if a future owner prefers. |
+| Modular paid-owner callback wiring | -- | -- | -- | Null Job refs outside each synchronous tick | 3 | -- | Decision 1073: weak `_modular_authority`, exact `_pending_modular_job` and `_publishing_modular_job` (two 8-byte full Job refs). The pending bracket ensures every post-gate refusal and zero accepted work drops only its own prepared PRODUCTIVE candidate. These controls are not saved or hashed and must be clear at save/load boundaries. |
 
 ### `godot/scripts/core/world_init.gd`
 
@@ -1039,3 +1050,728 @@ interpretation is retained as superseded evidence in the dated ruling.
 | Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
 |---|---|---|---|---|---|---|---|
 | INIT-C live apply records | -- | -- | -- | Applied refs and StoreBinding owners `(-1,0)`, anchors -1 | 3 | -- | DEMO-CONTAIN-R01 D3 / decision 0533. No module-level column: the translator writes only through `buildings.gd`'s public doors, whose rows are the saved state. `Applied` (six PackedInt32Array, 7+4+31 slot/generation pairs, 336 logical bytes) and `StoreBinding` (one pantry ref and tile plus three 4-cell PackedInt32Array, 60 logical bytes) are caller-owned cold records allocated per generation or binding read, never resident between them, and never saved: the binding is re-read from the live Building rows each time. |
+
+### `godot/scripts/core/room_projects.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Registered Construction identities and purpose | `_project_slot`, `_project_generation`, `_room_type`, `_revision_epoch` | 4 | `PROJECT_CAPACITY` = 82944 | Slot/type -1 and generation/epoch 0 on a free record | 1 | §6 AUXILIARY_STATE | Decision 1053. Construction EntityRef plus immutable protected RoomType and monotonic editing-session token; this is project control, not a completed room or physical cut ledger. Save/hash integration remains required before activation. |
+| Registration and independent pause holds | `_present`, `_pause_reasons`, `_revision_state` | 1 | `PROJECT_CAPACITY` = 82944 | 0 means absent/no pause/no revision | 1 | §6 AUXILIARY_STATE | Player and revision bits are independent. Request and acknowledged release are distinct, with acknowledgement revalidated against Jobs/Reservations. An absent UI panel cannot reconstruct or discard these holds. |
+| Actual Job/project identity bindings | `_job_slot`, `_job_generation`, `_job_project_slot`, `_job_project_generation` | 4 | `JOB_CAPACITY` = 8192 | Slot -1 plus generation 0 is null | 1 | §6 AUXILIARY_STATE | Each real Jobs requester must name its Construction identity. Old Job generations may remain until actual claims are resolved; no automatic alias on slot reuse. |
+| Owner wiring and scratch result | -- | -- | -- | -- | 3 | -- | Construction, Jobs, Reservations and directory references; `_owners_match` is derived from wiring and `_math` is transient output. Packed payload is 1707008 bytes. No save codec or live demo integration is claimed by the local evidence image. |
+
+
+### `godot/scripts/core/room_footprint.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---|---|---|---|---|---|
+| Cold room-footprint geometry | -- | -- | -- | Empty result on refusal | 3 | -- | Decision 1052. Stateless integer helpers only; caller-owned packed cell/edge/loop values and temporary bounded membership scratch. No module-level mutable columns, room identity, spatial publication, material account or paid-cut state. Confirmed footprint and grid identity remain the integrating owner's persistence obligation. |
+| One-call packed validation packet | -- | -- | -- | Invalid requested count allocates no packed rows; neighbor sentinel -1 | 3 | -- | Decision1094. The nested, temporary ValidationScratch object owns three exact I32 arrays (_validation_up, _validation_down, _validation_queue) and one exact byte array (_validation_flags), all sized to its source-clamped _validation_capacity, at most 16384 cells. Original invalid requests refuse before allocation. Logical payload is13N packed bytes plus one I64 capacity8; the packet dies with the synchronous validation call. These are not module-level columns or persistent geometry. Native headers and helper frames remain separately admitted controls. Existing contour/editing helpers retain their original cold contracts. |
+
+
+### `godot/scripts/core/room_layout.gd`
+
+[Decisions1054/1072](decisions/1072-joint-underground-state-and-memory.md):
+bounded packed furniture drafts and project receipts, declared as mandatory
+section6 state. The declaration does not implement its codec or live-world
+composition. These records perform no Inventory, paid work, installation or
+service mutation; accepted receipts must resolve actual live projects on load.
+
+| Column group | Members | Width (bytes) | Count | Sentinel / default | Category | Save section | Notes |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Room binding and immutable type | `_room_slots`, `_room_generations`, `_room_types` | 4 | `_room_capacity` <= 16384 | null slot/generation `(-1, 0)`; free type 0 | 1 | §6 AUXILIARY_STATE | Full actual Room identity and immutable purpose, validated with Buildings and geometry. Decision1072 schema1 fixes explicit field order after the three capacity scalars. |
+| Per-room furnishing mode | `_room_modes` | 1 | `_room_capacity` <= 16384 | 0 = Plan layout; 1 = Place individually | 1 | §6 AUXILIARY_STATE | Switching affects subsequent clicks and preserves existing drafts/orders. The preference retains its exact Room binding. |
+| Placement lifecycle | `_state` | 1 | `_placement_capacity` <= 81920 | 0 = free; 1 = draft; 2 = accepted receipt | 1 | §6 AUXILIARY_STATE | Receipts grant no services and own no world occupancy. Accepted state must reconcile with the actual full Construction identity. |
+| Local placement identities, room binding and geometry | `_generation`, `_room_row`, `_type`, `_x`, `_z`, `_rotation` | 4 | `_placement_capacity` <= 81920 | inactive payload 0; generation retained and never wraps; rotation 0..3 | 1 | §6 AUXILIARY_STATE | Local draft/receipt namespace, distinct from EntityDirectory. INT32_MAX free slots remain retired. Coordinates are exact room-relative integers. |
+| Accepted project references | `_project_slot`, `_project_generation` | 4 | `_placement_capacity` <= 81920 | `(-1, 0)` outside accepted rows | 1 | §6 AUXILIARY_STATE | Full actual Construction identity; restore cannot turn a receipt into installed Furniture. |
+| Exact configured capacities | -- | -- | -- | -- | 1 | §6 AUXILIARY_STATE | `_room_capacity`, `_placement_capacity`, `_geometry_capacity` are saved bounded constructor inputs; allocation must also fit the joint1072 pack. |
+| Runtime adapters and synchronous scratch | -- | -- | -- | -- | 3 | -- | Decisions1054/1087. `_submitting` is false, no Result lease is held and provider quarantine is reconciled at every legal save boundary. One exact typed Sources provider replaces the three Callables; weak wiring and immutable definitions rebind only after all actual owners validate. Snapshot/profile/validation/result/batch objects are admitted cold inputs/scratch, never alternate authoritative world state. |
+| Cold layout/result lifetime and diagnostic controls | -- | -- | -- | No token or escaped arrays outside the same input call | 3 | -- | Decision1087. One I64 operation token, one Vector2i Room and one submission-quarantine bool add17 logical numeric planner bytes; one escaped Result adds an I64 token hint and committed-outcome bool, totaling26 new logical numeric bytes across retained lifetimes. Source/snapshot/result references, weak pointers and diagnostic StringNames require separately admitted native overhead. Logical simultaneous planner packed peak is336G+64P+512; native map entries are bounded bymax(6G,2P), not a native byte qualification. Provider snapshots, companions, container headers and allocation growth are additionally charged before first read/copy. All five Result arrays including placement_rows clear before exact-token release. `release_result` and mandatory `finish_input` consume views synchronously before frame/simulation/input returns; abandoned/corrupt views are cleared and diagnosed. Late cleanup faults preserve committed outcomes and quarantine further provider commands until explicit same-world reconciliation. No new persistent columns or save codec. |
+
+### `godot/scripts/core/excavation_contract.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable excavation operation facts and owner contract | -- | -- | -- | -- | 3 | -- | Decision 1056. ECON-001/002/005 constants and a typed abstract authority; no instance state or packed columns. The base authority refuses admission. Concrete physical state belongs to excavation_sites, not this interface. |
+
+
+### `godot/scripts/core/room_catalog.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---|---|---|---|---|---|
+| Read-only room-purpose and furniture queries | -- | -- | -- | Refused query has no usable ID or palette | 3 | -- | Decision 1059. No module-level packed columns or live room/furniture/project state. One immutable BuildingDefinitions reference; caller-owned cold query records copy existing catalog footprints, bills, purpose compatibility and necessary service prerequisites. Actual room type, construction, installed services, material selections and placement profiles remain their existing owners' state and persistence obligations. |
+### `godot/scripts/core/room_space.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---:|---|---|:-:|---|---|
+| Cold multilevel validation | -- | -- | -- | Refusal has no candidate; owner null is `(-1,0)` | 3 | -- | Decision 1058. Stateless helper with caller-owned immutable domain, versioned packed snapshot/plan/contact records and bounded union-coverage scratch. Volume rows are 48 logical bytes, cuts 16, contact metadata 24 beyond its volume rows, live owners 16 (two int32 reference fields plus one int64 revision). No module-level persistent columns, terrain, reservations, material account, physical history or route publication. Integrating owners must serialize the domain and accepted geometry/content/owner revisions; no codec assignment is invented by this foundation. |
+
+### `godot/scripts/core/room_connectors.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---:|---|---|:-:|---|---|
+| Cold fixed-piece transforms | -- | -- | -- | Refusal has no plan; unnamed catalog defaults refuse | 3 | -- | Decision 1058. Stateless exact quarter-turn/translation over caller-owned catalog definitions and placement inputs. Output is only a RoomSpace candidate with catalog revision, actual endpoint floors and full target refs. No production catalog defaults, dynamic resizing, occupancy, installation, work, traversal or saved identity is created. Accepted connector identity/geometry and catalog version remain the eventual owning store's persistence obligation. |
+
+### `godot/scripts/core/excavation_inventory.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Funded project identity, receipt head and reserved output | `_project_slot`, `_project_generation`, `_head`, `_output_slot`, `_output_generation` | 4 | `Construction.CONSTRUCTION_CAPACITY` = 82944 | Slot/head -1; generations 0 | 1 | §6 AUXILIARY_STATE | Decision 1056. Full Construction generation owns consumed material WIP and actual Inventory output reservation; codec/hash composition required before activation. |
+| Reserved output mass | `_output_mass_g` | 8 | `Construction.CONSTRUCTION_CAPACITY` = 82944 | 0 | 1 | §6 AUXILIARY_STATE | Already reserved finite Inventory headroom, never a virtual output buffer. |
+| Receipt free arena and metadata | `_free`, `_r_next`, `_r_item`, `_r_quality`, `_r_provenance`, `_r_recipe` | 4 | `_capacity` <= 32768 | Next -1; unused metadata 0 | 1 | §6 AUXILIARY_STATE | Deterministic fixed SoA receipt pool, requested capacity in 1..32768 and no larger than actual Reservations.row_capacity(); invalid requests refuse before allocation, without clamping into a usable owner. No per-input-lot truncation. Free count and capacity are saved control scalars; capacity exhaustion refuses before consumption. |
+| Receipt input quantities and exact ages | `_r_quantity`, `_r_age`, `_r_remainder` | 8 | `_capacity` <= 32768 | 0 | 1 | §6 AUXILIARY_STATE | Actual consumed input metadata for cancellation; not another loose-goods ledger. |
+| Declared cancellation losses by purpose | `_lost_milli` | 8 | `LOSS_CELL_CAPACITY` = 1024 | 0 | 1 | §6 AUXILIARY_STATE | Decisions 1069/1073/1102. Four historical per-item domains: excavation, spatial furniture, spoil tips, connector installation. Additional6144 persistent bytes and6144 per staged image versus the original excavation-only column. Global earth sums domains once; support reads excavation only. Loss survives project retirement and is not derivable. |
+| Staged metadata | `_s_item`, `_s_quality`, `_s_provenance`, `_s_recipe` | 4 | `_capacity` <= 32768 | 0 outside populated prefix | 3 | -- | Cold transaction scratch, overwritten before read. |
+| Staged quantities and ages | `_s_quantity`, `_s_age`, `_s_remainder` | 8 | `_capacity` <= 32768 | 0 outside populated prefix | 3 | -- | Captured before Inventory may retire input lots; becomes authoritative only after commit. |
+| Staged item totals, returns and rounding carries | `_s_totals`, `_s_returned`, `_s_carry` | 8 | `Inventory.ITEM_CAPACITY` = 256 | 0 | 3 | -- | Cleared for each transaction; scratch count and IntResult are transient. Decision1106 reuses `_s_totals` for prepared per-item cancellation loss, so postcommit loss/WIP publication needs no new bill callback. No new vector or duplicate accounting. |
+| Shared output quote | -- | -- | -- | Reset before each cold read | 3 | -- | Decision 1073. Funding holds one reusable ModularContract.Quote with 112 nested packed scratch bytes, four catalog keys and scalar/ref controls. It shares the existing single receipt arena and reads actual typed owner facts, never per-project quote objects or a second material ledger. |
+| Synchronous input preparation and settlement | -- | -- | -- | Both full refs null outside the original Funding call | 3 | -- | Decision1106. `_settling_project` and `_settling_job` are two full integer references, 16 logical bytes within the existing bindings/control reserve. Project excludes recursive entry before Recipe observers; Job qualifies only the exact Inventory/Reservations transaction. The allocation-free reader exposes no permission outside that exact scope. Every return clears both refs; no save, canonical hash, packed column or paid receipt is added. |
+| Bound owner references | -- | -- | -- | null | 3 | -- | Construction, Inventory, Reservations and compiled item definitions are world wiring; no production codec or live activation is claimed. |
+
+### `godot/scripts/core/excavation_sites.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Permanent physical presence, phase and source/support flags | `_present`, `_phase`, `_installed`, `_ever_cut`, `_closure_before` | 1 | `_capacity` <= 73909 | Absent/flags 0; phase SOLID | 1 | §6 AUXILIARY_STATE | Decision 1056. Capacity is the explicit sparse physical-history budget in 1..73909, within an 8388608-byte packed arena including fixed indexes/scratch, not a room-count policy. Untouched world cells allocate no records; exhausted capacity refuses before paid work. Physical keys/history never recycle when a room/project retires. |
+| Immutable physical keys | `_site_key` | 8 | `_capacity` <= 73909 | -1 | 1 | §6 AUXILIARY_STATE | Absolute quantum rank in the immutable world domain. Permanent append-only records never evict or recycle paid history. |
+| Sorted physical-key index | `_ordered_key` | 8 | `_capacity` <= 73909 | -1 | 2 | §6 AUXILIARY_STATE | Derived ascending keys for binary cold admission lookup; rebuild from the authoritative populated `_site_key` prefix. |
+| Sorted key record index | `_ordered_row` | 4 | `_capacity` <= 73909 | -1 | 2 | §6 AUXILIARY_STATE | Derived row index parallel to ordered keys; O(n) cold insertion, no per-tick spatial search. |
+| Embedded backfill quantity | `_embedded_milli` | 8 | `_capacity` <= 73909 | 0 | 1 | §6 AUXILIARY_STATE | Actual committed earth retained under the original quantum key. |
+| Retained physical work by operation | `_earned_mwu` | 8 | `_earned_capacity` <= 369545 | 0 | 1 | §6 AUXILIARY_STATE | Derived capacity is exactly the admitted history capacity times five operations, bounded before allocation. Cancellation keeps earned labor; new project funding never resets history. |
+| Room, Construction, Job and output identities plus operation | `_room_slot`, `_room_generation`, `_project_slot`, `_project_generation`, `_operation`, `_job_slot`, `_job_generation`, `_output_slot`, `_output_generation`, `_promotion_tile` | 4 | `_capacity` <= 73909 | Slots/operation/tile -1; generations 0 | 1 | §6 AUXILIARY_STATE | Full generation-qualified owner links. Promotion tile denotes an actual space-owner-held output contact, never geometry clearance by itself. |
+| Bound Job lookup | `_job_site` | 4 | `Jobs.JOB_CAPACITY` = 8192 | -1 | 2 | §6 AUXILIARY_STATE | Derived lookup of the authoritative full Job bindings; no raw-global-slot reinterpretation. |
+| Registered worker identity and work face | `_worker_site`, `_worker_generation` | 4 | `Work.RESIDENT_CAPACITY` = 512 | Site -1; generation 0 | 1 | §6 AUXILIARY_STATE | Allocated resident rows (living population still caps at 256). One actual worker per face and four per room project, coupled to actual Jobs/Work/Gear ownership. |
+| Delivery transaction totals | `_delivery_totals` | 8 | `2` = 2 | 0 | 3 | -- | Cold scratch for the maximum adopted two-line phase bill; reads all actual reservation rows and refuses extras. |
+| Immutable domain and physical conservation scalars | -- | -- | -- | World null only before valid binding | 1 | §6 AUXILIARY_STATE | World identity, copied datum/minimum/size, sparse capacity/count and world volume, initial earth, virgin source, funded/completed/salvaged brace counts and committed per-material brace returns. Required UG16 codec/hash state even after all paid phase rows retire; legacy saves explicitly unsupported. |
+| Owner wiring and synchronous permit | -- | -- | -- | Null permit and action -1 | 3 | -- | Construction/Inventory/Reservations/Items/Jobs/Work/Funding and weak SpatialAuthority wiring. Permits and prepared-candidate row/stage exist only during the current physical-owner call stack; decision 1069 adds `_publishing_spatial`, one logical bool byte of category-3 synchronous callback control, false outside the exact committed spatial publication and excluded from save/hash; `_earned_capacity` is a derived 8-byte scalar cache recomputed from admitted site capacity times five operations. Initialization refusal and transient math/result scratch are excluded from local state image. All collaborator bindings are revalidated on live phase/work entry. |
+| Cold Room claim request and private input | -- | 4 | `2N <= 32768` | Empty outside the exact synchronous confirmation | 3 | -- | Decision1095 atomic claim increment. Nested RoomClaimInput.cells borrows the coordinator image; RoomClaimBatch._cells duplicates exactly2N I32 entries only after the actual full World lease, input bounds and scope match. N<=16384; this is8N private bytes, never another physical history ledger. |
+| Cold actual Room after-facts | -- | 4 | `Buildings.ROOM_IDENTITY_FIELDS` = 6 | Dropped with the batch before cold release | 3 | -- | RoomClaimBatch._room_facts owns24 packed bytes to prove full real Room purpose/spatial kind/parent after Directory allocation. No post-identity allocation or saved column. |
+| Cold claim batch wiring and controls | -- | -- | -- | No packet or publication crosses a frame or save boundary | 3 | -- | One weak current batch on Sites; coordinator holds the strong synchronous batch/Sites links. Exact request, candidate, authority, Budget/token, cached immutable Domain, monotonic physical count and prepaid replay state are transient only. The batch's existing CutMap owns one8N interval bank. Complete copy/control and sequential companion census is in1095; no new packed persistent state or epoch. |
+| Cold non-flat entry claim image and concrete cursor | -- | 4 | `6B <= 98304` | Empty outside synchronous EntryPlan admission | 3 | -- | Decision1107. Distinct EntryClaimInput fixes Corridor purpose and borrows world boxes; RoomClaimBatch._boxes duplicates exactly24B private bytes after the original actual World lease and complete104B+2048 image/control admission. Its internally created EntryCutMap uses8B intervals; ordinary flat input remains unchanged. Both claim paths copy the sole attested Domain after the actual namespace/original-lease proof:92 logical private Domain bytes, temporary24 configure bounds and descriptor/scalar coexistence fit the existing2048 control allowance; no second caller observation chooses keys or precedes an unleased allocation. No new per-Site columns, history or work counters. Input/cursor references, base level and copied full source/Room identity remain transient; all packed lifetimes drop before cold release. |
+
+
+
+### `godot/scripts/core/connector_geometry.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Reason / contract |
+|---|---|---:|---|---|:-:|---|---|
+| Cold fixed-content mesh and footprint compilation | -- | -- | -- | Refusal has no candidate; unnamed or incomplete content refuses | 3 | -- | Decision 1070. Stateless integer compiler over explicit caller-owned polygon parts, fixed RoomConnectors metadata and full RoomSpace contracts. Packed input is 12 bytes per top vertex, 32 per part plus 4 for the offset sentinel, and 4 per material. Triangle output is 44 bytes per triangle, plus 4 per part, 4 per material, optional 24-byte hinge and 24-byte sweep. Compiled geometry additionally holds copied 48-byte volume rows and full contact/cut metadata; each part adds one SOLID row, a hatch one ENVELOPE row. Bounds are caller-selected under 128 parts, 2048 top vertices, 8192 triangles, 16 materials and RoomSpace region ceilings; no resident arrays or module-level persistent state. The eventual accepted content/geometry owner must retain the catalog revision, never rebuild authority from a mutable display mesh. Native object/material/renderer memory is separate, unmeasured presentation overhead. |
+
+
+### `godot/scripts/core/modular_project_contract.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Quote input quantities | -- | 8 | `INPUT_CAPACITY` = 4 | 0 | 3 | -- | Nested scratch `Quote.input_milli`. Decision 1069. One bounded component-owned cold quote, reset before the actual typed owner fills it. Not per-project state or a price source. |
+| Quote output identifiers | -- | 4 | `OUTPUT_CAPACITY` = 2 | Item/recipe -1, other metadata 0 | 3 | -- | Nested scratch `Quote.output_item`, `output_quality`, `output_provenance`, `output_recipe`. Finite actual-owner output candidate; Inventory validates catalog/metadata before any transaction. |
+| Quote output quantities and ages | -- | 8 | `OUTPUT_CAPACITY` = 2 | 0 | 3 | -- | Nested scratch `Quote.output_milli`, `output_age`, `output_remainder`. Exact caller-owned scratch with 112 packed bytes per quote, never an output buffer or an authoritative receipt arena. |
+| Quote named inputs, facts and abstract owner/router methods | -- | -- | -- | null/empty outside initialized quote | 3 | -- | Four named catalog input keys, actual full subject, operation/q/work/Job-kind/count scalars and fail-closed typed methods. Construction holds one reusable quote and a weak router; neither is saved or hashed. Concrete operation owners remain responsible for immutable source quantities/type and persistence. |
+
+### `godot/scripts/core/modular_projects.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Accepted actual Job and project identities | `_job_slot`, `_job_generation`, `_project_slot`, `_project_generation` | 4 | `JOB_CAPACITY` = 8192 | Slots -1; generations 0 | 1 | §6 AUXILIARY_STATE | Decision 1073. Full generation-qualified primary and accepted member Job/Construction bindings, keyed by actual typed Job row. Explicit accepted bindings are not derivable from nonunique/mutable requester refs. 131072 live bytes and another 131072 per actual cold image; cold uniqueness scan, O(1) primary productive lookup, bounded crew walk. UG16 must atomically validate owner/party identities; legacy capture explicitly refuses. |
+| Delivery line totals | `_delivery_totals` | 8 | `DELIVERY_CAPACITY` = 4 | 0 before each cold read | 3 | -- | Actual owned claims staged against the full immutable bill; 32 scratch bytes, never authoritative delivered stock. |
+| Quote and owner/callback controls | -- | -- | -- | No active permit/publication outside synchronous call | 3 | -- | One reusable nested Quote adds 112 packed scratch bytes plus names/scalars/native overhead. Actual owner references, derived World identity, weak purpose owners, initialization refusal, IntResults, crew count, admission/busy and exact mutation/publication controls are nonpersistent composition/transaction state. No extra receipt arena and no per-worker objects. Work additionally holds weak modular authority and full pending/publication Job refs as transient callback wiring. |
+| Paired Furniture admission controls | -- | -- | -- | Null candidate/Room and false publication flag outside the same call | 3 | -- | Decision1089 core increment. The Router borrows one caller-admitted Directory.CreateBatch; its retained Vector2i Room and bool add9 logical numeric bytes, with no new packed columns or authoritative state. Accepted count and first full Project ref are pinned in16 helper-frame bytes before publication callbacks can discard the borrowed packet. Native handles, one command OpResult and helper frames are additionally admitted; this is not a measured native allocation claim. Quiescent save/load has no candidate/window, and the later RoomOrders/SpaceOwner packet peak is separately declared before activation. The real Directory allocates all alternating Furniture/Construction observations exactly once; only preflighted catalog rows and sealed companions may publish afterward. |
+
+
+### `godot/scripts/core/underground_space_owner.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual live spatial state (8 B) | `_header` | 8 | `HEADER_FIELDS` = 18 | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Prepared image (8 B) | `_s_header` | 8 | `HEADER_FIELDS` = 18 | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Derived allocation heap (4 B) | `_region_free_heap` | 4 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 2 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Lowest-free allocator derives from canonical live lifecycle columns; counts and heaps rebuild on load. |
+| Derived allocation heap (4 B) | `_source_free_heap` | 4 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 2 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Lowest-free allocator derives from canonical live lifecycle columns; counts and heaps rebuild on load. |
+| Prepared image (4 B) | `_s_region_free_heap`, `_s_r_generation`, `_s_r_lo_x`, `_s_r_lo_y`, `_s_r_lo_z`, `_s_r_hi_x`, `_s_r_hi_y`, `_s_r_hi_z`, `_s_r_level`, `_s_r_section_slot`, `_s_r_section_generation`, `_s_r_owner_slot`, `_s_r_owner_generation`, `_s_r_claim_slot`, `_s_r_claim_generation` | 4 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Prepared image (4 B) | `_s_source_free_heap`, `_s_o_slot`, `_s_o_generation`, `_s_o_parent_slot`, `_s_o_parent_generation`, `_s_o_a`, `_s_o_b`, `_s_o_c`, `_s_o_d` | 4 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Actual live spatial state (1 B) | `_r_present`, `_r_retired`, `_r_role`, `_r_claim_kind` | 1 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Actual live spatial state (4 B) | `_r_generation`, `_r_lo_x`, `_r_lo_y`, `_r_lo_z`, `_r_hi_x`, `_r_hi_y`, `_r_hi_z`, `_r_level`, `_r_section_slot`, `_r_section_generation`, `_r_owner_slot`, `_r_owner_generation`, `_r_claim_slot`, `_r_claim_generation` | 4 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Actual live spatial state (8 B) | `_r_owner_revision` | 8 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Actual live spatial state (1 B) | `_o_present`, `_o_kind` | 1 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Actual live spatial state (4 B) | `_o_slot`, `_o_generation`, `_o_parent_slot`, `_o_parent_generation`, `_o_a`, `_o_b`, `_o_c`, `_o_d` | 4 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Actual live spatial state (8 B) | `_o_revision` | 8 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 1 | §1 WORLD | Decision 1064. Explicit finite constructor capacity, no adopted production default. Canonical live payload includes internal region generations, exact external owner facts, physical extents and typed Room/Construction claims. Schema 1 local round-trip; decision1072 declares its mandatory canonical owner; full save composition remains required before activation. |
+| Prepared image (1 B) | `_s_r_present`, `_s_r_retired`, `_s_r_role`, `_s_r_claim_kind` | 1 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Prepared image (8 B) | `_s_r_owner_revision` | 8 | `_region_capacity` runtime | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Prepared image (1 B) | `_s_o_present`, `_s_o_kind` | 1 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Prepared image (8 B) | `_s_o_revision` | 8 | `_source_capacity` runtime | Slots -1, null generations 0; see typed schema | 3 | -- | Decision 1064. Explicit finite constructor capacity, no adopted production default. Preallocated alternate bank; only a completed transaction is saveable. Aborted preparation never replaces actual geometry or claims. |
+| Owner derived configuration | -- | -- | -- | No active token at save | 2 | §1 WORLD | Decision 1064. Immutable cached Domain and capacities derive from the eighteen-I64 header. Live free counts/heaps rebuild after load. |
+| Bound source and transaction control | -- | -- | -- | No active token at save | 3 | -- | Decision 1064. Bound Sources and scratch Facts rebind to actual stores. Stage/next tokens, seal flag, operation budget, changed-row count and stage free counts are transient; tokens carry no gameplay ordering or entitlement. Completed-load composition invalidates all pre-load proofs before resuming. |
+| Changed-row indices | `_changed_rows` | 4 | `_region_capacity` runtime | Only the checked prefix is read | 3 | -- | Decision 1064. One preallocated row index per changed region; count resets before each transaction. Validated unchanged pairs need not be rechecked. |
+| Changed-row mask | `_changed_mask` | 1 | `_region_capacity` runtime | 0 before each transaction | 3 | -- | Decision 1064. Deduplicates the finite changed index list. Decoded loads compare exact spatial columns with the already validated live image; owner/source/section validation still checks every live row. |
+| Pending Furniture installation control | -- | -- | -- | Source row -1 and null bindings outside a sealed operation | 3 | -- | Decision1075. One transient source-row int8, full project ref8 and IntResult numeric9 add25 logical bytes; two weak actual Router/purpose-owner bindings and native handles remain in the explicit binding/control reservation. Only staged installed0→1 is anticipated; generic publication refuses it, exact actual COMMIT plus installed1 publishes, and abort clears controls. No new packed or wire state. |
+| Future Room admission control | -- | -- | -- | Candidate reset, row/type -1, null weak bindings and callback flags false outside the operation | 3 | -- | Decision1075 and1083. One reusable Directory.CreateCandidate carries32 numeric bytes (fullref8, kind/typedrow/PID24); source-row/type controls16 plus two callback guard bools2 total50 logical bytes inside the admitted binding reservation. Three weak handles/native headers are separately within that reservation. Exact observed future Room facts and blocking floor-plan markers publish only after actual identity allocation in the same bound authority window. Callbacks cannot abort/rebegin/edit/publish the owner; a refused attestation leaves caller cleanup/retry usable. No new packed/wire state, and active candidates cannot save. |
+| Private exact paired allocator tuples | `_furniture_pins` | 4 | `candidates.count * 5` runtime | Empty outside one admitted cold candidate | 3 | -- | Decision1075. Five exact I32 fields for each future Furniture and paired Construction:40N bytes. Rechecked against actual Directory before publication and actual typed after-facts afterward; never authoritative future entities. |
+| Private exact fitting entries | `_furniture_entries` | 4 | never allocated | Empty outside candidate | 3 | -- | Type, exact plan X/Z and rotation duplicated only after actual RoomOrders cold admission;16N bytes. No resize(); never allocated with resize: the bounded input is duplicated. |
+| Sorted future source-row index | `_furniture_rows` | 4 | `_furniture_count` runtime | Empty outside candidate | 3 | -- |4N bytes; existing row index high bit carries bounded per-seal geometry presence scratch. Every future piece requires an occupied obstacle and actual containing Room section. |
+| Borrowed original fitting entries | `_furniture_input_entries` | 4 | never allocated | Empty outside candidate | 3 | -- | Never allocated: an alias to the already charged caller request, not a fourth owned copy; exact comparison with private entries detects mutation. |
+| Batch binding and controls | -- | -- | -- | Count0, RoomNULL outside candidate | 3 | -- | CountI64 + full Room8 =16 logical numeric bytes; actual authority and original Directory batch are weak bindings. Three private arrays total60N and are dropped before the caller releases the exact shared cold lease. Existing reentry guards/Facts scratch reused; native references/array headers stay in the binding reserve. No packed persistent field or wire-schema change. |
+
+### `godot/scripts/core/underground_space_authority.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Derived static proof presence | `_present` | 1 | `_capacity` runtime | 0 | 2 | §1 WORLD | Decision 1064. Explicit jointly admitted proof capacity, bounded by actual Jobs and Construction. No proof persists or hashes; load invalidates all old evidence. |
+| Derived full identities and phase | `_proof_i32` | 4 | `_capacity * I32_FIELDS` runtime | 0 while absent | 2 | §1 WORLD | Eleven I32 fields per proof: full Site/Room/Construction refs, absolute XYZ, operation and physical phase. |
+| Derived proof revisions | `_proof_i64` | 8 | `_capacity * I64_FIELDS` runtime | 0 while absent | 2 | §1 WORLD | Actual geometry and qualification revisions; a mismatch refuses productive work without rebuilding. |
+| Derived proof allocation and search | `_ordered`, `_free` | 4 | `_capacity` runtime | -1 outside prefixes | 2 | §1 WORLD | Sorted actual site-slot lookup and lowest-free row heap. 69*P total fixed packed cache bytes including presence. |
+| Prepared exact proof row | `_next_i32` | 4 | `I32_FIELDS` = 11 | 0 outside operation | 3 | -- | One finite replacement row, retained outside live proofs until attested publication. |
+| Prepared exact proof revisions | `_next_i64` | 8 | `I64_FIELDS` = 2 | 0 outside operation | 3 | -- | Together with prepared I32 fields: 60 packed bytes. |
+| Cold phase check target | -- | -- | -- | Empty until bounded quantum resolves | 3 | -- | One exact six-I32 target. Snapshot/Plan inputs, qualification copies and union fragments are bounded caller-owned scratch; not authoritative state. |
+| Binding, candidate and cold controls | -- | -- | -- | No active candidate at save | 3 | -- | Actual source/space/physical/qualification references, weak Sites binding, cache counts, candidate tokens, booleans, refusal and math scratch. Declared separately in decision 1064; no production qualification is claimed. |
+
+| Shared cold-operation token | -- | -- | -- | 0 outside the exact synchronous operation | 3 | -- | Decision1075. `_cold_token` adds 8 logical numeric bytes inside the existing binding/control reservation. Acquire and attest before the first ColdCheck/survey/plan allocation; retain through exact paid preparation; release only after charged original copies and companions are discarded. No packed, authoritative or wire state; actual WorldBindings must use the single decision1072 Budget instance. |
+
+### `godot/scripts/core/inventory_spatial_contract.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Typed actual location attestation | -- | -- | -- | -- | 3 | -- | Decision 1076: fail-closed interface; actual Locations owns coordinates and support, actual Inventory owns sparse endpoint refs/transactions. No packed state or per-entity objects. |
+
+
+
+### `godot/scripts/core/spoil_tips.gd`
+
+Decisions1065/1072/1078. Explicit finite physical tip ledger; the actual shared
+paid operation coordinator is `spoil_work.gd`. Actual ground siting and versioned
+save integration remain pending.
+Local row/generation handles are qualified by the bound actual World.
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Presence, retired identity and paid preparation | `_present`, `_retired`, `_prepared` | 1 | `_capacity` runtime | 0 | 1 | §6 AUXILIARY_STATE | No generation wrap; paid closure alone releases the actual tile. |
+| Local identity, tile and active full Construction operation | `_generation`, `_tile`, `_project_slot`, `_project_generation`, `_operation` | 4 | `_capacity` runtime | Slots/tile/operation -1; generations 0 | 1 | §6 AUXILIARY_STATE | Actual project purpose/subject/q must agree with the exact typed operation owner. |
+| Embedded source and current quantity claims | `_embedded_milli`, `_quantity_milli`, `_locked_milli`, `_incoming_milli` | 8 | `_capacity` runtime | 0 | 1 | §6 AUXILIARY_STATE | Pending source withdrawal never creates free capacity; claims cover the whole exact q. |
+| Retained operation work | `_earned_mwu` | 8 | `_capacity * OP_COUNT` runtime | 0 | 1 | §6 AUXILIARY_STATE | Four separate fixed/exact-q work records per tip. Cancellation cannot erase earned labor. |
+| Retained variable quantities | `_retained_quantity` | 8 | `_capacity * 2` runtime | 0 | 1 | §6 AUXILIARY_STATE | Separate COMPACT/RECLAIM q contracts; mismatches refuse. |
+| Lowest-free row heap | `_free_heap` | 4 | `_capacity` runtime | Only populated prefix matters | 2 | §6 AUXILIARY_STATE | Rebuildable from present/retired; lowest-free deterministic admission and cold bijection audit. |
+| Exterior tile lookup | `_tile_row` | 4 | `MAX_CAPACITY` = 16384 | -1 | 2 | §6 AUXILIARY_STATE | Reverse lookup audited against actual live tile owner; no slot-only identity permission. |
+| Persistent owner header | -- | -- | -- | -- | 1 | §6 AUXILIARY_STATE | World slot/generation, configured capacity, live count and lifetime compacted/reclaimed counters. Closed generations and lifetime conservation require a versioned codec even when no tip is live. |
+| Wiring, allocator control and cold scratch | -- | -- | -- | -- | 3 | -- | Exact Construction/Directory and once-bound weak Publisher, free count, initialization refusal and IntResult. Audit uses a temporary C-byte visited buffer; diagnostic image has 48+103C output bytes and peaks at 48+119C logical packed scratch while output coexists with a column conversion. Audit and image are cold and sequential. Native headers/references and composed validation/restore are separate budget obligations; independent C=16384 is not a production allocation pack. |
+### `godot/scripts/core/spoil_work.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Typed operation wiring and synchronous request/publication scratch | -- | -- | -- | Tip/project null; operation/action/tile -1 outside a request | 3 | -- | Decision1065. No per-tip or per-project arrays. Actual Construction/Tips/Items references, weak router/physical contacts, one nested weak-backref Publisher, one reusable integer result, cold pending subject/tile/op/q and one prepared transition identity. The actual tip ledger owns persistent physical q/work/source state; the shared router owns actual Job bindings and one Funding arena. Quotes are caller-owned reusable scratch from that router/Construction. Numeric/object/ref/native lifetimes need joint1072 admission; a missing or expired physical binding grants no work or geometry permission. |
+
+
+### `godot/scripts/core/underground_budget.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Shared synchronous cold allocation admission | -- | -- | -- | Token0, used0 at quiescence | 3 | -- | Decision1072. Four numeric I64 controls (32 logical bytes) within the bindings/growth envelope. One actual World instance serializes physical phases, wire capture and generic survey scratch; every nested allocation charges its simultaneous peak before allocation. Token equality across two arenas grants no authority; bindings attest the exact arena instance. No persistent gameplay state or measured native allocation claim. |
+
+### `godot/scripts/core/underground_locations.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Live local endpoint Bank | -- | -- | -- | Explicit full local generations; absent payload canonical | 1 | §1 WORLD | Decision1075. Nested Bank retains header I64[16], field-major i32 I32[22N], i64 I64[2N], present B8[N], retired B8[N]: 106N+128 bytes. Fields are generation, XYZ, full Room/section refs, level/role, six envelope and six support bounds; payload/proof revisions. Exact local wire schema1 is not composed UG16 activation. Nested packed columns are explicitly counted here although the current coverage regex enumerates top-level columns only. |
+| Prepared local endpoint Bank | -- | -- | -- | Invisible until sealed actual publication | 3 | -- | Same 106N+128 payload, preallocated separately, no alias with live. Failed preparations and loads preserve the current bank. |
+| Both banked derived allocation/order indexes | -- | -- | -- | Unused index tails -1 | 2 | §1 WORLD | Each Bank has free_rows and ordered I32[N], two banks total16N. Derived from presence/generation/retired; rebuild on load. Total packed owner228N+256. |
+| Caller packets, exclusive cold lease and copied survey | -- | -- | -- | No outstanding operation at save | 3 | -- | One typed Record/Region scratch and side-effect-free weak Inventory adapter. The actual decision1072 shared Budget enforces a finite admitted simultaneous operation before copies; exact instance binding is exposed for composition and capture retains its lease until caller consumption. The provisional nested ColdLease is removed; no second token allocator is retained. One raw wire106N+128 beside banks; cold snapshot and bounded union scratch are separately charged. No per-resident objects. Route/actor/contact columns remain implementation work inside the reserved provider envelope. |
+### `godot/scripts/core/underground_room_orders.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual owner wiring and one synchronous room/furniture operation | -- | -- | -- | Project/furniture/room null; action -1, token 0 and publication/cold-held false outside operation | 3 | -- | Decision1081. No packed authoritative state, Quote, receipt arena or per-entity object. Actual Construction/Buildings/SpaceOwner/CoreSources/RoomCatalog are borrowed; router, typed physical bindings and furniture purpose use exact weak links. World ref plus operation refs/action/token/publication/cold-held and one reusable IntResult total 59 logical numeric control bytes. Cold cancellation queries finite exact region handles and boxes inside the existing serialized sparse transaction only after explicit typed shared cold admission; release follows companion/sparse scratch cleanup. Native object/Variant/frame and joint cold lifetimes require admitted composition. UG16 reconstructs wiring and requires no in-flight stage. Persistent installed flags, sources, recipes, WIP and work remain exclusively in their actual owners. |
+| Exact painted Room request and future identity scratch | -- | -- | -- | Empty copied cells, null future ref and reset scalar fields outside admission | 3 | -- | Decision1083. One reusable RoomPlan60 logical numeric bytes plus Directory CreateCandidate32 adds92, making151 total RoomOrders numeric controls. RoomPlan.cells is an8N-byte copied cold packet, N<=actual Domain max_cells<=16384, acquired only after typed shared cold admission. Caller request storage is counted separately by its composer. Footprint's conservative logical packed peak<=136N+60 precedes the sparse bank; up to4N native Dictionary entries, loop headers and append/reallocation growth also require actual admission and measurement. Exact row-run marker staging retains8N plus96 fixed packed bytes before owner/helper frames; the independently owned Space banks/pinned source candidate and companion lifetimes are separate. All copied packets drop before release. No authoritative column or codec is added; accepted full Room identity and exact future marker/source geometry persist only in Directory/Buildings/SpaceOwner. The base provider remains closed until actual terrain/profile/paid-cut mapping and joint budget qualify. |
+
+### `godot/scripts/core/underground_furniture_work.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Exact actual furniture purpose and cold pending selection | -- | -- | -- | Pending subject null and type -1 outside selection | 3 | -- | Decision1081. No packed columns or additional receipt/Quote allocation. Actual Construction plus weak shared Router and sole RoomOrders wiring, World ref, one pending full Furniture ref/type and reusable IntResult total 33 logical numeric bytes. Quotes are populated only in caller-owned existing scratch from the protected actual catalog. Pending selection is discardable request state; accepted project identity, paid progress/materials and installed presence remain their existing persistent owners. Live exact composition checks refuse foreign/expired wiring; no pointer or synchronous callback permit is saved. |
+
+### `godot/scripts/core/underground_profiles.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual Resident physical identity scratch | `_identity` | 4 | `3` = 3 | overwritten only by successful actual reader | 3 | -- | Decision1080. One reusable exact species/stage/logical-rig read, not per-resident state. |
+| Actual tool/cargo selection scratch | `_query_values` | 8 | `5` = 5 | -1 before each read | 3 | -- | Actual current item/manufacture, cargo item/recipe and Job kind. Full dynamic refs and quantities remain owned by Residents, Gear, Work and Inventory. |
+| Immutable source-derived content banks | -- | -- | -- | content revision0 means absent; no default qualified content | 2 | §1 WORLD | Two nested Bank instances, each with18 I32 fields,3 I64 fields and2 byte fields per descriptor;7 I32 fields per box;32 bytes per source-bundle digest;4 I64 header fields. Field-major packed columns, never one object per descriptor. Maxima256 descriptors,3072 boxes,64 bundles yield226368 packed bytes for both banks/headers. Actual World/save must pin the full authored content digest/revision before recreating these derived banks; no save may silently load a different catalog. This slice does not yet add that owning save field or claim composed activation. |
+| Borrowed owners, streamed input and bounded query controls | -- | -- | -- | no active load at save; caller outputs unchanged on refusal | 3 | -- | Exact Residents/Transforms/Inventory/Gear/HaulCarry/Work/Reservations/GroundPiles collaborators; three capacity scalars, worker-row and loading control; one Pose, Selection, IntResult; streamed header/row at most98 bytes plus SHA context, expected digest string and exact source digests. A32768-byte explicit control/native reservation includes the52 packed scratch bytes above and simultaneous bounded row/header buffers. Maximum logical banks plus reservation259136 <=262144; native reservation is not a measured allocation claim. No third full input or JSON image. Per-query binary search plus at most16 exact key variants; at most12 boxes per selection. Geometry lookup is not movement/contact authorization. |
+
+
+### `godot/scripts/core/underground_terrain.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Finite immutable domain and reused clipped query boxes | `_domain_bounds`, `_tile_box`, `_clip` | 4 | `6` = 6 | Derived bounds; no persistent modification | 3 | -- | Decision1082. Three six-I32 boxes,72 bytes. Actual World/content owns immutable datum and domain; live source/paid-space composition remains WorldBindings. No tile/depth copy. |
+| Authored catalog protection extents | `_depth`, `_height` | 4 | `Definitions.BUILDING_DEFINITION_COUNT` = 30 | Key-complete before binding | 3 | -- | Two immutable derived content arrays,240 bytes. Foundation exclusion depths and upper protected-site envelopes do not represent an opaque mesh or interior traversal. World save pins content revision. |
+| Compiled resource keys | `_resource_ids` | 4 | `3` = 3 | Bound wood/stone/iron IDs only | 3 | -- |12 bytes resolved through verified catalog binding, never copied numeric IDs. |
+| Reused Building identity packet | `_building_facts` | 4 | `4` = 4 | Cleared on refusal | 3 | -- |16 bytes for actual type/origin/rotation/state; full reference belongs to actual Directory/Buildings. |
+| Reused resource observation | `_resource_facts` | 8 | `4` = 4 | Cleared on refusal | 3 | -- |32 bytes for actual tile/item/quantity/regrowth. Reads live owner every query, no persistence cache. |
+| Exact owner wiring and numeric query controls | -- | -- | -- | No gameplay mutation | 3 | -- | Total packed372 bytes plus66 numeric control bytes, within existing131072-byte terrain reservation. Decision1090 adds one8-byte unsaved immutable World-source proof revision; actual live World identity is always checked, current resource/Building exclusions are never cached. Weak SpaceOwner/CoreSources avoid composition cycles. Fixed content/native handles and initialization peak remain subject to measurement.48 bytes per cold output row plus256 control bytes require exact shared Budget coverage before append; caller retains lease through consumption. No paid cuts, routes, support claims or world state are created. |
+
+### `godot/scripts/core/underground_space_owner.gd` — bounded validation controls
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Borrowed staged-index counts | -- | -- | -- | `_validation_regions` and `_validation_sources` are -1 outside validation | 3 | -- | Decision 1075. Two numeric integers add 16 logical control bytes inside the existing bindings reserve. Existing staged free-heap arrays temporarily hold compact present-region and sorted source-row indexes while mutations are locked. Both heaps are rebuilt on every success/refusal before later editing or publication. No added packed columns, changed wire schema or extra retained image; load never normalizes invalid saved revisions. `allocation_within` and the exact borrowed ResidentLocations reader are stateless comparisons/readers. |
+
+
+### `godot/scripts/core/underground_world_bindings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact intersection boxes | `_clip`, `_intersection` | 4 | `6` = 6 | Overwritten during each bounded observation | 3 | -- | Decision1085. Two six-I32 boxes total48 bytes. A nested immutable Domain copy adds24 packed bounds bytes and68 logical numeric bytes; it derives from the actual SpaceOwner, never another persistent world. |
+| Reused Room identity fields | `_room_identity` | 4 | `Buildings.ROOM_IDENTITY_FIELDS` = 6 | Caller scratch never grants service or geometry | 3 | -- | Decision1088.24 logical bytes for the fixed Buildings identity reader. Separate `_identity_reading` and `_worker_reading` booleans add2, total26 retained logical bytes within the existing1072 bindings reserve. WorldBindings total becomes297 bytes. Reads validate the real World, actual registered underground Room source and reciprocal full Job/Resident identities; they allocate no new authoritative rows or saved ordinals. Reentry guards clear before return and are never persisted. Native array/reference/control overhead remains in the existing shared reservation. |
+| Observation controls and actual owner wiring | -- | -- | -- | No candidate permission or gameplay mutation | 3 | -- | Two I64 counters and one boolean add17 logical control bytes. Together with nested Domain and the above arrays, the provider has157 logical persistent/reused bytes inside the existing524288-byte bindings/native-growth reservation. SpaceOwner/CoreSources are weak; World/Terrain/Budget are the actual shared objects. No new authoritative columns or wire schema. |
+| Simultaneous cold observation and fragment peak | -- | -- | -- | Cleared after observation; caller retains exact lease through output use | 3 | -- | Before the first copy, the actual shared Budget must cover975488 logical bytes: sparse snapshot327680; natural rows24576; output425984; two4096-element six-I32 fragment lists196608; transient controls640. Fragment lists contain packed integer boxes, never per-entity state. Caller plans/copies and native/container growth are additional charged coexistence in the pre-existing reserved envelopes, not measured RAM. A reentrant refusal preserves the active outer output; every admitted failure clears all output columns. |
+| Site-scoped phase plan coexistence | -- | -- | -- | No escaped phase output after exact lease release | 3 | -- | Decision1088. No new retained field: one synchronous actual-site Room/project pin pair and phase bounds/controls fit the existing640 compositor controls plus512 additional phase controls. Before a plan is built, the exact shared Budget covers the original1048960-byte cold ceiling; at most1013 combined plan/approach/reach rows are conservatively charged72 bytes each, making the simultaneous maximum1048936. Input shapes are checked before deriving bounds, source/claim scope comes from the real Sites-scoped Owner reader, and later Authority validation retains the existing combined-row/copy bound. Native growth is still separately obligated, not measured here. |
+| Actual phase lease and scope pins | -- | -- | -- | Token0 and null refs at quiescence | 3 | -- | Decision1088 follow-through. `_phase_token` and `_phase_geometry_revision` are two I64 controls, `_phase_site`/`_phase_room`/`_phase_project` are three full two-I32 refs, and `_cold_opening` is one boolean:41 logical bytes within the existing bindings/native-growth reservation (198 total logical persistent/reused WorldBindings bytes). Exclusive opening precedes provider callbacks; exact current World-owned Budget is acquired before any phase image, scope is rechecked before copies, and cleanup releases only that token after all originals/companions are dropped. No authoritative/wire columns or gameplay permission are added. Decision1088 structural follow-through adds `_phase_operation` and `_phase_stage`, two transient I64 controls (16 logical bytes). They pin the exact borrowed phase, reset to-1 on all cleanup, and take the current retained/reused total from297 to313 bytes without new canonical/save state. |
+| Actual structural dispatch guards | -- | -- | -- | No active callback at a public boundary | 3 | -- | Decision1088. Two booleans add2 logical bytes, taking current WorldBindings controls to315 bytes within the existing bindings reservation. Weak provider/Level links hold no physical authority after expiration. Natural structure, staging and sealed-future observations retain exact original phase scope; no full work qualification or save ordinal is introduced. |
+
+### `godot/scripts/core/underground_locations.gd` — actual route-retention observer
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Weak typed retention and callback controls | -- | -- | -- | Callback booleans false outside synchronous observation; no observer by default | 3 | -- | Decision 1075. One weak actual graph observer plus `_in_retention` and `_retention_reentered` (2 logical numeric bytes) inside the existing bindings/control reserve. Once attached, an expired or foreign observer refuses retirement. Final actual Inventory, geometry and exact shared-lease checks follow all observer callbacks. No packed/canonical/wire change; restore must rebind the real graph owner. `allocation_within` is a stateless exact-capacity reader. |
+
+
+### `godot/scripts/core/transforms.gd` — runtime cache freshness
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Runtime mutation revision | -- | -- | -- | Positive until permanent exhaustion poison; public0 refuses cached observations | 3 | -- | Decision1075. One8-byte integer inside the bindings/control reserve, not a packed/canonical/saved field. All successful actual pose writes and reset invalidate, including same-value mutations; refusals preserve. Explicit future in-place restore invalidation is provided; current owner15 only validates inactive columns. Saturation never prevents a whole owner reset or recycles an old token. Routes' separate expected8-byte token is charged inside its own fixed controls. |
+
+
+### `godot/scripts/core/underground_level_catalog.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable engineering level configuration | `_config` | 4 | `CONFIG_FIELDS` = 13 | Empty before exact source validation | 2 | §1 WORLD | Decision1080. Source datum/minimum/extent, spacing, clear height, protected roof band and required local footing. Recreated only from the World-pinned content digest/revision; creates no terrain, void, support or route. |
+| Authored local section menu | `_offsets` | 4 | `offsets.size()` runtime | Empty before exact source validation | 2 | §1 WORLD | Full candidate length is validated in1..MAX_OFFSETS=9 before allocation/copy; exact whole-quantum signed offsets, strict order including zero. No implicit rounding or clipping. |
+| Authored fixed short-rise menu | `_short_rises` | 4 | `rises.size()` runtime | Empty before exact source validation | 2 | §1 WORLD | Full candidate length is validated in1..MAX_SHORT_RISES=8 before allocation/copy; matching height is not connector eligibility or movement permission. |
+| Full immutable World/domain binding | `_identity` | 4 | `IDENTITY_FIELDS` = 21 | Empty before exact actual binding | 2 | §1 WORLD | Full World generation, datum/minimum/size, six bounds, three actual finite capacities and RoomSpace format version. Exact borrowed Directory identity and live World generation additionally gate every lookup. |
+| Exact source digest | `_digest` | 1 | `32` = 32 | Empty before exact source validation | 2 | §1 WORLD | SHA256 of the very same small wire bytes decoded; content revision is one additional logical8-byte scalar. Actual World/save must pin digest/revision; composed codec remains pending. |
+| Bound source, cold decoding and caller records | -- | -- | -- | Unbound before load/domain checks | 3 | -- | Max retained236 packed bytes+8 revision bytes. An explicit2048-byte loading/control/native allowance includes simultaneous wire<=156, typed decode<=120, local hash32, immutable copy<=152, descriptor/identity scratch and object/control overhead; this is admission, not measured native memory. Total2292 joins Profiles259136 inside the unchanged262144 ceiling (261428 combined). Caller Record has10 int64 fields, one Vector2i and one bool (89 logical bytes), charged by its consuming owner. No per-level objects or retained second image. |
+
+### `godot/scripts/core/underground_room_orders.gd` — synchronous furniture layout admission
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual shared input scope and paired request scratch | -- | -- | -- | Token0, no retained snapshot/receipt/candidate at quiescence | 3 | -- | Decision1089. No authoritative columns. Four I64 scope controls32 plus callback bool1; nested cold packet count8, two Batch scalar headers80, Directory packet controls16 and receipt bool1 total138 numeric bytes. The caller admits120N+76 packed Directory/entry/pin bytes before construction, plus SpaceOwner's declared60N+16 bridge, giving180N+230 known packed/control bytes alongside existing RoomLayout336G+64P+512. Receipt8N is already within planner64P. Five private tuple arrays pin complete2N identity observations; two extra entry arrays pin copied16N input each. One actual Budget/Bindings/snapshot and one receipt are strongly retained only for synchronous cleanup; native references/headers/frame/growth need additional joint admission. Provider callbacks never substitute a remembered held flag for direct exact Budget.covers. Only one snapshot and one accepted receipt may coexist per scope; no frame/input/simulation/save crosses the lease. |
+
+### `godot/scripts/core/underground_layout_sources.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Typed actual coordinator wiring | -- | -- | -- | No active strong coordinator outside one synchronous input operation | 3 | -- | Decision1089. No packed/numeric gameplay state or allocation arena. One weak permanent RoomOrders reference and one temporary strong reference delegate only to the actual configured Room authority, exact shared Budget and real Directory-backed identity readers. RefCounted/native header costs remain in the admitted provider allowance. All accepted state stays in Buildings, Construction, SpaceOwner and RoomLayout; UG16 reconstructs these nonpersistent links at quiescence. |
+
+### `godot/scripts/core/underground_routes.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual directed spans | -- | -- | -- | Full local generations; absent span payload canonical | 1 | §1 WORLD | Decision1075 implementation in progress. Nested live EdgeBank fields I32[14E], longs I64[3E], present/retired B8[E] each and XYZ vertices I32[3V]. Section identity, endpoints, authored connector mode/content and exact polyline are actual retained graph state; derived free/order I32[E] each. One separately preallocated stage bank. No composed save activation is asserted until actual graph/motion load validation lands. |
+| Actual actor and pooled route state | -- | -- | -- | Full Resident/Location/edge/Job refs; absent rows have explicit sentinels | 1 | §1 WORLD | Nested MotionBank has resident I32[27S], resident_long I64[6S], links I32[4L], plus derived I32[L] free heap. One live bank and one inactive load bank. S512 is the actual typed capacity with at most256 living residents. Room/section/level is committed containment, not endpoint height inference. The existing I64 remainder uses a canonical reduced positive31-bit numerator/denominator encoding; exact elapsed time crosses qualified spans without banking blocked time. No per-resident objects. |
+| Dijkstra distance | `_distance` | 8 | `_location_capacity` runtime | INT64_MAX until reached | 3 | -- | One bounded cold query; no flat heuristic. |
+| Dijkstra indexes | `_predecessor`, `_heap_node`, `_heap_position` | 4 | `_location_capacity` runtime | -1 before lookup | 3 | -- | One finite exact edge predecessor and paired heap indexes per Location. |
+| Dijkstra status | `_search_state` | 1 | `_location_capacity` runtime | 0 unvisited | 3 | -- | Exact query-local undiscovered/queued/settled state. |
+| Proposed full edge refs | `_proposed_edges` | 4 | `2 * _location_capacity` runtime | Valid prefix only | 3 | -- | One shared reverse route result; a candidate grants no resident movement permission. |
+| Occupancy bucket heads | `_occupancy_heads` | 4 | `_location_capacity` runtime | -1 empty | 2 | §1 WORLD | Derived exact actor broadphase; rebuilt from actual identity/pose/content truth. |
+| Occupancy actor indexes | `_occupancy_next`, `_occupancy_visit` | 4 | `RESIDENT_CAPACITY` = 512 | -1 empty or zero epoch | 2 | §1 WORLD | At most256 living actors; typed capacity remains512. |
+| Occupancy cell coordinates | `_occupancy_cell` | 4 | `3 * RESIDENT_CAPACITY` = 1536 | Canonical unused zero | 2 | §1 WORLD | Exact hash-cell XYZ derived from current actor roots; no physical permission. |
+| Occupancy complete envelopes | `_occupancy_bounds` | 4 | `6 * RESIDENT_CAPACITY` = 3072 | Canonical unused zero | 2 | §1 WORLD | Whole body/held-load bounds; stale occupant is never omitted as empty. |
+| Occupancy profile revision | `_occupancy_profile` | 8 | `RESIDENT_CAPACITY` = 512 | 0 absent | 2 | §1 WORLD | Must match actual admitted content; productive contacts cannot rebuild static geometry. |
+| Catalog-wide broadphase extent | `_catalog_extent` | 4 | `6` = 6 | Refuses absent/stale content | 2 | §1 WORLD | Derived union of all admitted body/held-load and turn/recovery boxes; no movement permission. Fixed packet bytes are included in the 2112-byte control/query ceiling. |
+| Candidate complete body scratch | `_candidate_bounds` | 4 | `6` = 6 | Overwritten only after complete profile checks | 3 | -- | Fixed translated envelope scratch, included in the 2112-byte control/query ceiling. |
+| Occupant box scratch | `_occupant_bounds` | 4 | `6` = 6 | Private translated body/recovery box | 3 | -- | Reused exact per-box overlap scratch keeps nested provider occupancy reads separate from the moving actor's pending bounds; included in the2112-byte fixed query/control ceiling. |
+| Companion controls and fixed query packets | -- | -- | -- | No outstanding graph candidate/query at save | 3 | -- | Exact weak collaborator/retention bindings prevent a CoreSources cycle. One reused I32[3V] full edge packet also serves compaction; no third graph image. Fixed numeric/query reservation2112 and all live/stage/load/index buffers plus reviewed Locations total1041728 at N1024/E1536/V4096/L4096/S512, leaving6848 within the existing1MiB reservation. Exact fixed logical census2068, including the8-byte Locations publication receipt, fits the2112-byte ceiling. Actual save and production movement composition remain in progress. |
+
+### `godot/scripts/core/underground_room_orders.gd` — authored section metadata
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Section envelope and shared exact claim handle | -- | -- | -- | No extra owner field or retained packet | 3 | -- | Decision1091. One existing FLOOR_DATUM row plus R unchanged fine CLAIM_ROOM rows replaces2R newly confirmed rows; no persistent schema/capacity change or migration of older section handles. Enclosing metadata grants no area/support/void. Sequential floor/claim boxes peak24 packed bytes within the existing48-byte allowance. The changed cold helper chain has128 logical numeric bytes including the retained16-byte section Result and complete transform arguments/endpoints; unchanged frames/native headers remain in the existing joint helper/growth allowance. No per-Site map or hot-path allocation. |
+
+Decision1075 prepared observation readers add no fields to
+`underground_space_owner.gd` or `underground_routes.gd`. Exact sealed metadata is
+copied into existing caller-owned fixed scratch without a new image or index.
+The consumer still holds the previously charged shared cold lease and must run
+full source/claim preflight before and after the whole observation batch; the
+readers introduce no new authoritative, derived or transient retained state.
+
+### `godot/scripts/core/underground_connector_catalog.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact content digest scratch | `_hash` | 1 | `32` = 32 | Empty before full arena admission | 3 | -- | Decision1080. One reused caller-shaped digest reader, included in the fixed2048-byte control/decode reservation. No per-actor allocation. |
+| Immutable source-derived connector content banks | -- | -- | -- | Revision0 means absent; no geometry or pace defaults | 2 | §1 WORLD | Two nested Bank instances. Each has26 I32+1 I64 per16 variants;4 I32 per512 path points;8 I32 per1024 regions;9 I32 per256 parts;3 I32 per2048 vertices;1 I32 per16 materials;7 I32+1 I64 per256 paces;11 I64 header fields and96 digest bytes. Exactly86008 bytes per bank,172016 together. The actual World/save must pin catalog, profile and level content digests/revisions; no mutable source image or catalog alone is installed geometry. |
+| Actual owner bindings, bounded stream and reader controls | -- | -- | -- | No load in progress at save; every refused read preserves caller output | 3 | -- | Exact Profiles/Levels/Movement/Residents/Transforms composition; configure/load flags, one Descriptor, one IntResult,32-byte digest scratch, one112-byte maximum wire row plus the64-byte enclosing source header and SHA context, bounded caller Record/row output and scalar loop controls. Fixed2048 plus native16384 reservation joins172016 bank bytes for190448 total inside the existing bindings524288 arena, separately from Profiles/Levels262144. Native reservation is unmeasured. At most16 variants,16 exact opening targets per variant and256 pace rows; no third bank/full wire/JSON image. Actual installed connector refs, placement transform, opening target refs, paid publication and eligibility remain with their owning World components. |
+
+### `godot/scripts/core/underground_room_bindings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Fixed paid cube and exact claim intersection | `_cube`, `_clip` | 4 | `6` = 6 | Empty until exact owner composition binds; overwritten per synchronous query | 3 | -- | Decision1092.48 packed bytes, no authoritative coordinates or duplicate Site/Room map. Actual Sites owns the immutable quantum and SpaceOwner owns every exact claim. |
+| Reused actual Region, callbacks and cold outputs | -- | -- | -- | No active query at save/input/frame boundary | 3 | -- | Decision1092. One reusable Region adds24 packed box bytes and48 numeric metadata bytes; `_remaining`8 and `_reading`1 give129 total logical persistent/reused bytes. Two weak actual owner links, one borrowed actual Budget reference and native headers remain inside the shared bindings/native reservation. The exact World phase lease precedes descriptor/domain scratch and the8R handle image plus one exactly sized24F caller mask;512 cold control bytes cover sequential helper/numeric/descriptor scratch, with native/growth overhead additionally admitted. No authoritative schema, save ordinal, new arena or worker cache is added. Caller clears the synchronous output before the actual phase owner releases its lease. |
+
+### `godot/scripts/core/underground_world_routes.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused whole-profile and contact bounds | `_bounds`, `_support`, `_scratch` | 4 | `6` = 6 | Overwritten during one guarded query | 3 | -- | Decision1090 implementation in progress. Three fixed six-I32 boxes,72 bytes, within the4096-byte fixed packet/control reservation. No authoritative geometry or resident state. |
+| Reused immutable path endpoint triples | `_first_point`, `_last_point` | 4 | `3` = 3 | Overwritten by exact full-edge observation | 3 | -- |24 packed bytes, also within the4096-byte fixed reservation. |
+| Derived live and private route certificates | -- | -- | -- | Generation0 has no eligibility; masks never saved | 2 | §1 WORLD | Two nested Certificates banks, each with49152 mask B8,1536 generation I32 and two1536 revision I64 arrays:79872 per bank,159744 combined. Actual graph generation, geometry/content revisions, exact catalog revision and actual profile identity remain mandatory. Changed catalog content invalidates every old mask. Same-stack actual graph success alone promotes its private companion. |
+| Borrowed actual World composition and fixed query packets | -- | -- | -- | No active preparation or retained cold proof at quiescence | 3 | -- | Weak graph/Owner/CoreSources/Locations prevent cycles; actual Profiles/Catalog/Levels/Movement/Residents/Transforms/World/Terrain/Budget remain shared. One Domain copy, Descriptor, two Boxes, Location, Region, metadata-only Edge, IntResult and numeric/boolean guards plus the96 direct packed bytes are within4096 reservation. Total163840 joins Catalog190448 within the existing524288 bindings/native-growth reserve. Full native and aggregate runtime qualification remain open. |
+| Leased exact continuous-coverage proof | -- | -- | -- | Dropped before physical/route publication and exact cold-lease release | 3 | -- | One actual traversal Snapshot327680 plus two flat1024-fragment six-I32 banks49152 and1024 fixed scratch/control bytes:377856. No per-entity objects or third image. With actual Authority original snapshot425984 and two72x1013 phase plans145872, known logical coexistence949712 fits the unchanged1048960 cold ceiling. It cannot coexist with the975488-byte terrain compositor. Underlying actual owners retain their own bounded preflights; the adapter charges source-row passes and every local union/fragment scan. Exact masks supply ground passage only; installed fixed connector proof remains a separate required dependency. |
+
+### `godot/scripts/core/underground_space_owner.gd` — exact publication receipt
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Successful local publication token | -- | -- | -- | Zero before the first publication and after successful restore | 3 | -- | Decision1075. `_last_published_token` adds 8 logical numeric bytes inside the existing shared bindings/control reserve. Only the actual completed bank swap changes it across all four publication paths. Abort/refusal preserve the previous token. It is unsaved and noncanonical; no packed/wire field or image grows. Exact owner identity and all physical/source/lease checks remain mandatory. |
+
+### `godot/scripts/core/underground_locations.gd` — exact publication receipt
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Successful local publication token | -- | -- | -- | Zero before the first publication and after successful restore | 3 | -- | Decision1075. `_last_published_token` adds 8 logical numeric bytes inside the existing 2,112-byte whole-topology fixed-control ceiling, changing its actual census 2,060→2,068. Combined Locations/Routes reservation remains 1,041,728 with 6,848 unallocated bytes inside1MiB; the receipt is included once. Only actual bank swap publishes it, failed operations preserve, successful restore clears. Existing packed banks and wire format remain unchanged. Routes compares exact Space/Location receipts before and after provider callbacks; future Locations requires exact Space receipt plus its real Sites publication window. No extra Route state or multi-owner atomicity permission is introduced. |
+
+
+### `godot/scripts/core/underground_world_bindings.gd` — exact room-provider composition
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact floor metadata and reciprocal query guard | -- | -- | -- | No active query at input/frame/save boundary | 3 | -- | Decision1088. One reused Region has24 packed box bytes and48 numeric metadata bytes; `_room_reading` adds1, for73 additional logical retained bytes and271 total WorldBindings retained/reused bytes. One once-bound weak RoomOrders link prevents a cycle. The exact configured composer, actual owners and arena must match; full phase scope is checked before and after callbacks. The output mask is caller-owned within the existing shared cold lease, with no second copy or concurrent compositor. Native weak-ref/Region headers and callback frames remain in1072's existing bindings/growth reservation. No authoritative state or wire ordinal is introduced. |
+
+
+### `godot/scripts/core/underground_space_authority.gd` — exact FINISH partition scratch
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Cold exact mask, full handles and residual banks | -- | -- | -- | Synchronous FinishPartition exists only inside the already-held phase lease | 3 | -- | Decision1075 FINISH appendix. Four variable packed buffers: mask at most24R bytes, actual region handles8R, and two fixed flat residual banks48R. Actual `Owner.region_capacity()` supplies R before allocation; no per-fragment object or array. Provider handles and copied qualification arguments have already dropped; this packet drops before physical/companion plan copies. No persistent/wire/canonical columns. |
+| Fixed partition packet and helper controls | -- | -- | -- | No retained packet or unsaved gameplay state after the call | 3 | -- | Three six-I32 scratch boxes plus two Region boxes120 packed bytes, Region metadata96 logical bytes, three integer counters24 and one boolean =241 known logical bytes inside512 controls. Simultaneous original snapshot48K+16O, original plan72P, variable buffers80R and512 controls peak at990952 for R6144/O2048/K8192/P1013, sequential within unchanged1048960 shared cold arena. Native object/packed headers and growth remain separately obligated in existing bindings reserve; no measured-RAM claim. Productive WORK allocates none of these buffers. |
+
+
+### `godot/scripts/core/underground_space_owner.gd` — actual Room identity scratch
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact actual Room facts | -- | -- | -- | Scratch is initialized once and never grants source permission | 3 | -- | Decision1093. Nested CoreSources `_room_identity` is one six-I32 packet, 24 bytes, inside the unchanged shared bindings reservation. The actual Buildings helper reads full generation, purpose, spatial kind, parent and surface TileLinks without allocating OpResult. Public source output is still cleared before refusal; underground b/c stay zero. No authoritative column, canonical ordinal or wire field changes; source lookup remains bounded linear. |
+
+
+### `godot/scripts/core/underground_room_bindings.gd` — actual Room admission preflight
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Authored Level record and exact admission token | -- | -- | -- | No active synchronous Room preflight at save/frame/input boundary | 3 | -- | Decision1092. One reused LevelCatalog.Record contains full World8 plus ten I64 values80 and bool1 =89 logical bytes; `_room_token` adds8, for97 added retained/reused bytes and226 total RoomBindings logical bytes with existing129 mask scratch. Two weak coordinator/catalog links, native headers and borrowed actual owner references remain in1072's shared bindings/growth reservation. No authoritative state or saved pointer. |
+| Private exact admission plan and sequential packed/retained-image lifetime | -- | -- | -- | `_room_pin` and `_room_request` null after every return | 3 | -- | Decisions1092/1094. Cold-only RoomPlan metadata60 plus8N cells per image; charge24N for incoming and both possible protected copies before allocation. Decision1095 adds one8N derived interval bank; sequential logical peak is max(327680+8N,13N+8)+24N+2048, at most854016 bytes for the unchanged16384-cell ceiling. One unfiltered actual Owner snapshot replaces the redundant natural/composed image only for virgin admission; actual Terrain still checks every exact paid run and authored band in bounded windows. Existing six-I32 Region scratch is reused, with no member/state delta. Exact source, owner, input and World token checks bracket callbacks; all private copies drop before release. Native headers/growth remain in the joint reservation. The prior477-cell engineering limit is removed; actual entry/contact/support and retained-history companions remain required for production. |
+
+### `godot/scripts/core/underground_room_orders.gd` — exact Room cold handshake
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Original request, exact Budget identity and retained cold token | -- | -- | -- | `_room_request` and `_room_budget` null; `_room_cold_token`0 outside the synchronous admission | 3 | -- | Decision1092. One added I64 token8 logical bytes; original request and actual Budget are strong references only inside the exclusive call/cleanup scope. Existing candidate/plan scratch is reused and clears before provider release. Successful provider return alone grants no permission: actual Budget.covers and the original token are required before copies, callbacks and Directory publication. Combined with concrete provider additions, total retained/reused logical delta105 bytes, no packed/canonical/wire schema change. |
+
+### `godot/scripts/core/underground_phase_structure.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact geometry packets | `_cube`, `_column`, `_band`, `_piece`, `_cut`, `_overlap` | 4 | `6` = 6 | Empty until exact actual binding; overwritten during guarded cold operations | 3 | -- | Decision1093. Six boxes144 bytes plus three nested Region boxes72, included once in the fixed packet below. Actual claims, paid Site origins and immutable Levels derive every bound; these packets grant no caller-authored geometry permission. |
+| Cold live handles | `_handles` | 4 | never allocated | Empty outside one held exact World phase lease | 3 | -- | No local resize; actual Owner fills the isolated handle image by append, at most8R charged bytes. |
+| Exact remainder banks | `_front`, `_back` | 4 | `_capacity * 6` runtime | Empty outside one held exact World phase lease | 3 | -- | Two flat banks48R exist only during staged BRACE completion. No per-fragment object or worker allocation. CHECK omits banks, PREPARED uses one isolated48R+16O future snapshot after the original survey drops. |
+| Actual provider wiring and fixed cold controls | -- | -- | -- | No active query or retained candidate image at save/input boundary | 3 | -- | Weak actual Scope/Space/Terrain/Sites wiring with strong synchronous borrows. Exact fixed retained/reused census772: Domain92, six boxes144, three Regions216, two Level records178, IntResult9, thirteen I64 controls104, five booleans5 and three full refs24. This packet, future Snapshot scalar controls24, actual Scope's temporary Level descriptor/identity packet and bounded simultaneous helper frames fit1536 logical controls; Scope's retained102 is separately counted in the existing binding reserve. No authoritative columns or new arena. At R6144/O2048/K8192/P1013 complete simultaneous logical peaks are CHECK1048528, STAGE917456 and PREPARED524240 within1048960. Exact shared-token admission precedes allocating callbacks; caller aliases or overlapping lifetimes need their own admission. Native headers/growth remain separately obligated and unmeasured. Natural protections live as actual Room-owned Space SUPPORT rows, not a duplicate provider state store or salvage entitlement. |
+
+
+### `godot/scripts/core/underground_world_structure_scope.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable actual Domain and scope controls | -- | -- | -- | Weak World reference; no active read at public boundary | 3 | -- | Decision1088. Nested Domain92 logical bytes (24 packed bounds and68 numeric controls), Level revision8 and two booleans2 total102 within the existing shared bindings reservation. No own authoritative or packed columns. Level/Budget references are shared actual owners; transient descriptor/identity callback scratch is included in1093's1536 control envelope. No canonical/save state, physical geometry or worker qualification. |
+
+
+### `godot/scripts/core/underground_room_cut_map.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Borrowed protected plan image | `_cells` | 4 | never allocated | Empty before configure and after clear | 3 | -- | Decision1095. Borrowed canonical fine cells from the caller's already charged private plan image; never written by the cursor. No extra cell copy or saved state. The entire cursor lifetime stays inside the same synchronous admitted operation. |
+| Active-prefix interval heap | `_intervals` | 8 | `_capacity` runtime | Empty before complete preflight and after clear | 3 | -- | One exactly N-row I64 bank, N<=RoomFootprint.MAX_OPERATION_CELLS16384. Signed-safe normalized X endpoints are sorted and unioned in place. No per-quantum output, history, coordinate list, other packed bank, or saved state. |
+| Derived cursor controls and borrowed input identity | -- | -- | -- | No escaped cursor at frame/input/save boundary | 3 | -- | Sixteen I64 controls128, five Vector3i observations60 and two booleans2 total190 logical numeric bytes, cold only inside RoomBindings' existing2048 logical helper reservation. Existing real Sites retains every physical history key; the new read-only remaining_history_capacity exposes no permission. Full source-counted scalar/native ledger is recorded in1095. Native packed/object headers, descriptor Dictionary and synchronous frames remain in1072's separate shared bindings/growth obligation. |
+
+
+### `godot/scripts/core/underground_locations.gd` — exact Room-confirmation endpoint companion
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Future actual Room scope and refresh-only mode | -- | -- | -- | No Room candidate or companion remains at save/frame/input boundary | 3 | -- | Decision1096. Full Room8, type8 and boolean1 add17 logical numeric bytes; actual whole-topology census2068→2085 remains within2112, so total Locations/Routes reservation stays1041728. The once-bound Orders link is weak; synchronous methods borrow the actual coordinator strongly. No packed bank, allocator, wire or canonical column changes. Original actual Budget, sealed Space token, unchanged RoomPlan, exact Orders publication window and successful Space receipt remain mandatory. Only existing immutable endpoints refresh; no first entrance is created. |
+| Sequential endpoint proof during Room admission | -- | -- | -- | Snapshot dropped by seal; fragment lists drop when each proof returns | 3 | -- | Room path enforces actual R≤6144/O≤2048/K≤8192 before callbacks/copies. One snapshot48R+16O, fragments24K, packet384, existing Room copies24N and controls2048 peak at919936 for N16384 within1048960 shared cold bytes. Prior admission surveys, later route surveys and future Sites cursor scratch must not overlap this peak. Later prepared/publication checks use current scalar/packed facts without another survey. Native headers and bounded callback frames remain in the unchanged bindings/growth reserve; native qualification is still open. |
+
+
+### `godot/scripts/core/underground_routes.gd` — cold profile-filtered path query
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Private immutable profile/path observation | -- | -- | -- | Call-local ProfilePath drops before the synchronous query returns | 3 | -- | Decision1098. Descriptor23I64=184 plus two full endpoint pairs16 and four integer pins32 gives232 logical bytes; Result adds24 numeric bytes. Enforced512-byte cold allowance covers the packet and bounded helper controls before allocation and after callbacks, within an invoking Room's existing2048 controls. Exact actual Catalog/Bindings/Owner/Profiles/Locations/CoreSources are borrowed strongly for the call; native headers remain in existing bindings/growth allowance. No new retained field, SoA, canonical/wire state, graph bank or path scratch. Existing Dijkstra arrays are reused exclusively. Caller output storage is separately admitted and never resized. |
+### Underground Profiles planar contact amendment (decision1080)
+
+`underground_profiles.gd` additionally admits CONTACT_PATCH role6 in the existing
+seven-int immutable box record. Contact kind2 requires exactly one planar patch
+and one contained coplanar anchor; kind1 remains the legacy anchor-only contract.
+The schema adds no packed columns, retained control fields, banks, wire bytes or
+capacity. The cold role/shape/anchor validator's additional nested scalar locals
+are bounded by128 logical bytes within the existing32768-byte control/native
+reservation (reserved, not measured). Source digest/content revision obligations
+and the Profiles+Level arena ceiling are unchanged. Contact metadata is excluded
+from body/turn broadphase; actual face consumers must separately validate its
+complete translated patch. This registry entry records storage semantics only,
+not source geometry or gameplay qualification.
+
+
+### `godot/scripts/core/underground_final_facts.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Stateless final actual-source and endpoint attestation | -- | -- | -- | No instance, retained field, array, epoch or saved state | 3 | -- | Decision1100. Static helpers borrow actual Space/CoreSources/Routes/Locations and reuse existing Facts/Pose scratch. Final nonresident facts use the exact CoreSources leaf schemas; Resident containment reads committed packed actor/endpoint/span data without observation hooks. Two capacity scans and each actual leaf have explicit precharged work. A256-byte logical helper-frame ceiling is inside the invoking1099 existing2048 controls; native getter result/reference headers remain in the existing bindings/growth obligation. No new snapshot, buffer or canonical/save field. |
+
+### `godot/scripts/core/underground_work_face.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Guarded synchronous observation | -- | -- | -- | No read active at save/frame/input boundary | 3 | -- | Decision1099. Two boolean guards add2 logical retained bytes within the existing bindings reserve. No authoritative columns, per-worker object, saved state, Room/Site claim or productive permission. Actual owners and original request are borrowed strongly only for this synchronous read. |
+| Leased exact work-face packet | -- | -- | -- | All private geometry drops before the original actual Budget lease is returned | 3 | -- | One traversal Snapshot327680 plus two1024-fragment banks49152 and2048 logical numeric/control bytes total378880. With existing Room copies24N atN16384 the sequential peak is772096 within1048960. Private input68, query scalars31, Domain92, Descriptor184, two Boxes64, two Locations232, Region72, four six-I32 boxes96, Clearance scratch/control120 and Snapshot controls24 total983 fixed logical bytes. The original caller Request adds68, leaving997 of the2048 allowance for bounded simultaneous helper numeric frames. Actual owner references, native headers, packed capacity and stack/native growth remain separately obligated in the unchanged shared bindings reserve; no measured-runtime qualification is asserted. |
+
+
+### Underground Terrain final local observation (decision1099)
+
+The callback-free `local_facts_refusal` borrows the same exact World/Nodes/Items/
+Buildings/Space/Source/Budget owners and reuses all existing boxes/facts columns.
+It adds no packed storage or persistent control fields. Its bounded scalar helper
+frames remain within the shared WorkFace control envelope when called there.
+`LOCAL_QUERY_CHECKS=1025` charges up to64 tile reads at16 tile/leaf checks each
+plus one finite-query guard; the caller pays that budget before local work. The
+query checks actual current local protections after observation callbacks; it
+does not mint physical-space or work permission, or initialize a missing binding.
+
+### `godot/scripts/core/underground_connector_recipes.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable source revisions and row count | `_header` | 8 | `4` = 4 | Zero until a complete successful source load | 2 | §1 WORLD | Decision1102. Recipe, connector-catalog and frontier revisions plus loaded part count. One immutable source bank, not per-placement accounting. Actual save composition must pin exact immutable content sources before any connector installation can activate. |
+| Immutable exact source hashes | `_digests` | 1 | `96` = 96 | Zero before successful publication | 2 | §1 WORLD | Recipe, actual connector-catalog and authored frontier SHA256 values. Hashes do not themselves qualify frontier geometry or contacts. |
+| Exact part IDs and bill counts | `_part_id`, `_input_count` | 4 | `_capacity` <= 256 | Part -1, count0 | 2 | §1 WORLD | Unique sorted ordinals owned by one exact actual connector variant. No missing row fallback or active price data. |
+| Fixed construction material key indices | `_input_key` | 4 | `_input_capacity` runtime | -1 | 2 | §1 WORLD | Four lines per part resolve the existing six Construction material names through the actual Items/Inventory composition on every read. |
+| Exact authored installation work | `_work_mwu` | 8 | `_capacity` <= 256 | 0 | 2 | §1 WORLD | Positive integer milli-WU, never excavation BRACE work or timed demo progress. |
+| Exact authored quantities | `_quantity` | 8 | `_input_capacity` runtime | 0 | 2 | §1 WORLD | Positive integer milli-U; checked mass/refund overflow and duplicate-key refusal. One64P+128-byte immutable bank; no loader bank or full file image. |
+| Reused exact source digest | `_hash` | 1 | `32` = 32 | Empty before explicit configuration admission | 3 | -- |32 packed scratch bytes within the512-byte logical control/decode envelope. Exact fixed header/row streaming and native SHA/RefCounted/StringName overhead are additional unmeasured native obligations; no measured-runtime claim. |
+| Reused actual part facts | `_part` | 4 | `9` = 9 | Empty before explicit configuration admission | 3 | -- |36 packed scratch bytes within the same512-byte envelope; neither query allocates another part bank. |
+| Actual source bindings and bounded read controls | -- | -- | -- | No active load/read at frame or save boundary | 3 | -- | Actual Catalog/Items/Inventory references; capacity/key-count, exact variant ordinal/revision, configured/loaded/busy flags and one reused IntResult. Source bank derives only from pinned authored content. No placement, service, work, contact or installed-prefix state. |
+
+### `godot/scripts/core/excavation_inventory.gd` — connector installation loss domain
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Existing purpose-separated loss column extension | -- | 8 | `LOSS_CELL_CAPACITY` = 1024 | 0 | 1 | §6 AUXILIARY_STATE | Decision1102 extends the existing `_lost_milli` from768 to1024 I64 entries: purpose8 connector installation is fourth after excavation/furniture/tips. Additional2048 persistent bytes and2048 per simultaneous cold image. Every refund uses the same exact receipt owner/transaction; loss survives Project retirement. Canonical reconciliation and composed codec remain required. |
+
+### `godot/scripts/core/modular_projects.gd` — connector purpose binding
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+| Exact weak connector-purpose owner | -- | -- | -- | Unbound until the actual typed placement adapter exists | 3 | -- | Decision1102 adds one WeakRef alongside Furniture/Tip owners, no new packed column/Quote/receipt arena. Purpose8 cannot bind to another actual World or replace a live different owner; the complete real placement/recipe/source contract remains a queued adapter dependency. |
+
+### `godot/scripts/core/underground_connector_source_facts.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Pure final actual source attestation | -- | -- | -- | No retained fields, copies or query result object | 3 | -- | Decision1102. Static typed helper borrows actual Catalog/Profile/Level banks and exact Movement/Residents/Transforms/Directory wiring. Bounded32/64-byte hash comparisons and full World generation validation follow all overridable observation callbacks. Its numeric helper frames fit the existing224-byte nested-frame allowance inside Recipes512 controls; no new arena or packed column. No source/geometry permission is invented. |
+
+
+### `godot/scripts/core/underground_locations.gd` — create-only World anchor companion
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Once-bound World scope and create-only preparation mode | -- | -- | -- | No prepared anchor or active lease at save/frame boundary | 3 | -- | Decision1103. One unsaved boolean adds 1 logical byte, changing the whole-topology fixed census 2085→2086 within the existing 2112-byte ceiling; total Locations/Routes reservation remains1041728. The WorldScope reference is weak and cannot be replaced after binding, including expiration. No packed bank, allocator, wire or canonical field changes. Exact original Budget, sealed Space and successful publication receipt remain mandatory. New records are only actual World/null-Room level0; all old immutable endpoint payloads survive and must refresh. |
+| World observation coexistence | -- | -- | -- | Private input copy dies on return; survey drops at seal or abort | 3 | -- | One local Record is116 logical bytes: integer vectors36, scalar integers32 and copied envelopes48. A256-byte additional guard/record allowance is reserved before World callbacks. Existing88K+384 cold admission therefore becomes88K+640 (721536 atK8192); actual admitted-pack snapshot327680 + fragments196608 +384 +256 =524928 before separately charged caller/provider coexistence. Scope uses full claims even for TRANSIT; existing underground endpoint refresh can conservatively refuse on Room markers. Native objects/handles/growth remain in the existing unmeasured bindings reservation. |
+| Pure World publication tail | -- | -- | -- | Exact synchronous actual provider window only | 3 | -- | All ordinary source/Terrain/retention observations precede Space publication. The endpoint swap requires the actual callback-free WorldScope publishing predicate, exact Space receipt/revision, unchanged packed old endpoint identities and the original shared lease, then callback-free Inventory retention. No synthetic first-entry, constructed floor, profile, Site or movement permission is introduced. |
+
+### `godot/scripts/core/underground_space_owner.gd` — leased complete prepared observation
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Exact sealed full-claim copy gate | -- | -- | -- | Caller owns and budgets every output lifetime | 3 | -- | Decision1103. Stateless prepared_snapshot_leased_into requires exact sealed Space token and original actual Budget token before source/claim observers and immediately before the allocating helper. It charges48R+16O+256 plus any retained prior output, recounting after observers. Work admission requires2(R+O) within the existing immutable operation ceiling. All claims remain present; no ordinary snapshot behavior, retained field, wire or schema changes. Same-owner reentry poisons the copy; replacement leases and refused output are preserved. |
+
+### `godot/scripts/core/underground_connector_assemblies.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable group/source/variant census | `_header` | 8 | `7` = 7 | Zero before successful load | 2 | §1 WORLD | Decision1104. Group/Catalog/Recipe revisions, actual Catalog row/variant revision, group and exact actual part counts. Single immutable source bank, no placement/cut/work state. Composed content/source binding is required before activation/save release. |
+| Exact immutable source digests | `_digests` | 1 | `96` = 96 | Zero before successful load | 2 | §1 WORLD | Grouping/Catalog/Recipe SHA256. Acyclic file pins; actual Recipe frontier hash names this billable grouping, not physical construction permission. |
+| Complete billable part partition | `_kind`, `_first_part`, `_part_count`, `_recipe_anchor` | 4 | `_capacity` <= 256 | Kind/first/anchor -1, count0 | 2 | §1 WORLD | Exactly one group per nonempty contiguous Catalog part range and exactly one actual Recipe anchor per group. Complete unique coverage, no second included-part bill. Four I32 columns16G plus152 fixed immutable bytes. |
+| Reused source hash | `_hash` | 1 | `32` = 32 | Empty before admitted configure | 3 | -- | Within512 logical reader controls; not another immutable source image. |
+| Reused actual Catalog part facts | `_part` | 4 | `9` = 9 | Empty before admitted configure | 3 | -- | Same fixed allowance. Caller-owned AssemblyRecord adds32 bytes outside this reader. |
+| Bound owners, capacity and synchronous controls | -- | -- | -- | Busy false at frame/save boundary | 3 | -- | Actual Catalog/Recipes/Items/Inventory object references; one capacity I64 and three bools11 logical bytes. No serialized pointer, escrow, installed prefix or physical frontier. Maximum required4760 bytes plus unmeasured native overhead; joint Placement/content/control admission remains open. |
+
+### `godot/scripts/core/underground_surface_anchor.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual natural-surface creation scope | -- | -- | -- | No operation, candidate or cold token at save/frame boundary | 3 | -- | Decision1103. One once-bound provider holds actual World/Terrain/Space/CoreSources/Locations/Routes/Budget references; Locations borrows it weakly. Fixed World/seed and transient full handles/tokens/flags are reconstructed composition controls, not independent saved authority. Actual published natural floor/air/support and endpoint records belong to the existing Space/Locations canonical banks. |
+| Fixed input and observation scratch | -- | -- | -- | Arrays stay empty until the2048-byte logical binding admission | 3 | -- | Decisions1103/1115. One Locations.Record116 logical bytes (48 packed), one Region72 (24 packed), provider numeric controls93 and returned result16 plus the separately listed24-byte metadata box total321 before nested helper frames. The1024 helper allowance remains within2048; native references/headers remain unmeasured. No per-anchor object, profile certificate, cut ledger or material receipt. Cold preparation borrows the actual full Budget lease, with Locations peak plus2048 admitted before creation. |
+| Shared surface metadata input | `_surface_box` | 4 | `6` = 6 | Empty before configure | 3 | -- | Fixed private copy of new or borrowed FLOOR_DATUM bounds. It grants no physical air/support over the intervening dirt and introduces no canonical field. |
+
+### Underground Profiles exact work selection amendment (decision1080)
+
+`query_work_profile_into` adds current profile/content-pinned selection for an
+authored WORK contact while reusing the same actual-owner query scratch. The
+immutable catalog may retain multiple WORK rows with the same physical key,
+within the unchanged16-variant limit; an ordinary ambiguous read refuses.
+There are no new retained fields, packed columns, banks, source-image copies,
+wire bytes or capacities. Additional selection/dispatch scalar locals and call
+frames are conservatively bounded by256 logical bytes within the existing32768
+control/native reservation, which remains unmeasured. The query performs no
+per-worker heap allocation or saved selection cache. Source/content identity,
+complete-state certificate and actual Job/Work/Gear obligations remain unchanged.
+
+
+### `godot/scripts/core/underground_entry_plan.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Distinct synchronous non-flat request | -- | -- | -- | No request/copy retained at a frame/save boundary | 3 | -- | Decision1108. Caller/private/provider images each carry100 logical scalar bytes,128 source-digest bytes,24B per claim box and16B per opening target. The request grants no source, work, support or route permission. Exact RoomOrders/Bindings use the original shared cold lease; Sites separately owns the canonical paid union. No per-Room state object or save column. |
+| RoomOrders entry operation controls | -- | -- | -- | Entry mode false and references cleared after success/refusal | 3 | -- | The existing RoomOrders exclusive Room admission stage also owns an entry-mode boolean, one section EntityRef and transient typed request/claim references. The packet peak includes three digest/target copies plus2048 additional logical controls beyond Sites four-box-image/cursor allowance. Actual binding must add sequential Space/Placement/Location/Route peaks and native headers before production activation. |
+
+### `godot/scripts/core/underground_entry_cut_map.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Borrowed protected non-flat box image | `_boxes` | 4 | never allocated | Empty before configure and after clear | 3 | -- | Decision1107. Caller-owned private world boxes6B I32 entries, B<=Space.MAX_REGIONS16384. No cursor copy or authoritative history. All caller images must be admitted separately under the same cold lease. |
+| Active-prefix union intervals | `_intervals` | 8 | `_capacity` runtime | Empty before complete preflight and after clear | 3 | -- | One B-row bank sorts and merges normalized X endpoints in place; no full physical-key output list or second bank. |
+| Derived scalar controls and frames | -- | -- | -- | Cursor never crosses a frame/save boundary | 3 | -- | Twelve I64 controls96, four Vector3i48 and three bools3 total147 logical retained numeric bytes. The512-byte fixed logical allowance also covers copied Domain numerical facts/bounds and nested synchronous scalar frames. Actual packed/object headers, Dictionary/String/ref overhead and native growth remain separately unmeasured; no canonical/save state or production memory claim. |
+
+### `godot/scripts/core/underground_connector_placements.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Canonical Placement and opening banks | -- | -- | -- | Only a validated current source tuple can publish | 1 | §1 WORLD | Decision1105. Two banks each hold18 I32 +2 I64 +2 B8 per actual configured Placement, and8 I32 +1 I64 per actual configured opening. One256-byte header/digest image per bank pins World and immutable variant/group/recipe. Existing header15 stores the audited active Project count; all mutations reserve enough global revision increments for its terminal transitions. No WU, bill, cut ledger or duplicate geometry. Streaming canonical capture excludes derived heaps; coordinated physical restore remains mandatory. |
+| Bounded audit marks | `_marks` | 1 | `placements + openings` runtime | Audit rebuilt | 3 | -- | Actual configure caps the sum at768. Existing inactive bank receives load scalars directly, without a full raw file image. Both deterministic free heaps are preallocated in each bank. |
+| Scalar streaming window | `_stream` | 1 | `width` runtime | Reused for each scalar | 3 | -- | Width is bounded by4096; no retained complete raw-file image. |
+| Synchronous companion and source controls | -- | -- | -- | No prepared tokens at save/frame boundary | 3 | -- | One once-bound actual InstallationContext plus private original tokens, weak physical/publisher links and actual immutable owners. Source-counted logical coexistence1557 fits2048 controls: owner117, two Bank free-count pairs32, shared Context112, private Request308, caller Request308, caller Order/Assembly128, result8, digest32, nested frame ceiling512. Conditional envelope189P+89M+14848 includes provisional8192 native bytes; not measured/admitted production maximum. |
+
+### Underground paid installation companion bindings (decision1105)
+
+Space borrows the single actual `Locations.InstallationContext` weakly;
+Locations and WorldRoutes retain that same object, whose112 logical numeric
+bytes are counted once in Placement2048 above. There is no per-Placement
+context, new companion bank, wire or canonical field. Exact original tokens
+and actual Router/Construction source leaves guard static publication after
+all observers finish before Funding. Native references, WeakRefs and headers
+remain part of the explicit unmeasured bindings/native reservation. The cold
+retained Placement/target source refresh costs64(P+M) checks and uses only the
+already-admitted inactive bank.
+
+### `godot/scripts/core/underground_connector_work.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual owner wiring and synchronous installation controls | -- | -- | -- | Unbound or no active transition | 3 | -- | Decision1106. No packed columns, per-placement WU, escrow, claim ledger or canonical fields. Reuses one Placement OrderRecord96B and AssemblyRecord32B; retains original actual Budget and exact action/project only through a synchronous operation. Shared Construction/Funding/Placement remain the durable owners. Actual numeric census179B includes the same128B caller pair already charged by Placement1105, so51B is additional retained control; adapter helper allowance512B makes additional joint563B within the existing bindings reserve. Actual native references/headers remain unmeasured. `is_quiescent()` requires no escaped transition. Save/restore must rebind the actual composition with no open transition. |
+
+The connector-only static Construction START kernel and final Router phase/crew
+checks add no members or copied Quote. Their longest new numeric helper chain
+is129B (169B including the existing Router entry frame), inside the512B allowance
+above; it is not an additional retained allocation or a second paid ledger.
+
+### Future Corridor Placement admission companions (decision1108)
+
+| Retained or transient scope | Change | Accounting and lifecycle |
+|---|---|---|
+| Pending Placement frontier source | Existing header14 and digest bytes96..127 become once-bound on the first accepted empty-store entry | Pinned in the inactive bank before observers; refusal preserves live zero; retirement to empty preserves the accepted positive revision/hash. No new column, image or counter. Source bytes identify immutable content and grant no physical permission. |
+| Synchronous Room admission context | One RoomContext80B, private candidate32B and flag1B | Adds113 logical bytes to Placement1557, giving1670 within the existing2048 fixed allowance. Existing native header/reference reservation remains provisional; no authoritative per-row expansion. All exact original tokens and weak issuer links clear on completion/discard. |
+| Existing endpoint/path/certificate refresh | Existing inactive banks only | Same full old handles/payloads; all rows refresh to exact sealed geometry/content. The pure final leaf runs before Room/Sites identity. Actual success receipts then permit static observer-free swaps. No new endpoint, edge, installed part, work counter or physical permission. |
+| Sequential cold request and proof lifetime | Two EntryPlan images plus one Location or WorldRoutes proof | Exact runtime admission is2*payload + max(88K+384,377856)+2048 under the original Budget; sizes and lease rechecked after observers. Both proof images drop before Sites batch creation. At R/K6144 and maximum conservative6143 claims/16 targets:838936 Location,675736 graph,644120 final Sites logical bytes. Concrete provider scratch/native overlap still requires joint admission. |
+
+### Existing Placement frame and endpoint readers (decision1105)
+
+The additive readers introduce no owner field, canonical column, packed bank,
+mapping or snapshot. Caller frame9I32=36 bytes and endpoint2I32=8 bytes can
+coexist with the existing96+32-byte order/assembly pair. Their172 numeric bytes
+plus a256-byte bounded helper-frame ceiling fit the explicitly borrowed512-byte
+cold control allowance; this is part of the invoking original Budget lease,
+not another arena. Extra Frontier/contact state and unmeasured native headers
+remain the composing caller's separate obligation. Lookup reads current full
+Room/World/section/source identity and grants no installed-prefix or physical
+permission.
+
+### `godot/scripts/core/underground_entry_frontier.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Admitted table census | `_capacities` | 4 | `TABLE_COUNT` = 6 | Empty before configure | 3 | -- | Decision1109. Explicit six-int resize/copy at configuration,24 packed bytes, no runtime growth. Count bounds and whole subreserve precede allocation. |
+| Immutable source identity and counts | `_header` | 8 | `HEADER_FIELDS` = 14 | Zero before a successful load | 2 | §1 WORLD | Six revisions, Catalog/source selection and six row counts. Content-derived; no runtime Project, worker or phase state. |
+| Exact immutable hashes | `_digests` | 1 | `DIGEST_BYTES` = 160 | Zero before a successful load | 2 | §1 WORLD | Self, Catalog, Assembly, Recipe and actual profile-program SHA256. Profiles monotonic content revision is separately exact; program hash is not labelled binary-image hash. |
+| Installation selectors | `_install` | 4 | `9 * _capacities[INSTALL]` runtime | Zero before load | 2 | §1 WORLD | One immutable row per billable Grouping ordinal, with prior-only support/retreat. |
+| Authored working stations | `_station` | 4 | `9 * _capacities[STATION]` runtime | Zero before load | 2 | §1 WORLD | Endpoint/root/yaw/profile/posture/face/work kind, never an allocated runtime Location. |
+| Exact working profile revisions | `_profile_revision` | 8 | `4 * _capacities[STATION]` runtime | Zero before load | 2 | §1 WORLD | Qualified source revision; actual worker/contact observation remains required. |
+| Additional quarter-turn work selections | `_rotation_profile` | 4 | `3 * _capacities[STATION]` runtime | -1 before load | 2 | §1 WORLD | Three explicit work-profile IDs beside the primary station row. Every allowed Catalog rotation has its exact source-qualified yaw/profile/revision; no inferred work pose. |
+| Canonical physical prerequisites | `_cut` | 4 | `7 * _capacities[CUT]` runtime | Zero before load | 2 | §1 WORLD | Whole-cube union bounds and exact stable phase tags. Actual Sites remains the sole physical progress ledger. |
+| Retained bearing selectors | `_bearing` | 4 | `9 * _capacities[BEARING]` runtime | Zero before load | 2 | §1 WORLD | Natural or prior installed-part bounds; a pending part cannot bear itself. |
+| Endpoint selectors | `_endpoint` | 4 | `7 * _capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | Kind, assembly/datum/role and point only; no live owner handle. |
+| Explicit transit selection | `_travel_profile` | 4 | `_capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | No implicit WALK selection from a WORK station. |
+| Exact transit revision | `_travel_revision` | 8 | `_capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | Full paired revision; aliased caller outputs refuse unchanged. |
+| Authored excavation episodes | `_episode` | 4 | `19 * _capacities[EPISODE]` runtime | Zero before load | 2 | §1 WORLD | Whole-cube ranges, BRACE/CUT/FINISH masks and explicit station/dependency/material/output/retreat selectors. No second paid-progress bank. |
+| Borrowed actual owners and synchronous reader controls | -- | -- | -- | No load at frame/save boundary | 3 | -- | Four actual source-owner refs and configured/loaded/busy flags. Streamed header/row/hash/helper lifetimes fit the explicit2048 logical control reservation; entire configured reader <=28597. Native growth remains unmeasured and must fit actual remaining bindings headroom. Save pins immutable sources; no runtime geometry/contact permission is serialized here. |
+
+### Live static reachability and exact endpoint selection (decisions1098/1105)
+
+The new pure live methods add no owner control, canonical column, packed bank,
+retained map or save requirement. Locations reuses its existing pure selector;
+WorldRoutes reuses the existing184-byte Descriptor and Routes' admitted search
+arrays. The public caller supplies only already-sized endpoint2I32 and
+remaining-work1I32 buffers. A bounded512-byte logical helper-frame ceiling
+(the source-counted longest path is336 bytes) is charged to the invoking
+Contacts/control lifetime. This does not increase Placement's1670/2048 fixed
+census or imply a second cold arena; nested caller records/native frames still
+need actual joint admission. Full-generation/source checks and finite work
+apply on every call. Correctness is component-tested; the measured256-caller
+three-span workload failed runtime timing qualification and cannot authorize
+unbudgeted searches for every productive worker.
+
+### Bounded source lookup and immutable attestation (decisions1098/1105)
+
+Locations adds an unsaved full source-ref8 plus row-hint8. Its actual fixed
+topology control census is2102/2112; the reserved combined1041728 is unchanged.
+The hint rechecks packed presence/full generation and all current source facts;
+SourceOwner seal/load uniqueness remains mandatory. WorldRoutes adds four
+unsaved I64 controls32 inside its existing4096 fixed allowance: original
+Catalog/Profile/Levels native instance IDs and last fully checked immutable
+Catalog revision. Monotonic/load-once source contracts allow reuse of digest
+comparison only; all live wiring, source revisions and generation checks stay.
+No authoritative array, retained path map, save/hash field or extra cold arena
+is added. The48 logical retained bytes do not change Placement1670/2048 or the
+invoking helper-frame ceiling512. Native capacity and timing remain unqualified.
+WorldRoutes' existing Catalog reference is inherited from Routes.Bindings,
+replacing its former direct declaration without duplicating the per-provider
+reference. The cold caller reads that typed field directly after callbacks;
+unbound base providers retain null and refuse. Native object headers/reference
+storage remain inside the existing provider controls/native obligation.
+
+### Measured direct route reads (decision1098)
+
+The packed-read overhead correction adds no retained fields, arrays, map or
+save/hash change. It uses the same actual bank offsets and proof predicates,
+with all conservative work charges unchanged. One endpoint stride scalar adds
+8 logical frame bytes: the deepest declared path is now344/512 in the existing
+invoking Contacts allowance. Borrowed typed local references do not copy their
+banks; native reference/interpreter frames remain unmeasured. The prior retained
+topology2102/2112 and WorldRoutes4096 reservations are unchanged. A measured
+21.465ms p95 for256 small-path queries still fails runtime qualification; this
+does not admit an unbudgeted per-worker search or a whole simulation tick.
+
+
+### `godot/scripts/core/underground_entry_bindings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable episode scratch | `_entry_row` | 4 | `ENTRY_EPISODE_FIELDS` = 19 | Empty before binding | 3 | -- | Decision1111. One fixed synchronous output row, never per-placement progress. |
+| Immutable bearing scratch | `_entry_bearing` | 4 | `ENTRY_BEARING_FIELDS` = 9 | Empty before binding | 3 | -- | One fixed synchronous output row. |
+| Actual owners and transient entry context | -- | -- | -- | No operation at a save/frame boundary | 3 | -- | Borrowed concrete Frontier/Placement/Room/Terrain owners; one weak-backed Placement authority, two116-byte endpoint records,68-byte transform with four empty target arrays,42 provider numeric bytes and112 packed row bytes total454. The2048 logical helper allowance stays within4096; native headers/frames remain unmeasured. Variable request/cursor images are sequential under the original cold lease. No new canonical state, work, part, endpoint or payment ledger. Source import alone does not qualify memory or gameplay. |
+
+### `godot/scripts/core/underground_connector_contacts.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Reused exact frame/source rows | `_frame`, `_install`, `_station`, `_bearing`, `_part` | 4 | `9` = 9 | Empty before configure | 3 | -- | Decision1106 actual Contacts. Fixed caller scratch only, not saved authority or a per-Placement record bank. Exact source facts are rechecked after observations. |
+| Reused cut/endpoint rows | `_endpoint`, `_cut` | 4 | `7` = 7 | Empty before configure | 3 | -- | Immutable selectors do not create endpoints, work, cuts or support. |
+| Reused Catalog region facts | `_region` | 4 | `8` = 8 | Empty before configure | 3 | -- | Actual variant-relative LANDING metadata needs independently published full FLOOR_DATUM and support. |
+| Reused full endpoint result | `_pair` | 4 | `2` = 2 | Empty before configure | 3 | -- | Actual finite unique selector; no retained map. |
+| Shared route work result | `_remaining` | 4 | `1` = 1 | Empty before configure | 3 | -- | The static current-route query spends the same operation budget and preserves this output on failure. |
+| Reused exact world boxes | `_bounds`, `_support`, `_target`, `_scratch` | 4 | `6` = 6 | Empty before configure | 3 | -- | Integer exact positive-volume bounds. Negative source foot residual is retained. |
+| Whole contact packet and source controls | -- | -- | -- | No open observation or permission across a frame/save boundary | 3 | -- | Source census and runtime reflection confirm2910 logical bytes:376 top-level packed,148 numeric scalar controls, Order96, two Location records232 including their96 packed bytes, Descriptor184, Selection168, two Box records64, IntResult9, and one Fragments packet1633 (two32-row six-I32 banks1536, three six-I32 buffers72, threeI64 plusbool25). Additional1024 numeric helper-frame allowance gives3934 within the admitted4096 binding subreserve, including the nested512 route-query ceiling. Actual strong/weak references, packed/object headers and native frames remain unmeasured; no native or worker-timing qualification. No new gameplay, receipt, claim, installed-prefix or canonical columns. |

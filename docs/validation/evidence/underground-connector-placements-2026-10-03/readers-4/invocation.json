@@ -1,0 +1,64 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.662,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "91/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/readers-4"
+      ],
+      "exit_code": 0,
+      "seconds": 11.386,
+      "log": "test_underground_connector_placements.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "69/365",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/readers-4"
+      ],
+      "exit_code": 0,
+      "seconds": 4.94,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6253",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-connector-placements-2026-10-03/readers-4/analyzer.json",
+        "godot/scripts/core/underground_connector_placements.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/test/test_underground_connector_placements.gd",
+        "godot/test/test_underground_locations.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.84,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "assets_present_before": false,
+  "assets_restored": true,
+  "exit_code": 0
+}

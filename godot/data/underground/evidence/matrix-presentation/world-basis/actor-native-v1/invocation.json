@@ -1,0 +1,18 @@
+{
+  "command": [
+    "/opt/homebrew/bin/godot",
+    "--path",
+    "godot",
+    "--rendering-method",
+    "gl_compatibility",
+    "--rendering-driver",
+    "opengl3",
+    "--script",
+    "res://data/underground/evidence/matrix-presentation/world-basis/native_actor.gd",
+    "--",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+    "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/world-basis/actor-native-v1/native-world.png"
+  ]
+}

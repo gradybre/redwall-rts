@@ -1,0 +1,36 @@
+{
+  "commands": [
+    [
+      "/opt/homebrew/bin/godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/data/underground/mole-worker/mole_grip_source.gd",
+      "godot/test/test_mole_grip_source.gd"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "selector": [
+    "test_mole_grip_source.gd",
+    "test_underground_actor_content.gd",
+    "test_underground_actor.gd"
+  ],
+  "assets_aside_outside_godot_scan": true
+}

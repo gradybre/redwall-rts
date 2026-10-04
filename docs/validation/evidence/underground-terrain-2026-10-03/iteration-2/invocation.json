@@ -1,0 +1,68 @@
+[
+  {
+    "command": [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    "exit_code": 0,
+    "log": "import.log",
+    "seconds": 3.663
+  },
+  {
+    "command": [
+      "./tools/run_tests.sh",
+      "--shard",
+      "170/330",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-terrain/docs/validation/evidence/underground-terrain-2026-10-03/iteration-2/runner"
+    ],
+    "exit_code": 0,
+    "log": "test_underground_terrain.gd.log",
+    "seconds": 6.192
+  },
+  {
+    "command": [
+      "./tools/run_tests.sh",
+      "--shard",
+      "5/330",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-terrain/docs/validation/evidence/underground-terrain-2026-10-03/iteration-2/runner"
+    ],
+    "exit_code": 0,
+    "log": "test_world_init.gd.log",
+    "seconds": 26.798
+  },
+  {
+    "command": [
+      "./tools/run_tests.sh",
+      "--shard",
+      "120/330",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-terrain/docs/validation/evidence/underground-terrain-2026-10-03/iteration-2/runner"
+    ],
+    "exit_code": 0,
+    "log": "test_resource_nodes.gd.log",
+    "seconds": 3.626
+  },
+  {
+    "command": [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--max",
+      "0",
+      "--port",
+      "6160",
+      "godot/scripts/core/underground_terrain.gd",
+      "godot/scripts/core/world_init.gd",
+      "godot/scripts/core/resource_nodes.gd",
+      "godot/test/test_underground_terrain.gd"
+    ],
+    "exit_code": 0,
+    "log": "analyzer.log",
+    "seconds": 9.83
+  }
+]

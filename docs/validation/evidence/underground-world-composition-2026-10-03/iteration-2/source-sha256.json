@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_world_bindings.gd": "9980af0bb4e36946c739c578d8241eec622da47a03f13a792d8c040ef7abdfa6",
+  "godot/test/test_underground_world_bindings.gd": "e5675223b4a23c8a26d13784e34ca41260965f299344a1b8ec36f5dfb5b46724",
+  "godot/scripts/core/underground_terrain.gd": "503a109852322bfa8599d8a31e974ad4ef2d8140c264ea5c5417ad5bdd54827b",
+  "godot/test/test_underground_terrain.gd": "82359ab083abcf33c0200001e389283c53bab0253379696b271ca16ccdb6272d"
+}

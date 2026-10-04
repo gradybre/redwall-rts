@@ -1,0 +1,46 @@
+{
+  "commands": [
+    [
+      "/opt/homebrew/bin/godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/demo/cast/underground_actor.gd",
+      "godot/test/test_underground_actor.gd",
+      "godot/data/underground/evidence/matrix-presentation/world-basis/native_actor.gd",
+      "godot/demo/assets/underground-analysis/bake_underground_matrices.gd",
+      "godot/demo/assets/underground-analysis/capture_underground_profiles.gd"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "selector": "[\"test_underground_actor.gd\"]",
+  "analysis_mirrors": [
+    {
+      "source": "tools/bake_underground_matrices.gd",
+      "mirror": "godot/demo/assets/underground-analysis/bake_underground_matrices.gd",
+      "sha256": "d38ff6fd787294b48636840a4df18342d14519213884380d44e9240b999e8066"
+    },
+    {
+      "source": "tools/capture_underground_profiles.gd",
+      "mirror": "godot/demo/assets/underground-analysis/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    }
+  ]
+}

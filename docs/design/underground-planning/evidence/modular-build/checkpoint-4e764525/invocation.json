@@ -1,0 +1,46 @@
+{
+  "head": "4e7645255c45fad5585120e232e375480319ed23",
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.825,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "exit_code": 0,
+      "seconds": 1317.438,
+      "log": "full-suite.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/design/underground-planning/evidence/modular-build/checkpoint-4e764525/analyzer.json"
+      ],
+      "exit_code": 0,
+      "seconds": 261.231,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

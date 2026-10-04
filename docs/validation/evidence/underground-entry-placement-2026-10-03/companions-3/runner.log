@@ -1,0 +1,84 @@
+state_registry_coverage: PASS -- 134 modules, 666 rows, 1002 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_graph.gd
+  PASS  test_a_mouth_to_mouth_piece_is_a_ramp_a_bore_and_a_ramp
+  PASS  test_a_piece_of_exactly_two_ramps_shares_their_foot
+  PASS  test_add_into_refuses_what_the_rules_refuse
+  PASS  test_the_network_refuses_a_piece_it_has_no_room_for
+  PASS  test_shafts_only_where_a_segment_meets_a_mouth
+  PASS  test_spoil_posts_at_the_piece_s_mouth_and_the_exit_s_mouth
+  PASS  test_floors_fall_from_a_mouth_and_run_level
+  PASS  test_a_branch_splits_its_open_host_and_the_halves_keep_its_state
+  PASS  test_a_piece_through_an_open_bore_makes_a_four_way_crossing
+  PASS  test_a_piece_may_end_at_an_existing_junction
+  PASS  test_a_piece_dropped_before_breaking_ground_frees_what_it_made
+  PASS  test_a_piece_with_ground_broken_is_paused_not_dropped
+  PASS  test_a_split_off_half_counts_as_dug_for_its_piece
+  PASS  test_the_job_list_keeps_pieces_in_the_order_laid
+  PASS  test_mouth_tables_are_the_cheapest_walks
+  PASS  test_paths_follow_light_closure_and_class
+  PASS  test_equal_paths_tie_on_fewer_segments_whatever_the_order_built
+  PASS  test_move_test_09_the_route_equals_the_dijkstra_reference
+  PASS  test_move_test_09_ties_resolve_the_same_way_every_time
+  PASS  test_a_route_through_a_tee_walks_it_segment_by_segment
+  PASS  test_a_goal_underground_is_reached_only_through_the_network
+  PASS  test_nobody_goes_in_at_a_mouth_someone_stands_on
+  PASS  test_meeting_angles_are_forty_degrees_either_way
+  PASS  test_a_corner_s_fillet_must_fit_its_legs
+  PASS  test_legs_cross_and_distances_are_exact
+  PASS  test_every_network_refusal_has_words
+  PASS  test_a_point_snaps_to_a_node_to_a_bore_or_to_nothing
+  PASS  test_a_tee_and_a_crossing_may_be_dug
+  PASS  test_the_network_s_refusals
+  PASS  test_a_refusal_names_the_tunnel_it_concerns
+  PASS  test_a_closed_or_busy_host_and_a_full_junction_are_refused
+  PASS  test_a_full_network_refuses_in_words
+  PASS  test_moles_start_skilled_and_anybody_learns
+  PASS  test_the_crew_digs_at_the_lead_s_skill
+  PASS  test_the_readout_counts_quanta_hours_spoil_and_ground
+  PASS  test_the_readout_says_minutes_under_an_hour
+  PASS  test_a_resident_walks_through_a_tee_into_a_pen
+  PASS  test_a_closure_ahead_is_found_again_at_the_next_node
+  PASS  test_released_in_a_bore_it_walks_out_by_the_nearest_mouth
+  PASS  test_a_digger_goes_down_to_the_junction_and_digs_the_branch_out
+  PASS  test_a_digger_takes_up_its_next_piece_from_the_job_list
+  PASS  test_a_split_hands_walkers_finds_and_stone_to_its_halves
+  PASS  test_finds_follow_a_segment_split_twice_by_one_piece
+  PASS  test_a_piece_is_refused_one_segment_row_short
+  PASS  test_dropped_pieces_give_their_rows_back
+  PASS  test_a_piece_ending_on_its_host_and_crossing_the_half_it_made_splits_that_half
+  PASS  test_equal_ways_of_one_segment_tie_on_the_lower_slot
+  PASS  test_the_paths_heap_pops_in_order
+  PASS  test_two_close_crossings_are_refused
+  PASS  test_a_branch_by_a_ramp_s_foot_keeps_no_pillar_from_that_ramp
+  PASS  test_a_digger_sent_elsewhere_never_walks_through_undug_ground
+  PASS  test_a_resident_below_with_no_way_on_walks_out_rather_than_standing
+  PASS  test_a_trip_given_up_below_walks_out
+  PASS  test_a_piece_crossing_two_bores_is_the_same_piece_either_way_laid
+  PASS  test_a_split_tail_in_a_lower_slot_never_leads_its_piece
+  PASS  test_someone_standing_past_a_node_is_passed_whichever_way_its_segment_runs
+  PASS  test_the_ghost_s_whole_piece_check_is_cheap_enough_to_follow_the_pointer
+  PASS  test_a_piece_cut_off_from_every_mouth_spoils_at_an_opened_one
+  PASS  test_a_snap_onto_a_bore_reads_its_route_in_place_as_the_graph_does
+  PASS  test_bound_below_it_goes_on_by_the_end_that_costs_least
+  PASS  test_the_pieces_never_run_out_before_the_segments
+CI_SUITE_TIME {"assertions":544,"failures":0,"suite":"test_demo_graph.gd","tests":61,"usec":1083105}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+61 test(s), 544 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 61 tests, 544 assertions, 0 failures.

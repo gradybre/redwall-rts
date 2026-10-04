@@ -1,0 +1,40 @@
+state_registry_coverage: PASS -- 134 modules, 666 rows, 1002 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_orders.gd
+  PASS  test_nonflat_entry_allocates_one_corridor_and_only_unique_solid_sites
+  PASS  test_section_is_metadata_and_exact_claim_boxes_keep_all_heights
+  PASS  test_request_shape_refuses_before_cold_admission
+  PASS  test_stale_world_or_space_revision_never_borrows_another_namespace
+  PASS  test_default_entry_binding_refuses_without_fallback_to_flat_geometry
+  PASS  test_cold_denial_and_callback_growth_precede_any_copied_claims
+  PASS  test_every_source_and_placement_pin_is_rechecked_after_preparation
+  PASS  test_private_packet_and_future_candidate_mutation_refuse_without_spending_identity
+  PASS  test_unqualified_or_changed_frontier_publishes_nothing
+  PASS  test_reentry_and_direct_future_room_creation_cannot_steal_the_entry_stage
+  PASS  test_replaced_original_lease_is_not_released_or_used_for_publication
+  PASS  test_final_pure_guard_catches_mutation_after_sites_preparation
+  PASS  test_future_and_consumed_claim_batches_cannot_publish_twice
+  PASS  test_final_companion_refusal_and_mutation_leave_prepared_sites_unpublished
+  PASS  test_out_of_domain_claim_or_metadata_refuses_atomically
+  PASS  test_another_confirmed_room_cannot_capture_reserved_entry_volume
+  PASS  test_entry_packet_copies_all_fields_without_aliasing_packed_inputs
+CI_SUITE_TIME {"assertions":721,"failures":0,"suite":"test_underground_entry_orders.gd","tests":17,"usec":4901679}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+17 test(s), 721 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 17 tests, 721 assertions, 0 failures.

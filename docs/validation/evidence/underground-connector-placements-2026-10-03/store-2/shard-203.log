@@ -1,0 +1,45 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_placements.gd
+  FAIL  test_actual_source_registration_copies_full_identity_without_building_geometry
+        fixture retained Corridor section (expected , got PLACEMENT_STALE)
+        fixture actual request identity (expected , got PLACEMENT_STALE)
+        inherited actual fixture setup propagates failures: ["actual Room metadata source (expected , got SPACE_SOURCE_NOT_REGISTERED)"] (expected 0, got 1)
+        actual Placement registration: PLACEMENT_STALE (expected , got PLACEMENT_STALE)
+        actual current record (expected , got PLACEMENT_STALE)
+        full permanent Room (expected (821, 2), got (-1, 0))
+  FAIL  test_stream_capture_restore_is_bounded_and_authority_is_mandatory
+        fixture retained Corridor section (expected , got PLACEMENT_STALE)
+        fixture actual request identity (expected , got PLACEMENT_STALE)
+        inherited actual fixture setup propagates failures: ["actual Room metadata source (expected , got SPACE_SOURCE_NOT_REGISTERED)"] (expected 0, got 1)
+        actual Placement registration: PLACEMENT_STALE (expected , got PLACEMENT_STALE)
+  FAIL  test_registration_replaced_lease_preserves_new_lease_and_empty_state
+        fixture retained Corridor section (expected , got PLACEMENT_STALE)
+        fixture actual request identity (expected , got PLACEMENT_STALE)
+        inherited actual fixture setup propagates failures: ["actual Room metadata source (expected , got SPACE_SOURCE_NOT_REGISTERED)"] (expected 0, got 1)
+  FAIL  test_retirement_requires_cleanup_and_reuses_full_generation
+        fixture retained Corridor section (expected , got PLACEMENT_STALE)
+        fixture actual request identity (expected , got PLACEMENT_STALE)
+        inherited actual fixture setup propagates failures: ["actual Room metadata source (expected , got SPACE_SOURCE_NOT_REGISTERED)"] (expected 0, got 1)
+        actual Placement registration: PLACEMENT_STALE (expected , got PLACEMENT_STALE)
+        actual cleanup mandatory (expected TEST_CLEANUP_CLOSED, got PLACEMENT_ORDER)
+        explicit fixture cleanup (expected , got PLACEMENT_ORDER)
+        same finite slot reused (expected , got PLACEMENT_STALE)
+        new full generation (expected true, got false)
+CI_SUITE_TIME {"assertions":89,"failures":4,"suite":"test_underground_connector_placements.gd","tests":4,"usec":1520553}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 89 assertion(s), 4 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

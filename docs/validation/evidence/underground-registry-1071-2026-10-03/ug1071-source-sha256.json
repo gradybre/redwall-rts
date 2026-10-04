@@ -1,0 +1,13 @@
+{
+  "docs/persistence_state_registry.md": "2849fb1b7d605de413c3cf987c99b79a77aff75161062e94d4a85e8cc7febb44",
+  "docs/planning/canonical_state_registry.json": "ead0331ba4d30e553e5d28bfbadb9c6c793246f2cf54a4403b45bd4e40b9e40f",
+  "docs/planning/registry_capacity_audit.json": "54546ceb75d079eff2f559b76a3aa6bcf23a706b54b1337adbf103d1d75b22b6",
+  "docs/systems_architecture.md": "59cee9e4e4175d92447d7664db73d249e232e69f57ea0a1cd545cf823a9557d1",
+  "docs/validation/ready07_arithmetic.py": "64c05a80c563f40d78c22d99616e724beef41dfe709814501abc5406ead4caed",
+  "docs/validation/validate_save_registry_handoff.py": "df5392acc75d6beac82eb49d168ef578d61082d86518a495af873ff6d3e327ef",
+  "godot/scripts/core/canonical_state_hash.gd": "9063cee54be44fcebdf8927069399bc45d99b9b9218b0d1a4d059658fd2bb80e",
+  "godot/test/test_canonical_state_hash.gd": "0839a4fba9b5d61ec8cf798d4a0e2e32de0bb2aade64d64305ee6f4f86967074",
+  "tools/audit_registry_capacities.py": "6a0abe28bd61ea2c12375bd12b2a8c2849f2d5530ad8d7bfeff39d82b69badfe",
+  "tools/test_registry_capacity_audit.py": "598d31c8082d63e5ff63953fcc478b2348320b876e4a921667c9aea6ed049579",
+  "docs/decisions/1071-spatial-room-state-and-memory.md": "5aa283c12160be647c7b507c9769ae8cdd948f986faa1447289ac45244a35e5b"
+}

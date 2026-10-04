@@ -1,0 +1,44 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--audio-driver",
+      "Dummy",
+      "--fixed-fps",
+      "60",
+      "--script",
+      "res://data/underground/mole-worker/evidence/grip-authoring/native_grip_sequence.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-native-v1/spec.json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-native-v1"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "godot/data/underground/mole-worker/evidence/grip-authoring/native_grip_sequence.gd",
+      "godot/data/underground/mole-worker/mole_grip_source.gd"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "unexpected_diagnostic": false
+}

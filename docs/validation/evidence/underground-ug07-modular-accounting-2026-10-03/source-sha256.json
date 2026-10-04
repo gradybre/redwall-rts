@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/modular_project_contract.gd": "6b206fab1e3a3133a498826618128a923791ac427e040e5714be0c69f52eb64b",
+  "godot/scripts/core/construction.gd": "f84f74866d81bb3f26a8a37650a341e8c587405de1c4333f6f1c05f707eac92d",
+  "godot/scripts/core/reservations.gd": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+  "godot/test/test_construction_modular.gd": "10cec513d0b649c3e92c997ddd5c1da933f547b27723074272cd26eab8bfc102",
+  "godot/test/test_haul_planner.gd": "510079ad5d2c9fb3bab51725c38f77f20cecdde3817156f4a782b6e4c40caecd"
+}

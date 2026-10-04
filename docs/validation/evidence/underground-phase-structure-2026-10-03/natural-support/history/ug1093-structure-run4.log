@@ -1,0 +1,11 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-b7ncsi6u
+import exit 0 diagnostics []
+test_underground_phase_structure.gd exit 1
+  FAIL  test_real_pack_cold_estimates_and_unbound_provider
+  FAIL  test_paid_brace_protects_exact_fine_floor_and_roof
+  FAIL  test_paid_cut_and_fine_finish_retain_natural_protections
+CI_SUITE_TIME {"assertions":23,"failures":3,"suite":"test_underground_phase_structure.gd","tests":3,"usec":997763}
+3 test(s), 23 assertion(s), 3 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 3 failing test(s).
+assets restored True

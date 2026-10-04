@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "status": "INDEPENDENT_REVIEW_ACCEPTED_SAMPLED_ONLY",
+  "scope": "Actual staged runtime samples and observed native skin matrices; no qualified movement profile",
+  "base_source_commit": "f682c5cd",
+  "hashes": {
+    "tools/capture_underground_profiles.gd": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c",
+    "tools/capture_underground_profiles.gd.uid": "823adb4263f631d9316758148ccf917b7ed288888ec09472f7d0b85c7ba92492",
+    "tools/test_underground_profile_capture.py": "c4b7f45b9dd9ba2e307dbaafd77610573c344cea8c40cc0861557e7c7d707b09",
+    "docs/decisions/1070-fixed-connector-geometry.md": "701ce6eb52ee5c34f30e8f7fffb05535eb2dbddce1ad1263b7b146a067eb9130",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/README.md": "cd7363bec6a7e6b8e691178eb8f63ba43d44fae7b7223bdbf9e367558a926510",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/reproduce.py": "9a11af7b1e52f95848fb24e490155188cc8adf2d64cb61a94e335351ab9b252f",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-spec.json": "9491b74a405ec0e805d36399ec9565c92b0e679d1edcb13b4f996109dc24cae6",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-native.json": "2445582e39e66241a19ef622cf9057a86bcdebe1ddb2e705368642e7ff9aec96",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/capture-native.log": "a14ac3f23027f1f33646ba034357645cfde3b2ac7566f30c14d1d4948fc3fe58",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/verification.json": "fd825eea980149434c1c61f2b895b39ec70e5ce611bfa077d146ff0affb908e0",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/verification.log": "cce30bfd789ce25561c8d27ffe5ebb689fa341908446a0e66e4e0e623e58a3d2",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/tests.log": "86a57a003eeb1aab1a1b18ef2e1dbc8325062013c7e665f4b0bfcf4649b3d7c3",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/analyzer.log": "4149412bf2bc9a0c789283f8568f060c85bc89a8abcac221bba1a021b522df15",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/analyzer.json": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/stage-props.log": "84fb5ca80e891ac1acfb9b33c4f5fc4d9c0923de8f655e1a02ff0e0dcb265d1e",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/import.log": "6d10d433ce64b7b9b45f47dca299d528e32025660dea04e50dcb1c4aedb74a10",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/import-props.log": "acee645afe8a77e008a92b2eb347bc017720f5ba5e981a2adfc2b0bc6796c5a8",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-cylinder-refusal/README.md": "eb6b376aed0fc7f6c1a56517fb20128836ff27b4ae6d90abf7e51179ac0bf0f1",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-cylinder-refusal/capture-native.json": "98e2d316b72368a72a15e21549ff2d2cb1580f749a5977a26a6080ff04d7e180",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-cylinder-refusal/capture-native.log": "b924ff920ac803e6c23ad250b56d31e5390ae81054f3bc9ba6da1e568f9496e7",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-cylinder-refusal/capture-spec.json": "8123e0c418f228036d0a4e0fa51a2639aecb556480e11a32d9f7fac187da7cea",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/README.md": "8e93c245b366e840a296fe7e150bcb5800a289679ee43638e2bbdad9bfc58d94",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/capture-native.json": "68363879a389eefd9b34e1c45c9f57b5bb5266979eac390af5c270536a70b25d",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/capture-native.log": "a14ac3f23027f1f33646ba034357645cfde3b2ac7566f30c14d1d4948fc3fe58",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/capture-spec.json": "fd80a2494220622e4222f9cfa91c41cdd0ac9373d68d4e7312311db5b7664ce9",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/source-evidence.json": "2ba2ccb0feb62a38b6308de7dd03a4580e279a77e16739fefdac92aad836dcbc",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/verification.json": "10e2c07abbb20acc0318961c7cf2c70f113a00a61f66e4afc2f9c51e923c691d",
+    "docs/design/underground-planning/evidence/modular-build/profiles/runtime/historical-warmup-refusal/verification.log": "cce30bfd789ce25561c8d27ffe5ebb689fa341908446a0e66e4e0e623e58a3d2"
+  },
+  "verification": "verification.json",
+  "rejected_history": [
+    "historical-cylinder-refusal",
+    "historical-warmup-refusal"
+  ],
+  "qualified_profile_count": 0
+}

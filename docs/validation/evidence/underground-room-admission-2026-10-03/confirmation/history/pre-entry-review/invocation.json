@@ -1,0 +1,58 @@
+{
+  "base_commit": "34fcd79b",
+  "setup": "Own demo/assets absent; deleted own godot/.godot and performed clean headless editor import before all reported suites.",
+  "import": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  "runner": "Each actual singleton shard used unchanged ./tools/run_tests.sh --shard <index>/<discovered count> --output-dir /tmp/ug1083-room-iteration1; shard records retained.",
+  "suites": {
+    "test_underground_room_orders": [
+      20,
+      798,
+      0
+    ],
+    "test_underground_furniture_work": [
+      15,
+      4628,
+      0
+    ],
+    "test_underground_space_owner": [
+      49,
+      812,
+      0
+    ],
+    "test_buildings_spatial": [
+      21,
+      434,
+      0
+    ],
+    "test_entity_directory_candidate": [
+      11,
+      358,
+      0
+    ]
+  },
+  "total": [
+    116,
+    7030,
+    0
+  ],
+  "analyzer": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "godot/scripts/core/underground_room_orders.gd",
+    "godot/test/test_underground_room_orders.gd",
+    "godot/test/test_underground_furniture_work.gd",
+    "--max",
+    "0",
+    "--port",
+    "6156"
+  ],
+  "selection_correction": "After the first four successful suites, the local orchestration helper requested nonexistent test_entity_directory_candidates.gd and exited with StopIteration. It selected no engine suite for that filename. Corrected to actual test_entity_directory_candidate.gd and ran that singleton once; all five actual suites have zero failures/diagnostics/leaks.",
+  "production_qualification": "Synthetic terrain/profile/cut-map/hole/shared-memory permission only. Real Directory/Buildings/Space/Construction/Inventory/Jobs/Work/Gear/Funding owners and actual atomic source publication. No live demo activation, composed save or native performance qualification."
+}

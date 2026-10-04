@@ -1,0 +1,38 @@
+{
+ "scripts/core/underground_routes.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local variable \"revision\" is shadowing an already-declared function at line 744 in the current class.",
+   "range": {
+    "end": {
+     "character": 13,
+     "line": 769
+    },
+    "start": {
+     "character": 5,
+     "line": 769
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "scripts/core/underground_space_owner.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_installation_context\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 25,
+     "line": 222
+    },
+    "start": {
+     "character": 4,
+     "line": 222
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

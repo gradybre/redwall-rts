@@ -1,0 +1,13 @@
+  mole_pick               1150 tris (small_prop, decimate), 512 px, 1.6 s
+  item_turnip             1149 tris (small_prop, decimate), 512 px, 9.7 s
+  item_radish             1149 tris (small_prop, decimate), 512 px, 11.1 s
+  item_carrot             1146 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 14.6 s
+  item_beetroot           1150 tris (small_prop, decimate), 512 px, 14.7 s
+  item_onion              1149 tris (small_prop, decimate), 512 px, 14.8 s
+  item_peas               1150 tris (small_prop, decimate), 512 px, 7.9 s
+  item_celery             1148 tris (small_prop, decimate), 512 px, 14.7 s
+  item_oats               1138 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 18.9 s
+  item_barley              982 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 19.5 s
+  item_leek               1069 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 39.4 s
+  item_lettuce            1126 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 31.7 s
+make_demo_props: 12 keys -> /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets; 0 failed

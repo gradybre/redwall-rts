@@ -1,0 +1,14 @@
+test_current_source_and_ledger_pass (__main__.StaleCensusTests) ... ok
+test_internally_balanced_old_loss_row_refuses_actual_source (__main__.StaleCensusTests) ... ok
+test_live_growth_counted_twice_refuses (__main__.StaleCensusTests) ... ok
+test_missing_historical_trail_step_refuses (__main__.StaleCensusTests) ... ok
+test_old_owner_schema_refuses (__main__.StaleCensusTests) ... ok
+test_omitted_cold_image_refuses (__main__.StaleCensusTests) ... ok
+test_stale_headroom_refuses (__main__.StaleCensusTests) ... ok
+test_three_domain_source_refuses (__main__.StaleCensusTests) ... ok
+test_unaccounted_fifth_domain_refuses (__main__.StaleCensusTests) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 5.445s
+
+OK

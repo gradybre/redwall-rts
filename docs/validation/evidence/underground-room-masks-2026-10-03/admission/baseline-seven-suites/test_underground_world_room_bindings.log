@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 120 modules, 596 rows, 963 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_world_room_bindings.gd
+  PASS  test_exact_section_and_fine_mask_are_delegated_without_changing_physical_state
+  PASS  test_terrain_identity_is_the_actual_configured_source_without_new_permission
+  PASS  test_binding_requires_exact_composer_and_actual_provider_at_quiescence
+  PASS  test_missing_provider_or_wrong_phase_never_returns_a_prior_room_result
+  PASS  test_mask_callback_expiry_discards_output_and_preserves_foreign_replacement_lease
+  PASS  test_section_callback_expiry_discards_even_a_successfully_resolved_floor
+  PASS  test_nested_mask_and_composition_cannot_clear_outer_output_or_grow_a_second_survey
+  PASS  test_expired_weak_provider_refuses_without_recreating_or_retaining_it
+CI_SUITE_TIME {"assertions":83,"failures":0,"suite":"test_underground_world_room_bindings.gd","tests":8,"usec":2369842}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 83 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 83 assertions, 0 failures.

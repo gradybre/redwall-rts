@@ -1,0 +1,38 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.63,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "97/369",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/contacts-review-fix-2"
+      ],
+      "exit_code": 1,
+      "seconds": 14.074,
+      "log": "test_underground_connector_contacts.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-connector-contacts",
+  "project_test_sha256": "6a2f8e7fa0672bce7bac874aa96f55f0580f23c2d94783762e93b0dc4278e71d",
+  "assets_present_before": false,
+  "error": "test_underground_connector_contacts.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

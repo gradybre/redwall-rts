@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "image_sha256": "fa84815a4b9cb10c4126a341475122fa3e89e0ac2c53b434921424fe598321d2",
+  "source_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "topology_sha256": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+  "verified_source_files": 537,
+  "clips": {
+    "6": {
+      "clear": true,
+      "unresolved": [],
+      "checks": 545322,
+      "pairs": 545294,
+      "body_triangles": 9761,
+      "intentional_grip_triangles": 448,
+      "tool_triangles": 1150,
+      "intervals": 36
+    },
+    "7": {
+      "clear": true,
+      "unresolved": [],
+      "checks": 189935,
+      "pairs": 189935,
+      "body_triangles": 9761,
+      "intentional_grip_triangles": 448,
+      "tool_triangles": 1150,
+      "intervals": 30
+    }
+  },
+  "source_scope": "all body except wholly authored palm-grip triangles",
+  "production_qualified": false,
+  "producer_sources": {
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "e88d2e851633d1acea7072dac33cabbaa0ae765a9bfd52cb22e67ab36f166f34",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/compile_profiles.py": "0e5dab6d43f2651f1e55c2017a8c1976fc195b739d519067f65f5f88a4bd555d",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  }
+}

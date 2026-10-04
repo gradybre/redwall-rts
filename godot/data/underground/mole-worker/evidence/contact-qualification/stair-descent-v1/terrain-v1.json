@@ -1,0 +1,1049 @@
+{
+  "schema": 1,
+  "content_sha256": "8072e8bf1be6aa2695bf1ad800c5b07485987acbad96491eb5d67e5e85ad533c",
+  "clips": [
+    {
+      "rise_u": -128,
+      "clear": false,
+      "unresolved": [
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 1714,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 1715,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 1716,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 1717,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 1718,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 2890,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 2891,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4394,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4395,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4396,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4397,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4567,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4568,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4624,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4625,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4626,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4627,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4670,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4716,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4717,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4718,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4868,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4869,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 4870,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 5037,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 28,
+          "triangle": 5038,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 29,
+          "triangle": 1708,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 29,
+          "triangle": 1710,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 29,
+          "triangle": 1714,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 29,
+          "triangle": 1715,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 29,
+          "triangle": 1716,
+          "section": 0
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 29,
+          "triangle": 1717,
+          "section": 0
+        }
+      ],
+      "supports": [
+        {
+          "interval": 0,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            99,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              13082526613803141937,
+              75557863725914323419136
+            ],
+            [
+              245451980545838760329,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 1,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            99,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              245451980545838760329,
+              151115727451828646838272
+            ],
+            [
+              44077978629430186583,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 2,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            101,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              44077978629430186583,
+              18889465931478580854784
+            ],
+            [
+              46592985036213240851,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 3,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            103,
+            93
+          ],
+          "exact_source_gap_u": [
+            [
+              46592985036213240851,
+              18889465931478580854784
+            ],
+            [
+              103860998155832865927,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 4,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            105,
+            94
+          ],
+          "exact_source_gap_u": [
+            [
+              103860998155832865927,
+              37778931862957161709568
+            ],
+            [
+              18059363590780534263,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 5,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            108,
+            94
+          ],
+          "exact_source_gap_u": [
+            [
+              18059363590780534263,
+              9444732965739290427392
+            ],
+            [
+              35321951770417109729,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 6,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            111,
+            95
+          ],
+          "exact_source_gap_u": [
+            [
+              35321951770417109729,
+              18889465931478580854784
+            ],
+            [
+              9326998945780530395,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 7,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            114,
+            96
+          ],
+          "exact_source_gap_u": [
+            [
+              9326998945780530395,
+              4722366482869645213696
+            ],
+            [
+              9326994547734019291,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 8,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            116,
+            96
+          ],
+          "exact_source_gap_u": [
+            [
+              9326994547734019291,
+              4722366482869645213696
+            ],
+            [
+              9326987950664252635,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 9,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            119,
+            96
+          ],
+          "exact_source_gap_u": [
+            [
+              9326987950664252635,
+              4722366482869645213696
+            ],
+            [
+              9326982453106113755,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 10,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            121,
+            96
+          ],
+          "exact_source_gap_u": [
+            [
+              9326982453106113755,
+              4722366482869645213696
+            ],
+            [
+              9322643989065694427,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 11,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            123,
+            96
+          ],
+          "exact_source_gap_u": [
+            [
+              9322643989065694427,
+              4722366482869645213696
+            ],
+            [
+              9322637391995927771,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 12,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            125,
+            96
+          ],
+          "exact_source_gap_u": [
+            [
+              9322637391995927771,
+              4722366482869645213696
+            ],
+            [
+              9322630794926161115,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 13,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            125,
+            95
+          ],
+          "exact_source_gap_u": [
+            [
+              9322630794926161115,
+              4722366482869645213696
+            ],
+            [
+              9322623098344766683,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 14,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            125,
+            94
+          ],
+          "exact_source_gap_u": [
+            [
+              9322623098344766683,
+              4722366482869645213696
+            ],
+            [
+              9322616501275000027,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 15,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            131,
+            94
+          ],
+          "exact_source_gap_u": [
+            [
+              9322616501275000027,
+              4722366482869645213696
+            ],
+            [
+              9223188896357088475,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 16,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -72,
+            141,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              9223188896357088475,
+              4722366482869645213696
+            ],
+            [
+              9331265941565144283,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 17,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            142,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              9331265941565144283,
+              4722366482869645213696
+            ],
+            [
+              9331259344495377627,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 18,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            143,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331259344495377627,
+              4722366482869645213696
+            ],
+            [
+              9331252747425610971,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 19,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            143,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331252747425610971,
+              4722366482869645213696
+            ],
+            [
+              9331246150355844315,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 20,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            143,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331246150355844315,
+              4722366482869645213696
+            ],
+            [
+              9331240652797705435,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 21,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            143,
+            90
+          ],
+          "exact_source_gap_u": [
+            [
+              9331240652797705435,
+              4722366482869645213696
+            ],
+            [
+              9331234055727938779,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 22,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            143,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331234055727938779,
+              4722366482869645213696
+            ],
+            [
+              9331229657681427675,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 23,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -70,
+            142,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331229657681427675,
+              4722366482869645213696
+            ],
+            [
+              9331224160123288795,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 24,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -73,
+            139,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331224160123288795,
+              4722366482869645213696
+            ],
+            [
+              9331219762076777691,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 25,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            130,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9331219762076777691,
+              4722366482869645213696
+            ],
+            [
+              9223131721752444123,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 26,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            124,
+            91
+          ],
+          "exact_source_gap_u": [
+            [
+              9223131721752444123,
+              4722366482869645213696
+            ],
+            [
+              9223129522729188571,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 27,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            119,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              9223129522729188571,
+              4722366482869645213696
+            ],
+            [
+              9223127323705933019,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 28,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            116,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              9223127323705933019,
+              4722366482869645213696
+            ],
+            [
+              9223125124682677467,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 29,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            113,
+            92
+          ],
+          "exact_source_gap_u": [
+            [
+              9223125124682677467,
+              4722366482869645213696
+            ],
+            [
+              9223125124682677467,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        }
+      ],
+      "checks": 512,
+      "pairs": 227,
+      "numerical_contact_pairs": 191,
+      "stopped_at_witness_limit": true,
+      "production_qualified": false
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "8331fa19a5c5f52dfe8157a23ab0dbf6d1ba304e294121b602321aadf7f9c065",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v1/mole-worker.ugactor": "8072e8bf1be6aa2695bf1ad800c5b07485987acbad96491eb5d67e5e85ad533c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v1/candidate.json": "07acf8d519be1316da278a9a43190c6cbfa38bd57d50e81b20595955c7560c6f"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "scope": "source-local yaw0 affine triangle/deck proof, explicit foot-phase support and retained native arithmetic error; not actor/tool self-clearance, actual mover, entry/retreat, paid geometry or travel permission",
+  "production_qualified": false
+}

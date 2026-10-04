@@ -1,0 +1,20 @@
+{
+ "tools/capture_underground_transitions.gd": [
+  {
+   "code": 0,
+   "message": "Could not resolve super class path \"res://tools/capture_underground_profiles.gd\".",
+   "range": {
+    "end": {
+     "character": 0,
+     "line": 503
+    },
+    "start": {
+     "character": 0,
+     "line": 0
+    }
+   },
+   "severity": 1,
+   "source": "gdscript"
+  }
+ ]
+}

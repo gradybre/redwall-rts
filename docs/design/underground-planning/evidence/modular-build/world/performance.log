@@ -1,0 +1,9 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+WORLD-PREVIEW-PERF cells=4096 median_usec=10798 max_usec=10845
+WORLD-PREVIEW-PERF cells=16384 median_usec=43624 max_usec=45001
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

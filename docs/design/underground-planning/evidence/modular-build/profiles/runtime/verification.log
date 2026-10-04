@@ -1,0 +1,2 @@
+capture input: 47 cases; 522 exact source pins; 3 explicit clip gaps; no production permission
+capture verified: 47 cases; 3736 sampled poses; 107040 exact observed native matrix checks; 0 unexpected diagnostics/leaks; 0 qualified

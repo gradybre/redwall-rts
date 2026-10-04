@@ -1,0 +1,11 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-tnvy10w7
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 1
+SCRIPT ERROR: Assertion failed: only a preflighted transaction may publish
+  FAIL  test_future_furniture_batch_seals_under_real_joint_sparse_capacities
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":3217,"failures":1,"suite":"test_underground_space_owner.gd","tests":72,"usec":3794033}
+72 test(s), 3217 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+error: 1 failing test(s).
+assets restored True

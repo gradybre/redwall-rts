@@ -1,0 +1,32 @@
+test_clean_complete_mocked_sequence_passes (__main__.GripRunner) ... import 0
+native 0
+analyzer 0
+ok
+test_dangling_output_symlink_refuses_before_resolution (__main__.GripRunner) ... ok
+test_deleted_source_is_recorded_and_refused (__main__.GripRunner) ... verified 731 poses 1575 assertions; production qualified=0
+import 0
+native 0
+analyzer 0
+ok
+test_existing_bundle_refuses_without_modifying_it (__main__.GripRunner) ... ok
+test_final_zero_exit_with_unexpected_diagnostics_refuses (__main__.GripRunner) ... import 0
+native 0
+analyzer 0
+ok
+test_first_bad_diagnostic_stops_before_native_execution (__main__.GripRunner) ... import 0
+ok
+test_mutation_in_any_native_stage_preserves_prior_pins_and_refuses (__main__.GripRunner) ... import 0
+native 0
+analyzer 0
+import 0
+native 0
+analyzer 0
+import 0
+native 0
+analyzer 0
+ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.043s
+
+OK

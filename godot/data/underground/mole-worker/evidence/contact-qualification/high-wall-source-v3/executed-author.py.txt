@@ -1,0 +1,190 @@
+#!/usr/bin/env python3
+"""Author a distinct finite forward-wall candidate from the real overhead source. No gameplay certificate."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import importlib.util
+import json
+import math
+from pathlib import Path
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+SPEC = importlib.util.spec_from_file_location("source_clearance", HERE / "prove_self_clearance.py")
+S = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(S)
+P = S.P
+
+
+def retract_entry(case: dict, rig: dict, degrees: int) -> dict:
+    """Finite authored clavicle yaw pulls the held pick aside before its lift; original endpoints and bone lengths survive."""
+    P.require(type(degrees) is int and 0 <= degrees <= 30 and rig["bones"][16]["name"] == "RightShoulder",
+              "WALL_ENTRY_AUTHORING_SOURCE")
+    inverse_bind = P._affine64(np.asarray(rig["bones"][16]["inverse_bind"], dtype=np.float32))
+    result = dict(case, matrices=case["matrices"].copy())
+    for frame in range(1, case["frames"] - 1):
+        share = frame / (case["frames"] - 1)
+        angle = -math.radians(degrees) * math.sin(math.pi * share)
+        cosine, sine = math.cos(angle), math.sin(angle)
+        rotate = np.eye(4)
+        rotate[:3, :3] = [[cosine, 0, sine], [0, 1, 0], [-sine, 0, cosine]]
+        shoulder = P._affine64(case["matrices"][frame, 16]) @ np.linalg.inv(inverse_bind)
+        rotate[:3, 3] = shoulder[:3, 3] - rotate[:3, :3] @ shoulder[:3, 3]
+        for bone in (16, 17, 18, 19, 24):
+            transformed = rotate @ P._affine64(case["matrices"][frame, bone])
+            result["matrices"][frame, bone, :9] = transformed[:3, :3].T.reshape(-1)
+            result["matrices"][frame, bone, 9:] = transformed[:3, 3]
+    result["entry_recipe"] = {"id": "high_wall_clavicle_retraction_v1", "maximum_yaw_degrees": degrees,
+                              "pivot": "actual RightShoulder origin", "curve": "negative sin(pi*share)",
+                              "changed_bones": [16, 17, 18, 19], "tool": "same full transform around same pivot",
+                              "endpoints": "exact original matrices", "foot_and_grounding": "unchanged"}
+    return result
+
+
+def plane_portion(case: dict, part: dict, topology: list, offset: int, roots: list[int], plane_u: int,
+                  forward: bool = True) -> list[int] | None:
+    """Retain every moving triangle portion on one side of the exact candidate Z plane."""
+    count = max(1, part["binds"])
+    matrices = case["matrices"][:, offset:offset+count]
+    complete = P._vertex_hulls(part, matrices, case["grounding"])
+    padding, _ = P._residual_padding(part, matrices, case["grounding"], roots, complete)
+    endpoints = [P._vertex_hulls(part, matrices[frame:frame+1], case["grounding"][frame:frame+1])
+                 for frame in range(case["frames"])]
+    portions = []
+    threshold = plane_u * (P.SCALE // 1024)
+    for frame in range(case["frames"] - 1):
+        for surface, indices in enumerate(topology):
+            low = np.stack([endpoints[frame][surface][0], endpoints[frame+1][surface][0]]) - padding
+            high = np.stack([endpoints[frame][surface][1], endpoints[frame+1][surface][1]]) + padding
+            low, high = low[:, :, [0, 2, 1]].copy(), high[:, :, [0, 2, 1]].copy()
+            low[:, :, 1] -= threshold
+            high[:, :, 1] -= threshold
+            if not forward:
+                low[:, :, 1], high[:, :, 1] = -high[:, :, 1].copy(), -low[:, :, 1].copy()
+            value = P.clipped_triangle_floor(low, high, indices)
+            if value is None:
+                continue
+            if forward:
+                portions.append([value[0], value[2], value[1] + threshold,
+                                 value[3], value[5], value[4] + threshold])
+            else:
+                portions.append([value[0], value[2], threshold - value[4],
+                                 value[3], value[5], threshold - value[1]])
+    if not portions:
+        return None
+    values = np.array(portions, dtype=np.int64)
+    return P.outward_units(values[:, :3].min(axis=0), values[:, 3:].max(axis=0))
+
+
+def point_crossing(case: dict, part: dict, roots: list[int], plane_u: int) -> dict:
+    """Bound the genuine source-tip crossing patch, preserving all normal and tangential numerical uncertainty."""
+    matrices = case["matrices"][:, 24:25]
+    raw = P._vertex_hulls(part, matrices, case["grounding"])
+    padding, residual = P._residual_padding(part, matrices, case["grounding"], roots, raw)
+    source = [Fraction(float(value)) for value in part["geometry"][0]["points"][148]]
+    ideal = []
+    for frame in (12, 13):
+        matrix = matrices[frame, 0]
+        position = [sum(source[axis] * Fraction(float(matrix[axis * 3 + out])) for axis in range(3)) +
+                    Fraction(float(matrix[9 + out])) for out in range(3)]
+        position[1] += Fraction(float(case["grounding"][frame]))
+        ideal.append(position)
+    plane = Fraction(plane_u, 1024)
+    # The ideal endpoint is evaluated exactly below, so it needs no added
+    # fixed-point sampling margin. Keep the full already derived native error.
+    errors = [Fraction(int(value), P.SCALE) for value in padding]
+    P.require(ideal[0][2] - errors[2] > plane and ideal[1][2] + errors[2] < plane, "WALL_TIP_NO_CROSSING")
+    delta = ideal[0][2] - ideal[1][2]
+    shares = [(ideal[0][2] - plane - errors[2]) / delta,
+              (ideal[0][2] - plane + errors[2]) / delta]
+    P.require(0 < shares[0] <= shares[1] < 1, "WALL_TIP_CROSSING_RANGE")
+    low, high = [], []
+    for axis in (0, 1):
+        ends = [(1 - share) * ideal[0][axis] + share * ideal[1][axis] for share in shares]
+        low.append((min(ends) - errors[axis]) * 1024)
+        high.append((max(ends) + errors[axis]) * 1024)
+    patch = [low[0].numerator // low[0].denominator, low[1].numerator // low[1].denominator, plane_u,
+             -(-high[0].numerator // high[0].denominator), -(-high[1].numerator // high[1].denominator), plane_u]
+    share = (ideal[0][2] - plane) / delta
+    anchor = [round(((1 - share) * ideal[0][axis] + share * ideal[1][axis]) * 1024) for axis in range(3)]
+    return {"vertex": 148, "source_frame_pair": [42, 43], "clip_frame_pair": [12, 13],
+            "anchor_u": anchor, "patch_u": patch, "residual_m": residual,
+            "endpoint_ideal_m": [[P.envelope.fraction_record(value) for value in row] for row in ideal],
+            "share_range": [P.envelope.fraction_record(value) for value in shares],
+            "source_point_f32_m": [float(value) for value in source]}
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("analysis", type=Path)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--entry-yaw-degrees", type=int, default=0)
+    args = parser.parse_args()
+    P.require(not args.out.exists() and not args.out.is_symlink(), "WALL_SOURCE_OUTPUT_EXISTS")
+    invocation = json.loads((args.analysis / "invocation.json").read_text())["command"]
+    def value(key):
+        return invocation[invocation.index("--" + key) + 1]
+    proof = P.content.read_json(Path(value("proof")), value("proof-sha256"))
+    source_plan = P.content.read_json(Path(value("plan")), value("plan-sha256"), 65536)
+    original, _, pins = P.content.extract(Path(value("source")), value("source-sha256"), proof, source_plan,
+                                         Path(value("import-archive")))
+    geometry = original[0]["geometry"]
+    topology = P.read_topology(Path(value("topology")), value("topology-sha256"), value("content-sha256"), geometry)
+    native = P.content.read_json(Path(value("topology")), value("topology-sha256"), P.MAX_TOPOLOGY_BYTES)
+    parent_image = args.analysis / "result/mole-worker.ugactor"
+    parent_hash = P.content.file_hash(parent_image)
+    P.require(parent_hash == json.loads((args.analysis / "result/compilation.json").read_text())["content_sha256"],
+              "WALL_PARENT_SOURCE")
+    decoded = S.read_image(parent_image, parent_hash, geometry)
+    cases = []
+    for index, row in enumerate(decoded):
+        template = original[index] if index < 6 else original[-1]
+        case = dict(template, **row)
+        case.update(id=f"mole_wall_source.clip{index}", source_duration_s=Fraction(row["frames"] - 1, 30),
+                    source_loop_mode=int(index < 7))
+        cases.append(case)
+    frames = list(range(14)) + list(range(12, -1, -1))
+    cases[6] = P.indexed_sequence(cases[6], frames, "mole_digger.high_wall.source30_43_retrace_v1", True)
+    cases[7] = retract_entry(cases[7], native["rig_binding"], args.entry_yaw_degrees)
+    cases[8] = P.indexed_sequence(cases[7], list(range(cases[7]["frames"] - 1, -1, -1)),
+                                  "mole_digger.high_wall.recovery_v1", False)
+    frame_indices = [30 + frame for frame in frames]
+    roots = source_plan["world_root_bounds_u"]
+    face = -536
+    report = {"schema": 1, "source": parent_hash, "source_frame_indices": frame_indices,
+              "candidate_face_z_u": face, "candidate_target_course_y_u": [1024, 2048],
+              "actual_support": "NOT AUTHORED/ADMITTED; engineering fixture only",
+              "tip": point_crossing(cases[6], geometry[1], roots, face), "portions": {},
+              "entry_recipe": cases[7]["entry_recipe"], "verified_source_files": pins, "production_qualified": False}
+    for key, case in (("work", cases[6]), ("entry", cases[7])):
+        report["portions"][key] = [{"kind": part["kind"], "forward": plane_portion(case, part, topology[index],
+            0 if index == 0 else 24, roots, face), "behind": plane_portion(case, part, topology[index],
+            0 if index == 0 else 24, roots, face, False)} for index, part in enumerate(geometry)]
+    report["producer_sources"] = {str(Path(path).relative_to(P.ROOT)): P.content.file_hash(Path(path))
+                                   for path in (__file__, S.__file__, P.__file__, P.content.__file__, P.envelope.__file__)}
+    plan = dict(source_plan, revision=source_plan["revision"] + 2,
+                clips=[case["id"] for case in cases], scope="Unqualified authored front-wall motion candidate")
+    recipe = {"parent_image_sha256": parent_hash, "source_frame_indices": frame_indices,
+              "entry_recipe": cases[7]["entry_recipe"],
+              "producer_sha256": P.content.file_hash(Path(__file__))}
+    encoded_recipe = json.dumps(recipe, sort_keys=True).encode()
+    encoded_plan = json.dumps(plan, sort_keys=True).encode()
+    encoded_report = (json.dumps(report, indent=2) + "\n").encode()
+    image, budget = P.content.encode(cases, plan, proof, hashlib.sha256(encoded_recipe).hexdigest(),
+                                     hashlib.sha256(encoded_report).hexdigest(), hashlib.sha256(encoded_plan).hexdigest())
+    args.out.mkdir(parents=True)
+    (args.out / "candidate.json").write_bytes(encoded_report)
+    (args.out / "source-recipe.json").write_bytes(encoded_recipe + b"\n")
+    (args.out / "preview-plan.json").write_bytes(encoded_plan + b"\n")
+    (args.out / "mole-worker.ugactor").write_bytes(image)
+    (args.out / "compilation.json").write_text(json.dumps({"content_sha256": hashlib.sha256(image).hexdigest(),
+        "content_bytes": len(image), "presentation_budget": budget, "production_qualified": False,
+        "source_frame_indices": frame_indices, "rig_entry": True}, indent=2) + "\n")
+    print(json.dumps({"tip": report["tip"], "portions": report["portions"]}, indent=2))
+
+
+if __name__ == "__main__":
+    main()

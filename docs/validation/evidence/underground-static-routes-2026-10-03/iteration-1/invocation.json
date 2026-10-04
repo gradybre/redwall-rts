@@ -1,0 +1,60 @@
+{
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 7.139,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "122/352",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-static-routes-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.83,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "87/352",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-static-routes-2026-10-03/iteration-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.525,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6198",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/test/test_underground_world_routes.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.144,
+      "log": "analyzer.log"
+    }
+  ],
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

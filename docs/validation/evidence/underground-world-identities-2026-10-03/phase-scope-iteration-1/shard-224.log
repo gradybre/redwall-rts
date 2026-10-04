@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_world_identities.gd
+  PASS  test_empty_registered_kitchen_has_identity_without_service_or_physical_permission
+  PASS  test_unregistered_stale_and_changed_purpose_rooms_refuse
+  PASS  test_live_surface_room_cannot_be_borrowed_as_an_underground_room
+  PASS  test_actual_job_assignment_is_read_live_and_released_without_retaining_previous_worker
+  PASS  test_wrong_site_job_generation_and_requester_cannot_supply_an_assignment
+  PASS  test_worker_generation_and_reciprocal_agent_mirror_are_mandatory
+  PASS  test_retired_world_and_unbound_composer_never_return_room_or_worker_identity
+  PASS  test_structural_scope_requires_the_exact_operation_stage_and_full_site_room
+  PASS  test_replacement_cold_scope_cannot_reuse_old_operation_or_token
+CI_SUITE_TIME {"assertions":131,"failures":0,"suite":"test_underground_world_identities.gd","tests":9,"usec":2471332}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+9 test(s), 131 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 9 tests, 131 assertions, 0 failures.

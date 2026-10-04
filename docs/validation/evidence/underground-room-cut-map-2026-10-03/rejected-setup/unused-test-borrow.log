@@ -1,0 +1,3 @@
+error: more than the allowed 0 warning(s)
+test/test_excavation_physical.gd:1205: (UNUSED_VARIABLE): The local variable "original" is declared but never used in the block. If this is intended, prefix it with an underscore: "_original".
+1 GDScript warning(s) in 1 of 6 file(s)

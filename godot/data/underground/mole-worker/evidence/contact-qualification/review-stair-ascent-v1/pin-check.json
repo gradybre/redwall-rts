@@ -1,0 +1,22 @@
+{
+  "source_files": 12,
+  "output_files": 94,
+  "historical_files": 146,
+  "native_closure_files": 552,
+  "equal_pre_post": true,
+  "current_native_pin_mismatches": [],
+  "raw_diagnostics": {
+    "import.log": {
+      "error_lines": 0,
+      "warning_lines": 0,
+      "leak_lines": 0
+    },
+    "native.log": {
+      "error_lines": 0,
+      "warning_lines": 0,
+      "leak_lines": 0
+    }
+  },
+  "anatomy_exact_reproduction": true,
+  "production_qualified": false
+}

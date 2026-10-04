@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 215, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 202, in main
+    results = {str(clip): prove(cases[clip], original[0]["geometry"], topology, native["rig_binding"],
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 175, in prove
+    if not separated(alo[body], ahi[body], blo[tool], bhi[tool], counter):
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py", line 88, in separated
+    require(counter[0] <= MAX_CHECKS, "SELF_CHECK_CAPACITY")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: SELF_CHECK_CAPACITY

@@ -1,0 +1,34 @@
+state_registry_coverage: PASS -- 111 modules, 532 rows, 925 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_entity_directory_candidate.gd
+  PASS  test_peek_is_read_only_and_publish_matches_every_observed_identity_field
+  PASS  test_numeric_foreign_candidate_cannot_publish_in_an_identical_directory
+  PASS  test_expired_owner_and_null_packets_never_qualify
+  PASS  test_intervening_allocation_then_retirement_does_not_resurrect_a_candidate
+  PASS  test_tampered_identity_row_pid_and_invalid_kind_refuse_before_writes
+  PASS  test_changed_typed_root_is_rechecked_even_with_matching_global_identity
+  PASS  test_unrelated_retirement_does_not_invalidate_unchanged_actual_choices
+  PASS  test_capacity_invalid_kind_and_exhausted_pid_peeks_reset_only_the_packet
+  PASS  test_candidate_respects_living_cap_after_an_intervening_resident
+  PASS  test_final_generation_and_pid_are_used_once_without_wrapping
+  PASS  test_reset_packet_releases_no_capacity_and_cannot_publish
+CI_SUITE_TIME {"assertions":358,"failures":0,"suite":"test_entity_directory_candidate.gd","tests":11,"usec":563579}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 358 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 11 tests, 358 assertions, 0 failures.

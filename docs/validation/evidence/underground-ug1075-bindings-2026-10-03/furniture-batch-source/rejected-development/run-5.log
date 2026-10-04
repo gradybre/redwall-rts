@@ -1,0 +1,15 @@
+/var/folders/sr/s947m4s53j199jxj4qrxbtm40000gn/T/ug1075-check-zpbys1jz
+import exit 0 diagnostics []
+test_underground_space_owner.gd exit 0
+CI_SUITE_TIME {"assertions":3185,"failures":0,"suite":"test_underground_space_owner.gd","tests":69,"usec":3594353}
+69 test(s), 3185 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 69 tests, 3185 assertions, 0 failures.
+test_construction_furniture_batches.gd exit 0
+CI_SUITE_TIME {"assertions":523,"failures":0,"suite":"test_construction_furniture_batches.gd","tests":18,"usec":1261859}
+18 test(s), 523 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 18 tests, 523 assertions, 0 failures.
+assets restored True

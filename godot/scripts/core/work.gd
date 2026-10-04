@@ -139,14 +139,10 @@ extends RefCounted
 ## this reason: the shares must be FINAL before wear is preflighted against them, and it mutates
 ## nothing but this store's own per-tick scratch.
 ##
-## WHAT IS NOT ENFORCED HERE, AND WHY -- named, not papered over. A Job row carries §5.3's tool
-## gate (`jobs.tool_gate_of()`), which is what says whether a job requires a tool at all. This
-## file does NOT read it on the productive tick, because that reader allocates an `IntResult` per
-## call and `jobs.gd` publishes no `_into` form of it; adding one is that module's owner's change,
-## not this one's. The consequence is exact and is the caller's obligation until then: a
-## tool-required job whose worker holds NO binding produces work and wears nothing. What IS
-## enforced is everything about a binding that exists -- it must belong to this job, its tool must
-## be this resident's own equipped tool, and a tool worn to 0 stops that contributor.
+## TOOL-REQUIRED WORK rechecks Jobs' non-allocating tool gate on every productive tick.
+## A required job without an actual equipped-tool binding cannot produce WU, XP or wear.
+## An optional typed excavation owner also preflights its bound phase's pause/input/contact
+## state and consumes the resulting real Job progress after Work commits (decision 1056).
 ##
 ## ---------------------------------------------------------------------------------------
 ## WHAT COUNTS AS A PRODUCTIVE TICK. §5.2: "travel/eating/social/sleep do not produce job
@@ -230,6 +226,8 @@ const ResidentsScript := preload("res://scripts/core/residents.gd")
 const JobsScript := preload("res://scripts/core/jobs.gd")
 const GearScript := preload("res://scripts/core/gear.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
+const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 
 # --- capacities -----------------------------------------------------------------------------
 
@@ -312,6 +310,7 @@ const REFUSE_TOOL_NOT_OWNED: StringName = &"TOOL_NOT_OWNED_BY_THIS_RESIDENT"
 const REFUSE_TOOL_BROKEN: StringName = &"TOOL_BROKEN"
 const REFUSE_TOOL_CLAIM_STALE: StringName = &"TOOL_CLAIM_BELONGS_TO_ANOTHER_JOB"
 const REFUSE_TOOL_SETTLEMENT: StringName = &"TOOL_SETTLEMENT_REFUSED"
+const REFUSE_TOOL_GATE_BLOCKED: StringName = &"TOOL_GATE_BLOCKED"
 const REFUSE_INVALID_QUANTITY: StringName = &"INVALID_QUANTITY_MILLI"
 
 
@@ -512,6 +511,11 @@ var _math: IntMath.IntResult = IntMath.IntResult.new()
 ## The gear store this module settles tool wear against, or null. Optional by design: a world with
 ## no gear store ticks exactly as it did before this integration, and every binding operation
 ## refuses GEAR_STORE_UNAVAILABLE rather than silently doing nothing.
+var _excavation_authority: WeakRef = null
+var _publishing_excavation_job: Vector2i = Vector2i(-1, 0)
+var _modular_authority: WeakRef = null
+var _publishing_modular_job: Vector2i = Vector2i(-1, 0)
+var _pending_modular_job: Vector2i = Vector2i(-1, 0)
 var _gear: GearScript = null
 ## Reused outcome for the wear debit, so a settlement tick allocates nothing. Consumed immediately
 ## inside `_charge_tool()` and never handed to a caller.
@@ -599,6 +603,7 @@ func _refuse_into(out: TickResult, code: StringName) -> bool:
 	out.remaining_mwu = 0
 	out.contributor_count = 0
 	out.completed = false
+	_discard_modular_tick()
 	return false
 
 
@@ -642,6 +647,102 @@ func needs() -> NeedsScript:
 func gear() -> GearScript:
 	"""The gear store tool wear settles against, or null while none is bound."""
 	return _gear
+
+
+func bind_excavation_authority(authority: ExcavationContract) -> OpResult:
+	"""Bind one fail-closed physical owner without retaining a Work-to-site cycle."""
+	var code: StringName = excavation_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_excavation_authority = weakref(authority)
+	return _succeed(1)
+
+
+func excavation_binding_refusal(authority: ExcavationContract) -> StringName:
+	"""Read-only preflight prevents half-binding a physical ledger across Work and Construction."""
+	return ExcavationContract.REFUSE_AUTHORITY if authority == null or _excavation_authority != null else REFUSE_NONE
+
+
+func _excavation_refusal(job_slot: int) -> StringName:
+	"""A once-bound owner disappearing is a wiring failure, never permission for free work."""
+	if _excavation_authority == null:
+		return REFUSE_NONE
+	var authority: ExcavationContract = _excavation_authority.get_ref() as ExcavationContract
+	return authority.work_tick_refusal(_jobs.ref_of(job_slot)) if authority != null else ExcavationContract.REFUSE_AUTHORITY
+
+
+func _notify_excavation(job_slot: int) -> void:
+	"""Publish only actual accepted Job progress after Work's own atomic tick succeeded."""
+	if _excavation_authority != null:
+		var authority: ExcavationContract = _excavation_authority.get_ref() as ExcavationContract
+		_publishing_excavation_job = _jobs.ref_of(job_slot)
+		authority.accept_work_tick(_publishing_excavation_job)
+		_publishing_excavation_job = Vector2i(-1, 0)
+
+
+func is_publishing_excavation_tick(job: Vector2i) -> bool:
+	"""Attest only this synchronous post-commit callback, never a manually adjusted Job counter."""
+	return job != Vector2i(-1, 0) and _publishing_excavation_job == job
+
+
+func modular_binding_refusal(authority: ModularContract) -> StringName:
+	"""Preflight the optional shared paid owner before Construction and Work bind together."""
+	return ModularContract.REFUSE_AUTHORITY if authority == null or _modular_authority != null \
+		else REFUSE_NONE
+
+
+func bind_modular_authority(authority: ModularContract) -> OpResult:
+	"""Bind once and weakly; an expired paid owner cannot be replaced to reset old authorization."""
+	var code: StringName = modular_binding_refusal(authority)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	_modular_authority = weakref(authority)
+	return _succeed(1)
+
+
+func modular_authority() -> ModularContract:
+	"""Expose only the actual live weak target; the router additionally validates world composition."""
+	return _modular_authority.get_ref() as ModularContract if _modular_authority != null else null
+
+
+func _work_owner_refusal(job_slot: int) -> StringName:
+	"""Resolve every paid-owner gate before any work carry, XP, remaining work or wear changes."""
+	var code: StringName = _excavation_refusal(job_slot)
+	if code != REFUSE_NONE or _modular_authority == null:
+		return code
+	var authority: ModularContract = modular_authority()
+	if authority == null:
+		return ModularContract.REFUSE_AUTHORITY
+	code = authority.work_tick_refusal(_jobs.ref_of(job_slot))
+	if code == REFUSE_NONE:
+		_pending_modular_job = _jobs.ref_of(job_slot)
+	return code
+
+
+func _notify_work_owners(job_slot: int) -> void:
+	"""Only actual successful Work commits open their exact synchronous paid-owner callbacks."""
+	_notify_excavation(job_slot)
+	if _modular_authority != null:
+		var authority: ModularContract = modular_authority()
+		_publishing_modular_job = _jobs.ref_of(job_slot)
+		authority.accept_work_tick(_publishing_modular_job)
+		_publishing_modular_job = Vector2i(-1, 0)
+		_pending_modular_job = Vector2i(-1, 0)
+
+
+func _discard_modular_tick() -> void:
+	"""Every refusal after a successful gate closes only that Job's prepared productive proof."""
+	if _pending_modular_job == Vector2i(-1, 0):
+		return
+	var authority: ModularContract = modular_authority()
+	if authority != null:
+		authority.discard_work_tick(_pending_modular_job)
+	_pending_modular_job = Vector2i(-1, 0)
+
+
+func is_publishing_modular_tick(job: Vector2i) -> bool:
+	"""A manually changed Job counter or a direct owner call is never accepted as labor."""
+	return job != Vector2i(-1, 0) and _publishing_modular_job == job
 
 
 func bind_gear(store: GearScript) -> OpResult:
@@ -958,6 +1059,9 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 	"""
 	if out == null:
 		return false
+	var owner_refusal: StringName = _work_owner_refusal(job_slot)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse_into(out, owner_refusal)
 	if _jobs.is_coordinator(job_slot):
 		return _refuse_into(out, REFUSE_JOB_IS_COORDINATOR)
 	if _jobs.is_member(job_slot):
@@ -971,7 +1075,10 @@ func tick_solo_into(job_slot: int, out: TickResult) -> bool:
 		return _refuse_into(out, code)
 	if _party_count == 0:
 		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
-	return _commit_into(job_slot, out)
+	if not _commit_into(job_slot, out):
+		return false
+	_notify_work_owners(job_slot)
+	return true
 
 
 func tick_party(coordinator_slot: int) -> TickResult:
@@ -996,6 +1103,9 @@ func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 	"""
 	if out == null:
 		return false
+	var owner_refusal: StringName = _work_owner_refusal(coordinator_slot)
+	if owner_refusal != REFUSE_NONE:
+		return _refuse_into(out, owner_refusal)
 	if not _jobs.is_coordinator(coordinator_slot):
 		return _refuse_into(out, REFUSE_NOT_A_COORDINATOR)
 	var code: StringName = _check_progress_row(coordinator_slot)
@@ -1006,7 +1116,10 @@ func tick_party_into(coordinator_slot: int, out: TickResult) -> bool:
 		return _refuse_into(out, code)
 	if _party_count == 0:
 		return _refuse_into(out, REFUSE_NO_CONTRIBUTORS)
-	return _commit_into(coordinator_slot, out)
+	if not _commit_into(coordinator_slot, out):
+		return false
+	_notify_work_owners(coordinator_slot)
+	return true
 
 
 func _check_progress_row(job_slot: int) -> StringName:
@@ -1057,7 +1170,8 @@ func _member_may_be_skipped(code: StringName) -> bool:
 	than as the generic "no contributing worker".
 	"""
 	return code == REFUSE_JOB_NOT_WORKING or code == REFUSE_JOB_HAS_NO_WORKER \
-		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE
+		or code == REFUSE_TOOL_BROKEN or code == REFUSE_TOOL_CLAIM_STALE \
+		or code == REFUSE_TOOL_NOT_CLAIMED or code == REFUSE_TOOL_GATE_BLOCKED
 
 
 func _begin_contributors() -> void:
@@ -1104,20 +1218,14 @@ func _offer_contributor(job_slot: int) -> StringName:
 
 
 func _tool_gate(job_slot: int, resident_slot: int) -> StringName:
-	"""REFUSE_NONE when this resident's tool binding, if any, may take this tick's work.
-
-	Three packed reads and no gear-store lookup, because this runs once per contributor per tick.
-	A resident with NO binding passes: whether the job required a tool is `jobs.gd`'s tool gate,
-	which this file cannot read per tick without allocating (see the header).
-
-	The job comparison is the FULL `(slot, generation)` pair. A worker moved to a different job
-	still holds a claim keyed on the old one, and settling that work under the old claim would bill
-	a job that no longer exists -- ECON-002's "job/worker replacement must not rebill old WU or
-	bill only the last worker". The new job must take its own claim, and the §5.7 carry survives
-	the handover because `release_tool_claim()` never touches it.
-	"""
+	"""Require actual bound equipment whenever the live Job declares a tool requirement."""
+	if not _jobs.tool_gate_into(job_slot, _math):
+		return StringName(_math.error)
+	var requirement: int = _math.value
+	if requirement == JobsScript.GATE_BLOCKED or requirement == JobsScript.GATE_UNAVAILABLE:
+		return REFUSE_TOOL_GATE_BLOCKED
 	if _tool_lot_slot[resident_slot] == NULL_SLOT:
-		return REFUSE_NONE
+		return REFUSE_NONE if requirement == JobsScript.GATE_NOT_REQUIRED else REFUSE_TOOL_NOT_CLAIMED
 	if _tool_broken[resident_slot] == 1:
 		return REFUSE_TOOL_BROKEN
 	var job_ref: Vector2i = _jobs.ref_of(job_slot)

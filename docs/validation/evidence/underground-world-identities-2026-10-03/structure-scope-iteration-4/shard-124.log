@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_phase_structure.gd
+  PASS  test_real_pack_cold_estimates_and_unbound_provider
+  PASS  test_paid_brace_protects_exact_fine_floor_and_roof
+  PASS  test_paid_cut_and_fine_finish_retain_natural_protections
+  PASS  test_identity_only_provider_readers_and_exact_scope
+  PASS  test_material_free_query_allocates_no_fragment_banks_and_checks_budget_before_handles
+  PASS  test_existing_paid_cavity_cannot_be_mistaken_for_original_natural_earth
+  PASS  test_another_confirmed_section_protects_its_footing_before_any_brace
+  PASS  test_unauthored_clear_height_is_not_silently_shortened_or_inferred
+  PASS  test_same_column_braces_reuse_room_protection_and_one_close_cannot_release_it
+  PASS  test_sealed_candidate_cannot_remove_protection_or_exact_claims
+  PASS  test_original_token_replaced_after_handles_prevents_bank_allocation_and_payment
+  PASS  test_split_support_union_passes_but_duplicate_volume_cannot_hide_a_hole
+  PASS  test_reentry_poison_refuses_outer_observation_and_clean_retry_remains_possible
+  PASS  test_late_sparse_capacity_refusal_keeps_real_paid_work_and_retries_without_double_inputs
+  PASS  test_prepared_claim_removal_refuses_without_reinterpreting_floor_envelope_as_footprint
+  PASS  test_content_and_actual_world_retirement_refuse_rebinding_or_publication
+  PASS  test_direct_start_or_commit_requires_current_actual_paid_work_phase
+  PASS  test_bad_token_mode_or_capacity_refuses_before_allocating_scope_identity_callback
+  PASS  test_scope_lifetime_is_borrowed_for_complete_run_then_expires_without_a_cycle
+CI_SUITE_TIME {"assertions":240,"failures":0,"suite":"test_underground_phase_structure.gd","tests":19,"usec":5873307}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+19 test(s), 240 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 19 tests, 240 assertions, 0 failures.

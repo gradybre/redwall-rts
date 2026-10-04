@@ -1,0 +1,63 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_save_section_01.gd
+  PASS  test_the_nine_owners_their_versions_and_their_counts_are_the_ruled_ones
+  PASS  test_only_resource_nodes_moved_to_owner_schema_two
+  PASS  test_every_wrapper_block_and_payload_offset_matches_the_ruling
+  PASS  test_the_section_arithmetic_is_the_rulings_and_the_table_agrees_with_itself
+  PASS  test_resource_nodes_declares_one_field_and_the_three_scratch_arrays_are_absent
+  PASS  test_every_declared_field_lands_at_the_rulings_count_and_value_offsets
+  PASS  test_the_section_carries_forty_four_stored_fields_and_thirty_six_records
+  PASS  test_the_encoded_section_is_exactly_the_ruled_length
+  PASS  test_the_provenance_prefix_and_store_count_sit_at_their_absolute_offsets
+  PASS  test_every_wrapper_is_pinned_at_its_absolute_offset
+  PASS  test_every_element_count_prefix_is_pinned_at_its_absolute_offset
+  PASS  test_the_two_fixed_format_payloads_carry_no_count_prefix
+  PASS  test_the_weather_block_is_one_aggregate_row_of_eight_and_two
+  PASS  test_the_mixed_grid_owners_declare_grid_primary_counts_not_singletons
+  PASS  test_the_module_declares_no_float_path
+  PASS  test_every_owner_round_trips_with_boundary_sentinels_intact
+  PASS  test_a_decoded_section_re_encodes_to_the_same_bytes
+  PASS  test_the_section_decodes_at_the_offset_a_real_file_puts_it_at
+  PASS  test_a_store_count_other_than_nine_is_refused
+  PASS  test_two_owner_keys_swapped_in_place_are_refused
+  PASS  test_a_wrong_key_byte_count_is_refused
+  PASS  test_a_wrong_owner_schema_version_is_refused_for_each_owner
+  PASS  test_a_wrong_primary_count_or_payload_length_is_refused
+  PASS  test_singleton_primary_counts_for_the_mixed_grids_are_rejected
+  PASS  test_every_element_count_prefix_must_equal_its_declared_count
+  PASS  test_a_section_one_byte_short_is_refused_rather_than_measured
+  PASS  test_a_refused_decode_leaves_the_callers_state_byte_identical
+  PASS  test_an_out_of_domain_value_is_refused_by_its_owners_own_validator
+  PASS  test_changing_only_the_deposit_scratch_changes_no_section_byte
+  PASS  test_a_placement_that_really_lands_does_change_the_section
+  PASS  test_the_resource_adapter_refuses_each_scratch_field_by_name
+  PASS  test_legacy_nine_adapters_do_not_claim_the_underground_owner
+  PASS  test_every_declared_section_one_record_is_supplied_at_its_declared_count
+  PASS  test_an_unknown_field_key_is_refused_by_every_owner_adapter
+  PASS  test_the_runtime_adapter_emits_four_records_and_never_debt
+  PASS  test_a_published_seed_must_agree_with_provenance_and_with_the_runtime
+  PASS  test_an_unpublished_map_asserts_nothing_about_the_seed
+  PASS  test_a_validated_section_restores_into_a_second_world_and_captures_identically
+  PASS  test_a_refused_restore_leaves_the_target_world_unchanged
+  PASS  test_a_restore_that_refuses_late_still_leaves_the_earlier_owners_alone
+  PASS  test_an_unbound_store_refuses_rather_than_skipping_an_owner
+CI_SUITE_TIME {"assertions":872,"failures":0,"suite":"test_save_section_01.gd","tests":41,"usec":8299543}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+41 test(s), 872 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 41 tests, 872 assertions, 0 failures.

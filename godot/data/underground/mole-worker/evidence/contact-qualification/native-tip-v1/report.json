@@ -1,0 +1,257 @@
+{
+	"assertions": 61,
+	"content_sha256": "fa84815a4b9cb10c4126a341475122fa3e89e0ac2c53b434921424fe598321d2",
+	"failures": [],
+	"native_points": [
+		{
+			"local_point_u": [
+				54.345703125,
+				152.20751953125,
+				-762.673828125
+			],
+			"share_q16": 0
+		},
+		{
+			"local_point_u": [
+				52.271484375,
+				125.71923828125,
+				-747.052734375
+			],
+			"share_q16": 8192
+		},
+		{
+			"local_point_u": [
+				50.193359375,
+				99.2314453125,
+				-731.4326171875
+			],
+			"share_q16": 16384
+		},
+		{
+			"local_point_u": [
+				48.119140625,
+				72.74267578125,
+				-715.81201171875
+			],
+			"share_q16": 24576
+		},
+		{
+			"local_point_u": [
+				46.04296875,
+				46.2548828125,
+				-700.19140625
+			],
+			"share_q16": 32768
+		},
+		{
+			"local_point_u": [
+				43.966796875,
+				19.76611328125,
+				-684.57080078125
+			],
+			"share_q16": 40960
+		},
+		{
+			"local_point_u": [
+				41.890625,
+				-6.72216796875,
+				-668.9501953125
+			],
+			"share_q16": 49152
+		},
+		{
+			"local_point_u": [
+				39.8125,
+				-33.21044921875,
+				-653.32958984375
+			],
+			"share_q16": 57344
+		},
+		{
+			"local_point_u": [
+				37.73828125,
+				-59.69873046875,
+				-637.708984375
+			],
+			"share_q16": 65536
+		}
+	],
+	"poses": 9,
+	"production_qualified": false,
+	"schema": 1,
+	"screenshots": [
+		{
+			"clip": 6,
+			"half_tick": 1114112,
+			"path": "source-tip-00.png",
+			"sha256": "91ff9461444d4510a56a09a932fcb2231beaaa983584dedc8b06f00d0e83c0c2"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1122304,
+			"path": "source-tip-01.png",
+			"sha256": "86289a39e7d6795f6eab077bc85b56a393a0c61d4977b45990cc23378d7ffb71"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1130496,
+			"path": "source-tip-02.png",
+			"sha256": "7b17fd0a080c85cc725f176cac34d4518f8cab5aa8b7bbe9ba5658aaa6c5741c"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1138688,
+			"path": "source-tip-03.png",
+			"sha256": "7c8918c6b310083cc0cca237340393dc8b7e6ec5abee01c48586524fe074d05d"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1146880,
+			"path": "source-tip-04.png",
+			"sha256": "1f79c876b5af0b225d83f0748a775d281680e98ec585e70d1e8d980e0cc725a0"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1155072,
+			"path": "source-tip-05.png",
+			"sha256": "8c19b05c9520852e457e7e2e3178a100b9a01545aa1d06fa79686290818715e3"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1163264,
+			"path": "source-tip-06.png",
+			"sha256": "c0644b6dbc517f862b365391cc1e98951193999f225666c7f79b071cd7f4609a"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1171456,
+			"path": "source-tip-07.png",
+			"sha256": "7fca30d0e598892016cdd0acd11e4301f6a1ed8a2eb22350ab89361309f3c7e4"
+		},
+		{
+			"clip": 6,
+			"half_tick": 1179648,
+			"path": "source-tip-08.png",
+			"sha256": "4ba88a31043b970d5fa68c3a41868caab1af0456e51d9e6348a7a6b3456de71c"
+		}
+	],
+	"source_tip": {
+		"clip": 6.0,
+		"contact_patch_u": [
+			-190.0,
+			0.0,
+			-678.0,
+			49.0,
+			0.0,
+			-536.0
+		],
+		"mesh_sha256": "c4029dd3ea3266e6fac9f9d5734c37925d7300020d494ca0f83529567a9a9b3a",
+		"part": 1.0,
+		"witness": {
+			"anchor_semantics": "nearest/even integer focus to exact ideal crossing; complete patch owns native trajectory uncertainty",
+			"authored_anchor_u": [
+				42.0,
+				0.0,
+				-673.0
+			],
+			"crossing_semantics": "actual endpoint enclosures lie strictly on opposite sides; complete interpolated tool envelope bounds the swept contact",
+			"endpoint_ideal_m": [
+				[
+					{
+						"denominator": 72057594037927936.0,
+						"numerator": 3824312029179839.0
+					},
+					{
+						"denominator": 1125899906842624.0,
+						"numerator": 167354235023787.0
+					},
+					{
+						"denominator": 2251799813685248.0,
+						"numerator": -1677136958112097.0
+					}
+				],
+				[
+					{
+						"denominator": 72057594037927936.0,
+						"numerator": 2655566424246827.0
+					},
+					{
+						"denominator": 2251799813685248.0,
+						"numerator": -131279141313573.0
+					},
+					{
+						"denominator": 562949953421312.0,
+						"numerator": -350584312151345.0
+					}
+				]
+			],
+			"endpoint_intervals_q24": [
+				[
+					[
+						880999.0,
+						2491987.0,
+						-12505061.0
+					],
+					[
+						899834.0,
+						2495558.0,
+						-12486227.0
+					]
+				],
+				[
+					[
+						608880.0,
+						-979890.0,
+						-10457645.0
+					],
+					[
+						627714.0,
+						-976321.0,
+						-10438809.0
+					]
+				]
+			],
+			"first_frame": 17.0,
+			"ideal_crossing_m": [
+				{
+					"denominator": 11192648708721755400272152100864.0,
+					"numerator": 463630991425086482999756718080.0
+				},
+				{
+					"denominator": 1.0,
+					"numerator": 0.0
+				},
+				{
+					"denominator": 349770272147554856258504753152.0,
+					"numerator": -229849084899215024478153080832.0
+				}
+			],
+			"ideal_crossing_share": {
+				"denominator": 155329203787049.0,
+				"numerator": 111569490015858.0
+			},
+			"last_frame": 18.0,
+			"residual_m": [
+				{
+					"denominator": 693163044041854380387019952849287488029889724952261054297029598662607928006019699915127084233494010993207773620649241849851019264.0,
+					"numerator": 388967482536551841925246024801818161573775140520212450625396774486939203028126439582587676438711561141706511790259581793337344.0
+				},
+				{
+					"denominator": 693163044041854380387019952849287488029889724952261054297029598662607928006019699915127084233494010993207773620649241849851019264.0,
+					"numerator": 73603857931212614623839030902768401803879916399521580981025295228602150284775982469512965604178911780783896482459610169475072.0
+				},
+				{
+					"denominator": 693163044041854380387019952849287488029889724952261054297029598662607928006019699915127084233494010993207773620649241849851019264.0,
+					"numerator": 388967482536551841925246024801818161573775140520212450625396774486939203028126439582587676438711561141706511790259581793337344.0
+				}
+			],
+			"source_point_f32_m": [
+				-0.631439805030823,
+				0.174077600240707,
+				-0.726004183292389
+			],
+			"vertex": 148.0
+		}
+	},
+	"world_identity": "same finite synthetic witness Domain/root; no real stance or work permission"
+}

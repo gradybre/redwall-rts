@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_recipes.gd
+  PASS  test_budget_precedes_allocation_and_exact_single_bank_census
+  PASS  test_exact_prices_reset_old_scratch_without_granting_subject_or_outputs
+  PASS  test_missing_and_foreign_variant_reads_preserve_every_quote_byte
+  PASS  test_header_hash_length_and_terminal_refusals_clear_unpublished_bank
+  PASS  test_empty_duplicate_unknown_and_hidden_materials_refuse_without_partial_bank
+  PASS  test_negative_work_quantity_and_mass_or_refund_overflow_refuse
+  PASS  test_catalog_replacement_and_profile_source_drift_invalidate_old_prices
+  PASS  test_actual_world_retirement_invalidates_price_read_without_output_writes
+  PASS  test_foreign_registration_and_late_rebinding_never_reuse_material_ids
+  PASS  test_success_is_immutable_and_frontier_metadata_never_guesses_replacement
+  PASS  test_full_256_part_bank_streams_exact_distinct_owned_rows
+  PASS  test_duplicate_or_foreign_part_rows_and_oversize_stream_refuse
+  PASS  test_source_callbacks_cannot_reenter_or_publish_after_actual_registration_rewire
+  PASS  test_actual_profile_replacement_invalidates_old_source_bound_recipe
+  PASS  test_late_source_callback_resizing_caller_quote_never_partially_resets_it
+  PASS  test_final_hash_profile_replacement_refuses_without_any_quote_write
+  PASS  test_final_hash_world_reuse_refuses_without_any_quote_write
+  PASS  test_final_source_profile_replacement_refuses_load_and_clears_bank
+  PASS  test_final_source_profile_replacement_refuses_binding_attestation
+  PASS  test_final_source_world_reuse_refuses_digest_without_caller_writes
+CI_SUITE_TIME {"assertions":869,"failures":0,"suite":"test_underground_connector_recipes.gd","tests":20,"usec":666542}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+20 test(s), 869 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 20 tests, 869 assertions, 0 failures.

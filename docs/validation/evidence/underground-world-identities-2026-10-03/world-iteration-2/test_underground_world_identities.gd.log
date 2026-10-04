@@ -1,0 +1,2 @@
+FAIL C3 underground_world_bindings.gd declares `_room_identity` with no registry row
+state_registry_coverage: 1 failure(s)

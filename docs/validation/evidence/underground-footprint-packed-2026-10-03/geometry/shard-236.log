@@ -1,0 +1,31 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_room_footprint_packed.gd
+  PASS  test_every_four_by_four_subset_matches_unchanged_contour_semantics
+  PASS  test_original_refusal_precedence_is_unchanged
+  PASS  test_signed_extremes_and_huge_sparse_spans_keep_exact_neighbors
+  PASS  test_packed_allocation_is_exact_and_invalid_requests_allocate_nothing
+  PASS  test_full_existing_capacity_and_long_staircase_do_not_inherit_477_cell_limit
+  PASS  test_repeated_rotated_and_reflected_queries_never_reuse_visited_state
+  PASS  test_multiple_holes_and_connected_corridors_match_contour_count
+ROOM_FOOTPRINT_PACKED cells=16384 packed_bytes=212992 capacity_scalar_bytes=8 four_calls_usec=97141
+  PASS  test_full_capacity_cold_timing_is_reported_without_a_budget_claim
+CI_SUITE_TIME {"assertions":196768,"failures":0,"suite":"test_room_footprint_packed.gd","tests":8,"usec":1990228}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 196768 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 196768 assertions, 0 failures.

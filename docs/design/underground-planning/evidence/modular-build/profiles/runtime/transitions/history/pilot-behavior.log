@@ -1,0 +1,13 @@
+transition input: 5 cases; 527 pins; no production permission
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 223, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 216, in main
+    result = run(spec, args.out_dir)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 183, in run
+    validate_report(spec, report, log.read_text())
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 151, in validate_report
+    validate_motion(actual, expected)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/transitions/reproduce.py", line 128, in validate_motion
+    raise ValueError('TRANSITION_TURN_NOT_OBSERVED')
+ValueError: TRANSITION_TURN_NOT_OBSERVED

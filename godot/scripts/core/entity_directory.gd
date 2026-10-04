@@ -21,8 +21,9 @@ extends RefCounted
 ## ARCH-SAVE-002 section 3 reads and writes this store in bulk through
 ## `copy_columns_into()` and `restore_columns()`: the six persisted columns move
 ## as a set, and every derived member is rebuilt from them rather than carried.
-## Those two are the ONLY way to reach the generation of an inactive slot, which
-## every other reader hides because it answers for live rows alone. The
+## Those bulk APIs expose inactive generations only to persistence. Decision 1083's
+## read-only CreateCandidate additionally exposes exactly the next allocation's
+## future identity; it never makes that identity live or reserves either heap. The
 ## generations here are the DIRECTORY namespace and no other -- `inventory.gd`
 ## carries its own container and lot generations, and `navigation.gd` its own
 ## route-descriptor generation, all independently of these.
@@ -129,6 +130,101 @@ const REFUSAL_UNKNOWN_KIND: StringName = &"UNKNOWN_KIND"
 const REFUSAL_DIRECTORY_FULL: StringName = &"CAPACITY_DIRECTORY"
 const REFUSAL_PERSISTENT_ID: StringName = &"PERSISTENT_ID_EXHAUSTED"
 const REFUSAL_LIVING_CAP: StringName = &"LIVING_CAP_RESIDENT"
+const REFUSAL_CANDIDATE: StringName = &"CREATE_CANDIDATE_STALE_OR_FOREIGN"
+const REFUSAL_BATCH: StringName = &"CREATE_BATCH_STALE_OR_FOREIGN"
+const REFUSAL_BATCH_CAPACITY: StringName = &"CREATE_BATCH_CAPACITY"
+const REFUSAL_BATCH_SHAPE: StringName = &"CREATE_BATCH_SHAPE"
+
+
+class CreateCandidate extends RefCounted:
+
+	## Cold caller-owned observation, not a reservation, identity, or persisted allocator row.
+	## Every field is revalidated against the exact live owner before publication. Do not retain
+	## this packet across world reset/restore; publication authority must pin its actual World.
+	var ref: Vector2i = NULL_REF
+	var kind: int = KIND_ANY
+	var typed_row: int = NULL_SLOT
+	var persistent_id: int = 0
+	var _directory: WeakRef = null
+
+	func directory_owner() -> RefCounted:
+		"""Return the actual observed Directory, never a coincident numeric identity space."""
+		return _directory.get_ref() if _directory != null else null
+
+	func reset() -> void:
+		"""Erase only this scratch observation; no owner allocation was ever reserved."""
+		ref = NULL_REF
+		kind = KIND_ANY
+		typed_row = NULL_SLOT
+		persistent_id = 0
+		_directory = null
+
+
+class CreateBatch extends RefCounted:
+
+	## Decision 1086: cold mutable observations, not reservations or sealed owner permissions.
+	## Construct only AFTER the actual caller admits 24*K+76 packed bytes, 16 numeric control
+	## bytes and native headers. Consumers separately pin the exact tuples they intend to use.
+	var slots: PackedInt32Array = PackedInt32Array()
+	var generations: PackedInt32Array = PackedInt32Array()
+	var kinds: PackedInt32Array = PackedInt32Array()
+	var typed_rows: PackedInt32Array = PackedInt32Array()
+	var persistent_ids: PackedInt32Array = PackedInt32Array()
+	var _frontier: PackedInt32Array = PackedInt32Array()
+	var _kind_counts: PackedInt32Array = PackedInt32Array()
+	var _capacity: int = 0
+	var count: int = 0
+	var _directory: WeakRef = null
+
+	func _init(requested_capacity: int) -> void:
+		"""Refuse invalid engineering capacity before allocating; never allocate a default arena."""
+		if requested_capacity < 1 or requested_capacity > DIRECTORY_CAPACITY:
+			return
+		_capacity = requested_capacity
+		slots.resize(_capacity)
+		generations.resize(_capacity)
+		kinds.resize(_capacity)
+		typed_rows.resize(_capacity)
+		persistent_ids.resize(_capacity)
+		_frontier.resize(_capacity + 1)
+		_kind_counts.resize(KIND_COUNT)
+
+	static func packed_bytes(requested_capacity: int) -> int:
+		"""Exact fixed packed payload to admit before construction; excludes request/native storage."""
+		if requested_capacity < 1 or requested_capacity > DIRECTORY_CAPACITY:
+			return 0
+		return 24 * requested_capacity + 76
+
+	func capacity() -> int:
+		"""Return the explicit allocated tuple capacity, zero after refused construction."""
+		return _capacity
+
+	func directory_owner() -> RefCounted:
+		"""Return the actual weak observed owner; numeric identities never identify a World alone."""
+		return _directory.get_ref() if _directory != null else null
+
+	func ref_at(index: int) -> Vector2i:
+		"""Read a retained observation/receipt, not a liveness assertion or publication permission."""
+		if directory_owner() == null or storage_refusal() != REFUSAL_NONE \
+				or count < 1 or count > _capacity or index < 0 or index >= count:
+			return NULL_REF
+		return Vector2i(slots[index], generations[index])
+
+	func reset() -> void:
+		"""Invalidate the packet without resizing storage or releasing any owner allocation."""
+		count = 0
+		_directory = null
+
+	func storage_refusal() -> StringName:
+		"""Check caller-mutated storage before indexing; unused tuple tails convey no observation."""
+		if _capacity < 1 or _capacity > DIRECTORY_CAPACITY:
+			return REFUSAL_BATCH_CAPACITY
+		if slots.size() != _capacity or generations.size() != _capacity \
+				or kinds.size() != _capacity or typed_rows.size() != _capacity \
+				or persistent_ids.size() != _capacity or _frontier.size() != _capacity + 1 \
+				or _kind_counts.size() != KIND_COUNT:
+			return REFUSAL_BATCH_SHAPE
+		return REFUSAL_NONE
 
 ## Bulk column refusals, read through `last_column_refusal()` and never through `last_refusal()`.
 ## ARCH-ID-004 numbers the `create()` codes above; it publishes no registry for column operations,
@@ -216,6 +312,218 @@ func create_refusal(kind: int) -> StringName:
 	(decision 0534's demolition admit), without restating these rules.
 	"""
 	return _refuse_create(kind)
+
+
+func peek_create_into(kind: int, out: CreateCandidate) -> StringName:
+	"""Observe both next min-heap roots and the next PID without reserving or copying an allocator."""
+	if out == null:
+		return REFUSAL_CANDIDATE
+	out.reset()
+	var code: StringName = _refuse_create(kind)
+	if code != REFUSAL_NONE:
+		return code
+	var slot: int = _free_heap[0]
+	out.ref = Vector2i(slot, _generation[slot] + 1)
+	out.kind = kind
+	out.typed_row = _heap_index[_kind_base[kind]]
+	out.persistent_id = _next_persistent_id
+	out._directory = weakref(self)
+	return REFUSAL_NONE
+
+
+func candidate_refusal(candidate: CreateCandidate) -> StringName:
+	"""Recheck exact owner, capacity, both roots, generation and PID; refusal writes no state byte."""
+	if candidate == null or candidate.directory_owner() != self:
+		return REFUSAL_CANDIDATE
+	var code: StringName = _refuse_create(candidate.kind)
+	if code != REFUSAL_NONE:
+		return code
+	var slot: int = _free_heap[0]
+	if candidate.ref != Vector2i(slot, _generation[slot] + 1) \
+			or candidate.typed_row != _heap_index[_kind_base[candidate.kind]] \
+			or candidate.persistent_id != _next_persistent_id:
+		return REFUSAL_CANDIDATE
+	return REFUSAL_NONE
+
+
+func create_candidate(candidate: CreateCandidate) -> Vector2i:
+	"""Publish the exact current observation through the existing allocator, with no generation rollback."""
+	var code: StringName = candidate_refusal(candidate)
+	if code != REFUSAL_NONE:
+		_last_refusal = code
+		return NULL_REF
+	return create(candidate.kind)
+
+
+func peek_create_batch_into(kinds: PackedInt32Array, out: CreateBatch) -> StringName:
+	"""Observe the exact ordered mixed-kind allocations without copying or reserving either heap."""
+	if out == null:
+		return REFUSAL_BATCH
+	out.reset()
+	var code: StringName = out.storage_refusal()
+	if code != REFUSAL_NONE:
+		return code
+	if kinds.is_empty() or kinds.size() > out.capacity():
+		return REFUSAL_BATCH_SHAPE
+	out.count = kinds.size()
+	for index: int in out.count:
+		out.kinds[index] = kinds[index]
+	code = _batch_limits_refusal(out)
+	if code == REFUSAL_NONE:
+		code = _visit_batch_choices(out, false)
+	if code != REFUSAL_NONE:
+		out.reset()
+		return code
+	out._directory = weakref(self)
+	return REFUSAL_NONE
+
+
+func batch_candidate_refusal(batch: CreateBatch) -> StringName:
+	"""Revalidate every ordered tuple; only the packet's bounded traversal scratch may change."""
+	if batch == null or batch.directory_owner() != self:
+		return REFUSAL_BATCH
+	var code: StringName = batch.storage_refusal()
+	if code != REFUSAL_NONE:
+		return code
+	if batch.count < 1 or batch.count > batch.capacity():
+		return REFUSAL_BATCH_SHAPE
+	code = _batch_limits_refusal(batch)
+	return _visit_batch_choices(batch, true) if code == REFUSAL_NONE else code
+
+
+func create_batch(batch: CreateBatch) -> StringName:
+	"""Publish a fully checked batch without callbacks, yields or generation rollback; retain receipts."""
+	var code: StringName = batch_candidate_refusal(batch)
+	if code != REFUSAL_NONE:
+		return code
+	_last_refusal = REFUSAL_NONE
+	for index: int in batch.count:
+		var kind: int = batch.kinds[index]
+		var slot: int = _pop_min(_free_heap, 0, _free_count)
+		_free_count -= 1
+		var row: int = _pop_min(_heap_index, _kind_base[kind], _kind_free_count[kind])
+		_kind_free_count[kind] -= 1
+		_publish_row(slot, kind, row)
+	return REFUSAL_NONE
+
+
+func _batch_limits_refusal(batch: CreateBatch) -> StringName:
+	"""Check exact current lifetime and per-kind limits before visiting any future heap entry."""
+	batch._kind_counts.fill(0)
+	for index: int in batch.count:
+		var kind: int = batch.kinds[index]
+		if kind < 0 or kind >= KIND_COUNT:
+			return REFUSAL_UNKNOWN_KIND
+		batch._kind_counts[kind] += 1
+	if batch.count > PERSISTENT_ID_EXHAUSTED - _next_persistent_id:
+		return REFUSAL_PERSISTENT_ID
+	if batch._kind_counts[KIND_RESIDENT] + _kind_live_count[KIND_RESIDENT] > RESIDENT_LIVING_CAP:
+		return REFUSAL_LIVING_CAP
+	for kind: int in KIND_COUNT:
+		if batch._kind_counts[kind] > _kind_free_count[kind]:
+			return KIND_CAPACITY_REFUSAL[kind]
+	if batch.count > _free_count:
+		return REFUSAL_DIRECTORY_FULL
+	return REFUSAL_NONE
+
+
+func _visit_batch_choices(batch: CreateBatch, compare: bool) -> StringName:
+	"""Reuse one bounded frontier for global choices and each requested kind, never copying heaps."""
+	var code: StringName = _visit_batch_slots(batch, compare)
+	if code != REFUSAL_NONE:
+		return code
+	for kind: int in KIND_COUNT:
+		if batch._kind_counts[kind] == 0:
+			continue
+		code = _visit_batch_kind(batch, kind, compare)
+		if code != REFUSAL_NONE:
+			return code
+	return REFUSAL_NONE
+
+
+func _visit_batch_slots(batch: CreateBatch, compare: bool) -> StringName:
+	"""Enumerate the smallest K free slots and their unchanged full-generation/PID identities."""
+	batch._frontier[0] = 0
+	var frontier_count: int = 1
+	for index: int in batch.count:
+		var slot: int = _free_heap[batch._frontier[0]]
+		if compare:
+			if batch.slots[index] != slot or batch.generations[index] != _generation[slot] + 1 \
+					or batch.persistent_ids[index] != _next_persistent_id + index:
+				return REFUSAL_BATCH
+		else:
+			batch.slots[index] = slot
+			batch.generations[index] = _generation[slot] + 1
+			batch.persistent_ids[index] = _next_persistent_id + index
+		frontier_count = _advance_frontier(batch._frontier, frontier_count, _free_heap, 0, _free_count)
+	return REFUSAL_NONE
+
+
+func _visit_batch_kind(batch: CreateBatch, kind: int, compare: bool) -> StringName:
+	"""Match the per-kind allocation order to its positions in the caller's mixed-kind sequence."""
+	batch._frontier[0] = 0
+	var frontier_count: int = 1
+	var base: int = _kind_base[kind]
+	for index: int in batch.count:
+		if batch.kinds[index] != kind:
+			continue
+		var row: int = _heap_index[base + batch._frontier[0]]
+		if compare and batch.typed_rows[index] != row:
+			return REFUSAL_BATCH
+		if not compare:
+			batch.typed_rows[index] = row
+		frontier_count = _advance_frontier(batch._frontier, frontier_count,
+			_heap_index, base, _kind_free_count[kind])
+	return REFUSAL_NONE
+
+
+func _advance_frontier(frontier: PackedInt32Array, count: int,
+		heap: PackedInt32Array, base: int, heap_count: int) -> int:
+	"""Remove the visited heap node and admit its children; at most K+1 indices coexist."""
+	var visited: int = frontier[0]
+	_pop_frontier(frontier, count, heap, base)
+	count -= 1
+	var child: int = visited * 2 + 1
+	if child < heap_count:
+		_push_frontier(frontier, count, child, heap, base)
+		count += 1
+	if child + 1 < heap_count:
+		_push_frontier(frontier, count, child + 1, heap, base)
+		count += 1
+	return count
+
+
+func _pop_frontier(frontier: PackedInt32Array, count: int,
+		heap: PackedInt32Array, base: int) -> void:
+	"""Sift caller scratch using the untouched source heap's values as priorities."""
+	var last: int = count - 1
+	if last == 0:
+		return
+	frontier[0] = frontier[last]
+	var index: int = 0
+	while index * 2 + 1 < last:
+		var child: int = index * 2 + 1
+		if child + 1 < last and heap[base + frontier[child + 1]] < heap[base + frontier[child]]:
+			child += 1
+		if heap[base + frontier[index]] <= heap[base + frontier[child]]:
+			break
+		var carried: int = frontier[index]
+		frontier[index] = frontier[child]
+		frontier[child] = carried
+		index = child
+
+
+func _push_frontier(frontier: PackedInt32Array, count: int, value: int,
+		heap: PackedInt32Array, base: int) -> void:
+	"""Insert an original heap-node index without mutating the actual allocator window."""
+	var index: int = count
+	while index > 0:
+		@warning_ignore("integer_division") var parent: int = (index - 1) / 2
+		if heap[base + frontier[parent]] <= heap[base + value]:
+			break
+		frontier[index] = frontier[parent]
+		index = parent
+	frontier[index] = value
 
 
 func _publish_row(slot: int, kind: int, row: int) -> Vector2i:
@@ -399,9 +707,9 @@ func copy_columns_into(out_active: PackedByteArray, out_generation: PackedInt32A
 	"""Copy the six persisted columns into caller-owned buffers. False refuses; see
 	`last_column_refusal()`.
 
-	ARCH-SAVE-002 §3's capture step, and the ONLY way to read the generation of an inactive slot:
-	every other reader answers for live slots alone, so the free and retired generations the
-	persistence registry requires to survive verbatim are unreachable without this. These are
+	ARCH-SAVE-002 §3's capture step, and the only bulk reader of inactive generations. The cold
+	CreateCandidate observes only the next allocation's future identity; all other readers
+	answer for live slots alone. Persistence must still use these complete columns. These are
 	DIRECTORY generations -- not `inventory.gd`'s container or lot generation, and not
 	`navigation.gd`'s route-descriptor generation.
 

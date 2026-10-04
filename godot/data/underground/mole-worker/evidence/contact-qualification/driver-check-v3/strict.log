@@ -1,0 +1,29 @@
+state_registry_coverage: PASS -- 112 modules, 543 rows, 933 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_mole_profile_driver.gd
+  PASS  test_pause_and_refusal_preserve_exact_visible_frame_and_integer_phase
+  PASS  test_productive_interruption_completes_retrace_before_contact_or_job_handoff
+  PASS  test_actual_tool_assignment_content_and_pose_drift_never_become_a_successful_recovery
+  PASS  test_ground_walk_uses_complete_fade_and_safe_hub_before_switching_to_work
+  PASS  test_cold_pins_are_copied_and_retirement_releases_no_actual_owner_state
+  PASS  test_swapped_work_tuples_cannot_pair_a_downward_clip_with_the_upper_contact
+CI_SUITE_TIME {"assertions":117,"failures":0,"suite":"test_mole_profile_driver.gd","tests":6,"usec":282530}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 117 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 6 tests, 117 assertions, 0 failures.

@@ -1,0 +1,19 @@
+{
+  "working_directory": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+  "python_tests": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_high_wall.py",
+    "-v"
+  ],
+  "native_invocation": "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v3/invocation.json",
+  "proof": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/analysis-carry-arm-v7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-source-v4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-high-wall-v3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-proof-v3.json"
+  ],
+  "repeat_output_rule": "Use fresh native and proof output paths; historical and failed bundles are create-only.",
+  "scope": "Source-local yaw 0 component; production-qualified profiles: 0."
+}

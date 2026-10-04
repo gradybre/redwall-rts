@@ -1,0 +1,67 @@
+{
+  "schema": 1,
+  "status": "independent-source-review-accepted",
+  "tests": 14,
+  "assertions": 263,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "qualified_production_connectors": 0,
+  "qualified_production_profiles": 0,
+  "files": [
+    {
+      "path": "godot/scripts/core/underground_connector_catalog.gd",
+      "sha256": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180"
+    },
+    {
+      "path": "godot/scripts/core/underground_connector_catalog.gd.uid",
+      "sha256": "1dd3e44d6f45f4186f2651ab059e084e5a914b24331f05d9d64e91c94a52d512"
+    },
+    {
+      "path": "godot/test/test_underground_connector_catalog.gd",
+      "sha256": "64c7d817acce95e58d42f3659dfd02196e924ceb0401ff0d97a55bd990806ab6"
+    },
+    {
+      "path": "godot/test/test_underground_connector_catalog.gd.uid",
+      "sha256": "38e4e4c9a3568087a9182fc39dc5035e7ed69768b679596e6a01403ab34a511c"
+    },
+    {
+      "path": "godot/scripts/core/movement.gd",
+      "sha256": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69"
+    },
+    {
+      "path": "godot/test/test_movement.gd",
+      "sha256": "c65d3534bca83820df456e1d4f1ec3d4732eee580bb891c27424565de1820cf7"
+    },
+    {
+      "path": "godot/data/underground/evidence/run_connector_catalog_checks.py",
+      "sha256": "63a305d5f08bbfd87615b5c30ec60b906149a6a240b33ec0d766a061dc2c8886"
+    },
+    {
+      "path": "docs/decisions/1080-source-bound-underground-profile-catalog.md",
+      "sha256": "cd0aee238c438abd51f5a28f7b59e19de44341387ddafc5d4624e41925ec9b04"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v2/README.md",
+      "sha256": "31219e72ab19e3ef79747ea37f4b49da0cd95cda56a657a5af83abcfafbdd23b"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v2/analyzer.log",
+      "sha256": "c3c6d837356b118ce2541e5ed77a960b27aa51209ca4ac9573d1de47c4823c6e"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v2/import.log",
+      "sha256": "9f483e54fc4c6d0571140a48b33d39e9c30b7b7c8474cce4eae3438ffee05984"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v2/invocation.json",
+      "sha256": "4f71a3626b50309092c45698a8e28e15d3e899e4d7ae7692b49d9ad432dc338c"
+    },
+    {
+      "path": "godot/data/underground/evidence/connector-catalog-v2/strict.log",
+      "sha256": "48dd1418f1786e8dd87a932a557c678599ad4b0b2370ba09b7868afc7f243163"
+    }
+  ]
+}

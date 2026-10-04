@@ -1,0 +1,33 @@
+LIVE B opens the Dig tool: PASS 
+LIVE H opens the home blueprint: PASS 
+LIVE a legal visible site exists: PASS (-4.0, -20.0)
+LIVE click holds a blueprint: PASS screen (810.0, 490.0) · Blueprint held: review the room and passage, then Confirm or Enter. No work ordered.
+LIVE click allocates no room: PASS 
+LIVE click leaves topology untouched: PASS 
+LIVE click spends no stock: PASS 
+LIVE blueprint card is visible: PASS 
+LIVE review card fits the viewport: PASS 
+LIVE review button is visible: blueprint:confirm: PASS 
+LIVE review button is visible: blueprint:move: PASS 
+LIVE review button is visible: blueprint:discard: PASS 
+LIVE second world click does not move the held plan: PASS 
+LIVE second world click does not confirm: PASS 
+LIVE Move releases the held location: PASS 
+LIVE Move preserves the room tool: PASS 
+LIVE Move orders no room: PASS 
+LIVE the moved blueprint can be held again: PASS 
+LIVE Confirm is enabled for a valid held plan: PASS 
+LIVE Confirm orders one room: PASS Burrow home 1 laid: Placeholder 0 digs it
+LIVE Confirm consumes the held blueprint: PASS 
+LIVE the room is still awaiting excavation: PASS 
+LIVE room stays on its reviewed level: PASS 
+LIVE invalid draft can still be reviewed: PASS 
+LIVE overlap disables Confirm: PASS 
+LIVE Enter cannot bypass the refusal: PASS 
+LIVE refused blueprint survives: PASS 
+LIVE Escape discards the draft: PASS 
+LIVE Escape preserves existing construction: PASS 
+LIVE Escape preserves the room workspace: PASS 
+LIVE next Escape returns to tunnels: PASS 
+LIVE review controls close with the room tool: PASS 
+LIVE-SUMMARY 32 0

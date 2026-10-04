@@ -1,0 +1,196 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+capture: mouse_keeper.idle.plain 122 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.walk.plain 34 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.walk.ramp_up 34 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.walk.ramp_down 34 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.walk.turn 34 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.cautious_crouch_walk_forward.plain 36 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.cautious_crouch_walk_forward.standard_bore 36 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: mouse_keeper.carry_heavy_object_walk.plain 197 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: mouse_keeper.carry_heavy_object_walk.standard_bore 197 sampled pose(s), 0 attachment(s)
+capture: mole_digger.idle.plain 122 sampled pose(s), 0 attachment(s)
+capture: mole_digger.walk.plain 34 sampled pose(s), 0 attachment(s)
+capture: mole_digger.walk.ramp_up 34 sampled pose(s), 0 attachment(s)
+capture: mole_digger.walk.ramp_down 34 sampled pose(s), 0 attachment(s)
+capture: mole_digger.walk.turn 34 sampled pose(s), 0 attachment(s)
+capture: mole_digger.cautious_crouch_walk_forward.plain 36 sampled pose(s), 0 attachment(s)
+capture: mole_digger.cautious_crouch_walk_forward.standard_bore 36 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: mole_digger.carry_heavy_object_walk.plain 197 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: mole_digger.carry_heavy_object_walk.standard_bore 197 sampled pose(s), 0 attachment(s)
+capture: mole_digger.heavy_hammer_swing.plain 58 sampled pose(s), 1 attachment(s)
+capture: squirrel_gatherer.idle.plain 122 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.walk.plain 34 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.walk.ramp_up 34 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.walk.ramp_down 34 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.walk.turn 34 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.cautious_crouch_walk_forward.plain 36 sampled pose(s), 0 attachment(s)
+capture: squirrel_gatherer.cautious_crouch_walk_forward.standard_bore 36 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: squirrel_gatherer.carry_heavy_object_walk.plain 197 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: squirrel_gatherer.carry_heavy_object_walk.standard_bore 197 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.idle.plain 122 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.walk.plain 34 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.walk.ramp_up 34 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.walk.ramp_down 34 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.walk.turn 34 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.cautious_crouch_walk_forward.plain 36 sampled pose(s), 0 attachment(s)
+capture: otter_boatwright.cautious_crouch_walk_forward.standard_bore 36 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: otter_boatwright.carry_heavy_object_walk.plain 197 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: otter_boatwright.carry_heavy_object_walk.standard_bore 197 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.idle.plain 122 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.walk.plain 34 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.walk.ramp_up 34 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.walk.ramp_down 34 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.walk.turn 34 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.cautious_crouch_walk_forward.plain 36 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.cautious_crouch_walk_forward.standard_bore 36 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: badger_quarryman.carry_heavy_object_walk.plain 197 sampled pose(s), 0 attachment(s)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_blend_shape_count' in base 'CylinderMesh'.
+          at: _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+          GDScript backtrace (most recent call first):
+              [0] _attachment_mesh_data (res://../tools/capture_underground_profiles.gd:459)
+              [1] _attachment_data (res://../tools/capture_underground_profiles.gd:450)
+              [2] _configure_attachments (res://../tools/capture_underground_profiles.gd:425)
+              [3] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [4] _process (res://../tools/capture_underground_profiles.gd:267)
+SCRIPT ERROR: Invalid access to property or key 'vertices' on a base object of type 'Dictionary'.
+          at: _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+          GDScript backtrace (most recent call first):
+              [0] _configure_attachments (res://../tools/capture_underground_profiles.gd:428)
+              [1] _configure_case (res://../tools/capture_underground_profiles.gd:303)
+              [2] _process (res://../tools/capture_underground_profiles.gd:267)
+capture: badger_quarryman.carry_heavy_object_walk.standard_bore 197 sampled pose(s), 0 attachment(s)
+capture: badger_quarryman.heavy_hammer_swing.plain 58 sampled pose(s), 1 attachment(s)
+capture: 47 runtime case(s), 0 qualified; complete

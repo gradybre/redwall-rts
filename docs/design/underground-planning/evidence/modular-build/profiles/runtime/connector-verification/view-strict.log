@@ -1,0 +1,31 @@
+state_registry_coverage: PASS -- 98 modules, 451 rows, 771 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_connector_view.gd
+  PASS  test_all_five_families_render_one_fixed_mesh_and_at_most_one_leaf
+  PASS  test_sloping_ramp_uv_edges_preserve_actual_metre_length
+  PASS  test_material_copy_clears_hidden_uv_stretch_without_editing_source
+  PASS  test_all_family_fixed_and_hatch_triangles_use_clockwise_godot_front_faces
+  PASS  test_hatch_every_sampled_angle_fits_complete_integer_sweep
+  PASS  test_fixed_rotation_and_translation_match_integer_placement_convention
+  PASS  test_bad_material_and_partial_geometry_leave_existing_preview_intact
+  PASS  test_hatch_fraction_and_rotation_do_not_silently_clamp_or_resize
+CI_SUITE_TIME {"assertions":16536,"failures":0,"suite":"test_connector_view.gd","tests":8,"usec":39012}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 16536 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 16536 assertions, 0 failures.

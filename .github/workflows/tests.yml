@@ -308,6 +308,12 @@ jobs:
       - name: Memory ledger arithmetic
         run: python3 docs/validation/ready07_arithmetic.py
 
+      - name: Joint underground allocation pack and refusal checks
+        run: |
+          set -euo pipefail
+          python3 tools/underground_memory_budget.py --check
+          python3 tools/test_underground_memory_budget.py
+
       - name: Merge gate (ledger chain, double budgets, row arithmetic)
         run: python3 docs/validation/merge_gate.py
 

@@ -748,6 +748,23 @@ func ref_of(slot: int) -> Vector2i:
 	return Vector2i(_ref_slot[slot], _ref_generation[slot])
 
 
+func spatial_facts_into(ref: Vector2i, out: PackedInt64Array) -> StringName:
+	"""Read tile/item/quantity/regrowth into four reused fields after full identity and map checks."""
+	out.fill(0)
+	if out.size() != 4:
+		return &"RESOURCE_SPATIAL_FACTS_SHAPE"
+	if not _directory.is_valid_of_kind(ref, EntityDirectory.KIND_RESOURCE_NODE):
+		return REFUSE_NOT_PRESENT
+	var row: int = _directory.get_typed_row(ref)
+	if ref_of(row) != ref or not is_tile_index(_tile[row]) or _resource_slot[_tile[row]] != row:
+		return REFUSE_NOT_PRESENT
+	out[0] = _tile[row]
+	out[1] = _resource_id[row]
+	out[2] = _quantity_milli[row]
+	out[3] = _regrow_days[row]
+	return &""
+
+
 func tile_of(slot: int) -> IntMath.IntResult:
 	"""The exterior tile a row stands on, or an explicit refusal."""
 	return _read(slot, _tile)

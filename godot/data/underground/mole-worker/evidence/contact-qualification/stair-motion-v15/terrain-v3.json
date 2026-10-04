@@ -1,0 +1,3534 @@
+{
+  "schema": 1,
+  "content_sha256": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+  "clips": [
+    {
+      "rise_u": 128,
+      "clear": true,
+      "unresolved": [],
+      "supports": [
+        {
+          "interval": 0,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            99,
+            91
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              13082526613803141937,
+              75557863725914323419136
+            ],
+            [
+              270693950081990765985,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 1,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            100,
+            91
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              270693950081990765985,
+              151115727451828646838272
+            ],
+            [
+              252225891565569433145,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 2,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            102,
+            91
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              252225891565569433145,
+              151115727451828646838272
+            ],
+            [
+              197038171435716342505,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 3,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            105,
+            91
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              197038171435716342505,
+              151115727451828646838272
+            ],
+            [
+              841428676130179649607,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 4,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            108,
+            91
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              841428676130179649607,
+              604462909807314587353088
+            ],
+            [
+              170126213535974797596271,
+              2417851639229258349412352
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 5,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            110,
+            91
+          ],
+          "continuous_contact_vertex": 7886,
+          "exact_source_gap_u": [
+            [
+              776577590689301382857,
+              302231454903657293676544
+            ],
+            [
+              199438137940256760759,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 6,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            111,
+            91
+          ],
+          "continuous_contact_vertex": 8580,
+          "exact_source_gap_u": [
+            [
+              199438137940256760759,
+              75557863725914323419136
+            ],
+            [
+              12510525925471049461,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 7,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            112,
+            91
+          ],
+          "continuous_contact_vertex": 8580,
+          "exact_source_gap_u": [
+            [
+              12510525925471049461,
+              4722366482869645213696
+            ],
+            [
+              204984722502044297003,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 8,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            112,
+            92
+          ],
+          "continuous_contact_vertex": 7778,
+          "exact_source_gap_u": [
+            [
+              204984722502044297003,
+              75557863725914323419136
+            ],
+            [
+              105197330348774867845,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 9,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            112,
+            92
+          ],
+          "continuous_contact_vertex": 7948,
+          "exact_source_gap_u": [
+            [
+              105197330348774867845,
+              37778931862957161709568
+            ],
+            [
+              216461900232209530711,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 10,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            112,
+            92
+          ],
+          "continuous_contact_vertex": 8580,
+          "exact_source_gap_u": [
+            [
+              216461900232209530711,
+              75557863725914323419136
+            ],
+            [
+              144788195612447270017,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 11,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            113,
+            92
+          ],
+          "continuous_contact_vertex": 7948,
+          "exact_source_gap_u": [
+            [
+              144788195612447270017,
+              75557863725914323419136
+            ],
+            [
+              288584003533656643435,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 12,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -75,
+            115,
+            92
+          ],
+          "continuous_contact_vertex": 7778,
+          "exact_source_gap_u": [
+            [
+              288584003533656643435,
+              151115727451828646838272
+            ],
+            [
+              9016814731496900953,
+              4722366482869645213696
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 13,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -75,
+            115,
+            92
+          ],
+          "continuous_contact_vertex": 7778,
+          "exact_source_gap_u": [
+            [
+              9016814731496900953,
+              4722366482869645213696
+            ],
+            [
+              42961240678396904613,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 14,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -63,
+            111,
+            91
+          ],
+          "continuous_contact_vertex": 8934,
+          "exact_source_gap_u": [
+            [
+              42961240678396904613,
+              18889465931478580854784
+            ],
+            [
+              82625233412286295949,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 15,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -62,
+            114,
+            91
+          ],
+          "continuous_contact_vertex": 7948,
+          "exact_source_gap_u": [
+            [
+              82625233412286295949,
+              37778931862957161709568
+            ],
+            [
+              115365924727134623545,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 16,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -62,
+            118,
+            91
+          ],
+          "continuous_contact_vertex": 7778,
+          "exact_source_gap_u": [
+            [
+              115365924727134623545,
+              75557863725914323419136
+            ],
+            [
+              141244052336094234519,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 17,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -66,
+            120,
+            91
+          ],
+          "continuous_contact_vertex": 7886,
+          "exact_source_gap_u": [
+            [
+              141244052336094234519,
+              75557863725914323419136
+            ],
+            [
+              92093680474487941205,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 18,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -68,
+            120,
+            91
+          ],
+          "continuous_contact_vertex": 7778,
+          "exact_source_gap_u": [
+            [
+              92093680474487941205,
+              37778931862957161709568
+            ],
+            [
+              204284500252296901959,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 19,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -72,
+            119,
+            91
+          ],
+          "continuous_contact_vertex": 8934,
+          "exact_source_gap_u": [
+            [
+              204284500252296901959,
+              75557863725914323419136
+            ],
+            [
+              51471839382603884825,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 20,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -74,
+            116,
+            91
+          ],
+          "continuous_contact_vertex": 8934,
+          "exact_source_gap_u": [
+            [
+              51471839382603884825,
+              18889465931478580854784
+            ],
+            [
+              7672002004604105057951,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 21,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            115,
+            90
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              1471628348484096503081,
+              604462909807314587353088
+            ],
+            [
+              10864781348629360057,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 22,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            115,
+            90
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              10864781348629360057,
+              9444732965739290427392
+            ],
+            [
+              1460740213090998917575,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 23,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            115,
+            90
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              1460740213090998917575,
+              604462909807314587353088
+            ],
+            [
+              442563227759851250849,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 24,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            115,
+            90
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              442563227759851250849,
+              151115727451828646838272
+            ],
+            [
+              120242959881399378045,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 25,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            114,
+            90
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              120242959881399378045,
+              75557863725914323419136
+            ],
+            [
+              750458388972111558489,
+              604462909807314587353088
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 26,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            113,
+            89
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              750458388972111558489,
+              604462909807314587353088
+            ],
+            [
+              5406712910478167249001,
+              2417851639229258349412352
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 27,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            112,
+            89
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              5406712910478167249001,
+              2417851639229258349412352
+            ],
+            [
+              10935951306019499200783,
+              4835703278458516698824704
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 28,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            110,
+            89
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              10935951306019499200783,
+              4835703278458516698824704
+            ],
+            [
+              23291995762277790323713,
+              9671406556917033397649408
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 29,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            109,
+            89
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              23291995762277790323713,
+              9671406556917033397649408
+            ],
+            [
+              11654511295764113709497,
+              4835703278458516698824704
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 30,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            72,
+            127,
+            -412,
+            300,
+            260,
+            -215
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18456224440942591859,
+              9444732965739290427392
+            ],
+            [
+              18427958863883140979,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 31,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            72,
+            127,
+            -412,
+            300,
+            259,
+            -215
+          ],
+          "continuous_contact_vertex": 4773,
+          "exact_source_gap_u": [
+            [
+              18427958863883140979,
+              9444732965739290427392
+            ],
+            [
+              18455945160694169459,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 32,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            72,
+            127,
+            -412,
+            300,
+            258,
+            -215
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18455945160694169459,
+              9444732965739290427392
+            ],
+            [
+              18960061357162233715,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 33,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            73,
+            127,
+            -412,
+            300,
+            259,
+            -216
+          ],
+          "continuous_contact_vertex": 4773,
+          "exact_source_gap_u": [
+            [
+              18960061357162233715,
+              9444732965739290427392
+            ],
+            [
+              18959502796665388915,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 34,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            74,
+            127,
+            -412,
+            300,
+            260,
+            -216
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18959502796665388915,
+              9444732965739290427392
+            ],
+            [
+              18944811447638818675,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 35,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            76,
+            127,
+            -412,
+            300,
+            260,
+            -217
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18944811447638818675,
+              9444732965739290427392
+            ],
+            [
+              18944252887141973875,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 36,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            75,
+            127,
+            -412,
+            300,
+            261,
+            -217
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18944252887141973875,
+              9444732965739290427392
+            ],
+            [
+              18943415046396706675,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 37,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            75,
+            127,
+            -412,
+            300,
+            261,
+            -216
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18943415046396706675,
+              9444732965739290427392
+            ],
+            [
+              18942577205651439475,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 38,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            74,
+            127,
+            -412,
+            300,
+            261,
+            -215
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18942577205651439475,
+              9444732965739290427392
+            ],
+            [
+              18941739364906172275,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 39,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            74,
+            127,
+            -412,
+            300,
+            261,
+            -213
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18941739364906172275,
+              9444732965739290427392
+            ],
+            [
+              18940901524160905075,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 40,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            74,
+            127,
+            -412,
+            300,
+            261,
+            -211
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18940901524160905075,
+              9444732965739290427392
+            ],
+            [
+              18939784403167215475,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 41,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            73,
+            127,
+            -412,
+            300,
+            261,
+            -208
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18939784403167215475,
+              9444732965739290427392
+            ],
+            [
+              18938946562421948275,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 42,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            72,
+            127,
+            -412,
+            300,
+            260,
+            -206
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18938946562421948275,
+              9444732965739290427392
+            ],
+            [
+              18937829441428258675,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 43,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            259,
+            -203
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18937829441428258675,
+              9444732965739290427392
+            ],
+            [
+              18936712320434569075,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 44,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            68,
+            127,
+            -412,
+            300,
+            255,
+            -203
+          ],
+          "continuous_contact_vertex": 4773,
+          "exact_source_gap_u": [
+            [
+              18936712320434569075,
+              9444732965739290427392
+            ],
+            [
+              18460161576796422003,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 45,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            68,
+            127,
+            -412,
+            300,
+            248,
+            -196
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18460161576796422003,
+              9444732965739290427392
+            ],
+            [
+              18459044455802732403,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 46,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            68,
+            127,
+            -412,
+            300,
+            239,
+            -186
+          ],
+          "continuous_contact_vertex": 4773,
+          "exact_source_gap_u": [
+            [
+              18459044455802732403,
+              9444732965739290427392
+            ],
+            [
+              18933360957453500275,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 47,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            69,
+            127,
+            -412,
+            300,
+            228,
+            -180
+          ],
+          "continuous_contact_vertex": 4773,
+          "exact_source_gap_u": [
+            [
+              18933360957453500275,
+              9444732965739290427392
+            ],
+            [
+              18932243836459810675,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 48,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            71,
+            127,
+            -412,
+            300,
+            227,
+            -177
+          ],
+          "continuous_contact_vertex": 4773,
+          "exact_source_gap_u": [
+            [
+              18932243836459810675,
+              9444732965739290427392
+            ],
+            [
+              18934939192846974835,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 49,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            228,
+            -175
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18934939192846974835,
+              9444732965739290427392
+            ],
+            [
+              18933822071853285235,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 50,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            229,
+            -173
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18933822071853285235,
+              9444732965739290427392
+            ],
+            [
+              18932984231108018035,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 51,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            230,
+            -173
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18932984231108018035,
+              9444732965739290427392
+            ],
+            [
+              18937620255314542451,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 52,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            231,
+            -172
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18937620255314542451,
+              9444732965739290427392
+            ],
+            [
+              18936782414569275251,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 53,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            231,
+            -172
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18936782414569275251,
+              9444732965739290427392
+            ],
+            [
+              18936303414157770611,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 54,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            232,
+            -171
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18936303414157770611,
+              9444732965739290427392
+            ],
+            [
+              18448121361496014707,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 55,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            233,
+            -171
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18448121361496014707,
+              9444732965739290427392
+            ],
+            [
+              18448446100282277747,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 56,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            234,
+            -171
+          ],
+          "continuous_contact_vertex": 4510,
+          "exact_source_gap_u": [
+            [
+              18448446100282277747,
+              9444732965739290427392
+            ],
+            [
+              18447887539785432947,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 57,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            235,
+            -171
+          ],
+          "continuous_contact_vertex": 3622,
+          "exact_source_gap_u": [
+            [
+              18447887539785432947,
+              9444732965739290427392
+            ],
+            [
+              18446924026418036595,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 58,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            235,
+            -170
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18446924026418036595,
+              9444732965739290427392
+            ],
+            [
+              18446644746169614195,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 59,
+          "foot": 1,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            70,
+            127,
+            -412,
+            300,
+            235,
+            -170
+          ],
+          "continuous_contact_vertex": 4111,
+          "exact_source_gap_u": [
+            [
+              18446644746169614195,
+              9444732965739290427392
+            ],
+            [
+              18446644746169614195,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 60,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            267,
+            -423
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              312957784432309323493,
+              151115727451828646838272
+            ],
+            [
+              156356775054648987529,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 61,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            267,
+            -423
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              156356775054648987529,
+              75557863725914323419136
+            ],
+            [
+              4861594127490244301,
+              2361183241434822606848
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 62,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            267,
+            -423
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              4861594127490244301,
+              2361183241434822606848
+            ],
+            [
+              155830243597777370149,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 63,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            266,
+            -423
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              155830243597777370149,
+              151115727451828646838272
+            ],
+            [
+              171676542842343753547,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 64,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            265,
+            -422
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              171676542842343753547,
+              151115727451828646838272
+            ],
+            [
+              192756841808719145471,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 65,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            265,
+            -422
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              192756841808719145471,
+              151115727451828646838272
+            ],
+            [
+              13470907546359992047,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 66,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            263,
+            -422
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              13470907546359992047,
+              9444732965739290427392
+            ],
+            [
+              229925856501468724421,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 67,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            262,
+            -421
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              229925856501468724421,
+              151115727451828646838272
+            ],
+            [
+              1931554114289134651,
+              1180591620717411303424
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 68,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            261,
+            -421
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              1931554114289134651,
+              1180591620717411303424
+            ],
+            [
+              32126456701469533913,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 69,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            260,
+            -421
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              32126456701469533913,
+              18889465931478580854784
+            ],
+            [
+              265802940837846855941,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 70,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            259,
+            -421
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              265802940837846855941,
+              151115727451828646838272
+            ],
+            [
+              67685458425477970397,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 71,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            258,
+            -421
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              67685458425477970397,
+              37778931862957161709568
+            ],
+            [
+              136726091856159400087,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 72,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            256,
+            -422
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              136726091856159400087,
+              75557863725914323419136
+            ],
+            [
+              68637151714916693367,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 73,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            254,
+            -423
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              68637151714916693367,
+              37778931862957161709568
+            ],
+            [
+              274091227508122446539,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 74,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            252,
+            -424
+          ],
+          "continuous_contact_vertex": 8359,
+          "exact_source_gap_u": [
+            [
+              274091227508122446539,
+              151115727451828646838272
+            ],
+            [
+              2503094062364308742183,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 75,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            249,
+            -424
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              568057090869513253173,
+              302231454903657293676544
+            ],
+            [
+              142901555655354919621,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 76,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            247,
+            -424
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              142901555655354919621,
+              75557863725914323419136
+            ],
+            [
+              570657552646370368943,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 77,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            246,
+            -424
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              570657552646370368943,
+              302231454903657293676544
+            ],
+            [
+              567591267855956080209,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 78,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            244,
+            -424
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              567591267855956080209,
+              302231454903657293676544
+            ],
+            [
+              564562218333483904353,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 79,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            242,
+            -424
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              564562218333483904353,
+              302231454903657293676544
+            ],
+            [
+              280652218204762492939,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 80,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            240,
+            -423
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              280652218204762492939,
+              151115727451828646838272
+            ],
+            [
+              69782932700427620367,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 81,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            238,
+            -423
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              69782932700427620367,
+              37778931862957161709568
+            ],
+            [
+              556912492985108087899,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 82,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            237,
+            -422
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              556912492985108087899,
+              302231454903657293676544
+            ],
+            [
+              4359030795172493301,
+              2361183241434822606848
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 83,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            235,
+            -422
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              4359030795172493301,
+              2361183241434822606848
+            ],
+            [
+              280095044949576134259,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 84,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            233,
+            -422
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              280095044949576134259,
+              151115727451828646838272
+            ],
+            [
+              824540138363724889005,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 85,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            231,
+            -421
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              824540138363724889005,
+              302231454903657293676544
+            ],
+            [
+              369900210489972513223,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 86,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            230,
+            -421
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              369900210489972513223,
+              151115727451828646838272
+            ],
+            [
+              672752041445484375647,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 87,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            229,
+            -421
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              672752041445484375647,
+              302231454903657293676544
+            ],
+            [
+              345481758477902257049,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 88,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            228,
+            -421
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              345481758477902257049,
+              151115727451828646838272
+            ],
+            [
+              137105040817539096221,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 89,
+          "foot": 0,
+          "deck": 1,
+          "full_foot_enclosure_u": [
+            -274,
+            127,
+            -681,
+            -78,
+            227,
+            -421
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              137105040817539096221,
+              75557863725914323419136
+            ],
+            [
+              13082526613803141937,
+              75557863725914323419136
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        }
+      ],
+      "checks": 56,
+      "pairs": 781,
+      "numerical_contact_pairs": 725,
+      "parts": [
+        {
+          "part": 0,
+          "triangles": 10209,
+          "native_padding_q24": [
+            9137,
+            1505,
+            9137
+          ],
+          "native_residual_m": [
+            {
+              "numerator": 328636891901486282208396124149311651932370319629685927282765105668309251215612655882487,
+              "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+            },
+            {
+              "numerator": 458326330306948530231048248392453116537392837566239253496951969146902976782787302701,
+              "denominator": 5114918535777889723690509833286463819521190994568181956275092643732822538096946660245504
+            },
+            {
+              "numerator": 328636891901486282208396124149311651932370319629685927282765105668309251215612655882487,
+              "denominator": 603560387221790987395480160327802730703500537359045470840460931960473059495439705908969472
+            }
+          ]
+        },
+        {
+          "part": 1,
+          "triangles": 1150,
+          "native_padding_q24": [
+            9026,
+            1393,
+            9026
+          ],
+          "native_residual_m": [
+            {
+              "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            },
+            {
+              "numerator": 8216140651323755430392011821568161611987830834560696810619866422719235365981075827927263791816269336534117624810563220612241,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            },
+            {
+              "numerator": 53268087023515066410411670457622126210457404852511281943844765344782807019712047553389458667236693030744094582506160186795153,
+              "denominator": 99023292005979196739267782976497145633168422343999070144990040162397844548586761162150542479698108784237327163640090939753496576
+            }
+          ]
+        }
+      ],
+      "exact_source_vertices": 139,
+      "fixture_boxes_u": [
+        [
+          -1024,
+          -64,
+          -169,
+          1024,
+          0,
+          343
+        ],
+        [
+          -1024,
+          64,
+          -681,
+          1024,
+          128,
+          -169
+        ],
+        [
+          -896,
+          -1024,
+          151,
+          -768,
+          -64,
+          279
+        ],
+        [
+          -896,
+          -1024,
+          -105,
+          -768,
+          -64,
+          23
+        ],
+        [
+          768,
+          -1024,
+          151,
+          896,
+          -64,
+          279
+        ],
+        [
+          768,
+          -1024,
+          -105,
+          896,
+          -64,
+          23
+        ],
+        [
+          -896,
+          -1024,
+          -361,
+          -768,
+          64,
+          -233
+        ],
+        [
+          -896,
+          -1024,
+          -617,
+          -768,
+          64,
+          -489
+        ],
+        [
+          768,
+          -1024,
+          -361,
+          896,
+          64,
+          -233
+        ],
+        [
+          768,
+          -1024,
+          -617,
+          896,
+          64,
+          -489
+        ]
+      ],
+      "rendered_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          10
+        ],
+        [
+          10,
+          11
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          12,
+          13
+        ],
+        [
+          13,
+          14
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          15,
+          16
+        ],
+        [
+          16,
+          17
+        ],
+        [
+          17,
+          18
+        ],
+        [
+          18,
+          19
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          22,
+          23
+        ],
+        [
+          23,
+          24
+        ],
+        [
+          24,
+          25
+        ],
+        [
+          25,
+          26
+        ],
+        [
+          26,
+          27
+        ],
+        [
+          27,
+          28
+        ],
+        [
+          28,
+          29
+        ],
+        [
+          29,
+          30
+        ],
+        [
+          30,
+          31
+        ],
+        [
+          31,
+          32
+        ],
+        [
+          32,
+          33
+        ],
+        [
+          33,
+          34
+        ],
+        [
+          34,
+          35
+        ],
+        [
+          35,
+          36
+        ],
+        [
+          36,
+          37
+        ],
+        [
+          37,
+          38
+        ],
+        [
+          38,
+          39
+        ],
+        [
+          39,
+          40
+        ],
+        [
+          40,
+          41
+        ],
+        [
+          41,
+          42
+        ],
+        [
+          42,
+          43
+        ],
+        [
+          43,
+          44
+        ],
+        [
+          44,
+          45
+        ],
+        [
+          45,
+          46
+        ],
+        [
+          46,
+          47
+        ],
+        [
+          47,
+          48
+        ],
+        [
+          48,
+          49
+        ],
+        [
+          49,
+          50
+        ],
+        [
+          50,
+          51
+        ],
+        [
+          51,
+          52
+        ],
+        [
+          52,
+          53
+        ],
+        [
+          53,
+          54
+        ],
+        [
+          54,
+          55
+        ],
+        [
+          55,
+          56
+        ],
+        [
+          56,
+          57
+        ],
+        [
+          57,
+          58
+        ],
+        [
+          58,
+          59
+        ],
+        [
+          59,
+          60
+        ],
+        [
+          60,
+          61
+        ],
+        [
+          61,
+          62
+        ],
+        [
+          62,
+          63
+        ],
+        [
+          63,
+          64
+        ],
+        [
+          64,
+          65
+        ],
+        [
+          65,
+          66
+        ],
+        [
+          66,
+          67
+        ],
+        [
+          67,
+          68
+        ],
+        [
+          68,
+          69
+        ],
+        [
+          69,
+          70
+        ],
+        [
+          70,
+          71
+        ],
+        [
+          71,
+          72
+        ],
+        [
+          72,
+          73
+        ],
+        [
+          73,
+          74
+        ],
+        [
+          74,
+          75
+        ],
+        [
+          75,
+          76
+        ],
+        [
+          76,
+          77
+        ],
+        [
+          77,
+          78
+        ],
+        [
+          78,
+          79
+        ],
+        [
+          79,
+          80
+        ],
+        [
+          80,
+          81
+        ],
+        [
+          81,
+          82
+        ],
+        [
+          82,
+          83
+        ],
+        [
+          83,
+          84
+        ],
+        [
+          84,
+          85
+        ],
+        [
+          85,
+          86
+        ],
+        [
+          86,
+          87
+        ],
+        [
+          87,
+          88
+        ],
+        [
+          88,
+          89
+        ],
+        [
+          89,
+          90
+        ]
+      ],
+      "source_contact_semantics": "complete real foot/toe triangles only; source vertices on/above exact deck top, full native footprint supported; only numerical enclosure may overlap the positive deck",
+      "exact_yaw": 0,
+      "root_contract": "separate_integer_ceil_v1",
+      "root_rounding_extra_q24": [
+        0,
+        16384
+      ],
+      "production_qualified": false
+    },
+    {
+      "rise_u": 256,
+      "clear": false,
+      "unresolved": [
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4775,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4778,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4779,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4780,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4916,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4919,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 9,
+          "triangle": 4921,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4423,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4424,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4425,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4775,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4778,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4779,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4780,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4781,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4915,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4916,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4919,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4920,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4921,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 10,
+          "triangle": 4922,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4331,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4423,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4424,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4425,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4775,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4778,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4779,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4780,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4781,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4814,
+          "section": 1
+        },
+        {
+          "kind": "SOLID",
+          "part": 0,
+          "interval": 11,
+          "triangle": 4915,
+          "section": 1
+        }
+      ],
+      "supports": [
+        {
+          "interval": 0,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            99,
+            91
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              13082526613803141937,
+              75557863725914323419136
+            ],
+            [
+              267246615453154890107,
+              151115727451828646838272
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 1,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            101,
+            91
+          ],
+          "continuous_contact_vertex": 15936,
+          "exact_source_gap_u": [
+            [
+              267246615453154890107,
+              151115727451828646838272
+            ],
+            [
+              473976303906856908127,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 2,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            106,
+            91
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              473976303906856908127,
+              302231454903657293676544
+            ],
+            [
+              1565647498548686237157,
+              1208925819614629174706176
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 3,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -78,
+            110,
+            91
+          ],
+          "continuous_contact_vertex": 16051,
+          "exact_source_gap_u": [
+            [
+              1565647498548686237157,
+              1208925819614629174706176
+            ],
+            [
+              25874166527866425048259,
+              302231454903657293676544
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 4,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -77,
+            113,
+            91
+          ],
+          "continuous_contact_vertex": 7886,
+          "exact_source_gap_u": [
+            [
+              96336678327945436797,
+              37778931862957161709568
+            ],
+            [
+              95534098483776180931,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 5,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            116,
+            91
+          ],
+          "continuous_contact_vertex": 7778,
+          "exact_source_gap_u": [
+            [
+              95534098483776180931,
+              37778931862957161709568
+            ],
+            [
+              49831551471523785671,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 6,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            118,
+            91
+          ],
+          "continuous_contact_vertex": 8580,
+          "exact_source_gap_u": [
+            [
+              49831551471523785671,
+              18889465931478580854784
+            ],
+            [
+              102488616518142803197,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 7,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            119,
+            91
+          ],
+          "continuous_contact_vertex": 7948,
+          "exact_source_gap_u": [
+            [
+              102488616518142803197,
+              37778931862957161709568
+            ],
+            [
+              105541601567527840853,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 8,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            119,
+            91
+          ],
+          "continuous_contact_vertex": 7948,
+          "exact_source_gap_u": [
+            [
+              105541601567527840853,
+              37778931862957161709568
+            ],
+            [
+              108254691216176491483,
+              37778931862957161709568
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 9,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            119,
+            91
+          ],
+          "continuous_contact_vertex": 7948,
+          "exact_source_gap_u": [
+            [
+              108254691216176491483,
+              37778931862957161709568
+            ],
+            [
+              18124361930031877391,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 10,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            119,
+            91
+          ],
+          "continuous_contact_vertex": 7886,
+          "exact_source_gap_u": [
+            [
+              18124361930031877391,
+              9444732965739290427392
+            ],
+            [
+              36183645123349882571,
+              18889465931478580854784
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        },
+        {
+          "interval": 11,
+          "foot": 0,
+          "deck": 0,
+          "full_foot_enclosure_u": [
+            -274,
+            -1,
+            -169,
+            -76,
+            119,
+            91
+          ],
+          "continuous_contact_vertex": 8934,
+          "exact_source_gap_u": [
+            [
+              36183645123349882571,
+              18889465931478580854784
+            ],
+            [
+              18076950239864086289,
+              9444732965739290427392
+            ]
+          ],
+          "projection_inside": true,
+          "source_not_below_plane": true,
+          "source_contact_cell": true
+        }
+      ],
+      "checks": 480,
+      "pairs": 180,
+      "numerical_contact_pairs": 139,
+      "stopped_at_witness_limit": true,
+      "production_qualified": false
+    }
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py": "a29f0e5a163307ec9ac9d0908e4da6c9a62f399885b198e8955f2fd5e7402390",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/candidate.json": "3f66b788004e971f8291f81b714aedaaaef77185974aae47cf540521508e0334"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "scope": "source-local yaw0 affine triangle/deck proof, explicit foot-phase support and retained native arithmetic error; not actor/tool self-clearance, actual mover, entry/retreat, paid geometry or travel permission",
+  "production_qualified": false
+}

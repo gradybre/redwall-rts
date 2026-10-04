@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_world_structure_scope.gd
+  PASS  test_actual_binding_and_phase_match_without_granting_work
+  PASS  test_foreign_catalog_budget_and_missing_actual_owners_refuse
+  PASS  test_wrong_phase_tuple_and_released_token_refuse
+  PASS  test_binding_requires_quiescence_and_rejects_nested_configuration
+  PASS  test_reentrant_observation_invalidates_outer_success_and_recovers
+  PASS  test_replacement_lease_is_detected_without_releasing_it
+  PASS  test_catalog_revision_and_actual_world_retirement_are_rechecked
+CI_SUITE_TIME {"assertions":82,"failures":0,"suite":"test_underground_world_structure_scope.gd","tests":7,"usec":1991613}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 82 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 7 tests, 82 assertions, 0 failures.

@@ -1,0 +1,28 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/export_underground_envelopes.py",
+    "godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+    "--sha256",
+    "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+    "--palette",
+    "--import-archive",
+    "godot/demo/assets/underground-matrices/all-cast-v9.inputs",
+    "--world-basis",
+    "godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw",
+    "--world-basis-sha256",
+    "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+    "--world-basis-producer-sha256",
+    "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+    "--world-root-bounds",
+    "0",
+    "-32256",
+    "0",
+    "262144",
+    "16896",
+    "262144",
+    "--out",
+    "godot/data/underground/evidence/matrix-presentation/world-basis/world-proof-v1/envelopes.json"
+  ],
+  "returncode": 0
+}

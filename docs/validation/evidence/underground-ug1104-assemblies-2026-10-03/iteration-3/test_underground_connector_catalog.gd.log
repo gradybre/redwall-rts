@@ -1,0 +1,41 @@
+state_registry_coverage: PASS -- 130 modules, 650 rows, 998 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_catalog.gd
+  PASS  test_exact_actual_pace_uses_movement_source_and_explicit_family_rows
+  PASS  test_all_family_metadata_and_exact_output_shapes_are_copied_without_aliases
+  PASS  test_arena_admission_precedes_all_packed_allocation
+  PASS  test_foreign_actual_owners_and_rebinding_refuse
+  PASS  test_every_stale_refusal_preserves_all_output_fields
+  PASS  test_atomic_failed_replacement_preserves_live_hash_and_queries
+  PASS  test_truncation_trailing_bytes_hash_and_oversized_counts_refuse
+  PASS  test_short_record_decode_refuses_without_overwriting_destination
+  PASS  test_complete_prefix_census_endpoint_and_opening_targets_are_required
+  PASS  test_extreme_coordinates_primitive_ranges_and_material_scale_refuse
+  PASS  test_pace_identity_never_borrows_species_stage_or_unprofiled_badger
+  PASS  test_changed_movement_profile_and_replaced_physical_content_refuse_live_queries
+  PASS  test_retired_world_and_changed_source_digest_cannot_publish_content
+  PASS  test_material_scale_and_refused_shapes_preserve_caller_scratch
+  PASS  test_final_source_leaf_reads_actual_banks_without_observers_or_writes
+  PASS  test_final_source_leaf_refuses_bad_tuple_digest_and_uninitialized_owner
+  PASS  test_final_source_leaf_refuses_actual_profile_and_foreign_owner_changes
+  PASS  test_final_source_leaf_checks_live_full_world_identity
+CI_SUITE_TIME {"assertions":332,"failures":0,"suite":"test_underground_connector_catalog.gd","tests":18,"usec":583033}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+18 test(s), 332 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 18 tests, 332 assertions, 0 failures.

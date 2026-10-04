@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "content_sha256": "48a081af89fa886937f9fd079e210a486795cf930de903959b1a436c7e4e2da8",
+  "source_proof_sha256": "be498c8d850be2d986a6b97dbf7230d164ceb79e8e8abb44c3557f795ba6b41c",
+  "native_points_enclosed": 9,
+  "authoring_target_refusal": "",
+  "witness": {
+    "vertex": 148,
+    "frame_pair": [
+      14,
+      15
+    ],
+    "anchor_u": [
+      6,
+      707,
+      -768
+    ],
+    "patch_u": [
+      4,
+      705,
+      -768,
+      7,
+      710,
+      -768
+    ],
+    "residual_m": [
+      {
+        "numerator": 381977241231810570547823251114403799433332993281297429147324463714568539649594487315144903461347068935149950721285240784420855,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 66613616626471393687685640662026047244045975155643333214750171260123538073477685236909539333404103075680112017416062021140471,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      },
+      {
+        "numerator": 381977241231810570547823251114403799433332993281297429147324463714568539649594487315144903461347068935149950721285240784420855,
+        "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+      }
+    ],
+    "share_range": [
+      {
+        "numerator": 67704857508741,
+        "denominator": 158137492471049
+      },
+      {
+        "numerator": 72669302832005,
+        "denominator": 158137492471049
+      }
+    ],
+    "endpoint_ideal_m": [
+      [
+        {
+          "numerator": 7410867101699,
+          "denominator": 562949953421312
+        },
+        {
+          "numerator": 13307930148280417,
+          "denominator": 18014398509481984
+        },
+        {
+          "numerator": -3307512640357499,
+          "denominator": 4503599627370496
+        }
+      ],
+      [
+        {
+          "numerator": -8480502360203,
+          "denominator": 2251799813685248
+        },
+        {
+          "numerator": 1420804608906371,
+          "denominator": 2251799813685248
+        },
+        {
+          "numerator": -866412533207137,
+          "denominator": 1125899906842624
+        }
+      ]
+    ]
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "producer_and_input_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/verify_planted_native.py": "e6dd510dcebdce834ea83fa6224f1f55b39093a11cc35824227be1d4e68d2ae0",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-source-v4/candidate.json": "efc797281cddfacf18abf2e79a8dbb1d9602a3d9811431850d6e62c424c522d7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-source-v4/plan.json": "de519f3811ab077c6466f3bbb0da96f31b339ee56d6a5e7354574dd1c484ea69",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-source-v4/mole-worker.ugactor": "48a081af89fa886937f9fd079e210a486795cf930de903959b1a436c7e4e2da8",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/planted-front-proof-v1.json": "be498c8d850be2d986a6b97dbf7230d164ceb79e8e8abb44c3557f795ba6b41c",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-planted-front-v1/report.json": "e3910e2b3592d3c9c91e3b11e4405f5a58a8dcfaeafd8cea543259efdf5839d6",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-planted-front-v1/sources.json": "4774a42b3c4583e1b6dadddc2ac51852472b9550ba25134dee94d7e203a0e30d"
+  },
+  "production_qualified": false,
+  "scope": "source-local/yaw0 candidate; fixture face/tread only, no real support, descent, paid frontier or compact handoff permission"
+}

@@ -1,0 +1,16 @@
+merge_gate self-test
+  ok  L1 clean chain
+  ok  L1 broken chain
+  ok  L1 broken reserve
+  ok  L1 negative delta
+  ok  L1 unicode minus
+  ok  L2 one spelling only
+  ok  L2 same bare name, different owners
+  ok  L2 cross-form double budget
+  ok  L2 cross-form on unrelated owners
+  ok  L3 row arithmetic
+  ok  A1 clean report
+  ok  A1 declared deviation
+  ok  A1 missing block
+  ok  A1 missing report
+merge_gate self-test: PASS

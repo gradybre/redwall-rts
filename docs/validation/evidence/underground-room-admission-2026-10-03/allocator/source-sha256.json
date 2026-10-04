@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/entity_directory.gd": "322b3222e812057394297f2be1867ddfb4fc7bbce906a494e1bf125448953a5a",
+  "godot/scripts/core/buildings.gd": "178517ba5fca64734db69e7a3e64cd738b8b24d4b45f55a6dc1e13e1371cd1cc",
+  "godot/test/test_entity_directory_candidate.gd": "688efc136532a3fd6d297a4483338420cc9a65455736a5fe9a3489ae32bf5cbb",
+  "godot/test/test_buildings_spatial.gd": "5a266ad89b089a338ab96eee201a1784502af75399ae63dde195e0f14fb5808c"
+}

@@ -1,0 +1,16 @@
+{
+  "command": [
+    "python3",
+    "tools/ci_test_shards.py",
+    "verify",
+    "--reports",
+    "docs/validation/evidence/underground-ci-54c9b588/reports",
+    "--count",
+    "8",
+    "--baseline-log",
+    "docs/design/underground-planning/evidence/modular-build/checkpoint-54c9b588/full-suite.log",
+    "--output",
+    "docs/validation/evidence/underground-ci-54c9b588/aggregate.json"
+  ],
+  "exit_code": 1
+}

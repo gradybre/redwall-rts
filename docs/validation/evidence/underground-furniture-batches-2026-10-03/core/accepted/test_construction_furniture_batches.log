@@ -1,0 +1,41 @@
+state_registry_coverage: PASS -- 116 modules, 559 rows, 937 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_construction_furniture_batches.gd
+  PASS  test_actual_mixed_pending_rows_and_protected_catalog_projects_publish_together
+  PASS  test_direct_preparation_or_publication_never_allocates_any_identity
+  PASS  test_null_and_foreign_owner_cannot_open_the_real_batch
+  PASS  test_unfinished_shell_and_late_geometry_refusal_leave_all_owner_bytes_unchanged
+  PASS  test_wrong_room_generation_and_foreign_packet_are_rejected
+  PASS  test_wrong_kind_order_or_tuple_shape_never_publishes_a_prefix
+  PASS  test_actual_surface_room_cannot_enter_underground_pair_admission
+  PASS  test_unknown_type_edge_piece_and_rotation_refuse_the_whole_layout
+  PASS  test_stale_single_allocation_and_retirement_never_roll_back_generations
+  PASS  test_duplicate_observation_cannot_allocate_again_or_invent_pending_services
+  PASS  test_publication_cleanup_cannot_erase_the_committed_scalar_receipt
+  PASS  test_bound_owner_without_batch_implementation_cleanly_refuses_the_new_operation
+  PASS  test_mutation_in_final_provider_callback_refuses_without_an_identity_prefix
+  PASS  test_callback_reentry_is_closed_before_any_provider_runs
+  PASS  test_initial_owner_purpose_callback_is_already_inside_exclusive_bracket
+  PASS  test_missing_typed_row_capacity_and_pid_capacity_refuse_before_first_write
+  PASS  test_live_typed_owner_mirror_conflict_refuses_in_either_store
+  PASS  test_reused_free_typed_rows_reset_all_paid_delivery_and_installed_flags
+CI_SUITE_TIME {"assertions":523,"failures":0,"suite":"test_construction_furniture_batches.gd","tests":18,"usec":1339275}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+18 test(s), 523 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 18 tests, 523 assertions, 0 failures.

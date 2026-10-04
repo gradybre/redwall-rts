@@ -1,0 +1,13 @@
+Integrated baseline: origin/master 82d60ba8
+Runtime/test source commit: 92fcf82a32eba7daf57926a0554100322e288855
+Engine: Godot 4.7.2.stable.official.ed1daf0bf (macOS, Apple Silicon)
+Preparation: demo assets absent; removed godot/.godot; clean headless editor import.
+Command: godot --headless --path godot --editor --quit
+Command: ./tools/run_tests.sh (no arguments)
+state_registry_coverage: PASS -- 92 modules, 437 rows, 747 packed columns checked
+9138 test(s), 612134 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 9138 tests, 612134 assertions, 0 failures.
+Import and full suite: 1186.0 seconds
+Raw log SHA256: ebe9f99e9050aab31de6a38b6ef0912485083672aefa3346099dad7ea8b53265

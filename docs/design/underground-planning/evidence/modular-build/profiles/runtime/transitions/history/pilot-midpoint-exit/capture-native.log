@@ -1,0 +1,14 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+capture: mouse_keeper.carry_turn.log 613 sampled pose(s), 1 attachment(s)
+capture: mouse_keeper.carry_turn.item_radish 613 sampled pose(s), 1 attachment(s)
+capture: mole_digger.swing_return.mole_pick 196 sampled pose(s), 1 attachment(s)
+capture: mouse_keeper.tunnel_reversal.body 224 sampled pose(s), 0 attachment(s)
+capture: mouse_keeper.tunnel_retreat.body 222 sampled pose(s), 0 attachment(s)
+capture: 5 runtime case(s), 0 qualified; complete

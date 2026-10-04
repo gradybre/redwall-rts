@@ -1,0 +1,9 @@
+{
+  "base_commit": "59ad656e",
+  "sha256": {
+    "godot/scripts/core/underground_space_owner.gd": "2dd9695402d75b1190f42c0f2bc568f7ad0499d808e3987a8cd33791bcc419ed",
+    "godot/test/test_underground_space_owner.gd": "913bc975762fdc6939d43c45bf9f46ecf973265ba6ad65a090e0060c6a9472f4",
+    "godot/scripts/core/underground_locations.gd": "721164c5c8a03d741c75839114078c9ef745153bd0b0dfb800c6e414ea1cb7f4",
+    "godot/test/test_underground_locations.gd": "9a282765f3e07f9e1b09fd1bff14d2e4234ae17c60428ae16570d38c57990013"
+  }
+}

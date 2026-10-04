@@ -54,6 +54,9 @@ const ACTION_BRACE: StringName = &"brace"
 const ACTION_LANTERNS: StringName = &"lanterns"
 const ACTION_REPAIR: StringName = &"repair"
 const ACTION_EVENT: StringName = &"event"
+const ACTION_ROOM_CONFIRM: StringName = &"blueprint:confirm"
+const ACTION_ROOM_MOVE: StringName = &"blueprint:move"
+const ACTION_ROOM_DISCARD: StringName = &"blueprint:discard"
 ## ACTION_NEXT_WEATHER and ACTION_EVENT are test triggers: their buttons are the Demo Lab's
 ## (demo/ui/demo_lab.gd, decision 0261), which sends them through the same `on_action` as this panel.
 const BUTTON_TEXT: Dictionary = {
@@ -92,6 +95,7 @@ var _lines: Dictionary = {}
 var _buttons: Dictionary = {}
 var _tunnel_box: VBoxContainer = null
 var _room_box: VBoxContainer = null
+var _blueprint_box: VBoxContainer = null
 ## Per fixture kind (underground_rooms.gd FIX_*): its palette row, its words, its "+" and its "−".
 var _fit_rows: Array[HBoxContainer] = []
 var _fit_words: Array[Label] = []
@@ -135,6 +139,7 @@ func build() -> void:
 	_body.add_child(column)
 	_column = column
 	column.add_child(_label(TITLE, TITLE_PX, Palette.INK, Styles.heading_font()))
+	_build_blueprint_box(column)
 	for key: StringName in [&"weather", &"stores", &"housing", &"finds"]:
 		_lines[key] = _label("", BODY_PX, Palette.INK, null)
 		column.add_child(_lines[key])
@@ -144,6 +149,43 @@ func build() -> void:
 	_build_project(column)
 	_lines[&"log"] = _label("", SMALL_PX, Palette.UMBER, null)
 	column.add_child(_lines[&"log"])
+
+
+func _build_blueprint_box(column: VBoxContainer) -> void:
+	"""Put the room's review and explicit actions first in the scrolling detail zone, visible at 720p."""
+	_blueprint_box = VBoxContainer.new()
+	_blueprint_box.visible = false
+	_blueprint_box.add_theme_constant_override(&"separation", 6)
+	column.add_child(_blueprint_box)
+	for key: StringName in [&"blueprint_title", &"blueprint"]:
+		_lines[key] = _label("", 16, Palette.INK, null)
+		_blueprint_box.add_child(_lines[key])
+	_button_words[ACTION_ROOM_CONFIRM] = "Confirm room (Enter)"
+	_button_words[ACTION_ROOM_MOVE] = "Move blueprint (Backspace)"
+	_button_words[ACTION_ROOM_DISCARD] = "Discard blueprint (Esc)"
+	for key: StringName in [ACTION_ROOM_CONFIRM, ACTION_ROOM_MOVE, ACTION_ROOM_DISCARD]:
+		var command := _button(key)
+		command.add_theme_font_size_override(&"font_size", 16)
+		_blueprint_box.add_child(command)
+	_blueprint_box.visibility_changed.connect(_place, CONNECT_DEFERRED)
+
+
+func show_blueprint(shown: bool, title: String, text: String, held: bool, valid: bool) -> void:
+	"""Present a room draft without authorizing work; `held` enables only its explicit review actions."""
+	_blueprint_box.visible = shown
+	_set_line(&"blueprint_title", title)
+	_set_line(&"blueprint", text)
+	for key: StringName in [ACTION_ROOM_CONFIRM, ACTION_ROOM_MOVE, ACTION_ROOM_DISCARD]:
+		var command := _buttons[key] as Button
+		command.visible = held
+		command.disabled = key == ACTION_ROOM_CONFIRM and not valid
+	(_buttons[ACTION_ROOM_CONFIRM] as Button).tooltip_text = "Order this room and its displayed passage. Furniture is ordered after excavation." \
+			if valid else "Move or rotate the blueprint to resolve the refusal shown above."
+
+
+func blueprint_shown() -> bool:
+	"""Whether the blueprint's review card is visible (also checked by the live input harness)."""
+	return _blueprint_box.visible
 
 
 func _build_finds_row() -> HFlowContainer:

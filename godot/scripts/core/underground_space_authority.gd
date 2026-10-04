@@ -12,6 +12,8 @@ const Jobs := preload("res://scripts/core/jobs.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
+const Placements := preload("res://scripts/core/underground_connector_placements.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const NO_ROW: int = -1
 const I32_FIELDS: int = 11
@@ -130,6 +132,16 @@ class Bindings extends Space.Authority:
 	func prepared_refusal(_token: int) -> StringName:
 		"""Revalidate the complete companion candidate before the physical transaction commits."""
 		return &"SPACE_COMPANION_PUBLICATION_UNBOUND"
+
+	func phase_final_observation_refusal(_site: Vector2i, _operation: int, _stage: int,
+			_cold_token: int, _space_token: int, _companion_token: int) -> StringName:
+		"""Finish actual source/contact observations inside the Inventory-owned final payment barrier."""
+		return &"SPACE_PHASE_FINAL_OBSERVATION_UNBOUND"
+
+	func phase_final_leaf_refusal(_site: Vector2i, _operation: int, _stage: int,
+			_cold_token: int, _space_token: int, _companion_token: int) -> StringName:
+		"""Current actual contacts and prepared scope must close without an observation or allocation."""
+		return &"SPACE_PHASE_FINAL_LEAF_UNBOUND"
 
 	func revision_after(_token: int) -> int:
 		"""Return the precomputed qualification revision that the exact prepared publication installs."""
@@ -831,7 +843,7 @@ func _prepare(check: ColdCheck, site: Vector2i, operation: int, stage: int, room
 	_companion_token = _bindings.prepare_companions(_owner_token, site, operation, stage, room, check.plan.copy())
 	if _companion_token <= 0:
 		return _failed_prepare(&"SPACE_COMPANION_PREPARATION_REFUSED")
-	_geometry_changed = _owner.prepared_has_changes(_owner_token)
+	_geometry_changed = _owner.prepared_has_changes(_owner_token) or _owner._phase_context != null
 	_next_i64[GEOMETRY_REVISION] = _owner.revision() + int(_geometry_changed)
 	_next_i64[QUALIFICATION_REVISION] = _bindings.revision_after(_companion_token)
 	code = _final_preflight(check, site, operation, stage, room)
@@ -1318,7 +1330,7 @@ func _final_preflight(check: ColdCheck, site: Vector2i, operation: int, stage: i
 		code = _owner.prepared_refusal(_owner_token)
 	if code == &"":
 		code = _bindings.prepared_refusal(_companion_token)
-	return code
+	return _concrete_phase_leaf() if code == &"" else code
 
 
 func _failed_prepare(code: StringName) -> StringName:
@@ -1346,8 +1358,78 @@ func _discard_prepared(release_lease: bool = true) -> void:
 		_release_cold()
 
 
+func final_start_observation_refusal(origin: Vector3i, operation: int, room: Vector2i) -> StringName:
+	"""The last input Inventory observers cannot lend an older START geometry/contact proof to payment."""
+	return _final_phase_observation(origin, operation, Contract.STAGE_START, room)
+
+
+func final_start_leaf_refusal(origin: Vector3i, operation: int, room: Vector2i) -> StringName:
+	"""Finish START on the original exact captured phase, never a replacement caller token."""
+	return _final_phase_leaf(origin, operation, Contract.STAGE_START, room)
+
+
+func final_settlement_observation_refusal(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Terminal observers recheck retained source/material/output truth without inventing a worker retry."""
+	if stage != Contract.STAGE_COMMIT and stage != Contract.STAGE_CANCEL: return &"SPACE_STAGE_INVALID"
+	return _final_phase_observation(origin, operation, stage, room)
+
+
+func final_settlement_leaf_refusal(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Only direct original terminal facts may follow the last contact/source observer before settlement."""
+	if stage != Contract.STAGE_COMMIT and stage != Contract.STAGE_CANCEL: return &"SPACE_STAGE_INVALID"
+	return _final_phase_leaf(origin, operation, stage, room)
+
+
+func _final_phase_observation(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Pin original controls locally across every observer; a successful replacement is not this transaction."""
+	if not _candidate_matches(origin, operation, stage, room) or _cold_token <= 0 or _companion_token <= 0:
+		return &"SPACE_FINAL_PHASE_SCOPE"
+	var cold: int = _cold_token
+	var owner_token: int = _owner_token
+	var companion: int = _companion_token
+	var site: Vector2i = Vector2i(_next_i32[SITE_SLOT], _next_i32[SITE_GENERATION])
+	var code: StringName = _bindings.prepared_refusal(companion)
+	if code == &"": code = _bindings.phase_final_observation_refusal(site, operation, stage, cold, owner_token, companion)
+	if not _candidate_matches(origin, operation, stage, room) or _cold_token != cold \
+			or _owner_token != owner_token or _companion_token != companion \
+			or Vector2i(_next_i32[SITE_SLOT], _next_i32[SITE_GENERATION]) != site:
+		return &"SPACE_FINAL_PHASE_SCOPE"
+	return code
+
+
+func _final_phase_leaf(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> StringName:
+	"""Actual providers prove their contacts first; concrete phase bank/source leaves close the final boundary."""
+	if not _candidate_matches(origin, operation, stage, room) or _cold_token <= 0 or _companion_token <= 0:
+		return &"SPACE_FINAL_PHASE_SCOPE"
+	var cold: int = _cold_token
+	var owner_token: int = _owner_token
+	var companion: int = _companion_token
+	var site: Vector2i = Vector2i(_next_i32[SITE_SLOT], _next_i32[SITE_GENERATION])
+	var code: StringName = _bindings.phase_final_leaf_refusal(site, operation, stage, cold, owner_token, companion)
+	if not _candidate_matches(origin, operation, stage, room) or _cold_token != cold \
+			or _owner_token != owner_token or _companion_token != companion:
+		return &"SPACE_FINAL_PHASE_SCOPE"
+	return _concrete_phase_leaf() if code == &"" else code
+
+
+func _concrete_phase_leaf() -> StringName:
+	"""A once-bound phase owner can never fall back to ordinary publication after a callback discards its candidate."""
+	if _owner._phase_context == null: return &""
+	var context: Locations.PhaseContext = _owner._phase_context.get_ref() as Locations.PhaseContext
+	var issuer: Placements = context.issuer.get_ref() as Placements if context != null and context.issuer != null else null
+	if issuer == null or context.authority == null or context.authority.get_ref() != self \
+			or context.site != Vector2i(_next_i32[SITE_SLOT], _next_i32[SITE_GENERATION]) \
+			or context.space_token != _owner_token or context.cold_token != _cold_token \
+			or context.location_token != _companion_token:
+		return &"SPACE_FINAL_PHASE_SCOPE"
+	return issuer.prepared_phase_leaf_refusal(_companion_token)
+
+
 func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
 	"""Publish only inside the exact actual Sites callback after its physical owner transaction commits."""
+	if _owner._phase_context != null:
+		_publish_phase_context(origin, operation, stage, room)
+		return
 	var sites: Sites = _physical()
 	if not _candidate_matches(origin, operation, stage, room) or sites == null \
 			or not sites.is_publishing_spatial_transition(origin, operation, stage, room, self):
@@ -1361,6 +1443,21 @@ func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vect
 		_publish_cache_row()
 	elif _cache_row != NO_ROW:
 		_release_cache_row()
+	_reset_candidate()
+	_release_cold()
+
+
+func _publish_phase_context(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
+	"""Concrete static kernels bypass all observing provider publication hooks after actual funding."""
+	if not _candidate_matches(origin, operation, stage, room): return
+	var context: Locations.PhaseContext = _owner._phase_context.get_ref() as Locations.PhaseContext
+	var issuer: Placements = context.issuer.get_ref() as Placements if context != null and context.issuer != null else null
+	if issuer == null or context.authority.get_ref() != self: return
+	var published: bool = Placements.commit_phase_preflighted(issuer, _companion_token)
+	assert(published, "Actual Sites publishes every preflighted companion after payment without observers")
+	if not published: return
+	if stage == Contract.STAGE_START: _publish_cache_row()
+	elif _cache_row != NO_ROW: _release_cache_row()
 	_reset_candidate()
 	_release_cold()
 

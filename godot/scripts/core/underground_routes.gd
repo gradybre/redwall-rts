@@ -1341,6 +1341,8 @@ func publish(token: int) -> StringName:
 		return &"ROUTE_TRANSACTION_STALE"
 	if _locations._installation != null and _locations._installation.route_token == token:
 		return &"ROUTE_INSTALLATION_WINDOW"
+	if _locations._phase_context != null and _locations._phase_context.route_token == token:
+		return &"ROUTE_PHASE_WINDOW"
 	if _binding_refusal() != &"" or _owner.has_prepared() or _owner.revision() != _target_geometry_revision:
 		return &"ROUTE_GEOMETRY_STALE"
 	var code: StringName = _companion_publications_refusal()
@@ -1427,6 +1429,37 @@ static func publish_room_preflighted(actual: RefCounted, context: Locations.Room
 	"""Only the same preflighted Room's actual Space and endpoint receipts can publish the refreshed path bank."""
 	if room_prepared_leaf_refusal(actual, context) != &"" \
 			or Locations.room_scope_leaf_refusal(actual._locations, context, true) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
+		return false
+	_commit_preflighted_bank(actual, context.route_token)
+	return true
+
+
+static func phase_prepared_leaf_refusal(actual: RefCounted, context: Locations.PhaseContext) -> StringName:
+	"""A phase refresh cannot create a path, delete a queue/occupied edge or change an old span payload."""
+	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
+			or not actual._sealed or actual._operation_error != &"" or actual._in_callback or actual._callback_reentered \
+			or actual._searching or actual._advancing or actual._occupancy_reading or actual._cold != context.budget \
+			or actual._cold_token != context.cold_token or actual._space_token != context.space_token \
+			or actual._location_token != context.location_token or actual._base_geometry_revision != context.base_revision \
+			or actual._target_geometry_revision != context.target_revision or actual._profiles._loading \
+			or actual._profiles._live.header[0] != context.profile_revision:
+		return &"ROUTE_PHASE_CONTEXT"
+	var code: StringName = Locations.phase_scope_leaf_refusal(actual._locations, context)
+	if code != &"":
+		return code
+	if actual._stage.edge_count != actual._live.edge_count or actual._stage.vertex_count != actual._live.vertex_count \
+			or actual._stage.free_count != actual._live.free_count:
+		return &"ROUTE_PHASE_REFRESH_ONLY"
+	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
+
+
+static func publish_phase_preflighted(actual: RefCounted, context: Locations.PhaseContext) -> bool:
+	"""Only the same preflighted phase's actual Space and endpoint receipts can publish the refreshed path bank."""
+	if phase_prepared_leaf_refusal(actual, context) != &"" \
+			or Locations.phase_scope_leaf_refusal(actual._locations, context, true) != &"" \
 			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
 			or actual._owner._last_published_token != context.space_token \
 			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:

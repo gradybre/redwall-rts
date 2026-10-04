@@ -1,0 +1,54 @@
+{
+ "scripts/core/underground_connector_placements.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"code\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 10,
+     "line": 1673
+    },
+    "start": {
+     "character": 6,
+     "line": 1673
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"code\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 10,
+     "line": 1691
+    },
+    "start": {
+     "character": 6,
+     "line": 1691
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "scripts/core/underground_space_owner.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_phase_context\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 18,
+     "line": 223
+    },
+    "start": {
+     "character": 4,
+     "line": 223
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

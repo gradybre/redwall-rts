@@ -1,0 +1,160 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.845,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "166/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.011,
+      "log": "test_underground_phase_companions.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "80/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.964,
+      "log": "test_underground_space_authority.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "93/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.664,
+      "log": "test_underground_connector_placements.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "68/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.063,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "62/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 12.362,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "121/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.752,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "45/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.079,
+      "log": "test_underground_space_owner.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "131/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 9.237,
+      "log": "test_underground_phase_structure.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "227/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.139,
+      "log": "test_underground_world_structure.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "159/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 7.577,
+      "log": "test_underground_entry_placements.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "86/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-placements/docs/validation/evidence/underground-phase-companions-2026-10-04/candidate-1"
+      ],
+      "exit_code": 1,
+      "seconds": 14.488,
+      "log": "test_underground_entry_bindings.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "cached_import": false,
+  "compile_only": false,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-phase-companion-tests",
+  "project_test_sha256": "6829290d5792bc960fe94634b9ca27953d2d6fb1e5c819bf5325e019646b8ea4",
+  "assets_present_before": false,
+  "error": "test_underground_entry_bindings.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

@@ -6,6 +6,8 @@ const Directory := preload("res://scripts/core/entity_directory.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
+const Excavation := preload("res://scripts/core/excavation_contract.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Router := preload("res://scripts/core/modular_projects.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
@@ -285,6 +287,8 @@ var _admission_mode: bool = false
 var _admission_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
 var _admission_context: Locations.RoomContext = Locations.RoomContext.new()
 var _admission_input: WeakRef = null
+var _phase_context: Locations.PhaseContext = Locations.PhaseContext.new()
+var _phase_mode: bool = false
 
 
 static func required_bytes(placements: int, openings: int) -> int:
@@ -1572,6 +1576,280 @@ func prepared_token(ref: Vector2i, project: Vector2i) -> int:
 		and _budget.covers(_cold_token, _cold_bytes) else 0
 
 
+func bind_phase_authority(authority: RefCounted) -> StringName:
+	"""Once bind actual Sites/Authority at quiescence; no observer or copied authority flag enters the links."""
+	if _reentry() or authority == null or _source_refusal() != &"" or not _quiescent() or not _budget.is_quiescent():
+		return REFUSE_BINDING
+	var sites: Sites = authority._sites.get_ref() as Sites if authority._sites != null else null
+	if sites == null or authority._owner != _space or authority._sources != _sources or authority._construction != _construction \
+			or sites._space == null or sites._space.get_ref() != authority or sites._construction != _construction \
+			or sites._inventory != _inventory or sites._domain.world_ref != _world or authority._ready_error != &"" \
+			or _locations._sites == null or _locations._sites.get_ref() != sites:
+		return REFUSE_BINDING
+	if _phase_context.authority != null:
+		return &"" if _phase_context.authority.get_ref() == authority else REFUSE_BINDING
+	if _space._phase_context != null or _locations._phase_context != null:
+		return REFUSE_BINDING
+	_phase_context.issuer = weakref(self)
+	_phase_context.authority = weakref(authority)
+	_phase_context.sites = weakref(sites)
+	_phase_context.space = weakref(_space)
+	_phase_context.locations = weakref(_locations)
+	_phase_context.budget = _budget
+	_phase_context.world = _world
+	_space._phase_context = weakref(_phase_context)
+	_locations._phase_context = _phase_context
+	return &""
+
+
+func prepare_phase_refresh(authority: RefCounted, ref: Vector2i, site: Vector2i, operation: int,
+		stage: int, room: Vector2i, space_token: int, cold_token: int) -> int:
+	"""Borrow the sealed actual phase and original whole lease, then refresh existing banks sequentially."""
+	if _reentry() or _cold_token != 0 or _admission_mode or _phase_mode or _locations._token != 0 \
+			or _routes._token != 0 or _world_routes._route_token != 0 or _reading_state:
+		return 0
+	if _phase_context.authority == null or _phase_context.authority.get_ref() != authority \
+			or _source_refusal() != &"" or not _is_live(_live, ref) or _placement_leaf(_live, ref.x) != &"" \
+			or _pair(_live, ROOM_SLOT, ref.x) != room or _revision_refusal(_live, 1) != &"" \
+			or space_token <= 0 or _space._stage_token != space_token or not _space._sealed \
+			or not _budget.covers(cold_token, Budget.COLD_BYTES):
+		return 0
+	_busy = true
+	_poisoned = false
+	_pin_phase(ref, site, operation, stage, room, space_token, cold_token)
+	var code: StringName = _phase_prepare_banks()
+	if code != &"": _discard_phase_candidates()
+	_busy = false
+	return _location_token if code == &"" else 0
+
+
+func _pin_phase(ref: Vector2i, site: Vector2i, operation: int, stage: int, room: Vector2i,
+		space_token: int, cold_token: int) -> void:
+	"""Keep independent original issuer pins before any callbacks; no inactive bank is copied here."""
+	_phase_mode = true
+	_prepared_placement = ref
+	_prepared_project = Vector2i(_phase_context.authority.get_ref()._next_i32[4], _phase_context.authority.get_ref()._next_i32[5])
+	_cold_token = cold_token
+	_cold_bytes = Budget.COLD_BYTES
+	_space_token = space_token
+	_payload_revision = _get64(_live, PAYLOAD_REVISION, ref.x)
+	_base_geometry_revision = _space._header[17]
+	_target_geometry_revision = _space._s_header[17]
+	_phase_context.placement = ref
+	_phase_context.site = site
+	_phase_context.room = room
+	_phase_context.project = _prepared_project
+	_phase_context.operation = operation
+	_phase_context.stage = stage
+	_phase_context.cold_token = cold_token
+	_phase_context.space_token = space_token
+	_phase_context.base_revision = _base_geometry_revision
+	_phase_context.target_revision = _target_geometry_revision
+	_phase_context.profile_revision = _profiles._live.header[0]
+	_phase_context.catalog_revision = _catalog._live.header[0]
+	_phase_context.placement_revision = _live.header[H_REVISION]
+
+
+func _phase_prepare_banks() -> StringName:
+	"""The original scope gate directly precedes the only Placement copy; no observer intervenes."""
+	if _admission_row_checks() > _space._domain._checks: return REFUSE_CAPACITY
+	var code: StringName = _phase_context_refusal()
+	if code == &"":
+		_copy_bank(_live, _stage)
+		_stage.header[H_REVISION] += 1
+		code = _update_staged_source_pins()
+	if code == &"": code = _phase_prepare_locations()
+	if code == &"": code = _phase_prepare_routes()
+	return prepared_phase_leaf_refusal(_location_token) if code == &"" else code
+
+
+func _phase_prepare_locations() -> StringName:
+	"""Only old full handles are refreshed; each complete body/support proof uses the same exact sealed phase."""
+	var result: Locations.Result = _locations.begin_phase_prepare(_phase_context)
+	if result.error != &"": return result.error
+	_location_token = result.token
+	if not _locations._spend(_locations._capacity): return REFUSE_CAPACITY
+	for row: int in _locations._capacity:
+		if _locations._live.present[row] == 0: continue
+		var code: StringName = _locations.stage_refresh(result.token,
+			Vector2i(row, _locations._live.i32[Locations.GENERATION * _locations._capacity + row]))
+		if code != &"": return code
+		code = _phase_context_refusal()
+		if code != &"": return code
+	var sealed: StringName = _locations.seal(result.token)
+	return _phase_context_refusal() if sealed == &"" else sealed
+
+
+func _phase_prepare_routes() -> StringName:
+	"""Compile actual current masks sequentially after Locations drops its image; never add a stair or edge."""
+	var result: Routes.Result = _world_routes.begin_prepare(_cold_token, _space_token, _location_token)
+	if result.error != &"": return result.error
+	_route_token = result.token
+	_phase_context.route_token = result.token
+	if not _routes._spend(_routes._edge_capacity): return REFUSE_CAPACITY
+	for row: int in _routes._edge_capacity:
+		if _routes._live.present[row] == 0: continue
+		var code: StringName = _routes.stage_refresh(result.token,
+			Vector2i(row, _routes._live.fields[Routes.E_GENERATION * _routes._edge_capacity + row]))
+		if code != &"": return code
+		code = _phase_context_refusal()
+		if code != &"": return code
+	var sealed: StringName = _world_routes.seal(result.token)
+	return _phase_context_refusal() if sealed == &"" else sealed
+
+
+func _phase_context_refusal() -> StringName:
+	"""Every allocating or observing boundary closes on independent original pins and exact immutable sources."""
+	if not _phase_mode or _admission_mode or _poisoned or _source_refusal() != &"" \
+			or _phase_context.placement != _prepared_placement or _phase_context.project != _prepared_project \
+			or _phase_context.cold_token != _cold_token or _phase_context.space_token != _space_token \
+			or _phase_context.location_token != _location_token or _phase_context.route_token != _route_token \
+			or _phase_context.base_revision != _base_geometry_revision or _phase_context.target_revision != _target_geometry_revision \
+			or _phase_context.placement_revision != _live.header[H_REVISION] \
+			or _phase_context.profile_revision != _profiles._live.header[0] or _phase_context.catalog_revision != _catalog._live.header[0] \
+			or _space._stage_token != _space_token or not _space._sealed or _space._header[17] != _base_geometry_revision \
+			or _space._s_header[17] != _target_geometry_revision or not _is_live(_live, _prepared_placement) \
+			or _get64(_live, PAYLOAD_REVISION, _prepared_placement.x) != _payload_revision:
+		return REFUSE_STALE
+	return Locations.phase_scope_leaf_refusal(_locations, _phase_context)
+
+
+func phase_context_leaf_refusal(token: int) -> StringName:
+	"""Identity-only prepared-bank attestation; callers still compare every original typed context field."""
+	if token <= 0 or token != _location_token or _routes._token != _route_token or not _routes._sealed \
+			or _locations._token != token or not _locations._sealed or _world_routes._route_token != _route_token \
+			or not _world_routes._sealed or _world_routes._proof != null:
+		return REFUSE_STALE
+	return _phase_context_refusal()
+
+
+static func phase_operation_leaf_refusal(actual: RefCounted, authority: RefCounted, site: Vector2i,
+		operation: int, stage: int, room: Vector2i, project: Vector2i, cold_token: int, space_token: int) -> StringName:
+	"""Early exact phase identity, including its busy preparation interval; this grants no physical or companion proof."""
+	if actual == null or not actual._phase_mode or actual._admission_mode or actual._poisoned:
+		return REFUSE_STALE
+	var context: Locations.PhaseContext = actual._phase_context
+	if context == null or context.authority == null or context.authority.get_ref() != authority \
+			or context.site != site or context.operation != operation or context.stage != stage or context.room != room \
+			or context.project != project or context.cold_token != cold_token or context.space_token != space_token \
+			or actual._cold_token != cold_token or actual._space_token != space_token \
+			or actual._prepared_project != project or actual._prepared_placement != context.placement \
+			or actual._space._stage_token != space_token or not actual._space._sealed \
+			or actual._space._header[17] != context.base_revision or actual._space._s_header[17] != context.target_revision:
+		return REFUSE_STALE
+	return Locations.phase_scope_leaf_refusal(actual._locations, context)
+
+
+func phase_context(token: int) -> Locations.PhaseContext:
+	"""Borrow the exact retained packet to compare original facts; this identity alone grants no permission."""
+	return _phase_context if phase_context_leaf_refusal(token) == &"" else null
+
+
+func phase_revision_after(token: int) -> int:
+	"""Return the actual pinned qualification source only for this complete original companion candidate."""
+	return _live.header[H_FRONTIER_REV] if phase_context_leaf_refusal(token) == &"" else 0
+
+
+func phase_refresh_refusal(token: int) -> StringName:
+	"""All geometry/retention/certificate observers finish before the final source and exact-context leaf."""
+	if _reentry() or phase_context_leaf_refusal(token) != &"": return REFUSE_STALE
+	_busy = true
+	_poisoned = false
+	var code: StringName = _routes.prepared_refusal(_route_token)
+	if code == &"": code = _locations.prepared_refusal(_location_token)
+	if code == &"": code = _space.prepared_refusal(_space_token)
+	if code == &"": code = prepared_phase_leaf_refusal(token)
+	_busy = false
+	return code
+
+
+func prepared_phase_leaf_refusal(token: int) -> StringName:
+	"""Last pure source/claim and immutable-payload closure; no released worker is needed for terminal retries."""
+	var code: StringName = phase_context_leaf_refusal(token)
+	if code == &"": code = _prepared_work_refusal()
+	if code == &"": code = Owner.generic_commit_refusal(_space, _space_token, _base_geometry_revision, _target_geometry_revision)
+	if code == &"": code = _prepared_sources_leaf()
+	if code == &"": code = _phase_rows_refusal()
+	if code == &"": code = Locations.phase_prepared_leaf_refusal(_locations, _phase_context)
+	if code == &"": code = _locations._installed_witnesses_refusal()
+	return WorldRoutes.phase_prepared_leaf_refusal(_world_routes, _phase_context) if code == &"" else code
+
+
+func _phase_rows_refusal() -> StringName:
+	"""Phase edits advance source pins only: prefix, active paid order, payload, free rows and openings stay identical."""
+	if _stage.free_count != _live.free_count or _stage.opening_free_count != _live.opening_free_count \
+			or _stage.digests != _live.digests or _stage.free_rows != _live.free_rows or _stage.free_openings != _live.free_openings:
+		return REFUSE_STALE
+	for index: int in 16:
+		if _stage.header[index] != _live.header[index] + (1 if index == H_REVISION else 0): return REFUSE_STALE
+	for row: int in _capacity:
+		var code: StringName = _retained_admission_row_refusal(row)
+		if code != &"": return code
+	return &""
+
+
+func publish_phase_refresh(token: int) -> bool:
+	"""External dispatch convenience; the actual Authority uses the static concrete kernel directly."""
+	return commit_phase_preflighted(self, token)
+
+
+static func commit_phase_preflighted(actual: RefCounted, token: int) -> bool:
+	"""No observer follows payment: exact Sites window then Space, endpoint, graph/certificates and source swaps."""
+	var context: Locations.PhaseContext = actual._phase_context
+	if not actual._phase_mode or actual._poisoned or token <= 0 or token != actual._location_token \
+			or Locations.phase_scope_leaf_refusal(actual._locations, context, true) != &"" \
+			or Owner.phase_commit_refusal(actual._space, context.space_token) != &"":
+		return false
+	if not Owner.commit_preflighted(actual._space, context.space_token, context.base_revision, context.target_revision): return false
+	var locations_ok: bool = Locations.publish_phase_preflighted(actual._locations, context)
+	assert(locations_ok, "Preflighted phase endpoints publish without observers")
+	var routes_ok: bool = WorldRoutes.publish_phase_preflighted(actual._world_routes, context)
+	assert(routes_ok, "Preflighted phase route certificates publish without observers")
+	var previous: Bank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	_clear_phase_controls(actual)
+	return true
+
+
+func discard_phase_refresh(token: int) -> void:
+	"""Discard only the original companion tokens; Authority separately owns Space and the cold lease."""
+	if _reentry() or not _phase_mode or token <= 0 or token != _location_token: return
+	_busy = true
+	_discard_phase_candidates()
+	_busy = false
+
+
+func _discard_phase_candidates() -> void:
+	"""No provider or replacement token is touched while dropping this failed private preparation."""
+	if _route_token > 0 and _world_routes._route_token == _route_token: _world_routes.abort(_route_token)
+	if _location_token > 0 and _locations._token == _location_token: _locations.abort(_location_token)
+	_clear_phase_controls(self)
+
+
+static func _clear_phase_controls(actual: RefCounted) -> void:
+	"""The shared packet retains only once-bound owner identities after its exact synchronous operation."""
+	actual._phase_mode = false
+	actual._prepared_placement = NULL_REF
+	actual._prepared_project = NULL_REF
+	actual._cold_token = 0
+	actual._cold_bytes = 0
+	actual._space_token = 0
+	actual._location_token = 0
+	actual._route_token = 0
+	actual._payload_revision = 0
+	actual._base_geometry_revision = 0
+	actual._target_geometry_revision = 0
+	actual._phase_context.placement = NULL_REF
+	actual._phase_context.site = NULL_REF
+	actual._phase_context.room = NULL_REF
+	actual._phase_context.project = NULL_REF
+	actual._phase_context.cold_token = 0
+	actual._phase_context.space_token = 0
+	actual._phase_context.location_token = 0
+	actual._phase_context.route_token = 0
+
+
 func prepare_completion(ref: Vector2i, project: Vector2i, original_token: int) -> StringName:
 	"""Own all actual companion tokens; no provider may substitute an unrelated prepared transaction."""
 	if _reentry() or _cold_token != 0 or not _quiescent():
@@ -1827,6 +2105,7 @@ func _prepared_work_refusal() -> StringName:
 	"""Precharge the census itself before scans, then actual source leaves and complete companion row checks."""
 	var required: int = 1024 + 2 * (_space._source_capacity + _space._region_capacity) \
 		+ 28 * _locations._capacity + 56 * _routes._edge_capacity + 3 * _routes._vertex_capacity
+	if _phase_mode: required += 64 * (_capacity + _opening_capacity)
 	if required > _space._domain._checks:
 		return &"PLACEMENT_SOURCE_CHECK_CAPACITY"
 	for row: int in _space._source_capacity:

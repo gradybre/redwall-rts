@@ -191,6 +191,32 @@ class RoomContext extends RefCounted:
 	var catalog_revision: int = 0
 
 
+class PhaseContext extends RefCounted:
+	## One128B synchronous packet owned by Placements; no new Site, worker, prefix or paid receipt.
+	var issuer: WeakRef = null
+	var authority: WeakRef = null
+	var sites: WeakRef = null
+	var space: WeakRef = null
+	var locations: WeakRef = null
+	var budget: Budget = null
+	var world: Vector2i = NULL_REF
+	var placement: Vector2i = NULL_REF
+	var site: Vector2i = NULL_REF
+	var room: Vector2i = NULL_REF
+	var project: Vector2i = NULL_REF
+	var operation: int = -1
+	var stage: int = -1
+	var cold_token: int = 0
+	var space_token: int = 0
+	var location_token: int = 0
+	var route_token: int = 0
+	var base_revision: int = 0
+	var target_revision: int = 0
+	var profile_revision: int = 0
+	var catalog_revision: int = 0
+	var placement_revision: int = 0
+
+
 class InventoryLocations extends InventoryContract:
 	## Borrow the actual namespace weakly so Inventory cannot form an owner cycle.
 	var _locations: WeakRef = null
@@ -264,6 +290,7 @@ var _admission_type: int = -1
 var _world_scope: WeakRef = null
 var _world_preparation: bool = false
 var _installation: InstallationContext = null
+var _phase_context: PhaseContext = null
 var _resolve_source_ref: Vector2i = NULL_REF
 var _resolve_source_hint: int = -1
 
@@ -846,6 +873,146 @@ func _installation_active() -> bool:
 	return _installation != null and _token > 0 and _installation.location_token == _token
 
 
+func _phase_active() -> bool:
+	"""Only the exact bound packet's current token selects the guarded excavation companion."""
+	return _phase_context != null and _token > 0 and _phase_context.location_token == _token
+
+
+static func phase_scope_leaf_refusal(actual: RefCounted, context: PhaseContext, publishing: bool = false) -> StringName:
+	"""Full actual owner, original arena and retained Authority tuple; no virtual scope permission is queried."""
+	if actual == null or context == null or actual._phase_context != context or context.issuer == null \
+			or context.authority == null or context.sites == null or context.space == null or context.locations == null \
+			or context.locations.get_ref() != actual or context.space.get_ref() != actual._owner \
+			or context.budget != actual._cold or context.world != actual._world \
+			or not context.budget.covers(context.cold_token, Budget.COLD_BYTES):
+		return &"LOCATION_PHASE_CONTEXT"
+	var issuer: RefCounted = context.issuer.get_ref()
+	var authority: RefCounted = context.authority.get_ref()
+	var sites: Sites = context.sites.get_ref() as Sites
+	if issuer == null or authority == null or sites == null or issuer._phase_context != context \
+			or not issuer._phase_mode or issuer._space != actual._owner or issuer._locations != actual \
+			or issuer._budget != context.budget or issuer._cold_token != context.cold_token \
+			or issuer._space_token != context.space_token or issuer._prepared_placement != context.placement \
+			or issuer._prepared_project != context.project or sites._space == null:
+		return &"LOCATION_PHASE_CONTEXT"
+	var code: StringName = _phase_authority_leaf(actual, context, authority, sites)
+	if code == &"" and publishing and (not sites._publishing_spatial or sites._candidate_row != context.site.x \
+			or sites._candidate_stage != context.stage):
+		code = &"LOCATION_PHASE_WINDOW"
+	return code
+
+
+static func _phase_authority_leaf(actual: RefCounted, context: PhaseContext, authority: RefCounted, sites: Sites) -> StringName:
+	"""Direct existing retained controls distinguish phase preparation from a copied Site/token tuple."""
+	if sites._space.get_ref() != authority or authority._sites == null or authority._sites.get_ref() != sites \
+			or authority._owner != actual._owner or authority._sources != actual._sources \
+			or authority._construction != sites._construction or authority._buildings != actual._buildings \
+			or authority._ready_error != &"" or authority._cold_token != context.cold_token \
+			or authority._owner_token != context.space_token or authority._stage != context.stage \
+			or (context.stage != Contract.STAGE_START and context.stage != Contract.STAGE_COMMIT and context.stage != Contract.STAGE_CANCEL) \
+			or authority._next_i32.size() != 11 or authority._next_i32[0] != context.site.x \
+			or authority._next_i32[1] != context.site.y or authority._next_i32[2] != context.room.x \
+			or authority._next_i32[3] != context.room.y or authority._next_i32[4] != context.project.x \
+			or authority._next_i32[5] != context.project.y or authority._next_i32[9] != context.operation:
+		return &"LOCATION_PHASE_AUTHORITY"
+	if authority._companion_token != 0 and authority._companion_token != context.location_token:
+		return &"LOCATION_PHASE_AUTHORITY"
+	return _phase_site_leaf(actual, context, sites)
+
+
+static func _phase_site_leaf(actual: RefCounted, context: PhaseContext, sites: Sites) -> StringName:
+	"""The Project is real purpose5 and remains live until every preflighted companion has published."""
+	var row: int = context.site.x
+	var construction: Construction = sites._construction
+	if context.site.y != Sites.SITE_GENERATION or row < 0 or row >= sites._count or sites._present[row] != 1 \
+			or sites._ready_error != &"" or sites._domain.world_ref != context.world or sites._inventory != actual._inventory \
+			or construction != actual._sources._construction or construction._directory != actual._ids \
+			or construction._excavation_authority == null or construction._excavation_authority.get_ref() != sites \
+			or sites._room_slot[row] != context.room.x or sites._room_generation[row] != context.room.y \
+			or sites._project_slot[row] != context.project.x or sites._project_generation[row] != context.project.y \
+			or sites._operation[row] != context.operation or not actual._ids.is_valid_of_kind(context.world, Directory.KIND_WORLD) \
+			or not actual._ids.is_valid_of_kind(context.project, Directory.KIND_CONSTRUCTION) \
+			or not actual._ids.is_valid_of_kind(context.room, Directory.KIND_ROOM):
+		return &"LOCATION_PHASE_SITE"
+	row = actual._ids.get_typed_row(context.project)
+	if row < 0 or row >= Construction.CONSTRUCTION_CAPACITY or construction._present[row] != 1 \
+			or construction._ref_slot[row] != context.project.x or construction._ref_generation[row] != context.project.y \
+			or construction._purpose[row] != Construction.PURPOSE_EXCAVATION or construction._type_id[row] != context.operation \
+			or construction._subject_slot[row] != context.site.x or construction._subject_generation[row] != context.site.y:
+		return &"LOCATION_PHASE_PROJECT"
+	return &""
+
+
+func begin_phase_prepare(context: PhaseContext) -> Result:
+	"""Copy only after the exact original phase survives source observers and the final actual lease gate."""
+	if _reject_retention_callback() or _token != 0 or _next_token == 9223372036854775807:
+		return Result.new(&"LOCATION_PREPARATION_BUSY")
+	var code: StringName = phase_scope_leaf_refusal(self, context)
+	if code != &"" or _owner._stage_token != context.space_token or not _owner._sealed:
+		return Result.new(code if code != &"" else &"LOCATION_GEOMETRY_STALE")
+	var token: int = context.space_token
+	var cold: int = context.cold_token
+	_in_retention = true
+	_retention_reentered = false
+	code = _owner.prepared_refusal(token)
+	_in_retention = false
+	if code == &"": code = phase_scope_leaf_refusal(self, context)
+	if code != &"" or _retention_reentered or context.space_token != token or context.cold_token != cold \
+			or _owner._stage_token != token or not _owner._sealed or context.base_revision != _owner._header[17] \
+			or context.target_revision != _owner._s_header[17] or not _cold.covers(cold, Budget.COLD_BYTES):
+		return Result.new(code if code != &"" else &"LOCATION_PHASE_CONTEXT")
+	var result: Result = _start_phase_preparation(context)
+	if result.error == &"":
+		_target_geometry_revision = context.target_revision
+		context.location_token = result.token
+	return result
+
+
+func _start_phase_preparation(context: PhaseContext) -> Result:
+	"""No source observer follows the final original arena check before the existing inactive-bank copy."""
+	if _live.header[13] == 9223372036854775807 or not _cold.covers(context.cold_token, Budget.COLD_BYTES):
+		return Result.new(&"LOCATION_COLD_CAPACITY")
+	_stage.copy_from(_live)
+	_stage.header[13] += 1
+	_token = _next_token
+	_next_token += 1
+	_cold_token = context.cold_token
+	_owner_token = context.space_token
+	_site = context.site
+	_operation = context.operation
+	_phase_stage = context.stage
+	_base_geometry_revision = context.base_revision
+	_target_geometry_revision = context.target_revision
+	_remaining = _domain._checks
+	return Result.new(&"", _token)
+
+
+static func phase_prepared_leaf_refusal(actual: RefCounted, context: PhaseContext) -> StringName:
+	"""Only complete existing immutable endpoint payloads may survive the sealed phase refresh."""
+	var code: StringName = phase_scope_leaf_refusal(actual, context)
+	if code != &"": return code
+	if actual._token <= 0 or actual._token != context.location_token or not actual._sealed or actual._in_retention \
+			or actual._cold_token != context.cold_token or actual._owner_token != context.space_token \
+			or actual._base_geometry_revision != context.base_revision or actual._target_geometry_revision != context.target_revision \
+			or actual._stage.count != actual._live.count or actual._stage.free_count != actual._live.free_count:
+		return &"LOCATION_PHASE_REFRESH_ONLY"
+	return _room_rows_leaf_refusal(actual, context.target_revision)
+
+
+static func publish_phase_preflighted(actual: RefCounted, context: PhaseContext) -> bool:
+	"""The actual Sites window and exact successful Space receipt precede this observer-free bank swap."""
+	if phase_scope_leaf_refusal(actual, context, true) != &"" or phase_prepared_leaf_refusal(actual, context) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token:
+		return false
+	var previous: Bank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._last_published_token = context.location_token
+	_clear_installation_preparation(actual)
+	return true
+
+
 static func installation_prepared_leaf_refusal(actual: RefCounted, context: InstallationContext) -> StringName:
 	"""Pure final candidate proof; all source/retention observations already completed before Funding."""
 	var code: StringName = installation_scope_refusal(actual, context)
@@ -1061,7 +1228,7 @@ func _future_context_refusal(owner_token: int, site: Vector2i, operation: int,
 func stage_add(token: int, record: Record) -> Result:
 	"""Register only fully covered actual void and support, never a guessed point in empty dirt."""
 	var code: StringName = _editable(token)
-	if code == &"" and _room_admission:
+	if code == &"" and (_room_admission or _phase_active()):
 		code = &"LOCATION_ROOM_REFRESH_ONLY"
 	if code == &"" and _world_preparation and (record == null or record.room != NULL_REF or record.level != 0):
 		code = &"LOCATION_WORLD_CREATE_ONLY"
@@ -1098,7 +1265,7 @@ func stage_remove(token: int, location: Vector2i) -> StringName:
 	var code: StringName = _editable(token)
 	if code != &"" or not _live_ref(_stage, location):
 		return code if code != &"" else &"LOCATION_STALE"
-	if _room_admission:
+	if _room_admission or _phase_active():
 		return &"LOCATION_ROOM_REFRESH_ONLY"
 	if _world_preparation:
 		return &"LOCATION_WORLD_CREATE_ONLY"
@@ -1149,7 +1316,7 @@ func _prepared_retention_refusal() -> StringName:
 	var code: StringName = _current_retention_refusal()
 	if code == &"":
 		code = _geometry_current_refusal()
-	if code == &"" and _room_admission:
+	if code == &"" and (_room_admission or _phase_active()):
 		code = _refreshed_room_rows_refusal()
 	if code == &"" and _world_preparation:
 		code = _world_rows_refusal()
@@ -1198,7 +1365,7 @@ func publish(token: int) -> bool:
 	"""Swap only in the prepared actual Sites or Room callback, after the exact Space publication."""
 	if _reject_retention_callback() or token == 0 or token != _token or not _sealed or not _cold.covers(_cold_token, cold_peak_bytes()):
 		return false
-	if _installation_active():
+	if _installation_active() or _phase_active():
 		return false # The static paid kernel owns this context.
 	if _world_preparation:
 		if _world_publication_refusal() != &"":
@@ -1308,6 +1475,10 @@ func _geometry_current_refusal() -> StringName:
 		return _room_preflight(_actual_orders(), _cold_token, _owner_token, _admission_room, _admission_type)
 	if _world_preparation:
 		return _world_preflight(_actual_world_scope(), _cold_token, _owner_token)
+	if _phase_active():
+		var phase_code: StringName = phase_scope_leaf_refusal(self, _phase_context)
+		if phase_code == &"": phase_code = _owner.prepared_refusal(_owner_token)
+		return phase_scope_leaf_refusal(self, _phase_context) if phase_code == &"" else phase_code
 	if _installation_active():
 		var code: StringName = installation_scope_refusal(self, _installation)
 		if code == &"":
@@ -1322,7 +1493,7 @@ func _geometry_current_refusal() -> StringName:
 
 func _validate_record(record: Record) -> StringName:
 	"""World observations cannot mutate their caller input or reenter the retained endpoint candidate."""
-	if not _world_preparation and not _installation_active():
+	if not _world_preparation and not _installation_active() and not _phase_active():
 		return _record_geometry_refusal(record)
 	var scope: WorldScope = _actual_world_scope()
 	if record == null or not _record_scope_current(scope):
@@ -1344,6 +1515,7 @@ func _validate_record(record: Record) -> StringName:
 
 func _record_scope_current(scope: WorldScope) -> bool:
 	"""Both publication contexts require the exact current original lease before copied caller geometry."""
+	if _phase_active(): return phase_scope_leaf_refusal(self, _phase_context) == &""
 	return installation_scope_refusal(self, _installation) == &"" if _installation_active() \
 		else _world_scope_current(scope, _cold_token, _owner_token)
 
@@ -1423,7 +1595,7 @@ func _section_refusal(record: Record) -> StringName:
 
 func _read_section(section: Vector2i) -> StringName:
 	"""The World path brackets a reused pure row observation with its complete source preflight and leased image."""
-	if _world_preparation or _installation_active():
+	if _world_preparation or _installation_active() or _phase_active():
 		_region.box.resize(6)
 		return _owner.prepared_region_observation_into(_owner_token, section, _region)
 	return _owner.prepared_region_into(_owner_token, section, _region) \
@@ -1463,7 +1635,7 @@ func _snapshot_for_into(record: Record, physical: Sites, site: Vector2i, image: 
 	"""Select the exact existing claim predicate without changing scope, allocating another image or post-filtering."""
 	if _world_preparation:
 		return _owner.prepared_snapshot_leased_into(_owner_token, image, _cold, _cold_token)
-	if _installation_active():
+	if _installation_active() or _phase_active():
 		return _installation_snapshot_into(record, physical, site, image)
 	if record.role == ROLE_TRANSIT:
 		return _owner.prepared_snapshot_for_traversal_into(_owner_token, image) \
@@ -1477,7 +1649,8 @@ func _snapshot_for_into(record: Record, physical: Sites, site: Vector2i, image: 
 func _installation_snapshot_into(record: Record, physical: Sites, site: Vector2i,
 		image: Space.Snapshot) -> StringName:
 	"""Leased typed predicates preserve real paid Site proof and every non-exempt physical blocker."""
-	if installation_scope_refusal(self, _installation) != &"":
+	if (_phase_active() and phase_scope_leaf_refusal(self, _phase_context) != &"") \
+			or (not _phase_active() and installation_scope_refusal(self, _installation) != &""):
 		return &"LOCATION_INSTALLATION_CONTEXT"
 	if record.role == ROLE_TRANSIT:
 		return _owner.prepared_snapshot_for_traversal_leased_into(_owner_token, image, _cold, _cold_token)
@@ -1648,6 +1821,7 @@ func _installed_future_context(issuer: RefCounted) -> bool:
 	if _owner._stage_token != _owner_token or not _owner._sealed: return false
 	if _world_preparation: return true
 	if _installation_active(): return installation_scope_refusal(self, _installation) == &""
+	if _phase_active(): return phase_scope_leaf_refusal(self, _phase_context) == &""
 	return _room_admission and issuer._admission_mode and issuer._admission_context.location_token == _token \
 		and room_scope_leaf_refusal(self, issuer._admission_context) == &""
 

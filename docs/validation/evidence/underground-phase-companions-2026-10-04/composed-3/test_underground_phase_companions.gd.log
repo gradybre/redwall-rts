@@ -1,0 +1,32 @@
+state_registry_coverage: PASS -- 138 modules, 692 rows, 1032 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_phase_companions.gd
+  FAIL  test_actual_brace_start_and_commit_refresh_each_bank_once
+        composed setup: ["real spatial adapter (expected , got SYNTHETIC_BUDGET)", "actual Sites (expected , got EXCAVATION_WORLD_DOMAIN)", "actual reciprocal phase authority (expected , got SPACE_SITE_OWNER_MISMATCH)", "real RoomOrders (expected , got UNDERGROUND_ROOM_OWNER_UNBOUND)", "actual Room scope (expected , got LOCATION_ROOM_OWNER)", "actual future entry: UNDERGROUND_ROOM_OWNER_UNBOUND (expected true, got false)", "actual paid Site identity (expected , got LOCATION_SITE_OWNER)", "actual once-bound phase context (expected , got PLACEMENT_BINDING)"] (expected true, got false)
+        old full endpoint (expected , got LOCATION_OUTPUT_SHAPE)
+        actual paid start: ["physical phase opens: EXCAVATION_AUTHORITY_UNBOUND (expected true, got false)", "phase binds actual Job (expected true, got false)", "delivered location binds (expected true, got false)", "Construction delivery derives from actual claims: EXCAVATION_SITE_IDENTITY (expected true, got false)", "physical face binds actual worker (expected true, got false)", "real paid work begins: EXCAVATION_SITE_IDENTITY (expected true, got false)"] () (expected true, got false)
+        one real unchanged-row START receipt (expected 4, got 3)
+        actual productive labor (expected true, got false)
+        actual guarded terminal: EXCAVATION_SITE_IDENTITY (expected true, got false)
+        one COMMIT receipt (expected 5, got 3)
+        old endpoint payload unchanged (expected 0, got 1)
+        composed lifecycle: ["real spatial adapter (expected , got SYNTHETIC_BUDGET)", "actual Sites (expected , got EXCAVATION_WORLD_DOMAIN)", "actual reciprocal phase authority (expected , got SPACE_SITE_OWNER_MISMATCH)", "real RoomOrders (expected , got UNDERGROUND_ROOM_OWNER_UNBOUND)", "actual Room scope (expected , got LOCATION_ROOM_OWNER)", "actual future entry: UNDERGROUND_ROOM_OWNER_UNBOUND (expected true, got false)", "actual paid Site identity (expected , got LOCATION_SITE_OWNER)", "actual once-bound phase context (expected , got PLACEMENT_BINDING)", "real economic helpers: [\"physical phase opens: EXCAVATION_AUTHORITY_UNBOUND (expected true, got false)\", \"phase binds actual Job (expected true, got false)\", \"delivered location binds (expected true, got false)\", \"Construction delivery derives from actual claims: EXCAVATION_SITE_IDENTITY (expected true, got false)\", \"physical face binds actual worker (expected true, got false)\", \"real paid work begins: EXCAVATION_SITE_IDENTITY (expected true, got false)\"] (expected true, got false)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":14,"failures":1,"suite":"test_underground_phase_companions.gd","tests":1,"usec":920602}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 14 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

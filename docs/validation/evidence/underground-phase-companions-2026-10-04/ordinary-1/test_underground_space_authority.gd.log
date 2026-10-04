@@ -1,0 +1,2 @@
+FAIL C3 underground_connector_contacts.gd declares `_episode` with no registry row
+state_registry_coverage: 1 failure(s)

@@ -221,6 +221,8 @@ var _next_token: int = 1
 var _stage_token: int = 0
 var _last_published_token: int = 0
 var _installation_context: WeakRef = null
+@warning_ignore("unused_private_class_variable") # Borrowed by the concrete static phase kernels and exact issuer.
+var _phase_context: WeakRef = null
 var _sealed: bool = false
 var _remaining: int = 0
 var _changed_count: int = 0
@@ -1201,6 +1203,8 @@ func publish(token: int) -> void:
 		return
 	if _installation_context != null and _installation_owns_token(self, token):
 		return # Only the static actual paid window can publish this installation-owned token.
+	if _phase_owns_token(self, token):
+		return # The actual Sites window owns every phase companion, including unchanged-row boundaries.
 	if _install_row >= 0 or _room_row >= 0 or _furniture_count > 0:
 		return # Future source publication requires its exact actual owner callback, even with a sealed token.
 	assert(token != 0 and token == _stage_token and _sealed, "only a preflighted transaction may publish")
@@ -1230,6 +1234,8 @@ static func commit_preflighted(actual: RefCounted, token: int, base_revision: in
 	if generic_commit_refusal(actual, token, base_revision, target_revision) != &"":
 		return false
 	if _installation_owns_token(actual, token) and installation_commit_refusal(actual, token) != &"":
+		return false
+	if _phase_owns_token(actual, token) and phase_commit_refusal(actual, token) != &"":
 		return false
 	_commit_preflighted_columns(actual, token)
 	return true
@@ -1272,7 +1278,49 @@ static func _installation_owns_token(actual: RefCounted, token: int) -> bool:
 	if context == null or token <= 0:
 		return false
 	var issuer: RefCounted = context.issuer.get_ref() if context.issuer != null else null
-	return context.space_token == token or (issuer != null and issuer._space == actual and issuer._space_token == token)
+	return context.space_token == token or (issuer != null and not issuer._phase_mode \
+		and issuer._space == actual and issuer._space_token == token)
+
+
+static func _phase_owns_token(actual: RefCounted, token: int) -> bool:
+	"""Authority retains Space ownership until its own abort/publication, even after companion cleanup."""
+	var context: RefCounted = actual._phase_context.get_ref() if actual._phase_context != null else null
+	var issuer: RefCounted = context.issuer.get_ref() if context != null and context.issuer != null else null
+	return token > 0 and context != null and (context.space_token == token or (issuer != null \
+		and issuer._phase_mode and issuer._space == actual and issuer._space_token == token) \
+		or _phase_authority_owns_token(actual, token))
+
+
+static func _phase_authority_owns_token(actual: RefCounted, token: int) -> bool:
+	"""Read the real reciprocal Sites/Authority link rather than cleared or caller-mutated companion controls."""
+	var construction: Construction = actual._sources._construction
+	var sites: Sites = construction._excavation_authority.get_ref() as Sites if construction._excavation_authority != null else null
+	var authority: RefCounted = sites._space.get_ref() if sites != null and sites._space != null else null
+	return authority != null and sites._construction == construction and authority._owner == actual \
+		and authority._sources == actual._sources and authority._sites != null \
+		and authority._sites.get_ref() == sites and authority._owner_token == token
+
+
+static func phase_commit_refusal(actual: RefCounted, token: int) -> StringName:
+	"""Only the original concrete Sites publication window may commit a phase-owned Space bank."""
+	var context: RefCounted = actual._phase_context.get_ref() if actual._phase_context != null else null
+	var issuer: RefCounted = context.issuer.get_ref() if context != null and context.issuer != null else null
+	var authority: RefCounted = context.authority.get_ref() if context != null and context.authority != null else null
+	var sites: Sites = context.sites.get_ref() as Sites if context != null and context.sites != null else null
+	if issuer == null or authority == null or sites == null or issuer._phase_context != context or not issuer._phase_mode \
+			or issuer._space != actual or issuer._space_token != token or context.space_token != token \
+			or issuer._cold_token != context.cold_token or issuer._budget != context.budget \
+			or issuer._prepared_project != context.project or issuer._prepared_placement != context.placement \
+			or context.world != actual._domain._world or not context.budget.covers(context.cold_token, Budget.COLD_BYTES):
+		return &"SPACE_PHASE_CONTEXT"
+	if not sites._publishing_spatial or sites._candidate_row != context.site.x or sites._candidate_stage != context.stage \
+			or sites._space == null or sites._space.get_ref() != authority or authority._sites == null \
+			or authority._sites.get_ref() != sites or authority._owner != actual or authority._owner_token != token \
+			or authority._cold_token != context.cold_token or authority._companion_token != context.location_token \
+			or authority._stage != context.stage or sites._construction != issuer._construction \
+			or sites._inventory != issuer._inventory or context.site.y != Sites.SITE_GENERATION:
+		return &"SPACE_PHASE_WINDOW"
+	return &""
 
 
 static func installation_commit_refusal(actual: RefCounted, token: int) -> StringName:

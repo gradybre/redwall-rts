@@ -368,6 +368,17 @@ class SyntheticBindings extends Authority.Bindings:
 		"""A refused prepared companion is observable before the actual Inventory transaction."""
 		return &"" if token == 1 and pending and after_prepare_fault != 4 else &"SYNTHETIC_COMPANION_STALE"
 
+	func phase_final_observation_refusal(_site: Vector2i, _operation: int, _stage: int,
+			token: int, _space_token: int, companion: int) -> StringName:
+		"""Synthetic contact proof only; actual final payment and original candidate scope still execute."""
+		var code: StringName = cold_operation_refusal(token)
+		return prepared_refusal(companion) if code == &"" else code
+
+	func phase_final_leaf_refusal(_site: Vector2i, _operation: int, _stage: int,
+			token: int, _space_token: int, companion: int) -> StringName:
+		"""Explicit fixture terminal identity does not authorize any production provider."""
+		return &"" if token == cold_active and companion == 1 and pending else &"SYNTHETIC_FINAL_SCOPE"
+
 	func revision_after(_token: int) -> int:
 		"""The fixture installs no new qualified content during its no-op companion publication."""
 		return qualified_revision

@@ -173,6 +173,21 @@ class TimberPhysical extends EntryTests.PhysicalBinding:
 		"""Use the real full Room identity; only physical work reach is a synthetic component fixture."""
 		return &"" if space._sources._buildings.is_live_room(room) else super.room_refusal(room)
 
+	func final_start_leaf_refusal(_origin: Vector3i, _operation: int, room: Vector2i) -> StringName:
+		"""Retain the explicit synthetic START scope with this fixture's actual full Room generation."""
+		if start_leaf_block != &"": return start_leaf_block
+		if pending_stage != Contract.STAGE_START or not space._sources._buildings.is_live_room(room):
+			return &"SYNTHETIC_START_STALE"
+		if block_operation != &"": return block_operation
+		return block_worker if block_worker != &"" else block_output
+
+	func final_settlement_leaf_refusal(_origin: Vector3i, _operation: int,
+			stage: int, room: Vector2i) -> StringName:
+		"""No worker is needed for a synthetic terminal proof; its actual Room and prepared stage remain exact."""
+		if pending_stage != stage or not space._sources._buildings.is_live_room(room):
+			return &"SYNTHETIC_SETTLEMENT_STALE"
+		return block_operation
+
 
 class TimberContent extends RefCounted:
 	static func image(revision: int, mode: int = 0) -> PackedByteArray:

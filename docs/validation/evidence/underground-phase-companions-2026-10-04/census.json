@@ -1,0 +1,109 @@
+{
+  "scope": "Logical numeric/packed census; reference headers, StringNames, native stack/capacity and runtime peaks are unmeasured.",
+  "base": "6830c2b4",
+  "fixed_components": {
+    "owner": 119,
+    "bank_free_counts": 32,
+    "installation_context": 112,
+    "room_context": 80,
+    "phase_context": 128,
+    "directory_candidate": 32,
+    "private_and_caller_requests": 616,
+    "shared_order_and_assembly_records": 128,
+    "returned_result": 8,
+    "final_digest": 32,
+    "helper_frames": 512
+  },
+  "fixed_total": 1799,
+  "existing_fixed_reserve": 2048,
+  "new_numeric_bytes": 129,
+  "new_packed_columns": 0,
+  "borrowed_contexts": "Owner has one weak reference; Locations borrows the same actual PhaseContext; no second packet.",
+  "phase_context_reference_lifetime": "Five weak owner refs and one strong original Budget remain bound; per-operation numeric scope clears only after own candidates drop.",
+  "outer_authority_frames": {
+    "operation_refusal": 44,
+    "_run_cold_operation": 32,
+    "_prepare": 32
+  },
+  "provider_callback_numeric_allowance": 40,
+  "source_refresh_chain": {
+    "bytes": 177,
+    "path": [
+      "prepare_phase_refresh",
+      "_phase_prepare_banks",
+      "_update_staged_source_pins",
+      "_update_row_source_pins",
+      "_update_opening_pin",
+      "_section_refusal"
+    ],
+    "frames": {
+      "prepare_phase_refresh": 56,
+      "_phase_prepare_banks": 0,
+      "_update_staged_source_pins": 8,
+      "_update_row_source_pins": 32,
+      "_update_opening_pin": 48,
+      "_section_refusal": 33
+    }
+  },
+  "installed_refresh_chain": {
+    "bytes": 272,
+    "path": [
+      "stage_refresh",
+      "_validate_record",
+      "_record_geometry_refusal",
+      "_survey_for",
+      "_observed_record_site",
+      "_installed_surface_site",
+      "_installed_row_site",
+      "_installed_part_site",
+      "_installed_site_row",
+      "_floor_div"
+    ],
+    "frames": {
+      "stage_refresh": 16,
+      "_validate_record": 0,
+      "_record_geometry_refusal": 16,
+      "_survey_for": 8,
+      "_observed_record_site": 16,
+      "_installed_surface_site": 40,
+      "_installed_row_site": 56,
+      "_installed_part_site": 20,
+      "_installed_site_row": 76,
+      "_floor_div": 24
+    }
+  },
+  "installed_leaf_chain": {
+    "bytes": 248,
+    "path": [
+      "_installed_witnesses_refusal",
+      "_record_paid_site",
+      "_installed_surface_site",
+      "_installed_row_site",
+      "_installed_part_site",
+      "_installed_site_row",
+      "_floor_div"
+    ],
+    "frames": {
+      "_installed_witnesses_refusal": 16,
+      "_record_paid_site": 16,
+      "_installed_surface_site": 40,
+      "_installed_row_site": 56,
+      "_installed_part_site": 20,
+      "_installed_site_row": 76,
+      "_floor_div": 24
+    }
+  },
+  "cross_owner_numeric_chains": {
+    "source_row_refresh": 325,
+    "installed_endpoint_refresh": 484,
+    "terminal_installed_leaf": 360
+  },
+  "cold_peaks": {
+    "locations_and_two_plans": 691024,
+    "world_routes_and_two_plans": 526800
+  },
+  "cold_scope": "1093 P1013 two-Plan ceiling; original survey dropped before companions; Locations image dropped before WorldRoutes. Preallocated banks are already reserved, never charged twice.",
+  "controls_cold_allowance": 4096,
+  "whole_original_cold_lease": 1048960,
+  "runtime_qualified": false
+}

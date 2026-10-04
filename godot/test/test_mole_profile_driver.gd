@@ -95,7 +95,7 @@ func _write_clips(file: FileAccess, counts: Array[int]) -> void:
 		first += counts[clip]
 
 
-func _install_profiles(revision: int = 1, count: int = 4) -> void:
+func _install_profiles(revision: int = 1, count: int = 4, bad_heading_row: int = -1) -> void:
 	"""Actual compiled mole/tool keys plus test-only geometry and certificate bits."""
 	var rows: Array[Dictionary] = []
 	var boxes: Array[PackedInt32Array] = []
@@ -108,9 +108,12 @@ func _install_profiles(revision: int = 1, count: int = 4) -> void:
 		boxes.append_array(_fixture._boxes())
 		if index >= 2:
 			row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+			if count == 18:
+				@warning_ignore("integer_division") var heading: int = (index - 2) / 4
+				row.fields[Profiles.F_YAW] = heading * 16384 + int(index == bad_heading_row)
 			row.fields[Profiles.F_WORK_KIND] = _fixture.Jobs.JOB_KIND_BUILD
 			row.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ANCHOR_AND_PATCH
-			_add_work_boxes(boxes, index)
+			_add_work_boxes(boxes, 2 + (index - 2) % 4 if count == 18 else index)
 		rows.append(row)
 	var wire: PackedByteArray = _fixture._image(rows, boxes, revision)
 	var digest: PackedByteArray = _source.source_digest().hex_decode()
@@ -258,7 +261,7 @@ func test_compact_version_requires_explicit_protocol_and_preserves_original_refu
 	var pins: PackedInt64Array = _use_compact_source()
 	var driver: Driver = Driver.new()
 	assert_equal(_bind(driver, pins), &"MOLE_DRIVER_SOURCE", "explicit version required")
-	assert_equal(_bind(driver, pins, 4), &"MOLE_DRIVER_PROGRAM", "no future implicit protocol")
+	assert_equal(_bind(driver, pins, 5), &"MOLE_DRIVER_PROGRAM", "no future implicit protocol")
 	assert_equal(_bind(driver, _pins, Driver.PROGRAM_COMPACT), &"MOLE_DRIVER_SOURCE", "missing exact front tuple")
 	var swapped: PackedInt64Array = pins.duplicate()
 	for field: int in 3:
@@ -371,4 +374,105 @@ func test_compact_front_uses_its_own_clip_then_recovers_to_the_single_shared_hub
 	assert_equal(driver.step_into(3, _job, 4 * Driver.ONE, false, out), &"", "high work remains separately selected")
 	assert_equal(out.frames[0], 28, "high clip5 preserved")
 	assert_equal(_fixture._work.tool_job_of(_fixture._slot), _job, "no claim release or work credit")
+	driver.retire()
+
+
+func _use_cardinal_source(bad_heading_row: int = -1) -> PackedInt64Array:
+	"""The same fourteen clips pair with labelled synthetic certificates for all eighteen exact rows."""
+	_driver.retire()
+	_source = _content(true, true)
+	_install_profiles(4, 18, bad_heading_row)
+	var pins: PackedInt64Array = PackedInt64Array()
+	for row: int in 18:
+		pins.append_array(PackedInt64Array([row, 1, 4]))
+	return pins
+
+
+func test_cardinal_map_preserves_each_source_role_at_all_four_exact_work_headings() -> void:
+	"""All sixteen real WORK selections use their own heading and correct clip; no first-match selection."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_INSTALL), &"MOLE_DRIVER_SOURCE", "v3 cannot infer cardinal map")
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "explicit eighteen-row binding")
+	var out: Driver.Frame = Driver.Frame.new()
+	var expected: PackedInt32Array = PackedInt32Array([0, 0, 0])
+	for row: int in range(2, 18):
+		@warning_ignore("integer_division") var heading: int = (row - 2) / 4
+		var role: int = 2 + (row - 2) % 4
+		assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, heading * 16384), "actual heading at ready")
+		assert_equal(driver.step_profile_into(row, _job, 4 * Driver.ONE, false, out), &"", "selected entry finishes")
+		assert_equal(out.profile_id, row, "exact actual catalog ID")
+		assert_equal(out.yaw, heading * 16384, "exact actual heading")
+		assert_equal(out.phase, Driver.WORK, "selected productive source")
+		assert_equal(_source.clip_into(2 + 3 * (role - 2), 0, expected), &"", "immutable source clip")
+		assert_equal(out.frames[0], expected[0], "heading does not exchange productive roles")
+		assert_equal(driver.step_profile_into(row, _job, 4 * Driver.ONE, true, out), &"", "same source recovery")
+		assert_true(out.ready, "heading may change only after this ready state")
+	assert_equal(driver._pins.size() * 8, 432, "eighteen immutable tuples")
+	driver.retire()
+
+
+func test_cardinal_heading_change_requires_recovery_with_the_original_actual_observation() -> void:
+	"""Neither an exact new row nor an external pose write can teleport a productive source through its target."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "cardinal protocol")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_into(2, _job, Driver.ONE, false, out), &"MOLE_DRIVER_EXACT_PROFILE_REQUIRED", "no implicit WORK heading")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"", "partial yaw0 down entry")
+	var before: PackedInt32Array = out.frames.duplicate()
+	var state: PackedInt64Array = driver._live.duplicate()
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 16384), "external actual heading mutation")
+	assert_equal(driver.step_profile_into(6, _job, Driver.ONE, true, out), &"MOLE_DRIVER_WORK_POSE_DRIFT", "same role at new heading is not recovery")
+	assert_equal(out.frames, before, "refused source preserved")
+	assert_equal(driver._live, state, "refused phase preserved")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 0), "restore original actual observation")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, true, out), &"", "exact original entry retrace")
+	assert_true(out.ready, "actual source is ready")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 16384), "new heading after ready")
+	assert_equal(driver.step_profile_into(6, _job, Driver.ONE, false, out), &"", "new heading can now start its entry")
+	driver.retire()
+
+
+func test_cardinal_binding_refuses_swapped_rows_and_wrong_descriptor_heading() -> void:
+	"""A complete tuple from another heading cannot authorize this source mapping, even with the same mesh digest."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var swapped: PackedInt64Array = pins.duplicate()
+	for field: int in 3:
+		swapped[6 + field] = pins[18 + field]
+		swapped[18 + field] = pins[6 + field]
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, swapped, Driver.PROGRAM_CARDINAL), &"MOLE_DRIVER_PROFILE_ROLE", "whole heading tuples are not interchangeable")
+	_install_profiles(5, 18, 6)
+	for row: int in 18:
+		pins[row * 3 + 2] = 5
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"MOLE_DRIVER_PROFILE_HEADING", "native heading metadata must be exact")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_profile_into(6, _job, 0, false, out), &"MOLE_DRIVER_UNBOUND", "no partial configuration")
+	_install_profiles(6, 18)
+	for row: int in 18:
+		pins[row * 3 + 2] = 6
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "exact source mapping may retry after refusal")
+	driver.retire()
+
+
+func test_cardinal_updates_keep_actual_claim_staleness_and_unsupported_heading_refusals() -> void:
+	"""Mapping never substitutes for actual Job/Gear/yaw/content identity; ordinary ground selection remains unchanged."""
+	var pins: PackedInt64Array = _use_cardinal_source()
+	var driver: Driver = Driver.new()
+	assert_equal(_bind(driver, pins, Driver.PROGRAM_CARDINAL), &"", "cardinal protocol")
+	var out: Driver.Frame = Driver.Frame.new()
+	assert_equal(driver.step_profile_into(2, _job, 0, false, out), &"", "exact ready observation")
+	var before: PackedInt32Array = out.frames.duplicate()
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 1), "unsupported real yaw")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"PROFILE_VARIANT_UNAUTHORED", "never round yaw")
+	assert_equal(out.frames, before, "unsupported heading output untouched")
+	assert_equal(driver.step_into(1, _job, 0, false, out), &"", "ordinary all-yaw travel query still valid")
+	assert_equal(out.profile_id, 1, "same unique ground profile")
+	assert_true(_fixture._transforms.place(_fixture._worker, 1024, 0, 2048, 0), "supported heading")
+	assert_true(_fixture._work.release_tool_claim(_fixture._slot).ok, "actual claim released")
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"PROFILE_TOOL_CLAIM", "exact row cannot recreate claim")
+	assert_true(_fixture._work.claim_tool_for_work(_fixture._slot, _tool).ok, "actual claim restored")
+	_install_profiles(5, 18)
+	assert_equal(driver.step_profile_into(2, _job, Driver.ONE, false, out), &"PROFILE_SELECTION_STALE", "old source tuples cannot survive replacement")
 	driver.retire()

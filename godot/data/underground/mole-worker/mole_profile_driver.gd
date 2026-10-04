@@ -15,6 +15,7 @@ const MAX_DELTA: int = 4 * ONE
 const PROGRAM_ORIGINAL: int = 1
 const PROGRAM_COMPACT: int = 2
 const PROGRAM_INSTALL: int = 3
+const PROGRAM_CARDINAL: int = 4
 const PROFILE_STAND: int = 0
 const PROFILE_WALK: int = 1
 const PROFILE_DOWN: int = 2
@@ -66,7 +67,7 @@ var _source: Content = null
 var _profiles: Profiles = null
 var _worker: Vector2i = NULL_REF
 var _tool: Vector2i = NULL_REF
-var _pins: PackedInt64Array = PackedInt64Array() # Four to six exact (profile,revision,content) tuples.
+var _pins: PackedInt64Array = PackedInt64Array() # Four to six, or eighteen exact (profile,revision,content) tuples.
 var _durations: PackedInt32Array = PackedInt32Array() # Eight, eleven or fourteen immutable source clips.
 var _live: PackedInt64Array = PackedInt64Array()
 var _stage: PackedInt64Array = PackedInt64Array()
@@ -81,10 +82,10 @@ func configure(source: Content, profiles: Profiles, definitions: Residents, work
 	"""Cold source/row binding only; each later update re-reads actual worker/Job/tool/pose owners."""
 	if _source != null or _retired:
 		return &"MOLE_DRIVER_ALREADY_BOUND"
-	if program_version != PROGRAM_ORIGINAL and program_version != PROGRAM_COMPACT and program_version != PROGRAM_INSTALL:
+	if program_version < PROGRAM_ORIGINAL or program_version > PROGRAM_CARDINAL:
 		return &"MOLE_DRIVER_PROGRAM"
-	var profile_count: int = program_version + 3
-	var clip_count: int = profile_count * 3 - 4
+	var profile_count: int = 18 if program_version == PROGRAM_CARDINAL else program_version + 3
+	var clip_count: int = 14 if program_version == PROGRAM_CARDINAL else profile_count * 3 - 4
 	if source == null or profiles == null or definitions == null or worker == NULL_REF or tool == NULL_REF \
 			or pins.size() != profile_count * 3 or source.source_digest() != digest or digest.length() != 64 \
 			or source.clip_count() != clip_count:
@@ -117,14 +118,15 @@ func _profile_bindings(source: Content, profiles: Profiles, definitions: Residen
 	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
 	@warning_ignore("integer_division") var profile_count: int = pins.size() / 3
 	for row: int in profile_count:
-		# Each source-hashed program owns stable profile IDs 0..3, 0..4 or 0..5 in this exact role order.
-		# A caller cannot bind the high-contact certificate to the downward source clips.
+		# Protocol4 repeats down/high/front/INSTALL for each exact cardinal heading after stand/walk.
+		# Fixed IDs and heading metadata prevent a caller exchanging otherwise compatible WORK tuples.
 		if pins[row * 3] != row:
 			return &"MOLE_DRIVER_PROFILE_ROLE"
+		var role: int = _mapped_role(row) if profile_count == 18 else row
 		var code: StringName = profiles.descriptor_into(pins[row * 3], pins[row * 3 + 2], descriptor)
 		if code != &"":
 			return code
-		if descriptor.profile_revision != pins[row * 3 + 1] or descriptor.mode != _mode(row) \
+		if descriptor.profile_revision != pins[row * 3 + 1] or descriptor.mode != _mode(role) \
 				or descriptor.species != mole.value or descriptor.rig != rig.value \
 				or descriptor.life_stage != Residents.LIFE_STAGE_ADULT or descriptor.posture != Profiles.POSTURE_UPRIGHT \
 				or descriptor.tool_item < 0 or descriptor.tool_variant != Gear.MANUFACTURE_BASIC \
@@ -133,6 +135,8 @@ func _profile_bindings(source: Content, profiles: Profiles, definitions: Residen
 			return &"MOLE_DRIVER_PROFILE_SOURCE"
 		if row >= PROFILE_DOWN and descriptor.contact_kind != Profiles.CONTACT_ANCHOR_AND_PATCH:
 			return &"MOLE_DRIVER_CONTACT_SOURCE"
+		if profile_count == 18 and not _mapped_heading_matches(row, descriptor):
+			return &"MOLE_DRIVER_PROFILE_HEADING"
 	return &""
 
 
@@ -157,19 +161,35 @@ func _read_timing(source: Content) -> StringName:
 
 func step_into(profile: int, job: Vector2i, delta_q16: int, request_ready: bool, out: Frame) -> StringName:
 	"""Advance a proved source phase, never an economic timer; every refused result preserves output and phase."""
+	if _pins.size() == 54 and profile >= PROFILE_DOWN:
+		return &"MOLE_DRIVER_EXACT_PROFILE_REQUIRED"
+	return _step(profile, profile, job, delta_q16, request_ready, out)
+
+
+func step_profile_into(profile_id: int, job: Vector2i, delta_q16: int, request_ready: bool, out: Frame) -> StringName:
+	"""Protocol4 consumes the actual selected catalog row; it never chooses a work heading for the caller."""
+	if _source == null or _retired:
+		return &"MOLE_DRIVER_UNBOUND"
+	if _pins.size() != 54 or profile_id < 0 or profile_id >= 18:
+		return &"MOLE_DRIVER_INPUT"
+	return _step(_mapped_role(profile_id), profile_id, job, delta_q16, request_ready, out)
+
+
+func _step(role: int, row: int, job: Vector2i, delta_q16: int, request_ready: bool, out: Frame) -> StringName:
+	"""Shared phase logic keeps every prior protocol's refusal, recovery and publication behavior."""
 	if _source == null or _retired or out == null or out.frames.size() != 7:
 		return &"MOLE_DRIVER_UNBOUND"
-	if profile < 0 or profile > PROFILE_INSTALL or profile * 3 >= _pins.size() \
+	if role < 0 or role > PROFILE_INSTALL or row < 0 or row * 3 >= _pins.size() \
 			or delta_q16 < 0 or delta_q16 > MAX_DELTA:
 		return &"MOLE_DRIVER_INPUT"
-	if _live[C_PHASE] != READY and (profile != _live[C_PROFILE] or job != _job(_live)):
+	if _live[C_PHASE] != READY and (role != _live[C_PROFILE] or job != _job(_live)):
 		return &"MOLE_DRIVER_HANDOFF_REQUIRED"
-	var code: StringName = _observe(profile, job)
+	var code: StringName = _observe(role, row, job)
 	if code != &"":
 		return code
 	for index: int in C_COUNT:
 		_stage[index] = _live[index]
-	_stage[C_PROFILE] = profile
+	_stage[C_PROFILE] = role
 	_stage[C_JOB_SLOT] = job.x
 	_stage[C_JOB_GENERATION] = job.y
 	code = _advance(delta_q16, request_ready)
@@ -180,18 +200,18 @@ func step_into(profile: int, job: Vector2i, delta_q16: int, request_ready: bool,
 	return code
 
 
-func _observe(profile: int, job: Vector2i) -> StringName:
+func _observe(role: int, row: int, job: Vector2i) -> StringName:
 	"""An explicit contact pin cannot hide changed actual manufacture, assigned work, cargo or actor pose."""
 	var code: StringName
-	if profile >= PROFILE_DOWN:
-		code = _profiles.query_work_profile_into(_worker, job, _pins[profile * 3], _pins[profile * 3 + 1],
-			_pins[profile * 3 + 2], Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+	if role >= PROFILE_DOWN:
+		code = _profiles.query_work_profile_into(_worker, job, _pins[row * 3], _pins[row * 3 + 1],
+			_pins[row * 3 + 2], Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
 	else:
-		code = _profiles.query_into(_worker, job, _mode(profile), Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
+		code = _profiles.query_into(_worker, job, _mode(role), Profiles.POSTURE_UPRIGHT, -1, _tool, _selection)
 	if code != &"":
 		return code
-	if _selection.profile_id != _pins[profile * 3] or _selection.profile_revision != _pins[profile * 3 + 1] \
-			or _selection.content_revision != _pins[profile * 3 + 2] or _selection.tool != _tool:
+	if _selection.profile_id != _pins[row * 3] or _selection.profile_revision != _pins[row * 3 + 1] \
+			or _selection.content_revision != _pins[row * 3 + 2] or _selection.tool != _tool:
 		return &"MOLE_DRIVER_PROFILE_STALE"
 	if _live[C_PHASE] != READY and _live[C_PROFILE] >= PROFILE_DOWN \
 			and (_selection.x != _live[C_X] or _selection.y != _live[C_Y] or _selection.z != _live[C_Z] \
@@ -348,6 +368,19 @@ func retire() -> void:
 static func _mode(profile: int) -> int:
 	"""Source versions retain one stand, one ground walk and their exact productive choices."""
 	return profile if profile <= PROFILE_WALK else Profiles.MODE_WORK
+
+
+static func _mapped_role(row: int) -> int:
+	"""The source-hashed protocol4 map preserves yaw0 IDs2–5 and the same fourteen clip ordinals."""
+	return row if row < PROFILE_DOWN else PROFILE_DOWN + (row - PROFILE_DOWN) % 4
+
+
+static func _mapped_heading_matches(row: int, descriptor: Profiles.Descriptor) -> bool:
+	"""All-yaw idle/travel and four explicitly authored work headings are distinct content contracts."""
+	if row < PROFILE_DOWN:
+		return descriptor.yaw_kind == Profiles.YAW_ALL and descriptor.yaw == 0
+	@warning_ignore("integer_division") var heading: int = (row - PROFILE_DOWN) / 4
+	return descriptor.yaw_kind == Profiles.YAW_EXACT and descriptor.yaw == heading * 16384
 
 
 static func _job(state: PackedInt64Array) -> Vector2i:

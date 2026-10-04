@@ -78,3 +78,14 @@ found0 warnings across5 files. Source hashes stayed unchanged and assets were
 restored. Rejected iterations and all accepted raw evidence are in
 `docs/validation/evidence/underground-entry-claims-2026-10-03/`. This does not
 complete actual EntryPlan/Placement confirmation or a playable first entrance.
+
+## 2026-10-04 — Keep the component fixture on its actual typed publication path
+
+Ordinary Room's strengthened final publication now refuses the old test-only
+combination of a flat RoomPlan and a non-flat entry claim batch. The production
+guard is correct and remains unchanged. The entry-claim tests now call actual
+`confirm_entry()` and retain the real final guard, with the existing explicit
+synthetic geometry permission. A new refusal case preserves coverage against
+injecting a non-flat batch into flat admission. The one flat control stays flat.
+The failed CI run and corrected strict 83-test/3,460-assertion evidence are retained
+in `../validation/evidence/underground-entry-claim-fixture-2026-10-04/`.

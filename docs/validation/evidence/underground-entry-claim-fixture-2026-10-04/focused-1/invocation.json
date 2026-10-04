@@ -1,0 +1,98 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.292,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "204/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 5.459,
+      "log": "test_excavation_entry_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "224/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.662,
+      "log": "test_excavation_claim_batch.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "174/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 8.559,
+      "log": "test_underground_entry_orders.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "94/396",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/focused-1"
+      ],
+      "exit_code": 0,
+      "seconds": 6.741,
+      "log": "test_underground_room_orders.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6205",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/focused-1/analyzer.json",
+        "godot/scripts/core/underground_room_orders.gd",
+        "godot/scripts/core/excavation_sites.gd",
+        "godot/scripts/core/underground_entry_plan.gd",
+        "godot/test/test_excavation_entry_claim_batch.gd",
+        "godot/test/test_excavation_claim_batch.gd",
+        "godot/test/test_underground_entry_orders.gd",
+        "godot/test/test_underground_room_orders.gd",
+        "godot/test/test_underground_furniture_work.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 13.61,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-entry-claim-fix-20261004",
+  "project_test_sha256": "cb3ae4234006d13c3abf76cc890c34b301f0919f4eb044b67ce42886826abd12",
+  "assets_present_before": false,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

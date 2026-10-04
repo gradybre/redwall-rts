@@ -1,10 +1,9 @@
 extends "res://test/framework/test_case.gd"
 ## Actual Sites/Directory/Buildings publication. Prospective entry geometry/contact permission is synthetic.
-## The typed claim seam uses actual EntryPlan publication; Terrain/frontier/Placement permission stays synthetic.
+## This tests the typed claim seam, not a completed EntryPlan/Placement transaction or playable stairs.
 
 const ClaimTests := preload("res://test/test_excavation_claim_batch.gd")
-const EntryFixture := preload("res://test/test_underground_entry_orders.gd")
-const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+const OrdersFixture := preload("res://test/test_underground_room_orders.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Orders := preload("res://scripts/core/underground_room_orders.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
@@ -58,11 +57,9 @@ class EntryOrders extends ClaimTests.WatchedOrders:
 		_room_sites = _construction.excavation_authority() as Sites
 		entry_input = Sites.EntryClaimInput.new()
 		entry_input.world = _world
-		entry_input.base_level = _entry_plan.base_level if _entry_mode else _room_plan.level
-		entry_input.space_revision = _entry_plan.space_revision if _entry_mode else _room_plan.space_revision
+		entry_input.base_level = _room_plan.level
+		entry_input.space_revision = _room_plan.space_revision
 		entry_input.boxes = input_boxes
-		if _entry_mode:
-			_entry_claim_input = entry_input
 		_room_claim_batch = Sites.RoomClaimBatch.new()
 		if reject_foreign_budget:
 			_probe_foreign_entry_budget()
@@ -79,6 +76,17 @@ class EntryOrders extends ClaimTests.WatchedOrders:
 		scopes_at_commit = scope_calls
 		_inject_entry_fault()
 		return &""
+
+	func _room_claims_final_refusal() -> StringName:
+		"""Fixture future-entry coordinator; actual Sites still owns final unchanged-input/history proof."""
+		if use_flat_claims:
+			return super._room_claims_final_refusal()
+		if not _room_budget_covers() or not _same_room_plan(_room_request):
+			return Orders.REFUSE_ROOM_COLD
+		if _room_claim_batch == null or not _room_claim_batch.matches_entry_input(entry_input, _room_candidate):
+			return Sites.REFUSE_CLAIM_BATCH
+		var code: StringName = room_candidate_refusal(_room_candidate, Buildings.ROOM_TYPE_CORRIDOR)
+		return code if code != &"" else _room_sites.room_claim_batch_refusal(_room_claim_batch)
 
 	func room_claim_scope_refusal(candidate: Sites.Directory.CreateCandidate, room_type: int,
 			budget: Budget, token: int) -> StringName:
@@ -148,12 +156,12 @@ class Fixture extends ClaimTests.Fixture:
 
 var _f: Fixture = null
 var _orders: EntryOrders = null
-var _bindings: EntryFixture.EntryBindings = null
+var _bindings: OrdersFixture.RoomBindings = null
 
 
 func before_each() -> void:
 	"""Each case starts from actual independent accounting, World and physical-history owners."""
-	_bindings = EntryFixture.EntryBindings.new()
+	_bindings = OrdersFixture.RoomBindings.new()
 	_f = Fixture.new(self, false, _bindings)
 	_orders = _f.orders as EntryOrders
 	_orders.input_boxes = PackedInt32Array([0, -4096, 0, 512, -3072, 512,
@@ -185,30 +193,6 @@ func _plan() -> Orders.RoomPlan:
 	return plan
 
 
-func _confirm(plan: Orders.RoomPlan) -> Buildings.OpResult:
-	"""Entry tests now use the real non-flat coordinator; Kitchen refusal and the one flat control stay flat."""
-	if _orders.use_flat_claims or plan.room_type != Buildings.ROOM_TYPE_CORRIDOR:
-		return _orders.confirm_room(plan)
-	var entry: EntryPlan.Request = EntryPlan.Request.new()
-	entry.world = plan.world
-	entry.space_revision = plan.space_revision
-	entry.base_level = plan.level
-	entry.origin_u = plan.origin_u
-	entry.rotation = 0
-	entry.anchor = Vector2i(0, 1)
-	entry.catalog_row = 0
-	entry.catalog_revision = 1
-	entry.variant_revision = 1
-	entry.grouping_revision = 1
-	entry.recipe_revision = 1
-	entry.frontier_revision = 1
-	entry.source_digests.resize(EntryPlan.SOURCE_BYTES)
-	entry.source_digests.fill(17)
-	entry.claims = _orders.input_boxes
-	entry.opening_targets = PackedInt32Array([-1, 0, -1, 0, -1, 0, -1, 0])
-	return _orders.confirm_entry(entry)
-
-
 func _image() -> PackedByteArray:
 	"""Include actual directory, physical history, goods and all Buildings packed state."""
 	var image: PackedByteArray = _f.residents.directory().state_bytes()
@@ -226,7 +210,7 @@ func _image() -> PackedByteArray:
 func test_entry_union_reserves_actual_unique_corridor_cuts_without_goods_or_void() -> void:
 	"""Overlapping varying floors claim each whole cube once; no construction, labor or output is granted."""
 	var goods: PackedByteArray = _f.inventory.state_bytes()
-	var room: Buildings.OpResult = _confirm(_plan())
+	var room: Buildings.OpResult = _orders.confirm_room(_plan())
 	assert_true(room.ok, "actual future Corridor allocation: %s" % room.error)
 	assert_equal(_orders.saved.count(), 3, "three distinct paid-cube identities")
 	assert_equal(_f.sites.remaining_history_capacity(), 61, "exact permanent rows reserved")
@@ -245,7 +229,7 @@ func test_entry_union_reserves_actual_unique_corridor_cuts_without_goods_or_void
 
 func test_prepared_or_already_published_entry_batch_cannot_publish_again() -> void:
 	"""Exact same-stack Room receipt is required once; a complete cursor is not authority by itself."""
-	assert_true(_confirm(_plan()).ok, "actual entry claim completion")
+	assert_true(_orders.confirm_room(_plan()).ok, "actual entry claim completion")
 	assert_true(_orders.direct_refusal != &"", "publication before Room allocation refused")
 	var before: PackedByteArray = _image()
 	assert_true(_f.sites.publish_room_claim_batch(_orders.saved) != &"", "repeated/idle publication refused")
@@ -257,7 +241,7 @@ func test_entry_claims_require_permanent_corridor_purpose() -> void:
 	var plan: Orders.RoomPlan = _plan()
 	plan.room_type = Buildings.ROOM_TYPE_KITCHEN
 	var before: PackedByteArray = _image()
-	assert_false(_confirm(plan).ok, "actual Room scope refuses non-Corridor future purpose")
+	assert_false(_orders.confirm_room(plan).ok, "actual Room scope refuses non-Corridor future purpose")
 	assert_true(_image() == before, "no identity, claims or goods changed")
 	assert_equal(_orders.attempted_private_bytes, 0, "purpose refusal precedes private input allocation")
 
@@ -267,10 +251,10 @@ func test_every_late_entry_request_or_candidate_change_refuses_all_writes() -> v
 	for fault: int in [2, 3, 4, 5, 6]:
 		_orders.entry_fault = fault
 		var before: PackedByteArray = _image()
-		assert_false(_confirm(_plan()).ok, "late input/candidate mutation refused")
+		assert_false(_orders.confirm_room(_plan()).ok, "late input/candidate mutation refused")
 		assert_true(_image() == before, "all authoritative bytes unchanged")
 	_orders.entry_fault = 0
-	assert_true(_confirm(_plan()).ok, "fresh request can retry discarded operation")
+	assert_true(_orders.confirm_room(_plan()).ok, "fresh request can retry discarded operation")
 
 
 func test_late_external_history_survives_refusal_without_partial_entry_claims() -> void:
@@ -278,7 +262,7 @@ func test_late_external_history_survives_refusal_without_partial_entry_claims() 
 	_orders.entry_fault = 1
 	var before_ids: PackedByteArray = _f.residents.directory().state_bytes()
 	var before_space: PackedByteArray = _f.space.state_bytes()
-	assert_equal(_confirm(_plan()).error, Sites.REFUSE_CLAIM_BATCH, "late actual claim refuses admission")
+	assert_equal(_orders.confirm_room(_plan()).error, Sites.REFUSE_CLAIM_BATCH, "late actual claim refuses admission")
 	assert_true(_f.sites.state_bytes() == _orders.external_history, "external committed cut ownership preserved")
 	assert_true(_f.residents.directory().state_bytes() == before_ids, "no future Room allocated")
 	assert_true(_f.space.state_bytes() == before_space, "no partial spatial source/markers")
@@ -291,7 +275,7 @@ func test_same_sized_replacement_lease_refuses_before_allocation_and_at_final_gu
 		_orders.scope_fault = 2 if stage == 0 else 0
 		_orders.entry_fault = 7 if stage == 1 else 0
 		var before: PackedByteArray = _image()
-		assert_false(_confirm(_plan()).ok, "replaced original lease refused")
+		assert_false(_orders.confirm_room(_plan()).ok, "replaced original lease refused")
 		assert_true(_image() == before, "no partial writes")
 		assert_true(_bindings.arena.covers(_orders.replacement, Budget.COLD_BYTES), "new owner retains its lease")
 		assert_equal(_bindings.arena.release(_orders.replacement), &"", "replacement owner cleans up")
@@ -302,7 +286,7 @@ func test_same_sized_replacement_lease_refuses_before_allocation_and_at_final_gu
 func test_foreign_actual_arena_with_coincident_token_refuses_before_private_copy() -> void:
 	"""The actual RoomOrders owner checks Budget identity, not just its numeric token."""
 	_orders.reject_foreign_budget = true
-	assert_true(_confirm(_plan()).ok, "proper original lease still succeeds")
+	assert_true(_orders.confirm_room(_plan()).ok, "proper original lease still succeeds")
 	assert_equal(_orders.foreign_refusal, Orders.REFUSE_ROOM_COLD, "foreign token1 refused")
 	assert_equal(_orders.foreign_copy_bytes, 0, "no foreign arena allocation")
 
@@ -312,13 +296,13 @@ func test_scope_callback_shape_mutation_and_shifted_domain_refuse_before_copy() 
 	var before: PackedByteArray = _image()
 	var original: PackedInt32Array = _orders.input_boxes.duplicate()
 	_orders.scope_fault = 1
-	assert_false(_confirm(_plan()).ok, "scope callback appended malformed field")
+	assert_false(_orders.confirm_room(_plan()).ok, "scope callback appended malformed field")
 	assert_equal(_orders.attempted_private_bytes, 0, "shape rechecked before copy")
 	assert_true(_image() == before, "shape refusal has no authoritative writes")
 	_orders.scope_fault = 0
 	_orders.input_boxes = original
 	_orders.shifted_domain = true
-	assert_equal(_confirm(_plan()).error, Sites.REFUSE_DOMAIN, "same World with different datum refused")
+	assert_equal(_orders.confirm_room(_plan()).error, Sites.REFUSE_DOMAIN, "same World with different datum refused")
 	assert_equal(_orders.attempted_private_bytes, 0, "namespace refusal before copy")
 	assert_true(_image() == before, "domain refusal has no authoritative writes")
 
@@ -327,10 +311,10 @@ func test_retained_history_and_capacity_cannot_partly_reserve_entry() -> void:
 	"""Only virgin unique keys can enter a new claim batch; history never returns on cancellation."""
 	assert_true(_f.sites.claim_quantum(Vector3i(0, -4096, 0), ClaimTests.PhysicalFixture.ROOM).ok, "actual existing key")
 	var before: PackedByteArray = _image()
-	assert_equal(_confirm(_plan()).error, Sites.REFUSE_CLAIM_HISTORY, "shared physical key is not virgin")
+	assert_equal(_orders.confirm_room(_plan()).error, Sites.REFUSE_CLAIM_HISTORY, "shared physical key is not virgin")
 	assert_true(_image() == before, "existing history preserved")
 	_orders.input_boxes = PackedInt32Array([1024, -4096, 0, 10240, -3072, 9216])
-	assert_equal(_confirm(_plan()).error, Sites.REFUSE_SITE_CAPACITY, "81 unique keys exceed actual remaining63")
+	assert_equal(_orders.confirm_room(_plan()).error, Sites.REFUSE_SITE_CAPACITY, "81 unique keys exceed actual remaining63")
 	assert_true(_image() == before, "capacity failure leaves no partly admitted Room or keys")
 
 
@@ -338,7 +322,7 @@ func test_sorted_merge_preserves_full_existing_site_references_and_gaps() -> voi
 	"""Shared publication merges keys without moving prior physical history rows."""
 	var low: Vector2i = _f.sites.claim_quantum(Vector3i(0, -8192, 0), ClaimTests.PhysicalFixture.ROOM).ref
 	var high: Vector2i = _f.sites.claim_quantum(Vector3i(15360, 7168, 15360), ClaimTests.PhysicalFixture.ROOM).ref
-	assert_true(_confirm(_plan()).ok, "three intermediate keys admitted")
+	assert_true(_orders.confirm_room(_plan()).ok, "three intermediate keys admitted")
 	assert_equal(_f.sites.site_at(Vector3i(0, -8192, 0)), low, "old lower key keeps full identity")
 	assert_equal(_f.sites.site_at(Vector3i(15360, 7168, 15360)), high, "old upper key keeps full identity")
 	assert_equal(_f.sites._ordered_row.slice(0, 5), PackedInt32Array([0, 2, 3, 4, 1]), "sorted index over stable rows")
@@ -353,8 +337,8 @@ func test_entry_image_coexistence_has_explicit_bounded_admission() -> void:
 	assert_true(Sites.entry_claim_cold_bytes(Space.MAX_REGIONS) > Budget.COLD_BYTES, "independent input ceiling grants no composed memory")
 	_orders.input_boxes.resize(6 * Space.MAX_REGIONS)
 	var before: PackedByteArray = _image()
-	assert_false(_confirm(_plan()).ok, "oversized coexistence refused")
-	assert_equal(_orders.attempted_private_bytes, -1, "whole EntryPlan refuses before claim preparation or copied image")
+	assert_false(_orders.confirm_room(_plan()).ok, "oversized coexistence refused")
+	assert_equal(_orders.attempted_private_bytes, 0, "cold extent refusal precedes copied image")
 	assert_true(_image() == before, "no partial claim from oversized input")
 
 
@@ -362,7 +346,7 @@ func test_only_the_attested_domain_snapshot_can_choose_entry_physical_keys() -> 
 	"""A second shifted descriptor previously reserved the unintended X0 key in the actual ledger."""
 	_orders.domain_fault = 1
 	_orders.input_boxes = PackedInt32Array([1024, -4096, 1024, 1536, -3072, 1536])
-	assert_true(_confirm(_plan()).ok, "actual first descriptor remains valid")
+	assert_true(_orders.confirm_room(_plan()).ok, "actual first descriptor remains valid")
 	assert_equal(_orders.observed_domain.calls, 1, "no second caller Domain observer before cursor allocation")
 	assert_equal(_orders.saved.count(), 1, "exactly one actual datum-relative physical key")
 	assert_equal(_f.sites.site_at(Vector3i(0, -4096, 1024)), NULL_REF, "unintended neighboring key remains virgin")
@@ -378,7 +362,7 @@ func test_only_the_attested_domain_snapshot_can_choose_flat_room_physical_keys()
 	plan.cell_size_u = 512
 	plan.height_u = 1024
 	plan.cells = PackedInt32Array([0, 0])
-	assert_true(_confirm(plan).ok, "ordinary flat plan accepted")
+	assert_true(_orders.confirm_room(plan).ok, "ordinary flat plan accepted")
 	assert_equal(_orders.observed_domain.calls, 1, "no second caller Domain observation on flat path")
 	assert_equal(_orders.saved.count(), 1, "one intended physical key")
 	assert_equal(_f.sites.site_at(Vector3i(0, -4096, 1024)), NULL_REF, "no neighboring phantom flat claim")
@@ -387,7 +371,7 @@ func test_only_the_attested_domain_snapshot_can_choose_flat_room_physical_keys()
 func test_second_domain_lease_observer_cannot_run_between_private_and_interval_copies() -> void:
 	"""A later observable callback cannot revoke the original lease immediately before bank allocation."""
 	_orders.domain_fault = 2
-	var made: Buildings.OpResult = _confirm(_plan())
+	var made: Buildings.OpResult = _orders.confirm_room(_plan())
 	assert_true(made.ok, "original attested scope completes without a second observer")
 	assert_equal(_orders.observed_domain.calls, 1, "only initial caller observation")
 	assert_equal(_orders.observed_domain.replacement, 0, "no replacement lease minted")
@@ -401,16 +385,8 @@ func test_first_domain_namespace_or_lease_mutation_refuses_before_private_copy()
 		_orders.domain_fault = fault
 		_orders.domain_mutate_call = 1
 		var before: PackedByteArray = _image()
-		assert_false(_confirm(_plan()).ok, "changed initial Domain observation refused")
+		assert_false(_orders.confirm_room(_plan()).ok, "changed initial Domain observation refused")
 		assert_equal(_orders.attempted_private_bytes, 0, "namespace/lease validation precedes private image")
 		assert_true(_image() == before, "no physical or identity publication")
 		if _orders.observed_domain.replacement > 0:
 			assert_equal(_bindings.arena.release(_orders.observed_domain.replacement), &"", "replacement remains its owner's")
-
-
-func test_flat_room_cannot_publish_nonflat_entry_batch() -> void:
-	"""A synthetic entry batch cannot bypass the ordinary Room's exact flat input and cursor guards."""
-	var before: PackedByteArray = _image()
-	var result: Buildings.OpResult = _orders.confirm_room(_plan())
-	assert_false(result.ok, "non-flat batch under flat Room admission refuses")
-	assert_true(_image() == before, "no partial Room, Sites, Space or inventory write")

@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_excavation_claim_batch.gd
+  PASS  test_exact_fine_plan_reserves_once_before_spatial_publication_without_payment
+  PASS  test_last_callback_free_guard_rejects_late_history_without_rolling_it_back
+  PASS  test_late_candidate_or_input_drift_refuses_all_owner_writes
+  PASS  test_replaced_actual_lease_never_allocates_room_or_releases_the_replacement
+  PASS  test_foreign_valid_budget_with_coincident_token_refuses_before_copy
+  PASS  test_retained_history_and_partial_capacity_cannot_create_room_or_virgin_claims
+  PASS  test_sorted_index_merge_keeps_earlier_and_later_existing_histories_exact
+  PASS  test_domain_comparison_requires_full_live_world_datum_and_bounds
+  PASS  test_full_painted_limit_uses_one_private_copy_and_one_replayed_interval_bank
+  PASS  test_source_counted_companion_lifetimes_fit_only_in_the_documented_order
+CI_SUITE_TIME {"assertions":331,"failures":0,"suite":"test_excavation_claim_batch.gd","tests":10,"usec":1092306}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 331 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 331 assertions, 0 failures.

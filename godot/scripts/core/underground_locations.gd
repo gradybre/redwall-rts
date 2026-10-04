@@ -1669,9 +1669,7 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	for axis: int in 3:
 		if record.point[axis] < record.envelope[axis] or record.point[axis] >= record.envelope[axis + 3]:
 			return &"LOCATION_POINT_OUTSIDE"
-	if record.support[4] != record.envelope[1] or record.support[0] > record.envelope[0] \
-			or record.support[2] > record.envelope[2] or record.support[3] < record.envelope[3] \
-			or record.support[5] < record.envelope[5] or record.point.y != record.envelope[1]:
+	if record.point.y != record.envelope[1] or not support_covers_root(record.point, record.support):
 		return &"LOCATION_SUPPORT_GEOMETRY"
 	var code: StringName = _section_refusal(record)
 	if code == &"":
@@ -1690,6 +1688,12 @@ func _record_geometry_refusal(record: Record) -> StringName:
 	return &""
 
 
+static func support_covers_root(point: Vector3i, support: PackedInt32Array) -> bool:
+	"""Footing contains the root on its exact top plane; independently proven tool air need not have floor below it."""
+	return Space.valid_box(support) and support[4] == point.y \
+		and point.x >= support[0] and point.x < support[3] and point.z >= support[2] and point.z < support[5]
+
+
 func _section_refusal(record: Record) -> StringName:
 	"""World surface and actual underground Room sections are disjoint identity domains."""
 	var code: StringName = _read_section(record.section)
@@ -1706,8 +1710,8 @@ func _section_refusal(record: Record) -> StringName:
 	if record.role == ROLE_TRANSIT:
 		return &"" if record.point.x >= _region.box[0] and record.point.x < _region.box[3] \
 			and record.point.z >= _region.box[2] and record.point.z < _region.box[5] else &"LOCATION_SECTION_CONTAINMENT"
-	if record.envelope[0] < _region.box[0] or record.envelope[2] < _region.box[2] \
-			or record.envelope[3] > _region.box[3] or record.envelope[5] > _region.box[5]:
+	if record.support[0] < _region.box[0] or record.support[2] < _region.box[2] \
+			or record.support[3] > _region.box[3] or record.support[5] > _region.box[5]:
 		return &"LOCATION_SECTION_CONTAINMENT"
 	return &""
 

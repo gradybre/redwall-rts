@@ -293,12 +293,12 @@ func test_anchor_cannot_create_air_in_dirt_or_footing_above_ground() -> void:
 	assert_equal(_actual._locations._live.count, 0, "no partly registered endpoint")
 
 
-func test_interior_support_gap_and_root_plane_mismatch_refuse() -> void:
-	"""Even a one-unit uncovered footing strip cannot be hidden by a valid center point."""
+func test_support_excluding_root_and_root_plane_mismatch_refuse() -> void:
+	"""The independent support still contains the root on its exact top plane."""
 	_setup()
 	var support: PackedInt32Array = _foot()
-	support[0] += 1
-	assert_equal(_anchor.create(Vector3i(X + 512, 512, Z + 512), _body(), support).error, Anchor.REFUSE_SHAPE, "footing strip absent")
+	support[0] = X + 513
+	assert_equal(_anchor.create(Vector3i(X + 512, 512, Z + 512), _body(), support).error, Anchor.REFUSE_SHAPE, "root outside footing")
 	assert_equal(_anchor.create(Vector3i(X + 512, 513, Z + 512), _body(), _foot()).error, Anchor.REFUSE_SHAPE, "wrong root plane")
 	assert_true(_actual._budget.is_quiescent(), "invalid shape never holds a cold operation")
 

@@ -254,7 +254,7 @@ func _create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Ar
 		return Result.new(REFUSE_BUSY)
 	if not _ready or not exact_binding(_locations, _space, _budget, _world_ref):
 		return Result.new(REFUSE_BINDING)
-	if not _valid_input(point, envelope, support, role) or not _valid_section(point, envelope, section, surface_bounds):
+	if not _valid_input(point, envelope, support, role) or not _valid_section(point, support, section, surface_bounds):
 		return Result.new(REFUSE_SHAPE)
 	_cold_token = _budget.acquire(Budget.COLD_BYTES)
 	if _cold_token == 0:
@@ -264,7 +264,7 @@ func _create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Ar
 	_revision = _space.revision()
 	_remaining = _space._domain._checks
 	_copy_input(point, envelope, support, role)
-	_pin_section(point, envelope, section, surface_bounds)
+	_pin_section(point, support, section, surface_bounds)
 	var code: StringName = _prepare()
 	if code == &"":
 		code = _commit()
@@ -273,12 +273,12 @@ func _create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Ar
 	return result
 
 
-func _valid_section(point: Vector3i, envelope: PackedInt32Array, section: Vector2i,
+func _valid_section(point: Vector3i, support: PackedInt32Array, section: Vector2i,
 		bounds: PackedInt32Array) -> bool:
-	"""Metadata only chooses shared horizontal identity; no natural terrain or support is inferred from it."""
+	"""Metadata contains actual footing; any body/tool overhang still needs its own complete exterior proof."""
 	if section == NULL_REF:
 		return bounds.is_empty() or (Space.valid_box(bounds) and Space.contains_box(_space._domain._bounds, bounds) \
-			and bounds[1] == point.y and bounds[4] == point.y + 1 and _covers_footprint(bounds, envelope))
+			and bounds[1] == point.y and bounds[4] == point.y + 1 and _covers_footprint(bounds, support))
 	if not bounds.is_empty() or not _space._region_live(section, false):
 		return false
 	var row: int = section.x
@@ -289,8 +289,8 @@ func _valid_section(point: Vector3i, envelope: PackedInt32Array, section: Vector
 			or Vector2i(_space._r_claim_slot[row], _space._r_claim_generation[row]) != NULL_REF:
 		return false
 	return _space._r_lo_y[row] == point.y and _space._r_hi_y[row] == point.y + 1 \
-		and _space._r_lo_x[row] <= envelope[0] and _space._r_hi_x[row] >= envelope[3] \
-		and _space._r_lo_z[row] <= envelope[2] and _space._r_hi_z[row] >= envelope[5]
+		and _space._r_lo_x[row] <= support[0] and _space._r_hi_x[row] >= support[3] \
+		and _space._r_lo_z[row] <= support[2] and _space._r_hi_z[row] >= support[5]
 
 
 static func _covers_footprint(bounds: PackedInt32Array, envelope: PackedInt32Array) -> bool:
@@ -299,14 +299,15 @@ static func _covers_footprint(bounds: PackedInt32Array, envelope: PackedInt32Arr
 		and bounds[3] >= envelope[3] and bounds[5] >= envelope[5]
 
 
-func _pin_section(point: Vector3i, envelope: PackedInt32Array, section: Vector2i,
+func _pin_section(point: Vector3i, support: PackedInt32Array, section: Vector2i,
 		bounds: PackedInt32Array) -> void:
 	"""Copy the complete floor before observers; subsequent caller edits cannot enlarge the prepared footprint."""
 	_new_section = section == NULL_REF
 	_section = section
 	if _new_section:
 		for axis: int in 6:
-			_surface_box[axis] = envelope[axis] if bounds.is_empty() else bounds[axis]
+			_surface_box[axis] = support[axis] if bounds.is_empty() else bounds[axis]
+		_surface_box[1] = point.y
 		_surface_box[4] = point.y + 1
 	else:
 		_surface_box[0] = _space._r_lo_x[section.x]
@@ -318,12 +319,11 @@ func _pin_section(point: Vector3i, envelope: PackedInt32Array, section: Vector2i
 
 
 func _valid_input(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array, role: int) -> bool:
-	"""An exact half-open body box has complete matching footing and its root on that same natural plane."""
+	"""The independent air and footing boxes share an exact root plane; each keeps its full physical proof."""
 	if not Space.valid_box(envelope) or not Space.valid_box(support) or role < Locations.ROLE_TRANSIT \
-			or role > Locations.ROLE_WORK or point.y != envelope[1] or support[4] != point.y:
+			or role > Locations.ROLE_WORK or point.y != envelope[1] or not Locations.support_covers_root(point, support):
 		return false
-	if not Space.contains_box(_space._domain._bounds, envelope) or not Space.contains_box(_space._domain._bounds, support) \
-			or support[0] > envelope[0] or support[2] > envelope[2] or support[3] < envelope[3] or support[5] < envelope[5]:
+	if not Space.contains_box(_space._domain._bounds, envelope) or not Space.contains_box(_space._domain._bounds, support):
 		return false
 	return point.x >= envelope[0] and point.x < envelope[3] and point.z >= envelope[2] and point.z < envelope[5]
 

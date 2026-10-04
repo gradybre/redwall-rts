@@ -1399,12 +1399,17 @@ func _timber_profile(endpoint: int) -> int:
 
 
 func _timber_profile_envelope(endpoint: int) -> StringName:
-	"""Actual immutable occupied, approach and recovery boxes determine the full endpoint; stroke grants no air."""
+	"""Select the exact immutable source; support and occupied air retain independent complete bounds."""
 	var profile: int = _timber_profile(endpoint)
 	var profiles: Profiles = _entry_placements._profiles
 	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0 or profile >= profiles._live.header[1] \
 			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
+	return _timber_profile_bounds(profiles, profile)
+
+
+func _timber_profile_bounds(profiles: Profiles, profile: int) -> StringName:
+	"""Only authored stance rows enlarge footing; held-tool overhang independently enlarges the air proof."""
 	var point: Vector3i = _entry_contact.point
 	for axis: int in 3:
 		_entry_contact.envelope[axis] = point[axis]
@@ -1412,20 +1417,29 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]
 	var end: int = first + profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
 	var stance: bool = false
-	var bottom: int = point.y
 	for box: int in range(first, end):
-		if not _entry_spend(16): return REFUSE_MASK_BUDGET
+		if not _entry_spend(24): return REFUSE_MASK_BUDGET
 		var role: int = profiles._live.boxes[6 * profiles._box_capacity + box]
 		if role == Profiles.STANCE_SUPPORT:
+			var code: StringName = _timber_extend_support(profiles, box, point, not stance)
+			if code != &"": return code
 			stance = true
-			bottom = mini(bottom, int(point.y) + profiles._live.boxes[profiles._box_capacity + box])
-		if role in [Profiles.BODY_HELD_LOAD, Profiles.TURN_RECOVERY, Profiles.WORK_APPROACH, Profiles.STANCE_SUPPORT]:
+		if role in [Profiles.BODY_HELD_LOAD, Profiles.TURN_RECOVERY, Profiles.WORK_APPROACH]:
 			var code: StringName = _timber_extend_envelope(profiles, box, point)
 			if code != &"": return code
-	if not stance or bottom >= point.y: return REFUSE_TIMBER_CONTACT
-	for axis: int in 6: _entry_contact.support[axis] = _entry_contact.envelope[axis]
-	_entry_contact.support[1] = bottom
-	_entry_contact.support[4] = point.y
+	return &"" if stance and Locations.support_covers_root(point, _entry_contact.support) else REFUSE_TIMBER_CONTACT
+
+
+func _timber_extend_support(profiles: Profiles, box: int, point: Vector3i, first: bool) -> StringName:
+	"""A single-plane contact retains every authored footing coordinate without borrowing body-only air."""
+	if profiles._live.boxes[profiles._box_capacity + box] >= 0 \
+			or profiles._live.boxes[4 * profiles._box_capacity + box] != 0: return REFUSE_TIMBER_CONTACT
+	for axis: int in 3:
+		var low: int = int(point[axis]) + profiles._live.boxes[axis * profiles._box_capacity + box]
+		var high: int = int(point[axis]) + profiles._live.boxes[(axis + 3) * profiles._box_capacity + box]
+		if not Space.int32(low) or not Space.int32(high): return REFUSE_TIMBER_CONTACT
+		_entry_contact.support[axis] = low if first else mini(_entry_contact.support[axis], low)
+		_entry_contact.support[axis + 3] = high if first else maxi(_entry_contact.support[axis + 3], high)
 	return &""
 
 

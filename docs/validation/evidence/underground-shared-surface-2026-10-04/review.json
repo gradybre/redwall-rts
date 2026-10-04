@@ -1,0 +1,13 @@
+{
+  "reviewer": "/root/ug_construction",
+  "status": "accepted",
+  "source_sha256": {
+    "godot/scripts/core/underground_surface_anchor.gd": "7bb74f211c866769557f7ce3d340f55e35b76c2d10d3f84046cc9d3585453baf",
+    "godot/test/test_underground_surface_anchor.gd": "386f04d0b024fb07252275c878efdfbc60d7b568ee2bdf53eef95a989735100b",
+    "tools/underground_memory_budget.py": "7d0ada566f6e26f471b02398ba3f0e45c000ce3454f7aed3e6fbe894364bb285",
+    "tools/test_underground_memory_budget.py": "1636f001933a7f7327923629436b17c0db30df872a2054d181572e0bdcf01084"
+  },
+  "scope": "Complete changed call chain/tests, exact borrowed datum identity, local-only physical publication, private bounds, 2-vs-3 changed rows, guards/cleanup and +25 logical bytes. Read-only; engine not repeated.",
+  "high_medium_findings": 0,
+  "low_note": "Existing _prepare docstring says three exact rows although borrowed mode stages two; wording only, not blocking."
+}

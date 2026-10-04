@@ -72,6 +72,7 @@ var _tuple_case: int = -1
 var _foreign_location: int = 0
 var _foreign_space: int = 0
 var _rebegin_error: StringName = &""
+var _surface_input: PackedInt32Array = PackedInt32Array()
 
 
 func _setup(capacity: int = 8, checks: int = Space.MAX_CHECKS) -> void:
@@ -119,6 +120,127 @@ func _record(location: Vector2i) -> Locations.Record:
 	record.support.resize(6)
 	assert_equal(_actual._locations.read_location_into(location, record), &"", "published endpoint")
 	return record
+
+
+func _surface() -> PackedInt32Array:
+	"""One horizontal identity spans separated actual work spots; its middle is intentionally unprotected."""
+	return PackedInt32Array([X + 256, 512, Z + 256, X + 2816, 513, Z + 768])
+
+
+func _shared_first() -> Anchor.Result:
+	"""The initial endpoint protects only its actual body and feet inside a wider metadata section."""
+	return _anchor.create(Vector3i(X + 512, 512, Z + 512), _body(), _foot(), Locations.ROLE_WORK, _surface())
+
+
+func _shared_next(section: Vector2i) -> Anchor.Result:
+	"""A second natural-ground endpoint uses the same full World floor identity."""
+	return _anchor.create_in_section(Vector3i(X + 2560, 512, Z + 512), _body(2048), _foot(2048), section)
+
+
+func test_shared_surface_metadata_keeps_the_future_cut_unprotected() -> void:
+	"""A common section must not convert the future hole or the air above it into reserved support or clearance."""
+	_setup()
+	var first: Anchor.Result = _shared_first()
+	assert_equal(first.error, &"", "actual first contact")
+	var second: Anchor.Result = _shared_next(first.section)
+	assert_equal(second.error, &"", "actual separate contact")
+	assert_equal(second.section, first.section, "shared full floor ref")
+	assert_equal(_record(first.location).section, _record(second.location).section, "same endpoint section")
+	assert_equal(_actual._owner._r_present.count(1), 5, "one metadata plus two local air/footing pairs")
+	var gap: PackedInt32Array = PackedInt32Array([X + 1024, 384, Z + 256, X + 2048, 2048, Z + 768])
+	var region: Owner.Region = Owner.Region.new()
+	region.box.resize(6)
+	for row: int in _actual._owner._region_capacity:
+		if _actual._owner._r_present[row] == 0:
+			continue
+		assert_equal(_actual._owner.region_into_reused(Vector2i(row, _actual._owner._r_generation[row]), region), &"", "actual row")
+		if region.role == Space.FLOOR_DATUM:
+			assert_equal(region.box, _surface(), "only metadata spans the gap")
+		else:
+			assert_false(Space.overlaps(region.box, gap), "no physical row spans the future hole")
+	assert_equal(_actual._locations._live.count, 2, "both contacts remain independently addressed")
+	assert_true(_actual._budget.is_quiescent(), "original lease returned")
+
+
+func test_surface_section_shape_refusals_leave_actual_owners_unchanged() -> void:
+	"""Wrong height, missing horizontal coverage and out-of-domain metadata cannot publish a contact."""
+	_setup()
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	var invalid: Array[PackedInt32Array] = [_surface(), _surface(), _surface()]
+	invalid[0][4] = 514
+	invalid[1][3] = X + 500
+	invalid[2][0] = -1
+	for bounds: PackedInt32Array in invalid:
+		var result: Anchor.Result = _anchor.create(Vector3i(X + 512, 512, Z + 512), _body(), _foot(), Locations.ROLE_WORK, bounds)
+		assert_equal(result.error, Anchor.REFUSE_SHAPE, "invalid metadata refuses")
+		assert_equal(result.section, NULL_REF, "no metadata ref escapes")
+		assert_equal(_actual._owner.state_bytes(), before, "no actual geometry mutation")
+	assert_equal(_actual._locations._live.count, 0, "no endpoint")
+	assert_true(_actual._budget.is_quiescent(), "no held lease")
+
+
+func test_shared_section_requires_the_exact_live_datum_and_extent() -> void:
+	"""Air rows, stale floor generations, null refs and a narrow datum cannot name the broader surface."""
+	_setup()
+	var first: Anchor.Result = _create()
+	assert_equal(first.error, &"", "ordinary first contact")
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	for ref: Vector2i in [NULL_REF, Vector2i(first.section.x, first.section.y + 1), Vector2i(first.section.x + 1, 1), first.section]:
+		assert_equal(_shared_next(ref).error, Anchor.REFUSE_SHAPE, "unrelated or insufficient section")
+		assert_equal(_actual._owner.state_bytes(), before, "live metadata preserved")
+	assert_equal(_actual._locations._live.count, 1, "ordinary endpoint preserved")
+
+
+func test_shared_section_still_requires_local_natural_footing() -> void:
+	"""A correct common datum does not permit an endpoint whose alleged footing reaches into actual air."""
+	_setup()
+	var first: Anchor.Result = _shared_first()
+	assert_equal(first.error, &"", "common metadata")
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	var result: Anchor.Result = _anchor.create_in_section(Vector3i(X + 2560, 1536, Z + 512),
+		_body(2048, 1536), _foot(2048, 1536), first.section)
+	assert_equal(result.error, Anchor.REFUSE_SHAPE, "datum plane cannot be invented")
+	assert_equal(_actual._owner.state_bytes(), before, "no support manufactured")
+	assert_equal(_actual._locations._live.count, 1, "no unsupported endpoint")
+
+
+func test_caller_metadata_mutation_cannot_change_prepared_surface() -> void:
+	"""The exact metadata footprint is copied before any final observer sees mutable caller input."""
+	_setup()
+	_surface_input = _surface()
+	(_actual._locations as WatchedLocations).probe = _mutate_surface_input
+	var result: Anchor.Result = _anchor.create(Vector3i(X + 512, 512, Z + 512),
+		_body(), _foot(), Locations.ROLE_WORK, _surface_input)
+	assert_equal(result.error, &"", "original private candidate publishes")
+	var region: Owner.Region = Owner.Region.new()
+	region.box.resize(6)
+	assert_equal(_actual._owner.region_into_reused(result.section, region), &"", "actual metadata")
+	assert_equal(region.box, _surface(), "observer cannot stretch the floor")
+	assert_true(_surface_input[3] > region.box[3], "observer actually changed caller array")
+
+
+func _mutate_surface_input() -> void:
+	"""Change only caller-owned packed storage at the known final observation boundary."""
+	_surface_input[3] += 1024
+
+
+func test_nested_shared_section_request_poison_preserves_existing_contacts() -> void:
+	"""Even a malformed nested request cannot avoid the original operation's reentry guard."""
+	_setup()
+	var first: Anchor.Result = _shared_first()
+	assert_equal(first.error, &"", "common metadata")
+	var before: PackedByteArray = _actual._owner.state_bytes()
+	(_actual._locations as WatchedLocations).probe = _nested_shared_section
+	assert_equal(_shared_next(first.section).error, Anchor.REFUSE_STALE, "poisoned original refuses")
+	assert_equal(_nested_error, Anchor.REFUSE_BUSY, "nested request refused before invalid null selector")
+	assert_equal(_actual._owner.state_bytes(), before, "no partial local rows")
+	assert_equal(_actual._locations._live.count, 1, "first endpoint preserved")
+	assert_true(_actual._budget.is_quiescent(), "original lease returned")
+
+
+func _nested_shared_section() -> void:
+	"""The null selector deliberately checks guard ordering, not successful recursion."""
+	_nested_error = _shared_next(NULL_REF).error
 
 
 func after_each() -> void:

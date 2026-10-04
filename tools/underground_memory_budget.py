@@ -157,18 +157,20 @@ def anchor_owned_packets(source: str) -> None:
         "_work": "Routes.Work", "_profiles": "Routes.Profiles", "_bindings": "Routes.Bindings",
         "_gear": "Routes.Gear", "_carry": "Routes.Carry", "_reservations": "Routes.Reservations",
         "_piles": "Routes.Piles", "_record": "Locations.Record", "_region": "Owner.Region",
+        "_surface_box": "PackedInt32Array",
     }
-    declarations = re.findall(r"^var (\w+): ([\w.]+)\b", source, re.M)
-    actual = {name: kind for name, kind in declarations if kind not in {"int", "bool", "Vector2i", "Vector3i"}}
+    declarations = explicit_members(source)
+    actual = {name: kind for name, kind in declarations.items() if kind not in {"int", "bool", "Vector2i", "Vector3i"}}
     assert actual == expected, ("unreconciled anchor owned/borrowed member", actual)
 
 
 def surface_anchor_reservation(index: dict) -> dict:
-    """Reconcile actual fixed provider/packet numerics and their three admitted reused packed boxes."""
+    """Reconcile fixed provider packets and the separately pinned metadata-only surface box."""
     module = "underground_surface_anchor"
     source = index[module].text
-    assert not re.search(r"^var \w+: Packed", source, re.M), "unreconciled surface anchor column"
     anchor_owned_packets(source)
+    assert re.findall(r"_surface_box\.resize\(([^)]+)\)", source) == ["6"], "surface metadata box growth"
+    metadata = 6 * 4
     retained = re.findall(r"^var (\w+): [\w.]+ = ([\w.]+)\.new\(\)$", source, re.M)
     assert retained == [("_record", "Locations.Record"), ("_region", "Owner.Region")], retained
     record = class_body(index["underground_locations"].text, "Record")
@@ -179,9 +181,10 @@ def surface_anchor_reservation(index: dict) -> dict:
     packets += anchor_packet_bytes(region, {"box": "PackedInt32Array"}, "_region", source)
     packets += anchor_packet_bytes(result, {}, "Result", source)
     reserved = resolve(index, module, "RESERVED_BYTES")
-    assert reserved >= controls + packets + 1024, "surface anchor fixed frame allowance insufficient"
+    assert reserved >= controls + packets + metadata + 1024, "surface anchor fixed frame allowance insufficient"
     return {"numeric_control_bytes": controls, "packet_bytes": packets,
-            "fixed_numeric_and_packed_bytes": controls + packets, "reserved_bytes": reserved,
+            "surface_metadata_bytes": metadata,
+            "fixed_numeric_and_packed_bytes": controls + packets + metadata, "reserved_bytes": reserved,
             "logical_helper_allowance_bytes": 1024,
             "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."}
 

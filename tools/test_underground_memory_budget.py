@@ -123,6 +123,20 @@ class JointPackTests(unittest.TestCase):
     def test_negative_anchor_box_growth(self) -> None:
         self.refuses("underground_surface_anchor", "_record.envelope.resize(6)", "_record.envelope.resize(12)")
 
+    def test_negative_anchor_surface_metadata_growth(self) -> None:
+        self.refuses("underground_surface_anchor", "_surface_box.resize(6)", "_surface_box.resize(12)")
+
+    def test_negative_anchor_surface_metadata_width(self) -> None:
+        self.refuses("underground_surface_anchor", "_surface_box: PackedInt32Array", "_surface_box: PackedInt64Array")
+
+    def test_negative_anchor_duplicate_member(self) -> None:
+        source = self.index["underground_surface_anchor"].text
+        self.refuses("underground_surface_anchor", source, source + "\nvar _new_section: bool = false\n")
+
+    def test_negative_anchor_untyped_member(self) -> None:
+        source = self.index["underground_surface_anchor"].text
+        self.refuses("underground_surface_anchor", source, source + "\nvar _untyped_extra = 0\n")
+
     def test_negative_unaccounted_anchor_column(self) -> None:
         source = self.index["underground_surface_anchor"].text
         self.refuses("underground_surface_anchor", source,
@@ -165,7 +179,7 @@ class JointPackTests(unittest.TestCase):
                              "\nfunc unrelated() -> int:\n\tvar example: int = 7\n\treturn example\n")
         anchor = budget.build(index)["connector_recipe_reservation"]["surface_anchor_reservation"]
         self.assertEqual(anchor["packet_bytes"], 204)
-        self.assertEqual(anchor["numeric_control_bytes"], 92)
+        self.assertEqual(anchor["numeric_control_bytes"], 93)
 
     def test_negative_binding_reserve_cannot_omit_existing_consumers(self) -> None:
         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
@@ -275,9 +289,10 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(budget.payload(assemblies["columns"]), 4316)
         self.assertEqual(assemblies["reserved_bytes"], 4760)
         anchor = recipes["surface_anchor_reservation"]
-        self.assertEqual(anchor["numeric_control_bytes"], 92)
+        self.assertEqual(anchor["numeric_control_bytes"], 93)
         self.assertEqual(anchor["packet_bytes"], 204)
-        self.assertEqual(anchor["fixed_numeric_and_packed_bytes"], 296)
+        self.assertEqual(anchor["surface_metadata_bytes"], 24)
+        self.assertEqual(anchor["fixed_numeric_and_packed_bytes"], 321)
         self.assertEqual(anchor["reserved_bytes"], 2048)
         self.assertEqual(budget.payload(result["quote"]["columns"]), 112)
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)

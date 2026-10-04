@@ -65,6 +65,8 @@ var _space_token: int = 0
 var _location_token: int = 0
 var _revision: int = 0
 var _section: Vector2i = NULL_REF
+var _new_section: bool = false
+var _surface_box: PackedInt32Array = PackedInt32Array()
 var _air: Vector2i = NULL_REF
 var _footing: Vector2i = NULL_REF
 var _endpoint: Vector2i = NULL_REF
@@ -93,6 +95,7 @@ func configure(world: World, terrain: Terrain, space: Owner, sources: Owner.Core
 	_record.envelope.resize(6)
 	_record.support.resize(6)
 	_region.box.resize(6)
+	_surface_box.resize(6)
 	_busy = false
 	return &""
 
@@ -227,14 +230,31 @@ func _store_tuple_current() -> bool:
 
 
 func create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array,
-		role: int = Locations.ROLE_WORK) -> Result:
+		role: int = Locations.ROLE_WORK, surface_bounds: PackedInt32Array = PackedInt32Array()) -> Result:
+	"""Create a natural contact with optional broader metadata; physical air and footing stay exactly local."""
+	return _create(point, envelope, support, role, NULL_REF, surface_bounds)
+
+
+func create_in_section(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array,
+		section: Vector2i, role: int = Locations.ROLE_WORK) -> Result:
+	"""Add separately proved natural contact to an existing World datum, without protecting intervening dirt."""
+	if _busy:
+		_poisoned = true
+		return Result.new(REFUSE_BUSY)
+	if section == NULL_REF:
+		return Result.new(REFUSE_SHAPE)
+	return _create(point, envelope, support, role, section, PackedInt32Array())
+
+
+func _create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array,
+		role: int, section: Vector2i, surface_bounds: PackedInt32Array) -> Result:
 	"""Publish one truthful natural-ground endpoint; every ordinary refusal occurs before either live bank swaps."""
 	if _busy:
 		_poisoned = true
 		return Result.new(REFUSE_BUSY)
 	if not _ready or not exact_binding(_locations, _space, _budget, _world_ref):
 		return Result.new(REFUSE_BINDING)
-	if not _valid_input(point, envelope, support, role):
+	if not _valid_input(point, envelope, support, role) or not _valid_section(point, envelope, section, surface_bounds):
 		return Result.new(REFUSE_SHAPE)
 	_cold_token = _budget.acquire(Budget.COLD_BYTES)
 	if _cold_token == 0:
@@ -244,12 +264,57 @@ func create(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Arr
 	_revision = _space.revision()
 	_remaining = _space._domain._checks
 	_copy_input(point, envelope, support, role)
+	_pin_section(point, envelope, section, surface_bounds)
 	var code: StringName = _prepare()
 	if code == &"":
 		code = _commit()
 	var result: Result = Result.new(code, _section if code == &"" else NULL_REF, _endpoint if code == &"" else NULL_REF)
 	_cleanup()
 	return result
+
+
+func _valid_section(point: Vector3i, envelope: PackedInt32Array, section: Vector2i,
+		bounds: PackedInt32Array) -> bool:
+	"""Metadata only chooses shared horizontal identity; no natural terrain or support is inferred from it."""
+	if section == NULL_REF:
+		return bounds.is_empty() or (Space.valid_box(bounds) and Space.contains_box(_space._domain._bounds, bounds) \
+			and bounds[1] == point.y and bounds[4] == point.y + 1 and _covers_footprint(bounds, envelope))
+	if not bounds.is_empty() or not _space._region_live(section, false):
+		return false
+	var row: int = section.x
+	if _space._r_role[row] != Space.FLOOR_DATUM or _space._r_owner_slot[row] != _world_ref.x \
+			or _space._r_owner_generation[row] != _world_ref.y or _space._r_level[row] != 0 \
+			or _space._r_claim_kind[row] != Owner.CLAIM_NONE \
+			or Vector2i(_space._r_section_slot[row], _space._r_section_generation[row]) != section \
+			or Vector2i(_space._r_claim_slot[row], _space._r_claim_generation[row]) != NULL_REF:
+		return false
+	return _space._r_lo_y[row] == point.y and _space._r_hi_y[row] == point.y + 1 \
+		and _space._r_lo_x[row] <= envelope[0] and _space._r_hi_x[row] >= envelope[3] \
+		and _space._r_lo_z[row] <= envelope[2] and _space._r_hi_z[row] >= envelope[5]
+
+
+static func _covers_footprint(bounds: PackedInt32Array, envelope: PackedInt32Array) -> bool:
+	"""Positive half-open metadata covers every horizontal point of this independently measured contact."""
+	return bounds[0] <= envelope[0] and bounds[2] <= envelope[2] \
+		and bounds[3] >= envelope[3] and bounds[5] >= envelope[5]
+
+
+func _pin_section(point: Vector3i, envelope: PackedInt32Array, section: Vector2i,
+		bounds: PackedInt32Array) -> void:
+	"""Copy the complete floor before observers; subsequent caller edits cannot enlarge the prepared footprint."""
+	_new_section = section == NULL_REF
+	_section = section
+	if _new_section:
+		for axis: int in 6:
+			_surface_box[axis] = envelope[axis] if bounds.is_empty() else bounds[axis]
+		_surface_box[4] = point.y + 1
+	else:
+		_surface_box[0] = _space._r_lo_x[section.x]
+		_surface_box[1] = _space._r_lo_y[section.x]
+		_surface_box[2] = _space._r_lo_z[section.x]
+		_surface_box[3] = _space._r_hi_x[section.x]
+		_surface_box[4] = _space._r_hi_y[section.x]
+		_surface_box[5] = _space._r_hi_z[section.x]
 
 
 func _valid_input(point: Vector3i, envelope: PackedInt32Array, support: PackedInt32Array, role: int) -> bool:
@@ -342,16 +407,18 @@ func _prepare() -> StringName:
 
 
 func _stage_rows() -> StringName:
-	"""Metadata, natural air and natural footing use the permanent World identity and no claim or Project."""
+	"""A borrowed datum adds no physical extent; only the two independently proved local boxes become air/support."""
 	_region.owner = _world_ref
 	_region.level = 0
 	_region.claim_kind = Owner.CLAIM_NONE
 	_region.claim_ref = NULL_REF
 	_region.section = NULL_REF
-	var result: Owner.Result = _add_region(Space.FLOOR_DATUM, _record.envelope, true)
-	if result.error != &"":
-		return result.error
-	_section = result.handle
+	var result: Owner.Result = null
+	if _new_section:
+		result = _add_region(Space.FLOOR_DATUM, _surface_box)
+		if result.error != &"":
+			return result.error
+		_section = result.handle
 	_region.section = _section
 	result = _add_region(Space.SUPPORTED_VOID, _record.envelope)
 	if result.error != &"":
@@ -432,8 +499,8 @@ func _spend(checks: int) -> bool:
 
 
 func _staged_rows_refusal() -> StringName:
-	"""The exact sealed candidate contains the three prepared natural rows, never a replacement with equal revision."""
-	if _space._changed_count != 3:
+	"""Prove exact metadata and local physical rows; reusing metadata must not add or modify that live row."""
+	if _space._changed_count != (3 if _new_section else 2):
 		return REFUSE_STALE
 	for index: int in 3:
 		var handle: Vector2i = _section if index == 0 else (_air if index == 1 else _footing)
@@ -446,9 +513,8 @@ func _staged_rows_refusal() -> StringName:
 				or _region.section != _section:
 			return REFUSE_STALE
 		for axis: int in 6:
-			var expected: int = _record.support[axis] if index == 2 else _record.envelope[axis]
-			if index == 0 and axis == 4:
-				expected = _record.point.y + 1
+			var expected: int = _surface_box[axis] if index == 0 else \
+				(_record.support[axis] if index == 2 else _record.envelope[axis])
 			if _region.box[axis] != expected:
 				return REFUSE_STALE
 	return &""
@@ -523,6 +589,7 @@ func _cleanup() -> void:
 	_space_token = 0
 	_location_token = 0
 	_section = NULL_REF
+	_new_section = false
 	_air = NULL_REF
 	_footing = NULL_REF
 	_endpoint = NULL_REF

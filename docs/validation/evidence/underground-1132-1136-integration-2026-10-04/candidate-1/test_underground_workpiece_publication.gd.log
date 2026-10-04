@@ -1,0 +1,27 @@
+state_registry_coverage: PASS -- 140 modules, 699 rows, 1038 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_workpiece_publication.gd
+  PASS  test_start_publication_follows_payment_construction_and_worker_state_once
+  PASS  test_refused_final_contact_never_publishes_or_spends_before_clean_retry
+  PASS  test_manual_stale_and_foreign_owner_calls_cannot_borrow_start_window
+  PASS  test_nonconnector_start_retains_existing_discard_without_new_window
+CI_SUITE_TIME {"assertions":48,"failures":0,"suite":"test_underground_workpiece_publication.gd","tests":4,"usec":339183}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 48 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 4 tests, 48 assertions, 0 failures.

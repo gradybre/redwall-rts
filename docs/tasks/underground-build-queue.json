@@ -851,12 +851,14 @@
         },
         "workpiece_start_publication_1136": {
           "source_commit": "007dd203085d9d3ca976c9aa82669431560c5ef4",
-          "integration": "pending",
+          "integration": "2f639f6b",
           "reviewer": "/root/ug_furnishing",
           "status": "independently reviewed prepared-publication seam",
           "tests": "62 tests,2787 assertions,0 failures; strict/raw unexpected,expected,tolerated and leaks0; analyzer0/3",
           "scope": "Actual payment/Construction/Jobs ordering with explicit synthetic physical observer. Original owner and exact Router tuple; no late virtual purpose/bill observer. Physical1134/1135 composition still required.",
-          "evidence": "docs/validation/evidence/underground-workpiece-publication-2026-10-04/"
+          "evidence": "docs/validation/evidence/underground-workpiece-publication-2026-10-04/",
+          "integrated_tests": "Alongside1132 phase2:100tests3294assertions0failures; strict/raw/leaks0,expected/tolerated0; analyzer0/6",
+          "integrated_evidence": "docs/validation/evidence/underground-1132-1136-integration-2026-10-04/"
         }
       },
       "lease": {
@@ -1486,7 +1488,16 @@
           ],
           "integration_tests": "Combined189tests/16682assertions/0;strict/raw/leaks0,LSP0/6; exact4phase1 sourcepins unchanged",
           "integration_evidence": "docs/validation/evidence/underground-1132-1133-integration-2026-10-04/",
-          "phase3_scope": "Approved additive tools/audit_underground_metal_cache.py, tools/test_audit_underground_metal_cache.py and forward-plus-v1/rd-source-v1/ only; immutable real cache/MSL/AST provenance, finite decode, no Actor/Profiles changes or new runtime reserve. Actual numerical enclosure remains open."
+          "phase3_scope": "Approved additive tools/audit_underground_metal_cache.py, tools/test_audit_underground_metal_cache.py and forward-plus-v1/rd-source-v1/ only; immutable real cache/MSL/AST provenance, finite decode, no Actor/Profiles changes or new runtime reserve. Actual numerical enclosure remains open.",
+          "phase2": {
+            "source_commit": "fee6b01f",
+            "integration_commit": "8b54eb38",
+            "reviewer": "/root",
+            "status": "independently reviewed and integrated bounded heading reader/native presentation",
+            "tests": "WorldBasis12/246/0 plus unchangedActor21/225/0; strict/raw/leaks0; LSP0/3. Native actualMetal45assert/0 and unchangedGL21/0 with two attachment cycles. Root combined100/3294/0 all0 LSP0/6.",
+            "scope": "UGYAW001 OpenGL and UGYAW002 actual Metal backend-specific reader; no new retained field/table/reserve. Actual Metal numerical enclosure, production profile and World activation remain open.",
+            "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/review-phase2-v2/"
+          }
         }
       },
       "lease": {

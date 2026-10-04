@@ -973,7 +973,13 @@
         "tools/test_build_demo_windows.py",
         "godot/test/test_demo_profile_pack.gd",
         "godot/test/test_demo_profile_pack.gd.uid",
-        "docs/decisions/1127-source-preserving-profile-export.md"
+        "docs/decisions/1127-source-preserving-profile-export.md",
+        "tools/bake_underground_forward_basis.gd",
+        "tools/bake_underground_forward_basis.gd.uid",
+        "godot/test/test_underground_forward_basis.gd",
+        "godot/test/test_underground_forward_basis.gd.uid",
+        "tools/prove_underground_forward_backend.py",
+        "tools/test_prove_underground_forward_backend.py"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1401,6 +1407,21 @@
           "diagnostics": "Import/export/pack boot unexpected error/warning/leak lines0; own original assets, preset and override restored; source closure unchanged.",
           "scope": "Not Windows-native execution, underground Forward Plus/World activation, release qualification, composed native-memory proof or current integration profile reclosure.",
           "evidence": "docs/validation/evidence/underground-profile-export-2026-10-04/review-full-pack-v1/"
+        },
+        "published_native_1123": {
+          "source_commit": "a0976b09",
+          "integration_commit": "2ea3082b",
+          "reviewer": "/root",
+          "review": "Accepted three exact executable sources;14 Python tests independently rerun. Rehashed3 source,331 output and25 historical pins; independently compared all events/contacts/phase/source values and304 PNG bytes to accepted cardinal-v5, all equal.",
+          "native": "7792 poses,46873 assertions,0 failures;7648 driver events and144 actual contacts;raw import/native unexpected diagnostics and leaks0;analyzer0/1.",
+          "closure": "584 pre-import and660 native source hashes match before/after; own override restored. Two old-source preflight refusals retained; exact10-row current-runtime input change separately pinned.",
+          "limits": "Actual immutable catalog on certified OpenGL component. World, paid target, whole HUD and default Metal Forward Plus remain unqualified. Current integration consumer source drift requires a new publication.",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-published-native-v3/"
+        },
+        "default_renderer_1132": {
+          "owner": "/root/ug_furnishing",
+          "status": "additive phase1 implementing",
+          "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence."
         }
       },
       "lease": {
@@ -1508,7 +1529,10 @@
         "docs/decisions/1122-source-bound-entry-structure.md",
         "godot/test/test_underground_phase_companions.gd",
         "godot/test/test_underground_phase_companions.gd.uid",
-        "docs/decisions/1121-actual-excavation-phase-companions.md"
+        "docs/decisions/1121-actual-excavation-phase-companions.md",
+        "godot/test/test_underground_prepared_location_observation.gd",
+        "godot/test/test_underground_prepared_location_observation.gd.uid",
+        "docs/decisions/1131-entry-world-memory-accounting.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -2190,6 +2214,18 @@
           "status": "implementing",
           "reason": "phase-world29 still exhausted Locations during repeated all-candidate installed-witness passes for Routes endpoints. Metadata correction retained; no further counter shaving proposed.",
           "contract": "Static actual Locations observation into fixed caller packet; exact original token/lease/seal/full ref/World/base-target context, unchanged output on refusal. Existing full API remains. Actual Routes use only inside complete pre/post validation and final publication checks. No retained cache/permission flag or limit change."
+        },
+        "actual_profile_integration_gaps": {
+          "reviewer": "/root/ug_geometry",
+          "reviewed_head": "77cd67e3",
+          "report": "docs/reviews/2026-10-04-underground-profile-integration-gaps.md",
+          "next_decision": 1133,
+          "status": "Read-only review complete; source work waits for Construction Locations lease release. Foot support/air separation, real natural approaches, paid raised workpiece, source-phase stairs and current renderer/consumer closure remain required. No source envelope shrink or paid tread enlargement."
+        },
+        "entry_world_memory_1131": {
+          "owner": "/root",
+          "status": "final source and ledger review; normal tests pending accepted1119 integration",
+          "contract": "Additional2048-byte Entry World reservation outside already assigned bindings; inherited World base and borrowed Contacts counted once. Prospective joint4968921/live99961686/headroom38314; native peak unqualified.146 injected-source developmental checks passed, not normal integration proof."
         }
       },
       "lease": {
@@ -2298,7 +2334,9 @@
             "files": [
               "godot/scripts/core/underground_routes.gd",
               "godot/scripts/core/underground_locations.gd",
-              "godot/test/test_underground_locations.gd"
+              "godot/test/test_underground_locations.gd",
+              "godot/test/test_underground_prepared_location_observation.gd",
+              "godot/test/test_underground_prepared_location_observation.gd.uid"
             ],
             "handoff": "ug_geometry stopped accepted1124 writes and explicitly granted2026-10-04; root Locations writes already stopped after1129. Construction owns narrow1130 static prepared-row observation and actual Routes prepared-candidate caller. Geometry Routes tests remain frozen; root reviews before commit."
           }

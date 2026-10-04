@@ -1693,6 +1693,13 @@
           "subject": "Geometry54cf571c design; runtime review follows exact candidate freeze",
           "evidence": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/",
           "no_source_writes": true
+        },
+        "timing_proposal_1145": {
+          "status": "awaiting user choice; no rate adopted",
+          "owner": "/root",
+          "record": "docs/decisions/1145-proposed-initial-timber-stair-timing.md",
+          "question": "Natural1s/tread+1.5s half-turn; Deliberate1.5s+2s; Careful2s+3s. Scope first unloaded adult mole/pick on authored timber sequence at1x; other work continues.",
+          "activation": false
         }
       },
       "lease": {

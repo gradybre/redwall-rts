@@ -13,8 +13,9 @@ After that checkpoint, the remaining work includes the room-specific furniture
 workflow; deeper levels and the full connection catalog; live amendments,
 removal/backfill/replacement, relocation and renovation; composed save/resume;
 and native1280×720 and256-resident acceptance. The wood-only stair decision is
-unchanged. A complete stair motion and safe return route still need source
-qualification; ground walking profiles do not fit the first tread.
+unchanged. The first supported stair source sequence and its native witness are
+reviewed, while actual paid route bindings, timing and wider connector coverage
+remain open. Ground walking profiles do not fit the first tread.
 
 The latest accepted full local checkpoint is
 [`32db348a`](evidence/modular-build/checkpoint-32db348a/README.md):
@@ -30,15 +31,28 @@ refuses exact equality, and that difference remains explicitly unattributed.
 The earlier rejected source-closure/stale-test runs remain recorded in the
 queue and their evidence. No source guard or diagnostic allowance was weakened.
 
-Decision1141's guarded hauling component is integrated at`ee63d7b9` after
-independent review and replay. Its final16 tests/603 assertions pass with zero
-strict/raw diagnostics and leaks; the combined hauling/support focused analyzer
-reports zero warnings across5 files. The separate3,072-byte logical reservation
-brings the current source-counted pack to99,994,686 bytes, leaving5,314 bytes
-below the unchanged100 MB ceiling. Runtime memory is unqualified, and the
-Delivery contribution and stair programs are not silently included. Actual
-Delivery lifecycle integration and complete stair motion/native evidence remain
-in progress.
+Decision1140's actual Delivery component is integrated at`fa017ba4`, using
+Decision1141's guarded Inventory/Reservations journal. The clean-import focused
+integrated run passes124 tests/13,838 assertions, zero strict/raw diagnostics
+and leaks, and zero analyzer warnings across6 files. Actual wood shipments fund
+the first paid installation in its real-owner fixture. Production hauling
+motion/contact sources remain open; that fixture's handling profiles are
+explicitly synthetic. The reviewed accounting at`42bff090` includes the new
+4,096-byte allowance: live plus reserve99,998,782, leaving1,218 bytes under the
+unchanged100 MB ceiling. All193 adversarial memory checks pass; native memory
+remains unqualified. See the
+[integrated packet](../../validation/evidence/underground-delivery-memory-2026-10-04/README.md).
+
+Decision1142's native stair witness is integrated at`fa7e556f` after independent
+source, event and image review:3,795 poses/125,652 assertions/0 failures,12 joins
+and93 PNGs at1280×720. This is an OpenGL witness on an unpaid test fixture;
+paid traversal, Metal, gameplay timing, saves and whole-client qualification
+remain open. The
+[review](../../validation/evidence/underground-stair-native-review-2026-10-04/README.md)
+retains those boundaries. Decision1143's joint motion reader and1144's actual
+hauling/contact sources are being developed in separate owned worktrees.
+Decision1145 records a proposed initial stair pace awaiting Brendan's choice;
+the proposal does not activate production values.
 
 Decision1135's independently reviewed spatial component is integrated at
 `84948b40`:404 selected tests /29,732 assertions /0 failures, zero unexpected

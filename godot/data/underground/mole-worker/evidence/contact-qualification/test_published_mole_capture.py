@@ -42,23 +42,37 @@ class PublishedNativeTests(unittest.TestCase):
         self.assertEqual(len(pins), 2)
         self.assertEqual(set(pins.values()), {R.CONTACT_MANIFEST_SHA, R.CONTACT_SPEC_SHA})
 
-    def test_runtime_manifest_has_only_recorded_current_core_changes(self):
+    def test_runtime_manifest_has_only_recorded_current_source_and_location_changes(self):
         bake, pins = R.runtime_bake_spec()
         new = json.loads(bake.read_text())
-        old = json.loads((HERE / "high-wall-runtime-sources-v1/bake-spec.json").read_text())
-        changes = new["runtime_closure_refresh"]["changed_sources"]
-        expected = {row["path"]: row for row in changes}
-        self.assertEqual(len(expected), 10)
+        old = json.loads((HERE / "published-native-runtime-sources-v1/bake-spec.json").read_text())
+        renewal = new["runtime_closure_refresh"]
+        expected = {row["path"]: row for row in renewal["changed_sources"]}
+        moved = {row["prior_path"]: row for row in renewal["same_source_locations"]}
+        self.assertEqual(set(expected), {"res://demo/cast/underground_actor.gd",
+            "res://scripts/core/modular_project_contract.gd", "res://scripts/core/transforms.gd"})
+        self.assertEqual(len(moved), 25)
+        self.assertEqual(len(new["sources"]), 536)
+        seen_changes, seen_moves = set(), set()
         for before, after in zip(old["sources"], new["sources"], strict=True):
+            derived = dict(before)
             if before["path"] in expected:
                 row = expected[before["path"]]
-                self.assertTrue(before["path"].startswith("res://scripts/core/"))
                 self.assertEqual(before["sha256"], row["prior_sha256"])
-                self.assertEqual(after, {**before, "sha256": row["current_sha256"]})
-            else:
-                self.assertEqual(before, after)
+                derived["sha256"] = row["current_sha256"]
+                seen_changes.add(before["path"])
+            if before["path"] in moved:
+                row = moved[before["path"]]
+                self.assertEqual(before["sha256"], row["sha256"])
+                derived["path"] = row["current_path"]
+                seen_moves.add(before["path"])
+            self.assertEqual(after, derived)
+        self.assertEqual(seen_changes, set(expected))
+        self.assertEqual(seen_moves, set(moved))
         self.assertEqual({k: v for k, v in old.items() if k not in ("sources", "runtime_closure_refresh")},
                          {k: v for k, v in new.items() if k not in ("sources", "runtime_closure_refresh")})
+        self.assertFalse(renewal["production_qualified"])
+        self.assertTrue(renewal["asset_import_case_and_gap_facts_unchanged"])
         self.assertEqual(set(pins.values()), {R.RUNTIME_BAKE_SHA, R.RUNTIME_CHANGES_SHA})
 
     def test_runtime_spec_or_change_record_byte_drift_refuses(self):

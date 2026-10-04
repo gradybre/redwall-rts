@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+"""Repeat candidate publication checks with exact source, isolated save data and strict official gates."""
+from pathlib import Path
+import hashlib
+import json
+import re
+import shutil
+import subprocess
+import sys
+import tempfile
+import time
+
+ROOT = next(p for p in Path(__file__).resolve().parents if (p / "godot/project.godot").is_file())
+OUTPUT_ARGUMENT = Path(sys.argv[1])
+if OUTPUT_ARGUMENT.exists() or OUTPUT_ARGUMENT.is_symlink():
+    raise ValueError("PUBLICATION_CHECK_OUTPUT_EXISTS")
+OUT = OUTPUT_ARGUMENT.resolve()
+PORT = "6168"
+SUITES = ["test_mole_qualified_profiles.gd", "test_underground_profiles.gd",
+          "test_mole_profile_driver.gd", "test_demo_profile_pack.gd"]
+ANALYZER = ["godot/data/underground/mole-worker/mole_profile_catalog.gd",
+            "godot/data/underground/mole-worker/profile-publication-v2/catalog_source.gd",
+            "godot/test/test_mole_qualified_profiles.gd"]
+EXTRA = ["tools/run_tests.sh", "tools/ci_test_shards.py", "tools/ci_test_shard_runner.gd",
+         "tools/ci_test_shard_weights.json", "tools/gdscript_warnings.py",
+         "docs/validation/state_registry_coverage.py", "docs/persistence_state_registry.md",
+         "tools/demo_build/windows_export_preset.cfg", "tools/test_build_demo_windows.py",
+         "godot/data/underground/mole-worker/publish_mole_profiles.py",
+         "godot/data/underground/mole-worker/test_publish_mole_profiles.py",
+         "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"]
+
+def sha(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+def source_paths():
+    paths = {p for d in ("godot/scripts", "godot/test", "godot/demo", "godot/data") for p in (ROOT/d).rglob("*.gd")
+             if "assets" not in p.relative_to(ROOT/d).parts}
+    paths.update(ROOT/p for p in EXTRA + ANALYZER)
+    paths.update((ROOT/"godot/data/underground/mole-worker/profile-publication-v2").iterdir())
+    paths.add(Path(__file__).resolve())
+    return sorted(p for p in paths if p.is_file() and not p.name.endswith(".uid"))
+
+def snapshot():
+    return {str(p.relative_to(ROOT)): sha(p) for p in source_paths()}
+
+OUT.mkdir(parents=True, exist_ok=False)
+before = snapshot()
+(OUT/"source-sha256.json").write_text(json.dumps(before, indent=2)+"\n")
+project = ROOT/"godot/project.godot"
+original = project.read_bytes()
+assert b"config/use_custom_user_dir" not in original
+name = "Redwall-Codex-Publication-" + hashlib.sha256(str(OUT).encode()).hexdigest()[:16]
+test_project = original.replace(b"[application]\n", ("[application]\nconfig/use_custom_user_dir=true\nconfig/custom_user_dir_name=\""+name+"\"\n").encode(), 1)
+assert test_project != original
+record = {"head_before": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip(),
+          "commands": [], "component_only": True, "custom_user_dir_name": name,
+          "project_sha256_before": hashlib.sha256(original).hexdigest()}
+assets = ROOT/"godot/demo/assets"
+record["assets_present_before"] = assets.exists()
+status = 1
+
+def run(command, logfile):
+    start = time.monotonic()
+    with (OUT/logfile).open("w") as stream:
+        result = subprocess.run(command, cwd=ROOT, stdout=stream, stderr=subprocess.STDOUT)
+    record["commands"].append({"command": command, "exit_code": result.returncode,
+                               "seconds": time.monotonic()-start, "log": logfile})
+    print(logfile, result.returncode, flush=True)
+    for line in (OUT/logfile).read_text().splitlines():
+        if line.startswith(("diagnostics:", "log:", "ok:", "error:", "SCRIPT ERROR:")) or " test(s)," in line or "GDScript warning(s)" in line:
+            print(line, flush=True)
+    if result.returncode:
+        raise RuntimeError(logfile)
+    if logfile == "import.log":
+        raw = (OUT/logfile).read_text()
+        findings = re.findall(r"^(?:(?:USER )?(?:SCRIPT ERROR|ERROR|WARNING):.*|.*(?:ObjectDB instances? (?:were|was) leaked|resources still in use at exit).*)$", raw, re.M)
+        record["raw_import_findings"] = findings
+        if findings:
+            raise RuntimeError("PUBLICATION_CHECK_IMPORT_DIAGNOSTICS")
+
+with tempfile.TemporaryDirectory(prefix="codex-publication-assets-", dir=ROOT.parent) as temporary:
+    parked = Path(temporary)/"assets"
+    try:
+        project.write_bytes(test_project)
+        if assets.exists():
+            assets.rename(parked)
+        shutil.rmtree(ROOT/"godot/.godot", ignore_errors=True)
+        run(["godot", "--headless", "--path", "godot", "--editor", "--quit"], "import.log")
+        sys.path.insert(0, str(ROOT/"tools"))
+        import ci_test_shards as shards
+        plan = shards.make_plan(len(shards.discover(ROOT)), repo=ROOT, weights_path=ROOT/"tools/ci_test_shard_weights.json")
+        for suite in SUITES:
+            index = next(i for i, group in enumerate(plan["shards"]) if group == [suite])
+            run(["./tools/run_tests.sh", "--shard", f"{index}/{plan['shard_count']}", "--output-dir", str(OUT/"shards")], suite+".log")
+        run([sys.executable, "tools/gdscript_warnings.py", *ANALYZER, "--max", "0", "--port", PORT,
+             "--json", str(OUT/"analyzer.json")], "analyzer.log")
+        status = 0
+    except Exception as error:
+        record["error"] = str(error)
+    finally:
+        record["project_test_unchanged"] = project.read_bytes() == test_project
+        project.write_bytes(original)
+        if parked.exists():
+            parked.rename(assets)
+        record["project_restored"] = project.read_bytes() == original
+        record["assets_restored"] = assets.exists() == record["assets_present_before"]
+        record["source_unchanged"] = before == snapshot()
+        record["head_unchanged"] = record["head_before"] == subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+        if not all(record[key] for key in ("project_test_unchanged", "project_restored", "assets_restored", "source_unchanged", "head_unchanged")):
+            status = 1
+        record["exit_code"] = status
+        (OUT/"invocation.json").write_text(json.dumps(record, indent=2)+"\n")
+sys.exit(status)

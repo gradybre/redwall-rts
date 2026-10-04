@@ -19,8 +19,11 @@ M, ROOT = N.M, N.BASE.ROOT
 SPEC = importlib.util.spec_from_file_location("ground_source_publication", P / "close_profile_source_gates.py")
 G = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(G)
-CURRENT_COMMIT = "2929bc2a38e4398a342a45cc01ab126a33a9417b"
-CURRENT_GROUND_SHA = "3f43d72318647ce0f79ae6544dcbbd71e65c5d54dc94c58199f9a067a520ffe3"
+SOURCE_ADAPTER = P / "source-gates-v3/renew_source_closure.py"
+SOURCE_ADAPTER_SHA = "1dcdbe1ea5e1a4ae1d097897cfd81dd0c7c821eae05ee78b6140cd2aa6b82272"
+CURRENT_COMMIT = "b518ca1f824903b0a40658a04660064f50ab7509"
+CURRENT_GROUND_SHA = "d2d96c450733c2af3c98ccd7cec9d868acce03f8b9d7df55a1032c8b2298e8c3"
+CURRENT_GROUND_PATH = P / "source-gates-v3/final-consumers/ground-closure.json"
 REVIEW_PINS = {
     "review-cardinal-math-v1/source-sha256.json": "16315e6df8b5fe54224d33e5667e75aa85b219171b6af3b481a283b8fb1e3b22",
     "review-cardinal-math-v1/output-sha256.json": "553080ddf4150eafdf1cf8a2092a5439c42640f805cc79a06308ba9167617576",
@@ -91,14 +94,24 @@ def native_refusal(spec, report, invocation, contacts):
     return N.validate_report(report, spec, N.BASE.wire_timing(spec), contacts)
 
 
+def reconstructed_source():
+    """Use the separately reviewed exact historical locators; current consumer blobs remain independent."""
+    require(digest(SOURCE_ADAPTER) == SOURCE_ADAPTER_SHA, "MOLE_PUBLICATION_ADAPTER_DRIFT")
+    spec = importlib.util.spec_from_file_location("reviewed_publication_source_adapter", SOURCE_ADAPTER)
+    adapter = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(adapter)
+    with adapter.same_source_inputs(M.I.M.W):
+        return M.source_program()
+
+
 def inputs():
     """Reconstruct genuine meshes/rig/source, require all accepted continuous/numerical/native evidence, then assemble."""
     pins = reviewed_files()
     profiles, contacts, _ = N.math_inputs()
-    cases, parts, rig, topology, roots, count, historical, _ = M.source_program()
+    cases, parts, rig, topology, roots, count, historical, _ = reconstructed_source()
     require(roots == ROOT_BOUNDS and count == 537 and [sum(map(len, x)) for x in topology] == [10209, 1150],
             "MOLE_PUBLICATION_SOURCE_CENSUS")
-    ground_path = P / "source-gates-v2/ground-closure.json"
+    ground_path = CURRENT_GROUND_PATH
     ground = bounded_json(ground_path, CURRENT_GROUND_SHA)
     blobs = G.source_blobs(CURRENT_COMMIT)
     current_consumer_refusal(ground, blobs)
@@ -114,6 +127,7 @@ def inputs():
     require(observed["driver_poses"] == 7648 and observed["contact_poses"] == 144,
             "MOLE_PUBLICATION_NATIVE_CENSUS")
     pins[str(ground_path.relative_to(ROOT))] = CURRENT_GROUND_SHA
+    pins[str(SOURCE_ADAPTER.relative_to(ROOT))] = SOURCE_ADAPTER_SHA
     pins[str(Path(__file__).relative_to(ROOT))] = digest(Path(__file__))
     return profiles, ground["consumer_sources"], pins, {"original_source_files": count, "historical_source": historical,
         "continuous_work_checks": 1324737, "continuous_ground_checks": 9730636, "native": observed}

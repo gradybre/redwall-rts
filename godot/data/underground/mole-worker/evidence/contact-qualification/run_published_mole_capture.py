@@ -12,20 +12,20 @@ SPEC = importlib.util.spec_from_file_location("accepted_cardinal_native_for_publ
 N = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(N)
 BASE, H, R, M = N.BASE, N.H, N.R, N.M
-PUBLICATION = HERE.parents[1] / "profile-publication-v1"
-SOURCE_MANIFEST_SHA = "be98241cfb1bf6e62a3b62fb94aa2e02eb61b799630fe30297e3e51790003f91"
-OUTPUT_MANIFEST_SHA = "dd609eb6b0ea1acf4def72dda9c2723765ec00d8bd1b4b6dc79ddac69ce9f398"
+PUBLICATION = HERE.parents[1] / "profile-publication-v2"
+SOURCE_MANIFEST_SHA = "d6adb96b0c8018e1d61a08c79f6d07c313f93e9c736a9800100f3a36173bf2ab"
+OUTPUT_MANIFEST_SHA = "e3e555a81312b215542ae598a0d6bc8b033e1631cfe5475a98b032efe9a30230"
 WIRE_SHA = "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac"
 BASIS_SHA = "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9"
 CONTACT_MANIFEST_SHA = "d106139d90316fe46521174a45289cae1020b989e97482aa2c48656394967c2b"
 CONTACT_SPEC_SHA = "fb3c06f777c83e0658bf44079a411167ee223e254add1d96f702887f3785455e"
-RUNTIME_BAKE_SHA = "a3e6e55ed0ea158606ed649983920d8f0198d020c70aff5cc519c06d16c45674"
-RUNTIME_CHANGES_SHA = "107347c93a39c819f4335880d36ab2cbc91b90820677583fc32b4414bdc8b271"
+RUNTIME_BAKE_SHA = "7b6d2bd152bd6ac4f8b13b5fd740726fbf7a27253ff84451cafcfb5cdc428962"
+RUNTIME_CHANGES_SHA = "b63ef7283b2613b3a6f29014a2122db98be97d6f81d3391120eb9fea092ee343"
 
 
 def runtime_bake_spec():
     """Pin the separately recorded current execution closure; every row still passes existing pre/post checks."""
-    directory = HERE / "published-native-runtime-sources-v1"
+    directory = HERE / "published-native-runtime-sources-v2/candidate-1"
     bake, changes = directory / "bake-spec.json", directory / "changes.json"
     if BASE.digest(bake) != RUNTIME_BAKE_SHA or BASE.digest(changes) != RUNTIME_CHANGES_SHA:
         raise ValueError("PUBLISHED_NATIVE_RUNTIME_MANIFEST")
@@ -60,9 +60,9 @@ def contact_source_points():
 def publication_pins():
     """Only the exact independently accepted source/artifact packet may supply the native catalog."""
     pins = {}
-    for name, digest, count in (("source-sha256.json", SOURCE_MANIFEST_SHA, 5),
-                                ("output-sha256.json", OUTPUT_MANIFEST_SHA, 33)):
-        path = HERE / "review-profile-publication-v1" / name
+    for name, digest, count in (("source-sha256.json", SOURCE_MANIFEST_SHA, 8),
+                                ("output-sha256.json", OUTPUT_MANIFEST_SHA, 46)):
+        path = HERE / "review-profile-publication-v2" / name
         if BASE.digest(path) != digest:
             raise ValueError("PUBLISHED_NATIVE_REVIEW_PACKET")
         records = R.bounded_json(path, 65536)

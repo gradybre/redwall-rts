@@ -1,0 +1,6 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "accepted": false,
+  "scope": "Executed suites and analyzer passed, but first harness omitted data scripts/actor from full pre/post snapshot and lacked explicit import diagnostic refusal. Retain as superseded component observation; publication-check-v3 is the corrected rerun.",
+  "executed_harness_sha256": "f007fbac168374739818e70b9417dc299a730e233dd16218f4c16d73b915d029"
+}

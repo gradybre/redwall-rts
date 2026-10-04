@@ -1,0 +1,65 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit",
+      "--log-file",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/native-published-mole-v2/engine-import.log"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--audio-driver",
+      "Dummy",
+      "--fixed-fps",
+      "60",
+      "--log-file",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/native-published-mole-v2/engine-native.log",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/capture_published_mole.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/native-published-mole-v2/spec.json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-profile-renewal/godot/data/underground/mole-worker/evidence/contact-qualification/native-published-mole-v2"
+    ]
+  ],
+  "native_exit": 0,
+  "source_unchanged": true,
+  "unexpected_diagnostics": false,
+  "production_qualified": false,
+  "pre_import_source_unchanged": true,
+  "isolated_override_unchanged": true,
+  "driver_poses": 7648,
+  "contact_poses": 144,
+  "assertions": 46873,
+  "exact_work_profiles": 16,
+  "headings": [
+    0,
+    16384,
+    32768,
+    49152
+  ]
+}
+{
+  "driver_poses": 7648,
+  "contact_poses": 144,
+  "assertions": 46873,
+  "exact_work_profiles": 16,
+  "headings": [
+    0,
+    16384,
+    32768,
+    49152
+  ],
+  "production_qualified": false,
+  "published_wire_sha256": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+  "actual_catalog_profiles": 18,
+  "source_geometry_qualified": true,
+  "world_activation_qualified": false
+}

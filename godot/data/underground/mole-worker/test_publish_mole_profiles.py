@@ -20,7 +20,28 @@ class PublicationTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.rows, cls.contacts, _ = M.N.math_inputs()
-        cls.current = M.bounded_json(M.P / "source-gates-v2/ground-closure.json", M.CURRENT_GROUND_SHA)
+        cls.current = M.bounded_json(M.CURRENT_GROUND_PATH, M.CURRENT_GROUND_SHA)
+
+    def test_reconstruction_uses_reviewed_location_adapter_and_restores_original_reader(self):
+        reader = M.M.I.M.W
+        original_read, original_snapshot = reader.read_record, reader.snapshot_sources
+
+        def observe():
+            self.assertIsNot(reader.read_record, original_read)
+            self.assertIsNot(reader.snapshot_sources, original_snapshot)
+            raise RuntimeError("deliberate reconstruction failure")
+
+        with patch.object(M.M, "source_program", side_effect=observe):
+            with self.assertRaisesRegex(RuntimeError, "deliberate reconstruction failure"):
+                M.reconstructed_source()
+        self.assertIs(reader.read_record, original_read)
+        self.assertIs(reader.snapshot_sources, original_snapshot)
+
+    def test_unreviewed_adapter_refuses_before_source_reconstruction(self):
+        with patch.object(M, "digest", return_value="0" * 64), \
+                patch.object(M.M, "source_program", side_effect=AssertionError("must refuse first")):
+            with self.assertRaisesRegex(ValueError, "ADAPTER_DRIFT"):
+                M.reconstructed_source()
 
     def test_wire_retains_every_exact_box_role_source_and_fixed_heading(self):
         wire, mapping = M.encode_wire(self.rows)

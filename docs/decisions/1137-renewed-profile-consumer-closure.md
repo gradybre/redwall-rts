@@ -106,3 +106,41 @@ compared every derived row independently. Source commit355b998a is integrated
 as ca8e10da; acceptance and exact pins live in
 `published-native-runtime-sources-v2/`. No native capture, live Catalog update,
 current consumer qualification or certificate bit follows from this component.
+
+## Final candidate and native renewal
+
+Version2 binds the final eight consumer scripts at immutable integration
+`b518ca1f824903b0a40658a04660064f50ab7509`, including accepted1134/1135 changes.
+Independent source review traced the four changed consumers and confirmed
+unchanged geometry meaning for every role. The reproduced publication remains
+18 rows/194 boxes/7,268 bytes with SHA-256
+`b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac`, identical
+to version1. All395 prerequisites and the eight actual/immutable source hashes
+match. The reviewer reran11 publisher tests,80 export checks and an actual
+independent reconstruction; all three publication artifacts match exactly.
+
+The corrected clean component runner passes53 tests/1,321 assertions across
+four official singleton shards, with zero strict/raw unexpected diagnostics,
+expected/tolerated diagnostics and leaks; the analyzer reports zero warnings
+in three scripts. Independent review found the first runner's omitted data
+scripts/actor snapshot and missing zero-exit import diagnostic rejection. Its
+executed bytes and results remain under publication-check-v2. The corrected
+publication-check-v3 pins1,185 inputs, refuses raw import diagnostics/leaks and
+existing/symlink outputs, and records unchanged sources/HEAD plus restored
+project and assets. The corrected runner and its diagnostic adversaries were
+independently reviewed.
+
+The reviewed wrapper pins the new eight-source/46-output review packet and
+already accepted native-input candidate. It preserves the inherited full
+event/contact oracle and exact native vertices. Fourteen wrapper tests pass.
+Actual native-published-mole-v2 replay reports7,792 poses,46,873 assertions,
+zero failures and304 hash-verified PNGs on OpenGL compatibility. Current cached
+Script identities and pre/post sources match, unexpected diagnostics are
+absent, and the unique temporary user-directory override is removed.
+
+The new evidence changes the Catalog/pack reference only after this candidate
+review and native replay. The fresh integrated no-argument full-suite and
+all-script analyzer are still required. This remains source-geometry/native
+scope: no World activation, Metal numerical qualification, HAUL handling,
+paid construction sequence, stair traversal or complete playable requirement
+is certified by these results.

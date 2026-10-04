@@ -6,7 +6,7 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const Content := preload("res://demo/cast/underground_actor_content.gd")
 const Actor := preload("res://demo/cast/underground_actor.gd")
 const Space := preload("res://scripts/core/room_space.gd")
-const Pins := preload("./profile-publication-v1/catalog_source.gd")
+const Pins := preload("./profile-publication-v2/catalog_source.gd")
 const PROFILE_COUNT: int = 18
 const BOX_COUNT: int = 194
 const CONTENT_REVISION: int = 1
@@ -16,7 +16,7 @@ const PAIRED_BANK_BYTES: int = 14520
 const SOURCE_CHARS: int = 262144
 const HASH_CHARS: int = 1024
 const CONTROL_RESERVE: int = 32768 # Existing Profiles reserve, never an additional arena.
-const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v1/mole-worker.ugprof"
+const WIRE_PATH: String = "res://data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof"
 
 
 static func load_into(profiles: Profiles, content: Content, domain: Space.Domain) -> StringName:

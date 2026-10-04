@@ -1,0 +1,16 @@
+{
+  "tests": 134,
+  "assertions": 3771,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "expected": 0,
+  "tolerated": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "strict_suites": 7,
+  "focused_analyzer": "0 GDScript warning(s) in 0 of 8 file(s)",
+  "all_analyzer": "running",
+  "joint_memory_tests": 225,
+  "scope": "Actual integrated1150 source and shared registry with host/Session/adapter regression; synthetic initial corridor/profile fixtures, no playable Kitchen claim"
+}

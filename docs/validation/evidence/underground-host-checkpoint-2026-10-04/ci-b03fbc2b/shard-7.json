@@ -1,0 +1,374 @@
+{
+  "counts": {
+    "assertions": 67840,
+    "expected": 5,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1361,
+    "tolerated": 11,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "61f50f602f444ab4cc5f165d3192e0ffc0a43ac21bdb975550238e40723e327e",
+  "shard_count": 8,
+  "shard_index": 7,
+  "suite_counts": {
+    "test_appoint_warden.gd": {
+      "assertions": 340,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_balance_harness.gd": {
+      "assertions": 88,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_building_definitions.gd": {
+      "assertions": 420,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_construction_excavation.gd": {
+      "assertions": 114,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_build.gd": {
+      "assertions": 214,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_demo_care_desk.gd": {
+      "assertions": 134,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_demo_clock.gd": {
+      "assertions": 61,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_farm_ui.gd": {
+      "assertions": 363,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_demo_hall.gd": {
+      "assertions": 384,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_hud_truth.gd": {
+      "assertions": 301,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_input_live.gd": {
+      "assertions": 555,
+      "failures": 0,
+      "tests": 3
+    },
+    "test_demo_kitchen.gd": {
+      "assertions": 453,
+      "failures": 0,
+      "tests": 64
+    },
+    "test_demo_kitchen_ui.gd": {
+      "assertions": 62,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_demo_lens_live.gd": {
+      "assertions": 66,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_notices_live.gd": {
+      "assertions": 48,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_outlets.gd": {
+      "assertions": 53,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_demo_props.gd": {
+      "assertions": 404,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_routes.gd": {
+      "assertions": 246,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_demo_run_until.gd": {
+      "assertions": 90,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_warnings.gd": {
+      "assertions": 118,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_demolition_admissions.gd": {
+      "assertions": 53,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_excavation_phase_start_guard.gd": {
+      "assertions": 175,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_farming.gd": {
+      "assertions": 5172,
+      "failures": 0,
+      "tests": 113
+    },
+    "test_forage.gd": {
+      "assertions": 1064,
+      "failures": 0,
+      "tests": 133
+    },
+    "test_forest_root_field.gd": {
+      "assertions": 56,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_households.gd": {
+      "assertions": 1097,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_injury.gd": {
+      "assertions": 484,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_jobs_columns.gd": {
+      "assertions": 257,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_lookdev_dimensions.gd": {
+      "assertions": 252,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_modular_editor.gd": {
+      "assertions": 104,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_modular_inventory.gd": {
+      "assertions": 292,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_modular_world_tool.gd": {
+      "assertions": 149,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_resident_stage.gd": {
+      "assertions": 110,
+      "failures": 0,
+      "tests": 13
+    },
+    "test_residents_columns.gd": {
+      "assertions": 152,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_save_component_columns_schema.gd": {
+      "assertions": 2685,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_save_owner_priorities.gd": {
+      "assertions": 7309,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_save_owner_schedule.gd": {
+      "assertions": 17060,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_save_section_01.gd": {
+      "assertions": 872,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_save_section_directory.gd": {
+      "assertions": 480,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_save_section_name_pool.gd": {
+      "assertions": 466,
+      "failures": 0,
+      "tests": 44
+    },
+    "test_save_world_runtime_install.gd": {
+      "assertions": 3999,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_schedule.gd": {
+      "assertions": 836,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_settlement_demolition_complete.gd": {
+      "assertions": 413,
+      "failures": 0,
+      "tests": 26
+    },
+    "test_spatial_world.gd": {
+      "assertions": 16755,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_spoil_tips.gd": {
+      "assertions": 806,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_starter_colony.gd": {
+      "assertions": 1278,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_transforms.gd": {
+      "assertions": 221,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_ui_manager.gd": {
+      "assertions": 353,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_underground_forward_basis.gd": {
+      "assertions": 36,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_underground_layout_sources.gd": {
+      "assertions": 340,
+      "failures": 0,
+      "tests": 8
+    }
+  },
+  "suite_usec": {
+    "test_appoint_warden.gd": 2249499,
+    "test_balance_harness.gd": 12638216,
+    "test_building_definitions.gd": 21042,
+    "test_construction_excavation.gd": 1116368,
+    "test_demo_build.gd": 10594,
+    "test_demo_care_desk.gd": 3161492,
+    "test_demo_clock.gd": 271772,
+    "test_demo_farm_ui.gd": 16861571,
+    "test_demo_hall.gd": 1309130,
+    "test_demo_hud_truth.gd": 5261363,
+    "test_demo_input_live.gd": 66776152,
+    "test_demo_kitchen.gd": 7057912,
+    "test_demo_kitchen_ui.gd": 442506,
+    "test_demo_lens_live.gd": 44054083,
+    "test_demo_notices_live.gd": 33631372,
+    "test_demo_outlets.gd": 183925,
+    "test_demo_props.gd": 3233485,
+    "test_demo_routes.gd": 5377002,
+    "test_demo_run_until.gd": 280484,
+    "test_demo_warnings.gd": 157812,
+    "test_demolition_admissions.gd": 239510,
+    "test_excavation_phase_start_guard.gd": 999057,
+    "test_farming.gd": 7301120,
+    "test_forage.gd": 10155084,
+    "test_forest_root_field.gd": 294979,
+    "test_households.gd": 8581282,
+    "test_injury.gd": 1320729,
+    "test_jobs_columns.gd": 5282773,
+    "test_lookdev_dimensions.gd": 14268,
+    "test_modular_editor.gd": 4515057,
+    "test_modular_inventory.gd": 1610880,
+    "test_modular_world_tool.gd": 17845267,
+    "test_resident_stage.gd": 793604,
+    "test_residents_columns.gd": 3165252,
+    "test_save_component_columns_schema.gd": 49216,
+    "test_save_owner_priorities.gd": 259541,
+    "test_save_owner_schedule.gd": 2680197,
+    "test_save_section_01.gd": 19690563,
+    "test_save_section_directory.gd": 1779584,
+    "test_save_section_name_pool.gd": 2737661,
+    "test_save_world_runtime_install.gd": 128314,
+    "test_schedule.gd": 47063,
+    "test_settlement_demolition_complete.gd": 10318761,
+    "test_spatial_world.gd": 1006814,
+    "test_spoil_tips.gd": 2246400,
+    "test_starter_colony.gd": 1460399,
+    "test_transforms.gd": 1151540,
+    "test_ui_manager.gd": 15404289,
+    "test_underground_forward_basis.gd": 90580,
+    "test_underground_layout_sources.gd": 952092
+  },
+  "suites": [
+    "test_appoint_warden.gd",
+    "test_balance_harness.gd",
+    "test_building_definitions.gd",
+    "test_construction_excavation.gd",
+    "test_demo_build.gd",
+    "test_demo_care_desk.gd",
+    "test_demo_clock.gd",
+    "test_demo_farm_ui.gd",
+    "test_demo_hall.gd",
+    "test_demo_hud_truth.gd",
+    "test_demo_input_live.gd",
+    "test_demo_kitchen.gd",
+    "test_demo_kitchen_ui.gd",
+    "test_demo_lens_live.gd",
+    "test_demo_notices_live.gd",
+    "test_demo_outlets.gd",
+    "test_demo_props.gd",
+    "test_demo_routes.gd",
+    "test_demo_run_until.gd",
+    "test_demo_warnings.gd",
+    "test_demolition_admissions.gd",
+    "test_excavation_phase_start_guard.gd",
+    "test_farming.gd",
+    "test_forage.gd",
+    "test_forest_root_field.gd",
+    "test_households.gd",
+    "test_injury.gd",
+    "test_jobs_columns.gd",
+    "test_lookdev_dimensions.gd",
+    "test_modular_editor.gd",
+    "test_modular_inventory.gd",
+    "test_modular_world_tool.gd",
+    "test_resident_stage.gd",
+    "test_residents_columns.gd",
+    "test_save_component_columns_schema.gd",
+    "test_save_owner_priorities.gd",
+    "test_save_owner_schedule.gd",
+    "test_save_section_01.gd",
+    "test_save_section_directory.gd",
+    "test_save_section_name_pool.gd",
+    "test_save_world_runtime_install.gd",
+    "test_schedule.gd",
+    "test_settlement_demolition_complete.gd",
+    "test_spatial_world.gd",
+    "test_spoil_tips.gd",
+    "test_starter_colony.gd",
+    "test_transforms.gd",
+    "test_ui_manager.gd",
+    "test_underground_forward_basis.gd",
+    "test_underground_layout_sources.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 335
+}

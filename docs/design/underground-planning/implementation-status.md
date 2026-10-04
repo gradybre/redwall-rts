@@ -41,13 +41,27 @@ a non-flat batch beneath flat-room admission, which the new production guard
 correctly refuses. The independently reviewed test correction at `fbc2281a`
 uses actual entry admission, preserves all production guards and adds the
 flat/non-flat bypass refusal. Its strict four-suite run passed83 tests/3,460
-assertions, zero diagnostics/leaks and analyzer0/8. A fresh complete checkpoint
-is required; the earlier green CI is not evidence for these later changes.
+assertions, zero diagnostics/leaks and analyzer0/8.
+
+The subsequent [b03fbc2b CI checkpoint](../../validation/evidence/underground-host-checkpoint-2026-10-04/ci-b03fbc2b/README.md)
+passed all eight strict shards:396 files exactly once,11,000 tests/1,019,572
+assertions, zero failures and zero unexpected diagnostics/leaks. Its overall
+result is failed because the unchanged analyzer found12 warnings in six archived
+rejected capture sources. Those exact historical bytes are now compressed as
+data; active/v7 sources and all diagnostic gates remain unchanged. The full
+local same-head run and corrected whole-project analyzer are still running.
+The earlier green CI is not evidence for these later changes.
 
 The concrete ordinary Room publication tail is accepted at `9a8e353f`, with
 independent review `8dd07e6f`; broad tests passed 389 / 17,880 and the final
 type-parity delta 69 / 2,568, with zero unexpected diagnostics/leaks and analyzer
-0/11. Real approach admission and playable construction remain open.
+0/11. Ordinary Room approach is now independently accepted and integrated at
+`3726f088`, with review `5ad7644c`: exact completed access, full profile/source
+identity and static final terrain checks precede admission. Seven integrated
+suites passed134 tests/3,771 assertions with zero diagnostics/leaks. The source
+census stays within existing limits and225 shared memory checks passed. This
+component uses synthetic initial corridor/profile fixtures; actual source
+composition and playable construction remain open.
 
 The previous full local checkpoint is
 [`32db348a`](evidence/modular-build/checkpoint-32db348a/README.md):
@@ -83,8 +97,9 @@ analyzer0/8, and14 successful real-demo headless boot/restart checks. UI Create
 reuses the existing World's staging banks. The two boots emitted44 recorded
 missing-asset/audio warnings; this is lifecycle evidence, not visual acceptance.
 Operational teardown, fixed-tick dispatch and successful Room entry/phase remain
-open. Ordinary-room approach and actual wood-handling integration are progressing
-under separate non-overlapping file leases.
+open. Three parallel increments now compose ordinary paid phases, their shared
+spatial refresh, and D11 suggested/editable entrance selection in the real room
+editor. Actual wood-handling runtime integration remains a separate dependency.
 The added lane decomposes existing work and does not add or waive requirements.
 
 Decision1140's actual Delivery component is integrated at`fa017ba4`, using

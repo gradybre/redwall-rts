@@ -947,9 +947,30 @@
           "integrated_commit": "e87e63be69bd652685de5d3395ba3d5d9adee51a"
         },
         "ordinary_room_approach": {
-          "status": "implementing real approach; not playable Room acceptance",
-          "branch": "codex/underground-room-approach",
-          "decision_number": 1150
+          "status": "independently accepted and integrated; actual host and paid phases remain open",
+          "source_commit": "23631a291e949c6678e7323a406fbd28be58c84d",
+          "integrated_commit": "3726f088",
+          "review_commit": "5ad7644c426e559511889f63504034e207ac8d23",
+          "review_integrated_commit": "1a4186a5",
+          "evidence": "docs/validation/evidence/underground-room-approach-2026-10-04/",
+          "tests": 96,
+          "assertions": 3251,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0 GDScript warning(s) in 0 of 5 file(s)",
+          "census": "3756/4096 helper;938368/1048960 complete cold peak; zero added module-retained state",
+          "scope": "Actual composed admission on explicitly synthetic initial corridor/profile geometry. No source asset, paid phase or playable Kitchen qualification.",
+          "integrated_validation": {
+            "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-integrated-1/",
+            "tests": 134,
+            "assertions": 3771,
+            "failures": 0,
+            "unexpected_diagnostics": 0,
+            "leaks": 0,
+            "joint_memory_tests": 225,
+            "all_analyzer": "running; no pass claimed"
+          }
         },
         "ordinary_room_publication_tail": {
           "status": "accepted source component; real 1150 approach and composed caller census remain open",
@@ -1085,7 +1106,7 @@
           },
           {
             "agent": "/root/ug_furnishing",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-room-approach",
             "files": [
               "godot/scripts/core/underground_room_bindings.gd",
@@ -1097,7 +1118,8 @@
               "docs/decisions/1150-ordinary-room-approach.md",
               "docs/validation/evidence/underground-room-approach-2026-10-04/"
             ],
-            "handoff": "Root stop acknowledged2026-10-04. Actual completed passage to cold Room approach observations and prepared source closure only. Geometry owns companion leaves; root owns Orders/Sites final publication. No invented EntryPlan/Placement or paid phase permission."
+            "handoff": "Root stop acknowledged2026-10-04. Actual completed passage to cold Room approach observations and prepared source closure only. Geometry owns companion leaves; root owns Orders/Sites final publication. No invented EntryPlan/Placement or paid phase permission.",
+            "stop_evidence": "Author23631a29 committed all reviewed source and explicitly stopped writes2026-10-04; root3726f088 integrated, independent review5ad7644c/root1a4186a5 accepted."
           }
         ]
       }
@@ -1974,7 +1996,17 @@
         "godot/test/test_underground_room_publication.gd.uid",
         "docs/decisions/1151-ordinary-room-publication.md",
         "docs/validation/evidence/underground-room-publication-2026-10-04/",
-        "docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/"
+        "docs/validation/evidence/underground-entry-claim-fixture-2026-10-04/",
+        "godot/scripts/core/underground_room_world_bindings.gd",
+        "godot/scripts/core/underground_room_world_bindings.gd.uid",
+        "godot/test/test_underground_room_world_phases.gd",
+        "godot/test/test_underground_room_world_phases.gd.uid",
+        "docs/decisions/1152-ordinary-room-phase-composition.md",
+        "docs/validation/evidence/underground-room-phases-2026-10-04/",
+        "godot/test/test_underground_room_phase_refresh.gd",
+        "godot/test/test_underground_room_phase_refresh.gd.uid",
+        "docs/decisions/1153-ordinary-room-phase-refresh.md",
+        "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -2778,8 +2810,6 @@
               "godot/test/test_underground_world_structure_scope.gd",
               "godot/test/test_underground_world_structure.gd",
               "docs/decisions/1097-static-profile-route-admission.md",
-              "godot/scripts/core/underground_work_face.gd",
-              "godot/test/test_underground_work_face.gd",
               "docs/decisions/1099-source-bound-solid-work-face.md",
               "docs/decisions/1103-actual-surface-work-anchor.md",
               "godot/scripts/core/underground_entry_cut_map.gd",
@@ -2795,7 +2825,7 @@
               "godot/test/test_underground_entry_structure.gd.uid",
               "docs/decisions/1122-source-bound-entry-structure.md"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease. Root and Geometry explicitly stopped Terrain source writes2026-10-04; narrow final static prepared-local seam transferred to Furnishing below after rejected1150 candidate13 review.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease. Root and Geometry explicitly stopped Terrain source writes2026-10-04; narrow final static prepared-local seam transferred to Furnishing below after rejected1150 candidate13 review. Root WorkFace source/test writes explicitly stopped2026-10-04 and narrowly handed to Construction1152 for paid UNFINISHED FINISH contacts; existing solid behavior retained.",
             "branch": "codex/underground-paid-cut-contact"
           },
           {
@@ -2904,11 +2934,45 @@
           {
             "agent": "/root/ug_furnishing",
             "branch": "codex/underground-room-approach",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_terrain.gd"
             ],
-            "handoff": "Root and Geometry source write-stop acknowledged2026-10-04. Add concrete/static final prepared-local facts reader only, preserving existing early observed readers, finite role/vertical bounds and original Space/cold tokens. Regression tests and full helper census in own UG07 approach subtree. No additional ownership or gameplay permission."
+            "handoff": "Root and Geometry source write-stop acknowledged2026-10-04. Add concrete/static final prepared-local facts reader only, preserving existing early observed readers, finite role/vertical bounds and original Space/cold tokens. Regression tests and full helper census in own UG07 approach subtree. No additional ownership or gameplay permission.",
+            "stop_evidence": "Author23631a29 committed all reviewed source and explicitly stopped writes2026-10-04; root3726f088 integrated, independent review5ad7644c/root1a4186a5 accepted."
+          },
+          {
+            "agent": "/root/ug_construction",
+            "branch": "codex/underground-room-phases",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_work_face.gd",
+              "godot/test/test_underground_work_face.gd",
+              "godot/scripts/core/underground_room_world_bindings.gd",
+              "godot/scripts/core/underground_room_world_bindings.gd.uid",
+              "godot/test/test_underground_room_world_phases.gd",
+              "godot/test/test_underground_room_world_phases.gd.uid",
+              "docs/decisions/1152-ordinary-room-phase-composition.md",
+              "docs/validation/evidence/underground-room-phases-2026-10-04/"
+            ],
+            "handoff": "Root stopped WorkFace writes. New actual ordinary Room phase provider uses real completed approach/worker/material/output and paid Site stages, with Geometry1153 companion. No synthetic positive permission, fake Placement or new material costs. Exact API/census recorded before implementation; runtime profile fingerprints renewed by root after review."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-room-phase-refresh",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_space_authority.gd",
+              "godot/scripts/core/underground_locations.gd",
+              "godot/test/test_underground_room_phase_refresh.gd",
+              "godot/test/test_underground_room_phase_refresh.gd.uid",
+              "docs/decisions/1153-ordinary-room-phase-refresh.md",
+              "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/",
+              "godot/scripts/core/underground_space_owner.gd",
+              "godot/scripts/core/underground_connector_placements.gd",
+              "godot/test/test_underground_locations.gd"
+            ],
+            "handoff": "Geometry existing source writes stopped and ordinary1151 accepted. New narrow ordinary Room refresh path reuses one context and existing banks; no Placement row/prefix. Full Site/Project/Room/op/stage/original tokens, worker-free COMMIT/CANCEL and concrete publication remain mandatory. Routes read-only unless further exact lease. Prioritize1150 independent review when frozen. Additional narrow Owner phase_commit_refusal/_phase_owns_token branch explicitly granted by root after source-stop acknowledgement; preserve existing Placement path and original Authority ownership before/after discard. Narrow ConnectorPlacements method lease explicitly granted after root stop: reuse existing single128B PhaseContext/issuer and inactive bank refresh for ordinary Rooms, with explicit null Placement under complete actual Room/Site/Project proof. Existing Entry method still requires real Placement; no new context/schema/retained bank. Root additionally authorizes read-only caller-owned current Location enumeration/capacity API for1154. Geometry implements under existing exclusive lease; no new retained state, stale/refused output preservation required."
           }
         ]
       }
@@ -3010,7 +3074,13 @@
         "godot/test/test_underground_host.gd.uid",
         "docs/decisions/1149-underground-host-world-lifecycle.md",
         "docs/validation/evidence/underground-host-lifecycle-2026-10-04/",
-        "docs/validation/evidence/underground-host-checkpoint-2026-10-04/"
+        "docs/validation/evidence/underground-host-checkpoint-2026-10-04/",
+        "godot/demo/burrow/modular_access.gd",
+        "godot/demo/burrow/modular_access.gd.uid",
+        "godot/test/test_modular_access.gd",
+        "godot/test/test_modular_access.gd.uid",
+        "docs/decisions/1154-room-access-selection.md",
+        "docs/validation/evidence/underground-room-access-2026-10-04/"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -3118,6 +3188,24 @@
             ],
             "handoff": "Root has no Session source writes. Geometry explicitly stopped1143Motion at accepted0aeb7f82; now compose actual borrowed SettlementSystem owners with source-pinned catalogs. No secondWorld, synthetic permissions or private weak-field resets; shared host/Gear/reset/memory changes remain root-owned and require agreed APIs. Root independently writes modular_runtime and existing demo/SettlementSystem entry points.",
             "worker_stop_ack": "da7c5c66 committed; source writes stopped; root5de052ea integrated and independently reviewed"
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "branch": "codex/underground-room-access-ui",
+            "state": "held",
+            "files": [
+              "godot/demo/burrow/modular_runtime.gd",
+              "godot/demo/burrow/modular_editor.gd",
+              "godot/demo/burrow/modular_world_tool.gd",
+              "godot/test/test_modular_runtime.gd",
+              "godot/demo/burrow/modular_access.gd",
+              "godot/demo/burrow/modular_access.gd.uid",
+              "godot/test/test_modular_access.gd",
+              "godot/test/test_modular_access.gd.uid",
+              "docs/decisions/1154-room-access-selection.md",
+              "docs/validation/evidence/underground-room-access-2026-10-04/"
+            ],
+            "handoff": "Root explicitly stopped all four existing sources2026-10-04 before dispatch. D11 actual bounded prospective suggestion/editable opening UI and exact Approach.Request submission. No fake endpoint/contact, free passage or excavation during preview. Source/profile/RoomBindings/Locations/Routes read-only; root retains actual scene and Session. API agreed before implementation."
           }
         ]
       }
@@ -4250,6 +4338,31 @@
       "leaked_resources": 0,
       "follow_up": "Old synthetic fixture injected EntryClaimInput under confirm_room; test migration uses actual confirm_entry and retains final guards. Strict four-suite83/3460/0 +LSP0/8 passed. New integrated CI remains required.",
       "follow_up_commit": "fbc2281a"
+    },
+    {
+      "commit": "b03fbc2b0322381248998bfc57ce0a89ee3e76c0",
+      "outcome": "CI FAILED analyzer; all eight strict shards and metadata/contracts passed. Local full-suite checkpoint still running.",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37223870212",
+      "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-host-20261004",
+      "local_branch": "codex/underground-checkpoint-host-20261004",
+      "local_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-b03fbc2b/",
+      "procedure": "park assets, delete godot/.godot, clean import, no-argument ./tools/run_tests.sh, analyzer --max0; immutable own checkout; restore assets/project in finally",
+      "scope": "actual host lifecycle, ordinary publication, entry fixture correction and sampled native haul sources",
+      "analyzer": "12 GDScript warning(s) in 6 of 1235 file(s): historical rejected native capture snapshots v1-v6 only",
+      "analyzer_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-b03fbc2b/",
+      "correction": "Lossless gzip of six forensic historical .gd files, original decoded hashes verified; active executable/v7 unchanged; full analyzer remains max0.",
+      "tests": 11000,
+      "assertions": 1019572,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "suite_count": 396,
+      "strict_shards": "8/8 passed; exact once coverage independently verified with original b03 tool/corpus",
+      "analyzer_correction_commit": "dc881589"
     }
   ],
   "crosscut_fixes": [

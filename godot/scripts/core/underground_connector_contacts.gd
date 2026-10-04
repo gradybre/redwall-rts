@@ -4,6 +4,7 @@ extends "res://scripts/core/underground_connector_work.gd".Contacts
 
 const Paid := preload("res://scripts/core/underground_connector_work.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
+const PhaseContract := preload("res://scripts/core/excavation_contract.gd")
 const Router := preload("res://scripts/core/modular_projects.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Placements := preload("res://scripts/core/underground_connector_placements.gd")
@@ -43,6 +44,8 @@ const REFUSE_WORKER: StringName = &"CONNECTOR_CONTACT_WORKER"
 const REFUSE_MATERIAL: StringName = &"CONNECTOR_CONTACT_MATERIAL"
 const REFUSE_CAPACITY: StringName = &"CONNECTOR_CONTACT_OPERATION_CAPACITY"
 const REFUSE_REENTRY: StringName = &"CONNECTOR_CONTACT_REENTRY"
+const REFUSE_PHASE_PREPARED: StringName = &"CONNECTOR_PHASE_COMPANION_UNBOUND"
+const PHASE_CONTACT_ONLY: int = -1
 
 class Fragments extends RefCounted:
 	## Exact six-slab subtraction, with two fixed banks and one shared operation counter.
@@ -177,6 +180,16 @@ var _selection: Profiles.Selection = Profiles.Selection.new()
 var _box: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
 var _number: IntMath.IntResult = IntMath.IntResult.new()
+var _phase_mode: bool = false
+var _phase_site: Vector2i = NULL_REF
+var _phase_operation: int = -1
+var _phase_episode: int = -1
+var _phase_cold_token: int = 0
+var _phase_space_token: int = 0
+var _phase_output_location: Vector2i = NULL_REF
+var _phase_output_payload: int = 0
+var _phase_output_container: Vector2i = NULL_REF
+var _episode: PackedInt32Array = PackedInt32Array()
 var _profile_revision: int = 0
 var _fragments: Fragments = Fragments.new()
 
@@ -200,6 +213,7 @@ func configure(placements: Placements, router: Router, frontier: Frontier, contr
 
 func _allocate() -> void:
 	"""One bounded reusable packet replaces per-call descriptors, arrays and entity objects."""
+	_episode.resize(19)
 	_frame.resize(9)
 	_install.resize(9)
 	_station.resize(9)
@@ -240,7 +254,9 @@ func _binding_leaf() -> StringName:
 			or router._ready_error != &"" or router._world != _placements._world \
 			or router._construction != _placements._construction or router._inventory != _placements._inventory \
 			or router._jobs != _placements._jobs or router._work != _placements._work or router._sites != _sites \
-			or _sites._construction != _placements._construction or _sites._domain == null \
+			or _sites._construction != _placements._construction or _sites._jobs != _placements._jobs \
+			or _sites._inventory != _placements._inventory or _sites._funding != router._funding \
+			or _sites._pool != _placements._reservations or _sites._work != _placements._work or _sites._domain == null \
 			or _sites._domain.world_ref != _placements._world \
 			or _terrain != _placements._world_routes._terrain or _terrain._space == null \
 			or _terrain._space.get_ref() != _placements._space or _terrain._budget != _placements._budget:
@@ -294,6 +310,7 @@ func _leave(code: StringName) -> StringName:
 func _pin_scope(placement: Vector2i, project: Vector2i, assembly: int, action: int) -> StringName:
 	"""Pin the actual next prefix and source tuple before any endpoint or profile observation."""
 	_valid = false
+	_phase_mode = false
 	if placement != _placement or project != _project:
 		_primary_job = NULL_REF
 		_material_container = NULL_REF
@@ -336,11 +353,12 @@ func _observe_rows() -> StringName:
 func _order_leaf() -> StringName:
 	"""Every copied Order fact must still be the actual live row/header, including the source census."""
 	var bank: Placements.Bank = _placements._live
+	var attached: Vector2i = NULL_REF if _phase_mode else _project
 	if not _placements._is_live(bank, _placement) or _order.placement != _placement \
-			or _order.world != _placements._world or _order.project != _project or _order.installed_count != _ordinal \
+			or _order.world != _placements._world or _order.project != attached or _order.installed_count != _ordinal \
 			or _placements._get64(bank, Placements.PAYLOAD_REVISION, _placement.x) != _order.payload_revision \
 			or _placements._get32(bank, Placements.INSTALLED, _placement.x) != _ordinal \
-			or _placements._pair(bank, Placements.PROJECT_SLOT, _placement.x) != _project \
+			or _placements._pair(bank, Placements.PROJECT_SLOT, _placement.x) != attached \
 			or _placements._pair(bank, Placements.ROOM_SLOT, _placement.x) != _order.corridor \
 			or _placements._get32(bank, Placements.CATALOG_ROW, _placement.x) != _order.catalog_row:
 		return REFUSE_SCOPE
@@ -379,12 +397,13 @@ func _scope_leaf() -> StringName:
 	for field: int in 4:
 		if _frame[5 + field] != _placements._get32(bank, Placements.SECTION_SLOT + field, _placement.x):
 			return REFUSE_SCOPE
-	return _source_rows_leaf()
+	code = _source_rows_leaf()
+	return _site_scope_leaf() if code == &"" and _phase_mode else code
 
 
 func _packet_shapes_match() -> bool:
 	"""Observers cannot resize a borrowed output and make the next pure leaf index a different packet."""
-	return _frame.size() == 9 and _install.size() == 9 and _station.size() == 9 \
+	return _frame.size() == 9 and _install.size() == 9 and _station.size() == 9 and _episode.size() == 19 \
 		and _endpoint.size() == 7 and _cut.size() == 7 and _bearing.size() == 9 and _part.size() == 9 \
 		and _region.size() == 8 and _pair.size() == 2 and _remaining.size() == 1 \
 		and _bounds.size() == 6 and _support.size() == 6 and _target.size() == 6 and _scratch.size() == 6 \
@@ -396,6 +415,8 @@ func _packet_shapes_match() -> bool:
 
 func _source_rows_leaf() -> StringName:
 	"""A source subclass cannot substitute a different station or installation after the digest proof."""
+	if _phase_mode:
+		return _episode_source_leaf()
 	if _install.size() != 9 or _station.size() != 9 or _frame.size() != 9 \
 			or not _frontier._valid_row(Frontier.INSTALL, _ordinal) or _install[0] != _ordinal \
 			or not _frontier._valid_row(Frontier.STATION, _install[1]):
@@ -622,7 +643,7 @@ func _bearing_dependencies() -> StringName:
 		var code: StringName = _bearing_refusal(row, _bounds)
 		if code != &"":
 			return code
-	return _bearing_refusal(_install[2], _target)
+	return _phase_target_into(_target) if _phase_mode else _bearing_refusal(_install[2], _target)
 
 
 func _bearing_refusal(row: int, out: PackedInt32Array) -> StringName:
@@ -976,6 +997,8 @@ func _terrain_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
 		return REFUSE_CAPACITY
 	if _placements._space._stage_token == 0:
 		return _terrain.local_facts_refusal(bounds, purpose, _geometry_revision)
+	if _phase_mode:
+		return REFUSE_PHASE_PREPARED
 	if _action != Contract.COMMIT or _placements._prepared_placement != _placement \
 			or _placements._prepared_project != _project or _placements._prepared_assembly != _ordinal:
 		return REFUSE_SCOPE
@@ -1056,6 +1079,8 @@ func _resolve_proof(require_worker: bool) -> StringName:
 		code = _crew_leaf()
 	if code == &"" and _material_container != NULL_REF:
 		code = _material_leaf(_material_container)
+	if code == &"" and _phase_mode:
+		code = _phase_output_leaf()
 	if code == &"":
 		code = _scene_leaf()
 	if code == &"":
@@ -1073,7 +1098,9 @@ func _resolve_all_endpoints() -> StringName:
 	var code: StringName = _endpoint_payloads()
 	if code == &"":
 		code = _path_refusal(_material_location, _station_location, _install[7])
-	return _path_refusal(_station_location, _retreat_location, _install[8]) if code == &"" else code
+	if code == &"":
+		code = _path_refusal(_station_location, _retreat_location, _install[8])
+	return _phase_resolve_output() if code == &"" and _phase_mode else code
 
 
 func _endpoint_payloads() -> StringName:
@@ -1149,7 +1176,9 @@ func _receipt_leaf() -> StringName:
 	if code != &"" or _other.payload_revision != _material_payload or _other.role != Locations.ROLE_STORAGE:
 		return REFUSE_MATERIAL
 	code = _read_endpoint(_install[8], _retreat_location, _other)
-	return code if code != &"" else &"" if _other.payload_revision == _retreat_payload else REFUSE_ENDPOINT
+	if code != &"" or _other.payload_revision != _retreat_payload:
+		return REFUSE_ENDPOINT
+	return _phase_output_receipt() if _phase_mode else &""
 
 
 func final_observation_refusal(placement: Vector2i, project: Vector2i, assembly: int, action: int) -> StringName:
@@ -1212,14 +1241,14 @@ func final_leaf_refusal(placement: Vector2i, project: Vector2i, assembly: int, a
 
 func _retained_scope(placement: Vector2i, project: Vector2i, assembly: int, action: int) -> StringName:
 	"""A direct or stale final call cannot reuse the previous unrelated contact observation."""
-	if not _valid or placement != _placement or project != _project or assembly != _ordinal or action != _action:
+	if _phase_mode or not _valid or placement != _placement or project != _project or assembly != _ordinal or action != _action:
 		return REFUSE_SCOPE
 	return _scope_leaf()
 
 
 func discard_transition(placement: Vector2i, project: Vector2i, assembly: int, action: int) -> void:
 	"""Release only local exact-scope observations; there is no lease or authoritative progress to discard."""
-	if not _busy and placement == _placement and project == _project and assembly == _ordinal and action == _action:
+	if not _busy and not _phase_mode and placement == _placement and project == _project and assembly == _ordinal and action == _action:
 		_valid = false
 		_primary_job = NULL_REF
 		_material_container = NULL_REF
@@ -1232,6 +1261,8 @@ func _project_row() -> int:
 	if not ids.is_valid_of_kind(_project, Directory.KIND_CONSTRUCTION):
 		return -1
 	var row: int = ids.get_typed_row(_project)
+	if _phase_mode:
+		return _site_project_row(row)
 	return row if row >= 0 and row < Construction.CONSTRUCTION_CAPACITY and construction._present[row] == 1 \
 		and construction._ref_slot[row] == _project.x and construction._ref_generation[row] == _project.y \
 		and construction._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL \
@@ -1241,6 +1272,8 @@ func _project_row() -> int:
 
 func _phase_leaf() -> StringName:
 	"""Late phase or pause changes cannot retain a valid identity while authorizing another irreversible action."""
+	if _phase_mode:
+		return _site_lifecycle_leaf()
 	if _action == Contract.ADMIT:
 		return &"" if _project == NULL_REF and _order.project == NULL_REF else REFUSE_SCOPE
 	var row: int = _project_row()
@@ -1290,12 +1323,17 @@ func material_refusal(placement: Vector2i, project: Vector2i, assembly: int, con
 
 
 func _material_leaf(container: Vector2i) -> StringName:
-	"""Actual Inventory rows, actual adapter identity and full endpoint payload are required even inside settlement."""
+	"""Material binding and the selected current STORAGE endpoint must agree inside settlement."""
+	var code: StringName = _material_binding_refusal(container)
+	return _storage_leaf(container, _material_location, _install[7]) if code == &"" else code
+
+
+func _storage_leaf(container: Vector2i, location: Vector2i, selector: int) -> StringName:
+	"""Actual finite spatial Inventory cannot substitute a coincident container or a replaced Location payload."""
 	var inventory: RefCounted = _placements._inventory
 	var row: int = inventory._spatial_row(container)
-	if row < 0 or _material_binding_refusal(container) != &"" \
-			or inventory._spatial_world != _placements._world or inventory._spatial_authority == null \
-			or inventory._spatial_location(row) != _material_location or inventory._c_reachable[container.x] != 1 \
+	if row < 0 or inventory._spatial_world != _placements._world or inventory._spatial_authority == null \
+			or inventory._spatial_location(row) != location or inventory._c_reachable[container.x] != 1 \
 			or inventory._c_owner_slot[container.x] != _placements._world.x \
 			or inventory._c_owner_generation[container.x] != _placements._world.y \
 			or inventory._c_max_mass_g[container.x] != inventory.GROUND_PILE_MAX_MASS_G \
@@ -1307,7 +1345,7 @@ func _material_leaf(container: Vector2i) -> StringName:
 		return REFUSE_MATERIAL
 	if inventory._c_policy[container.x] != inventory.UNSET_POLICY and inventory._c_policy[container.x] != inventory.POLICY_GROUND_PILE:
 		return REFUSE_MATERIAL
-	var code: StringName = _read_endpoint(_install[7], _material_location, _other)
+	var code: StringName = _read_endpoint(selector, location, _other)
 	return code if code != &"" else &"" if _other.role == Locations.ROLE_STORAGE \
 		and inventory._spatial_location_revision[row] == _other.payload_revision else REFUSE_MATERIAL
 
@@ -1342,6 +1380,8 @@ func _job_row(job: Vector2i) -> int:
 	var row: int = ids.get_typed_row(job)
 	var router: Router = _actual_router()
 	var jobs: Jobs = _placements._jobs
+	if _phase_mode:
+		return _site_job_row(job, row)
 	return row if row >= 0 and row < Router.JOB_CAPACITY and jobs._job_present[row] == 1 \
 		and jobs._job_ref_slot[row] == job.x and jobs._job_ref_generation[row] == job.y \
 		and router._job_slot[row] == job.x and router._job_generation[row] == job.y \
@@ -1404,6 +1444,9 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 			or graph._resident_pair(Routes.R_LOCATION_SLOT, row) != _station_location \
 			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
 			or graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] != Routes.PHASE_IDLE:
+		return REFUSE_WORKER
+	if _phase_mode and _phase_needs_worker() and (_sites._worker_site[row] != _phase_site.x \
+			or _sites._worker_generation[row] != worker.y):
 		return REFUSE_WORKER
 	var code: StringName = _dynamic_selection(row, worker, job, _selection)
 	if code != &"" or not graph._committed_selection(row, _selection) \
@@ -1664,6 +1707,8 @@ func _geometry_context_leaf() -> StringName:
 	var locations: Locations = _placements._locations
 	if owner._stage_token == 0:
 		return FinalFacts._binding_refusal(owner, graph, locations, _geometry_revision)
+	if _phase_mode:
+		return REFUSE_PHASE_PREPARED
 	if _action != Contract.COMMIT or _placements._prepared_placement != _placement \
 			or _placements._prepared_project != _project or _placements._prepared_assembly != _ordinal \
 			or _placements._cold_token <= 0 or not _placements._budget.covers(_placements._cold_token, _placements._cold_bytes) \
@@ -1736,3 +1781,318 @@ func _occupant_overlap(ordinal: int) -> bool:
 		if low >= _bounds[axis + 3] or high <= _bounds[axis]:
 			return false
 	return true
+
+
+func phase_observe_refusal(placement: Vector2i, site: Vector2i, episode: int, operation: int,
+		stage: int, cold_token: int = 0, space_token: int = 0) -> StringName:
+	"""Observe one actual excavation episode in the same packet; no observer creates a Site, Job or permit."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _pin_phase_scope(placement, site, episode, operation, stage, cold_token, space_token)
+	if code == &"" and _action != Contract.PRODUCTIVE:
+		code = _observe_live()
+	if code == &"":
+		code = _cancel_proof() if _action == Contract.CANCEL else _resolve_proof(_phase_needs_worker())
+	_valid = code == &""
+	return _leave(code)
+
+
+func _phase_action(stage: int) -> int:
+	"""Translate the distinct public excavation stage namespace explicitly, never by numeric coincidence."""
+	match stage:
+		PhaseContract.STAGE_ADMIT: return Contract.ADMIT
+		PhaseContract.STAGE_START: return Contract.START
+		PhaseContract.STAGE_COMMIT: return Contract.COMMIT
+		PhaseContract.STAGE_CANCEL: return Contract.CANCEL
+		PhaseContract.STAGE_WORK: return Contract.PRODUCTIVE
+		PHASE_CONTACT_ONLY: return -1
+	return -2
+
+
+func _pin_phase_scope(placement: Vector2i, site: Vector2i, episode: int, operation: int,
+		stage: int, cold_token: int, space_token: int) -> StringName:
+	"""Exact original Site and immutable episode facts precede any source observer or copied output use."""
+	_valid = false
+	_phase_mode = true
+	_primary_job = NULL_REF
+	_material_container = NULL_REF
+	_phase_output_container = NULL_REF
+	if not _configured or _binding_leaf() != &"" or _phase_action(stage) == -2 \
+			or operation < PhaseContract.OP_BRACE or operation > PhaseContract.OP_FINISH \
+			or site.y != Sites.SITE_GENERATION or site.x < 0 or site.x >= _sites._count or _sites._present[site.x] != 1:
+		return REFUSE_SCOPE
+	_placement = placement
+	_phase_site = site
+	_phase_operation = operation
+	_phase_episode = episode
+	_phase_cold_token = cold_token
+	_phase_space_token = space_token
+	_project = Vector2i(_sites._project_slot[site.x], _sites._project_generation[site.x])
+	_action = _phase_action(stage)
+	_geometry_revision = _placements._space._header[17]
+	_frontier_revision = _frontier._header[0]
+	_fragments.remaining = _placements._space._domain._checks
+	_fragments.failed = false
+	var code: StringName = _phase_token_leaf()
+	return _observe_phase_rows() if code == &"" else code
+
+
+func _observe_phase_rows() -> StringName:
+	"""Mutable observation outputs are checked against their actual sources before reuse or indexing."""
+	var code: StringName = _placements.placement_into(_placement, _order)
+	if code != &"" or _order.project != NULL_REF: return REFUSE_SCOPE
+	_ordinal = _order.installed_count
+	code = _placements.placement_frame_into(_placement, _frame)
+	if code == &"": code = _frontier.episode_into(_phase_episode, _episode)
+	if code != &"" or _poisoned or not _packet_shapes_match(): return REFUSE_SOURCE
+	if _phase_token_leaf() != &"": return REFUSE_SCOPE
+	_install[0] = _ordinal
+	_install[1] = _episode[7 + _phase_operation]
+	_install[2] = -1
+	_install[3] = _episode[11]; _install[4] = _episode[12]
+	_install[5] = _episode[13]; _install[6] = _episode[14]
+	_install[7] = _episode[15]; _install[8] = _episode[17]
+	code = _frontier.station_into(_install[1], _station, _number, _frame[3])
+	_profile_revision = _number.value
+	if code == &"": code = _scope_leaf()
+	if code == &"" and _project != NULL_REF:
+		_primary_job = Vector2i(_sites._job_slot[_phase_site.x], _sites._job_generation[_phase_site.x])
+		_phase_output_container = Vector2i(_sites._output_slot[_phase_site.x], _sites._output_generation[_phase_site.x])
+		code = _pin_material()
+	return _copy_descriptor() if code == &"" else code
+
+
+func _phase_token_leaf() -> StringName:
+	"""A cold observation retains the original real arena; a numeric prepared token supplies no permission."""
+	if _phase_cold_token < 0 or _phase_space_token < 0:
+		return REFUSE_SCOPE
+	if _phase_cold_token > 0 and not _placements._budget.covers(_phase_cold_token, CONTROL_BYTES):
+		return REFUSE_SCOPE
+	if _phase_space_token != 0 or _placements._space._stage_token != 0:
+		return REFUSE_PHASE_PREPARED
+	return &""
+
+
+func _episode_source_leaf() -> StringName:
+	"""The normalized reusable selector rows are derived only from the exact pinned EPISODE, never INSTALL."""
+	if not _frontier._valid_row(Frontier.EPISODE, _phase_episode) or _phase_operation < 1 or _phase_operation > 3:
+		return REFUSE_SOURCE
+	for field: int in 19:
+		if _episode[field] != _frontier._field(Frontier.EPISODE, _phase_episode, field): return REFUSE_SOURCE
+	if _episode[7] != _ordinal or (_episode[6] & (1 << (_phase_operation - 1))) == 0 \
+			or _install[0] != _ordinal or _install[1] != _episode[7 + _phase_operation] or _install[2] != -1 \
+			or _install[3] != _episode[11] or _install[4] != _episode[12] \
+			or _install[5] != _episode[13] or _install[6] != _episode[14] \
+			or _install[7] != _episode[15] or _install[8] != _episode[17] \
+			or not _frontier._valid_row(Frontier.STATION, _install[1]) or _frame[3] < 0 or _frame[3] > 3:
+		return REFUSE_SOURCE
+	for field: int in 9:
+		if field != 5 and _station[field] != _frontier._field(Frontier.STATION, _install[1], field): return REFUSE_SOURCE
+	if _station[5] != _frontier._station_profile(_install[1], _frame[3]) or _station[7] != _episode[18] \
+			or _profile_revision != _frontier._profile_revision[_frame[3] * _frontier._capacities[Frontier.STATION] + _install[1]] \
+			or _placements._live.header[Placements.H_FRONTIER_REV] != _frontier_revision:
+		return REFUSE_SOURCE
+	for index: int in 32:
+		if _placements._live.digests[96 + index] != _frontier._digests[index]: return REFUSE_SOURCE
+	return &""
+
+
+func _site_scope_leaf() -> StringName:
+	"""Full Site/Room/Project and the original lease remain exact without a recursive spatial authority callback."""
+	var row: int = _phase_site.x
+	if _phase_site.y != Sites.SITE_GENERATION or row < 0 or row >= _sites._count or _sites._present[row] != 1 \
+			or _sites._room_slot[row] != _order.corridor.x or _sites._room_generation[row] != _order.corridor.y \
+			or Vector2i(_sites._project_slot[row], _sites._project_generation[row]) != _project \
+			or (_project != NULL_REF and (_sites._operation[row] != _phase_operation or _project_row() < 0)):
+		return REFUSE_SCOPE
+	var code: StringName = _phase_token_leaf()
+	return _phase_target_into(_target) if code == &"" else code
+
+
+func _phase_target_into(out: PackedInt32Array) -> StringName:
+	"""The permanent sorted Site key selects exactly one whole cube within the immutable authored episode."""
+	var key: int = _sites._site_key[_phase_site.x]
+	if key < 0 or not _fragments.spend(20): return REFUSE_CAPACITY
+	var x: int = key % _sites._domain.size_quanta.x
+	@warning_ignore("integer_division") var rest: int = key / _sites._domain.size_quanta.x
+	var z: int = rest % _sites._domain.size_quanta.z
+	@warning_ignore("integer_division") var y: int = rest / _sites._domain.size_quanta.z
+	var coordinate: Vector3i = Vector3i(x, y, z)
+	for axis: int in 3:
+		var low: int = int(_sites._domain.datum_u[axis]) \
+			+ (int(coordinate[axis]) + int(_sites._domain.minimum_quantum[axis])) * 1024
+		if not Space.int32(low) or not Space.int32(low + 1024): return REFUSE_SCOPE
+		out[axis] = low; out[axis + 3] = low + 1024
+	if _site_row(Vector3i(out[0], out[1], out[2])) != _phase_site.x: return REFUSE_SCOPE
+	var code: StringName = _world_box(_episode, 0, _scratch)
+	return code if code != &"" else &"" if Space.contains_box(_scratch, out) else REFUSE_SCOPE
+
+
+func _site_project_row(row: int) -> int:
+	"""Purpose5 subjects are permanent Site refs; they cannot borrow purpose8's Placement identity."""
+	var construction: Construction = _placements._construction
+	return row if row >= 0 and row < Construction.CONSTRUCTION_CAPACITY and construction._present[row] == 1 \
+		and construction._ref_slot[row] == _project.x and construction._ref_generation[row] == _project.y \
+		and construction._purpose[row] == Construction.PURPOSE_EXCAVATION \
+		and construction._subject_slot[row] == _phase_site.x and construction._subject_generation[row] == _phase_site.y \
+		and construction._type_id[row] == _phase_operation else -1
+
+
+func _site_job_row(job: Vector2i, row: int) -> int:
+	"""A phase has one exact actual bound BUILD Job, no modular party/coordinator or separate mapping."""
+	var jobs: Jobs = _placements._jobs
+	return row if row >= 0 and row < Jobs.JOB_CAPACITY and jobs._job_present[row] == 1 \
+		and jobs._job_ref_slot[row] == job.x and jobs._job_ref_generation[row] == job.y \
+		and jobs._requester_slot[row] == _project.x and jobs._requester_generation[row] == _project.y \
+		and jobs._kind[row] == Jobs.JOB_KIND_BUILD and jobs._is_coordinator[row] == 0 \
+		and jobs._coordinator_slot[row] == -1 and _sites._job_site[row] == _phase_site.x \
+		and _sites._job_slot[_phase_site.x] == job.x and _sites._job_generation[_phase_site.x] == job.y else -1
+
+
+func _site_lifecycle_leaf() -> StringName:
+	"""Match current paid phase/pause/work truth immediately before a real worker or payment boundary."""
+	if _site_scope_leaf() != &"" or not _sites._operation_allowed(_phase_site.x, _phase_operation): return REFUSE_SCOPE
+	if _action == Contract.ADMIT: return &"" if _project == NULL_REF else REFUSE_SCOPE
+	var row: int = _project_row()
+	if row < 0: return REFUSE_SCOPE
+	var construction: Construction = _placements._construction
+	var phase: int = construction._phase[row]
+	if phase < 0 or phase >= Construction.PHASE_COUNT or construction._remaining_mwu[row] < 0: return REFUSE_SCOPE
+	if _action == Contract.CANCEL or _action == -1: return &""
+	var job_row: int = _job_row(_primary_job)
+	if _phase_needs_worker() and (job_row < 0 or _placements._jobs._tool_gate[job_row] != Jobs.GATE_SATISFIED \
+			or _placements._jobs._remaining_mwu[job_row] != construction._remaining_mwu[row]): return REFUSE_WORKER
+	if construction._paused[row] != 0: return Construction.REFUSE_PAUSED
+	var funding: RefCounted = _sites._funding
+	var funded: bool = funding._project_slot[row] == _project.x and funding._project_generation[row] == _project.y
+	if _action == Contract.START:
+		return &"" if phase == Construction.PHASE_READY and construction._work_begun[row] == 0 and not funded \
+			else Construction.REFUSE_WRONG_PHASE
+	if not funded or construction._work_begun[row] != 1: return Construction.REFUSE_WRONG_PHASE
+	if _action == Contract.COMMIT:
+		return &"" if phase == Construction.PHASE_WORK_DONE and construction._remaining_mwu[row] == 0 else Construction.REFUSE_WRONG_PHASE
+	return &"" if _action == Contract.PRODUCTIVE and phase == Construction.PHASE_WORKING \
+		and construction._remaining_mwu[row] > 0 and job_row >= 0 \
+		and _placements._jobs._remaining_mwu[job_row] == construction._remaining_mwu[row] else Construction.REFUSE_WRONG_PHASE
+
+
+func _phase_needs_worker() -> bool:
+	"""Admission is prospective; only START and real productive ticks require the assigned actual worker."""
+	return _action == Contract.START or _action == Contract.PRODUCTIVE
+
+
+func _phase_resolve_output() -> StringName:
+	"""The authored output uses a distinct existing storage selector and a real directed certified path."""
+	_phase_output_location = _resolve_endpoint(_episode[16])
+	if _phase_output_location == NULL_REF: return REFUSE_ENDPOINT
+	var code: StringName = _read_endpoint(_episode[16], _phase_output_location, _other)
+	if code != &"" or _other.role != Locations.ROLE_STORAGE: return REFUSE_MATERIAL
+	_phase_output_payload = _other.payload_revision
+	return _path_refusal(_station_location, _phase_output_location, _episode[16])
+
+
+func _phase_output_receipt() -> StringName:
+	"""A payload or full handle change cannot reuse an earlier spoil contact observation."""
+	var code: StringName = _read_endpoint(_episode[16], _phase_output_location, _other)
+	return code if code != &"" else &"" if _other.payload_revision == _phase_output_payload \
+		and _other.role == Locations.ROLE_STORAGE else REFUSE_ENDPOINT
+
+
+func _phase_output_leaf() -> StringName:
+	"""Only adopted CUT output binds a spatial container; zero-output phases retain no invented destination."""
+	if _phase_operation != PhaseContract.OP_CUT:
+		return &"" if _phase_output_container == NULL_REF else REFUSE_MATERIAL
+	if _phase_output_container == NULL_REF:
+		return &"" if _action == Contract.ADMIT or _action == -1 or _action == Contract.CANCEL else REFUSE_MATERIAL
+	if _action == Contract.START or _action == Contract.PRODUCTIVE or _action == Contract.COMMIT:
+		if _phase_output_container != Vector2i(_sites._output_slot[_phase_site.x], _sites._output_generation[_phase_site.x]) \
+				or _sites._promotion_tile[_phase_site.x] != -1: return REFUSE_MATERIAL
+	return _storage_leaf(_phase_output_container, _phase_output_location, _episode[16])
+
+
+func _retained_phase_scope(placement: Vector2i, site: Vector2i, operation: int, stage: int) -> StringName:
+	"""A final phase call cannot borrow an INSTALL packet or another Site, episode or original action."""
+	if not _valid or not _phase_mode or placement != _placement or site != _phase_site \
+			or operation != _phase_operation or _phase_action(stage) != _action or _phase_action(stage) == -2:
+		return REFUSE_SCOPE
+	return _scope_leaf()
+
+
+func phase_material_refusal(placement: Vector2i, site: Vector2i, operation: int,
+		container: Vector2i, job: Vector2i) -> StringName:
+	"""Binding and refund contacts consume the exact retained phase observation, not an inferred INSTALL Project."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _phase_contact_scope(placement, site, operation, job)
+	if code == &"":
+		_material_container = container
+		code = _material_leaf(container)
+	return _leave(code if code != &"" else _scope_leaf())
+
+
+func phase_output_refusal(placement: Vector2i, site: Vector2i, operation: int,
+		container: Vector2i, job: Vector2i, promotion_tile: int) -> StringName:
+	"""Spoil requires the actual selected spatial storage; a surface tile cannot authorize a deeper output."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _phase_contact_scope(placement, site, operation, job)
+	if code == &"" and (operation != PhaseContract.OP_CUT or promotion_tile != -1): code = REFUSE_MATERIAL
+	if code == &"":
+		_phase_output_container = container
+		code = _phase_output_leaf()
+	return _leave(code if code != &"" else _scope_leaf())
+
+
+func phase_worker_refusal(placement: Vector2i, site: Vector2i, operation: int,
+		job: Vector2i, worker: Vector2i) -> StringName:
+	"""The current single Site Job and exact selected worker/root/tool/load remain necessary after observation."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _phase_contact_scope(placement, site, operation, job)
+	if code == &"": code = _worker_leaf(job, worker)
+	return _leave(code if code != &"" else _scope_leaf())
+
+
+func _phase_contact_scope(placement: Vector2i, site: Vector2i, operation: int, job: Vector2i) -> StringName:
+	"""Material/output/worker hooks are contact facts, not an implicit phase transition or Job allocation."""
+	if not _valid or not _phase_mode or placement != _placement or site != _phase_site \
+			or operation != _phase_operation or _primary_job != job or _job_row(job) < 0:
+		return REFUSE_SCOPE
+	_fragments.remaining = _placements._space._domain._checks
+	_fragments.failed = false
+	var code: StringName = _scope_leaf()
+	if code == &"": code = _site_lifecycle_leaf()
+	return _receipt_leaf() if code == &"" else code
+
+
+func phase_final_observation_refusal(placement: Vector2i, site: Vector2i, operation: int, stage: int) -> StringName:
+	"""All observation hooks finish before the direct final phase proof; prepared companions remain unbound."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _retained_phase_scope(placement, site, operation, stage)
+	if code == &"" and _action != Contract.CANCEL: code = _profile_refusal()
+	if code == &"" and _phase_needs_worker(): code = _observe_workers()
+	if code == &"" and _station_location != NULL_REF: code = _placements._locations.read_location_into(_station_location, _other)
+	return _leave(code if code != &"" else _scope_leaf())
+
+
+func phase_final_leaf_refusal(placement: Vector2i, site: Vector2i, operation: int, stage: int) -> StringName:
+	"""No observer or allocation follows this exact actual live phase/worker/output/source proof."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _retained_phase_scope(placement, site, operation, stage)
+	if code == &"":
+		_fragments.remaining = _placements._space._domain._checks
+		_fragments.failed = false
+		code = _site_lifecycle_leaf()
+	if code == &"" and (_action != Contract.CANCEL or _material_container != NULL_REF): code = _receipt_leaf()
+	if code == &"" and _action != Contract.CANCEL: code = _physical_leaf()
+	if code == &"" and _phase_needs_worker(): code = _crew_leaf()
+	if code == &"" and _material_container != NULL_REF: code = _material_leaf(_material_container)
+	if code == &"" and _action != Contract.CANCEL: code = _phase_output_leaf()
+	if code == &"": code = _scene_leaf()
+	return _leave(code if code != &"" else _scope_leaf())
+
+
+func discard_phase(placement: Vector2i, site: Vector2i, operation: int, stage: int) -> void:
+	"""Discard only this exact synchronous phase packet; no cold lease or authoritative gameplay row is owned."""
+	if not _busy and _phase_mode and placement == _placement and site == _phase_site \
+			and operation == _phase_operation and _phase_action(stage) == _action:
+		_valid = false
+		_primary_job = NULL_REF
+		_material_container = NULL_REF
+		_phase_output_container = NULL_REF

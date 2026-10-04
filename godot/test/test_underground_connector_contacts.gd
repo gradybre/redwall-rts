@@ -24,6 +24,7 @@ const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Contract := preload("res://scripts/core/modular_project_contract.gd")
+const PhaseContract := preload("res://scripts/core/excavation_contract.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Gear := preload("res://scripts/core/gear.gd")
@@ -96,6 +97,22 @@ class Content extends RefCounted:
 			out[2] = lo; out[5] = hi
 		return out
 
+class PhaseContent extends RefCounted:
+	## Explicit synthetic motion: full body/contact validation is real; this is no production digging certificate.
+
+	static func profile_image(identity: PackedInt32Array) -> PackedByteArray:
+		"""The test root stays on completed natural ground, outside its genuinely claimed whole paid cube."""
+		var bytes: PackedByteArray = Content.profile_image(identity)
+		for rotation: int in 4:
+			for role: int in [Profiles.WORK_STROKE, Profiles.CONTACT_POINT, Profiles.CONTACT_PATCH]:
+				var row: PackedInt32Array = PackedInt32Array([-16, -32, -688, 16, 0, -592])
+				if role == Profiles.CONTACT_POINT: row = PackedInt32Array([0, 0, -640, 0, 0, -640])
+				if role == Profiles.CONTACT_PATCH: row = PackedInt32Array([-8, 0, -656, 8, 0, -624])
+				row = Content._rotate(row, rotation)
+				var at: int = 64 + 6 * Profiles.PROFILE_WIRE_BYTES + (3 + 7 * rotation + role) * 28
+				for field: int in 6: bytes.encode_s32(at + field * 4, row[field])
+		return bytes
+
 class ObservedTransforms extends Transforms:
 	var probe: Callable = Callable()
 	var gate: Callable = Callable()
@@ -114,6 +131,7 @@ class ObservedTransforms extends Transforms:
 class ActualWorld extends EntryTests.Fixture:
 	var reverse_edge: Vector2i = NULL_REF
 	var two_parts: bool = false
+	var phase_source: bool = false
 
 	func _actual_profiles() -> void:
 		"""Keep all actual runtime owners and replace only the explicitly synthetic immutable source image."""
@@ -124,7 +142,7 @@ class ActualWorld extends EntryTests.Fixture:
 		super._actual_profiles()
 		var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
 		assert_true(_residents.spatial_profile_identity_into(_worker, identity), "actual resident identity")
-		var bytes: PackedByteArray = Content.profile_image(identity)
+		var bytes: PackedByteArray = PhaseContent.profile_image(identity) if phase_source else Content.profile_image(identity)
 		assert_equal(_profiles.load_file(WorldTests.PROFILE_TEMP, _write(WorldTests.PROFILE_TEMP, bytes), 2), &"", "actual source decoder")
 
 	func _load_catalog(revision: int) -> StringName:
@@ -280,7 +298,7 @@ class ContactFixture extends "res://test/framework/test_case.gd":
 
 	func before_each() -> void:
 		"""Confirm actual permanent Room, SOLID keys and source-pinned Placement before any paid installation."""
-		_f = ActualWorld.new()
+		_f = _make_world()
 		_f.two_parts = assembly_count == 2
 		_f._actual_fixture()
 		_edge = _f._publish_route()
@@ -298,6 +316,10 @@ class ContactFixture extends "res://test/framework/test_case.gd":
 		assert_equal(paid.configure(_placements, _router, contacts), &"", "actual reciprocal paid owner")
 		_confirm_and_bind_storage()
 		assert_true(_f.failures.is_empty() and _group.failures.is_empty(), "all actual fixture assertions")
+
+	func _make_world() -> ActualWorld:
+		"""The default source stays unchanged; phase tests replace only explicitly synthetic motion content."""
+		return ActualWorld.new()
 
 	func _confirm_and_bind_storage() -> void:
 		"""Use actual atomic confirmation before binding the genuine supported finite storage endpoint."""
@@ -325,9 +347,13 @@ class ContactFixture extends "res://test/framework/test_case.gd":
 		_frontier.fixture = weakref(_f); _frontier.placements = weakref(_placements); _frontier.edge = _edge
 		assert_equal(_placements.bind_authority(_frontier), &"", "synthetic installation geometry authority")
 
+	func _make_physical() -> EntryTests.PhysicalBinding:
+		"""Existing installation tests retain the same explicitly synthetic phase geometry provider."""
+		return EntryTests.PhysicalBinding.new()
+
 	func _bind_orders() -> void:
 		"""The sole real Room authority owns the future candidate, immutable Domain and original whole cold lease."""
-		var physical: EntryTests.PhysicalBinding = EntryTests.PhysicalBinding.new()
+		var physical: EntryTests.PhysicalBinding = _make_physical()
 		physical.space = _f._owner
 		_physical = physical
 		_physical.world = _f._world_ref
@@ -522,6 +548,114 @@ class ContactFixture extends "res://test/framework/test_case.gd":
 		paid = null; contacts = null; source = null; storage_binding = null
 		_cleanup_owners()
 		if FileAccess.file_exists(SOURCE_PATH): DirAccess.remove_absolute(ProjectSettings.globalize_path(SOURCE_PATH))
+
+class PhaseSpatialFixture extends EntryTests.PhysicalBinding:
+	## Only the inherited phase geometry/publication is synthetic, explicitly limited to this contact unit fixture.
+	var ids: Directory = null
+
+	func room_refusal(room: Vector2i) -> StringName:
+		"""Real created Room full identity replaces the old standalone economy fixture's invented70000 namespace."""
+		return &"" if ids != null and ids.is_valid_of_kind(room, Directory.KIND_ROOM) else &"TEST_PHASE_ROOM_STALE"
+
+class PhaseFixture extends ContactFixture:
+	## Actual Sites/accounting and actual Contacts; inherited geometry authority is explicitly synthetic in this unit fixture.
+
+	func _make_world() -> ActualWorld:
+		"""No observer fabricates a resident, current pose, Job or Site; only source motion is synthetic."""
+		var world: ActualWorld = ActualWorld.new()
+		world.phase_source = true
+		return world
+
+	func _make_physical() -> EntryTests.PhysicalBinding:
+		"""Only component-test phase geometry remains synthetic; Room, Site, Project, Job and all payments are actual."""
+		var physical: PhaseSpatialFixture = PhaseSpatialFixture.new()
+		physical.ids = _f._residents.directory()
+		return physical
+
+	func _plan(offset: int = 4096) -> EntryPlan.Request:
+		"""The exact real future claim is outside all preexisting surface support and the worker's root."""
+		var request: EntryPlan.Request = super._plan(offset)
+		request.claims = PackedInt32Array([WorldTests.X, -512, WorldTests.Z - 1024,
+			WorldTests.X + 1024, 512, WorldTests.Z])
+		return request
+
+	func _source_image() -> PackedByteArray:
+		"""The independent source wire selects the same exact cube and no invented completed-cut dependency."""
+		var bytes: PackedByteArray = super._source_image()
+		var cut: int = EntrySource.WIRE_HEADER_BYTES + EntrySource.wire_row_bytes(EntrySource.INSTALL) \
+			+ EntrySource.wire_row_bytes(EntrySource.STATION)
+		var episode: int = cut + EntrySource.wire_row_bytes(EntrySource.CUT) \
+			+ EntrySource.wire_row_bytes(EntrySource.BEARING) + 2 * EntrySource.wire_row_bytes(EntrySource.ENDPOINT)
+		var bounds: PackedInt32Array = PackedInt32Array([-4096, -1024, -1024, -3072, 0, 0])
+		for field: int in 6:
+			bytes.encode_s32(cut + 4 * field, bounds[field])
+			bytes.encode_s32(episode + 4 * field, bounds[field])
+		return bytes
+
+	func site() -> Vector2i:
+		"""Read the actual claim published by RoomOrders; never create or seed a physical Site."""
+		return _sites.site_at(Vector3i(WorldTests.X, -512, WorldTests.Z - 1024))
+
+	func open_phase(operation: int = PhaseContract.OP_BRACE) -> void:
+		"""Actual Construction owns the phase Project; Placement continues to own no active INSTALL Project."""
+		var opened: Construction.OpResult = _sites.open_phase(site(), operation)
+		assert_true(opened.ok, "real claimed phase Project: %s" % opened.error)
+		project = opened.ref
+
+	func assign_worker() -> void:
+		"""Actual single Site Job/worker/tool is distinct from the real modular Router Job map."""
+		var row: int = _f._residents.directory().get_typed_row(_f._worker)
+		assert_true(_f._jobs.priorities().spawn(row).ok, "actual priorities")
+		assert_true(_f._jobs.schedule().spawn(row, _f._jobs.schedule().default_template_id().value).ok, "actual schedule")
+		assert_true(_f._jobs.schedule().resolve(row, 8, false).ok and _f._jobs.spawn_agent(row).ok, "actual agent")
+		for need: int in Needs.NEED_COUNT:
+			var value: int = _f._residents.needs().need_of(row, need).value
+			assert_true(_f._residents.needs().apply_need_event(row, need, 5000 - value).ok, "actual needs")
+		tool = stock(&"tool", 1000)
+		assert_true(_f._gear.create_gear(_f._inventory, _f._items, tool, Gear.MANUFACTURE_BASIC).ok, "actual tool")
+		assert_true(_f._gear.equip(tool, _f._worker).ok, "actual equipment")
+		assert_true(_f._construction.remaining_mwu_into(project, math), "real phase work")
+		var made: Jobs.OpResult = _f._jobs.create_job(Jobs.JOB_KIND_BUILD, 1, 0, math.value, 0)
+		job = made.ref
+		assert_true(made.ok and _f._jobs.set_requester(made.value, project).ok, "actual requester")
+		assert_true(_f._jobs.set_tool_gate(made.value, Jobs.GATE_SATISFIED).ok and _sites.bind_job(site(), job).ok, "actual Site Job")
+		assert_true(_f._jobs.assign_worker(row, made.value).ok and _f._work.claim_tool_for_work(row, tool).ok, "actual assigned tool")
+		assert_true(_f._transforms.place(_f._worker, WorldTests.X + 512, 512, WorldTests.Z + 512, 0), "exact root")
+		assert_equal(_f._routes.admit_work_actor(_f._worker, job, _f._first, 1, 1, 2, 0, -1, tool), &"", "actual WORK actor")
+		assert_true(_sites.bind_worker(site()).ok, "actual Site worker registration")
+
+	func deliver() -> Vector2i:
+		"""Exact adopted brace inputs are reserved and credited through the real shared inventory ledger."""
+		assert_true(_sites.bind_material_container(site(), storage).ok, "actual material binding")
+		var claims: PackedInt64Array = PackedInt64Array()
+		var wood: Vector2i = NULL_REF
+		for index: int in PhaseContract.input_count(PhaseContract.OP_BRACE):
+			var lot: Vector2i = stock(PhaseContract.input_key(PhaseContract.OP_BRACE, index), PhaseContract.input_milli(PhaseContract.OP_BRACE, index))
+			if index == 0: wood = lot
+			claims.append_array(PackedInt64Array([lot.x, lot.y, Reservations.PURPOSE_EXCAVATION_INPUT,
+				PhaseContract.input_milli(PhaseContract.OP_BRACE, index), 1000]))
+		assert_true(_f._pool.claim_batch(job, claims, 2, _f._inventory).ok, "actual brace claims")
+		assert_true(_sites.record_deliveries(site()).ok, "actual brace delivery")
+		assert_true(_f._construction.phase_into(project, math), "actual delivered phase read")
+		assert_equal(math.value, Construction.PHASE_READY, "all actual delivered lines ready")
+		for index: int in 2:
+			assert_true(_f._construction.delivered_milli_into(project, index, math), "actual delivered line")
+			assert_equal(math.value, 250, "each actual line delivered")
+		assert_false(_router._funding.is_funded(project), "no prepayment receipt")
+		return wood
+
+	func next_job(operation: int) -> void:
+		"""Reuse the actual equipped adult after prior phase retirement, without another setup or free work."""
+		open_phase(operation)
+		var worker_row: int = _f._residents.directory().get_typed_row(_f._worker)
+		assert_true(_f._construction.remaining_mwu_into(project, math), "actual next phase work")
+		var made: Jobs.OpResult = _f._jobs.create_job(Jobs.JOB_KIND_BUILD, 1, 0, math.value, 0)
+		job = made.ref
+		assert_true(made.ok and _f._jobs.set_requester(made.value, project).ok, "actual next requester")
+		assert_true(_f._jobs.set_tool_gate(made.value, Jobs.GATE_SATISFIED).ok and _sites.bind_job(site(), job).ok, "next Site Job")
+		assert_true(_f._jobs.assign_worker(worker_row, made.value).ok and _f._work.claim_tool_for_work(worker_row, tool).ok, "reclaimed actual tool")
+		assert_equal(_f._routes.refresh_work_actor(_f._worker, job, 1, 1, 2, 0, -1, tool), &"", "current actual actor Job")
+		assert_true(_sites.bind_worker(site()).ok, "actual next worker registration")
 
 var _fixture: ContactFixture = null
 
@@ -874,7 +1008,7 @@ func test_reflected_fixed_packets_fit_the_admitted_control_reserve() -> void:
 	for source: RefCounted in [actual, actual._order, actual._location, actual._other, actual._descriptor,
 			actual._selection, actual._box, actual._stance, actual._number, actual._fragments]:
 		bytes += _packet_numeric_bytes(source)
-	assert_equal(bytes, 2910, "source-derived reusable payload, with no hidden per-placement bank")
+	assert_equal(bytes, 3051, "source-derived reusable payload, with no hidden per-placement bank")
 	assert_true(bytes + 1024 <= Contacts.CONTROL_BYTES, "nested numeric helper ceiling fits the same reserve")
 	assert_equal(_packet_numeric_bytes(actual._fragments), 1633, "both fragment banks coexist and are counted")
 
@@ -979,3 +1113,171 @@ func _bind_other_actor(other: Vector2i) -> void:
 	assert_true(_fixture._f._transforms.place(other, WorldTests.X + 1536, 512, WorldTests.Z + 512, 0), "separate actual root")
 	assert_equal(_fixture._f._routes.admit_actor(other, NULL_REF, _fixture._f._last,
 		Profiles.MODE_WALK, 0, -1, tool), &"", "actual second registered profile")
+
+
+func _phase_fixture() -> PhaseFixture:
+	"""Reuse actual owner bootstrap with explicit synthetic source/phase geometry; never seed paid Site bytes."""
+	_fixture.after_each()
+	_fixture = PhaseFixture.new()
+	_fixture.before_each()
+	assert_true(_fixture.failures.is_empty(), "actual phase fixture: %s" % _fixture.failures)
+	return _fixture as PhaseFixture
+
+
+func _phase_observe(f: PhaseFixture, stage: int, operation: int = PhaseContract.OP_BRACE,
+		cold: int = 0, space: int = 0) -> StringName:
+	"""Only exact real source/Site arguments enter the shared contact packet."""
+	return f.contacts.phase_observe_refusal(f.placement, f.site(), 0, operation, stage, cold, space)
+
+
+func test_phase_admission_uses_real_episode_site_and_same_contact_packet() -> void:
+	"""Read-only prospective facts use no Project or assigned worker and never masquerade as installation."""
+	var f: PhaseFixture = _phase_fixture()
+	var before: Array[PackedByteArray] = _payment_image()
+	var sites: PackedByteArray = f._sites.state_bytes()
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT), &"", "actual live phase geometry")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_ADMIT), &"", "current pure phase facts")
+	assert_equal(f.contacts.final_leaf_refusal(f.placement, NULL_REF, 0, Contract.ADMIT),
+		Contacts.REFUSE_SCOPE, "INSTALL cannot borrow phase observation")
+	assert_equal(f.contacts._project, NULL_REF, "no fake Project")
+	assert_equal(f.contacts._primary_job, NULL_REF, "no fake Job")
+	assert_equal(f._sites.state_bytes(), sites, "all physical history unchanged")
+	_assert_payment_unchanged(before)
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT, PhaseContract.OP_BACKFILL_CLOSE), Contacts.REFUSE_SCOPE, "closure unqualified")
+	assert_equal(f.contacts.phase_observe_refusal(f.placement, Vector2i(f.site().x, 2), 0,
+		PhaseContract.OP_BRACE, PhaseContract.STAGE_ADMIT), Contacts.REFUSE_SCOPE, "full Site generation")
+
+
+func test_phase_original_cold_lease_and_prepared_context_refuse() -> void:
+	"""Cold facts use the original actual Budget; no made-up Space token provides a companion permission."""
+	var f: PhaseFixture = _phase_fixture()
+	var token: int = f._f._budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT, PhaseContract.OP_BRACE, token), &"", "actual cold lease")
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT, PhaseContract.OP_BRACE, token, 1),
+		Contacts.REFUSE_PHASE_PREPARED, "prepared phase contract remains closed")
+	var replacement: PackedInt64Array = PackedInt64Array([0])
+	f.source.probe = func() -> void:
+		assert_equal(f._f._budget.release(token), &"", "observer releases original")
+		replacement[0] = f._f._budget.acquire(Budget.COLD_BYTES)
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT, PhaseContract.OP_BRACE, token), Contacts.REFUSE_SCOPE, "replaced lease refuses")
+	assert_true(f._f._budget.covers(replacement[0], Budget.COLD_BYTES), "refusal preserved replacement lease")
+	assert_equal(f._f._budget.release(replacement[0]), &"", "test releases own replacement")
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT), &"", "actual fresh live retry")
+
+
+func test_phase_source_reentry_and_private_episode_mutation_refuse() -> void:
+	"""The same fixed packet cannot be overwritten by another Site or by mutable source output."""
+	var f: PhaseFixture = _phase_fixture()
+	var before: Array[PackedByteArray] = _payment_image()
+	f.source.probe = func() -> void: f.contacts._episode[15] = 0
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT), Contacts.REFUSE_SOURCE, "selector mutation refused")
+	var nested: Array[StringName] = []
+	f.source.probe = func() -> void: nested.append(_phase_observe(f, PhaseContract.STAGE_ADMIT))
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT), Contacts.REFUSE_REENTRY, "outer attempt poisoned")
+	assert_equal(nested, [Contacts.REFUSE_REENTRY], "no nested packet")
+	_assert_payment_unchanged(before)
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT), &"", "fresh source retries")
+
+
+func test_phase_job_material_and_start_worker_are_actual_full_refs() -> void:
+	"""A real purpose5 Project and Site Job keep their separate identity while sharing actual contacts and stock."""
+	var f: PhaseFixture = _phase_fixture()
+	f.open_phase(); f.assign_worker()
+	assert_equal(_phase_observe(f, Contacts.PHASE_CONTACT_ONLY), &"", "live contact facts before binding")
+	assert_equal(f.contacts.phase_material_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		f.storage, f.job), &"", "actual selected storage")
+	assert_equal(f.contacts.phase_worker_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		f.job, f._f._worker), &"", "actual assigned WORK actor")
+	assert_equal(f.contacts.phase_worker_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		Vector2i(f.job.x, f.job.y + 1), f._f._worker), Contacts.REFUSE_SCOPE, "foreign Job generation")
+	f.deliver()
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_START), &"", "actual ready delivered brace phase")
+	assert_equal(f.contacts._order.project, NULL_REF, "Placement has no INSTALL order")
+	assert_equal(f.contacts._project, f.project, "real purpose5 Project retained")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_START), &"", "real current start leaf")
+	assert_true(f.failures.is_empty(), "actual paid fixture checks")
+
+
+func test_phase_final_worker_observer_move_and_pause_earn_nothing() -> void:
+	"""A successful late pose copy cannot let an absent worker or paused phase pass the pure final guard."""
+	var f: PhaseFixture = _phase_fixture()
+	f.open_phase(); f.assign_worker(); f.deliver()
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_START), &"", "actual ready phase")
+	var before: Array[PackedByteArray] = _payment_image()
+	var transforms: ObservedTransforms = f._f._transforms as ObservedTransforms
+	transforms.probe = func() -> void: _pose(1)
+	assert_equal(f.contacts.phase_final_observation_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_START), &"", "observer copied the old pose")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_START), Contacts.REFUSE_WORKER, "actual new pose refuses")
+	_assert_payment_unchanged(before)
+	_pose()
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_START), &"", "actual pose restored")
+	assert_true(f._sites.set_paused(f.site(), true).ok, "actual phase pause")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_START), Construction.REFUSE_PAUSED, "pause caught before payment")
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_CANCEL), &"", "paused cancellation contact remains legal")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_CANCEL), &"", "paused cancellation does not require productive permission")
+
+
+func test_phase_productive_leaf_follows_real_payment_and_rechecks_current_worker() -> void:
+	"""Only actual Funding and Work create progress; live Contacts reuse never promotes a READY phase to productive."""
+	var f: PhaseFixture = _phase_fixture()
+	f.open_phase(); f.assign_worker(); f.deliver()
+	assert_false(_phase_observe(f, PhaseContract.STAGE_WORK).is_empty(), "unpaid productive permission refused")
+	assert_true(f._sites.begin_phase_work(f.site(), 100).ok, "actual reserved inputs become WIP")
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_WORK), &"", "paid current phase contact")
+	var before: Array[PackedByteArray] = _payment_image()
+	var transforms: ObservedTransforms = f._f._transforms as ObservedTransforms
+	transforms.probe = func() -> void: _pose(1)
+	assert_equal(f.contacts.phase_final_observation_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_WORK), &"", "last observation copied old pose")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_WORK), Contacts.REFUSE_WORKER, "current departed worker refused")
+	_assert_payment_unchanged(before)
+	_pose()
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_WORK), &"", "actual returned worker retries")
+	assert_true(f._f._jobs.set_tool_gate(f._f._residents.directory().get_typed_row(f.job), Jobs.GATE_BLOCKED).ok, "actual tool gate changes")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_WORK), Contacts.REFUSE_WORKER, "late tool gate cannot retain permission")
+	_assert_payment_unchanged(before)
+
+
+func test_phase_cut_output_is_current_exact_spatial_storage_after_real_bracing() -> void:
+	"""A real paid brace enables CUT; output is bound independently and surface aliases cannot select it."""
+	var f: PhaseFixture = _phase_fixture()
+	f.open_phase(); f.assign_worker(); f.deliver()
+	assert_true(f._sites.begin_phase_work(f.site(), 100).ok, "real brace payment")
+	f.finish_work()
+	assert_true(f._sites.settle_phase(f.site()).ok, "actual earned brace publication")
+	assert_equal(f._sites.support_conservation_refusal(), &"", "actual support account")
+	f.next_job(PhaseContract.OP_CUT)
+	assert_equal(_phase_observe(f, Contacts.PHASE_CONTACT_ONLY, PhaseContract.OP_CUT), &"", "real CUT source/contact scope")
+	assert_equal(f.contacts.phase_output_refusal(f.placement, f.site(), PhaseContract.OP_CUT, f.storage, f.job, 0),
+		Contacts.REFUSE_MATERIAL, "surface tile cannot alias actual endpoint")
+	assert_equal(f.contacts.phase_output_refusal(f.placement, f.site(), PhaseContract.OP_CUT,
+		Vector2i(f.storage.x, f.storage.y + 1), f.job, -1), Contacts.REFUSE_MATERIAL, "full container generation")
+	assert_equal(f.contacts.phase_output_refusal(f.placement, f.site(), PhaseContract.OP_CUT, f.storage, f.job, -1), &"", "current exact output")
+	assert_true(f._sites.bind_output(f.site(), f.storage).ok, "actual finite output binding")
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_START, PhaseContract.OP_CUT), &"", "ready real CUT and exact output")
+	assert_equal(f.contacts._phase_output_container, f.storage, "output retained separately from no-input material")
+	assert_equal(f.contacts._material_container, NULL_REF, "CUT invents no material delivery")
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_CUT,
+		PhaseContract.STAGE_START), &"", "pure current output proof")
+	assert_true(f.failures.is_empty(), "actual paid brace and next-phase helper checks")
+
+
+func test_phase_discard_cannot_invalidate_a_different_mode_or_site() -> void:
+	"""Local cleanup owns only its original tuple; unrelated callers cannot revoke another synchronous observation."""
+	var f: PhaseFixture = _phase_fixture()
+	assert_equal(_phase_observe(f, PhaseContract.STAGE_ADMIT), &"", "current phase observation")
+	f.contacts.discard_transition(f.placement, NULL_REF, 0, Contract.ADMIT)
+	f.contacts.discard_phase(f.placement, Vector2i(f.site().x, 2), PhaseContract.OP_BRACE, PhaseContract.STAGE_ADMIT)
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_ADMIT), &"", "unrelated cleanup leaves original proof current")
+	f.contacts.discard_phase(f.placement, f.site(), PhaseContract.OP_BRACE, PhaseContract.STAGE_ADMIT)
+	assert_equal(f.contacts.phase_final_leaf_refusal(f.placement, f.site(), PhaseContract.OP_BRACE,
+		PhaseContract.STAGE_ADMIT), Contacts.REFUSE_SCOPE, "exact cleanup invalidates proof")

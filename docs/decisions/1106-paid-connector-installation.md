@@ -390,3 +390,92 @@ Original project/assets and exact source hashes were preserved. Geometry's
 independent re-review accepted source68011446…/testb12323bd… with no remaining
 high/medium finding in this component. Native memory, whole-worker timing and
 active physical content remain unqualified.
+
+## Excavation contact reuse — live observations, 2026-10-04
+
+The same once-bound concrete ConnectorContacts packet now consumes immutable
+Frontier EPISODE rows for actual BRACE, CUT and FINISH contacts. It does not
+create another Contacts instance, per-Site map, permit, paid state or source
+profile. The explicit phase-mode bit separates the permanent Site, actual
+purpose5 Construction Project and single real Site Job from purpose8's
+Placement/installation order. Placement must retain no active installation
+Project during a phase observation. Its exact installed prefix and the
+whole generation-qualified Room/World/source tuple remain mandatory.
+
+`phase_observe_refusal(placement, site, episode, operation, stage, cold_token,
+space_token)` reads one exact episode, translates the distinct PhaseContract
+stage domain explicitly and validates the actual Site key against that source
+box. It reuses the nine-field installation selector scratch as normalized
+contact inputs only while phase mode is active; it never reads an INSTALL row
+as phase permission. Full Station profile/revision, rotation, face, prior cut
+and bearing dependencies and material/output/retreat selectors stay pinned to
+the actual immutable source. Only the productive stroke may intersect the
+selected exact whole paid cube; the complete body, entry, recovery, stance,
+contact anchor and planar patch are checked against actual geometry.
+
+`PHASE_CONTACT_ONLY=-1` is a non-transition observation used before binding an
+actual material/output container or worker. It grants no payment/publication
+permission. ADMIT requires no Project/Job. START requires actual ready unpaid
+Construction, exact delivered material binding, the real assigned/registered
+Site worker, current full Job/agent, positive equipped Gear, profile/root/load
+and legal current retreat. WORK requires actual paid WIP and matching positive
+Construction/Job remaining work. Pause or late Job/tool/pose changes refuse.
+CANCEL keeps the existing legality of canceling a paused phase and does not
+require productive permission.
+
+`phase_material_refusal`, `phase_output_refusal` and `phase_worker_refusal`
+consume that exact retained context. Output retains its own full container,
+full STORAGE Location and payload revision rather than sharing the input
+binding. BRACE and FINISH have zero output and retain null; CUT requires its
+actual bound spatial destination. A surface promotion tile cannot alias a
+spatial source selector. No delivery radius, automatic route, stock, worker
+arrival or output capacity is invented. Actual Inventory/Funding still own
+capacity, reservations, mass and paid settlement.
+
+`phase_final_observation_refusal` ends all observing source/worker/Location
+reads before `phase_final_leaf_refusal` checks current direct facts. The latter
+uses the existing callback-free worker/pose/cargo and current Terrain/source
+leaves, plus the actual purpose5 phase and full Site/Job mappings. Explicit
+exact-tuple discard cannot invalidate another mode or Site. These methods are
+facts needed by the root-owned WorldBindings and payment guard, not a generic
+caller-selected settlement permission.
+
+Live observations and cold observations before geometry preparation are the
+scope of this increment. Original positive cold tokens must still be covered
+by the exact once-bound World Budget. **Every prepared phase Space/context
+currently refuses with `CONNECTOR_PHASE_COMPANION_UNBOUND`.** A numeric Space
+or companion token does not grant access to a prepared graph. The actual
+phase companion contract, Root's observer-free purpose5 settlement/START tail
+and production phase dispatch remain separate required integrations; this
+increment does not activate a paid entrance or close UG07/UG09.
+
+The only added fixed payload is one nineteen-I32 episode row (76 bytes) plus
+65 numeric bytes: mode bool, full Site, operation/index, original cold and
+Space tokens, output container/Location/payload. Runtime reflection gives
+3051 reusable logical bytes, up from2910. The existing1024 helper allowance
+gives4075 within4096. The pinned static helper census has321 own numeric frame
+bytes plus the existing512 nested-reader allowance, or833. No additional
+packed bank or native-allocation qualification is asserted. References and
+native frames remain within the separately unmeasured joint reservation.
+
+The Contacts component tests retain an explicitly synthetic immutable motion
+and phase-geometry authority to isolate real Site/Project/Job/stock/Work/Gear
+and contact decisions. Actual BRACE payment, earned work and settlement are
+used before testing the subsequent CUT output; no paid bytes are seeded.
+This is distinct from the new first-prefix integration fixture, which uses
+actual WorldBindings/SpaceAuthority and still waits for reviewed production
+phase/installation composition. Rejected setup/declaration runs and exact
+final focused evidence are under
+`docs/validation/evidence/underground-first-prefix-2026-10-03/`.
+
+Final exact `phase-contacts-final-1` checks passed Contacts30 tests/7422
+assertions and ConnectorWork22/258, or52/7680 for this component. The separately
+developed first-prefix fixture also passed5/414 in that invocation, making the
+recorded three-suite total57/8094; it is not an end-to-end paid-prefix test or
+a prerequisite committed by this component. Every strict/raw unexpected
+diagnostic and both leak counts are zero; analyzer0/2. Clean import, original
+project/assets restoration and both frozen source hashes are recorded.
+Root independently reviewed sourcea6454ab7…/test285f6a4f… and found no
+high/medium issue in the explicitly live, unprepared phase scope. Prepared
+Space companions, native memory, whole-worker timing and production entry
+content remain open gates.

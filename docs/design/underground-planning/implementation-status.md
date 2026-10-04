@@ -35,6 +35,15 @@ passed all 14 jobs in **13m49s**: 394 test files exactly once, **10,973 tests /
 zero analyzer warnings across 1,225 files. It covers the Session, host equipment
 and Clock increments, before the later ordinary Room publication work.
 
+The subsequent CI at `f44efa7d` failed seven older entry-claim fixture assertions;
+all other jobs passed and the aggregate correctly failed. The fixture injected
+a non-flat batch beneath flat-room admission, which the new production guard
+correctly refuses. The independently reviewed test correction at `fbc2281a`
+uses actual entry admission, preserves all production guards and adds the
+flat/non-flat bypass refusal. Its strict four-suite run passed83 tests/3,460
+assertions, zero diagnostics/leaks and analyzer0/8. A fresh complete checkpoint
+is required; the earlier green CI is not evidence for these later changes.
+
 The concrete ordinary Room publication tail is accepted at `9a8e353f`, with
 independent review `8dd07e6f`; broad tests passed 389 / 17,880 and the final
 type-parity delta 69 / 2,568, with zero unexpected diagnostics/leaks and analyzer
@@ -67,10 +76,15 @@ actual purpose, floor and draft identity across callbacks and owner teardown.
 The real Session foundation composer is independently reviewed and integrated,
 and SettlementSystem now owns one actual Gear and HaulCarry pair without
 duplicating bootstrap tools. The shared host regression passed313 tests/7,944
-assertions with zero unexpected diagnostics/leaks and analyzer0/4. Scene
-mounting, coordinated reset, fixed-tick dispatch and successful Room entry/phase
-remain open. Ordinary-room approach, callback-free room publication and loaded
-wood handling are now progressing under separate non-overlapping file leases.
+assertions with zero unexpected diagnostics/leaks and analyzer0/4. Actual scene
+mounting and foundation reset/remount are now integrated at `3f898b35` after
+independent review:287 tests/7,038 assertions, zero unexpected diagnostics/leaks,
+analyzer0/8, and14 successful real-demo headless boot/restart checks. UI Create
+reuses the existing World's staging banks. The two boots emitted44 recorded
+missing-asset/audio warnings; this is lifecycle evidence, not visual acceptance.
+Operational teardown, fixed-tick dispatch and successful Room entry/phase remain
+open. Ordinary-room approach and actual wood-handling integration are progressing
+under separate non-overlapping file leases.
 The added lane decomposes existing work and does not add or waive requirements.
 
 Decision1140's actual Delivery component is integrated at`fa017ba4`, using
@@ -95,9 +109,13 @@ retains those boundaries. Decision1143's source-only motion reader is independen
 at874e2f12. Its shared Profile/Level/Motion accounting stays232,436 inside the
 unchanged262,144-byte reservation. The actual integrated focused run passed58
 tests/14,678 assertions with zero strict/raw diagnostics/leaks and analyzer0/2.
-Decision1144's static grip and four-phase lift/place source packets passed
-independent review and14+13 source tests; loaded locomotion, native qualification,
-quantity mapping and runtime station integration remain open.
+Decision1144's static grip, lift/place and loaded gait source packets passed
+independent review. The native sampled-input packet is integrated at `bea41615`:
+7,068 samples/21,251 assertions/0 failures,16 Python tests, zero raw diagnostics
+or leaks, and analyzer0/1. An independent reviewer reproduced the compiler,
+full-vertex/contact verifier and census exactly. GPU/all-Q16 qualification,
+runtime profile selection, distinct worker/service stations, real loaded
+delivery, loaded turns and loaded stairs remain open.
 Decision1145 and DEC-050 record Brendan's approved Natural initial stair pace:
 30 fixed ticks per tread and45 per supported half-turn at1× for the first
 unloaded adult mole with its existing pick. Source and paid-route qualification

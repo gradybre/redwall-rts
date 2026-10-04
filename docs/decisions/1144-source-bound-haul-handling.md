@@ -154,3 +154,53 @@ root advancement, loaded turns, empty-ground joins, BUILD set-down, immutable
 runtime contact/quantity publication and joint source memory remain open. The
 entire subtree is offline importer-ignored; future runtime images must be staged
 explicitly outside it.
+
+## Isolated native replay increment
+
+Replay only the eight accepted source clips in a separate ignored native
+project. A new offline compiler may encode them with the existing finite Content
+wire; it must first verify the accepted source and output hashes, preserve all
+595 stored palettes and both complete meshes, and report the full presentation
+reservation separately from runtime admission. The existing Actor, Content,
+WorldBasis and grip derivative are staged byte-for-byte with their dependency
+closure. No production driver or profile is replaced.
+
+The native witness reads actual RenderingServer skeleton matrices and actual
+mesh-instance World transforms at every source key and quarter interval,
+including the true loop wrap. Nonzero integer roots and cardinal/noncardinal
+headings test that the World root is applied once. The verifier independently
+checks the source clock, complete vertex positions, both authored hand contacts
+and exact joins. A sampled native witness is identified as sampled; continuous
+source proofs do not silently become complete GPU or native interval proofs.
+Full source/native differences and any unclosed error envelope are retained.
+
+The new project uses its own user directory and importer cache. The original
+body is imported with the pinned source settings and the actual wood factory is
+fingerprinted before Actor configuration. Native replay timing creates no HAUL
+rate, inventory movement, support, profile flag or economic work credit. Finite
+World traversal, loaded turns, BUILD set-down, empty-ground joins and runtime
+source/capacity admission remain separate gates.
+
+The first native binding correctly refused the primitive stock transcript:
+Content requires an ArrayMesh, while the accepted CylinderMesh source records
+surface format zero. Native v4 retains the complete wrapped ArrayMesh capture.
+All 522 binary32 vertex triples and 2,304 indices match the accepted stock;
+only format metadata and the reported AABB depth differ. The latter changes
+from 0.0990000069141388 to 0.0989999994635582 metres. The new offline compiler
+therefore pins both original geometry and measured wrapper transcript, checks
+complete equality before encoding, and retains Content's exact native mesh
+fingerprint requirement. No primitive, source pose or physical envelope changes.
+
+The final native-v7 packet is independently accepted for this sampled-input
+scope. It captures 7,068 actual native rows with 21,251 assertions and no
+failures or unexpected diagnostics/leaks. The independent reviewer passed all
+sixteen tests, rebuilt the five compiler outputs byte-identically, reproduced
+the complete native-input verifier and census, verified six executable, 83
+input and 39 output hashes, and added four successful corrupted-input refusal
+probes. Review evidence is committed as
+`d16d751d8661ef61c3493225be6e15e792c7a0f0` under
+`docs/validation/evidence/underground-room-publication-2026-10-04/native-haul-review-v1/`.
+The frozen candidate README and output manifest remain unchanged; its separate
+acceptance note records the later verdict. Every runtime/source/contact,
+finite-world, loaded-turn, BUILD set-down, timing and memory limitation above
+remains open.

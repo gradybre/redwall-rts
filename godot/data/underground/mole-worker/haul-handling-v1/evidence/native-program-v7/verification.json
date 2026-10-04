@@ -1,0 +1,28 @@
+{
+  "coefficient_mismatches": 0,
+  "complete_triangles": [
+    10209,
+    768
+  ],
+  "complete_vertices_per_row": [
+    17172,
+    522
+  ],
+  "exact_rational_two_hand_witnesses": 11256,
+  "joins": {
+    "exact_joins_per_view": 9,
+    "exact_reversal_pairs_per_view": 3,
+    "views": 3
+  },
+  "max_source_to_native_input_vertex_error_u": [
+    0.00028730677422572626,
+    0.000995327667624224
+  ],
+  "minimum_floor_gap_u": 0.0013656654891747166,
+  "native_capture_sha256": "b2db0a3cde55bf929724f051c8d5c1a6a900c6fcb1be189f17bba739df4ae15d",
+  "production_qualified": false,
+  "rows": 7068,
+  "runtime_admitted": false,
+  "schema": 1,
+  "scope": "Actual native registered matrix inputs at all keys and quarter intervals. Exact rational hand intersections use those coefficients; complete vertex reconstruction uses binary64. GPU shader roundoff and unsampled Q16 times are not certified by this sampled witness. No finite World support/traversal, loaded turns, empty-ground handoff or gameplay timing is granted."
+}

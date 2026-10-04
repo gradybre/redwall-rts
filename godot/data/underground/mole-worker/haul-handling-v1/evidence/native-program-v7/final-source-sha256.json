@@ -1,0 +1,8 @@
+{
+  "godot/data/underground/mole-worker/haul-handling-v1/compile_native_program.py": "388be53c60da511d193c10763b2cef9470d60976842a13bebe0386ee1b46f148",
+  "godot/data/underground/mole-worker/haul-handling-v1/run_native_program.py": "c74063077f7c3eca14a819954a7e8da6b923ea5126a6e0759772245409eab605",
+  "godot/data/underground/mole-worker/haul-handling-v1/verify_native_program.py": "1e341cbcd7598d566dda0a124c1f944e9ff1d534be64ad4d7ea9f61fab1d3f20",
+  "godot/data/underground/mole-worker/haul-handling-v1/test_native_program.py": "feb02be764c4409af689a74ef16969a55de0caacc428b46196818230d1d93e67",
+  "godot/data/underground/mole-worker/haul-handling-v1/native_replay/capture_native_program.gd": "baad025aeb8078bc9816bd3d9b35083f25af676954b2a53602c701c2ce48a511",
+  "godot/data/underground/mole-worker/haul-handling-v1/native_replay/project.godot": "3964032b8db025e89a0b02731816b2e02096165e7fd721de31cfb471d7dc1434"
+}

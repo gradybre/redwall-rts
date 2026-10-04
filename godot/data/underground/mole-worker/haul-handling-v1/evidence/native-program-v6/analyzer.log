@@ -1,0 +1,4 @@
+error: more than the allowed 0 warning(s)
+capture_native_program.gd:194: (INTEGER_DIVISION): Integer division. Decimal part will be discarded.
+capture_native_program.gd:194: (INTEGER_DIVISION): Integer division. Decimal part will be discarded.
+2 GDScript warning(s) in 1 of 1 file(s)

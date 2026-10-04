@@ -1,0 +1,54 @@
+state_registry_coverage: PASS -- 145 modules, 720 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_settlement_furniture_removal.gd
+  PASS  test_a_bed_is_removed_and_its_half_lands_in_another_buildings_store
+  PASS  test_with_no_store_the_pieces_half_lands_on_ground_piles_at_the_door
+  PASS  test_a_piece_owned_store_is_destroyed_with_it
+  PASS  test_a_shelf_in_a_valid_pantry_takes_its_capacity_with_it
+  PASS  test_a_shelf_whose_removal_would_overfill_the_pantry_refuses
+  PASS  test_goods_that_arrive_after_admission_can_block_the_shelfs_commit
+  PASS  test_a_shelf_in_a_pantry_not_yet_valid_carries_its_capacity_too
+  PASS  test_a_kitchen_shelf_and_a_pantry_seat_carry_no_pantry_capacity
+  PASS  test_a_valid_pantry_with_no_single_main_store_refuses
+  PASS  test_the_preview_refuses_by_name_writing_nothing
+  PASS  test_a_piece_under_construction_refuses
+  PASS  test_one_admission_per_building
+  PASS  test_cancel_releases_the_claim_and_the_piece_stays
+  PASS  test_completion_refuses_until_done_and_without_the_coordinators_admission
+  PASS  test_completion_rechecks_users_goods_and_the_callers_transaction
+  PASS  test_a_removal_orphaned_around_the_coordinator_is_released_through_the_stranded_door
+  PASS  test_an_orphaned_pile_removal_releases_its_record_too
+EXPECTED ERROR: SettlementSystem: a proved demolition commit refused a write (TEST_FAULT); re-record: ''
+   at: push_error (core/variant/variant_utility.cpp:1023)
+   GDScript backtrace (most recent call first):
+       [0] _abandon_commit (res://scripts/systems/settlement_system.gd:3846)
+       [1] test_an_abandoned_piece_commit_is_recovered_through_the_stranded_door (res://test/test_settlement_furniture_removal.gd:519)
+       [2] _run_test (res://test/run_tests.gd:194)
+       [3] _run_suite (res://test/run_tests.gd:168)
+       [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/ci_test_shard_runner.gd:30)
+       [5] _run_worker (res://test/run_tests.gd:121)
+       [6] _initialize (res://test/run_tests.gd:108)
+  PASS  test_an_abandoned_piece_commit_is_recovered_through_the_stranded_door
+  PASS  test_an_orphaned_removal_already_refunding_is_released_too
+  PASS  test_a_piece_project_opened_after_admission_blocks_the_buildings_commit
+  PASS  test_an_admission_in_between_does_not_move_a_pieces_piles
+CI_SUITE_TIME {"assertions":359,"failures":0,"suite":"test_settlement_furniture_removal.gd","tests":21,"usec":3066882}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+21 test(s), 359 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 21 tests, 359 assertions, 0 failures.

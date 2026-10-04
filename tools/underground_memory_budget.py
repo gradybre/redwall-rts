@@ -10,6 +10,7 @@ import re
 
 import audit_registry_capacities as audit
 import underground_motion_memory as motion_memory
+import underground_session_memory as session_memory
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "docs/planning/underground_memory_pack.json"
@@ -949,6 +950,7 @@ def build(index: dict | None = None) -> dict:
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
     try:
         motion = motion_memory.build(index)
+        session = session_memory.build(index, motion, reserves["PROFILE_BYTES"])
     except ValueError as error:
         raise AssertionError(str(error)) from error
     assert motion["joint"]["total"] <= reserves["PROFILE_BYTES"], "Motion/Profile/Level joint overbooking"
@@ -991,6 +993,7 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_contacts", "underground_profiles", "int_math", "reservations", "haul_transfer_contract",
                     "underground_connector_delivery", "work", "haul_planner",
                     "underground_motion_catalog", "underground_level_catalog", "mole_profile_catalog",
+                    "underground_session", "underground_terrain", "underground_routes", "room_space",
                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
@@ -1002,6 +1005,7 @@ def build(index: dict | None = None) -> dict:
             "haul_transfer_reservation": haul_transfer,
             "connector_delivery_reservation": delivery,
             "profile_motion_reservation": motion,
+            "session_reservation": session,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,
@@ -1010,7 +1014,7 @@ def build(index: dict | None = None) -> dict:
             "limitations": ["Constructor limits alone are not joint runtime admission.",
                             "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",
                             "Location/topology, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
-                            "One source-only Motion/Profile/Level composition is source-counted inside PROFILE_BYTES; native ceilings and actual host admission remain unqualified.",
+                            "One source-only Motion/Profile/Level/Session composition is source-counted inside PROFILE_BYTES; native ceilings and actual host admission remain unqualified.",
                             "All native headers, Variant/Array capacity growth, restored copies and omitted future fields must fit measured reserves before activation.",
                             "Physical phase, generic three-survey validation and wire capture are mutually exclusive cold operations unless their combined actual charge fits."]}
 

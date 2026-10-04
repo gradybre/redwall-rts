@@ -584,6 +584,8 @@ const ItemDefinitionsScript := preload("res://scripts/core/item_definitions.gd")
 const InventoryScript := preload("res://scripts/core/inventory.gd")
 const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
+const GearScript := preload("res://scripts/core/gear.gd")
+const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
 const DemolitionWorkScript := preload("res://scripts/core/demolition_work.gd")
 const StarterStructuresScript := preload("res://scripts/core/starter_structures.gd")
@@ -705,6 +707,7 @@ const REFUSE_WORLD_ALREADY_PUBLISHED: StringName = &"SETTLEMENT_WORLD_ALREADY_PU
 ## or a live building already present means it has been, or that something else placed there.
 const REFUSE_STARTER_COLONY_PRESENT: StringName = &"STARTER_COLONY_ALREADY_PRESENT"
 const REFUSE_GROUND_PILES_BIND: StringName = &"GROUND_PILE_COMPOSER_BIND_REFUSED"
+const REFUSE_EQUIPMENT_BIND: StringName = &"SETTLEMENT_EQUIPMENT_BIND_REFUSED"
 const REFUSE_GROUND_PILE_WORLD_BIND: StringName = &"GROUND_PILE_WORLD_BIND_REFUSED"
 ## GDD §5.11: "Active new worlds start with M0=0 and both masks=1". The starter structures all
 ## carry unlock ordinal 0, so this is the mask they are placed under; no Progress store exists to
@@ -902,6 +905,9 @@ var _stock_age: StockAgeScript = null
 ## DEMO-CONTAIN-R01 #9's site and placement authority (decision 0532). Held STRONGLY here, for the
 ## node's whole life, because Inventory and Buildings hold it only weakly.
 var _ground_piles: GroundPilesScript = null
+## ADR1148: one existing-budget Gear and Carry owner; wiring creates no stock or tool instances.
+var _gear: GearScript = null
+var _haul_carry: HaulCarryScript = null
 ## Producer of the authored starter plan (decision 0184). Holds only its last refusal code.
 var _starter_producer: StarterStructuresScript = StarterStructuresScript.new()
 ## ARCH-SYS-001's ONE authoritative pose store, bound to the SAME directory as the resident store.
@@ -1083,6 +1089,7 @@ func _init() -> void:
 	_transforms = TransformsScript.new(_directory)
 	_compose_stock_layer()
 	_compose_ground_piles()
+	_compose_equipment()
 	_bind_ecology_to_commands()
 	_size_index_and_scratch_columns()
 	_assert_shared_contracts()
@@ -1147,6 +1154,18 @@ func _compose_ground_piles() -> void:
 		return
 	_last_refusal = REFUSE_GROUND_PILES_BIND
 	push_error("SettlementSystem could not bind the ground-pile composer")
+
+
+func _compose_equipment() -> void:
+	"""Bind the actual stock, residents, work and carry once; the existing boot still owns all seeding."""
+	_gear = GearScript.new()
+	_haul_carry = HaulCarryScript.new()
+	if _gear.bind_equipment(_inventory, _directory, _residents).ok \
+			and _work.bind_gear(_gear).ok \
+			and _haul_carry.bind(_inventory, _reservations, _residents, _ground_piles):
+		return
+	_last_refusal = REFUSE_EQUIPMENT_BIND
+	push_error("SettlementSystem could not bind the equipment and hauling owners")
 
 
 func _bind_seed_expiry_authority() -> void:
@@ -1811,6 +1830,7 @@ func _clear_stores() -> void:
 	_schedule.clear()
 	_jobs.clear()
 	_work.clear()
+	_gear.clear()
 	_reservations.clear()
 	_commands.clear()
 	_dispatch.clear()
@@ -2864,6 +2884,16 @@ func jobs() -> JobsScript:
 func work() -> WorkScript:
 	"""The §5.2 work-unit model and decision 0017's party acceptance."""
 	return _work
+
+
+func gear() -> GearScript:
+	"""The one Gear owner sharing this settlement's Inventory, Directory, Residents and Work."""
+	return _gear
+
+
+func haul_carry() -> HaulCarryScript:
+	"""The one carry service over the real stock, claims, resident satchels and finite ground piles."""
+	return _haul_carry
 
 
 func commands() -> CommandsScript:

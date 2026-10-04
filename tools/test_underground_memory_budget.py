@@ -32,6 +32,46 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["live_with_reserve_bytes"], 99998782)
         self.assertFalse(result["runtime_qualified"])
 
+    def test_session_fits_current_source_counted_joint_without_global_increase(self) -> None:
+        result = budget.build(self.index)
+        session = result["session_reservation"]
+        self.assertEqual(session["source_counted_motion_joint_before_session_bytes"],
+                         result["profile_motion_reservation"]["joint"]["total"])
+        self.assertEqual((session["retained_numeric_bytes"], session["strong_reference_or_alias_members"]), (27, 24))
+        self.assertEqual((session["profile_level_motion_session_joint_bytes"], session["joint_remaining_bytes"]), (233972, 28172))
+        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+        self.assertFalse(session["native_memory_qualified"])
+
+    def test_session_unaccounted_owner_is_rejected(self) -> None:
+        self.refuses("underground_session", "var _ready: bool", "var _extra: Content = null\nvar _ready: bool")
+
+    def test_session_unaccounted_bank_is_rejected(self) -> None:
+        self.refuses("underground_session", "var _ready: bool", "var _bank: PackedByteArray = PackedByteArray()\nvar _ready: bool")
+
+    def test_session_duplicate_profile_allocation_is_rejected(self) -> None:
+        self.refuses("underground_session", "_profiles = Profiles.new()", "_profiles = Profiles.new()\n\t_profiles = Profiles.new()")
+
+    def test_session_cannot_duplicate_actual_actor_image(self) -> None:
+        self.refuses("underground_session", "_profiles = Profiles.new()", "_content = Content.new()\n\t_profiles = Profiles.new()")
+
+    def test_session_domain_remains_an_alias(self) -> None:
+        self.refuses("underground_session", "_domain = _space._domain #", "_domain = _space.domain_copy() #")
+
+    def test_session_independent_profile_maxima_refused(self) -> None:
+        self.refuses("underground_session", "Catalog.PROFILE_COUNT, Catalog.BOX_COUNT, PROFILE_SOURCE_COUNT,", "256, 3072, 64,")
+
+    def test_session_actual_reservation_formula_cannot_omit_wrapper(self) -> None:
+        self.refuses("underground_session", "Levels.RESERVED_BYTES + RESERVED_BYTES", "Levels.RESERVED_BYTES")
+
+    def test_session_native_reservation_cannot_silently_grow(self) -> None:
+        self.refuses("underground_session", "const CONTROL_BYTES: int = 1024", "const CONTROL_BYTES: int = 2048")
+
+    def test_session_rejects_joint_overbooking_even_with_valid_own_source(self) -> None:
+        import underground_session_memory as session
+        source = self.index["underground_session"].text
+        with self.assertRaises(ValueError):
+            session.census(source, 262144 - 1536 + 1, 262144)
+
     def test_motion_unaccounted_member_is_rejected(self) -> None:
         self.refuses("underground_motion_catalog", "var _busy: bool = false",
                      "var _busy: bool = false\nvar _extra: PackedInt32Array = PackedInt32Array()")

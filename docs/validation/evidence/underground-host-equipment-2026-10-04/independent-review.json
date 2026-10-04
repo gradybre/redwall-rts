@@ -1,0 +1,17 @@
+{
+  "reviewer": "/root/ug_geometry",
+  "outcome": "accepted; no high/medium correctness finding",
+  "checks": "actual strong/weak lifetime, Gear reset/equipped-lot regression,24tool boot stock, repeated-generation identity, already-budgeted Gear/Carry, actual source-derived Session joint,10adversarial cases",
+  "pins": {
+    "godot/scripts/systems/settlement_system.gd": "b0e9ca9a11e997ca9816fdf139488a8ddc51c26230ac3b6d08a15b9940853596",
+    "godot/test/test_settlement_equipment.gd": "f7fa9b96709ed9b65496edad7a1930c00c95d5c5e53cbd534a948092b8bde36e",
+    "docs/decisions/1148-settlement-equipment-and-hauling-ownership.md": "1a4293076319904de2634f33bb62545144c5aa4b4013d93a998c338f5c943bac",
+    "tools/underground_session_memory.py": "493d5fcd2d936e5f6ade68af383f7890c696c0bc292dc046d701640bd4f8f551",
+    "tools/underground_memory_budget.py": "a181cba230df71c6ba8353a4a0fd41a0ab3976b318469cdb42d2af3b49bef025",
+    "tools/test_underground_memory_budget.py": "66ee792d04955234bc2ba6dede99d7fc251705d2ce52814ef4afca58ae54b7eb",
+    "docs/persistence_state_registry.md": "f76f8345137c2453dff8b9e5860360477df2019666a65c5f8191a1e65fcd269f",
+    "docs/planning/underground_memory_pack.json": "75dbab16a496114a04744cbb7a86f0ce38003d646f4c536361f5ecdd1bafddc3"
+  },
+  "runtime_evidence": "candidate-1/invocation.json",
+  "native_qualified": false
+}

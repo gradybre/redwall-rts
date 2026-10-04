@@ -1954,3 +1954,9 @@ reference/header costs and whole-client peak qualification remain open.
 | Original Level digest and published wire | `_level_digest`, `_digest` | 1 | `32` = 32 | Empty before configure | 3 | -- | Original source digests; no wire image retained. |
 | Source-only paired banks | -- | -- | -- | Empty before admission | 2 | §1 WORLD | Two banks, each17421I32+67I64+640B =70860B. Source catalog only; no actor progress or travel permission. |
 | Source admission and read controls | -- | -- | -- | Quiescent outside load/read | 3 | -- | Fixed250B includes numeric controls and the packed rows above. Shared constants432B, maximum own numeric chain144B and temporary/expression264B fit4096B logical/helper reserve. One4096B decoder window,176B caller and32768B provisional native reserve. Joint Profiles18/194/1+Levels+Motion232436B fits existing262144B PROFILE_BYTES; single composed owner only. Native qualification and composed persistence remain open. |
+
+### `godot/scripts/core/underground_session.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Composed owner lifetime | -- | -- | -- | Unbound before configure | 3 | -- | ADR1146: no packed columns. Twenty-four borrowed/owned object aliases and27 numeric bytes. Fixed1024B wrapper/reference/native plus512B helper slice fits existing PROFILE_BYTES; existing Profile, Level, Motion, Routes, Space and Terrain banks counted once. Current source-derived joint233972/262144B. Native allocation and composed persistence remain open. |

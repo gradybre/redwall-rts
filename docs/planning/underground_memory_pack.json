@@ -1773,6 +1773,269 @@
     },
     "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
   },
+  "session_reservation": {
+    "source_sha256": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
+    "retained_numeric_bytes": 27,
+    "strong_reference_or_alias_members": 24,
+    "own_packed_columns": 0,
+    "own_variable_bank_bytes": 0,
+    "control_reservation_bytes": 1024,
+    "provisional_reference_native_header_bytes_in_control": 997,
+    "helper_reservation_bytes": 512,
+    "own_longest_numeric_and_name_chain_bytes": 48,
+    "own_longest_numeric_and_name_chain": [
+      "configure",
+      "_prepare",
+      "_observe_current",
+      "_original_refusal",
+      "_owners_refusal",
+      "_world_identity_refusal"
+    ],
+    "own_longest_borrowed_reference_chain_values": 28,
+    "own_longest_borrowed_reference_chain": [
+      "configure",
+      "_borrow"
+    ],
+    "references_are_not_measured_native_bytes": true,
+    "own_total_slice_bytes": 1536,
+    "slice_source": "existing PROFILE_BYTES; no global reserve increase",
+    "existing_profile_paired_plus_control_bytes": 47288,
+    "existing_level_bytes": 2292,
+    "foundation_profile_level_session_bytes": 51116,
+    "source_counted_motion_joint_before_session_bytes": 232436,
+    "profile_level_motion_session_joint_bytes": 233972,
+    "profile_envelope_bytes": 262144,
+    "joint_remaining_bytes": 28172,
+    "sequential_foundation_allocations": {
+      "Space.Domain": 1,
+      "Budget": 1,
+      "Routes": 1,
+      "Owner.CoreSources": 1,
+      "Owner": 1,
+      "Terrain": 1,
+      "Levels": 1,
+      "Profiles": 1
+    },
+    "frames": {
+      "configure": {
+        "numeric_and_name_bytes": 16,
+        "borrowed_reference_values": 14,
+        "own_calls": [
+          "_borrow",
+          "_finish",
+          "_initial_authority_refusal",
+          "_input_refusal",
+          "_prepare"
+        ],
+        "returns": "StringName"
+      },
+      "_borrow": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 14,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "_input_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_initial_authority_refusal",
+          "_owners_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_owners_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_equipment_refusal",
+          "_world_identity_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_equipment_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_world_identity_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_initial_authority_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_prepare": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_content_refusal",
+          "_observe_current",
+          "_original_refusal",
+          "_prepare_catalogs",
+          "_prepare_space"
+        ],
+        "returns": "StringName"
+      },
+      "_prepare_space": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_original_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_prepare_catalogs": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_original_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_content_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_original_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_owners_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_observe_current": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_content_refusal",
+          "_foundation_refusal",
+          "_original_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_foundation_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_profile_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "_profile_refusal": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "StringName"
+      },
+      "_finish": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_drop_borrowed",
+          "_drop_foundations"
+        ],
+        "returns": "StringName"
+      },
+      "_drop_foundations": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "_drop_borrowed": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [],
+        "returns": "void"
+      },
+      "current_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_observe_current"
+        ],
+        "returns": "StringName"
+      },
+      "reset_refusal": {
+        "numeric_and_name_bytes": 8,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "_initial_authority_refusal",
+          "current_refusal"
+        ],
+        "returns": "StringName"
+      },
+      "space_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Owner"
+      },
+      "source_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Owner.CoreSources"
+      },
+      "terrain_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Terrain"
+      },
+      "level_catalog": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Levels"
+      },
+      "profile_catalog": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Profiles"
+      },
+      "route_owner": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Routes"
+      },
+      "cold_budget": {
+        "numeric_and_name_bytes": 0,
+        "borrowed_reference_values": 0,
+        "own_calls": [
+          "current_refusal"
+        ],
+        "returns": "Budget"
+      }
+    },
+    "native_memory_qualified": false,
+    "runtime_activation_qualified": false,
+    "scope": "One host-lifetime Session; underlying owners charged once in their existing reservations"
+  },
   "contributions": {
     "excavation_start_controls": 4,
     "entry_structure_bindings": 384,
@@ -1814,6 +2077,7 @@
     "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
+    "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
     "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
@@ -1834,9 +2098,12 @@
     "godot/scripts/core/underground_motion_catalog.gd": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
     "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "godot/scripts/core/underground_routes.gd": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "godot/scripts/core/underground_session.gd": "26d25eb345fa3f4dd1dd2e7cea61a8b888a3121a64a459a27e8093330b36e860",
     "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
     "godot/scripts/core/underground_space_owner.gd": "32eff2b94f5ccc6c8b11c9490b857ac89ce30ca88f37b04b65d78d19f9408d96",
     "godot/scripts/core/underground_surface_anchor.gd": "3632681aa3d56d680d58e220f4aae58e5894baa23422ecd34c128404da8d40d0",
+    "godot/scripts/core/underground_terrain.gd": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
     "godot/scripts/core/underground_world_routes.gd": "7de9ae26375baff235c90f7d2b5703f9ca638fa1c7276ddf4c86e46c6a85434c",
     "godot/scripts/core/work.gd": "6bd7a29c6398dd1a8f795b40021bcf8602b85f5d51bf99aa9d6a0fb4fe074a6b"
   },
@@ -1845,7 +2112,7 @@
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",
     "Location/topology, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
-    "One source-only Motion/Profile/Level composition is source-counted inside PROFILE_BYTES; native ceilings and actual host admission remain unqualified.",
+    "One source-only Motion/Profile/Level/Session composition is source-counted inside PROFILE_BYTES; native ceilings and actual host admission remain unqualified.",
     "All native headers, Variant/Array capacity growth, restored copies and omitted future fields must fit measured reserves before activation.",
     "Physical phase, generic three-survey validation and wire capture are mutually exclusive cold operations unless their combined actual charge fits."
   ]

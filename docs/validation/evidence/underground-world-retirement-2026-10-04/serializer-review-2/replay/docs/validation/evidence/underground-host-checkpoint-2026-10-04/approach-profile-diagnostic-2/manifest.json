@@ -1,0 +1,287 @@
+{
+  "schema": 1,
+  "diagnostic_only": true,
+  "production_qualified": false,
+  "native_qualified": false,
+  "world_activation_qualified": false,
+  "certificate_flags": 15,
+  "certificate_scope": "native/integration fixture only; not published qualification",
+  "source_report_sha256": "e9cf37e7de319c9b07b9fda875760201dad5b41bd181a3e6d381bbea6cd4eedd",
+  "legacy_wire_sha256": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+  "serializer_sha256": "94bee4bb9461fb246e1c7287fed04d2961afc2c125ef79bb14d7c1f74d20a3fe",
+  "wire_sha256": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+  "wire_version": 2,
+  "content_revision": 2,
+  "profile_count": 26,
+  "box_count": 250,
+  "wire_bytes": 9620,
+  "paired_bank_bytes": 19224,
+  "mapping": [
+    {
+      "profile": 0,
+      "selection_policy": 0,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 0,
+      "box_count": 7,
+      "legacy_profile": 0
+    },
+    {
+      "profile": 1,
+      "selection_policy": 0,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 7,
+      "box_count": 7,
+      "legacy_profile": 1
+    },
+    {
+      "profile": 2,
+      "selection_policy": 1,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 14,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 3,
+      "selection_policy": 1,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 16384,
+      "first_box": 21,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 4,
+      "selection_policy": 1,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 32768,
+      "first_box": 28,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 5,
+      "selection_policy": 1,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 49152,
+      "first_box": 35,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 6,
+      "selection_policy": 2,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 42,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 7,
+      "selection_policy": 2,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 16384,
+      "first_box": 49,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 8,
+      "selection_policy": 2,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 32768,
+      "first_box": 56,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 9,
+      "selection_policy": 2,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 49152,
+      "first_box": 63,
+      "box_count": 7,
+      "legacy_profile": null
+    },
+    {
+      "profile": 10,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 70,
+      "box_count": 11,
+      "legacy_profile": 2
+    },
+    {
+      "profile": 11,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 81,
+      "box_count": 12,
+      "legacy_profile": 3
+    },
+    {
+      "profile": 12,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 93,
+      "box_count": 11,
+      "legacy_profile": 4
+    },
+    {
+      "profile": 13,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 0,
+      "first_box": 104,
+      "box_count": 11,
+      "legacy_profile": 5
+    },
+    {
+      "profile": 14,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 16384,
+      "first_box": 115,
+      "box_count": 11,
+      "legacy_profile": 6
+    },
+    {
+      "profile": 15,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 16384,
+      "first_box": 126,
+      "box_count": 12,
+      "legacy_profile": 7
+    },
+    {
+      "profile": 16,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 16384,
+      "first_box": 138,
+      "box_count": 11,
+      "legacy_profile": 8
+    },
+    {
+      "profile": 17,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 16384,
+      "first_box": 149,
+      "box_count": 11,
+      "legacy_profile": 9
+    },
+    {
+      "profile": 18,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 32768,
+      "first_box": 160,
+      "box_count": 11,
+      "legacy_profile": 10
+    },
+    {
+      "profile": 19,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 32768,
+      "first_box": 171,
+      "box_count": 12,
+      "legacy_profile": 11
+    },
+    {
+      "profile": 20,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 32768,
+      "first_box": 183,
+      "box_count": 11,
+      "legacy_profile": 12
+    },
+    {
+      "profile": 21,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 32768,
+      "first_box": 194,
+      "box_count": 11,
+      "legacy_profile": 13
+    },
+    {
+      "profile": 22,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 49152,
+      "first_box": 205,
+      "box_count": 11,
+      "legacy_profile": 14
+    },
+    {
+      "profile": 23,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 49152,
+      "first_box": 216,
+      "box_count": 12,
+      "legacy_profile": 15
+    },
+    {
+      "profile": 24,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 49152,
+      "first_box": 228,
+      "box_count": 11,
+      "legacy_profile": 16
+    },
+    {
+      "profile": 25,
+      "selection_policy": 3,
+      "profile_revision": 1,
+      "content_revision": 2,
+      "yaw": 49152,
+      "first_box": 239,
+      "box_count": 11,
+      "legacy_profile": 17
+    }
+  ],
+  "remaining": [
+    "NATIVE_CANONICAL_CLOCK",
+    "CURRENT_NINE_CONSUMER_CLOSURE",
+    "INDEPENDENT_REVIEW",
+    "PRODUCTION_PUBLICATION"
+  ]
+}

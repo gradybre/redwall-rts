@@ -1,0 +1,11 @@
+{
+  "README.md": "046197eacf18ee9e9e45ee30457b562857519eae413d5e2625439309528a7fcf",
+  "python-tests.log": "843c396d92ffda2f4f34042745fc44e6bea46ac2bea69387f8ba41a6fc2389e0",
+  "replay/docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-profile-diagnostic-2/approach-program.json": "e9cf37e7de319c9b07b9fda875760201dad5b41bd181a3e6d381bbea6cd4eedd",
+  "replay/docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-profile-diagnostic-2/manifest.json": "e94a046de0230b901c0eb56b6b729a6365ab8b39934f59dbbe5772e7a54c5086",
+  "replay/docs/validation/evidence/underground-host-checkpoint-2026-10-04/approach-profile-diagnostic-2/mole-worker.ugprof": "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204",
+  "replay/docs/validation/evidence/underground-host-checkpoint-2026-10-04/assemble_approach_candidate.py": "94bee4bb9461fb246e1c7287fed04d2961afc2c125ef79bb14d7c1f74d20a3fe",
+  "replay/docs/validation/evidence/underground-host-checkpoint-2026-10-04/test_assemble_approach_candidate.py": "9768148410832494e01ead72d0606825ed8494d3d28e49d2a4489753c95205c9",
+  "replay/godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+  "verification.json": "7d9e7348d6d3c84133351456f1477a4c14dcf2c975a6f1534d856a49c614ca7c"
+}

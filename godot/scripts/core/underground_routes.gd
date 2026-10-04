@@ -394,6 +394,7 @@ var _callback_reentered: bool = false
 var _retention: EndpointRetention = null
 var _heap_count: int = 0
 var _proposed_count: int = 0
+var _path_serial: int = 1 # Unsaved scratch identity; zero permanently disables witness reuse after saturation.
 var _searching: bool = false
 var _search_worker: Vector2i = NULL_REF
 var _search_job: Vector2i = NULL_REF
@@ -1713,6 +1714,8 @@ func _copy_proposed_path(out: PackedInt32Array) -> Result:
 func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int,
 		query: ProfilePath = null, certificate: RefCounted = null) -> StringName:
 	"""Positive exact lengths admit ordinary Dijkstra; a flat octile heuristic cannot connect floors."""
+	if _path_serial > 0:
+		_path_serial = 0 if _path_serial == I64_MAX else _path_serial + 1
 	_distance.fill(I64_MAX)
 	_predecessor.fill(-1)
 	_heap_position.fill(-1)

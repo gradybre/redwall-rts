@@ -1,0 +1,14 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_world_routes.gd:280: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_graph" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:281: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_owner" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:282: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_locations" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:283: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_graph_token" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:284: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_space_token" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:285: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_location_token" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:286: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_geometry" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:287: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_serial" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:288: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_profile" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:289: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_profile_revision" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:290: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_content" is declared but never used in the class.
+scripts/core/underground_world_routes.gd:291: (UNUSED_PRIVATE_CLASS_VARIABLE): The class variable "_witness_work" is declared but never used in the class.
+12 GDScript warning(s) in 1 of 5 file(s)

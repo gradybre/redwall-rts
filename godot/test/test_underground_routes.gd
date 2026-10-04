@@ -1222,6 +1222,8 @@ class ObservedStaticBinding extends WorldRoutes:
 
 class ProfileRouteFixture extends WorldRouteTests:
 	## Actual compiled-certificate provider; inherited immutable physical/body fixtures remain test-only.
+	var reach_nodes: int = 8
+	var ring: Array[Vector2i] = []
 	var edges: Array[Vector2i] = []
 	var cold: int = 0
 	var replacement: int = 0
@@ -1246,8 +1248,43 @@ class ProfileRouteFixture extends WorldRouteTests:
 		config.budget = _budget
 		assert_equal(_binding.configure(config), &"", "actual static route provider")
 		assert_equal(_routes.configure(_locations, _owner, _sources, _buildings, _budget, _binding,
-			8, 16, 64, 64, Routes.ARENA_BYTES), &"", "actual graph namespace")
+			reach_nodes, 2 * reach_nodes, 8 * reach_nodes, 64, Routes.ARENA_BYTES), &"", "actual graph namespace")
 		assert_equal(_routes.bind_profiles(_profiles, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual profile owners")
+
+	func _actual_space(obstruction: int) -> void:
+		"""A larger diagnostic replaces only the unbound test endpoint arena before actual provider composition."""
+		super._actual_space(obstruction)
+		if reach_nodes == 8: return
+		_locations = WorldRouteTests.RefusingLocations.new()
+		assert_equal(_locations.configure(_residents.directory(), _buildings, _transforms, _inventory,
+			_owner, _sources, _budget, reach_nodes, 228 * reach_nodes + 256), &"", "larger actual endpoint pack")
+
+	func ring_network() -> void:
+		"""Sixteen genuine endpoints and directed spans provide 256 distinct reachable ordered queries."""
+		reach_nodes = 32
+		_actual_fixture()
+		for index: int in 16:
+			ring.append(_location(ring_point(index)))
+		var token: int = _begin()
+		for index: int in 16:
+			var next: int = (index + 1) % 16
+			var edge: Routes.Edge = _span(ring[index], ring[next], ring_point(index), ring_point(next))
+			edge.length_u = 320
+			var added: Routes.Result = _routes.stage_add(token, edge)
+			assert_equal(added.error, &"", "source-qualified diagnostic ring span")
+			edges.append(added.ref)
+		assert_equal(_binding.seal(token), &"", "complete finite ring certificate bank")
+		assert_equal(_binding.publish(token), &"", "actual ring publication")
+		_end(token)
+
+	func ring_point(index: int) -> Vector3i:
+		"""Integer square perimeter stays inside the existing explicitly supported test volume."""
+		@warning_ignore("integer_division") var side: int = index / 4
+		match side:
+			0: return Vector3i(X + 384 + 320 * (index % 4), 512, Z + 384)
+			1: return Vector3i(X + 1664, 512, Z + 384 + 320 * (index % 4))
+			2: return Vector3i(X + 1664 - 320 * (index % 4), 512, Z + 1664)
+		return Vector3i(X + 384, 512, Z + 1664 - 320 * (index % 4))
 
 	func network() -> void:
 		"""Publish a short direct span and a longer three-span detour through actual complete endpoints."""
@@ -1882,6 +1919,22 @@ func _live_profile_phase(fixture: ProfileRouteFixture, phase: int) -> StringName
 		4:
 			return WorldRoutes._reach_sources_refusal(fixture._binding, fixture._routes, fixture._owner,
 				fixture._locations, fixture._first)
+	return _live_profile_store_phase(fixture, phase)
+
+
+func _live_profile_store_phase(fixture: ProfileRouteFixture, phase: int) -> StringName:
+	"""Separate current source checks so tuning follows measured work rather than dropping a predicate."""
+	match phase:
+		5:
+			return WorldRoutes.FinalFacts._stores_refusal(fixture._owner, fixture._routes, fixture._locations)
+		6:
+			return &"" if WorldRoutes._reach_profile_owners(fixture._binding, fixture._routes, fixture._locations) else &"TEST_PROFILE_WIRING"
+		7:
+			return &"" if WorldRoutes._reach_level_domain(fixture._binding, fixture._owner) else &"TEST_LEVEL_DOMAIN"
+		8:
+			return &"" if WorldRoutes._reach_world(fixture._binding, fixture._owner, fixture._locations) else &"TEST_WORLD_WIRING"
+		9:
+			return WorldRoutes._reach_content_refusal(fixture._binding)
 	return &"TEST_UNKNOWN_PHASE"
 
 
@@ -1914,10 +1967,205 @@ func test_live_profile_reachability_profiles_source_search_and_endpoint_costs() 
 	assert_equal(fixture.live_path(out), &"", "exact complete three-span query before isolated helpers")
 	fixture._binding._reading = true
 	fixture._routes._searching = true
-	for phase: int in 5:
+	for phase: int in 10:
 		_measure_live_profile_phase(fixture, phase)
 	fixture._binding._reading = false
 	fixture._routes._searching = false
 	assert_equal(fixture.live_path(out), &"", "independent phases preserved the actual complete answer")
 	assert_true(fixture._budget.is_quiescent(), "no cold phase allocation")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_spends_identical_fresh_debt_at_exact_boundary() -> void:
+	"""Reusing derived scratch cannot alter finite caller readiness or refused output after a reload-like clear."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "fresh complete query")
+	var remaining: int = out[0]
+	var serial: int = fixture._routes._path_serial
+	assert_equal(fixture.live_path(out), &"", "same query uses current witness")
+	assert_equal(fixture._routes._path_serial, serial, "no repeated Dijkstra scratch write")
+	assert_equal(out[0], remaining, "warm debt equals fresh debt")
+	fixture._binding._witness_serial = 0
+	assert_equal(fixture.live_path(out), &"", "discarded derived witness recomputes")
+	assert_equal(fixture._routes._path_serial, serial + 1, "same solver fallback")
+	assert_equal(out[0], remaining, "cleared witness cannot change next caller readiness")
+	var needed: int = Space.MAX_CHECKS - remaining
+	for fresh: bool in [false, true]:
+		if fresh: fixture._binding._witness_serial = 0
+		out[0] = 777
+		assert_equal(fixture.live_path(out, needed - 1), &"ROUTE_OPERATION_BUDGET", "one absent check refuses either mode")
+		assert_equal(out[0], 777, "no partial remaining count")
+		assert_equal(fixture.live_path(out, needed), &"", "exact complete budget succeeds")
+		assert_equal(out[0], 0, "identical complete charge")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_invalidates_after_real_cold_search_and_publication() -> void:
+	"""Other graph searches and actual recertification cannot leave an older proposed chain reusable."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "initial current witness")
+	var serial: int = fixture._routes._path_serial
+	fixture.cold = fixture._budget.acquire(Routes.PROFILE_PATH_COLD_BYTES)
+	assert_equal(fixture.path(PackedInt32Array([0, 0, 0, 0, 0, 0, 0, 0])).error, &"", "real cold search")
+	assert_equal(fixture._routes._path_serial, serial + 1, "cold path consumes same scratch namespace")
+	fixture.finish_query_lease()
+	assert_equal(fixture.live_path(out), &"", "live query recomputes after scratch replacement")
+	assert_equal(fixture._routes._path_serial, serial + 2, "cold scratch did not inherit live witness")
+	assert_equal(fixture.live_path(out), &"", "next exact repeat is reusable")
+	assert_equal(fixture._routes._path_serial, serial + 2, "repeat preserves scratch")
+	fixture.recertify()
+	assert_equal(fixture.live_path(out), &"", "actual new graph/certificate publication")
+	assert_equal(fixture._routes._path_serial, serial + 3, "publication invalidates old debt")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_distinguishes_zero_span_endpoints_and_counter_exhaustion() -> void:
+	"""Empty chains still pin their exact full endpoint; the unsaved serial never wraps to an old witness."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._first, fixture._first), &"", "first zero-span query")
+	var serial: int = fixture._routes._path_serial
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._last, fixture._last), &"", "different zero-span query")
+	assert_equal(fixture._routes._path_serial, serial + 1, "empty first witness cannot stand for another endpoint")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._last, fixture._last), &"", "exact empty query repeat")
+	assert_equal(fixture._routes._path_serial, serial + 1, "same empty chain is reusable")
+	fixture._routes._path_serial = Routes.I64_MAX
+	assert_equal(fixture.live_path(out), &"", "fresh search at final unsaved serial")
+	assert_equal(fixture._routes._path_serial, 0, "saturation disables reuse permanently")
+	var remaining: int = out[0]
+	assert_equal(fixture.live_path(out), &"", "disabled witness still runs original solver")
+	assert_equal(fixture._routes._path_serial, 0, "no new serial alias")
+	assert_equal(out[0], remaining, "saturated and fresh search debt remain equal")
+	_finish_profile_fixture(fixture)
+
+
+func _restore_witness_owner(fixture: ProfileRouteFixture, location_image: bool) -> void:
+	"""Only real owner load APIs invalidate receipts; no test sets a successful receipt value."""
+	if not location_image:
+		assert_equal(fixture._owner.restore_state_bytes(fixture._owner.state_bytes()), &"", "same live Space image restored")
+		assert_equal(fixture._owner.last_published_token(), 0, "restore invalidates runtime Space receipt")
+		return
+	var cold: int = fixture._budget.acquire(Budget.COLD_BYTES)
+	var bytes: PackedByteArray = PackedByteArray()
+	assert_equal(fixture._locations.capture_state_into(cold, bytes), &"", "actual endpoint capture")
+	assert_equal(fixture._locations.restore_state_bytes(cold, bytes), &"", "same live endpoint image restored")
+	assert_equal(fixture._locations.last_published_token(), 0, "restore invalidates runtime endpoint receipt")
+	bytes.clear()
+	assert_equal(fixture._budget.release(cold), &"", "no restored image escapes its original lease")
+
+
+func test_live_route_witness_restore_preserves_readiness_but_forces_fresh_search() -> void:
+	"""Equal canonical live bytes after loading never borrow an earlier runtime publication key."""
+	for location_image: bool in [false, true]:
+		var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+		fixture.network()
+		fixture.finish_query_lease()
+		var out: PackedInt32Array = PackedInt32Array([777])
+		assert_equal(fixture.live_path(out), &"", "warm exact owner pair")
+		var remaining: int = out[0]
+		var serial: int = fixture._routes._path_serial
+		_restore_witness_owner(fixture, location_image)
+		assert_equal(fixture.live_path(out), &"", "restored same facts remain eligible")
+		assert_equal(fixture._routes._path_serial, serial + 1, "zero receipt forces original solver")
+		assert_equal(out[0], remaining, "loaded and uninterrupted readiness agree")
+		assert_equal(fixture.live_path(out), &"", "receipt-free subsequent search also succeeds")
+		assert_equal(fixture._routes._path_serial, serial + 2, "no fabricated receipt for cache eligibility")
+		assert_equal(out[0], remaining, "repeat load fallback keeps exact debt")
+		_finish_profile_fixture(fixture)
+
+
+func test_live_route_witness_rechecks_current_full_edges_and_source_facts() -> void:
+	"""A previously positive path cannot hide stale generation, selected source or lost profile eligibility."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "initial direct witness")
+	var serial: int = fixture._routes._path_serial
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	assert_equal(fixture.live_path(out), &"", "removed direct profile permission forces qualified detour")
+	assert_equal(fixture._routes._path_serial, serial + 1, "current mask invalidates the old chain")
+	assert_equal(fixture._routes._proposed_count, 3, "original solver found the actual three-span route")
+	var source: int = fixture._owner._find_source(fixture._world_ref, false)
+	fixture._owner._o_generation[source] += 1
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "warm chain retains actual selected source proof")
+	assert_equal(out[0], 777, "stale source never publishes remaining work")
+	fixture._owner._o_generation[source] -= 1
+	assert_equal(fixture.live_path(out), &"", "restored exact source permits retry")
+	fixture._routes._live.fields[Routes.E_GENERATION * fixture._routes._edge_capacity + fixture.edges[1].x] += 1
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"ROUTE_NOT_CONNECTED", "full edge generation is not cached")
+	assert_equal(out[0], 777, "stale full chain preserves output")
+	_finish_profile_fixture(fixture)
+
+
+func _measure_witness_mode(fixture: ProfileRouteFixture, force_fresh: bool) -> void:
+	"""Paired diagnostic retains the same finite query and only clears unsaved derived keys between calls."""
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var failures_seen: int = 0
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for caller: int in 256:
+			if force_fresh: fixture._binding._witness_serial = 0
+			if fixture.live_path(out) != &"": failures_seen += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(failures_seen, 0, "all complete paired queries")
+	samples.sort()
+	print("HOT-WITNESS fresh=", force_fresh, " 256-callers 3-spans O2048 batches20 us min=", samples[0],
+		" median=", samples[10], " p95=", samples[18], " max=", samples[19])
+
+
+func test_live_route_witness_measures_paired_fresh_and_repeated_workload() -> void:
+	"""Same-run warm/fresh distributions separate actual saving from unrelated machine load."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	_measure_witness_mode(fixture, true)
+	_measure_witness_mode(fixture, false)
+	_finish_profile_fixture(fixture)
+
+
+func _measure_distinct_witness_queries(fixture: ProfileRouteFixture) -> void:
+	"""Every ordered pair of sixteen actual endpoints differs from the preceding complete query."""
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var failures_seen: int = 0
+	var serial: int = fixture._routes._path_serial
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for first: Vector2i in fixture.ring:
+			for last: Vector2i in fixture.ring:
+				if fixture.live_path(out, Space.MAX_CHECKS, first, last) != &"": failures_seen += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(failures_seen, 0, "all 5120 distinct-pair queries use exact actual certificates")
+	assert_equal(fixture._routes._path_serial, serial + 5120, "every distinct query uses original search")
+	samples.sort()
+	print("HOT-WITNESS distinct-pairs256 ring16 O2048 batches20 us min=", samples[0], " median=", samples[10],
+		" p95=", samples[18], " max=", samples[19])
+
+
+func test_live_route_witness_measures_256_distinct_pairs_through_actual_ring() -> void:
+	"""A configured thirty-two-node graph exercises cold-debt fallbacks across zero through fifteen spans."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.ring_network()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	assert_equal(fixture._residents.living_count(), 256, "finite living cap retained")
+	_measure_distinct_witness_queries(fixture)
+	assert_true(fixture._budget.is_quiescent(), "all setup leases released before the diagnostic")
 	_finish_profile_fixture(fixture)

@@ -30,6 +30,7 @@ const SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAP
 const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
 const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.
+const REACH_WITNESS_CHECKS: int = 64 # Per configured Location, reserved on both warm and fresh queries.
 const REFUSE_BINDING: StringName = &"WORLD_ROUTE_BINDING"
 const REFUSE_CONTEXT: StringName = &"WORLD_ROUTE_CONTEXT"
 const REFUSE_BUDGET: StringName = &"WORLD_ROUTE_COLD_LEASE"
@@ -276,6 +277,31 @@ var _catalog_identity: int = 0
 var _profile_identity: int = 0
 var _levels_identity: int = 0
 var _attested_catalog_revision: int = 0
+# Accessed through the concrete static receiver; the analyzer does not resolve RefCounted members.
+@warning_ignore("unused_private_class_variable")
+var _witness_graph: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_owner: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_locations: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_graph_token: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_space_token: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_location_token: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_geometry: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_serial: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_profile: int = -1
+@warning_ignore("unused_private_class_variable")
+var _witness_profile_revision: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_content: int = 0
+@warning_ignore("unused_private_class_variable")
+var _witness_work: int = 0
 var _descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
@@ -1024,6 +1050,7 @@ static func profile_reachability_refusal(actual: RefCounted, first: Vector2i, la
 	graph._operation_error = &""
 	code = _reach_search(actual, graph, owner, locations, first, last, profile_id, profile_revision, content_revision)
 	if code == &"":
+		_remember_witness(actual, graph, owner, locations)
 		remaining_out[0] = graph._remaining
 	graph._searching = false
 	actual._reading = false
@@ -1053,7 +1080,7 @@ static func _reach_entry_refusal(actual: RefCounted, graph: Routes, owner: Owner
 static func _reach_search(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
 		first: Vector2i, last: Vector2i, profile_id: int, profile_revision: int, content_revision: int) -> StringName:
 	"""All source loops and initialization are precharged; only a complete unchanged chain may publish remaining work."""
-	if not graph._spend(REACH_SCOPE_CHECKS + 4 * graph._location_capacity):
+	if not graph._spend(REACH_SCOPE_CHECKS + (4 + REACH_WITNESS_CHECKS) * graph._location_capacity):
 		return graph._operation_error
 	var code: StringName = _reach_stores_refusal(actual, graph, owner, locations)
 	if code == &"":
@@ -1061,7 +1088,7 @@ static func _reach_search(actual: RefCounted, graph: Routes, owner: Owner, locat
 	if code == &"" and (not locations._live_ref(locations._live, first) or not locations._live_ref(locations._live, last)):
 		code = &"ROUTE_LOCATION_STALE"
 	if code == &"":
-		code = graph._find_path(first, last, actual._descriptor.mode, actual._descriptor.posture, null, actual)
+		code = _reach_path(actual, graph, owner, locations, first, last)
 	if code == &"":
 		code = graph._path_chain_refusal(first, last, owner._header[17], content_revision, actual)
 	if code == &"":
@@ -1071,6 +1098,74 @@ static func _reach_search(actual: RefCounted, graph: Routes, owner: Owner, locat
 	if not graph._spend(REACH_SCOPE_CHECKS):
 		return graph._operation_error
 	return _reach_stores_refusal(actual, graph, owner, locations)
+
+
+static func _reach_path(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
+		first: Vector2i, last: Vector2i) -> StringName:
+	"""Reuse only this exact query's unchanged scratch, while spending the identical successful Dijkstra debt."""
+	if _witness_key_matches(actual, graph, owner, locations) and _witness_chain_matches(actual, graph, first, last):
+		return &"" if graph._spend(actual._witness_work) else graph._operation_error
+	var before: int = graph._remaining
+	var code: StringName = graph._find_path(first, last, actual._descriptor.mode, actual._descriptor.posture, null, actual)
+	if code == &"":
+		actual._witness_work = before - graph._remaining
+	return code
+
+
+static func _witness_key_matches(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations) -> bool:
+	"""Publication receipts and scratch serial prevent old, restored or foreign banks from borrowing search debt."""
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	return graph._path_serial > 0 and actual._witness_serial == graph._path_serial and actual._witness_work > 0 \
+		and actual._witness_graph == graph.get_instance_id() and actual._witness_owner == owner.get_instance_id() \
+		and actual._witness_locations == locations.get_instance_id() \
+		and graph._last_published_token > 0 and actual._witness_graph_token == graph._last_published_token \
+		and owner._last_published_token > 0 and actual._witness_space_token == owner._last_published_token \
+		and locations._last_published_token > 0 and actual._witness_location_token == locations._last_published_token \
+		and actual._witness_geometry == owner._header[17] \
+		and actual._witness_profile == descriptor.profile_id and actual._witness_profile_revision == descriptor.profile_revision \
+		and actual._witness_content == descriptor.content_revision
+
+
+static func _witness_chain_matches(actual: RefCounted, graph: Routes, first: Vector2i, last: Vector2i) -> bool:
+	"""The uniformly precharged probe checks exact query endpoints and current certificates before skipping search."""
+	if graph._proposed_count < 0 or graph._proposed_count >= graph._location_capacity: return false
+	if graph._distance[first.x] != 0 or graph._search_state[first.x] != 2: return false
+	var bank: Routes.EdgeBank = graph._live
+	var masks: Certificates = actual._live
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	var cursor: Vector2i = first
+	@warning_ignore("integer_division") var byte: int = descriptor.profile_id / 8
+	for index: int in graph._proposed_count:
+		var offset: int = 2 * (graph._proposed_count - index - 1)
+		var row: int = graph._proposed_edges[offset]
+		var generation: int = graph._proposed_edges[offset + 1]
+		if row < 0 or row >= graph._edge_capacity or generation <= 0 or bank.present[row] != 1 \
+				or bank.fields[Routes.E_GENERATION * graph._edge_capacity + row] != generation \
+				or Vector2i(bank.fields[Routes.E_FROM_SLOT * graph._edge_capacity + row],
+					bank.fields[Routes.E_FROM_GENERATION * graph._edge_capacity + row]) != cursor \
+				or bank.fields[Routes.E_MODE * graph._edge_capacity + row] != descriptor.mode \
+				or bank.fields[Routes.E_POSTURE * graph._edge_capacity + row] != descriptor.posture \
+				or masks.generations[row] != generation or masks.geometry[row] != actual._witness_geometry \
+				or masks.content[row] != descriptor.content_revision \
+				or (masks.masks[row * MASK_BYTES + byte] & (1 << (descriptor.profile_id % 8))) == 0: return false
+		cursor = Vector2i(bank.fields[Routes.E_TO_SLOT * graph._edge_capacity + row],
+			bank.fields[Routes.E_TO_GENERATION * graph._edge_capacity + row])
+	return cursor == last
+
+
+static func _remember_witness(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations) -> void:
+	"""Successful complete queries retain only keys/debt; existing route scratch remains the sole chain image."""
+	actual._witness_graph = graph.get_instance_id()
+	actual._witness_owner = owner.get_instance_id()
+	actual._witness_locations = locations.get_instance_id()
+	actual._witness_graph_token = graph._last_published_token
+	actual._witness_space_token = owner._last_published_token
+	actual._witness_location_token = locations._last_published_token
+	actual._witness_geometry = owner._header[17]
+	actual._witness_serial = graph._path_serial
+	actual._witness_profile = actual._descriptor.profile_id
+	actual._witness_profile_revision = actual._descriptor.profile_revision
+	actual._witness_content = actual._descriptor.content_revision
 
 
 static func _reach_stores_refusal(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations) -> StringName:

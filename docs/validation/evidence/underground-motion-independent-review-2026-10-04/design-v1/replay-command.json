@@ -1,0 +1,11 @@
+[
+  "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "-B",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-census.py.txt",
+  "--runtime",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer",
+  "--source",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+  "--out",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/replay-census.json"
+]

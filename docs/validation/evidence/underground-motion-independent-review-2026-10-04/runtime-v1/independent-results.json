@@ -1,0 +1,44 @@
+{
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/test_pack_catalog.py"
+      ],
+      "log": "packer-tests.log",
+      "exit_code": 0,
+      "seconds": 0.089
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/pack_catalog.py",
+        "--root",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer",
+        "--out",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/validation/evidence/underground-motion-independent-review-2026-10-04/runtime-v1/actual-repack"
+      ],
+      "log": "actual-repack.log",
+      "exit_code": 0,
+      "seconds": 0.028
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/validation/evidence/underground-motion-catalog-2026-10-04/census.py"
+      ],
+      "log": "census.json",
+      "exit_code": 0,
+      "seconds": 0.031
+    }
+  ],
+  "byte_identical": {
+    "motion.ugmotion": true,
+    "manifest.json": true,
+    "census.json": true
+  },
+  "frozen_pins_unchanged": true
+}

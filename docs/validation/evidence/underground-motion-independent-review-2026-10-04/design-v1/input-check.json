@@ -1,0 +1,184 @@
+[
+  {
+    "source": "runtime:godot/scripts/core/underground_profiles.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/scripts/core/underground_profiles.gd",
+    "expected": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "actual": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/scripts/core/underground_level_catalog.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/scripts/core/underground_level_catalog.gd",
+    "expected": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "actual": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/scripts/core/underground_budget.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/scripts/core/underground_budget.gd",
+    "expected": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "actual": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/data/underground/mole-worker/mole_profile_catalog.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/data/underground/mole-worker/mole_profile_catalog.gd",
+    "expected": "e9be7e504514355e61e9b2f325e0c245e3990ee95449056daa0a2eba954c8ea4",
+    "actual": "e9be7e504514355e61e9b2f325e0c245e3990ee95449056daa0a2eba954c8ea4",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/data/underground/mole-worker/profile-publication-v2/catalog_source.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/data/underground/mole-worker/profile-publication-v2/catalog_source.gd",
+    "expected": "f82a00a095b55b385880d73ae182a06791adf8c37925d2604819289cef71be94",
+    "actual": "f82a00a095b55b385880d73ae182a06791adf8c37925d2604819289cef71be94",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/scripts/core/underground_routes.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/scripts/core/underground_routes.gd",
+    "expected": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "actual": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/demo/cast/underground_actor_content.gd",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/demo/cast/underground_actor_content.gd",
+    "expected": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "actual": "388374964d20879b6b896021ebde7927e472634ea8a32b6834ec7b1b5042157f",
+    "match": true
+  },
+  {
+    "source": "runtime:docs/decisions/1080-source-bound-underground-profile-catalog.md",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/decisions/1080-source-bound-underground-profile-catalog.md",
+    "expected": "850096d95071a7dde3581101c2d6b680aab7bf2bba0166ba9e325a40be2306e7",
+    "actual": "850096d95071a7dde3581101c2d6b680aab7bf2bba0166ba9e325a40be2306e7",
+    "match": true
+  },
+  {
+    "source": "source:docs/decisions/1112-source-phase-route-motion.md",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/decisions/1112-source-phase-route-motion.md",
+    "expected": "d3dc4c7361d8f0a41d84c1e858e8e40aeb7da2436b97dcc5eaaefbf8beeb1920",
+    "actual": "d3dc4c7361d8f0a41d84c1e858e8e40aeb7da2436b97dcc5eaaefbf8beeb1920",
+    "match": true
+  },
+  {
+    "source": "runtime:docs/planning/underground_memory_pack.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/docs/planning/underground_memory_pack.json",
+    "expected": "0be9736b812734c76cdbf7e428cd9985d8ad9c832a634cf5f4b5eb3cce4c64fa",
+    "actual": "0be9736b812734c76cdbf7e428cd9985d8ad9c832a634cf5f4b5eb3cce4c64fa",
+    "match": true
+  },
+  {
+    "source": "runtime:godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer/godot/data/underground/mole-worker/profile-publication-v2/mole-worker.ugprof",
+    "expected": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+    "actual": "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-4/result/program.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-4/result/program.json",
+    "expected": "1f00fdfd773b129af04d5bd9a6eae0c20cca604959777221bae4b23f7fd91983",
+    "actual": "1f00fdfd773b129af04d5bd9a6eae0c20cca604959777221bae4b23f7fd91983",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-4/result/stair-program.ugstep",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/candidate-4/result/stair-program.ugstep",
+    "expected": "c966b64608b0308cca2e54973aeb72dd55a2b5b4e59f0b834517933667b50ee8",
+    "actual": "c966b64608b0308cca2e54973aeb72dd55a2b5b4e59f0b834517933667b50ee8",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/column-proposal-v2/result/program.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/column-proposal-v2/result/program.json",
+    "expected": "34a62009ebefa9055444353a900abb24b5a225f10ee91dd81899292fe597177f",
+    "actual": "34a62009ebefa9055444353a900abb24b5a225f10ee91dd81899292fe597177f",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/candidate.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/candidate.json",
+    "expected": "e639a9500b8cbac23e1665f7a26477b83a0b971ad7c4c26ab3eb4818d9d01d49",
+    "actual": "e639a9500b8cbac23e1665f7a26477b83a0b971ad7c4c26ab3eb4818d9d01d49",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/plan.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/plan.json",
+    "expected": "bece055f840ef0fddda139ec5896b049b3cdab7b15a1673c0ea153bf7f756430",
+    "actual": "bece055f840ef0fddda139ec5896b049b3cdab7b15a1673c0ea153bf7f756430",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/compilation.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/compilation.json",
+    "expected": "486165f0efab7d8f31091176cc8f042a99358854d1b7ea19da05bed6bfde8477",
+    "actual": "486165f0efab7d8f31091176cc8f042a99358854d1b7ea19da05bed6bfde8477",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/mole-worker.ugactor",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/candidate-6/result/mole-worker.ugactor",
+    "expected": "c0d74030fc7e0a56a24d08315af197b82530aae682067f94e2bcd2faedd543af",
+    "actual": "c0d74030fc7e0a56a24d08315af197b82530aae682067f94e2bcd2faedd543af",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
+    "expected": "576481ccebff74d8c131e8c646d7ee37a0a4ae541567bede236fd63f257bb34a",
+    "actual": "576481ccebff74d8c131e8c646d7ee37a0a4ae541567bede236fd63f257bb34a",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/summarize_program.py",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/summarize_program.py",
+    "expected": "bfaaa3014e7958d9ad60688137e1f69222044b66aa0617838dbc92d01d2e8c36",
+    "actual": "bfaaa3014e7958d9ad60688137e1f69222044b66aa0617838dbc92d01d2e8c36",
+    "match": true
+  },
+  {
+    "source": "source:docs/design/underground-planning/first-entry-prefix-v1.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/first-entry-prefix-v1.json",
+    "expected": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "actual": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/mole-worker.ugactor",
+    "expected": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+    "actual": "3a9e2459edba1bf4eaa50f91b5accb53f53317e5fc67bfa75b4a4b4cb8ac6988",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/plan.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-motion-v15/plan.json",
+    "expected": "8aa50f9d5bb508bdb2cd6e34d047f73f18a8ae45a784c1b790057aa136251ef4",
+    "actual": "8aa50f9d5bb508bdb2cd6e34d047f73f18a8ae45a784c1b790057aa136251ef4",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/mole-worker.ugactor",
+    "expected": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+    "actual": "16b83eea13565018294c648e75b73e59f1083112a00da1e16b86907a0e392bff",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/plan.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/plan.json",
+    "expected": "638c7e1c9f74f2248b583086e5e75e928f90504beb5dc3b616ff11497db6df03",
+    "actual": "638c7e1c9f74f2248b583086e5e75e928f90504beb5dc3b616ff11497db6df03",
+    "match": true
+  },
+  {
+    "source": "source:godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/compilation.json",
+    "actual_read_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/compilation.json",
+    "expected": "f3417994870ac0c8f9f365a4449b2017900a0d1769b745823922cb968ab94029",
+    "actual": "f3417994870ac0c8f9f365a4449b2017900a0d1769b745823922cb968ab94029",
+    "match": true
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/README.md": {
+    "sha256": "8b5feb119d3eb421daab1278378dbd3874146ba39cccace6e49f06a72f924ef2",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-README.md"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/census-final.log": {
+    "sha256": "b997f795f309f1ee939b8ba382b92b635d1f1361e761a030d8351895f07fd777",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-census-final.log"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/census-initial.json": {
+    "sha256": "f4d55faa9052df51d6775af0f75c3e006e3d6e8bf21184b54d8f1cdea7772d1c",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-census-initial.json"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/census.json": {
+    "sha256": "d2f6e11f5080f19f6e35639ca85f679f118351f35490afd8b7a1de899a8e4a90",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-census.json"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/census.log": {
+    "sha256": "b997f795f309f1ee939b8ba382b92b635d1f1361e761a030d8351895f07fd777",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-census.log"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/census.py": {
+    "sha256": "eef680818f124348f3e06af7cc0bf8d817e23e14110192e84a505846168d231a",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-census.py.txt"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/check.log": {
+    "sha256": "b997f795f309f1ee939b8ba382b92b635d1f1361e761a030d8351895f07fd777",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-check.log"
+  },
+  "docs/validation/evidence/underground-motion-storage-design-2026-10-04/output-sha256.json": {
+    "sha256": "ed30b559c82395a2314f141f86b4dfdefad63fe5828151ae347ac3a6b213031a",
+    "copy": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/design-v1/frozen-output-sha256.json"
+  }
+}

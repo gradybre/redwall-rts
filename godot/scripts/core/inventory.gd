@@ -941,14 +941,27 @@ func commit() -> OpResult:
 
 func commit_excavation_inputs(guard: ExcavationContract, project: Vector2i, job: Vector2i,
 		pool: RefCounted, output: Vector2i, mass: int) -> OpResult:
-	"""Own the last purpose5 observer scope so reentry cannot commit or abort its caller's journal."""
+	"""The original purpose5 START retains its guarded input journal until the final proof."""
+	return _commit_excavation_transaction(guard, project, job, pool, output, mass, ExcavationContract.ACTION_WIP)
+
+
+func commit_excavation_settlement(guard: ExcavationContract, project: Vector2i, action: int) -> OpResult:
+	"""Guard only actual paid output/refund, never a caller-invented phase or action."""
+	if action != ExcavationContract.ACTION_OUTPUT and action != ExcavationContract.ACTION_REFUND:
+		return _refuse(ExcavationContract.REFUSE_AUTHORITY)
+	return _commit_excavation_transaction(guard, project, NULL_REF, null, NULL_REF, 0, action)
+
+
+func _commit_excavation_transaction(guard: ExcavationContract, project: Vector2i, job: Vector2i,
+		pool: RefCounted, output: Vector2i, mass: int, action: int) -> OpResult:
+	"""No final purpose5 observer can close its caller's original input, output or refund journal."""
 	if _refuse_attestation_reentry():
 		return _refuse(REFUSE_ATTESTATION_REENTRY)
 	if not _tx_open:
 		return _refuse(REFUSE_NO_TRANSACTION)
 	var code: StringName = _tx_error if _tx_poisoned else _pile_commit_refusal()
 	if code == REFUSE_NONE:
-		code = ExcavationContract.REFUSE_AUTHORITY if guard == null else _excavation_input_attestation(guard, project, job, pool, output, mass)
+		code = ExcavationContract.REFUSE_AUTHORITY if guard == null else _excavation_attestation(guard, project, job, pool, output, mass, action)
 	if code == REFUSE_NONE and _tx_poisoned:
 		code = _tx_error
 	if code != REFUSE_NONE:
@@ -961,11 +974,12 @@ func commit_excavation_inputs(guard: ExcavationContract, project: Vector2i, job:
 	return _ok(NULL_REF, 0)
 
 
-func _excavation_input_attestation(guard: ExcavationContract, project: Vector2i,
-		job: Vector2i, pool: RefCounted, output: Vector2i, mass: int) -> StringName:
-	"""Keep Inventory's original mutation barrier raised across all final external phase observations."""
+func _excavation_attestation(guard: ExcavationContract, project: Vector2i,
+		job: Vector2i, pool: RefCounted, output: Vector2i, mass: int, action: int) -> StringName:
+	"""Keep the original Inventory mutation barrier raised across all final external phase observations."""
 	_attesting = true
-	var code: StringName = guard.final_input_refusal(project, job, self, pool, output, mass)
+	var code: StringName = guard.final_input_refusal(project, job, self, pool, output, mass) \
+		if action == ExcavationContract.ACTION_WIP else guard.final_settlement_refusal(project, action, self)
 	_attesting = false
 	return code
 

@@ -1,0 +1,30 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_excavation_phase_settlement_guard.gd
+  PASS  test_cut_output_observer_cannot_publish_after_the_room_changes
+  PASS  test_paid_refund_observer_cannot_publish_after_the_room_changes
+  PASS  test_completed_output_guard_refuses_nested_inventory_commit
+  PASS  test_completed_output_guard_refuses_nested_inventory_abort
+  PASS  test_paid_refund_guard_refuses_nested_inventory_commit
+  PASS  test_paid_refund_guard_refuses_nested_inventory_abort
+  PASS  test_final_output_observer_cannot_steal_the_outer_phase_scope
+  PASS  test_final_refund_observer_cannot_steal_the_outer_phase_scope
+CI_SUITE_TIME {"assertions":171,"failures":0,"suite":"test_excavation_phase_settlement_guard.gd","tests":8,"usec":510951}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+8 test(s), 171 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 8 tests, 171 assertions, 0 failures.

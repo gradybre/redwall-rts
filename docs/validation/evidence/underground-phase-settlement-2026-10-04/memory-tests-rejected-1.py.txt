@@ -286,7 +286,7 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966489)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966487)
         self.assertEqual(result["declaration_bytes"], 23573)
         self.assertEqual(result["live_with_reserve_bytes"], 99959254)
         self.assertEqual(result["headroom_bytes"], 40746)
@@ -303,7 +303,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(contacts["logical_helper_allowance_bytes"], 1024)
         self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
         self.assertEqual(recipes["entry_bindings_reservation"]["reserved_bytes"], 4096)
-        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 486)
+        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 454)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
         self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1670)

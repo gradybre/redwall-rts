@@ -82,6 +82,16 @@ class SpatialAuthority extends RefCounted:
 		"""Reattest that same candidate without callbacks, allocation or live publication."""
 		return &"EXCAVATION_SPATIAL_UNBOUND"
 
+	func final_settlement_observation_refusal(_origin_u: Vector3i, _operation: int,
+			_stage: int, _room: Vector2i) -> StringName:
+		"""Reobserve original COMMIT/CANCEL after Inventory staging; no worker is required to retry."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func final_settlement_leaf_refusal(_origin_u: Vector3i, _operation: int,
+			_stage: int, _room: Vector2i) -> StringName:
+		"""Prove that original terminal candidate without observers, allocation or live publication."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
 	func discard_transition(_origin_u: Vector3i, _operation: int, _stage: int,
 			_room: Vector2i) -> void:
 		"""Drop only operation scratch after refusal; never release lasting phase/contact ownership."""
@@ -187,6 +197,11 @@ func excavation_inputs_refusal(_project: Vector2i, _job: Vector2i,
 func final_input_refusal(_project: Vector2i, _job: Vector2i,
 		_inventory: RefCounted, _pool: RefCounted, _output: Vector2i, _mass: int) -> StringName:
 	"""The abstract owner cannot approve staged payment after Inventory observers."""
+	return REFUSE_AUTHORITY
+
+
+func final_settlement_refusal(_project: Vector2i, _action: int, _inventory: RefCounted) -> StringName:
+	"""An abstract authority cannot settle paid physical output or cancellation after Inventory observers."""
 	return REFUSE_AUTHORITY
 
 

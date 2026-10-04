@@ -124,6 +124,10 @@ func _commit_guarded_transaction(project: Vector2i, action: int) -> Inventory.Op
 			or _construction._ref_slot[row] != project.x or _construction._ref_generation[row] != project.y:
 		_inventory.abort()
 		return _refuse(REFUSE_WIP)
+	if _construction._purpose[row] == Construction.PURPOSE_EXCAVATION:
+		var site: Contract = _construction._excavation_authority.get_ref() as Contract \
+			if _construction._excavation_authority != null else null
+		return _inventory.commit_excavation_settlement(site, project, action)
 	if _construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL:
 		return _inventory.commit()
 	var owner: ModularContract = _construction._modular_authority.get_ref() as ModularContract \
@@ -664,7 +668,7 @@ func commit_outputs(project: Vector2i, cut_provenance: int,
 	if code != &"":
 		_inventory.abort()
 		return _refuse(code)
-	var committed: Inventory.OpResult = _inventory.commit()
+	var committed: Inventory.OpResult = _commit_guarded_transaction(project, Contract.ACTION_OUTPUT)
 	if not committed.ok:
 		return committed
 	_clear_wip(project)

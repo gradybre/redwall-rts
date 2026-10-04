@@ -517,15 +517,15 @@ def funding_settlement_reservation(index: dict) -> dict:
 
 
 def excavation_start_controls(index: dict) -> dict:
-    """Charge the exact two new START guards, not a second Funding or receipt bank."""
+    """Charge exact START and terminal guards, not a second Funding or receipt bank."""
     source = index["excavation_sites"].text
-    names = re.findall(r"^var[ \t]+(_start(?:ing|_\w+))\b", source, re.M)
-    declarations = re.findall(r"^var[ \t]+(_start(?:ing|_\w+))[ \t]*:[ \t]*([\w.]+)\b", source, re.M)
+    names = re.findall(r"^var[ \t]+(_start(?:ing|_\w+)|_settl(?:ing|ement_\w+))\b", source, re.M)
+    declarations = re.findall(r"^var[ \t]+(_start(?:ing|_\w+)|_settl(?:ing|ement_\w+))[ \t]*:[ \t]*([\w.]+)\b", source, re.M)
     fields = dict(declarations)
     assert len(names) == len(declarations) == len(fields) and fields == {
-        "_starting": "bool", "_start_poisoned": "bool"}, "unreconciled excavation START control"
+        "_starting": "bool", "_start_poisoned": "bool", "_settling": "bool", "_settlement_poisoned": "bool"}, "unreconciled excavation START control"
     return {"fields": fields, "numeric_bytes": len(fields),
-            "scope": "Same-stack START guards only; no packed or saved state. Existing native/frame qualification remains open."}
+            "scope": "Same-stack START and settlement guards only; no packed or saved state. Existing native/frame qualification remains open."}
 
 
 def build(index: dict | None = None) -> dict:

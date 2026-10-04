@@ -56,6 +56,10 @@ class SyntheticPaidSite extends Contract:
 		"""Explicit synthetic site proof isolates the real Inventory/WIP transaction in this suite."""
 		return &""
 
+	func final_settlement_refusal(_project: Vector2i, _action: int, _inventory: RefCounted) -> StringName:
+		"""Explicit synthetic terminal geometry isolates actual receipt/output/refund accounting."""
+		return &""
+
 var _inventory: Inventory = null
 var _pool: Reservations = null
 var _items: Items = null

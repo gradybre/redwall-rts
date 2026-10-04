@@ -1,0 +1,38 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.833,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "290/373",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-phase-settlement-2026-10-04/rejected-1"
+      ],
+      "exit_code": 1,
+      "seconds": 2.982,
+      "log": "test_excavation_phase_settlement_guard.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-settlement-guard-tests",
+  "project_test_sha256": "afdc29b25626f35130bf65541be288237b56c42d2d96470b914b4574698f7dd5",
+  "assets_present_before": false,
+  "error": "test_excavation_phase_settlement_guard.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

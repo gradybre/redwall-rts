@@ -269,6 +269,9 @@ var _publishing_spatial: bool = false
 ## Exclusive synchronous START scope; a nested attempt poisons the outer attempt.
 var _starting: bool = false
 var _start_poisoned: bool = false
+## Exclusive terminal scope; nested START/settlement cannot replace an original candidate.
+var _settling: bool = false
+var _settlement_poisoned: bool = false
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _other_math: IntMath.IntResult = IntMath.IntResult.new()
 var _delivery_totals: PackedInt64Array = PackedInt64Array()
@@ -1198,8 +1201,9 @@ func _worker_refusal(row: int, require_registered: bool) -> StringName:
 
 func begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
 	"""One exclusive START owns preparation and payment; nested calls cannot replace its candidate."""
-	if _starting:
-		_start_poisoned = true
+	if _starting or _settling:
+		_start_poisoned = _starting
+		_settlement_poisoned = _settling
 		return _refuse(REFUSE_AUTHORITY)
 	if _candidate_row != NO_ROW or _permit_project != NULL_REF:
 		return _refuse(REFUSE_AUTHORITY)
@@ -1457,7 +1461,34 @@ func set_paused(site: Vector2i, paused: bool) -> Construction.OpResult:
 	return release_worker(site)
 
 
+func _enter_settlement() -> bool:
+	"""Refuse before touching another START/terminal candidate and poison its original operation."""
+	if _starting or _settling:
+		_start_poisoned = _starting
+		_settlement_poisoned = _settling
+		return false
+	if _candidate_row != NO_ROW or _permit_project != NULL_REF:
+		return false
+	_settling = true
+	_settlement_poisoned = false
+	return true
+
+
+func _leave_settlement(result: Construction.OpResult) -> Construction.OpResult:
+	"""A same-stack terminal scope never becomes saved authority or poisons a later clean retry."""
+	_settling = false
+	_settlement_poisoned = false
+	return result
+
+
 func settle_phase(site: Vector2i) -> Construction.OpResult:
+	"""One exclusive original COMMIT owns final paid output and physical publication."""
+	if not _enter_settlement():
+		return _refuse(REFUSE_AUTHORITY)
+	return _leave_settlement(_settle_phase(site))
+
+
+func _settle_phase(site: Vector2i) -> Construction.OpResult:
 	"""Commit actual output, physical history and staged topology once; retries spend no work."""
 	var code: StringName = _settlement_refusal(site)
 	if code != &"":
@@ -1506,6 +1537,105 @@ func _settlement_refusal(site: Vector2i) -> StringName:
 	return _output_refusal(site.x) if code == &"" else code
 
 
+func final_settlement_refusal(project: Vector2i, action: int, inventory: RefCounted) -> StringName:
+	"""Finish terminal observers inside the original journal, then inspect only exact retained leaves."""
+	var code: StringName = _settlement_scope_refusal(project, action, inventory)
+	if code != &"":
+		return code
+	var row: int = _candidate_row
+	var stage: int = _candidate_stage
+	var operation: int = _operation[row]
+	var room: Vector2i = _room(row)
+	var job: Vector2i = _job(row)
+	var origin: Vector3i = origin_of(Vector2i(row, SITE_GENERATION))
+	var spatial: SpatialAuthority = _spatial()
+	code = spatial.final_settlement_observation_refusal(origin, operation, stage, room) if spatial != null else REFUSE_AUTHORITY
+	if code == &"":
+		code = _settlement_scope_refusal(project, action, inventory)
+	if code == &"" and (_spatial() != spatial or _candidate_row != row or _candidate_stage != stage \
+			or _operation[row] != operation or _room(row) != room or _job(row) != job):
+		code = REFUSE_AUTHORITY
+	if code == &"":
+		code = spatial.final_settlement_leaf_refusal(origin, operation, stage, room)
+	return _settlement_economic_leaf(project, job, row, action) if code == &"" else code
+
+
+func _settlement_scope_refusal(project: Vector2i, action: int, inventory: RefCounted) -> StringName:
+	"""A full original candidate and Inventory-owned journal are mandatory, not ambient action numbers."""
+	if not _settling or _settlement_poisoned or _starting or inventory != _inventory \
+			or _ready_error != &"" or not _inventory._tx_open or not _inventory._attesting \
+			or (action != ACTION_OUTPUT and action != ACTION_REFUND) \
+			or _permit_project != project or _permit_action != action \
+			or _candidate_stage != (STAGE_COMMIT if action == ACTION_OUTPUT else STAGE_CANCEL) \
+			or _candidate_row < 0 or _candidate_row >= _count or _present[_candidate_row] != 1:
+		return REFUSE_AUTHORITY
+	if _project(_candidate_row) != project or _funding == null or _funding._ready_error != &"" \
+			or _funding._construction != _construction or _funding._inventory != _inventory \
+			or _funding._pool != _pool or _funding._items != _items or _jobs._directory != _construction._directory \
+			or _construction._excavation_authority == null or _construction._excavation_authority.get_ref() != self:
+		return REFUSE_AUTHORITY
+	return &"" if _construction._directory.is_valid_of_kind(project, Directory.KIND_CONSTRUCTION) \
+		and _construction._directory.is_valid_of_kind(_domain.world_ref, Directory.KIND_WORLD) else REFUSE_SITE
+
+
+func _settlement_economic_leaf(project: Vector2i, job: Vector2i, site: int, action: int) -> StringName:
+	"""Read current mirrored Project and receipt columns without bill, contact or output observers."""
+	var row: int = _construction._directory.get_typed_row(project)
+	if row < 0 or row >= Construction.CONSTRUCTION_CAPACITY or _construction._present[row] != 1 \
+			or _construction._ref_slot[row] != project.x or _construction._ref_generation[row] != project.y \
+			or _construction._purpose[row] != Construction.PURPOSE_EXCAVATION \
+			or _construction._subject_slot[row] != site or _construction._subject_generation[row] != SITE_GENERATION \
+			or _construction._type_id[row] != _operation[site] or _construction._work_begun[row] != 1 \
+			or _funding._project_slot[row] != project.x or _funding._project_generation[row] != project.y \
+			or _funding._output_slot[row] != _output_slot[site] or _funding._output_generation[row] != _output_generation[site]:
+		return Construction.REFUSE_STALE_PROJECT_REF
+	if action == ACTION_OUTPUT and (_construction._phase[row] != Construction.PHASE_WORK_DONE \
+			or _construction._remaining_mwu[row] != 0 or _construction._paused[row] != 0):
+		return Construction.REFUSE_WRONG_PHASE
+	if action == ACTION_REFUND and _construction._phase[row] != Construction.PHASE_REFUNDING:
+		return Construction.REFUSE_WRONG_PHASE
+	var code: StringName = _settlement_job_leaf(project, job, site, row)
+	return _settlement_physical_leaf(site, row) if code == &"" else code
+
+
+func _settlement_job_leaf(project: Vector2i, job: Vector2i, site: int, construction_row: int) -> StringName:
+	"""No stale requester, extra live Job, unpaid claim or new worker can be retired by the pure tail."""
+	if not _jobs._directory.is_valid_of_kind(job, Directory.KIND_JOB):
+		return REFUSE_JOB
+	var row: int = _jobs._directory.get_typed_row(job)
+	if row < 0 or row >= _job_site.size() or _jobs._job_present[row] != 1 \
+			or _jobs._job_ref_slot[row] != job.x or _jobs._job_ref_generation[row] != job.y \
+			or _job_site[row] != site or _jobs._requester_slot[row] != project.x \
+			or _jobs._requester_generation[row] != project.y or _jobs._kind[row] != Jobs.JOB_KIND_BUILD \
+			or _jobs._is_coordinator[row] != 0 or _jobs._coordinator_slot[row] != -1 \
+			or _jobs._remaining_mwu[row] != _construction._remaining_mwu[construction_row] \
+			or _jobs._worker_slot[row] != -1 or _pool.job_claim_count(job) != 0:
+		return REFUSE_JOB
+	for other: int in Jobs.JOB_CAPACITY:
+		if other != row and _jobs._job_present[other] == 1 and _jobs._requester_slot[other] == project.x \
+				and _jobs._requester_generation[other] == project.y:
+			return REFUSE_JOB
+	return &""
+
+
+func _settlement_physical_leaf(site: int, construction_row: int) -> StringName:
+	"""Completed work and retained support/history remain exact after the last external observer."""
+	var operation: int = _operation[site]
+	if not valid_operation(operation):
+		return REFUSE_PHASE
+	var phase: int = BRACING if operation == OP_BRACE else CUTTING if operation == OP_CUT \
+		else FINISHING if operation == OP_FINISH else CLOSING
+	if _phase[site] != phase or _installed[site] != (0 if operation == OP_BRACE else 1):
+		return REFUSE_PHASE
+	var earned: int = _earned_mwu[site * OP_COUNT + operation]
+	if earned < 0 or earned > work_mwu(operation) \
+			or _construction._remaining_mwu[construction_row] != work_mwu(operation) - earned:
+		return Construction.REFUSE_WRONG_PHASE
+	if operation == OP_CUT and _embedded_milli[site] != (EARTH_MILLI if _ever_cut[site] == 1 else 0):
+		return REFUSE_PHASE
+	return &""
+
+
 func _publish_physical_completion(row: int) -> void:
 	"""Only this post-Inventory-commit path changes installed support or geological earth."""
 	match _operation[row]:
@@ -1540,6 +1670,13 @@ func _publish_closure(row: int) -> void:
 
 
 func cancel_phase(site: Vector2i, refund_container: Vector2i) -> Construction.OpResult:
+	"""One exclusive original CANCEL retains its paid refund and prepared spatial candidate."""
+	if not _enter_settlement():
+		return _refuse(REFUSE_AUTHORITY)
+	return _leave_settlement(_cancel_phase(site, refund_container))
+
+
+func _cancel_phase(site: Vector2i, refund_container: Vector2i) -> Construction.OpResult:
 	"""Freeze work, release actual worker ownership, then settle the scoped current-phase refund."""
 	var code: StringName = _bound_refusal(site)
 	if code != &"":
@@ -1586,8 +1723,8 @@ func _settle_refund(site: Vector2i, destination: Vector2i) -> StringName:
 	"""The Inventory owner publishes either current WIP's refund or untouched unstarted goods."""
 	var project: Vector2i = _project(site.x)
 	var code: StringName = _refund_destination_refusal(site, destination)
-	if code != &"":
-		return code
+	if code != &"" or _settlement_poisoned:
+		return code if code != &"" else REFUSE_AUTHORITY
 	if not _funding.is_funded(project):
 		return _refund_unstarted(site.x, destination)
 	_allow(project, ACTION_REFUND)

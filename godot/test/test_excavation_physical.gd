@@ -54,6 +54,7 @@ class SpatialFixture extends Contract.SpatialAuthority:
 	var publications: int = 0
 	var pending_stage: int = -1
 	var start_probe: Callable = Callable()
+	var settlement_probe: Callable = Callable()
 	var start_leaf_block: StringName = &""
 	var discard_count: int = 0
 	var work_checks: int = 0
@@ -125,6 +126,22 @@ class SpatialFixture extends Contract.SpatialAuthority:
 		if block_operation != &"":
 			return block_operation
 		return block_worker if block_worker != &"" else block_output
+
+	func final_settlement_observation_refusal(_origin: Vector3i, _operation: int,
+			_stage: int, room: Vector2i) -> StringName:
+		"""Explicit synthetic geometry isolates real Inventory/receipt rollback at the terminal boundary."""
+		if settlement_probe.is_valid():
+			var current: Callable = settlement_probe
+			settlement_probe = Callable()
+			current.call()
+		return room_refusal(room)
+
+	func final_settlement_leaf_refusal(_origin: Vector3i, _operation: int,
+			stage: int, room: Vector2i) -> StringName:
+		"""A worker-free terminal candidate must still be the exact prepared synthetic room/stage."""
+		if pending_stage != stage or room.y != room_generation:
+			return &"SYNTHETIC_SETTLEMENT_STALE"
+		return block_operation
 
 	func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
 		"""Count publication, without making any actual map cell navigable."""

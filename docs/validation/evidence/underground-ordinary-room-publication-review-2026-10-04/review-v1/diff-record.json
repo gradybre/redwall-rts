@@ -1,0 +1,7 @@
+{
+  "file": "reviewed.diff.gz",
+  "sha256": "895700cadd08df012c2d6679c93fd3d4a2d8311186d6d2683c2414867d322ac2",
+  "decoded_sha256": "858a7e1669626d282f67365bfc340d6a2c6a791a541c9d0fceec0e3fdf561d9f",
+  "decoded_bytes": 24451,
+  "reason": "Lossless immutable diff capture; context prefixes contain meaningful whitespace."
+}

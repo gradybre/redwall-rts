@@ -1,0 +1,13 @@
+{
+  "godot/scripts/core/underground_room_orders.gd": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+  "godot/scripts/core/excavation_sites.gd": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+  "godot/scripts/core/buildings.gd": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba",
+  "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+  "godot/scripts/core/underground_locations.gd": "0abc952420541067af22fd174922c075e87a32b6fe3c325c8050121911f263fd",
+  "godot/scripts/core/underground_final_facts.gd": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+  "godot/test/test_underground_room_orders.gd": "99fc2a769bc9d5923ab0a40c313ca6829e7216d54773af846d14cf6743ad7ec5",
+  "godot/test/test_excavation_claim_batch.gd": "c89417f5f7b641afc1b7c69407d6df6db7d6bb5cfdf6a540cbf9e34a09a8ead8",
+  "godot/test/test_underground_furniture_work.gd": "d364168364c1151933bd787972bbdd7f92724befc12124e30dd8e9fd5c6e5a09",
+  "godot/test/test_underground_final_facts.gd": "8195be7d9a97c62fd0f43a9903cf9526ad5d634d9429491e4b6a9ed67b7fa037",
+  "godot/test/test_underground_room_publication.gd": "0c10cb87c93e88fdb28d9dd6c3ca70be36eabdcdd39e64a37c7523bc7353a572"
+}

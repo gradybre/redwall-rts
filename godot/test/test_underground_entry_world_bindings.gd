@@ -633,7 +633,7 @@ func test_prepared_phase_rejects_wrong_full_tuple_and_old_token_without_reobserv
 	var site: Vector2i = _sites.site_at(ORIGIN + Vector3i(-1024, -1024, -1024))
 	if _ready_actual_phase(site, Contract.OP_BRACE, 0) < 0: return
 	var observed: PackedInt64Array = PackedInt64Array([0])
-	(_contacts as ObservedContacts).prepared_probe = func() -> void: _probe_prepared_mismatches(site, observed)
+	(_contacts as ObservedContacts).prepared_probe = _probe_prepared_mismatches.bind(site, observed)
 	var started: Construction.OpResult = _sites.begin_phase_work(site, 0)
 	assert_true(started.ok, "actual unchanged START after refused foreign tuples: %s" % started.error)
 	assert_true(observed[0] > 0, "probe ran only after actual companion preparation")
@@ -652,8 +652,7 @@ func test_prepared_start_late_pose_change_preserves_payment_and_retry() -> void:
 	var before: Array[PackedByteArray] = _economic_image()
 	var geometry: PackedByteArray = _world._owner.state_bytes()
 	var point: Vector3i = ORIGIN + Source.side_root(0)
-	(_contacts as ObservedContacts).prepared_probe = func() -> void:
-		assert_true(_world._transforms.place(_world._worker, point.x + 1, point.y, point.z, 49152), "actual late displacement")
+	(_contacts as ObservedContacts).prepared_probe = _displace_prepared_worker.bind(point)
 	assert_false(_sites.begin_phase_work(site, 0).ok, "departed prepared worker cannot spend input")
 	_assert_economic_image(before)
 	assert_true(_world._owner.state_bytes() == geometry, "no geometry follows rejected payment")
@@ -661,6 +660,11 @@ func test_prepared_start_late_pose_change_preserves_payment_and_retry() -> void:
 	assert_true(_world._budget.is_quiescent(), "exact rejected context was discarded")
 	assert_true(_world._transforms.place(_world._worker, point.x, point.y, point.z, 49152), "actual return to existing contact")
 	assert_true(_sites.begin_phase_work(site, 0).ok, "same actual Project retries without replacement input")
+
+
+func _displace_prepared_worker(point: Vector3i) -> void:
+	"""Keep the same real late mutation in a callable that remains resolvable by inherited fixtures."""
+	assert_true(_world._transforms.place(_world._worker, point.x + 1, point.y, point.z, 49152), "actual late displacement")
 
 
 func test_prepared_start_replaced_cold_lease_preserves_foreign_owner_and_payment() -> void:
@@ -672,15 +676,19 @@ func test_prepared_start_replaced_cold_lease_preserves_foreign_owner_and_payment
 	var before: Array[PackedByteArray] = _economic_image()
 	var geometry: PackedByteArray = _world._owner.state_bytes()
 	var replacement: PackedInt64Array = PackedInt64Array([0])
-	(_contacts as ObservedContacts).prepared_probe = func() -> void:
-		assert_equal(_world._budget.release(_contacts._phase_cold_token), &"", "actual original lease released by observer")
-		replacement[0] = _world._budget.acquire(Budget.COLD_BYTES)
+	(_contacts as ObservedContacts).prepared_probe = _replace_prepared_lease.bind(replacement)
 	assert_false(_sites.begin_phase_work(site, 0).ok, "equal-capacity foreign scope cannot fund original START")
 	_assert_economic_image(before)
 	assert_true(_world._owner.state_bytes() == geometry, "no swap escaped foreign token")
 	assert_true(_world._budget.covers(replacement[0], Budget.COLD_BYTES), "cleanup preserved the replacement scope")
 	assert_equal(_world._budget.release(replacement[0]), &"", "only replacement caller releases its scope")
 	assert_true(_sites.begin_phase_work(site, 0).ok, "original paid Project retries under a fresh exact phase")
+
+
+func _replace_prepared_lease(replacement: PackedInt64Array) -> void:
+	"""The prepared observer still replaces the original lease before the final input guard."""
+	assert_equal(_world._budget.release(_contacts._phase_cold_token), &"", "actual original lease released by observer")
+	replacement[0] = _world._budget.acquire(Budget.COLD_BYTES)
 
 
 func test_real_paid_cancel_releases_worker_and_preserves_refund_geometry() -> void:
@@ -723,8 +731,7 @@ func _assert_terminal_context_retry(site: Vector2i, job: int) -> void:
 	var inventory: PackedByteArray = _world._inventory.state_bytes()
 	var funding: PackedByteArray = _router._funding.state_bytes()
 	var geometry: PackedByteArray = _world._owner.state_bytes()
-	(_contacts as ObservedContacts).prepared_probe = func() -> void:
-		_placements._phase_context.project.y += 1
+	(_contacts as ObservedContacts).prepared_probe = _invalidate_terminal_context_project
 	assert_false(_sites.settle_phase(site).ok, "wrong final full Project refuses terminal publication")
 	assert_true(_world._inventory.state_bytes() == inventory and _router._funding.state_bytes() == funding,
 		"no partial output or lost WIP receipt")
@@ -738,6 +745,11 @@ func _assert_terminal_context_retry(site: Vector2i, job: int) -> void:
 	assert_equal(_sites.virgin_sourced_milli(), 2000, "one actual CUT output on successful retry")
 	assert_true(_world._work.state_bytes() == work and _world._residents.state_bytes() == resident \
 		and _world._gear.state_bytes() == gear, "retry earns no work, skill or wear")
+
+
+func _invalidate_terminal_context_project() -> void:
+	"""Corrupt the same retained full Project at the same final-observation boundary."""
+	_placements._phase_context.project.y += 1
 
 
 func _complete_l0_cubes() -> bool:
@@ -1042,9 +1054,7 @@ func test_observer_replaces_original_lease_before_any_plan_copy() -> void:
 	var token: int = provider.begin_cold_operation(_world._owner, site, Contract.OP_BRACE, Contract.STAGE_ADMIT)
 	var limit: int = provider.phase_plan_row_limit(_world._owner, token)
 	var replacement: PackedInt64Array = PackedInt64Array([0])
-	(_contacts as ObservedContacts).observe_probe = func() -> void:
-		assert_equal(_world._budget.release(token), &"", "observer releases its actual scope")
-		replacement[0] = _world._budget.acquire(Budget.COLD_BYTES)
+	(_contacts as ObservedContacts).observe_probe = _replace_observed_plan_lease.bind(token, replacement)
 	var out: Space.Plan = Space.Plan.new()
 	assert_equal(provider.phase_plan_into(site, Contract.OP_BRACE, Contract.STAGE_ADMIT, room, limit, out),
 		WorldBindings.REFUSE_BUDGET, "same-size replacement cannot authorize original copy")
@@ -1053,6 +1063,12 @@ func test_observer_replaces_original_lease_before_any_plan_copy() -> void:
 	provider.end_cold_operation(token)
 	assert_true(_world._budget.covers(replacement[0], Budget.COLD_BYTES), "cleanup preserves the foreign original owner")
 	assert_equal(_world._budget.release(replacement[0]), &"", "replacement remains releasable by its caller")
+
+
+func _replace_observed_plan_lease(token: int, replacement: PackedInt64Array) -> void:
+	"""Named observer preserves the original mutation order and permits derived real-owner fixtures to parse."""
+	assert_equal(_world._budget.release(token), &"", "observer releases its actual scope")
+	replacement[0] = _world._budget.acquire(Budget.COLD_BYTES)
 
 
 func test_nested_phase_query_poison_refuses_before_plan_allocation() -> void:
@@ -1064,9 +1080,7 @@ func test_nested_phase_query_poison_refuses_before_plan_allocation() -> void:
 	var token: int = provider.begin_cold_operation(_world._owner, site, Contract.OP_BRACE, Contract.STAGE_ADMIT)
 	var limit: int = provider.phase_plan_row_limit(_world._owner, token)
 	var nested: Space.Plan = Space.Plan.new()
-	(_contacts as ObservedContacts).observe_probe = func() -> void:
-		assert_equal(provider.phase_plan_into(site, Contract.OP_BRACE, Contract.STAGE_ADMIT, room, limit, nested),
-			EntryWorld.ENTRY_REFUSE_BUSY, "nested query is excluded before any observer")
+	(_contacts as ObservedContacts).observe_probe = _reenter_observed_phase_plan.bind(provider, site, room, limit, nested)
 	var out: Space.Plan = Space.Plan.new()
 	assert_equal(provider.phase_plan_into(site, Contract.OP_BRACE, Contract.STAGE_ADMIT, room, limit, out),
 		EntryWorld.ENTRY_REFUSE_BUSY, "outer query remembers reentry")
@@ -1074,6 +1088,13 @@ func test_nested_phase_query_poison_refuses_before_plan_allocation() -> void:
 	out = null; nested = null
 	provider.end_cold_operation(token)
 	assert_true(_world._budget.is_quiescent(), "original operation cleans only its own scope")
+
+
+func _reenter_observed_phase_plan(provider: EntryWorld, site: Vector2i, room: Vector2i,
+		limit: int, nested: Space.Plan) -> void:
+	"""The same nested call retains its actual original tuple and assertion without an inherited closure."""
+	assert_equal(provider.phase_plan_into(site, Contract.OP_BRACE, Contract.STAGE_ADMIT, room, limit, nested),
+		EntryWorld.ENTRY_REFUSE_BUSY, "nested query is excluded before any observer")
 
 
 func test_late_actual_profile_reload_cannot_escape_a_copied_phase_plan() -> void:
@@ -1086,8 +1107,7 @@ func test_late_actual_profile_reload_cannot_escape_a_copied_phase_plan() -> void
 	var limit: int = provider.phase_plan_row_limit(_world._owner, token)
 	var inventory: PackedByteArray = _world._inventory.state_bytes()
 	var geometry: PackedByteArray = _world._owner.state_bytes()
-	(_contacts as ObservedContacts).observe_probe = func() -> void:
-		_replace_actual_profiles()
+	(_contacts as ObservedContacts).observe_probe = _replace_actual_profiles
 	var out: Space.Plan = Space.Plan.new()
 	assert_equal(provider.phase_plan_into(site, Contract.OP_BRACE, Contract.STAGE_ADMIT, room, limit, out),
 		EntryWorld.ENTRY_REFUSE_SOURCE, "same numeric Frontier and geometry cannot preserve stale motion permission")

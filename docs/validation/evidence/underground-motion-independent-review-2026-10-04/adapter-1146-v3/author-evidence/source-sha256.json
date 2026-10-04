@@ -1,0 +1,6 @@
+{
+  "godot/demo/burrow/modular_runtime.gd": "75edc64504ce0c9b84a48e6d94abbd7e021751a13330fc7fa5f54f2d1c40cc87",
+  "godot/demo/burrow/modular_editor.gd": "2bc0749315520d729b5ede7e018657e37a4f832df02882361e0dcc873ed3fb35",
+  "godot/demo/burrow/modular_world_tool.gd": "56d9e87a05e0ba482ba18471ad96fce5e40321e3af87444d3fb991a36fd610bb",
+  "godot/test/test_modular_runtime.gd": "0928ec79a37c5644ada83a72e50c803561a9e20507b012e363b478112b4b1f84"
+}

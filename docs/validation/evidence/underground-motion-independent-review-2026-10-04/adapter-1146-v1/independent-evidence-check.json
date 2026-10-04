@@ -1,0 +1,36 @@
+{
+  "scope": "Read-only verification of copied original author evidence, not corrected candidate acceptance.",
+  "copied_hashes_checked": 27,
+  "suite_results": [
+    {
+      "log": "author-evidence/focused-v2/shard-255.log",
+      "tests": 11,
+      "assertions": 152,
+      "failures": 0,
+      "strict_and_raw_footer_zero": true
+    },
+    {
+      "log": "author-evidence/focused-v2/shard-269.log",
+      "tests": 9,
+      "assertions": 149,
+      "failures": 0,
+      "strict_and_raw_footer_zero": true
+    },
+    {
+      "log": "author-evidence/focused-v2/shard-286.log",
+      "tests": 10,
+      "assertions": 104,
+      "failures": 0,
+      "strict_and_raw_footer_zero": true
+    },
+    {
+      "log": "author-evidence/focused-v3/shard-255.log",
+      "tests": 11,
+      "assertions": 152,
+      "failures": 0,
+      "strict_and_raw_footer_zero": true
+    }
+  ],
+  "focused_v3_analyzer": "0 warnings in 0 of 4 files",
+  "engine_executed_by_reviewer": false
+}

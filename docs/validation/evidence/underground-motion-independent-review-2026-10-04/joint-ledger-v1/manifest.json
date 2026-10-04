@@ -1,0 +1,14 @@
+{
+  "README.md": "de1be4c6c88aceece0d96c0de4ce65cb0ede5655869d7cb25e5d8868011eb8a7",
+  "capacity-tests.log": "3d51369b9edf4cc746c61c76d2e08a4135149c944efb00e46eec2607f0cf89d0",
+  "independent-result.json": "7d4db63fdbdd98e4c9379694f293ff1a6898e9690f9684407eb417f5015568cb",
+  "memory-tests.log": "5a551c94bc9f8c2f2c06202f5d77b2c5a5eb8a8a0de42dd039537cdc6443c14c",
+  "reproduced-memory-pack.json": "153c056ad9bf711091ae1568205d52374fad18bb728dfa33d2466e2d43f536e3",
+  "snapshots/docs/persistence_state_registry.md.txt": "b5981912c5c35baa42b85813482f7abcae01d58693fdfd915d5db9eed16c705e",
+  "snapshots/docs/planning/registry_capacity_audit.json.txt": "22693b7196e13738c9a8d6ae9872d916fb40532fbe60e5324cf9a4e726f43939",
+  "snapshots/docs/planning/underground_memory_pack.json.txt": "153c056ad9bf711091ae1568205d52374fad18bb728dfa33d2466e2d43f536e3",
+  "snapshots/tools/test_underground_memory_budget.py.txt": "2a865766c5f4d7b75077cb4918897702b26a408ac5510baf6fdc122e466ff515",
+  "snapshots/tools/underground_memory_budget.py.txt": "421ecdb1903905869e5482a77c9ce41a10322ec08cd79344136ced380acabf2d",
+  "snapshots/tools/underground_motion_memory.py.txt": "5f323c778aca66722c2c0d589984f1b3d44dbe70bfb18457baf89136005ab5b4",
+  "source-pins.json": "007c70e6b0d5c480182bbb1e9f53c0e18c964e42f1f6f7dff3e07324ad43c556"
+}

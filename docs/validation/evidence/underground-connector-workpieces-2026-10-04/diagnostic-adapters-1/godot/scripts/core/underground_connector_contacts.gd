@@ -1164,9 +1164,7 @@ func _observe_live() -> StringName:
 
 func _resolve_proof(require_worker: bool) -> StringName:
 	"""Fresh full selectors and certified paths are necessary in addition to actual cut and support truth."""
-	var code: StringName = _observe_workpiece_terrain()
-	if code == &"":
-		code = _phase_leaf()
+	var code: StringName = _phase_leaf()
 	if code == &"":
 		code = _resolve_all_endpoints()
 	if code == &"":
@@ -1181,24 +1179,6 @@ func _resolve_proof(require_worker: bool) -> StringName:
 		code = _scene_leaf()
 	if code == &"":
 		_pin_receipts()
-	return code if code != &"" else _scope_leaf()
-
-
-func _observe_workpiece_terrain() -> StringName:
-	"""A paid set-down changes Space: observe its current World facts before all physical and worker leaves."""
-	if _phase_mode or _terrain._checked_geometry_revision == _geometry_revision:
-		return &""
-	var actual: Workpieces = _workpiece_owner()
-	if actual == null:
-		return &""
-	var code: StringName = Workpieces.source_leaf_refusal(actual, _placement, _project)
-	var row: int = _project_row()
-	if code != &"" or row < 0 or not Workpieces._row_matches(actual, _placement, _project) \
-			or not Workpieces._funded(actual, _project, row) or _placements._space._stage_token != 0:
-		return code if code != &"" else REFUSE_SCOPE
-	if not _fragments.spend(256 + 2 * _placements._space._source_capacity):
-		return REFUSE_CAPACITY
-	code = _terrain.binding_refusal()
 	return code if code != &"" else _scope_leaf()
 
 

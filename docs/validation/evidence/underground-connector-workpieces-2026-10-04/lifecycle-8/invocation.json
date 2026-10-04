@@ -1,0 +1,56 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.636,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "112/380",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-connector-workpieces-2026-10-04/lifecycle-8"
+      ],
+      "exit_code": 0,
+      "seconds": 92.787,
+      "log": "test_underground_connector_workpieces.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6164",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-connector-workpieces-2026-10-04/lifecycle-8/analyzer.json",
+        "godot/scripts/core/underground_connector_workpieces.gd",
+        "godot/scripts/core/underground_connector_work.gd",
+        "godot/scripts/core/underground_connector_contacts.gd",
+        "godot/test/test_underground_connector_workpieces.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.127,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-workpieces",
+  "project_test_sha256": "f1fdc56e5201090ebc8eb8f81f8061c1642575f36059e9e8a1087d571bc60c27",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

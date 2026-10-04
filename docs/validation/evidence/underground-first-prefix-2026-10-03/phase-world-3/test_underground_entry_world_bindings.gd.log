@@ -1,0 +1,38 @@
+state_registry_coverage: PASS -- 139 modules, 696 rows, 1036 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_world_bindings.gd
+  PASS  test_actual_phase_binding_is_once_only_and_source_revision_is_not_geometry_permission
+  PASS  test_unknown_or_foreign_site_refuses_before_plan_allocation
+  FAIL  test_first_real_phase_plan_preserves_all_source_motion_and_exact_face_contact
+        actual first-prefix admission: ENTRY_EXACT_CUT_SET_REQUIRED (expected true, got false)
+  FAIL  test_actual_phase_admission_uses_full_motion_and_creates_only_one_real_project
+        actual phase ADMIT: CONNECTOR_CONTACT_GEOMETRY (expected true, got false)
+        one actual purpose5 Project (expected 1, got 0)
+  FAIL  test_copied_phase_plan_cannot_drop_negative_body_or_add_unobserved_rows
+        complete source plan (expected , got CONNECTOR_CONTACT_GEOMETRY)
+  FAIL  test_phase_plan_refuses_malformed_empty_output_before_copy
+        mismatched caller column refuses (expected ENTRY_PHASE_PLAN, got CONNECTOR_CONTACT_GEOMETRY)
+  PASS  test_exact_two_assembly_prices_and_six_cube_phase_ledger
+  PASS  test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress
+  PASS  test_common_metadata_grants_no_support_over_any_future_paid_cube
+  PASS  test_actual_surface_paths_connect_each_selected_contact_without_entering_cut_pockets
+  PASS  test_fine_entry_request_keeps_tail_outside_claims_and_derives_all_six_paid_keys
+CI_SUITE_TIME {"assertions":865,"failures":4,"suite":"test_underground_entry_world_bindings.gd","tests":11,"usec":5890488}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 865 assertion(s), 4 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 4 failing test(s).

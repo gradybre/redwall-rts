@@ -1,0 +1,160 @@
+{
+  "available": 339,
+  "charges": {
+    "_covered": {
+      "calls": 1113,
+      "requested": 1113
+    },
+    "_installed_landing_count": {
+      "calls": 11424,
+      "requested": 36720
+    },
+    "_installed_record_kind": {
+      "calls": 1224,
+      "requested": 216240
+    },
+    "_installed_row_site": {
+      "calls": 1428,
+      "requested": 137088
+    },
+    "_installed_site_row": {
+      "calls": 204,
+      "requested": 13056
+    },
+    "_installed_surface_site": {
+      "calls": 1224,
+      "requested": 216240
+    },
+    "_installed_witnesses_refusal": {
+      "calls": 1135,
+      "requested": 428860
+    },
+    "_record_geometry_refusal": {
+      "calls": 1072,
+      "requested": 1072
+    }
+  },
+  "fixture_failures": [
+    "actual L0 paid parts/contact publication: LOCATION_OPERATION_BUDGET (expected true, got false)"
+  ],
+  "live_count": 10,
+  "point": "(123904, 512, 100864)",
+  "requested": 2152,
+  "section": "(51, 1)",
+  "stack": [
+    {
+      "function": "_spend",
+      "line": 1113,
+      "source": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/diagnose_location_budget.gd"
+    },
+    {
+      "function": "_installed_witnesses_refusal",
+      "line": 1969,
+      "source": "res://scripts/core/underground_locations.gd"
+    },
+    {
+      "function": "_prepared_retention_refusal",
+      "line": 1326,
+      "source": "res://scripts/core/underground_locations.gd"
+    },
+    {
+      "function": "prepared_refusal",
+      "line": 1311,
+      "source": "res://scripts/core/underground_locations.gd"
+    },
+    {
+      "function": "prepared_refusal",
+      "line": 25,
+      "source": "res://test/test_underground_surface_anchor.gd"
+    },
+    {
+      "function": "prepared_location_into",
+      "line": 650,
+      "source": "res://scripts/core/underground_locations.gd"
+    },
+    {
+      "function": "_location_into",
+      "line": 830,
+      "source": "res://scripts/core/underground_routes.gd"
+    },
+    {
+      "function": "_edge_format_refusal",
+      "line": 850,
+      "source": "res://scripts/core/underground_routes.gd"
+    },
+    {
+      "function": "stage_refresh",
+      "line": 1209,
+      "source": "res://scripts/core/underground_routes.gd"
+    },
+    {
+      "function": "_stage_timber_routes",
+      "line": 1555,
+      "source": "res://scripts/core/underground_entry_bindings.gd"
+    },
+    {
+      "function": "stage_routes",
+      "line": 99,
+      "source": "res://scripts/core/underground_entry_bindings.gd"
+    },
+    {
+      "function": "_prepare_routes",
+      "line": 1973,
+      "source": "res://scripts/core/underground_connector_placements.gd"
+    },
+    {
+      "function": "_prepare_completion_candidates",
+      "line": 1889,
+      "source": "res://scripts/core/underground_connector_placements.gd"
+    },
+    {
+      "function": "prepare_completion",
+      "line": 1872,
+      "source": "res://scripts/core/underground_connector_placements.gd"
+    },
+    {
+      "function": "_prepare_completion",
+      "line": 354,
+      "source": "res://scripts/core/underground_connector_work.gd"
+    },
+    {
+      "function": "transition_refusal",
+      "line": 337,
+      "source": "res://scripts/core/underground_connector_work.gd"
+    },
+    {
+      "function": "_completion_refusal",
+      "line": 997,
+      "source": "res://scripts/core/modular_projects.gd"
+    },
+    {
+      "function": "complete_order",
+      "line": 970,
+      "source": "res://scripts/core/modular_projects.gd"
+    },
+    {
+      "function": "_complete_l0_installation",
+      "line": 806,
+      "source": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/diagnose_location_budget.gd"
+    },
+    {
+      "function": "test_four_real_l0_cubes_then_paid_l0_installation_conserve_all_adopted_goods",
+      "line": 822,
+      "source": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/diagnose_location_budget.gd"
+    },
+    {
+      "function": "run_probe",
+      "line": 1146,
+      "source": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/diagnose_location_budget.gd"
+    },
+    {
+      "function": "_initialize",
+      "line": 13,
+      "source": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/run_location_budget_probe.gd"
+    }
+  ],
+  "stage_count": 17,
+  "total_successfully_spent": 1048237,
+  "original_maximum": 1048576,
+  "scope": "Same unchanged phase-world-28 forwarding probe; production predicates and all limits unchanged. Diagnostic allocation and timing are not qualification."
+}

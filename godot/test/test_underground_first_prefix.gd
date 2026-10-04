@@ -297,7 +297,7 @@ func _frontier_endpoints(bytes: PackedByteArray) -> void:
 	_append_endpoint(bytes, Frontier.INSTALLED_CONTACT, 0, 1, Locations.ROLE_WORK, Vector3i(0, 0, -1536))
 	for ordinal: int in 6:
 		_append_endpoint(bytes, Frontier.SURFACE_CONTACT, -1, 0, Locations.ROLE_WORK, Source.side_root(ordinal))
-	_append_endpoint(bytes, Frontier.INSTALLED_CONTACT, 1, 2, Locations.ROLE_WORK, Vector3i(0, -128, -2304))
+	_append_endpoint(bytes, Frontier.INSTALLED_CONTACT, 1, 2, Locations.ROLE_TRANSIT, Vector3i(0, -128, -2304))
 
 
 func _append_endpoint(bytes: PackedByteArray, kind: int, assembly: int, datum: int, role: int, point: Vector3i) -> void:

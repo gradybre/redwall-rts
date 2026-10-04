@@ -1,0 +1,6 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Could not resolve class "res://test/test_underground_entry_world_bindings.gd".
+          at: GDScript::reload (/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/diagnose_location_budget.gd:45)
+ERROR: Failed to load script "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-28/diagnose_location_budget.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)

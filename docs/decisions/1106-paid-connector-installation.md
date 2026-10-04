@@ -479,3 +479,31 @@ Root independently reviewed sourcea6454ab7…/test285f6a4f… and found no
 high/medium issue in the explicitly live, unprepared phase scope. Prepared
 Space companions, native memory, whole-worker timing and production entry
 content remain open gates.
+
+## Exact prepared phase composition (1119, 2026-10-04)
+
+The reviewed1121 actual PhaseContext now supplies the prepared binding that
+the earlier live-only phase increment deliberately refused. Contacts retains
+only one additional I64 companion token. `bind_prepared_phase` accepts the
+same already-observed Placement/Site/Room/Project, operation/stage, original
+Budget/cold/Space tokens and actual sealed Location/Routes candidates. The
+typed packet must match independent issuer controls and current source and
+geometry revisions. Binding performs no replacement endpoint/path query or
+motion copy, and cannot turn a numeric token into permission.
+
+Prepared Terrain reads use the original actual context. Final observation
+finishes before direct worker, physical and source leaves; no ordinary live
+Location read replaces a sealed observation. COMMIT/CANCEL remain worker-free
+after actual Sites release while retaining exact current source, output/input
+and prepared publication proofs. Exact discard cannot clear a foreign or
+replacement operation. The real1119 fixture covers wrong full tuples, old and
+replaced tokens, actual late worker displacement and terminal refusal/retry.
+
+The numeric payload is3059, including the original companion token, plus the
+existing1024 helper allowance:4083 within4096. The retained packed banks are
+unchanged. `prepared_contacts_census.py` records321 own numeric frame bytes
+plus the existing512 nested-reader ceiling, or833. Runtime reflection in the
+Contacts suite checks the3059 payload independently. References, packed and
+object headers, native frames and whole-worker timing remain unqualified.
+This is an actual phase composition increment, not a production motion or
+playable entrance certificate.

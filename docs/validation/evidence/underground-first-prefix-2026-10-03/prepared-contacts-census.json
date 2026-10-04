@@ -1,0 +1,245 @@
+{
+  "source": "godot/scripts/core/underground_connector_contacts.gd",
+  "source_sha256": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d",
+  "scope": "Numeric arguments and typed locals in direct own-file calls; refs, native frames and temporaries are not measured",
+  "runtime_reflection_test": "test_reflected_fixed_packets_fit_the_admitted_control_reserve",
+  "reused_packet_bytes": {
+    "top_level_packed": 452,
+    "numeric_members": 221,
+    "order_record": 96,
+    "two_location_records": 232,
+    "descriptor": 184,
+    "selection": 168,
+    "two_box_records": 64,
+    "int_result": 9,
+    "fragments": 1633
+  },
+  "reused_total": 3059,
+  "longest_own_chain_bytes": 321,
+  "chain": [
+    {
+      "function": "phase_observe_refusal",
+      "bytes": 56,
+      "numeric_fields": [
+        [
+          "placement",
+          "Vector2i"
+        ],
+        [
+          "site",
+          "Vector2i"
+        ],
+        [
+          "episode",
+          "int"
+        ],
+        [
+          "operation",
+          "int"
+        ],
+        [
+          "stage",
+          "int"
+        ],
+        [
+          "cold_token",
+          "int"
+        ],
+        [
+          "space_token",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_resolve_proof",
+      "bytes": 1,
+      "numeric_fields": [
+        [
+          "require_worker",
+          "bool"
+        ]
+      ]
+    },
+    {
+      "function": "_crew_leaf",
+      "bytes": 48,
+      "numeric_fields": [
+        [
+          "primary",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "count",
+          "int"
+        ],
+        [
+          "workers",
+          "int"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "worker",
+          "Vector2i"
+        ]
+      ]
+    },
+    {
+      "function": "_worker_leaf",
+      "bytes": 24,
+      "numeric_fields": [
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_occupancy_leaf",
+      "bytes": 24,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "other",
+          "Vector2i"
+        ]
+      ]
+    },
+    {
+      "function": "_dynamic_selection",
+      "bytes": 56,
+      "numeric_fields": [
+        [
+          "row",
+          "int"
+        ],
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "profile",
+          "int"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_prepare_dynamic_leaf",
+      "bytes": 48,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "posture",
+          "int"
+        ],
+        [
+          "family",
+          "int"
+        ],
+        [
+          "hint",
+          "Vector2i"
+        ]
+      ]
+    },
+    {
+      "function": "_dynamic_job_leaf",
+      "bytes": 40,
+      "numeric_fields": [
+        [
+          "worker",
+          "Vector2i"
+        ],
+        [
+          "job",
+          "Vector2i"
+        ],
+        [
+          "mode",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ],
+        [
+          "worker_row",
+          "int"
+        ]
+      ]
+    },
+    {
+      "function": "_dynamic_directory_row",
+      "bytes": 24,
+      "numeric_fields": [
+        [
+          "ref",
+          "Vector2i"
+        ],
+        [
+          "kind",
+          "int"
+        ],
+        [
+          "row",
+          "int"
+        ]
+      ]
+    }
+  ],
+  "existing_nested_reader_helper_allowance": 512,
+  "conservative_nested_sum": 833,
+  "admitted_helper_allowance": 1024,
+  "total_with_allowance": 4083,
+  "contacts_reserve": 4096,
+  "native_qualification": false
+}

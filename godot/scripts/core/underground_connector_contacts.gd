@@ -186,6 +186,7 @@ var _phase_operation: int = -1
 var _phase_episode: int = -1
 var _phase_cold_token: int = 0
 var _phase_space_token: int = 0
+var _phase_companion_token: int = 0
 var _phase_output_location: Vector2i = NULL_REF
 var _phase_output_payload: int = 0
 var _phase_output_container: Vector2i = NULL_REF
@@ -311,6 +312,7 @@ func _pin_scope(placement: Vector2i, project: Vector2i, assembly: int, action: i
 	"""Pin the actual next prefix and source tuple before any endpoint or profile observation."""
 	_valid = false
 	_phase_mode = false
+	_phase_companion_token = 0
 	if placement != _placement or project != _project:
 		_primary_job = NULL_REF
 		_material_container = NULL_REF
@@ -992,13 +994,15 @@ func _world_face(face: int) -> int:
 
 
 func _terrain_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
-	"""COMMIT uses only the same exact sealed installation context; unrelated preparations grant no local proof."""
+	"""Only the exact original sealed installation or phase context admits prepared local facts."""
 	if not _fragments.spend(256 + 16 * Terrain.LOCAL_TILE_LIMIT):
 		return REFUSE_CAPACITY
 	if _placements._space._stage_token == 0:
 		return _terrain.local_facts_refusal(bounds, purpose, _geometry_revision)
 	if _phase_mode:
-		return REFUSE_PHASE_PREPARED
+		var code: StringName = _prepared_phase_leaf(_phase_space_token, _phase_companion_token)
+		return code if code != &"" else _terrain.prepared_local_facts_refusal(bounds, purpose,
+			_geometry_revision, _phase_space_token, _phase_cold_token)
 	if _action != Contract.COMMIT or _placements._prepared_placement != _placement \
 			or _placements._prepared_project != _project or _placements._prepared_assembly != _ordinal:
 		return REFUSE_SCOPE
@@ -1708,7 +1712,8 @@ func _geometry_context_leaf() -> StringName:
 	if owner._stage_token == 0:
 		return FinalFacts._binding_refusal(owner, graph, locations, _geometry_revision)
 	if _phase_mode:
-		return REFUSE_PHASE_PREPARED
+		var code: StringName = _prepared_phase_leaf(_phase_space_token, _phase_companion_token)
+		return _phase_geometry_leaf() if code == &"" else code
 	if _action != Contract.COMMIT or _placements._prepared_placement != _placement \
 			or _placements._prepared_project != _project or _placements._prepared_assembly != _ordinal \
 			or _placements._cold_token <= 0 or not _placements._budget.covers(_placements._cold_token, _placements._cold_bytes) \
@@ -1826,6 +1831,7 @@ func _pin_phase_scope(placement: Vector2i, site: Vector2i, episode: int, operati
 	_phase_episode = episode
 	_phase_cold_token = cold_token
 	_phase_space_token = space_token
+	_phase_companion_token = 0
 	_project = Vector2i(_sites._project_slot[site.x], _sites._project_generation[site.x])
 	_action = _phase_action(stage)
 	_geometry_revision = _placements._space._header[17]
@@ -1867,9 +1873,72 @@ func _phase_token_leaf() -> StringName:
 		return REFUSE_SCOPE
 	if _phase_cold_token > 0 and not _placements._budget.covers(_phase_cold_token, CONTROL_BYTES):
 		return REFUSE_SCOPE
-	if _phase_space_token != 0 or _placements._space._stage_token != 0:
-		return REFUSE_PHASE_PREPARED
+	if _phase_space_token != 0 or _phase_companion_token != 0 or _placements._space._stage_token != 0:
+		return _prepared_phase_leaf(_phase_space_token, _phase_companion_token)
 	return &""
+
+
+func bind_prepared_phase(placement: Vector2i, site: Vector2i, operation: int, stage: int,
+		cold_token: int, space_token: int, companion_token: int) -> StringName:
+	"""Attach the actual sealed context to the existing live observation; no endpoint or route is re-observed."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = REFUSE_SCOPE
+	if _valid and _phase_mode and placement == _placement and site == _phase_site \
+			and operation == _phase_operation and _phase_action(stage) == _action \
+			and cold_token > 0 and cold_token == _phase_cold_token \
+			and (_phase_space_token == 0 or _phase_space_token == space_token) \
+			and (_phase_companion_token == 0 or _phase_companion_token == companion_token):
+		code = _prepared_phase_leaf(space_token, companion_token)
+	if code != &"": return _leave(code)
+	var old_space: int = _phase_space_token
+	var old_companion: int = _phase_companion_token
+	_phase_space_token = space_token
+	_phase_companion_token = companion_token
+	code = _scope_leaf()
+	if code != &"":
+		_phase_space_token = old_space
+		_phase_companion_token = old_companion
+	return _leave(code)
+
+
+func _prepared_phase_leaf(space_token: int, companion_token: int) -> StringName:
+	"""Direct actual issuer controls and the original observed full tuple qualify one sealed phase context."""
+	if not _phase_mode or space_token <= 0 or companion_token <= 0 or _phase_cold_token <= 0:
+		return REFUSE_PHASE_PREPARED
+	var context: Locations.PhaseContext = _placements._phase_context
+	var authority: RefCounted = _sites._space.get_ref() if _sites._space != null else null
+	if context == null or authority == null or context.placement != _placement or context.site != _phase_site \
+			or context.room != _order.corridor or context.project != _project or context.operation != _phase_operation \
+			or _phase_action(context.stage) != _action or context.cold_token != _phase_cold_token \
+			or context.space_token != space_token or context.location_token != companion_token \
+			or context.world != _order.world or context.budget != _placements._budget \
+			or context.base_revision != _geometry_revision or context.target_revision != _geometry_revision + 1 \
+			or context.profile_revision != _frontier._header[5] \
+			or context.catalog_revision != _order.catalog_revision \
+			or context.placement_revision != _placements._live.header[Placements.H_REVISION] \
+			or _placements._location_token != companion_token or _placements._route_token != context.route_token:
+		return REFUSE_PHASE_PREPARED
+	var code: StringName = Placements.phase_operation_leaf_refusal(_placements, authority, _phase_site,
+		_phase_operation, context.stage, _order.corridor, _project, _phase_cold_token, space_token)
+	return _phase_geometry_leaf() if code == &"" else code
+
+
+func _phase_geometry_leaf() -> StringName:
+	"""Sealed original companions preserve live predecessors; query/retention reentry and foreign domains refuse."""
+	var owner: Owner = _placements._space
+	var graph: Routes = _placements._routes
+	var locations: Locations = _placements._locations
+	var context: Locations.PhaseContext = _placements._phase_context
+	if locations._token != context.location_token or not locations._sealed or graph._token != context.route_token \
+			or not graph._sealed or _placements._world_routes._route_token != context.route_token \
+			or not _placements._world_routes._sealed or _placements._world_routes._proof != null \
+			or graph._in_callback or graph._advancing or graph._searching or graph._occupancy_reading \
+			or locations._in_retention or owner._room_callback or owner._validation_sources >= 0 \
+			or owner._validation_regions >= 0:
+		return REFUSE_PHASE_PREPARED
+	return &"" if FinalFacts._location_binding(locations, owner) \
+		and FinalFacts._same_domain(owner._domain, locations._domain) \
+		and FinalFacts._same_domain(owner._domain, graph._domain) else REFUSE_BINDING
 
 
 func _episode_source_leaf() -> StringName:
@@ -2062,12 +2131,13 @@ func _phase_contact_scope(placement: Vector2i, site: Vector2i, operation: int, j
 
 
 func phase_final_observation_refusal(placement: Vector2i, site: Vector2i, operation: int, stage: int) -> StringName:
-	"""All observation hooks finish before the direct final phase proof; prepared companions remain unbound."""
+	"""Finish ordinary observers before the direct phase leaf; sealed companions use the retained endpoint payload."""
 	if not _enter(): return REFUSE_REENTRY
 	var code: StringName = _retained_phase_scope(placement, site, operation, stage)
 	if code == &"" and _action != Contract.CANCEL: code = _profile_refusal()
 	if code == &"" and _phase_needs_worker(): code = _observe_workers()
-	if code == &"" and _station_location != NULL_REF: code = _placements._locations.read_location_into(_station_location, _other)
+	if code == &"" and _station_location != NULL_REF and _placements._locations._token == 0:
+		code = _placements._locations.read_location_into(_station_location, _other)
 	return _leave(code if code != &"" else _scope_leaf())
 
 
@@ -2096,3 +2166,5 @@ func discard_phase(placement: Vector2i, site: Vector2i, operation: int, stage: i
 		_primary_job = NULL_REF
 		_material_container = NULL_REF
 		_phase_output_container = NULL_REF
+		_phase_companion_token = 0
+		_phase_space_token = 0

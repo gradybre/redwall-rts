@@ -1,0 +1,38 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.197,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "145/377",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-first-prefix-2026-10-03/phase-world-17"
+      ],
+      "exit_code": 1,
+      "seconds": 16.703,
+      "log": "test_underground_entry_world_bindings.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-entry-phase",
+  "project_test_sha256": "f877c006114ed2574b81dc2f7624db173b0d3ac53ec0efe11ef8c89a6d14adb8",
+  "assets_present_before": false,
+  "error": "test_underground_entry_world_bindings.gd.log",
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

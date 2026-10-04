@@ -1676,3 +1676,15 @@ above; it is not an additional retained allocation or a second paid ledger.
 | Synchronous Room admission context | One RoomContext80B, private candidate32B and flag1B | Adds113 logical bytes to Placement1557, giving1670 within the existing2048 fixed allowance. Existing native header/reference reservation remains provisional; no authoritative per-row expansion. All exact original tokens and weak issuer links clear on completion/discard. |
 | Existing endpoint/path/certificate refresh | Existing inactive banks only | Same full old handles/payloads; all rows refresh to exact sealed geometry/content. The pure final leaf runs before Room/Sites identity. Actual success receipts then permit static observer-free swaps. No new endpoint, edge, installed part, work counter or physical permission. |
 | Sequential cold request and proof lifetime | Two EntryPlan images plus one Location or WorldRoutes proof | Exact runtime admission is2*payload + max(88K+384,377856)+2048 under the original Budget; sizes and lease rechecked after observers. Both proof images drop before Sites batch creation. At R/K6144 and maximum conservative6143 claims/16 targets:838936 Location,675736 graph,644120 final Sites logical bytes. Concrete provider scratch/native overlap still requires joint admission. |
+
+### Existing Placement frame and endpoint readers (decision1105)
+
+The additive readers introduce no owner field, canonical column, packed bank,
+mapping or snapshot. Caller frame9I32=36 bytes and endpoint2I32=8 bytes can
+coexist with the existing96+32-byte order/assembly pair. Their172 numeric bytes
+plus a256-byte bounded helper-frame ceiling fit the explicitly borrowed512-byte
+cold control allowance; this is part of the invoking original Budget lease,
+not another arena. Extra Frontier/contact state and unmeasured native headers
+remain the composing caller's separate obligation. Lookup reads current full
+Room/World/section/source identity and grants no installed-prefix or physical
+permission.

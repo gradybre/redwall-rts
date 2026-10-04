@@ -1,0 +1,312 @@
+test_compressed_expanded_capacity_refuses_before_array_decode (test_loaded_gait.LoaderCapacityTests.test_compressed_expanded_capacity_refuses_before_array_decode) ... FAIL
+test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) ... 
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=0) ... FAIL
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=1) ... FAIL
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=2) ... FAIL
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=3) ... FAIL
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=4) ... FAIL
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=5) ... FAIL
+  test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=6) ... FAIL
+test_duplicate_missing_or_additional_zip_members_refuse_before_decode (test_loaded_gait.LoaderCapacityTests.test_duplicate_missing_or_additional_zip_members_refuse_before_decode) ... 
+  test_duplicate_missing_or_additional_zip_members_refuse_before_decode (test_loaded_gait.LoaderCapacityTests.test_duplicate_missing_or_additional_zip_members_refuse_before_decode) (names=['matrices.npy', 'grounding.npy', 'grounding.npy']) ... FAIL
+test_huge_declared_shape_short_payload_refuses_before_array_decode (test_loaded_gait.LoaderCapacityTests.test_huge_declared_shape_short_payload_refuses_before_array_decode) ... FAIL
+test_second_member_is_preflighted_before_first_array_materializes (test_loaded_gait.LoaderCapacityTests.test_second_member_is_preflighted_before_first_array_materializes) ... FAIL
+test_valid_stored_compressed_and_npy_v2_match_exact_payload (test_loaded_gait.LoaderCapacityTests.test_valid_stored_compressed_and_npy_v2_match_exact_payload) ... ok
+test_zip_directory_capacity_precedes_zipfile_allocation (test_loaded_gait.LoaderCapacityTests.test_zip_directory_capacity_precedes_zipfile_allocation) ... FAIL
+
+======================================================================
+FAIL: test_compressed_expanded_capacity_refuses_before_array_decode (test_loaded_gait.LoaderCapacityTests.test_compressed_expanded_capacity_refuses_before_array_decode)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 67, in test_compressed_expanded_capacity_refuses_before_array_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=0)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=1)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=2)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=3)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=4)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=5)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_dtype_order_shape_header_and_payload_are_exact_before_decode (test_loaded_gait.LoaderCapacityTests.test_dtype_order_shape_header_and_payload_are_exact_before_decode) (case=6)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 108, in test_dtype_order_shape_header_and_payload_are_exact_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_duplicate_missing_or_additional_zip_members_refuse_before_decode (test_loaded_gait.LoaderCapacityTests.test_duplicate_missing_or_additional_zip_members_refuse_before_decode) (names=['matrices.npy', 'grounding.npy', 'grounding.npy'])
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 92, in test_duplicate_missing_or_additional_zip_members_refuse_before_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_huge_declared_shape_short_payload_refuses_before_array_decode (test_loaded_gait.LoaderCapacityTests.test_huge_declared_shape_short_payload_refuses_before_array_decode)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 74, in test_huge_declared_shape_short_payload_refuses_before_array_decode
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_second_member_is_preflighted_before_first_array_materializes (test_loaded_gait.LoaderCapacityTests.test_second_member_is_preflighted_before_first_array_materializes)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 81, in test_second_member_is_preflighted_before_first_array_materializes
+    self.refuses_before_materializing(path)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 57, in refuses_before_materializing
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 28, in load_case
+    matrices, grounding = image["matrices"], image["grounding"]
+                          ~~~~~^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 257, in __getitem__
+    return format.read_array(
+           ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: NPY materialization reached
+
+======================================================================
+FAIL: test_zip_directory_capacity_precedes_zipfile_allocation (test_loaded_gait.LoaderCapacityTests.test_zip_directory_capacity_precedes_zipfile_allocation)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 116, in test_zip_directory_capacity_precedes_zipfile_allocation
+    P.load_case(path, 0)
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 26, in load_case
+    with np.load(path, allow_pickle=False) as image:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 471, in load
+    ret = NpzFile(fid, own_fid=own_fid, allow_pickle=allow_pickle,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 197, in __init__
+    _zip = zipfile_factory(fid)
+           ^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/site-packages/numpy/lib/_npyio_impl.py", line 112, in zipfile_factory
+    return zipfile.ZipFile(file, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1139, in __call__
+    return self._mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1143, in _mock_call
+    return self._execute_mock_call(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/unittest/mock.py", line 1198, in _execute_mock_call
+    raise effect
+AssertionError: ZIP directory allocation reached
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.060s
+
+FAILED (failures=12)

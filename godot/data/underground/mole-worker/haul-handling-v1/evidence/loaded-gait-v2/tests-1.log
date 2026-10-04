@@ -1,0 +1,71 @@
+test_exact_proof_capacity_exhaustion_refuses (__main__.ExactPolynomialTests.test_exact_proof_capacity_exhaustion_refuses) ... ok
+test_interior_stock_degeneracy_and_detached_hand_refuse (__main__.ExactPolynomialTests.test_interior_stock_degeneracy_and_detached_hand_refuse) ... ok
+test_positive_endpoints_do_not_prove_the_interior (__main__.ExactPolynomialTests.test_positive_endpoints_do_not_prove_the_interior) ... ok
+test_real_endpoint_contacts_can_leave_triangle_between_keys (__main__.ExactPolynomialTests.test_real_endpoint_contacts_can_leave_triangle_between_keys) ... ok
+test_rotating_affine_stock_keeps_the_real_edge_intersection (__main__.ExactPolynomialTests.test_rotating_affine_stock_keeps_the_real_edge_intersection) ... ok
+test_complete_loaded_motion_keeps_every_primitive_and_supported_contact (__main__.ActualGaitTests.test_complete_loaded_motion_keeps_every_primitive_and_supported_contact) ... FAIL
+test_complete_stock_crossing_body_between_clear_keys_refuses (__main__.ActualGaitTests.test_complete_stock_crossing_body_between_clear_keys_refuses) ... ok
+test_current_source_legs_and_whole_stock_survive_every_original_key (__main__.ActualGaitTests.test_current_source_legs_and_whole_stock_survive_every_original_key) ... ok
+test_grounding_change_cannot_hide_full_mesh_floor_penetration (__main__.ActualGaitTests.test_grounding_change_cannot_hide_full_mesh_floor_penetration) ... ERROR
+test_late_hand_departure_cannot_inherit_a_frozen_contact (__main__.ActualGaitTests.test_late_hand_departure_cannot_inherit_a_frozen_contact) ... ok
+test_lift_hold_gait_recovery_place_and_repost_share_exact_hub (__main__.ActualGaitTests.test_lift_hold_gait_recovery_place_and_repost_share_exact_hub) ... ok
+test_rejected_original_sole_transfer_still_refuses_without_added_key (__main__.ActualGaitTests.test_rejected_original_sole_transfer_still_refuses_without_added_key) ... ERROR
+test_reviewed_static_and_four_phase_sources_are_unchanged (__main__.ActualGaitTests.test_reviewed_static_and_four_phase_sources_are_unchanged) ... ok
+test_wrong_key_shape_nan_or_excess_capacity_refuses (__main__.ActualGaitTests.test_wrong_key_shape_nan_or_excess_capacity_refuses) ... ok
+
+======================================================================
+ERROR: test_grounding_change_cannot_hide_full_mesh_floor_penetration (__main__.ActualGaitTests.test_grounding_change_cannot_hide_full_mesh_floor_penetration)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 167, in test_grounding_change_cannot_hide_full_mesh_floor_penetration
+    result = self.prove(changed)
+             ^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 94, in prove
+    return P.prove(case, cls.body, cls.wood, cls.body_tri, cls.wood_tri,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 51, in prove
+    intervals = A.P.rendered_intervals(case)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/compile_profiles.py", line 55, in rendered_intervals
+    loop, _ = rendered_timing(case)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/compile_profiles.py", line 42, in rendered_timing
+    require((count - 2) * 65536 < ticks <= (count - 1) * 65536 and
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: CONTACT_CLIP_DURATION
+
+======================================================================
+ERROR: test_rejected_original_sole_transfer_still_refuses_without_added_key (__main__.ActualGaitTests.test_rejected_original_sole_transfer_still_refuses_without_added_key)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 129, in test_rejected_original_sole_transfer_still_refuses_without_added_key
+    result = self.prove(case_slice(original, 20, 21))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 94, in prove
+    return P.prove(case, cls.body, cls.wood, cls.body_tri, cls.wood_tri,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py", line 51, in prove
+    intervals = A.P.rendered_intervals(case)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/compile_profiles.py", line 55, in rendered_intervals
+    loop, _ = rendered_timing(case)
+              ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/compile_profiles.py", line 42, in rendered_timing
+    require((count - 2) * 65536 < ticks <= (count - 1) * 65536 and
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: CONTACT_CLIP_DURATION
+
+======================================================================
+FAIL: test_complete_loaded_motion_keeps_every_primitive_and_supported_contact (__main__.ActualGaitTests.test_complete_loaded_motion_keeps_every_primitive_and_supported_contact)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_loaded_gait.py", line 110, in test_complete_loaded_motion_keeps_every_primitive_and_supported_contact
+    self.assertEqual(self.reports["carry"]["intervals"][-1]["interval"], (217, 0))
+AssertionError: [217, 0] != (217, 0)
+
+----------------------------------------------------------------------
+Ran 14 tests in 67.892s
+
+FAILED (failures=1, errors=2)

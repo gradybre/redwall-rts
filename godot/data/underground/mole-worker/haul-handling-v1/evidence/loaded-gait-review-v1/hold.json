@@ -1,0 +1,114 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "clip": "hold",
+  "source_proof": {
+    "all_intervals_complete": true,
+    "non_grip_separation": true,
+    "unresolved": [],
+    "initial_contained_vertices": [],
+    "pairs": 0,
+    "checks": 0,
+    "floor_penetrations": [],
+    "supported_feet": true,
+    "support_failures": [],
+    "continuous_two_hand_contact": true,
+    "grip_failures": [],
+    "body_triangles": 10209,
+    "non_grip_triangles": 9283,
+    "intentional_grip_triangles": [
+      478,
+      448
+    ],
+    "stock_triangles": 768,
+    "body_union_u": [
+      -422,
+      0,
+      -397,
+      432,
+      849,
+      233
+    ],
+    "stock_union_u": [
+      -412,
+      448,
+      -435,
+      412,
+      550,
+      -333
+    ],
+    "foot_union_u": [
+      [
+        -274,
+        0,
+        -169,
+        -79,
+        98,
+        89
+      ],
+      [
+        70,
+        0,
+        -64,
+        298,
+        102,
+        173
+      ]
+    ],
+    "rendered_timing": [
+      0,
+      65536
+    ],
+    "intervals": [
+      {
+        "interval": [
+          0,
+          1
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ],
+        "grips": [
+          {
+            "contact": true,
+            "nodes": 6,
+            "degrees": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          },
+          {
+            "contact": true,
+            "nodes": 6,
+            "degrees": [
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "scope": "Exact rendered affine source edges, including penultimate-to-first loop wrap; no native error, adopted rate, root advance or runtime permission.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_loaded_gait.py": "292afdc251cf9354ce7738a4dba56f5b9b25779b7b5505d2818d57bc9e985148",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_carried_grip.py": "05b20c42e254aa33753aabf30f3e7b3c46dad69da3a123760076c5125ec25747",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_program.py": "66eb45433580ff495ffdd32dd9f251f875443a8d500ed2cf7b80ac4ee8efe3bb",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/loaded-gait-review-v1/candidate/hold.npz": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/static-contact.json": "5f7839659edf811e6a71c72f0e4770d7cc4a4512be3572307b104868f4327f52",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/wood-topology-v1.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+  }
+}

@@ -113,3 +113,44 @@ independent evidence under `docs/validation/evidence/underground-haul-static-rev
 and `docs/validation/evidence/underground-haul-program-review-2026-10-04/` on the
 integration branch. Both verdicts are source-only; none of the open activation
 gates above is waived.
+
+## Exact-one-unit loaded source checkpoint
+
+The next variant represents exactly 1,000 quantity-milli of the actual wood
+mesh, using the Catalog's existing 5,000 g/unit mass. Repeated actual one-unit
+deliveries can meet whole-unit timber bills; this does not change general
+Inventory quantities or erase a partial remainder. Future runtime admission
+must prove the admitted and carried quantity is exactly 1,000 at every boundary.
+The existing 2,000 mWU load and unload amounts are unchanged. No hauling speed
+is adopted by source animation timing.
+
+Five additive source tools author and prove hold, entry, loaded gait and reverse
+entry using the complete current meshes. They retain all 197 original supplied
+gait keys, adding measured sole-transfer keys where the original candidate lost
+continuous support. The four resulting clips contain 351 stored palettes and
+347 rendered intervals, including the actual loop wrap. Exact rational
+Bernstein sign proofs preserve both real curved hand contacts; full non-grip
+triangles, stock overhang, floor and continuous sole witnesses remain required.
+The rejected original support intervals are retained and still refuse.
+
+Geometry's independent review read the five files, verified 32 input and 40
+output hashes, and replayed all 15 initial tests. It found one loader capacity
+defect: a small compressed NPZ allocated oversized arrays before rejecting the
+key count. The corrected loader bounds the immutable disk image, ZIP directory,
+member names, both NPY headers, exact float32/C-order shapes and payload sizes
+before array decoding, with explicitly bounded decompression reads. Eight new
+loader tests and the complete 23-case suite pass against unchanged geometry.
+The old compressed-allocation witness and failed regression run remain in
+`haul-handling-v1/evidence/loaded-gait-loader-review-v2/`. Independent correction
+review accepted the exact source pins and re-ran the eight loader tests; its
+evidence is `docs/validation/evidence/underground-loaded-gait-review-2026-10-04/`
+on Geometry's branch.
+
+This is a source-only acceptance. Raw palette arithmetic for these clips is
+422,604 bytes, or 716,380 including the prior four-phase source, before mesh,
+headers, decode, replacement and presentation lifetimes. It is not runtime
+admission into the 100 MB gate. Native error/replay, finite World support and
+root advancement, loaded turns, empty-ground joins, BUILD set-down, immutable
+runtime contact/quantity publication and joint source memory remain open. The
+entire subtree is offline importer-ignored; future runtime images must be staged
+explicitly outside it.

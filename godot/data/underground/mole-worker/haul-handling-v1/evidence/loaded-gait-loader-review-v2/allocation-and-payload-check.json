@@ -1,0 +1,55 @@
+{
+  "compressed_bytes": 5259,
+  "old_file_gate_bytes": 312320,
+  "rejected": {
+    "decoded_arrays_before_refusal": [
+      {
+        "shape": [
+          4096,
+          25,
+          12
+        ],
+        "nbytes": 4915200
+      },
+      {
+        "shape": [
+          4096
+        ],
+        "nbytes": 16384
+      }
+    ],
+    "total_array_bytes": 4931584,
+    "refusal": "HAUL_GAIT_KEYS"
+  },
+  "corrected": {
+    "decoded_arrays_before_refusal": [],
+    "total_array_bytes": 0,
+    "refusal": "HAUL_GAIT_IMAGE_CAPACITY"
+  },
+  "valid_images": {
+    "hold": {
+      "source_sha256": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f",
+      "exact_original_payload": true,
+      "frames": 2
+    },
+    "enter": {
+      "source_sha256": "48a1f87eda9c4f8e73dd6283deb11dd7c9cbe881169b88dd6d4111c6f5a716a9",
+      "exact_original_payload": true,
+      "frames": 65
+    },
+    "carry": {
+      "source_sha256": "c3ced322b3c67fcd287daca9b5bc91dc259d11115f18c9e60b0e503f91e37a56",
+      "exact_original_payload": true,
+      "frames": 219
+    },
+    "exit": {
+      "source_sha256": "d36a340761a9e8351c1ec7ef8a30a8ff41f5b7d228251245536db7ab0a8cbe6b",
+      "exact_original_payload": true,
+      "frames": 65
+    }
+  },
+  "current_source_sha256": {
+    "prove_loaded_gait.py": "4b3702a73c7792bdbfd259cae2fba80014a753c57e837a1b08973bf90ae1f1ef",
+    "test_loaded_gait.py": "5de8c192cb13997dfdb83320199d9eb804f75dba028cecbdbc77e52fb0555b54"
+  }
+}

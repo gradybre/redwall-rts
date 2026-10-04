@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "variant": {
+    "name": "wood_one_unit_v1",
+    "quantity_milli": 1000,
+    "mass_g": 5000,
+    "mass_scope": "Existing Catalog wood mapping; no new density or balancing rule.",
+    "other_quantities": "Refuse this physical source; general Inventory and partial transfers remain unchanged."
+  },
+  "source_hub_sha256": "0a18b5f1198a2cf9c6cc9344960a3b26b59c358c1e18153adc59999aab506c7b",
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "source_body_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "source_wood_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80",
+  "clips": {
+    "hold": {
+      "frames": 2,
+      "loop_mode": 0,
+      "sha256": "778fee6b52ccdb154f667d169cd620cce13e6c887ab136ae3b22d68bf9b3f20f"
+    },
+    "enter": {
+      "frames": 61,
+      "loop_mode": 0,
+      "sha256": "32418c2e467e39d04728ff9f1c849868c47ac0cc0063e2a05f4f363616b7cf53"
+    },
+    "carry": {
+      "frames": 197,
+      "loop_mode": 1,
+      "sha256": "78af6e673472e6486b05c26f6c178bc544cbaae8584ffbe10d25b78b8e202d9f"
+    },
+    "exit": {
+      "frames": 61,
+      "loop_mode": 0,
+      "sha256": "1046cff94bcaf663b651d1df3f80edc907d348571b4a31dd4a1956e41b7e7fe2"
+    }
+  },
+  "source_timing_only": true,
+  "runtime_carry_rate_adopted": false,
+  "missing": [
+    "continuous body/stock/foot proof",
+    "native arithmetic",
+    "turns",
+    "empty-ground approach join",
+    "actual distance/root progression",
+    "runtime exact1U/station/contact binding",
+    "joint memory admission"
+  ]
+}

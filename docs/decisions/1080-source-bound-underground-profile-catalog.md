@@ -1046,3 +1046,30 @@ CI evidence in `contact-qualification/driver-compact-check-v2` reports8 tests,
 The rejected same-revision replacement fixture is preserved in v1; the real
 Profiles owner correctly required a new content revision. Native eleven-clip
 source, complete role/profile and actual stair traversal remain separate work.
+
+### Compact eleven-clip source compiler accepted
+
+Version2 now assembles443 exact native source frames into534,236 bytes with
+one compact carry/ready hub and separate down/high/front productive triples.
+Original productive down/high sources remain unchanged; common entry is
+rederived from actual local joints and every recovery exactly retraces its
+source. The new common entry proves30 intervals with122,059 checks; all155
+compact carry handoffs prove9,730,636 checks, both with0 unresolved pairs.
+Finite inverse-heading uncertainty and exact loop endpoints are retained.
+
+The compiler source-rederives all matrices, binds candidate/plan bytes to the
+actual image header, verifies every reused accepted interval/native-contact
+proof and retains the full body/tool/stance role partition. Role counts are
+7/7/11/12/11 for stand/walk/down/high/front, within existing bounds. The source
+image is f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37.
+Root independently reviewed all four frozen sources and30 source/output pins
+and reran7 tests successfully. Evidence is `review-compact-source-v1`; the
+geometry-association failure before any initial output remains in v1, with
+successful exact compilation in `compact-program-compile-v2`.
+
+This is a source component with0 production flags. Presentation allowance is
+7,027,396 plus shared WorldBasis544,768, including decode/copy overlap and the
+explicit native/control reservation, with actual native peak still unmeasured.
+The512u planted-work fixture is not stair travel. Actual varying-height foot
+support/root transitions and distinct INSTALL fastening/body/tool/contact
+source remain required; digging permission cannot replace installation.

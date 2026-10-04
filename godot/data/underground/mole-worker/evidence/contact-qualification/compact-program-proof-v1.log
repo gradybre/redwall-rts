@@ -1,0 +1,186 @@
+self-clearance-progress {"interval": 0, "checks": 4190, "pairs": 4190, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 8672, "pairs": 8672, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 13370, "pairs": 13370, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 18409, "pairs": 18409, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 23439, "pairs": 23439, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 28443, "pairs": 28443, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 33317, "pairs": 33317, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 38145, "pairs": 38145, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 42782, "pairs": 42782, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 47352, "pairs": 47352, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 51656, "pairs": 51656, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 55602, "pairs": 55602, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 59137, "pairs": 59137, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 62351, "pairs": 62351, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 65281, "pairs": 65281, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 68149, "pairs": 68149, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 71124, "pairs": 71124, "unresolved": 0}
+self-clearance-progress {"interval": 17, "checks": 74302, "pairs": 74302, "unresolved": 0}
+self-clearance-progress {"interval": 18, "checks": 77655, "pairs": 77655, "unresolved": 0}
+self-clearance-progress {"interval": 19, "checks": 81165, "pairs": 81165, "unresolved": 0}
+self-clearance-progress {"interval": 20, "checks": 84799, "pairs": 84799, "unresolved": 0}
+self-clearance-progress {"interval": 21, "checks": 88430, "pairs": 88430, "unresolved": 0}
+self-clearance-progress {"interval": 22, "checks": 92118, "pairs": 92118, "unresolved": 0}
+self-clearance-progress {"interval": 23, "checks": 95765, "pairs": 95765, "unresolved": 0}
+self-clearance-progress {"interval": 24, "checks": 99578, "pairs": 99578, "unresolved": 0}
+self-clearance-progress {"interval": 25, "checks": 103598, "pairs": 103598, "unresolved": 0}
+self-clearance-progress {"interval": 26, "checks": 107840, "pairs": 107840, "unresolved": 0}
+self-clearance-progress {"interval": 27, "checks": 112205, "pairs": 112205, "unresolved": 0}
+self-clearance-progress {"interval": 28, "checks": 117166, "pairs": 117166, "unresolved": 0}
+self-clearance-progress {"interval": 29, "checks": 122059, "pairs": 122059, "unresolved": 0}
+{"handoff": 1, "checks": 188368, "unresolved": 0}
+{"handoff": 2, "checks": 189209, "unresolved": 0}
+{"handoff": 3, "checks": 190020, "unresolved": 0}
+{"handoff": 4, "checks": 190799, "unresolved": 0}
+{"handoff": 5, "checks": 191541, "unresolved": 0}
+{"handoff": 6, "checks": 192245, "unresolved": 0}
+{"handoff": 7, "checks": 192798, "unresolved": 0}
+{"handoff": 8, "checks": 193172, "unresolved": 0}
+{"handoff": 9, "checks": 193432, "unresolved": 0}
+{"handoff": 10, "checks": 193685, "unresolved": 0}
+{"handoff": 11, "checks": 194028, "unresolved": 0}
+{"handoff": 12, "checks": 194476, "unresolved": 0}
+{"handoff": 13, "checks": 195039, "unresolved": 0}
+{"handoff": 14, "checks": 195673, "unresolved": 0}
+{"handoff": 15, "checks": 196346, "unresolved": 0}
+{"handoff": 16, "checks": 197111, "unresolved": 0}
+{"handoff": 17, "checks": 198082, "unresolved": 0}
+{"handoff": 18, "checks": 199289, "unresolved": 0}
+{"handoff": 19, "checks": 200610, "unresolved": 0}
+{"handoff": 20, "checks": 201790, "unresolved": 0}
+{"handoff": 21, "checks": 202823, "unresolved": 0}
+{"handoff": 22, "checks": 203944, "unresolved": 0}
+{"handoff": 23, "checks": 205364, "unresolved": 0}
+{"handoff": 24, "checks": 207484, "unresolved": 0}
+{"handoff": 25, "checks": 211515, "unresolved": 0}
+{"handoff": 26, "checks": 218377, "unresolved": 0}
+{"handoff": 27, "checks": 228858, "unresolved": 0}
+{"handoff": 28, "checks": 244056, "unresolved": 0}
+{"handoff": 29, "checks": 264449, "unresolved": 0}
+{"handoff": 30, "checks": 290026, "unresolved": 0}
+{"handoff": 31, "checks": 320517, "unresolved": 0}
+{"handoff": 32, "checks": 355949, "unresolved": 0}
+{"handoff": 33, "checks": 396088, "unresolved": 0}
+{"handoff": 34, "checks": 441885, "unresolved": 0}
+{"handoff": 35, "checks": 493314, "unresolved": 0}
+{"handoff": 36, "checks": 547779, "unresolved": 0}
+{"handoff": 37, "checks": 602835, "unresolved": 0}
+{"handoff": 38, "checks": 653754, "unresolved": 0}
+{"handoff": 39, "checks": 700173, "unresolved": 0}
+{"handoff": 40, "checks": 742014, "unresolved": 0}
+{"handoff": 41, "checks": 779938, "unresolved": 0}
+{"handoff": 42, "checks": 813538, "unresolved": 0}
+{"handoff": 43, "checks": 842757, "unresolved": 0}
+{"handoff": 44, "checks": 869716, "unresolved": 0}
+{"handoff": 45, "checks": 895929, "unresolved": 0}
+{"handoff": 46, "checks": 919221, "unresolved": 0}
+{"handoff": 47, "checks": 939105, "unresolved": 0}
+{"handoff": 48, "checks": 955709, "unresolved": 0}
+{"handoff": 49, "checks": 968936, "unresolved": 0}
+{"handoff": 50, "checks": 980317, "unresolved": 0}
+{"handoff": 51, "checks": 991201, "unresolved": 0}
+{"handoff": 52, "checks": 1001696, "unresolved": 0}
+{"handoff": 53, "checks": 1012036, "unresolved": 0}
+{"handoff": 54, "checks": 1020960, "unresolved": 0}
+{"handoff": 55, "checks": 1027735, "unresolved": 0}
+{"handoff": 56, "checks": 1031509, "unresolved": 0}
+{"handoff": 57, "checks": 1034387, "unresolved": 0}
+{"handoff": 58, "checks": 1040613, "unresolved": 0}
+{"handoff": 59, "checks": 1054845, "unresolved": 0}
+{"handoff": 60, "checks": 1078286, "unresolved": 0}
+{"handoff": 61, "checks": 1112940, "unresolved": 0}
+{"handoff": 62, "checks": 1156002, "unresolved": 0}
+{"handoff": 63, "checks": 1206321, "unresolved": 0}
+{"handoff": 64, "checks": 1259102, "unresolved": 0}
+{"handoff": 65, "checks": 1311130, "unresolved": 0}
+{"handoff": 66, "checks": 1361322, "unresolved": 0}
+{"handoff": 67, "checks": 1411048, "unresolved": 0}
+{"handoff": 68, "checks": 1468459, "unresolved": 0}
+{"handoff": 69, "checks": 1536324, "unresolved": 0}
+{"handoff": 70, "checks": 1613179, "unresolved": 0}
+{"handoff": 71, "checks": 1696495, "unresolved": 0}
+{"handoff": 72, "checks": 1780477, "unresolved": 0}
+{"handoff": 73, "checks": 1863940, "unresolved": 0}
+{"handoff": 74, "checks": 1946108, "unresolved": 0}
+{"handoff": 75, "checks": 2026178, "unresolved": 0}
+{"handoff": 76, "checks": 2104155, "unresolved": 0}
+{"handoff": 77, "checks": 2179216, "unresolved": 0}
+{"handoff": 78, "checks": 2251259, "unresolved": 0}
+{"handoff": 79, "checks": 2321187, "unresolved": 0}
+{"handoff": 80, "checks": 2389693, "unresolved": 0}
+{"handoff": 81, "checks": 2459555, "unresolved": 0}
+{"handoff": 82, "checks": 2531511, "unresolved": 0}
+{"handoff": 83, "checks": 2605211, "unresolved": 0}
+{"handoff": 84, "checks": 2683739, "unresolved": 0}
+{"handoff": 85, "checks": 2767306, "unresolved": 0}
+{"handoff": 86, "checks": 2855698, "unresolved": 0}
+{"handoff": 87, "checks": 2949267, "unresolved": 0}
+{"handoff": 88, "checks": 3048545, "unresolved": 0}
+{"handoff": 89, "checks": 3152282, "unresolved": 0}
+{"handoff": 90, "checks": 3258511, "unresolved": 0}
+{"handoff": 91, "checks": 3364481, "unresolved": 0}
+{"handoff": 92, "checks": 3468501, "unresolved": 0}
+{"handoff": 93, "checks": 3567547, "unresolved": 0}
+{"handoff": 94, "checks": 3657308, "unresolved": 0}
+{"handoff": 95, "checks": 3738233, "unresolved": 0}
+{"handoff": 96, "checks": 3809941, "unresolved": 0}
+{"handoff": 97, "checks": 3868943, "unresolved": 0}
+{"handoff": 98, "checks": 3915878, "unresolved": 0}
+{"handoff": 99, "checks": 3952337, "unresolved": 0}
+{"handoff": 100, "checks": 3979295, "unresolved": 0}
+{"handoff": 101, "checks": 3997977, "unresolved": 0}
+{"handoff": 102, "checks": 4011398, "unresolved": 0}
+{"handoff": 103, "checks": 4021132, "unresolved": 0}
+{"handoff": 104, "checks": 4028411, "unresolved": 0}
+{"handoff": 105, "checks": 4034155, "unresolved": 0}
+{"handoff": 106, "checks": 4038771, "unresolved": 0}
+{"handoff": 107, "checks": 4042417, "unresolved": 0}
+{"handoff": 108, "checks": 4045292, "unresolved": 0}
+{"handoff": 109, "checks": 4047443, "unresolved": 0}
+{"handoff": 110, "checks": 4049057, "unresolved": 0}
+{"handoff": 111, "checks": 4050249, "unresolved": 0}
+{"handoff": 112, "checks": 4051033, "unresolved": 0}
+{"handoff": 113, "checks": 4051660, "unresolved": 0}
+{"handoff": 114, "checks": 4052332, "unresolved": 0}
+{"handoff": 115, "checks": 4053172, "unresolved": 0}
+{"handoff": 116, "checks": 4054182, "unresolved": 0}
+{"handoff": 117, "checks": 4055214, "unresolved": 0}
+{"handoff": 118, "checks": 4056205, "unresolved": 0}
+{"handoff": 119, "checks": 4057222, "unresolved": 0}
+{"handoff": 120, "checks": 4058279, "unresolved": 0}
+{"handoff": 121, "checks": 4059340, "unresolved": 0}
+{"handoff": 122, "checks": 4060373, "unresolved": 0}
+{"handoff": 123, "checks": 4248741, "unresolved": 0}
+{"handoff": 124, "checks": 4439870, "unresolved": 0}
+{"handoff": 125, "checks": 4602214, "unresolved": 0}
+{"handoff": 126, "checks": 4734123, "unresolved": 0}
+{"handoff": 127, "checks": 4839947, "unresolved": 0}
+{"handoff": 128, "checks": 4921473, "unresolved": 0}
+{"handoff": 129, "checks": 4981124, "unresolved": 0}
+{"handoff": 130, "checks": 5024108, "unresolved": 0}
+{"handoff": 131, "checks": 5056010, "unresolved": 0}
+{"handoff": 132, "checks": 5087073, "unresolved": 0}
+{"handoff": 133, "checks": 5123458, "unresolved": 0}
+{"handoff": 134, "checks": 5170163, "unresolved": 0}
+{"handoff": 135, "checks": 5240128, "unresolved": 0}
+{"handoff": 136, "checks": 5352994, "unresolved": 0}
+{"handoff": 137, "checks": 5516079, "unresolved": 0}
+{"handoff": 138, "checks": 5722202, "unresolved": 0}
+{"handoff": 139, "checks": 5959149, "unresolved": 0}
+{"handoff": 140, "checks": 6209523, "unresolved": 0}
+{"handoff": 141, "checks": 6442115, "unresolved": 0}
+{"handoff": 142, "checks": 6660635, "unresolved": 0}
+{"handoff": 143, "checks": 6864718, "unresolved": 0}
+{"handoff": 144, "checks": 7091602, "unresolved": 0}
+{"handoff": 145, "checks": 7322142, "unresolved": 0}
+{"handoff": 146, "checks": 7545514, "unresolved": 0}
+{"handoff": 147, "checks": 7781188, "unresolved": 0}
+{"handoff": 148, "checks": 8043133, "unresolved": 0}
+{"handoff": 149, "checks": 8316512, "unresolved": 0}
+{"handoff": 150, "checks": 8586662, "unresolved": 0}
+{"handoff": 151, "checks": 8825927, "unresolved": 0}
+{"handoff": 152, "checks": 9070295, "unresolved": 0}
+{"handoff": 153, "checks": 9317913, "unresolved": 0}
+{"handoff": 154, "checks": 9542268, "unresolved": 0}
+{"handoff": 155, "checks": 9730636, "unresolved": 0}
+{"entry_clear": true, "handoffs_clear": true, "handoff_checks": 9730636, "production_qualified": false}

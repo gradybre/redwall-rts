@@ -1,0 +1,18 @@
+{
+  "reviewer": "root independent review",
+  "date": "2026-10-04",
+  "source_manifest": "source-sha256.json",
+  "accepted_scope": "lower-owner correctness and source-derived logical lifetime only",
+  "source_hashes_verified": true,
+  "independent_run": "../independent-root-1/invocation.json",
+  "independent_tests": 16,
+  "independent_assertions": 603,
+  "independent_failures": 0,
+  "independent_analyzer_warnings": 0,
+  "independent_analyzer_files": 4,
+  "remaining": [
+    "actual ADR1140 Delivery composition",
+    "native memory measurement",
+    "runtime movement/handling and performance qualification"
+  ]
+}

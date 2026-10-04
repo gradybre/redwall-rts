@@ -1,0 +1,1 @@
+Immutable diagnostic source for paired1140 composition. Independent review pending. Source-review-1 holds the same executable pins; candidate-3 verifies final return-only correction (40tests/895assertions/0, strict/raw/leaks0,LSP0/4). Neither this packet nor the synthetic test guard supplies physical arrival permission.

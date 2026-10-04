@@ -1,0 +1,38 @@
+state_registry_coverage: PASS -- 142 modules, 707 rows, 1044 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_haul_transfer_guard.gd
+  PASS  test_admission_reserves_goods_and_destination_in_one_guarded_journal
+  PASS  test_load_and_unload_validate_expected_staged_satchel_and_pure_tail
+  PASS  test_partial_shipment_preserves_source_and_material_attributes
+  PASS  test_final_refusal_keeps_goods_capacity_claim_and_allocator_then_retry
+  PASS  test_cancel_after_worker_release_preserves_carried_goods_and_allows_repost
+  PASS  test_original_inventory_barrier_and_all_pool_mutation_doors_refuse_reentry
+  PASS  test_every_callback_packet_field_is_pinned
+  PASS  test_actual_seed_observer_can_refuse_or_invalidate_final_handling_before_admit
+  PASS  test_wrong_full_generations_foreign_inventory_and_fail_closed_guard_preserve_state
+  PASS  test_empty_expired_claim_cleanup_still_releases_only_original_destination_grams
+  PASS  test_capacity_and_original_satchel_owner_refusals_preserve_real_goods
+  PASS  test_cancellation_releases_exact_multiple_claims_and_grams_together
+  PASS  test_admission_checks_both_real_inventory_and_pool_lot_namespaces_before_journal
+  PASS  test_inventory_commit_tail_cannot_observe_after_final_handling_proof
+  PASS  test_spatial_ground_reclamation_uses_direct_endpoint_and_allocator_tail
+CI_SUITE_TIME {"assertions":595,"failures":0,"suite":"test_haul_transfer_guard.gd","tests":15,"usec":75145}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+15 test(s), 595 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 15 tests, 595 assertions, 0 failures.

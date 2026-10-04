@@ -1,0 +1,33 @@
+state_registry_coverage: PASS -- 142 modules, 707 rows, 1044 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_reservations_carry.gd
+  PASS  test_carrying_a_part_moves_it_and_keeps_it_claimed_with_its_lease
+  PASS  test_carrying_a_whole_lot_keeps_its_identity
+  PASS  test_carry_refusals_change_neither_store
+  PASS  test_a_satchel_minted_by_a_refused_load_is_rolled_back
+  PASS  test_delivering_ends_the_claim_and_releases_the_reserved_room
+  PASS  test_deliver_refuses_a_negative_release_and_more_than_was_reserved
+  PASS  test_a_delivery_that_empties_a_satchel_destroys_it
+  PASS  test_a_partial_delivery_leaves_the_store_alone
+  PASS  test_repurposing_re_keys_in_place_and_coalesces
+  PASS  test_a_stale_row_on_the_arriving_slot_aborts_the_carry
+CI_SUITE_TIME {"assertions":66,"failures":0,"suite":"test_reservations_carry.gd","tests":10,"usec":339833}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 66 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 66 assertions, 0 failures.

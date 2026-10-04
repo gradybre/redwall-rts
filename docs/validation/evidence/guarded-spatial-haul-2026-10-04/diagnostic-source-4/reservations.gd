@@ -197,7 +197,6 @@ var _pending_new_rows: int = 0
 var _bound_inventory: WeakRef = null
 ## ADR1141 fixed scratch: two216B packets, never a second authoritative claim ledger.
 var _haul_original: HaulContract.Transfer = HaulContract.Transfer.new()
-@warning_ignore("unused_private_class_variable") # Borrowed through the concrete static transfer continuation.
 var _haul_view: HaulContract.Transfer = HaulContract.Transfer.new()
 var _haul_active: bool = false
 var _haul_inventory: Inventory = null
@@ -1211,7 +1210,7 @@ func admit_haul_guarded(job: Vector2i, worker: Vector2i, source_lot: Vector2i,
 	_haul_original.quantity_milli = quantity_milli
 	_haul_original.expiry_tick = expiry_tick
 	code = _haul_admit_plan()
-	return _haul_finish_in(self, code)
+	return _haul_finish(code)
 
 
 func transfer_haul_guarded(action: int, job: Vector2i, worker: Vector2i,
@@ -1224,7 +1223,7 @@ func transfer_haul_guarded(action: int, job: Vector2i, worker: Vector2i,
 		return _refuse(code)
 	_haul_pin(action, job, worker, source_lot, destination, original_satchel, reserved_mass_g, carry_limit_g)
 	code = _haul_transfer_plan()
-	return _haul_finish_in(self, code)
+	return _haul_finish(code)
 
 
 func _haul_begin(guard: HaulContract, inventory: Inventory) -> StringName:
@@ -1420,41 +1419,29 @@ func _haul_cancel_plan() -> StringName:
 
 
 func _haul_finish(code: StringName) -> Inventory.OpResult:
-	"""Compatibility wrapper; new guarded entry points call the concrete continuation."""
-	return _haul_finish_in(self, code)
-
-
-static func _haul_finish_in(actual: RefCounted, code: StringName) -> Inventory.OpResult:
-	"""Only the original scope reaches the concrete journal/publication continuation."""
-	var result: Inventory.OpResult = Inventory.OpResult.new(false, code, NULL_REF, 0) \
-		if code != REFUSE_NONE else _haul_transaction_in(actual)
-	_clear_haul_scope(actual)
+	"""Only this original synchronous scope can reach the journal and its pure publication tail."""
+	var result: Inventory.OpResult = _refuse(code) if code != REFUSE_NONE else _haul_transaction()
+	_clear_haul_scope(self)
 	return result
 
 
 func _haul_transaction() -> Inventory.OpResult:
-	"""Compatibility wrapper, excluded from the new committed tail."""
-	return _haul_transaction_in(self)
-
-
-static func _haul_transaction_in(actual: RefCounted) -> Inventory.OpResult:
-	"""No virtual Inventory commit or Pool continuation follows the final transfer observation."""
-	var step: Inventory.OpResult = actual._haul_inventory.begin()
+	"""All Inventory observers precede its guarded commit; Pool rows stay live and locked throughout."""
+	var step: Inventory.OpResult = _haul_inventory.begin()
 	if not step.ok:
 		return step
-	step = actual._haul_stage()
-	if not step.ok or actual._haul_error != REFUSE_NONE:
-		actual._haul_inventory.abort()
-		return Inventory.OpResult.new(false, actual._haul_error, NULL_REF, 0) if actual._haul_error != REFUSE_NONE else step
-	HaulContract.copy_into(actual._haul_original, actual._haul_view)
-	var committed: Inventory.OpResult = Inventory.commit_haul_transfer_in(actual._haul_inventory,
-		actual._haul_guard, actual._haul_view, actual)
+	step = _haul_stage()
+	if not step.ok or _haul_error != REFUSE_NONE:
+		_haul_inventory.abort()
+		return _refuse(_haul_error) if _haul_error != REFUSE_NONE else step
+	HaulContract.copy_into(_haul_original, _haul_view)
+	var committed: Inventory.OpResult = _haul_inventory.commit_haul_transfer(_haul_guard, _haul_view, self)
 	if not committed.ok:
 		return committed
-	_publish_haul_pool_rows(actual, actual._haul_original)
-	if actual._haul_original.action == HaulContract.CANCEL:
-		return Inventory.OpResult.new(true, REFUSE_NONE, actual._haul_original.job, actual._haul_original.claim_count)
-	return Inventory.OpResult.new(true, REFUSE_NONE, actual._haul_original.arrived_lot, actual._haul_original.quantity_milli)
+	_publish_haul_pool_rows(self, _haul_original)
+	if _haul_original.action == HaulContract.CANCEL:
+		return Inventory.OpResult.new(true, REFUSE_NONE, _haul_original.job, _haul_original.claim_count)
+	return Inventory.OpResult.new(true, REFUSE_NONE, _haul_original.arrived_lot, _haul_original.quantity_milli)
 
 
 func _haul_stage() -> Inventory.OpResult:

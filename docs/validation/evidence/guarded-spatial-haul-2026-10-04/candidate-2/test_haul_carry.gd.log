@@ -1,0 +1,52 @@
+state_registry_coverage: PASS -- 142 modules, 707 rows, 1044 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_haul_carry.gd
+  PASS  test_binding_reader_rejects_each_foreign_store_and_null_without_mutation
+  PASS  test_a_satchel_is_minted_only_by_its_own_door
+  PASS  test_the_satchel_door_refuses_a_bad_owner_or_carry
+  PASS  test_a_satchel_cannot_be_placed_and_only_a_satchel_is_destroyed_as_one
+  PASS  test_a_saved_satchel_on_a_tile_is_refused_on_restore
+  PASS  test_the_audit_refuses_a_satchel_on_a_tile
+  PASS  test_the_anchored_cursor_walks_placed_containers_in_slot_order
+  PASS  test_loading_mints_a_satchel_at_the_species_carry_limit
+  PASS  test_a_partial_load_splits_exactly_and_carries_the_claim
+  PASS  test_a_whole_lot_load_moves_the_lot_itself
+  PASS  test_a_load_over_the_carry_limit_refuses_and_changes_nothing
+  PASS  test_a_hauler_already_carrying_cannot_load_a_second_satchel
+  PASS  test_a_load_refuses_without_a_claim_a_hauler_or_with_a_transaction_open
+  PASS  test_a_load_refused_inside_its_transaction_leaves_no_satchel
+  PASS  test_unloading_into_a_store_delivers_releases_and_destroys_the_satchel
+  PASS  test_an_unload_refuses_without_a_satchel_or_a_claim
+  PASS  test_a_pair_naming_someone_elses_satchel_is_stale
+  PASS  test_an_unload_the_store_cannot_take_refuses_and_keeps_the_goods_carried
+  PASS  test_unloading_into_piles_moves_the_goods_and_frees_the_satchel
+  PASS  test_a_pile_unload_with_nowhere_to_go_refuses_and_keeps_the_claim
+  PASS  test_a_dying_haulers_satchel_drops_onto_a_pile_at_its_tile
+  PASS  test_a_drop_inside_a_footprint_starts_at_that_buildings_ring
+  PASS  test_a_hauler_carrying_nothing_drops_nothing
+  PASS  test_a_reposted_haul_loads_by_re_keying_the_goods_already_carried
+  PASS  test_only_the_satchels_owner_hauls_its_goods
+  PASS  test_a_drop_with_nowhere_to_go_refuses_and_keeps_every_claim
+  PASS  test_dropping_an_empty_satchel_just_destroys_it
+  PASS  test_a_second_claim_on_the_satchel_lot_rolls_the_unload_back
+  PASS  test_a_pile_unload_reports_the_claimed_quantity
+CI_SUITE_TIME {"assertions":173,"failures":0,"suite":"test_haul_carry.gd","tests":29,"usec":816348}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+29 test(s), 173 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 29 tests, 173 assertions, 0 failures.

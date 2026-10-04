@@ -1,0 +1,20 @@
+{
+ "scripts/core/reservations.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_haul_view\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 14,
+     "line": 199
+    },
+    "start": {
+     "character": 4,
+     "line": 199
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

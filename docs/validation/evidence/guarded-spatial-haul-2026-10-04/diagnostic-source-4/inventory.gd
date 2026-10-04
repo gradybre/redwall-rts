@@ -1032,54 +1032,38 @@ func _connector_input_attestation(guard: ModularContract, project: Vector2i,
 
 func commit_haul_transfer(guard: HaulContract, packet: HaulContract.Transfer,
 		pool: RefCounted) -> OpResult:
-	"""Compatibility wrapper; the actual Pool calls the concrete entry directly."""
-	return commit_haul_transfer_in(self, guard, packet, pool)
-
-
-static func commit_haul_transfer_in(actual: RefCounted, guard: HaulContract,
-		packet: HaulContract.Transfer, pool: RefCounted) -> OpResult:
-	"""Hold the original barrier through the final observation and concrete successful tail."""
-	if _refuse_attestation_reentry_in(actual):
-		return OpResult.new(false, REFUSE_ATTESTATION_REENTRY, NULL_REF, 0)
-	if not actual._tx_open:
-		return OpResult.new(false, REFUSE_NO_TRANSACTION, NULL_REF, 0)
-	actual._attesting = true
-	var code: StringName = actual._tx_error if actual._tx_poisoned else actual._pile_commit_refusal()
+	"""The actual pool retains its original journal across the last spatial haul observation."""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
+	if not _tx_open:
+		return _refuse(REFUSE_NO_TRANSACTION)
+	var code: StringName = _tx_error if _tx_poisoned else _pile_commit_refusal()
 	if code == REFUSE_NONE:
-		code = HaulContract.REFUSE_UNBOUND if guard == null else _haul_attestation_in(actual, guard, packet, pool)
-	if code == REFUSE_NONE and actual._tx_poisoned:
-		code = actual._tx_error
+		code = HaulContract.REFUSE_UNBOUND if guard == null else _haul_attestation(guard, packet, pool)
+	if code == REFUSE_NONE and _tx_poisoned:
+		code = _tx_error
 	if code != REFUSE_NONE:
-		actual._rollback()
-		_close_transaction_in(actual)
-		actual._attesting = false
-		return OpResult.new(false, code, NULL_REF, 0)
-	_reclaim_empty_piles_in(actual)
-	actual._j_count = 0
-	_close_transaction_in(actual)
-	actual._attesting = false
+		_rollback()
+		_close_transaction()
+		return _refuse(code)
+	_reclaim_empty_piles()
+	_j_count = 0
+	_close_transaction()
 	return OpResult.new(true, REFUSE_NONE, NULL_REF, 0)
 
 
 func _haul_attestation(guard: HaulContract, packet: HaulContract.Transfer,
 		pool: RefCounted) -> StringName:
-	"""Compatibility observation wrapper; the concrete commit bypasses overridable after-super tails."""
+	"""No Pool or Inventory mutation may escape the original staged transfer through a callback."""
 	_attesting = true
-	var code: StringName = _haul_attestation_in(self, guard, packet, pool)
-	_attesting = false
-	return code
-
-
-static func _haul_attestation_in(actual: RefCounted, guard: HaulContract,
-		packet: HaulContract.Transfer, pool: RefCounted) -> StringName:
-	"""Only the explicit guard observes; all subsequent scope, claim and staged-fact leaves are static."""
-	var code: StringName = guard.final_transfer_refusal(packet, actual, pool)
+	var code: StringName = guard.final_transfer_refusal(packet, self, pool)
 	if code == REFUSE_NONE:
-		code = HaulContract.scope_refusal(actual, pool, guard, packet)
+		code = HaulContract.scope_refusal(self, pool, guard, packet)
 	if code == REFUSE_NONE:
 		code = HaulContract.claim_refusal(pool, packet)
 	if code == REFUSE_NONE:
-		code = _haul_staged_refusal(actual, packet)
+		code = _haul_staged_refusal(self, packet)
+	_attesting = false
 	return code
 
 
@@ -1182,11 +1166,6 @@ func is_transaction_poisoned() -> bool:
 
 
 func _close_transaction() -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_close_transaction_in(self)
-
-
-static func _close_transaction_in(actual: RefCounted) -> void:
 	"""Close the open transaction and clear the poison that belonged to it.
 
 	The flag describes the transaction accepting operations right now. Left raised past
@@ -1195,10 +1174,10 @@ static func _close_transaction_in(actual: RefCounted) -> void:
 	the past, false of the object. _open_transaction() lowering it again at the next begin()
 	makes the lie short-lived, not correct.
 	"""
-	actual._tx_open = false
-	actual._tx_poisoned = false
-	actual._tx_error = REFUSE_NONE
-	actual._tx_cleanup_lot = NULL_REF
+	_tx_open = false
+	_tx_poisoned = false
+	_tx_error = REFUSE_NONE
+	_tx_cleanup_lot = NULL_REF
 
 
 func _open_transaction() -> void:
@@ -1303,18 +1282,13 @@ func _succeed(ref: Vector2i, value: int) -> StringName:
 
 
 func _refuse_attestation_reentry() -> bool:
-	"""Keep the original barrier semantics through a shared concrete helper."""
-	return _refuse_attestation_reentry_in(self)
-
-
-static func _refuse_attestation_reentry_in(actual: RefCounted) -> bool:
 	"""Reject callback mutation without closing its caller's journal or rewiring catalog facts."""
-	if not actual._attesting:
+	if not _attesting:
 		return false
-	if actual._tx_open:
-		actual._tx_poisoned = true
-		if actual._tx_error == REFUSE_NONE:
-			actual._tx_error = REFUSE_ATTESTATION_REENTRY
+	if _tx_open:
+		_tx_poisoned = true
+		if _tx_error == REFUSE_NONE:
+			_tx_error = REFUSE_ATTESTATION_REENTRY
 	return true
 
 
@@ -1455,17 +1429,12 @@ func _restore_container(slot: int, base: int) -> void:
 
 
 func _journal_scalar(kind: int, index: int, old_value: int) -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_journal_scalar_in(self, kind, index, old_value)
-
-
-static func _journal_scalar_in(actual: RefCounted, kind: int, index: int, old_value: int) -> void:
 	"""Snapshot one free-stack cell or one conservation counter into the undo journal."""
-	var base: int = actual._j_count * ROW_STRIDE
-	actual._j_kind[actual._j_count] = kind
-	actual._j_index[actual._j_count] = index
-	actual._j_row[base] = old_value
-	actual._j_count += 1
+	var base: int = _j_count * ROW_STRIDE
+	_j_kind[_j_count] = kind
+	_j_index[_j_count] = index
+	_j_row[base] = old_value
+	_j_count += 1
 
 
 # --- Slot allocation ----------------------------------------------------------------------
@@ -1512,23 +1481,18 @@ func _alloc_container_slot() -> int:
 
 
 func _free_container_slot(slot: int, journaled: bool = true) -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_free_container_slot_in(self, slot, journaled)
-
-
-static func _free_container_slot_in(actual: RefCounted, slot: int, journaled: bool = true) -> void:
 	"""Return a container slot to the free stack, journaling the cell the push overwrites.
 
 	`journaled` is false only for the ground-pile reclaim, which runs after a commit has become
 	final. One body for both, so the generation-exhaustion rule cannot drift between them.
 	"""
-	if actual._c_generation[slot] >= MAX_INT32:
+	if _c_generation[slot] >= MAX_INT32:
 		return
-	actual._c_generation[slot] += 1
+	_c_generation[slot] += 1
 	if journaled:
-		_journal_scalar_in(actual, _J_CONTAINER_FREE_CELL, actual._c_free_count, actual._c_free[actual._c_free_count])
-	actual._c_free[actual._c_free_count] = slot
-	actual._c_free_count += 1
+		_journal_scalar(_J_CONTAINER_FREE_CELL, _c_free_count, _c_free[_c_free_count])
+	_c_free[_c_free_count] = slot
+	_c_free_count += 1
 
 
 # --- Container operations -------------------------------------------------------------------
@@ -1969,22 +1933,12 @@ func _note_pile_candidate(slot: int) -> void:
 
 
 func _clear_pile_candidates() -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_clear_pile_candidates_in(self)
-
-
-static func _clear_pile_candidates_in(actual: RefCounted) -> void:
 	"""Forget every reclaim candidate: a new transaction, a rollback, a clear or a restore."""
-	actual._pile_candidate_count = 0
-	actual._pile_candidates_overflowed = false
+	_pile_candidate_count = 0
+	_pile_candidates_overflowed = false
 
 
 func _reclaim_empty_piles() -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_reclaim_empty_piles_in(self)
-
-
-static func _reclaim_empty_piles_in(actual: RefCounted) -> void:
 	"""ARCH-MEM-002: retire every touched pile left with no lot and no reserved mass, at commit.
 
 	Runs only after a transaction has SUCCEEDED and is closing, so nothing here is journaled:
@@ -1992,16 +1946,16 @@ static func _reclaim_empty_piles_in(actual: RefCounted) -> void:
 	liveness and policy test makes both harmless. Cold: piles are touched by hauling and
 	demolition, not by a tick.
 	"""
-	if actual._pile_candidates_overflowed:
+	if _pile_candidates_overflowed:
 		for tile: int in range(ANCHOR_TILE_COUNT):
-			if actual._pile_at_tile[tile] != NO_PILE:
-				_reclaim_if_empty_in(actual, actual._pile_at_tile[tile])
-		for row: int in actual._spatial_container_slot.size():
-			if actual._spatial_container_slot[row] >= 0:
-				_reclaim_if_empty_in(actual, actual._spatial_container_slot[row])
-	for index: int in range(actual._pile_candidate_count):
-		_reclaim_if_empty_in(actual, actual._pile_candidates[index])
-	_clear_pile_candidates_in(actual)
+			if _pile_at_tile[tile] != NO_PILE:
+				_reclaim_if_empty(_pile_at_tile[tile])
+		for row: int in _spatial_container_slot.size():
+			if _spatial_container_slot[row] >= 0:
+				_reclaim_if_empty(_spatial_container_slot[row])
+	for index: int in range(_pile_candidate_count):
+		_reclaim_if_empty(_pile_candidates[index])
+	_clear_pile_candidates()
 
 
 func _pile_commit_refusal() -> StringName:
@@ -2031,36 +1985,26 @@ func _is_claimed_empty_pile(slot: int) -> bool:
 
 
 func _reclaim_if_empty(slot: int) -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_reclaim_if_empty_in(self, slot)
-
-
-static func _reclaim_if_empty_in(actual: RefCounted, slot: int) -> void:
 	"""Retire one candidate when it is still a live pile holding no lot and no reservation."""
-	if actual._c_live[slot] != 1 or actual._c_policy[slot] != POLICY_GROUND_PILE:
+	if _c_live[slot] != 1 or _c_policy[slot] != POLICY_GROUND_PILE:
 		return
-	if actual._c_lot_count[slot] != 0 or actual._c_reserved_mass_g[slot] != 0:
+	if _c_lot_count[slot] != 0 or _c_reserved_mass_g[slot] != 0:
 		return
-	_retire_empty_pile_in(actual, slot, actual._c_anchor_tile[slot])
+	_retire_empty_pile(slot, _c_anchor_tile[slot])
 
 
 func _retire_empty_pile(slot: int, tile: int) -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_retire_empty_pile_in(self, slot, tile)
-
-
-static func _retire_empty_pile_in(actual: RefCounted, slot: int, tile: int) -> void:
 	"""Free one empty pile row exactly as `destroy_container()` would, without the journal.
 
 	A slot whose generation is exhausted is retired instead of pushed, the allocator's own rule.
 	"""
 	if tile <= -2:
-		_clear_spatial_endpoint_in(actual, -2 - tile, false)
+		_clear_spatial_endpoint(-2 - tile, false)
 	else:
-		actual._pile_at_tile[tile] = NO_PILE
-	actual._c_live[slot] = 0
-	actual._c_live_count -= 1
-	_free_container_slot_in(actual, slot, false)
+		_pile_at_tile[tile] = NO_PILE
+	_c_live[slot] = 0
+	_c_live_count -= 1
+	_free_container_slot(slot, false)
 
 
 func ground_pile_at_tile(tile: int) -> Vector2i:
@@ -5357,21 +5301,16 @@ func _clear_spatial_endpoints() -> void:
 
 
 func _journal_spatial_endpoint(row: int) -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_journal_spatial_endpoint_in(self, row)
-
-
-static func _journal_spatial_endpoint_in(actual: RefCounted, row: int) -> void:
 	"""Use five cells of the existing fourteen-int64 Inventory journal row."""
-	var base: int = actual._j_count * ROW_STRIDE
-	actual._j_kind[actual._j_count] = _J_SPATIAL_ENDPOINT
-	actual._j_index[actual._j_count] = row
-	actual._j_row[base] = actual._spatial_container_slot[row]
-	actual._j_row[base + 1] = actual._spatial_container_generation[row]
-	actual._j_row[base + 2] = actual._spatial_location_slot[row]
-	actual._j_row[base + 3] = actual._spatial_location_generation[row]
-	actual._j_row[base + 4] = actual._spatial_location_revision[row]
-	actual._j_count += 1
+	var base: int = _j_count * ROW_STRIDE
+	_j_kind[_j_count] = _J_SPATIAL_ENDPOINT
+	_j_index[_j_count] = row
+	_j_row[base] = _spatial_container_slot[row]
+	_j_row[base + 1] = _spatial_container_generation[row]
+	_j_row[base + 2] = _spatial_location_slot[row]
+	_j_row[base + 3] = _spatial_location_generation[row]
+	_j_row[base + 4] = _spatial_location_revision[row]
+	_j_count += 1
 
 
 func _restore_spatial_endpoint(row: int, base: int) -> void:
@@ -5384,19 +5323,14 @@ func _restore_spatial_endpoint(row: int, base: int) -> void:
 
 
 func _clear_spatial_endpoint(row: int, journaled: bool) -> void:
-	"""Use the common concrete kernel; ordinary callers keep the same state transition."""
-	_clear_spatial_endpoint_in(self, row, journaled)
-
-
-static func _clear_spatial_endpoint_in(actual: RefCounted, row: int, journaled: bool) -> void:
 	"""Release only a validated endpoint; post-commit automatic reclamation needs no undo record."""
 	if journaled:
-		_journal_spatial_endpoint_in(actual, row)
-	actual._spatial_container_slot[row] = -1
-	actual._spatial_container_generation[row] = 0
-	actual._spatial_location_slot[row] = -1
-	actual._spatial_location_generation[row] = 0
-	actual._spatial_location_revision[row] = 0
+		_journal_spatial_endpoint(row)
+	_spatial_container_slot[row] = -1
+	_spatial_container_generation[row] = 0
+	_spatial_location_slot[row] = -1
+	_spatial_location_generation[row] = 0
+	_spatial_location_revision[row] = 0
 
 
 func _has_spatial_endpoints() -> bool:

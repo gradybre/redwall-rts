@@ -1,0 +1,1 @@
+Diagnostic immutable source checkpoint for 1140 composition. Not independent source acceptance. Actual lower-owner suites:313 tests/4111 assertions/0, every strict/raw diagnostic/leak zero; analyzer completing. This protocol grants no physical permission; Delivery remains a separately reviewed concrete authority.

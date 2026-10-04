@@ -1,0 +1,36 @@
+{
+ "scripts/core/inventory.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"transfer\" is shadowing an already-declared function at line 2679 in the current class.",
+   "range": {
+    "end": {
+     "character": 55,
+     "line": 1032
+    },
+    "start": {
+     "character": 47,
+     "line": 1032
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  },
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"transfer\" is shadowing an already-declared function at line 2679 in the current class.",
+   "range": {
+    "end": {
+     "character": 52,
+     "line": 1054
+    },
+    "start": {
+     "character": 44,
+     "line": 1054
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

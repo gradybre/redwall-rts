@@ -1,0 +1,30 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "tools/build_demo_windows.py",
+      "--out",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/build/profile-export-full-pack-v1"
+    ]
+  ],
+  "codes": [
+    0,
+    0
+  ],
+  "seconds": 455.579,
+  "source_unchanged": true,
+  "override_restored": true,
+  "preset_restored": true,
+  "head": "18b981fe5f6f4dd169062785f897830a71f8c3e2",
+  "generated_output": "/Users/brendan/Developer/redwall-rts-codex-ug-space/build/profile-export-full-pack-v1",
+  "diagnostic_matches": {},
+  "scope": "Full staged Windows debug export and editor pack boot; not Windows native, World activation or Forward Plus profile qualification"
+}

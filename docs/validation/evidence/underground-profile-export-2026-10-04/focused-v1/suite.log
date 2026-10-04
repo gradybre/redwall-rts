@@ -1,0 +1,180 @@
+state_registry_coverage: PASS -- 139 modules, 697 rows, 1035 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_demo_profile_pack.gd
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:46)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:47)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:48)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:49)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:50)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:51)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_false()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:52)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:57)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:59)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:60)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:61)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:69)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:73)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:74)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:81)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:83)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Too few arguments for "assert_true()" call. Expected at least 2 but received 1.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:84)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:86)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:94)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "assert_eq()" not found in base self.
+          at: GDScript::reload (res://test/test_demo_profile_pack.gd:96)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+ERROR: Failed to load script "res://test/test_demo_profile_pack.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:155)
+       [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ci_test_shard_runner.gd:30)
+       [2] _run_worker (res://test/run_tests.gd:121)
+       [3] _initialize (res://test/run_tests.gd:108)
+  FAIL  <suite did not load>
+        suite cannot be instantiated (parse error?): res://test/test_demo_profile_pack.gd
+CI_SUITE_TIME {"assertions":0,"failures":1,"suite":"test_demo_profile_pack.gd","tests":1,"usec":2635}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        21 script error(s) outside any test method
+
+1 test(s), 0 assertion(s), 2 failure(s)
+diagnostics: 1 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 2 failing test(s).

@@ -231,11 +231,17 @@ def test_the_committed_preset_is_the_build_contract() -> None:
 	check("one preset, named as the build calls it", len(presets) == 1 and presets[0]["name"] == build.PRESET_NAME)
 	for line in ['platform="Windows Desktop"', 'custom_features="demo_build"', 'export_filter="all_resources"',
 			'binary_format/architecture="x86_64"', "binary_format/embed_pck=false", "texture_format/s3tc_bptc=true",
-			"codesign/enable=false", 'application/product_name="Redwall Demo"']:
+			"codesign/enable=false", 'application/product_name="Redwall Demo"', "script_export_mode=0"]:
 		check(f"the preset says {line}", line in text)
 	include = re.search(r'^include_filter="(.*)"$', text, re.M).group(1)
 	exclude = re.search(r'^exclude_filter="(.*)"$', text, re.M).group(1)
 	check("the staged assets are included", "demo/assets/*" in include and "*.json" in include)
+	check("the exact source-bound profile binary is included",
+		"data/underground/mole-worker/profile-publication-v1/mole-worker.ugprof" in include.split(", "))
+	check("the exact source-bound actor binary is included",
+		"data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
+		in include.split(", "))
+	check("unrelated binary evidence is not broadly packed", "*.ugprof" not in include and "*.ugactor" not in include)
 	check("tests and tools are excluded", "test/*" in exclude and "tools/*" in exclude)
 
 

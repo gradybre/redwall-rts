@@ -24,6 +24,21 @@ extends SceneTree
 
 const TailFlatRollScript := preload("res://scripts/presentation/tail_flat_roll.gd")
 const PlaytestLog := preload("res://demo/playtest/playtest_log.gd")
+const MoleCatalog := preload("res://data/underground/mole-worker/mole_profile_catalog.gd")
+## Retain the actual consumer Script objects whose source the cold runtime catalog checks.
+const PROFILE_SCRIPTS: Array[Script] = [
+	preload("res://scripts/core/underground_profiles.gd"),
+	preload("res://scripts/core/underground_work_face.gd"),
+	preload("res://scripts/core/underground_connector_contacts.gd"),
+	preload("res://scripts/core/underground_routes.gd"),
+	preload("res://scripts/core/underground_world_routes.gd"),
+	preload("res://demo/cast/underground_actor.gd"),
+	preload("res://demo/cast/underground_actor_content.gd"),
+	preload("res://data/underground/mole-worker/mole_profile_driver.gd"),
+]
+const ACTOR_CONTENT: String = "res://data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v3/result/mole-worker.ugactor"
+const ACTOR_BYTES: int = 648760
+const HASH_BLOCK_BYTES: int = 16384
 const BUILD_INFO: String = "res://demo/build_info.json"
 
 const DEMO_SCENE: String = "res://demo/demo_village.tscn"
@@ -65,6 +80,15 @@ func _initialize() -> void:
 		return
 	_out = args[0]
 	_shots = args[1] if args.size() > 1 else ""
+	_report["profile_package"] = profile_package()
+	if not _report["profile_package"]["error"].is_empty():
+		_finish(_report["profile_package"]["error"])
+		return
+	_boot_demo()
+
+
+func _boot_demo() -> void:
+	"""Record the same pack settings and boot only after all mandatory profile bytes/source checks pass."""
 	var main_scene: String = str(ProjectSettings.get_setting_with_override("application/run/main_scene"))
 	_report["main_scene"] = main_scene
 	_report["feature_demo_build"] = OS.has_feature("demo_build")
@@ -78,6 +102,64 @@ func _initialize() -> void:
 	_demo = (load(main_scene) as PackedScene).instantiate()
 	root.add_child(_demo)
 	current_scene = _demo
+
+
+static func profile_package(profile_path: String = MoleCatalog.WIRE_PATH,
+		actor_path: String = ACTOR_CONTENT) -> Dictionary:
+	"""Pack capability only: exact source bytes and artifacts, without claiming actual World/renderer activation."""
+	var binary: Dictionary = _profile_binary(profile_path, MoleCatalog.WIRE_BYTES, MoleCatalog.Pins.WIRE_SHA)
+	var actor: Dictionary = _profile_binary(actor_path, ACTOR_BYTES, MoleCatalog.Pins.ACTOR_SHA)
+	var sources: Dictionary = _profile_sources()
+	var error: String = binary["error"]
+	if error.is_empty():
+		error = actor["error"]
+	if error.is_empty():
+		error = sources["error"]
+	return {"error": error, "profiles": binary, "actor": actor, "sources": sources,
+		"world_activation_qualified": false, "static_memory_bytes": Performance.get_monitor(Performance.MEMORY_STATIC)}
+
+
+static func _profile_binary(path: String, size: int, digest: String) -> Dictionary:
+	"""Hash the same open stream in16KiB blocks; size mismatch refuses before allocating file-sized data."""
+	var report: Dictionary = {"path": path, "bytes": -1, "sha256": "", "error": ""}
+	var file: FileAccess = FileAccess.open(path, FileAccess.READ)
+	if file == null:
+		report["error"] = "source-bound profile artifact missing: " + path
+		return report
+	report["bytes"] = file.get_length()
+	if report["bytes"] != size:
+		report["error"] = "source-bound profile artifact byte count differs: " + path
+		return report
+	var hashing: HashingContext = HashingContext.new()
+	hashing.start(HashingContext.HASH_SHA256)
+	var left: int = size
+	while left > 0:
+		var block: PackedByteArray = file.get_buffer(mini(HASH_BLOCK_BYTES, left))
+		if block.size() != mini(HASH_BLOCK_BYTES, left):
+			report["error"] = "source-bound profile artifact truncated: " + path
+			return report
+		hashing.update(block)
+		left -= block.size()
+	report["sha256"] = hashing.finish().hex_encode()
+	if report["sha256"] != digest:
+		report["error"] = "source-bound profile artifact digest differs: " + path
+	return report
+
+
+static func _profile_sources() -> Dictionary:
+	"""Check cache identity and retained text of the real consumer scripts; the runtime helper checks every hash."""
+	var report: Dictionary = {"error": "", "count": PROFILE_SCRIPTS.size(), "characters": 0}
+	if PROFILE_SCRIPTS.size() != MoleCatalog.Pins.PATHS.size():
+		report["error"] = "source-bound profile Script census differs"
+		return report
+	for index: int in PROFILE_SCRIPTS.size():
+		var path: String = MoleCatalog.Pins.PATHS[index]
+		if not ResourceLoader.has_cached(path) or PROFILE_SCRIPTS[index] != ResourceLoader.load(path, "Script", ResourceLoader.CACHE_MODE_REUSE):
+			report["error"] = "source-bound profile Script identity differs: " + path
+			return report
+		report["characters"] += PROFILE_SCRIPTS[index].get_source_code().length()
+	report["error"] = str(MoleCatalog.runtime_sources_refusal())
+	return report
 
 
 func _inventory() -> Dictionary:

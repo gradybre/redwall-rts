@@ -1,0 +1,26 @@
+{
+  "stage.log": {
+    "unexpected_diagnostic_lines": [],
+    "sha256": "17c5dc6d2175463c11ca9becb28c093ec666272f91eabad56a2404a824f894be"
+  },
+  "clean-import.log": {
+    "unexpected_diagnostic_lines": [],
+    "sha256": "82d98e1aa16ebccf5ea446d7e94cf1c18a15dfcf4639cc7a988a988b79be23ad"
+  },
+  "clone.log": {
+    "unexpected_diagnostic_lines": [],
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "build.log": {
+    "unexpected_diagnostic_lines": [],
+    "sha256": "c90056c6158fad437c7371fd58b578cbe9246080044f8f935d243d7d55c71931"
+  },
+  "builder-logs/verify.log": {
+    "unexpected_diagnostic_lines": [],
+    "sha256": "8fb2fad42d53e8f44b4660956ad359fad2accb68b2ca5d20c8dbcf4f4229c930"
+  },
+  "builder-logs/export.log": {
+    "unexpected_diagnostic_lines": [],
+    "sha256": "1755fe04dcc05c569a4b89ffdfd88225ce9a5c51474af0b93df68fd5be076d58"
+  }
+}

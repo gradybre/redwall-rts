@@ -1,0 +1,22 @@
+{
+  "build/profile-export-full-pack-v1/redwall-demo-windows/README.txt": {
+    "bytes": 6319,
+    "sha256": "c6cbbe8b6f878b0cadb7db991f84942e28f72a2742a312b2942c3b74c36f2421"
+  },
+  "build/profile-export-full-pack-v1/redwall-demo-windows/RedwallDemo.console.exe": {
+    "bytes": 188928,
+    "sha256": "5514c7645ee897a01f540d3cf22ede5badf92394521a08bfab66a54d7369e6e6"
+  },
+  "build/profile-export-full-pack-v1/redwall-demo-windows/RedwallDemo.exe": {
+    "bytes": 103176704,
+    "sha256": "51498b72b3a237f882ebd7d1787f06a4bc1eaf0572daab93837adcfd3cfdc107"
+  },
+  "build/profile-export-full-pack-v1/redwall-demo-windows/RedwallDemo.pck": {
+    "bytes": 969176488,
+    "sha256": "573186051190da90a07ad70e1d4af0dac4e31ff89c0ec0f115c1fdee78a81eba"
+  },
+  "build/profile-export-full-pack-v1/redwall-demo-windows.zip": {
+    "bytes": 717432530,
+    "sha256": "3177e0818237ae4efa130e7dc79a8563968ef967aae6b5621565d6320390817b"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "command": [
+    "cp",
+    "-cR",
+    "/Users/brendan/Developer/redwall-rts/assets/library",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/assets/library"
+  ],
+  "seconds": 0.498,
+  "source": "/Users/brendan/Developer/redwall-rts/assets/library",
+  "destination": "/Users/brendan/Developer/redwall-rts-codex-ug-space/assets/library",
+  "files": 2689,
+  "logical_bytes": 32357395656,
+  "symlinks": [],
+  "shared_source_inodes": [],
+  "source_writes": false
+}

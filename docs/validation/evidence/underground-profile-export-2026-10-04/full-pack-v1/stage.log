@@ -1,0 +1,170 @@
+make_demo_crop_cards: cutting the bed from the roots source
+  demo_crop_cards: imported /Users/brendan/Developer/redwall-rts-codex-ug-space/assets/library/environment/crop_roots_ripe/highpoly.glb in 6.1s
+  demo_crop_cards: bed: cut 7257424 of 7818668 faces (7163303 plant-coloured)
+  demo_crop_cards: bed: decimated 547104 -> 24000 faces
+make_demo_crop_cards: rendering crop_grain_ripe cards
+  demo_crop_cards: imported /Users/brendan/Developer/redwall-rts-codex-ug-space/assets/library/environment/crop_grain_ripe/highpoly.glb in 7.2s
+  demo_crop_cards: front card 0 (wheat): 858 parts, 19710 faces at -0.550, -0.550, 0.1s
+  demo_crop_cards: front card 1 (wheat): 761 parts, 20812 faces at 0.550, -0.500, 0.1s
+  demo_crop_cards: front card 2 (wheat): 1480 parts, 30700 faces at -0.500, 0.580, 0.1s
+  demo_crop_cards: front card 3 (wheat): 698 parts, 19763 faces at 0.520, 0.550, 0.1s
+  demo_crop_cards: front card 4 (wheat): 876 parts, 21595 faces at -0.620, 0.050, 0.1s
+  demo_crop_cards: front card 5 (wheat): 864 parts, 19724 faces at 0.600, 0.000, 0.1s
+make_demo_crop_cards: rendering crop_roots_ripe cards
+  demo_crop_cards: imported /Users/brendan/Developer/redwall-rts-codex-ug-space/assets/library/environment/crop_roots_ripe/highpoly.glb in 5.9s
+  demo_crop_cards: front card 0 (carrot): 372 parts, 182846 faces at -0.224, 0.430, 0.2s
+  demo_crop_cards: front card 1 (carrot): 405 parts, 194693 faces at 0.259, 0.159, 0.1s
+  demo_crop_cards: front card 2 (carrot): 380 parts, 203146 faces at -0.014, 0.682, 0.2s
+  demo_crop_cards: front card 3 (turnip): 131 parts, 128336 faces at -0.013, -0.430, 0.1s
+  demo_crop_cards: front card 4 (turnip): 168 parts, 119540 faces at -0.365, -0.688, 0.1s
+  demo_crop_cards: top card 0 (carrot): 372 parts, 182846 faces at -0.224, 0.430, 0.1s
+  demo_crop_cards: top card 1 (carrot): 405 parts, 194693 faces at 0.259, 0.159, 0.2s
+  demo_crop_cards: top card 2 (carrot): 380 parts, 203146 faces at -0.014, 0.682, 0.2s
+  demo_crop_cards: top card 3 (turnip): 131 parts, 128336 faces at -0.013, -0.430, 0.1s
+  demo_crop_cards: top card 4 (turnip): 168 parts, 119540 faces at -0.365, -0.688, 0.1s
+  weir_structure         4052 tris, removed {'water': 747, 'slab': 1783}, 0.5 s
+  item_turnip             1149 tris (small_prop, decimate), 512 px, 9.0 s
+  item_radish             1149 tris (small_prop, decimate), 512 px, 10.4 s
+  item_beetroot           1150 tris (small_prop, decimate), 512 px, 13.3 s
+  item_onion              1149 tris (small_prop, decimate), 512 px, 13.4 s
+  item_carrot             1146 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 13.7 s
+  item_peas               1150 tris (small_prop, decimate), 512 px, 7.8 s
+  item_celery             1148 tris (small_prop, decimate), 512 px, 14.6 s
+  item_trout              1150 tris (small_prop, decimate), 512 px, 2.5 s
+  item_barley              982 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 20.8 s
+  item_perch              1150 tris (small_prop, decimate), 512 px, 8.2 s
+  item_leek               1069 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 43.1 s
+  item_oats               1138 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 24.2 s
+  item_lettuce            1126 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 38.2 s
+  find_flint              1150 tris (small_prop, decimate), 512 px, 8.0 s
+  find_clay               1150 tris (small_prop, decimate), 512 px, 1.2 s
+  item_shrimp             1035 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 24.0 s
+  relic_bell              1150 tris (small_prop, decimate), 512 px, 3.7 s
+  item_hotroot            1150 tris (small_prop, decimate), 512 px, 20.3 s
+  item_mussels            1137 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 25.1 s
+  item_eel                1140 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 34.5 s
+  relic_key               1150 tris (small_prop, decimate), 512 px, 6.9 s
+  mole_pick               1150 tris (small_prop, decimate), 512 px, 1.6 s
+  fishing_rod             1150 tris (small_prop, decimate), 512 px, 3.4 s
+  tunnel_brace            1150 tris (small_prop, decimate), 512 px, 7.9 s
+  gnawed_log              1149 tris (small_prop, decimate), 512 px, 6.5 s
+  tunnel_rubble           1149 tris (small_prop, decimate), 512 px, 18.9 s
+  relic_banner            1141 tris (small_prop, voxel_remesh(0.0060)+decimate), 512 px, 35.0 s
+  chopping_block          1150 tris (small_prop, decimate), 512 px, 16.9 s
+  sapling_basket          1150 tris (small_prop, decimate), 512 px, 19.6 s
+  fishing_net             1124 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 40.6 s
+  sawhorse                1150 tris (small_prop, decimate), 512 px, 21.6 s
+  spade                   1150 tris (small_prop, decimate), 512 px, 0.9 s
+  wall_lantern            1148 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 13.6 s
+  hoe                     1150 tris (small_prop, decimate), 512 px, 1.8 s
+  sickle                  1150 tris (small_prop, decimate), 512 px, 1.0 s
+  axe                     1150 tris (small_prop, decimate), 512 px, 2.4 s
+  boat_rowboat            1898 tris (furniture_instance, decimate), 1024 px, 10.6 s
+  clay_jars               1127 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 36.7 s
+  boat_coracle            1889 tris (furniture_instance, voxel_remesh(0.0059)+decimate), 1024 px, 44.5 s
+  jetty                   1898 tris (furniture_instance, voxel_remesh(0.0059)+decimate), 1024 px, 18.4 s
+  bridge_plank            1899 tris (furniture_instance, decimate), 1024 px, 8.8 s
+  boat_raft               1900 tris (furniture_instance, voxel_remesh(0.0059)+decimate), 1024 px, 39.9 s
+  bridge_log              1900 tris (furniture_instance, decimate), 1024 px, 5.0 s
+  smoking_rack            1899 tris (furniture_instance, decimate), 1024 px, 16.4 s
+  bridge_pier             1900 tris (furniture_instance, decimate), 1024 px, 8.9 s
+  item_strawberry         1141 tris (small_prop, voxel_remesh(0.0475)+decimate), 512 px, 177.9 s
+  felled_trunk            1900 tris (furniture_instance, decimate), 1024 px, 10.0 s
+  bed                     1898 tris (furniture_instance, decimate), 1024 px, 13.0 s
+  plank_stack             1897 tris (furniture_instance, voxel_remesh(0.0059)+decimate), 1024 px, 28.0 s
+  tunnel_arch             1900 tris (furniture_instance, decimate), 1024 px, 13.9 s
+  burrow_door             1900 tris (furniture_instance, decimate), 1024 px, 29.1 s
+  hand_lantern            1150 tris (small_prop, decimate), 512 px, 8.8 s
+  pantry_shelf            1808 tris (furniture_instance, voxel_remesh(0.0059)+decimate), 1024 px, 49.4 s
+  hearth                  1899 tris (furniture_instance, decimate), 1024 px, 47.0 s
+  chimney_pot             1150 tris (small_prop, decimate), 512 px, 11.4 s
+  rag_rug                 1145 tris (small_prop, voxel_remesh(0.0059)+decimate), 512 px, 35.2 s
+  eel_trap                1148 tris (small_prop, voxel_remesh(0.0119)+decimate), 512 px, 248.2 s
+  plant_turnip             580 tris (ground_cover_cluster, decimate), 512 px, 51.4 s
+  plant_radish             579 tris (ground_cover_cluster, decimate), 512 px, 97.4 s
+  basket                  1146 tris (small_prop, voxel_remesh(0.0119)+decimate), 512 px, 262.0 s
+  plant_onion              540 tris (ground_cover_cluster, voxel_remesh(0.0223)+decimate), 512 px, 21.3 s
+  plant_leek               580 tris (ground_cover_cluster, decimate), 512 px, 15.5 s
+  plant_carrot             477 tris (ground_cover_cluster, voxel_remesh(0.0334)+decimate), 512 px, 81.7 s
+  hanging_stores          1122 tris (small_prop, voxel_remesh(0.0119)+decimate), 512 px, 201.1 s
+  plant_beetroot           580 tris (ground_cover_cluster, decimate), 512 px, 103.2 s
+  plant_celery             555 tris (ground_cover_cluster, voxel_remesh(0.0426)+decimate), 512 px, 77.7 s
+  plant_peas               577 tris (ground_cover_cluster, decimate), 512 px, 23.2 s
+  plant_lettuce            576 tris (ground_cover_cluster, voxel_remesh(0.0401)+decimate), 512 px, 99.6 s
+  root_bin                1883 tris (furniture_instance, voxel_remesh(0.0119)+decimate), 1024 px, 245.8 s
+  plant_oats               448 tris (ground_cover_cluster, voxel_remesh(0.0118)+decimate), 512 px, 36.6 s
+  plant_strawberry         519 tris (ground_cover_cluster, voxel_remesh(0.0374)+decimate), 512 px, 154.1 s
+  plant_barley             405 tris (ground_cover_cluster, voxel_remesh(0.0223)+decimate), 512 px, 132.3 s
+  tunnel_arch_open        1899 tris in 1 part(s), 10.7 s
+  hand_lantern_lit        1900 tris in 1 part(s), 6.9 s
+  burrow_door_open        1899 tris in 2 part(s), 25.9 s
+  large_bed               1899 tris in 1 part(s), 12.2 s
+  hanging_stores_strung   1818 tris in 6 part(s), 108.8 s
+  raspberry_canes      2998 tris (tree_large_vegetation, decimate), 1024 px, 1.4 m
+  pear_tree            5800 tris (tree_large_vegetation, decimate), 2048 px, 5.2 m
+  apple_tree           5800 tris (tree_large_vegetation, decimate), 2048 px, 4.7 m
+  bramble_blackberry   2999 tris (tree_large_vegetation, decimate), 1024 px, 1.2 m
+  hazel_bush           3000 tris (tree_large_vegetation, decimate), 1024 px, 3.0 m
+  mushroom_forage       552 tris (ground_cover_cluster, voxel_remesh(0.0119)+decimate), 512 px, 0.45 m
+  strawberry_patch      523 tris (ground_cover_cluster, voxel_remesh(0.0238)+decimate), 512 px, 0.35 m
+  bee_skep             1886 tris (furniture_instance, voxel_remesh(0.0059)+decimate), 1024 px, 0.75 m
+  infirmary_ward      29341 tris (building_assembly, meshy_remesh, maps resized to 2048 px), 2048 px, 5.5 m
+  herb_patch            546 tris (ground_cover_cluster, voxel_remesh(0.0237)+decimate), 512 px, 0.5 m
+  apple_basket         1141 tris (small_prop, voxel_remesh(0.0118)+decimate), 512 px, 0.4 m
+  hall_banner            1900 tris  1024 px  decimate  aabb [-0.4781, 0.0, -0.0421] [0.4781, 1.9025, 0.0421]  2.7 s
+  wild_songbird          1150 tris  512 px  decimate  aabb [-0.4863, 0.0, -0.9521] [0.4863, 1.4465, 0.9521]  4.1 s
+  wild_songbird_flight   1150 tris  512 px  decimate  aabb [-0.9473, 0.0, -0.6111] [0.9473, 0.7836, 0.6111]  3.8 s
+  wild_butterfly         1150 tris  512 px  decimate  aabb [-0.9526, 0.0, -0.7071] [0.9526, 0.4865, 0.7071]  2.6 s
+  wild_frog              1150 tris  512 px  decimate  aabb [-0.9157, 0.0, -0.9497] [0.9157, 1.2308, 0.9497]  6.5 s
+  wild_trout_leaping     1150 tris  512 px  decimate  aabb [-0.2574, 0.0, -0.9511] [0.2574, 0.5789, 0.9511]  2.6 s
+  hall_stage2           30000 tris  2048 px  decimate+tight_uv  aabb [-0.5344, 0.0, -0.952] [0.5344, 1.2141, 0.952]  29.4 s
+  pine_scots             5686 tris  1024 px  voxel_remesh(0.0059)+decimate+tight_uv  aabb [-0.5311, 0.0, -0.5122] [0.5311, 1.8998, 0.5122]  133.9 s
+  plant_flax              482 tris  512 px  voxel_remesh(0.0440)+decimate  aabb [-0.5919, 0.0048, -0.6589] [0.6677, 1.6885, 0.594]  132.1 s
+  yew_ancient            5658 tris  1024 px  voxel_remesh(0.0119)+decimate+tight_uv  aabb [-0.8286, 0.0, -0.9403] [0.8286, 1.5047, 0.9403]  158.3 s
+  post hall_stage2: done in 0.3 s
+  post hall_banner: done in 0.1 s
+  post pine_tint: done in 0.2 s
+  post wildlife: done in 0.3 s
+  post windows: done in 2.6 s
+  post oak_bare: done in 7.6 s
+/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/art_pass2_ui.py:94: DeprecationWarning: Image.Image.getdata is deprecated and will be removed in Pillow 14 (2027-10-15). Use get_flattened_data instead.
+  samples.extend(image.crop((x0, y0, x0 + 12, y0 + 12)).getdata())
+art_pass2_ui: 9 portraits, 8 emblems -> /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/ui
+  crock_stoneware     1150 tris  1024 px  0.5 m tall  size [0.46, 0.5, 0.422]
+  jar_shelf           1888 tris  1024 px  0.95 m tall  size [1.351, 0.95, 0.377]
+  ale_cask            1900 tris  1024 px  0.8 m tall  size [0.881, 0.8, 0.686]
+  brew_vat            1898 tris  1024 px  0.95 m tall  size [1.259, 0.95, 1.278]
+  rock_face           1150 tris  1024 px  0.7646 m tall  size [1.0, 0.765, 0.236]
+  tunnel_lintel        686 tris  1024 px  0.13 m tall  size [1.1, 0.13, 0.125]
+  tunnel_post          514 tris  1024 px  0.6679 m tall  size [0.163, 0.668, 0.167]
+  tunnel_set          1714 tris  1024 px  0.72 m tall  size [1.1, 0.72, 0.167]
+  item_jam           icon/sheet_preserves_finds/sheet.png 0,0
+  item_pickles       icon/sheet_preserves_finds/sheet.png 1,0
+  item_dried_fruit   icon/sheet_preserves_finds/sheet.png 2,0
+  item_cheese        icon/sheet_preserves_finds/sheet.png 0,1
+  item_ale           icon/sheet_preserves_finds/sheet.png 1,1
+  item_cider         icon/sheet_preserves_finds/sheet.png 2,1
+  find_coins         icon/sheet_preserves_finds/sheet.png 0,2
+  find_old_map       icon/sheet_preserves_finds/sheet.png 1,2
+  find_spring        icon/sheet_preserves_finds/sheet.png 2,2
+  item_flax          icon/sheet_flax_linen_wax/sheet.png 0,0
+  item_flax_fibre    icon/sheet_flax_linen_wax/sheet.png 1,0
+  item_flax_seed     icon/sheet_flax_linen_wax/sheet.png 2,0
+  item_linen         icon/sheet_flax_linen_wax/sheet.png 0,1
+  item_linen_bolt    icon/sheet_flax_linen_wax/sheet.png 1,1
+  item_linen_thread  icon/sheet_flax_linen_wax/sheet.png 2,1
+  item_wax           icon/sheet_flax_linen_wax/sheet.png 0,2
+  item_wax_candles   icon/sheet_flax_linen_wax/sheet.png 1,2
+  item_wax_comb      icon/sheet_flax_linen_wax/sheet.png 2,2
+  mouse_keeper       walk 0.748 m/s (gait; estimate 0.746)  tailed True
+  mouse_fieldworker  walk 0.692 m/s (gait; estimate 0.690)  tailed True
+  squirrel_gatherer  walk 0.622 m/s (gait; estimate 0.617)  tailed True
+  squirrel_forester  walk 0.682 m/s (gait; estimate 0.674)  tailed True
+  otter_boatwright   walk 0.951 m/s (gait; estimate 0.945)  tailed True
+  otter_fisher       walk 1.214 m/s (gait; estimate 1.206)  tailed True
+  mole_digger        walk 0.516 m/s (gait; estimate 0.549)  tailed False
+  badger_quarryman   walk 2.142 m/s (gait; estimate 2.133)  tailed False
+  beaver_bridgewright walk 0.992 m/s (gait; estimate 0.989)  tailed True
+stage_demo_assets: 141 world assets, 9 creatures -> /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets
+stage_demo_assets: texture imports set (162 changed); to import and compress what staging added: python3 tools/demo_texture_imports.py --godot godot
+stage_demo_audio: 56 sound files staged, 0 skipped -> godot/demo/assets/sound/ (import them: godot --headless --path godot --import)

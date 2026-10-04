@@ -1,0 +1,23 @@
+test_discovery_rejects_invalid_selection_in_the_actual_godot_worker (__main__.RealRunner) ... skipped 'pass --godot to execute real runner and shell guards'
+test_new_runner_has_zero_analyzer_warnings (__main__.RealRunner) ... skipped 'pass --godot to execute real runner and shell guards'
+test_one_leaked_object_is_counted_by_the_shard_runner_and_its_shell (__main__.RealRunner) ... skipped 'pass --godot to execute real runner and shell guards'
+test_real_full_and_sharded_counts_and_diagnostics_match (__main__.RealRunner) ... skipped 'pass --godot to execute real runner and shell guards'
+test_real_unexpected_warning_abort_and_leak_fail_sharded_shell (__main__.RealRunner) ... skipped 'pass --godot to execute real runner and shell guards'
+test_aggregate_matches_complete_baseline (__main__.ShardGuards) ... ok
+test_bad_indices_and_counts_fail (__main__.ShardGuards) ... ok
+test_baseline_assertions_and_diagnostic_totals_must_match (__main__.ShardGuards) ... ok
+test_changed_counts_or_file_lists_in_json_are_caught_by_raw_log (__main__.ShardGuards) ... ok
+test_completed_suite_counters_must_sum_to_the_runner_totals (__main__.ShardGuards) ... ok
+test_discovers_every_new_direct_suite_but_not_framework_or_live_scripts (__main__.ShardGuards) ... ok
+test_missing_duplicate_unknown_and_empty_assignments_are_refused (__main__.ShardGuards) ... ok
+test_missing_or_duplicate_execution_is_refused_even_with_clean_counts (__main__.ShardGuards) ... ok
+test_missing_result_and_extra_result_cannot_go_green (__main__.ShardGuards) ... ok
+test_missing_summary_success_guard_and_misclassified_diagnostics_fail (__main__.ShardGuards) ... ok
+test_new_suite_invalidates_old_manifest (__main__.ShardGuards) ... ok
+test_partition_is_stable_and_separates_long_suites (__main__.ShardGuards) ... ok
+test_raw_diagnostics_leaks_and_aborts_cannot_hide_behind_clean_summaries (__main__.ShardGuards) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.029s
+
+OK (skipped=5)

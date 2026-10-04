@@ -1,0 +1,66 @@
+{
+  "verdict": "accepted; no high/medium correctness finding",
+  "scope": "Timing data only. No engine rerun or foreign source/cache/project edits.",
+  "source_commit": "256c19082a173f1dde8118c6ebf7ad36abd31598",
+  "source_ci_run": 37226172376,
+  "source_pins": {
+    "tools/ci_test_shard_weights.json": "25717b79e9f510fb8cf69ac1ef16dbeddd1af8837a14d9d2d13fb9965493a72e",
+    "tools/ci_test_shards.py": "71748fa88fee3568717b4d84e9e292fbe68966605f0b4aa59e97735cffe23d16",
+    "tools/test_ci_test_shards.py": "74efced6b91a087d8f09767846232a077d5836854bb6ff6ef9cbd756e4424735",
+    "tools/run_tests.sh": "aa38a6ccb26636bfbfab7e9c3046479bf63dc6614a104bd7273e342068090f01",
+    "godot/test/run_tests.gd": "c5d24b601e72908fe7acb282f8f92c96ea768fd1cd08fe9e9772f39fa49c2dbe",
+    ".github/workflows/tests.yml": "c0ceb1eacdc481d8c2d4a416b8121f88ad78aea28c127b574a4e6a9e14a8dd52"
+  },
+  "unchanged_from_measured_commit": {
+    "tools/ci_test_shards.py": true,
+    "tools/test_ci_test_shards.py": true,
+    "tools/run_tests.sh": true,
+    "godot/test/run_tests.gd": true,
+    ".github/workflows/tests.yml": true
+  },
+  "generated_table_byte_identical": true,
+  "table_non_timing_fields_unchanged": true,
+  "prior_measured_suites": 240,
+  "measured_suites": 397,
+  "old_assignment_actual_suite_usec": [
+    259609295,
+    330188890,
+    318475081,
+    681564239,
+    817081060,
+    370639638,
+    353844704,
+    387620985
+  ],
+  "new_assignment_estimated_usec": [
+    439878722,
+    439877008,
+    439876892,
+    439879097,
+    439877609,
+    439877636,
+    439877497,
+    439879431
+  ],
+  "aggregated_original_counts": {
+    "tests": 11027,
+    "assertions": 1020358,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "new_unweighted_suite_discovered_exactly_once": true,
+  "current_vs_measured_corpus": {
+    "added": [
+      "test_underground_room_phase_refresh.gd"
+    ],
+    "removed": []
+  },
+  "initial_current_tree_replay": "Correctly refused: manifest corpus differs from discovered test files. Exact original256c1908 corpus then reproduced using unchanged helper in own temporary snapshot.",
+  "limits": "Balanced durations are estimates from the same recorded suite times, not a measured rerun or a change to exact-once discovery, diagnostic thresholds, count checks or CI gates.",
+  "source_unchanged": true
+}

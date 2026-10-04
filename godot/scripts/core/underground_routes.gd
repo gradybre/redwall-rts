@@ -1376,6 +1376,11 @@ static func installation_leaf_refusal(actual: RefCounted, context: Locations.Ins
 
 
 static func _installation_paths_refusal(actual: RefCounted, context: Locations.InstallationContext) -> StringName:
+	"""Installation may add real supported paths while preserving every retained path payload."""
+	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
+
+
+static func _retained_paths_refusal(actual: RefCounted, target_revision: int, profile_revision: int) -> StringName:
 	"""Preserve occupied and queued spans without a new retention observer after payment."""
 	if actual._stage.vertex_count < actual._live.vertex_count:
 		return &"ROUTE_INSTALLATION_CREATE_ONLY"
@@ -1388,13 +1393,44 @@ static func _installation_paths_refusal(actual: RefCounted, context: Locations.I
 					return &"ROUTE_INSTALLATION_CREATE_ONLY"
 			if actual._live.longs[E_LENGTH * actual._edge_capacity + row] != actual._stage.longs[E_LENGTH * actual._edge_capacity + row]:
 				return &"ROUTE_INSTALLATION_CREATE_ONLY"
-		if actual._stage.present[row] != 0 and (actual._stage.longs[E_CONTENT_REVISION * actual._edge_capacity + row] != context.profile_revision \
-				or actual._stage.longs[E_GEOMETRY_REVISION * actual._edge_capacity + row] != context.target_revision):
+		if actual._stage.present[row] != 0 and (actual._stage.longs[E_CONTENT_REVISION * actual._edge_capacity + row] != profile_revision \
+				or actual._stage.longs[E_GEOMETRY_REVISION * actual._edge_capacity + row] != target_revision):
 			return &"ROUTE_INSTALLATION_REFRESH_REQUIRED"
 	for index: int in actual._live.vertex_count * 3:
 		if actual._live.vertices[index] != actual._stage.vertices[index]:
 			return &"ROUTE_INSTALLATION_CREATE_ONLY"
 	return &""
+
+
+static func room_prepared_leaf_refusal(actual: RefCounted, context: Locations.RoomContext) -> StringName:
+	"""A Room admission cannot create a path, delete a queue/occupied edge or change an old span payload."""
+	if actual == null or context == null or actual._token <= 0 or actual._token != context.route_token \
+			or not actual._sealed or actual._operation_error != &"" or actual._in_callback or actual._callback_reentered \
+			or actual._searching or actual._advancing or actual._occupancy_reading or actual._cold != context.budget \
+			or actual._cold_token != context.cold_token or actual._space_token != context.space_token \
+			or actual._location_token != context.location_token or actual._base_geometry_revision != context.base_revision \
+			or actual._target_geometry_revision != context.target_revision or actual._profiles._loading \
+			or actual._profiles._live.header[0] != context.profile_revision:
+		return &"ROUTE_ROOM_CONTEXT"
+	var code: StringName = Locations.room_scope_leaf_refusal(actual._locations, context)
+	if code != &"":
+		return code
+	if actual._stage.edge_count != actual._live.edge_count or actual._stage.vertex_count != actual._live.vertex_count \
+			or actual._stage.free_count != actual._live.free_count:
+		return &"ROUTE_ROOM_REFRESH_ONLY"
+	return _retained_paths_refusal(actual, context.target_revision, context.profile_revision)
+
+
+static func publish_room_preflighted(actual: RefCounted, context: Locations.RoomContext) -> bool:
+	"""Only the same preflighted Room's actual Space and endpoint receipts can publish the refreshed path bank."""
+	if room_prepared_leaf_refusal(actual, context) != &"" \
+			or Locations.room_scope_leaf_refusal(actual._locations, context, true) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
+		return false
+	_commit_preflighted_bank(actual, context.route_token)
+	return true
 
 
 static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
@@ -1405,10 +1441,16 @@ static func publish_installation(actual: RefCounted, context: Locations.Installa
 			or actual._owner._last_published_token != context.space_token \
 			or actual._locations._token != 0 or actual._locations._last_published_token != context.location_token:
 		return false
+	_commit_preflighted_bank(actual, context.route_token)
+	return true
+
+
+static func _commit_preflighted_bank(actual: RefCounted, token: int) -> void:
+	"""Both typed coordinators prove their own original receipt before this observer-free bank swap."""
 	var previous: EdgeBank = actual._live
 	actual._live = actual._stage
 	actual._stage = previous
-	actual._last_published_token = context.route_token
+	actual._last_published_token = token
 	actual._token = 0
 	actual._cold_token = 0
 	actual._space_token = 0
@@ -1418,7 +1460,6 @@ static func publish_installation(actual: RefCounted, context: Locations.Installa
 	actual._operation_error = &""
 	actual._remaining = 0
 	actual._sealed = false
-	return true
 
 
 func _companion_publications_refusal() -> StringName:

@@ -155,3 +155,126 @@ This closes only the core publication tail. Actual prepared Placement companions
 and immutable physical-frontier bindings still must replace the synthetic test
 permission. No complete entrance, traversal, material flow or playable demo
 requirement is accepted by this result.
+
+
+## Actual future Placement and existing circulation companions
+
+The geometry follow-on adds `Placements.prepare_admission(request, candidate,
+orders, original_token, space_token)`, `prepared_admission_leaf_refusal`,
+`publish_admission`, and exact-context `discard_admission`. The concrete
+RoomOrders callback ordering is exercised: `entry_plan_refusal` runs before
+Space seals; Placement preparation starts from `entry_prepared_refusal` after
+seal. The root coordinator subsequently prepares actual unique SOLID Site keys,
+then calls `entry_final_refusal`. That final callback must end with the pure
+Placement leaf. No subsequent observer may precede or interrupt actual Room,
+Sites, Space, Location, graph/certificate, and Placement publication.
+
+The supplied future Room is the coordinator's exact private
+`Directory.CreateCandidate`; every scalar, Directory identity and allocator
+choice remains current. The Placement Request must equal the retained entry
+transform, completed surface anchor, base level and section. Only a paired
+null draft opening tuple expands to that exact future Corridor and staged
+FLOOR_DATUM. Existing non-null targets pass unchanged and retain full Room,
+section, level and source-revision checks. Neither spelling creates an endpoint,
+opens an edge, installs a part, or supplies physical permission from metadata.
+
+The previously unbound frontier header may acquire a positive source revision
+and exact32-byte hash only when the live Placement count is zero and all prior
+frontier bytes are zero. These bytes are pinned into the already-reserved
+inactive header/digest before the first Authority callback. The remaining bank
+copy preserves that pinned tuple; changing both mutable EntryPlan images cannot
+substitute a new first source. A refused operation leaves the live tuple
+unbound. Once published, the tuple remains bound after retirement to zero rows;
+subsequent admissions must match it. No second digest image, epoch or source
+counter is introduced. Existing zero-frontier live rows do not acquire this
+first-bind exception.
+
+`Locations.RoomContext` is one caller-owned80-byte scalar packet with exact
+weak RoomOrders/Space/Location links and the actual Budget. Its original
+Space/Location/graph tokens, World/Room and revision tuple are pinned throughout.
+The Location leaf requires the same full handles and all immutable old payloads;
+the graph leaf requires all existing span payloads, vertices and complete masks
+at the target geometry/content revision. Existing Placement/opening before-facts
+must still be current before staged source revisions can advance. An unrelated
+stale source cannot be repaired by another Corridor admission. Replacement
+candidate tokens are neither inherited nor destroyed by original cleanup.
+
+All expensive observations finish before the final actual-source leaf. The
+static publication kernels require the same real RoomOrders publication bracket,
+original Budget and successful Space/Location receipts. The tail reads actual
+packed fields and static leaves only, then swaps existing banks. The Root
+Room/Sites/Space kernels in the preceding section remain its prerequisite.
+A source observation armed to fire only after Room allocation is tested to remain
+uninvoked. The ordinary paid installation path reuses the unchanged common bank
+swap and mask routines; its bill, progress and payment APIs are unchanged.
+
+### Sequential admission lifetime and finite checks
+
+The new fixed logical payload is113 bytes: RoomContext80, privately pinned
+allocator candidate32, and admission-mode flag1. This raises the existing
+Placement coexistence census from1557 to1670 within its already-declared2048
+allowance. Weak/native headers remain in the provisional native reservation;
+no additional packed array or authoritative row column is allocated. The first
+frontier hash uses existing inactive bytes. The existing512-byte helper-frame
+ceiling covers the new scalar calls and the reviewed272-byte final Room leaf
+chain; no per-Placement object or geometry image is retained.
+
+Before private request/bank preparation, the actual Sites ClaimBatch and
+EntryClaimInput must still be absent. Admission checks
+`2 * EntryPlan.payload_bytes(plan) + max(88K + 384, 377856) + 2048`
+against the original real Budget token, where K is the configured Location
+Domain region limit. The two actual EntryPlan images coexist with one sequential
+Location or WorldRoutes proof. Placement's Request/context and existing inactive
+banks are already in its separate admitted lifetime. Location repeats the exact
+payload-size and token check after the last scope observation and before copying;
+request growth cannot borrow the earlier smaller size. Location proof drops at
+seal, WorldRoutes proof then drops at seal, and only afterward may RoomOrders
+allocate its Sites claim batch. All final post-Sites leaves allocate no image.
+
+For the accepted6144-region bound, at most6143 claim rows plus one metadata row
+fit even before subtracting existing sparse rows. With16 opening targets, two
+maximal EntryPlan payloads total295832 logical bytes. The Location phase ceiling
+is838936 including541056 proof bytes and2048 coordinator controls; the graph
+phase is675736. The separate final Sites formula from RoomOrders is644120 at
+that conservative box count, with both earlier proof images gone. These are
+logical ceilings, not measured native maxima or permission for a concrete
+frontier provider to retain additional scratch. Actual provider/native joint
+admission and complete physical frontier qualification remain open.
+
+The final leaf precharges `1024 + 64(P+M) + 28L + 56E + 3V` before retained
+Placement/opening/endpoint/path/mask loops, then passes the remaining domain
+work budget into the actual final Room source/claim census. That census includes
+its capacity scans, exact request-array comparisons and source-kind leaf costs.
+The same admission is checked before the first preparation copy. This is a
+bounded cold attestation; it is not a measured whole-tick performance result.
+
+### Future Room observation under the existing guard
+
+The first real composed run exposed an inherited nested-guard refusal: the
+leased prepared snapshot already held Space's Room callback poison bracket,
+then the future Room source tried to enter that same bracket again. The private
+copy helper now inspects only the exact already-held candidate/authority/token,
+performs ordinary current source/claim observations, and rechecks the direct
+allocator tuple before returning. Another Room, another observation scope, or
+source-repin attempt still poisons the whole outer observation. The final
+original-token/output-size check remains immediately before the actual copy.
+Full snapshots keep the future Room claim marker; traversal snapshots omit only
+the same typed Room-owned OBSTACLE marker as their existing contract. No public
+skip flag or ordinary reader permission changes. The extra bounded future
+candidate work is charged64 checks; no retained state is added.
+
+At the seven frozen source pins in
+`docs/validation/evidence/underground-entry-placement-2026-10-03/admission-final-1/`,
+the fresh import and nine strict suites passed 344 tests / 24,635 assertions /
+0 failures. All strict and raw diagnostic/leak counts were zero, and the
+analyzer reported 0 warnings in 7 files. Sources remained unchanged and the
+initial asset state was restored. The exact commands, suite manifests, raw
+logs and rejected incremental runs are retained with the reproduction script.
+Construction independently reviewed all seven exact source hashes, the complete
+request/first-source/cleanup paths, companion kernels and future Room copy
+guard. It found no high/medium issue and made no edits or duplicate engine run;
+that source verdict is recorded separately from the runtime evidence.
+The actual-owner fixture labels body profiles, prospective frontier and contact
+permission synthetic. It creates the first pending Corridor without a prior
+underground Room; it does not demonstrate a playable first cut or installed
+stair. Production content/contact/native qualification is still unavailable.

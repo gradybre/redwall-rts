@@ -17,6 +17,7 @@ const Modular := preload("res://scripts/core/modular_project_contract.gd")
 const Router := preload("res://scripts/core/modular_projects.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
+const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SCHEMA: int = 1
 const HEADER_FIELDS: int = 16
@@ -167,6 +168,24 @@ class InstallationContext extends RefCounted:
 	var catalog_revision: int = 0
 	var placement_revision: int = 0
 	var payload_revision: int = 0
+
+
+class RoomContext extends RefCounted:
+	## One caller-owned80B admission packet; no future endpoint/edge or per-Room state is allocated here.
+	var orders: WeakRef = null
+	var space: WeakRef = null
+	var locations: WeakRef = null
+	var budget: Budget = null
+	var world: Vector2i = NULL_REF
+	var room: Vector2i = NULL_REF
+	var cold_token: int = 0
+	var space_token: int = 0
+	var location_token: int = 0
+	var route_token: int = 0
+	var base_revision: int = 0
+	var target_revision: int = 0
+	var profile_revision: int = 0
+	var catalog_revision: int = 0
 
 
 class InventoryLocations extends InventoryContract:
@@ -730,6 +749,74 @@ static func _clear_installation_preparation(actual: RefCounted) -> void:
 	actual._world_preparation = false
 
 
+static func room_scope_leaf_refusal(actual: RefCounted, context: RoomContext, publishing: bool = false) -> StringName:
+	"""Read only the actual once-bound RoomOrders' retained entry and original shared arena; no scope callback."""
+	if actual == null or context == null or context.orders == null or context.locations == null \
+			or context.locations.get_ref() != actual or context.space == null or context.space.get_ref() != actual._owner \
+			or context.budget != actual._cold or context.world != actual._world or actual._room_orders == null \
+			or not actual._cold.covers(context.cold_token, Budget.COLD_BYTES):
+		return &"LOCATION_ROOM_CONTEXT"
+	var orders: RoomOrders = context.orders.get_ref() as RoomOrders
+	if orders == null or actual._room_orders.get_ref() != orders or not orders._entry_mode or not orders._cold_held \
+			or orders._stage_action != RoomOrders.ROOM_ADMISSION_STAGE or orders._world != context.world \
+			or orders._room_budget != context.budget or orders._room_cold_token != context.cold_token \
+			or orders._space != actual._owner or orders._stage_token != context.space_token \
+			or orders._stage_room != context.room or orders._room_candidate.ref != context.room \
+			or orders._sources != actual._sources or orders._buildings != actual._buildings \
+			or orders._construction != actual._sources._construction or actual._buildings._spatial_authority == null \
+			or actual._buildings._spatial_authority.get_ref() != orders \
+			or not actual._ids.is_valid_of_kind(context.world, Directory.KIND_WORLD):
+		return &"LOCATION_ROOM_CONTEXT"
+	return &"LOCATION_ROOM_WINDOW" if publishing and not orders._publishing else &""
+
+
+static func room_prepared_leaf_refusal(actual: RefCounted, context: RoomContext) -> StringName:
+	"""Admission only refreshes complete old endpoints; all observation/retention callbacks have already returned."""
+	var code: StringName = room_scope_leaf_refusal(actual, context)
+	if code != &"":
+		return code
+	if actual._token <= 0 or actual._token != context.location_token or not actual._sealed \
+			or actual._in_retention or actual._retention_reentered or actual._snapshot != null \
+			or not actual._room_admission or actual._admission_room != context.room \
+			or actual._admission_type != Buildings.ROOM_TYPE_CORRIDOR or actual._cold_token != context.cold_token \
+			or actual._owner_token != context.space_token or actual._base_geometry_revision != context.base_revision \
+			or actual._target_geometry_revision != context.target_revision:
+		return &"LOCATION_TOKEN_STALE"
+	return _room_rows_leaf_refusal(actual, context.target_revision)
+
+
+static func _room_rows_leaf_refusal(actual: RefCounted, target_revision: int) -> StringName:
+	"""Same full handles and immutable payloads preserve every Inventory, actor and route retainer without observers."""
+	if actual._stage.count != actual._live.count or actual._stage.free_count != actual._live.free_count:
+		return &"LOCATION_ROOM_REFRESH_ONLY"
+	for row: int in actual._capacity:
+		if actual._stage.present[row] != actual._live.present[row] or actual._stage.retired[row] != actual._live.retired[row]:
+			return &"LOCATION_ROOM_REFRESH_ONLY"
+		for field: int in I32_FIELDS:
+			if actual._stage.i32[field * actual._capacity + row] != actual._live.i32[field * actual._capacity + row]:
+				return &"LOCATION_ROOM_REFRESH_ONLY"
+		if actual._stage.i64[PAYLOAD_REVISION * actual._capacity + row] != actual._live.i64[PAYLOAD_REVISION * actual._capacity + row]:
+			return &"LOCATION_ROOM_REFRESH_ONLY"
+		if actual._stage.present[row] != 0 and actual._stage.i64[GEOMETRY_REVISION * actual._capacity + row] != target_revision:
+			return &"LOCATION_ROOM_REFRESH_REQUIRED"
+	return &""
+
+
+static func publish_room_preflighted(actual: RefCounted, context: RoomContext) -> bool:
+	"""The exact Room and Space receipts precede this static refresh-only swap; no observer can fail afterward."""
+	if room_scope_leaf_refusal(actual, context, true) != &"" or room_prepared_leaf_refusal(actual, context) != &"" \
+			or actual._owner._stage_token != 0 or actual._owner._header[17] != context.target_revision \
+			or actual._owner._last_published_token != context.space_token \
+			or not actual._ids.is_valid_of_kind(context.room, Directory.KIND_ROOM):
+		return false
+	var previous: Bank = actual._live
+	actual._live = actual._stage
+	actual._stage = previous
+	actual._last_published_token = context.location_token
+	_clear_installation_preparation(actual)
+	return true
+
+
 func _actual_world_scope() -> WorldScope:
 	"""Keep the weakly bound real publisher alive for the complete synchronous observation."""
 	return _world_scope.get_ref() as WorldScope if _world_scope != null else null
@@ -787,7 +874,17 @@ func _room_preflight(orders: RoomOrders, cold_token: int, owner_token: int,
 	_in_retention = false
 	if _retention_reentered or not _cold.covers(cold_token, Budget.COLD_BYTES) or world_ref() == NULL_REF:
 		return &"LOCATION_ROOM_SCOPE"
-	return code
+	return _entry_payload_refusal(orders, cold_token) if code == &"" else code
+
+
+func _entry_payload_refusal(orders: RoomOrders, cold_token: int) -> StringName:
+	"""Recount both actual mutable EntryPlan images after observations, immediately before a companion copy."""
+	if not orders._entry_mode:
+		return &""
+	if orders._entry_plan == null or not EntryPlan.same(orders._entry_plan, orders._entry_request):
+		return &"LOCATION_ROOM_SCOPE"
+	var bytes: int = 2 * EntryPlan.payload_bytes(orders._entry_plan) + cold_peak_bytes() + 2048
+	return &"" if _cold.covers(cold_token, bytes) else &"LOCATION_COLD_CAPACITY"
 
 
 func _future_context_refusal(owner_token: int, site: Vector2i, operation: int,

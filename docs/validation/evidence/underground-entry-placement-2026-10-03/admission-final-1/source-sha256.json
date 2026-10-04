@@ -1,0 +1,9 @@
+{
+  "godot/scripts/core/underground_connector_placements.gd": "b0b89cdb72a89eb0ea5aba9619db35460f8369d190a4a682251b8096e507be8b",
+  "godot/scripts/core/underground_locations.gd": "769bb871a544e4ae435ec1ba9a70d00a661c6a08b649688134bab95b7790a4bc",
+  "godot/scripts/core/underground_routes.gd": "1b663db541c60a26a0980a3bcd5f4107caa7b414b3cb3ecddd78183e8bef4c62",
+  "godot/scripts/core/underground_world_routes.gd": "b5e7c91973d26d686d6d3a5268cc94e96a6284deabd574e4a1d6d59b7a4cfc54",
+  "godot/scripts/core/underground_space_owner.gd": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",
+  "godot/test/test_underground_space_owner.gd": "003c94285e2b8224291a2249aea45bb75ed6fd28d3cf4f6fe8bea21b4f975891",
+  "godot/test/test_underground_entry_placements.gd": "349eee09a118b049e47336c40b0fa31c533f8ac00c4624e477fc869e42e0ec83"
+}

@@ -3034,6 +3034,78 @@ func test_static_generic_kernel_preserves_exact_token_and_ordinary_publication()
 	assert_equal(_owner.revision(), base + 2, "ordinary generic publication remains available")
 
 
+func test_future_room_leased_copies_share_one_scope_guard_and_preserve_marker_modes() -> void:
+	"""A future identity remains unpublished while full and traversal copies retain their exact different scopes."""
+	var counted: PreparedCopyOwner = _prepared_copy_owner(_sources)
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(counted.seal(token), &"", "exact future Room sealed")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token), &"", "own source callbacks share guard")
+	assert_equal(out.volumes.role, PackedInt32Array([Space.FLOOR_DATUM, Space.OBSTACLE]), "full own marker remains")
+	out = Space.Snapshot.new()
+	assert_equal(counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.token), &"", "same future identity traversal")
+	assert_equal(out.volumes.role, PackedInt32Array([Space.FLOOR_DATUM]), "only exact typed marker omitted")
+	assert_equal(counted.copies, 2, "one copy per exact observation")
+	assert_false(_buildings.is_live_room(commands.candidate.ref), "metadata grants no identity or completed space")
+	assert_true(counted.abort(token), "actual caller retains abort")
+	assert_equal(probe.budget.release(probe.token), &"", "only original arena released")
+
+
+func test_future_room_copy_source_reentry_or_repin_poison_the_whole_observation() -> void:
+	"""Another Room, scope or source edit cannot borrow the private future exception under the outer guard."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(counted.seal(token), &"", "future Room sealed")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	out.revision = 771
+	for kind: int in 3:
+		sources.target = _world
+		sources.probe = func() -> void:
+			if kind == 0:
+				counted.stage_room_admission(token, commands.candidate, Buildings.ROOM_TYPE_DORMITORY, commands)
+			elif kind == 1:
+				counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.token)
+			else:
+				counted.stage_source(token, _world)
+		assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token),
+			&"SPACE_ROOM_ADMISSION_REENTRY", "recursive attempted scope %d" % kind)
+		assert_equal(counted.copies, 0, "no image allocation under poisoned scope")
+		assert_equal(out.revision, 771, "refused output remains untouched")
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token), &"", "fresh independent observation retries")
+	assert_true(counted.abort(token), "no poison escapes operation")
+	assert_equal(probe.budget.release(probe.token), &"", "caller releases exact lease")
+
+
+func test_future_room_copy_final_candidate_and_original_lease_are_rechecked() -> void:
+	"""Mutable allocator observations and equal-size replacement arenas cannot reach the actual copy boundary."""
+	var sources: LeaseSources = LeaseSources.new(_buildings.directory(), _buildings, _construction)
+	var counted: PreparedCopyOwner = _prepared_copy_owner(sources)
+	var commands: SyntheticAdmission = _admission_fixture()
+	var token: int = _stage_room_markers(commands)
+	assert_equal(counted.seal(token), &"", "future metadata sealed")
+	var probe: SnapshotLeaseProbe = _snapshot_probe()
+	var out: Space.Snapshot = Space.Snapshot.new()
+	sources.target = _world
+	sources.probe = func() -> void: commands.candidate.persistent_id += 1
+	assert_equal(counted.prepared_snapshot_leased_into(token, out, probe.budget, probe.token),
+		&"SPACE_ROOM_CANDIDATE", "late changed observation is not the pinned allocator")
+	assert_equal(counted.copies, 0, "candidate refusal precedes allocation")
+	commands.candidate.persistent_id -= 1
+	sources.probe = probe.replace
+	assert_equal(counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.token),
+		Budget.REFUSE_TOKEN, "future source cannot replace original budget")
+	assert_equal(counted.copies, 0, "replacement refusal precedes allocation")
+	assert_true(probe.budget.covers(probe.replacement, probe.bytes), "replacement remains owned by its caller")
+	assert_equal(counted.prepared_snapshot_for_traversal_leased_into(token, out, probe.budget, probe.replacement), &"", "exact independent retry")
+	assert_true(counted.abort(token), "still no identity publication")
+	assert_equal(probe.budget.release(probe.replacement), &"", "release replacement")
+
+
 func test_static_generic_kernel_never_accepts_special_future_source_context() -> void:
 	"""A typed pending Furniture transaction cannot use the generic bank swap even with its real token."""
 	var harness: InstallationHarness = _installation_fixture()

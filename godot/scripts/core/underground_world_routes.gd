@@ -430,6 +430,11 @@ static func installation_prepared_leaf_refusal(actual: RefCounted, context: Loca
 
 static func _installation_masks_refusal(actual: RefCounted, graph: Routes,
 		context: Locations.InstallationContext) -> StringName:
+	"""The paid context supplies exact already-pinned geometry/profile revisions to the common mask census."""
+	return _prepared_masks_refusal(actual, graph, context.target_revision, context.profile_revision)
+
+
+static func _prepared_masks_refusal(actual: RefCounted, graph: Routes, target_revision: int, profile_revision: int) -> StringName:
 	"""Every retained full edge has a complete exact current certificate; absent rows supply no permission."""
 	for row: int in graph._edge_capacity:
 		if graph._stage.present[row] == 0:
@@ -437,7 +442,7 @@ static func _installation_masks_refusal(actual: RefCounted, graph: Routes,
 				return &"WORLD_ROUTE_CERTIFICATE_STALE"
 			continue
 		if actual._stage.generations[row] != graph._stage.fields[Routes.E_GENERATION * graph._edge_capacity + row] \
-				or actual._stage.geometry[row] != context.target_revision or actual._stage.content[row] != context.profile_revision:
+				or actual._stage.geometry[row] != target_revision or actual._stage.content[row] != profile_revision:
 			return &"WORLD_ROUTE_CERTIFICATE_STALE"
 		var found: bool = false
 		for index: int in MASK_BYTES:
@@ -447,6 +452,37 @@ static func _installation_masks_refusal(actual: RefCounted, graph: Routes,
 	return &""
 
 
+static func room_prepared_leaf_refusal(actual: RefCounted, context: Locations.RoomContext) -> StringName:
+	"""Exact existing paths and complete current masks are refreshed before Room identity; metadata opens no edge."""
+	if actual == null or context == null or not actual._sealed or actual._opening or actual._compiling \
+			or actual._publishing or actual._reading or actual._proof != null or actual._route_token != context.route_token \
+			or actual._space_token != context.space_token or actual._location_token != context.location_token \
+			or actual._cold_token != context.cold_token or actual._budget != context.budget \
+			or actual._base_revision != context.base_revision or actual._target_revision != context.target_revision \
+			or actual._content_revision != context.profile_revision or actual._catalog_revision != context.catalog_revision:
+		return REFUSE_CONTEXT
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual._routes_ref != null else null
+	if graph == null or graph._bindings != actual or graph._profiles != actual._profiles \
+			or actual._profiles._loading or actual._profiles._live.header[0] != context.profile_revision \
+			or actual._catalog._loading or actual._catalog._live.header[0] != context.catalog_revision \
+			or not SourceFacts._same_actual_owners(actual._catalog) \
+			or not SourceFacts._source_storage_matches(actual._catalog) or not SourceFacts._source_digests_match(actual._catalog):
+		return REFUSE_BINDING
+	var code: StringName = Routes.room_prepared_leaf_refusal(graph, context)
+	return _prepared_masks_refusal(actual, graph, context.target_revision, context.profile_revision) if code == &"" else code
+
+
+static func publish_room_preflighted(actual: RefCounted, context: Locations.RoomContext) -> bool:
+	"""Exact preflighted Room receipts authorize both graph and certificate bank swaps without any observer."""
+	if room_prepared_leaf_refusal(actual, context) != &"":
+		return false
+	var graph: Routes = actual._routes_ref.get_ref() as Routes
+	if not Routes.publish_room_preflighted(graph, context):
+		return false
+	_commit_preflighted_certificates(actual, context.catalog_revision)
+	return true
+
+
 static func publish_installation(actual: RefCounted, context: Locations.InstallationContext) -> bool:
 	"""Only static kernels run after payment; successful actual graph publication promotes the same mask bank."""
 	if installation_prepared_leaf_refusal(actual, context) != &"":
@@ -454,10 +490,16 @@ static func publish_installation(actual: RefCounted, context: Locations.Installa
 	var graph: Routes = actual._routes_ref.get_ref() as Routes
 	if not Routes.publish_installation(graph, context):
 		return false
+	_commit_preflighted_certificates(actual, context.catalog_revision)
+	return true
+
+
+static func _commit_preflighted_certificates(actual: RefCounted, catalog_revision: int) -> void:
+	"""The matching concrete graph receipt has already published; this tail only exchanges banks and clears pins."""
 	var previous: Certificates = actual._live
 	actual._live = actual._stage
 	actual._stage = previous
-	actual._live_catalog_revision = context.catalog_revision
+	actual._live_catalog_revision = catalog_revision
 	actual._proof = null
 	actual._route_token = 0
 	actual._space_token = 0
@@ -468,7 +510,6 @@ static func publish_installation(actual: RefCounted, context: Locations.Installa
 	actual._content_revision = 0
 	actual._catalog_revision = 0
 	actual._sealed = false
-	return true
 
 
 func begin_prepare(cold_token: int, space_token: int = 0, location_token: int = 0) -> Routes.Result:

@@ -959,7 +959,7 @@ func prepared_snapshot_leased_into(token: int, out: Space.Snapshot, budget: Budg
 	var expected_revision: int = revision()
 	if not _begin_room_callback():
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
-	code = prepared_refusal(token)
+	code = _prepared_copy_observation_refusal(token)
 	if _end_room_callback():
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
 	if code != &"":
@@ -982,8 +982,93 @@ func _prepared_copy_refusal(token: int, out: Space.Snapshot, budget: Budget, col
 		return &"SPACE_TRANSACTION_UNSEALED"
 	if budget == null or not budget.covers(cold_token, bytes):
 		return Budget.REFUSE_TOKEN
-	if 2 * (_region_capacity + _source_capacity) > _header[16]:
+	if 2 * (_region_capacity + _source_capacity) + (64 if _room_row >= 0 else 0) > _header[16]:
 		return &"SPACE_OPERATION_BUDGET"
+	return &""
+
+
+func _prepared_copy_observation_refusal(token: int) -> StringName:
+	"""A future Room's own callbacks share the outer copy poison bracket rather than recursively entering it."""
+	if _room_row < 0:
+		return prepared_refusal(token)
+	var candidate: Directory.CreateCandidate = _room_input.get_ref() as Directory.CreateCandidate if _room_input != null else null
+	var authority: Buildings.SpatialAuthority = _room_authority.get_ref() as Buildings.SpatialAuthority if _room_authority != null else null
+	var code: StringName = _room_copy_context_refusal(token, candidate, authority)
+	if code != &"":
+		return code
+	var buildings: Buildings = (_sources as CoreSources)._buildings
+	if authority.buildings_owner() != buildings:
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	code = buildings.spatial_room_candidate_refusal(_room_type, candidate)
+	if code == &"":
+		code = _prepared_room_copy_sources()
+	if code == &"":
+		code = _prepared_room_copy_claims()
+	if code == &"":
+		code = _room_copy_context_refusal(token, candidate, authority)
+	if code == &"":
+		code = (_sources as CoreSources)._directory.candidate_refusal(candidate)
+	return _room_copy_context_refusal(token, candidate, authority) if code == &"" else code
+
+
+func _room_copy_context_refusal(token: int, candidate: Directory.CreateCandidate,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Private copy-bracket identity check retains the same typed future exception without permitting mutation."""
+	if not _room_callback or _room_reentered or token <= 0 or token != _stage_token or not _sealed \
+			or _s_header[17] != _header[17] + 1 or _install_row >= 0 or _furniture_count != 0 \
+			or not _sources is CoreSources or candidate == null or authority == null:
+		return &"SPACE_ROOM_CANDIDATE"
+	var actual: CoreSources = _sources as CoreSources
+	if actual._buildings == null or actual._construction == null or actual._directory == null \
+			or actual._construction._buildings != actual._buildings or actual._buildings._directory != actual._directory \
+			or actual._buildings._spatial_authority == null or actual._buildings._spatial_authority.get_ref() != authority \
+			or not actual._directory.is_valid_of_kind(_domain._world, Directory.KIND_WORLD):
+		return &"SPACE_ROOM_ADMISSION_BINDING"
+	var code: StringName = _room_copy_candidate_refusal(actual._directory, candidate)
+	return _room_source_refusal() if code == &"" else code
+
+
+func _room_copy_candidate_refusal(ids: Directory, candidate: Directory.CreateCandidate) -> StringName:
+	"""Direct final allocator leaves cannot substitute another Room or invoke another observation inside the bracket."""
+	if candidate._directory == null or candidate._directory.get_ref() != ids \
+			or _room_candidate._directory == null or _room_candidate._directory.get_ref() != ids \
+			or candidate.ref != _room_candidate.ref or candidate.kind != Directory.KIND_ROOM \
+			or candidate.typed_row != _room_candidate.typed_row or candidate.persistent_id != _room_candidate.persistent_id \
+			or ids._free_count <= 0 or ids._kind_free_count[Directory.KIND_ROOM] <= 0 \
+			or ids._next_persistent_id >= Directory.PERSISTENT_ID_EXHAUSTED:
+		return &"SPACE_ROOM_CANDIDATE"
+	var slot: int = ids._free_heap[0]
+	return &"" if candidate.ref == Vector2i(slot, ids._generation[slot] + 1) \
+		and candidate.typed_row == ids._heap_index[ids._kind_base[Directory.KIND_ROOM]] \
+		and candidate.persistent_id == ids._next_persistent_id else &"SPACE_ROOM_CANDIDATE"
+
+
+func _prepared_room_copy_sources() -> StringName:
+	"""All ordinary source rows retain actual observers; only the already-pinned future Room uses before-facts."""
+	var code: StringName = _read_source(_domain._world)
+	if code != &"" or _facts.kind != Directory.KIND_WORLD:
+		return &"SPACE_WORLD_IDENTITY"
+	for row: int in _source_capacity:
+		if _s_o_present[row] == 0:
+			continue
+		code = _source_row_refusal(row, true, true)
+		if code != &"":
+			return code
+	return &""
+
+
+func _prepared_room_copy_claims() -> StringName:
+	"""The one future Room's exact own markers skip only duplicate scope callbacks, never physical rows."""
+	for row: int in _region_capacity:
+		if _s_r_present[row] == 0 or _s_r_claim_kind[row] == CLAIM_NONE:
+			continue
+		var ref: Vector2i = Vector2i(_s_r_claim_slot[row], _s_r_claim_generation[row])
+		var owner: Vector2i = Vector2i(_s_r_owner_slot[row], _s_r_owner_generation[row])
+		if _s_r_claim_kind[row] == CLAIM_ROOM and ref == _room_candidate.ref and owner == ref:
+			continue
+		var code: StringName = _claim_refusal(_s_r_claim_kind[row], ref, owner, false)
+		if code != &"":
+			return code
 	return &""
 
 
@@ -997,7 +1082,7 @@ func prepared_snapshot_for_traversal_leased_into(token: int, out: Space.Snapshot
 	var expected: int = revision()
 	if not _begin_room_callback():
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
-	code = prepared_refusal(token)
+	code = _prepared_copy_observation_refusal(token)
 	if _end_room_callback():
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
 	if code == &"":
@@ -1032,7 +1117,7 @@ func _prepared_site_observers(token: int, sites: Sites, site: Vector2i) -> Strin
 		return &"SPACE_ROOM_ADMISSION_REENTRY"
 	var code: StringName = _site_scope_refusal(sites, site)
 	if code == &"":
-		code = prepared_refusal(token)
+		code = _prepared_copy_observation_refusal(token)
 	if code == &"":
 		code = _site_scope_refusal(sites, site)
 	return &"SPACE_ROOM_ADMISSION_REENTRY" if _end_room_callback() else code

@@ -12,6 +12,8 @@ const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
+const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
 const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
@@ -140,6 +142,18 @@ class Authority extends RefCounted:
 		"""Prove the permanent Corridor's actual reserved footprint and complete opening targets."""
 		return REFUSE_AUTHORITY
 
+	func refresh_admission_locations(_placement: Vector2i, _location_token: int, _cold_token: int) -> StringName:
+		"""Refresh only complete old endpoints after the actual future Room's Space candidate seals."""
+		return REFUSE_AUTHORITY
+
+	func refresh_admission_routes(_placement: Vector2i, _route_token: int, _cold_token: int) -> StringName:
+		"""Refresh only old paths and certificates; the future Room creates no traversal permission."""
+		return REFUSE_AUTHORITY
+
+	func discard_admission(_placement: Vector2i, _cold_token: int) -> void:
+		"""Drop only this provider's admission scratch, never the caller's Space candidate or original lease."""
+		pass
+
 	func installation_cold_bytes(_placement: Vector2i, _assembly: int) -> int:
 		"""Return a source-counted simultaneous requirement; the base cannot allocate or authorize a frontier."""
 		return 0
@@ -262,6 +276,10 @@ var _target_geometry_revision: int = 0
 var _reading_state: bool = false
 var _last_state_hash: String = ""
 var _context: Locations.InstallationContext = Locations.InstallationContext.new()
+var _admission_mode: bool = false
+var _admission_candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
+var _admission_context: Locations.RoomContext = Locations.RoomContext.new()
+var _admission_input: WeakRef = null
 
 
 static func required_bytes(placements: int, openings: int) -> int:
@@ -546,12 +564,14 @@ func _set_opening(bank: Bank, field: int, row: int, value: int) -> void:
 	bank.openings[field * _opening_capacity + row] = value
 
 
-func _copy_bank(from: Bank, to: Bank) -> void:
+func _copy_bank(from: Bank, to: Bank, retain_frontier: bool = false) -> void:
 	"""Copy into preallocated inactive storage; do not duplicate arrays or allocate a third image."""
 	for index: int in 16:
-		to.header[index] = from.header[index]
+		if not retain_frontier or index != H_FRONTIER_REV:
+			to.header[index] = from.header[index]
 	for index: int in 128:
-		to.digests[index] = from.digests[index]
+		if not retain_frontier or index < 96:
+			to.digests[index] = from.digests[index]
 	for index: int in I32_FIELDS * _capacity:
 		to.i32[index] = from.i32[index]
 	for index: int in I64_FIELDS * _capacity:
@@ -776,6 +796,492 @@ func _registration_final(request: Request, ref: Vector2i, revision: int, cold_to
 	return _request_refusal(_request)
 
 
+func prepare_admission(request: Request, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> Result:
+	"""Prepare the exact future Corridor before identity, borrowing its sealed Space and original shared lease."""
+	if _reentry() or _cold_token != 0 or _reading_state or _source_refusal() != &"":
+		return Result.new(REFUSE_BUSY)
+	if not _budget.covers(original_token, Budget.COLD_BYTES) or _locations._token != 0 \
+			or _routes._token != 0 or _world_routes._route_token != 0:
+		return Result.new(REFUSE_BUDGET)
+	var code: StringName = _admission_begin_refusal(request, candidate, orders, original_token, space_token)
+	if code != &"":
+		return Result.new(code)
+	var authority: Authority = _actual_authority()
+	if authority == null:
+		return Result.new(REFUSE_AUTHORITY)
+	_busy = true
+	_poisoned = false
+	_pin_admission(request, candidate, orders, original_token, space_token)
+	code = _prepare_admission_bank(authority, request)
+	if code == &"":
+		code = _prepare_admission_locations(authority)
+	if code == &"":
+		code = _prepare_admission_routes(authority)
+	if code == &"":
+		code = prepared_admission_leaf_refusal(_prepared_placement, candidate, orders, original_token, space_token)
+	var ref: Vector2i = _prepared_placement
+	if code != &"":
+		_discard_owned_admission(authority)
+	_busy = false
+	return Result.new(code, ref if code == &"" else NULL_REF)
+
+
+func _admission_begin_refusal(request: Request, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> StringName:
+	"""Actual candidate/source/lease proof precedes private request, bank and companion allocation."""
+	if orders == null or orders._entry_plan == null or orders._room_claim_batch != null or orders._entry_claim_input != null:
+		return REFUSE_BUDGET
+	if _admission_peak_refusal(orders, original_token) != &"":
+		return REFUSE_BUDGET
+	var remaining: int = _space._domain._checks - _admission_row_checks()
+	if remaining < FinalFacts.BINDING_CHECKS:
+		return &"PLACEMENT_SOURCE_CHECK_CAPACITY"
+	var code: StringName = FinalFacts.prepared_room_refusal(_space, _routes, _locations, orders, candidate,
+		space_token, _budget, original_token, remaining)
+	if code != &"":
+		return code
+	if _live.free_count <= 0 or _live.opening_free_count < _opening_count() or _revision_refusal(_live, 1) != &"":
+		return REFUSE_CAPACITY
+	return _admission_request_refusal(request, orders)
+
+
+func _admission_peak_refusal(orders: RoomOrders, original_token: int) -> StringName:
+	"""Two request images coexist with one sequential proof; prepared owner banks are already admitted separately."""
+	if orders._entry_plan == null or not EntryPlan.same(orders._entry_plan, orders._entry_request):
+		return REFUSE_SOURCE
+	var peak: int = 2 * EntryPlan.payload_bytes(orders._entry_plan) + 2048 \
+		+ maxi(88 * _locations._domain._regions + 384, WorldRoutes.COLD_BYTES)
+	return &"" if _budget.covers(original_token, peak) else REFUSE_BUDGET
+
+
+func _admission_request_refusal(request: Request, orders: RoomOrders) -> StringName:
+	"""Only exact coordinator expansion of paired-null openings may name the future own section."""
+	var plan: EntryPlan.Request = orders._entry_plan
+	if request == null or plan == null or request.targets.size() != 4 * _opening_count() \
+			or plan.opening_targets.size() != request.targets.size() or request.corridor != orders._room_candidate.ref \
+			or request.section != orders._entry_section or request.anchor != plan.anchor or request.origin != plan.origin_u \
+			or request.rotation != plan.rotation or request.level != plan.base_level:
+		return REFUSE_SOURCE
+	if _entry_source_refusal(plan) != &"" or _request_transform_refusal(request) != &"" \
+			or _future_section_refusal(request.corridor, request.section, request.level) != &"" \
+			or _anchor_refusal(request.anchor) != &"":
+		return REFUSE_STALE
+	for ordinal: int in _opening_count():
+		var code: StringName = _admission_target_refusal(request, plan, ordinal)
+		if code != &"":
+			return code
+	return &""
+
+
+func _entry_source_refusal(plan: EntryPlan.Request) -> StringName:
+	"""Catalog/group/recipe pins match actual loaded content; first empty-store frontier identity is explicit."""
+	if plan.world != _world or plan.space_revision != _space._header[17] or plan.catalog_row != _live.header[H_CATALOG_ROW] \
+			or plan.catalog_revision != _live.header[H_CATALOG_REV] or plan.variant_revision != _live.header[H_VARIANT_REV] \
+			or plan.grouping_revision != _live.header[H_GROUP_REV] or plan.recipe_revision != _live.header[H_RECIPE_REV] \
+			or plan.frontier_revision <= 0 or plan.source_digests.size() != EntryPlan.SOURCE_BYTES:
+		return REFUSE_SOURCE
+	for index: int in 96:
+		if plan.source_digests[index] != _live.digests[index]:
+			return REFUSE_SOURCE
+	if _admission_mode and not _frontier_tuple_matches(plan, _stage):
+		return REFUSE_SOURCE
+	if _live.header[H_FRONTIER_REV] == 0:
+		for index: int in 32:
+			if _live.digests[96 + index] != 0:
+				return REFUSE_SOURCE
+		return &"" if _live.header[H_COUNT] == 0 else REFUSE_SOURCE
+	return &"" if _frontier_tuple_matches(plan, _live) else REFUSE_SOURCE
+
+
+func _frontier_tuple_matches(plan: EntryPlan.Request, bank: Bank) -> bool:
+	"""Fixed reserved header/digest bytes pin the first source before observers without another image or counter."""
+	if bank.header[H_FRONTIER_REV] != plan.frontier_revision:
+		return false
+	for index: int in 32:
+		if plan.source_digests[96 + index] != bank.digests[96 + index]:
+			return false
+	return true
+
+
+func _request_transform_refusal(request: Request) -> StringName:
+	"""The immutable orientation mask and actual finite Domain apply to both existing and future Rooms."""
+	if request.rotation < 0 or request.rotation > 3 or request.level < 0 \
+			or (_catalog._live.variants[Catalog.V_ROTATIONS * Catalog.MAX_VARIANTS + _live.header[H_CATALOG_ROW]] \
+			& (1 << request.rotation)) == 0:
+		return REFUSE_SOURCE
+	for axis: int in 3:
+		if request.origin[axis] < _space._domain._bounds[axis] or request.origin[axis] >= _space._domain._bounds[axis + 3]:
+			return REFUSE_SOURCE
+	return &""
+
+
+func _anchor_refusal(anchor: Vector2i) -> StringName:
+	"""The first anchor is already complete real surface identity, never the uncreated Corridor's metadata."""
+	if not _locations._live_ref(_locations._live, anchor):
+		return REFUSE_STALE
+	return &"" if _locations._get64(_locations._live, Locations.GEOMETRY_REVISION, anchor.x) == _space._header[17] \
+		and _locations._ref_at(_locations._live, Locations.ROOM_SLOT, anchor.x) == NULL_REF \
+		and _locations._get32(_locations._live, Locations.LEVEL, anchor.x) == 0 else REFUSE_STALE
+
+
+func _future_section_refusal(room: Vector2i, section: Vector2i, level: int) -> StringName:
+	"""A full future section is only exact staged FLOOR_DATUM ownership, never support or completed space."""
+	return &"" if _space._region_live(section, true) and _space._s_r_role[section.x] == Space.FLOOR_DATUM \
+		and _space._s_r_owner_slot[section.x] == room.x and _space._s_r_owner_generation[section.x] == room.y \
+		and (level < 0 or _space._s_r_level[section.x] == level) else REFUSE_STALE
+
+
+func _admission_target_refusal(request: Request, plan: EntryPlan.Request, ordinal: int) -> StringName:
+	"""Existing targets remain strict full refs; only the exact paired-null source tuple expands to self."""
+	var offset: int = 4 * ordinal
+	var room: Vector2i = Vector2i(request.targets[offset], request.targets[offset + 1])
+	var section: Vector2i = Vector2i(request.targets[offset + 2], request.targets[offset + 3])
+	if Vector2i(plan.opening_targets[offset], plan.opening_targets[offset + 1]) == NULL_REF \
+			and Vector2i(plan.opening_targets[offset + 2], plan.opening_targets[offset + 3]) == NULL_REF:
+		return &"" if room == request.corridor and section == request.section else REFUSE_SOURCE
+	for field: int in 4:
+		if request.targets[offset + field] != plan.opening_targets[offset + field]:
+			return REFUSE_SOURCE
+	if _section_refusal(room, section, -1, false) != &"":
+		return REFUSE_STALE
+	return _future_section_refusal(room, section, _space._r_level[section.x])
+
+
+func _pin_admission(request: Request, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> void:
+	"""The original budget was proved immediately before these fixed packet copies; no observer intervenes."""
+	_admission_mode = true
+	_admission_input = weakref(request)
+	_pin_request(request)
+	_stage.header[H_FRONTIER_REV] = orders._entry_plan.frontier_revision
+	for index: int in 32:
+		_stage.digests[96 + index] = orders._entry_plan.source_digests[96 + index]
+	_admission_candidate.ref = candidate.ref
+	_admission_candidate.kind = candidate.kind
+	_admission_candidate.typed_row = candidate.typed_row
+	_admission_candidate.persistent_id = candidate.persistent_id
+	_admission_candidate._directory = candidate._directory
+	_prepared_placement = Vector2i(_live.free_rows[0], _get32(_live, GENERATION, _live.free_rows[0]) + 1)
+	_payload_revision = _live.header[H_REVISION]
+	_cold_token = original_token
+	_cold_bytes = Budget.COLD_BYTES
+	_space_token = space_token
+	_base_geometry_revision = _space._header[17]
+	_target_geometry_revision = _space._s_header[17]
+	_pin_room_context(orders)
+
+
+func _pin_room_context(orders: RoomOrders) -> void:
+	"""Only already-admitted fixed scalar context is retained through sequential companion preparation."""
+	_admission_context.orders = weakref(orders)
+	_admission_context.space = weakref(_space)
+	_admission_context.locations = weakref(_locations)
+	_admission_context.budget = _budget
+	_admission_context.world = _world
+	_admission_context.room = _admission_candidate.ref
+	_admission_context.cold_token = _cold_token
+	_admission_context.space_token = _space_token
+	_admission_context.base_revision = _base_geometry_revision
+	_admission_context.target_revision = _target_geometry_revision
+	_admission_context.profile_revision = _profiles._live.header[0]
+	_admission_context.catalog_revision = _catalog._live.header[0]
+
+
+func _admission_context_refusal() -> StringName:
+	"""Reject caller/context edits and source or original lease changes after every observation boundary."""
+	if not _admission_mode or _poisoned or _cold_token <= 0 or not _budget.covers(_cold_token, Budget.COLD_BYTES) \
+			or _source_refusal() != &"" or _admission_input == null or not _request_matches(_admission_input.get_ref()):
+		return REFUSE_BUSY if _poisoned else REFUSE_STALE
+	var orders: RoomOrders = _admission_context.orders.get_ref() as RoomOrders
+	if orders == null or not _candidate_matches(orders._room_candidate) or _live.header[H_REVISION] != _payload_revision \
+			or _space._stage_token != _space_token or _space._header[17] != _base_geometry_revision \
+			or _space._s_header[17] != _target_geometry_revision or not _space._sealed \
+			or _admission_peak_refusal(orders, _cold_token) != &"":
+		return REFUSE_STALE
+	if _locations._token != _location_token or _routes._token != _route_token \
+			or _world_routes._route_token != _route_token:
+		return REFUSE_STALE
+	if _admission_context.cold_token != _cold_token or _admission_context.space_token != _space_token \
+			or _admission_context.location_token != _location_token or _admission_context.route_token != _route_token \
+			or _admission_context.base_revision != _base_geometry_revision or _admission_context.target_revision != _target_geometry_revision \
+			or _admission_context.room != _admission_candidate.ref or _admission_context.profile_revision != _profiles._live.header[0] \
+			or _admission_context.catalog_revision != _catalog._live.header[0]:
+		return REFUSE_STALE
+	var code: StringName = Locations.room_scope_leaf_refusal(_locations, _admission_context)
+	return _admission_request_refusal(_request, orders) if code == &"" else code
+
+
+func _candidate_matches(candidate: Directory.CreateCandidate) -> bool:
+	"""The caller's mutable allocator observation cannot substitute another tuple or actual Directory."""
+	return candidate != null and candidate._directory != null and candidate._directory.get_ref() == _ids \
+		and candidate.ref == _admission_candidate.ref and candidate.kind == _admission_candidate.kind \
+		and candidate.typed_row == _admission_candidate.typed_row and candidate.persistent_id == _admission_candidate.persistent_id
+
+
+func _prepare_admission_bank(authority: Authority, request: Request) -> StringName:
+	"""Frontier observation precedes a fresh original-token guard and the inactive bank copy."""
+	var code: StringName = authority.admission_refusal(_prepared_placement, request, _cold_token)
+	if code == &"":
+		code = _admission_context_refusal()
+	if code != &"":
+		return code
+	_copy_bank(_live, _stage, true)
+	code = _update_staged_source_pins()
+	if code != &"":
+		return code
+	_insert_request(_prepared_placement, true)
+	return &""
+
+
+func _prepare_admission_locations(authority: Authority) -> StringName:
+	"""Only actual sealed Room scope can refresh old endpoints; its copied proof dies at seal."""
+	var result: Locations.Result = _locations.begin_room_prepare(_cold_token, _space_token,
+		_admission_candidate.ref, Buildings.ROOM_TYPE_CORRIDOR)
+	if result.error != &"":
+		return result.error
+	_location_token = result.token
+	_admission_context.location_token = result.token
+	var code: StringName = authority.refresh_admission_locations(_prepared_placement, result.token, _cold_token)
+	if code == &"":
+		code = _admission_context_refusal()
+	if code == &"":
+		code = _locations.seal(result.token)
+	return _admission_context_refusal() if code == &"" else code
+
+
+func _prepare_admission_routes(authority: Authority) -> StringName:
+	"""Sequential actual graph/certificate proof refreshes old spans only after endpoint scratch drops."""
+	var result: Routes.Result = _world_routes.begin_prepare(_cold_token, _space_token, _location_token)
+	if result.error != &"":
+		return result.error
+	_route_token = result.token
+	_admission_context.route_token = result.token
+	var code: StringName = authority.refresh_admission_routes(_prepared_placement, result.token, _cold_token)
+	if code == &"":
+		code = _admission_context_refusal()
+	if code == &"":
+		code = _world_routes.seal(result.token)
+	return _admission_context_refusal() if code == &"" else code
+
+
+func prepared_admission_leaf_refusal(ref: Vector2i, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> StringName:
+	"""After every observer, prove the complete future identity, old payloads and original companion tokens directly."""
+	if not _admission_arguments_match(ref, candidate, orders, original_token, space_token):
+		return REFUSE_STALE
+	var remaining: int = _space._domain._checks - _admission_row_checks()
+	if remaining < FinalFacts.BINDING_CHECKS:
+		return &"PLACEMENT_SOURCE_CHECK_CAPACITY"
+	var code: StringName = _admission_context_refusal()
+	if code == &"":
+		code = FinalFacts.prepared_room_refusal(_space, _routes, _locations, orders, candidate,
+			space_token, _budget, original_token, remaining)
+	if code == &"":
+		code = _admission_rows_refusal(orders._entry_plan)
+	if code == &"":
+		code = Locations.room_prepared_leaf_refusal(_locations, _admission_context)
+	return WorldRoutes.room_prepared_leaf_refusal(_world_routes, _admission_context) if code == &"" else code
+
+
+func _admission_arguments_match(ref: Vector2i, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> bool:
+	"""Only the original private operation can prepare, discard or publish this inactive Placement bank."""
+	return _admission_mode and not _poisoned and ref == _prepared_placement and _admission_context.orders != null \
+		and _admission_context.orders.get_ref() == orders and orders != null and orders._room_candidate == candidate \
+		and _candidate_matches(candidate) and original_token > 0 and original_token == _cold_token \
+		and space_token > 0 and space_token == _space_token
+
+
+func _admission_row_checks() -> int:
+	"""Reserve complete retained Placement/opening, endpoint, graph and certificate passes before any census."""
+	return 1024 + 64 * (_capacity + _opening_capacity) + 28 * _locations._capacity \
+		+ 56 * _routes._edge_capacity + 3 * _routes._vertex_capacity
+
+
+func _admission_rows_refusal(plan: EntryPlan.Request) -> StringName:
+	"""The only new row is the exact pinned request; every old row, source and full opening stays intact."""
+	if _stage.header[H_COUNT] != _live.header[H_COUNT] + 1 \
+			or _stage.header[H_OPEN_COUNT] != _live.header[H_OPEN_COUNT] + _opening_count() \
+			or _stage.free_count != _live.free_count - 1 or _stage.opening_free_count != _live.opening_free_count - _opening_count():
+		return REFUSE_STALE
+	for index: int in 16:
+		var expected: int = _live.header[index]
+		if index == H_COUNT or index == H_REVISION:
+			expected += 1
+		elif index == H_OPEN_COUNT:
+			expected += _opening_count()
+		elif index == H_FRONTIER_REV:
+			expected = plan.frontier_revision
+		if _stage.header[index] != expected:
+			return REFUSE_STALE
+	if _stage.digests != plan.source_digests:
+		return REFUSE_SOURCE
+	for row: int in _capacity:
+		var code: StringName = _new_admission_row_refusal(row) if row == _prepared_placement.x else _retained_admission_row_refusal(row)
+		if code != &"":
+			return code
+	return &""
+
+
+func _retained_admission_row_refusal(row: int) -> StringName:
+	"""Old immutable payload and original source checks precede any permitted staged source-revision refresh."""
+	if _stage.present[row] != _live.present[row] or _stage.retired[row] != _live.retired[row] \
+			or _get64(_stage, PAYLOAD_REVISION, row) != _get64(_live, PAYLOAD_REVISION, row):
+		return REFUSE_STALE
+	for field: int in I32_FIELDS:
+		if _get32(_stage, field, row) != _get32(_live, field, row):
+			return REFUSE_STALE
+	if _live.present[row] == 0:
+		return &"" if _get64(_stage, ROOM_REVISION, row) == _get64(_live, ROOM_REVISION, row) else REFUSE_STALE
+	if _placement_leaf(_live, row) != &"":
+		return REFUSE_STALE
+	var section: Vector2i = _pair(_live, SECTION_SLOT, row)
+	if _future_section_refusal(_pair(_live, ROOM_SLOT, row), section, _get32(_live, LEVEL, row)) != &"" \
+			or _get64(_stage, ROOM_REVISION, row) != _space._s_r_owner_revision[section.x]:
+		return REFUSE_STALE
+	var opening: int = _get32(_live, OPENING_HEAD, row)
+	for ordinal: int in _get32(_live, OPENING_COUNT, row):
+		var code: StringName = _retained_admission_opening(row, ordinal, opening)
+		if code != &"":
+			return code
+		opening = _opening(_live, O_NEXT, opening)
+	return &"" if opening == -1 else REFUSE_STALE
+
+
+func _retained_admission_opening(row: int, ordinal: int, opening: int) -> StringName:
+	"""The old full target/source pin must still be current; a new Room never repairs unrelated stale state."""
+	if opening < 0 or opening >= _opening_capacity or _opening(_live, O_PARENT, opening) != row \
+			or _opening(_live, O_PARENT + 1, opening) != _get32(_live, GENERATION, row) \
+			or _opening(_live, O_ORDINAL, opening) != ordinal:
+		return REFUSE_STALE
+	for field: int in OPENING_FIELDS:
+		if _opening(_stage, field, opening) != _opening(_live, field, opening):
+			return REFUSE_STALE
+	var room: Vector2i = Vector2i(_opening(_live, O_ROOM, opening), _opening(_live, O_ROOM + 1, opening))
+	var section: Vector2i = Vector2i(_opening(_live, O_SECTION, opening), _opening(_live, O_SECTION + 1, opening))
+	if _section_refusal(room, section, -1, false) != &"" \
+			or _live.opening_revision[opening] != _space._r_owner_revision[section.x] \
+			or _future_section_refusal(room, section, _space._r_level[section.x]) != &"" \
+			or _stage.opening_revision[opening] != _space._s_r_owner_revision[section.x]:
+		return REFUSE_STALE
+	return &""
+
+
+func _new_admission_row_refusal(row: int) -> StringName:
+	"""No installed prefix, Project, alternate anchor or unpinned transform can enter a future admission."""
+	if _live.present[row] != 0 or _stage.present[row] != 1 or _stage.retired[row] != 0 \
+			or _live.free_count <= 0 or _live.free_rows[0] != row \
+			or _get32(_stage, GENERATION, row) != _prepared_placement.y \
+			or _get32(_live, GENERATION, row) + 1 != _prepared_placement.y \
+			or _pair(_stage, ROOM_SLOT, row) != _request.corridor or _pair(_stage, SECTION_SLOT, row) != _request.section \
+			or _pair(_stage, ANCHOR_SLOT, row) != _request.anchor or _pair(_stage, PROJECT_SLOT, row) != NULL_REF \
+			or _get32(_stage, INSTALLED, row) != 0 or _get32(_stage, CATALOG_ROW, row) != _live.header[H_CATALOG_ROW] \
+			or _get32(_stage, ROTATION, row) != _request.rotation or _get32(_stage, LEVEL, row) != _request.level \
+			or _get64(_stage, PAYLOAD_REVISION, row) != 1 \
+			or _get64(_stage, ROOM_REVISION, row) != _space._s_r_owner_revision[_request.section.x] \
+			or _get32(_stage, OPENING_COUNT, row) != _opening_count():
+		return REFUSE_STALE
+	for axis: int in 3:
+		if _get32(_stage, X + axis, row) != _request.origin[axis]:
+			return REFUSE_STALE
+	var opening: int = _get32(_stage, OPENING_HEAD, row)
+	for ordinal: int in _opening_count():
+		if _new_admission_opening_refusal(opening, ordinal) != &"":
+			return REFUSE_STALE
+		opening = _opening(_stage, O_NEXT, opening)
+	return &"" if opening == -1 else REFUSE_STALE
+
+
+func _new_admission_opening_refusal(opening: int, ordinal: int) -> StringName:
+	"""Each complete Catalog-ordinal target is pinned; a self target remains metadata for an unconnected opening."""
+	if opening < 0 or opening >= _opening_capacity or _opening(_stage, O_PARENT, opening) != _prepared_placement.x \
+			or _opening(_stage, O_PARENT + 1, opening) != _prepared_placement.y or _opening(_stage, O_ORDINAL, opening) != ordinal:
+		return REFUSE_STALE
+	for field: int in 4:
+		if _opening(_stage, O_ROOM + field, opening) != _request.targets[4 * ordinal + field]:
+			return REFUSE_STALE
+	return &"" if _stage.opening_revision[opening] == _space._s_r_owner_revision[_request.targets[4 * ordinal + 2]] else REFUSE_STALE
+
+
+func publish_admission(ref: Vector2i, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> StringName:
+	"""The actual Room and Space receipts precede pure companion swaps; no observation runs after identity."""
+	if _reentry() or not _admission_arguments_match(ref, candidate, orders, original_token, space_token):
+		return REFUSE_STALE
+	var code: StringName = _admission_publication_refusal(orders)
+	if code != &"":
+		return code
+	_busy = true
+	var locations_ok: bool = Locations.publish_room_preflighted(_locations, _admission_context)
+	assert(locations_ok, "Exact preflighted Room endpoints publish without observation")
+	var routes_ok: bool = WorldRoutes.publish_room_preflighted(_world_routes, _admission_context)
+	assert(routes_ok, "Exact preflighted Room graph/certificates publish without observation")
+	_swap()
+	_clear_admission()
+	_busy = false
+	return &""
+
+
+func _admission_publication_refusal(orders: RoomOrders) -> StringName:
+	"""Every predicate was preflighted before identity except the direct expected actual Room/Space receipt."""
+	if _source_refusal() != &"" or _live.header[H_REVISION] != _payload_revision \
+			or _admission_input == null or not _request_matches(_admission_input.get_ref()) \
+			or _space._stage_token != 0 or _space._header[17] != _target_geometry_revision \
+			or _space._last_published_token != _space_token or not _candidate_matches(orders._room_candidate) \
+			or not Owner._room_after_leaf_matches(_space, _admission_candidate, Buildings.ROOM_TYPE_CORRIDOR, orders):
+		return REFUSE_STALE
+	var code: StringName = Locations.room_scope_leaf_refusal(_locations, _admission_context, true)
+	if code == &"":
+		code = Locations.room_prepared_leaf_refusal(_locations, _admission_context)
+	return WorldRoutes.room_prepared_leaf_refusal(_world_routes, _admission_context) if code == &"" else code
+
+
+func discard_admission(ref: Vector2i, candidate: Directory.CreateCandidate, orders: RoomOrders,
+		original_token: int, space_token: int) -> void:
+	"""Drop only the matching owned companions; altered caller candidates still allow exact-token cleanup."""
+	if _reentry() or not _admission_mode or ref != _prepared_placement or orders == null \
+			or _admission_context.orders == null or _admission_context.orders.get_ref() != orders \
+			or candidate != orders._room_candidate or original_token != _cold_token or space_token != _space_token:
+		return
+	_busy = true
+	_discard_owned_admission(_actual_authority())
+	_busy = false
+
+
+func _discard_owned_admission(authority: Authority) -> void:
+	"""Never abort the Room coordinator's Space or replacement tokens; cleanup leaves original lease ownership there."""
+	if authority != null:
+		authority.discard_admission(_prepared_placement, _cold_token)
+	if _route_token > 0 and _world_routes._route_token == _route_token:
+		_world_routes.abort(_route_token)
+	if _location_token > 0 and _locations._token == _location_token:
+		_locations.abort(_location_token)
+	_clear_admission()
+
+
+func _clear_admission() -> void:
+	"""No request/candidate/Orders retainers or original operation tokens survive completion or discard."""
+	_admission_mode = false
+	_admission_input = null
+	_admission_candidate.reset()
+	_admission_context.orders = null
+	_admission_context.space = null
+	_admission_context.locations = null
+	_admission_context.budget = null
+	_admission_context.world = NULL_REF
+	_admission_context.room = NULL_REF
+	_admission_context.cold_token = 0
+	_admission_context.space_token = 0
+	_admission_context.location_token = 0
+	_admission_context.route_token = 0
+	_admission_context.base_revision = 0
+	_admission_context.target_revision = 0
+	_admission_context.profile_revision = 0
+	_admission_context.catalog_revision = 0
+	_clear_completion()
+
+
 func _opening_count() -> int:
 	"""The immutable variant supplies exact target count, never a caller-chosen prefix."""
 	return _catalog._live.variants[Catalog.V_OPENING_COUNT * Catalog.MAX_VARIANTS + _live.header[H_CATALOG_ROW]]
@@ -844,7 +1350,7 @@ func _request_matches(request: Request) -> bool:
 		and request.rotation == _request.rotation and request.level == _request.level and request.targets == _request.targets
 
 
-func _insert_request(ref: Vector2i) -> void:
+func _insert_request(ref: Vector2i, future: bool = false) -> void:
 	"""The preflighted inactive bank contains the entire request before a single swap publishes it."""
 	_pop_free(_stage.free_rows, _stage.free_count)
 	_stage.free_count -= 1
@@ -859,15 +1365,15 @@ func _insert_request(ref: Vector2i) -> void:
 	_set_pair(_stage, SECTION_SLOT, ref.x, _request.section)
 	_set_pair(_stage, ANCHOR_SLOT, ref.x, _request.anchor)
 	_set64(_stage, PAYLOAD_REVISION, ref.x, 1)
-	_set64(_stage, ROOM_REVISION, ref.x, _space._r_owner_revision[_request.section.x])
+	_set64(_stage, ROOM_REVISION, ref.x, _space._s_r_owner_revision[_request.section.x] if future else _space._r_owner_revision[_request.section.x])
 	_set32(_stage, OPENING_COUNT, ref.x, _opening_count())
-	_insert_openings(ref)
+	_insert_openings(ref, future)
 	_stage.present[ref.x] = 1
 	_stage.header[H_COUNT] += 1
 	_stage.header[H_REVISION] += 1
 
 
-func _insert_openings(ref: Vector2i) -> void:
+func _insert_openings(ref: Vector2i, future: bool = false) -> void:
 	"""Catalog ordinal order is retained without a duplicate geometry or variable per-placement array."""
 	var previous: int = -1
 	for ordinal: int in _opening_count():
@@ -878,7 +1384,8 @@ func _insert_openings(ref: Vector2i) -> void:
 		_set_opening(_stage, O_ORDINAL, row, ordinal)
 		for field: int in 4:
 			_set_opening(_stage, O_ROOM + field, row, _request.targets[4 * ordinal + field])
-		_stage.opening_revision[row] = _space._r_owner_revision[_request.targets[4 * ordinal + 2]]
+		_stage.opening_revision[row] = _space._s_r_owner_revision[_request.targets[4 * ordinal + 2]] if future \
+			else _space._r_owner_revision[_request.targets[4 * ordinal + 2]]
 		if previous < 0:
 			_set32(_stage, OPENING_HEAD, ref.x, row)
 		else:
@@ -1163,7 +1670,7 @@ func _prepare_routes(authority: Authority) -> StringName:
 
 func _completion_context_refusal() -> StringName:
 	"""Pure original pins precede each next allocating companion and follow every external observer."""
-	if _poisoned or _cold_token <= 0 or not _budget.covers(_cold_token, _cold_bytes) \
+	if _admission_mode or _poisoned or _cold_token <= 0 or not _budget.covers(_cold_token, _cold_bytes) \
 			or not _publisher_leaf() or _source_refusal() != &"" or not _is_live(_live, _prepared_placement):
 		return REFUSE_BUDGET if not _poisoned else REFUSE_BUSY
 	if _context.placement != _prepared_placement or _context.project != _prepared_project \
@@ -1374,7 +1881,7 @@ func publish_completion(ref: Vector2i, project: Vector2i, assembly: int, origina
 
 func discard_completion(ref: Vector2i, project: Vector2i, original_token: int) -> void:
 	"""Discard only original owned candidates; unrelated replacement leases/candidates are left intact."""
-	if _reentry() or ref != _prepared_placement or project != _prepared_project or original_token != _cold_token:
+	if _reentry() or _admission_mode or ref != _prepared_placement or project != _prepared_project or original_token != _cold_token:
 		return
 	_busy = true
 	_discard_owned_completion(_actual_authority())

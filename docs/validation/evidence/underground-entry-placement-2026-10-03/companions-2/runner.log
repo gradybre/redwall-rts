@@ -1,0 +1,27 @@
+state_registry_coverage: PASS -- 134 modules, 666 rows, 1002 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_placements.gd
+  FAIL  test_actual_confirmation_publishes_future_placement_and_refreshes_old_paths
+        actual entry confirmation: EXCAVATION_WORLD_DOMAIN (expected true, got false)
+        one physical metadata revision (expected 3, got 2)
+        new full Placement live (expected , got PLACEMENT_STALE)
+  PASS  test_unbound_or_refused_companion_preserves_all_live_owners
+CI_SUITE_TIME {"assertions":45,"failures":1,"suite":"test_underground_entry_placements.gd","tests":2,"usec":1173023}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+2 test(s), 45 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

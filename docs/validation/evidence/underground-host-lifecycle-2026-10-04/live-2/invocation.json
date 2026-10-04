@@ -64,5 +64,10 @@
     "WARNING: sound cue complete: 1 of 1 files missing (res://demo/assets/sound/complete_01.ogg); it plays silent until they are staged",
     "WARNING: sound cue ui_click: 1 of 1 files missing (res://demo/assets/sound/ui_click_01.ogg); it plays silent until they are staged"
   ],
-  "leak_diagnostics": []
+  "leak_diagnostics": [],
+  "retained_log": {
+    "file": "live.log.gz",
+    "uncompressed_sha256": "a37e74d4d3e4072e2354f0c045d23ac270e4ca3abdf81146298c2606f5ede66a",
+    "compression": "gzip; original log bytes preserved, including engine trailing spaces"
+  }
 }

@@ -712,6 +712,20 @@
           "owner": "/root/ug_construction",
           "branch": "codex/underground-connector-work",
           "scope": "Actual finite Frontier/Placement/World contact observation; no per-project bank.4096 proposed controls. Actual INSTALL and varying-height gait remain unqualified."
+        },
+        "connector_work_adapter_1106": {
+          "author_commit": "a6dc8ca9",
+          "integrated_commit": "cdb597ee",
+          "registry_commit": "9ab71d55",
+          "tests": 102,
+          "assertions": 6988,
+          "failures": 0,
+          "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+          "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)",
+          "independent_review": "Root accepted corrected late-START guard and all4 source pins; final packet includes pause/phase/payment guards.",
+          "evidence": "docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1",
+          "scope": "Actual shared paid owner; concrete Contacts/EntryBindings and source-qualified install motion still required."
         }
       },
       "lease": {
@@ -1107,6 +1121,34 @@
           "native": "1536 poses/6358 assertions/0 failures; all9 driver phases; zero native/import diagnostics/leaks; analyzer0/2.",
           "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-native-state-v1/",
           "limits": "Actual Job/Work/Gear/Profile readers and renderer, explicitly synthetic profile flags. No terrain, paid support, traversal, production peak or whole-demo720p acceptance. Compact11-clip shared-hub source now in progress; never an instant posture switch."
+        },
+        "compact_mole_source_and_native": {
+          "planted_integrated_commit": "4e6dc6ab",
+          "driver_integrated_commit": "f469b95d",
+          "compiler_integrated_commit": "afa3fb5c",
+          "native_author_commit": "caf54794",
+          "native_integrated_commit": "c825d967",
+          "source_image_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+          "clips": 11,
+          "frames": 443,
+          "native_poses": 2214,
+          "native_assertions": 9148,
+          "native_failures": 0,
+          "python_checks": 7,
+          "analyzer": "0 GDScript warning(s) in 0 of 1 file(s)",
+          "independent_review": "Root reviewed3frozen capture/checker sources, verified3source+149outputpins, reran7checks and inspected4 representative native views.",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-native-compact-v1/README.md",
+          "production_qualified_profiles": 0,
+          "scope": "Isolated presentation/native source replay; no terrain/paid staircase/full HUD720p acceptance."
+        },
+        "stair_source_trial": {
+          "status": "in_progress",
+          "candidate": "64u timber decks, four128u-square side posts per tread, 128u and256u rises compared; explicit provisional geometry, not final cost/spacing.",
+          "observations": "128u ascent source/native has no sampled vertex enclosure intrusion; full continuous triangle/stance and descent closure still open.256u and naive descent candidates refuse; retained as evidence.",
+          "native_candidate_poses": 543,
+          "native_candidate_assertions": 1168,
+          "native_candidate_failures": 0,
+          "native_review": "Root inspected split-height side/opposite/RTS stills; no gait permission or authoritative Transform movement is inferred from baked presentation progression."
         }
       },
       "lease": {
@@ -1194,7 +1236,10 @@
         "godot/scripts/core/underground_entry_bindings.gd.uid",
         "godot/test/test_underground_entry_bindings.gd",
         "godot/test/test_underground_entry_bindings.gd.uid",
-        "docs/decisions/1109-immutable-entry-work-frontier.md"
+        "docs/decisions/1109-immutable-entry-work-frontier.md",
+        "tools/underground_memory_budget.py",
+        "tools/test_underground_memory_budget.py",
+        "docs/decisions/1110-complete-connector-binding-memory-census.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1579,6 +1624,75 @@
           "review": "Root independently accepted exact Owner371082d4/FinalFactsa4a3d727/OwnerTest25bf0337/FinalFactsTest77dc6c79 after original issuer/arena and World lifetime corrections; earlierroom-leaves-1 retained as rejected scope.",
           "evidence_path": "docs/validation/evidence/underground-entry-placement-2026-10-03/room-leaves-2/",
           "scope": "No new retained columns;272B numeric helper chain within reserved512B. Actual future candidate leaf and pure Space kernel; no physical frontier permission."
+        },
+        "future_corridor_admission_1108": {
+          "author_commit": "2b621cdf",
+          "integrated_commit": "bdbf7131",
+          "registry_commit": "bebc43d0",
+          "tests": 344,
+          "assertions": 24635,
+          "failures": 0,
+          "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+          "analyzer": "0 GDScript warning(s) in 0 of 7 file(s)",
+          "independent_review": "Construction reviewed all5 production+2test pins; root reviewed companion composition.",
+          "evidence": "docs/validation/evidence/underground-entry-placement-2026-10-03/admission-final-1",
+          "scope": "Future real Corridor and exact reserved Sites, no pre-created Room. Only old endpoints/routes refresh; concrete physical frontier remains required."
+        },
+        "placement_frame_endpoint_readers": {
+          "author_commit": "db75f93a",
+          "integrated_commit": "a4f611d7",
+          "registry_commit": "96044500",
+          "tests": 82,
+          "assertions": 5592,
+          "failures": 0,
+          "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+          "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)",
+          "independent_review": "Construction accepted final4pins after complete Domain bounds consistency correction.",
+          "evidence": "docs/validation/evidence/underground-connector-placements-2026-10-03/readers-4",
+          "scope": "Read-only full frame and unique actual live endpoint resolution; no new endpoint, support or retained bank."
+        },
+        "binding_reserve_census_1110": {
+          "commit": "39654c78",
+          "known_consumers_bytes": 487499,
+          "remaining_bytes": 36789,
+          "placement_bytes": 108800,
+          "placement_fixed_controls_bytes": 1670,
+          "connector_work_additional_bytes": 563,
+          "shared_pair_not_counted_twice_bytes": 128,
+          "python_tests": 57,
+          "independent_review": "Geometry accepted corrected4pins; actual root superclasses and inherited packet fields are pinned.",
+          "evidence": "docs/validation/evidence/underground-binding-census-2026-10-03/README.md",
+          "runtime_qualified": false
+        },
+        "hot_route_reachability_in_progress": {
+          "agent": "/root/ug_geometry",
+          "ownership": "Existing Routes/WorldRoutes/Locations and tests,1105/1098 appendices",
+          "scope": "Reuse existing actual graph scratch and provider Descriptor; committed static profile eligibility, not movement/dynamic occupancy. No per-Placement map, no copied snapshot or additional bank.",
+          "required": "Finite precharged live selector/search, full source/endpoint/edge generations and final pins, unchanged outputs on refusal; Contacts separately proves actual worker/station/support/exclusions."
+        },
+        "entry_frontier_1109": {
+          "author_commits": [
+            "0580a123",
+            "dd7647ee"
+          ],
+          "integrated_commits": [
+            "1b28acbf",
+            "4bb9bb27"
+          ],
+          "scope": "Immutable six-table source, exact LANDING selectors, quarter-turn WORK and explicit transit profiles. Actual Contacts, EntryBindings and playable content remain required.",
+          "tests": 54,
+          "assertions": 2273,
+          "failures": 0,
+          "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+          "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
+          "review": "Construction independently rehashed and accepted corrected source/test; capacity resize, four-rotation mapping and exact LANDING cross-reference verified.",
+          "evidence": "docs/validation/evidence/underground-entry-frontier-2026-10-03/checks-7/",
+          "source_sha256": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+          "test_sha256": "080c9132f4ccfbe4314abf7b06c9380f316e9e59dfd2e61903d463316c9e1b35",
+          "memory": "Conditional reader ceiling28597 within corrected remaining36789; leaves4096 each for Contacts and EntryBindings. Actual source counts/native growth must be admitted jointly; runtime unqualified."
         }
       },
       "lease": {
@@ -1633,7 +1747,10 @@
               "godot/scripts/core/underground_entry_bindings.gd.uid",
               "godot/test/test_underground_entry_bindings.gd",
               "godot/test/test_underground_entry_bindings.gd.uid",
-              "docs/decisions/1109-immutable-entry-work-frontier.md"
+              "docs/decisions/1109-immutable-entry-work-frontier.md",
+              "tools/underground_memory_budget.py",
+              "tools/test_underground_memory_budget.py",
+              "docs/decisions/1110-complete-connector-binding-memory-census.md"
             ],
             "handoff": "New source-only immutable frontier and actual EntryBindings owned by root; Geometry retains Placement/Locations/Routes. Corrected bindings remainder36789 includes Placement108800 and ConnectorWork563; prospective frontier may not overbook it."
           }

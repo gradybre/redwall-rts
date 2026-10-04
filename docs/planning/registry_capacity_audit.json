@@ -12,7 +12,7 @@
     "module_sha256": {
       "buildings": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
       "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
-      "construction": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
+      "construction": "5b7cdde0e087dc09c05ca9520b73e23edb9174932ed9d92c90bfe1860f7d3d2c",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
       "excavation_sites": "6c80934cad14136bcc3069e5a62ff36a6990b8f436d23905425fb148ae93e6f4",
@@ -25,7 +25,7 @@
       "inventory": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
       "job_planner": "bc024854f95b7b31f7ed580252a84e85fba565f4adec7b354df776c3a4870591",
       "jobs": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
-      "modular_projects": "6eb595ba9f4933af46184b2585b2d81a9dfd9ddc9987aa96314ef5433ace00e5",
+      "modular_projects": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
       "movement": "4121be883c9fab58ec98d274a7e712703b61c2b5d2e46d34d0f0258c6287eb69",
       "navigation": "ae078227fb79879b3357e1ba174c58f1b209ac346a9b6cc6ded70e1080cd7255",
       "needs": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190",
@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "75a07d3fb01806e96d0ac6aa12c7a85e4fd7073489cf1a86897c41ee501e8319",
-      "underground_space_owner": "371082d49c0f916a2c54ae86aad1fc963095e3f007317c04f6f9fc4541b873d3",
+      "underground_space_owner": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 2485,
+      "source_resize_line": 2570,
       "source_value": 18,
       "status": "proved_equality"
     },

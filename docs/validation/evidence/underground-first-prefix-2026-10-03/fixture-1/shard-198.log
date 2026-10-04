@@ -1,0 +1,27 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_first_prefix.gd
+  FAIL  test_exact_two_assembly_prices_and_six_cube_phase_ledger
+        two finite spatial containers (expected true, got false)
+  FAIL  test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress
+        two finite spatial containers (expected true, got false)
+        finite actual output policy (expected 400000, got 0)
+  FAIL  test_common_metadata_grants_no_support_over_any_future_paid_cube
+        two finite spatial containers (expected true, got false)
+CI_SUITE_TIME {"assertions":163,"failures":3,"suite":"test_underground_first_prefix.gd","tests":3,"usec":1613044}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+3 test(s), 163 assertion(s), 3 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -1147,6 +1147,28 @@
       "isolated_numeric_and_helper_bytes": 691,
       "reserved_bytes": 563
     },
+    "entry_frontier_reservation": {
+      "reserved_bytes": 28597,
+      "fixed_bytes": 2048,
+      "wire_row_bytes": [
+        36,
+        80,
+        28,
+        36,
+        40,
+        76
+      ],
+      "scope": "One immutable configured reader; the whole ceiling includes its fixed header and controls. Native growth remains unqualified."
+    },
+    "entry_bindings_reservation": {
+      "numeric_controls": 42,
+      "packet_bytes": 300,
+      "packed_rows": 112,
+      "fixed_numeric_and_packed_bytes": 454,
+      "logical_helper_allowance_bytes": 2048,
+      "reserved_bytes": 4096,
+      "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
+    },
     "known_binding_consumers": {
       "connector_catalog": 190448,
       "world_routes": 163840,
@@ -1155,11 +1177,13 @@
       "surface_anchor": 2048,
       "connector_settlement": 16,
       "connector_placements": 108800,
-      "connector_work": 563
+      "connector_work": 563,
+      "entry_frontier": 28597,
+      "entry_bindings": 4096
     },
-    "known_binding_used_bytes": 487499,
-    "remaining_binding_reserve_bytes": 36789,
-    "scope": "Known logical consumers including actual Placement and ConnectorWork; EntryFrontier/Contacts/EntryBindings and remaining native growth still require joint admission."
+    "known_binding_used_bytes": 520192,
+    "remaining_binding_reserve_bytes": 4096,
+    "scope": "Known logical consumers including Frontier and EntryBindings; 4096 remains for Contacts. Whole native memory qualification remains open."
   },
   "contributions": {
     "space_banks_and_indexes": 1104160,
@@ -1188,6 +1212,7 @@
     "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
     "godot/scripts/core/modular_project_contract.gd": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
     "godot/scripts/core/modular_projects.gd": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
+    "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
@@ -1196,6 +1221,9 @@
     "godot/scripts/core/underground_connector_placements.gd": "ca35c77244b0644da291551c1c741a704d7a332eb9b146b72a132ca8af9a7762",
     "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
     "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
+    "godot/scripts/core/underground_entry_bindings.gd": "0bf345d577dc1c0cdbb5ee338216782d66ad9b5b44bd81c8074a50b16b346294",
+    "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+    "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_locations.gd": "d474e3396ff70d61d7cbe180372c7ca8096a2a5384811d52b7128bef11398284",
     "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
     "godot/scripts/core/underground_space_owner.gd": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",

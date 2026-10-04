@@ -1753,3 +1753,12 @@ banks; native reference/interpreter frames remain unmeasured. The prior retained
 topology2102/2112 and WorldRoutes4096 reservations are unchanged. A measured
 21.465ms p95 for256 small-path queries still fails runtime qualification; this
 does not admit an unbudgeted per-worker search or a whole simulation tick.
+
+
+### `godot/scripts/core/underground_entry_bindings.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Immutable episode scratch | `_entry_row` | 4 | `ENTRY_EPISODE_FIELDS` = 19 | Empty before binding | 3 | -- | Decision1111. One fixed synchronous output row, never per-placement progress. |
+| Immutable bearing scratch | `_entry_bearing` | 4 | `ENTRY_BEARING_FIELDS` = 9 | Empty before binding | 3 | -- | One fixed synchronous output row. |
+| Actual owners and transient entry context | -- | -- | -- | No operation at a save/frame boundary | 3 | -- | Borrowed concrete Frontier/Placement/Room/Terrain owners; one weak-backed Placement authority, two116-byte endpoint records,68-byte transform with four empty target arrays,42 provider numeric bytes and112 packed row bytes total454. The2048 logical helper allowance stays within4096; native headers/frames remain unmeasured. Variable request/cursor images are sequential under the original cold lease. No new canonical state, work, part, endpoint or payment ledger. Source import alone does not qualify memory or gameplay. |

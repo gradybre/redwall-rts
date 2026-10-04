@@ -72,7 +72,7 @@ static func _stores_refusal(owner: Owner, routes: Routes, locations: Locations) 
 
 static func prepared_room_refusal(owner: Owner, routes: Routes, locations: Locations, orders: RoomOrders,
 		candidate: Directory.CreateCandidate, space_token: int, budget: Budget, cold_token: int, max_checks: int) -> StringName:
-	"""Final actual EntryPlan/allocator/source proof, after all observers and before any Room or Site identity write."""
+	"""Final actual Room request/allocator/source proof, after observers and before Room or Site identity writes."""
 	if max_checks < BINDING_CHECKS or max_checks > Space.MAX_CHECKS:
 		return REFUSE_BUDGET
 	var code: StringName = _stores_refusal(owner, routes, locations)
@@ -83,12 +83,12 @@ static func prepared_room_refusal(owner: Owner, routes: Routes, locations: Locat
 		code = _room_companion_scope(owner, routes, locations, orders, space_token, cold_token)
 	if code != &"":
 		return code
-	var initial: int = BINDING_CHECKS + 2 * (owner._source_capacity + owner._region_capacity) \
-		+ EntryPlan.SOURCE_BYTES + orders._entry_plan.claims.size() + orders._entry_plan.opening_targets.size()
+	var initial: int = BINDING_CHECKS + 2 * (owner._source_capacity + owner._region_capacity) + _room_request_checks(orders)
 	if max_checks > owner._domain._checks or initial > max_checks or _room_required_checks(owner, initial) > max_checks:
 		return REFUSE_BUDGET
-	if not EntryPlan.same(orders._entry_plan, orders._entry_request):
-		return EntryPlan.REFUSE
+	code = _room_request_refusal(orders)
+	if code != &"":
+		return code
 	code = _room_source_rows(owner, routes, locations, candidate.ref)
 	return _room_claim_rows(owner, candidate.ref) if code == &"" else code
 
@@ -96,11 +96,11 @@ static func prepared_room_refusal(owner: Owner, routes: Routes, locations: Locat
 static func _room_scope_refusal(owner: Owner, orders: RoomOrders, candidate: Directory.CreateCandidate,
 		space_token: int, budget: Budget, cold_token: int) -> StringName:
 	"""Read the concrete coordinator's private candidate and original arena directly, never an authority override."""
-	if orders == null or orders._ready_error != &"" or not orders._entry_mode or orders._publishing \
+	if orders == null or orders._ready_error != &"" or orders._publishing \
 			or orders._stage_action != RoomOrders.ROOM_ADMISSION_STAGE or orders._space != owner \
 			or orders._stage_token != space_token or orders._room_candidate != candidate \
-			or candidate == null or orders._stage_room != candidate.ref or orders._entry_plan == null \
-			or orders._entry_request == null or orders._room_budget != budget or not orders._cold_held \
+			or candidate == null or orders._stage_room != candidate.ref or not _room_request_present(orders) \
+			or orders._room_budget != budget or not orders._cold_held \
 			or cold_token <= 0 or orders._room_cold_token != cold_token or budget == null \
 			or not budget.covers(cold_token, Budget.COLD_BYTES):
 		return RoomOrders.REFUSE_ROOM_COLD
@@ -113,10 +113,37 @@ static func _room_scope_refusal(owner: Owner, orders: RoomOrders, candidate: Dir
 			or orders._router == null or orders._router.get_ref() == null or orders._construction._modular_authority == null \
 			or orders._router.get_ref() != orders._construction._modular_authority.get_ref() \
 			or orders._bindings == null or not orders._bindings.get_ref() is RoomOrders.Bindings \
-			or orders._entry_plan.world != orders._world or orders._entry_plan.space_revision != owner._header[17]:
+			or not _room_request_world_matches(orders, owner._header[17]):
 		return REFUSE_BINDING
-	var code: StringName = Owner.room_prepared_leaf_refusal(owner, space_token, candidate, Buildings.ROOM_TYPE_CORRIDOR, orders)
+	var room_type: int = Buildings.ROOM_TYPE_CORRIDOR if orders._entry_mode else orders._room_plan.room_type
+	var code: StringName = Owner.room_prepared_leaf_refusal(owner, space_token, candidate, room_type, orders)
 	return _room_candidate_leaf(sources._directory, candidate) if code == &"" else code
+
+
+static func _room_request_present(orders: RoomOrders) -> bool:
+	"""The two request protocols never borrow a private packet left by the other admission mode."""
+	return orders._entry_plan != null and orders._entry_request != null if orders._entry_mode \
+		else orders._room_plan != null and orders._room_request != null
+
+
+static func _room_request_world_matches(orders: RoomOrders, revision: int) -> bool:
+	"""Scalar scope proof precedes budgeted payload comparison and the actual future source proof."""
+	return orders._entry_plan.world == orders._world and orders._entry_plan.space_revision == revision if orders._entry_mode \
+		else orders._room_plan.world == orders._world and orders._room_plan.space_revision == revision
+
+
+static func _room_request_checks(orders: RoomOrders) -> int:
+	"""Precharge the complete caller/private comparison before looking at any array element."""
+	return EntryPlan.SOURCE_BYTES + orders._entry_plan.claims.size() + orders._entry_plan.opening_targets.size() \
+		if orders._entry_mode else 2 * maxi(orders._room_plan.cells.size(), orders._room_request.cells.size())
+
+
+static func _room_request_refusal(orders: RoomOrders) -> StringName:
+	"""Exact base cells/scalars cannot stand in for the separate derived approach or entry-source proofs."""
+	if orders._entry_mode:
+		return &"" if EntryPlan.same(orders._entry_plan, orders._entry_request) else EntryPlan.REFUSE
+	return &"" if Owner._ordinary_room_plan_matches(orders, orders._world, orders._room_plan.space_revision,
+		orders._room_plan.room_type) else RoomOrders.REFUSE_PLAN
 
 
 static func _room_candidate_leaf(ids: Directory, candidate: Directory.CreateCandidate) -> StringName:
@@ -133,6 +160,7 @@ static func _room_candidate_leaf(ids: Directory, candidate: Directory.CreateCand
 static func _room_companion_scope(owner: Owner, routes: Routes, locations: Locations, orders: RoomOrders,
 		space_token: int, cold_token: int) -> StringName:
 	"""Only idle or this exact sealed Room companions may coexist with the final current-source census."""
+	var room_type: int = Buildings.ROOM_TYPE_CORRIDOR if orders._entry_mode else orders._room_plan.room_type
 	if routes._in_callback or routes._callback_reentered or routes._advancing or routes._searching \
 			or routes._occupancy_reading or locations._in_retention or locations._retention_reentered \
 			or routes._cold != orders._room_budget:
@@ -140,7 +168,7 @@ static func _room_companion_scope(owner: Owner, routes: Routes, locations: Locat
 	if locations._token != 0 and (not locations._sealed or not locations._room_admission \
 			or locations._room_orders == null or locations._room_orders.get_ref() != orders \
 			or locations._cold_token != cold_token or locations._owner_token != space_token \
-			or locations._admission_room != orders._stage_room or locations._admission_type != Buildings.ROOM_TYPE_CORRIDOR \
+			or locations._admission_room != orders._stage_room or locations._admission_type != room_type \
 			or locations._base_geometry_revision != owner._header[17] \
 			or locations._target_geometry_revision != owner._s_header[17]):
 		return REFUSE_BUSY

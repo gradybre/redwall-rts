@@ -1547,18 +1547,34 @@ static func room_commit_preflighted(actual: RefCounted, token: int, candidate: D
 
 static func _room_issuer_leaf_matches(actual: RefCounted, token: int, candidate: Directory.CreateCandidate,
 		issuer: RefCounted, budget: Budget, cold_token: int) -> bool:
-	"""Only the concrete retained entry publication bracket can consume the bank; interface overrides grant nothing."""
+	"""Only the retained actual Room publication bracket can consume the bank; interface overrides grant nothing."""
 	if not "_entry_mode" in issuer or not "_room_candidate" in issuer or not "_room_budget" in issuer \
 			or not "_room_cold_token" in issuer or not "_entry_plan" in issuer:
 		return false
-	return issuer._entry_mode and issuer._publishing and issuer._cold_held \
-		and issuer._stage_action == issuer.ROOM_ADMISSION_STAGE and issuer._stage_room == candidate.ref \
-		and issuer._stage_token == token and issuer._room_candidate == candidate and issuer._space == actual \
-		and issuer._room_budget == budget and issuer._room_cold_token == cold_token \
-		and issuer._world == actual._domain._world and issuer._entry_plan != null \
-		and issuer._entry_plan.world == actual._domain._world \
-		and issuer._sources == actual._sources and issuer._construction == actual._sources._construction \
-		and issuer._buildings == actual._sources._buildings
+	if not issuer._publishing or not issuer._cold_held \
+			or issuer._stage_action != issuer.ROOM_ADMISSION_STAGE or issuer._stage_room != candidate.ref \
+			or issuer._stage_token != token or issuer._room_candidate != candidate or issuer._space != actual \
+			or issuer._room_budget != budget or issuer._room_cold_token != cold_token \
+			or issuer._world != actual._domain._world or issuer._sources != actual._sources \
+			or issuer._construction != actual._sources._construction or issuer._buildings != actual._sources._buildings:
+		return false
+	if issuer._entry_mode:
+		return issuer._entry_plan != null and issuer._entry_plan.world == actual._domain._world
+	return _ordinary_room_plan_matches(issuer, actual._domain._world, actual._header[17], actual._room_type)
+
+
+static func _ordinary_room_plan_matches(issuer: RefCounted, world: Vector2i, expected_geometry_revision: int, room_type: int) -> bool:
+	"""Borrow complete original and private base-plan fields; typed Orders ownership is checked by the final caller."""
+	if not "_room_plan" in issuer or not "_room_request" in issuer or issuer._room_plan == null \
+			or issuer._room_request == null or issuer._entry_mode or room_type < 0 or room_type >= Buildings.ROOM_TYPE_COUNT:
+		return false
+	var plan: RefCounted = issuer._room_plan
+	var request: RefCounted = issuer._room_request
+	return plan.world == world and plan.space_revision == expected_geometry_revision and plan.room_type == room_type \
+		and plan.cells.size() >= 2 and plan.cells.size() % 2 == 0 and plan.cells.size() <= Space.MAX_CELLS * 2 \
+		and request.world == plan.world and request.space_revision == plan.space_revision \
+		and request.room_type == plan.room_type and request.level == plan.level and request.origin_u == plan.origin_u \
+		and request.cell_size_u == plan.cell_size_u and request.height_u == plan.height_u and request.cells == plan.cells
 
 
 static func _room_after_leaf_matches(actual: RefCounted, candidate: Directory.CreateCandidate,

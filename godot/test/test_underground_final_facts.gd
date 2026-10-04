@@ -110,6 +110,12 @@ func after_each() -> void:
 
 func _prepare_actual_entry() -> void:
 	"""Use the actual coordinator's plan-before-seal/prepared-after-seal flow; only frontier permission is synthetic."""
+	_bind_room_orders()
+	_start_entry_preparation()
+
+
+func _bind_room_orders() -> void:
+	"""Share actual composition setup with ordinary-Room tests without borrowing an EntryPlan or Placement."""
 	_physical = PhysicalTests.SpatialFixture.new()
 	_physical.world = _fixture._world
 	_sites = Sites.new(_fixture._construction, _fixture._inventory, _fixture._pool,
@@ -128,7 +134,6 @@ func _prepare_actual_entry() -> void:
 	_entry_bindings.orders = weakref(_orders)
 	assert_equal(_orders.configure(_router, _fixture._owner, _fixture._sources,
 		RoomCatalog.new(), _entry_bindings), &"", "actual sole Room coordinator")
-	_start_entry_preparation()
 
 
 func _start_entry_preparation() -> void:

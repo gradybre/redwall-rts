@@ -1,0 +1,38 @@
+{
+ "scripts/core/underground_space_owner.gd": [
+  {
+   "code": 0,
+   "message": "(SHADOWED_VARIABLE): The local function parameter \"revision\" is shadowing an already-declared function at line 515 in the current class.",
+   "range": {
+    "end": {
+     "character": 85,
+     "line": 1565
+    },
+    "start": {
+     "character": 77,
+     "line": 1565
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "test/test_underground_room_publication.gd": [
+  {
+   "code": 0,
+   "message": "(INCOMPATIBLE_TERNARY): Values of the ternary operator are not mutually compatible.",
+   "range": {
+    "end": {
+     "character": 107,
+     "line": 179
+    },
+    "start": {
+     "character": 64,
+     "line": 179
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

@@ -18,6 +18,18 @@ reviewed, while actual paid route bindings and wider connector coverage
 remain open. Ground walking profiles do not fit the first tread.
 
 The latest accepted full local checkpoint is
+[`9ca21351`](evidence/modular-build/checkpoint-9ca21351/README.md):
+10,941 tests / 1,016,692 assertions / 0 failures, zero unexpected diagnostics
+and leaks, and zero analyzer warnings across 1,220 files. The clean import,
+no-argument full suite, restoration and unchanged source checks passed in an
+isolated own worktree while implementation continued independently.
+[Remote CI at1eb7a64d](../../validation/evidence/underground-ci-1eb7a64d-2026-10-04/README.md)
+passed all14 jobs in13m10s:391 files exactly once across8 shards,10,941 tests,
+1,016,683 assertions and identical diagnostic/leak totals. These are different
+commits; exact assertion equivalence is not claimed. The import warning found
+locally at1eb7a64d and the failed child-marker correction are retained.
+
+The previous full local checkpoint is
 [`32db348a`](evidence/modular-build/checkpoint-32db348a/README.md):
 10,895 tests /998,370 assertions /0 failures, zero unexpected diagnostics and
 leaks, and zero analyzer warnings across1,210 scripts. The exact clean-assets,
@@ -41,8 +53,13 @@ UG24 extracts the actual demo composition work so it runs independently of the
 remaining movement sources. Its reviewed confirmation adapter has35 focused
 tests/480 assertions, strict/raw diagnostics/leaks0 and analyzer0/4. It preserves
 actual purpose, floor and draft identity across callbacks and owner teardown.
-The real SettlementSystem foundation composer is being implemented separately;
-scene mounting, fixed-tick dispatch and successful Room entry/phase remain open.
+The real Session foundation composer is independently reviewed and integrated,
+and SettlementSystem now owns one actual Gear and HaulCarry pair without
+duplicating bootstrap tools. The shared host regression passed313 tests/7,944
+assertions with zero unexpected diagnostics/leaks and analyzer0/4. Scene
+mounting, coordinated reset, fixed-tick dispatch and successful Room entry/phase
+remain open. Ordinary-room approach, callback-free room publication and loaded
+wood handling are now progressing under separate non-overlapping file leases.
 The added lane decomposes existing work and does not add or waive requirements.
 
 Decision1140's actual Delivery component is integrated at`fa017ba4`, using
@@ -74,6 +91,11 @@ Decision1145 and DEC-050 record Brendan's approved Natural initial stair pace:
 30 fixed ticks per tread and45 per supported half-turn at1× for the first
 unloaded adult mole with its existing pick. Source and paid-route qualification
 still precede playback; this ruling does not adopt loaded or other-cast timing.
+Decision1147's stateless source sampler is now integrated with29 focused
+tests/15,761 assertions, zero diagnostics/leaks and analyzer0/2. The corrected
+shared memory census passed225 tests and independent review, retaining the
+unchanged global budget. Session adds its counted1,536-byte wrapper inside the
+existing Profile/Level/Motion reserve; their joint total is233,972/262,144.
 
 Decision1135's independently reviewed spatial component is integrated at
 `84948b40`:404 selected tests /29,732 assertions /0 failures, zero unexpected

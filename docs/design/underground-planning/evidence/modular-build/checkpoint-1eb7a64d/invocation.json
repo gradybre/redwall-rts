@@ -1,0 +1,28 @@
+{
+  "head": "1eb7a64d5b36c69081c5403e330f90f906ca2e65",
+  "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1eb7a64d",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.018,
+      "log": "clean-import.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "isolated_project_sha256": "5c920c6a49d6569938ce6be6fb3ed4cdc5293ed75be60d73eb9627dd267dd597",
+  "assets_present_before": false,
+  "error": "raw import diagnostics",
+  "assets_restored": true,
+  "project_restored": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

@@ -461,7 +461,13 @@
         "docs/validation/evidence/underground-connector-delivery-2026-10-04/",
         "godot/data/underground/mole-worker/haul-handling-v1/",
         "docs/decisions/1144-source-bound-haul-handling.md",
-        "docs/validation/evidence/underground-delivery-memory-review-2026-10-04/"
+        "docs/validation/evidence/underground-delivery-memory-review-2026-10-04/",
+        "godot/scripts/core/underground_room_approach.gd",
+        "godot/scripts/core/underground_room_approach.gd.uid",
+        "godot/test/test_underground_room_approach.gd",
+        "godot/test/test_underground_room_approach.gd.uid",
+        "docs/decisions/1150-ordinary-room-approach.md",
+        "docs/validation/evidence/underground-room-approach-2026-10-04/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -939,6 +945,11 @@
           "next": "Exact1U physical parcel variant and loaded locomotion/turns; preserve unsupported generic partial unload",
           "source_commit": "d710c6094b5e3ea49fed14339133bc5afb08b26e",
           "integrated_commit": "e87e63be69bd652685de5d3395ba3d5d9adee51a"
+        },
+        "ordinary_room_approach": {
+          "status": "implementing real approach; not playable Room acceptance",
+          "branch": "codex/underground-room-approach",
+          "decision_number": 1150
         }
       },
       "lease": {
@@ -973,10 +984,8 @@
             "branch": "codex/underground-entry-admission",
             "files": [
               "godot/scripts/core/underground_room_orders.gd",
-              "godot/scripts/core/underground_room_bindings.gd",
               "godot/test/test_underground_room_orders.gd",
               "godot/test/test_underground_room_bindings.gd",
-              "godot/test/test_underground_room_admission.gd",
               "godot/scripts/core/underground_entry_plan.gd",
               "godot/scripts/core/underground_entry_plan.gd.uid",
               "godot/test/test_underground_entry_orders.gd",
@@ -984,7 +993,7 @@
               "docs/decisions/1108-atomic-nonflat-entry-admission.md",
               "docs/validation/evidence/underground-entry-orders-2026-10-03/"
             ],
-            "handoff": "Construction explicitly stopped all writes and granted this narrow EntryPlan/atomic future Placement admission packet on2026-10-03 after1107. Preserve the sole Buildings authority and ordinary flat RoomPlan path. Geometry retains Placement/companions; Construction retains ConnectorWork."
+            "handoff": "Construction explicitly stopped all writes and granted this narrow EntryPlan/atomic future Placement admission packet on2026-10-03 after1107. Preserve the sole Buildings authority and ordinary flat RoomPlan path. Geometry retains Placement/companions; Construction retains ConnectorWork. Root explicitly stopped and released RoomBindings and room_admission test on2026-10-04 for the separate1150 approach lane; Orders and other listed files remain root-owned."
           },
           {
             "agent": "/root",
@@ -1014,9 +1023,10 @@
               "docs/decisions/1118-final-connector-input-payment-guard.md",
               "godot/test/test_underground_connector_payment_guard.gd",
               "godot/test/test_underground_connector_payment_guard.gd.uid",
-              "docs/validation/evidence/underground-connector-payment-2026-10-04/"
+              "docs/validation/evidence/underground-connector-payment-2026-10-04/",
+              "godot/test/test_excavation_claim_batch.gd"
             ],
-            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes. Inventory-owned final observation barrier and nested audit preservation added after independent HIGH journal-escape finding; no other agent owns Inventory edits. Inventory remains in UG21 root ownership; this cross-lane note records the same root writer without a duplicate lane lease. Root continues the confirmed purpose8 journal-close follow-up1118 using unchanged Contacts fixture; no concurrent Contacts writes. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease."
+            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes. Inventory-owned final observation barrier and nested audit preservation added after independent HIGH journal-escape finding; no other agent owns Inventory edits. Inventory remains in UG21 root ownership; this cross-lane note records the same root writer without a duplicate lane lease. Root continues the confirmed purpose8 journal-close follow-up1118 using unchanged Contacts fixture; no concurrent Contacts writes. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease. Construction confirmed no active/pending Sites or room-claim test writes and explicitly granted root ordinary Room publication kernel lease on2026-10-04."
           },
           {
             "agent": "/root",
@@ -1050,6 +1060,22 @@
             ],
             "handoff": "Root source writes explicitly stopped.1141 owns narrow Inventory-owned guarded ADMIT/LOAD/REPOST/UNLOAD/CANCEL journal with216-byte full-ref Transfer, same-journal mass/claim changes; preserve all existing flat flows. No Work/HaulPlanner/HaulCarry edits.3072-byte new reservation subject to exact complete census.",
             "stop_evidence": "ug_geometry explicitly stopped1141 writes after accepted064f0c0d, integratedee63d7b9 and32db348a; subsequent work is additive1143 only."
+          },
+          {
+            "agent": "/root/ug_furnishing",
+            "state": "held",
+            "branch": "codex/underground-room-approach",
+            "files": [
+              "godot/scripts/core/underground_room_bindings.gd",
+              "godot/test/test_underground_room_admission.gd",
+              "godot/scripts/core/underground_room_approach.gd",
+              "godot/scripts/core/underground_room_approach.gd.uid",
+              "godot/test/test_underground_room_approach.gd",
+              "godot/test/test_underground_room_approach.gd.uid",
+              "docs/decisions/1150-ordinary-room-approach.md",
+              "docs/validation/evidence/underground-room-approach-2026-10-04/"
+            ],
+            "handoff": "Root stop acknowledged2026-10-04. Actual completed passage to cold Room approach observations and prepared source closure only. Geometry owns companion leaves; root owns Orders/Sites final publication. No invented EntryPlan/Placement or paid phase permission."
           }
         ]
       }
@@ -1156,7 +1182,7 @@
         "godot/scripts/core/underground_motion_clock.gd.uid",
         "godot/test/test_underground_motion_clock.gd",
         "godot/test/test_underground_motion_clock.gd.uid",
-        "docs/decisions/1147-underground-motion-clock.md",
+        "docs/decisions/1147-source-motion-fixed-tick-sampling.md",
         "docs/validation/evidence/underground-motion-clock-2026-10-04/"
       ],
       "requirements": [
@@ -1732,18 +1758,19 @@
           "activation": false
         },
         "motion_clock_1147": {
-          "status": "released independent mapping and implementation slice",
-          "owner": "/root/ug_furnishing",
-          "branch": "codex/underground-motion-clock",
-          "scope": "DEC05030 ticks/tread45 ticks/supported half-turn exact source mapping; prefer stateless sampler, no other rates or travel qualification",
-          "files": [
-            "godot/scripts/core/underground_motion_clock.gd",
-            "godot/scripts/core/underground_motion_clock.gd.uid",
-            "godot/test/test_underground_motion_clock.gd",
-            "godot/test/test_underground_motion_clock.gd.uid",
-            "docs/decisions/1147-underground-motion-clock.md",
-            "docs/validation/evidence/underground-motion-clock-2026-10-04/"
-          ]
+          "status": "source and shared ledger independently accepted; sampler has no movement authority",
+          "source_commit": "4b5daa92",
+          "integrated_commit": "e2f76f54",
+          "review_commit": "941ed4b5",
+          "evidence": "docs/validation/evidence/underground-motion-clock-integration-2026-10-04/",
+          "tests": 29,
+          "assertions": 15761,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
+          "memory_tests": 225,
+          "runtime_qualified": false
         }
       },
       "lease": {
@@ -1903,7 +1930,11 @@
         "godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/",
         "docs/decisions/1143-joint-source-motion-catalog.md",
         "docs/validation/evidence/underground-motion-storage-design-2026-10-04/",
-        "tools/underground_motion_memory.py"
+        "tools/underground_motion_memory.py",
+        "godot/test/test_underground_room_publication.gd",
+        "godot/test/test_underground_room_publication.gd.uid",
+        "docs/decisions/1151-ordinary-room-publication.md",
+        "docs/validation/evidence/underground-room-publication-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1926,7 +1957,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-motion-catalog",
+      "branch": "codex/underground-room-publication",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -2667,6 +2698,12 @@
           "capacity_tests": 190,
           "global_live_with_reserve_bytes": 99998782,
           "runtime_qualified": false
+        },
+        "ordinary_room_publication": {
+          "status": "implementing narrow concrete RoomPlan companion leaves",
+          "branch": "codex/underground-room-publication",
+          "ownership": "SpaceOwner/Locations/FinalFacts and dedicated tests only; root Orders/Sites and Furnishing Bindings/Approach remain separate",
+          "decision_number": 1151
         }
       },
       "lease": {
@@ -2899,7 +2936,11 @@
         "godot/test/live/modular_kitchen_live.gd",
         "docs/decisions/1146-underground-demo-composition-slice.md",
         "docs/validation/evidence/underground-demo-composition-2026-10-04/",
-        "docs/validation/evidence/underground-session-2026-10-04/"
+        "docs/validation/evidence/underground-session-2026-10-04/",
+        "godot/test/test_settlement_equipment.gd",
+        "godot/test/test_settlement_equipment.gd.uid",
+        "docs/decisions/1148-settlement-equipment-and-hauling-ownership.md",
+        "docs/validation/evidence/underground-host-equipment-2026-10-04/"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -2940,11 +2981,34 @@
           "review_integrated_commit": "b76da200"
         },
         "session": {
-          "status": "new-file implementation/testing in progress",
+          "status": "independently accepted and integrated; actual shared ledger and host regression passed",
           "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-session",
           "branch": "codex/underground-session",
           "scope": "15 exact borrowed owners plus Directory, actual private foundations/Routes identity; no duplicate settlement/authority binding",
-          "memory": "1536B wrapper/helper/native slice proposed and source-counted within existing PROFILE_BYTES; one Motion/Profile/Level/Session expected233972; native unmeasured"
+          "memory": "source-counted1536B slice; actual joint233972/262144; global99998782/headroom1218; native unmeasured",
+          "tests": 77,
+          "assertions": 1768,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
+          "census_tests": 17,
+          "reviewer": "/root",
+          "source_commit": "da7c5c667de7ff85ef8f0f4f842adda7f55e56c4",
+          "integrated_commit": "5de052ea"
+        },
+        "host_equipment": {
+          "status": "reviewed and strict focused tests passed",
+          "evidence": "docs/validation/evidence/underground-host-equipment-2026-10-04/",
+          "tests": 313,
+          "assertions": 7944,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "expected": 9,
+          "leaks": 0,
+          "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)",
+          "reviewer": "/root/ug_geometry",
+          "scope": "one actual Gear/Carry; no new stock or Session activation"
         }
       },
       "lease": {
@@ -2952,7 +3016,7 @@
         "subleases": [
           {
             "agent": "/root/ug_geometry",
-            "state": "held",
+            "state": "released",
             "branch": "codex/underground-session",
             "files": [
               "godot/scripts/core/underground_session.gd",
@@ -2961,7 +3025,8 @@
               "godot/test/test_underground_session.gd.uid",
               "docs/validation/evidence/underground-session-2026-10-04/"
             ],
-            "handoff": "Root has no Session source writes. Geometry explicitly stopped1143Motion at accepted0aeb7f82; now compose actual borrowed SettlementSystem owners with source-pinned catalogs. No secondWorld, synthetic permissions or private weak-field resets; shared host/Gear/reset/memory changes remain root-owned and require agreed APIs. Root independently writes modular_runtime and existing demo/SettlementSystem entry points."
+            "handoff": "Root has no Session source writes. Geometry explicitly stopped1143Motion at accepted0aeb7f82; now compose actual borrowed SettlementSystem owners with source-pinned catalogs. No secondWorld, synthetic permissions or private weak-field resets; shared host/Gear/reset/memory changes remain root-owned and require agreed APIs. Root independently writes modular_runtime and existing demo/SettlementSystem entry points.",
+            "worker_stop_ack": "da7c5c66 committed; source writes stopped; root5de052ea integrated and independently reviewed"
           }
         ]
       }
@@ -4009,6 +4074,30 @@
         "analyzer": "0 GDScript warning(s) in 0 of 1213 file(s)",
         "evidence": "docs/validation/evidence/underground-ci-42bff090-2026-10-04/"
       }
+    },
+    {
+      "commit": "1eb7a64d5b36c69081c5403e330f90f906ca2e65",
+      "outcome": "refused clean import before suite; nested isolated capture project warning",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-1eb7a64d/",
+      "correction": "two empty .gdignore markers independently reviewed; source bb6c79bc integrated c24421ab"
+    },
+    {
+      "commit": "c24421ab5c5eb5187795f8003640587884847f05",
+      "outcome": "refused clean import before suite; child .gdignore markers did not suppress nested-project warning",
+      "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1eb7a64d",
+      "branch": "codex/underground-checkpoint-1eb7a64d",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-c24421ab/",
+      "command": "python3 docs/design/underground-planning/evidence/modular-build/checkpoint-c24421ab/reproduce.py",
+      "correction": "independently reviewed parent source/evidence subtree marker; source9a36f68b integrated9ca21351"
+    },
+    {
+      "commit": "9ca21351",
+      "outcome": "clean import passed; no-argument full suite running; no complete pass claim yet",
+      "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1eb7a64d",
+      "branch": "codex/underground-checkpoint-1eb7a64d",
+      "session_id": 78481,
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-9ca21351",
+      "command": "python3 docs/design/underground-planning/evidence/modular-build/checkpoint-9ca21351/reproduce.py"
     }
   ],
   "crosscut_fixes": [

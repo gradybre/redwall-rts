@@ -1,0 +1,36 @@
+state_registry_coverage: PASS -- 137 modules, 685 rows, 1017 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_placements.gd
+  PASS  test_actual_confirmation_publishes_future_placement_and_refreshes_old_paths
+  PASS  test_unbound_or_refused_companion_preserves_all_live_owners
+  PASS  test_first_frontier_bind_is_exact_and_remains_bound_after_retirement_to_empty
+  PASS  test_late_frontier_tuple_and_original_request_changes_refuse_atomically
+  PASS  test_first_frontier_pin_cannot_change_both_observed_request_images
+  PASS  test_original_lease_replacement_after_sites_never_publishes_or_releases_replacement
+  PASS  test_final_candidate_and_prepared_payload_changes_refuse_before_identity
+  PASS  test_original_context_reentry_and_early_publication_cannot_commit
+  PASS  test_second_admission_preserves_prior_self_target_and_rejects_other_source_tuple
+  PASS  test_late_actual_retained_room_drift_never_gets_refreshed_into_a_new_placement
+  PASS  test_missing_refresh_stale_anchor_and_mixed_opening_tuple_refuse_without_identity
+  PASS  test_request_growth_in_last_location_scope_refuses_before_actual_bank_copy
+  PASS  test_replaced_location_candidate_cannot_be_inherited_or_destroyed_by_original_cleanup
+CI_SUITE_TIME {"assertions":466,"failures":0,"suite":"test_underground_entry_placements.gd","tests":13,"usec":4835937}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 466 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 466 assertions, 0 failures.

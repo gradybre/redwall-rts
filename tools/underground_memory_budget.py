@@ -304,13 +304,90 @@ def connector_work_reservation(index: dict, placement: dict) -> dict:
             "reserved_bytes": own + 512}
 
 
+def entry_frontier_reservation(index: dict) -> dict:
+    """Reserve the reader's whole admitted ceiling and reject drift between each wire row and its packed bank."""
+    module = "underground_entry_frontier"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ["RefCounted"], "unreconciled Frontier base"
+    expected = {
+        "_capacities": ("PackedInt32Array", "TABLE_COUNT"),
+        "_header": ("PackedInt64Array", "HEADER_FIELDS"),
+        "_digests": ("PackedByteArray", "DIGEST_BYTES"),
+        "_install": ("PackedInt32Array", "9 * _capacities[INSTALL]"),
+        "_station": ("PackedInt32Array", "9 * _capacities[STATION]"),
+        "_profile_revision": ("PackedInt64Array", "4 * _capacities[STATION]"),
+        "_rotation_profile": ("PackedInt32Array", "3 * _capacities[STATION]"),
+        "_cut": ("PackedInt32Array", "7 * _capacities[CUT]"),
+        "_bearing": ("PackedInt32Array", "9 * _capacities[BEARING]"),
+        "_endpoint": ("PackedInt32Array", "7 * _capacities[ENDPOINT]"),
+        "_travel_profile": ("PackedInt32Array", "_capacities[ENDPOINT]"),
+        "_travel_revision": ("PackedInt64Array", "_capacities[ENDPOINT]"),
+        "_episode": ("PackedInt32Array", "19 * _capacities[EPISODE]"),
+    }
+    fields = explicit_members(source)
+    assert {k: v for k, v in fields.items() if v in WIDTHS} == {k: v[0] for k, v in expected.items()}, \
+        "unreconciled Frontier packed members"
+    assert {k: v for k, v in fields.items() if v not in WIDTHS} == {
+        "_catalog": "Catalog", "_assemblies": "Assemblies", "_recipes": "Recipes", "_profiles": "Profiles",
+        "_configured": "bool", "_loaded": "bool", "_busy": "bool"}, "unreconciled Frontier controls"
+    for name, (_, count) in expected.items():
+        assert re.findall(re.escape(name) + r"\.resize\(([^)]+)\)", source) == [count], (name, "Frontier resize drift")
+    assert [resolve(index, module, n) for n in ("TABLE_COUNT", "HEADER_FIELDS", "DIGEST_BYTES", "FIXED_BYTES")] == [6, 14, 160, 2048]
+    assert "return row_fields(table) * 4 + (44 if table == STATION else (12 if table == ENDPOINT else 0))" in source
+    assert "INSTALL, STATION, BEARING:\n\t\t\treturn 9" in source and "CUT, ENDPOINT:\n\t\t\treturn 7" in source
+    assert "EPISODE:\n\t\t\treturn 19" in source and "return total if total <= MAX_BYTES else 0" in source
+    assert "total += capacities[table] * wire_row_bytes(table)" in source
+    assert "var total: int = FIXED_BYTES" in source, "Frontier fixed initialization charge omitted"
+    return {"reserved_bytes": resolve(index, module, "MAX_BYTES"), "fixed_bytes": 2048,
+            "wire_row_bytes": [36, 80, 28, 36, 40, 76],
+            "scope": "One immutable configured reader; the whole ceiling includes its fixed header and controls. Native growth remains unqualified."}
+
+
+def entry_bindings_reservation(index: dict) -> dict:
+    """Census the additional concrete provider only; its RoomBindings base and variable cold packets are shared."""
+    module = "underground_entry_bindings"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ['"res://scripts/core/underground_room_bindings.gd"']
+    fields = explicit_members(source)
+    expected = {"_entry_frontier": "Frontier", "_entry_placements": "Placements", "_entry_authority": "AdmissionAuthority",
+        "_entry_request": "EntryPlan.Request", "_entry_pin": "EntryPlan.Request", "_placement_request": "Placements.Request",
+        "_entry_candidate": "Directory.CreateCandidate", "_entry_anchor": "Locations.Record", "_entry_contact": "Locations.Record",
+        "_entry_transform": "Connectors.Placement", "_entry_row": "PackedInt32Array", "_entry_bearing": "PackedInt32Array"}
+    assert {k: v for k, v in fields.items() if v not in {"int", "bool", "Vector2i", "Vector3i"}} == expected, \
+        "unreconciled EntryBindings retained member"
+    record = class_body(index["underground_locations"].text, "Record")
+    boxes = {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}
+    packets = sum(anchor_packet_bytes(record, boxes, name, source) for name in ("_entry_anchor", "_entry_contact"))
+    transform = {"endpoint_refs": "PackedInt32Array", "endpoint_revisions": "PackedInt64Array",
+                 "opening_refs": "PackedInt32Array", "opening_revisions": "PackedInt64Array"}
+    packets += scalar_packet(index, "room_connectors", "Placement", transform)
+    assert not re.search(r"_entry_transform\.(?:endpoint|opening)_(?:refs|revisions)\s*(?:=|\.)", source), \
+        "unreconciled nonempty entrance transform arrays"
+    authority = class_body(source, "AdmissionAuthority", "Placements.Authority")
+    assert explicit_members(authority, "\t") == {"host": "WeakRef"}, "entrance authority retained growth"
+    assert explicit_members(class_body(index["underground_connector_placements"].text, "Authority"), "\t") == {}, \
+        "unreconciled inherited entrance authority fields"
+    rows = 0
+    for name, constant in (("_entry_row", "ENTRY_EPISODE_FIELDS"), ("_entry_bearing", "ENTRY_BEARING_FIELDS")):
+        assert re.findall(re.escape(name) + r"\.resize\(([^)]+)\)", source) == [constant]
+        rows += 4 * resolve(index, module, constant)
+    assert rows == 112, "entrance row-width drift"
+    fixed = numeric_fields(source, "") + packets + rows
+    reserved = resolve(index, module, "ENTRY_FIXED_BYTES")
+    assert fixed + 2048 <= reserved, "entrance fixed/helper allowance exceeded"
+    return {"numeric_controls": numeric_fields(source, ""), "packet_bytes": packets, "packed_rows": rows,
+            "fixed_numeric_and_packed_bytes": fixed, "logical_helper_allowance_bytes": 2048,
+            "reserved_bytes": reserved,
+            "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."}
+
+
 def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     """Count the exact immutable recipe bank inside, not in addition to, the shared binding reserve."""
     # The shared audit parser intentionally keeps inline comments. Strip comments
     # only from integer arithmetic declarations in these two local read views;
     # original source hashes remain in the returned whole-pack provenance.
     index = dict(index)
-    for name in ("underground_connector_catalog", "underground_world_routes", "underground_connector_placements"):
+    for name in ("underground_connector_catalog", "underground_world_routes", "underground_connector_placements", "underground_entry_frontier"):
         source = index[name]
         clean = re.sub(r"(?m)^(const [A-Z][A-Z0-9_]*: int = [A-Z0-9_ .+*()-]+?)[ \t]+#.*$",
                        r"\1", source.text)
@@ -335,6 +412,8 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     settlement = funding_settlement_reservation(index)
     placement = placement_reservation(index)
     work = connector_work_reservation(index, placement)
+    frontier = entry_frontier_reservation(index)
+    entry = entry_bindings_reservation(index)
     consumers = {
         "connector_catalog": resolve(index, "underground_connector_catalog", "RESERVED_BYTES"),
         "world_routes": resolve(index, "underground_world_routes", "RESERVED_BYTES"),
@@ -344,17 +423,21 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
         "connector_settlement": settlement["reserved_bytes"],
         "connector_placements": placement["reserved_bytes"],
         "connector_work": work["reserved_bytes"],
+        "entry_frontier": frontier["reserved_bytes"],
+        "entry_bindings": entry["reserved_bytes"],
     }
     used = sum(consumers.values())
     assert used <= binding_reserve, "known binding consumers exceed their shared reserve"
+    assert binding_reserve - used >= 4096, "concrete Contacts allowance was consumed by another binding"
     return {"columns": rows, "part_capacity": capacity, "bank_bytes": bank,
             "fixed_bytes": fixed, "assembly_reservation": assemblies, "surface_anchor_reservation": anchor,
             "funding_settlement_reservation": settlement, "placement_reservation": placement,
             "connector_work_reservation": work,
+            "entry_frontier_reservation": frontier, "entry_bindings_reservation": entry,
             "known_binding_consumers": consumers,
             "known_binding_used_bytes": used,
             "remaining_binding_reserve_bytes": binding_reserve - used,
-            "scope": "Known logical consumers including actual Placement and ConnectorWork; EntryFrontier/Contacts/EntryBindings and remaining native growth still require joint admission."}
+            "scope": "Known logical consumers including Frontier and EntryBindings; 4096 remains for Contacts. Whole native memory qualification remains open."}
 
 
 def funding_settlement_reservation(index: dict) -> dict:
@@ -440,7 +523,8 @@ def build(index: dict | None = None) -> dict:
     sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget",
                     "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
                     "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
-                    "underground_connector_placements", "underground_connector_work", "entity_directory"))
+                    "underground_connector_placements", "underground_connector_work", "entity_directory",
+                    "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,

@@ -1,0 +1,3 @@
+FAIL C6 underground_entry_bindings.gd line 1716: count '`19`' is not `EXPR` = N, `EXPR` <= N, `EXPR` runtime or 'never allocated'
+FAIL C6 underground_entry_bindings.gd line 1717: count '`9`' is not `EXPR` = N, `EXPR` <= N, `EXPR` runtime or 'never allocated'
+state_registry_coverage: 2 failure(s)

@@ -256,8 +256,11 @@ class JointPackTests(unittest.TestCase):
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
-        self.assertEqual(recipes["known_binding_used_bytes"], 487499)
-        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 36789)
+        self.assertEqual(recipes["known_binding_used_bytes"], 520192)
+        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 4096)
+        self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
+        self.assertEqual(recipes["entry_bindings_reservation"]["reserved_bytes"], 4096)
+        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 454)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
         self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1670)
@@ -275,6 +278,61 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)
         self.assertEqual(result["furniture_bridge_cold"]["private_bytes_per_pair"], 60)
         self.assertEqual(result["furniture_bridge_cold"]["numeric_control_bytes"], 16)
+
+    def test_negative_frontier_extra_retained_column(self) -> None:
+        line = "var _episode: PackedInt32Array = PackedInt32Array()"
+        self.refuses("underground_entry_frontier", line, line + "\nvar _extra: PackedInt32Array = PackedInt32Array()")
+
+    def test_negative_frontier_wider_work_revision_bank(self) -> None:
+        self.refuses("underground_entry_frontier", "_profile_revision: PackedInt64Array", "_profile_revision: PackedInt32Array")
+
+    def test_negative_frontier_hidden_extra_station(self) -> None:
+        self.refuses("underground_entry_frontier", "_station.resize(9 * _capacities[STATION])", "_station.resize(10 * _capacities[STATION])")
+
+    def test_negative_frontier_wire_width_charge_drift(self) -> None:
+        self.refuses("underground_entry_frontier", "(44 if table == STATION", "(32 if table == STATION")
+
+    def test_negative_frontier_envelope_overbooks_all_remaining_bindings(self) -> None:
+        self.refuses("underground_entry_frontier", "MAX_BYTES: int = 28597", "MAX_BYTES: int = 40000")
+
+    def test_negative_frontier_consumes_contacts_earmark(self) -> None:
+        self.refuses("underground_entry_frontier", "MAX_BYTES: int = 28597", "MAX_BYTES: int = 28598")
+
+    def test_negative_frontier_inherits_unaccounted_state(self) -> None:
+        self.refuses("underground_entry_frontier", "extends RefCounted",
+                     'extends "res://scripts/core/underground_connector_placements.gd"')
+
+    def test_negative_frontier_omits_fixed_initial_charge(self) -> None:
+        self.refuses("underground_entry_frontier", "var total: int = FIXED_BYTES", "var total: int = 0")
+
+    def test_negative_frontier_configure_undercharges_station_count(self) -> None:
+        self.refuses("underground_entry_frontier", "total += capacities[table] * wire_row_bytes(table)",
+                     "total += wire_row_bytes(table)")
+
+    def test_negative_entry_binding_extra_retained_record(self) -> None:
+        line = "var _entry_contact: Locations.Record = Locations.Record.new()"
+        self.refuses("underground_entry_bindings", line, line + "\nvar _second_contact: Locations.Record = null")
+
+    def test_negative_entry_binding_larger_contact_envelope(self) -> None:
+        self.refuses("underground_entry_bindings", "_entry_contact.envelope.resize(6)", "_entry_contact.envelope.resize(12)")
+
+    def test_negative_entry_binding_duplicate_scratch_allocation(self) -> None:
+        line = "\t_entry_row.resize(ENTRY_EPISODE_FIELDS)"
+        self.refuses("underground_entry_bindings", line, line + "\n" + line)
+
+    def test_negative_entry_binding_nonempty_transform_map(self) -> None:
+        line = "\t_entry_transform.origin = plan.origin_u"
+        self.refuses("underground_entry_bindings", line, line + "\n\t_entry_transform.endpoint_refs.resize(32)")
+
+    def test_negative_entry_binding_inherited_authority_growth(self) -> None:
+        self.refuses("underground_connector_placements", "class Authority extends RefCounted:",
+                     "class Authority extends RefCounted:\n\tvar hidden: PackedByteArray = PackedByteArray()")
+
+    def test_negative_entry_binding_helper_headroom_shortfall(self) -> None:
+        self.refuses("underground_entry_bindings", "ENTRY_FIXED_BYTES: int = 4096", "ENTRY_FIXED_BYTES: int = 2048")
+
+    def test_negative_entry_binding_changed_parent(self) -> None:
+        self.refuses("underground_entry_bindings", 'extends "res://scripts/core/underground_room_bindings.gd"', 'extends RefCounted')
 
 
 if __name__ == "__main__":

@@ -1556,7 +1556,7 @@ static func _cell(value: int, datum: int) -> int:
 func _live_ref(bank: Bank, ref: Vector2i) -> bool:
 	"""Local namespace validation always compares presence and generation."""
 	return ref.x >= 0 and ref.x < _capacity and ref.y > 0 and bank.present[ref.x] == 1 \
-		and _get32(bank, GENERATION, ref.x) == ref.y
+		and bank.i32[GENERATION * _capacity + ref.x] == ref.y
 
 
 func _get32(bank: Bank, field: int, row: int) -> int:
@@ -1581,7 +1581,7 @@ func _set64(bank: Bank, field: int, row: int, value: int) -> void:
 
 func _ref_at(bank: Bank, field: int, row: int) -> Vector2i:
 	"""Both halves remain in their explicitly declared namespace."""
-	return Vector2i(_get32(bank, field, row), _get32(bank, field + 1, row))
+	return Vector2i(bank.i32[field * _capacity + row], bank.i32[(field + 1) * _capacity + row])
 
 
 func _prepare_record_scratch() -> void:

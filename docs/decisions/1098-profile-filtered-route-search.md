@@ -233,3 +233,56 @@ pins, rehashed unchanged at the end, with no high/medium finding. It reviewed
 source-row/full-generation freshness, immutable owner/revision reuse, the outer
 callback cold-boundary correction and the48-byte census. It did not rerun engine
 tests. The timing/native qualification limits above remain open.
+
+## Measured packed-read overhead
+
+The next bounded change follows an actual helper breakdown, rather than adding
+another cache. The same actual 256-resident, O2048, three-span fixture measures
+the two source checks, descriptor lookup, existing Dijkstra, final chain and
+selected endpoint/source proof separately. Twenty batches retain distribution
+tails. The isolated helpers execute under the same owner scratch guards and
+are bracketed by a successful complete production query. The phase timings do
+not sum exactly to the full query because their measurement boundaries differ.
+
+| Phase, 256 calls | Baseline p95 ms | Direct packed reads p95 ms |
+| --- | ---: | ---: |
+| Complete production query | 25.710 | 21.465 |
+| Both source/store attestations | 8.462 | 8.263 |
+| Profile descriptor | 0.406 | 0.276 |
+| Existing Dijkstra | 6.865 | 5.303 |
+| Final full-edge chain | 1.682 | 1.316 |
+| Selected endpoint/source proof | 5.438 | 3.874 |
+
+Nested single-field accessors in full-ref pair/liveness reads now read the same
+packed offsets directly. Search mode/posture/revision tests do the same.
+WorldRoutes borrows existing typed Catalog, Profile bank/Descriptor and Location
+bank references within each synchronous helper. Every prior comparison,
+source check, callback guard and finite-work charge remains; no cache, field,
+bank, revision, map or permission is added. No physical Terrain scan is hidden
+in these timings: current local terrain/contact/support remains the separate
+actual Contacts obligation.
+
+The new endpoint stride local adds 8 declared numeric frame bytes. The
+conservative deepest simultaneous helper census becomes 344/512, within the
+same actual caller allowance. Other added locals borrow existing objects;
+their native reference/frame cost remains unmeasured. Retained controls remain
+Locations/Routes 2102/2112 and WorldRoutes' existing 4096 allowance. No larger
+arena or authoritative storage is admitted.
+
+Both clean runs passed 145 tests / 13,835 assertions / zero failures, with all
+strict/raw diagnostics and leaks zero and analyzer 0/5. Exact manifests,
+isolated user-directory settings and restoration proofs are retained in
+`docs/validation/evidence/underground-connector-placements-2026-10-03/hot-profile-1/`
+and `hot-profile-2/`. The latter source stayed unchanged throughout its run.
+Its full-query minimum/median/p95/maximum were 21.113/21.340/21.465/21.778 ms.
+
+This is still **failed runtime qualification**. Repeated small-path diagnostics
+do not qualify aggregate ticks, distinct long paths, native transient memory
+or the minimum-spec machine. In particular, an unbudgeted full search per
+productive worker remains unsupported; scheduling or separately justified
+shared proof remains a later contract, without dropping current source checks.
+
+Independent Construction review accepted all five `hot-profile-2` source/test
+pins, rehashed unchanged at the end. The review checked identical packed offsets,
+short-circuit bounds, borrowed-object lifetime, unchanged predicates/charges and
+the 344/512 census, with no high/medium finding and no duplicate engine run.

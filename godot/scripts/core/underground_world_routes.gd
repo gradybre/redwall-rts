@@ -1042,17 +1042,18 @@ static func _reach_search(actual: RefCounted, graph: Routes, owner: Owner, locat
 
 static func _reach_stores_refusal(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations) -> StringName:
 	"""Exact concrete stores and immutable content are read directly, without catalog/terrain observation hooks."""
+	var catalog: Catalog = actual._catalog
 	if FinalFacts._stores_refusal(owner, graph, locations) != &"" or actual._domain == null \
 			or graph._bindings != actual or graph._profiles != actual._profiles or graph._cold != actual._budget \
 			or graph._residents != actual._residents or graph._transforms != actual._transforms \
-			or not FinalFacts._same_domain(actual._domain, owner._domain) or actual._catalog == null \
-			or actual._catalog._profiles != actual._profiles or actual._catalog._levels != actual._levels \
-			or actual._catalog._movement != actual._movement or actual._catalog._residents != actual._residents \
-			or actual._catalog._transforms != actual._transforms or not _reach_profile_owners(actual, graph, locations):
+			or not FinalFacts._same_domain(actual._domain, owner._domain) or catalog == null \
+			or catalog._profiles != actual._profiles or catalog._levels != actual._levels \
+			or catalog._movement != actual._movement or catalog._residents != actual._residents \
+			or catalog._transforms != actual._transforms or not _reach_profile_owners(actual, graph, locations):
 		return REFUSE_BINDING
-	if actual._catalog._live.header.size() != 11 or actual._catalog._live.header[1] < 1 \
-			or actual._catalog._live.variant_revisions.size() != Catalog.MAX_VARIANTS \
-			or actual._live_catalog_revision <= 0 or actual._live_catalog_revision != actual._catalog._live.header[0]:
+	if catalog._live.header.size() != 11 or catalog._live.header[1] < 1 \
+			or catalog._live.variant_revisions.size() != Catalog.MAX_VARIANTS \
+			or actual._live_catalog_revision <= 0 or actual._live_catalog_revision != catalog._live.header[0]:
 		return &"WORLD_ROUTE_CERTIFICATE_STALE"
 	if not _reach_level_domain(actual, owner) or not _reach_world(actual, owner, locations):
 		return REFUSE_BINDING
@@ -1137,23 +1138,25 @@ static func _reach_world(actual: RefCounted, owner: Owner, locations: Locations)
 static func _reach_descriptor(actual: RefCounted, row: int, revision: int, content: int) -> StringName:
 	"""Populate only shared search fields from the loaded actual row; no virtual descriptor or new packet is needed."""
 	var profiles: Profiles = actual._profiles
+	var bank: Profiles.Bank = profiles._live
 	var capacity: int = profiles._profile_capacity
-	if profiles._loading or profiles._live.header.size() != 4 or capacity <= 0 \
-			or capacity > Profiles.MAX_PROFILES or row < 0 or row >= profiles._live.header[1] or row >= capacity \
-			or content <= 0 or content != profiles._live.header[0] or revision <= 0 \
-			or profiles._live.fields.size() != capacity * Profiles.I32_FIELDS \
-			or profiles._live.quantities.size() != capacity * Profiles.I64_FIELDS \
-			or profiles._live.flags.size() != capacity * Profiles.BYTE_FIELDS or profiles._live.quantities[row] != revision \
-			or profiles._live.flags[row] != Profiles.CERT_REQUIRED:
+	if profiles._loading or bank.header.size() != 4 or capacity <= 0 \
+			or capacity > Profiles.MAX_PROFILES or row < 0 or row >= bank.header[1] or row >= capacity \
+			or content <= 0 or content != bank.header[0] or revision <= 0 \
+			or bank.fields.size() != capacity * Profiles.I32_FIELDS \
+			or bank.quantities.size() != capacity * Profiles.I64_FIELDS \
+			or bank.flags.size() != capacity * Profiles.BYTE_FIELDS or bank.quantities[row] != revision \
+			or bank.flags[row] != Profiles.CERT_REQUIRED:
 		return &"WORLD_ROUTE_PROFILE_STALE"
-	var mode: int = profiles._live.fields[Profiles.F_MODE * capacity + row]
+	var mode: int = bank.fields[Profiles.F_MODE * capacity + row]
 	if mode != Profiles.MODE_WALK and mode != Profiles.MODE_CARRY and mode != Profiles.MODE_CLIMB:
 		return &"ROUTE_PROFILE_MODE"
-	actual._descriptor.profile_id = row
-	actual._descriptor.profile_revision = revision
-	actual._descriptor.content_revision = content
-	actual._descriptor.mode = mode
-	actual._descriptor.posture = profiles._live.fields[Profiles.F_POSTURE * capacity + row]
+	var descriptor: Profiles.Descriptor = actual._descriptor
+	descriptor.profile_id = row
+	descriptor.profile_revision = revision
+	descriptor.content_revision = content
+	descriptor.mode = mode
+	descriptor.posture = bank.fields[Profiles.F_POSTURE * capacity + row]
 	return &""
 
 
@@ -1188,15 +1191,16 @@ static func _reach_endpoint_refusal(graph: Routes, owner: Owner, locations: Loca
 	"""Every endpoint keeps its full generation, exact stored point/Room/level and current geometry revision."""
 	if not graph._spend(64):
 		return graph._operation_error
-	if not locations._live_ref(locations._live, ref) \
-			or locations._get64(locations._live, Locations.PAYLOAD_REVISION, ref.x) <= 0 \
-			or locations._get64(locations._live, Locations.GEOMETRY_REVISION, ref.x) != owner._header[17]:
+	var bank: Locations.Bank = locations._live
+	var stride: int = locations._capacity
+	if not locations._live_ref(bank, ref) or bank.i64[Locations.PAYLOAD_REVISION * stride + ref.x] <= 0 \
+			or bank.i64[Locations.GEOMETRY_REVISION * stride + ref.x] != owner._header[17]:
 		return &"ROUTE_LOCATION_STALE"
-	var section: Vector2i = locations._ref_at(locations._live, Locations.SECTION_SLOT, ref.x)
-	var room: Vector2i = locations._ref_at(locations._live, Locations.ROOM_SLOT, ref.x)
-	var level: int = locations._get32(locations._live, Locations.LEVEL, ref.x)
-	var point: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, ref.x),
-		locations._get32(locations._live, Locations.Y, ref.x), locations._get32(locations._live, Locations.Z, ref.x))
+	var section: Vector2i = locations._ref_at(bank, Locations.SECTION_SLOT, ref.x)
+	var room: Vector2i = locations._ref_at(bank, Locations.ROOM_SLOT, ref.x)
+	var level: int = bank.i32[Locations.LEVEL * stride + ref.x]
+	var point: Vector3i = Vector3i(bank.i32[Locations.X * stride + ref.x],
+		bank.i32[Locations.Y * stride + ref.x], bank.i32[Locations.Z * stride + ref.x])
 	if not owner._region_live(section, false) or owner._r_role[section.x] != Space.FLOOR_DATUM \
 			or owner._r_level[section.x] != level or owner._r_lo_y[section.x] != point.y \
 			or point.x < owner._r_lo_x[section.x] or point.x >= owner._r_hi_x[section.x] \

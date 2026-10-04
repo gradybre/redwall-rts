@@ -729,13 +729,13 @@ func _edge_i64(bank: EdgeBank, field: int, row: int) -> int:
 
 func _edge_pair(bank: EdgeBank, field: int, row: int) -> Vector2i:
 	"""Endpoint/Room namespaces remain distinct even when their integer pairs coincide."""
-	return Vector2i(_edge_i32(bank, field, row), _edge_i32(bank, field + 1, row))
+	return Vector2i(bank.fields[field * _edge_capacity + row], bank.fields[(field + 1) * _edge_capacity + row])
 
 
 func _live_edge(bank: EdgeBank, ref: Vector2i) -> bool:
 	"""An authored path is identified by its full local generation, never its recycled row alone."""
 	return ref.x >= 0 and ref.x < _edge_capacity and ref.y > 0 and bank.present[ref.x] == 1 \
-		and _edge_i32(bank, E_GENERATION, ref.x) == ref.y
+		and bank.fields[E_GENERATION * _edge_capacity + ref.x] == ref.y
 
 
 func is_live_edge(ref: Vector2i) -> bool:
@@ -1754,8 +1754,8 @@ func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath 
 
 func _path_terms_match(row: int, mode: int, posture: int) -> bool:
 	"""Actor, cold static and pure live searches filter the same authored edge terms."""
-	return (mode < 0 or _edge_i32(_live, E_MODE, row) == mode) \
-		and (posture < 0 or _edge_i32(_live, E_POSTURE, row) == posture)
+	return (mode < 0 or _live.fields[E_MODE * _edge_capacity + row] == mode) \
+		and (posture < 0 or _live.fields[E_POSTURE * _edge_capacity + row] == posture)
 
 
 func _path_profile_refusal(row: int, query: ProfilePath, certificate: RefCounted = null) -> StringName:
@@ -1776,8 +1776,8 @@ func _path_edge_current(row: int, certificate: RefCounted) -> bool:
 	"""Only the actual static entry supplies a certificate context; cold/actor behavior remains unchanged."""
 	var geometry: int = _owner._header[17] if certificate != null else _owner.revision()
 	var content: int = _profiles._live.header[0] if certificate != null else _profiles.content_revision()
-	return _edge_i64(_live, E_GEOMETRY_REVISION, row) == geometry \
-		and _edge_i64(_live, E_CONTENT_REVISION, row) == content
+	return _live.longs[E_GEOMETRY_REVISION * _edge_capacity + row] == geometry \
+		and _live.longs[E_CONTENT_REVISION * _edge_capacity + row] == content
 
 
 func _committed_mask_refusal(row: int, certificate: RefCounted) -> StringName:
@@ -1788,12 +1788,14 @@ func _committed_mask_refusal(row: int, certificate: RefCounted) -> StringName:
 			or not certificate._reading or not _searching:
 		_operation_error = &"ROUTE_OWNER_MISMATCH"
 		return _operation_error
-	var profile: int = certificate._descriptor.profile_id
+	var descriptor: Profiles.Descriptor = certificate._descriptor
+	var bank: RefCounted = certificate._live
+	var profile: int = descriptor.profile_id
 	@warning_ignore("integer_division") var byte: int = profile / 8
-	return &"" if certificate._live.generations[row] == _edge_i32(_live, E_GENERATION, row) \
-		and certificate._live.geometry[row] == _owner._header[17] \
-		and certificate._live.content[row] == certificate._descriptor.content_revision \
-		and (certificate._live.masks[row * 32 + byte] & (1 << (profile % 8))) != 0 \
+	return &"" if bank.generations[row] == _live.fields[E_GENERATION * _edge_capacity + row] \
+		and bank.geometry[row] == _owner._header[17] \
+		and bank.content[row] == descriptor.content_revision \
+		and (bank.masks[row * 32 + byte] & (1 << (profile % 8))) != 0 \
 		else &"WORLD_ROUTE_CERTIFICATE_STALE"
 
 

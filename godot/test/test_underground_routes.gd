@@ -1861,3 +1861,63 @@ func test_live_content_memo_never_hides_current_profile_revision_or_source_gener
 	assert_equal(out[0], 777, "stale source output preserved")
 	assert_equal(fixture._binding._attested_catalog_revision, 1, "no invented current-source attestation")
 	_finish_profile_fixture(fixture)
+
+
+func _live_profile_phase(fixture: ProfileRouteFixture, phase: int) -> StringName:
+	"""Measure the same production helpers independently after an exact full query has established the fixture."""
+	fixture._routes._remaining = Space.MAX_CHECKS
+	fixture._routes._operation_error = &""
+	match phase:
+		0:
+			var code: StringName = WorldRoutes._reach_stores_refusal(fixture._binding, fixture._routes,
+				fixture._owner, fixture._locations)
+			return code if code != &"" else WorldRoutes._reach_stores_refusal(fixture._binding,
+				fixture._routes, fixture._owner, fixture._locations)
+		1:
+			return WorldRoutes._reach_descriptor(fixture._binding, 0, 1, 1)
+		2:
+			return fixture._routes._find_path(fixture._first, fixture._last, Profiles.MODE_WALK, 0, null, fixture._binding)
+		3:
+			return fixture._routes._path_chain_refusal(fixture._first, fixture._last, fixture._owner.revision(), 1, fixture._binding)
+		4:
+			return WorldRoutes._reach_sources_refusal(fixture._binding, fixture._routes, fixture._owner,
+				fixture._locations, fixture._first)
+	return &"TEST_UNKNOWN_PHASE"
+
+
+func _measure_live_profile_phase(fixture: ProfileRouteFixture, phase: int) -> void:
+	"""Twenty bounded batches retain diagnostic tails; timing never substitutes for source correctness."""
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var refused: int = 0
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for caller: int in 256:
+			if _live_profile_phase(fixture, phase) != &"":
+				refused += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(refused, 0, "all current helper observations succeeded")
+	samples.sort()
+	print("HOT-PHASE ", phase, " 256-callers batches20 us min=", samples[0], " median=", samples[10],
+		" p95=", samples[18], " max=", samples[19])
+
+
+func test_live_profile_reachability_profiles_source_search_and_endpoint_costs() -> void:
+	"""A phase breakdown locates remaining costs without weakening a production query or claiming whole-tick fitness."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "exact complete three-span query before isolated helpers")
+	fixture._binding._reading = true
+	fixture._routes._searching = true
+	for phase: int in 5:
+		_measure_live_profile_phase(fixture, phase)
+	fixture._binding._reading = false
+	fixture._routes._searching = false
+	assert_equal(fixture.live_path(out), &"", "independent phases preserved the actual complete answer")
+	assert_true(fixture._budget.is_quiescent(), "no cold phase allocation")
+	_finish_profile_fixture(fixture)

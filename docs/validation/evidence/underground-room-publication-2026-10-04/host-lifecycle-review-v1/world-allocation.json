@@ -1,0 +1,164 @@
+{
+  "source": "godot/scripts/core/world_init.gd",
+  "source_sha256": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f",
+  "allocation_calls": [
+    {
+      "member": "_terrain",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_soil",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_basin",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_cleared",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_staged_terrain",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_staged_soil",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_staged_basin",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_staged_cleared",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_staged_used",
+      "count": 16384,
+      "width": 1,
+      "bytes": 16384
+    },
+    {
+      "member": "_basin_ref_slot",
+      "count": 7,
+      "width": 4,
+      "bytes": 28
+    },
+    {
+      "member": "_basin_ref_generation",
+      "count": 7,
+      "width": 4,
+      "bytes": 28
+    },
+    {
+      "member": "_basin_danger",
+      "count": 7,
+      "width": 4,
+      "bytes": 28
+    },
+    {
+      "member": "_staged_danger",
+      "count": 7,
+      "width": 4,
+      "bytes": 28
+    },
+    {
+      "member": "_staged_centres",
+      "count": 3000,
+      "width": 4,
+      "bytes": 12000
+    },
+    {
+      "member": "_staged_grove",
+      "count": 100,
+      "width": 4,
+      "bytes": 400
+    },
+    {
+      "member": "_staged_fish_item_ids",
+      "count": 9,
+      "width": 4,
+      "bytes": 36
+    },
+    {
+      "member": "_fauna_zone_slot",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_zone_generation",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_species_id",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_population",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_capacity",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_tracks",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_harvest_today",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_migration_link",
+      "count": 384,
+      "width": 4,
+      "bytes": 1536
+    },
+    {
+      "member": "_fauna_birth_remainder",
+      "count": 384,
+      "width": 8,
+      "bytes": 3072
+    }
+  ],
+  "one_world_packed_bytes": 175364,
+  "same_time_two_world_packed_bytes": 350728,
+  "extra_packed_bytes_before_native": 175364,
+  "map_and_tree_ledger_bytes": 159968,
+  "fauna_already_elsewhere_bytes": 15360,
+  "fish_scratch_bytes": 36,
+  "source_unchanged_during_read": true,
+  "runtime_or_native_measurement": false
+}

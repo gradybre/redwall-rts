@@ -1239,7 +1239,8 @@
         "docs/decisions/1109-immutable-entry-work-frontier.md",
         "tools/underground_memory_budget.py",
         "tools/test_underground_memory_budget.py",
-        "docs/decisions/1110-complete-connector-binding-memory-census.md"
+        "docs/decisions/1110-complete-connector-binding-memory-census.md",
+        "docs/decisions/1111-concrete-surface-entry-admission.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1693,6 +1694,11 @@
           "source_sha256": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
           "test_sha256": "080c9132f4ccfbe4314abf7b06c9380f316e9e59dfd2e61903d463316c9e1b35",
           "memory": "Conditional reader ceiling28597 within corrected remaining36789; leaves4096 each for Contacts and EntryBindings. Actual source counts/native growth must be admitted jointly; runtime unqualified."
+        },
+        "entry_bindings_in_progress": {
+          "owner": "/root",
+          "scope": "Concrete non-flat surface entrance admission uses real World/Terrain/Room/Sites/Placement owners; installation and retirement remain closed pending Contacts and qualified production motion.",
+          "status": "Initial strict source fixture 17 tests / 571 assertions / 0 failures; all diagnostics/leaks zero, analyzer 0/2. Further contact and adversarial tests plus independent review pending."
         }
       },
       "lease": {
@@ -1750,7 +1756,8 @@
               "docs/decisions/1109-immutable-entry-work-frontier.md",
               "tools/underground_memory_budget.py",
               "tools/test_underground_memory_budget.py",
-              "docs/decisions/1110-complete-connector-binding-memory-census.md"
+              "docs/decisions/1110-complete-connector-binding-memory-census.md",
+              "docs/decisions/1111-concrete-surface-entry-admission.md"
             ],
             "handoff": "New source-only immutable frontier and actual EntryBindings owned by root; Geometry retains Placement/Locations/Routes. Corrected bindings remainder36789 includes Placement108800 and ConnectorWork563; prospective frontier may not overbook it."
           }
@@ -2663,6 +2670,33 @@
       "analyzer": "0 GDScript warning(s) in0 of1167 file(s)",
       "seconds": 731,
       "limits": "Same full test and diagnostic counts; local assertion count+11. F11 platform InputMap probe explains10; remaining1 open. No comparison weakened."
+    },
+    {
+      "id": "local-4e764525",
+      "commit": "4e7645255c45fad5585120e232e375480319ed23",
+      "outcome": "passed",
+      "full_suite": "10562 test(s), 967905 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources; raw log all zero",
+      "analyzer": "0 GDScript warning(s) in 0 of 1174 file(s)",
+      "procedure": "assets aside if present; delete own godot/.godot; clean editor import; no-argument ./tools/run_tests.sh; restore assets; analyzer --max 0",
+      "seconds": 1317.438,
+      "specification_commands": 35,
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-4e764525/",
+      "limits": "Integrated component checkpoint; complete player workflow, native 1280x720 and 256-resident qualification remain open."
+    },
+    {
+      "id": "remote-4e764525",
+      "commit": "4e7645255c45fad5585120e232e375480319ed23",
+      "run": "https://github.com/gradybre/redwall-rts/actions/runs/37168842549",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-4e764525/",
+      "outcome": "all-remote-jobs-pass; exact-assertion-equivalence-refused",
+      "suite_files": 368,
+      "shards": 8,
+      "summary": "10562 tests, 967891 assertions, 0 failures",
+      "diagnostics": "0 unexpected errors/warnings; 272 expected; 353 tolerated; 0 leaked objects/resources",
+      "analyzer": "0 GDScript warning(s) in 0 of 1174 file(s)",
+      "seconds": 736,
+      "limits": "Same test and diagnostic totals as local full run; assertion delta 14 remains recorded and the exact comparator was not weakened."
     }
   ],
   "crosscut_fixes": [

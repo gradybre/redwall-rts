@@ -2149,6 +2149,13 @@
           "memory": "No retained state or reserve increase; numeric peak464+48temporary allowance=512/512. Native allocations and timing remain unqualified.",
           "evidence": "docs/validation/evidence/underground-ground-turn-2026-10-04/",
           "limits": "Ground idle STAND/WALK YAW_ALL only. No new turn timing, source WORK recovery or production profile activation."
+        },
+        "locations_budget_followup": {
+          "owner": "/root",
+          "decision_reserved": 1129,
+          "state": "diagnosing",
+          "blocker": "1119phase-world28 passed seven L0 Entry checks with283401 left but then refused LOCATION_OPERATION_BUDGET; Construction is collecting exact first-exhaustion stack without changing limits or source.",
+          "required": "Preserve every real geometry/source/paid witness and original work ceiling; independently review and strict focused tests before integration."
         }
       },
       "lease": {
@@ -2238,6 +2245,16 @@
               "docs/decisions/1119-concrete-entry-phase-composition.md"
             ],
             "handoff": "After1114 read-only review, implement new concrete WorldBindings subclass using actual Site/Placement/EPISODE and same Contacts packet. Geometry keeps Authority/Space/Placement/Locations/Routes; root keeps base WorldBindings and payment owners. Cross-owner APIs agreed before mutation. No synthetic phase permission in actual first-prefix; exact census/native scope retained."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-entry-admission",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_locations.gd",
+              "godot/test/test_underground_locations.gd"
+            ],
+            "handoff": "ug_geometry explicitly granted and stopped writes2026-10-04. Root diagnoses bounded Locations work in1119 phase-world28; preserve source/installed identity checks and current capacities/limits. Geometry continues1124 Routes/WorldRoutes only."
           }
         ]
       }

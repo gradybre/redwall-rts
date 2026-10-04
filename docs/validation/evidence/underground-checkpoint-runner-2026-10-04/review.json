@@ -1,0 +1,21 @@
+{
+  "reviewer": "/root/ug_geometry",
+  "result": "accepted",
+  "source_sha256": "1fcf625908c3dba6d7a6c181c6274cb7d6816704a663ff9e44c8b4838140ed71",
+  "historical_helper_sha256": "bc63a2b17665c2ec203c36117cb0493f97ea4034c0e4bd52d51ff55ab58c76c5",
+  "scope": "Explicit full HEAD and pre-write empty-directory guard only; CI sequence/source checks/restoration unchanged.",
+  "guard_checks": [
+    {
+      "case": "wrong HEAD",
+      "refused": true,
+      "engine_started": false,
+      "sentinel_unchanged": true
+    },
+    {
+      "case": "nonempty evidence directory",
+      "refused": true,
+      "engine_started": false,
+      "sentinel_unchanged": true
+    }
+  ]
+}

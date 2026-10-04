@@ -203,6 +203,7 @@ extends RefCounted
 
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
+const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
 const SpatialLocations := preload("res://scripts/core/inventory_spatial_contract.gd")
 ## PROV-R01's protected InventoryProvenance domain. Read, never mirrored: this module
 ## publishes no provenance number of its own, so there is exactly one copy of each.
@@ -965,6 +966,51 @@ func _excavation_input_attestation(guard: ExcavationContract, project: Vector2i,
 	"""Keep Inventory's original mutation barrier raised across all final external phase observations."""
 	_attesting = true
 	var code: StringName = guard.final_input_refusal(project, job, self, pool, output, mass)
+	_attesting = false
+	return code
+
+
+func commit_connector_inputs(guard: ModularContract, project: Vector2i, job: Vector2i,
+		pool: RefCounted) -> OpResult:
+	"""Keep purpose8 final contact observations inside the original Inventory mutation barrier."""
+	return _commit_connector_transaction(guard, project, job, pool, ModularContract.ACTION_WIP)
+
+
+func commit_connector_settlement(guard: ModularContract, project: Vector2i, action: int) -> OpResult:
+	"""Actual connector completion and paid cancellation retain the same guarded journal lifetime."""
+	if action != ModularContract.ACTION_OUTPUT and action != ModularContract.ACTION_REFUND:
+		return _refuse(ModularContract.REFUSE_AUTHORITY)
+	return _commit_connector_transaction(guard, project, NULL_REF, null, action)
+
+
+func _commit_connector_transaction(guard: ModularContract, project: Vector2i, job: Vector2i,
+		pool: RefCounted, action: int) -> OpResult:
+	"""No purpose8 contact observer can close its caller's original debit/output/refund journal."""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
+	if not _tx_open:
+		return _refuse(REFUSE_NO_TRANSACTION)
+	var code: StringName = _tx_error if _tx_poisoned else _pile_commit_refusal()
+	if code == REFUSE_NONE:
+		code = ModularContract.REFUSE_AUTHORITY if guard == null else _connector_input_attestation(guard, project, job, pool, action)
+	if code == REFUSE_NONE and _tx_poisoned:
+		code = _tx_error
+	if code != REFUSE_NONE:
+		_rollback()
+		_close_transaction()
+		return _refuse(code)
+	_reclaim_empty_piles()
+	_j_count = 0
+	_close_transaction()
+	return _ok(NULL_REF, 0)
+
+
+func _connector_input_attestation(guard: ModularContract, project: Vector2i,
+		job: Vector2i, pool: RefCounted, action: int) -> StringName:
+	"""The actual Router/Contacts proof may read, but cannot mutate or close any staged settlement."""
+	_attesting = true
+	var code: StringName = guard.final_input_refusal(project, job, self, pool) if action == ModularContract.ACTION_WIP \
+		else guard.final_funding_refusal(project, action)
 	_attesting = false
 	return code
 

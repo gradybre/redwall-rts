@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/inventory.gd": "d02c4c2a9463eda7dacddb47a8ed30e32954c67808de19dbc6d33c73a6fc72a7",
+  "godot/scripts/core/reservations.gd": "dd30bb3ce6df57c0df9418d1def4787309fa973f6aced30f73573c66706eff54",
+  "godot/test/test_underground_connector_payment_guard.gd": "2dd9796289e830c7f7a4b1405492f7f689e6c6f6861fcccb0383edc5f9cd7b7f"
+}

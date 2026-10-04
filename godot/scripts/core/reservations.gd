@@ -619,13 +619,16 @@ func _consume_inputs_transaction(job_ref: Vector2i, purpose: int, now_tick: int,
 	if not opened.ok:
 		return opened
 	code = _consume_inputs_inventory(job_ref, purpose, output_container, output_mass_g, inventory)
-	if code == REFUSE_NONE and guard != null:
-		code = guard.final_input_refusal(project, job_ref, inventory, self)
 	if code != REFUSE_NONE:
 		inventory.abort()
 		return _refuse(code)
-	var committed: Inventory.OpResult = inventory.commit_excavation_inputs(excavation, project, job_ref, self, output_container, output_mass_g) \
-		if excavation != null else inventory.commit()
+	var committed: Inventory.OpResult = null
+	if excavation != null:
+		committed = inventory.commit_excavation_inputs(excavation, project, job_ref, self, output_container, output_mass_g)
+	elif guard != null:
+		committed = inventory.commit_connector_inputs(guard, project, job_ref, self)
+	else:
+		committed = inventory.commit()
 	if not committed.ok:
 		return committed
 	_remember_inventory(inventory)

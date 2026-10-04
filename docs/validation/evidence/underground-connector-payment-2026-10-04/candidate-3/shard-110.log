@@ -1,0 +1,44 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_work.gd
+  PASS  test_actual_group_bill_and_once_only_paid_installation
+  PASS  test_default_contacts_and_wrong_prefix_never_spend_identity
+  PASS  test_late_actual_inventory_observer_refuses_wood_payment_then_retries
+  PASS  test_final_contact_failure_preserves_wip_geometry_and_retry
+  PASS  test_late_inventory_pause_prevents_payment_and_can_retry
+  PASS  test_connector_start_has_no_bill_observer_after_wip_settlement
+  PASS  test_last_productive_contact_pause_earns_no_work_xp_or_wear
+  PASS  test_late_input_phase_and_delivered_mutation_refuse_before_payment
+  PASS  test_concrete_start_kernel_requires_original_full_scope_and_receipt
+  PASS  test_late_actual_worker_release_refuses_inputs_before_start
+  PASS  test_productive_phase_and_worker_pause_refuse_without_labor
+  PASS  test_late_completion_pause_retains_wip_and_paused_cancel_remains_legal
+  PASS  test_replaced_actual_arena_survives_failed_installation_cleanup
+  PASS  test_direct_publication_and_final_observer_reentry_do_not_install
+  PASS  test_cancel_next_group_preserves_installed_prefix_and_ordinary_loss
+  PASS  test_unfunded_cancellation_never_debits_stock_or_installs
+  PASS  test_actual_tool_pause_and_contact_gates_preserve_work_and_wear
+  PASS  test_productive_tick_does_not_rebuild_cold_quote_packets
+  PASS  test_late_catalog_rewire_releases_original_budget_and_preserves_funding
+  PASS  test_paid_publication_uses_no_fallible_contact_or_source_observers
+  PASS  test_stale_project_and_expired_contact_owner_cannot_earn_or_rebind
+  PASS  test_adapter_numeric_census_and_no_duplicate_packed_arena
+CI_SUITE_TIME {"assertions":258,"failures":0,"suite":"test_underground_connector_work.gd","tests":22,"usec":7700477}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+22 test(s), 258 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 22 tests, 258 assertions, 0 failures.

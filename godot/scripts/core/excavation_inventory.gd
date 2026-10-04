@@ -117,14 +117,18 @@ func _owner_mutation_refusal(project: Vector2i, action: int) -> StringName:
 	return Construction.REFUSE_COORDINATOR_ONLY
 
 
-func _final_connector_refusal(project: Vector2i, action: int) -> StringName:
-	"""Recipes and endpoint observers must finish before the exact connector's final pure payment guard."""
-	if not _construction.purpose_into(project, _math):
-		return REFUSE_WIP
-	if _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
-		return &""
-	var owner: ModularContract = _construction.modular_authority()
-	return owner.final_funding_refusal(project, action) if owner != null else Construction.REFUSE_COORDINATOR_ONLY
+func _commit_guarded_transaction(project: Vector2i, action: int) -> Inventory.OpResult:
+	"""Dispatch only the current actual purpose; connector observations stay inside Inventory's barrier."""
+	var row: int = _construction._directory.get_typed_row(project)
+	if row < 0 or row >= Construction.CONSTRUCTION_CAPACITY or _construction._present[row] != 1 \
+			or _construction._ref_slot[row] != project.x or _construction._ref_generation[row] != project.y:
+		_inventory.abort()
+		return _refuse(REFUSE_WIP)
+	if _construction._purpose[row] != Construction.PURPOSE_CONNECTOR_INSTALL:
+		return _inventory.commit()
+	var owner: ModularContract = _construction._modular_authority.get_ref() as ModularContract \
+		if _construction._modular_authority != null else null
+	return _inventory.commit_connector_settlement(owner, project, action)
 
 
 func _claim_purpose(project: Vector2i) -> int:
@@ -485,12 +489,10 @@ func refund_wip(project: Vector2i, destination: Vector2i, promotion_tile: int = 
 	if not opened.ok:
 		return opened
 	code = _refund_and_finish_staging(project, destination, promotion_tile)
-	if code == &"":
-		code = _final_connector_refusal(project, ModularContract.ACTION_REFUND)
 	if code != &"":
 		_inventory.abort()
 		return _refuse(code)
-	var committed: Inventory.OpResult = _inventory.commit()
+	var committed: Inventory.OpResult = _commit_guarded_transaction(project, ModularContract.ACTION_REFUND)
 	if not committed.ok:
 		return committed
 	_publish_refund(project)
@@ -687,12 +689,10 @@ func commit_modular_outputs(project: Vector2i, promotion_tile: int = -1) -> Inve
 	if not opened.ok:
 		return opened
 	code = _modular_output_inventory(project, promotion_tile)
-	if code == &"":
-		code = _final_connector_refusal(project, ModularContract.ACTION_OUTPUT)
 	if code != &"":
 		_inventory.abort()
 		return _refuse(code)
-	var committed: Inventory.OpResult = _inventory.commit()
+	var committed: Inventory.OpResult = _commit_guarded_transaction(project, ModularContract.ACTION_OUTPUT)
 	if not committed.ok:
 		return committed
 	_clear_wip(project)

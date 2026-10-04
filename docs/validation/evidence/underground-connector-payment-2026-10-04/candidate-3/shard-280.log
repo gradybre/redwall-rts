@@ -1,0 +1,29 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_payment_guard.gd
+  PASS  test_connector_final_observer_cannot_commit_the_inventory_journal
+  PASS  test_connector_final_observer_cannot_abort_the_inventory_journal
+  PASS  test_connector_nested_equipment_audit_cannot_enable_a_commit
+  PASS  test_paid_connector_refund_cannot_publish_goods_through_a_nested_commit
+  PASS  test_paid_connector_refund_cannot_abort_its_original_journal
+  PASS  test_completed_connector_cannot_publish_after_nested_commit
+  PASS  test_completed_connector_cannot_abort_its_original_journal
+CI_SUITE_TIME {"assertions":142,"failures":0,"suite":"test_underground_connector_payment_guard.gd","tests":7,"usec":5370573}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+7 test(s), 142 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 7 tests, 142 assertions, 0 failures.

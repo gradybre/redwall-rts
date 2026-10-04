@@ -1,0 +1,17 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "status": "accepted all purpose8 Inventory settlement boundaries",
+  "source_pins": {
+    "godot/scripts/core/excavation_inventory.gd": "39bbce30c7866b0d77d091aecb53881e6eb2ded949a7b8f3935f2a8e5d17e284",
+    "godot/scripts/core/inventory.gd": "bc118783fb70ca83f6eece62ab54e2b8cad3cfa5ba02b5cbc6393a88bc3d1560",
+    "godot/scripts/core/reservations.gd": "dd30bb3ce6df57c0df9418d1def4787309fa973f6aced30f73573c66706eff54",
+    "godot/test/test_underground_connector_payment_guard.gd": "ec1f0d98c1ed458b9d72ac956fa483d80e30348f5f71ecb9645eabe1557ff180"
+  },
+  "tests": 309,
+  "assertions": 38951,
+  "failures": 0,
+  "strict_diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+  "raw_log": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+  "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)",
+  "scope": "Eight strict singleton suites. Actual paid input/refund/completion reentry, original claims/WIP/physical Space retained on refusal and one clean retry. Contacts fixture motion/installation geometry remain synthetic; no playable permission. No retained memory delta."
+}

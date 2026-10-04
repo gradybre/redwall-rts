@@ -1,0 +1,30 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/ci_test_shards.py",
+      "verify",
+      "--reports",
+      "docs/design/underground-planning/evidence/modular-build/checkpoint-454eae23/ci-artifacts",
+      "--count",
+      "8"
+    ],
+    "exit_code": 0,
+    "log": "ci-aggregate.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/ci_test_shards.py",
+      "verify",
+      "--reports",
+      "docs/design/underground-planning/evidence/modular-build/checkpoint-454eae23/ci-artifacts",
+      "--count",
+      "8",
+      "--baseline-log",
+      "docs/design/underground-planning/evidence/modular-build/checkpoint-454eae23/full-suite.log"
+    ],
+    "exit_code": 1,
+    "log": "ci-equivalence.log"
+  }
+]

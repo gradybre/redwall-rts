@@ -1,0 +1,353 @@
+{
+  "counts": {
+    "assertions": 76908,
+    "expected": 4,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1442,
+    "tolerated": 24,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "3b5dbe57db693e5acee7aa0be07292b44469100b2544982a265e8c37eb349e61",
+  "shard_count": 8,
+  "shard_index": 7,
+  "suite_counts": {
+    "test_appoint_warden.gd": {
+      "assertions": 340,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_building_definitions.gd": {
+      "assertions": 420,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_commands_arena_restore.gd": {
+      "assertions": 17124,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_construction.gd": {
+      "assertions": 515,
+      "failures": 0,
+      "tests": 48
+    },
+    "test_construction_furniture_batches.gd": {
+      "assertions": 523,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_crop_weather.gd": {
+      "assertions": 1868,
+      "failures": 0,
+      "tests": 75
+    },
+    "test_demo_camera_modes.gd": {
+      "assertions": 280,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_demo_care.gd": {
+      "assertions": 156,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_chronicle.gd": {
+      "assertions": 310,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_farm_ui.gd": {
+      "assertions": 363,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_demo_forage.gd": {
+      "assertions": 206,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_demo_graph.gd": {
+      "assertions": 544,
+      "failures": 0,
+      "tests": 61
+    },
+    "test_demo_guide.gd": {
+      "assertions": 139,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_demo_input_live.gd": {
+      "assertions": 555,
+      "failures": 0,
+      "tests": 3
+    },
+    "test_demo_lens_live.gd": {
+      "assertions": 66,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_notices_live.gd": {
+      "assertions": 48,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_opening_pantry.gd": {
+      "assertions": 192,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_run_until.gd": {
+      "assertions": 90,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_sound_cost.gd": {
+      "assertions": 19,
+      "failures": 0,
+      "tests": 1
+    },
+    "test_demo_standing.gd": {
+      "assertions": 158,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_demo_village_cloth.gd": {
+      "assertions": 72,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_demo_winter_live.gd": {
+      "assertions": 84,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_entity_directory.gd": {
+      "assertions": 638,
+      "failures": 0,
+      "tests": 61
+    },
+    "test_entity_directory_candidate.gd": {
+      "assertions": 358,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_farming.gd": {
+      "assertions": 5172,
+      "failures": 0,
+      "tests": 113
+    },
+    "test_forage.gd": {
+      "assertions": 1064,
+      "failures": 0,
+      "tests": 133
+    },
+    "test_game_manager.gd": {
+      "assertions": 267,
+      "failures": 0,
+      "tests": 73
+    },
+    "test_households.gd": {
+      "assertions": 1097,
+      "failures": 0,
+      "tests": 51
+    },
+    "test_injury.gd": {
+      "assertions": 484,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_lookdev_dimensions.gd": {
+      "assertions": 252,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_progression_interval.gd": {
+      "assertions": 170,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_resource_catalog_binding.gd": {
+      "assertions": 400,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_save_owner_injury.gd": {
+      "assertions": 14578,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_save_owner_priorities.gd": {
+      "assertions": 7309,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_save_section_01.gd": {
+      "assertions": 872,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_save_section_component_columns.gd": {
+      "assertions": 9129,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_save_section_event_schedule.gd": {
+      "assertions": 229,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_schedule.gd": {
+      "assertions": 836,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_soak_harness.gd": {
+      "assertions": 52,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_starter_structures.gd": {
+      "assertions": 3674,
+      "failures": 0,
+      "tests": 35
+    },
+    "test_ui_frame_geometry.gd": {
+      "assertions": 3070,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_ui_manager.gd": {
+      "assertions": 328,
+      "failures": 0,
+      "tests": 49
+    },
+    "test_ui_theme.gd": {
+      "assertions": 142,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_ui_world_session.gd": {
+      "assertions": 78,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_underground_connector_assemblies.gd": {
+      "assertions": 1002,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_underground_world_basis.gd": {
+      "assertions": 35,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_weir_fit.gd": {
+      "assertions": 1600,
+      "failures": 0,
+      "tests": 10
+    }
+  },
+  "suite_usec": {
+    "test_appoint_warden.gd": 1157878,
+    "test_building_definitions.gd": 16582,
+    "test_commands_arena_restore.gd": 455824,
+    "test_construction.gd": 2697415,
+    "test_construction_furniture_batches.gd": 2189042,
+    "test_crop_weather.gd": 1797701,
+    "test_demo_camera_modes.gd": 1202290,
+    "test_demo_care.gd": 1425983,
+    "test_demo_chronicle.gd": 4342246,
+    "test_demo_farm_ui.gd": 8152615,
+    "test_demo_forage.gd": 4036810,
+    "test_demo_graph.gd": 535015,
+    "test_demo_guide.gd": 1664904,
+    "test_demo_input_live.gd": 39316908,
+    "test_demo_lens_live.gd": 30212314,
+    "test_demo_notices_live.gd": 20460935,
+    "test_demo_opening_pantry.gd": 10015116,
+    "test_demo_run_until.gd": 212919,
+    "test_demo_sound_cost.gd": 949783,
+    "test_demo_standing.gd": 4736793,
+    "test_demo_village_cloth.gd": 30114,
+    "test_demo_winter_live.gd": 22050800,
+    "test_entity_directory.gd": 2865859,
+    "test_entity_directory_candidate.gd": 707423,
+    "test_farming.gd": 3684213,
+    "test_forage.gd": 5318739,
+    "test_game_manager.gd": 324522,
+    "test_households.gd": 4479542,
+    "test_injury.gd": 674576,
+    "test_lookdev_dimensions.gd": 11320,
+    "test_progression_interval.gd": 87844,
+    "test_resource_catalog_binding.gd": 832917,
+    "test_save_owner_injury.gd": 261804,
+    "test_save_owner_priorities.gd": 123445,
+    "test_save_section_01.gd": 10961857,
+    "test_save_section_component_columns.gd": 1096019,
+    "test_save_section_event_schedule.gd": 43775,
+    "test_schedule.gd": 22621,
+    "test_soak_harness.gd": 16333116,
+    "test_starter_structures.gd": 171213,
+    "test_ui_frame_geometry.gd": 47192,
+    "test_ui_manager.gd": 8495402,
+    "test_ui_theme.gd": 6520,
+    "test_ui_world_session.gd": 2287704,
+    "test_underground_connector_assemblies.gd": 843267,
+    "test_underground_world_basis.gd": 39383,
+    "test_weir_fit.gd": 1643693
+  },
+  "suites": [
+    "test_appoint_warden.gd",
+    "test_building_definitions.gd",
+    "test_commands_arena_restore.gd",
+    "test_construction.gd",
+    "test_construction_furniture_batches.gd",
+    "test_crop_weather.gd",
+    "test_demo_camera_modes.gd",
+    "test_demo_care.gd",
+    "test_demo_chronicle.gd",
+    "test_demo_farm_ui.gd",
+    "test_demo_forage.gd",
+    "test_demo_graph.gd",
+    "test_demo_guide.gd",
+    "test_demo_input_live.gd",
+    "test_demo_lens_live.gd",
+    "test_demo_notices_live.gd",
+    "test_demo_opening_pantry.gd",
+    "test_demo_run_until.gd",
+    "test_demo_sound_cost.gd",
+    "test_demo_standing.gd",
+    "test_demo_village_cloth.gd",
+    "test_demo_winter_live.gd",
+    "test_entity_directory.gd",
+    "test_entity_directory_candidate.gd",
+    "test_farming.gd",
+    "test_forage.gd",
+    "test_game_manager.gd",
+    "test_households.gd",
+    "test_injury.gd",
+    "test_lookdev_dimensions.gd",
+    "test_progression_interval.gd",
+    "test_resource_catalog_binding.gd",
+    "test_save_owner_injury.gd",
+    "test_save_owner_priorities.gd",
+    "test_save_section_01.gd",
+    "test_save_section_component_columns.gd",
+    "test_save_section_event_schedule.gd",
+    "test_schedule.gd",
+    "test_soak_harness.gd",
+    "test_starter_structures.gd",
+    "test_ui_frame_geometry.gd",
+    "test_ui_manager.gd",
+    "test_ui_theme.gd",
+    "test_ui_world_session.gd",
+    "test_underground_connector_assemblies.gd",
+    "test_underground_world_basis.gd",
+    "test_weir_fit.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 222
+}

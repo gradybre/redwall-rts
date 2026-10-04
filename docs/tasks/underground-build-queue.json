@@ -3009,6 +3009,30 @@
       },
       "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-b6545647",
       "scope": "Component gate only; first playable prefix and107-requirement delivery remain incomplete"
+    },
+    {
+      "commit": "454eae23dec8de897cc606540829db4e00d6bde6",
+      "outcome": "passed full local suite and all14 remote CI jobs",
+      "full_suite": "10637 test(s), 976936 assertion(s), 0 failure(s)",
+      "diagnostics": "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw": "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).",
+      "analyzer": "0 GDScript warning(s) in 0 of 1180 file(s)",
+      "procedure": "Exact clean assets/cache/import/no-argument full suite; source and HEAD unchanged; original asset state restored",
+      "suite_seconds": 1361.483,
+      "analyzer_seconds": 255.214,
+      "ci": {
+        "run": "https://github.com/gradybre/redwall-rts/actions/runs/37180183367",
+        "jobs": 14,
+        "wall_seconds": 715,
+        "suite_files": 370,
+        "shards": 8,
+        "tests": 10637,
+        "assertions": 976930,
+        "diagnostics_match": true,
+        "exact_comparator": "REFUSED: six assertion difference; unchanged comparator, no per-suite assertion counters in full log"
+      },
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-454eae23/README.md",
+      "limits": "Component checkpoint. Later1114/1120/concrete phase composition and native v3 not covered. Playable107 requirements remain in progress."
     }
   ],
   "crosscut_fixes": [

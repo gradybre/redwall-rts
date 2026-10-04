@@ -1390,6 +1390,17 @@
           "result": "9 isolated editor/export/native macOS commands passed; mode0 retains cached source text and exact included raw file, mode2 strips text. LOW source-equality wording corrected.",
           "evidence": "docs/validation/evidence/profile-export-probe-2026-10-04/",
           "limits": "No full demo/Windows native/renderer or gameplay qualification.1127 real-pack validation remains pending."
+        },
+        "source_preserving_export_1127": {
+          "source_commit": "eafdf339",
+          "integration_commit": "6cb11700",
+          "reviewer": "/root",
+          "review": "Root independently reviewed source changes, rehashed all5 source and42 frozen output pins without drift, and inspected full actual build, raw diagnostic and restoration records.",
+          "tests": "5 test(s),21 assertion(s),0 failure(s); strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/2;80 Python checks passed.",
+          "full_export": "Normal Windows debug export with141 world assets,9 creatures,56 sounds; actual editor pack boot on Metal Forward Plus retained exact7268-byte profile and648760-byte actor plus8 cached consumer sources/420955characters. Existing scene,assets,beaver-tail,stall/resume and playtest-log checks pass;49 ticks after resume.",
+          "diagnostics": "Import/export/pack boot unexpected error/warning/leak lines0; own original assets, preset and override restored; source closure unchanged.",
+          "scope": "Not Windows-native execution, underground Forward Plus/World activation, release qualification, composed native-memory proof or current integration profile reclosure.",
+          "evidence": "docs/validation/evidence/underground-profile-export-2026-10-04/review-full-pack-v1/"
         }
       },
       "lease": {

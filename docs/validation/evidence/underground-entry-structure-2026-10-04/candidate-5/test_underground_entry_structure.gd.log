@@ -1,0 +1,38 @@
+state_registry_coverage: PASS -- 139 modules, 697 rows, 1035 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_structure.gd
+  PASS  test_entry_proves_all_four_landing_cubes_without_a_flat_natural_roof
+  PASS  test_future_tread_cannot_borrow_the_landing_episode_or_early_prefix
+  PASS  test_unpaid_start_commit_and_cut_remain_closed
+  PASS  test_last_observer_prefix_change_refuses_and_original_tuple_can_retry
+  PASS  test_reentry_poison_survives_successful_outer_natural_query
+  PASS  test_placement_source_digest_change_refuses_without_rebinding
+  PASS  test_old_cut_history_cannot_be_relabelled_natural_by_a_filled_geometry_image
+  PASS  test_late_history_change_is_checked_after_last_geometry_observation
+  FAIL  test_late_resource_exclusion_is_read_again_after_last_world_observer
+        late current exclusion refuses before publication (expected true, got false)
+  PASS  test_source_rotation_checks_int64_bounds_before_packed_narrowing
+  PASS  test_exact_two_assembly_prices_and_six_cube_phase_ledger
+  PASS  test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress
+  PASS  test_common_metadata_grants_no_support_over_any_future_paid_cube
+  PASS  test_actual_surface_paths_connect_each_selected_contact_without_entering_cut_pockets
+  PASS  test_fine_entry_request_keeps_tail_outside_claims_and_derives_all_six_paid_keys
+CI_SUITE_TIME {"assertions":1235,"failures":1,"suite":"test_underground_entry_structure.gd","tests":15,"usec":8521594}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+15 test(s), 1235 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 1 failing test(s).

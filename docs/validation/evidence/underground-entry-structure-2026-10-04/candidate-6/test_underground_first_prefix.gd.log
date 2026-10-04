@@ -1,0 +1,28 @@
+state_registry_coverage: PASS -- 139 modules, 697 rows, 1035 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_first_prefix.gd
+  PASS  test_exact_two_assembly_prices_and_six_cube_phase_ledger
+  PASS  test_initial_stock_is_finite_and_does_not_precreate_spoil_or_paid_progress
+  PASS  test_common_metadata_grants_no_support_over_any_future_paid_cube
+  PASS  test_actual_surface_paths_connect_each_selected_contact_without_entering_cut_pockets
+  PASS  test_fine_entry_request_keeps_tail_outside_claims_and_derives_all_six_paid_keys
+CI_SUITE_TIME {"assertions":414,"failures":0,"suite":"test_underground_first_prefix.gd","tests":5,"usec":2925340}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+5 test(s), 414 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 5 tests, 414 assertions, 0 failures.

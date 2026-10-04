@@ -286,10 +286,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966489)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966873)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99959254)
-        self.assertEqual(result["headroom_bytes"], 40746)
+        self.assertEqual(result["live_with_reserve_bytes"], 99959638)
+        self.assertEqual(result["headroom_bytes"], 40362)
         self.assertFalse(result["runtime_qualified"])
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
@@ -322,6 +322,68 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(result["quote"]["numeric_control_bytes"], 72)
         self.assertEqual(result["furniture_bridge_cold"]["private_bytes_per_pair"], 60)
         self.assertEqual(result["furniture_bridge_cold"]["numeric_control_bytes"], 16)
+        entry = result["entry_structure_reservation"]
+        self.assertEqual(entry["fixed_numeric_and_packed_bytes"], 153)
+        self.assertEqual(entry["reserved_bytes"], 384)
+        self.assertEqual(entry["check_peak_bytes"], 1048912)
+
+    def test_negative_entry_structure_extra_packet(self) -> None:
+        line = "var _entry_frontier: WeakRef = null"
+        self.refuses("underground_entry_structure", line, line + "\nvar _extra: Owner.Region = null")
+
+    def test_negative_entry_structure_wider_frame(self) -> None:
+        self.refuses("underground_entry_structure", "_entry_frame: PackedInt32Array", "_entry_frame: PackedInt64Array")
+
+    def test_negative_entry_structure_larger_episode(self) -> None:
+        self.refuses("underground_entry_structure", "_entry_episode.resize(19)", "_entry_episode.resize(20)")
+
+    def test_negative_entry_structure_duplicate_resize(self) -> None:
+        line = "\t_entry_frame.resize(9)"
+        self.refuses("underground_entry_structure", line, line + "\n" + line)
+
+    def test_negative_entry_structure_missing_resize(self) -> None:
+        self.refuses("underground_entry_structure", "\t_entry_frame.resize(9)", "")
+
+    def test_negative_entry_structure_reserve_change(self) -> None:
+        self.refuses("underground_entry_structure", "ENTRY_CONTROL_BYTES: int = 384", "ENTRY_CONTROL_BYTES: int = 432")
+
+    def test_negative_entry_structure_missing_cold_coexistence(self) -> None:
+        self.refuses("underground_entry_structure", " + ENTRY_CONTROL_BYTES > Budget.COLD_BYTES", " > Budget.COLD_BYTES")
+
+    def test_negative_entry_structure_changed_parent(self) -> None:
+        self.refuses("underground_entry_structure", 'extends "res://scripts/core/underground_phase_structure.gd"', 'extends RefCounted')
+
+    def test_negative_entry_structure_base_growth_exceeds_original_cold_ceiling(self) -> None:
+        self.refuses("underground_phase_structure", "CONTROL_BYTES: int = 1536", "CONTROL_BYTES: int = 1600")
+
+    def test_negative_entry_structure_base_formula_drift(self) -> None:
+        self.refuses("underground_phase_structure", "2 * (48 * Budget.PHASE_VOLUME_CAPACITY + sources)",
+                     "3 * (48 * Budget.PHASE_VOLUME_CAPACITY + sources)")
+
+    def test_negative_entry_structure_base_trailing_return_charge(self) -> None:
+        line = "return 2 * (48 * Budget.PHASE_VOLUME_CAPACITY + sources) + plans + 8 * region_rows + CONTROL_BYTES"
+        self.refuses("underground_phase_structure", line, line + " + 1024")
+
+    def test_negative_entry_structure_base_trailing_plan_growth(self) -> None:
+        line = "var plans: int = 144 * PLAN_ROWS"
+        self.refuses("underground_phase_structure", line, line + " * 2")
+
+    def test_negative_entry_structure_base_trailing_source_growth(self) -> None:
+        line = "var sources: int = 16 * Budget.SOURCE_CAPACITY"
+        self.refuses("underground_phase_structure", line, line + " * 2")
+
+    def test_negative_entry_structure_base_comment_witness(self) -> None:
+        line = "\tvar plans: int = 144 * PLAN_ROWS"
+        self.refuses("underground_phase_structure", line, "\t#" + line + "\n" + line + " * 2")
+
+    def test_negative_entry_structure_base_duplicate_statement(self) -> None:
+        line = "\tvar sources: int = 16 * Budget.SOURCE_CAPACITY"
+        self.refuses("underground_phase_structure", line, line + "\n" + line)
+
+    def test_negative_entry_structure_base_duplicate_function(self) -> None:
+        signature = "static func cold_peak_bytes(mode: int, region_rows: int) -> int:"
+        source = self.index["underground_phase_structure"].text
+        self.refuses("underground_phase_structure", source, source + "\n" + signature + '\n\t"""Duplicate."""\n\treturn -1\n')
 
     def test_negative_frontier_extra_retained_column(self) -> None:
         line = "var _episode: PackedInt32Array = PackedInt32Array()"

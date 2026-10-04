@@ -1207,8 +1207,33 @@
     "numeric_bytes": 4,
     "scope": "Same-stack START and settlement guards only; no packed or saved state. Existing native/frame qualification remains open."
   },
+  "entry_structure_reservation": {
+    "columns": {
+      "_entry_episode": {
+        "width": 4,
+        "capacity": 19,
+        "bytes": 76,
+        "resize_expression": "19",
+        "line": 38
+      },
+      "_entry_frame": {
+        "width": 4,
+        "capacity": 9,
+        "bytes": 36,
+        "resize_expression": "9",
+        "line": 37
+      }
+    },
+    "numeric_control_bytes": 41,
+    "fixed_numeric_and_packed_bytes": 153,
+    "logical_helper_allowance_bytes": 231,
+    "reserved_bytes": 384,
+    "check_peak_bytes": 1048912,
+    "scope": "Additional binding reserve; inherited structure counted once. No native-memory qualification."
+  },
   "contributions": {
     "excavation_start_controls": 4,
+    "entry_structure_bindings": 384,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -1223,11 +1248,11 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524288
   },
-  "new_mutable_and_reserved_bytes": 4966489,
+  "new_mutable_and_reserved_bytes": 4966873,
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 99959254,
-  "headroom_bytes": 40746,
+  "live_with_reserve_bytes": 99959638,
+  "headroom_bytes": 40362,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
@@ -1250,12 +1275,14 @@
     "godot/scripts/core/underground_entry_bindings.gd": "1a64106f3796f0ae750ab8c9054824114bc1e40586b3ce13839a1f0bdca3271b",
     "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
-    "godot/scripts/core/underground_locations.gd": "ffeb65dc793e8852a75b91ec3ca9260ba2bb4701f39819ff12c12c98f8881e45",
+    "godot/scripts/core/underground_entry_structure.gd": "182a34738f1c82a98cdda0ef64f39e2b27921baac999bdabf6fdfd72ecf8df20",
+    "godot/scripts/core/underground_locations.gd": "47b3b36ea06ae3d3cf7ea4aa60e01e8d119a66f4ec99e193d0c9798282347744",
+    "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
     "godot/scripts/core/underground_space_owner.gd": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",
     "godot/scripts/core/underground_surface_anchor.gd": "ccf119bd999a8d05b65e7e35806b37aade88588e0a7c922185bcf86c72aa4fa3",
-    "godot/scripts/core/underground_world_routes.gd": "7ee66e9918e45002b9afb68fdd168eb90b5078ed395a78802899297645db612f"
+    "godot/scripts/core/underground_world_routes.gd": "4df245c970723ca8819d22be6482b8d9c1c92112c323da53a66ca33eb4207fe7"
   },
   "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
   "limitations": [

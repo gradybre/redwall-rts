@@ -528,6 +528,66 @@ def excavation_start_controls(index: dict) -> dict:
             "scope": "Same-stack START and settlement guards only; no packed or saved state. Existing native/frame qualification remains open."}
 
 
+def entry_structure_reservation(index: dict) -> dict:
+    """Charge the entry-only packet outside the fully assigned shared binding envelope."""
+    module = "underground_entry_structure"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ['"res://scripts/core/underground_phase_structure.gd"']
+    expected = {"_entry_placements": "WeakRef", "_entry_frontier": "WeakRef",
+                "_entry_source_revision": "int", "_entry_ref": "Vector2i", "_entry_payload": "int",
+                "_entry_prefix": "int", "_entry_episode_row": "int", "_entry_selected": "bool",
+                "_entry_frame": "PackedInt32Array", "_entry_episode": "PackedInt32Array"}
+    assert explicit_members(source) == expected, "unreconciled entry structure member"
+    rows = columns(index, module, 2, {})
+    for name, count in (("_entry_frame", 9), ("_entry_episode", 19)):
+        assert re.findall(re.escape(name) + r"\.resize\(([^)]+)\)", source) == [str(count)], \
+            (name, "entry structure resize drift")
+    assert payload(rows) == 112 and rows["_entry_frame"]["capacity"] == 9 \
+        and rows["_entry_episode"]["capacity"] == 19, "entry structure packet drift"
+    numeric = numeric_fields(source, "")
+    reserve = resolve(index, module, "ENTRY_CONTROL_BYTES")
+    assert numeric == 41 and reserve == 384, "entry structure reserve or control drift"
+    assert "BaseStructure.cold_peak_bytes(_mode, _capacity) + ENTRY_CONTROL_BYTES > Budget.COLD_BYTES" in source, \
+        "entry structure cold coexistence admission missing"
+    structure_peak_statements(index["underground_phase_structure"].text)
+    base_check = 2 * (48 * resolve(index, "underground_budget", "PHASE_VOLUME_CAPACITY")
+                     + 16 * resolve(index, "underground_budget", "SOURCE_CAPACITY")) \
+        + 144 * resolve(index, "underground_phase_structure", "PLAN_ROWS") \
+        + 8 * resolve(index, "underground_budget", "REGION_CAPACITY") \
+        + resolve(index, "underground_phase_structure", "CONTROL_BYTES")
+    assert base_check + reserve <= resolve(index, "underground_budget", "COLD_BYTES"), "entry CHECK exceeds original cold peak"
+    return {"columns": rows, "numeric_control_bytes": numeric,
+            "fixed_numeric_and_packed_bytes": payload(rows) + numeric,
+            "logical_helper_allowance_bytes": reserve - payload(rows) - numeric,
+            "reserved_bytes": reserve, "check_peak_bytes": base_check + reserve,
+            "scope": "Additional binding reserve; inherited structure counted once. No native-memory qualification."}
+
+
+def structure_peak_statements(source: str) -> None:
+    """Check complete unique statements, so prefix matches and comment-only formula witnesses cannot pass."""
+    signature = "static func cold_peak_bytes(mode: int, region_rows: int) -> int:"
+    bodies = re.findall(r"(?ms)^" + re.escape(signature) + r"\n(.*?)(?=^\S|\Z)", source)
+    assert len(bodies) == 1, "missing or duplicate structure peak function"
+    lines = bodies[0].splitlines()
+    assert lines and lines[0].strip().startswith('"""') and lines[0].strip().endswith('"""'), \
+        "structure peak docstring shape changed"
+    statements = [line.rstrip() for line in lines[1:] if line.strip() and not line.lstrip().startswith("#")]
+    expected = [
+        "\tif region_rows < 1 or region_rows > Budget.REGION_CAPACITY:",
+        "\t\treturn -1",
+        "\tvar plans: int = 144 * PLAN_ROWS",
+        "\tvar sources: int = 16 * Budget.SOURCE_CAPACITY",
+        "\tif mode == CHECK:",
+        "\t\treturn 2 * (48 * Budget.PHASE_VOLUME_CAPACITY + sources) + plans + 8 * region_rows + CONTROL_BYTES",
+        "\tif mode == STAGE:",
+        "\t\treturn 48 * Budget.PHASE_VOLUME_CAPACITY + sources + plans + 56 * region_rows + CONTROL_BYTES",
+        "\tif mode == PREPARED:",
+        "\t\treturn 56 * region_rows + sources + plans + CONTROL_BYTES",
+        "\treturn -1",
+    ]
+    assert statements == expected, "inherited structure peak statement drift"
+
+
 def build(index: dict | None = None) -> dict:
     index = audit.load_source_index() if index is None else index
     budget = index["underground_budget"]
@@ -568,6 +628,7 @@ def build(index: dict | None = None) -> dict:
     assert payload(loss) == 1024 * 8 # Decision1102: four historical purpose domains.
     quote = quote_payload(index)
     start = excavation_start_controls(index)
+    entry_structure = entry_structure_reservation(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
@@ -576,6 +637,7 @@ def build(index: dict | None = None) -> dict:
     assert 228 * locations + 256 + 106 * locations + 128 <= reserves["LOCATION_AND_TOPOLOGY_BYTES"]
     contributions = {
         "excavation_start_controls": start["numeric_bytes"],
+        "entry_structure_bindings": entry_structure["reserved_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -602,11 +664,13 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
                     "underground_connector_placements", "underground_connector_work", "entity_directory",
                     "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors",
-                    "underground_connector_contacts", "underground_profiles", "int_math"))
+                    "underground_connector_contacts", "underground_profiles", "int_math",
+                    "underground_entry_structure", "underground_phase_structure"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
             "excavation_start_controls": start,
+            "entry_structure_reservation": entry_structure,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

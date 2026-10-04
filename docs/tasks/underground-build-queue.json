@@ -785,6 +785,15 @@
           "memory": "3051fixed +1024helper =4075 in unchanged4096reserve; no second Contacts or per-Site bank",
           "scope": "Live unprepared phase observation only; all prepared Space companion contexts explicitly refuse",
           "evidence": "docs/validation/evidence/underground-first-prefix-2026-10-03/phase-contacts-final-1/"
+        },
+        "excavation_terminal_guard_1120": {
+          "commit": "878f41c5",
+          "branch": "codex/underground-entry-admission",
+          "state": "independently accepted component; awaiting concrete spatial adapters before integration",
+          "tests": "278 tests29639 assertions0 failures; all strict/raw0, analyzer0/10;103 memory tests",
+          "review": "Furnishing accepted10 GDS and3 census pins, no high/medium; LOW wording corrected",
+          "scope": "Inventory-owned final purpose5 output/refund rollback barrier, exact original Sites candidate and worker-free terminal retry",
+          "evidence": "docs/validation/evidence/underground-phase-settlement-2026-10-04/"
         }
       },
       "lease": {
@@ -1287,6 +1296,17 @@
           "packed_presentation_growth_bytes": 36,
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/driver-install-check-v1/",
           "scope": "Source-clock component; no Work credit, WIP delivery/handling or qualified production geometry. Actual source program and native replay under development."
+        },
+        "installed_timber_1114": {
+          "commit": "7ee42972",
+          "integration": "9db0665c and b2e237d2",
+          "review": "/root/ug_construction independently accepted all seven exact final-7 source pins; adjacent source/publication findings reproduced and corrected",
+          "tests": "181 tests,16462 assertions,0 failures across6 strict suites; all strict/raw diagnostics/leaks0; analyzer0/7",
+          "scope": "Actual paid installation and supported contact publication; synthetic motion/phase companions. Concrete phase refresh remains1121 dependency.",
+          "evidence": "docs/validation/evidence/underground-installed-timber-2026-10-04/",
+          "integration_checks": "195 tests,16668 assertions,0 failures across6 strict suites; all strict/raw diagnostics/leaks0; analyzer0/7",
+          "metadata": "All34 spec commands pass,96 memory tests; one454->486 expectation independently accepted by Furnishing; unchanged global reserve",
+          "integration_evidence": "docs/validation/evidence/underground-integrated-timber-2026-10-04/"
         }
       },
       "lease": {
@@ -1386,7 +1406,12 @@
         "godot/scripts/core/underground_entry_world_bindings.gd.uid",
         "godot/test/test_underground_entry_world_bindings.gd",
         "godot/test/test_underground_entry_world_bindings.gd.uid",
-        "docs/decisions/1119-concrete-entry-phase-composition.md"
+        "docs/decisions/1119-concrete-entry-phase-composition.md",
+        "godot/scripts/core/underground_entry_structure.gd",
+        "godot/scripts/core/underground_entry_structure.gd.uid",
+        "godot/test/test_underground_entry_structure.gd",
+        "godot/test/test_underground_entry_structure.gd.uid",
+        "docs/decisions/1122-source-bound-entry-structure.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1952,6 +1977,25 @@
           "whole_logical_bytes": 99959250,
           "runtime_qualified": false,
           "evidence": "docs/validation/evidence/underground-phase-contacts-memory-2026-10-04/"
+        },
+        "install_program_v3": {
+          "compiler_commit": "50cdb303",
+          "native_commit": "3f819752",
+          "integration": [
+            "68d12555",
+            "b51bcd1e"
+          ],
+          "review": "Root independent full source review, current/source/output hash verification and12 compiler plus10 native-validator Python tests accepted",
+          "tests": "Native2868poses11843assertions0failures, all raw diagnostics/leaks0, analyzer0/1; driver11tests242assertions0 strict/raw0 analyzer0/2",
+          "scope": "Presentation source witness only. No actual bearer handling, paid construction, gameplay/profile qualification or native memory claim.",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-install-program-native-v1/"
+        },
+        "entry_structure_1122": {
+          "owner": "/root",
+          "branch": "codex/underground-entry-admission",
+          "state": "implementation in progress",
+          "scope": "Actual non-flat EPISODE natural-bearing proof and paid Room-lifetime protection; no invented flat roof or free support",
+          "dependency": "Geometry1121 phase companions, Construction1119 integration fixture; isolated owned new files"
         }
       },
       "lease": {

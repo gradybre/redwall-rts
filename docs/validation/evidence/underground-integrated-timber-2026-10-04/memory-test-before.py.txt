@@ -279,7 +279,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(contacts["logical_helper_allowance_bytes"], 1024)
         self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
         self.assertEqual(recipes["entry_bindings_reservation"]["reserved_bytes"], 4096)
-        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 486)
+        self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 454)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
         self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1670)

@@ -1,5 +1,5 @@
 extends "res://test/framework/test_case.gd"
-## Historical published source geometry only. The current production Catalog must still refuse source drift.
+## Unchanged historical geometry with renewed current source pins; superseded pins must still refuse drift.
 ## No profile flag, motion box, paid state, runtime source pin or renderer qualification is fabricated here.
 
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
@@ -206,9 +206,15 @@ func test_actual_natural_anchor_proves_published_air_and_stance_independently() 
 	assert_equal(datum.box[3], record.support[3], "no body-only floor extension")
 
 
-func test_historical_geometry_input_cannot_reopen_current_production_catalog() -> void:
-	"""Source-qualified historical boxes are useful test inputs, not current consumer or native-backend approval."""
-	assert_equal(Published.runtime_sources_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "current changed consumer remains closed")
+func test_renewed_catalog_accepts_current_sources_and_rejects_historical_pins() -> void:
+	"""Renewal accepts the reviewed consumers while the same guard rejects their superseded source digest."""
+	assert_equal(Published.runtime_sources_refusal(), &"", "renewed publication binds the actual cached consumers")
+	var current_contacts: Script = Contacts
+	var historical_index: int = Pins.PATHS.find(current_contacts.resource_path)
+	assert_true(historical_index >= 0, "historical publication names the actual Contacts Script")
+	if historical_index < 0: return
+	assert_equal(Published._source_refusal(current_contacts.get_source_code(), Pins.DIGESTS[historical_index]),
+		&"MOLE_CATALOG_SOURCE_DRIFT", "unchanged production guard refuses the superseded historical source pin")
 	assert_equal(Published.catalog_refusal(_profiles), &"", "the original artifact was never rewritten")
 
 

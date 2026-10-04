@@ -1,0 +1,9 @@
+{
+  "tools/underground_memory_budget.py": "c60506ea456dfb261efec0762a574972076b14074331d7ca3746704b72c6b54f",
+  "tools/test_underground_memory_budget.py": "f2cd8703f473fd04f703f5baa2487d5b92816d10adec87d71611e1ffec06ffbe",
+  "docs/validation/ready07_arithmetic.py": "e22f33667be2b8c09ed93728436d1ca95141c1f3b3561ef518a3603e8465d13a",
+  "docs/systems_architecture.md": "1765be8402ca9cbdc9fbcd1409f3e35c95c799ab8a265e628794de52978ccb40",
+  "docs/persistence_state_registry.md": "24166a914a5ae05a333a4f5d40e140b525e97c7451ea6b14276b438b56143379",
+  "docs/planning/underground_memory_pack.json": "0be9736b812734c76cdbf7e428cd9985d8ad9c832a634cf5f4b5eb3cce4c64fa",
+  "docs/planning/registry_capacity_audit.json": "9e8702a9a326735036034a39f7ad1f6f6d63da8cfa4a6a93b38cfa4317731384"
+}

@@ -108,3 +108,16 @@ to the new source planner: a valid Inventory lot outside the smaller Pool
 namespace refuses before the journal starts. The actual mismatched-capacity
 test passes and is included in the final guard suite. Memory and public
 signatures are unchanged.
+
+## Shared integration accounting
+
+The reviewed integration charges the3072-byte reservation separately from the
+already assigned binding envelope. The joint source pack becomes99,994,686
+bytes with5,314 bytes of logical headroom; Delivery and stair-program proposals
+remain excluded. The registry categorizes the two packets and synchronous
+scope as call scratch, with canonical economic state still owned by the
+existing Inventory/Reservations stores. Native memory remains unqualified.
+The shared checker rejects extra/inherited owner storage, extra packet
+allocations and changed widths. Independent review and actual170 Python
+memory tests,190 capacity checks and the final ledger/registry results are
+recorded in `../validation/evidence/underground-haul-memory-2026-10-04/`.

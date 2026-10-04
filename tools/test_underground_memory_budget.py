@@ -314,10 +314,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4998849)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5001921)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99991614)
-        self.assertEqual(result["headroom_bytes"], 8386)
+        self.assertEqual(result["live_with_reserve_bytes"], 99994686)
+        self.assertEqual(result["headroom_bytes"], 5314)
         self.assertFalse(result["runtime_qualified"])
         workpieces = result["connector_workpieces_reservation"]
         self.assertEqual(workpieces["two_bank_bytes"], 10752)
@@ -326,6 +326,11 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(workpieces["fixed_numeric_and_packed_bytes"], 123)
         self.assertEqual(workpieces["reserved_bytes"], 29928)
         self.assertEqual(result["contributions"]["connector_workpieces"], 29928)
+        haul = result["haul_transfer_reservation"]
+        self.assertEqual(haul["packet_bytes"], 216)
+        self.assertEqual(haul["fixed_numeric_bytes"], 433)
+        self.assertEqual(haul["reserved_bytes"], 3072)
+        self.assertEqual(result["contributions"]["guarded_haul_transfers"], 3072)
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
@@ -362,6 +367,42 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(entry["fixed_numeric_and_packed_bytes"], 153)
         self.assertEqual(entry["reserved_bytes"], 384)
         self.assertEqual(entry["check_peak_bytes"], 1048912)
+
+    def test_negative_haul_packet_width(self) -> None:
+        self.refuses("haul_transfer_contract", "var job: Vector2i", "var job: Vector3i")
+
+    def test_negative_haul_pool_inherited_storage(self) -> None:
+        self.refuses("reservations", "extends RefCounted", 'extends "res://scripts/core/spoil_tips.gd"')
+
+    def test_negative_haul_inventory_inherited_storage(self) -> None:
+        self.refuses("inventory", "extends RefCounted", 'extends "res://scripts/core/spoil_tips.gd"')
+
+    def test_negative_haul_packet_size_constant(self) -> None:
+        self.refuses("haul_transfer_contract", "TRANSFER_BYTES: int = 216", "TRANSFER_BYTES: int = 208")
+
+    def test_negative_haul_packet_collection(self) -> None:
+        self.refuses("haul_transfer_contract", "class Transfer extends RefCounted:",
+                     "class Transfer extends RefCounted:\n\tvar extra: PackedByteArray = PackedByteArray()")
+
+    def test_negative_haul_protocol_retained_state(self) -> None:
+        source = self.index["haul_transfer_contract"].text
+        self.refuses("haul_transfer_contract", source, source + "\nvar _extra: int = 0\n")
+
+    def test_negative_haul_extra_scope_control(self) -> None:
+        self.refuses("reservations", "var _haul_active: bool = false",
+                     "var _haul_active: bool = false\nvar _haul_extra: int = 0")
+
+    def test_negative_haul_extra_packet_outside_scope_prefix(self) -> None:
+        source = self.index["reservations"].text
+        self.refuses("reservations", source, source + "\nvar _extra: HaulContract.Transfer = HaulContract.Transfer.new()\n")
+
+    def test_negative_haul_unaccounted_local_packet(self) -> None:
+        source = self.index["reservations"].text
+        self.refuses("reservations", source, source + "\nfunc _extra() -> void:\n\tvar packet := HaulContract.Transfer.new()\n")
+
+    def test_negative_haul_inventory_control(self) -> None:
+        source = self.index["inventory"].text
+        self.refuses("inventory", source, source + "\nvar _haul_extra: bool = false\n")
 
     def test_negative_workpiece_bank_width(self) -> None:
         self.refuses("underground_connector_workpieces", "var fields: PackedInt32Array", "var fields: PackedInt64Array")

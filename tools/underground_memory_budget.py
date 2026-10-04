@@ -380,6 +380,45 @@ def connector_workpieces_reservation(index: dict) -> dict:
             "scope": "Separate explicit joint contribution; source-counted logical admission only. Native memory and composed persistence remain unqualified."}
 
 
+def haul_transfer_reservation(index: dict) -> dict:
+    """Charge Pool's two fixed packets once; Delivery borrows the public view, never another bank."""
+    module = "haul_transfer_contract"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ["RefCounted"], "unreconciled hauling protocol base"
+    assert not explicit_members(source), "hauling protocol gained retained state"
+    assert re.findall(r"(?m)^class (\w+) extends RefCounted:", source) == ["Transfer"], \
+        "unreconciled hauling protocol packet"
+    fields = explicit_members(class_body(source, "Transfer"), "\t")
+    assert len(fields) == 27 and list(fields.values()).count("Vector2i") == 8 \
+        and list(fields.values()).count("int") == 19, "hauling transfer declaration drift"
+    packet = scalar_packet(index, module, "Transfer")
+    assert packet == resolve(index, module, "TRANSFER_BYTES") == 216
+    for owner in ("reservations", "inventory"):
+        assert re.findall(r"(?m)^extends (.+)$", index[owner].text) == ["RefCounted"], \
+            (owner, "unreconciled inherited hauling state")
+    pool_source = index["reservations"].text
+    pool_fields = explicit_members(pool_source)
+    expected = {"_haul_original": "HaulContract.Transfer", "_haul_view": "HaulContract.Transfer",
+                "_haul_active": "bool", "_haul_inventory": "Inventory", "_haul_guard": "HaulContract",
+                "_haul_error": "StringName"}
+    assert {name: kind for name, kind in pool_fields.items() if name.startswith("_haul_")} == expected, \
+        "unreconciled hauling scope member"
+    assert {name for name, kind in pool_fields.items() if kind == "HaulContract.Transfer"} == {
+        "_haul_original", "_haul_view"}, "unaccounted retained hauling packet"
+    assert pool_source.count("HaulContract.Transfer.new()") == 2, "hauling packet allocation drift"
+    assert not any(name.startswith("_haul_") for name in explicit_members(index["inventory"].text)), \
+        "unreconciled Inventory hauling state"
+    fixed = 2 * packet + 1
+    assert fixed == 433 and fixed <= 512
+    # ADR1141's reviewed complete lower-owner call graph peaks at466 logical bytes.
+    # The512 helper and2048 native allowances stay reserved, not certified by this field census.
+    return {"packet_fields": fields, "packet_bytes": packet, "retained_packets": 2,
+            "pool_scope_members": expected, "fixed_numeric_bytes": fixed,
+            "control_reserve_bytes": 512, "logical_helper_allowance_bytes": 512,
+            "native_reserve_bytes": 2048, "reserved_bytes": 3072,
+            "scope": "Separate ADR1141 per-world contribution; borrowed Delivery view already counted here. Source census and native allowances do not qualify runtime memory."}
+
+
 def entry_frontier_reservation(index: dict) -> dict:
     """Reserve the reader's whole admitted ceiling and reject drift between each wire row and its packed bank."""
     module = "underground_entry_frontier"
@@ -774,6 +813,7 @@ def build(index: dict | None = None) -> dict:
     entry_structure = entry_structure_reservation(index)
     entry_world = entry_world_reservation(index)
     workpieces = connector_workpieces_reservation(index)
+    haul_transfer = haul_transfer_reservation(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
@@ -785,6 +825,7 @@ def build(index: dict | None = None) -> dict:
         "entry_structure_bindings": entry_structure["reserved_bytes"],
         "entry_world_bindings": entry_world["reserved_bytes"],
         "connector_workpieces": workpieces["reserved_bytes"],
+        "guarded_haul_transfers": haul_transfer["reserved_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -811,7 +852,7 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
                     "underground_connector_placements", "underground_connector_work", "underground_connector_workpieces", "entity_directory",
                     "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors",
-                    "underground_connector_contacts", "underground_profiles", "int_math",
+                    "underground_connector_contacts", "underground_profiles", "int_math", "reservations", "haul_transfer_contract",
                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
@@ -820,6 +861,7 @@ def build(index: dict | None = None) -> dict:
             "entry_structure_reservation": entry_structure,
             "entry_world_reservation": entry_world,
             "connector_workpieces_reservation": workpieces,
+            "haul_transfer_reservation": haul_transfer,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

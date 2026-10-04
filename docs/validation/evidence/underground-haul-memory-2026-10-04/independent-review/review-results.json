@@ -1,0 +1,35 @@
+{
+  "read_only_review": true,
+  "focused_tests": 11,
+  "failures": 0,
+  "errors": 0,
+  "inherited_storage_mutants": [
+    {
+      "owner": "reservations",
+      "refused": true,
+      "message": "('reservations', 'unreconciled inherited hauling state')"
+    },
+    {
+      "owner": "inventory",
+      "refused": true,
+      "message": "('inventory', 'unreconciled inherited hauling state')"
+    }
+  ],
+  "pack_exact_generator_match": true,
+  "only_new_contribution_bytes": 3072,
+  "unchanged_canonical_declaration": true,
+  "delivery_excluded": true,
+  "capacity_report_difference_count": 119,
+  "capacity_report_only_hash_or_line_changes": true,
+  "current_source_pins_unchanged": true,
+  "post_test_pins": {
+    "tools/underground_memory_budget.py": "c60506ea456dfb261efec0762a574972076b14074331d7ca3746704b72c6b54f",
+    "tools/test_underground_memory_budget.py": "f2cd8703f473fd04f703f5baa2487d5b92816d10adec87d71611e1ffec06ffbe",
+    "docs/validation/ready07_arithmetic.py": "e22f33667be2b8c09ed93728436d1ca95141c1f3b3561ef518a3603e8465d13a",
+    "docs/systems_architecture.md": "1765be8402ca9cbdc9fbcd1409f3e35c95c799ab8a265e628794de52978ccb40",
+    "docs/persistence_state_registry.md": "ddc7d54a9c7f4538c9ba8d358aa5682b3a56f0dcc286b98120ed421608c9df82",
+    "docs/planning/underground_memory_pack.json": "0be9736b812734c76cdbf7e428cd9985d8ad9c832a634cf5f4b5eb3cce4c64fa",
+    "docs/planning/registry_capacity_audit.json": "9e8702a9a326735036034a39f7ad1f6f6d63da8cfa4a6a93b38cfa4317731384"
+  },
+  "review_harness_note": "First wrapper stopped after all11 tests passed because it compared native tuple pairs directly with JSON list pairs. Normalizing the generated result through JSON fixes this review-wrapper mismatch; no production/checker source changed."
+}

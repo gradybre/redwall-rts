@@ -2535,12 +2535,19 @@
         "guarded_haul_transfer_1141": {
           "owner": "/root/ug_geometry",
           "branch": "codex/underground-haul-transfer",
-          "status": "implementation; not accepted",
+          "status": "component independently accepted and integrated; actual Delivery and native memory qualification remain open",
           "base_commit": "b518ca1f824903b0a40658a04660064f50ab7509",
           "scope": "Inventory owns whole guarded journal across ADMIT/LOAD/REPOST/UNLOAD/CANCEL; immutable original216-byte transfer and callback view, exact Pool/claim/staged state final rechecks. Reservations clear/restore join existing attestation guards.",
-          "memory": "3072B provisional separate fixed/helper/native allowance; no per-row bank. Source census and complete callback chain must precede admission.",
+          "memory": "Fixed433/512, complete helper chain466/512, provisional native2048: separate3072 contribution. Current pack99994686/headroom5314; Delivery4096 and new stair programs remain excluded. Runtime unqualified.",
           "handoff": "Root Inventory/Reservations writes stopped and explicitly released; Construction owns Work/Planner and new Delivery. Eight consumer scripts remain frozen for root publication renewal.",
-          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer"
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer",
+          "source_commit": "064f0c0d1b5e71059215b23755a249ea3a066c65",
+          "integration_commit": "ee63d7b9",
+          "reviewer": "/root",
+          "tests": "Nine final affected source suites346tests4392assertions0failures; final annotation-only guard rerun and independent root replay each16tests603assertions0failures, strict/raw unexpected/expected/tolerated/leaks0, analyzer0/4. Root integrated selected guard and support correction25tests740assertions0failures, strict/raw all0, analyzer0/5. Not a full integrated suite.",
+          "stop_evidence": "ug_geometry stopped all Inventory/Reservations/protocol/test writes after064f0c0d and returned narrow source lease to root. Reviewer now read-only.",
+          "evidence": "docs/validation/evidence/guarded-spatial-haul-2026-10-04/",
+          "memory_evidence": "docs/validation/evidence/underground-haul-memory-2026-10-04/"
         }
       },
       "lease": {
@@ -3724,6 +3731,17 @@
       "analyzer": "0 GDScript warning(s) in 0 of 1201 file(s)",
       "evidence": "docs/validation/evidence/underground-ci-cddc4412-2026-10-04/",
       "followup": "Unchanged audit generator updates sole ModularProjects fingerprint;190checks0fail;current profile renewal and integrated full suite still required."
+    },
+    {
+      "commit": "6ee1f789086def471a8f56c59d3cdedfc7505ecb",
+      "outcome": "rejected: one stale historical catalog expectation after legitimate current v2 renewal",
+      "full_summary": "10879 test(s), 997764 assertion(s), 1 failure(s)",
+      "diagnostics": "0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+      "raw": "No raw success footer: runner stopped on failure. Clean import raw markers all zero.",
+      "analyzer": "NOT RUN: full suite failed",
+      "specification": "34 workflow commands passed at the same commit",
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-6ee1f789/",
+      "followup": "Reviewed test correction asserts current v2 success plus actual cached Contacts/v1 digest rejection. Focused9tests137assertions0failures, strict/raw diagnostics/leaks0, combined analyzer0/5. Production catalog/geometry unchanged; next full run required."
     }
   ],
   "crosscut_fixes": [

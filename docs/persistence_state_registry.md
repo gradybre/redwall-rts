@@ -407,6 +407,12 @@ Neither needs new state.
 | Unload seed | `_one_seed` | 4 | `1` = 1 | Overwritten per call | 3 | -- | The recorded unload tile as a one-cell seed buffer for `complete_unload()` onto ground piles. |
 | Bindings and scratch | -- | -- | -- | -- | 3 | -- | `_inventory`, `_reservations`, `_residents`, `_buildings`, `_piles` and `_store_policy` (decision 1031) are borrowed wiring; `_seed_count`, `_math`, `_place` and `_chosen` are call scratch. |
 
+### `godot/scripts/core/haul_transfer_contract.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Guarded hauling protocol | -- | -- | -- | -- | 3 | -- | [Decision1141](decisions/1141-guarded-spatial-haul-transfers.md). Stateless permission-refusing base and fixed216-byte caller packets. The two retained packets belong to Reservations below; no canonical column, independent bank or duplicate economic ledger. |
+
 ### `godot/scripts/core/households.gd`
 
 [Decision 0521](decisions/0521-pc04-adopted-with-children-inactive.md) / FAMILY-STATE-R01. PC-04's household and dependent-care owner, adopted with children inactive. **No settlement composes it yet**, so no live world holds a row; when one does, every column below is future-affecting state. The rows are UNRESOLVED rather than category 1 because category 1 here must equal `canonical_state_registry.json` exactly (`validate_save_registry_handoff.py`), and the owner ID, ordinals and declaration hashes are the activation packet's to allocate (FAMILY-STATE-R01 §Save; gate 3). The sections cited are the ones FAMILY-STATE-R01 names.
@@ -645,6 +651,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Reservation counts and capacities | -- | -- | -- | -- | 2 | §7 INVENTORIES_AND_LEASE_INDEXES | `_row_capacity`, `_job_capacity` and `_lot_capacity` are construction arguments; `_active_count` and `_free_count` are recomputed from `_occupied`. |
 | Reservation scratch | -- | -- | -- | -- | 3 | -- | `_math` and `_pending_new_rows`, both consumed inside one call; `_last_column_refusal` is a separate category3 diagnostic. Column restore preserves existing scratch; the next claim recomputes pending fresh-row count. |
 | Exact Inventory owner wiring | -- | -- | -- | Unbound only before composition/first successful operation | 3 | -- | Decision 1056. `_bound_inventory` is weak world wiring; first successful claim/Inventory operation, explicit empty-pool composition or Inventory-aware restore binds it. Failed operations cannot bind, clear/pure-column recovery retain it, and expired/foreign owners refuse. Production save apply supplies the actual Inventory; whole-world load must reconstruct and validate this relation without serializing or hashing pointers. |
+| Guarded haul scope and packets | -- | -- | -- | Inactive between synchronous calls | 3 | -- | [Decision1141](decisions/1141-guarded-spatial-haul-transfers.md). `_haul_original` and `_haul_view` are two fixed216-byte packets; `_haul_active` adds one byte. `_haul_inventory`, `_haul_guard` and `_haul_error` are borrowed wiring/diagnostic identity. The view is borrowed by Delivery, not copied into another bank. All admission, transfer and cancellation facts are reobserved from canonical owners per call; no completed-tick future fact exists only here. The3072-byte separate allowance covers512 controls,512 helpers and2048 provisional native bytes; native memory and composed save qualification remain open. |
 
 ### `godot/scripts/core/residents.gd`
 

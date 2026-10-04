@@ -1,0 +1,102 @@
+{
+  "scope": "STATIC_SOURCE_ARITHMETIC_AND_DOCUMENT_LINK_REVIEW_NOT_RUNTIME_TESTS",
+  "status": "PASS",
+  "historical_ready07_revision": "16e1efc",
+  "field_rows": 145,
+  "field_bytes": 25444194,
+  "allocation_rows": 51,
+  "payload_bytes": 91606078,
+  "live_with_reserve_bytes": 99994686,
+  "two_world_peak_bytes": 185351071,
+  "catalog_bindings": {
+    "resource": [
+      60,
+      53,
+      20
+    ],
+    "forage": [
+      1,
+      36,
+      33,
+      16,
+      40
+    ],
+    "fish": [
+      56,
+      8,
+      42,
+      38,
+      5,
+      59,
+      17,
+      21,
+      34
+    ]
+  },
+  "synthetic_weather_boundary_ticks": {
+    "1:3": 247500,
+    "1:6": 301500,
+    "1:8": 337500,
+    "1:9": 355500,
+    "2:1": 427500,
+    "2:3": 463500,
+    "2:6": 517500
+  },
+  "scheduler_status": "IMPLEMENTED_AND_LEDGERED_ADR0054",
+  "scheduler_record_bytes": 32,
+  "scheduler_control_bytes": 32,
+  "scheduler_total_bytes": 8224,
+  "scheduler_capacity": 256,
+  "scheduler_normal_capacity": 250,
+  "checked_local_links": 137,
+  "files_reviewed": [
+    "docs/systems_architecture.md",
+    "docs/decisions/0016-needs-tick-consumes-most-of-the-budget.md",
+    "docs/decisions/0048-world-generation-anchors-and-what-it-refuses-to-invent.md",
+    "docs/planning/README.md",
+    "docs/STATUS.md",
+    "docs/decisions/0050-ready07-source-audit-and-ledger-reconciliation.md",
+    "docs/decisions/0053-movement-ground-slice-identity-and-storage.md",
+    "docs/decisions/0054-the-scheduler-event-queue-drains-before-every-tick.md",
+    "docs/planning/ready07_scheduler_contract.md",
+    "docs/planning/movement_ground_slice_entry.md",
+    "docs/rulings/2026-09-11_ready07_open_item_answers.md",
+    "docs/rulings/2026-09-11_ready07_executor_brief.md",
+    "docs/rulings/2026-09-11_ready07_memory_audit.md"
+  ],
+  "runtime_tests": "NOT_RUN",
+  "runtime_code_changed_by_this_check": false,
+  "remaining_proposed_fields_in_existing_ledger": false,
+  "source_sha256": {
+    "docs/game_gdd.md": "d4e5f7dee1e5af913fb23730bf8e3f33a9869c0a3e8d789f19025fc44e033600",
+    "docs/systems_architecture.md": "1765be8402ca9cbdc9fbcd1409f3e35c95c799ab8a265e628794de52978ccb40",
+    "godot/data/catalog_ids.json": "4b25ab62a4a0330c3acf5ebeba83ddd1019c29cc9650b8b9ce4822d8b035677d",
+    "docs/movement_direction_amendment.md": "e1de4d9e22903f0d2898c7b5d342850c5b61e5cc97d956d53c1cfa0ac991eb38",
+    "godot/scripts/core/scheduler_events.gd": "26247c895b25f83eec324228b9f675d95d657fc29e6a17e6e42bf948f04a2a6e",
+    "godot/scripts/core/room_projects.gd": "523b29d4e0801dba6273ff3a0f15b7eb354ba715f7c83168ac6414321a98a184",
+    "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
+    "godot/scripts/core/jobs.gd": "d8cd5fc96ab00748f16fe0b5b29f2a4ae943ed53f6fa48fbd1790ae98d4b171b",
+    "godot/scripts/core/canonical_state_hash.gd": "f6b09e6e5e4ce74d3764dac0207f206cef12a440ffd0426f6fddee51deda3760",
+    "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
+    "godot/scripts/core/excavation_sites.gd": "71548ca75917cf3aaca90469f2e23b15354b87744e1feb640b8f3655de1e55a0",
+    "godot/scripts/core/excavation_contract.gd": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e",
+    "godot/scripts/core/gear.gd": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+    "tools/audit_registry_capacities.py": "40c8cafc95f5b8045314a659e8002f79a06813aeb1b39056e2392da72aadb5ef",
+    "docs/planning/canonical_state_registry.json": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
+    "docs/validation/ready07_arithmetic.py": "e22f33667be2b8c09ed93728436d1ca95141c1f3b3561ef518a3603e8465d13a"
+  },
+  "room_projects_packed_bytes": 1707008,
+  "canonical_declaration_bytes": 23573,
+  "excavation_packed_bytes": 13608949,
+  "joint_underground_pack_bytes": 5001921,
+  "underground_pack_runtime_qualified": false,
+  "excavation_numeric_controls_and_transients": 215,
+  "gear_lot_index_and_restore_bytes": 131072,
+  "canonical_census": {
+    "owners": 61,
+    "declared_fields": 764,
+    "hashed_records": 756,
+    "persisted_packed_fields": 671,
+    "key_utf8_bytes": 11137
+  }
+}

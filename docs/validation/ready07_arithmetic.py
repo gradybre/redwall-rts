@@ -310,7 +310,7 @@ underground_pack=underground_memory_budget.build()
 CURRENT_UNDERGROUND_MUTABLE=underground_pack['new_mutable_and_reserved_bytes']
 # Preserve1072's trail;1102 adds256 I64 cells in both live and conservative cold state.
 DECISION_1102_MUTABLE=2*(fund_shapes['_lost_milli'][0]*fund_shapes['_lost_milli'][1]-3*256*8)
-assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==4998849
+assert DECISION_1102_MUTABLE==4096 and CURRENT_UNDERGROUND_MUTABLE==5001921
 # Decisions1117/1120 add two synchronous guard bytes each. Decision1122's
 # full fixed/helper reservation is additional to the already assigned binding
 # reserve. Decision1131 adds the distinct2048-byte Entry World composer allowance.
@@ -325,13 +325,16 @@ DECISION_1131_MUTABLE=underground_pack['contributions']['entry_world_bindings']
 assert DECISION_1131_MUTABLE==2048
 DECISION_1134_MUTABLE=underground_pack['contributions']['connector_workpieces']
 assert DECISION_1134_MUTABLE==29928
+DECISION_1141_MUTABLE=underground_pack['contributions']['guarded_haul_transfers']
+assert DECISION_1141_MUTABLE==3072
 assert underground_pack['contributions']['excavation_start_controls']==DECISION_1117_MUTABLE+DECISION_1120_MUTABLE
 assert '| Sites START transaction guards | 2 | 1 | 2 |' in s
 assert '| Sites settlement transaction guards | 2 | 1 | 2 |' in s
 assert '| Entry structure controls and helper allowance | 1 | 384 | 384 |' in s
 assert '| Entry World composer controls and helper allowance | 1 | 2048 | 2048 |' in s
 assert '| Paid connector workpiece banks, source and fixed allowances | 1 | 29928 | 29928 |' in s
-LATER_UNDERGROUND_MUTABLE=DECISION_1117_MUTABLE+DECISION_1120_MUTABLE+DECISION_1122_MUTABLE+DECISION_1131_MUTABLE+DECISION_1134_MUTABLE
+assert '| Guarded hauling controls and fixed allowances | 1 | 3072 | 3072 |' in s
+LATER_UNDERGROUND_MUTABLE=DECISION_1117_MUTABLE+DECISION_1120_MUTABLE+DECISION_1122_MUTABLE+DECISION_1131_MUTABLE+DECISION_1134_MUTABLE+DECISION_1141_MUTABLE
 DECISION_1072_MUTABLE=CURRENT_UNDERGROUND_MUTABLE-DECISION_1102_MUTABLE-LATER_UNDERGROUND_MUTABLE
 assert DECISION_1072_MUTABLE==4962389
 assert underground_pack['declaration_bytes']==DECISION_0127_ADDED
@@ -449,10 +452,10 @@ DECISION_1023_ADDED=DECISION_1023_RECORD+DECISION_1023_SCRATCH
 # Decision 0532 adds four allocation rows (34 -> 38); decision 0521 folds into the existing
 # Auxiliary payload row and adds none; decision 0534 adds one (38 -> 39); decisions 0536, 0537, 1031 and 0996 add none;
 # decision 1023 adds one (39 -> 40); decision 1053 folds into Auxiliary payload and adds none.
-assert len(allocations)==50 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
+assert len(allocations)==51 and sum(allocations)==DECISION_0050_ROW_SUM+DECISION_0051_ADDED+DECISION_0053_ADDED+DECISION_0055_ADDED+DECISION_0054_ADDED+DECISION_0066_ADDED+DECISION_0080_ADDED+DECISION_0083_ADDED+DECISION_0085_ADDED+DECISION_0092_ADDED+DECISION_0095_ADDED+DECISION_0104_ADDED+DECISION_0109_ADDED+DECISION_0110_ADDED+DECISION_0114_ADDED+DECISION_0127_ADDED+DECISION_0130_ADDED+DECISION_0131_ADDED+DECISION_0138_REMOVED+DECISION_0145_ADDED+DECISION_0167_CLAIM_SLOT+DECISION_0169_ADDED+DECISION_0531_ANCHOR+DECISION_0532_ADDED+DECISION_0521_ADDED+DECISION_0534_ADDED+DECISION_0536_ADDED+DECISION_0537_ADDED+DECISION_1031_ADDED+DECISION_0996_ADDED+DECISION_1023_ADDED+DECISION_1053_ADDED+DECISION_1066_ADDED+DECISION_1068_ADDED+DECISION_1071_MUTABLE+DECISION_1072_MUTABLE+DECISION_1102_MUTABLE+LATER_UNDERGROUND_MUTABLE
 payload=sum(allocations);reserve=8388608;candidate=payload-(3670016+2097152+262144+131072+55200+DECISION_0127_ADDED+DECISION_0169_ADDED);live=payload+reserve
-assert payload==91603006
-assert live==99991614 and candidate==85353313 and live+candidate==185344927
+assert payload==91606078
+assert live==99994686 and candidate==85356385 and live+candidate==185351071
 assert live==underground_pack['live_with_reserve_bytes']
 assert f'Auxiliary payload sum = **{auxiliary} bytes**' in s
 # A valid internal trail can still omit its final step. Require its endpoint to reach the

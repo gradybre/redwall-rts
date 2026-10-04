@@ -26,8 +26,23 @@ has11 failures because the immutable worker-profile publication correctly
 rejects changed consumers. Its zero diagnostic/leak and analyzer totals do not
 make that run a pass. Renewed source review and actual native replay are now integrated at
 `4b0bc3c2`:53 selected tests/1,321 assertions and7,792 native poses/46,873
-assertions passed with zero failures and unexpected diagnostics. The next
-full checkpoint is pending; no source guard has been removed.
+assertions passed with zero failures and unexpected diagnostics. The subsequent
+[full checkpoint at6ee1f789](evidence/modular-build/checkpoint-6ee1f789/README.md)
+ran10,879 tests/997,764 assertions with one stale historical-catalog test failure;
+unexpected diagnostics and leaks were zero. Its analyzer did not run. The
+reviewed correction preserves historical source-drift rejection and accepts
+the actual renewed current sources; its9 tests/137 assertions pass. No source
+guard has been removed, and a new full checkpoint is still required.
+
+Decision1141's guarded hauling component is integrated at`ee63d7b9` after
+independent review and replay. Its final16 tests/603 assertions pass with zero
+strict/raw diagnostics and leaks; the combined hauling/support focused analyzer
+reports zero warnings across5 files. The separate3,072-byte logical reservation
+brings the current source-counted pack to99,994,686 bytes, leaving5,314 bytes
+below the unchanged100 MB ceiling. Runtime memory is unqualified, and the
+Delivery contribution and stair programs are not silently included. Actual
+Delivery lifecycle integration and complete stair motion/native evidence remain
+in progress.
 
 Decision1135's independently reviewed spatial component is integrated at
 `84948b40`:404 selected tests /29,732 assertions /0 failures, zero unexpected

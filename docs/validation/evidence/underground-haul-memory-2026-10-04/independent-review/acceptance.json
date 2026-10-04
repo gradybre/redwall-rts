@@ -1,0 +1,32 @@
+{
+  "status": "accepted",
+  "reviewer": "/root/ug_geometry",
+  "mode": "read-only source review and independent Python checks; no engine rerun",
+  "independent_checks": {
+    "focused_memory_tests": 11,
+    "mutation_negative_cases_after_fix": 2,
+    "ready07_status": "PASS",
+    "ready07_field_rows": 145,
+    "ready07_allocation_rows": 51,
+    "only_new_per_world_contribution_bytes": 3072,
+    "capacity_report_only_source_hash_or_line_changes": 119
+  },
+  "logical_memory": {
+    "fixed_numeric_bytes": 433,
+    "fixed_reserve": 512,
+    "helper_reserve": 512,
+    "reviewed_component_helper_peak": 466,
+    "native_provisional_reserve": 2048,
+    "total_new_reservation": 3072,
+    "live_total": 99994686,
+    "headroom": 5314,
+    "runtime_qualified": false,
+    "delivery_4096_included": false
+  },
+  "closed_findings": [
+    "MEDIUM: inherited Inventory/Reservations storage could pass unchanged census; both original RefCounted bases now pinned and both mutations refuse",
+    "LOW: blank line detached new Reservations scope row from table; removed"
+  ],
+  "support_test_followup_sha256": "31ba289b73af13dd114666037990d1070fe6c8d4995e4ad9c744e3650cf77182",
+  "remaining": "actual Delivery composition and runtime/native qualification remain outside this accounting acceptance"
+}

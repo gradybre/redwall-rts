@@ -793,35 +793,35 @@
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4981
+        "line": 5149
       },
       "_spatial_container_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4980
+        "line": 5148
       },
       "_spatial_location_generation": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4983
+        "line": 5151
       },
       "_spatial_location_revision": {
         "width": 8,
         "capacity": 1024,
         "bytes": 8192,
         "resize_expression": "capacity",
-        "line": 4984
+        "line": 5152
       },
       "_spatial_location_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4982
+        "line": 5150
       }
     }
   },
@@ -1334,11 +1334,59 @@
     "reserved_bytes": 29928,
     "scope": "Separate explicit joint contribution; source-counted logical admission only. Native memory and composed persistence remain unqualified."
   },
+  "haul_transfer_reservation": {
+    "packet_fields": {
+      "job": "Vector2i",
+      "worker": "Vector2i",
+      "source_lot": "Vector2i",
+      "source_container": "Vector2i",
+      "destination": "Vector2i",
+      "original_satchel": "Vector2i",
+      "arrived_lot": "Vector2i",
+      "staged_satchel": "Vector2i",
+      "action": "int",
+      "claim_row": "int",
+      "claim_count": "int",
+      "from_purpose": "int",
+      "to_purpose": "int",
+      "quantity_milli": "int",
+      "expiry_tick": "int",
+      "reserved_mass_g": "int",
+      "carry_limit_g": "int",
+      "item_id": "int",
+      "item_mass_g": "int",
+      "quality": "int",
+      "age_milli_hours": "int",
+      "age_remainder": "int",
+      "provenance": "int",
+      "recipe_id": "int",
+      "source_quantity_milli": "int",
+      "source_reserved_milli": "int",
+      "destination_reserved_g": "int"
+    },
+    "packet_bytes": 216,
+    "retained_packets": 2,
+    "pool_scope_members": {
+      "_haul_original": "HaulContract.Transfer",
+      "_haul_view": "HaulContract.Transfer",
+      "_haul_active": "bool",
+      "_haul_inventory": "Inventory",
+      "_haul_guard": "HaulContract",
+      "_haul_error": "StringName"
+    },
+    "fixed_numeric_bytes": 433,
+    "control_reserve_bytes": 512,
+    "logical_helper_allowance_bytes": 512,
+    "native_reserve_bytes": 2048,
+    "reserved_bytes": 3072,
+    "scope": "Separate ADR1141 per-world contribution; borrowed Delivery view already counted here. Source census and native allowances do not qualify runtime memory."
+  },
   "contributions": {
     "excavation_start_controls": 4,
     "entry_structure_bindings": 384,
     "entry_world_bindings": 2048,
     "connector_workpieces": 29928,
+    "guarded_haul_transfers": 3072,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -1353,20 +1401,22 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524288
   },
-  "new_mutable_and_reserved_bytes": 4998849,
+  "new_mutable_and_reserved_bytes": 5001921,
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 99991614,
-  "headroom_bytes": 8386,
+  "live_with_reserve_bytes": 99994686,
+  "headroom_bytes": 5314,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
     "godot/scripts/core/excavation_inventory.gd": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
     "godot/scripts/core/excavation_sites.gd": "71548ca75917cf3aaca90469f2e23b15354b87744e1feb640b8f3655de1e55a0",
+    "godot/scripts/core/haul_transfer_contract.gd": "dad5b6beb6d215fa9e71e7c31ab4b10e505393116374249eb8efc1bf58fcb60d",
     "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
-    "godot/scripts/core/inventory.gd": "9f0c90374608154dd2ab65b57b6ea93b883fd627a01130a60deb1d50b2c67f34",
+    "godot/scripts/core/inventory.gd": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55",
     "godot/scripts/core/modular_project_contract.gd": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849",
     "godot/scripts/core/modular_projects.gd": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
+    "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
     "godot/scripts/core/spoil_tips.gd": "3915c888d9a37defe3ddc859d8b99beac91d94075cfe0db4ded78fb0dc1050b8",

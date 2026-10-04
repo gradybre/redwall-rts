@@ -1,0 +1,32 @@
+{
+  "head": "6ee1f789086def471a8f56c59d3cdedfc7505ecb",
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.309,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh"
+      ],
+      "exit_code": 1,
+      "seconds": 1682.646,
+      "log": "full-suite.log"
+    }
+  ],
+  "error": "full-suite.log",
+  "assets_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

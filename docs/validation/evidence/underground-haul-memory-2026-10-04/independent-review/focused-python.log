@@ -1,0 +1,16 @@
+test_negative_haul_extra_packet_outside_scope_prefix (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_extra_scope_control (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_inventory_control (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_inventory_inherited_storage (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_packet_collection (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_packet_size_constant (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_packet_width (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_pool_inherited_storage (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_protocol_retained_state (test_underground_memory_budget.JointPackTests) ... ok
+test_negative_haul_unaccounted_local_packet (test_underground_memory_budget.JointPackTests) ... ok
+test_positive_current_joint_pack_is_not_runtime_qualification (test_underground_memory_budget.JointPackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 3.690s
+
+OK

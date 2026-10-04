@@ -1,0 +1,28 @@
+{
+	"api_version": "4.0",
+	"assertions": 43,
+	"attachment_cycles": 2,
+	"basis_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+	"complete_numerical_enclosure": false,
+	"display_server": "macOS",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"failures": [],
+	"image_sha256": "96e2b26973721b684f9d879a5fde8ee9b514b1c4921939f6ae6d0d52b5b98a5a",
+	"producer_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+	"qualified_profiles": 0,
+	"rendering_driver": "metal",
+	"rendering_method": "forward_plus",
+	"reserved_bytes": 544768,
+	"scope": "synthetic native Metal WorldBasis binding and attachment lifecycle",
+	"world_qualified": false
+}

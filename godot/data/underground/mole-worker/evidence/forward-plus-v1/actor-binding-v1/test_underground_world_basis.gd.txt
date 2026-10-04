@@ -190,23 +190,6 @@ func test_reader_rejects_cross_version_footer_numeric_header_and_row_relabels() 
 	_refused_reader(2, _reader_metadata(1))
 
 
-func test_reader_backend_pairing_is_checked_even_when_schema_and_footer_match() -> void:
-	"""Cross-backend fixtures preserve valid schema/footer and complete metadata, isolating the backend-pair guard."""
-	var metadata: Dictionary = _reader_metadata(2)
-	metadata.schema = 1
-	_refused_reader(1, metadata)
-	metadata = _reader_metadata(2)
-	metadata.rendering_driver = "opengl3"
-	metadata.rendering_method = "gl_compatibility"
-	metadata.api_version = "4.1 fixture"
-	_refused_reader(2, metadata)
-	metadata = _reader_metadata(1)
-	metadata.schema = 1
-	_write_reader_fixture(1, metadata)
-	var source: Actor.WorldBasis = Actor.WorldBasis.new()
-	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES), &"", "explicit valid v1 schema retained")
-
-
 func test_reader_rejects_cross_backend_schema_and_incomplete_metal_source_metadata() -> void:
 	"""Driver, display, API and source schema stay bound together; complete rows alone grant nothing."""
 	var metadata: Dictionary = _reader_metadata(1)
@@ -234,16 +217,4 @@ func test_refused_metal_digest_can_retry_without_publishing_or_expanding_storage
 	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES - 1),
 		&"UNDERGROUND_WORLD_BASIS_ADMISSION", "no reservation borrowing")
 	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES), &"", "clean retry")
-	if DisplayServer.get_name() == "headless":
-		assert_false(source.matches_runtime(), "the headless CI runner cannot claim an actual Metal renderer")
-
-
-func test_native_forward_outputs_reject_equivalent_paths_before_any_write() -> void:
-	"""Lexically different paths to one PNG/report cannot let report publication replace the rendered image."""
-	var helper: GDScript = load("res://data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd") as GDScript
-	assert_true(helper != null, "exact native helper loaded without running its SceneTree")
-	var alternate: String = "user://unused-parent/../test-underground-world-basis.json"
-	assert_equal(helper.output_refusal(alternate, REPORT), &"WORLD_BASIS_OUTPUT_IDENTITY", "normalized aliases refuse")
-	assert_equal(helper.output_refusal(ProjectSettings.globalize_path(REPORT), REPORT),
-		&"WORLD_BASIS_OUTPUT_IDENTITY", "absolute and user paths identify the same output")
-	assert_false(FileAccess.file_exists(REPORT), "no partial report or image was written")
+	assert_false(source.matches_runtime(), "the headless CI runner cannot claim an actual Metal renderer")

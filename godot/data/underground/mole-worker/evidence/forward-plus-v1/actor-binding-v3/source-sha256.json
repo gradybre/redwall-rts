@@ -1,0 +1,9 @@
+{
+  "godot/demo/cast/underground_actor.gd": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91",
+  "godot/test/test_underground_world_basis.gd": "b0109a95eed36fcd019af8ebd5a82b67b6f11e79662dff1b65b57c1114fc2082",
+  "godot/test/test_underground_actor.gd": "ecda2a7434a1acc3d1f319f7115f29c8fb11f43bec0a5af8c610bca7e8f4baf3",
+  "godot/data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd": "3d2d50dc000ae34574e806a4bc04de86660b1eedc8fcc662e6f15d26dab104f0",
+  "godot/data/underground/evidence/matrix-presentation/world-basis/native_actor.gd": "0aeb578d0bd1846e242b17ec6acf7e4929bfaf765ff8ce4f8270a1854911808e",
+  "godot/data/underground/evidence/matrix-presentation/native_grounding_check.gd": "81526abc472f0c067f4bb1fec35b0416335f792203d98187a40d25f772adf99d",
+  "tools/bake_underground_world_basis.gd": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f"
+}

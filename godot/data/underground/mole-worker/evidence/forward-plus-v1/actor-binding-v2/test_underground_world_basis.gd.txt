@@ -236,14 +236,3 @@ func test_refused_metal_digest_can_retry_without_publishing_or_expanding_storage
 	assert_equal(source.load_file(TEMP, FileAccess.get_sha256(TEMP), SOURCE, Actor.WorldBasis.RESERVED_BYTES), &"", "clean retry")
 	if DisplayServer.get_name() == "headless":
 		assert_false(source.matches_runtime(), "the headless CI runner cannot claim an actual Metal renderer")
-
-
-func test_native_forward_outputs_reject_equivalent_paths_before_any_write() -> void:
-	"""Lexically different paths to one PNG/report cannot let report publication replace the rendered image."""
-	var helper: GDScript = load("res://data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd") as GDScript
-	assert_true(helper != null, "exact native helper loaded without running its SceneTree")
-	var alternate: String = "user://unused-parent/../test-underground-world-basis.json"
-	assert_equal(helper.output_refusal(alternate, REPORT), &"WORLD_BASIS_OUTPUT_IDENTITY", "normalized aliases refuse")
-	assert_equal(helper.output_refusal(ProjectSettings.globalize_path(REPORT), REPORT),
-		&"WORLD_BASIS_OUTPUT_IDENTITY", "absolute and user paths identify the same output")
-	assert_false(FileAccess.file_exists(REPORT), "no partial report or image was written")

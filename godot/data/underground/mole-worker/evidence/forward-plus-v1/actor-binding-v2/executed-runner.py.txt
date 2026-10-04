@@ -1,0 +1,36 @@
+from pathlib import Path
+import hashlib,json,shutil,subprocess,sys,time,re
+root=Path.cwd(); base=root/'godot/data/underground/mole-worker/evidence/forward-plus-v1'; out=base/'actor-binding-v2'
+assert not out.exists();out.mkdir(parents=True)
+assets=root/'godot/demo/assets';aside=root/'.forward-actor-assets-aside';override=root/'godot/override.cfg'
+assert not aside.exists()
+tracked=['godot/demo/cast/underground_actor.gd','godot/test/test_underground_world_basis.gd','godot/test/test_underground_actor.gd',str((base/'native_forward_actor.gd').relative_to(root)),'godot/data/underground/evidence/matrix-presentation/world-basis/native_actor.gd','godot/data/underground/evidence/matrix-presentation/native_grounding_check.gd']
+def sha(p):return hashlib.sha256(p.read_bytes()).hexdigest()
+before={p:sha(root/p) for p in tracked};project_sha=sha(root/'godot/project.godot');old_override=override.read_bytes() if override.exists() else None
+(out/'executed-runner.py.txt').write_text(Path(__file__).read_text());(out/'source-sha256.json').write_text(json.dumps(before,indent=2)+'\n')
+record={'commands':[],'codes':[],'raw_diagnostics':{},'scope':'strict selected CI singleton suites; one Actor table; native actual Metal and legacy OpenGL synthetic witnesses'}
+raw_failed=False
+try:
+ override.write_text('[application]\nconfig/name="Redwall-Codex-Forward-Actor-V2"\nconfig/use_custom_user_dir=true\nconfig/custom_user_dir_name="Redwall-Codex-Forward-Actor-V2"\n')
+ if assets.exists(): assets.rename(aside)
+ shutil.rmtree(root/'godot/.godot',ignore_errors=True)
+ sys.path.insert(0,str(root/'tools'));import ci_test_shards as ci
+ plan=ci.make_plan(len(ci.discover()));commands=[('import',['godot','--headless','--path','godot','--editor','--quit'])]
+ for label,name in [('world-tests','test_underground_world_basis.gd'),('actor-tests','test_underground_actor.gd')]:
+  i=next(i for i,s in enumerate(plan['shards']) if s==[name]); commands.append((label,['./tools/run_tests.sh','--shard',f'{i}/{len(plan["shards"])}','--output-dir',str(out/(label+'-shards'))]))
+ commands.append(('analyzer',['python3','tools/gdscript_warnings.py',tracked[0],tracked[1],tracked[3],'--port','6149','--max','0','--json',str(out/'analyzer.json')]))
+ for label,cmd in commands:
+  record['commands'].append(cmd);start=time.monotonic()
+  with (out/(label+'.log')).open('w') as log:r=subprocess.run(cmd,cwd=root,stdout=log,stderr=subprocess.STDOUT)
+  record['codes'].append(r.returncode);text=(out/(label+'.log')).read_text();bad=re.findall(r'(?m)^(?:SCRIPT ERROR:|ERROR:|WARNING:).*|.*(?:ObjectDB instances leaked|resources still in use).*',text);record['raw_diagnostics'][label]=bad
+  print(label,r.returncode,round(time.monotonic()-start,2),'diagnostics',len(bad),flush=True)
+  if r.returncode or bad:raw_failed=bool(bad);break
+finally:
+ if aside.exists():aside.rename(assets)
+ if old_override is None:override.unlink(missing_ok=True)
+ else:override.write_bytes(old_override)
+ record['source_unchanged']=all(sha(root/p)==v for p,v in before.items());record['project_unchanged']=sha(root/'godot/project.godot')==project_sha
+ record['assets_restored']=assets.exists() and not aside.exists();record['override_restored']=(override.read_bytes() if override.exists() else None)==old_override
+ record['raw_failed']=raw_failed;(out/'invocation.json').write_text(json.dumps(record,indent=2)+'\n')
+print(json.dumps(record),flush=True)
+sys.exit(0 if record['codes']==[0]*4 and not raw_failed and all(record[k] for k in ['source_unchanged','project_unchanged','assets_restored','override_restored']) else 1)

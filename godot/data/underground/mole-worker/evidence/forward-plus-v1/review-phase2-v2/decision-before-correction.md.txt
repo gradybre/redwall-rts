@@ -114,20 +114,3 @@ rendered skin/static attachment movement, cleanup and re-entry. The GL reader
 and original native witness remain supported. This is a reader/presentation
 component; complete Metal numerical enclosure and source-qualified profiles
 still require their separate proof.
-
-## Phase-two reviewed witness and output-identity correction
-
-Root independently accepted the WorldBasis reader/native presentation scope
-with no high/medium finding, then identified a LOW native evidence path-alias
-risk. The helper now uses the exact pinned existing producer's canonical
-create-only guard. Equivalent relative/absolute output names refuse before
-writing either artifact. Original helper/test bytes, native-v1 and original
-review manifests remain unchanged, with explicit historical locators.
-
-The corrected clean singleton suite reports12tests/246assertions/0failures,
-zero strict/raw diagnostics and leaks, analyzer0/3; actual Metal45assertions
-and legacy OpenGL21assertions both pass cleanly. Source/project/assets/override
-restoration is verified. The unchanged Actor regression remains21tests/225
-assertions from the preceding exact source. Review-phase2-v2 records the narrow
-correction and all exact pins. No complete Metal enclosure/profile or World
-qualification follows, and the one-table reservation remains unchanged.

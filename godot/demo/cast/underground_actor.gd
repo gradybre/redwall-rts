@@ -39,7 +39,8 @@ class WorldBasis extends RefCounted:
 		var hashing: HashingContext = HashingContext.new()
 		hashing.start(HashingContext.HASH_SHA256)
 		var metadata: Dictionary = _header(file, hashing, producer)
-		var code: StringName = &"UNDERGROUND_WORLD_BASIS_HEADER" if metadata.is_empty() else _read_rows(file, hashing)
+		var code: StringName = &"UNDERGROUND_WORLD_BASIS_HEADER" if metadata.is_empty() \
+			else _read_rows(file, hashing, int(metadata.get("schema", 1)))
 		if code == &"" and hashing.finish().hex_encode() != digest:
 			code = &"UNDERGROUND_WORLD_BASIS_DIGEST"
 		file.close()
@@ -65,8 +66,8 @@ class WorldBasis extends RefCounted:
 		if file.get_length() < 28 + COEFFICIENT_BYTES or file.get_length() > 28 + COEFFICIENT_BYTES + METADATA_BYTES:
 			return {}
 		var header: PackedByteArray = file.get_buffer(20)
-		if header.size() != 20 or header.slice(0, 8).get_string_from_ascii() != "UGYAW001" \
-				or header.decode_u32(8) != 1 or header.decode_u32(12) != HEADINGS:
+		var version: int = _wire_version(header)
+		if version == 0:
 			return {}
 		var count: int = header.decode_u32(16)
 		if count < 1 or count > TEXT_BYTES or file.get_length() != 28 + COEFFICIENT_BYTES + count:
@@ -78,9 +79,32 @@ class WorldBasis extends RefCounted:
 		hashing.update(bytes)
 		var value: Variant = JSON.parse_string(bytes.get_string_from_utf8())
 		if not value is Dictionary or not value.get("source") is Dictionary \
-				or value.source.get("sha256") != producer or backend_refusal(value) != &"":
+				or value.source.get("sha256") != producer or not _wire_metadata_matches(value, version):
 			return {}
 		return value
+
+	static func _wire_version(header: PackedByteArray) -> int:
+		"""The fixed header admits exactly one reviewed version; no filename or metadata can substitute for it."""
+		if header.size() != 20 or header.decode_u32(12) != HEADINGS:
+			return 0
+		var version: int = header.decode_u32(8)
+		var magic: String = header.slice(0, 8).get_string_from_ascii()
+		if (version == 1 and magic == "UGYAW001") or (version == 2 and magic == "UGYAW002"):
+			return version
+		return 0
+
+	static func _wire_metadata_matches(metadata: Dictionary, version: int) -> bool:
+		"""Version, actual backend and source schema are one contract; v1's previously optional schema stays optional."""
+		if metadata.get("schema", 1) != version or backend_refusal(metadata) != &"":
+			return false
+		if version == 1:
+			return metadata.get("rendering_driver") == "opengl3"
+		var coefficient_source: Variant = metadata.get("coefficient_source_sha256")
+		return version == 2 and metadata.get("rendering_driver") == "metal" \
+			and coefficient_source is String and valid_digest(coefficient_source) \
+			and metadata.get("heading_count") == HEADINGS and metadata.get("physical_qualified") == false \
+			and metadata.get("orientation") == "0=-Z,+quarter=-X; +Y up" \
+			and metadata.get("coefficient_order") == ["basis.x.x", "basis.z.x"]
 
 	static func metadata_shape_admitted(bytes: PackedByteArray) -> bool:
 		"""Bound JSON container/member work before its decoder allocates; string contents never count as syntax."""
@@ -110,8 +134,10 @@ class WorldBasis extends RefCounted:
 				return false
 		return not quoted and depth == 0 and bytes.size() <= TEXT_BYTES
 
-	func _read_rows(file: FileAccess, hashing: HashingContext) -> StringName:
+	func _read_rows(file: FileAccess, hashing: HashingContext, version: int = 1) -> StringName:
 		"""Every binary32 pair and footer participates in the same open-file hash before publication."""
+		if version != 1 and version != 2:
+			return &"UNDERGROUND_WORLD_BASIS_HEADER"
 		_coefficients.resize(HEADINGS * 2)
 		for yaw: int in HEADINGS:
 			var row: PackedByteArray = file.get_buffer(8)
@@ -126,11 +152,12 @@ class WorldBasis extends RefCounted:
 			_coefficients[yaw * 2 + 1] = s
 		var footer: PackedByteArray = file.get_buffer(8)
 		hashing.update(footer)
-		return &"" if footer.get_string_from_ascii() == "UGYEND01" and file.get_position() == file.get_length() \
+		var expected: String = "UGYEND01" if version == 1 else "UGYEND02"
+		return &"" if footer.get_string_from_ascii() == expected and file.get_position() == file.get_length() \
 			else &"UNDERGROUND_WORLD_BASIS_FOOTER"
 
 	static func backend_refusal(metadata: Dictionary) -> StringName:
-		"""Only the reviewed official single-precision desktop GL source contract is supported."""
+		"""The exact official engine and reviewed GL or Metal source backend are required independently of wire metadata."""
 		var raw: Variant = metadata.get("engine")
 		if not raw is Dictionary:
 			return &"UNDERGROUND_WORLD_BASIS_ENGINE"
@@ -138,6 +165,10 @@ class WorldBasis extends RefCounted:
 		if engine.get("major") != 4 or engine.get("minor") != 7 or engine.get("patch") != 2 \
 				or engine.get("hash") != ENGINE_HASH or engine.get("build") != "official" or engine.get("status") != "stable":
 			return &"UNDERGROUND_WORLD_BASIS_ENGINE"
+		if metadata.get("rendering_driver") == "metal":
+			if metadata.get("rendering_method") != "forward_plus" or metadata.get("display_server") != "macOS":
+				return &"UNDERGROUND_WORLD_BASIS_BACKEND"
+			return &"" if metadata.get("api_version") == "4.0" else &"UNDERGROUND_WORLD_BASIS_PRECISION"
 		if metadata.get("rendering_driver") != "opengl3" or metadata.get("rendering_method") != "gl_compatibility" \
 				or metadata.get("display_server") not in ["macOS", "Windows", "X11", "Wayland"]:
 			return &"UNDERGROUND_WORLD_BASIS_BACKEND"

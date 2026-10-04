@@ -1,0 +1,91 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "241/379",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/world-tests-shards"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "148/379",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/actor-tests-shards"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "godot/demo/cast/underground_actor.gd",
+      "godot/test/test_underground_world_basis.gd",
+      "godot/data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "--json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/analyzer.json"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/native_forward_actor.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/forward.ugyaw",
+      "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+      "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/metal.png",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/native-report.json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/.forward-actor-assets-aside/underground-matrices/world-yaw-v1.ugyaw"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--rendering-driver",
+      "opengl3",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/world-basis/native_actor.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/.forward-actor-assets-aside/underground-matrices/world-yaw-v1.ugyaw",
+      "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+      "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/actor-binding-v1/gl.png"
+    ]
+  ],
+  "codes": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "raw_diagnostics": {
+    "import": [],
+    "world-tests": [],
+    "actor-tests": [],
+    "analyzer": [],
+    "native-metal": [],
+    "native-gl": []
+  },
+  "scope": "strict selected CI singleton suites; one Actor table; native actual Metal and legacy OpenGL synthetic witnesses",
+  "source_unchanged": true,
+  "project_unchanged": true,
+  "assets_restored": true,
+  "override_restored": true,
+  "raw_failed": false
+}

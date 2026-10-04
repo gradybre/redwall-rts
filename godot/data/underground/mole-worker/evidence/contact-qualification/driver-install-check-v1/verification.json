@@ -1,0 +1,18 @@
+{
+  "returncodes": [
+    0,
+    0,
+    0
+  ],
+  "diagnostic_failure": false,
+  "exception": "",
+  "source_unchanged": true,
+  "source_after": {
+    "godot/data/underground/mole-worker/mole_profile_driver.gd": "b88fd7173f6676635f965a192b83166c6ecdee6aafeef8fe38df584a5f142363",
+    "godot/test/test_mole_profile_driver.gd": "3312bd29488d108b80aa8e72b294d452bdcf233b14cc3904cafd8fab415f0e11"
+  },
+  "assets_restored": true,
+  "user_directory_name": "Redwall-Codex-Install-Driver-v1",
+  "override_sha256": "7c60e84bc4106f595fd6640d4562dbce230786eff2c33691a04de0075fdf7a35",
+  "override_removed": true
+}

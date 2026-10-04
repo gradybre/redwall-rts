@@ -1271,3 +1271,53 @@ reports zero warnings in one file. The reviewer inspected side, opposite and
 RTS-distance views and found no high or medium source-scope issue. This remains
 a source-local yaw-zero engineering candidate, not actual WIP publication,
 whole-game art, production profile, BUILD credit or pace qualification.
+
+### Shared-hub INSTALL program (implementation design)
+
+Version 3 extends the existing compact program with one fixed role, INSTALL
+profile 5, and its work/entry/recovery clips 11/12/13. The preceding eleven
+clips and profile roles 0 through 4 retain their exact source values. Versions
+1 and 2 remain valid without selecting the new protocol implicitly. The
+driver must reject exchanged productive profile tuples and must retain the
+actual worker, Job, tool, root and source observation throughout interruption
+and recovery. Its ready state never grants work credit or terrain permission.
+
+The new compiler imports the accepted compact and installation source images,
+verifies their pinned source closure, and checks the shared idle-frame-8 hub
+and exact reversed recovery. The finite installation work cycle has identical
+first/last values. Marking that cycle as looping is permitted only after the
+compiler proves that the renderer's closing edge has the same endpoint values
+as the already checked finite interval; unequal endpoints refuse. No new
+motion, grip, source speed, labor amount or gameplay pace is authored here.
+
+The final program must preserve the complete body/tool partitions, the Y128
+adze contact patch and both exact workpiece prisms. Proof reuse requires exact
+source values and digests, not a prior success flag or filename. The full
+packed driver maximum grows by 36 bytes, from 396 to 432; the source image,
+decode and palette coexistence allowances are recalculated by the existing
+bounded encoder. No simulation reserve is borrowed for presentation data.
+
+This program covers fitting an already present bearer. Carrying, manufacturing
+and laying that bearer in place still require actual paid WIP and physical
+handling ownership. Fitting entry cannot imply those missing actions, and no
+production flags are emitted by this content increment.
+
+### INSTALL driver protocol component accepted
+
+The independent root review accepted the explicit version3 driver at source
+`b88fd717` and test `3312bd29`. Versions1/2 retain their old census; version3
+requires exactly six source roles and fourteen clips. Installation owns
+profile5 and clips11/12/13. Real Profile/Resident/Job/Work/Gear queries and
+fixed root observation remain mandatory through partial entry, productive
+interruption and exact recovery. No ready or animation state grants work
+credit, a route, timber or a physical workpiece.
+
+The isolated exact CI singleton run in `driver-install-check-v1` passed11 tests,
+242 assertions and0 failures. Both strict/raw diagnostics and leak counts are
+zero; the changed-file analyzer reports0 warnings in2 files. Assets, source
+pins and the temporary user-directory override were restored/unchanged as
+recorded. Maximum packed driver storage is432bytes,36 above version2, with
+existing168-byte Selection,16-byte handles and1-byte retirement control.
+Caller Frame and cold400+18-byte scratch remain separately counted. Native
+allocation and complete source/decoder/presentation coexistence remain open;
+this source-clock component emits no production qualification.

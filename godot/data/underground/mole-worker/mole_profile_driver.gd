@@ -14,11 +14,13 @@ const FADE_TIME: int = 15 * 32768
 const MAX_DELTA: int = 4 * ONE
 const PROGRAM_ORIGINAL: int = 1
 const PROGRAM_COMPACT: int = 2
+const PROGRAM_INSTALL: int = 3
 const PROFILE_STAND: int = 0
 const PROFILE_WALK: int = 1
 const PROFILE_DOWN: int = 2
 const PROFILE_HIGH: int = 3
 const PROFILE_FRONT: int = 4
+const PROFILE_INSTALL: int = 5
 const READY: int = 0
 const IDLE: int = 1
 const WALK: int = 2
@@ -64,8 +66,8 @@ var _source: Content = null
 var _profiles: Profiles = null
 var _worker: Vector2i = NULL_REF
 var _tool: Vector2i = NULL_REF
-var _pins: PackedInt64Array = PackedInt64Array() # Four or five exact (profile,revision,content) tuples.
-var _durations: PackedInt32Array = PackedInt32Array() # Eight or eleven immutable source clips.
+var _pins: PackedInt64Array = PackedInt64Array() # Four to six exact (profile,revision,content) tuples.
+var _durations: PackedInt32Array = PackedInt32Array() # Eight, eleven or fourteen immutable source clips.
 var _live: PackedInt64Array = PackedInt64Array()
 var _stage: PackedInt64Array = PackedInt64Array()
 var _pose: PackedInt32Array = PackedInt32Array([0, 0, 0])
@@ -79,10 +81,10 @@ func configure(source: Content, profiles: Profiles, definitions: Residents, work
 	"""Cold source/row binding only; each later update re-reads actual worker/Job/tool/pose owners."""
 	if _source != null or _retired:
 		return &"MOLE_DRIVER_ALREADY_BOUND"
-	if program_version != PROGRAM_ORIGINAL and program_version != PROGRAM_COMPACT:
+	if program_version != PROGRAM_ORIGINAL and program_version != PROGRAM_COMPACT and program_version != PROGRAM_INSTALL:
 		return &"MOLE_DRIVER_PROGRAM"
-	var profile_count: int = 4 if program_version == PROGRAM_ORIGINAL else 5
-	var clip_count: int = 8 if program_version == PROGRAM_ORIGINAL else 11
+	var profile_count: int = program_version + 3
+	var clip_count: int = profile_count * 3 - 4
 	if source == null or profiles == null or definitions == null or worker == NULL_REF or tool == NULL_REF \
 			or pins.size() != profile_count * 3 or source.source_digest() != digest or digest.length() != 64 \
 			or source.clip_count() != clip_count:
@@ -113,8 +115,9 @@ func _profile_bindings(source: Content, profiles: Profiles, definitions: Residen
 	if not mole.ok or not rig.ok:
 		return &"MOLE_DRIVER_CATALOG"
 	var descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
-	for row: int in (4 if source.clip_count() == 8 else 5):
-		# Each source-hashed program owns stable profile IDs 0..3 or0..4 in this exact role order.
+	@warning_ignore("integer_division") var profile_count: int = pins.size() / 3
+	for row: int in profile_count:
+		# Each source-hashed program owns stable profile IDs 0..3, 0..4 or 0..5 in this exact role order.
 		# A caller cannot bind the high-contact certificate to the downward source clips.
 		if pins[row * 3] != row:
 			return &"MOLE_DRIVER_PROFILE_ROLE"
@@ -134,7 +137,7 @@ func _profile_bindings(source: Content, profiles: Profiles, definitions: Residen
 
 
 func _read_timing(source: Content) -> StringName:
-	"""Both programs start idle/walk, then exact down/high and (v2 only) front work/entry/recovery triples."""
+	"""Programs start idle/walk, then exact down/high, v2 front and v3 INSTALL work/entry/recovery triples."""
 	var timing: PackedInt32Array = PackedInt32Array([0, 0])
 	_durations.resize(source.clip_count())
 	for clip: int in source.clip_count():
@@ -156,7 +159,7 @@ func step_into(profile: int, job: Vector2i, delta_q16: int, request_ready: bool,
 	"""Advance a proved source phase, never an economic timer; every refused result preserves output and phase."""
 	if _source == null or _retired or out == null or out.frames.size() != 7:
 		return &"MOLE_DRIVER_UNBOUND"
-	if profile < 0 or profile > PROFILE_FRONT or profile * 3 >= _pins.size() \
+	if profile < 0 or profile > PROFILE_INSTALL or profile * 3 >= _pins.size() \
 			or delta_q16 < 0 or delta_q16 > MAX_DELTA:
 		return &"MOLE_DRIVER_INPUT"
 	if _live[C_PHASE] != READY and (profile != _live[C_PROFILE] or job != _job(_live)):

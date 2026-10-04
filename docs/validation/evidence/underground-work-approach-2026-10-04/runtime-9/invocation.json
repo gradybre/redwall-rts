@@ -1,0 +1,102 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.68,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "248/398",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9"
+      ],
+      "exit_code": 0,
+      "seconds": 4.48,
+      "log": "test_underground_profiles.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "34/398",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9"
+      ],
+      "exit_code": 0,
+      "seconds": 16.655,
+      "log": "test_underground_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "65/398",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9"
+      ],
+      "exit_code": 0,
+      "seconds": 12.672,
+      "log": "test_underground_world_routes.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "231/398",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9"
+      ],
+      "exit_code": 0,
+      "seconds": 4.398,
+      "log": "test_mole_profile_driver.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6367",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/runtime-9/analyzer.json",
+        "godot/scripts/core/underground_profiles.gd",
+        "godot/scripts/core/underground_routes.gd",
+        "godot/scripts/core/underground_world_routes.gd",
+        "godot/data/underground/mole-worker/mole_profile_driver.gd",
+        "godot/data/underground/mole-worker/work-approach-v1/source_program.gd",
+        "godot/test/test_underground_profiles.gd",
+        "godot/test/test_underground_routes.gd",
+        "godot/test/test_underground_world_routes.gd",
+        "godot/test/test_mole_profile_driver.gd",
+        "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 14.362,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-work-approach",
+  "project_test_sha256": "d1f6a408a8ae9162554bb8e6ec8c3cc6b480183ba64633dbef823c6f440a9e07",
+  "assets_present_before": true,
+  "registry_sha256_before": "390d3a9e009d6e8eddbc034b9decf4c0f0c895c5d955f04e43ffd7a25a46fb94",
+  "registry_diagnostic_append_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "clean_import_raw_diagnostics": 0,
+  "project_restored": true,
+  "assets_restored": true,
+  "registry_restored": true,
+  "exit_code": 0
+}

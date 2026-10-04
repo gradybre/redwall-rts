@@ -1,0 +1,73 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+canonical-frame: 4 side-yaw0-tick004
+canonical-frame: 24 side-yaw0-tick024
+canonical-frame: 46 side-yaw0-tick046
+canonical-frame: 62 side-yaw0-tick062
+canonical-frame: 94 side-yaw0-tick094
+canonical-frame: 128 side-yaw0-tick128
+canonical-frame: 158 side-yaw0-tick158
+canonical-frame: 188 side-yaw0-tick188
+canonical-frame: 192 side-yaw16384-tick004
+canonical-frame: 212 side-yaw16384-tick024
+canonical-frame: 234 side-yaw16384-tick046
+canonical-frame: 250 side-yaw16384-tick062
+canonical-frame: 282 side-yaw16384-tick094
+canonical-frame: 316 side-yaw16384-tick128
+canonical-frame: 346 side-yaw16384-tick158
+canonical-frame: 376 side-yaw16384-tick188
+canonical-frame: 380 side-yaw32768-tick004
+canonical-frame: 400 side-yaw32768-tick024
+canonical-frame: 422 side-yaw32768-tick046
+canonical-frame: 438 side-yaw32768-tick062
+canonical-frame: 470 side-yaw32768-tick094
+canonical-frame: 504 side-yaw32768-tick128
+canonical-frame: 534 side-yaw32768-tick158
+canonical-frame: 564 side-yaw32768-tick188
+canonical-frame: 568 side-yaw49152-tick004
+canonical-frame: 588 side-yaw49152-tick024
+canonical-frame: 610 side-yaw49152-tick046
+canonical-frame: 626 side-yaw49152-tick062
+canonical-frame: 658 side-yaw49152-tick094
+canonical-frame: 692 side-yaw49152-tick128
+canonical-frame: 722 side-yaw49152-tick158
+canonical-frame: 752 side-yaw49152-tick188
+canonical-frame: 756 rts-yaw0-tick004
+canonical-frame: 776 rts-yaw0-tick024
+canonical-frame: 798 rts-yaw0-tick046
+canonical-frame: 814 rts-yaw0-tick062
+canonical-frame: 846 rts-yaw0-tick094
+canonical-frame: 880 rts-yaw0-tick128
+canonical-frame: 910 rts-yaw0-tick158
+canonical-frame: 940 rts-yaw0-tick188
+canonical-frame: 944 rts-yaw16384-tick004
+canonical-frame: 964 rts-yaw16384-tick024
+canonical-frame: 986 rts-yaw16384-tick046
+canonical-frame: 1002 rts-yaw16384-tick062
+canonical-frame: 1034 rts-yaw16384-tick094
+canonical-frame: 1068 rts-yaw16384-tick128
+canonical-frame: 1098 rts-yaw16384-tick158
+canonical-frame: 1128 rts-yaw16384-tick188
+canonical-frame: 1132 rts-yaw32768-tick004
+canonical-frame: 1152 rts-yaw32768-tick024
+canonical-frame: 1174 rts-yaw32768-tick046
+canonical-frame: 1190 rts-yaw32768-tick062
+canonical-frame: 1222 rts-yaw32768-tick094
+canonical-frame: 1256 rts-yaw32768-tick128
+canonical-frame: 1286 rts-yaw32768-tick158
+canonical-frame: 1316 rts-yaw32768-tick188
+canonical-frame: 1320 rts-yaw49152-tick004
+canonical-frame: 1340 rts-yaw49152-tick024
+canonical-frame: 1362 rts-yaw49152-tick046
+canonical-frame: 1378 rts-yaw49152-tick062
+canonical-frame: 1410 rts-yaw49152-tick094
+canonical-frame: 1444 rts-yaw49152-tick128
+canonical-frame: 1474 rts-yaw49152-tick158
+canonical-frame: 1504 rts-yaw49152-tick188
+native-canonical: 1504 poses, 9336 assertions, 0 failures; qualified=0

@@ -1,0 +1,38 @@
+clean-import.log 0
+test_underground_profiles.gd.log 0
+27 test(s), 643 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 27 tests, 643 assertions, 0 failures.
+test_underground_routes.gd.log 0
+SOURCE-CLOCK-TIMING samples4096 digest_us=19568 phase_us=29438 work_us=35318 one_actor_ticks512_us=84020 synthetic_geometry=true qualification=false
+HOT-REACH 256-callers 3-spans O2048 batches20 us min=16560 median=16731 p95=16952 max=16977
+73 test(s), 11633 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 73 tests, 11633 assertions, 0 failures.
+test_underground_world_routes.gd.log 0
+39 test(s), 2437 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 39 tests, 2437 assertions, 0 failures.
+test_mole_profile_driver.gd.log 0
+16 test(s), 1472 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 16 tests, 1472 assertions, 0 failures.
+analyzer.log 1
+error: more than the allowed 0 warning(s)
+1 GDScript warning(s) in 1 of 10 file(s)
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/reproduce.py", line 122, in <module>
+    raise SystemExit(main())
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/reproduce.py", line 105, in main
+    sidecar.write_bytes(data)
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1265, in write_bytes
+    with self.open(mode='wb') as f:
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1242, in open
+    return io.open(self, mode, buffering, encoding, errors, newline,
+  File "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/pathlib.py", line 1110, in _opener
+    return self._accessor.open(self, flags, mode)
+FileNotFoundError: [Errno 2] No such file or directory: '/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/demo/assets/cast/mole_digger/wave_one_hand.glb.import'

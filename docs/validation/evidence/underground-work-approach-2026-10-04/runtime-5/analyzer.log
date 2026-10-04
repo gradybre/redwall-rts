@@ -1,0 +1,7 @@
+error: more than the allowed 0 warning(s)
+data/underground/mole-worker/work-approach-v1/source_program.gd:52: (SHADOWED_VARIABLE): The local function parameter "word" is shadowing an already-declared function at line 76 in the current class.
+data/underground/mole-worker/work-approach-v1/source_program.gd:52: (SHADOWED_VARIABLE): The local function parameter "clock" is shadowing an already-declared function at line 81 in the current class.
+scripts/core/underground_routes.gd:2173: (SHADOWED_VARIABLE): The local variable "revision" is shadowing an already-declared function at line 750 in the current class.
+scripts/core/underground_routes.gd:2204: (SHADOWED_VARIABLE): The local function parameter "revision" is shadowing an already-declared function at line 750 in the current class.
+scripts/core/underground_routes.gd:2217: (SHADOWED_VARIABLE): The local function parameter "revision" is shadowing an already-declared function at line 750 in the current class.
+5 GDScript warning(s) in 2 of 9 file(s)

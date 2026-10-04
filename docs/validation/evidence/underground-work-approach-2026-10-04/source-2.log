@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py", line 218, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py", line 204, in main
+    result = compile_approach()
+             ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/work-approach-v1/compile_work_approach.py", line 156, in compile_approach
+    cases, parts, rig, topology, roots, count, historical, _ = M.source_program()
+                                                               ^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/compile_profile_publication.py", line 54, in source_program
+    compact, parts, rig, topology, roots, count, historical = I.M.read_actual_source()
+                                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py", line 30, in read_actual_source
+    original, sources, historical = W.extract_original(Path(value("source")), value("source-sha256"), proof, plan,
+                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py", line 77, in extract_original
+    historical = snapshot_sources(reader.metadata, snapshot)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py", line 151, in snapshot_sources
+    return historical_snapshot(metadata, snapshot, original_snapshot)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/renew_source_closure.py", line 124, in historical_snapshot
+    result = original(metadata, snapshot)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py", line 62, in snapshot_sources
+    P.require(source.is_file(), "WALL_SOURCE_SNAPSHOT_MISSING")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: WALL_SOURCE_SNAPSHOT_MISSING

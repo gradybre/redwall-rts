@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+  "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+  "godot/scripts/core/underground_world_routes.gd": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+  "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+  "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+  "godot/test/test_underground_profiles.gd": "11ae21295a399ce73254f5c7254d22a80e1d7e75cd069c3fbd9a6382a0c80b69",
+  "godot/test/test_underground_routes.gd": "dd996205d07b9b8458b9fa1957f8842cafed04090ade112f2d3cd8ec86b231af",
+  "godot/test/test_underground_world_routes.gd": "1f85853b55354f8589f1da02deb3d70925762b6566ac7618a03555fad7033fe2",
+  "godot/test/test_mole_profile_driver.gd": "80110673489a4f46e78d44ffb29391de1195efb3f93e0c387f03f0126d98282c",
+  "godot/data/underground/mole-worker/work-approach-v1/capture_canonical.gd": "3d830307e6d703a84a38abdc53da11e0a8d6a9df7e50e927b57f7f94a648e5ad"
+}

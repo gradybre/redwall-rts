@@ -1,0 +1,49 @@
+{
+  "source_sha256": {
+    "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+    "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+    "godot/test/test_underground_routes.gd": "dd996205d07b9b8458b9fa1957f8842cafed04090ade112f2d3cd8ec86b231af"
+  },
+  "log": "runtime-9/test_underground_routes.gd.log",
+  "samples": 4096,
+  "digest_us": 19460,
+  "actor_phase_us": 29499,
+  "source_work_leaf_us": 35343,
+  "one_actor_work_ticks": 512,
+  "one_actor_work_tick_us": 84233,
+  "per_call_us": {
+    "source_profile": 4.7509765625,
+    "actor_phase": 7.201904296875,
+    "source_work_leaf": 8.628662109375,
+    "single_actual_owner_tick": 164.517578125
+  },
+  "direct_source_digest_calls": {
+    "profile_refusal": 1,
+    "actor_phase_in": 1,
+    "source_work_leaf_refusal": 1,
+    "source_ready_leaf_refusal": 1,
+    "source_state_leaf_into": 1,
+    "source_work_observation_refusal": 2,
+    "read_actor_into": 2,
+    "advance_stationary_source_including_actor_read": 4,
+    "advance_moving_actor_own_path": 2
+  },
+  "stationary_trace": [
+    "advance_tick -> _advance_actor -> read_actor_into -> _source_clock_refusal -> _source_clock_leaf -> profile_refusal",
+    "read_actor_into -> _write_actor -> _route_phase_at -> _source_clock_refusal -> _source_clock_leaf -> profile_refusal",
+    "_advance_stationary_source -> _qualify_actor_at -> profile_refusal before provider observation",
+    "_advance_stationary_source -> _source_clock_refusal -> _source_clock_leaf -> profile_refusal after provider observation"
+  ],
+  "each_digest_call": {
+    "source_bytes_compared": 32,
+    "unicode_character_reads": 64,
+    "char_nibbles_converted": 64
+  },
+  "limits": [
+    "Actual real actor/Job/Profile owners, explicitly synthetic spatial/certificate fixture.",
+    "Call counts cover the listed direct component path. Foreign WorldRoutes/Contacts/occupant callers add their own queries.",
+    "One machine, one focused batch; no256 population/target hardware/game budget qualification.",
+    "Legacy policy0 skips immutable protocol5 digest loop; its decoded legacy identity compatibility remains.",
+    "Repeated full immutable digest checks remain in place. No cache, new retained field, or work-budget change."
+  ]
+}

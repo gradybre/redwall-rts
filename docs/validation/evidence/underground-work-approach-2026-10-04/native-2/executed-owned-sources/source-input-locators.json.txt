@@ -1,0 +1,29 @@
+{
+  "source_commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+  "rows": [
+    {
+      "path": "res://scripts/core/work.gd",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/core/work.gd",
+      "bytes": 79804,
+      "sha256": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d"
+    },
+    {
+      "path": "res://scripts/systems/settlement_system.gd",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/systems/settlement_system.gd",
+      "bytes": 226439,
+      "sha256": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a"
+    },
+    {
+      "path": "res://scripts/systems/ui_manager.gd",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/systems/ui_manager.gd",
+      "bytes": 36942,
+      "sha256": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d"
+    },
+    {
+      "path": "res://scripts/ui/ui_world_session.gd",
+      "git_object": "ecbfcb123ddf682252421584cccb9b473b234a8d:godot/scripts/ui/ui_world_session.gd",
+      "bytes": 21933,
+      "sha256": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5"
+    }
+  ]
+}

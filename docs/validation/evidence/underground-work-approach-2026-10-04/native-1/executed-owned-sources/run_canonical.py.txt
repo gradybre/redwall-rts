@@ -1,0 +1,324 @@
+#!/usr/bin/env python3
+"""Create-only diagnostic native replay of the actual canonical approach Driver, with bounded independent verification."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import re
+import struct
+import subprocess
+
+import numpy as np
+
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[4]
+CONTACT = HERE.parent / "evidence/contact-qualification"
+SPEC = importlib.util.spec_from_file_location("canonical_native_import_support", CONTACT / "run_high_wall.py")
+H = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(H)
+B = H.BASE
+ONE = 65536
+DURATION = 2097153
+IMAGE_SHA = "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
+OLD_PROFILE_SHA = "b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac"
+
+
+def need(value, code):
+    if not value:
+        raise ValueError(code)
+
+
+def bounded(path, limit):
+    need(path.is_file() and not path.is_symlink() and path.stat().st_size <= limit, "CANONICAL_INPUT_CAPACITY")
+    return path.read_bytes()
+
+
+def json_read(path, limit=1048576):
+    return json.loads(bounded(path, limit))
+
+
+def diagnostic_wire(proof):
+    """Exact historical rows plus whole additive source geometry; flags are diagnostic, never publication."""
+    raw = bounded(HERE.parent / "profile-publication-v2/mole-worker.ugprof", 16384)
+    need(hashlib.sha256(raw).hexdigest() == OLD_PROFILE_SHA and raw[:8] == b"UGPROF01" and
+         struct.unpack_from("<III", raw, 20) == (18, 194, 1), "CANONICAL_OLD_PROFILE")
+    need(proof["actor_sha256"] == IMAGE_SHA and proof["verified_source_files"] == 537 and
+         proof["certificate_bits_written"] == 0 and proof["production_qualified"] is False and
+         len(proof["rows"]) == 8, "CANONICAL_SOURCE_PROOF")
+    original = [raw[64 + i * 98:64 + (i + 1) * 98] for i in range(18)]
+    boxes = [struct.unpack_from("<7i", raw, 64 + 18 * 98 + i * 28) for i in range(194)]
+    records, output = [], []
+    for at in range(26):
+        old = at if at < 2 else (1 if at < 10 else at - 8)
+        fields = list(struct.unpack_from("<18i", original[old]))
+        first, count = fields[14:16]
+        selected = boxes[first:first + count]
+        policy = 0
+        if 2 <= at < 10:
+            row = proof["rows"][at - 2]
+            need(row["profile"] == at and row["yaw"] == ((at - 2) % 4) * 16384 and
+                 row["selection_policy"] == (1 if at < 6 else 2), "CANONICAL_ROW_MAP")
+            selected = [tuple(box) + (role,) for name, role in
+                        (("BODY_HELD_LOAD", 0), ("STANCE_SUPPORT", 1), ("TURN_RECOVERY", 2))
+                        for box in row["roles"][name]]
+            need(len(selected) == 7, "CANONICAL_WHOLE_BOXES")
+            fields[10:12] = [0, row["yaw"]]
+            policy = row["selection_policy"]
+        elif at >= 10:
+            policy = 3
+        fields[14:16] = [len(output), len(selected)]
+        records.append(struct.pack("<18i", *fields) + original[old][72:96] + bytes([15, policy]))
+        output.extend(selected)
+    need(len(output) == 250, "CANONICAL_BOX_CENSUS")
+    header = b"UGPROF01" + struct.pack("<IqIII", 2, 2, 26, 250, 1) + bytes.fromhex(IMAGE_SHA)
+    result = header + b"".join(records) + b"".join(struct.pack("<7i", *box) for box in output) + b"UGPEND01"
+    need(len(result) == 9620, "CANONICAL_WIRE_CENSUS")
+    return result
+
+
+def clip_frames(row, elapsed):
+    first, count, loop, duration = row
+    q = elapsed % duration if loop == 1 else min(elapsed, duration)
+    need(loop in (0, 1) and elapsed >= 0, "CANONICAL_TIMING")
+    if q == duration:
+        return [first + count - 1, first + count - 1, 0]
+    last = (count - 2) * ONE
+    if q >= last:
+        return [first + count - 2, first if loop == 1 else first + count - 1,
+                (q - last) * ONE // (duration - last)]
+    return [first + q // ONE, first + q // ONE + 1, q % ONE]
+
+
+def expected_state(tick):
+    """Independent fixed sequence, including eight fade ticks and thirty actual ground displacement ticks."""
+    if tick <= 7:
+        return [4, tick * ONE, 0, 2]
+    if tick <= 37:
+        return [2, (tick - 8) * ONE, 0, 2]
+    if tick <= 45:
+        return [3, (tick - 38) * ONE, 30 * ONE, 0]
+    if tick == 46:
+        return [0, 0, 0, 0]
+    if tick <= 75:
+        return [5, (tick - 46) * ONE, 0, 0]
+    if tick <= 112:
+        return [6, ((tick - 76) * ONE) % (36 * ONE), 0, 0]
+    if tick <= 141:
+        return [7, (tick - 112) * ONE, 0, 0]
+    if tick == 142:
+        return [0, 0, 0, 0]
+    return expected_state(tick - 142)
+
+
+def expected_frames(profile, state, table):
+    phase, q, old, _ = state
+    if phase in (0, 3):
+        clip, q = 0, 8 * ONE
+    elif phase == 4:
+        clip, q = 1, 0
+    elif phase == 2:
+        clip = 1
+        if 6 <= profile < 10:
+            q = (DURATION - q) % DURATION
+    else:
+        clip = {5: 9, 6: 8, 7: 10}[phase]
+    now = clip_frames(table[clip], q)
+    prior, share = now, ONE
+    if phase in (3, 4):
+        if 6 <= profile < 10:
+            old = (DURATION - old) % DURATION
+        prior = clip_frames(table[1], old) if phase == 3 else clip_frames(table[0], 8 * ONE)
+        share = state[1] * ONE // 491520
+    return now + prior + [share]
+
+
+def source_arrays(spec):
+    raw = bounded(Path(spec["content"]), 4194304 + 8192)
+    need(hashlib.sha256(raw).hexdigest() == IMAGE_SHA, "CANONICAL_IMAGE")
+    table = B.wire_timing(spec)
+    _, _, parts, clips, frames, stride = struct.unpack_from("<6I", raw, 8)
+    need(parts == 2 and clips == 14 and stride == 25 * 12 and
+         struct.unpack_from("<I", raw, 184)[0] == 24 and struct.unpack_from("<I", raw, 256)[0] == 0,
+         "CANONICAL_IMAGE_LAYOUT")
+    offset = 184 + parts * 72 + clips * 48
+    matrix = np.frombuffer(raw, dtype="<f4", count=frames * stride, offset=offset).reshape(frames, 25, 12)
+    ground = np.frombuffer(raw, dtype="<f4", count=frames, offset=offset + frames * stride * 4)
+    need(np.isfinite(matrix).all() and np.isfinite(ground).all(), "CANONICAL_IMAGE_FINITE")
+    return table, matrix, ground
+
+
+def blend(array, frames):
+    a, b, t, c, d, u, share = frames
+    current = array[a].astype(np.float64) * (1 - t / ONE) + array[b].astype(np.float64) * (t / ONE)
+    previous = array[c].astype(np.float64) * (1 - u / ONE) + array[d].astype(np.float64) * (u / ONE)
+    return (previous * (1 - share / ONE) + current * (share / ONE)).astype(np.float32)
+
+
+def world_matrix(local, ground, point, coefficients):
+    value = local.astype(np.float64).reshape(4, 3)
+    c, s = map(float, coefficients)
+    result = value.copy()
+    result[:, 0] = c * value[:, 0] + s * value[:, 2]
+    result[:, 2] = -s * value[:, 0] + c * value[:, 2]
+    result[3] += np.array(point, dtype=np.float64) / 1024
+    result[3, 1] += float(ground)
+    return result.astype(np.float32).reshape(12)
+
+
+def validate(out):
+    spec = json_read(out / "spec.json", 65536)
+    report = json_read(out / "report.json", 2097152)
+    need(report["production_qualified"] is False and report["program_version"] == 5 and
+         report["content_sha256"] == IMAGE_SHA and report["failures"] == [] and report["poses"] == 1504 and
+         report["matrix_count"] == 26 and report["resolution"] == [1280, 720] and report["assertions"] >= 1504 * 6 and
+         report["user_directory"].endswith("/" + spec["user_directory_name"]), "CANONICAL_REPORT")
+    events = report["events"]
+    need(len(events) == 1504, "CANONICAL_EVENT_COUNT")
+    raw = bounded(out / "native.bin", 2097152)
+    need(len(raw) == 8 + 1504 * 26 * 12 * 4 and raw[:8] == b"UGAPPN01" and
+         hashlib.sha256(raw).hexdigest() == report["native_sha256"], "CANONICAL_NATIVE_BYTES")
+    native = np.frombuffer(raw, dtype="<f4", offset=8).reshape(1504, 26, 12)
+    need(np.isfinite(native).all(), "CANONICAL_NATIVE_FINITE")
+    table, matrix, ground = source_arrays(spec)
+    basis = bounded(B.actual(spec["basis"]), 1048576)
+    need(hashlib.sha256(basis).hexdigest() == spec["basis_sha256"], "CANONICAL_BASIS")
+    # Actual WorldBasis header is fixed 717 bytes, followed by all 65536 coefficient pairs.
+    basis_start = len(basis) - 65536 * 8 - 8
+    need(basis_start > 0, "CANONICAL_BASIS_LAYOUT")
+    directions = [(0, 0, -1), (-1, 0, 0), (0, 0, 1), (1, 0, 0)]
+    scalar_count = 0
+    for index, event in enumerate(events):
+        sequence, tick = divmod(index, 188)
+        heading, view = sequence % 4, ("side" if sequence < 4 else "rts")
+        tick += 1
+        profile = 2 + heading if tick <= 46 else (12 + 4 * heading if tick <= 142 else 6 + heading)
+        state = expected_state(tick)
+        frames = expected_frames(profile, state, table)
+        distance = min(1024, max(0, (tick - 8) * 1024 // 30)) if tick <= 142 else 1024 - min(1024, max(0, (tick - 150) * 1024 // 30))
+        point = [1536 + directions[heading][0] * distance, 0, 1536 + directions[heading][2] * distance]
+        need(event == {"heading": heading, "view": view, "tick": tick, "profile": profile,
+                       "state": state, "point": point, "yaw": heading * 16384, "frames": frames,
+                       "ready": state[0] == 0}, "CANONICAL_EVENT:" + str(index))
+        pose, floor = blend(matrix, frames), blend(ground, frames)
+        cs = struct.unpack_from("<ff", basis, basis_start + heading * 16384 * 8)
+        expected = np.empty((26, 12), dtype=np.float32)
+        expected[:24] = pose[:24]
+        expected[24] = world_matrix(pose[24], floor, point, cs)
+        expected[25] = world_matrix(np.array([1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0], dtype=np.float32), floor, point, cs)
+        need(np.array_equal(native[index].view(np.uint32), expected.view(np.uint32)), "CANONICAL_NATIVE_MATRIX:" + str(index))
+        scalar_count += expected.size
+    shots = report["screenshots"]
+    need(len(shots) == 64, "CANONICAL_SCREEN_CENSUS")
+    expected_names = {f"{view}-yaw{yaw}-tick{tick:03d}.png" for view in ("side", "rts")
+                      for yaw in (0, 16384, 32768, 49152) for tick in (4, 24, 46, 62, 94, 128, 158, 188)}
+    need({s["path"] for s in shots} == expected_names, "CANONICAL_SCREEN_NAMES")
+    for shot in shots:
+        raw = bounded(out / shot["path"], 4194304)
+        need(hashlib.sha256(raw).hexdigest() == shot["sha256"] and raw[:8] == b"\x89PNG\r\n\x1a\n" and
+             struct.unpack_from(">II", raw, 16) == (1280, 720), "CANONICAL_SCREEN_SOURCE")
+    return {"poses": 1504, "exact_native_scalar_comparisons": scalar_count, "headings": 4, "views": 2,
+            "screenshots": 64, "assertions": report["assertions"], "production_qualified": False,
+            "scope": "sampled native palette/grounding/root and canonical Driver; synthetic physical provider and flags"}
+
+
+def source_pins(script, bake):
+    """Pin current executed sources separately from historical asset-production metadata."""
+    metadata = json_read(bake, 1048576)
+    pins, historical = {}, {}
+    for row in [metadata["manifest"], *metadata["sources"]]:
+        if row["path"].startswith("res://.godot/"):
+            continue
+        path = B.actual(row["path"])
+        if not row["path"].startswith("res://demo/assets/"):
+            historical[row["path"]] = {"original_sha256": row["sha256"],
+                                       "current_sha256": B.digest(path) if path.is_file() else None}
+        else:
+            need(B.digest(path) == row["sha256"], "CANONICAL_ASSET_SOURCE:" + row["path"])
+            pins[str(path)] = row["sha256"]
+    pending, seen = [script], set()
+    while pending:
+        path = pending.pop().resolve()
+        if path in seen:
+            continue
+        seen.add(path)
+        need(len(seen) <= 2048, "CANONICAL_SCRIPT_CAPACITY")
+        pins[str(path)] = B.digest(path)
+        source = path.read_text()
+        for name in re.findall(r'(?:preload|load)\(\s*"(res://[^"\n]+\.gd)"', source):
+            pending.append(B.actual(name))
+        for name in re.findall(r'^extends\s+"([^"\n]+\.gd)"', source, re.M):
+            pending.append(B.actual(name) if name.startswith("res://") else path.parent / name)
+    for path in (Path(__file__), Path(H.__file__), Path(B.__file__), bake, ROOT / "godot/project.godot"):
+        pins[str(path.resolve())] = B.digest(path)
+    return pins, historical
+
+
+def run(out, proof_path):
+    need(not out.exists() and not out.is_symlink(), "CANONICAL_OUTPUT_EXISTS")
+    out = out.resolve()
+    proof = json_read(proof_path, 4194304)
+    wire = diagnostic_wire(proof)
+    script, bake = HERE / "capture_canonical.gd", CONTACT / "high-wall-runtime-sources-v1/bake-spec.json"
+    pins, historical = source_pins(script, bake)
+    pins[str(proof_path.resolve())] = B.digest(proof_path)
+    for name, digest in proof["source_inputs"].items():
+        path = ROOT / name
+        need(B.digest(path) == digest, "CANONICAL_PROOF_SOURCE")
+        pins[str(path)] = digest
+    override = ROOT / "godot/override.cfg"
+    need(not override.exists() and not override.is_symlink(), "CANONICAL_OVERRIDE_EXISTS")
+    name = "Redwall-Codex-Canonical-" + hashlib.sha256(str(out).encode()).hexdigest()[:16]
+    override_bytes = ('[application]\nconfig/use_custom_user_dir=true\nconfig/custom_user_dir_name="' + name + '"\n').encode()
+    spec = json_read(HERE.parent / "evidence/grip-native-v2/spec.json", 65536)
+    spec.update(content=str(CONTACT / "install-program-compile-v3/result/mole-worker.ugactor"), content_sha256=IMAGE_SHA,
+                reserve_bytes=7141920, profiles=str(out / "diagnostic.ugprof"), profiles_sha256=hashlib.sha256(wire).hexdigest(),
+                user_directory_name=name, production_qualified=False, diagnostic_profile_flags=True)
+    out.mkdir(parents=True)
+    (out / ".gdignore").touch()
+    (out / "spec.json").write_text(json.dumps(spec, indent=2) + "\n")
+    (out / "diagnostic.ugprof").write_bytes(wire)
+    (out / "historical-producer-current-executable-distinction.json").write_text(json.dumps(historical, indent=2) + "\n")
+    (out / "sources-before.json").write_text(json.dumps(pins, indent=2) + "\n")
+    commands = [["godot", "--headless", "--path", "godot", "--editor", "--quit", "--log-file", str(out / "engine-import.log")],
+                ["godot", "--path", "godot", "--rendering-method", "gl_compatibility", "--audio-driver", "Dummy",
+                 "--fixed-fps", "60", "--log-file", str(out / "engine-native.log"), "--script", str(script), "--", str(out / "spec.json"), str(out)]]
+    results = []
+    with override.open("xb") as file:
+        file.write(override_bytes)
+    try:
+        for index, command in enumerate(commands):
+            if index == 1:
+                restored = H.restore_pinned_imports(bake, ROOT / "godot/demo/assets/underground-matrices/mole-grip-v3.inputs", ROOT)
+                (out / "import-cache-restoration.json").write_text(json.dumps(restored, indent=2) + "\n")
+            log = out / ("import.log" if index == 0 else "native.log")
+            with log.open("x") as file:
+                code = subprocess.run(command, cwd=ROOT, stdout=file, stderr=subprocess.STDOUT, timeout=600).returncode
+            bad = bool(B.DIAGNOSTIC.search(log.read_text()))
+            results.append({"command": command, "exit": code, "raw_diagnostic": bad})
+            need(code == 0 and not bad, "CANONICAL_ENGINE:" + str(index))
+        (out / "verification.json").write_text(json.dumps(validate(out), indent=2) + "\n")
+    finally:
+        after = {path: B.digest(Path(path)) if Path(path).is_file() else None for path in pins}
+        (out / "sources-after.json").write_text(json.dumps(after, indent=2) + "\n")
+        same_override = override.is_file() and override.read_bytes() == override_bytes
+        if same_override:
+            override.unlink()
+        (out / "invocation.json").write_text(json.dumps({"commands": results, "source_unchanged": pins == after,
+            "override_restored": same_override, "production_qualified": False}, indent=2) + "\n")
+        need(pins == after and same_override, "CANONICAL_SOURCE_OR_OVERRIDE_DRIFT")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--proof", type=Path)
+    parser.add_argument("--verify", action="store_true")
+    args = parser.parse_args()
+    if args.verify:
+        print(json.dumps(validate(args.out), indent=2))
+    else:
+        need(args.proof is not None, "CANONICAL_PROOF_REQUIRED")
+        run(args.out, args.proof)

@@ -1,0 +1,22 @@
+[
+  {
+    "path": "res://scripts/core/work.gd",
+    "expected": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
+    "current": "6bd7a29c6398dd1a8f795b40021bcf8602b85f5d51bf99aa9d6a0fb4fe074a6b"
+  },
+  {
+    "path": "res://scripts/systems/settlement_system.gd",
+    "expected": "8d0a07bffad85090d3d505e052b780636fefc106fc52a6f722f492a17bcdbb3a",
+    "current": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e"
+  },
+  {
+    "path": "res://scripts/systems/ui_manager.gd",
+    "expected": "661d4978f352382fea9593525f8eb1cf5e969e1c7255a9875dedbb4dc3863c5d",
+    "current": "bdb01f609234acc2786d9b0768e075e2ea14b5f5c7c88fe5db70a15f56a734e2"
+  },
+  {
+    "path": "res://scripts/ui/ui_world_session.gd",
+    "expected": "5fecba431926ac68fef7d076183f1c3cd1298934c940c1f103f00d223b3947b5",
+    "current": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1"
+  }
+]

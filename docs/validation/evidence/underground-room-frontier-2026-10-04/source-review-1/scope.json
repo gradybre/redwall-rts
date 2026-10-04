@@ -1,0 +1,16 @@
+{
+  "source_frozen": true,
+  "base": "2ac43b6c55db8c7ad9b2c1c4671e07e7e5122af1",
+  "result": "candidate-4:9 tests/112 assertions/0; strict/raw/expected/tolerated/leaks0; analyzer0/6; clean import0; every restoration true",
+  "new_module_retained_bytes": 0,
+  "new_global_reservation": 0,
+  "cold_control_bytes": 1966,
+  "cold_control_ceiling": 2048,
+  "numeric_helper_upper_bound": 784,
+  "helper_reservation": 1024,
+  "full_cold_peak": 380928,
+  "cold_ceiling": 1048960,
+  "context": "Actual1152 first-cube and partial-cancel fixtures, immutable diagnostic1156 API+v3 wire only. No source flag changes, source acceptance, new endpoint, automatic edge, new phase permission, whole-room or runtime claim.",
+  "next_site_refusal": "ROOM_FRONTIER_EXISTING_CONTACT_REQUIRED; canonical next Site identified without physical publication",
+  "source_write_status": "Only new1157 owned files;1152 and shared owners unchanged; review required before commit"
+}

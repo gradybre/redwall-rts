@@ -1,0 +1,164 @@
+{
+  "scope": "1157 source-counted synchronous cold packets, never a global or per-Room reserve.",
+  "source_sha256": "554fbf053c377c0305ac9d2e5890dee90b7b511d056ee2a8b9388b1b3f06f52d",
+  "module_retained_fields": {},
+  "global_new_reservation": 0,
+  "caller_candidate_fields": {
+    "room": "Vector2i",
+    "site": "Vector2i",
+    "project": "Vector2i",
+    "key": "int",
+    "operation": "int",
+    "physical_phase": "int",
+    "project_phase": "int",
+    "earned_mwu": "int",
+    "room_revision": "int",
+    "geometry_revision": "int",
+    "qualification_revision": "int",
+    "cold_token": "int",
+    "installed": "bool",
+    "ever_cut": "bool",
+    "paused": "bool"
+  },
+  "caller_candidate_bytes": 99,
+  "caller_request_bytes": 68,
+  "caller_total": 167,
+  "private_query_fields": {
+    "provider": "Provider",
+    "config": "WorldRoutes.Configuration",
+    "actual_routes": "WorldRoutes",
+    "face": "Face",
+    "sites": "Sites",
+    "budget": "Budget",
+    "original": "Candidate",
+    "candidate": "Candidate",
+    "request": "Face.Request",
+    "origin": "Vector3i",
+    "access": "Vector2i",
+    "retreat": "Vector2i",
+    "approach": "int",
+    "approach_revision": "int",
+    "retreat_profile": "int",
+    "retreat_revision": "int",
+    "access_payload": "int",
+    "retreat_payload": "int",
+    "work_payload": "int",
+    "remaining": "int",
+    "remaining_out": "PackedInt32Array"
+  },
+  "private_query_numeric": 92,
+  "private_query_plus_copied_candidate_request_and_i32": 263,
+  "all_declared_frames": {
+    "next_site_into": 80,
+    "_guard": 24,
+    "_scope_checks": 0,
+    "_room_revision": 24,
+    "_after": 32,
+    "_operation": 16,
+    "_project_row": 32,
+    "_capture": 48,
+    "contact_into": 40,
+    "_candidate_leaf": 24,
+    "_copy_candidate": 0,
+    "_same_candidate": 0,
+    "_hold": 32,
+    "_origin": 68,
+    "_observe": 0,
+    "_spend": 8,
+    "_field": 16,
+    "_work_profile": 8,
+    "_select": 32,
+    "_face": 56,
+    "_capture_request": 24,
+    "_endpoint": 8,
+    "_path": 32,
+    "_query_leaf": 0,
+    "_copy_request": 0
+  },
+  "maximum_own_chain": {
+    "bytes": 144,
+    "frames": {
+      "contact_into": 40,
+      "_observe": 0,
+      "_select": 32,
+      "_face": 56,
+      "_field": 16
+    }
+  },
+  "foreign_local_chains": {
+    "provider_binding": {
+      "bytes": 0,
+      "frames": {
+        "underground_room_world_bindings._ordinary_binding_leaf": 0,
+        "underground_room_world_bindings._ordinary_original_binding_leaf": 0,
+        "underground_room_world_bindings._ordinary_original_sites": 0
+      }
+    },
+    "provider_qualification": {
+      "bytes": 40,
+      "frames": {
+        "underground_room_world_bindings.qualification_revision": 0,
+        "underground_room_world_bindings._ordinary_revision_for": 24,
+        "underground_room_world_bindings._ordinary_revision_add": 16
+      }
+    },
+    "complete_static_path_local": {
+      "bytes": 204,
+      "frames": {
+        "underground_world_routes.profile_reachability_refusal": 48,
+        "underground_world_routes._reach_search": 40,
+        "underground_world_routes._reach_sources_refusal": 40,
+        "underground_world_routes._reach_endpoint_refusal": 60,
+        "underground_world_routes._reach_section_refusal": 16
+      }
+    },
+    "work_face": {
+      "bytes": 8,
+      "frames": {
+        "underground_work_face.solid_face_refusal": 8
+      }
+    },
+    "finish_face": {
+      "bytes": 40,
+      "frames": {
+        "underground_work_face.finish_face_refusal": 40
+      }
+    },
+    "full_generation_leaf": {
+      "bytes": 24,
+      "frames": {
+        "underground_work_face.FinishCheck._typed_row": 24
+      }
+    },
+    "location_row": {
+      "bytes": 16,
+      "frames": {
+        "underground_locations._get32": 16
+      }
+    },
+    "owner_source_search": {
+      "bytes": 26,
+      "frames": {
+        "underground_space_owner._find_source": 18,
+        "underground_space_owner._spend": 8
+      }
+    }
+  },
+  "foreign_helper_bound": 512,
+  "expression_result_allowance": 128,
+  "complete_numeric_helper_bound": 784,
+  "helper_reservation": 1024,
+  "included_reference_native_allowance": 512,
+  "cold_controls_accounted": 1966,
+  "cold_control_reservation": 2048,
+  "cold_control_slack": 82,
+  "full_work_face_bytes": 378880,
+  "frontier_peak_cold_bytes": 380928,
+  "existing_cold_ceiling": 1048960,
+  "shared_phase_peak_without_frontier_packets": 1048912,
+  "caller_lifetime": "Create Candidate and Request only after cold admission; both and the private query must die before release and before phase admission. They are not retained contact or progress receipts.",
+  "work_limits": "One canonical scan, one declared-contact scan, at most one complete WorkFace/FinishCheck, two actual static directed path queries. New scan/path counter is monotonically consumed; WorkFace retains its original independently bounded cold checks, never multiplied in a candidate loop.",
+  "native_measured": false,
+  "runtime_qualified": false,
+  "diagnostic_dependency": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/diagnostic-api-1"
+}

@@ -97,3 +97,19 @@ No UGPROF01 wire or certificate bits were emitted by this increment. Actual
 protocol4 native replay, all-yaw ground closure, current consumer/source binding
 and final publication remain in progress; World/WIP/handling and stairs remain
 separate physical requirements.
+
+## Reviewed all-yaw ground/source closure
+
+Independent root review accepted `close_profile_source_gates.py` at
+746d9fe2… and its test at02ab73bd…. The eight adversarial tests pass; exact
+source/timing/topology/WorldBasis equality permits reuse of the accepted
+9,730,636-check,155-simplex ground proof, and independent role coverage
+retains every body/tool primitive and floor residual. The two source rows
+retain14 boxes and812u-square stance; no512u tread permission follows.
+
+`review-profile-source-gates-v1` records the accepted source and evidence.
+Its eight immutable consumer snapshots are from65526c25 and have bounded
+compatibility review, not an automatic allowance for later code. Current
+1121 and stationary-turn changes must be separately reclosed, and the final
+runtime loader must refuse drift. No wire, certificate bits, paid World
+permission, WIP/handling or source-phase stair pace is published here.

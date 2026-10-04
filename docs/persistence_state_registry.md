@@ -1867,3 +1867,30 @@ existing OpResult allocations are not measured by this logical census.
 the calculation. Production profile/source-phase and whole-client timing
 qualification remain open; no stair or productive WORK turn permission is
 created by the component.
+
+### Charge-stable route scratch witness (decision1124)
+
+Routes adds one unsaved I64 `_path_serial`; WorldRoutes adds twelve unsaved I64
+witness keys/debt controls. These104 logical bytes are category3 optimization
+state, absent from canonical hashes/wire images. Actual object IDs, successful
+Space/Locations/graph receipts, geometry and immutable profile pins plus the
+unchanged full chain/source proof bound reuse of the existing proposed-edge
+scratch. Every solver invocation changes the serial before scratch writes;
+exhaustion permanently disables reuse. No new packed bank, per-worker proof,
+caller permission or saved epoch is introduced.
+
+Both warm and fresh queries reserve64 checks per configured Location before
+probing scratch, then consume identical successful Dijkstra debt. Discarding
+keys or restoring the actual same Space/Locations images preserves readiness
+and remaining logical work. This raises both paths' probe charge, never the
+operation ceiling; cold/actor searches retain their existing algorithm.
+
+Source census advances topology fixed controls2102→2110 inside2112 and
+WorldRoutes fixed packets/controls862→958 inside4096. The104-byte actual delta
+uses those existing reservations; it is not an extra reserve allocation.
+The largest declared helper chain336 plus48 expression/result bytes fits the
+existing512 caller allowance. Reproduction and source pins are in
+`underground-route-witness-2026-10-04/census.py` and `census.json`.
+Native/reference/Variant/array/VM overhead and target timing remain unqualified.
+Paired repeat17.516ms and fresh22.892ms p95 per256 queries, and38.524ms for256
+distinct endpoint pairs, remain failed timing qualification.

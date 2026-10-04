@@ -1004,3 +1004,28 @@ terrain gameplay. Native/whole-client presentation peak, real qualification
 flags, complete contact support and paid construction remain open. A following
 version uses one compact carry hub to support the separately authored planted
 front-strike; the accepted v1 data and evidence remain unchanged.
+
+### Planted low/front source component accepted
+
+The compact carry and planted low/front source now keep the actual ready
+hips/feet while authoring connected local-rig arm motion and exact recovery.
+The full foot/toe support is573u wide by343u deep. Productive BODY remains122u
+behind theZ=-768 face; only the active pick enters the synthetic target course,
+with a genuine source patch[4,705,-768 ..7,710,-768]u. Complete entry body/tool
+stay behind the face. These are actual source-derived bounds, not a relabelled
+downward profile or an implied platform/step permission.
+
+Independent review accepted the seven exact source files and146 source/output
+pins under `contact-qualification/review-planted-front-v1`. Five local-rig and
+six target/native/provenance tests pass. Continuous source-local/yaw0 checks
+cover productive36, entry30, idle121 and walk33 intervals with zero unresolved
+pairs; exact recovery is checked. Native evidence has597 poses,1,427 assertions
+and0 failures, clean diagnostics/leaks and equal558-file pre/post closure.
+Nine actual native tip observations are independently enclosed. Candidate and
+plan bytes must match their immutable source-image header before target proof.
+
+Rejected earlier candidates and the prior verifier remain historical evidence.
+The accepted packet emits0 production flags. Complete versioned state unions,
+actual footprint support, paid approach/retreat and step traversal still need
+qualification. Its logical presentation allowance is6,969,508 bytes plus shared
+WorldBasis544,768, with native/whole-client peak explicitly unmeasured.

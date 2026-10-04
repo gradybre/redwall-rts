@@ -139,14 +139,29 @@ open. Current parallel work composes ordinary paid phases, D11 suggested/editabl
 entrance selection in the real room editor, and the actual WALK-to-WORK source
 transition. The complete published work pose fits the virgin face, but the
 current walking/tool envelope reaches into its uncut wall; no positive paid
-workflow may bypass that refusal. Geometry is investigating unchanged walk and
-ready keys before any new source is authored. Its wood-handling proposal is
+workflow may bypass that refusal. Geometry is implementing explicit source-clocked approach and backstep policies
+from unchanged walk and ready keys. Its wood-handling proposal is
 deferred behind this playable dependency. The shared spatial refresh is
 integrated; actual wood-handling runtime integration remains separate.
-The access UI candidate passed55 tests/1,053 assertions with zero diagnostics
-or leaks; independent review/native preview remain pending. One populated
-graph/maximum-paint candidate took68.858ms, so responsive UI qualification is
-still open and the single result is not a maximum-source-population bound.
+The access UI is independently accepted and integrated at`dc6baa12` after
+correcting a late view-teardown error and player-facing implementation text.
+The selected affected suites pass60 tests/1,260 assertions with zero diagnostics
+or leaks and analyzer0/6. Root independently checked all frozen source/result
+pins, replayed eight Python guards and inspected the native1280×720 states.
+Native3 has15 assertions, zero failures/diagnostics/leaks and analyzer0/1. Its
+plain dirt and synthetic physical/profile fixture do not qualify installed game
+content or the full HUD. The populated graph/maximum-paint candidate took69.176ms,
+so the1.5ms UI target remains failed and maximum-source-population/0.25s overload
+qualification stays open. The clean integrated four-suite check also passes60 tests/1,260 assertions,
+all strict/raw diagnostics/leaks0 and analyzer0/6, with every original source,
+project and asset state restored.
+Geometry's next increment advances work-approach readiness on actual30Hz Routes
+state; rendering only samples that state. Source-policy tagging preserves
+ordinary route semantics and must pass headless/replay tests. The full actual
+walk-in/work/recovery/back-out sequence remains the playable dependency.
+Decision1155 is now released to the editor agent for independent implementation
+of actual whole-World retirement and safe remount leaves; root retains Session
+and host composition. This proceeds alongside movement and paid phases.
 The added lane decomposes existing work and does not add or waive requirements.
 
 Decision1140's actual Delivery component is integrated at`fa017ba4`, using

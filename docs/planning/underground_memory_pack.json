@@ -1038,9 +1038,10 @@
       "reserved_bytes": 4760
     },
     "surface_anchor_reservation": {
-      "numeric_control_bytes": 92,
+      "numeric_control_bytes": 93,
       "packet_bytes": 204,
-      "fixed_numeric_and_packed_bytes": 296,
+      "surface_metadata_bytes": 24,
+      "fixed_numeric_and_packed_bytes": 321,
       "reserved_bytes": 2048,
       "logical_helper_allowance_bytes": 1024,
       "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."
@@ -1241,7 +1242,7 @@
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
     "godot/scripts/core/underground_space_owner.gd": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",
-    "godot/scripts/core/underground_surface_anchor.gd": "d928d4f0ebe6fc55183486c33a49596305682bcd70dfa298b7c1dbe785d29a1e",
+    "godot/scripts/core/underground_surface_anchor.gd": "7bb74f211c866769557f7ce3d340f55e35b76c2d10d3f84046cc9d3585453baf",
     "godot/scripts/core/underground_world_routes.gd": "7ee66e9918e45002b9afb68fdd168eb90b5078ed395a78802899297645db612f"
   },
   "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",

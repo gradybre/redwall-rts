@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-03",
+  "updated": "2026-10-04",
   "integration_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
   "integration_branch": "codex/underground-modular-integration",
   "base_commit": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
@@ -435,7 +435,11 @@
         "godot/test/test_underground_connector_contacts.gd.uid",
         "godot/test/test_underground_first_prefix.gd",
         "godot/test/test_underground_first_prefix.gd.uid",
-        "docs/validation/evidence/underground-first-prefix-2026-10-03/"
+        "docs/validation/evidence/underground-first-prefix-2026-10-03/",
+        "godot/scripts/core/excavation_contract.gd",
+        "godot/test/test_excavation_phase_start_guard.gd",
+        "godot/test/test_excavation_phase_start_guard.gd.uid",
+        "docs/decisions/1117-final-excavation-start-payment-guard.md"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -807,6 +811,22 @@
             ],
             "handoff": "Construction explicitly granted narrow entry-only preflighted publication kernel after confirming no Sites edits. Preserve flat API/test ownership. Root and Geometry coordinate pure receipt publication before actual entry activation. Construction additionally granted a tiny shared test Fixture Buildings factory for the actual late receipt-observer regression; default constructor behavior stays unchanged.",
             "stop_evidence": "Root stopped all writes to Sites/shared furniture Fixture factory after independently reviewedd74cd0b8, integrated3b7bc75f. Both exact files returned to Construction2026-10-03; root retains Orders/Bindings."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-entry-admission",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/excavation_contract.gd",
+              "godot/scripts/core/excavation_inventory.gd",
+              "godot/scripts/core/excavation_sites.gd",
+              "godot/scripts/core/reservations.gd",
+              "godot/scripts/core/construction.gd",
+              "godot/test/test_excavation_phase_start_guard.gd",
+              "godot/test/test_excavation_phase_start_guard.gd.uid",
+              "docs/decisions/1117-final-excavation-start-payment-guard.md"
+            ],
+            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes."
           }
         ]
       }
@@ -1303,7 +1323,9 @@
         "tools/test_underground_memory_budget.py",
         "docs/decisions/1110-complete-connector-binding-memory-census.md",
         "docs/decisions/1111-concrete-surface-entry-admission.md",
-        "docs/decisions/1114-installed-timber-contact-publication.md"
+        "docs/decisions/1114-installed-timber-contact-publication.md",
+        "docs/decisions/1115-shared-natural-surface-sections.md",
+        "docs/decisions/1116-raised-first-prefix-assembly-target.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1842,9 +1864,20 @@
         "entry_phase_composition_next": {
           "agent": "/root",
           "branch": "codex/underground-entry-admission",
-          "state": "tracing actual Frontier/WorkFace provider; no new production activation",
-          "gap": "WorldBindings still inherits phase-plan/qualification/worker/material/output refusal stubs; six genuine paid Site transitions need this connection",
+          "state": "Contacts phase reuse assigned; root owns actual phase dispatch and purpose5 payment/START guard",
+          "gap": "WorldBindings phase provider and sealed Space/Locations/Routes companions are not composed. Inventory observers currently run after phase preflight before purpose5 payment; root owns final guard closure.",
           "scope": "Root-owned WorldBindings and separately recorded provider source; Construction owns first-prefix fixture; Geometry owns Entry installation. No seeded Site/payment bytes or synthetic SpatialAuthority."
+        },
+        "shared_natural_surface_1115": {
+          "source_commit": "b096363ae726c5a755468db24ba9ced61ca9d6fd",
+          "integration_commit": "f1ec4b6b",
+          "decision": "docs/decisions/1115-shared-natural-surface-sections.md",
+          "tests": "127 test(s), 4071 assertion(s), 0 failure(s); 94 Python census tests passed",
+          "diagnostics": "Every focused shard: 0 unexpected errors/warnings, 0 expected/tolerated, 0 object/resource leaks; raw log all zero",
+          "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
+          "review": "Construction independently accepted exact source/test/census pins with no high/medium finding",
+          "evidence": "docs/validation/evidence/underground-shared-surface-2026-10-04/",
+          "scope": "Shared FLOOR_DATUM metadata with independently proved local air/support; gap remains unprotected dirt; actual paid phase/first-prefix workflow still open"
         }
       },
       "lease": {

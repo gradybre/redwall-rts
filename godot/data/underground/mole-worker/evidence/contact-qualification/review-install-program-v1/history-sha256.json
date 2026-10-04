@@ -1,0 +1,21 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/compile.log": "51e7d9149fb614e8b3b1aac5bc19d67ad1add7fc61368fa6ad320bdfe875618d",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/invocation.json": "6c5a24d5c3e42069540965c4af88c8718801180457bf1419969fbb0e0e9bc82b",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/rejected-source/author_install_program.py": "d401579f0d0e670e9daa5ed8038fe68b087e0a9fe66ef451b4a6eaf48192a828",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/rejected-source/test_install_program.py": "9b5b5cf3aaba5830220247636912789ee67c5740862b15185d0675211d34ca85",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/rejected-source-locators.json": "ed2e474ef4c21759af638744ea8130232aa6efcabe52644f32b84d4eeeb44a4f",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/run.py": "08bda9e40d8eaee7cd316119a518c6b52031749195ebbb66ef037b6267487592",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v1/tests.log": "8642a1ac72c63530bbaa2c1f2526767cc3b14a928c117e4bff18cd4c4a88ad42",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/compile.log": "b557d86af61985b79ee95834b5328f9c938ffce12145df1cad10e560969f006c",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/invocation.json": "28331574a328c2637842a2a03c035077fca01516b51bc9431beb3219faa6ab4f",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result/compilation.json": "62b6990381e69419acf675926177d1eecf23423fb6450b0e2d65e7609dfa9c46",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result/mole-worker.ugactor": "816751dbb5cee29d5f5f296001ca454aba42317f369f67a15a225daee87c3c12",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result/plan.json": "ffdebb3cbacafab9766679cc5b7bd0894c80e6e3499ab91a1e3d225bf8991ee2",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result/program.json": "5caaec976eb3f8995784dc5f8d98cdb6c233020372d87964620b0da1c4e41c6e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result/roles.json": "2f838fbc1b0b780a62fdbd8ebdf302a6b8b190f5402d9979f44a49df74e50f63",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/run.py": "08bda9e40d8eaee7cd316119a518c6b52031749195ebbb66ef037b6267487592",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/superseded-source/author_install_program.py": "2a8882267d4c72e01e71aac563d8e225c109aa0b4b996843eb49ca1069790670",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/superseded-source/test_install_program.py": "16254e8f0a55ada1c9a4be1a20162c339a48ec92ea846a9cda05886ddd72d94e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/superseded-source-locators.json": "7ead6ca4f5e6f8dd9af4c499373d92c547bfb6662662ded60fa62aa124a49dd7",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/tests.log": "8642a1ac72c63530bbaa2c1f2526767cc3b14a928c117e4bff18cd4c4a88ad42"
+}

@@ -1,0 +1,26 @@
+{
+  "commands": [
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_install_program.py"
+    ],
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-program-compile-v2/result"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0
+  ],
+  "source_before": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "2a8882267d4c72e01e71aac563d8e225c109aa0b4b996843eb49ca1069790670",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_install_program.py": "16254e8f0a55ada1c9a4be1a20162c339a48ec92ea846a9cda05886ddd72d94e"
+  },
+  "source_after": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py": "2a8882267d4c72e01e71aac563d8e225c109aa0b4b996843eb49ca1069790670",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_install_program.py": "16254e8f0a55ada1c9a4be1a20162c339a48ec92ea846a9cda05886ddd72d94e"
+  },
+  "source_unchanged": true
+}

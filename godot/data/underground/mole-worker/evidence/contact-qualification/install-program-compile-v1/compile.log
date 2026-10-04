@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py", line 293, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py", line 258, in main
+    install_roles = compile_install_roles(proof, old_roles["ready"], partition)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/author_install_program.py", line 222, in compile_install_roles
+    P.require(all(not all(box[a] < target[a + 3] and target[a] < box[a + 3] for a in range(3))
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: INSTALL_PROGRAM_NONPRODUCTIVE_TARGET_COLLISION

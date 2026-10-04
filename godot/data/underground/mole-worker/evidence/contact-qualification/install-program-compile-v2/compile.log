@@ -1,0 +1,124 @@
+{
+  "content_sha256": "816751dbb5cee29d5f5f296001ca454aba42317f369f67a15a225daee87c3c12",
+  "content_bytes": 648760,
+  "frames": 538,
+  "clips": 14,
+  "presentation_budget": {
+    "retained_palette_bytes": 647752,
+    "decode_staging_bytes": 647752,
+    "borrowed_mesh_array_allowance_bytes": 4396032,
+    "packed_tables_bytes": 984,
+    "reader_native_control_reserve_bytes": 2097152,
+    "admitted_peak_bytes": 7141920,
+    "world_basis_separately_shared_bytes": 544768,
+    "native_peak_measured": false,
+    "excluded_borrowed_resources": "original meshes/textures and per-Actor RIDs; separate actual presentation-owner admission"
+  },
+  "driver_maximum_packed_bytes": 432,
+  "driver_growth_bytes": 36,
+  "production_qualified": false,
+  "install_roles": {
+    "BODY_HELD_LOAD": [
+      [
+        -409,
+        0,
+        -350,
+        321,
+        840,
+        234
+      ],
+      [
+        -134,
+        -1,
+        44,
+        -126,
+        0,
+        60
+      ]
+    ],
+    "STANCE_SUPPORT": [
+      [
+        -274,
+        -1,
+        -169,
+        299,
+        0,
+        174
+      ]
+    ],
+    "TURN_RECOVERY": [
+      [
+        -274,
+        0,
+        -169,
+        299,
+        128,
+        189
+      ],
+      [
+        -409,
+        128,
+        -732,
+        548,
+        842,
+        234
+      ]
+    ],
+    "WORK_APPROACH": [
+      [
+        -274,
+        0,
+        -169,
+        299,
+        128,
+        189
+      ],
+      [
+        -409,
+        128,
+        -732,
+        548,
+        840,
+        234
+      ]
+    ],
+    "WORK_STROKE": [
+      [
+        112,
+        125,
+        -459,
+        141,
+        128,
+        -437
+      ],
+      [
+        -30,
+        128,
+        -674,
+        259,
+        669,
+        -212
+      ]
+    ],
+    "CONTACT_POINT": [
+      [
+        128,
+        128,
+        -448,
+        128,
+        128,
+        -448
+      ]
+    ],
+    "CONTACT_PATCH": [
+      [
+        127,
+        128,
+        -449,
+        129,
+        128,
+        -447
+      ]
+    ]
+  }
+}

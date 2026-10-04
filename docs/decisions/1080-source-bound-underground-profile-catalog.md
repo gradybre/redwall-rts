@@ -1321,3 +1321,24 @@ existing168-byte Selection,16-byte handles and1-byte retirement control.
 Caller Frame and cold400+18-byte scratch remain separately counted. Native
 allocation and complete source/decoder/presentation coexistence remain open;
 this source-clock component emits no production qualification.
+
+
+### Complete INSTALL source compiler accepted
+
+The isolated `review-install-program-v1` packet composes fourteen clips and
+six fixed source roles while preserving the original eleven clips exactly.
+Every rendered edge and complete body/clothing/tool primitive is re-enclosed
+for ready, entry, looping work and recovery. One identical sole enclosure is
+shared through mandatory BODY; eleven complete role rows stay within the
+existing twelve-row bound. Only the productive active adze gets its exact
+billed-workpiece exception. Missing source, phase, primitive class, role or
+consumer contract refuses; no geometry is clipped to rescue a fit.
+
+Independent root review accepted compiler61362924/test68a66c9b, verified all
+3source/15output/19history/28inherited pins and the five exact consumer snapshots
+from454eae23, and independently reran12 Python tests successfully. The new
+image adc61764 has538frames and648760bytes. Presentation allowance7141920
+includes palette/decode coexistence and reserved native controls; shared
+WorldBasis544768 and driver432 remain separately counted. Actual native peak,
+runtime source/profile binding, paid WIP, carrying/lay-down handling and
+terrain support are not qualified. Native replay is a separate next witness.

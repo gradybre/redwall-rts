@@ -1,0 +1,20 @@
+{
+  "content_sha256": "816751dbb5cee29d5f5f296001ca454aba42317f369f67a15a225daee87c3c12",
+  "content_bytes": 648760,
+  "frames": 538,
+  "clips": 14,
+  "presentation_budget": {
+    "retained_palette_bytes": 647752,
+    "decode_staging_bytes": 647752,
+    "borrowed_mesh_array_allowance_bytes": 4396032,
+    "packed_tables_bytes": 984,
+    "reader_native_control_reserve_bytes": 2097152,
+    "admitted_peak_bytes": 7141920,
+    "world_basis_separately_shared_bytes": 544768,
+    "native_peak_measured": false,
+    "excluded_borrowed_resources": "original meshes/textures and per-Actor RIDs; separate actual presentation-owner admission"
+  },
+  "driver_maximum_packed_bytes": 432,
+  "driver_growth_bytes": 36,
+  "production_qualified": false
+}

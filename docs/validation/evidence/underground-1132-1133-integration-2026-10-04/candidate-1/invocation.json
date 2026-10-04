@@ -1,0 +1,130 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 10.895,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "238/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.284,
+      "log": "test_underground_support_clearance.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "68/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 4.946,
+      "log": "test_underground_locations.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "151/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 11.082,
+      "log": "test_underground_surface_anchor.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "78/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 21.387,
+      "log": "test_underground_entry_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "216/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.671,
+      "log": "test_underground_prepared_location_observation.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "90/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 80.239,
+      "log": "test_underground_entry_world_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "294/382",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 2.8,
+      "log": "test_underground_forward_basis.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1/analyzer.json",
+        "godot/scripts/core/underground_entry_bindings.gd",
+        "godot/scripts/core/underground_locations.gd",
+        "godot/scripts/core/underground_surface_anchor.gd",
+        "godot/test/test_underground_support_clearance.gd",
+        "godot/test/test_underground_surface_anchor.gd",
+        "godot/test/test_underground_forward_basis.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.054,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-prepared-location",
+  "project_test_sha256": "6a837a9abf1269e3b9b1ec005c763654f5ce8ea582a50fe5e2e0516d7ac3c8b4",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

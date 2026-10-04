@@ -841,8 +841,9 @@
         "paid_workpieces_1134": {
           "owner": "/root/ug_construction",
           "status": "new owner/test design and implementation released; shared seams read-only",
-          "contract": "One physical handling row per full Placement/Project; actual material delivery and worker pose required. Existing Funding/Work remain sole quantity/progress owners. Proposed32768-byte design ceiling unqualified pending source census. Actual immutable handling source required before production publication.",
-          "shared_owner_gate": "Root Router/Funding, Geometry Space/Placement/companions; no shared edits until exact seam review and explicit leases."
+          "contract": "Actual partial loose Inventory payloads arrive before START; existing Funding owns consumedbill and Work owns WU. START publishes static physical Project-owned workpiece. No movable consumed-WIP v1; no new large-worker or whole-bill shipment restriction. Proposed32768-byte design ceiling pending exact census.",
+          "shared_owner_gate": "Root Router/Funding, Geometry Space/Placement/companions; no shared edits until exact seam review and explicit leases.",
+          "inherited_policy": "Wood5000g/U; whole L0bill20000g/T0bill5000g. Existing HaulPlanner2000mWU load+2000mWU unload per payload; partial capacity-limited shipments remain allowed."
         }
       },
       "lease": {
@@ -923,6 +924,19 @@
               "docs/validation/evidence/underground-connector-payment-2026-10-04/"
             ],
             "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes. Inventory-owned final observation barrier and nested audit preservation added after independent HIGH journal-escape finding; no other agent owns Inventory edits. Inventory remains in UG21 root ownership; this cross-lane note records the same root writer without a duplicate lane lease. Root continues the confirmed purpose8 journal-close follow-up1118 using unchanged Contacts fixture; no concurrent Contacts writes."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-workpiece-publication",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/modular_projects.gd",
+              "godot/scripts/core/modular_project_contract.gd",
+              "godot/test/test_underground_workpiece_publication.gd",
+              "godot/test/test_underground_workpiece_publication.gd.uid",
+              "docs/decisions/1136-connector-workpiece-start-publication.md"
+            ],
+            "handoff": "Construction explicitly retains shared Router read-only; root createdbranch from freshly fetched origin/master82d60ba8 then fast-forwarded ownaccepted integrationa5a647b9. Narrow connector-only paid START publication seam; no retained ledger/price/refund changes. Exact Workpiece/Geometry interface agreement precedes mutation."
           }
         ]
       }
@@ -1445,10 +1459,18 @@
         },
         "default_renderer_1132": {
           "owner": "/root/ug_furnishing",
-          "status": "phase1 independently reviewed; phase2 explicitly released",
+          "status": "phase1 integrated; phase2 WorldBasis-only implementation active",
           "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence.",
           "review": "Root rehashed4 source/51 outputs and reran14 Python tests. Native65536rows, strict5/36/all0,LSP0/2. Exact pinned Apple precision sections independently read. Source/expression-only; complete skin/model/native attachment remains open.",
-          "phase2_lease": "Explicit root grant2026-10-04: underground_actor.gd WorldBasis v1/v2 dispatch only, test_underground_world_basis.gd plus new evidence/scripts. No pose/root changes, new retained fields, catalog flags or source reinterpretation."
+          "phase2_lease": "Explicit root grant2026-10-04: underground_actor.gd WorldBasis v1/v2 dispatch only, test_underground_world_basis.gd plus new evidence/scripts. No pose/root changes, new retained fields, catalog flags or source reinterpretation.",
+          "source_commit": "65c1ddb9",
+          "review_commit": "6d1495f1",
+          "integration_commits": [
+            "6712a7d8",
+            "a5a647b9"
+          ],
+          "integration_tests": "Combined189tests/16682assertions/0;strict/raw/leaks0,LSP0/6; exact4phase1 sourcepins unchanged",
+          "integration_evidence": "docs/validation/evidence/underground-1132-1133-integration-2026-10-04/"
         }
       },
       "lease": {
@@ -2258,7 +2280,7 @@
           "reviewed_head": "77cd67e3",
           "report": "docs/reviews/2026-10-04-underground-profile-integration-gaps.md",
           "next_decision": 1133,
-          "status": "1133 implementing after explicit Construction Locations and root SurfaceAnchor stop/release. Required foot-support/air distinction; paid raised workpieces and source-phase stairs remain separate."
+          "status": "1133 support/air correction independently reviewed and integrated; raised workpieces1134/1135 and source-phase stairs remain open."
         },
         "entry_world_memory_1131": {
           "owner": "/root",
@@ -2268,6 +2290,20 @@
           "integration_commit": "a1a16255",
           "review": "Construction helper review and Geometry final wiring/ledger review accepted; injected history retained separately.",
           "evidence": "docs/validation/evidence/underground-entry-world-memory-2026-10-04/"
+        },
+        "support_air_1133": {
+          "source_commit": "04cd19b0",
+          "integration_commit": "76f91839",
+          "reviewer": "/root/ug_construction",
+          "tests": "author184/16646/0,strict/raw/leaks0,LSP0/5; integrated alongside1132:189/16682/0,all0,LSP0/6",
+          "memory": "No retained or variable-cold delta; Entry925/2048,Locations344/512,Anchor113 within2048. Ordinary3-source pin refresh only.",
+          "evidence": "docs/validation/evidence/underground-1132-1133-integration-2026-10-04/",
+          "scope": "Independent real footing and body/tool air. Historical immutableprofile geometry only; production changed-consumer refusal retained."
+        },
+        "paid_workpiece_space_next": {
+          "owner": "/root/ug_geometry",
+          "status": "1134/1135 typed spatial context design, shared edits await exact seam agreement",
+          "scope": "Static START obstacle; exact Project obstacle replaced on completedinstallation or removed only after successfulrefund. Original tokens, full identities, occupancy/last exit and finite existingarenas; no observer afterpayment."
         }
       },
       "lease": {

@@ -1,0 +1,24 @@
+{
+  "head": "a5a647b94bc9f6b5cec6f3f0fa4bc78aba4a0d7a",
+  "old_pack_sha256": "f8d05ebc818a5cde1c566bb93ae81cf4b00e5b68b56072d90d18e7853ba82878",
+  "new_pack_sha256": "0c25dcdc71b0815860589acb223407c1daeae6fcc9dccdd3f2e9dc26128fc5ac",
+  "changes": [
+    {
+      "path": "/source_sha256/godot/scripts/core/underground_entry_bindings.gd",
+      "old": "c48c610e53878b7d14c21cf19180c1c7344b86e4d431213e172cb8fdb7d85658",
+      "new": "418b27ed105d3cd7de2e4e83480338e3163802ab4505ec3ea51559d6f64ac029"
+    },
+    {
+      "path": "/source_sha256/godot/scripts/core/underground_locations.gd",
+      "old": "024e9cca9ffbf72c87f9bf31581f3cee09e5fd9b8344dbc66ea293c26d8f38a1",
+      "new": "3de7e8c7792175f5c78eeb3d68dfa6dfbcd4d2153b50c3bac6ea640a7a2845e8"
+    },
+    {
+      "path": "/source_sha256/godot/scripts/core/underground_surface_anchor.gd",
+      "old": "ccf119bd999a8d05b65e7e35806b37aade88588e0a7c922185bcf86c72aa4fa3",
+      "new": "3632681aa3d56d680d58e220f4aae58e5894baa23422ecd34c128404da8d40d0"
+    }
+  ],
+  "all_other_data_equal": true,
+  "reason": "accepted1133 source pins; no state/allocation/reserve change"
+}

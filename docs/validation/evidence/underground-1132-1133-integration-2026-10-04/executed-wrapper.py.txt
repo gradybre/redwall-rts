@@ -1,0 +1,28 @@
+import importlib.util,sys
+from pathlib import Path
+path=Path('docs/validation/evidence/underground-prepared-location-observation-2026-10-04/reproduce.py').resolve()
+spec=importlib.util.spec_from_file_location('reviewed_checkpoint',path)
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+m.FILES=[
+ 'godot/scripts/core/underground_entry_bindings.gd',
+ 'godot/scripts/core/underground_locations.gd',
+ 'godot/scripts/core/underground_surface_anchor.gd',
+ 'godot/test/test_underground_support_clearance.gd',
+ 'godot/test/test_underground_surface_anchor.gd',
+ 'godot/test/test_underground_forward_basis.gd']
+sys.argv=[str(path),'--out',
+ 'docs/validation/evidence/underground-1132-1133-integration-2026-10-04/candidate-1',
+ '--port','6197',
+ '--suite','test_underground_support_clearance.gd',
+ '--suite','test_underground_locations.gd',
+ '--suite','test_underground_surface_anchor.gd',
+ '--suite','test_underground_entry_bindings.gd',
+ '--suite','test_underground_prepared_location_observation.gd',
+ '--suite','test_underground_entry_world_bindings.gd',
+ '--suite','test_underground_forward_basis.gd',
+ '--dependency','godot/scripts/core/underground_entry_world_bindings.gd',
+ '--dependency','godot/scripts/core/underground_routes.gd',
+ '--dependency','godot/scripts/core/underground_world_routes.gd',
+ '--dependency','tools/bake_underground_forward_basis.gd',
+ '--dependency','tools/bake_underground_world_basis.gd']
+raise SystemExit(m.main())

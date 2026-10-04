@@ -16,23 +16,19 @@ and native1280×720 and256-resident acceptance. The wood-only stair decision is
 unchanged. A complete stair motion and safe return route still need source
 qualification; ground walking profiles do not fit the first tread.
 
-The latest accepted full local checkpoint remains
-[`454eae23`](evidence/modular-build/checkpoint-454eae23/README.md):
-10,637 tests /976,936 assertions /0 failures, zero unexpected diagnostics and
-leaks, and zero analyzer warnings across1,180 scripts. Later changes require a
-new full checkpoint. The latest
-[CI run at`cddc4412`](../../validation/evidence/underground-ci-cddc4412-2026-10-04/README.md)
-has11 failures because the immutable worker-profile publication correctly
-rejects changed consumers. Its zero diagnostic/leak and analyzer totals do not
-make that run a pass. Renewed source review and actual native replay are now integrated at
-`4b0bc3c2`:53 selected tests/1,321 assertions and7,792 native poses/46,873
-assertions passed with zero failures and unexpected diagnostics. The subsequent
-[full checkpoint at6ee1f789](evidence/modular-build/checkpoint-6ee1f789/README.md)
-ran10,879 tests/997,764 assertions with one stale historical-catalog test failure;
-unexpected diagnostics and leaks were zero. Its analyzer did not run. The
-reviewed correction preserves historical source-drift rejection and accepts
-the actual renewed current sources; its9 tests/137 assertions pass. No source
-guard has been removed, and a new full checkpoint is still required.
+The latest accepted full local checkpoint is
+[`32db348a`](evidence/modular-build/checkpoint-32db348a/README.md):
+10,895 tests /998,370 assertions /0 failures, zero unexpected diagnostics and
+leaks, and zero analyzer warnings across1,210 scripts. The exact clean-assets,
+cache removal, import and no-argument procedure passed with source and HEAD
+unchanged and assets restored. All34 Specification commands passed too.
+[Remote CI37208054867](../../validation/evidence/underground-ci-32db348a-2026-10-04/README.md)
+passed all14 jobs in11 minutes34 seconds. All388 files ran exactly once across
+8 shards;10,895 passed test cases and every diagnostic/leak total match the
+same-head full run. Assertions differ by11; the unchanged all-counter verifier
+refuses exact equality, and that difference remains explicitly unattributed.
+The earlier rejected source-closure/stale-test runs remain recorded in the
+queue and their evidence. No source guard or diagnostic allowance was weakened.
 
 Decision1141's guarded hauling component is integrated at`ee63d7b9` after
 independent review and replay. Its final16 tests/603 assertions pass with zero

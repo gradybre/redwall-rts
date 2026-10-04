@@ -1,0 +1,33 @@
+{
+  "head": "32db348a1a8473461f832cc2b06b410aa97c898a",
+  "local_counts": {
+    "tests": 10895,
+    "assertions": 998370,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "ci_counts": {
+    "assertions": 998359,
+    "expected": 272,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 10895,
+    "tolerated": 353,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "identical_test_counts": true,
+  "identical_diagnostics": true,
+  "identical_passed_test_cases": true,
+  "passed_test_case_count": 10895,
+  "suite_count": 388,
+  "local_assertions_minus_ci": 11,
+  "exact_all_counter_comparison_exit_code": 1,
+  "limitation": "No-argument local output does not include per-suite assertion counters; the 11-assertion aggregate difference is not attributed. The strict all-counter verifier refused equivalence and was not weakened."
+}

@@ -1,0 +1,6 @@
+FAIL C1 underground_connector_delivery.gd has no registry section -- a new store must be classified
+FAIL C3 underground_motion_catalog.gd declares `_level_identity` with no registry row
+FAIL C3 underground_motion_catalog.gd declares `_level_config` with no registry row
+FAIL C3 underground_motion_catalog.gd declares `_level_digest` with no registry row
+FAIL C3 underground_motion_catalog.gd declares `_digest` with no registry row
+state_registry_coverage: 5 failure(s)

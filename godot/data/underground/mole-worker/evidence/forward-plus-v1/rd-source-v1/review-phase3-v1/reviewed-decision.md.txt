@@ -161,11 +161,3 @@ libzstd decoder. The first mistaken CharString-terminator assumption refused
 the actual input and is preserved alongside the corrected complete decode.
 No hardware optimizer/UNORM/model or complete continuous profile certificate
 is inferred; this remains independently reviewable phase-three provenance.
-
-Independent root review accepted the phase-three census on2026-10-04. It
-verified3source/160output/16inherited pins, reran18Python tests with no skips,
-and reproduced the exact report plus all58generated MSL files from the five
-actual caches. No high/medium finding remained. Reviewed ADR bytes are retained
-in review-phase3-v1/reviewed-decision.md.txt. This is source-census acceptance
-only; actual-mole inputs, optimized arithmetic and physical profiles remain
-separate. Decision1138 owns the next additive real-buffer input census.

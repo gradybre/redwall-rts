@@ -1,0 +1,16 @@
+{
+  "audit-v2-invocation.json": {
+    "tools/audit_underground_metal_cache.py": {
+      "sha256": "8260c6b973281183a66e7934c958902cfee7bd1c4d7c4034a19f88ea70ea7be3",
+      "path": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/prior-successful-parser/audit_underground_metal_cache.py.txt"
+    },
+    "tools/test_audit_underground_metal_cache.py": {
+      "sha256": "cc4681ce53ec98ad265e2a8ef1aafad5e15249b4557bb3196b95225b559c9d8b",
+      "path": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/prior-successful-parser/test_audit_underground_metal_cache.py.txt"
+    }
+  },
+  "phase-two-decision": {
+    "path": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/decision-after-phase2.md.txt",
+    "sha256": "8f1665e767ca2f787c7b717ca733a649d663646d4c6f234110099c87cc83d713"
+  }
+}

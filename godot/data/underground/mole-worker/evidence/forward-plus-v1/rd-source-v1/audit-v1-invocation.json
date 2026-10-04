@@ -1,0 +1,16 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "tools/audit_underground_metal_cache.py",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/capture-v1/cache-manifest.json",
+    "--zstd-library",
+    "/opt/homebrew/lib/libzstd.dylib",
+    "--zstd-sha256",
+    "e2847c4613b386683c234913ae3b7b04299254096caf7616e3b3cd9bb97a39ab",
+    "--out-dir",
+    "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-source-v1/audit-v1"
+  ],
+  "exit": 1,
+  "decoder_bytes": 649648,
+  "decoder_sha256": "e2847c4613b386683c234913ae3b7b04299254096caf7616e3b3cd9bb97a39ab"
+}

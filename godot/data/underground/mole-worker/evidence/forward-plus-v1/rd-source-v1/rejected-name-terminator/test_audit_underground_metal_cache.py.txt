@@ -1,0 +1,270 @@
+#!/usr/bin/env python3
+"""Adversarial finite cache tests. Synthetic MSL proves parser behavior, never a renderer."""
+import ctypes
+import hashlib
+import importlib.util
+import json
+import os
+from pathlib import Path
+import struct
+import tempfile
+import unittest
+from unittest.mock import patch
+
+import audit_underground_metal_cache as A
+
+SOURCE = b"#include <metal_stdlib>\nkernel void main0() {}\n"
+
+
+def pad(data):
+    return data + bytes((-len(data)) % 4)
+
+
+def image(source=SOURCE, name="Synthetic:0", compressed=None, flags=0, stage=4):
+    """Small independent wire constructor keeps offsets visible to corruption tests."""
+    name = name.encode() + b"\0"
+    base = struct.pack("<5I", 0x43535247, 2, 0x42424242, 2, 1)
+    reflection = struct.pack("<Q13I4x", 0, 0, 1, 1, 0, 0, 64, 1, 1, 1, 0, 0, 1, len(name))
+    metal = struct.pack("<4I2B2x4I", 0, 1009, 260602, 40000, 1, 1, 40000, 0xFFFFFFFF, 2, 3)
+    body = pad(base + reflection + metal + name)
+    offsets = {"uniform_count": len(body)}
+    body += struct.pack("<I", 1) + bytes(80)  # One set with one complete binding.
+    body += struct.pack("<4I", 0, 7, 42, 16) + struct.pack("<I", stage)
+    offsets["shader"] = len(body)
+    payload = source if compressed is None else compressed
+    body = pad(body + struct.pack("<4I", stage, len(payload), flags, len(source)) + payload)
+    offsets["stage_meta"] = len(body)
+    body += struct.pack("<3I", 0, 0, 1) + hashlib.sha256(source).digest() + struct.pack("<2I", len(source), 0)
+    return body, offsets
+
+
+def outer(*variants):
+    return b"GDSC" + struct.pack("<2I", 4, len(variants)) + b"".join(struct.pack("<I", len(v)) + v for v in variants)
+
+
+def changed(data, offset, value):
+    result = bytearray(data)
+    struct.pack_into("<I", result, offset, value)
+    return bytes(result)
+
+
+class RefuseDecoder:
+    sha256 = "0" * 64
+    calls = 0
+
+    def decompress(self, _data, _size):
+        self.calls += 1
+        raise AssertionError("Unexpected decoder call")
+
+
+def read(raw, decoder=None, **kwargs):
+    return A.cache(raw, A.digest(raw), decoder or RefuseDecoder(), **kwargs)
+
+
+class CacheTests(unittest.TestCase):
+    def test_complete_wire_retains_all_metadata_and_source_bytes(self):
+        raw = outer(image()[0])
+        report, sources = read(raw)
+        self.assertEqual(report["decoded_source_bytes"], len(SOURCE))
+        self.assertEqual(report["variants"][0]["uniform_count"], 1)
+        self.assertEqual(report["variants"][0]["specialization_count"], 1)
+        self.assertTrue(report["variants"][0]["stages"][0]["supports_fast_math"])
+        self.assertEqual(sources, {A.digest(SOURCE): SOURCE})
+
+    def test_every_truncation_and_trailing_byte_refuses_even_with_refreshed_outer_hash(self):
+        raw = outer(image()[0])
+        for size in range(len(raw)):
+            with self.subTest(size=size), self.assertRaises(A.Refused):
+                read(raw[:size])
+        for raw in (raw + b"x", outer(image()[0] + b"x")):
+            with self.assertRaisesRegex(A.Refused, "TRAILING"):
+                read(raw)
+
+    def test_outer_hash_is_not_optional(self):
+        with self.assertRaisesRegex(A.Refused, "CACHE_HASH"):
+            A.cache(outer(image()[0]), "0" * 64, RefuseDecoder())
+
+    def test_all_abi_versions_and_format_relabels_refuse(self):
+        body, _ = image()
+        for offset, value in ((0, 0), (4, 1), (8, 0), (12, 3)):
+            with self.assertRaisesRegex(A.Refused, "CONTAINER_ABI"):
+                read(outer(changed(body, offset, value)))
+        for raw in (changed(outer(body), 4, 3), b"NOPE" + outer(body)[4:]):
+            with self.assertRaisesRegex(A.Refused, "CACHE_ABI"):
+                read(raw)
+
+    def test_count_and_byte_bombs_refuse_before_decoder(self):
+        body, offsets = image(compressed=b"x", flags=1)
+        decoder = RefuseDecoder()
+        for offset, value in ((16, 6), (20 + 9 * 4 + 4, 9),
+                              (offsets["uniform_count"], 129), (offsets["shader"] + 4, A.MAX_STAGE + 1),
+                              (offsets["shader"] + 12, A.MAX_STAGE + 1)):
+            with self.subTest(offset=offset), self.assertRaises(A.Refused):
+                read(outer(changed(body, offset, value)), decoder)
+        with self.assertRaisesRegex(A.Refused, "VARIANT_CAPACITY"):
+            read(changed(outer(body), 8, 33), decoder)
+        self.assertEqual(decoder.calls, 0)
+
+    def test_compression_and_library_extensions_refuse(self):
+        body, offsets = image()
+        for offset, value in ((offsets["shader"] + 8, 2), (offsets["stage_meta"] + 48, 1),
+                              (offsets["stage_meta"] + 8, 2)):
+            with self.assertRaises(A.Refused):
+                read(outer(changed(body, offset, value)))
+
+    def test_embedded_digest_protects_against_refreshed_outer_source_hash(self):
+        body, offsets = image()
+        broken = bytearray(body)
+        broken[offsets["shader"] + 16] ^= 1
+        with self.assertRaisesRegex(A.Refused, "STAGE_SOURCE_HASH"):
+            read(outer(bytes(broken)))
+
+    def test_omitted_duplicate_and_mismatched_stage_identity_refuse(self):
+        body, offsets = image()
+        with self.assertRaisesRegex(A.Refused, "NO_COMPILED"):
+            read(outer(b""))
+        with self.assertRaisesRegex(A.Refused, "VARIANT_IDENTITY"):
+            read(outer(body, body))
+        with self.assertRaisesRegex(A.Refused, "STAGE_CENSUS"):
+            read(outer(changed(body, offsets["shader"], 0)))
+        record, _ = read(outer(b"", image(name="Synthetic:1")[0]))
+        self.assertEqual(record["variants"][0], {"index": 0, "compiled": False})
+
+    def test_decompressed_budget_counts_duplicate_content_for_every_stage(self):
+        raw = outer(image()[0], image(name="Synthetic:1")[0])
+        with self.assertRaisesRegex(A.Refused, "STAGE_CAPACITY"):
+            read(raw, remaining=2 * len(SOURCE) - 1)
+        report, sources = read(raw, remaining=2 * len(SOURCE))
+        self.assertEqual(report["decoded_source_bytes"], len(SOURCE) * 2)
+        self.assertEqual(len(sources), 1)
+
+    def test_text_and_profile_relabels_refuse(self):
+        for source in (SOURCE + b"\0", b"no native include", SOURCE + b"\xff"):
+            with self.assertRaisesRegex(A.Refused, "SOURCE_TEXT"):
+                read(outer(image(source=source)[0]))
+        body, _ = image()
+        for offset, value in ((84, 1), (96, 31000), (112, 0xFFFFFFFF)):
+            with self.assertRaisesRegex(A.Refused, "PROFILE"):
+                read(outer(changed(body, offset, value)))
+
+    def test_generated_source_is_not_a_substitute_precision_or_role_certificate(self):
+        with self.assertRaisesRegex(A.Refused, "SKIN_EXPRESSION_DRIFT"):
+            A.position_observation("SkeletonShaderRD:1", 4, SOURCE)
+        row = A.position_observation("Synthetic:0", 4, SOURCE)
+        self.assertFalse(row["arithmetic_qualified"])
+        self.assertEqual(row["kind"], "other_stage_retained")
+        with self.assertRaisesRegex(A.Refused, "FUNCTION_CENSUS"):
+            A.position_observation("SceneForwardClusteredShaderRD:0", 0, SOURCE)
+
+    def test_existing_and_dangling_outputs_preserve_prior_bytes(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            existing = root / "out"
+            existing.mkdir()
+            (existing / "prior").write_bytes(b"historical")
+            dangling = root / "dangling"
+            dangling.symlink_to(root / "missing")
+            for output in (existing, dangling, root / "unused" / ".." / "out"):
+                with self.assertRaisesRegex(A.Refused, "OUTPUT_EXISTS"):
+                    A.audit(root / "absent.json", RefuseDecoder(), output)
+            self.assertEqual((existing / "prior").read_bytes(), b"historical")
+            self.assertFalse((root / "missing").exists())
+
+    def test_input_path_and_manifest_census_are_bounded(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            for relative in ("../outside", "/absolute"):
+                with self.assertRaisesRegex(A.Refused, "INPUT_PATH"):
+                    A.child(root, relative)
+            manifest = root / "manifest.json"
+            manifest.write_bytes(b"x" * 16385)
+            with self.assertRaisesRegex(A.Refused, "MANIFEST_CAPACITY"):
+                A.audit(manifest, RefuseDecoder(), root / "new")
+            self.assertFalse((root / "new").exists())
+
+    def test_final_input_drift_refuses_before_any_output(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            raw = outer(image()[0])
+            cache = root / "raw.cache"
+            cache.write_bytes(raw)
+            manifest = root / "manifest.json"
+            manifest.write_text(json.dumps({"schema": 1, "caches": [{"file": "raw.cache", "sha256": A.digest(raw), "bytes": len(raw)}]}))
+            decoder = RefuseDecoder()
+            decoder.library = type("Library", (), {"ZSTD_versionNumber": lambda self: 10507})()
+
+            def mutate(*args):
+                cache.write_bytes(raw + b"changed")
+                return {"arithmetic_qualified": False}
+
+            with patch.object(A, "source_contract", return_value={}), patch.object(A, "position_observation", side_effect=mutate):
+                with self.assertRaisesRegex(A.Refused, "SOURCE_DRIFT"):
+                    A.audit(manifest, decoder, root / "new")
+            self.assertFalse((root / "new").exists())
+
+
+class NativeDecoderTests(unittest.TestCase):
+    def test_actual_bounded_zstd_decode_and_concatenated_frame_refusal(self):
+        path = Path(os.environ.get("UG_TEST_ZSTD_LIBRARY", "/opt/homebrew/lib/libzstd.dylib"))
+        if not path.is_file():
+            self.skipTest("Explicit native libzstd path unavailable; production audit still refuses without it")
+        decoder = A.Zstd(path, hashlib.sha256(path.read_bytes()).hexdigest())
+        compress = decoder.library.ZSTD_compress
+        compress.argtypes = [ctypes.c_void_p, ctypes.c_size_t, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_int]
+        compress.restype = ctypes.c_size_t
+        output = ctypes.create_string_buffer(1024)
+        count = compress(output, 1024, SOURCE, len(SOURCE), 3)
+        self.assertFalse(decoder.library.ZSTD_isError(count))
+        compressed = output.raw[:count]
+        report, sources = read(outer(image(compressed=compressed, flags=1)[0]), decoder)
+        self.assertEqual(report["decoded_source_bytes"], len(SOURCE))
+        self.assertEqual(sources[A.digest(SOURCE)], SOURCE)
+        for data, size in ((compressed + compressed, len(SOURCE)), (compressed, len(SOURCE) + 1),
+                           (b"bad", len(SOURCE)), (compressed, A.MAX_STAGE + 1)):
+            with self.assertRaises(A.Refused):
+                decoder.decompress(data, size)
+
+
+class NativeCaptureBoundaryTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        path = A.F.EVIDENCE / "rd-source-v1/capture_cache.py"
+        spec = importlib.util.spec_from_file_location("native_cache_capture", path)
+        cls.capture = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(cls.capture)
+
+    def test_positive_census_and_raw_diagnostics_are_both_required(self):
+        with tempfile.TemporaryDirectory() as name:
+            image = Path(name) / "image.png"
+            image.write_bytes(b"synthetic file only")
+            report = {"qualified_profiles": 0, "world_qualified": False, "complete_numerical_enclosure": False,
+                      "failures": [], "assertions": 43, "attachment_cycles": 2,
+                      "engine": {"hash": A.F.ENGINE_HASH, "build": "official", "major": 4, "minor": 7, "patch": 2},
+                      "rendering_driver": "metal", "rendering_method": "forward_plus", "display_server": "macOS",
+                      "api_version": "4.0", "basis_sha256": self.capture.BASIS_SHA, "image_sha256": A.digest(image.read_bytes())}
+            raw = "native-forward: 45 assertions, 0 failures; actual native witness\n"
+            self.capture.validate_report(report, raw, image)
+            for key, value in (("qualified_profiles", 1), ("assertions", 0), ("attachment_cycles", 1),
+                               ("failures", ["failure"]), ("rendering_driver", "opengl3"), ("image_sha256", "0" * 64)):
+                with self.assertRaises(ValueError):
+                    self.capture.validate_report({**report, key: value}, raw, image)
+            for bad in ("", raw + "ERROR: simulated\n", raw + "ObjectDB instances leaked at exit\n"):
+                with self.assertRaises(ValueError):
+                    self.capture.validate_report(report, bad, image)
+
+    def test_existing_native_bundle_and_dangling_link_refuse_before_source_or_project_reads(self):
+        with tempfile.TemporaryDirectory() as name:
+            root = Path(name)
+            out = root / "old"
+            out.mkdir()
+            (out / "log").write_bytes(b"historical")
+            link = root / "dangling"
+            link.symlink_to(root / "not-created")
+            for path in (out, link, root / "unused" / ".." / "old"):
+                with self.assertRaisesRegex(ValueError, "OUTPUT_EXISTS"):
+                    self.capture.capture(path)
+            self.assertEqual((out / "log").read_bytes(), b"historical")
+
+
+if __name__ == "__main__":
+    unittest.main()

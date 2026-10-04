@@ -1,0 +1,20 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 317, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 311, in main
+    result = audit(args.manifest, Zstd(args.zstd_library, args.zstd_sha256), args.out_dir)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 279, in audit
+    record, extracted = cache(data, row["sha256"], decoder, MAX_TOTAL_SOURCE - total)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 199, in cache
+    row, extracted, length = container(reader.take(size), decoder, min(MAX_CACHE_SOURCE, remaining) - total)
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 173, in container
+    meta = reflection(reader, count)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 124, in reflection
+    require(raw_name[-1:] == b"\0" and b"\0" not in raw_name[:-1], "METAL_SHADER_NAME")
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/audit_underground_metal_cache.py", line 42, in require
+    raise Refused(code)
+Refused: METAL_SHADER_NAME

@@ -1708,6 +1708,15 @@
           "tests": "137 tests / 13326 assertions / 0 failures; all strict/raw diagnostics/leaks 0; analyzer 0/5",
           "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/hot-3/",
           "limits": "No cold copies or retained route map. Diagnostic 256-caller p95 46.419ms fails timing; follow-on +48B hint/memo and cold callback source-identity fix in independent review. No runtime qualification."
+        },
+        "route_source_memo": {
+          "source": "1f87620b",
+          "registry": "d97f90a7",
+          "integration": "66191c83/d57d29fc",
+          "review": "Construction independently accepted exact five source/test pins. Root read the complete source delta before integration.",
+          "tests": "144 tests / 13550 assertions / 0 failures; all strict/raw diagnostics/leaks 0; analyzer 0/5",
+          "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6/",
+          "limits": "Locations +16 logical bytes within 2112 controls; WorldRoutes +32 within 4096. p95 26.018ms per 256 live queries still fails timing. Direct typed source-identity check closes late observer change before cold output."
         }
       },
       "lease": {

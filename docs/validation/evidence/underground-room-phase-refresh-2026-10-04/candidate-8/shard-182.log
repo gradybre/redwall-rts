@@ -1,0 +1,33 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_phase_refresh.gd
+  PASS  test_actual_ordinary_paid_cycle_refreshes_opening_targets_and_all_old_banks
+  PASS  test_original_entry_method_cannot_accept_null_and_ordinary_cannot_take_entry_room
+  PASS  test_wrong_original_site_room_operation_stage_and_tokens_refuse_before_payment
+  PASS  test_late_full_project_generation_drift_refuses_payment_and_retries
+  PASS  test_late_discard_never_reopens_generic_or_static_space_publication
+  PASS  test_terminal_commit_and_refund_retry_need_no_released_worker
+  PASS  test_entry_ordinary_entry_reuses_one_context_without_laundering_old_openings
+  PASS  test_ordinary_phase_does_not_need_any_live_placement_record
+  PASS  test_replaced_original_cold_lease_refuses_and_cleanup_does_not_release_replacement
+  PASS  test_ordinary_corridor_is_distinct_from_real_entry_corridor_ownership
+  PASS  test_changed_borrowed_context_fields_refuse_and_original_cleanup_still_releases
+CI_SUITE_TIME {"assertions":665,"failures":0,"suite":"test_underground_room_phase_refresh.gd","tests":11,"usec":4453421}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+11 test(s), 665 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 11 tests, 665 assertions, 0 failures.

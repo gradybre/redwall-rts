@@ -1,0 +1,7 @@
+{
+  "godot/scripts/core/underground_space_authority.gd": "733d24e9506ba90ea38346db424d9e4aeccb1d441600f7ee16bdaa14d9d6ddb9",
+  "godot/scripts/core/underground_connector_placements.gd": "c79df28fc24e981aa6b8cae88f7fdea218e0629aa12e87fe675ee7a7b40cf6f3",
+  "godot/scripts/core/underground_locations.gd": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+  "godot/test/test_underground_room_phase_refresh.gd": "78964da48e54c907c3eee40ae82dbe6a136f9eee46afede7229798620b71fd0e",
+  "godot/test/test_underground_locations.gd": "5c74c77448e63d55aaa427b0c045c056b6e03f482b1a819d0dca26e613e4e359"
+}

@@ -1,0 +1,105 @@
+{
+  "source_manifest": "source-review-2/source-sha256.json",
+  "suites": {
+    "test_underground_phase_structure.gd": {
+      "assertions": 240,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 19,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "test_underground_phase_companions.gd": {
+      "assertions": 234,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 13,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "test_underground_room_phase_refresh.gd": {
+      "assertions": 736,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 12,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "test_underground_world_structure.gd": {
+      "assertions": 64,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 6,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "test_underground_locations.gd": {
+      "assertions": 1875,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 61,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "test_underground_entry_world_bindings.gd": {
+      "assertions": 10790,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 33,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    },
+    "test_underground_connector_placements.gd": {
+      "assertions": 4004,
+      "expected": 0,
+      "failures": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "tests": 29,
+      "tolerated": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0
+    }
+  },
+  "totals": {
+    "assertions": 17943,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 173,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "analyzer_files": 5,
+  "analyzer_warnings": 0,
+  "clean_import_raw_diagnostics": 0,
+  "restoration": {
+    "source_unchanged": true,
+    "registry_restored": true,
+    "project_restored": true,
+    "assets_restored": true
+  },
+  "component_accepted": true,
+  "concrete_1152_provider_accepted": false,
+  "runtime_qualified": false
+}

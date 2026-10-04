@@ -1,0 +1,251 @@
+diff --git a/godot/scripts/core/underground_connector_placements.gd b/godot/scripts/core/underground_connector_placements.gd
+index 6bb6f4e0..9b3f3fc8 100644
+--- a/godot/scripts/core/underground_connector_placements.gd
++++ b/godot/scripts/core/underground_connector_placements.gd
+@@ -1660,6 +1660,52 @@ func prepare_phase_refresh(authority: RefCounted, ref: Vector2i, site: Vector2i,
+ 	return _location_token if code == &"" else 0
+ 
+ 
++func prepare_room_phase_refresh(authority: RefCounted, site: Vector2i, operation: int,
++		stage: int, room: Vector2i, space_token: int, cold_token: int) -> int:
++	"""Ordinary Rooms borrow the one existing phase packet without nominating or creating a Placement."""
++	if _reentry() or _cold_token != 0 or _admission_mode or _phase_mode or _reading_state \
++			or _locations._token != 0 or _routes._token != 0 or _world_routes._route_token != 0:
++		return 0
++	if _ordinary_phase_request(authority, site, operation, stage, room, space_token, cold_token) != &"" \
++			or _source_refusal() != &"" or _revision_refusal(_live, 1) != &"":
++		return 0
++	_busy = true
++	_poisoned = false
++	_pin_phase(NULL_REF, site, operation, stage, room, space_token, cold_token)
++	var code: StringName = _phase_prepare_banks()
++	if code != &"": _discard_phase_candidates()
++	_busy = false
++	return _location_token if code == &"" else 0
++
++
++func _ordinary_phase_request(authority: RefCounted, site: Vector2i, operation: int,
++		stage: int, room: Vector2i, space_token: int, cold_token: int) -> StringName:
++	"""The actual captured Sites operation and original lease, not a null ref, authorize ordinary preparation."""
++	if authority == null or _phase_context.authority == null or _phase_context.authority.get_ref() != authority \
++			or authority._owner != _space or authority._sources != _sources or authority._ready_error != &"" \
++			or authority._owner_token != space_token or authority._cold_token != cold_token or authority._stage != stage \
++			or authority._companion_token != 0 or authority._next_i32.size() != 11 \
++			or Vector2i(authority._next_i32[0], authority._next_i32[1]) != site \
++			or Vector2i(authority._next_i32[2], authority._next_i32[3]) != room or authority._next_i32[9] != operation \
++			or space_token <= 0 or _space._stage_token != space_token or not _space._sealed \
++			or cold_token <= 0 or _budget._token != cold_token or _budget._used < Budget.COLD_BYTES:
++		return REFUSE_STALE
++	return _ordinary_room_refusal(room)
++
++
++func _ordinary_room_refusal(room: Vector2i) -> StringName:
++	"""A live underground Room outside every Placement is ordinary, including a flat Corridor Room."""
++	var row: int = Owner.CoreSources._final_row(_ids, room, Directory.KIND_ROOM)
++	if row < 0 or _buildings._r_present[row] != 1 or _buildings._r_ref_slot[row] != room.x \
++			or _buildings._r_ref_generation[row] != room.y or _buildings._r_spatial_kind[row] != Buildings.ROOM_SPACE_UNDERGROUND \
++			or _buildings._r_type[row] < 0 or _buildings._r_type[row] >= Buildings.ROOM_TYPE_COUNT:
++		return REFUSE_STALE
++	if 64 * (_capacity + _opening_capacity) > _space._domain._checks: return REFUSE_CAPACITY
++	for placement: int in _capacity:
++		if _live.present[placement] != 0 and _pair(_live, ROOM_SLOT, placement) == room: return REFUSE_STALE
++	return &""
++
++
+ func _pin_phase(ref: Vector2i, site: Vector2i, operation: int, stage: int, room: Vector2i,
+ 		space_token: int, cold_token: int) -> void:
+ 	"""Keep independent original issuer pins before any callbacks; no inactive bank is copied here."""
+@@ -1669,7 +1715,7 @@ func _pin_phase(ref: Vector2i, site: Vector2i, operation: int, stage: int, room:
+ 	_cold_token = cold_token
+ 	_cold_bytes = Budget.COLD_BYTES
+ 	_space_token = space_token
+-	_payload_revision = _get64(_live, PAYLOAD_REVISION, ref.x)
++	_payload_revision = _get64(_live, PAYLOAD_REVISION, ref.x) if ref != NULL_REF else 0
+ 	_base_geometry_revision = _space._header[17]
+ 	_target_geometry_revision = _space._s_header[17]
+ 	_phase_context.placement = ref
+@@ -1745,12 +1791,21 @@ func _phase_context_refusal() -> StringName:
+ 			or _phase_context.placement_revision != _live.header[H_REVISION] \
+ 			or _phase_context.profile_revision != _profiles._live.header[0] or _phase_context.catalog_revision != _catalog._live.header[0] \
+ 			or _space._stage_token != _space_token or not _space._sealed or _space._header[17] != _base_geometry_revision \
+-			or _space._s_header[17] != _target_geometry_revision or not _is_live(_live, _prepared_placement) \
+-			or _get64(_live, PAYLOAD_REVISION, _prepared_placement.x) != _payload_revision:
++			or _space._s_header[17] != _target_geometry_revision or _phase_selection_refusal() != &"":
+ 		return REFUSE_STALE
+ 	return Locations.phase_scope_leaf_refusal(_locations, _phase_context)
+ 
+ 
++func _phase_selection_refusal() -> StringName:
++	"""Only the dedicated ordinary entry pins null; the original connector branch still proves its live row."""
++	if _prepared_placement == NULL_REF:
++		return _ordinary_room_refusal(_phase_context.room) if _payload_revision == 0 else REFUSE_STALE
++	if not _is_live(_live, _prepared_placement) \
++			or _get64(_live, PAYLOAD_REVISION, _prepared_placement.x) != _payload_revision:
++		return REFUSE_STALE
++	return &""
++
++
+ func phase_context_leaf_refusal(token: int) -> StringName:
+ 	"""Identity-only prepared-bank attestation; callers still compare every original typed context field."""
+ 	if token <= 0 or token != _location_token or _routes._token != _route_token or not _routes._sealed \
+diff --git a/godot/scripts/core/underground_locations.gd b/godot/scripts/core/underground_locations.gd
+index 24064a13..6bacf0cf 100644
+--- a/godot/scripts/core/underground_locations.gd
++++ b/godot/scripts/core/underground_locations.gd
+@@ -416,6 +416,109 @@ func allocation_within(limit: int) -> bool:
+ 	return _capacity > 0 and limit >= _capacity
+ 
+ 
++func location_capacity() -> int:
++	"""Expose the finite physical slot bound; this grants no live endpoint or path permission."""
++	return _capacity
++
++
++func live_location_at_into(slot: int, expected_geometry_revision: int,
++		out_ref: PackedInt32Array, out: Record) -> StringName:
++	"""Read one current full row without observers; all refused calls preserve both caller outputs."""
++	if slot < 0 or slot >= _capacity: return &"LOCATION_FORMAT"
++	if out_ref.size() != 2 or out == null or out.envelope.size() != 6 or out.support.size() != 6:
++		return &"LOCATION_OUTPUT_SHAPE"
++	var code: StringName = _iteration_scope_refusal(self, expected_geometry_revision)
++	if code != &"": return code
++	var bank: Bank = _live
++	var epoch: int = bank.header[13]
++	if bank.present[slot] == 0: return &"LOCATION_ABSENT"
++	code = _iteration_row_refusal(self, bank, slot, expected_geometry_revision)
++	if code != &"": return code
++	if _live != bank or bank.header[13] != epoch or _owner._header[17] != expected_geometry_revision:
++		return &"LOCATION_GEOMETRY_STALE"
++	_copy_route_observation(self, bank, slot, out)
++	out_ref[0] = slot
++	out_ref[1] = bank.i32[GENERATION * _capacity + slot]
++	return &""
++
++
++static func _iteration_scope_refusal(actual: RefCounted, revision: int) -> StringName:
++	"""Precharge the complete finite source scan and require actual live banks and immutable namespace."""
++	if actual._capacity <= 0 or actual._capacity > MAX_LOCATIONS or actual._owner == null \
++			or actual._sources == null or actual._ids == null or actual._buildings == null or actual._transforms == null \
++			or actual._inventory == null or actual._owner._ready_error != &"" or actual._owner._sources != actual._sources \
++			or actual._sources._directory != actual._ids or actual._sources._buildings != actual._buildings \
++			or actual._buildings._directory != actual._ids or actual._transforms._directory != actual._ids \
++			or actual._sources._construction == null or actual._sources._construction._directory != actual._ids \
++			or actual._sources._construction._buildings != actual._buildings \
++			or not _observation_domain_matches(actual._domain, actual._owner._domain) or actual._domain._world != actual._world:
++		return &"LOCATION_OWNER_MISMATCH"
++	if 256 + 4 * actual._owner._source_capacity > actual._domain._checks:
++		return &"LOCATION_OPERATION_BUDGET"
++	if actual._token != 0 or actual._in_retention or actual._owner._stage_token != 0 or actual._owner._room_callback \
++			or actual._owner._validation_sources >= 0 or actual._owner._validation_regions >= 0:
++		return &"LOCATION_SELECTOR_BUSY"
++	var bank: Bank = actual._live
++	if bank == null or bank == actual._stage or bank.header.size() != HEADER_FIELDS \
++			or bank.i32.size() != I32_FIELDS * actual._capacity or bank.i64.size() != I64_FIELDS * actual._capacity \
++			or bank.present.size() != actual._capacity or bank.header[0] != SCHEMA or bank.header[1] != actual._capacity \
++			or bank.header[2] != actual._world.x or bank.header[3] != actual._world.y or bank.header[13] <= 0:
++		return &"LOCATION_FORMAT"
++	var code: StringName = _route_observation_world_refusal(actual)
++	if code != &"": return code
++	return &"" if revision > 0 and actual._owner._header[17] == revision else &"LOCATION_GEOMETRY_STALE"
++
++
++static func _iteration_row_refusal(actual: RefCounted, bank: Bank, row: int, revision: int) -> StringName:
++	"""Immutable payload identity and complete section/source facts precede the first caller write."""
++	var capacity: int = actual._capacity
++	if bank.present[row] != 1 or bank.i32[GENERATION * capacity + row] <= 0 \
++			or bank.i64[PAYLOAD_REVISION * capacity + row] <= 0 \
++			or bank.i64[GEOMETRY_REVISION * capacity + row] != revision:
++		return &"LOCATION_GEOMETRY_STALE"
++	var room: Vector2i = Vector2i(bank.i32[ROOM_SLOT * capacity + row], bank.i32[ROOM_GENERATION * capacity + row])
++	var section: Vector2i = Vector2i(bank.i32[SECTION_SLOT * capacity + row], bank.i32[SECTION_GENERATION * capacity + row])
++	var owner: Owner = actual._owner
++	if section.x < 0 or section.x >= owner._region_capacity or section.y <= 0 or owner._r_present[section.x] != 1 \
++			or owner._r_generation[section.x] != section.y or owner._r_role[section.x] != Space.FLOOR_DATUM \
++			or owner._r_claim_kind[section.x] != Owner.CLAIM_NONE or bank.i32[LEVEL * capacity + row] < 0 \
++			or owner._r_level[section.x] != bank.i32[LEVEL * capacity + row] \
++			or owner._r_lo_y[section.x] != bank.i32[Y * capacity + row] \
++			or bank.i32[X * capacity + row] < owner._r_lo_x[section.x] or bank.i32[X * capacity + row] >= owner._r_hi_x[section.x] \
++			or bank.i32[Z * capacity + row] < owner._r_lo_z[section.x] or bank.i32[Z * capacity + row] >= owner._r_hi_z[section.x]:
++		return &"LOCATION_SECTION_STALE"
++	if bank.i32[ROLE * capacity + row] < ROLE_TRANSIT or bank.i32[ROLE * capacity + row] > ROLE_WORK:
++		return &"LOCATION_FORMAT"
++	var source: Vector2i = actual._world if room == NULL_REF else room
++	if owner._r_owner_slot[section.x] != source.x or owner._r_owner_generation[section.x] != source.y \
++			or (room == NULL_REF and bank.i32[LEVEL * capacity + row] != 0): return &"LOCATION_SECTION_STALE"
++	return _iteration_source_refusal(actual, source, section.x)
++
++
++static func _iteration_source_refusal(actual: RefCounted, ref: Vector2i, section: int) -> StringName:
++	"""A full source row and its actual mirrored identity must agree at the current section revision."""
++	var owner: Owner = actual._owner
++	var found: int = -1
++	for row: int in owner._source_capacity:
++		if owner._o_present[row] == 0 or owner._o_slot[row] != ref.x: continue
++		if owner._o_present[row] != 1 or owner._o_generation[row] != ref.y or found >= 0: return &"LOCATION_SOURCE_STALE"
++		found = row
++	if found < 0 or owner._o_revision[found] <= 0 or owner._o_revision[found] != owner._r_owner_revision[section] \
++			or owner._o_b[found] != 0 or owner._o_c[found] != 0: return &"LOCATION_SOURCE_STALE"
++	if ref == actual._world:
++		return &"" if owner._o_kind[found] == Directory.KIND_WORLD and owner._o_a[found] == 0 and owner._o_d[found] == 0 \
++			and owner._o_parent_slot[found] == -1 and owner._o_parent_generation[found] == 0 else &"LOCATION_SOURCE_STALE"
++	var room: int = Owner.CoreSources._final_row(actual._ids, ref, Directory.KIND_ROOM)
++	var buildings: Buildings = actual._buildings
++	if room < 0 or buildings._r_present[room] != 1 or buildings._r_ref_slot[room] != ref.x \
++			or buildings._r_ref_generation[room] != ref.y or buildings._r_spatial_kind[room] != Buildings.ROOM_SPACE_UNDERGROUND \
++			or buildings._r_type[room] < 0 or buildings._r_type[room] >= Buildings.ROOM_TYPE_COUNT:
++		return &"LOCATION_ROOM_STALE"
++	return &"" if owner._o_kind[found] == Directory.KIND_ROOM and owner._o_d[found] == Buildings.ROOM_SPACE_UNDERGROUND \
++		and owner._o_a[found] == buildings._r_type[room] and owner._o_parent_slot[found] == buildings._r_building_slot[room] \
++		and owner._o_parent_generation[found] == buildings._r_building_generation[room] else &"LOCATION_SOURCE_STALE"
++
++
+ func bind_retention(retention: Retention) -> StringName:
+ 	"""Bind once without creating the Locations/Space/Routes ownership cycle."""
+ 	if _reject_retention_callback() or _capacity == 0 or _token != 0 or _retention != null or retention == null:
+diff --git a/godot/scripts/core/underground_space_authority.gd b/godot/scripts/core/underground_space_authority.gd
+index a94b2444..cd4d0966 100644
+--- a/godot/scripts/core/underground_space_authority.gd
++++ b/godot/scripts/core/underground_space_authority.gd
+@@ -1425,6 +1425,42 @@ func _concrete_phase_leaf() -> StringName:
+ 	return issuer.prepared_phase_leaf_refusal(_companion_token)
+ 
+ 
++static func _room_phase_issuer(actual: RefCounted) -> Placements:
++	"""Borrow only the exact permanent reciprocal phase packet already owned by actual Placements."""
++	if actual == null or actual._owner == null or actual._owner._phase_context == null: return null
++	var context: Locations.PhaseContext = actual._owner._phase_context.get_ref() as Locations.PhaseContext
++	var issuer: Placements = context.issuer.get_ref() as Placements if context != null and context.issuer != null else null
++	if issuer == null or context.authority == null or context.authority.get_ref() != actual \
++			or issuer._phase_context != context or issuer._space != actual._owner or issuer._sources != actual._sources \
++			or issuer._locations._phase_context != context or context.placement != NULL_REF:
++		return null
++	return issuer
++
++
++func room_phase_context(token: int) -> Locations.PhaseContext:
++	"""Expose the original sealed ordinary tuple for exact provider comparisons, never as a permission flag."""
++	var issuer: Placements = _room_phase_issuer(self)
++	return issuer.phase_context(token) if issuer != null else null
++
++
++func room_phase_observation_refusal(token: int) -> StringName:
++	"""Refresh all observing sources and retention before the actual final payment leaf."""
++	var issuer: Placements = _room_phase_issuer(self)
++	return issuer.phase_refresh_refusal(token) if issuer != null else &"SPACE_FINAL_PHASE_SCOPE"
++
++
++static func room_phase_leaf_refusal(actual: RefCounted, token: int) -> StringName:
++	"""Close original actual source, claims and every sealed companion using the same concrete phase owner."""
++	var issuer: Placements = _room_phase_issuer(actual)
++	return issuer.prepared_phase_leaf_refusal(token) if issuer != null else &"SPACE_FINAL_PHASE_SCOPE"
++
++
++func discard_room_phase_refresh(token: int) -> void:
++	"""Drop only the original companions; this Authority retains the sealed Space token until its own cleanup."""
++	var issuer: Placements = _room_phase_issuer(self)
++	if issuer != null: issuer.discard_phase_refresh(token)
++
++
+ func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
+ 	"""Publish only inside the exact actual Sites callback after its physical owner transaction commits."""
+ 	if _owner._phase_context != null:

@@ -1,0 +1,32 @@
+{
+  "reviewer": "/root",
+  "scope": "Independent source and executable census review of frozen1153 source-review-2; actual1152 provider and playable/native qualification remain separate",
+  "subject_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-phase-refresh",
+  "frozen_packet": "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/source-review-2/",
+  "verdict": "accepted source component; complete author final regression must pass before commit/integration",
+  "source_pins": {
+    "Authority": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+    "Placements": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
+    "Locations": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+    "phase_test": "222864df66615ea5af39eafde8081c949d53734b30c0e324c727d50e7d421ae7"
+  },
+  "finding_resolution": "Both preparation APIs now check configured/ready and all original companion handles before dereference, preserving reentry poisoning first. Regression covers fresh, configured-only and five missing original collaborators, no mutation, and successful restored original BRACE.",
+  "independent_execution": "All six source/test/UID pins match; census.py independently reproduced frozen census.json exactly. No engine rerun by reviewer at this point.",
+  "reviewed_author_evidence": "candidate9 actual clean import and strict runner12tests736assertions0; all strict/raw diagnostics/leaks0; analyzer0/5; source/project/registry/assets restored.",
+  "retained_delta_bytes": 0,
+  "phase_context_bytes": 128,
+  "placement_controls_bytes": 1895,
+  "placement_control_reserve": 2048,
+  "ordinary_helper_bytes": 564,
+  "ordinary_helper_reserve": 576,
+  "iterator_total_bytes": 308,
+  "iterator_existing_allowance": 512,
+  "maximum_sequential_cold_bytes": 691024,
+  "cold_reserve": 1048960,
+  "limits": [
+    "Synthetic body/contact fixture qualification; real economic/geometry owners exercised",
+    "1152 concrete provider must account its additional overlapping frames separately",
+    "Iterator returns metadata, not Approach or traversal permission",
+    "No actual demo/native720/256-resident or full-workflow acceptance"
+  ]
+}

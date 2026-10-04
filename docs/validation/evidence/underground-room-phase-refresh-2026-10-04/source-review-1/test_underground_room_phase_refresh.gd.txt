@@ -1,0 +1,506 @@
+extends "res://test/framework/test_case.gd"
+## Real Room/Sites/Project/Funding/Work and shared companion owners.
+## Body, terrain extents, prospective contact and structural permissions are explicitly synthetic.
+
+const Paid := preload("res://test/test_underground_connector_placements.gd")
+const Phase := preload("res://test/test_underground_phase_companions.gd")
+const Economic := preload("res://test/test_underground_space_authority.gd")
+const World := preload("res://test/test_underground_world_routes.gd")
+const ActualAuthority := preload("res://scripts/core/underground_space_authority.gd")
+const Placements := preload("res://scripts/core/underground_connector_placements.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Sites := preload("res://scripts/core/excavation_sites.gd")
+const Contract := preload("res://scripts/core/excavation_contract.gd")
+const Buildings := preload("res://scripts/core/buildings.gd")
+const Construction := preload("res://scripts/core/construction.gd")
+const Needs := preload("res://scripts/core/needs.gd")
+const Gear := preload("res://scripts/core/gear.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+
+class Fixture extends Paid.ActualFixture:
+	var ordinary_type: int = Buildings.ROOM_TYPE_KITCHEN
+
+	func _add_other_corridor(token: int) -> void:
+		"""The second real Room is an ordinary Kitchen; its actual full identity becomes an opening target."""
+		room_permit.allow(Buildings.SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, ordinary_type)
+		var made: Buildings.OpResult = _buildings.designate_spatial_room(ordinary_type)
+		assert_true(made.ok, "actual ordinary Kitchen identity")
+		other_corridor = made.ref
+		assert_equal(_owner.stage_source(token, made.ref), &"", "real Kitchen source")
+		var region: Owner.Region = Owner.Region.new()
+		region.owner = made.ref
+		region.role = Space.FLOOR_DATUM
+		region.level = 0
+		region.box = PackedInt32Array([X + 8192, 512, Z, X + 12288, 513, Z + 4096])
+		var added: Owner.Result = _owner.stage_add(token, region)
+		assert_equal(added.error, &"", "actual Kitchen section")
+		other_floor = added.handle
+
+	func _actual_space(obstruction: int) -> void:
+		"""Explicit initial solids/claims are synthetic geometry, published through actual typed APIs."""
+		super._actual_space(obstruction)
+		var token: int = _owner.begin_stage(_owner.revision()).token
+		_paid_cube(token, corridor, corridor_floor, X + 4096)
+		_paid_cube(token, other_corridor, other_floor, X + 8192)
+		assert_equal(_owner.seal(token), &"", "actual synthetic initial physical geometry")
+		_owner.publish(token)
+
+	func _paid_cube(token: int, room: Vector2i, section: Vector2i, x: int) -> void:
+		"""One real paid key has complete initial solid and adjacent approach, never paid-state seeding."""
+		_region(token, PackedInt32Array([x, 512, Z, x + 1024, 1536, Z + 1024]), Space.DRY_SOLID)
+		_region(token, PackedInt32Array([x - 1024, 512, Z, x, 1536, Z + 1024]), Space.SUPPORTED_VOID)
+		var claim: Owner.Region = Owner.Region.new()
+		claim.owner = room
+		claim.section = section
+		claim.role = Space.OBSTACLE
+		claim.level = 0
+		claim.claim_kind = Owner.CLAIM_ROOM
+		claim.claim_ref = room
+		claim.box = PackedInt32Array([x, 512, Z, x + 1024, 1536, Z + 1024])
+		assert_equal(_owner.stage_add(token, claim).error, &"", "actual exact Room claim")
+
+class Binding extends Phase.PhaseBinding:
+	var ordinary: Vector2i = NULL_REF
+	var prepare_fault: int = 0
+	var saw_null_placement: bool = false
+
+	func prepare_companions(token: int, site: Vector2i, op: int, stage: int,
+			room: Vector2i, plan: Space.Plan) -> int:
+		"""Entry keeps its existing API; only the ordinary actual Room invokes the distinct new path."""
+		if room != ordinary and prepare_fault != 10: return super.prepare_companions(token, site, op, stage, room, plan)
+		var actual: ActualAuthority = spatial.get_ref() as ActualAuthority
+		if prepare_fault == 1: site.y += 1
+		if prepare_fault == 2: room.y += 1
+		if prepare_fault == 3: token += 1
+		if prepare_fault == 4: stage = Contract.STAGE_CANCEL
+		if prepare_fault == 5: op = Contract.OP_CUT
+		if prepare_fault == 7: actual = ActualAuthority.new()
+		if prepare_fault == 8: token = 0
+		if prepare_fault == 9: site = NULL_REF
+		var result: int = placements.prepare_room_phase_refresh(actual, site, op, stage, room, token,
+			cold_active + (1 if prepare_fault == 6 else 0))
+		saw_null_placement = result > 0 and placements._phase_context.placement == NULL_REF
+		return result
+
+	func prepared_refusal(token: int) -> StringName:
+		"""Run the full actual source/geometry/retention observations under the original ordinary tuple."""
+		if placements._phase_context.placement != NULL_REF: return super.prepared_refusal(token)
+		return (spatial.get_ref() as ActualAuthority).room_phase_observation_refusal(token)
+
+	func revision_after(token: int) -> int:
+		"""Synthetic qualification is explicit and independent of whether a connector Frontier exists."""
+		return qualified_revision if placements.phase_context_leaf_refusal(token) == &"" else 0
+
+	func phase_final_leaf_refusal(site: Vector2i, op: int, stage: int,
+			token: int, space: int, companion: int) -> StringName:
+		"""Every original scalar remains exact; the adverse callback models a provider lying after its own leaf."""
+		if placements._phase_context.placement != NULL_REF:
+			return super.phase_final_leaf_refusal(site, op, stage, token, space, companion)
+		var actual: ActualAuthority = spatial.get_ref() as ActualAuthority
+		var context: Locations.PhaseContext = actual.room_phase_context(companion)
+		if context == null or context.site != site or context.operation != op or context.stage != stage \
+				or context.cold_token != token or context.space_token != space: return &"TEST_ROOM_PHASE_CONTEXT"
+		var code: StringName = ActualAuthority.room_phase_leaf_refusal(actual, companion)
+		if leaf_probe.is_valid():
+			var probe: Callable = leaf_probe
+			leaf_probe = Callable()
+			probe.call()
+		return code
+
+	func discard_companions(token: int) -> void:
+		"""Discard exact original candidates through the matching public ordinary or entry path."""
+		if placements._prepared_placement != NULL_REF: super.discard_companions(token)
+		else: (spatial.get_ref() as ActualAuthority).discard_room_phase_refresh(token)
+
+var _f: Fixture = null
+var _group: Paid.GroupFixture = null
+var _placements: Placements = null
+var _frontier: Paid.TestAuthority = null
+var _phase: Binding = null
+var _authority: ActualAuthority = null
+var _sites: Sites = null
+var _economic: Economic = null
+var _placement: Vector2i = NULL_REF
+var _edge: Vector2i = NULL_REF
+var _entry_site: Vector2i = NULL_REF
+
+
+func before_each() -> void:
+	"""All authoritative stores, generation identities, bills and paid transitions are real owners."""
+	_setup_room(Buildings.ROOM_TYPE_KITCHEN)
+
+
+func _setup_room(room_type: int) -> void:
+	"""The Room's permanent real purpose is selected before creation, never patched after publication."""
+	_f = Fixture.new()
+	_f.ordinary_type = room_type
+	_f._actual_fixture()
+	_edge = _f._publish_route()
+	_bind_placements()
+	_bind_phase()
+	_bind_economy()
+	assert_true(_f.failures.is_empty(), "actual fixture setup: %s" % _f.failures)
+	assert_true(_group.failures.is_empty(), "actual immutable group source: %s" % _group.failures)
+
+
+func _bind_placements() -> void:
+	"""Create one real Corridor Placement whose immutable opening points into the ordinary Kitchen."""
+	_group = Paid.GroupFixture.new()
+	_group._catalog = _f._catalog
+	_group._items = _f._items
+	_group._inventory = _f._inventory
+	_group._bind_source(_group._group_wire(1, 1), PackedInt32Array([0]), false, 4)
+	assert_equal(_group._load_source(), &"", "actual complete source")
+	_placements = Placements.new()
+	assert_equal(_placements.configure(4, 8, Placements.required_bytes(4, 8)), &"", "actual finite banks")
+	assert_equal(_placements.bind_actual(_f._owner, _f._locations, _f._routes, _f._budget,
+		_f._catalog, _group._reader, _group._recipes, _f._construction), &"", "actual composition")
+	_frontier = Paid.TestAuthority.new()
+	_frontier.fixture = weakref(_f)
+	_frontier.placement_owner = weakref(_placements)
+	assert_equal(_placements.bind_authority(_frontier), &"", "labelled synthetic source permission")
+	var request: Placements.Request = Placements.Request.new()
+	request.corridor = _f.corridor
+	request.section = _f.corridor_floor
+	request.anchor = _f._first
+	request.origin = Vector3i(World.X + 4096, 512, World.Z)
+	for ordinal: int in _placements._opening_count():
+		request.targets.append_array(PackedInt32Array([_f.other_corridor.x, _f.other_corridor.y, _f.other_floor.x, _f.other_floor.y]))
+	var cold: int = _f._budget.acquire(Budget.COLD_BYTES)
+	var registered: Placements.Result = _placements.register(request, cold)
+	assert_equal(registered.error, &"", "actual Placement registration")
+	_placement = registered.placement
+	assert_equal(_f._budget.release(cold), &"", "registration releases original lease")
+
+
+func _bind_phase() -> void:
+	"""Both Room kinds use one actual Sites/Authority and the existing single Placement-owned context."""
+	_phase = Binding.new()
+	_phase.source_reader = _f._sources
+	_phase.owner = _f._owner
+	_phase.buildings = _f._buildings
+	_phase.jobs = _f._jobs
+	_phase.inventory = _f._inventory
+	_phase.actual_budget = _f._budget
+	_phase.placements = _placements
+	_phase.placement = _placement
+	_phase.ordinary = _f.other_corridor
+	_phase.floor_ref = _f.other_floor
+	_authority = ActualAuthority.new()
+	assert_equal(_authority.configure(_f._owner, _phase, 8), &"", "real Authority")
+	_phase.spatial = weakref(_authority)
+	_sites = Sites.new(_f._construction, _f._inventory, _f._pool, _f._items, _f._jobs, _f._work, _authority, 64, 8)
+	_phase.sites = _sites
+	assert_equal(_sites.initialization_refusal(), &"", "real Sites")
+	assert_equal(_authority.bind_sites(_sites), &"", "reciprocal Authority")
+	assert_equal(_f._locations.bind_sites(_sites), &"", "same actual Sites")
+	assert_equal(_placements.bind_phase_authority(_authority), &"", "single original context")
+	_entry_site = _sites.claim_quantum(Vector3i(World.X + 4096, 512, World.Z), _f.corridor).ref
+	assert_true(_sites.is_live_site(_entry_site), "real entry Site")
+
+
+func _bind_economy() -> void:
+	"""Borrow existing economic helper methods with this one actual owner's stores and ordinary Site."""
+	_economic = Economic.new()
+	_economic._residents = _f._residents
+	_economic._priorities = _f._jobs.priorities()
+	_economic._schedule = _f._jobs.schedule()
+	_economic._jobs = _f._jobs
+	_economic._work = _f._work
+	_economic._gear = _f._gear
+	_economic._inventory = _f._inventory
+	_economic._pool = _f._pool
+	_economic._items = _f._items
+	_economic._construction = _f._construction
+	_economic._buildings = _f._buildings
+	_economic._owner = _f._owner
+	_economic._sources = _f._sources
+	_economic._authority = _authority
+	_economic._bindings = _phase
+	_economic._sites = _sites
+	_economic._world = _f._world_ref
+	_economic._room = _f.other_corridor
+	_economic._floor = _f.other_floor
+	_economic._site = _sites.claim_quantum(Vector3i(World.X + 8192, 512, World.Z), _f.other_corridor).ref
+	_economic._store = _f._inventory.create_container(_f._world_ref, 100000, -1, 0, true).ref
+	_economic._output = _f._inventory.create_container(_f._world_ref, 100000, -1, 0, true).ref
+	_enroll_worker()
+
+
+func _enroll_worker() -> void:
+	"""Ordinary paid Work consumes an actual claim on actual equipped tool stock."""
+	var row: int = _f._residents.directory().get_typed_row(_f._worker)
+	_economic._resident = row
+	assert_true(_economic._priorities.spawn(row).ok, "actual priorities")
+	assert_true(_economic._schedule.spawn(row, _economic._schedule.default_template_id().value).ok, "actual schedule")
+	assert_true(_economic._schedule.resolve(row, 8, false).ok, "actual work hour")
+	assert_true(_f._jobs.spawn_agent(row).ok, "actual Job agent")
+	for need: int in Needs.NEED_COUNT:
+		var current: int = _f._residents.needs().need_of(row, need).value
+		assert_true(_f._residents.needs().apply_need_event(row, need, 5000 - current).ok, "base mood")
+	var tool: Vector2i = _economic._lot(&"tool", 1000)
+	assert_true(_f._gear.create_gear(_f._inventory, _f._items, tool, Gear.MANUFACTURE_BASIC).ok, "real tool")
+	assert_true(_f._gear.equip(tool, _f._worker).ok, "actual equipped tool")
+	_economic._tools.append(tool)
+
+
+func after_each() -> void:
+	"""Drop each reference after the original candidates and lease have been cleared by actual owners."""
+	if _authority._stage >= 0:
+		_authority.discard_transition(_sites.origin_of(_economic._site), _authority._next_i32[9], _authority._stage, _economic._room)
+	assert_true(_economic.failures.is_empty(), "actual economic helpers: %s" % _economic.failures)
+	assert_true(_f._budget.is_quiescent(), "original arena released")
+	_economic = null
+	_phase.sites = null
+	_phase.placements = null
+	_phase = null
+	_authority = null
+	_sites = null
+	_frontier = null
+	_placements = null
+	_group._reader = null
+	_group._recipes = null
+	_group._catalog = null
+	_group._items = null
+	_group._inventory = null
+	_group = null
+	_f.after_each()
+	assert_true(_f.failures.is_empty(), "actual geometry helpers: %s" % _f.failures)
+	_f = null
+
+
+func _ready_start() -> int:
+	"""Leave a real delivered bill ready for the actual guarded START transaction."""
+	var job: int = _economic._open(Contract.OP_BRACE)
+	_economic._deliver(Contract.OP_BRACE, job)
+	assert_true(_sites.bind_worker(_economic._site).ok, "real worker bound")
+	assert_true(_economic.failures.is_empty(), "real unpaid setup: %s" % _economic.failures)
+	return job
+
+
+func _state() -> Dictionary:
+	"""Independent live byte images catch partial publication and economic changes on refusal."""
+	return {"space": _f._owner.state_bytes(), "inventory": _f._inventory.state_bytes(),
+		"locations": _f._locations._live.i32.duplicate(), "location_revisions": _f._locations._live.i64.duplicate(),
+		"routes": _f._routes._live.fields.duplicate(), "route_revisions": _f._routes._live.longs.duplicate(),
+		"placement": _placements._live.i32.duplicate(), "placement_revisions": _placements._live.i64.duplicate(),
+		"placement_header": _placements._live.header.duplicate(), "opening_revisions": _placements._live.opening_revision.duplicate()}
+
+
+func _unchanged(before: Dictionary) -> void:
+	"""Worker-release controls may change legitimately; authoritative economy and spatial banks may not."""
+	var after: Dictionary = _state()
+	for key: String in before: assert_equal(after[key], before[key], "%s remains unchanged" % key)
+
+
+func test_actual_ordinary_paid_cycle_refreshes_opening_targets_and_all_old_banks() -> void:
+	"""Kitchen source revisions reach the linked real Corridor without inventing a Kitchen Placement."""
+	var revision: int = _f._owner.revision()
+	var context: Locations.PhaseContext = _placements._phase_context
+	var payload: PackedInt32Array = _placements._live.i32.duplicate()
+	var opening: int = _placements._get32(_placements._live, Placements.OPENING_HEAD, _placement.x)
+	var old_opening: int = _placements._live.opening_revision[opening]
+	for operation: int in [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]:
+		assert_true(_economic._complete(operation) > 0, "real paid phase labor")
+		assert_true(_economic.failures.is_empty(), "real phase %s: %s" % [operation, _economic.failures])
+	assert_equal(_f._owner.revision(), revision + 6, "one real receipt per successful boundary")
+	assert_true(_phase.saw_null_placement, "ordinary branch has no fabricated Placement")
+	assert_true(_placements._phase_context == context, "the same single owned context")
+	assert_equal(_placements._live.i32, payload, "all Placement payload/prefix/Project/targets retained")
+	assert_true(_placements._live.opening_revision[opening] > old_opening, "ordinary Room source advanced")
+	assert_equal(_placements._live.opening_revision[opening], _f._owner._r_owner_revision[_f.other_floor.x], "exact refreshed target source")
+	assert_equal(_sites.virgin_sourced_milli(), 2000, "real spoil once")
+	assert_equal(_f._locations._live.count, 2, "no new endpoint")
+	assert_equal(_f._routes._live.edge_count, 1, "no new route")
+	assert_equal(_f._binding.static_profile_edge_refusal(_edge, 0, 1, 1), &"", "same actual path certificate current")
+
+
+func test_original_entry_method_cannot_accept_null_and_ordinary_cannot_take_entry_room() -> void:
+	"""No common sentinel turns a Placement-specific paid operation into an ordinary Room operation."""
+	_ready_start()
+	_phase.final_probe = _wrong_entry_call
+	assert_true(_sites.begin_phase_work(_economic._site, 0).ok, "outer exact ordinary preparation succeeds")
+
+
+func _wrong_entry_call() -> void:
+	"""Read the actual captured tuple, then try only the explicitly wrong public operation."""
+	var c: Locations.PhaseContext = _placements._phase_context
+	assert_equal(_placements.prepare_phase_refresh(_authority, NULL_REF, c.site, c.operation,
+		c.stage, c.room, c.space_token, c.cold_token), 0, "null never enters existing entry API")
+	assert_equal(_placements.prepare_room_phase_refresh(_authority, c.site, c.operation, c.stage, _f.corridor,
+		c.space_token, c.cold_token), 0, "wrong Room/active context never enters ordinary API")
+
+
+func test_wrong_original_site_room_operation_stage_and_tokens_refuse_before_payment() -> void:
+	"""Each wrong public tuple fails without a replacement bank or payment; same input can retry."""
+	_ready_start()
+	var before: Dictionary = _state()
+	for fault: int in range(1, 10):
+		_phase.prepare_fault = fault
+		assert_false(_sites.begin_phase_work(_economic._site, 0).ok, "wrong original tuple %s" % fault)
+		_unchanged(before)
+		assert_true(_f._budget.is_quiescent(), "exact failed scratch released")
+	_phase.prepare_fault = 0
+	assert_true(_sites.begin_phase_work(_economic._site, 0).ok, "same actual tuple retries")
+
+
+func test_late_full_project_generation_drift_refuses_payment_and_retries() -> void:
+	"""Provider success cannot replace the original captured real Project with an equal slot and new generation."""
+	_ready_start()
+	var before: Dictionary = _state()
+	_phase.final_probe = _change_project
+	assert_false(_sites.begin_phase_work(_economic._site, 0).ok, "foreign full Project refused")
+	_unchanged(before)
+	assert_true(_sites.begin_phase_work(_economic._site, 0).ok, "original Project retry")
+
+
+func _change_project() -> void:
+	"""Only the borrowed packet is hostile; the actual captured Authority tuple stays original."""
+	_placements._phase_context.project.y += 1
+
+
+func test_late_discard_never_reopens_generic_or_static_space_publication() -> void:
+	"""The real Authority owns its sealed candidate after both ordinary companion tokens are dropped."""
+	_ready_start()
+	var before: Dictionary = _state()
+	_phase.leaf_probe = _discard_then_publish
+	assert_false(_sites.begin_phase_work(_economic._site, 0).ok, "original outer scope catches discarded companions")
+	_unchanged(before)
+	assert_true(_sites.begin_phase_work(_economic._site, 0).ok, "complete fresh retry")
+
+
+func _discard_then_publish() -> void:
+	"""Attempt both actual premature publication APIs with the saved original Space token."""
+	var c: Locations.PhaseContext = _placements._phase_context
+	var token: int = c.space_token
+	var base: int = c.base_revision
+	var target: int = c.target_revision
+	_authority.discard_room_phase_refresh(c.location_token)
+	_f._owner.publish(token)
+	assert_false(Owner.commit_preflighted(_f._owner, token, base, target), "discard cannot change ownership")
+
+
+func test_terminal_commit_and_refund_retry_need_no_released_worker() -> void:
+	"""Successful COMMIT and paid CANCEL use their original receipt after worker release, never new labor."""
+	var job: int = _economic._start(Contract.OP_BRACE)
+	assert_true(_economic._finish_work(job) > 0, "real completed labor")
+	var before: Dictionary = _state()
+	_phase.final_probe = _change_project
+	assert_false(_sites.settle_phase(_economic._site).ok, "late terminal drift refuses")
+	_unchanged(before)
+	assert_equal(_f._jobs.worker_of(job), NULL_REF, "worker already released")
+	assert_true(_sites.settle_phase(_economic._site).ok, "worker-free COMMIT retries")
+	job = _economic._start(Contract.OP_CUT)
+	assert_true(_f._work.tick_solo(job).ok, "real partial CUT")
+	before = _state()
+	_phase.final_probe = _change_project
+	assert_false(_sites.cancel_phase(_economic._site, _economic._store).ok, "late refund drift refuses")
+	_unchanged(before)
+	assert_equal(_f._jobs.worker_of(job), NULL_REF, "cancel releases worker")
+	assert_true(_sites.cancel_phase(_economic._site, _economic._store).ok, "worker-free CANCEL retries")
+	assert_equal(_sites.support_conservation_refusal(), &"", "same actual funding conservation")
+
+
+func test_entry_ordinary_entry_reuses_one_context_without_laundering_old_openings() -> void:
+	"""One actual provider/Authority alternates the two real Room kinds without rebinding the packet."""
+	var context: Locations.PhaseContext = _placements._phase_context
+	var ordinary_site: Vector2i = _economic._site
+	_select_economic_room(_entry_site, _f.corridor, _f.corridor_floor)
+	assert_true(_economic._complete(Contract.OP_BRACE) > 0, "real entry BRACE")
+	assert_true(_economic.failures.is_empty(), "entry first: %s" % _economic.failures)
+	_select_economic_room(ordinary_site, _f.other_corridor, _f.other_floor)
+	assert_true(_economic._complete(Contract.OP_BRACE) > 0, "real ordinary BRACE")
+	assert_true(_economic.failures.is_empty(), "ordinary next: %s" % _economic.failures)
+	_select_economic_room(_entry_site, _f.corridor, _f.corridor_floor)
+	assert_true(_economic._complete(Contract.OP_CUT) > 0, "real entry CUT after ordinary source refresh")
+	assert_true(_economic.failures.is_empty(), "entry final: %s" % _economic.failures)
+	assert_true(_placements._phase_context == context, "one original packet throughout")
+	assert_equal(_placements._phase_context.placement, NULL_REF, "cleanup clears only operation scope")
+	assert_true(_placements._is_live(_placements._live, _placement), "actual connector remains full-generation live")
+
+
+func _select_economic_room(site: Vector2i, room: Vector2i, floor_ref: Vector2i) -> void:
+	"""Only test dispatch changes; all stores, context bindings and real economic owners remain identical."""
+	_economic._site = site
+	_economic._room = room
+	_economic._floor = floor_ref
+	_phase.floor_ref = floor_ref
+
+
+func test_ordinary_phase_does_not_need_any_live_placement_record() -> void:
+	"""The first ordinary Room is valid with the existing empty source-bound Placement banks."""
+	_frontier.allow_cleanup = true
+	var cold: int = _f._budget.acquire(Placements.CONTROL_BYTES)
+	assert_equal(_placements.retire(_placement, cold), &"", "actual unused connector retirement")
+	assert_equal(_f._budget.release(cold), &"", "retirement lease ends")
+	assert_equal(_placements._live.header[Placements.H_COUNT], 0, "no fake Placement retained")
+	assert_true(_economic._complete(Contract.OP_BRACE) > 0, "real ordinary paid BRACE")
+	assert_equal(_placements._live.header[Placements.H_COUNT], 0, "ordinary publication creates no Placement")
+	assert_true(_economic.failures.is_empty(), "actual ordinary owner succeeds: %s" % _economic.failures)
+
+
+func test_replaced_original_cold_lease_refuses_and_cleanup_does_not_release_replacement() -> void:
+	"""A fresh equal-capacity lease is a different operation even if every physical candidate remains valid."""
+	_ready_start()
+	var before: Dictionary = _state()
+	_phase.final_probe = _replace_cold
+	assert_false(_sites.begin_phase_work(_economic._site, 0).ok, "original lease was replaced")
+	_unchanged(before)
+	assert_true(_f._budget._token > 0, "replacement belongs to its actual acquiring caller")
+	assert_equal(_f._budget.release(_f._budget._token), &"", "caller drops its replacement")
+	assert_true(_sites.begin_phase_work(_economic._site, 0).ok, "original input retries with a complete new operation")
+
+
+func _replace_cold() -> void:
+	"""Use the actual Budget API; never patch token fields to manufacture this negative."""
+	assert_equal(_f._budget.release(_placements._phase_context.cold_token), &"", "original lease released")
+	assert_true(_f._budget.acquire(Budget.COLD_BYTES) > 0, "same-size replacement acquired")
+
+
+func test_ordinary_corridor_is_distinct_from_real_entry_corridor_ownership() -> void:
+	"""Painted Tunnel and entry Corridor share purpose; only the latter owns a real Placement row."""
+	after_each()
+	_setup_room(Buildings.ROOM_TYPE_CORRIDOR)
+	var ordinary_site: Vector2i = _economic._site
+	assert_equal(_placements._ordinary_room_refusal(_f.other_corridor), &"", "ordinary Tunnel is allowed")
+	assert_true(_placements._ordinary_room_refusal(_f.corridor) != &"", "real Entry has its own path")
+	assert_true(_economic._complete(Contract.OP_BRACE) > 0, "real ordinary Corridor paid phase")
+	assert_true(_economic.failures.is_empty(), "ordinary Corridor: %s" % _economic.failures)
+	_select_economic_room(_entry_site, _f.corridor, _f.corridor_floor)
+	_ready_start()
+	_phase.prepare_fault = 10
+	var before: Dictionary = _state()
+	assert_false(_sites.begin_phase_work(_entry_site, 0).ok, "Entry cannot borrow the ordinary null branch")
+	_unchanged(before)
+	_phase.prepare_fault = 0
+	assert_true(_sites.begin_phase_work(_entry_site, 0).ok, "real Entry uses its existing non-null path")
+	assert_true(_sites.cancel_phase(_entry_site, _economic._store).ok, "same exact funded Entry cleanup")
+	_select_economic_room(ordinary_site, _f.other_corridor, _f.other_floor)
+
+
+func test_changed_borrowed_context_fields_refuse_and_original_cleanup_still_releases() -> void:
+	"""A mutable borrowed packet cannot change branch selection or strand its independently pinned original tokens."""
+	_ready_start()
+	var before: Dictionary = _state()
+	for field: StringName in [&"placement", &"site", &"room", &"space_token", &"location_token", &"route_token"]:
+		_phase.final_probe = _change_context_field.bind(field)
+		assert_false(_sites.begin_phase_work(_economic._site, 0).ok, "changed borrowed %s" % field)
+		_unchanged(before)
+		assert_true(_f._budget.is_quiescent(), "original cleanup survives changed packet %s" % field)
+		assert_equal(_f._locations._token, 0, "exact Location candidate dropped")
+		assert_equal(_f._routes._token, 0, "exact Route candidate dropped")
+	assert_true(_sites.begin_phase_work(_economic._site, 0).ok, "unchanged original operation retries")
+
+
+func _change_context_field(field: StringName) -> void:
+	"""Only the public borrowed operation fields are altered; private original issuer controls stay intact."""
+	var context: Locations.PhaseContext = _placements._phase_context
+	if field == &"placement": context.placement = _placement
+	elif field == &"site": context.site.y += 1
+	elif field == &"room": context.room.y += 1
+	elif field == &"space_token": context.space_token += 1
+	elif field == &"location_token": context.location_token += 1
+	elif field == &"route_token": context.route_token += 1

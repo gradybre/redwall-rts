@@ -1,0 +1,53 @@
+state_registry_coverage: PASS -- 146 modules, 721 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_phase_refresh.gd
+  FAIL  test_actual_ordinary_paid_cycle_refreshes_opening_targets_and_all_old_banks
+        actual Placement registration (expected , got PLACEMENT_STALE)
+        actual fixture setup: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+        real phase 2: ["physical output/support commits: SPACE_SECTION_MISSING (expected true, got false)"] (expected true, got false)
+        real paid phase labor (expected true, got false)
+        real phase 3: ["physical output/support commits: SPACE_SECTION_MISSING (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "delivered location binds (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "real paid work begins: WRONG_PHASE (expected true, got false)", "physical output/support commits: SPACE_SECTION_MISSING (expected true, got false)"] (expected true, got false)
+        one real receipt per successful boundary (expected 10, got 7)
+        ordinary Room source advanced (expected true, got false)
+        real spoil once (expected 2000, got 0)
+        actual economic helpers: ["physical output/support commits: SPACE_SECTION_MISSING (expected true, got false)", "physical phase opens: ALREADY_UNDER_CONSTRUCTION (expected true, got false)", "phase binds actual Job (expected true, got false)", "delivered location binds (expected true, got false)", "actual worker assigns (expected true, got false)", "actual equipped tool claims (expected true, got false)", "real paid work begins: WRONG_PHASE (expected true, got false)", "physical output/support commits: SPACE_SECTION_MISSING (expected true, got false)"] (expected true, got false)
+        actual geometry helpers: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+  FAIL  test_original_entry_method_cannot_accept_null_and_ordinary_cannot_take_entry_room
+        actual Placement registration (expected , got PLACEMENT_STALE)
+        actual fixture setup: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+        actual geometry helpers: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+  FAIL  test_wrong_original_site_room_operation_stage_and_tokens_refuse_before_payment
+        actual Placement registration (expected , got PLACEMENT_STALE)
+        actual fixture setup: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+        actual geometry helpers: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+  FAIL  test_late_full_project_generation_drift_refuses_payment_and_retries
+        actual Placement registration (expected , got PLACEMENT_STALE)
+        actual fixture setup: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+        actual geometry helpers: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+  FAIL  test_late_discard_never_reopens_generic_or_static_space_publication
+        actual Placement registration (expected , got PLACEMENT_STALE)
+        actual fixture setup: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+        actual geometry helpers: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+  FAIL  test_terminal_commit_and_refund_retry_need_no_released_worker
+        actual Placement registration (expected , got PLACEMENT_STALE)
+        actual fixture setup: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+        actual geometry helpers: ["actual Kitchen section (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)", "actual exact Room claim (expected , got SPACE_REGION_FORMAT)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":322,"failures":6,"suite":"test_underground_room_phase_refresh.gd","tests":6,"usec":2357171}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 322 assertion(s), 6 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 6 failing test(s).

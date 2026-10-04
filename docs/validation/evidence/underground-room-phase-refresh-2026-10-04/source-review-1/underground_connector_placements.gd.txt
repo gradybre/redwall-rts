@@ -1642,10 +1642,7 @@ func bind_phase_authority(authority: RefCounted) -> StringName:
 func prepare_phase_refresh(authority: RefCounted, ref: Vector2i, site: Vector2i, operation: int,
 		stage: int, room: Vector2i, space_token: int, cold_token: int) -> int:
 	"""Borrow the sealed actual phase and original whole lease, then refresh existing banks sequentially."""
-	if _reentry() or not _configured or not _ready or _space == null or _locations == null or _routes == null \
-			or _world_routes == null or _budget == null:
-		return 0
-	if _cold_token != 0 or _admission_mode or _phase_mode or _locations._token != 0 \
+	if _reentry() or _cold_token != 0 or _admission_mode or _phase_mode or _locations._token != 0 \
 			or _routes._token != 0 or _world_routes._route_token != 0 or _reading_state:
 		return 0
 	if _phase_context.authority == null or _phase_context.authority.get_ref() != authority \
@@ -1666,10 +1663,7 @@ func prepare_phase_refresh(authority: RefCounted, ref: Vector2i, site: Vector2i,
 func prepare_room_phase_refresh(authority: RefCounted, site: Vector2i, operation: int,
 		stage: int, room: Vector2i, space_token: int, cold_token: int) -> int:
 	"""Ordinary Rooms borrow the one existing phase packet without nominating or creating a Placement."""
-	if _reentry() or not _configured or not _ready or _space == null or _locations == null or _routes == null \
-			or _world_routes == null or _budget == null:
-		return 0
-	if _cold_token != 0 or _admission_mode or _phase_mode or _reading_state \
+	if _reentry() or _cold_token != 0 or _admission_mode or _phase_mode or _reading_state \
 			or _locations._token != 0 or _routes._token != 0 or _world_routes._route_token != 0:
 		return 0
 	if _ordinary_phase_request(authority, site, operation, stage, room, space_token, cold_token) != &"" \

@@ -1,0 +1,42 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 13.545,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "211/397",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-phase-refresh/docs/validation/evidence/underground-room-phase-refresh-2026-10-04/candidate-2"
+      ],
+      "exit_code": 1,
+      "seconds": 3.979,
+      "log": "test_underground_room_phase_refresh.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-room-phase-refresh",
+  "project_test_sha256": "52aef47a82de171b942ddd8a3765b57bfb40c7123b4ab5cf081dfa63412f8782",
+  "assets_present_before": false,
+  "registry_sha256_before": "d212b6327ea2cdb7faca45fccd47bea8d36e1bbc97cfa428b0dbd33b668171ef",
+  "registry_diagnostic_append_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "clean_import_raw_diagnostics": 0,
+  "error": "test_underground_room_phase_refresh.gd.log",
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 1
+}

@@ -1,0 +1,124 @@
+{
+  "scope": "1153 source-derived retained state, synchronous numeric frames and cold coexistence.\n\nLogical accounting only. Engine Variant/reference/frame/allocator capacity is not\nmeasured by this source census. The actual ordinary provider remains a separately\nreviewed caller whose additional frames must be charged exactly once.",
+  "base": "b03fbc2b0322381248998bfc57ce0a89ee3e76c0",
+  "source_sha256": {
+    "godot/scripts/core/underground_connector_placements.gd": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
+    "godot/scripts/core/underground_space_authority.gd": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+    "godot/scripts/core/underground_locations.gd": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929"
+  },
+  "retained_source_census": {
+    "underground_connector_placements": {
+      "top_level_members_unchanged": true,
+      "allocation_call_sites_unchanged": 34
+    },
+    "underground_space_authority": {
+      "top_level_members_unchanged": true,
+      "allocation_call_sites_unchanged": 30
+    },
+    "underground_locations": {
+      "top_level_members_unchanged": true,
+      "allocation_call_sites_unchanged": 47
+    }
+  },
+  "added_retained_numeric_bytes": 0,
+  "added_packed_columns_or_arrays": 0,
+  "unchanged_phase_context_bytes": 128,
+  "unchanged_fixed_components": {
+    "owner": 135,
+    "bank_free_counts": 32,
+    "installation_context": 128,
+    "room_context": 80,
+    "phase_context": 128,
+    "directory_candidate": 32,
+    "private_and_caller_requests": 616,
+    "shared_order_and_assembly_records": 128,
+    "returned_result": 8,
+    "final_digest": 32,
+    "helper_frames": 576
+  },
+  "placement_control_total": 1895,
+  "placement_control_reserve": 2048,
+  "helper_reserve": 576,
+  "ordinary_preparation_chain": {
+    "bytes": 564,
+    "frames": {
+      "underground_space_authority.operation_refusal": 44,
+      "underground_space_authority._run_cold_operation": 32,
+      "underground_space_authority._prepare": 32,
+      "underground_connector_placements.prepare_room_phase_refresh": 48,
+      "underground_connector_placements._phase_prepare_banks": 0,
+      "underground_connector_placements._phase_prepare_locations": 8,
+      "underground_locations.stage_refresh": 16,
+      "underground_locations._validate_record": 0,
+      "underground_locations._record_geometry_refusal": 16,
+      "underground_locations._survey_for": 8,
+      "underground_locations._observed_record_site": 16,
+      "underground_locations._installed_surface_site": 40,
+      "underground_locations._installed_row_site": 56,
+      "underground_locations.installed_prism_into": 72,
+      "underground_locations._installed_world_box": 80,
+      "underground_locations.installed_coordinate": 56,
+      "existing_provider_prepare_companions_allowance": 40
+    }
+  },
+  "ordinary_initial_scope_chain": {
+    "bytes": 292,
+    "frames": {
+      "underground_space_authority.operation_refusal": 44,
+      "underground_space_authority._run_cold_operation": 32,
+      "underground_space_authority._prepare": 32,
+      "underground_connector_placements.prepare_room_phase_refresh": 48,
+      "underground_connector_placements._ordinary_phase_request": 48,
+      "underground_connector_placements._ordinary_room_refusal": 24,
+      "underground_connector_placements.CoreSources._final_row": 24,
+      "existing_provider_prepare_companions_allowance": 40
+    }
+  },
+  "ordinary_final_installed_chain": {
+    "bytes": 512,
+    "frames": {
+      "underground_space_authority.final_settlement_leaf_refusal": 36,
+      "underground_space_authority._final_phase_leaf": 68,
+      "underground_space_authority.room_phase_leaf_refusal": 8,
+      "underground_connector_placements.prepared_phase_leaf_refusal": 8,
+      "underground_locations._installed_witnesses_refusal": 16,
+      "underground_locations._record_paid_site": 16,
+      "underground_locations._installed_surface_site": 40,
+      "underground_locations._installed_row_site": 56,
+      "underground_locations.installed_prism_into": 72,
+      "underground_locations._installed_world_box": 80,
+      "underground_locations.installed_coordinate": 56,
+      "existing_provider_final_leaf_allowance": 56
+    }
+  },
+  "provider_overlap": "The existing 40B prepare and 56B final callback allowances are counted once here. Extra concrete 1152 provider locals/forwarding/WorkFace state must be counted in its own reviewed contribution; this component does not admit them.",
+  "phase_context_lifetime": "The same existing Placement-owned128B packet remains bound to actual Authority/Sites/Space/Locations/Budget; ordinary operation pins exact null Placement, entry pins real full Placement. No per-provider packet or new ref is retained.",
+  "iterator_chain": {
+    "bytes": 136,
+    "path": [
+      "underground_locations.live_location_at_into",
+      "underground_locations._iteration_row_refusal",
+      "underground_locations._iteration_source_refusal"
+    ],
+    "frames": {
+      "underground_locations.live_location_at_into": 24,
+      "underground_locations._iteration_row_refusal": 48,
+      "underground_locations._iteration_source_refusal": 40,
+      "underground_space_owner.CoreSources._final_row": 24
+    }
+  },
+  "caller_record_bytes": 116,
+  "caller_ref_bytes": 8,
+  "iterator_expression_return_allowance": 48,
+  "iterator_total": 308,
+  "iterator_existing_allowance": 512,
+  "iterator_work": "One source scan per live row; precharge256+4*actual_source_capacity against the original immutable Domain. No Location/Region-wide scan, source observer, image, lease, or retained hint is added. Consumer batches physical slots and performs its separate Approach proof.",
+  "ordinary_work": "The bounded absence scan costs at most the existing64*(Placement_capacity+opening_capacity) precharge per scope leaf. Complete retained payload passes still use existing_admission_row_checks; all source and Location/Route work guards remain unchanged.",
+  "sequential_cold_peaks": {
+    "locations_and_two_existing_plans": 691024,
+    "world_routes_and_two_existing_plans": 526800
+  },
+  "cold_reserve": 1048960,
+  "cold_lifetime": "Existing Authority Plans coexist with Locations proof; Locations image/fragments are released before WorldRoutes qualification. Both companions reuse preallocated banks. Concrete1152 WorkFace observation must finish and drop its survey before this phase and publish its separate combined census.",
+  "runtime_qualified": false
+}

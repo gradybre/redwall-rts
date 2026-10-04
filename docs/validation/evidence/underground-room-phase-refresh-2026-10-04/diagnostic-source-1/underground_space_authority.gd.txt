@@ -1432,7 +1432,7 @@ static func _room_phase_issuer(actual: RefCounted) -> Placements:
 	var issuer: Placements = context.issuer.get_ref() as Placements if context != null and context.issuer != null else null
 	if issuer == null or context.authority == null or context.authority.get_ref() != actual \
 			or issuer._phase_context != context or issuer._space != actual._owner or issuer._sources != actual._sources \
-			or issuer._locations._phase_context != context or issuer._prepared_placement != NULL_REF:
+			or issuer._locations._phase_context != context or context.placement != NULL_REF:
 		return null
 	return issuer
 

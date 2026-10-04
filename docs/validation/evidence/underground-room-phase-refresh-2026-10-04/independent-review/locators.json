@@ -1,0 +1,12 @@
+{
+  "room-phase-review-1.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-phase-review-1.json",
+    "sha256": "034691a6d8f9ac0f848914f01a4438cbe12802b862503a9d6eb8e2e8675cf831",
+    "reviewer": "/root"
+  },
+  "room-phase-review-2.json": {
+    "original_path": "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-phase-review-2.json",
+    "sha256": "beb0e93b789db9f50144524d27ee4847ed3c3aa4773595c93d8903c6d1b91229",
+    "reviewer": "/root"
+  }
+}

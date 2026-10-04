@@ -1588,3 +1588,53 @@ func test_world_transit_anchor_preserves_actual_room_claim_blockers() -> void:
 	assert_equal(_locations.stage_add(token, record).error, &"LOCATION_ENVELOPE_BLOCKED", "full claim remains in World image")
 	assert_equal(_locations._stage.count, 0, "no false natural anchor")
 	_close_world(scope, token)
+
+
+func _resolve_live(record: Locations.Record, out: PackedInt32Array, checks: int = 100000) -> StringName:
+	"""Call the production live selector with existing caller scratch and no cold arena."""
+	return _locations.resolve_existing_live_into(record.room, record.section, record.level, record.role,
+		record.point, _owner.revision(), checks, out)
+
+
+func test_live_selector_needs_no_lease_and_keeps_exact_finite_source_and_uniqueness_rules() -> void:
+	"""The live entry shares the accepted cold selector's authoritative proof without its cold allocation lifetime."""
+	var ref: Vector2i = _add()
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var record: Locations.Record = _record()
+	var source: OwnerFixture.LeaseSources = _sources as OwnerFixture.LeaseSources
+	var reads: int = source.reads
+	var required: int = 256 + 16 * CAPACITY + 4 * _owner._source_capacity
+	assert_true(_cold.is_quiescent(), "no retained cold arena")
+	assert_equal(_resolve_live(record, out, required - 1), &"LOCATION_OPERATION_BUDGET", "full scan precharge")
+	assert_equal(out, PackedInt32Array([77, 88]), "refused output unchanged")
+	assert_equal(_resolve_live(record, out, required), &"", "exact admitted live query")
+	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "full existing ref")
+	assert_equal(source.reads, reads, "no Source observer")
+	_add()
+	out[0] = 77
+	out[1] = 88
+	assert_equal(_resolve_live(record, out), &"LOCATION_SELECTOR_AMBIGUOUS", "actual duplicate live selector")
+	assert_equal(out, PackedInt32Array([77, 88]), "no arbitrary ambiguous winner")
+	assert_true(_cold.is_quiescent(), "no hidden cold acquisition")
+
+
+func test_live_selector_rejects_prepared_context_and_current_room_source_drift() -> void:
+	"""An already-complete endpoint still needs its exact real Room facts and compatible live owner context."""
+	var fixture: DoorwayFixture = _doorway()
+	var record: Locations.Record = _doorway_record(fixture, 0)
+	var ref: Vector2i = _add(record)
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var row: int = _buildings.directory().get_typed_row(record.room)
+	var old: int = _buildings._r_type[row]
+	_buildings._r_type[row] = Buildings.ROOM_TYPE_CORRIDOR
+	assert_equal(_resolve_live(record, out), &"LOCATION_SOURCE_STALE", "actual underlying Room drift")
+	_buildings._r_type[row] = old
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_resolve_live(record, out), &"LOCATION_SELECTOR_BUSY", "prepared Space cannot become live selector truth")
+	assert_true(_owner.abort(token), "caller aborts exact candidate")
+	_locations._in_retention = true
+	assert_equal(_resolve_live(record, out), &"LOCATION_SELECTOR_BUSY", "retention observation cannot reenter selection")
+	_locations._in_retention = false
+	assert_equal(out, PackedInt32Array([77, 88]), "all refused output unchanged")
+	assert_equal(_resolve_live(record, out), &"", "current actual Room endpoint")
+	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "full published identity")

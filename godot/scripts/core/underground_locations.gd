@@ -467,11 +467,26 @@ func resolve_existing_into(room: Vector2i, section: Vector2i, level: int, role: 
 	if out.size() != 2:
 		return &"LOCATION_OUTPUT_SHAPE"
 	var code: StringName = _resolve_scope_refusal(expected_revision, cold_token, max_checks)
-	if code != &"":
-		return code
+	return code if code != &"" else _resolve_record_into(room, section, level, role, point,
+		expected_revision, cold_token, out)
+
+
+func resolve_existing_live_into(room: Vector2i, section: Vector2i, level: int, role: int, point: Vector3i,
+		expected_revision: int, max_checks: int, out: PackedInt32Array) -> StringName:
+	"""Hot exact live selector; reuse caller out[2], with no lease, observer, copy or endpoint authority."""
+	if out.size() != 2:
+		return &"LOCATION_OUTPUT_SHAPE"
+	var code: StringName = _resolve_live_scope_refusal(expected_revision, max_checks)
+	return code if code != &"" else _resolve_record_into(room, section, level, role, point,
+		expected_revision, 0, out)
+
+
+func _resolve_record_into(room: Vector2i, section: Vector2i, level: int, role: int, point: Vector3i,
+		expected_revision: int, cold_token: int, out: PackedInt32Array) -> StringName:
+	"""Both admitted entries share exact source/uniqueness proof; only the cold entry retains a lease."""
 	if level < 0 or role < ROLE_TRANSIT or role > ROLE_WORK:
 		return &"LOCATION_SELECTOR_FORMAT"
-	code = _resolve_section_refusal(room, section, level, point)
+	var code: StringName = _resolve_section_refusal(room, section, level, point)
 	if code != &"":
 		return code
 	var row: int = _resolve_unique_row(room, section, level, role, point)
@@ -480,7 +495,7 @@ func resolve_existing_into(room: Vector2i, section: Vector2i, level: int, role: 
 	if _get32(_live, GENERATION, row) <= 0 or _get64(_live, PAYLOAD_REVISION, row) <= 0 \
 			or _get64(_live, GEOMETRY_REVISION, row) != expected_revision:
 		return &"LOCATION_GEOMETRY_STALE"
-	if not _cold.covers(cold_token, RESOLVE_CONTROL_BYTES):
+	if cold_token != 0 and not _cold.covers(cold_token, RESOLVE_CONTROL_BYTES):
 		return &"LOCATION_COLD_CAPACITY"
 	out[0] = row
 	out[1] = _get32(_live, GENERATION, row)
@@ -491,6 +506,11 @@ func _resolve_scope_refusal(revision: int, cold_token: int, max_checks: int) -> 
 	"""Precharge the one endpoint/source scan before any read; all identity checks below avoid observation hooks."""
 	if _cold == null or not _cold.covers(cold_token, RESOLVE_CONTROL_BYTES):
 		return &"LOCATION_COLD_CAPACITY"
+	return _resolve_live_scope_refusal(revision, max_checks)
+
+
+func _resolve_live_scope_refusal(revision: int, max_checks: int) -> StringName:
+	"""Precharge every finite live scan; current immutable namespace proof does not need a cold image."""
 	if _capacity <= 0 or _owner == null or _owner._ready_error != &"" or _domain == null \
 			or _owner._domain == null or _sources == null or _owner._sources != _sources:
 		return &"LOCATION_OWNER_MISMATCH"

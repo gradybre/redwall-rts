@@ -94,3 +94,87 @@ and physical extents remain explicitly synthetic content fixtures. Negative
 callbacks can reject or invalidate actual certificates but cannot manufacture
 a passing span. Reused fixture assertions are failure-propagated to the outer
 test verdict rather than silently ignored.
+
+
+## Pure live reachability for actual productive contacts
+
+The additive static entry
+`WorldRoutes.profile_reachability_refusal(actual, first, last, profile_id,
+profile_revision, content_revision, max_checks, remaining_out1)` borrows the
+exact configured provider and existing Routes Dijkstra arrays. It observes
+committed static eligibility without constructing the cold ProfilePath,
+Descriptor, Result, snapshot, path output, actor or Job. The provider's existing
+184-byte Descriptor supplies its search fields under the existing `_reading`
+guard. The graph's `_searching` guard excludes another search or actor advance;
+prepared owners and retention/occupancy observation also refuse. A call from an
+ordinary graph callback poisons that outer operation before touching scratch.
+The existing cold and actor searches retain their previous behavior.
+
+The pure entry directly checks the actual provider/store tuple, complete
+immutable Domain/Levels identity, loaded Catalog/Profile source hashes and
+revisions, full World generation, and selected profile certificate/mode. It
+then uses the existing deterministic Dijkstra algorithm with actual committed
+full-generation profile bits. The selected chain retains full endpoint/edge
+identity and current geometry/content. Each selected FLOOR_DATUM source is
+rechecked against actual Room/World facts; consecutive identical sections reuse
+that same synchronous proof. It does not scan all sparse regions or create an
+R/O snapshot. The final fixed source check also runs on a zero-span query.
+A zero-span success still provides no body/contact clearance or traversal.
+
+All observation hooks are outside this method: it invokes no public Catalog,
+Profile descriptor, Terrain binding, Location read or route-certificate callback.
+Contacts must independently check the current actual worker/tool/pose, local
+physical contact/support/exclusions, Placement prefix/Frontier source,
+materials and safe-retreat conditions. This query proves only reachability in
+current committed static certificates. Dynamic actors and physical obstacles
+are not newly qualified by reusing those certificates. COMMIT callers must
+retain their exact live endpoint payloads/receipts before preparing companions;
+this live-only query is deliberately unavailable once preparation begins.
+
+`remaining_out1` must already contain exactly one I32. A refusal preserves it;
+only complete success writes the remaining finite work. Initial and final
+source/Domain/digest checks cost 1,024 each. Four search-array initializations
+cost 4N before any fill. The existing heap, ordered-edge scan and collection
+continue to spend their original work; each committed-bit read costs 64,
+final chain checks cost 16 per edge, and each selected endpoint/section step is
+precharged. A section source lookup reserves 256+4O before its bounded O-slot
+scan. Every amount is taken from the caller's one limit, bounded by the actual
+Domain and MAX_CHECKS. No out-of-work path publishes a partial answer.
+
+No bank, authoritative column, retained map, epoch, save field or owner control
+is added. The deepest declared numeric frame path is bounded by 512 logical
+bytes: public arguments 48, search arguments 40, selected-chain locals 40,
+endpoint packet 52, section arguments 16, Location section/source frame 52,
+source lookup 24, and at most 64 nested Directory/Room values =336. Alternative
+heap/descriptor/fixed-source branches have smaller simultaneous scalar frames.
+The existing provider Descriptor and graph scratch remain charged in their
+existing owners; caller `remaining_out1` is 4 bytes. Native interpreter frames
+remain a separate measurement obligation. Callers must include this frame
+ceiling in their actual nested Contacts/control lifetime, not create a second
+arena or assume another subsystem's unused allowance.
+
+The isolated clean correctness run in
+`docs/validation/evidence/underground-connector-placements-2026-10-03/hot-2/`
+passed 137 tests / 13,326 assertions / zero failures; every strict/raw diagnostic
+and leak count was zero, with analyzer 0/5. The rejected hot-1 run retained an
+incorrect flags-bank length assumption; it supplied no accepted timing result.
+
+Timing qualification **failed**. The actual O2048 source-capacity fixture
+performed 20 batches of 256 live callers through a three-span committed path
+(5,120 successful queries) with 256 actual living residents. Batch times were
+45.749 ms minimum,46.649 ms median,47.555 ms p95 and47.770 ms maximum. The parent
+full suite ran concurrently, so these are diagnostic Mac timings rather than
+qualification-floor results; even so, they expose a material per-worker-search
+cost. No retained/transient Object-count increase occurred in the measured
+loop, but that fact does not establish native allocator peak or CPU fitness.
+This increment is not qualified for an unbudgeted full search for every
+productive worker. Bounded scheduling or valid shared reuse with current
+source validation remains required before that runtime claim.
+
+
+Independent read-only review accepted all five hot-2 pins with no high/medium
+finding. The final hot-3 run changes only the Object-counter assertion wording;
+it again passed137 tests /13,326 assertions with all strict/raw diagnostics and
+leaks zero, analyzer0/5 and exact source/restoration checks. Final batch p95 was
+46.419ms; the earlier47.555ms remains retained, and both fail the runtime gate.
+See hot-3/source-sha256.json for the committed source/test closure.

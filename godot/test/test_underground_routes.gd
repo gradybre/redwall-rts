@@ -1277,6 +1277,23 @@ class ProfileRouteFixture extends WorldRouteTests:
 		"""Read under the fixture's original exact tiny cold lease without selecting an actor."""
 		return _routes.profile_path_into(_first, _last, profile_id, revision, content, out, cold)
 
+	func live_path(out: PackedInt32Array, checks: int = Space.MAX_CHECKS, first: Vector2i = NULL_REF,
+			last: Vector2i = NULL_REF, profile: int = 0, revision: int = 1, content: int = 1) -> StringName:
+		"""Static production entry uses existing scratch and deliberately has no cold-token argument."""
+		return WorldRoutes.profile_reachability_refusal(_binding, _first if first == NULL_REF else first,
+			_last if last == NULL_REF else last, profile, revision, content, checks, out)
+
+	func finish_query_lease() -> void:
+		"""The live query is tested with the actual arena quiescent, never an accidentally retained lease."""
+		assert_equal(_budget.release(cold), &"", "drop earlier cold query lease")
+		cold = 0
+
+	func live_reenter() -> void:
+		"""Attempt the pure entry from an existing cold permission observer."""
+		var out: PackedInt32Array = PackedInt32Array([777])
+		nested_code = live_path(out)
+		assert_equal(out[0], 777, "nested entry cannot touch output")
+
 	func replace_lease() -> void:
 		"""A same-sized newly issued token cannot authorize the original cold query."""
 		assert_equal(_budget.release(cold), &"", "actual lease revoked")
@@ -1535,3 +1552,156 @@ func test_exact_work_wrappers_reuse_actor_callback_and_pose_proofs() -> void:
 	_binding.actor_mutation = 2
 	assert_equal(_routes.refresh_work_actor(_worker, actual[0], 1, 7, 2, 0, -1), &"ROUTE_ACTOR_PROFILE_DRIFT", "real pose write refuses refresh")
 	assert_equal(_routes._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + _residents.directory().get_typed_row(_worker)], 0, "prior exact profile retained")
+
+
+func test_live_profile_reachability_uses_committed_masks_without_observers_or_cold_lease() -> void:
+	"""The actual current cache chooses a qualified detour without allocating a cold query or selecting a worker."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	binding.closed = fixture.edges[0] # The ordinary observer is intentionally irrelevant to this pure path.
+	fixture._locations.refuse_live_read = true
+	fixture._terrain.binding_countdown = 1
+	fixture._terrain.binding_probe = fixture.replace_catalog
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "actual direct committed certificate")
+	assert_equal(fixture._routes._proposed_count, 1, "shortest current path")
+	binding._live.masks[fixture.edges[0].x * 32] &= 254 # Negative cache fault: remove only profile0 eligibility.
+	assert_equal(fixture.live_path(out), &"", "remaining actual three-span certificate chain")
+	assert_equal(fixture._routes._proposed_count, 3, "longer eligible detour")
+	assert_true(out[0] > 0 and out[0] < Space.MAX_CHECKS, "one caller remaining-work cell")
+	assert_equal(binding.catalog_reads + binding.edge_reads, 0, "no ordinary provider observation")
+	assert_equal(fixture._terrain.binding_probe_count, 0, "no hidden terrain callback")
+	assert_true(fixture._budget.is_quiescent(), "no cold arena acquisition")
+	assert_false(binding._reading or fixture._routes._searching, "scratch released on success")
+	fixture._terrain.binding_probe = Callable()
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_refuses_stale_profiles_endpoints_and_zero_span_sources() -> void:
+	"""Zero spans still require the actual live immutable tuple and exact endpoint source identity."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, NULL_REF, NULL_REF, 0, 2), &"WORLD_ROUTE_PROFILE_STALE", "profile revision")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, NULL_REF, NULL_REF, 0, 1, 2), &"WORLD_ROUTE_PROFILE_STALE", "content revision")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, NULL_REF, Vector2i(fixture._last.x, fixture._last.y + 1)),
+		&"ROUTE_LOCATION_STALE", "full endpoint generation")
+	assert_equal(out[0], 777, "every refusal preserves output")
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._first, fixture._first), &"", "zero spans with current exact profile")
+	assert_equal(fixture._routes._proposed_count, 0, "zero spans grant no travel or contact")
+	out[0] = 777
+	fixture.replace_catalog()
+	assert_equal(fixture.live_path(out, Space.MAX_CHECKS, fixture._first, fixture._first),
+		&"WORLD_ROUTE_CERTIFICATE_STALE", "zero span cannot bypass replaced catalog")
+	assert_equal(out[0], 777, "stale same-endpoint result untouched")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_rechecks_exact_world_level_and_selected_source_facts() -> void:
+	"""An unchanged Space revision cannot hide current namespace or selected floor source drift."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	fixture._levels._identity[11] += 1
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "complete immutable level Domain")
+	fixture._levels._identity[11] -= 1
+	var source: int = fixture._owner._find_source(fixture._world_ref, false)
+	fixture._owner._o_a[source] = 1
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "selected actual World facts")
+	fixture._owner._o_a[source] = 0
+	fixture._owner._o_revision[source] += 1
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "section source revision")
+	fixture._owner._o_revision[source] -= 1
+	fixture._locations._set64(fixture._locations._live, Locations.GEOMETRY_REVISION, fixture._last.x, 1)
+	assert_equal(fixture.live_path(out), &"ROUTE_LOCATION_STALE", "selected endpoint geometry")
+	assert_equal(out[0], 777, "no output from any stale source")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_checks_finite_initialization_and_tail_budget() -> void:
+	"""Every failed finite search retains output and returns the same preallocated scratch for a retry."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out, 2047), &"ROUTE_OPERATION_BUDGET", "entry floor before scans")
+	assert_equal(out[0], 777, "initial refusal output")
+	assert_equal(fixture.live_path(out), &"", "measure exact admitted finite work")
+	var needed: int = Space.MAX_CHECKS - out[0]
+	out[0] = 777
+	assert_equal(fixture.live_path(out, needed - 1), &"ROUTE_OPERATION_BUDGET", "one missing final check refuses")
+	assert_equal(out[0], 777, "no partial remaining counter")
+	assert_false(fixture._binding._reading or fixture._routes._searching, "budget refusal releases scratch")
+	assert_equal(fixture.live_path(out, needed), &"", "exact same work budget succeeds")
+	assert_equal(out[0], 0, "all admitted work charged")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_busy_and_callback_guards_preserve_outer_scratch() -> void:
+	"""Neither a prepared companion nor a nested cold observer can repurpose the live search buffers."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	fixture._routes._searching = true
+	fixture._routes._distance[0] = 919
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BUSY, "active search")
+	assert_equal(fixture._routes._distance[0], 919, "outer search data unchanged")
+	fixture._routes._searching = false
+	var token: int = fixture._owner.begin_stage(fixture._owner.revision()).token
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BUSY, "prepared Space")
+	assert_true(fixture._owner.abort(token), "caller retains prepared owner")
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	binding.probe = fixture.live_reenter
+	var cold_out: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+	assert_equal(fixture.path(cold_out).error, &"ROUTE_CALLBACK_REENTRY", "nested live call poisons cold outer search")
+	assert_equal(fixture.nested_code, &"ROUTE_CALLBACK_REENTRY", "nested result reports exact callback context")
+	assert_equal(cold_out, PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78]), "outer result unchanged")
+	assert_equal(out[0], 777, "all busy observations preserve output")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_refuses_foreign_same_directory_profile_owner() -> void:
+	"""A lookalike pose store cannot replace the provider's originally configured actual collaborator."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var original: Transforms = fixture._profiles._transforms
+	fixture._profiles._transforms = Transforms.new(fixture._residents.directory())
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "actual profile store identity")
+	assert_equal(out[0], 777, "foreign-source output preserved")
+	fixture._profiles._transforms = original
+	assert_equal(fixture.live_path(out), &"", "original actual wiring retries")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_profile_reachability_measures_256_queries_with_full_source_capacity() -> void:
+	"""Diagnostic CPU timing at 256 living callers; this is not a whole-tick or qualification-floor claim."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	for index: int in 255:
+		assert_true(fixture._residents.spawn(&"mouse").ok, "actual living caller")
+	assert_equal(fixture._residents.living_count(), 256, "actual living cap workload")
+	fixture._binding._live.masks[fixture.edges[0].x * 32] &= 254
+	var out: PackedInt32Array = PackedInt32Array([777])
+	var samples: PackedInt64Array = PackedInt64Array()
+	samples.resize(20)
+	var failures_seen: int = 0
+	var objects_before: int = int(Performance.get_monitor(Performance.OBJECT_COUNT))
+	for batch: int in samples.size():
+		var started: int = Time.get_ticks_usec()
+		for caller: int in 256:
+			if fixture.live_path(out) != &"":
+				failures_seen += 1
+		samples[batch] = Time.get_ticks_usec() - started
+	assert_equal(failures_seen, 0, "all 5120 actual current three-span queries")
+	assert_equal(int(Performance.get_monitor(Performance.OBJECT_COUNT)), objects_before, "Object counter unchanged across the completed query loop")
+	samples.sort()
+	print("HOT-REACH 256-callers 3-spans O2048 batches20 us min=", samples[0], " median=", samples[10], " p95=", samples[18], " max=", samples[19])
+	assert_true(fixture._budget.is_quiescent(), "no cold lease during workload")
+	_finish_profile_fixture(fixture)

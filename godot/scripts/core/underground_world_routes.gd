@@ -18,6 +18,7 @@ const Space := preload("res://scripts/core/room_space.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SourceFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
+const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MASK_BYTES: int = 32
 const EDGE_CAPACITY: int = Routes.MAX_EDGES
@@ -28,6 +29,7 @@ const FRAGMENT_CAPACITY: int = 1024
 const SNAPSHOT_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY
 const COLD_BYTES: int = SNAPSHOT_BYTES + 48 * FRAGMENT_CAPACITY + 1024
 const SOURCE_PASS_CHECKS: int = Budget.REGION_CAPACITY + Budget.SOURCE_CAPACITY
+const REACH_SCOPE_CHECKS: int = 1024 # Fixed source/digest/Domain leaves, charged at both query boundaries.
 const REFUSE_BINDING: StringName = &"WORLD_ROUTE_BINDING"
 const REFUSE_CONTEXT: StringName = &"WORLD_ROUTE_CONTEXT"
 const REFUSE_BUDGET: StringName = &"WORLD_ROUTE_COLD_LEASE"
@@ -961,6 +963,226 @@ func _current_certificate_refusal(ref: Vector2i) -> StringName:
 func static_catalog_owner() -> Catalog:
 	"""Borrow the exact configured immutable content owner; this identity reader grants no permission."""
 	return _catalog
+
+
+static func profile_reachability_refusal(actual: RefCounted, first: Vector2i, last: Vector2i,
+		profile_id: int, profile_revision: int, content_revision: int, max_checks: int,
+		remaining_out: PackedInt32Array) -> StringName:
+	"""Pure current static eligibility using existing search scratch; no actor, occupancy or physical-retreat grant."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	var owner: Owner = actual._owner_ref.get_ref() as Owner if actual != null and actual._owner_ref != null else null
+	var locations: Locations = actual._locations_ref.get_ref() as Locations if actual != null and actual._locations_ref != null else null
+	var sources: Owner.CoreSources = actual._sources_ref.get_ref() as Owner.CoreSources if actual != null and actual._sources_ref != null else null
+	var code: StringName = _reach_entry_refusal(actual, graph, owner, locations, sources, max_checks, remaining_out)
+	if code != &"":
+		return code
+	actual._reading = true
+	graph._searching = true
+	graph._remaining = max_checks
+	graph._operation_error = &""
+	code = _reach_search(actual, graph, owner, locations, first, last, profile_id, profile_revision, content_revision)
+	if code == &"":
+		remaining_out[0] = graph._remaining
+	graph._searching = false
+	actual._reading = false
+	return code
+
+
+static func _reach_entry_refusal(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
+		sources: Owner.CoreSources, checks: int, out: PackedInt32Array) -> StringName:
+	"""Reject nested owners before touching any of their shared scratch or caller output."""
+	if graph != null and graph._reject_callback():
+		return &"ROUTE_CALLBACK_REENTRY"
+	if actual == null or graph == null or owner == null or locations == null or sources == null:
+		return REFUSE_BINDING
+	if out.size() != 1:
+		return &"ROUTE_OUTPUT_SHAPE"
+	if checks < 2 * REACH_SCOPE_CHECKS or checks > Space.MAX_CHECKS \
+			or owner._domain == null or checks > owner._domain._checks:
+		return &"ROUTE_OPERATION_BUDGET"
+	if actual._reading or actual._opening or actual._compiling or actual._publishing or actual._route_token != 0 \
+			or graph._searching or graph._advancing or graph._occupancy_reading or graph._token != 0 \
+			or locations._token != 0 or locations._in_retention or owner._stage_token != 0 \
+			or owner._room_callback or owner._validation_sources >= 0 or owner._validation_regions >= 0:
+		return REFUSE_BUSY
+	return &"" if owner._sources == sources else REFUSE_BINDING
+
+
+static func _reach_search(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
+		first: Vector2i, last: Vector2i, profile_id: int, profile_revision: int, content_revision: int) -> StringName:
+	"""All source loops and initialization are precharged; only a complete unchanged chain may publish remaining work."""
+	if not graph._spend(REACH_SCOPE_CHECKS + 4 * graph._location_capacity):
+		return graph._operation_error
+	var code: StringName = _reach_stores_refusal(actual, graph, owner, locations)
+	if code == &"":
+		code = _reach_descriptor(actual, profile_id, profile_revision, content_revision)
+	if code == &"" and (not locations._live_ref(locations._live, first) or not locations._live_ref(locations._live, last)):
+		code = &"ROUTE_LOCATION_STALE"
+	if code == &"":
+		code = graph._find_path(first, last, actual._descriptor.mode, actual._descriptor.posture, null, actual)
+	if code == &"":
+		code = graph._path_chain_refusal(first, last, owner._header[17], content_revision, actual)
+	if code == &"":
+		code = _reach_sources_refusal(actual, graph, owner, locations, first)
+	if code != &"":
+		return code
+	if not graph._spend(REACH_SCOPE_CHECKS):
+		return graph._operation_error
+	return _reach_stores_refusal(actual, graph, owner, locations)
+
+
+static func _reach_stores_refusal(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations) -> StringName:
+	"""Exact concrete stores and immutable content are read directly, without catalog/terrain observation hooks."""
+	if FinalFacts._stores_refusal(owner, graph, locations) != &"" or actual._domain == null \
+			or graph._bindings != actual or graph._profiles != actual._profiles or graph._cold != actual._budget \
+			or graph._residents != actual._residents or graph._transforms != actual._transforms \
+			or not FinalFacts._same_domain(actual._domain, owner._domain) or actual._catalog == null \
+			or actual._catalog._profiles != actual._profiles or actual._catalog._levels != actual._levels \
+			or actual._catalog._movement != actual._movement or actual._catalog._residents != actual._residents \
+			or actual._catalog._transforms != actual._transforms or not _reach_profile_owners(actual, graph, locations):
+		return REFUSE_BINDING
+	if actual._catalog._live.header.size() != 11 or actual._catalog._live.header[1] < 1 \
+			or actual._catalog._live.variant_revisions.size() != Catalog.MAX_VARIANTS \
+			or actual._live_catalog_revision <= 0 or actual._live_catalog_revision != actual._catalog._live.header[0]:
+		return &"WORLD_ROUTE_CERTIFICATE_STALE"
+	if not _reach_level_domain(actual, owner) or not _reach_world(actual, owner, locations):
+		return REFUSE_BINDING
+	return SourceFacts.refusal(actual._catalog, 0, actual._catalog._live.variant_revisions[0],
+		actual._live_catalog_revision, actual._catalog._live.digests)
+
+
+static func _reach_profile_owners(actual: RefCounted, graph: Routes, locations: Locations) -> bool:
+	"""The immutable profile source must belong to the actual actor/tool/load composition even without selecting a worker."""
+	var profiles: Profiles = actual._profiles
+	return profiles != null and profiles._residents == graph._residents and profiles._transforms == graph._transforms \
+		and profiles._inventory != null and profiles._inventory == locations._inventory and profiles._work == graph._work \
+		and profiles._gear != null and profiles._gear._inventory == profiles._inventory \
+		and profiles._gear._directory_binding == graph._ids and profiles._gear._residents == graph._residents \
+		and profiles._carry != null and profiles._carry._inventory == profiles._inventory \
+		and profiles._carry._residents == graph._residents and profiles._carry._reservations == profiles._reservations \
+		and profiles._carry._piles == profiles._piles and profiles._reservations != null and profiles._piles != null \
+		and (profiles._reservations._bound_inventory == null or profiles._reservations._bound_inventory.get_ref() == profiles._inventory) \
+		and graph._jobs != null and graph._jobs._directory == graph._ids and graph._jobs._residents == graph._residents \
+		and graph._work != null and graph._work._directory == graph._ids and graph._work._jobs == graph._jobs \
+		and graph._work._residents == graph._residents and graph._work._gear == profiles._gear
+
+
+static func _reach_level_domain(actual: RefCounted, owner: Owner) -> bool:
+	"""Compare the complete fixed Level namespace without allocating its ordinary descriptor/identity copy."""
+	var levels: Levels = actual._levels
+	if levels == null or levels._directory != actual._residents._directory or levels._identity.size() != Levels.IDENTITY_FIELDS:
+		return false
+	var domain: Space.Domain = owner._domain
+	if levels._identity[0] != domain._world.x or levels._identity[1] != domain._world.y:
+		return false
+	for axis: int in 3:
+		if levels._identity[2 + axis] != domain._datum[axis] or levels._identity[5 + axis] != domain._min_quantum[axis] \
+				or levels._identity[8 + axis] != domain._size_quanta[axis]:
+			return false
+	for index: int in 6:
+		if levels._identity[11 + index] != domain._bounds[index]:
+			return false
+	return levels._identity[17] == domain._cells and levels._identity[18] == domain._regions \
+		and levels._identity[19] == domain._checks and levels._identity[20] == Space.VERSION
+
+
+static func _reach_world(actual: RefCounted, owner: Owner, locations: Locations) -> bool:
+	"""World/Terrain identity stays live; local exclusions and support remain the actual Contacts owner's separate query."""
+	var world: World = actual._world
+	var terrain: Terrain = actual._terrain
+	return world != null and terrain != null and terrain._ready and terrain._world == world \
+		and world._directory == locations._ids and world._published \
+		and world._nodes == terrain._nodes and terrain._nodes != null and terrain._nodes._directory == locations._ids \
+		and terrain._space != null and terrain._space.get_ref() == owner \
+		and terrain._sources != null and terrain._sources.get_ref() == owner._sources \
+		and terrain._buildings == locations._buildings and terrain._budget == actual._budget \
+		and terrain._world_ref == locations._world and terrain._seed == world._published_seed \
+		and locations._ids.is_valid_of_kind(locations._world, Directory.KIND_WORLD)
+
+
+static func _reach_descriptor(actual: RefCounted, row: int, revision: int, content: int) -> StringName:
+	"""Populate only shared search fields from the loaded actual row; no virtual descriptor or new packet is needed."""
+	var profiles: Profiles = actual._profiles
+	var capacity: int = profiles._profile_capacity
+	if profiles._loading or profiles._live.header.size() != 4 or capacity <= 0 \
+			or capacity > Profiles.MAX_PROFILES or row < 0 or row >= profiles._live.header[1] or row >= capacity \
+			or content <= 0 or content != profiles._live.header[0] or revision <= 0 \
+			or profiles._live.fields.size() != capacity * Profiles.I32_FIELDS \
+			or profiles._live.quantities.size() != capacity * Profiles.I64_FIELDS \
+			or profiles._live.flags.size() != capacity * Profiles.BYTE_FIELDS or profiles._live.quantities[row] != revision \
+			or profiles._live.flags[row] != Profiles.CERT_REQUIRED:
+		return &"WORLD_ROUTE_PROFILE_STALE"
+	var mode: int = profiles._live.fields[Profiles.F_MODE * capacity + row]
+	if mode != Profiles.MODE_WALK and mode != Profiles.MODE_CARRY and mode != Profiles.MODE_CLIMB:
+		return &"ROUTE_PROFILE_MODE"
+	actual._descriptor.profile_id = row
+	actual._descriptor.profile_revision = revision
+	actual._descriptor.content_revision = content
+	actual._descriptor.mode = mode
+	actual._descriptor.posture = profiles._live.fields[Profiles.F_POSTURE * capacity + row]
+	return &""
+
+
+static func _reach_sources_refusal(actual: RefCounted, graph: Routes, owner: Owner,
+		locations: Locations, first: Vector2i) -> StringName:
+	"""Only selected source chains are visited; consecutive identical sections reuse the same pure proof."""
+	var section: Vector2i = locations._ref_at(locations._live, Locations.SECTION_SLOT, first.x)
+	var code: StringName = _reach_endpoint_refusal(graph, owner, locations, first, NULL_REF)
+	if code != &"":
+		return code
+	for index: int in graph._proposed_count:
+		if not graph._spend(64):
+			return graph._operation_error
+		var row: int = graph._proposed_edges[(graph._proposed_count - index - 1) * 2]
+		var next: Vector2i = graph._edge_pair(graph._live, Routes.E_SECTION_SLOT, row)
+		if next != section:
+			code = _reach_section_refusal(graph, owner, locations, next)
+			if code != &"":
+				return code
+			section = next
+		code = graph._committed_mask_refusal(row, actual)
+		if code == &"":
+			code = _reach_endpoint_refusal(graph, owner, locations, graph._edge_pair(graph._live, Routes.E_TO_SLOT, row), section)
+		if code != &"":
+			return code
+		section = locations._ref_at(locations._live, Locations.SECTION_SLOT, graph._edge_i32(graph._live, Routes.E_TO_SLOT, row))
+	return &""
+
+
+static func _reach_endpoint_refusal(graph: Routes, owner: Owner, locations: Locations,
+		ref: Vector2i, checked_section: Vector2i) -> StringName:
+	"""Every endpoint keeps its full generation, exact stored point/Room/level and current geometry revision."""
+	if not graph._spend(64):
+		return graph._operation_error
+	if not locations._live_ref(locations._live, ref) \
+			or locations._get64(locations._live, Locations.PAYLOAD_REVISION, ref.x) <= 0 \
+			or locations._get64(locations._live, Locations.GEOMETRY_REVISION, ref.x) != owner._header[17]:
+		return &"ROUTE_LOCATION_STALE"
+	var section: Vector2i = locations._ref_at(locations._live, Locations.SECTION_SLOT, ref.x)
+	var room: Vector2i = locations._ref_at(locations._live, Locations.ROOM_SLOT, ref.x)
+	var level: int = locations._get32(locations._live, Locations.LEVEL, ref.x)
+	var point: Vector3i = Vector3i(locations._get32(locations._live, Locations.X, ref.x),
+		locations._get32(locations._live, Locations.Y, ref.x), locations._get32(locations._live, Locations.Z, ref.x))
+	if not owner._region_live(section, false) or owner._r_role[section.x] != Space.FLOOR_DATUM \
+			or owner._r_level[section.x] != level or owner._r_lo_y[section.x] != point.y \
+			or point.x < owner._r_lo_x[section.x] or point.x >= owner._r_hi_x[section.x] \
+			or point.z < owner._r_lo_z[section.x] or point.z >= owner._r_hi_z[section.x] \
+			or Vector2i(owner._r_owner_slot[section.x], owner._r_owner_generation[section.x]) != (locations._world if room == NULL_REF else room):
+		return &"LOCATION_SECTION_STALE"
+	return &"" if section == checked_section else _reach_section_refusal(graph, owner, locations, section)
+
+
+static func _reach_section_refusal(graph: Routes, owner: Owner, locations: Locations, section: Vector2i) -> StringName:
+	"""Precharge the bounded full source lookup before the exact Room/World leaf; section metadata grants no clearance."""
+	if not graph._spend(256 + 4 * owner._source_capacity):
+		return graph._operation_error
+	if not owner._region_live(section, false):
+		return &"LOCATION_SECTION_STALE"
+	var room: Vector2i = Vector2i(owner._r_owner_slot[section.x], owner._r_owner_generation[section.x])
+	if room == locations._world:
+		room = NULL_REF
+	return locations._resolve_section_refusal(room, section, owner._r_level[section.x],
+		Vector3i(owner._r_lo_x[section.x], owner._r_lo_y[section.x], owner._r_lo_z[section.x]))
 
 
 func static_profile_edge_refusal(edge: Vector2i, profile_id: int, profile_revision: int,

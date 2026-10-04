@@ -1642,18 +1642,24 @@ func _profile_path_final_refusal(query: ProfilePath) -> StringName:
 	var code: StringName = _current_profile_path_refusal(query)
 	if code != &"":
 		return code
-	var endpoint: Vector2i = query.first
+	return _path_chain_refusal(query.first, query.last, query.geometry_revision, query.descriptor.content_revision)
+
+
+func _path_chain_refusal(first: Vector2i, last: Vector2i, geometry: int, content: int,
+		certificate: RefCounted = null) -> StringName:
+	"""Cold and pure live searches validate the same collected full-generation endpoint chain."""
+	var endpoint: Vector2i = first
 	for index: int in _proposed_count:
-		if not _spend():
+		if not _spend(16 if certificate != null else 1):
 			return _operation_error
 		var offset: int = (_proposed_count - index - 1) * 2
 		var edge: Vector2i = Vector2i(_proposed_edges[offset], _proposed_edges[offset + 1])
-		if not _live_edge(_live, edge) or _edge_pair(_live, E_FROM_SLOT, edge.x) != endpoint 				or _edge_i64(_live, E_GEOMETRY_REVISION, edge.x) != query.geometry_revision 				or _edge_i64(_live, E_CONTENT_REVISION, edge.x) != query.descriptor.content_revision:
+		if not _live_edge(_live, edge) or _edge_pair(_live, E_FROM_SLOT, edge.x) != endpoint 				or _edge_i64(_live, E_GEOMETRY_REVISION, edge.x) != geometry 				or _edge_i64(_live, E_CONTENT_REVISION, edge.x) != content:
 			return &"ROUTE_EDGE_REVISION"
 		endpoint = _edge_pair(_live, E_TO_SLOT, edge.x)
-		if not query.locations.is_live_location(endpoint):
+		if not _path_location_live(endpoint, certificate):
 			return &"ROUTE_LOCATION_STALE"
-	return &"" if endpoint == query.last else &"ROUTE_NOT_CONNECTED"
+	return &"" if endpoint == last else &"ROUTE_NOT_CONNECTED"
 
 
 func _copy_proposed_path(out: PackedInt32Array) -> Result:
@@ -1668,7 +1674,7 @@ func _copy_proposed_path(out: PackedInt32Array) -> Result:
 
 
 func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int,
-		query: ProfilePath = null) -> StringName:
+		query: ProfilePath = null, certificate: RefCounted = null) -> StringName:
 	"""Positive exact lengths admit ordinary Dijkstra; a flat octile heuristic cannot connect floors."""
 	_distance.fill(I64_MAX)
 	_predecessor.fill(-1)
@@ -1688,7 +1694,7 @@ func _find_path(first: Vector2i, last: Vector2i, mode: int, posture: int,
 		if node == last.x:
 			return _collect_path(first, last)
 		var generation: int = first.y if node == first.x else _edge_i32(_live, E_TO_GENERATION, _predecessor[node])
-		var code: StringName = _relax_edges(Vector2i(node, generation), mode, posture, query)
+		var code: StringName = _relax_edges(Vector2i(node, generation), mode, posture, query, certificate)
 		if code != &"":
 			return code
 	return &"ROUTE_NOT_CONNECTED"
@@ -1710,7 +1716,8 @@ func _first_edge_index(origin: Vector2i) -> int:
 	return low
 
 
-func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath = null) -> StringName:
+func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath = null,
+		certificate: RefCounted = null) -> StringName:
 	"""Visit only this node's authored outgoing edges; endpoint coincidence never fabricates a link."""
 	var index: int = _first_edge_index(origin)
 	while index < _live.edge_count:
@@ -1720,18 +1727,16 @@ func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath 
 		if _edge_pair(_live, E_FROM_SLOT, row) != origin:
 			break
 		index += 1
-		if (mode >= 0 and _edge_i32(_live, E_MODE, row) != mode) \
-				or (posture >= 0 and _edge_i32(_live, E_POSTURE, row) != posture):
+		if not _path_terms_match(row, mode, posture):
 			continue
-		if _edge_i64(_live, E_GEOMETRY_REVISION, row) != _owner.revision() \
-				or _edge_i64(_live, E_CONTENT_REVISION, row) != _profiles.content_revision():
+		if not _path_edge_current(row, certificate):
 			return &"ROUTE_EDGE_REVISION"
 		var next: Vector2i = _edge_pair(_live, E_TO_SLOT, row)
-		if not _locations.is_live_location(next):
+		if not _path_location_live(next, certificate):
 			return &"ROUTE_LOCATION_STALE"
 		if _search_state[next.x] == 2:
 			continue
-		var code: StringName = _path_profile_refusal(row, query)
+		var code: StringName = _path_profile_refusal(row, query, certificate)
 		if _operation_error != &"":
 			return _operation_error
 		if code != &"":
@@ -1743,11 +1748,49 @@ func _relax_edges(origin: Vector2i, mode: int, posture: int, query: ProfilePath 
 	return _operation_error
 
 
-func _path_profile_refusal(row: int, query: ProfilePath) -> StringName:
+func _path_terms_match(row: int, mode: int, posture: int) -> bool:
+	"""Actor, cold static and pure live searches filter the same authored edge terms."""
+	return (mode < 0 or _edge_i32(_live, E_MODE, row) == mode) \
+		and (posture < 0 or _edge_i32(_live, E_POSTURE, row) == posture)
+
+
+func _path_profile_refusal(row: int, query: ProfilePath, certificate: RefCounted = null) -> StringName:
 	"""Only a clean span refusal can choose a detour; callers must stop on a recorded operation fault."""
+	if certificate != null:
+		return _committed_mask_refusal(row, certificate)
 	if query != null:
 		return _static_travel_profile_refusal(row, query)
 	return _travel_profile_refusal(row) if _search_worker != NULL_REF else &""
+
+
+func _path_location_live(ref: Vector2i, certificate: RefCounted) -> bool:
+	"""The concrete live query holds its World proof and invokes no public endpoint observation."""
+	return _locations._live_ref(_locations._live, ref) if certificate != null else _locations.is_live_location(ref)
+
+
+func _path_edge_current(row: int, certificate: RefCounted) -> bool:
+	"""Only the actual static entry supplies a certificate context; cold/actor behavior remains unchanged."""
+	var geometry: int = _owner._header[17] if certificate != null else _owner.revision()
+	var content: int = _profiles._live.header[0] if certificate != null else _profiles.content_revision()
+	return _edge_i64(_live, E_GEOMETRY_REVISION, row) == geometry \
+		and _edge_i64(_live, E_CONTENT_REVISION, row) == content
+
+
+func _committed_mask_refusal(row: int, certificate: RefCounted) -> StringName:
+	"""Read the actual bound provider's current bank directly; no observer or caller-created mask grants an edge."""
+	if not _spend(64):
+		return _operation_error
+	if certificate != _bindings or certificate._routes_ref.get_ref() != self \
+			or not certificate._reading or not _searching:
+		_operation_error = &"ROUTE_OWNER_MISMATCH"
+		return _operation_error
+	var profile: int = certificate._descriptor.profile_id
+	@warning_ignore("integer_division") var byte: int = profile / 8
+	return &"" if certificate._live.generations[row] == _edge_i32(_live, E_GENERATION, row) \
+		and certificate._live.geometry[row] == _owner._header[17] \
+		and certificate._live.content[row] == certificate._descriptor.content_revision \
+		and (certificate._live.masks[row * 32 + byte] & (1 << (profile % 8))) != 0 \
+		else &"WORLD_ROUTE_CERTIFICATE_STALE"
 
 
 func _travel_profile_refusal(row: int) -> StringName:

@@ -68,7 +68,7 @@ The conditional envelope is:
 `2*(90P+40M+256) + 8*(P+M) + (P+M) + 4096 + 2048 + 8192`
 
 That is `189P+89M+14848`, or108800 at the constructor ceilings P256/M512.
-The2048 is a fixed logical packet/control allowance;8192 is an explicit
+The 2048 is a fixed logical packet/control allowance;8192 is an explicit
 provisional native reservation, not a measurement. Maximum grouping4760 and
 SurfaceAnchor2048 bring these known additions to115608 of the previously
 identified152976 binding remainder. The remaining37368 must also admit the
@@ -330,7 +330,7 @@ before reading and immediately before output. It precharges
 `256 + 16 * LocationCapacity + 4 * SpaceSourceCapacity` within the immutable
 Domain/MAX_CHECKS limit. This bounds one unique endpoint scan, one source scan
 and fixed identity checks; it is a cold query, never a per-worker productive
-tick scan. The source chain needs no more than256 logical numeric argument,
+tick scan. The source chain needs no more than 256 logical numeric argument,
 local and return bytes at once, including the nested Directory mirror lookup.
 The caller's existing OrderRecord96 + AssemblyRecord32 + frame36 + endpoint8
 total172; together the428-byte numeric coexistence fits that512 allowance.
@@ -350,3 +350,31 @@ restored. The final consistency regression also checks all immutable Domain
 bounds. The earlier missing test-call argument remains in rejected evidence.
 This reader result does not qualify construction of a first entrance or a new
 installed endpoint.
+
+
+## Live existing-endpoint selector for contact checks
+
+`Locations.resolve_existing_live_into(room, section, level, role, point,
+expected_geometry_revision, max_checks, out2)` shares the exact accepted cold
+selector's pure full-reference/source/unique-row proof. It adds no lease or
+copy because it allocates no packet and uses only caller-owned two-I32 output.
+The same 256+16N+4O precharge, complete Domain, World/Room/FLOOR_DATUM scope,
+current stored geometry, ambiguous-live-row refusal and incompatible prepared
+context checks apply. A failed call leaves both output integers unchanged.
+The original cold API still requires its original actual Budget token before
+work and final output; passing zero never bypasses that public cold contract.
+
+There are no added fields, arrays, mapping tables or canonical bytes. The
+existing selector helper's 256 logical frame ceiling is unchanged. It may run
+sequentially with the separately documented 512-byte pure reachability frame
+(decision1098), under the actual caller's bounded Contacts lifetime. It grants
+no endpoint, installed assembly, contact or source refresh. Surface selectors
+still require NULL Room solely for the exact World-owned level0 section.
+
+The hot-2 evidence records the two live selector regressions and existing cold
+regressions, along with actual static route tests:137 tests / 13,326 assertions,
+strict/raw diagnostics and leaks all zero, analyzer 0/5. The reproduction isolates
+`user://` with a temporary worktree-specific project setting and restores its
+exact prior bytes, so concurrent worktrees cannot overwrite these fixtures.
+The separate256-caller route timing is explicitly a failed runtime-performance
+qualification, not a completed productive-contact integration.

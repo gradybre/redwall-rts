@@ -87,8 +87,13 @@ The [next complete run at84acf740](../../validation/evidence/underground-host-ch
 passed all14 jobs in13m23s, meeting the15-minute target. The unchanged verifier
 confirms398 suites exactly once,11,043 tests/1,021,242 assertions, zero failures,
 zero unexpected diagnostics/leaks,272 expected and353 tolerated diagnostics;
-the full analyzer reports0/1,232. The same-head clean no-argument local run is
-in progress in the owned checkpoint worktree; no equivalence claim is made yet.
+the full analyzer reports0/1,232. The same-head clean no-argument local run now
+passes11,043 tests/1,021,246 assertions, the identical272 expected/353 tolerated
+diagnostics and zero unexpected diagnostics/leaks; analyzer0/1,232. Source/HEAD
+stayed unchanged and project/assets were restored. The suite took30m09s locally.
+All398 files, test counts and diagnostic totals match CI. Local assertions are4
+higher and remain unattributed; the unchanged all-counter comparator correctly
+refuses exact equality. The retained same-head comparison states that limit.
 
 Ordinary phase refresh1153 is now integrated at386cd4aa after independent
 review and one corrected initialization guard. Actual paid component fixtures

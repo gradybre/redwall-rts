@@ -4576,8 +4576,26 @@
       "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-host-20261004",
       "local_branch": "codex/underground-checkpoint-host-20261004",
       "local_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-84acf740/",
-      "local_run_status": "Running exact unchanged clean-assets/cache/import/no-argument suite then full analyzer --max0; source/HEAD restoration not yet reported. Root exec session52225; do not duplicate.",
-      "limits": "No local/CI equivalence yet; excludes active1152/1154/1155/1156; all gameplay acceptance remains open."
+      "local_run_status": "Complete: clean no-argument full suite and full zero-warning analyzer; original source/HEAD/project/assets restored. Session52225 finished, do not rerun this checkpoint.",
+      "limits": "Same398 files,11043 tests and all diagnostic/leak totals match CI. Local assertions1021246 versus CI1021242; unchanged all-counter comparator refuses exact equality. Difference unattributed; no weakening. Later source integration requires its own CI.",
+      "local_tests": 11043,
+      "local_assertions": 1021246,
+      "local_analyzer": "0 GDScript warning(s) in 0 of 1232 file(s)",
+      "same_head_comparison": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-84acf740/same-head-comparison.json"
+    },
+    {
+      "commit": "d3e3dc7b89004f0ae934c5f34ecd39783fbbc5ab",
+      "outcome": "remote CI in progress after accepted1154 integration",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37231051168",
+      "integration_component": "dc6baa12",
+      "focused_tests": 60,
+      "focused_assertions": 1260,
+      "focused_failures": 0,
+      "focused_unexpected_diagnostics": 0,
+      "focused_leaks": 0,
+      "focused_analyzer": "0/6",
+      "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-access-integrated-1/",
+      "limits": "Do not treat preceding84acf740 complete run as validation of later1154 source."
     }
   ],
   "crosscut_fixes": [

@@ -1,0 +1,38 @@
+{
+  "head": "84acf74036484bd8ec4930895b7d0a96f8567937",
+  "ci_run": 37228134131,
+  "suite_files": 398,
+  "every_file_once": true,
+  "local_counts": {
+    "tests": 11043,
+    "assertions": 1021246,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "ci_counts": {
+    "tests": 11043,
+    "assertions": 1021242,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 272,
+    "tolerated": 353,
+    "leaked_objects": 0,
+    "leaked_resources": 0
+  },
+  "test_and_diagnostic_totals_match": true,
+  "all_counter_comparator_matches": false,
+  "comparator_refusal": "shard totals differ from full suite: shards={'tests': 11043, 'assertions': 1021242, 'failures': 0, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}, baseline={'tests': 11043, 'assertions': 1021246, 'failures': 0, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}",
+  "assertion_delta_local_minus_ci": 4,
+  "attribution": "Four additional assertions in the local no-argument run remain unattributed. Default output has no per-suite assertion counters; no gate, allowance or comparator was changed.",
+  "local_suite_seconds": 1809.017,
+  "local_import_suite_analyzer_seconds": 2098.983,
+  "ci_entire_workflow_seconds": 803,
+  "analyzer": "0 GDScript warning(s) in 0 of 1232 file(s)",
+  "analyzer_note": "Retained log reports an editor connection reset after129 files, then successful supported restart and completion across1232 files."
+}

@@ -24,3 +24,11 @@ Reviewed Contacts hash:
 Normal integrated source discovery, regenerated memory artifact and its
 `--check` gate are still required after the actual component is integrated.
 This evidence does not close that gate or the measured100MB qualification.
+
+
+The accepted actual Contacts component is now integrated. Ordinary source
+discovery (no external-index substitution) passes all 90 tests; generated memory
+artifact and `--check` both pass. State coverage reports 138 modules, 692 rows
+and 1031 packed columns. Source pins and raw test output are in `integrated-1`.
+The logical total remains 99,959,250 bytes, 40,750 below the unchanged limit;
+native memory and timing remain unqualified.

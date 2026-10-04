@@ -432,7 +432,10 @@
         "godot/scripts/core/underground_connector_contacts.gd",
         "godot/scripts/core/underground_connector_contacts.gd.uid",
         "godot/test/test_underground_connector_contacts.gd",
-        "godot/test/test_underground_connector_contacts.gd.uid"
+        "godot/test/test_underground_connector_contacts.gd.uid",
+        "godot/test/test_underground_first_prefix.gd",
+        "godot/test/test_underground_first_prefix.gd.uid",
+        "docs/validation/evidence/underground-first-prefix-2026-10-03/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -728,9 +731,25 @@
           "scope": "Actual shared paid owner; concrete Contacts/EntryBindings and source-qualified install motion still required."
         },
         "connector_contacts_review_correction": {
-          "status": "final verification and independent review pending",
+          "status": "independently accepted and integrated",
           "findings": "copy-then-move actual Transform observer allowed stale worker START/PRODUCTIVE facts;installed-part bearing missed fresh actual Terrain exclusions",
-          "progress": "both reproduced and corrected;22tests7285assertions strict/raw0/LSP0/2;final XP-conservation check under preparation;do not integrate old99-test acceptance"
+          "progress": "both reproduced and corrected;22tests7285assertions strict/raw0/LSP0/2;final XP-conservation check under preparation;do not integrate old99-test acceptance",
+          "source_commit": "ce46019ca3cb0d433c4562d8493803203b03cf2b",
+          "integration_commit": "df64af9f",
+          "registry_integration": "d39d779b",
+          "tests": "103 tests/12424 assertions/0failures;strict/raw unexpected diagnostics and leaks0;analyzer0/2;source/project/assets unchanged/restored",
+          "review": "Geometry independently accepted68011446 source/b12323bd tests; actual copied-pose, armed-observer, real installed-group/new-well and XP/resource conservation regressions",
+          "evidence": "docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/contacts-final-2/"
+        },
+        "first_prefix_integration_test_next": {
+          "agent": "/root/ug_construction",
+          "state": "preparing actual-owner fixture;depends on reviewed1114 for passing claim",
+          "files": [
+            "godot/test/test_underground_first_prefix.gd",
+            "godot/test/test_underground_first_prefix.gd.uid",
+            "docs/validation/evidence/underground-first-prefix-2026-10-03/"
+          ],
+          "scope": "six paid cuts and two timber assemblies,actual finite stores/Jobs/Work/XP/output,source-profile fixture explicitly synthetic until qualified content;no production owner changes or playable claim"
         }
       },
       "lease": {
@@ -1185,6 +1204,13 @@
           "tests": "6Python checks;full14timber+8bearing L0/T0clear;descent674pairs27checks,source-frameascent781/56;3repeat270supportrows asc2343/168 desc2022/81;obstacle32SOLIDwitnessesexit2",
           "scope": "offline source-frame only;native half-turn and174u reposition still missing;no playable retreat claim",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/"
+        },
+        "archive_packaging_correction": {
+          "source_commit": "fea9a47fcfcd662fc06cfa4ac3ba6cdb1165708a",
+          "review": "Root rehashed13 correction pins, compared146 original historical bytes through exactly2path relocations, verified failed full-run records byte-exact",
+          "analyzer": "0 warnings in0of9ownedcontentfiles;full integrated analyzer pending",
+          "scope": "archive .gd/.uid renamed .txt;current capture and all historical source bytes unchanged;957f03d rejection retained",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/"
         }
       },
       "lease": {
@@ -1792,6 +1818,33 @@
           "tests": "121 tests/11728 assertions/0fail;strict/raw diagnostics/leaks0;analyzer0/2",
           "evidence": "docs/validation/evidence/underground-final-facts-2026-10-03/transform-leaf-README.md",
           "scope": "actual stale-pose idle/transit witnesses fixed;no retained fields;88B helper112B maximum caller;not included in957f03d"
+        },
+        "contacts_memory_census": {
+          "source_commit": "a5870550",
+          "integration_commit": "2e397b36",
+          "review": "Geometry independently accepted exact tools and reran90 tests;normal integrated90test/check/artifact also pass",
+          "fixed_bytes": 2910,
+          "helper_allowance": 1024,
+          "reserved_bytes": 4096,
+          "binding_used_bytes": 524288,
+          "binding_remaining_bytes": 0,
+          "whole_logical_bytes": 99959250,
+          "runtime_qualified": false,
+          "evidence": "docs/validation/evidence/underground-connector-memory-2026-10-03"
+        },
+        "first_timber_prefix_geometry": {
+          "source_commit": "e585dc59",
+          "integration_commit": "2dec438f",
+          "geometry_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+          "review": "Construction checked14parts8bearings6cubes and six exterior side station candidates;root accepted independent source-motion supplement",
+          "scope": "engineering physical/price candidate only;whole-game installation,turn/reposition andpaid-route permission remain pending"
+        },
+        "entry_phase_composition_next": {
+          "agent": "/root",
+          "branch": "codex/underground-entry-admission",
+          "state": "tracing actual Frontier/WorkFace provider; no new production activation",
+          "gap": "WorldBindings still inherits phase-plan/qualification/worker/material/output refusal stubs; six genuine paid Site transitions need this connection",
+          "scope": "Root-owned WorldBindings and separately recorded provider source; Construction owns first-prefix fixture; Geometry owns Entry installation. No seeded Site/payment bytes or synthetic SpatialAuthority."
         }
       },
       "lease": {

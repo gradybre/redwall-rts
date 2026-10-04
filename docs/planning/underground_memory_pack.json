@@ -1169,6 +1169,16 @@
       "reserved_bytes": 4096,
       "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."
     },
+    "connector_contacts_reservation": {
+      "numeric_controls": 148,
+      "packed_rows": 376,
+      "fragment_banks_and_controls": 1633,
+      "owned_packet_bytes": 753,
+      "fixed_numeric_and_packed_bytes": 2910,
+      "logical_helper_allowance_bytes": 1024,
+      "reserved_bytes": 4096,
+      "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."
+    },
     "known_binding_consumers": {
       "connector_catalog": 190448,
       "world_routes": 163840,
@@ -1179,11 +1189,12 @@
       "connector_placements": 108800,
       "connector_work": 563,
       "entry_frontier": 28597,
-      "entry_bindings": 4096
+      "entry_bindings": 4096,
+      "connector_contacts": 4096
     },
-    "known_binding_used_bytes": 520192,
-    "remaining_binding_reserve_bytes": 4096,
-    "scope": "Known logical consumers including Frontier and EntryBindings; 4096 remains for Contacts. Whole native memory qualification remains open."
+    "known_binding_used_bytes": 524288,
+    "remaining_binding_reserve_bytes": 0,
+    "scope": "Known logical consumers include concrete Frontier, EntryBindings and Contacts. The shared bindings reserve is fully assigned; whole native memory qualification remains open."
   },
   "contributions": {
     "space_banks_and_indexes": 1104160,
@@ -1209,6 +1220,7 @@
     "godot/scripts/core/construction.gd": "5b7cdde0e087dc09c05ca9520b73e23edb9174932ed9d92c90bfe1860f7d3d2c",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
     "godot/scripts/core/excavation_inventory.gd": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
+    "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
     "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
     "godot/scripts/core/modular_project_contract.gd": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
     "godot/scripts/core/modular_projects.gd": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
@@ -1218,6 +1230,7 @@
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
     "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
     "godot/scripts/core/underground_connector_catalog.gd": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
+    "godot/scripts/core/underground_connector_contacts.gd": "680114461ecaf8d96bea6ed45b1edba60f057d89f76fc59aa3e0e2fd03233c39",
     "godot/scripts/core/underground_connector_placements.gd": "ca35c77244b0644da291551c1c741a704d7a332eb9b146b72a132ca8af9a7762",
     "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
     "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
@@ -1225,6 +1238,7 @@
     "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_locations.gd": "d474e3396ff70d61d7cbe180372c7ca8096a2a5384811d52b7128bef11398284",
+    "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_space_authority.gd": "9a2888b0d1b708cfdf0f94573f3b96cd1fedfeafd176e53c87676dc0a2c9c252",
     "godot/scripts/core/underground_space_owner.gd": "6f501aaad6403ae0a6131c26dc9e4dfb19aff59bff32a64374ba036905c47f73",
     "godot/scripts/core/underground_surface_anchor.gd": "d928d4f0ebe6fc55183486c33a49596305682bcd70dfa298b7c1dbe785d29a1e",

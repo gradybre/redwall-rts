@@ -1,0 +1,18 @@
+{
+  "source_sha256": {
+    "tools/underground_memory_budget.py": "8b45b2493a185c01a69a913e3522aef2813ff33a6f1ebf43d12c04b7630adbd1",
+    "tools/test_underground_memory_budget.py": "5bedf401021b5d637e1247dbe46ef9fbdecbb88b5b7e9269acbece886662e618",
+    "godot/scripts/core/underground_connector_contacts.gd": "680114461ecaf8d96bea6ed45b1edba60f057d89f76fc59aa3e0e2fd03233c39",
+    "godot/test/test_underground_connector_contacts.gd": "b12323bd10d7847e48ba3741c3ff0c57a9403a07a33fc10d5d5b441cdd19379f"
+  },
+  "tests": 90,
+  "errors": 0,
+  "failures": 0,
+  "invocation": "python3 tools/test_underground_memory_budget.py (ordinary integrated source discovery, no injected index)",
+  "memory_check": "python3 tools/underground_memory_budget.py then --check both exit0",
+  "registry_check": "state_registry_coverage: PASS -- 138 modules, 692 rows, 1031 packed columns checked",
+  "binding_used_bytes": 524288,
+  "binding_remaining_bytes": 0,
+  "live_with_reserve_bytes": 99959250,
+  "runtime_qualified": false
+}

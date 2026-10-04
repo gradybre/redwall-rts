@@ -1,0 +1,7 @@
+{
+  "status": "Unreviewed diagnostic dependency, excluded from own source commit",
+  "source_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work",
+  "sha256": {
+    "godot/scripts/core/underground_connector_workpieces.gd": "35eea146c9e497725042a2229fc03f82cffa1c096dfdde17235d3c6f138ca819"
+  }
+}

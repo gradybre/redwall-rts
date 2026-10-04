@@ -1,0 +1,22 @@
+{
+  "format": "gzip",
+  "lossless_round_trip_verified": true,
+  "files": [
+    {
+      "original": "late-room-probe-1/shard-295.log",
+      "original_bytes": 4127855,
+      "original_sha256": "15a3e30e2be50404e16a09275ae5bf2c6bb1a911651b3e0dd48520476cf3ee0d",
+      "compressed": "late-room-probe-1/shard-295.log.gz",
+      "compressed_bytes": 8764,
+      "compressed_sha256": "983988497f79c297f8d130d360d0a6a1a77e7d22d845fbae601c127ddeb7233b"
+    },
+    {
+      "original": "late-room-probe-1/test_underground_workpiece_spatial_lifecycle.gd.log",
+      "original_bytes": 4127965,
+      "original_sha256": "6eb5f228b910a5e839c796952d173b7e15c50439d8d27b9e7f24eb0161d5b6d2",
+      "compressed": "late-room-probe-1/test_underground_workpiece_spatial_lifecycle.gd.log.gz",
+      "compressed_bytes": 8854,
+      "compressed_sha256": "bfa9ce4ea3051d226a85cea72572a38d5cb149e013611814f15998b64a9e51c6"
+    }
+  ]
+}

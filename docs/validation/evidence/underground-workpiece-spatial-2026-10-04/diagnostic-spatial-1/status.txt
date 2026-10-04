@@ -1,0 +1,1 @@
+Diagnostic compile-ready snapshot only; independent review and real workpiece lifecycle tests are pending. Excluded from accepted integration claims.

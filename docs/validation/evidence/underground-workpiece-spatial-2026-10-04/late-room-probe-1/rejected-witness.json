@@ -1,0 +1,10 @@
+{
+  "test_sha256": "f4055460748efa395767393ddb727a74bc8ea92c945c4f3763d0bd84fee3d457",
+  "tests": 1,
+  "assertions": 15,
+  "failures": 1,
+  "unexpected_diagnostics": 0,
+  "leaks": 0,
+  "observed_public_room_reads_after_final_occupancy": 1,
+  "actual_start_paid_and_published_after_worker_moved_into_workpiece": true
+}

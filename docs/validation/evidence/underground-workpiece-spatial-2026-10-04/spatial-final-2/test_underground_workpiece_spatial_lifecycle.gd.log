@@ -1,0 +1,27 @@
+state_registry_coverage: PASS -- 141 modules, 707 rows, 1044 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_workpiece_spatial_lifecycle.gd
+  PASS  test_last_public_room_reader_is_absent_after_final_occupancy_proof
+  PASS  test_observing_room_copy_move_refuses_payment_and_allows_valid_retry
+  PASS  test_physical_source_survives_released_job_without_granting_work_or_turn
+  PASS  test_paid_paused_cancellation_removes_only_exact_piece_after_refund
+CI_SUITE_TIME {"assertions":58,"failures":0,"suite":"test_underground_workpiece_spatial_lifecycle.gd","tests":4,"usec":40702341}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 58 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 4 tests, 58 assertions, 0 failures.

@@ -1,0 +1,1 @@
+Frozen 1135 source/test candidate for independent review. Diagnostic1134 dependencies remain separate. See spatial-final-1 and forthcoming spatial-final-2 for exact checks. No native or production-source activation claim.

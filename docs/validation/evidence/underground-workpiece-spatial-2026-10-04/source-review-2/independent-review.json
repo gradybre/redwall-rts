@@ -1,0 +1,40 @@
+{
+  "date": "2026-10-04",
+  "reviewer": "root independent agent",
+  "status": "accepted_component_source_correctness",
+  "manifest": "source-sha256.json",
+  "pins_verified": 10,
+  "scope": [
+    "spatial publication kernels",
+    "direct CoreSources and FinalFacts final reads",
+    "current physical occupancy after productive Job release",
+    "six actual paid lifecycle cases"
+  ],
+  "independent_census": {
+    "structured_output_equal": true,
+    "controls_bytes": 1895,
+    "control_ceiling": 2048,
+    "maximum_numeric_chain": 572,
+    "helper_ceiling": 576,
+    "cold_limits_unchanged": true
+  },
+  "evidence_inspected": {
+    "selected_suites": 10,
+    "tests": 404,
+    "assertions": 29732,
+    "failures": 0,
+    "unexpected_diagnostics": 0,
+    "leaks": 0,
+    "analyzer_warnings": 0,
+    "analyzer_files": 10
+  },
+  "retained_finding": "late-room-probe-1 successful copied Room followed by actual worker movement after final occupancy",
+  "open_gates": [
+    "synthetic motion",
+    "1134 diagnostic dependency acceptance and final paired census",
+    "production handling/source closure",
+    "native memory and performance",
+    "integrated validation"
+  ],
+  "publication_authorization": "Narrow own-source/test/ADR/evidence commit only; no shared registry or queue changes."
+}

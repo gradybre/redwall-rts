@@ -1,0 +1,35 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_workpiece_spatial_lifecycle.gd
+  PASS  test_last_public_room_reader_is_absent_after_final_occupancy_proof
+  PASS  test_observing_room_copy_move_refuses_payment_and_allows_valid_retry
+SCRIPT ERROR: Invalid access to property or key '_tool' on a base object of type 'RefCounted (ProbeWorld)'.
+          at: test_physical_source_survives_released_job_without_granting_work_or_turn (res://test/test_underground_workpiece_spatial_lifecycle.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] test_physical_source_survives_released_job_without_granting_work_or_turn (res://test/test_underground_workpiece_spatial_lifecycle.gd:150)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-support-clearance/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_physical_source_survives_released_job_without_granting_work_or_turn
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_paid_paused_cancellation_removes_only_exact_piece_after_refund
+CI_SUITE_TIME {"assertions":56,"failures":0,"suite":"test_underground_workpiece_spatial_lifecycle.gd","tests":4,"usec":40715441}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 56 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

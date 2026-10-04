@@ -1,0 +1,13 @@
+{
+  "status": "Frozen for independent source review. Actual paid-workpiece lifecycle remains pending.",
+  "baseline": "ac766929",
+  "tests": 75,
+  "assertions": 7282,
+  "failures": 0,
+  "strict_raw_diagnostics_and_leaks": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 7,
+  "run": "../spatial-3/invocation.json",
+  "diagnostic_dependency_sha256": "35eea146c9e497725042a2229fc03f82cffa1c096dfdde17235d3c6f138ca819",
+  "production_qualified": false
+}

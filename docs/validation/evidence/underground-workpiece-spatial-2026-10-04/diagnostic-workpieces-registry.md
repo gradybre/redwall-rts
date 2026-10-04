@@ -1,0 +1,12 @@
+### `godot/scripts/core/underground_connector_workpieces.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Workpiece full identity bank | -- | -- | -- | Five zero fields when absent | 1 | §1 WORLD | Decision1134. Five field-major I32 columns: Placement generation, Project slot/generation, Region slot/generation. Live bank and inactive restore bank each20P bytes; source quantity/WU remains in Inventory/Funding/Construction. Open question: composed capture/load ordering and section/schema adoption await reviewed real lifecycle integration. |
+| Workpiece presence bank | -- | -- | -- | 0 absent | 1 | §1 WORLD | One byte per actual Placement, in both banks. No separate local reference namespace. Same composed persistence question as identity bank. |
+| Immutable source header | `_header` | 8 | `9` = 9 | Zero before successful load | 3 | -- | One source bank: template/Catalog/variant/Grouping/Recipe/Profiles revisions, group count, Catalog row, program source ID. Source is loaded from exact pinned content, not canonical mutable paid state. |
+| Immutable source digests | `_digests` | 1 | `160` = 160 | Zero before successful load | 3 | -- | Exact template/Catalog/Grouping/Recipe/set-down-program SHA256 bytes. |
+| Whole included part transforms | `_parts` | 4 | `6 * assemblies` runtime | Zero before successful load | 3 | -- | Included part, proper quarter-turn, translation XYZ and exact set-down profile. No price, stock or material movement ledger. |
+| Exact set-down revisions | `_profile_revisions` | 8 | `assemblies` runtime | Zero before successful load | 3 | -- | One immutable actual profile revision per billable group. Together with part transforms32A bytes. |
+| Reused exact physical bounds | `_bounds`, `_scratch` | 4 | `6` = 6 | Reused synchronous scratch | 3 | -- | Two six-I32 packets in the proposed2048 control/helper reservation. No second spatial snapshot or full wire image. |
+| Workpiece stage/source controls | -- | -- | -- | No request at quiescence | 3 | -- | Original actual owner/source refs, Project/Placement/action, original Budget/token, source prefix/payload and borrowed shared InstallationContext. Proposed peak42P+32A+232+2048controls+512stream+8192provisionalnative. AtP=A256:29928B pending final source/helper/coexistence review, not native measurement. Runtime publication requires reviewed1135/1136 and actual handling/source/contact facts. |

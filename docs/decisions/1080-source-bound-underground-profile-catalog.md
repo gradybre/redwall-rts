@@ -1073,3 +1073,22 @@ explicit native/control reservation, with actual native peak still unmeasured.
 The512u planted-work fixture is not stair travel. Actual varying-height foot
 support/root transitions and distinct INSTALL fastening/body/tool/contact
 source remain required; digging permission cannot replace installation.
+
+
+### Native compact source program accepted
+
+The actual version2 presentation driver now replays all eleven finite clips and
+five roles through the shared hub with actual Residents/Job/Work/Gear identity
+readers. The native fixture still marks profile admission synthetic and grants
+no work credit, completed terrain, stair support or travel permission. It runs
+all three work contacts, partial-entry cancellation, exact recovery and carry
+fades:2,214 poses,9,148 assertions,0 failures, all nine phases covered. The554
+pre/post executable/raw/source pins match; native/import diagnostics and leaks
+are zero. Seven outer-checker tests pass and analyzer reports0 warnings/1 file.
+
+Independent root review accepted the three frozen sources and149 output pins
+in `contact-qualification/review-native-compact-v1`, reran the seven tests and
+reviewed four isolated1280×720 views. Source mesh/grip and complete-state motion
+remain visible. This is not a full HUD/game-camera, terrain, gait or paid entry
+qualification. The source remains443 frames/f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37;
+process-memory counters remain explicitly non-isolated and production flags0.

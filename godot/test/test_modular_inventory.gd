@@ -60,6 +60,9 @@ class Router extends AccountingFixture.SyntheticRouter:
 		return connector_inputs_refusal(project, job, inventory, pool)
 
 class PaidSite extends Excavation:
+	var input_funding: WeakRef = null
+	var attached_project: Vector2i = NULL_REF
+
 	func is_live_site(site: Vector2i) -> bool:
 		"""Synthetic physical subject for testing one receipt arena across actual project purposes."""
 		return site == Vector2i(19, 1)
@@ -72,13 +75,26 @@ class PaidSite extends Excavation:
 		"""Actual adopted brace/cut prices, without fake timed progress."""
 		return out.succeed(Excavation.work_mwu(operation))
 
-	func attach_project(_site: Vector2i, _operation: int, _project: Vector2i) -> void:
-		"""The accounting fixture publishes no map or paid history."""
-		pass
+	func attach_project(_site: Vector2i, _operation: int, project: Vector2i) -> void:
+		"""Retain only this accounting fixture's exact actual Project; no map or paid history is published."""
+		attached_project = project
 
 	func mutation_refusal(_project: Vector2i, _action: int) -> StringName:
 		"""Synthetic store-level permission is confined to this test's actual accounting owners."""
 		return &""
+
+	func excavation_inputs_refusal(project: Vector2i, job: Vector2i,
+			inventory: RefCounted, pool: RefCounted) -> StringName:
+		"""Synthetic physical permission is confined to the actual original shared Funding input bracket."""
+		var funding: Funding = input_funding.get_ref() as Funding if input_funding != null else null
+		return &"" if funding != null and project == attached_project and job == OTHER_JOB \
+			and funding.is_settling_connector_inputs(project, job, inventory as Inventory, pool as Reservations) \
+			else REFUSE_AUTHORITY
+
+	func final_input_refusal(project: Vector2i, job: Vector2i, inventory: RefCounted,
+			pool: RefCounted, _output: Vector2i, _mass: int) -> StringName:
+		"""The accounting-only source repeats its exact bracket at the real final Inventory guard."""
+		return excavation_inputs_refusal(project, job, inventory, pool)
 
 class PileContact extends RefCounted:
 	var world: Vector2i = NULL_REF
@@ -345,6 +361,7 @@ func test_shared_container_keeps_another_projects_output_claim_and_source_claim(
 	"""The shared arena never releases or consumes a neighboring project's finite claims."""
 	_reclaim_quote()
 	_site = PaidSite.new()
+	_site.input_funding = weakref(_funding)
 	assert_true(_construction.bind_excavation_authority(_site).ok, "actual second purpose binds")
 	var phase: Vector2i = _construction.open_excavation_phase(Vector2i(19, 1), Excavation.OP_CUT).ref
 	assert_true(_funding.consume_to_wip(phase, OTHER_JOB, 100, _output).ok, "same arena reserves actual cut output")
@@ -484,6 +501,7 @@ func test_excavation_support_and_furniture_receipts_remain_separate_in_one_arena
 	"""Furnishing materials and losses must never enter the physical brace conservation ledger."""
 	var project: Vector2i = _bench()
 	_site = PaidSite.new()
+	_site.input_funding = weakref(_funding)
 	assert_true(_construction.bind_excavation_authority(_site).ok, "same actual Construction binds excavation")
 	var brace: Vector2i = _construction.open_excavation_phase(Vector2i(19, 1), Excavation.OP_BRACE).ref
 	assert_true(_construction.set_material_container(brace, _input).ok, "brace delivery contact")

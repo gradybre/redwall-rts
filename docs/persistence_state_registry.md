@@ -1707,3 +1707,18 @@ permission.
 | Exact transit revision | `_travel_revision` | 8 | `_capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | Full paired revision; aliased caller outputs refuse unchanged. |
 | Authored excavation episodes | `_episode` | 4 | `19 * _capacities[EPISODE]` runtime | Zero before load | 2 | §1 WORLD | Whole-cube ranges, BRACE/CUT/FINISH masks and explicit station/dependency/material/output/retreat selectors. No second paid-progress bank. |
 | Borrowed actual owners and synchronous reader controls | -- | -- | -- | No load at frame/save boundary | 3 | -- | Four actual source-owner refs and configured/loaded/busy flags. Streamed header/row/hash/helper lifetimes fit the explicit2048 logical control reservation; entire configured reader <=28597. Native growth remains unmeasured and must fit actual remaining bindings headroom. Save pins immutable sources; no runtime geometry/contact permission is serialized here. |
+
+### Live static reachability and exact endpoint selection (decisions1098/1105)
+
+The new pure live methods add no owner control, canonical column, packed bank,
+retained map or save requirement. Locations reuses its existing pure selector;
+WorldRoutes reuses the existing184-byte Descriptor and Routes' admitted search
+arrays. The public caller supplies only already-sized endpoint2I32 and
+remaining-work1I32 buffers. A bounded512-byte logical helper-frame ceiling
+(the source-counted longest path is336 bytes) is charged to the invoking
+Contacts/control lifetime. This does not increase Placement's1670/2048 fixed
+census or imply a second cold arena; nested caller records/native frames still
+need actual joint admission. Full-generation/source checks and finite work
+apply on every call. Correctness is component-tested; the measured256-caller
+three-span workload failed runtime timing qualification and cannot authorize
+unbudgeted searches for every productive worker.

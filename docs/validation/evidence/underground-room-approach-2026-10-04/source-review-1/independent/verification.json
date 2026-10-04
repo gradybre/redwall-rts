@@ -1,0 +1,28 @@
+{
+  "reviewed_source_manifest_sha256": "9fcc7505a0b0867e5b82abc35afb9b938200e97512d2649ba1cd84b63a8a4e60",
+  "source_before": {
+    "docs/validation/evidence/underground-room-approach-2026-10-04/census.py": true,
+    "docs/validation/evidence/underground-room-approach-2026-10-04/reproduce.py": true,
+    "docs/validation/evidence/underground-room-approach-2026-10-04/test_census.py": true,
+    "godot/scripts/core/underground_room_approach.gd": true,
+    "godot/scripts/core/underground_room_approach.gd.uid": true,
+    "godot/scripts/core/underground_room_bindings.gd": true,
+    "godot/test/test_underground_room_admission.gd": true,
+    "godot/test/test_underground_room_approach.gd": true,
+    "godot/test/test_underground_room_approach.gd.uid": true
+  },
+  "source_after": {
+    "docs/validation/evidence/underground-room-approach-2026-10-04/census.py": true,
+    "docs/validation/evidence/underground-room-approach-2026-10-04/reproduce.py": true,
+    "docs/validation/evidence/underground-room-approach-2026-10-04/test_census.py": true,
+    "godot/scripts/core/underground_room_approach.gd": true,
+    "godot/scripts/core/underground_room_approach.gd.uid": true,
+    "godot/scripts/core/underground_room_bindings.gd": true,
+    "godot/test/test_underground_room_admission.gd": true,
+    "godot/test/test_underground_room_approach.gd": true,
+    "godot/test/test_underground_room_approach.gd.uid": true
+  },
+  "census_matches_exact": true,
+  "engine_rerun": false,
+  "foreign_writes": false
+}

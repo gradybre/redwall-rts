@@ -1,0 +1,12 @@
+{
+  "docs/validation/evidence/underground-room-approach-2026-10-04/census.py": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/census.py.snapshot",
+  "docs/validation/evidence/underground-room-approach-2026-10-04/reproduce.py": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/reproduce.py.snapshot",
+  "docs/validation/evidence/underground-room-approach-2026-10-04/test_census.py": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_census.py.snapshot",
+  "godot/scripts/core/underground_room_approach.gd": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_room_approach.gd.snapshot",
+  "godot/scripts/core/underground_room_approach.gd.uid": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_room_approach.gd.uid.snapshot",
+  "godot/scripts/core/underground_room_bindings.gd": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_room_bindings.gd.snapshot",
+  "godot/scripts/core/underground_terrain.gd": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_terrain.gd.snapshot",
+  "godot/test/test_underground_room_admission.gd": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_underground_room_admission.gd.snapshot",
+  "godot/test/test_underground_room_approach.gd": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_underground_room_approach.gd.snapshot",
+  "godot/test/test_underground_room_approach.gd.uid": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_underground_room_approach.gd.uid.snapshot"
+}

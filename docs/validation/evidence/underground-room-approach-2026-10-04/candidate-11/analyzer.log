@@ -1,0 +1,5 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_room_approach.gd:487: (SHADOWED_VARIABLE): The local function parameter "config" is shadowing an already-declared variable at line 63 in the current class.
+scripts/core/underground_room_approach.gd:558: (SHADOWED_VARIABLE): The local function parameter "plan" is shadowing an already-declared variable at line 61 in the current class.
+scripts/core/underground_room_approach.gd:572: (SHADOWED_VARIABLE): The local function parameter "token" is shadowing an already-declared variable at line 75 in the current class.
+3 GDScript warning(s) in 1 of 4 file(s)

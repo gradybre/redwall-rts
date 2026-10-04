@@ -1,0 +1,38 @@
+{
+  "source_frozen": true,
+  "runtime_qualified": false,
+  "manifests": {
+    "source-sha256.json": {
+      "sha256": "f4b559f7046b0e8bc6807fbd5453bb29f7690e34ecdfdbe9f6d3f65c61410f2c",
+      "rows": 10,
+      "mismatches": []
+    },
+    "inherited-sha256.json": {
+      "sha256": "a2e4bc636d0c5c66dca75d600b4299bb9a8f90f803f310226158e5ff650c9157",
+      "rows": 29,
+      "mismatches": []
+    },
+    "output-sha256.json": {
+      "sha256": "730f2d706498dc0f33b769ae2b95489ea4a1a5f8224731f7aa5ebe0de8ffba90",
+      "rows": 37,
+      "mismatches": []
+    },
+    "history-sha256.json": {
+      "sha256": "c511dba349f20318080d115f72e5958a71d09111f6e041d668c142dc9472d9a3",
+      "rows": 37,
+      "mismatches": []
+    }
+  },
+  "prior_manifests": {
+    "output-sha256.json": {
+      "sha256": "ed7b832fc6d4709e036b991d14404ab2f723fabd2e5e9fac879ea97b7405dbbb",
+      "rows": 32,
+      "mismatches": []
+    },
+    "history-sha256.json": {
+      "sha256": "e49a4b72e56aadda9e647662c63dff4827a8bf8f0a9860e2ef9800edaadb6c2e",
+      "rows": 131,
+      "mismatches": []
+    }
+  }
+}

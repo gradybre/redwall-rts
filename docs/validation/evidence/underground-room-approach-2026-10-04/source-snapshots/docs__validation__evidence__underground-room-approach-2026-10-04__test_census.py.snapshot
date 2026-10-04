@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+"""Source/lifetime mutants must refuse rather than hide an additional cold image or packet."""
+import unittest
+import census
+
+
+class CensusTests(unittest.TestCase):
+    def setUp(self):
+        self.source = (census.ROOT / census.FILE).read_text()
+
+    def test_all_sequential_peaks_and_complete_fixed_packets(self):
+        report = census.build()
+        self.assertEqual(report['maximum_peak'], 938368)
+        self.assertEqual(report['new_witness_and_request_fixed'] + report['retained_face_fixed'], 2651)
+        self.assertEqual(report['peaks']['after_sites_and_final_publication'], 675840)
+        self.assertLessEqual(report['own_helper_counted'], report['own_helper_allowance'])
+
+    def reject(self, old, new):
+        self.assertIn(old, self.source)
+        with self.assertRaises((ValueError, AssertionError)):
+            census.build(self.source.replace(old, new, 1))
+
+    def test_retained_full_proof_refuses(self):
+        self.reject('face.proof = null', 'face.proof = face.proof')
+
+    def test_removed_companion_fragment_charge_refuses(self):
+        self.reject('24 * Budget.PHASE_VOLUME_CAPACITY', '0 * Budget.PHASE_VOLUME_CAPACITY')
+
+    def test_new_retained_numeric_field_refuses(self):
+        self.reject('var token: int = 0', 'var extra_counter: int = 0\n\tvar token: int = 0')
+
+    def test_new_retained_object_refuses(self):
+        self.reject('var binding: WorldRoutes = null', 'var new_image: Space.Snapshot = null\n\tvar binding: WorldRoutes = null')
+
+    def test_unbounded_path_or_missing_face_charge_refuses(self):
+        self.reject('path.resize(config.routes._edge_capacity * 2)', 'path.resize(config.routes._edge_capacity * 4)')
+        self.reject('384 + Face.CONTROL_BYTES + PATH_BYTES', '384 + PATH_BYTES')
+
+
+if __name__ == '__main__':
+    unittest.main()

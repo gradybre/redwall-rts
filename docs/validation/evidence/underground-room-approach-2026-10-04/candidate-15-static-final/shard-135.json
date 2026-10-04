@@ -1,0 +1,31 @@
+{
+  "counts": {
+    "assertions": 1042,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 28,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "1e59162e67292f731b86410558ce8d950e2fdf3c9c023ca2396ce51ab7fbf70f",
+  "shard_count": 396,
+  "shard_index": 135,
+  "suite_counts": {
+    "test_underground_terrain.gd": {
+      "assertions": 1042,
+      "failures": 0,
+      "tests": 28
+    }
+  },
+  "suite_usec": {
+    "test_underground_terrain.gd": 7185257
+  },
+  "suites": [
+    "test_underground_terrain.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 9
+}

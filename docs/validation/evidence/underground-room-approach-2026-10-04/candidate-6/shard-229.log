@@ -1,0 +1,105 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_approach.gd
+SCRIPT ERROR: Invalid access to property or key 'path_count' on a base object of type 'Nil'.
+          at: test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:202)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:202)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_path_and_work_face_are_observed_before_any_candidate
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        real complete path and exact source face (expected , got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_disconnected_profile_path_refuses_a_genuine_available_work_face
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        no real path (expected ROUTE_NOT_CONNECTED, got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+SCRIPT ERROR: Invalid access to property or key 'path_count' on a base object of type 'Nil'.
+          at: test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:222)
+          GDScript backtrace (most recent call first):
+              [0] test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:222)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_zero_edge_path_still_proves_the_whole_selected_travel_pose
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        same actual complete endpoint (expected , got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_full_source_contact_rejects_an_interior_approach_hole
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        real WorkFace full-volume proof refuses (expected WORK_FACE_COMPLETE_SPACE, got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+  FAIL  test_target_must_belong_to_exact_room_cut_union
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        face outside intended cells (expected ROOM_APPROACH_PAID_TARGET, got ROOM_APPROACH_PROFILE)
+        face outside intended vertical cuts (expected ROOM_APPROACH_PAID_TARGET, got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+SCRIPT ERROR: Invalid call. Nonexistent function 'source_refusal' in base 'Nil'.
+          at: test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:254)
+          GDScript backtrace (most recent call first):
+              [0] test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:254)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_every_added_request_field_is_pinned_against_late_mutation
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        original complete observation (expected , got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'source_refusal' in base 'Nil'.
+          at: test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry (res://test/test_underground_room_approach.gd:264)
+          GDScript backtrace (most recent call first):
+              [0] test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry (res://test/test_underground_room_approach.gd:264)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        original source (expected , got ROOM_APPROACH_PROFILE)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)", "synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_endpoint_callbacks_close_original_request_and_lease
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        late extra-field mutation (expected ROOM_APPROACH_CHANGED, got ROOM_APPROACH_PROFILE)
+        foreign token never reused (expected UNDERGROUND_COLD_BUSY, got ROOM_APPROACH_PROFILE)
+        refusal never closes a replacement lease (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+  FAIL  test_wrong_profile_and_preexisting_candidate_refuse_without_output
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+  FAIL  test_current_cold_admission_and_plain_plan_remain_explicit
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":52,"failures":10,"suite":"test_underground_room_approach.gd","tests":10,"usec":3353286}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 52 assertion(s), 10 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

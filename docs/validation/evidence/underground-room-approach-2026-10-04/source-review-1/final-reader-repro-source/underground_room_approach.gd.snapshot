@@ -1,0 +1,633 @@
+extends RefCounted
+## A cold prospective Room contact/path witness. It creates no worker, Job, support or work credit.
+## Exact original fields survive RoomPlan's intentionally plain protected copy. Decision1150.
+
+const Orders := preload("res://scripts/core/underground_room_orders.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const Face := preload("res://scripts/core/underground_work_face.gd")
+const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const Locations := preload("res://scripts/core/underground_locations.gd")
+const Owner := preload("res://scripts/core/underground_space_owner.gd")
+const FinalFacts := preload("res://scripts/core/underground_final_facts.gd")
+const Directory := preload("res://scripts/core/entity_directory.gd")
+const Terrain := preload("res://scripts/core/underground_terrain.gd")
+const Space := preload("res://scripts/core/room_space.gd")
+const Budget := preload("res://scripts/core/underground_budget.gd")
+const Footprint := preload("res://scripts/core/room_footprint.gd")
+const NULL_REF: Vector2i = Vector2i(-1, 0)
+const REFUSE_INPUT: StringName = &"ROOM_APPROACH_INPUT"
+const REFUSE_BINDING: StringName = &"ROOM_APPROACH_BINDING"
+const REFUSE_STALE: StringName = &"ROOM_APPROACH_CHANGED"
+const REFUSE_PROFILE: StringName = &"ROOM_APPROACH_PROFILE"
+const REFUSE_TARGET: StringName = &"ROOM_APPROACH_PAID_TARGET"
+const REFUSE_GEOMETRY: StringName = &"ROOM_APPROACH_PHYSICAL_EDIT"
+const REFUSE_BUSY: StringName = &"ROOM_APPROACH_REENTRY"
+const CONTROL_BYTES: int = 4096 # Cold numeric/helper allowance, inside the existing shared lease.
+const PATH_BYTES: int = Routes.MAX_EDGES * 8
+const COLD_BYTES: int = Face.COLD_BYTES + PATH_BYTES + CONTROL_BYTES
+const COMPANION_BYTES: int = 48 * Budget.REGION_CAPACITY + 16 * Budget.SOURCE_CAPACITY \
+	+ 24 * Budget.PHASE_VOLUME_CAPACITY + 384 + Face.CONTROL_BYTES + PATH_BYTES + CONTROL_BYTES
+
+
+class Request extends Orders.RoomPlan:
+	## All coordinates/yaw are exact; callers choose both profiles and a retained completed approach.
+	var access: Vector2i = NULL_REF
+	var work_location: Vector2i = NULL_REF
+	var travel_profile: int = -1
+	var travel_revision: int = 0
+	var work_profile: int = -1
+	var work_revision: int = 0
+	var content_revision: int = 0
+	var target_origin: Vector3i = Vector3i.ZERO
+	var face: int = -1
+	var yaw: int = -1
+
+
+class Result extends RefCounted:
+	## Only a complete observation returns a witness; refused callers acquire no retained permission.
+	var error: StringName = &""
+	var witness: Witness = null
+
+	func _init(code: StringName, value: Witness = null) -> void:
+		"""Preserve an explicit failure separately from absent caller-owned output."""
+		error = code
+		witness = value
+
+
+class Witness extends RefCounted:
+	## One synchronous cold lifetime, never per Resident or persistent/save state.
+	var original: Request = null
+	var plan: Orders.RoomPlan = null
+	var binding: WorldRoutes = null
+	var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
+	var face: Face.Check = Face.Check.new()
+	var travel: Profiles.Descriptor = Profiles.Descriptor.new()
+	var work: Profiles.Descriptor = Profiles.Descriptor.new()
+	var read: Profiles.Descriptor = Profiles.Descriptor.new()
+	var access: Locations.Record = Locations.Record.new()
+	var extra: PackedInt64Array = PackedInt64Array()
+	var boxes: PackedInt32Array = PackedInt32Array()
+	var sources: PackedByteArray = PackedByteArray()
+	var source_read: PackedByteArray = PackedByteArray()
+	var path: PackedInt32Array = PackedInt32Array()
+	var path_count: int = 0
+	var token: int = 0
+	var graph_revision: int = 0
+	var catalog_revision: int = 0
+	var profile_bank: Profiles.Bank = null
+	var graph_bank: Routes.EdgeBank = null
+	var catalog_bank: RefCounted = null
+	var context: Locations.RoomContext = null
+	var candidate: Directory.CreateCandidate = null
+
+	func hold(provider: WorldRoutes, request: Request, copied: Orders.RoomPlan, cold: int) -> void:
+		"""Take strong actual owners before any observer and allocate only under the complete original lease."""
+		binding = provider
+		original = request
+		plan = copied
+		token = cold
+		capture_configuration(provider, config)
+		extra = extra_values(request)
+		graph_revision = config.routes._live.revision
+		catalog_revision = config.catalog._live.header[0]
+		profile_bank = config.profiles._live
+		graph_bank = config.routes._live
+		catalog_bank = config.catalog._live
+		boxes.resize(2 * Profiles.MAX_SELECTION_BOXES * 7)
+		sources.resize(64)
+		source_read.resize(32)
+		path.resize(config.routes._edge_capacity * 2)
+		access.envelope.resize(6)
+		access.support.resize(6)
+		face.hold(config, face_request(request), cold)
+
+	func current_refusal() -> StringName:
+		"""Pure original tuple and owner checks follow every observer, including a same-number foreign lease."""
+		if config.budget == null or not config.budget.covers(token, COLD_BYTES): return Budget.REFUSE_BUSY
+		if not same_plan(original, plan) or not same_extra(original, extra): return REFUSE_STALE
+		if not exact_configuration(binding, config) or config.owner._header[17] != plan.space_revision \
+				or config.routes._live != graph_bank or graph_bank.revision != graph_revision \
+				or config.profiles._loading or config.profiles._live != profile_bank \
+				or profile_bank.header[0] != original.content_revision or config.catalog._loading \
+				or config.catalog._live != catalog_bank or config.catalog._live.header[0] != catalog_revision:
+			return REFUSE_STALE
+		if not config.world.is_published() or config.world.section_1_published_seed() != face.world_seed:
+			return REFUSE_STALE
+		return &""
+
+	func observe() -> StringName:
+		"""Perform a genuine current static path and full existing WorkFace proof before any Room candidate."""
+		var code: StringName = binding.binding_refusal()
+		if code == &"": code = current_refusal()
+		if code == &"": code = _profiles_refusal()
+		if code == &"": code = config.locations.read_location_into(original.access, access)
+		if code == &"": code = current_refusal()
+		if code == &"": code = target_member_refusal(plan, original.target_origin)
+		if code == &"": code = _path_refusal()
+		if code == &"": code = face.run()
+		if code == &"": code = _travel_endpoint_refusal(access.point)
+		if code == &"": code = _travel_endpoint_refusal(face.endpoint.point)
+		face.proof = null # Its complete image/fragments die before any prepared companion can allocate.
+		if code == &"": code = source_refusal()
+		if code == &"": code = FinalFacts.snapshot_refusal(config.owner, config.routes, config.locations,
+			plan.space_revision, config.owner._domain._checks)
+		return code
+
+	func _path_refusal() -> StringName:
+		"""Retain the exact full-generation edges; later refresh may not silently choose another route."""
+		var result: Routes.Result = config.routes.profile_path_into(original.access, original.work_location,
+			original.travel_profile, original.travel_revision, original.content_revision, path, token)
+		var code: StringName = current_refusal()
+		if code != &"": return code
+		if result.error != &"": return result.error
+		path_count = result.count
+		return &""
+
+	func _profiles_refusal() -> StringName:
+		"""Travel and work select the same authored physical actor/tool/load, never neighboring cast dimensions."""
+		var code: StringName = config.profiles.descriptor_into(original.travel_profile, original.content_revision, travel)
+		if code == &"": code = config.profiles.descriptor_into(original.work_profile, original.content_revision, work)
+		if code != &"": return code
+		if travel.profile_revision != original.travel_revision or work.profile_revision != original.work_revision \
+				or travel.certificate_flags != Profiles.CERT_REQUIRED or work.certificate_flags != Profiles.CERT_REQUIRED \
+				or work.mode != Profiles.MODE_WORK or not same_actor(travel, work) \
+				or (travel.yaw_kind != Profiles.YAW_ALL and travel.yaw != original.yaw): return REFUSE_PROFILE
+		code = _capture_profile(travel, 0)
+		return _capture_profile(work, 1) if code == &"" else code
+
+	func _capture_profile(descriptor: Profiles.Descriptor, index: int) -> StringName:
+		"""Pin every authored box and source byte, including same-revision repeated bank replacements."""
+		var code: StringName = &""
+		if not config.profiles.source_hash_into(descriptor.source_id, original.content_revision, source_read): return REFUSE_STALE
+		for at: int in 32: sources[index * 32 + at] = source_read[at]
+		for ordinal: int in descriptor.box_count:
+			code = config.profiles.box_into(descriptor.profile_id, descriptor.profile_revision,
+				descriptor.content_revision, ordinal, face.body)
+			if code != &"": return code
+			var offset: int = (index * Profiles.MAX_SELECTION_BOXES + ordinal) * 7
+			for axis: int in 3:
+				boxes[offset + axis] = face.body.low[axis]
+				boxes[offset + axis + 3] = face.body.high[axis]
+			boxes[offset + 6] = face.body.role
+		return &""
+
+	func source_refusal() -> StringName:
+		"""Concrete catalog readers have no observer dispatch; complete source rows and endpoint payloads must match."""
+		var code: StringName = current_refusal()
+		if code == &"": code = _profile_pin_refusal(travel, 0)
+		if code == &"": code = _profile_pin_refusal(work, 1)
+		if code != &"": return code
+		if not _endpoint_matches(original.access, access) \
+				or not _endpoint_matches(original.work_location, face.endpoint):
+			return REFUSE_STALE
+		return &""
+
+
+	func _endpoint_matches(location: Vector2i, expected: Locations.Record) -> bool:
+		"""Live payload checks allow only our own exact refresh candidate, never a foreign prepared endpoint bank."""
+		var actual: Locations = config.locations
+		if actual._token == 0: return FinalFacts.record_matches(actual, location, expected, config.owner)
+		if context == null or context.location_token <= 0 or actual._token != context.location_token \
+				or actual._in_retention or actual._retention_reentered or not actual._room_admission \
+				or actual._cold_token != token or actual._owner_token != context.space_token \
+				or actual._admission_room != context.room or actual._admission_type != plan.room_type \
+				or actual._room_orders == null or actual._room_orders.get_ref() != context.orders.get_ref() \
+				or not FinalFacts._location_binding(actual, config.owner): return false
+		return record_payload_matches(actual, location, expected, config.owner)
+
+	static func record_payload_matches(actual: Locations, location: Vector2i, expected: Locations.Record, owner: Owner) -> bool:
+		"""Compare every original live scalar/box directly during a same-identity refresh; no reader callback runs."""
+		if expected == null or expected.envelope.size() != 6 or expected.support.size() != 6 \
+				or not actual._live_ref(actual._live, location): return false
+		var row: int = location.x
+		if expected.world != actual._world or expected.point != Vector3i(actual._get32(actual._live, Locations.X, row),
+				actual._get32(actual._live, Locations.Y, row), actual._get32(actual._live, Locations.Z, row)) \
+				or expected.room != actual._ref_at(actual._live, Locations.ROOM_SLOT, row) \
+				or expected.section != actual._ref_at(actual._live, Locations.SECTION_SLOT, row) \
+				or expected.level != actual._get32(actual._live, Locations.LEVEL, row) \
+				or expected.role != actual._get32(actual._live, Locations.ROLE, row) \
+				or expected.payload_revision != actual._get64(actual._live, Locations.PAYLOAD_REVISION, row) \
+				or expected.geometry_revision != actual._get64(actual._live, Locations.GEOMETRY_REVISION, row): return false
+		for axis: int in 6:
+			if expected.envelope[axis] != actual._get32(actual._live, Locations.ENVELOPE + axis, row) \
+					or expected.support[axis] != actual._get32(actual._live, Locations.SUPPORT + axis, row): return false
+		return owner._region_live(expected.section, false) and (expected.room == NULL_REF or actual._buildings.is_live_room(expected.room))
+
+
+	func _profile_pin_refusal(descriptor: Profiles.Descriptor, index: int) -> StringName:
+		"""No caller certificate bit, equal content number or restored bank address can hide changed source geometry."""
+		var code: StringName = config.profiles.descriptor_into(descriptor.profile_id, descriptor.content_revision, read)
+		if code != &"" or not same_descriptor(descriptor, read): return REFUSE_STALE
+		if not config.profiles.source_hash_into(descriptor.source_id, descriptor.content_revision, source_read): return REFUSE_STALE
+		for at: int in 32:
+			if source_read[at] != sources[index * 32 + at]: return REFUSE_STALE
+		for ordinal: int in descriptor.box_count:
+			code = config.profiles.box_into(descriptor.profile_id, descriptor.profile_revision,
+				descriptor.content_revision, ordinal, face.body)
+			if code != &"": return code
+			var offset: int = (index * Profiles.MAX_SELECTION_BOXES + ordinal) * 7
+			for axis: int in 3:
+				if boxes[offset + axis] != face.body.low[axis] or boxes[offset + axis + 3] != face.body.high[axis]:
+					return REFUSE_STALE
+			if boxes[offset + 6] != face.body.role: return REFUSE_STALE
+		return &""
+
+	func _travel_endpoint_refusal(point: Vector3i) -> StringName:
+		"""A zero-edge path still needs the whole travel stance/body/turn at both real endpoints."""
+		for ordinal: int in travel.box_count:
+			var role: int = boxes[ordinal * 7 + 6]
+			if role != Profiles.BODY_HELD_LOAD and role != Profiles.TURN_RECOVERY and role != Profiles.STANCE_SUPPORT:
+				return REFUSE_PROFILE
+			if not face.proof.spend(Terrain.LOCAL_QUERY_CHECKS): return face.proof.error
+			var code: StringName = _sweep_box(ordinal, point, point, face.bounds)
+			if code == &"": code = config.terrain.local_facts_refusal(face.bounds, Terrain.EXCLUSIONS, plan.space_revision)
+			if code != &"": return code
+			if face.proof.blocked(face.bounds, true): return Face.REFUSE_BODY
+			if role == Profiles.STANCE_SUPPORT:
+				if not face.proof.covered(face.bounds, Space.SUPPORT): return Face.REFUSE_STANCE
+			elif not _travel_body_covered(point) or not _travel_solid_contacts(point): return Face.REFUSE_BODY
+		return face.proof.error
+
+	func _travel_body_covered(point: Vector3i) -> bool:
+		"""The exact complete travel body retains negative source residuals at its authored support contacts."""
+		face.proof.start(face.bounds)
+		return face.proof.subtract_role(Space.SUPPORTED_VOID) and _travel_supports(point) and face.proof.count == 0
+
+	func _travel_supports(point: Vector3i) -> bool:
+		"""Only actual SUPPORT intersecting one complete authored stance can cover a body contact."""
+		for ordinal: int in travel.box_count:
+			if not face.proof.spend(): return false
+			if boxes[ordinal * 7 + 6] != Profiles.STANCE_SUPPORT: continue
+			if _sweep_box(ordinal, point, point, face.support) != &"" \
+					or not face.proof.subtract_role(Space.SUPPORT, face.support): return false
+		return true
+
+	func _travel_solid_contacts(point: Vector3i) -> bool:
+		"""Coincident void cannot cancel solid/support above or outside the independently authored stance."""
+		for row: int in face.proof.image.volumes.role.size():
+			if not face.proof.spend(): return false
+			if face.proof.image.volumes.role[row] != Space.DRY_SOLID and face.proof.image.volumes.role[row] != Space.SUPPORT:
+				continue
+			face.proof.read_box(row, face.scratch)
+			if not Space.overlaps(face.scratch, face.bounds): continue
+			for axis: int in 3:
+				face.scratch[axis] = maxi(face.scratch[axis], face.bounds[axis])
+				face.scratch[axis + 3] = mini(face.scratch[axis + 3], face.bounds[axis + 3])
+			face.proof.start(face.scratch)
+			if not _travel_supports(point) or face.proof.count != 0: return false
+		return true
+
+	func _sweep_box(ordinal: int, first: Vector3i, last: Vector3i, out: PackedInt32Array) -> StringName:
+		"""Source boxes are already oriented; only exact int64 translation precedes narrowing."""
+		for axis: int in 3:
+			var low: int = int(mini(first[axis], last[axis])) + boxes[ordinal * 7 + axis]
+			var high: int = int(maxi(first[axis], last[axis])) + boxes[ordinal * 7 + axis + 3]
+			if low >= high or low < face.domain._bounds[axis] or high > face.domain._bounds[axis + 3]:
+				return Face.REFUSE_BODY
+			out[axis] = low
+			out[axis + 3] = high
+		return &""
+
+	func pin_candidate(orders: Orders, pending: Directory.CreateCandidate, space_token: int) -> StringName:
+		"""Only the actual coordinator's original future Room may bind this successful pre-candidate observation."""
+		var code: StringName = source_refusal()
+		if code != &"": return code
+		if context != null or pending == null or orders == null or orders._entry_mode \
+				or orders._room_request != original or not same_plan(orders._room_plan, plan) \
+				or orders._room_candidate != pending or orders._stage_room != pending.ref \
+				or orders._space != config.owner or orders._stage_token != space_token \
+				or orders._room_cold_token != token or orders._room_budget != config.budget:
+			return REFUSE_STALE
+		code = metadata_refusal(config.owner, pending.ref, space_token)
+		if code != &"": return code
+		candidate = pending
+		context = Locations.RoomContext.new()
+		context.orders = weakref(orders)
+		context.space = weakref(config.owner)
+		context.locations = weakref(config.locations)
+		context.budget = config.budget
+		context.world = plan.world
+		context.room = pending.ref
+		context.cold_token = token
+		context.space_token = space_token
+		context.base_revision = plan.space_revision
+		context.target_revision = plan.space_revision + 1
+		context.profile_revision = original.content_revision
+		context.catalog_revision = catalog_revision
+		return &""
+
+	func scope_refusal(copied: Orders.RoomPlan, pending: Directory.CreateCandidate, space_token: int) -> StringName:
+		"""An equal ref/revision from another request, candidate or cold operation never replaces this tuple."""
+		var code: StringName = source_refusal()
+		if code != &"": return code
+		if context == null or pending != candidate or pending == null or pending.ref != context.room \
+				or space_token != context.space_token or not same_plan(copied, plan): return REFUSE_STALE
+		var orders: Orders = context.orders.get_ref() as Orders
+		if orders == null or orders._entry_mode or orders._room_request != original or orders._room_candidate != candidate \
+				or orders._room_plan != copied or orders._stage_action != Orders.ROOM_ADMISSION_STAGE \
+				or orders._space != config.owner or orders._stage_token != context.space_token \
+				or orders._stage_room != context.room or orders._room_cold_token != token \
+				or orders._room_budget != config.budget or not orders._cold_held: return REFUSE_STALE
+		return metadata_refusal(config.owner, context.room, context.space_token)
+
+	func prepared_observation(copied: Orders.RoomPlan, pending: Directory.CreateCandidate, space_token: int) -> StringName:
+		"""Complete real endpoint/source observers, then close fresh prepared facts without duplicating a face proof."""
+		var code: StringName = scope_refusal(copied, pending, space_token)
+		if code == &"": code = config.owner.prepared_refusal(space_token)
+		if code == &"": code = config.locations.read_location_into(original.access, face.endpoint_after)
+		if code == &"": code = scope_refusal(copied, pending, space_token)
+		if code == &"": code = config.locations.read_location_into(original.work_location, face.endpoint_after)
+		if code == &"": code = scope_refusal(copied, pending, space_token)
+		if code == &"": code = prepared_facts_refusal()
+		return code
+
+	func prepared_facts_refusal() -> StringName:
+		"""Recheck original mutable terrain/source facts after every observer; only metadata may have changed."""
+		if context == null: return REFUSE_STALE
+		var code: StringName = source_refusal()
+		if code == &"": code = metadata_refusal(config.owner, context.room, context.space_token)
+		if code == &"": code = _local_facts_refusal()
+		if code == &"": code = FinalFacts.prepared_room_refusal(config.owner, config.routes, config.locations,
+			context.orders.get_ref() as Orders, candidate, context.space_token, config.budget, token, config.owner._domain._checks)
+		return code
+
+	func _local_facts_refusal() -> StringName:
+		"""Precharge every local fact scan, then reobserve target, complete work roles and exact travel segments."""
+		var checks: int = _local_checks()
+		if checks > config.owner._domain._checks: return FinalFacts.REFUSE_BUDGET
+		var code: StringName = _terrain_refusal(face.target, Terrain.DIG)
+		for ordinal: int in work.box_count:
+			if code != &"": return code
+			var offset: int = Profiles.MAX_SELECTION_BOXES + ordinal
+			if boxes[offset * 7 + 6] == Profiles.CONTACT_POINT or boxes[offset * 7 + 6] == Profiles.CONTACT_PATCH: continue
+			code = _sweep_box(offset, face.endpoint.point, face.endpoint.point, face.bounds)
+			if code == &"": code = _terrain_refusal(face.bounds, Terrain.EXCLUSIONS)
+		if code == &"": code = _travel_facts(access.point, access.point)
+		if code == &"": code = _travel_facts(face.endpoint.point, face.endpoint.point)
+		for index: int in path_count:
+			if code != &"": return code
+			code = _edge_facts(path[index * 2])
+		return code
+
+	func _local_checks() -> int:
+		"""Finite stored point counts bound scans before the first leaf read; no work budget resets per span."""
+		var checks: int = (work.box_count + 1 + 2 * travel.box_count) * Terrain.LOCAL_QUERY_CHECKS
+		for index: int in path_count:
+			var row: int = path[index * 2]
+			if row < 0 or row >= config.routes._edge_capacity or graph_bank.present[row] == 0: return Space.MAX_CHECKS + 1
+			var count: int = graph_bank.fields[Routes.E_PATH_COUNT * config.routes._edge_capacity + row]
+			checks += (count - 1) * travel.box_count * Terrain.LOCAL_QUERY_CHECKS
+		return checks
+
+	func _edge_facts(row: int) -> StringName:
+		"""The original graph is immutable through admission; positive masks alone cannot hide late local exclusions."""
+		var count: int = graph_bank.fields[Routes.E_PATH_COUNT * config.routes._edge_capacity + row]
+		var start: int = graph_bank.fields[Routes.E_PATH_START * config.routes._edge_capacity + row]
+		for index: int in count - 1:
+			var at: int = (start + index) * 3
+			var first: Vector3i = Vector3i(graph_bank.vertices[at], graph_bank.vertices[at + 1], graph_bank.vertices[at + 2])
+			var last: Vector3i = Vector3i(graph_bank.vertices[at + 3], graph_bank.vertices[at + 4], graph_bank.vertices[at + 5])
+			var code: StringName = _travel_facts(first, last)
+			if code != &"": return code
+		return &""
+
+	func _travel_facts(first: Vector3i, last: Vector3i) -> StringName:
+		"""Each complete travel role is checked again against actual terrain using the same conservative sweep."""
+		for ordinal: int in travel.box_count:
+			var code: StringName = _sweep_box(ordinal, first, last, face.bounds)
+			if code == &"": code = _terrain_refusal(face.bounds, Terrain.EXCLUSIONS)
+			if code != &"": return code
+		return &""
+
+	func _terrain_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
+		"""Exact concrete Terrain owns the callback-free prepared leaf and its original source binding."""
+		return config.terrain.prepared_local_facts_refusal(bounds, purpose, plan.space_revision, context.space_token, token)
+
+	func prepare_companions() -> StringName:
+		"""Refresh every old endpoint and graph certificate; no new Location or travel span is manufactured."""
+		if context == null or context.location_token != 0 or context.route_token != 0: return REFUSE_STALE
+		var prepared: Locations.Result = config.locations.begin_room_prepare(token, context.space_token, context.room, plan.room_type)
+		if prepared.error != &"": return prepared.error
+		context.location_token = prepared.token
+		var code: StringName = _refresh_locations()
+		if code == &"": code = config.locations.seal(context.location_token)
+		if code == &"": code = source_refusal()
+		if code == &"": code = _prepare_routes()
+		if code == &"": code = final_refusal()
+		return code
+
+	func _refresh_locations() -> StringName:
+		"""The finite real endpoint arena determines all refreshed identities; neither callback can replace the lease."""
+		for row: int in config.locations._capacity:
+			if config.locations._live.present[row] == 0: continue
+			var generation: int = config.locations._live.i32[Locations.GENERATION * config.locations._capacity + row]
+			var code: StringName = config.locations.stage_refresh(context.location_token, Vector2i(row, generation))
+			if code == &"": code = source_refusal()
+			if code != &"": return code
+		return &""
+
+	func _prepare_routes() -> StringName:
+		"""Use the actual WorldRoutes coordinator so graph and certificate candidates share one original token."""
+		var prepared: Routes.Result = binding.begin_prepare(token, context.space_token, context.location_token)
+		if prepared.error != &"": return prepared.error
+		context.route_token = prepared.token
+		for row: int in config.routes._edge_capacity:
+			if graph_bank.present[row] == 0: continue
+			var generation: int = graph_bank.fields[Routes.E_GENERATION * config.routes._edge_capacity + row]
+			var code: StringName = config.routes.stage_refresh(context.route_token, Vector2i(row, generation))
+			if code == &"": code = source_refusal()
+			if code != &"": return code
+		return binding.seal(context.route_token)
+
+	func final_refusal() -> StringName:
+		"""All original proofs and fresh concrete companion leaves follow the last observer, before identity allocation."""
+		var code: StringName = prepared_facts_refusal()
+		if code == &"": code = Locations.room_prepared_leaf_refusal(config.locations, context)
+		if code == &"": code = WorldRoutes.room_prepared_leaf_refusal(binding, context)
+		if code != &"": return code
+		for index: int in path_count:
+			var row: int = path[index * 2]
+			if binding._stage.generations[row] != path[index * 2 + 1] \
+					or not binding._stage.admits(row, travel.profile_id): return &"ROOM_APPROACH_PATH_CHANGED"
+		return source_refusal()
+
+	func abort() -> void:
+		"""Only original companion tokens are discarded; the Room owner releases the lease after all references die."""
+		if context == null: return
+		if context.route_token != 0: binding.abort(context.route_token)
+		if context.location_token != 0: config.locations.abort(context.location_token)
+		context = null
+		candidate = null
+
+	func publish() -> bool:
+		"""Existing static kernels require exact Room/Space/Location receipts; no observation runs after the first swap."""
+		if context == null: return false
+		if not Locations.publish_room_preflighted(config.locations, context): return false
+		return WorldRoutes.publish_room_preflighted(binding, context)
+
+
+	static func capture_configuration(provider: WorldRoutes, out: WorldRoutes.Configuration) -> void:
+		"""Borrow the real already-bound composition, not a caller-created lookalike Configuration."""
+		out.routes = provider._routes()
+		out.owner = provider._owner()
+		out.sources = provider._sources()
+		out.locations = provider._locations()
+		out.profiles = provider._profiles
+		out.catalog = provider._catalog
+		out.levels = provider._levels
+		out.movement = provider._movement
+		out.residents = provider._residents
+		out.transforms = provider._transforms
+		out.world = provider._world
+		out.terrain = provider._terrain
+		out.budget = provider._budget
+
+
+	static func exact_configuration(provider: WorldRoutes, expected: WorldRoutes.Configuration) -> bool:
+		"""Compare actual objects without calling provider observations from a final publication leaf."""
+		return provider != null and provider.get_script() == WorldRoutes and expected.routes != null \
+			and expected.owner != null and expected.locations != null and expected.sources != null \
+			and provider._routes_ref != null and provider._routes_ref.get_ref() == expected.routes \
+			and provider._owner_ref != null and provider._owner_ref.get_ref() == expected.owner \
+			and provider._locations_ref != null and provider._locations_ref.get_ref() == expected.locations \
+			and provider._sources_ref != null and provider._sources_ref.get_ref() == expected.sources \
+			and provider._profiles == expected.profiles and provider._catalog == expected.catalog \
+			and provider._levels == expected.levels and provider._movement == expected.movement \
+			and provider._residents == expected.residents and provider._transforms == expected.transforms \
+			and provider._world == expected.world and provider._terrain == expected.terrain and provider._budget == expected.budget \
+			and expected.profiles.get_script() == Profiles and expected.terrain.get_script() == Terrain
+
+
+	static func face_request(request: Request) -> Face.Request:
+		"""Pass the exact authored work choice to the existing real face algorithm; no fake Job is required."""
+		var out: Face.Request = Face.Request.new()
+		out.location = request.work_location
+		out.target_origin = request.target_origin
+		out.face = request.face
+		out.profile_id = request.work_profile
+		out.profile_revision = request.work_revision
+		out.content_revision = request.content_revision
+		out.geometry_revision = request.space_revision
+		out.yaw = request.yaw
+		return out
+
+
+	static func extra_values(request: Request) -> PackedInt64Array:
+		"""Fourteen fixed scalar values are copied; the large protected cell image is borrowed once."""
+		return PackedInt64Array([request.access.x, request.access.y, request.work_location.x, request.work_location.y,
+			request.travel_profile, request.travel_revision, request.work_profile, request.work_revision,
+			request.content_revision, request.target_origin.x, request.target_origin.y, request.target_origin.z,
+			request.face, request.yaw])
+
+
+	static func same_extra(request: Request, values: PackedInt64Array) -> bool:
+		"""No replacement input array allocates during final pure validation."""
+		return request != null and values.size() == 14 and request.access == Vector2i(values[0], values[1]) \
+			and request.work_location == Vector2i(values[2], values[3]) and request.travel_profile == values[4] \
+			and request.travel_revision == values[5] and request.work_profile == values[6] and request.work_revision == values[7] \
+			and request.content_revision == values[8] and request.target_origin == Vector3i(values[9], values[10], values[11]) \
+			and request.face == values[12] and request.yaw == values[13]
+
+
+	static func same_plan(first: Orders.RoomPlan, second: Orders.RoomPlan) -> bool:
+		"""Base and subclass fields remain separate, with all ordinary source/policy inputs preserved exactly."""
+		return first != null and second != null and first.world == second.world and first.space_revision == second.space_revision \
+			and first.room_type == second.room_type and first.level == second.level and first.origin_u == second.origin_u \
+			and first.cell_size_u == second.cell_size_u and first.height_u == second.height_u and first.cells == second.cells
+
+
+	static func same_actor(first: Profiles.Descriptor, second: Profiles.Descriptor) -> bool:
+		"""Both actions require the same physical content and load range; role-specific boxes are never interchanged."""
+		return first.source_id == second.source_id and first.species == second.species and first.life_stage == second.life_stage \
+			and first.rig == second.rig and first.tool_item == second.tool_item and first.tool_variant == second.tool_variant \
+			and first.cargo_item == second.cargo_item and first.cargo_variant == second.cargo_variant \
+			and first.quantity_min_milli == second.quantity_min_milli and first.quantity_max_milli == second.quantity_max_milli
+
+
+	static func same_descriptor(first: Profiles.Descriptor, second: Profiles.Descriptor) -> bool:
+		"""Complete finite descriptor comparison also detects a same-number source reload."""
+		return same_actor(first, second) and first.profile_id == second.profile_id \
+			and first.profile_revision == second.profile_revision and first.content_revision == second.content_revision \
+			and first.mode == second.mode and first.posture == second.posture and first.yaw_kind == second.yaw_kind \
+			and first.yaw == second.yaw and first.family_mask == second.family_mask and first.state_mask == second.state_mask \
+			and first.work_kind == second.work_kind and first.contact_kind == second.contact_kind \
+			and first.box_count == second.box_count and first.certificate_flags == second.certificate_flags
+
+
+	static func target_member_refusal(input_plan: Orders.RoomPlan, target: Vector3i) -> StringName:
+		"""Exactly one paid metre cube must intersect the unchanged fine-grid Room union and its vertical extent."""
+		if int(target.y) + Space.QUANTUM_U <= input_plan.origin_u.y or target.y >= int(input_plan.origin_u.y) + input_plan.height_u:
+			return REFUSE_TARGET
+		for at: int in range(0, input_plan.cells.size(), 2):
+			var x: int = int(input_plan.origin_u.x) + int(input_plan.cells[at]) * input_plan.cell_size_u
+			var z: int = int(input_plan.origin_u.z) + int(input_plan.cells[at + 1]) * input_plan.cell_size_u
+			if not Space.int32(x) or not Space.int32(z) or not Space.int32(x + input_plan.cell_size_u) \
+					or not Space.int32(z + input_plan.cell_size_u): return REFUSE_INPUT
+			if x < int(target.x) + Space.QUANTUM_U and int(target.x) < x + input_plan.cell_size_u \
+					and z < int(target.z) + Space.QUANTUM_U and int(target.z) < z + input_plan.cell_size_u: return &""
+		return REFUSE_TARGET
+
+
+	static func metadata_refusal(owner: Owner, room: Vector2i, stage_token: int) -> StringName:
+		"""Admission may add only the future Room's metadata; every previous physical primitive stays byte-identical."""
+		if owner == null or stage_token <= 0 or owner._stage_token != stage_token or owner._room_candidate == null \
+				or owner._room_candidate.ref != room: return REFUSE_STALE
+		for row: int in owner._region_capacity:
+			if owner._r_present[row] != 0:
+				if not unchanged_region(owner, row): return REFUSE_GEOMETRY
+			elif owner._s_r_present[row] != 0:
+				if Vector2i(owner._s_r_owner_slot[row], owner._s_r_owner_generation[row]) != room: return REFUSE_GEOMETRY
+				if owner._s_r_role[row] != Space.FLOOR_DATUM \
+						and not (owner._s_r_role[row] == Space.OBSTACLE and owner._s_r_claim_kind[row] == Owner.CLAIM_ROOM):
+					return REFUSE_GEOMETRY
+		return &""
+
+
+	static func unchanged_region(owner: Owner, row: int) -> bool:
+		"""Compare actual packed scalar columns directly; no borrowed output or overridable Region reader is involved."""
+		return owner._s_r_present[row] == owner._r_present[row] and owner._s_r_retired[row] == owner._r_retired[row] \
+			and owner._s_r_generation[row] == owner._r_generation[row] and owner._s_r_role[row] == owner._r_role[row] \
+			and owner._s_r_claim_kind[row] == owner._r_claim_kind[row] and owner._s_r_level[row] == owner._r_level[row] \
+			and owner._s_r_lo_x[row] == owner._r_lo_x[row] and owner._s_r_lo_y[row] == owner._r_lo_y[row] \
+			and owner._s_r_lo_z[row] == owner._r_lo_z[row] and owner._s_r_hi_x[row] == owner._r_hi_x[row] \
+			and owner._s_r_hi_y[row] == owner._r_hi_y[row] and owner._s_r_hi_z[row] == owner._r_hi_z[row] \
+			and owner._s_r_section_slot[row] == owner._r_section_slot[row] \
+			and owner._s_r_section_generation[row] == owner._r_section_generation[row] \
+			and owner._s_r_owner_slot[row] == owner._r_owner_slot[row] \
+			and owner._s_r_owner_generation[row] == owner._r_owner_generation[row] \
+			and owner._s_r_owner_revision[row] == owner._r_owner_revision[row] \
+			and owner._s_r_claim_slot[row] == owner._r_claim_slot[row] \
+			and owner._s_r_claim_generation[row] == owner._r_claim_generation[row]
+
+
+static func begin(provider: WorldRoutes, request: Request, plan: Orders.RoomPlan, cold_token: int) -> Result:
+	"""Bound the complete caller lifetime before creating any witness, copied source row or path array."""
+	var code: StringName = input_refusal(provider, request, plan, cold_token)
+	if code != &"": return Result.new(code)
+	var witness: Witness = Witness.new()
+	witness.hold(provider, request, plan, cold_token)
+	code = witness.observe()
+	return Result.new(code, witness if code == &"" else null)
+
+
+static func input_refusal(provider: WorldRoutes, request: Request, plan: Orders.RoomPlan, cold: int) -> StringName:
+	"""Pure size/source admission precedes cold allocation; a plain RoomPlan cannot acquire an approach witness."""
+	if provider == null or request == null or plan == null or provider.get_script() != WorldRoutes \
+			or provider._profiles == null or provider._profiles.get_script() != Profiles \
+			or provider._terrain == null or provider._terrain.get_script() != Terrain: return REFUSE_BINDING
+	if provider._routes() == null or provider._owner() == null or provider._locations() == null \
+			or provider._sources() == null or provider._catalog == null or provider._world == null: return REFUSE_BINDING
+	if provider._routes().get_script() != Routes or provider._routes()._edge_capacity < 1 \
+			or provider._routes()._edge_capacity > Routes.MAX_EDGES: return REFUSE_BINDING
+	if provider._budget == null or not provider._budget.covers(cold, Budget.COLD_BYTES): return Budget.REFUSE_BUSY
+	if not Witness.same_plan(request, plan) or not Space.valid_ref(request.access) or not Space.valid_ref(request.work_location) \
+			or request.travel_profile < 0 or request.travel_revision < 1 or request.work_profile < 0 \
+			or request.work_revision < 1 or request.content_revision < 1 or request.face < 0 or request.face > 5 \
+			or request.yaw < 0 or request.yaw > 65535: return REFUSE_INPUT
+	if plan.cells.size() < 2 or plan.cells.size() % 2 != 0 or plan.cells.size() > 2 * Footprint.MAX_OPERATION_CELLS \
+			or plan.cell_size_u < 1 or plan.cell_size_u > Space.I32_MAX or plan.height_u < 1 \
+			or not Space.int32(int(plan.origin_u.y) + plan.height_u): return REFUSE_INPUT
+	if provider._locations()._domain == null or provider._locations()._domain._regions > Budget.PHASE_VOLUME_CAPACITY \
+			or COMPANION_BYTES + 12 * plan.cells.size() + 2048 > Budget.COLD_BYTES: return Budget.REFUSE_BYTES
+	return &""

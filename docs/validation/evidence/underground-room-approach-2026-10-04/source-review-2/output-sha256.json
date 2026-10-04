@@ -1,0 +1,187 @@
+[
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/analyzer.json",
+    "bytes": 2,
+    "sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/analyzer.log",
+    "bytes": 40,
+    "sha256": "60af82434e99d38c9258e04dff9e0600b2ea7d7bc84384f78603004c071a1d92"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/census-tests.log",
+    "bytes": 109,
+    "sha256": "fb2fe0b283090ec025048926e1a6c0484c394fba745a876ce19b357dd5fa8706"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/census.json",
+    "bytes": 3426,
+    "sha256": "05f812e3d412da2243be436a33485e6acdf03989b36e41f721e4524f2d894092"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/clean-import.log",
+    "bytes": 251242,
+    "sha256": "851e095c9a28a478b057bd5ea42b4cd9069fe382b213b799251bc9aa1161ad1e"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/inputs-after.json",
+    "bytes": 132644,
+    "sha256": "f06254a5ea9cd12ed9ccc0d664dd737c90f8cd99dc7df4d2b72e8b3288dc7f06"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/inputs-before.json",
+    "bytes": 132644,
+    "sha256": "f06254a5ea9cd12ed9ccc0d664dd737c90f8cd99dc7df4d2b72e8b3288dc7f06"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/invocation.json",
+    "bytes": 4837,
+    "sha256": "919baf48f8f48a1c772018e714d797e7168df2fb7a957616b75b7fa7ebbad471"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/manifest-111.json",
+    "bytes": 36866,
+    "sha256": "16258f00f78abe26c35c3633954b46ce9a56cb3ec5b11b2ceb8c0b06a9775448"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/manifest-135.json",
+    "bytes": 36866,
+    "sha256": "16258f00f78abe26c35c3633954b46ce9a56cb3ec5b11b2ceb8c0b06a9775448"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/manifest-139.json",
+    "bytes": 36866,
+    "sha256": "16258f00f78abe26c35c3633954b46ce9a56cb3ec5b11b2ceb8c0b06a9775448"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/manifest-156.json",
+    "bytes": 36866,
+    "sha256": "16258f00f78abe26c35c3633954b46ce9a56cb3ec5b11b2ceb8c0b06a9775448"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/registry-test-only-append.md",
+    "bytes": 1524,
+    "sha256": "874ac2c1e6af8b62dcf37d4abeb5550b44cf4f3ea3d26146c103c32e3794374d"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/registry-test-only.diff",
+    "bytes": 2197,
+    "sha256": "52a3c46255b1a4e8fd074cd1071499d91d6d05d7ba19d8a69c376808895be49a"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-111.json",
+    "bytes": 669,
+    "sha256": "3f8e46cfa642ef8d163596ccc028d66d798df27afbfc11d14b992616dd285b08"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-111.log",
+    "bytes": 2847,
+    "sha256": "e778d71c019b33b7aca1988f7cad99c7ca2e296578e86c2d0e84bcd5818848b8"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-135.json",
+    "bytes": 652,
+    "sha256": "ce26eadc1aaa0e0585f35931f4364b4ac6af98a651b9f3342098962f4560b3cf"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-135.log",
+    "bytes": 3030,
+    "sha256": "63da884fac26c1c1b868baeec2b22467647f7271750f09f8a2663568560c669d"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-139.json",
+    "bytes": 672,
+    "sha256": "be7ac23fc93b477db5233835750f0b7aedee26e921244c9166867c947f1758b7"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-139.log",
+    "bytes": 2736,
+    "sha256": "0d7824ecedfa2848ad626b6ce459c78960f58160a3d5b042b02d99dc08f67728"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-156.json",
+    "bytes": 668,
+    "sha256": "be7bf2387e20234b154a0746b9c8eaad97e7161beba8d07fb44c0b4dd4d00f11"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/shard-156.log",
+    "bytes": 2193,
+    "sha256": "227a220505e4e75da5c3bd99600f23ca443a0e3f5f69c71e0e87ffa681adf115"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/source-sha256.json",
+    "bytes": 597,
+    "sha256": "32f8b5dc0586eee43ab82c21230ee1f35ac5da38b5d72e60d3a0d9df97103903"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/test_underground_room_admission.gd.log",
+    "bytes": 2820,
+    "sha256": "f144cf4a9a48f3346b16c359638e9f34d63c15c0fbcae5e9a89e52db5b7e9506"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/test_underground_room_approach.gd.log",
+    "bytes": 2931,
+    "sha256": "1dd2e72549704080d565b03a9ddec079743a485352f25466d796a0a12b947b83"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/test_underground_room_bindings.gd.log",
+    "bytes": 2277,
+    "sha256": "ec1c287205bef948686530f3c7f43163f398a3da4e42724e2e9cf9c74ecab42e"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/candidate-15-static-final/test_underground_terrain.gd.log",
+    "bytes": 3114,
+    "sha256": "54424c9a8b3435629d90ef4f7f2e4a20debd82babd24642ade18596a2971ba8e"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/census.py.snapshot",
+    "bytes": 12488,
+    "sha256": "5e1d98147e8a534787db95daf3aed34e43f4696544f7c17e70fb890e73f955e3"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/reproduce.py.snapshot",
+    "bytes": 9805,
+    "sha256": "ae4c7f6d38f0f44d94a1ba2508c7d04929ce187b3e5eb01cd9dcb61a9cdb07a1"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_census.py.snapshot",
+    "bytes": 3377,
+    "sha256": "ebee24f52e293e4c4d0729ed3b21ebe6702bbc25f9e17f258f3bd396ba5e6f09"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_underground_room_admission.gd.snapshot",
+    "bytes": 36854,
+    "sha256": "1735e4699f28125a9a8414fd0dffc6dd65a6381059e6fcf57d8a7aee8a3f4228"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_underground_room_approach.gd.snapshot",
+    "bytes": 49309,
+    "sha256": "f3841c8ffebaa8258461645f9fe64e5b24dffdd31be520c11a0e13756fcc744d"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/test_underground_room_approach.gd.uid.snapshot",
+    "bytes": 20,
+    "sha256": "23d1f24d7b13fb362e377e77bb776ec35310fef1389a3369933e00a57cddba8d"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_room_approach.gd.snapshot",
+    "bytes": 39515,
+    "sha256": "98b27b0f25588123aa38597be761306101454db3558d5a6f1859d984bdd875ca"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_room_approach.gd.uid.snapshot",
+    "bytes": 19,
+    "sha256": "3d558ae2a2fcec4d93340bcbc87046e7feef207227baf094e6fb7ae3bf42d6bb"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_room_bindings.gd.snapshot",
+    "bytes": 40639,
+    "sha256": "ab1f5a2d6438d39b2b7e2e8b5c69e59864b34a6a68527084e56d0c8d57832615"
+  },
+  {
+    "path": "docs/validation/evidence/underground-room-approach-2026-10-04/source-review-2/source-snapshots/underground_terrain.gd.snapshot",
+    "bytes": 37919,
+    "sha256": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8"
+  }
+]

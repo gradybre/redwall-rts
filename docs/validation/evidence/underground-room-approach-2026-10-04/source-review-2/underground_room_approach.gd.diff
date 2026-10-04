@@ -1,0 +1,104 @@
+--- candidate13/godot/scripts/core/underground_room_approach.gd
++++ corrected/godot/scripts/core/underground_room_approach.gd
+@@ -104,7 +104,8 @@
+ 
+ 	func current_refusal() -> StringName:
+ 		"""Pure original tuple and owner checks follow every observer, including a same-number foreign lease."""
+-		if config.budget == null or not config.budget.covers(token, COLD_BYTES): return Budget.REFUSE_BUSY
++		if config.budget == null or token <= 0 or config.budget._token != token \
++				or config.budget._used < COLD_BYTES: return Budget.REFUSE_BUSY
+ 		if not same_plan(original, plan) or not same_extra(original, extra): return REFUSE_STALE
+ 		if not exact_configuration(binding, config) or config.owner._header[17] != plan.space_revision \
+ 				or config.routes._live != graph_bank or graph_bank.revision != graph_revision \
+@@ -112,7 +113,7 @@
+ 				or profile_bank.header[0] != original.content_revision or config.catalog._loading \
+ 				or config.catalog._live != catalog_bank or config.catalog._live.header[0] != catalog_revision:
+ 			return REFUSE_STALE
+-		if not config.world.is_published() or config.world.section_1_published_seed() != face.world_seed:
++		if not config.world._published or config.world._published_seed != face.world_seed:
+ 			return REFUSE_STALE
+ 		return &""
+ 
+@@ -187,32 +188,55 @@
+ 	func _endpoint_matches(location: Vector2i, expected: Locations.Record) -> bool:
+ 		"""Live payload checks allow only our own exact refresh candidate, never a foreign prepared endpoint bank."""
+ 		var actual: Locations = config.locations
+-		if actual._token == 0: return FinalFacts.record_matches(actual, location, expected, config.owner)
++		if not _location_binding(actual, config.owner) or actual._in_retention or actual._retention_reentered: return false
++		if actual._token == 0:
++			return (context == null or context.location_token == 0) and record_payload_matches(actual, location, expected, config.owner)
+ 		if context == null or context.location_token <= 0 or actual._token != context.location_token \
+-				or actual._in_retention or actual._retention_reentered or not actual._room_admission \
+-				or actual._cold_token != token or actual._owner_token != context.space_token \
++				or not actual._room_admission or actual._cold_token != token or actual._owner_token != context.space_token \
+ 				or actual._admission_room != context.room or actual._admission_type != plan.room_type \
+-				or actual._room_orders == null or actual._room_orders.get_ref() != context.orders.get_ref() \
+-				or not FinalFacts._location_binding(actual, config.owner): return false
++				or actual._room_orders == null or actual._room_orders.get_ref() != context.orders.get_ref(): return false
+ 		return record_payload_matches(actual, location, expected, config.owner)
++
++	static func _location_binding(actual: Locations, owner: Owner) -> bool:
++		"""Read the actual original endpoint owners and full World identity without their public helpers."""
++		return actual != null and owner != null and actual._capacity > 0 and actual._owner == owner \
++			and actual._ids != null and actual._domain != null and owner._domain != null \
++			and actual._sources == owner._sources and actual._sources != null \
++			and owner._sources is Owner.CoreSources and actual._buildings != null \
++			and actual._world == owner._domain._world and actual._sources._directory == actual._ids \
++			and actual._sources._buildings == actual._buildings and actual._buildings._directory == actual._ids \
++			and Owner.CoreSources._final_row(actual._ids, actual._world, Directory.KIND_WORLD) >= 0
+ 
+ 	static func record_payload_matches(actual: Locations, location: Vector2i, expected: Locations.Record, owner: Owner) -> bool:
+ 		"""Compare every original live scalar/box directly during a same-identity refresh; no reader callback runs."""
++		var row: int = location.x
++		var capacity: int = actual._capacity
++		var bank: Locations.Bank = actual._live
+ 		if expected == null or expected.envelope.size() != 6 or expected.support.size() != 6 \
+-				or not actual._live_ref(actual._live, location): return false
+-		var row: int = location.x
+-		if expected.world != actual._world or expected.point != Vector3i(actual._get32(actual._live, Locations.X, row),
+-				actual._get32(actual._live, Locations.Y, row), actual._get32(actual._live, Locations.Z, row)) \
+-				or expected.room != actual._ref_at(actual._live, Locations.ROOM_SLOT, row) \
+-				or expected.section != actual._ref_at(actual._live, Locations.SECTION_SLOT, row) \
+-				or expected.level != actual._get32(actual._live, Locations.LEVEL, row) \
+-				or expected.role != actual._get32(actual._live, Locations.ROLE, row) \
+-				or expected.payload_revision != actual._get64(actual._live, Locations.PAYLOAD_REVISION, row) \
+-				or expected.geometry_revision != actual._get64(actual._live, Locations.GEOMETRY_REVISION, row): return false
++				or row < 0 or row >= capacity or location.y <= 0 or bank.present[row] != 1 \
++				or bank.i32[Locations.GENERATION * capacity + row] != location.y: return false
++		if expected.world != actual._world or expected.point != Vector3i(bank.i32[Locations.X * capacity + row],
++				bank.i32[Locations.Y * capacity + row], bank.i32[Locations.Z * capacity + row]) \
++				or expected.room != Vector2i(bank.i32[Locations.ROOM_SLOT * capacity + row], bank.i32[Locations.ROOM_GENERATION * capacity + row]) \
++				or expected.section != Vector2i(bank.i32[Locations.SECTION_SLOT * capacity + row], bank.i32[Locations.SECTION_GENERATION * capacity + row]) \
++				or expected.level != bank.i32[Locations.LEVEL * capacity + row] \
++				or expected.role != bank.i32[Locations.ROLE * capacity + row] \
++				or expected.payload_revision != bank.i64[Locations.PAYLOAD_REVISION * capacity + row] \
++				or expected.geometry_revision != bank.i64[Locations.GEOMETRY_REVISION * capacity + row]: return false
+ 		for axis: int in 6:
+-			if expected.envelope[axis] != actual._get32(actual._live, Locations.ENVELOPE + axis, row) \
+-					or expected.support[axis] != actual._get32(actual._live, Locations.SUPPORT + axis, row): return false
+-		return owner._region_live(expected.section, false) and (expected.room == NULL_REF or actual._buildings.is_live_room(expected.room))
++			if expected.envelope[axis] != bank.i32[(Locations.ENVELOPE + axis) * capacity + row] \
++					or expected.support[axis] != bank.i32[(Locations.SUPPORT + axis) * capacity + row]: return false
++		return _record_sources_match(actual, expected, owner)
++
++	static func _record_sources_match(actual: Locations, expected: Locations.Record, owner: Owner) -> bool:
++		"""Generation-checked section and actual Room mirrors remain live without a Building observation."""
++		if expected.section.x < 0 or expected.section.x >= owner._region_capacity or expected.section.y <= 0 \
++				or owner._r_present[expected.section.x] != 1 or owner._r_generation[expected.section.x] != expected.section.y:
++			return false
++		if expected.room == NULL_REF: return true
++		var row: int = Owner.CoreSources._final_row(actual._ids, expected.room, Directory.KIND_ROOM)
++		return row >= 0 and actual._buildings._r_present[row] == 1 \
++			and actual._buildings._r_ref_slot[row] == expected.room.x and actual._buildings._r_ref_generation[row] == expected.room.y
+ 
+ 
+ 	func _profile_pin_refusal(descriptor: Profiles.Descriptor, index: int) -> StringName:
+@@ -402,7 +426,7 @@
+ 
+ 	func _terrain_refusal(bounds: PackedInt32Array, purpose: int) -> StringName:
+ 		"""Exact concrete Terrain owns the callback-free prepared leaf and its original source binding."""
+-		return config.terrain.prepared_local_facts_refusal(bounds, purpose, plan.space_revision, context.space_token, token)
++		return Terrain.prepared_local_leaf_refusal(config.terrain, bounds, purpose, plan.space_revision, context.space_token, token)
+ 
+ 	func prepare_companions() -> StringName:
+ 		"""Refresh every old endpoint and graph certificate; no new Location or travel span is manufactured."""

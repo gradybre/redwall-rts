@@ -1,0 +1,102 @@
+state_registry_coverage: PASS -- 147 modules, 723 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_approach.gd
+SCRIPT ERROR: Invalid access to property or key 'path_count' on a base object of type 'Nil'.
+          at: test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:215)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:215)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_path_and_work_face_are_observed_before_any_candidate
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        real complete path and exact source face (expected , got ROUTE_TRANSACTION_BUSY)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_disconnected_profile_path_refuses_a_genuine_available_work_face
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)"] (expected true, got false)
+        no real path (expected ROUTE_NOT_CONNECTED, got ROUTE_STATIC_CATALOG_UNBOUND)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)"] (expected true, got false)
+SCRIPT ERROR: Invalid access to property or key 'path_count' on a base object of type 'Nil'.
+          at: test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:235)
+          GDScript backtrace (most recent call first):
+              [0] test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:235)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_zero_edge_path_still_proves_the_whole_selected_travel_pose
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)"] (expected true, got false)
+        same actual complete endpoint (expected , got ROUTE_STATIC_CATALOG_UNBOUND)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_full_source_contact_rejects_an_interior_approach_hole
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        real WorkFace full-volume proof refuses (expected WORK_FACE_COMPLETE_SPACE, got ROUTE_TRANSACTION_BUSY)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+  FAIL  test_target_must_belong_to_exact_room_cut_union
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+SCRIPT ERROR: Invalid call. Nonexistent function 'source_refusal' in base 'Nil'.
+          at: test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:267)
+          GDScript backtrace (most recent call first):
+              [0] test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:267)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_every_added_request_field_is_pinned_against_late_mutation
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        original complete observation (expected , got ROUTE_TRANSACTION_BUSY)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'source_refusal' in base 'Nil'.
+          at: test_same_revision_refuses_and_new_epochs_expire_original_source (res://test/test_underground_room_approach.gd:279)
+          GDScript backtrace (most recent call first):
+              [0] test_same_revision_refuses_and_new_epochs_expire_original_source (res://test/test_underground_room_approach.gd:279)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_same_revision_refuses_and_new_epochs_expire_original_source
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        original source (expected , got ROUTE_TRANSACTION_BUSY)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  FAIL  test_endpoint_callbacks_close_original_request_and_lease
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+  FAIL  test_wrong_profile_and_preexisting_candidate_refuse_without_output
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+  FAIL  test_current_cold_admission_and_plain_plan_remain_explicit
+        actual setup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+        actual cleanup: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_PACE_PROFILE)", "actual edge admitted (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual certificate sealed (expected , got WORLD_ROUTE_NO_FITTING_PROFILE)", "actual paired graph/certificate publication (expected , got WORLD_ROUTE_CONTEXT)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":54,"failures":10,"suite":"test_underground_room_approach.gd","tests":10,"usec":3249716}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 54 assertion(s), 10 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 10 failing test(s).

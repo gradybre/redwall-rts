@@ -1,0 +1,421 @@
+state_registry_coverage: PASS -- 147 modules, 723 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_approach.gd
+SCRIPT ERROR: Parse Error: Function "capture_configuration()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:90)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "extra_values()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:91)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "face_request()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:103)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "same_plan()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:109)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "same_extra()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:109)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "exact_configuration()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:110)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "target_member_refusal()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:127)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "same_actor()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:155)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "same_descriptor()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:190)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "same_plan()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:266)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "metadata_refusal()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:271)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "same_plan()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:294)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "metadata_refusal()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:301)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Parse Error: Function "metadata_refusal()" not found in base self.
+          at: GDScript::reload (res://scripts/core/underground_room_approach.gd:318)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_underground_room_approach.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+ERROR: Failed to load script "res://test/test_underground_room_approach.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:155)
+       [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+       [2] _run_worker (res://test/run_tests.gd:121)
+       [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:198)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'begin' in base 'GDScript'.
+          at: _observe (res://test/test_underground_room_approach.gd:176)
+          GDScript backtrace (most recent call first):
+              [0] _observe (res://test/test_underground_room_approach.gd:176)
+              [1] test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:201)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'path_count' on a base object of type 'Nil'.
+          at: test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:202)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_path_and_work_face_are_observed_before_any_candidate (res://test/test_underground_room_approach.gd:202)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_path_and_work_face_are_observed_before_any_candidate
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_disconnected_profile_path_refuses_a_genuine_available_work_face (res://test/test_underground_room_approach.gd:212)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'begin' in base 'GDScript'.
+          at: _observe (res://test/test_underground_room_approach.gd:176)
+          GDScript backtrace (most recent call first):
+              [0] _observe (res://test/test_underground_room_approach.gd:176)
+              [1] test_disconnected_profile_path_refuses_a_genuine_available_work_face (res://test/test_underground_room_approach.gd:213)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_disconnected_profile_path_refuses_a_genuine_available_work_face
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        no real path (expected ROUTE_NOT_CONNECTED, got )
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:219)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'work_location' on a base object of type 'Nil'.
+          at: test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:220)
+          GDScript backtrace (most recent call first):
+              [0] test_zero_edge_path_still_proves_the_whole_selected_travel_pose (res://test/test_underground_room_approach.gd:220)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_zero_edge_path_still_proves_the_whole_selected_travel_pose
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_full_source_contact_rejects_an_interior_approach_hole (res://test/test_underground_room_approach.gd:227)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'begin' in base 'GDScript'.
+          at: _observe (res://test/test_underground_room_approach.gd:176)
+          GDScript backtrace (most recent call first):
+              [0] _observe (res://test/test_underground_room_approach.gd:176)
+              [1] test_full_source_contact_rejects_an_interior_approach_hole (res://test/test_underground_room_approach.gd:228)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_full_source_contact_rejects_an_interior_approach_hole
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        real WorkFace full-volume proof refuses (expected WORK_FACE_COMPLETE_SPACE, got )
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_target_must_belong_to_exact_room_cut_union (res://test/test_underground_room_approach.gd:234)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'origin_u' on a base object of type 'Nil'.
+          at: test_target_must_belong_to_exact_room_cut_union (res://test/test_underground_room_approach.gd:235)
+          GDScript backtrace (most recent call first):
+              [0] test_target_must_belong_to_exact_room_cut_union (res://test/test_underground_room_approach.gd:235)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_target_must_belong_to_exact_room_cut_union
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:246)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'begin' in base 'GDScript'.
+          at: _observe (res://test/test_underground_room_approach.gd:176)
+          GDScript backtrace (most recent call first):
+              [0] _observe (res://test/test_underground_room_approach.gd:176)
+              [1] test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:247)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Cannot call method 'get' on a null value.
+          at: test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:250)
+          GDScript backtrace (most recent call first):
+              [0] test_every_added_request_field_is_pinned_against_late_mutation (res://test/test_underground_room_approach.gd:250)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_every_added_request_field_is_pinned_against_late_mutation
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry (res://test/test_underground_room_approach.gd:261)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'begin' in base 'GDScript'.
+          at: _observe (res://test/test_underground_room_approach.gd:176)
+          GDScript backtrace (most recent call first):
+              [0] _observe (res://test/test_underground_room_approach.gd:176)
+              [1] test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry (res://test/test_underground_room_approach.gd:262)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'source_refusal' in base 'Nil'.
+          at: test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry (res://test/test_underground_room_approach.gd:264)
+          GDScript backtrace (most recent call first):
+              [0] test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry (res://test/test_underground_room_approach.gd:264)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_same_revision_two_bank_reload_cannot_hide_changed_role_geometry
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)", "synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)"] (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_endpoint_callbacks_close_original_request_and_lease (res://test/test_underground_room_approach.gd:282)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'begin' in base 'GDScript'.
+          at: _observe (res://test/test_underground_room_approach.gd:176)
+          GDScript backtrace (most recent call first):
+              [0] _observe (res://test/test_underground_room_approach.gd:176)
+              [1] test_endpoint_callbacks_close_original_request_and_lease (res://test/test_underground_room_approach.gd:285)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid assignment of property or key 'face' with value of type 'int' on a base object of type 'Nil'.
+          at: test_endpoint_callbacks_close_original_request_and_lease (res://test/test_underground_room_approach.gd:286)
+          GDScript backtrace (most recent call first):
+              [0] test_endpoint_callbacks_close_original_request_and_lease (res://test/test_underground_room_approach.gd:286)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_endpoint_callbacks_close_original_request_and_lease
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        late extra-field mutation (expected ROOM_APPROACH_CHANGED, got )
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_wrong_profile_and_preexisting_candidate_refuse_without_output (res://test/test_underground_room_approach.gd:295)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key 'work_revision' on a base object of type 'Nil'.
+          at: test_wrong_profile_and_preexisting_candidate_refuse_without_output (res://test/test_underground_room_approach.gd:296)
+          GDScript backtrace (most recent call first):
+              [0] test_wrong_profile_and_preexisting_candidate_refuse_without_output (res://test/test_underground_room_approach.gd:296)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_wrong_profile_and_preexisting_candidate_refuse_without_output
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _setup (res://test/test_underground_room_approach.gd:150)
+          GDScript backtrace (most recent call first):
+              [0] _setup (res://test/test_underground_room_approach.gd:150)
+              [1] test_current_cold_admission_and_plain_plan_remain_explicit (res://test/test_underground_room_approach.gd:307)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'input_refusal' in base 'GDScript'.
+          at: test_current_cold_admission_and_plain_plan_remain_explicit (res://test/test_underground_room_approach.gd:308)
+          GDScript backtrace (most recent call first):
+              [0] test_current_cold_admission_and_plain_plan_remain_explicit (res://test/test_underground_room_approach.gd:308)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-approach/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_current_cold_admission_and_plain_plan_remain_explicit
+        actual setup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        actual cleanup: ["synthetic source/geometry wire (expected , got PROFILE_SOURCE_IDENTITY)", "actual edge admitted (expected , got ROUTE_SECTION_DOMAIN)"] (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":28,"failures":10,"suite":"test_underground_room_approach.gd","tests":10,"usec":3288959}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        15 script error(s) outside any test method
+
+10 test(s), 28 assertion(s), 11 failure(s)
+diagnostics: 1 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 11 failing test(s).

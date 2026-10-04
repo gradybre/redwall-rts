@@ -1,0 +1,680 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/underground_world_retirement.gd": "63e15c32e4d950f17164b407a1d8e84081f80d6a6fb5dc1645d79438a106f0a1",
+    "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+    "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+    "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+    "godot/scripts/core/inventory.gd": "2c6b22a4c93b7af9f8b0f2f5ccfa3a8ea303f75d7d918838b9ada8382c3a8102",
+    "godot/scripts/core/underground_session.gd": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c"
+  },
+  "scope": "Source-derived logical/reference census and provisional native allowances only",
+  "module_retained_fields": 0,
+  "packed_bank_delta": 0,
+  "original_session": {
+    "numeric_bytes": 27,
+    "reference_slots": 24,
+    "already_reserved_bytes": 1536
+  },
+  "additional_simultaneous_caller_and_scope": {
+    "numeric_bytes": 49,
+    "reference_slots": 85,
+    "objects": [
+      "caller Owners (prefer host permanent operational packet)",
+      "private Scope",
+      "Scope-owned fixed Owners copy"
+    ],
+    "owners_fields": [
+      [
+        "world_ref",
+        "Vector2i"
+      ],
+      [
+        "world",
+        "World"
+      ],
+      [
+        "directory",
+        "Directory"
+      ],
+      [
+        "buildings",
+        "Buildings"
+      ],
+      [
+        "construction",
+        "Construction"
+      ],
+      [
+        "inventory",
+        "Inventory"
+      ],
+      [
+        "items",
+        "Items"
+      ],
+      [
+        "residents",
+        "Residents"
+      ],
+      [
+        "jobs",
+        "Jobs"
+      ],
+      [
+        "work",
+        "Work"
+      ],
+      [
+        "reservations",
+        "Reservations"
+      ],
+      [
+        "transforms",
+        "Transforms"
+      ],
+      [
+        "gear",
+        "Gear"
+      ],
+      [
+        "carry",
+        "Carry"
+      ],
+      [
+        "piles",
+        "Piles"
+      ],
+      [
+        "content",
+        "RefCounted"
+      ],
+      [
+        "budget",
+        "Budget"
+      ],
+      [
+        "space",
+        "Owner"
+      ],
+      [
+        "sources",
+        "Owner.CoreSources"
+      ],
+      [
+        "routes",
+        "Routes"
+      ],
+      [
+        "terrain",
+        "Terrain"
+      ],
+      [
+        "profiles",
+        "Profiles"
+      ],
+      [
+        "levels",
+        "Levels"
+      ],
+      [
+        "rooms",
+        "Orders"
+      ],
+      [
+        "room_bindings",
+        "RoomBindings"
+      ],
+      [
+        "world_bindings",
+        "WorldBindings"
+      ],
+      [
+        "sites",
+        "Sites"
+      ],
+      [
+        "router",
+        "Router"
+      ],
+      [
+        "authority",
+        "Authority"
+      ],
+      [
+        "locations",
+        "Locations"
+      ],
+      [
+        "inventory_locations",
+        "Locations.InventoryLocations"
+      ],
+      [
+        "world_routes",
+        "WorldRoutes"
+      ],
+      [
+        "connector",
+        "ConnectorWork"
+      ],
+      [
+        "contacts",
+        "Contacts"
+      ],
+      [
+        "placements",
+        "Placements"
+      ],
+      [
+        "workpieces",
+        "Workpieces"
+      ],
+      [
+        "delivery",
+        "Delivery"
+      ],
+      [
+        "furniture",
+        "Furniture"
+      ],
+      [
+        "tips",
+        "Tips"
+      ]
+    ],
+    "scope_fields": [
+      [
+        "_owners",
+        "Owners"
+      ],
+      [
+        "_host",
+        "Object"
+      ],
+      [
+        "_session",
+        "RefCounted"
+      ],
+      [
+        "_persistent_id",
+        "int"
+      ],
+      [
+        "_stage",
+        "int"
+      ],
+      [
+        "_allow_prepared_world",
+        "bool"
+      ],
+      [
+        "_delivery_script",
+        "Script"
+      ],
+      [
+        "_profile_bank",
+        "Profiles.Bank"
+      ],
+      [
+        "_catalog",
+        "Catalog"
+      ],
+      [
+        "_catalog_bank",
+        "Catalog.Bank"
+      ],
+      [
+        "_movement",
+        "Movement"
+      ],
+      [
+        "_prepared_request",
+        "World.Request"
+      ],
+      [
+        "_prepared_seed",
+        "int"
+      ],
+      [
+        "_prepared_attempts",
+        "int"
+      ]
+    ]
+  },
+  "joint_member_numeric_bytes": 76,
+  "joint_member_reference_slots": 109,
+  "additional_numeric_constant_bytes": 16,
+  "static_frames": {
+    "Retirement.prepare_into": {
+      "numeric_and_name_bytes": 25,
+      "reference_values": 4,
+      "calls": [
+        "Retirement._capture_sources",
+        "Retirement._copy_owners",
+        "Retirement._live_refusal",
+        "Retirement._owners_refusal",
+        "Retirement._prepared_refusal",
+        "Retirement._same_owners"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement.cleared_refusal": {
+      "numeric_and_name_bytes": 16,
+      "reference_values": 3,
+      "calls": [
+        "Retirement._leaves",
+        "Retirement._original_sources_refusal",
+        "Retirement._owners_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement.release_preflighted": {
+      "numeric_and_name_bytes": 16,
+      "reference_values": 4,
+      "calls": [
+        "Buildings.world_retirement_release_preflighted_in",
+        "Construction.world_retirement_release_preflighted_in",
+        "Inventory.world_retirement_release_preflighted_in",
+        "Retirement.cleared_refusal",
+        "Work.world_retirement_release_preflighted_in"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._prepared_refusal": {
+      "numeric_and_name_bytes": 16,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._live_refusal",
+        "Retirement._original_sources_refusal",
+        "Retirement._owners_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._capture_sources": {
+      "numeric_and_name_bytes": 0,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "void"
+    },
+    "Retirement._original_sources_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Retirement._live_refusal": {
+      "numeric_and_name_bytes": 17,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._leaves"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._leaves": {
+      "numeric_and_name_bytes": 25,
+      "reference_values": 2,
+      "calls": [
+        "Buildings.world_retirement_refusal_in",
+        "Construction.world_retirement_refusal_in",
+        "Inventory.world_retirement_refusal_in",
+        "Work.world_retirement_refusal_in"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._owners_refusal": {
+      "numeric_and_name_bytes": 16,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._base_refusal",
+        "Retirement._connector_refusal",
+        "Retirement._foundation_refusal",
+        "Retirement._handling_refusal",
+        "Retirement._location_refusal",
+        "Retirement._phase_refusal",
+        "Retirement._placement_refusal",
+        "Retirement._project_refusal",
+        "Retirement._room_refusal",
+        "Retirement._route_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._base_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._foundation_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._profile_refusal",
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._profile_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Retirement._room_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._entry_refusal",
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._entry_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Retirement._phase_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._weak_matches",
+        "Retirement._world_binding_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._world_binding_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 2,
+      "calls": [
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._location_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._route_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 2,
+      "calls": [
+        "Retirement._catalog_refusal",
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._catalog_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 4,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Retirement._project_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._connector_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._placement_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Retirement._weak_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Retirement._handling_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Retirement._weak_matches": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Retirement._copy_owners": {
+      "numeric_and_name_bytes": 0,
+      "reference_values": 2,
+      "calls": [
+        "Retirement._copy_owners_0",
+        "Retirement._copy_owners_1",
+        "Retirement._copy_owners_2",
+        "Retirement._copy_owners_3"
+      ],
+      "returns": "void"
+    },
+    "Retirement._copy_owners_0": {
+      "numeric_and_name_bytes": 0,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "void"
+    },
+    "Retirement._copy_owners_1": {
+      "numeric_and_name_bytes": 0,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "void"
+    },
+    "Retirement._copy_owners_2": {
+      "numeric_and_name_bytes": 0,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "void"
+    },
+    "Retirement._copy_owners_3": {
+      "numeric_and_name_bytes": 0,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "void"
+    },
+    "Retirement._same_owners": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [
+        "Retirement._same_owners_0",
+        "Retirement._same_owners_1",
+        "Retirement._same_owners_2",
+        "Retirement._same_owners_3"
+      ],
+      "returns": "bool"
+    },
+    "Retirement._same_owners_0": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Retirement._same_owners_1": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Retirement._same_owners_2": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Retirement._same_owners_3": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Buildings.whole_world_retirement_refusal_in": {
+      "numeric_and_name_bytes": 25,
+      "reference_values": 1,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Buildings.world_retirement_refusal_in": {
+      "numeric_and_name_bytes": 33,
+      "reference_values": 3,
+      "calls": [
+        "Buildings.whole_world_retirement_refusal_in"
+      ],
+      "returns": "StringName"
+    },
+    "Buildings.world_retirement_release_preflighted_in": {
+      "numeric_and_name_bytes": 32,
+      "reference_values": 3,
+      "calls": [
+        "Buildings.world_retirement_refusal_in"
+      ],
+      "returns": "StringName"
+    },
+    "Construction.world_retirement_refusal_in": {
+      "numeric_and_name_bytes": 33,
+      "reference_values": 4,
+      "calls": [
+        "Buildings.whole_world_retirement_refusal_in",
+        "Construction._retirement_authority_matches"
+      ],
+      "returns": "StringName"
+    },
+    "Construction._retirement_authority_matches": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Construction.world_retirement_release_preflighted_in": {
+      "numeric_and_name_bytes": 32,
+      "reference_values": 4,
+      "calls": [
+        "Construction.world_retirement_refusal_in"
+      ],
+      "returns": "StringName"
+    },
+    "Work.world_retirement_refusal_in": {
+      "numeric_and_name_bytes": 33,
+      "reference_values": 6,
+      "calls": [
+        "Buildings.whole_world_retirement_refusal_in",
+        "Work._retirement_authority_matches",
+        "Work._retirement_empty_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Work._retirement_authority_matches": {
+      "numeric_and_name_bytes": 1,
+      "reference_values": 2,
+      "calls": [],
+      "returns": "bool"
+    },
+    "Work._retirement_empty_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [
+        "Work._retirement_participant_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Work._retirement_participant_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Work.world_retirement_release_preflighted_in": {
+      "numeric_and_name_bytes": 32,
+      "reference_values": 6,
+      "calls": [
+        "Work.world_retirement_refusal_in"
+      ],
+      "returns": "StringName"
+    },
+    "Inventory.world_retirement_refusal_in": {
+      "numeric_and_name_bytes": 33,
+      "reference_values": 4,
+      "calls": [
+        "Buildings.whole_world_retirement_refusal_in",
+        "Inventory._retirement_empty_refusal"
+      ],
+      "returns": "StringName"
+    },
+    "Inventory._retirement_empty_refusal": {
+      "numeric_and_name_bytes": 8,
+      "reference_values": 1,
+      "calls": [],
+      "returns": "StringName"
+    },
+    "Inventory.world_retirement_release_preflighted_in": {
+      "numeric_and_name_bytes": 32,
+      "reference_values": 4,
+      "calls": [
+        "Inventory.world_retirement_refusal_in"
+      ],
+      "returns": "StringName"
+    }
+  },
+  "maximum_numeric_chain_bytes": 141,
+  "maximum_numeric_chain": [
+    "Retirement.prepare_into",
+    "Retirement._prepared_refusal",
+    "Retirement._live_refusal",
+    "Retirement._leaves",
+    "Buildings.world_retirement_refusal_in",
+    "Buildings.whole_world_retirement_refusal_in"
+  ],
+  "maximum_reference_chain_values": 18,
+  "maximum_reference_chain": [
+    "Retirement.release_preflighted",
+    "Work.world_retirement_release_preflighted_in",
+    "Work.world_retirement_refusal_in",
+    "Work._retirement_authority_matches"
+  ],
+  "proposal": {
+    "additional_retirement_only_bytes": 8192,
+    "control_slice": 6144,
+    "helper_slice": 2048,
+    "control_arithmetic": {
+      "numeric": 49,
+      "constants": 16,
+      "reference_allowance": 2720,
+      "three_control_object_allowance": 768,
+      "shared_script_symbols_and_native_allowance": 2048,
+      "total_provisional": 5601,
+      "remaining": 543
+    },
+    "helper_arithmetic": {
+      "numeric": 141,
+      "reference_allowance": 576,
+      "caller_and_expression_allowance": 256,
+      "total_provisional": 973,
+      "remaining": 1075
+    },
+    "reference_slot_assumption_bytes": 32,
+    "object_header_assumption_bytes": 256,
+    "assumptions_are_measured": false,
+    "adopted": false,
+    "logical_carve_out_authorized": true,
+    "current_1156_joint_bytes_parent_reported": 238676,
+    "proposed_profile_joint_bytes": 246868,
+    "unchanged_profile_ceiling": 262144,
+    "proposed_joint_remaining": 15276
+  },
+  "lifetime": "One original Session, one caller Owners and one private Scope/copy coexist. Existing Session1536 is charged once; 8192 is an additional retirement-only proposal inside the unchanged Profile envelope. No images are copied. The host must drop its Scope on success or abandonment before resuming admission; a Session retaining its own Scope must explicitly break that temporary strong cycle. No per-resident clock or owner bank is created.",
+  "native_measured": false,
+  "runtime_qualified": false
+}

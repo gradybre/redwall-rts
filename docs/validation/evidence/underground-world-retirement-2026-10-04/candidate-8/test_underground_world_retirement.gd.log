@@ -1,0 +1,41 @@
+state_registry_coverage: PASS -- 148 modules, 724 rows, 1054 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_world_retirement.gd
+  PASS  test_populated_world_prepares_without_clearing_and_repeats_exactly
+  PASS  test_live_world_and_partial_clear_refuse_all_links_atomically
+  PASS  test_clear_alone_preserves_links_release_preserves_ordinary_owners
+  PASS  test_foreign_owner_host_session_and_mutable_packet_cannot_replace_scope
+  PASS  test_transaction_and_cold_scopes_refuse_without_publishing_output
+  PASS  test_publication_and_observer_brackets_refuse_before_clearing
+  PASS  test_foreign_empty_directory_cannot_attest_spatial_inventory
+  PASS  test_expired_nonnull_binding_is_not_optional_unbound_state
+  PASS  test_same_numeric_world_on_other_directory_and_reused_generation_refuse
+  PASS  test_settled_project_does_not_need_individual_cancellation
+  PASS  test_inventory_remount_reuses_identical_arena_and_rejects_capacity_change
+  PASS  test_pending_world_requires_explicit_original_allowance
+  PASS  test_pending_request_and_profile_image_cannot_be_replaced_after_prepare
+  PASS  test_catalog_loading_and_source_receiver_replacement_refuse
+  PASS  test_cleared_hidden_work_and_goods_columns_refuse_atomically
+  PASS  test_freed_host_refuses_and_scope_retains_original_receivers
+  PASS  test_unbound_optional_authorities_keep_their_exact_null_pattern
+  PASS  test_original_pending_world_request_cannot_be_substituted
+CI_SUITE_TIME {"assertions":1903,"failures":0,"suite":"test_underground_world_retirement.gd","tests":18,"usec":5352215}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+18 test(s), 1903 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 18 tests, 1903 assertions, 0 failures.

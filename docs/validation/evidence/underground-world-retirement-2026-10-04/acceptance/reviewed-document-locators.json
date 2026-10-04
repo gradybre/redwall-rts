@@ -1,0 +1,10 @@
+{
+  "docs/decisions/1155-operational-underground-world-retirement.md": {
+    "locator": "docs/validation/evidence/underground-world-retirement-2026-10-04/acceptance/frozen-ADR1155.md.txt",
+    "sha256": "d68a9e3033db558bda80f30b2d11c4e6f1dc3eade8021727f09350b868314969"
+  },
+  "docs/validation/evidence/underground-world-retirement-2026-10-04/README.md": {
+    "locator": "docs/validation/evidence/underground-world-retirement-2026-10-04/acceptance/frozen-README.md.txt",
+    "sha256": "a377021eb578732ba7794364e97627fb9483a11bd7584b208de83b5437d78223"
+  }
+}

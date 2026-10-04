@@ -1,6 +1,6 @@
 # 1155 — Retire underground authorities with their complete World
 
-Date: 2026-10-04 · Status: engineering packet; implementation and acceptance open
+Date: 2026-10-04 · Status: component independently accepted; host composition and native qualification open
 
 ## Problem and decision
 
@@ -82,3 +82,105 @@ Decision 1149; the current Session `reset_refusal`/`retire_foundation` and
 SettlementSystem `prepare_world_reset`/`reset` sequence; once-bound authorities
 in Buildings, Construction, Work and Inventory; Brendan's approved concurrent
 implementation and whole-demo integration instructions.
+
+## Assigned component implementation — 2026-10-04
+
+The furnishing lane owns the new `underground_world_retirement.gd` and its
+focused test, narrowly scoped static retirement leaves in Buildings,
+Construction, Work and Inventory, and identical-capacity Inventory endpoint
+arena reuse. Session, SettlementSystem and every live geometry/profile consumer
+remain unchanged in this component. Root owns their subsequent composition.
+
+The caller supplies one fixed typed `Retirement.Owners` packet. `prepare_into`
+checks the concrete original composition and its current idle brackets, then
+copies every field into a caller-owned `Scope`. The Scope retains the actual
+receivers strongly, including optional receivers; a null weak field and an
+expired non-null weak field are distinct. No mutable caller packet is consulted
+at release. Repeated preparation accepts only the same original host, Session,
+full World and owner tuple. Refused preparation does not publish a Scope.
+
+`cleared_refusal` and `release_preflighted` consume that original Scope. They
+require the same complete Directory to be empty, the old World generation to be
+inactive without rewinding it, and all four affected stores to be empty. All
+four owner leaves run before the first release. The tail calls static,
+owner-owned release methods; it has no virtual observer, signal, await or new
+allocation and never privately edits another owner's fields. Ordinary Gear,
+GroundPiles, StockAge and Reservations bindings remain intact.
+
+Host and Session arguments are identity pins, **not proof of mounted host
+ownership**. Before calling this component, the real host must finish its
+current observations, prove that this tuple is the actual mounted Session's
+fifteen borrowed owners and original full World, and stop admission/ticks for
+the whole synchronous prepare/clear/release interval. Root retains the exact
+private Scope throughout. This component does not supply or test that future
+host mount, boot or Create-world composition by substituting an identity token.
+
+Storage is a fixed caller-owned control packet and strong references only.
+There is no new packed bank or per-entity state. The initial member-only proposal
+did not account for the complete simultaneous reference/header lifetime; the
+explicit retirement slice below replaces that proposal. Native
+RefCounted/Script/WeakRef costs remain unmeasured. Inventory remount may
+reuse only the already allocated five-column endpoint arena at its identical
+capacity. It may neither resize that arena nor use retirement to bypass a live
+or expired original authority.
+
+## Frozen component and explicit memory proposal
+
+The stateless kernel exposes `RETIREMENT_RESERVED_BYTES = 8192`, authorized as a
+retirement-only logical/provisional carve-out inside unchanged
+`PROFILE_BYTES = 262144`, subject to source review and root ledger integration.
+It does not change Session's existing 1,536-byte reservation. One caller Owners
+(preferably the host's eventual permanent operational packet), one private
+Scope and its own fixed Owners copy coexist with the original Session. The
+host must release its private Scope on completion or abandonment before it
+drops the Session or resumes admission; this breaks the temporary
+Scope-to-Session strong retention if Session also holds Scope.
+
+The candidate counts 49 added numeric member bytes and 85 added reference slots;
+with Session, the member census is 76 numeric bytes and 109 reference slots.
+Two numeric constants add 16 bytes. The complete cross-owner static call graph
+has separate maxima of 141 numeric/StringName bytes and 18 reference values.
+The authorized split is 6,144 control bytes and 2,048 helper bytes. Explicit
+provisional assumptions are 32 bytes per reference slot, 256 bytes for each of
+three control objects, 2,048 bytes for shared script/symbol/native overhead, and
+256 bytes for caller/expression temporaries. These yield 5,601 control bytes
+and 973 helper bytes. They are allowances, **not measured allocation bounds**.
+Source-derived logical facts, reference counts and native assumptions remain
+separate in the reproducible census. Root's reported current 1156 joint
+238,676 plus 8,192 becomes 246,868 / 262,144, leaving 15,276 bytes. Session is
+charged once; the final shared ledger remains root-owned.
+
+Preparation also borrows the original Profile/Catalog image objects and actual
+Movement receiver; it captures the existing optional WorldInit Request object,
+accepted seed and attempt count. Reset may not replace or introduce that staged
+request. Request content validation and actual mounted host ownership remain
+the existing host's obligations. Godot rejects a freed Object as a typed
+argument before any function body runs: callers normalize expired arguments
+to null, while the kernel separately checks its retained original host's
+liveness before comparing identity.
+
+`EntryWorldBindings._entry_reading` and `_entry_cold_token` are explicit active
+brackets alongside the base WorldBindings fields. Settled cached contact fields
+do not prevent full-World replacement. Root identified the missing subtype
+check during early review; the final candidate includes a real subtype
+regression without importing the moving ordinary-room provider.
+
+Candidate 9 passes 19 tests / 1,963 assertions, zero strict/raw diagnostics and
+leaks, and zero warnings across all six changed/new GDScript files. Candidate 8
+has 429 tests / 15,769 assertions across seven official singleton suites; its
+four store sources are unchanged in candidate 9. The final component plus those
+unchanged six suites total 430 tests / 15,829 assertions. Thirteen Python census
+checks pass. All run restoration and rejected iterations remain in
+`docs/validation/evidence/underground-world-retirement-2026-10-04/`.
+
+Root independently accepted the exact component on 2026-10-04: all 12 source,
+28 reviewed output and 187 historical pins matched, all 13 independently rerun
+census tests passed, and no high or medium source finding remained. The earlier
+EntryWorldBindings bracket finding is closed. The durable review is copied
+verbatim to the evidence packet's `acceptance/root-review.json`; original
+reviewed document bytes and explicit locators are retained beside it. Executable
+pins and the author test evidence are unchanged by this acceptance record.
+
+Actual host
+operational reset/remount, delivery-specific integrated lifetimes, full demo
+boot/Create, native peak and playable-room qualification remain separate.

@@ -1,0 +1,6 @@
+FAIL C6 inventory.gd line 456: `_spatial_container_slot` has no resize() call; say 'never allocated'
+FAIL C6 inventory.gd line 456: `_spatial_container_generation` has no resize() call; say 'never allocated'
+FAIL C6 inventory.gd line 456: `_spatial_location_slot` has no resize() call; say 'never allocated'
+FAIL C6 inventory.gd line 456: `_spatial_location_generation` has no resize() call; say 'never allocated'
+FAIL C6 inventory.gd line 457: `_spatial_location_revision` has no resize() call; say 'never allocated'
+state_registry_coverage: 5 failure(s)

@@ -1,0 +1,49 @@
+{
+  "reviewer": "/root",
+  "candidate": "1154 review-v1 / candidate-11 / native-2",
+  "result": "changes_requested",
+  "source_manifest_sha256": "49992dabc830eaa3d206b1edafbb0a04cad3deea05931bda119cf6c40987058b",
+  "source_pins": {
+    "docs/validation/evidence/underground-room-access-2026-10-04/capture_access.gd": "5e627a20336c62fc6277b6789881e683a7f444ae249569c31dccde4958cb16b5",
+    "docs/validation/evidence/underground-room-access-2026-10-04/census.py": "c0e47e1d24aae28c18f717e93b24f00092960da698ab8ef9c7b36be72e07db56",
+    "docs/validation/evidence/underground-room-access-2026-10-04/reproduce.py": "a5491348ec0a6f42cc70f2b569107467144472d8c48b6824460a3f019d39d112",
+    "docs/validation/evidence/underground-room-access-2026-10-04/run_capture.py": "723bbb35460243823e216decb53a142dbe38ca8de3b6b504d43766b88201eddd",
+    "docs/validation/evidence/underground-room-access-2026-10-04/test_evidence.py": "c480f1eb6867e7ed69a9200903315b571292ffbeaa1a8c9f566c8a3f591f7701",
+    "godot/demo/burrow/modular_access.gd": "0a76a21eb229d7c0b93a930fc46df1a9bca09dd68799ae772556d8f800524bf9",
+    "godot/demo/burrow/modular_access.gd.uid": "ccca107a314f172aae666174f2747bf7426154b2fa7bbd00779c8ea5507fadf3",
+    "godot/demo/burrow/modular_editor.gd": "3815bccac76ef3bf9e3b8ecb3cf311227d1428189473f2b1db357eb9389708fa",
+    "godot/demo/burrow/modular_runtime.gd": "e8c41bc30e4896254bc58d5387ba44417e02b256e670e8a66b41079795a1e478",
+    "godot/demo/burrow/modular_world_tool.gd": "8ea0ce8b84cffcb37ae574762e0edd6c9b6d3f191b0ea6351b00752ac8b041df",
+    "godot/test/test_modular_access.gd": "59098092f6e8d5ec3b5c0b681bf0638fe9e8b1607c9d9ab9493a9855f2c3560f",
+    "godot/test/test_modular_access.gd.uid": "cb27c2ef47113fbff3b6dbb1b1ee3274dafa10e87c53171afe6e10811257e5e5",
+    "godot/test/test_modular_runtime.gd": "0928ec79a37c5644ada83a72e50c803561a9e20507b012e363b478112b4b1f84"
+  },
+  "findings": [
+    {
+      "severity": "high",
+      "file": "godot/demo/burrow/modular_runtime.gd",
+      "function": "configure_access",
+      "evidence": "After observing owner/provider calls, the valid-editor condition can skip publication without changing an empty code; the final successful-code branch still calls _editor.refresh_site(). Original tool/draft/view/provider tuple also needs a final guard.",
+      "impact": "Teardown during configuration can cause a freed-Node error or publish a controller against an obsolete view.",
+      "fix": "Retain original tuple, revalidate after observations and before publication, refuse without changing prior bindings; add late teardown/identity-change regression."
+    },
+    {
+      "severity": "medium",
+      "file": "godot/demo/burrow/modular_editor.gd",
+      "function": "_sync_access",
+      "evidence": "New valid state says finished lining is not yet specified.",
+      "impact": "Player flow exposes unfinished implementation instead of explaining its useful exact first-cut preview.",
+      "fix": "Describe selected first cut and shown worker clearance/access; keep unfinished lining scope in engineering evidence."
+    }
+  ],
+  "retained_limits": [
+    "Dense proof70021us exceeds1.5ms UI target; no full-source-population bound.",
+    "Native images use explicitly synthetic physical/profile data and plain dirt; not full demo art/HUD or gameplay qualification.",
+    "Source plus evidence accepted only after corrected frozen candidate review."
+  ],
+  "checks_read": [
+    "56 tests/1075 assertions; all diagnostics/leaks0; analyzer0/6",
+    "Native Metal/Forward+15 assertions, three1280x720 captures, raw0, analyzer0/1",
+    "Logical view census361875B; conservative caller+cold1937436B; no authoritative bank added"
+  ]
+}

@@ -1228,7 +1228,11 @@
         "godot/test/test_underground_motion_clock.gd.uid",
         "docs/decisions/1147-source-motion-fixed-tick-sampling.md",
         "docs/validation/evidence/underground-motion-clock-2026-10-04/",
-        "docs/validation/evidence/underground-haul-runtime-2026-10-04/"
+        "docs/validation/evidence/underground-haul-runtime-2026-10-04/",
+        "docs/validation/evidence/underground-work-approach-2026-10-04/",
+        "godot/data/underground/mole-worker/mole_profile_driver.gd",
+        "godot/data/underground/mole-worker/work-approach-v1/",
+        "docs/decisions/1156-source-qualified-work-approach.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1833,6 +1837,15 @@
           "python_tests": 16,
           "analyzer": "0 GDScript warning(s) in 0 of 1 file(s)",
           "scope": "Source and sampled native-input packet; no runtime haul/profile/World permission, GPU/all-Q16 or loaded stairs/turns qualification"
+        },
+        "actual_work_approach_in_progress": {
+          "status": "actual published WORK face passes; actual WALK approach refuses clearance",
+          "owner": "/root/ug_geometry",
+          "construction_evidence": "docs/validation/evidence/underground-room-phases-2026-10-04/",
+          "scope": "1152 fixture-6 passes full FRONT16 work contact against virgin cube; ground path with current WALK1 still returns WORLD_ROUTE_NO_FITTING_PROFILE. Root reprioritized Geometry to this playable dependency while construction and UI continue.",
+          "bounds": "Work root768u from face; all-yaw held-pick WALK reaches1256u (488u penetration). Unwidened compact ground union still reaches865u (97u penetration); isolated unchanged walk/ready transition under investigation.",
+          "runtime_qualified": false,
+          "proposal": "Two explicit fixed-heading forward/backward WALK-ready policies, eight cardinal rows, unchanged source keys/Actor image and record widths. Source q reversal must prove feet/root/fades/seam natively. Reuse existing Catalog ground WALK rate and fixed30Hz remainder; no new speed or backward penalty. Positive arrival/WORK/recovery/retreat remains required."
         }
       },
       "lease": {
@@ -1881,7 +1894,32 @@
             "files": [
               "docs/validation/evidence/underground-haul-runtime-2026-10-04/"
             ],
-            "handoff": "Read-only actual API/source review plus bounded implementation/allocation proposal for accepted exact-one-unit wood shipment. No shared consumers or accepted source images may be edited; explicit R/S station/source/cargo/turn/stair scope and joint reservations required."
+            "handoff": "Read-only actual API/source review plus bounded implementation/allocation proposal for accepted exact-one-unit wood shipment. No shared consumers or accepted source images may be edited; explicit R/S station/source/cargo/turn/stair scope and joint reservations required. Root reprioritized this read-only proposal behind the actual WALK-to-WORK clearance gap on2026-10-04; Geometry is retaining findings as a deferred note before continuing the critical approach investigation. No runtime completion claim."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-room-phase-refresh",
+            "files": [
+              "docs/validation/evidence/underground-work-approach-2026-10-04/"
+            ],
+            "handoff": "Root priority change acknowledged2026-10-04. Read-only actual source/API/census investigation of WALK to ready/WORK approach; source-qualified fixed-heading selection first, otherwise genuine authored transition. No clipping, pose teleport or WORK-as-WALK permission. Publisher/Profiles/Routes writes require explicit narrow handoff."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-work-approach",
+            "files": [
+              "godot/scripts/core/underground_profiles.gd",
+              "godot/test/test_underground_profiles.gd",
+              "godot/data/underground/mole-worker/mole_profile_driver.gd",
+              "godot/test/test_mole_profile_driver.gd",
+              "godot/data/underground/mole-worker/work-approach-v1/",
+              "docs/decisions/1156-source-qualified-work-approach.md"
+            ],
+            "handoff": "Root explicitly stopped producer writes; Furnishing explicitly confirmed no pending Profiles/Driver/Routes/WorldRoutes/test edits and released2026-10-04. Narrow1156 distinct fixed-heading forward/backward WALK-ready policies from unchanged source keys; directed root travel remains distinct from body yaw. Keep default all-yaw selection, strict unknown-policy/ambiguity rejection, full body/tool/support/pose joins and native reversed-gait proof. Root retains publisher/Catalog consumer renewal, registry/memory; Construction retains WorkFace. 4704 paired bytes proposed within existing PROFILE_BYTES, subject to joint source-derived census.",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach",
+            "base": "fresh origin/master82d60ba8, then fast-forward84acf740"
           }
         ],
         "scope_narrowing": {
@@ -2999,6 +3037,20 @@
             ],
             "handoff": "Geometry existing source writes stopped and ordinary1151 accepted. New narrow ordinary Room refresh path reuses one context and existing banks; no Placement row/prefix. Full Site/Project/Room/op/stage/original tokens, worker-free COMMIT/CANCEL and concrete publication remain mandatory. Routes read-only unless further exact lease. Prioritize1150 independent review when frozen. Additional narrow Owner phase_commit_refusal/_phase_owns_token branch explicitly granted by root after source-stop acknowledgement; preserve existing Placement path and original Authority ownership before/after discard. Narrow ConnectorPlacements method lease explicitly granted after root stop: reuse existing single128B PhaseContext/issuer and inactive bank refresh for ordinary Rooms, with explicit null Placement under complete actual Room/Site/Project proof. Existing Entry method still requires real Placement; no new context/schema/retained bank. Root additionally authorizes read-only caller-owned current Location enumeration/capacity API for1154. Geometry implements under existing exclusive lease; no new retained state, stale/refused output preservation required.",
             "worker_stopped": "Geometry explicitly confirmed clean own commit e9c8f092 and all source/test writes stopped on2026-10-04; root386cd4aa integrates unchanged."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-work-approach",
+            "files": [
+              "godot/scripts/core/underground_routes.gd",
+              "godot/test/test_underground_routes.gd",
+              "godot/scripts/core/underground_world_routes.gd",
+              "godot/test/test_underground_world_routes.gd"
+            ],
+            "handoff": "Root explicitly stopped producer writes; Furnishing explicitly confirmed no pending Profiles/Driver/Routes/WorldRoutes/test edits and released2026-10-04. Narrow1156 distinct fixed-heading forward/backward WALK-ready policies from unchanged source keys; directed root travel remains distinct from body yaw. Keep default all-yaw selection, strict unknown-policy/ambiguity rejection, full body/tool/support/pose joins and native reversed-gait proof. Root retains publisher/Catalog consumer renewal, registry/memory; Construction retains WorkFace. 4704 paired bytes proposed within existing PROFILE_BYTES, subject to joint source-derived census.",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach",
+            "base": "fresh origin/master82d60ba8, then fast-forward84acf740"
           }
         ]
       }
@@ -3106,7 +3158,8 @@
         "godot/test/test_modular_access.gd",
         "godot/test/test_modular_access.gd.uid",
         "docs/decisions/1154-room-access-selection.md",
-        "docs/validation/evidence/underground-room-access-2026-10-04/"
+        "docs/validation/evidence/underground-room-access-2026-10-04/",
+        "docs/decisions/1155-operational-underground-world-retirement.md"
       ],
       "requirements": [
         "UG-BUILD-001",
@@ -3196,6 +3249,24 @@
           "final_pins": "final-source-sha256.json",
           "review_commit": "0f53608f9642fa6d085ebe6c1e4a30219595ea7c",
           "review_integrated_commit": "c4e84b59"
+        },
+        "access_ui_in_progress": {
+          "status": "candidate10 tests passed; independent review and native preview pending",
+          "tests": 55,
+          "assertions": 1053,
+          "failures": 0,
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0/6",
+          "scope": "Actual editor to Approach request tested; profile geometry explicitly synthetic. Dense actual graph1024 endpoints/1536 edges/4096 vertices and16384 painted cells measured68858us for one synchronous candidate. Source arena capacity is not dense-source population; UI1.5ms and maximum-population qualification remain open.",
+          "review": "Root review-v1 requests changes: HIGH late view teardown during configure_access; MEDIUM implementation-backlog text in player flow. Author reopened only1154 UI/tests; no acceptance yet. Native2 inspected three1280x720 synthetic fixture captures."
+        },
+        "operational_retirement_packet_1155": {
+          "status": "engineering packet recorded; source implementation and independent acceptance open",
+          "owner": "/root",
+          "decision": "docs/decisions/1155-operational-underground-world-retirement.md",
+          "scope": "Explicit original-world, quiescent whole-store reset and owner-owned lifetime release after Directory retirement. Preserve one-way bindings while any World is live; no private weak resets, second banks, gameplay refunds or generation rewind.",
+          "next": "Furnishing lane reads/proposes API after1154 freeze; source lease remains with current owners until explicit handoff."
         }
       },
       "lease": {
@@ -4413,6 +4484,28 @@
       "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-256c1908",
       "analyzer": "0 GDScript warning(s) in 0 of 1231 file(s)",
       "limits": "No same-head full local run; later1153 is separately focused-tested and needs next CI."
+    },
+    {
+      "commit": "84acf74036484bd8ec4930895b7d0a96f8567937",
+      "outcome": "CI PASSED all14 jobs,398 suites exactly once, zero-warning analyzer; same-head full local run in progress",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37228134131",
+      "wall_seconds": 803,
+      "tests": 11043,
+      "assertions": 1021242,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 GDScript warning(s) in 0 of 1232 file(s)",
+      "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-84acf740",
+      "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-host-20261004",
+      "local_branch": "codex/underground-checkpoint-host-20261004",
+      "local_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/full-84acf740/",
+      "local_run_status": "Running exact unchanged clean-assets/cache/import/no-argument suite then full analyzer --max0; source/HEAD restoration not yet reported. Root exec session52225; do not duplicate.",
+      "limits": "No local/CI equivalence yet; excludes active1152/1154/1155/1156; all gameplay acceptance remains open."
     }
   ],
   "crosscut_fixes": [

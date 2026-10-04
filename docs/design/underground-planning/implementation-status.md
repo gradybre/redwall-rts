@@ -83,6 +83,13 @@ was16m24s. The independently reviewed timing-only refresh replaces the old
 240-suite measurements with all397, estimating more even assignments; the next
 run must measure that improvement. Test/gate behavior is unchanged.
 
+The [next complete run at84acf740](../../validation/evidence/underground-host-checkpoint-2026-10-04/ci-84acf740/README.md)
+passed all14 jobs in13m23s, meeting the15-minute target. The unchanged verifier
+confirms398 suites exactly once,11,043 tests/1,021,242 assertions, zero failures,
+zero unexpected diagnostics/leaks,272 expected and353 tolerated diagnostics;
+the full analyzer reports0/1,232. The same-head clean no-argument local run is
+in progress in the owned checkpoint worktree; no equivalence claim is made yet.
+
 Ordinary phase refresh1153 is now integrated at386cd4aa after independent
 review and one corrected initialization guard. Actual paid component fixtures
 preserve the original Site/Project/Room identities and refresh all existing
@@ -129,9 +136,17 @@ reuses the existing World's staging banks. The two boots emitted44 recorded
 missing-asset/audio warnings; this is lifecycle evidence, not visual acceptance.
 Operational teardown, fixed-tick dispatch and successful Room entry/phase remain
 open. Current parallel work composes ordinary paid phases, D11 suggested/editable
-entrance selection in the real room editor, and the bounded runtime/API/allocation
-packet for actual wood handling. The shared spatial refresh is integrated;
-actual wood-handling runtime integration remains a separate dependency.
+entrance selection in the real room editor, and the actual WALK-to-WORK source
+transition. The complete published work pose fits the virgin face, but the
+current walking/tool envelope reaches into its uncut wall; no positive paid
+workflow may bypass that refusal. Geometry is investigating unchanged walk and
+ready keys before any new source is authored. Its wood-handling proposal is
+deferred behind this playable dependency. The shared spatial refresh is
+integrated; actual wood-handling runtime integration remains separate.
+The access UI candidate passed55 tests/1,053 assertions with zero diagnostics
+or leaks; independent review/native preview remain pending. One populated
+graph/maximum-paint candidate took68.858ms, so responsive UI qualification is
+still open and the single result is not a maximum-source-population bound.
 The added lane decomposes existing work and does not add or waive requirements.
 
 Decision1140's actual Delivery component is integrated at`fa017ba4`, using

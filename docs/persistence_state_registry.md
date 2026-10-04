@@ -1667,3 +1667,12 @@ The connector-only static Construction START kernel and final Router phase/crew
 checks add no members or copied Quote. Their longest new numeric helper chain
 is129B (169B including the existing Router entry frame), inside the512B allowance
 above; it is not an additional retained allocation or a second paid ledger.
+
+### Future Corridor Placement admission companions (decision1108)
+
+| Retained or transient scope | Change | Accounting and lifecycle |
+|---|---|---|
+| Pending Placement frontier source | Existing header14 and digest bytes96..127 become once-bound on the first accepted empty-store entry | Pinned in the inactive bank before observers; refusal preserves live zero; retirement to empty preserves the accepted positive revision/hash. No new column, image or counter. Source bytes identify immutable content and grant no physical permission. |
+| Synchronous Room admission context | One RoomContext80B, private candidate32B and flag1B | Adds113 logical bytes to Placement1557, giving1670 within the existing2048 fixed allowance. Existing native header/reference reservation remains provisional; no authoritative per-row expansion. All exact original tokens and weak issuer links clear on completion/discard. |
+| Existing endpoint/path/certificate refresh | Existing inactive banks only | Same full old handles/payloads; all rows refresh to exact sealed geometry/content. The pure final leaf runs before Room/Sites identity. Actual success receipts then permit static observer-free swaps. No new endpoint, edge, installed part, work counter or physical permission. |
+| Sequential cold request and proof lifetime | Two EntryPlan images plus one Location or WorldRoutes proof | Exact runtime admission is2*payload + max(88K+384,377856)+2048 under the original Budget; sizes and lease rechecked after observers. Both proof images drop before Sites batch creation. At R/K6144 and maximum conservative6143 claims/16 targets:838936 Location,675736 graph,644120 final Sites logical bytes. Concrete provider scratch/native overlap still requires joint admission. |

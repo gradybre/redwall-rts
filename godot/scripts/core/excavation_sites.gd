@@ -686,6 +686,107 @@ static func publish_entry_claim_preflighted(actual: RefCounted, batch: RoomClaim
 	return &""
 
 
+static func room_claim_prepared_leaf_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Final ordinary physical-history and allocator guard bypasses the public Sites observation interface."""
+	if actual == null or batch == null or batch._entry_input != null or batch._input == null:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _room_claim_current_leaf_refusal(actual, batch)
+	return code if code != &"" else actual._construction._directory.candidate_refusal(batch._candidate)
+
+
+static func publish_room_claim_preflighted(actual: RefCounted, batch: RoomClaimBatch,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Consume only the exact ordinary Room receipt and original bracket, without authority/Buildings observers."""
+	if actual == null or batch == null or batch._entry_input != null or batch._input == null or authority == null \
+			or batch._owner == null or batch._owner.get_ref() != actual \
+			or batch._authority == null or batch._authority.get_ref() != authority:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = _room_claim_current_leaf_refusal(actual, batch)
+	if code == &"":
+		code = _room_claim_bracket_refusal(actual, batch, authority)
+	if code == &"":
+		code = _entry_claim_receipt_refusal(actual, batch)
+	if code != &"":
+		return code
+	_publish_claim_rows_preflighted(actual, batch)
+	batch._phase = 2
+	actual._claim_batch = null
+	batch._drop_scratch()
+	return &""
+
+
+static func _room_claim_current_leaf_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Read ordinary original history and concrete replay state without calling public or subclass owner methods."""
+	if actual == null or batch == null or batch.get_script() != RoomClaimBatch \
+			or actual._claim_batch == null or actual._claim_batch.get_ref() != batch \
+			or batch._owner == null or batch._owner.get_ref() != actual or batch._phase != 1 \
+			or batch._entry_input != null or batch._input == null or batch._entry_cursor != null \
+			or batch._cursor == null or batch._cursor.get_script() != CutMap or not batch._unchanged() \
+			or batch._budget == null or batch._budget.get_script() != Budget \
+			or not batch._budget.covers(batch._cold_token, Budget.COLD_BYTES):
+		return REFUSE_CLAIM_BATCH
+	if _room_claim_composition_leaf_refusal(actual, batch) != &"" \
+			or batch._world != actual._domain.world_ref or batch._datum != actual._domain.datum_u \
+			or batch._minimum != actual._domain.minimum_quantum or batch._size != actual._domain.size_quanta \
+			or actual._count != batch._base_count or batch._count < 1 or batch._count > actual._capacity - actual._count:
+		return REFUSE_CLAIM_BATCH
+	return &"" if RoomClaimBatch.cursor_error(batch) == &"" \
+		and RoomClaimBatch.cursor_count(batch) == 0 else REFUSE_CLAIM_BATCH
+
+
+static func _room_claim_composition_leaf_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Preserve the ordinary composition checks through actual fields; no observation getter runs after source closure."""
+	if actual._ready_error != &"" or actual._construction == null or actual._jobs == null or actual._work == null \
+			or actual._space == null or not actual._space.get_ref() is SpatialAuthority or actual._items == null or actual._pool == null \
+			or actual._inventory == null or actual._domain == null:
+		return REFUSE_CLAIM_BATCH
+	var ids: Directory = actual._construction._directory
+	var buildings: Buildings = actual._construction._buildings
+	if ids == null or ids.get_script() != Directory or buildings == null or buildings._directory != ids \
+			or actual._jobs._directory != ids or actual._work._jobs != actual._jobs \
+			or batch._candidate == null or batch._candidate._directory == null or batch._candidate._directory.get_ref() != ids \
+			or batch._authority == null or batch._authority.get_ref() == null or buildings._spatial_authority == null \
+			or batch._authority.get_ref() != buildings._spatial_authority.get_ref() \
+			or actual._construction._excavation_authority == null or actual._construction._excavation_authority.get_ref() != actual \
+			or not ids.is_valid_of_kind(actual._domain.world_ref, Directory.KIND_WORLD):
+		return REFUSE_CLAIM_BATCH
+	if actual._items._registered_inventory == null or actual._items._registered_inventory.get_ref() != actual._inventory \
+			or (actual._pool._bound_inventory != null and actual._pool._bound_inventory.get_ref() != actual._inventory) \
+			or (actual._pool._bound_inventory == null and actual._pool._active_count > 0) \
+			or actual._work._gear == null or actual._work._residents == null:
+		return REFUSE_CLAIM_BATCH
+	return &"" if actual._work._gear._inventory == actual._inventory and actual._work._gear._directory_binding == ids \
+		and actual._work._gear._residents == actual._work._residents else REFUSE_CLAIM_BATCH
+
+
+static func _room_claim_bracket_refusal(actual: RefCounted, batch: RoomClaimBatch,
+		issuer: RefCounted) -> StringName:
+	"""An ordinary Room retains its complete original plan and exact actual claims, candidate and cold arena."""
+	if not ("_entry_mode" in issuer and "_publishing" in issuer and "_stage_action" in issuer \
+			and "ROOM_ADMISSION_STAGE" in issuer and "_room_sites" in issuer and "_room_claim_batch" in issuer \
+			and "_room_candidate" in issuer and "_stage_room" in issuer and "_room_budget" in issuer \
+			and "_room_cold_token" in issuer and "_construction" in issuer and "_buildings" in issuer \
+			and "_room_plan" in issuer and "_room_request" in issuer and "_world" in issuer and "_cold_held" in issuer):
+		return REFUSE_CLAIM_BATCH
+	if issuer._entry_mode or not issuer._publishing or issuer._stage_action != issuer.ROOM_ADMISSION_STAGE \
+			or issuer._room_sites != actual or issuer._room_claim_batch != batch \
+			or issuer._room_candidate != batch._candidate or issuer._stage_room != batch._room \
+			or not issuer._cold_held or issuer._room_budget != batch._budget or issuer._room_cold_token != batch._cold_token \
+			or issuer._construction != actual._construction or issuer._buildings != actual._construction._buildings \
+			or issuer._room_plan == null or issuer._room_request == null or issuer._world != batch._world:
+		return REFUSE_CLAIM_BATCH
+	var plan: RefCounted = issuer._room_plan
+	var request: RefCounted = issuer._room_request
+	return &"" if plan.world == batch._world and plan.room_type == batch._room_type \
+		and plan.space_revision == batch._space_revision and plan.level == batch._level \
+		and plan.origin_u == batch._origin and plan.cell_size_u == batch._pitch \
+		and plan.height_u == batch._height and plan.cells == batch._cells \
+		and request.world == plan.world and request.space_revision == plan.space_revision \
+		and request.room_type == plan.room_type and request.level == plan.level and request.origin_u == plan.origin_u \
+		and request.cell_size_u == plan.cell_size_u and request.height_u == plan.height_u \
+		and request.cells == plan.cells else REFUSE_CLAIM_BATCH
+
+
 static func _entry_claim_bracket_refusal(actual: RefCounted, batch: RoomClaimBatch,
 		issuer: RefCounted) -> StringName:
 	"""The original sole Buildings authority must retain this exact entry, candidate, batch and arena lease."""
@@ -706,8 +807,8 @@ static func _entry_claim_bracket_refusal(actual: RefCounted, batch: RoomClaimBat
 
 static func _entry_claim_receipt_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
 	"""Use actual mirrored Room columns; room_identity_into is an external observation interface."""
-	var ids: Directory = actual._construction.directory()
-	var buildings: Buildings = actual._construction.buildings()
+	var ids: Directory = actual._construction._directory
+	var buildings: Buildings = actual._construction._buildings
 	var row: int = batch._typed_row
 	if not ids.is_valid_of_kind(batch._room, Directory.KIND_ROOM) or ids.get_typed_row(batch._room) != row \
 			or ids.get_persistent_id(batch._room) != batch._persistent_id or row < 0 or row >= buildings._r_present.size():
@@ -736,31 +837,41 @@ func _claim_created_room_refusal(batch: RoomClaimBatch) -> StringName:
 
 func _publish_claim_rows(batch: RoomClaimBatch) -> void:
 	"""Replay private proven input into preallocated permanent SOLID rows; no price or physical cut occurs."""
-	var row: int = _count
+	_publish_claim_rows_preflighted(self, batch)
+
+
+static func _publish_claim_rows_preflighted(actual: RefCounted, batch: RoomClaimBatch) -> void:
+	"""Replay only the exact already-proved internal cursor, without dispatching a Sites subclass hook."""
+	var row: int = actual._count
 	while RoomClaimBatch.advance_cursor(batch):
-		_site_key[row] = RoomClaimBatch.cursor_key(batch)
-		_present[row] = 1
-		_room_slot[row] = batch._room.x
-		_room_generation[row] = batch._room.y
+		actual._site_key[row] = RoomClaimBatch.cursor_key(batch)
+		actual._present[row] = 1
+		actual._room_slot[row] = batch._room.x
+		actual._room_generation[row] = batch._room.y
 		row += 1
-	assert(RoomClaimBatch.cursor_error(batch) == &"" and row == _count + batch._count, "prepaid private replay cannot fail")
-	_merge_claim_rows(_count, row)
-	_count = row
+	assert(RoomClaimBatch.cursor_error(batch) == &"" and row == actual._count + batch._count, "prepaid private replay cannot fail")
+	_merge_claim_rows_preflighted(actual, actual._count, row)
+	actual._count = row
 
 
 func _merge_claim_rows(first_new: int, last_new: int) -> void:
 	"""Merge sorted new physical keys backward, never inserting every key through a quadratic shift."""
+	_merge_claim_rows_preflighted(self, first_new, last_new)
+
+
+static func _merge_claim_rows_preflighted(actual: RefCounted, first_new: int, last_new: int) -> void:
+	"""Share the allocation-free stable merge without invoking an overridable Sites method."""
 	var old: int = first_new - 1
 	var added: int = last_new - 1
 	var target: int = last_new - 1
 	while added >= first_new:
-		if old >= 0 and _ordered_key[old] > _site_key[added]:
-			_ordered_key[target] = _ordered_key[old]
-			_ordered_row[target] = _ordered_row[old]
+		if old >= 0 and actual._ordered_key[old] > actual._site_key[added]:
+			actual._ordered_key[target] = actual._ordered_key[old]
+			actual._ordered_row[target] = actual._ordered_row[old]
 			old -= 1
 		else:
-			_ordered_key[target] = _site_key[added]
-			_ordered_row[target] = added
+			actual._ordered_key[target] = actual._site_key[added]
+			actual._ordered_row[target] = added
 			added -= 1
 		target -= 1
 

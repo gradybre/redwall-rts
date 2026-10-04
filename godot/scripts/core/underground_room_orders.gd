@@ -269,6 +269,16 @@ class Bindings extends RefCounted:
 		"""Recheck actual source/contact revisions and every prepared companion before identity publication."""
 		return REFUSE_BINDING
 
+	func room_approach_observation_refusal(_plan: RoomPlan, _candidate: Directory.CreateCandidate,
+			_space_token: int) -> StringName:
+		"""Finish current ordinary-room access/source observations before the final callback-free leaves."""
+		return REFUSE_BINDING
+
+	func room_approach_final_refusal(_plan: RoomPlan, _candidate: Directory.CreateCandidate,
+			_space_token: int) -> StringName:
+		"""Recheck original prepared access and companion facts after every other observer; base grants nothing."""
+		return REFUSE_BINDING
+
 	func discard_room_plan(_room: Vector2i, _space_token: int) -> void:
 		"""Drop only this exact room companion; accepted claims from other Rooms remain live."""
 		assert(false, "Unbound room bindings cannot retain a plan")
@@ -1284,16 +1294,13 @@ func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
 
 func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 	"""Publish actual Room then its sealed exact future source, without fallible reconstruction afterward."""
-	var refusal: StringName = bindings.entry_final_refusal(_entry_plan, _room_candidate, _entry_section, _stage_token) \
-		if _entry_mode else &""
-	if refusal == &"":
-		refusal = _room_claims_final_refusal()
+	var refusal: StringName = _room_publication_refusal(bindings)
 	if refusal != &"":
 		_discard_room(bindings)
 		return Buildings.OpResult.new(false, refusal, 0, NULL_REF)
 	_publishing = true
 	var made: Buildings.OpResult = _publish_entry_identity() if _entry_mode \
-		else _buildings.designate_spatial_room_candidate(_admission_room_type(), _room_candidate)
+		else _publish_flat_room_identity()
 	if not made.ok:
 		_publishing = false
 		_discard_room(bindings)
@@ -1306,6 +1313,29 @@ func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 	_publishing = false
 	_finish_room_cold(bindings)
 	return made
+
+
+func _room_publication_refusal(bindings: Bindings) -> StringName:
+	"""Ordinary source closure follows Sites observers; the subsequent identity path uses concrete leaves only."""
+	var code: StringName = bindings.entry_final_refusal(_entry_plan, _room_candidate, _entry_section, _stage_token) \
+		if _entry_mode else bindings.room_approach_observation_refusal(_room_plan, _room_candidate, _stage_token)
+	if code == &"":
+		code = _room_claims_final_refusal()
+	if code == &"" and not _entry_mode:
+		code = bindings.room_approach_final_refusal(_room_plan, _room_candidate, _stage_token)
+	return code
+
+
+func _publish_flat_room_identity() -> Buildings.OpResult:
+	"""After final source closure, check local originals and write the actual Room without authority observers."""
+	var code: StringName = _flat_room_claims_leaf_refusal() if _publishing and not _entry_mode else REFUSE_TRANSITION
+	if code != &"":
+		return Buildings.OpResult.new(false, code, 0, NULL_REF)
+	var ids: Directory = _construction._directory
+	var made: Vector2i = ids.create_candidate(_room_candidate)
+	if made == NULL_REF:
+		return Buildings.OpResult.new(false, ids.last_refusal(), 0, NULL_REF)
+	return Buildings.publish_spatial_room_preflighted(_buildings, made, _room_plan.room_type)
 
 
 func _publish_entry_identity() -> Buildings.OpResult:
@@ -1321,7 +1351,7 @@ func _publish_entry_identity() -> Buildings.OpResult:
 
 
 func _publish_room_geometry() -> void:
-	"""Entry publication is callback-free after identity; the ordinary flat protocol keeps its existing API."""
+	"""Both protocols publish physical claims and the sealed bank without observing partially committed owners."""
 	if _entry_mode:
 		var entry_reserved: StringName = Sites.publish_entry_claim_preflighted(_room_sites, _room_claim_batch, self)
 		assert(entry_reserved == &"", "preflighted exact non-flat Room cuts publish from the actual identity receipt")
@@ -1329,10 +1359,11 @@ func _publish_room_geometry() -> void:
 			Buildings.ROOM_TYPE_CORRIDOR, self, _room_budget, _room_cold_token)
 		assert(committed, "preflighted non-flat Room geometry publishes without source or authority observers")
 		return
-	var reserved: StringName = _room_sites.publish_room_claim_batch(_room_claim_batch)
-	assert(reserved == &"", "preflighted exact Room cuts publish before the first spatial/source callback")
-	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _admission_room_type(), self)
-	assert(code == &"", "preflighted exact future Room geometry must publish after identity")
+	var reserved: StringName = Sites.publish_room_claim_preflighted(_room_sites, _room_claim_batch, self)
+	assert(reserved == &"", "preflighted exact flat Room cuts publish from the actual identity receipt")
+	var flat_committed: bool = SpaceOwner.room_commit_preflighted(_space, _stage_token, _room_candidate,
+		_room_plan.room_type, self, _room_budget, _room_cold_token)
+	assert(flat_committed, "preflighted flat Room geometry publishes without source or authority observers")
 
 
 func _prepare_room_claims() -> StringName:
@@ -1411,6 +1442,45 @@ func _room_claims_final_refusal() -> StringName:
 	if code != &"":
 		return code
 	return _room_sites.room_claim_batch_refusal(_room_claim_batch)
+
+
+func _flat_room_claims_leaf_refusal() -> StringName:
+	"""Last ordinary guard reads exact original request, identity, claims and sealed Space without provider dispatch."""
+	if _room_budget == null or _room_budget.get_script() != Budget or not _room_budget_covers():
+		return REFUSE_ROOM_COLD
+	if _entry_mode or _stage_action != ROOM_ADMISSION_STAGE or _flat_room_binding_leaf_refusal() != &"" \
+			or _room_candidate == null or _room_candidate.get_script() != Directory.CreateCandidate \
+			or _room_candidate.ref != _stage_room or _room_plan.world != _world:
+		return REFUSE_TRANSITION
+	if not _same_room_plan(_room_request) or _room_claim_input == null \
+			or _room_claim_input.world != _room_plan.world or _room_claim_input.room_type != _room_plan.room_type \
+			or _room_claim_input.level != _room_plan.level or _room_claim_input.space_revision != _room_plan.space_revision \
+			or _room_claim_input.origin_u != _room_plan.origin_u or _room_claim_input.cell_size_u != _room_plan.cell_size_u \
+			or _room_claim_input.height_u != _room_plan.height_u or _room_claim_input.cells != _room_plan.cells:
+		return REFUSE_PLAN
+	if _room_sites == null or _construction._excavation_authority == null \
+			or _construction._excavation_authority.get_ref() != _room_sites \
+			or _room_claim_batch == null or _room_claim_batch.get_script() != Sites.RoomClaimBatch \
+			or not _room_claim_batch.matches_input(_room_claim_input, _room_candidate):
+		return REFUSE_BINDING
+	var code: StringName = SpaceOwner.room_prepared_leaf_refusal(_space, _stage_token, _room_candidate,
+		_room_plan.room_type, self)
+	return Sites.room_claim_prepared_leaf_refusal(_room_sites, _room_claim_batch) if code == &"" else code
+
+
+func _flat_room_binding_leaf_refusal() -> StringName:
+	"""Read actual owner fields in the ordinary final bracket; public Buildings getters remain observation hooks."""
+	if _ready_error != &"" or _construction == null or _buildings == null or _space == null or _sources == null \
+			or _buildings._spatial_authority == null or _buildings._spatial_authority.get_ref() != self \
+			or _construction._buildings != _buildings or _space._sources != _sources \
+			or _construction._directory == null or _construction._directory.get_script() != Directory \
+			or _buildings._directory != _construction._directory or _sources._directory != _construction._directory \
+			or _sources._buildings != _buildings or _sources._construction != _construction \
+			or not _construction._directory.is_valid_of_kind(_world, Directory.KIND_WORLD):
+		return REFUSE_BINDING
+	return &"" if _router != null and _router.get_ref() != null and _construction._modular_authority != null \
+		and _construction._modular_authority.get_ref() == _router.get_ref() \
+		and _bindings != null and _bindings.get_ref() is Bindings else REFUSE_BINDING
 
 
 func _discard_room(bindings: Bindings) -> void:

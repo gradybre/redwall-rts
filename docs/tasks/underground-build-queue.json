@@ -950,6 +950,27 @@
           "status": "implementing real approach; not playable Room acceptance",
           "branch": "codex/underground-room-approach",
           "decision_number": 1150
+        },
+        "ordinary_room_publication_tail": {
+          "status": "accepted source component; real 1150 approach and composed caller census remain open",
+          "reviewer": "/root/ug_construction",
+          "review_commit": "8dd07e6f65eacc8b62e165b1a5859cc88a46051d",
+          "evidence": "docs/validation/evidence/underground-room-tail-integration-2026-10-04",
+          "broad_candidate": {
+            "tests": 389,
+            "assertions": 17880,
+            "failures": 0
+          },
+          "final_delta": {
+            "tests": 69,
+            "assertions": 2568,
+            "failures": 0
+          },
+          "unexpected_diagnostics": 0,
+          "leaks": 0,
+          "analyzer": "0 warnings in 11 files",
+          "storage": "no retained fields/banks/capacity changes; logical root numeric frame upper bound 1582/2048 bytes",
+          "metadata_checks": "225 memory tests, 190 capacity checks, zero failures; generated SHA/line provenance only"
         }
       },
       "lease": {
@@ -2700,10 +2721,23 @@
           "runtime_qualified": false
         },
         "ordinary_room_publication": {
-          "status": "implementing narrow concrete RoomPlan companion leaves",
+          "status": "component accepted and integrated; actual approach composition remains open",
           "branch": "codex/underground-room-publication",
           "ownership": "SpaceOwner/Locations/FinalFacts and dedicated tests only; root Orders/Sites and Furnishing Bindings/Approach remain separate",
-          "decision_number": 1151
+          "decision_number": 1151,
+          "source_commit": "546248509f4669dea8131827107962e6cb952246",
+          "integration_commit": "65251114",
+          "tests": {
+            "tests": 41,
+            "assertions": 1354,
+            "failures": 0,
+            "unexpected_diagnostics": 0,
+            "leaks": 0,
+            "analyzer_warnings": 0,
+            "analyzer_files": 5
+          },
+          "evidence": "docs/validation/evidence/underground-room-publication-2026-10-04/",
+          "reviewer": "/root"
         }
       },
       "lease": {

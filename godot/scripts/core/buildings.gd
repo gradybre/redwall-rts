@@ -1088,12 +1088,17 @@ func designate_spatial_room_candidate(room_type: int, candidate: EntityDirectory
 
 
 func _publish_spatial_room(ref: Vector2i, room_type: int) -> OpResult:
-	"""Initialize every actual Room column through the existing row path; no flat tile is claimed."""
-	var row: int = _directory.get_typed_row(ref)
-	_write_room_row(row, ref, NULL_REF, room_type, PackedInt32Array())
-	_r_spatial_kind[row] = ROOM_SPACE_UNDERGROUND
-	_r_tile_offset[row] = 0
-	_r_live_count += 1
+	"""Keep the ordinary observable wrapper; guarded publication calls the concrete static kernel directly."""
+	return publish_spatial_room_preflighted(self, ref, room_type)
+
+
+static func publish_spatial_room_preflighted(actual: RefCounted, ref: Vector2i, room_type: int) -> OpResult:
+	"""Write a preflighted actual Room receipt without dispatching subclass row or publication observers."""
+	var row: int = actual._directory.get_typed_row(ref)
+	_write_room_row_preflighted(actual, row, ref, NULL_REF, room_type, PackedInt32Array())
+	actual._r_spatial_kind[row] = ROOM_SPACE_UNDERGROUND
+	actual._r_tile_offset[row] = 0
+	actual._r_live_count += 1
 	return OpResult.new(true, REFUSE_NONE, row, ref)
 
 
@@ -1174,28 +1179,34 @@ func _is_interior_tile(building_row: int, tile: int) -> bool:
 
 func _write_room_row(row: int, ref: Vector2i, building_ref: Vector2i, room_type: int,
 		tiles: PackedInt32Array) -> void:
+	"""Retain the ordinary row writer API; actual packed-column initialization is shared by static publication."""
+	_write_room_row_preflighted(self, row, ref, building_ref, room_type, tiles)
+
+
+static func _write_room_row_preflighted(actual: RefCounted, row: int, ref: Vector2i, building_ref: Vector2i, room_type: int,
+		tiles: PackedInt32Array) -> void:
 	"""Initialize every Room column, claim its tiles in both the arena and the tile map."""
-	_r_type[row] = room_type
-	_r_building_slot[row] = building_ref.x
-	_r_building_generation[row] = building_ref.y
-	_r_tile_offset[row] = _room_tile_used
-	_r_tile_count[row] = tiles.size()
-	_r_temperature_tenths[row] = 0
-	_r_furniture_mask[row] = 0
-	_r_occupants[row] = 0
-	_r_valid[row] = 0
-	_r_spatial_kind[row] = ROOM_SPACE_SURFACE
-	_r_present[row] = 1
-	_r_ref_slot[row] = ref.x
-	_r_ref_generation[row] = ref.y
-	_r_furniture_head[row] = NO_LINK
-	_r_furniture_count[row] = 0
-	_r_building_next[row] = NO_LINK
-	_r_building_prev[row] = NO_LINK
+	actual._r_type[row] = room_type
+	actual._r_building_slot[row] = building_ref.x
+	actual._r_building_generation[row] = building_ref.y
+	actual._r_tile_offset[row] = actual._room_tile_used
+	actual._r_tile_count[row] = tiles.size()
+	actual._r_temperature_tenths[row] = 0
+	actual._r_furniture_mask[row] = 0
+	actual._r_occupants[row] = 0
+	actual._r_valid[row] = 0
+	actual._r_spatial_kind[row] = ROOM_SPACE_SURFACE
+	actual._r_present[row] = 1
+	actual._r_ref_slot[row] = ref.x
+	actual._r_ref_generation[row] = ref.y
+	actual._r_furniture_head[row] = NO_LINK
+	actual._r_furniture_count[row] = 0
+	actual._r_building_next[row] = NO_LINK
+	actual._r_building_prev[row] = NO_LINK
 	for index: int in tiles.size():
-		_room_tile_id[_room_tile_used + index] = tiles[index]
-		_room_slot[tiles[index]] = row
-	_room_tile_used += tiles.size()
+		actual._room_tile_id[actual._room_tile_used + index] = tiles[index]
+		actual._room_slot[tiles[index]] = row
+	actual._room_tile_used += tiles.size()
 
 
 func remove_room(room_ref: Vector2i) -> OpResult:

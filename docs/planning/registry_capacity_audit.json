@@ -10,12 +10,12 @@
   },
   "audited_source": {
     "module_sha256": {
-      "buildings": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
+      "buildings": "f83875e59b1830d3878536c54038367f41e23f306d1394267b26f408694208ba",
       "command_dispatch": "191b5fa24ff06e18ccf20094e5fe9a44879db2d61c63554803a92905d3f5e87e",
       "construction": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "e69e83b0fa3851f7408b574fec44b0978d048fb759eb90b458492ac81d15c001",
-      "excavation_sites": "71548ca75917cf3aaca90469f2e23b15354b87744e1feb640b8f3655de1e55a0",
+      "excavation_sites": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
       "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
       "fishing": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
-      "underground_space_owner": "32eff2b94f5ccc6c8b11c9490b857ac89ce30ca88f37b04b65d78d19f9408d96",
+      "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "6bd7a29c6398dd1a8f795b40021bcf8602b85f5d51bf99aa9d6a0fb4fe074a6b",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 2706,
+      "source_resize_line": 2722,
       "source_value": 18,
       "status": "proved_equality"
     },

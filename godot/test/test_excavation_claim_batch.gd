@@ -24,6 +24,7 @@ class WatchedOrders extends FixtureScript.SyntheticRegistration:
 	var foreign_copy_bytes: int = -1
 	var private_bytes: int = 0
 	var direct_refusal: StringName = &""
+	var premature_kernel_refusal: StringName = &""
 	var scope_calls: int = 0
 	var scopes_at_commit: int = 0
 
@@ -48,6 +49,7 @@ class WatchedOrders extends FixtureScript.SyntheticRegistration:
 		saved = _room_claim_batch
 		private_bytes = saved._cells.size() * 4 + saved._cursor._intervals.size() * 8 + saved._room_facts.size() * 4
 		direct_refusal = _room_sites.publish_room_claim_batch(saved)
+		premature_kernel_refusal = Sites.publish_room_claim_preflighted(_room_sites, saved, self)
 		scopes_at_commit = scope_calls
 		_inject_fault()
 		return code
@@ -169,8 +171,11 @@ func test_exact_fine_plan_reserves_once_before_spatial_publication_without_payme
 	assert_true(_f.inventory.state_bytes() == before_goods, "no material spent or generated")
 	assert_equal(_orders.scope_calls, _orders.scopes_at_commit, "no external scope callback during publication")
 	assert_true(_orders.direct_refusal != &"", "prepared packet cannot publish before actual Room")
+	assert_equal(_orders.premature_kernel_refusal, Sites.REFUSE_CLAIM_BATCH, "direct static kernel cannot borrow preparation")
 	var after: PackedByteArray = _image()
 	assert_true(_f.sites.publish_room_claim_batch(_orders.saved) != &"", "duplicate/idle publication refused")
+	assert_equal(Sites.publish_room_claim_preflighted(_f.sites, _orders.saved, _orders),
+		Sites.REFUSE_CLAIM_BATCH, "already consumed static kernel refuses duplicate publication")
 	assert_true(_image() == after, "duplicate refusal leaves every owner byte unchanged")
 
 

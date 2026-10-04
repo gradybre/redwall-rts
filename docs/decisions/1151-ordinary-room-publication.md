@@ -86,3 +86,27 @@ Root independently accepted the exact five source/test pins in
 scope/arena, before/after identity, finite precharge and unchanged entry
 semantics. Root's coordinated publication tail and 1150 Approach caller census
 remain separate from this component acceptance.
+
+## Root publication tail accepted
+
+The root Orders/Sites/Buildings integration retains the two explicit approach
+hooks: observation before the remaining observing claim guards, then the final
+approach guard before static publication. Base bindings refuse ordinary access
+until 1150 supplies the actual path/work-face proof.
+
+The original request, private plan, exact candidate, original cold lease and
+concrete claim batch are checked without observer dispatch after that final
+guard. Buildings identity columns and Sites claim replay/merge use static
+leaves through their complete call chain. Independent review reproduced an
+overridden private callback revoking the lease after Room identity publication;
+the correction removes that callback path and tests it explicitly. The direct
+Sites composition leaf also retains the original SpatialAuthority type check.
+
+The independently accepted root packet and exact summaries are retained in
+`docs/validation/evidence/underground-room-tail-integration-2026-10-04/` and
+`docs/validation/evidence/underground-ordinary-room-publication-review-2026-10-04/`.
+The broad candidate passed 389 tests / 17,880 assertions; the final type-check
+delta passed 69 / 2,568. All failures, unexpected diagnostics and leaks are zero;
+both analyzers report zero warnings in eleven files. No retained allocation or
+capacity changed. This acceptance still requires 1150's real approach and
+coordinated caller lifetime proof before playable ordinary confirmation.

@@ -57,6 +57,14 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 	var foreign_space: SpaceOwner = null
 	var foreign_budget: Budget = null
 	var binding_reads: int = 0
+	var approach_observations: int = 0
+	var approach_final_checks: int = 0
+	var refuse_approach: bool = false
+	var refuse_approach_final: bool = false
+	var mutate_approach_final: bool = false
+	var replace_approach_final: bool = false
+	var final_source_closed: bool = false
+	var wrong_spatial_type_at_final: bool = false
 
 	func exact_binding(buildings: Buildings, candidate: SpaceOwner, actual: Construction,
 			world_ref: Vector2i) -> bool:
@@ -152,6 +160,28 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 		assert(pending_room == NULL_REF or pending_room == room and pending_token == token, "exact companion discard")
 		_clear_room_companion()
 
+	func room_approach_observation_refusal(_plan: RoomOrders.RoomPlan, _candidate: Directory.CreateCandidate,
+			_token: int) -> StringName:
+		"""Only this explicitly synthetic fixture permits prospective access; record its pre-identity position."""
+		approach_observations += 1
+		var actual: RoomOrders = orders.get_ref() as RoomOrders
+		assert(not actual._publishing and not construction.buildings().is_live_room(pending_room), "before identity")
+		return &"SYNTHETIC_ROOM_APPROACH" if refuse_approach else &""
+
+	func room_approach_final_refusal(_plan: RoomOrders.RoomPlan, _candidate: Directory.CreateCandidate,
+			_token: int) -> StringName:
+		"""Exercise the concrete tail against mutations even after a provider claims final source success."""
+		approach_final_checks += 1
+		final_source_closed = true
+		if wrong_spatial_type_at_final:
+			(construction.excavation_authority() as Sites)._space = weakref(arena)
+		if mutate_approach_final:
+			original_plan.origin_u.x += 1
+		if replace_approach_final:
+			assert(arena.release(arena_token) == &"", "original late lease released")
+			replacement_token = arena.acquire(Budget.COLD_BYTES)
+		return &"SYNTHETIC_ROOM_APPROACH_FINAL" if refuse_approach_final else &""
+
 	func publish_room_plan(room: Vector2i, token: int) -> void:
 		"""Record real live Room/source facts only during the exact production coordinator callback."""
 		assert(room == pending_room and token == pending_token, "exact room companion publication")
@@ -223,6 +253,7 @@ class RoomBindings extends FixtureScript.SyntheticBindings:
 			assert(arena.release(arena_token) == &"", "only retained exact lease releases")
 		arena_token = 0
 		original_plan = null
+		final_source_closed = false
 		room_ends += 1
 
 class ForeignPurpose extends Contract.Owner:
@@ -242,14 +273,110 @@ class ForeignPurpose extends Contract.Owner:
 		"""Reserve the real Furniture purpose through the actual router for the adversarial test."""
 		return Construction.PURPOSE_SPATIAL_FURNITURE
 
-var _f: FixtureScript.Fixture = null
+class ObservedOrders extends FixtureScript.SyntheticRegistration:
+	var final_candidate_observers: int = 0
+	var partial_publication_observers: int = 0
+	var mutate_after_claim_observer: bool = false
+
+	func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int) -> StringName:
+		"""A callback during the publication bracket would invalidate the claimed physical purpose."""
+		if _publishing and _space.has_prepared():
+			final_candidate_observers += 1
+			_room_request.room_type = Buildings.ROOM_TYPE_DORMITORY
+		return super.room_candidate_refusal(candidate, room_type)
+
+	func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
+		"""Reject observing a real Room while its matching geometry is still only staged."""
+		if _publishing and _buildings.is_live_room(_stage_room) and _space.has_prepared():
+			partial_publication_observers += 1
+			return false
+		return super.is_publishing_room_admission(room, room_type)
+
+	func _room_claims_final_refusal() -> StringName:
+		"""Inject caller drift after the final public claims observation; concrete final leaves must refuse."""
+		var code: StringName = super._room_claims_final_refusal()
+		if code == &"" and mutate_after_claim_observer:
+			_room_request.height_u += 1
+		return code
+
+class ObservedBuildings extends Buildings:
+	var partial_receipt_observers: int = 0
+	var late_private_publication_observers: int = 0
+	var final_authority_getters: int = 0
+
+	func spatial_authority() -> Buildings.SpatialAuthority:
+		"""A public getter is an observer too; it must not run after the exact final source closure."""
+		var actual: RoomOrders = _spatial_authority.get_ref() as RoomOrders if _spatial_authority != null else null
+		var binding: RoomBindings = actual._bindings.get_ref() as RoomBindings if actual != null and actual._bindings != null else null
+		if binding != null and binding.final_source_closed and actual._space._stage_token > 0:
+			final_authority_getters += 1
+			binding.original_plan.room_type = Buildings.ROOM_TYPE_DORMITORY
+		return super.spatial_authority()
+
+	func _publish_spatial_room(room: Vector2i, room_type: int) -> Buildings.OpResult:
+		"""The old private instance publication hook could revoke the lease after writing a live Room."""
+		var made: Buildings.OpResult = super._publish_spatial_room(room, room_type)
+		var actual: RoomOrders = _spatial_authority.get_ref() as RoomOrders if _spatial_authority != null else null
+		if actual != null and not actual._entry_mode and actual._publishing and actual._space._stage_token > 0:
+			late_private_publication_observers += 1
+			assert(actual._room_budget.release(actual._room_cold_token) == &"", "adversarial private publication revoked lease")
+		return made
+
+	func room_identity_into(room: Vector2i, out: PackedInt32Array) -> StringName:
+		"""An ordinary public receipt read cannot be dispatched between identity and Space publication."""
+		var actual: RoomOrders = spatial_authority() as RoomOrders
+		if actual != null and actual._publishing and actual._space.has_prepared():
+			partial_receipt_observers += 1
+			assert(actual._room_budget.release(actual._room_cold_token) == &"", "adversarial lease revocation")
+		return super.room_identity_into(room, out)
+
+class ObservedSites extends Sites:
+	var late_private_observers: int = 0
+
+	func _closed_final() -> bool:
+		"""Borrow test scope without using any of the observation hooks being measured."""
+		var actual: RoomOrders = _construction._buildings._spatial_authority.get_ref() as RoomOrders \
+			if _construction._buildings._spatial_authority != null else null
+		var binding: RoomBindings = actual._bindings.get_ref() as RoomBindings if actual != null and actual._bindings != null else null
+		return binding != null and binding.final_source_closed and actual._space._stage_token > 0
+
+	func _claim_batch_current_refusal(batch: Sites.RoomClaimBatch) -> StringName:
+		"""Calling a private instance helper after final source closure is still virtual dispatch."""
+		if _closed_final():
+			late_private_observers += 1
+			assert(batch._budget.release(batch._cold_token) == &"", "adversarial private helper revoked lease")
+		return super._claim_batch_current_refusal(batch)
+
+	func _publish_claim_rows(batch: Sites.RoomClaimBatch) -> void:
+		"""The actual final static kernel must also bypass a subclass's private write hook."""
+		if _closed_final():
+			late_private_observers += 1
+			assert(batch._budget.release(batch._cold_token) == &"", "adversarial write hook revoked lease")
+		super._publish_claim_rows(batch)
+
+class Fixture extends FixtureScript.Fixture:
+	func _create_buildings() -> Buildings:
+		"""Actual storage and Directory, with a public receipt observer that exposes partial publication."""
+		return ObservedBuildings.new(residents.directory())
+
+	func _create_sites() -> Sites:
+		"""Real once-bound Sites storage, with observable private methods to expose dispatch in final kernels."""
+		return ObservedSites.new(construction, inventory, pool, items, jobs, work, physical, 64, 64)
+
+	func _configure_space() -> void:
+		"""Replace the coordinator before its once-only binding; preserve all actual ownership and columns."""
+		super._configure_space()
+		orders = ObservedOrders.new()
+		bindings.orders = weakref(orders)
+
+var _f: Fixture = null
 var _room_bindings: RoomBindings = null
 
 
 func before_each() -> void:
 	"""Set up actual owners but leave Furniture purpose unbound for atomic composition tests."""
 	_room_bindings = RoomBindings.new()
-	_f = FixtureScript.Fixture.new(self, false, _room_bindings)
+	_f = Fixture.new(self, false, _room_bindings)
 
 
 func after_each() -> void:
@@ -466,6 +593,91 @@ func test_fine_concave_plan_creates_exact_room_claims_without_physical_cut_or_se
 	assert_equal(_room_bindings.wrong_room_windows, PackedByteArray([0, 0]), "wrong generation and purpose never qualify")
 	assert_false(_f.orders.is_publishing_room_admission(made.ref, plan.room_type), "window closes after callback")
 	assert_false(_f.buildings.remove_room(made.ref).ok, "legacy removal cannot erase accepted plan history")
+
+
+func test_ordinary_publication_has_no_observer_between_final_identity_and_geometry() -> void:
+	"""Public authority and Buildings receipt observers must never see or mutate partial ordinary publication."""
+	var made: Buildings.OpResult = _f.orders.confirm_room(_plan())
+	assert_true(made.ok, "actual ordinary Room confirmed")
+	assert_equal((_f.orders as ObservedOrders).final_candidate_observers, 0, "no authority callback in direct identity tail")
+	assert_equal((_f.orders as ObservedOrders).partial_publication_observers, 0, "no partial Room publication callback")
+	assert_equal((_f.buildings as ObservedBuildings).partial_receipt_observers, 0, "no receipt callback after identity")
+	assert_equal((_f.buildings as ObservedBuildings).late_private_publication_observers, 0, "no virtual private row publication")
+	assert_equal((_f.buildings as ObservedBuildings).final_authority_getters, 0, "no public getter after final source closure")
+	assert_equal((_f.sites as ObservedSites).late_private_observers, 0, "no virtual Sites method after final source closure")
+	assert_equal(_room_bindings.approach_observations, 1, "fresh approach observation")
+	assert_equal(_room_bindings.approach_final_checks, 1, "source closure after claims observers")
+	assert_equal(_f.buildings.type_of_room(made.ref).value, Buildings.ROOM_TYPE_KITCHEN, "exact permanent purpose")
+	assert_false(_f.space.has_prepared(), "geometry committed with identity")
+
+
+func test_ordinary_approach_and_final_refusals_preserve_all_live_owners() -> void:
+	"""Neither a missing approach nor late source closure failure can reserve physical history or identity."""
+	var before: PackedByteArray = _admission_image()
+	var sites: PackedByteArray = _f.sites.state_bytes()
+	_room_bindings.refuse_approach = true
+	assert_equal(_f.orders.confirm_room(_plan()).error, &"SYNTHETIC_ROOM_APPROACH", "observation refuses")
+	assert_equal(_room_bindings.approach_final_checks, 0, "refusal does not continue into final stage")
+	assert_true(_admission_image() == before and _f.sites.state_bytes() == sites, "early refusal is atomic")
+	_room_bindings.refuse_approach = false
+	_room_bindings.refuse_approach_final = true
+	assert_equal(_f.orders.confirm_room(_plan()).error, &"SYNTHETIC_ROOM_APPROACH_FINAL", "final closure refuses")
+	assert_true(_admission_image() == before and _f.sites.state_bytes() == sites, "late refusal is atomic")
+	_room_bindings.refuse_approach_final = false
+	assert_true(_f.orders.confirm_room(_plan()).ok, "valid retry creates the Room exactly once")
+
+
+func test_request_mutation_after_claims_observer_is_rejected_by_original_leaf() -> void:
+	"""A last public observer cannot change the drawn height between source observation and identity."""
+	var before: PackedByteArray = _admission_image()
+	var sites: PackedByteArray = _f.sites.state_bytes()
+	(_f.orders as ObservedOrders).mutate_after_claim_observer = true
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_PLAN, "late original request drift refuses")
+	assert_equal(_room_bindings.approach_final_checks, 1, "final source hook follows the last claims observer")
+	assert_true(_admission_image() == before and _f.sites.state_bytes() == sites, "no partial identity/claim write")
+
+
+func test_successful_final_provider_cannot_hide_request_mutation() -> void:
+	"""Even a provider returning success cannot bypass concrete equality to the original drawn request."""
+	var before: PackedByteArray = _admission_image()
+	var sites: PackedByteArray = _f.sites.state_bytes()
+	_room_bindings.mutate_approach_final = true
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_PLAN, "last provider changed exact origin")
+	assert_true(_admission_image() == before and _f.sites.state_bytes() == sites, "all live owners unchanged")
+
+
+func test_final_provider_cannot_replace_original_ordinary_cold_lease() -> void:
+	"""A valid new token is still another operation; refusal preserves that separately owned arena lease."""
+	var before: PackedByteArray = _admission_image()
+	var sites: PackedByteArray = _f.sites.state_bytes()
+	_room_bindings.replace_approach_final = true
+	assert_equal(_f.orders.confirm_room(_plan()).error, RoomOrders.REFUSE_ROOM_COLD, "original token was revoked")
+	assert_true(_admission_image() == before and _f.sites.state_bytes() == sites, "no identity or physical claim changed")
+	assert_true(_room_bindings.arena.covers(_room_bindings.replacement_token, Budget.COLD_BYTES), "foreign replacement retained")
+	assert_equal(_room_bindings.arena.release(_room_bindings.replacement_token), &"", "only its actual test owner releases")
+
+
+func test_base_ordinary_approach_and_unprepared_claim_kernel_never_grant_permission() -> void:
+	"""The new interface has no permissive fallback; static kernels cannot turn null/preparation into publication."""
+	var base: RoomOrders.Bindings = RoomOrders.Bindings.new()
+	var candidate: Directory.CreateCandidate = Directory.CreateCandidate.new()
+	assert_equal(base.room_approach_observation_refusal(_plan(), candidate, 1), RoomOrders.REFUSE_BINDING, "base observer refuses")
+	assert_equal(base.room_approach_final_refusal(_plan(), candidate, 1), RoomOrders.REFUSE_BINDING, "base final refuses")
+	assert_equal(Sites.room_claim_prepared_leaf_refusal(null, null), Sites.REFUSE_CLAIM_BATCH, "null final leaf refuses")
+	assert_equal(Sites.publish_room_claim_preflighted(_f.sites, Sites.RoomClaimBatch.new(), _f.orders),
+		Sites.REFUSE_CLAIM_BATCH, "empty batch cannot publish")
+
+
+func test_final_ordinary_leaf_rejects_live_wrong_type_spatial_authority() -> void:
+	"""A retained object of the wrong type cannot replace the actual physical authority after source closure."""
+	var before: PackedByteArray = _admission_image()
+	var sites: PackedByteArray = _f.sites.state_bytes()
+	var original: WeakRef = _f.sites._space
+	_room_bindings.wrong_spatial_type_at_final = true
+	assert_equal(_f.orders.confirm_room(_plan()).error, Sites.REFUSE_CLAIM_BATCH, "wrong live authority type refuses")
+	assert_true(_f.sites._space.get_ref() == _room_bindings.arena, "external wrong-type replacement remains untouched")
+	_f.sites._space = original
+	assert_true(_admission_image() == before and _f.sites.state_bytes() == sites, "no identity, geometry or history changed")
 
 
 func test_hole_is_preserved_by_fine_row_runs_instead_of_claiming_outer_rectangle() -> void:

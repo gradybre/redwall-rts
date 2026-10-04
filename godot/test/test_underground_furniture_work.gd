@@ -242,7 +242,7 @@ class Fixture extends RefCounted:
 		buildings = _create_buildings()
 		construction = Construction.new(buildings)
 		physical.world = world
-		sites = Sites.new(construction, inventory, pool, items, jobs, work, physical, 64, 64)
+		sites = _create_sites()
 		check(sites.initialization_refusal() == &"", "actual Sites shared Funding")
 		funding = sites.funding_owner(construction, inventory, pool, items, jobs, work)
 		router = Router.new(construction, inventory, pool, items, jobs, work, sites)
@@ -256,6 +256,10 @@ class Fixture extends RefCounted:
 	func _create_buildings() -> Buildings:
 		"""Use actual columns; specialized integration fixtures can observe explicit Buildings interfaces."""
 		return Buildings.new(residents.directory())
+
+	func _create_sites() -> Sites:
+		"""Use real physical history; specialized tests can observe explicit Sites interfaces before once-only binding."""
+		return Sites.new(construction, inventory, pool, items, jobs, work, physical, 64, 64)
 
 	func check(condition: bool, label: String) -> void:
 		"""Report through the actual test framework rather than treating engine exit zero as evidence."""

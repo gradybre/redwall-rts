@@ -1,0 +1,5 @@
+{
+  "tools/bake_underground_forward_basis.gd": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018",
+  "tools/bake_underground_world_basis.gd": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+  "godot/test/test_underground_forward_basis.gd": "90cd4bd75090d3bc0f95684dd48b090d449350bad9c93edb78383971ce570066"
+}

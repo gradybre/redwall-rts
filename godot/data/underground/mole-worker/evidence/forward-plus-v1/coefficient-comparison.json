@@ -1,0 +1,7 @@
+{
+  "open_gl_sha256": "de8c3b04fde4bec30b0b85bf2bf82e01604e9c17cfcb3fdf4029af0f4d43ebf9",
+  "metal_sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+  "rows": 65536,
+  "coefficient_bytes_equal": true,
+  "scope": "Only native CPU Basis values match. Distinct backend metadata/wire and source digest remain mandatory; no shader/renderer equivalence follows."
+}

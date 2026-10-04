@@ -1,0 +1,53 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "./tools/run_tests.sh",
+      "--shard",
+      "291/379",
+      "--output-dir",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/shards"
+    ],
+    [
+      "python3",
+      "tools/gdscript_warnings.py",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/tools/forward_basis_review/bake_underground_forward_basis.gd",
+      "godot/test/test_underground_forward_basis.gd",
+      "--port",
+      "6149",
+      "--max",
+      "0",
+      "--json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/analyzer.json"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_underground_forward_basis.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/forward.ugyaw",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/native-report.json"
+    ]
+  ],
+  "codes": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "scope": "selected CI singleton with assets aside and cache removed; actual outside-project verifier mirrored byte-exact for LSP",
+  "source_unchanged": true,
+  "project_unchanged": true,
+  "assets_restored": true,
+  "override_restored": true,
+  "analyzer_mirror_sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018"
+}

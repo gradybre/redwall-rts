@@ -1,0 +1,69 @@
+{
+  "source_tag": "4.7.2-stable",
+  "installed_engine_hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+  "records": [
+    {
+      "path": "drivers/metal/rendering_shader_container_metal.cpp",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/metal/rendering_shader_container_metal.cpp",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/drivers__metal__rendering_shader_container_metal.cpp",
+      "bytes": 33199,
+      "sha256": "ba03df1a0653b9d513d8deb7869a7583e2eac2629fedf4f6222a1e112ecdb79e"
+    },
+    {
+      "path": "drivers/metal/rendering_device_driver_metal.cpp",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/metal/rendering_device_driver_metal.cpp",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/drivers__metal__rendering_device_driver_metal.cpp",
+      "bytes": 120139,
+      "sha256": "3e1332160b0baacbbcb8499e13441564c71336730441aff9d22a39765c35b393"
+    },
+    {
+      "path": "drivers/metal/rendering_shader_container_metal.h",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/metal/rendering_shader_container_metal.h",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/drivers__metal__rendering_shader_container_metal.h",
+      "bytes": 9209,
+      "sha256": "7895f53a502785389fca603ba29604fc61a6b09ba31b6004f70fcc1c6ddabfd5"
+    },
+    {
+      "path": "drivers/metal/metal_device_profile.cpp",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/drivers/metal/metal_device_profile.cpp",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/drivers__metal__metal_device_profile.cpp",
+      "bytes": 5477,
+      "sha256": "7bbb30fdde53f9fe343b245559687c24533e147b238444df5f4a670e4877c079"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/storage_rd/mesh_storage.cpp",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/renderer_rd/storage_rd/mesh_storage.cpp",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/servers__rendering__renderer_rd__storage_rd__mesh_storage.cpp",
+      "bytes": 90485,
+      "sha256": "d610f7f4b89ab4b10b038fabf3522bd9497add4fd9438ea5770597a6857a3bad"
+    },
+    {
+      "path": "servers/rendering/rendering_server.cpp",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_server.cpp",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/servers__rendering__rendering_server.cpp",
+      "bytes": 197506,
+      "sha256": "b108f62d9d6113061dd1261e7bef51515fbdba9080b4393245e84cecc67ad7ca"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/shaders/skeleton.glsl",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/renderer_rd/shaders/skeleton.glsl",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/servers__rendering__renderer_rd__shaders__skeleton.glsl",
+      "bytes": 10803,
+      "sha256": "a36b5b2ac9141314b63f7e8b67607eb405a1664a575318e5165f71c75851fcf6"
+    },
+    {
+      "path": "servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/renderer_rd/shaders/forward_clustered/scene_forward_clustered.glsl",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/servers__rendering__renderer_rd__shaders__forward_clustered__scene_forward_clustered.glsl",
+      "bytes": 109268,
+      "sha256": "453d31b46060b907d63b8cb57fc5ee818d8b9d3c5c6e7491e677d6a95e27dab7"
+    },
+    {
+      "path": "thirdparty/spirv-cross/spirv_msl.cpp",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/thirdparty/spirv-cross/spirv_msl.cpp",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/engine-source/thirdparty__spirv-cross__spirv_msl.cpp",
+      "bytes": 744973,
+      "sha256": "f219ee63880c8681f4452ca2310659ae155025267b01b3c25c24e8ff43915dca"
+    }
+  ]
+}

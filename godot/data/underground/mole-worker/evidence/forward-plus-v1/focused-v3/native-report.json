@@ -1,0 +1,38 @@
+{
+	"coefficient_bytes": 524288,
+	"diagnostic_max_norm_squared": 1.00000008311477,
+	"metadata": {
+		"api_version": "4.0",
+		"coefficient_order": [
+			"basis.x.x",
+			"basis.z.x"
+		],
+		"coefficient_source_sha256": "e68ec74b02bb227a065d9881ca2c12fe3b1ef122f032e7bb1324213d3031813f",
+		"display_server": "macOS",
+		"engine": {
+			"build": "official",
+			"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+			"major": 4,
+			"minor": 7,
+			"patch": 2,
+			"status": "stable"
+		},
+		"heading_count": 65536,
+		"orientation": "0=-Z,+quarter=-X; +Y up",
+		"physical_qualified": false,
+		"rendering_driver": "metal",
+		"rendering_method": "forward_plus",
+		"schema": 2,
+		"source": {
+			"path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_underground_forward_basis.gd",
+			"sha256": "df6bb71866a5839815b112f544348b6ca436020bb56d9c46293455f817d5e018"
+		}
+	},
+	"numerical_enclosure_qualified": false,
+	"presentation_reserve": 544768,
+	"qualified_profiles": 0,
+	"rows": 65536,
+	"sha256": "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+	"source_unchanged": true,
+	"world_activation_qualified": false
+}

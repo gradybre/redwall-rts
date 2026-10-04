@@ -1,0 +1,24 @@
+{
+  "commands": [
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "tools/test_prove_underground_forward_backend.py"
+    ],
+    [
+      "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+      "tools/prove_underground_forward_backend.py",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/focused-v3/forward.ugyaw",
+      "bc8061e73781f2851c85d0c0e9868b24bc2c99e733ccfcfe8ab5717d5570bbf1",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/math-v2/basis-and-expression.json"
+    ]
+  ],
+  "returncodes": [
+    0,
+    0
+  ],
+  "sources_before": {
+    "tools/prove_underground_forward_backend.py": "278c57cebb994ce3c4ec719bdee4dd0c9070abf76975aa8e2c2ea9e58db9b96a",
+    "tools/test_prove_underground_forward_backend.py": "04659dbc0136a155aad5c762bc47586ab32941d5a9922b54ac34c97f8b2f622e"
+  },
+  "sources_unchanged": true
+}

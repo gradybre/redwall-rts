@@ -137,6 +137,25 @@ func test_placement_source_digest_change_refuses_without_rebinding() -> void:
 		EntryStructure.REFUSE_BINDING, "production source cannot rebind")
 
 
+func test_busy_placement_cannot_borrow_an_unrelated_structural_observation() -> void:
+	"""Ordinary busy state never becomes permission to read frame or support from another operation."""
+	var site: Vector2i = _confirm()
+	_placements._busy = true
+	assert_equal(_check(site), EntryStructure.REFUSE_ENTRY, "ordinary busy Placement refuses")
+	_placements._busy = false
+	assert_equal(_check(site), &"", "original quiescent tuple retries")
+
+
+func test_phase_mode_without_the_exact_prepared_tuple_refuses_even_when_not_busy() -> void:
+	"""A sealed companion is still an active phase after its copy returns; a flag alone cannot authorize CHECK."""
+	var site: Vector2i = _confirm()
+	_placements._phase_mode = true
+	assert_false(_placements._busy, "fault fixture does not rely on busy")
+	assert_equal(_check(site), EntryStructure.REFUSE_ENTRY, "active phase cannot be treated as quiescent")
+	_placements._phase_mode = false
+	assert_equal(_check(site), &"", "unchanged actual tuple retries")
+
+
 func _footing_history_row() -> int:
 	"""Fault-injection fixture: a retained key below L0 has no current cavity, like a previously backfilled site."""
 	var key: int = _sites._key_at(ORIGIN + Vector3i(-1024, -2048, -1024))

@@ -42,16 +42,25 @@ func bind_entry_sources(placements: Placements, frontier: Frontier, reserved_byt
 func _entry_binding_leaf(placements: Placements, frontier: Frontier) -> StringName:
 	"""Exact actual stores and immutable source namespaces, with no observing callback or copied permission."""
 	var sites: Sites = _actual_sites()
-	if placements == null or frontier == null or sites == null or not placements._configured or placements._busy \
+	if placements == null or frontier == null or sites == null or not placements._configured \
 			or placements._space != _actual_owner() or placements._budget != _budget \
 			or placements._construction != sites._construction or placements._construction == null \
 			or placements._construction._excavation_authority == null \
 			or placements._construction._excavation_authority.get_ref() != sites \
 			or frontier._catalog != placements._catalog or frontier._assemblies != placements._assemblies \
 			or frontier._recipes != placements._recipes or frontier._profiles != placements._profiles \
-			or frontier._catalog._levels != _levels or Frontier.source_leaf_refusal(frontier) != &"":
+			or frontier._catalog._levels != _levels or Frontier.source_leaf_refusal(frontier) != &"" \
+			or not _entry_placement_available(placements, sites):
 		return REFUSE_ENTRY
 	return &""
+
+
+func _entry_placement_available(placements: Placements, sites: Sites) -> bool:
+	"""Only this exact PREPARED operation may observe an active companion, including its busy copy interval."""
+	if not placements._phase_mode: return not placements._busy
+	if not _reading or _mode != PREPARED or sites._space == null: return false
+	return Placements.phase_operation_leaf_refusal(placements, sites._space.get_ref(), _site,
+		_operation, _stage, _room, _project, _cold_token, _owner_token) == &""
 
 
 func _observe_inputs() -> StringName:
@@ -93,11 +102,26 @@ func _select_entry() -> StringName:
 	_entry_ref = Vector2i(found, placements._get32(placements._live, Placements.GENERATION, found))
 	_entry_payload = placements._get64(placements._live, Placements.PAYLOAD_REVISION, found)
 	_entry_prefix = placements._get32(placements._live, Placements.INSTALLED, found)
-	var code: StringName = placements.placement_frame_into(_entry_ref, _entry_frame)
+	var code: StringName = _entry_frame_into(placements)
 	if code != &"" or placements._pair(placements._live, Placements.PROJECT_SLOT, found) != NULL_REF: return REFUSE_ENTRY
 	_entry_selected = true
 	_write_query_boxes()
 	return _select_episode(frontier)
+
+
+func _entry_frame_into(placements: Placements) -> StringName:
+	"""Copy the real nine-int frame without reopening a public observer during exact companion preparation."""
+	if not placements._phase_mode: return placements.placement_frame_into(_entry_ref, _entry_frame)
+	if not _entry_placement_available(placements, _actual_sites()) \
+			or placements._placement_leaf(placements._live, _entry_ref.x) != &"": return REFUSE_ENTRY
+	for axis: int in 3:
+		_entry_frame[axis] = placements._get32(placements._live, Placements.X + axis, _entry_ref.x)
+	_entry_frame[3] = placements._get32(placements._live, Placements.ROTATION, _entry_ref.x)
+	_entry_frame[4] = placements._get32(placements._live, Placements.LEVEL, _entry_ref.x)
+	for axis: int in 2:
+		_entry_frame[5 + axis] = placements._get32(placements._live, Placements.SECTION_SLOT + axis, _entry_ref.x)
+		_entry_frame[7 + axis] = placements._get32(placements._live, Placements.ANCHOR_SLOT + axis, _entry_ref.x)
+	return &"" if _entry_placement_available(placements, _actual_sites()) else REFUSE_ENTRY
 
 
 func _select_episode(frontier: Frontier) -> StringName:

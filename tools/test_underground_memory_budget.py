@@ -224,6 +224,34 @@ class JointPackTests(unittest.TestCase):
         self.refuses("underground_connector_placements", "var _configured: bool = false",
                      "var _configured: bool = false\nvar _extra: Request = null")
 
+    def test_negative_phase_context_extra_collection(self) -> None:
+        self.refuses("underground_locations", "class PhaseContext extends RefCounted:",
+                     "class PhaseContext extends RefCounted:\n\tvar extra: Array = []")
+
+    def test_negative_phase_context_extra_scalar(self) -> None:
+        self.refuses("underground_locations", "class PhaseContext extends RefCounted:",
+                     "class PhaseContext extends RefCounted:\n\tvar extra: int = 0")
+
+    def test_negative_phase_context_wrong_reference_lifetime(self) -> None:
+        body = budget.class_body(self.index["underground_locations"].text, "PhaseContext")
+        self.refuses("underground_locations", body, body.replace("authority: WeakRef", "authority: RefCounted"))
+
+    def test_negative_phase_context_full_ref_width(self) -> None:
+        body = budget.class_body(self.index["underground_locations"].text, "PhaseContext")
+        self.refuses("underground_locations", body, body.replace("site: Vector2i", "site: Vector3i"))
+
+    def test_negative_phase_context_duplicate_member(self) -> None:
+        self.refuses("underground_locations", "class PhaseContext extends RefCounted:",
+                     "class PhaseContext extends RefCounted:\n\tvar site: Vector2i = NULL_REF")
+
+    def test_negative_phase_context_duplicate_retained_packet(self) -> None:
+        self.refuses("underground_connector_placements", "var _configured: bool = false",
+                     "var _configured: bool = false\nvar _extra_phase: Locations.PhaseContext = null")
+
+    def test_negative_phase_mode_width(self) -> None:
+        self.refuses("underground_connector_placements", "var _phase_mode: bool = false",
+                     "var _phase_mode: int = 0")
+
     def test_negative_connector_adapter_unaccounted_numeric_field(self) -> None:
         self.refuses("underground_connector_work", "var _ready: bool = false",
                      "var _ready: bool = false\nvar _more: int = 0")
@@ -306,7 +334,8 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 486)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
-        self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1670)
+        self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1799)
+        self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["components"]["phase_context"], 128)
         self.assertEqual(recipes["connector_work_reservation"]["reserved_bytes"], 563)
         self.assertEqual(recipes["connector_work_reservation"]["aliased_record_bytes_already_charged"], 128)
         assemblies = recipes["assembly_reservation"]

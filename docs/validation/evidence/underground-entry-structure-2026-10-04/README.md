@@ -6,6 +6,55 @@ natural roof over the entry pocket, paid support, cut output, installed prefix,
 worker motion permission or free walkability. The first-prefix fixture's motion
 certificates remain explicitly synthetic. Actual1121 paid composition is open.
 
+## Prepared-phase follow-up
+
+`candidate-8` composes the accepted actual1121 source (all10 source pins match
+its `final-1` manifest) and the reviewed source-route prerequisites already on
+the integration branch. Root's exact PREPARED adapter accepts the original
+active phase whether Placements is busy or merely sealed; unrelated ordinary
+busy/CHECK/STAGE observations still refuse. Its nine-integer frame copy does
+not call the public busy reader. No retained field or reserve is added.
+
+The clean-assets/cache/import official singleton-shard run and analyzer report:
+
+```text
+18 test(s), 1471 assertion(s), 0 failure(s)
+5 test(s), 414 assertion(s), 0 failure(s)
+19 test(s), 240 assertion(s), 0 failure(s)
+6 test(s), 64 assertion(s), 0 failure(s)
+```
+
+Combined48 tests/2189 assertions across EntryStructure, first-prefix helper,
+ordinary PhaseStructure and WorldStructure. Every suite reports:
+
+```text
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+0 GDScript warning(s) in 0 of 2 file(s)
+```
+
+The invocation records12.098s import,34.531s combined suite calls and10.849s
+analyzer, unchanged source pins and restored original project/assets. The
+ordinary suites that failed in candidate-3 now pass. Actual positive entry
+payment and refresh after the installed landing remain1119 integration gates.
+
+Geometry independently accepted these exact follow-up pins before commitment:
+
+| File | SHA-256 |
+|---|---|
+| `godot/scripts/core/underground_entry_structure.gd` | `4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa` |
+| `godot/test/test_underground_entry_structure.gd` | `1057d76a00cfc9c6f87e709b80605525bfe7ea8af639bcf1e213c8750a0faa14` |
+| `tools/underground_memory_budget.py` | `16f25f462646037dea76958970c27361ca0cc2622ce43ebb1b608a3ec6876ef2` |
+| `tools/test_underground_memory_budget.py` | `87671d26e67c3203b632e5f95ab4d6b2c2cdfb492b0037d7abf53ede55692e83` |
+
+The normal126-test memory run passes in37.803s. Seven new mutants exercise the
+shared PhaseContext member/reference/width census and mode flag. The packet's
+128 bytes are counted once plus one mode byte; Placement totals1799/2048.
+The generated pack hash is`abfcf04c9484ade9dd448684fb535c6c80a7254afe4eda85951601c08bbc04e8`.
+The complete logical pack remains99959638 with40362 headroom; native/runtime
+qualification remains false. See `memory-tests-1121.log` and
+`memory-pack-1121.log`. This is not a no-argument full-suite checkpoint.
+
 ## Accepted component
 
 `candidate-7/invocation.json` records assets absent, the owned cache deleted,

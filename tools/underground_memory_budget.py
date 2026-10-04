@@ -259,9 +259,10 @@ def placement_controls(index: dict) -> dict:
         "_authority": "WeakRef", "_publisher": "WeakRef", "_router": "WeakRef", "_paid_owner": "WeakRef",
         "_last_state_hash": "String", "_context": "Locations.InstallationContext",
         "_admission_candidate": "Directory.CreateCandidate", "_admission_context": "Locations.RoomContext",
-        "_admission_input": "WeakRef"}
+        "_admission_input": "WeakRef", "_phase_context": "Locations.PhaseContext"}
     assert {key: value for key, value in fields.items() if value not in numeric} == expected, \
         "unreconciled Placement owned/borrowed members"
+    assert fields.get("_phase_mode") == "bool", "phase companion mode control drift"
     request = scalar_packet(index, module, "Request", {"targets": "PackedInt32Array"})
     target_expr = "4 * Catalog.MAX_OPENINGS_PER_VARIANT"
     assert f"_request.targets.resize({target_expr})" in source
@@ -270,9 +271,14 @@ def placement_controls(index: dict) -> dict:
     install_refs.update({"construction": "Construction", "budget": "Budget"})
     room_refs = {key: "WeakRef" for key in ("orders", "space", "locations")}
     room_refs["budget"] = "Budget"
+    phase_refs = {key: "WeakRef" for key in ("issuer", "authority", "sites", "space", "locations")}
+    phase_refs["budget"] = "Budget"
+    phase_context = scalar_packet(index, "underground_locations", "PhaseContext", phase_refs)
+    assert phase_context == 128, "phase companion numeric packet drift"
     rows = {"owner": numeric_fields(source, ""), "bank_free_counts": 2 * numeric_fields(class_body(source, "Bank"), "\t"),
         "installation_context": scalar_packet(index, "underground_locations", "InstallationContext", install_refs),
         "room_context": scalar_packet(index, "underground_locations", "RoomContext", room_refs),
+        "phase_context": phase_context,
         "directory_candidate": scalar_packet(index, "entity_directory", "CreateCandidate", {"_directory": "WeakRef"}),
         "private_and_caller_requests": 2 * request,
         "shared_order_and_assembly_records": scalar_packet(index, module, "OrderRecord") +

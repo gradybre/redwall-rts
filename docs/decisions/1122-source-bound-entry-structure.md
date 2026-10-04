@@ -67,9 +67,24 @@ transform. A second review finding hardened the memory checker from substring
 formula matching to unique complete ordered statements; arithmetic extensions,
 comment-only witnesses and duplicate definitions/statements now refuse.
 
-This checkpoint only admits quiescent Placements. The exact1121 prepared-phase
-context must be composed before an active companion lease can be accepted.
-An earlier full focused run exposed ordinary phase regressions without those
-final authority hooks; its failed log is retained, not waived. The ordinary
-room regression suite must pass again after composition. No Site, Room, prefix,
-worker path, paid receipt or player workflow is declared complete here.
+The initial component checkpoint only admitted quiescent Placements. An earlier
+full focused run exposed ordinary phase regressions without1121's final
+authority hooks; its failed log is retained, not waived.
+
+The follow-up admits an active1121 companion only during this same structural
+PREPARED observation. It compares the actual Authority, full Site/Room/Project,
+operation, stage, original cold token and exact sealed Space token, including
+when Placements is busy copying and after that busy interval ends. Ordinary
+busy state and CHECK/STAGE queries cannot borrow it. A guarded nine-integer
+direct copy replaces the ordinary public frame reader inside that exact
+preparation. The same source/frame leaf remains mandatory afterward. No new
+retained field, cold image or reserve is added.
+
+Geometry independently accepted this four-file source/test/census follow-up.
+The normal clean run passed48 tests/2189 assertions, zero strict/raw diagnostics
+and leaks, zero analyzer warnings, and126 memory-checker tests. The previously
+failing ordinary PhaseStructure and WorldStructure suites now pass. Placement's
+shared128-byte PhaseContext and mode byte are counted once, moving its fixed
+census1670→1799 within2048. This does not replace the actual positive paid
+entry/after-landing composition required from1119. No Site, Room, prefix,
+worker path or player workflow is declared complete by this component.

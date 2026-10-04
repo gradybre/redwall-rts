@@ -1,0 +1,853 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_frontier.gd
+SCRIPT ERROR: Parse Error: The function signature doesn't match the parent. Parent signature is "_set(StringName, Variant) -> bool".
+          at: GDScript::reload (res://scripts/core/underground_entry_frontier.gd:217)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+          at: GDScript::reload (res://test/test_underground_entry_frontier.gd:0)
+          GDScript backtrace (most recent call first):
+              [0] _run_suite (res://test/run_tests.gd:155)
+              [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [2] _run_worker (res://test/run_tests.gd:121)
+              [3] _initialize (res://test/run_tests.gd:108)
+ERROR: Failed to load script "res://test/test_underground_entry_frontier.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript_resource_format.cpp:46)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://test/run_tests.gd:155)
+       [1] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+       [2] _run_worker (res://test/run_tests.gd:121)
+       [3] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: test_exact_tables_fill_caller_outputs_without_publishing_physical_permission (res://test/test_underground_entry_frontier.gd:147)
+          GDScript backtrace (most recent call first):
+              [0] test_exact_tables_fill_caller_outputs_without_publishing_physical_permission (res://test/test_underground_entry_frontier.gd:147)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_exact_tables_fill_caller_outputs_without_publishing_physical_permission
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: test_capacity_is_admitted_before_allocation_and_cannot_grow (res://test/test_underground_entry_frontier.gd:182)
+          GDScript backtrace (most recent call first):
+              [0] test_capacity_is_admitted_before_allocation_and_cannot_grow (res://test/test_underground_entry_frontier.gd:182)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_capacity_is_admitted_before_allocation_and_cannot_grow
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: test_wrong_sha_truncated_extra_and_empty_sources_refuse_without_live_rows (res://test/test_underground_entry_frontier.gd:196)
+          GDScript backtrace (most recent call first):
+              [0] test_wrong_sha_truncated_extra_and_empty_sources_refuse_without_live_rows (res://test/test_underground_entry_frontier.gd:196)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_wrong_sha_truncated_extra_and_empty_sources_refuse_without_live_rows
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_source_revisions_counts_and_digests_are_exact (res://test/test_underground_entry_frontier.gd:209)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'content_revision' in base 'Nil'.
+          at: test_source_revisions_counts_and_digests_are_exact (res://test/test_underground_entry_frontier.gd:210)
+          GDScript backtrace (most recent call first):
+              [0] test_source_revisions_counts_and_digests_are_exact (res://test/test_underground_entry_frontier.gd:210)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_source_revisions_counts_and_digests_are_exact
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        source tuple field20 (expected ENTRY_FRONTIER_SOURCE, got )
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_installation_ordinals_ranges_and_full_group_partition_are_required (res://test/test_underground_entry_frontier.gd:222)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_installation_ordinals_ranges_and_full_group_partition_are_required
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        bad installation selector (expected ENTRY_FRONTIER_REFERENCE, got )
+        ABORTED: 10 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_pending_assembly_cannot_supply_its_own_floor_or_bearing (res://test/test_underground_entry_frontier.gd:230)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_pending_assembly_cannot_supply_its_own_floor_or_bearing (res://test/test_underground_entry_frontier.gd:235)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_pending_assembly_cannot_supply_its_own_floor_or_bearing
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        L0 cannot stand on itself (expected ENTRY_FRONTIER_FUTURE_SUPPORT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        L0 cannot bear itself (expected ENTRY_FRONTIER_FUTURE_SUPPORT, got )
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_cuts_use_whole_datum_cubes_and_exact_stable_phase_tags (res://test/test_underground_entry_frontier.gd:243)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_cuts_use_whole_datum_cubes_and_exact_stable_phase_tags (res://test/test_underground_entry_frontier.gd:243)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_cuts_use_whole_datum_cubes_and_exact_stable_phase_tags (res://test/test_underground_entry_frontier.gd:243)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_cuts_use_whole_datum_cubes_and_exact_stable_phase_tags (res://test/test_underground_entry_frontier.gd:243)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_cuts_use_whole_datum_cubes_and_exact_stable_phase_tags
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        whole stable dependency (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        whole stable dependency (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        whole stable dependency (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        whole stable dependency (expected ENTRY_FRONTIER_FORMAT, got )
+        ABORTED: 5 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_station_requires_actual_source_work_patch_posture_and_revision (res://test/test_underground_entry_frontier.gd:251)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_station_requires_actual_source_work_patch_posture_and_revision (res://test/test_underground_entry_frontier.gd:251)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_station_requires_actual_source_work_patch_posture_and_revision (res://test/test_underground_entry_frontier.gd:251)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_station_requires_actual_source_work_patch_posture_and_revision (res://test/test_underground_entry_frontier.gd:251)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_station_requires_actual_source_work_patch_posture_and_revision (res://test/test_underground_entry_frontier.gd:254)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_station_requires_actual_source_work_patch_posture_and_revision (res://test/test_underground_entry_frontier.gd:256)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_station_requires_actual_source_work_patch_posture_and_revision
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        wrong actual work selection (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        wrong actual work selection (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        wrong actual work selection (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        wrong actual work selection (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        exact full revision (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        root is actual endpoint selector point (expected ENTRY_FRONTIER_REFERENCE, got )
+        ABORTED: 7 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:263)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:263)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:263)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:263)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:266)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:266)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:266)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_episode_masks_stations_and_ranges_do_not_invent_paid_phases (res://test/test_underground_entry_frontier.gd:266)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_episode_masks_stations_and_ranges_do_not_invent_paid_phases
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        invalid operation domain (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        invalid operation domain (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        invalid operation domain (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        invalid operation domain (expected ENTRY_FRONTIER_FORMAT, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        incomplete authored phase selectors (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        incomplete authored phase selectors (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        incomplete authored phase selectors (expected ENTRY_FRONTIER_REFERENCE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        incomplete authored phase selectors (expected ENTRY_FRONTIER_REFERENCE, got )
+        ABORTED: 9 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] test_duplicate_cube_operation_refuses_even_when_ranges_are_grouped_differently (res://test/test_underground_entry_frontier.gd:272)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_duplicate_cube_operation_refuses_even_when_ranges_are_grouped_differently (res://test/test_underground_entry_frontier.gd:278)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_duplicate_cube_operation_refuses_even_when_ranges_are_grouped_differently (res://test/test_underground_entry_frontier.gd:281)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_duplicate_cube_operation_refuses_even_when_ranges_are_grouped_differently
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        overlapping operation union (expected ENTRY_FRONTIER_DUPLICATE_OPERATION, got )
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_actual_profile_reload_rejects_existing_frontier (res://test/test_underground_entry_frontier.gd:286)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'installation_into' in base 'Nil'.
+          at: test_actual_profile_reload_rejects_existing_frontier (res://test/test_underground_entry_frontier.gd:290)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_profile_reload_rejects_existing_frontier (res://test/test_underground_entry_frontier.gd:290)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_profile_reload_rejects_existing_frontier
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        actual later profile content (expected , got PROFILE_KEY_ORDER)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_actual_world_generation_reuse_rejects_existing_frontier (res://test/test_underground_entry_frontier.gd:296)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'source_leaf_refusal' in base 'GDScript'.
+          at: test_actual_world_generation_reuse_rejects_existing_frontier (res://test/test_underground_entry_frontier.gd:297)
+          GDScript backtrace (most recent call first):
+              [0] test_actual_world_generation_reuse_rejects_existing_frontier (res://test/test_underground_entry_frontier.gd:297)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_world_generation_reuse_rejects_existing_frontier
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_refused_queries_preserve_all_caller_outputs (res://test/test_underground_entry_frontier.gd:307)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'station_into' in base 'Nil'.
+          at: test_refused_queries_preserve_all_caller_outputs (res://test/test_underground_entry_frontier.gd:310)
+          GDScript backtrace (most recent call first):
+              [0] test_refused_queries_preserve_all_caller_outputs (res://test/test_underground_entry_frontier.gd:310)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_refused_queries_preserve_all_caller_outputs
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid call. Nonexistent function 'new' in base 'GDScript'.
+          at: _new_reader (res://test/test_underground_entry_frontier.gd:45)
+          GDScript backtrace (most recent call first):
+              [0] _new_reader (res://test/test_underground_entry_frontier.gd:45)
+              [1] before_each (res://test/test_underground_entry_frontier.gd:30)
+              [2] _run_test (res://test/run_tests.gd:193)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:328)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:328)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:328)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:330)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'load_file' in base 'Nil'.
+          at: _load (res://test/test_underground_entry_frontier.gd:134)
+          GDScript backtrace (most recent call first):
+              [0] _load (res://test/test_underground_entry_frontier.gd:134)
+              [1] test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:331)
+              [2] _run_test (res://test/run_tests.gd:194)
+              [3] _run_suite (res://test/run_tests.gd:168)
+              [4] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [5] _run_worker (res://test/run_tests.gd:121)
+              [6] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid call. Nonexistent function 'endpoint_travel_into' in base 'Nil'.
+          at: test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:334)
+          GDScript backtrace (most recent call first):
+              [0] test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs (res://test/test_underground_entry_frontier.gd:334)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_endpoint_travel_is_explicit_and_refusal_preserves_paired_outputs
+        actual WORK profile source (expected , got PROFILE_KEY_ORDER)
+        actual Catalog after profile reload (expected , got CONNECTOR_CATALOG_CONTENT_STALE)
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        non-transit selector (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        non-transit selector (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        non-transit selector (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        exact transit revision (expected ENTRY_FRONTIER_PROFILE, got )
+        Catalog pin (expected true, got false)
+        actual program source (expected true, got false)
+        ABORTED: 7 script error(s) above ended this method early, so the
+        assertions after that point never ran
+CI_SUITE_TIME {"assertions":179,"failures":14,"suite":"test_underground_entry_frontier.gd","tests":14,"usec":573284}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+  FAIL  <test run>
+        2 script error(s) outside any test method
+
+14 test(s), 179 assertion(s), 15 failure(s)
+diagnostics: 1 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

@@ -15,7 +15,7 @@
       "construction": "40933cab13de94aab1538986fb9bcab134041c5011f4484d3bfd191ac0235d61",
       "entity_directory": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
       "excavation_inventory": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
-      "excavation_sites": "813958c19a17f15396cb46e68a6af099a561bb3078cf174f8e7ffe31df10fc37",
+      "excavation_sites": "6c80934cad14136bcc3069e5a62ff36a6990b8f436d23905425fb148ae93e6f4",
       "farming": "3a8db3515288193f78ca52a6838eba235db4b07d4d40a036131ed17cf46f1539",
       "field_policy": "85244828684645cf56eeba68c0c083718376ab67fbdf4a144a4fa99ac5b0e42d",
       "fishing": "2fed8f810709d5029744e9991b4c09c946bbc4bdc61d4b006884e703daf1bdfe",
@@ -41,7 +41,7 @@
       "spatial_world": "6b2d56af6f0be763765ae02bdc22a4697c53d690decb5234ab0267c24d37202e",
       "stock_age": "f1c9e1bd0337c22d2076d7370bd2fb3f7c43b06ebee9afdc6a93427e2b8fee3e",
       "transforms": "75a07d3fb01806e96d0ac6aa12c7a85e4fd7073489cf1a86897c41ee501e8319",
-      "underground_space_owner": "c637e5d29efe00ca676b892a6446f7fc524705614f33420a1c347edce0726968",
+      "underground_space_owner": "371082d49c0f916a2c54ae86aad1fc963095e3f007317c04f6f9fc4541b873d3",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
       "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
@@ -2269,7 +2269,7 @@
       "source_module": "underground_space_owner",
       "source_relation": "eq",
       "source_resize_expression": "HEADER_FIELDS",
-      "source_resize_line": 2385,
+      "source_resize_line": 2485,
       "source_value": 18,
       "status": "proved_equality"
     },

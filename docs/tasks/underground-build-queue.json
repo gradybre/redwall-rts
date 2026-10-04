@@ -4079,7 +4079,23 @@
       "commit": "1eb7a64d5b36c69081c5403e330f90f906ca2e65",
       "outcome": "refused clean import before suite; nested isolated capture project warning",
       "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-1eb7a64d/",
-      "correction": "two empty .gdignore markers independently reviewed; source bb6c79bc integrated c24421ab"
+      "correction": "two empty .gdignore markers independently reviewed; source bb6c79bc integrated c24421ab",
+      "remote_ci": {
+        "run": 37216053405,
+        "outcome": "all14 jobs passed",
+        "wall_seconds": 790,
+        "files_exactly_once": 391,
+        "shards": 8,
+        "tests": 10941,
+        "assertions": 1016683,
+        "failures": 0,
+        "expected_diagnostics": 272,
+        "tolerated_diagnostics": 353,
+        "unexpected_diagnostics": 0,
+        "leaks": 0,
+        "analyzer": "0 GDScript warning(s) in 0 of 1220 file(s)",
+        "evidence": "docs/validation/evidence/underground-ci-1eb7a64d-2026-10-04/"
+      }
     },
     {
       "commit": "c24421ab5c5eb5187795f8003640587884847f05",
@@ -4091,13 +4107,23 @@
       "correction": "independently reviewed parent source/evidence subtree marker; source9a36f68b integrated9ca21351"
     },
     {
-      "commit": "9ca21351",
-      "outcome": "clean import passed; no-argument full suite running; no complete pass claim yet",
+      "commit": "9ca2135119ceafe8879f4d39eb1c58939a264657",
+      "outcome": "passed clean import, no-argument full suite, zero-warning analyzer; source/HEAD unchanged and assets/project restored",
       "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1eb7a64d",
       "branch": "codex/underground-checkpoint-1eb7a64d",
-      "session_id": 78481,
       "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-9ca21351",
-      "command": "python3 docs/design/underground-planning/evidence/modular-build/checkpoint-9ca21351/reproduce.py"
+      "command": "python3 docs/design/underground-planning/evidence/modular-build/checkpoint-9ca21351/reproduce.py",
+      "tests": 10941,
+      "assertions": 1016692,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 GDScript warning(s) in 0 of 1220 file(s)",
+      "full_suite_seconds": 1780.946
     }
   ],
   "crosscut_fixes": [

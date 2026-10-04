@@ -1,0 +1,50 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.847,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "141/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-4"
+      ],
+      "exit_code": 0,
+      "seconds": 7.582,
+      "log": "test_underground_connector_work.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6156",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-4/analyzer.json",
+        "godot/scripts/core/underground_connector_work.gd",
+        "godot/test/test_underground_connector_work.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 10.046,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "assets_present_before": false,
+  "assets_restored": true,
+  "exit_code": 0
+}

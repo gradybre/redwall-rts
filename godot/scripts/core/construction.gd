@@ -1464,6 +1464,137 @@ func begin_work(project_ref: Vector2i) -> OpResult:
 	return OpResult.new(true, REFUSE_NONE, _remaining_mwu[row], project_ref)
 
 
+static func connector_start_refusal(actual: RefCounted, router: ModularContract,
+		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
+	"""The same concrete prepayment/postpayment leaf proves exact start facts without an owner or Recipe callback."""
+	var code: StringName = _connector_start_context(actual, router, project, paid)
+	if code != REFUSE_NONE:
+		return code
+	var row: int = actual._directory.get_typed_row(project)
+	if row < 0 or row >= CONSTRUCTION_CAPACITY or actual._present[row] != 1 \
+			or actual._ref_slot[row] != project.x or actual._ref_generation[row] != project.y \
+			or actual._purpose[row] != PURPOSE_CONNECTOR_INSTALL:
+		return REFUSE_STALE_PROJECT_REF
+	if actual._paused[row] != 0:
+		return REFUSE_PAUSED
+	if actual._phase[row] != PHASE_READY or actual._work_begun[row] != 0 or actual._remaining_mwu[row] < 0:
+		return REFUSE_WRONG_PHASE
+	code = _connector_start_job(actual, router, row, project, job)
+	if code == REFUSE_NONE:
+		code = _connector_start_bill(actual, router, row)
+	return _connector_start_receipt(router, row, project, job, paid) if code == REFUSE_NONE else code
+
+
+static func _connector_start_context(actual: RefCounted, router: ModularContract,
+		project: Vector2i, paid: bool) -> StringName:
+	"""A base/foreign authority or coincident numeric handles cannot borrow an actual Router settlement window."""
+	if actual == null or router == null or not "_funding" in router or not "_connector_owner" in router \
+			or not "_quote" in router or actual._modular_authority == null \
+			or actual._modular_authority.get_ref() != router or router._construction != actual \
+			or router._ready_error != REFUSE_NONE or not router._busy or router._permit_project != project \
+			or router._permit_action != (ModularContract.ACTION_BEGIN_WORK if paid else ModularContract.ACTION_WIP) \
+			or router._connector_owner == null or router._connector_owner.get_ref() == null:
+		return ModularContract.REFUSE_AUTHORITY
+	var funding: RefCounted = router._funding
+	if funding == null or funding._ready_error != REFUSE_NONE or funding._construction != actual \
+			or funding._inventory != router._inventory or funding._pool != router._pool or funding._items != router._items \
+			or router._jobs._directory != actual._directory or not router._items._loaded \
+			or router._items._registered_inventory == null or router._items._registered_inventory.get_ref() != router._inventory:
+		return ModularContract.REFUSE_AUTHORITY
+	if not actual._directory.is_valid_of_kind(router._world, EntityDirectory.KIND_WORLD) \
+			or not actual._directory.is_valid_of_kind(project, EntityDirectory.KIND_CONSTRUCTION):
+		return REFUSE_STALE_PROJECT_REF
+	return REFUSE_NONE
+
+
+static func _connector_start_job(actual: RefCounted, router: ModularContract,
+		row: int, project: Vector2i, job: Vector2i) -> StringName:
+	"""Validate the actual accepted primary Job and unchanged remaining work from concrete mirrored rows."""
+	if not actual._directory.is_valid_of_kind(job, EntityDirectory.KIND_JOB):
+		return ModularContract.REFUSE_AUTHORITY
+	var at: int = actual._directory.get_typed_row(job)
+	var jobs: RefCounted = router._jobs
+	if at < 0 or at >= router._job_slot.size() or jobs._job_present[at] != 1 \
+			or jobs._job_ref_slot[at] != job.x or jobs._job_ref_generation[at] != job.y \
+			or router._job_slot[at] != job.x or router._job_generation[at] != job.y \
+			or router._project_slot[at] != project.x or router._project_generation[at] != project.y \
+			or jobs._requester_slot[at] != project.x or jobs._requester_generation[at] != project.y \
+			or jobs._coordinator_slot[at] != -1 or jobs._remaining_mwu[at] != actual._remaining_mwu[row] \
+			or jobs._kind[at] != router._quote.job_kind:
+		return ModularContract.REFUSE_AUTHORITY
+	return REFUSE_NONE
+
+
+static func _connector_start_bill(actual: RefCounted, router: ModularContract, row: int) -> StringName:
+	"""Retained prepared quotes and all four delivered cells must still equal the complete staged immutable bill."""
+	var quote: ModularContract.Quote = router._quote
+	var staged: ModularContract.Quote = router._funding._quote
+	if quote == null or staged == null or quote.input_count < 1 or quote.input_count > MATERIAL_SLOTS_PER_PROJECT \
+			or quote.input_keys.size() != MATERIAL_SLOTS_PER_PROJECT or quote.input_milli.size() != MATERIAL_SLOTS_PER_PROJECT \
+			or staged.input_keys.size() != MATERIAL_SLOTS_PER_PROJECT or staged.input_milli.size() != MATERIAL_SLOTS_PER_PROJECT \
+			or quote.subject != Vector2i(actual._subject_slot[row], actual._subject_generation[row]) \
+			or quote.operation != actual._type_id[row] or quote.remaining_mwu != actual._remaining_mwu[row] \
+			or quote.total_mwu <= 0 or quote.remaining_mwu > quote.total_mwu \
+			or quote.max_workers != actual._max_workers[row] or quote.quantity_milli != 0 or quote.output_count != 0:
+		return ModularContract.REFUSE_QUOTE
+	if staged.subject != quote.subject or staged.operation != quote.operation or staged.total_mwu != quote.total_mwu \
+			or staged.remaining_mwu != quote.remaining_mwu or staged.job_kind != quote.job_kind \
+			or staged.max_workers != quote.max_workers or staged.input_count != quote.input_count \
+			or staged.quantity_milli != 0 or staged.output_count != 0:
+		return ModularContract.REFUSE_QUOTE
+	for line: int in MATERIAL_SLOTS_PER_PROJECT:
+		var code: StringName = _connector_start_line(actual, router, row, line)
+		if code != REFUSE_NONE:
+			return code
+	return REFUSE_NONE
+
+
+static func _connector_start_line(actual: RefCounted, router: ModularContract, row: int, line: int) -> StringName:
+	"""Item IDs come from the actual registered catalog, without an overridable lookup after payment."""
+	var quote: ModularContract.Quote = router._quote
+	var funding: RefCounted = router._funding
+	var amount: int = quote.input_milli[line]
+	if quote.input_keys[line] != funding._quote.input_keys[line] or amount != funding._quote.input_milli[line] \
+			or actual._delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + line] != amount:
+		return REFUSE_MATERIALS_INCOMPLETE
+	if line >= quote.input_count:
+		return REFUSE_NONE if amount == 0 and quote.input_keys[line] == &"" else ModularContract.REFUSE_QUOTE
+	var item: int = router._items._item_ids.get(quote.input_keys[line], -1)
+	if amount <= 0 or item < 0 or item >= funding._s_totals.size() \
+			or funding._s_totals[item] != amount or funding._s_returned[item] != amount:
+		return REFUSE_MATERIALS_INCOMPLETE
+	for previous: int in line:
+		if quote.input_keys[previous] == quote.input_keys[line]:
+			return ModularContract.REFUSE_QUOTE
+	return REFUSE_NONE
+
+
+static func _connector_start_receipt(router: ModularContract, row: int,
+		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
+	"""The pure tail requires the full actual receipt; the prepayment leaf requires its original open transaction."""
+	var funding: RefCounted = router._funding
+	var funded: bool = funding._project_slot[row] == project.x and funding._project_generation[row] == project.y
+	if paid:
+		return REFUSE_NONE if funded and funding._head[row] >= 0 and funding._output_slot[row] == -1 \
+			and funding._output_mass_g[row] == 0 and funding._settling_project == NULL_REF \
+			and funding._settling_job == NULL_REF and not router._inventory._tx_open else REFUSE_WRONG_PHASE
+	return REFUSE_NONE if not funded and funding._settling_project == project \
+		and funding._settling_job == job and router._inventory._tx_open else REFUSE_WRONG_PHASE
+
+
+static func begin_connector_work_preflighted(actual: RefCounted, router: ModularContract,
+		project: Vector2i, job: Vector2i) -> OpResult:
+	"""Publish the preflighted connector-only start after WIP commits; ordinary begin_work remains unchanged."""
+	var code: StringName = connector_start_refusal(actual, router, project, job, true)
+	if code != REFUSE_NONE:
+		return OpResult.new(false, code, 0, NULL_REF)
+	var row: int = actual._directory.get_typed_row(project)
+	actual._work_begun[row] = 1
+	actual._phase[row] = PHASE_WORK_DONE if actual._remaining_mwu[row] == 0 else PHASE_WORKING
+	actual._refund_policy[row] = REFUND_PARTIAL
+	return OpResult.new(true, REFUSE_NONE, actual._remaining_mwu[row], project)
+
+
 func add_work_mwu(project_ref: Vector2i, mwu: int) -> OpResult:
 	"""Retire milli-WU against a working project; return the milli-WU still outstanding.
 

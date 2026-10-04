@@ -1,7 +1,7 @@
 # 1106 — Paid connector installation through the shared owners
 
 Date: 2026-10-03  
-Status: accepted shared funding prerequisite; actual adapter awaits reviewed Placement/contact integration
+Status: accepted shared funding prerequisite and actual paid adapter; production contacts/frontier unqualified
 
 ## Scope and authority
 
@@ -155,3 +155,137 @@ rejected/accepted raw evidence are in
 `docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/`.
 These results verify this accounting boundary; actual placement, contact,
 constructibility and the composed release codec remain separate work.
+
+
+## Increment B — actual ConnectorWork owner
+
+The implemented `underground_connector_work.gd` binds the accepted1105
+Placement directly. It uses the single shared Funding arena and actual
+purpose8 Project, primary Job, worker, equipment and reservation identities.
+The caller supplies only a full Placement handle and its exact next assembly
+ordinal. The immutable grouping maps that ordinal to one canonical recipe
+anchor, so an included bearer/joinery prism cannot be charged separately.
+The test source contains two synthetic wood groups covering four Catalog
+parts; these fixtures do not activate the user-approved stair content.
+
+The typed Contacts interface separately requires exact actual composition,
+prospective assembly feasibility, material/refund endpoint, assigned worker
+and action observations. `final_observation_refusal` finishes fallible contact
+observations; `final_leaf_refusal` is a required callback-free current-state
+attestation. The default implementation refuses all permission. Contacts own
+no copied operation image, physical candidate or paid state. Their observations
+must be allocation-free over already-bound, finite actual contact facts; an
+implementation needing copied cold geometry must first extend the admitted
+Placement preparation contract rather than allocate before its lease.
+
+For COMMIT, ConnectorWork retains the original actual Budget strongly, obtains
+the exact Placement cold request, acquires it, and prepares all companions.
+After the final Recipe and Inventory staging observers, it runs the final
+Contacts observation, Placement's completion observer pass, the Contacts pure
+leaf, and the Placement pure prepared leaf. Only then may actual Inventory
+commit. Publication reads the exact real Router window, invokes the accepted
+static Placement companion tail, and releases the original Budget after all
+copied state has dropped. It performs no Contacts/Recipe/source observation
+in that postpayment tail. Replacing an arena token preserves the replacement;
+invalidating source getters cannot hide the retained original arena during
+cleanup. Direct publication and synchronous reentry refuse without installing.
+
+START uses the accepted increment-A final guard after actual reserved wood
+removal observers but before Inventory commit. Productive Work uses constant
+identity/contact checks, real tool durability and existing integer WU/XP;
+it does not rebuild Quote, grouping or Placement record images. Completion
+requires actual remaining work zero. Ordinary cancellation refunds80% after
+start, retains all previously installed assemblies, clears only the current
+Project, and requires the full bill/work on restart. An unstarted order merely
+releases its actual claims. A refund refusal may retain the established
+REFUNDING phase and released workers while preserving WIP; no all-owner rollback
+claim is made for those existing lifecycle semantics.
+
+### Source-counted adapter lifetime
+
+The owner contains three full Vector2i controls (24 bytes), three integers
+(24 bytes), three booleans (3 bytes), and the reused96-byte OrderRecord plus
+32-byte AssemblyRecord: **179 logical numeric bytes**. The128-byte caller pair
+is the same pair already included in Placement1105's2048 control census; it is
+not a second simultaneous pair. The additional retained numeric delta is51
+bytes. A separate512-byte logical helper-frame allowance conservatively covers
+the adapter's synchronous call chain, so its isolated179+512 census is691 and
+the additional joint charge after aliasing the caller pair is563 bytes. This
+is inside the existing bindings/control reserve, not a new memory allowance.
+There are no packed columns, per-Placement objects, WU ledger, material escrow
+or new canonical gameplay fields. Actual owner references, three WeakRefs,
+Publication/record object headers, StringName/Variant stack representation and
+allocator growth remain within the explicit native reserve and are unmeasured.
+
+`is_quiescent()` exposes the synchronous boundary without copying or invoking
+providers. Coordinated save/load must be quiescent and rebind exact immutable
+sources, World, Placement/Project/Job/Funding and contact owners. The adapter
+adds no codec, activation default, source-qualified install posture or physical
+frontier authoring. Base Contacts and base Placement Authority continue to refuse.
+
+The corrected exact component check passes102 tests/6988 assertions across five
+strict affected suites, with every strict/raw diagnostic and leak count zero
+and analyzer0 warnings/4 files. The actual adapter suite contributes22/258.
+Source hashes stayed unchanged throughout; the expanded independent review is
+recorded beside the source manifest before commit. Native memory and target-machine tick timing
+remain unqualified. Rejected development runs remain
+available: an unsupported nested test-fixture inheritance failed to parse, and
+an assertion compared Construction bytes across a deliberate pause/resume that
+correctly releases its assigned-worker count. The corrected assertion pins the
+post-resume state before the subsequent refusal; production behavior was not
+changed for either fixture issue.
+
+### Correction: last phase proof and connector START publication
+
+The first accepted adapter candidate was withheld before commit when an actual
+Inventory reserved-input observer reproduced a late pause after the early START
+check. Inventory could commit the wood, then ordinary Construction.begin_work
+refused. A final PRODUCTIVE Contacts callback could likewise pause or change
+phase after the early check, before Work retired Job labor and earned XP/wear.
+The rejected raw reproduction is retained in `adapter-tail-rejected`; the
+earlier94/6904 candidate is explicitly superseded.
+
+ConnectorWork now rechecks the actual action-specific phase, work-begun flag,
+funded state, remaining work and pause status after its last contact/source
+observer. START distinguishes unfunded READY from funded WORKING resume;
+PRODUCTIVE requires WORKING with positive remaining work; COMMIT requires
+unpaused WORK_DONE with zero remaining work. Cancellation remains legal while
+paused, and final cancellation settlement must already be REFUNDING. Router
+also repeats actual Job/Construction remaining-work equality after the last
+productive observer, without rebuilding a cold quote.
+
+Checking phase alone was insufficient: ordinary Construction.begin_work reads
+the modular bill and subject through further owner/Recipe callbacks, which
+previously ran after Inventory had committed. A connector-only static leaf,
+`Construction.connector_start_refusal`, now proves the real Router action,
+exact Construction/Jobs/Funding/Inventory/Items composition, full Project and
+primary Job generations, prepared Router/Funding quotes, all delivered cells
+and staged per-item totals. Before payment it requires the original Funding
+settlement bracket and open Inventory transaction. Router then repeats only
+actual crew/tool identity checks, without another purpose-owner callback.
+
+After WIP publication, `Construction.begin_connector_work_preflighted` repeats
+that same concrete leaf under ACTION_BEGIN_WORK, requiring the actual full WIP
+receipt and closed settlement bracket. It writes only the existing work-begun,
+phase and refund-policy fields. No new Recipe, Contacts or authority observation
+can fail between payment and this publication. Ordinary begin_work is unchanged;
+successful operation cleanup still discards only already-finished transient
+observation state. Direct, stale, base-authority and wrong-action entry refuses
+without writes. Actual late worker release, quote/delivery changes and pause
+all preserve Inventory, reservation and WIP bytes; a fresh retry succeeds.
+The original begin_work comment's sole-transition contract still describes this
+same semantic transition; the static connector implementation does not grant a
+second work/refund policy or another admission path.
+
+These corrections add no retained control, packed column or Quote. The longest
+new pure start chain has129 logical numeric argument/local bytes, or169 including
+its existing Router.start_work frame, within the already charged512 helper
+allowance. Reference/native representation remains separately unmeasured.
+The reflection test counts a concrete base ConnectorWork instance, excluding
+the nine bytes added only to the adversarial test subclass. Production census
+remains179 bytes, including the128-byte aliased caller pair.
+
+Root's expanded independent review accepted all four corrected source pins and
+the exact102/6988 strict evidence, with no remaining high/medium finding in this
+paid component. This acceptance supersedes the earlier two-file candidate and
+does not qualify actual Contacts/frontier/profile content or playable entry.

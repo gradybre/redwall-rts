@@ -394,7 +394,11 @@ func final_input_refusal(project: Vector2i, job: Vector2i,
 		inventory: RefCounted, pool: RefCounted) -> StringName:
 	"""The final owner source/contact observation is inside Inventory's uncommitted claims journal."""
 	var code: StringName = connector_inputs_refusal(project, job, inventory, pool)
-	return final_funding_refusal(project, ACTION_WIP) if code == &"" else code
+	if code == &"":
+		code = final_funding_refusal(project, ACTION_WIP)
+	if code == &"":
+		code = Construction.connector_start_refusal(_construction, self, project, job, false)
+	return _crew_refusal(project, _job_row(job), false, false) if code == &"" else code
 
 
 func _allow(project: Vector2i, action: int) -> void:
@@ -653,12 +657,20 @@ func start_work(project: Vector2i, now_tick: int, output: Vector2i = NULL_REF,
 	if not paid.ok:
 		return _discard_finish(project, START, owner, paid.error)
 	_allow(project, ACTION_BEGIN_WORK)
-	var begun: Construction.OpResult = _construction.begin_work(project)
+	var begun: Construction.OpResult = _begin_paid_work(project, _bound_job(row))
 	assert(begun.ok, "preflighted paid start cannot fail after Inventory consumption")
 	_disallow()
 	_start_job_states(project, row)
 	owner.discard_transition(project, START)
 	return _finish(_ok(project))
+
+
+func _begin_paid_work(project: Vector2i, job: Vector2i) -> Construction.OpResult:
+	"""Connector publication uses the same concrete facts as the last prepayment leaf, with no new bill observer."""
+	var row: int = _construction._directory.get_typed_row(project)
+	if row >= 0 and _construction._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL:
+		return Construction.begin_connector_work_preflighted(_construction, self, project, job)
+	return _construction.begin_work(project)
 
 
 func _start_refusal(project: Vector2i, row: int, output: Vector2i, tile: int, owner: Owner) -> StringName:
@@ -716,11 +728,11 @@ func _start_job_states(project: Vector2i, primary: int) -> void:
 	_construction.set_assigned_count(project, _crew_count)
 
 
-func _crew_refusal(project: Vector2i, primary: int, require_work_state: bool) -> StringName:
+func _crew_refusal(project: Vector2i, primary: int, require_work_state: bool, observe: bool = true) -> StringName:
 	"""Read at most four accepted real contributors without per-worker objects or global scans."""
 	_crew_count = 0
 	if not _jobs.is_coordinator(primary):
-		return _worker_refusal(project, primary, require_work_state)
+		return _worker_refusal(project, primary, require_work_state, observe)
 	if not _jobs.first_member_into(primary, _other):
 		return REFUSE_WORKER
 	var row: int = _other.value
@@ -729,7 +741,7 @@ func _crew_refusal(project: Vector2i, primary: int, require_work_state: bool) ->
 		count += 1
 		if count > MAX_WORKERS or _member_refusal(project, primary, row) != &"":
 			return REFUSE_CREW
-		var code: StringName = _worker_refusal(project, row, require_work_state)
+		var code: StringName = _worker_refusal(project, row, require_work_state, observe)
 		if code != &"" and not _safe_skipped_member(row, code):
 			return code
 		row = _other.value if _jobs.next_member_into(row, _other) else NO_ROW
@@ -753,7 +765,7 @@ func _member_refusal(project: Vector2i, primary: int, row: int) -> StringName:
 		else Work.REFUSE_TOOL_NOT_CLAIMED
 
 
-func _worker_refusal(project: Vector2i, row: int, require_work_state: bool) -> StringName:
+func _worker_refusal(project: Vector2i, row: int, require_work_state: bool, observe: bool = true) -> StringName:
 	"""Validate full worker/Job/Gear identity and actual current contact before Work mutates carry."""
 	if require_work_state and (not _jobs.state_into(row, _math) or _math.value != Jobs.JOB_STATE_WORK):
 		return Work.REFUSE_JOB_NOT_WORKING
@@ -768,7 +780,7 @@ func _worker_refusal(project: Vector2i, row: int, require_work_state: bool) -> S
 	if not _jobs.resident_may_work_into(resident, _math):
 		return Work.REFUSE_JOB_NOT_WORKING
 	var code: StringName = _tool_refusal(row, resident, worker)
-	if code == &"":
+	if code == &"" and observe:
 		code = _project_owner(project).worker_refusal(project, _bound_job(row), worker)
 	if code == &"":
 		_crew_count += 1
@@ -833,6 +845,17 @@ func work_tick_refusal(job: Vector2i) -> StringName:
 
 func _productive_refusal(project: Vector2i, row: int) -> StringName:
 	"""Hot proof reads only retained owner state and actual physical readers, with no cold quote."""
+	var code: StringName = _productive_state_refusal(project, row)
+	if code == &"":
+		code = _project_owner(project).transition_refusal(project, PRODUCTIVE)
+	if code == &"" and _construction.purpose_into(project, _math) \
+			and _math.value == Construction.PURPOSE_CONNECTOR_INSTALL:
+		code = _productive_state_refusal(project, row)
+	return code
+
+
+func _productive_state_refusal(project: Vector2i, row: int) -> StringName:
+	"""Allocation-free actual Job/Construction facts are repeated after the last connector contact observer."""
 	var code: StringName = _bound_refusal(project, row)
 	if code != &"":
 		return code
@@ -849,7 +872,7 @@ func _productive_refusal(project: Vector2i, row: int) -> StringName:
 	if mass < 0 or mass > 0 and (not _inventory.container_reachable(output) \
 			or _inventory.container_reserved_mass_g(output) < mass):
 		return REFUSE_OUTPUT
-	return _project_owner(project).transition_refusal(project, PRODUCTIVE)
+	return &""
 
 
 func accept_work_tick(job: Vector2i) -> void:

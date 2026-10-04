@@ -1,0 +1,34 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 9.675,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "127/362",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-rejected"
+      ],
+      "exit_code": 1,
+      "seconds": 8.326,
+      "log": "test_underground_connector_work.gd.log"
+    }
+  ],
+  "source_unchanged": true,
+  "assets_present_before": false,
+  "error": "test_underground_connector_work.gd.log",
+  "assets_restored": true,
+  "exit_code": 1
+}

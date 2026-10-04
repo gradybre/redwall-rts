@@ -1741,3 +1741,15 @@ replacing its former direct declaration without duplicating the per-provider
 reference. The cold caller reads that typed field directly after callbacks;
 unbound base providers retain null and refuse. Native object headers/reference
 storage remain inside the existing provider controls/native obligation.
+
+### Measured direct route reads (decision1098)
+
+The packed-read overhead correction adds no retained fields, arrays, map or
+save/hash change. It uses the same actual bank offsets and proof predicates,
+with all conservative work charges unchanged. One endpoint stride scalar adds
+8 logical frame bytes: the deepest declared path is now344/512 in the existing
+invoking Contacts allowance. Borrowed typed local references do not copy their
+banks; native reference/interpreter frames remain unmeasured. The prior retained
+topology2102/2112 and WorldRoutes4096 reservations are unchanged. A measured
+21.465ms p95 for256 small-path queries still fails runtime qualification; this
+does not admit an unbudgeted per-worker search or a whole simulation tick.

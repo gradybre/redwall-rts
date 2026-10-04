@@ -1,0 +1,7 @@
+{
+  "owned_pid": 56110,
+  "observed_process": "56053 godot --path godot --rendering-method gl_compatibility --audio-driver Dummy --fixed-fps 60 --log-file /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v3/engine-native.log --script /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_cardinal_program.gd -- /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v3/spec.json /Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-cardinal-program-v3",
+  "reason": "Trace reaches observed32 after process_frame and stops in inherited frame_post_draw screenshot wait; no completed capture",
+  "signal": "SIGTERM",
+  "production_qualified": false
+}

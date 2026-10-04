@@ -113,3 +113,22 @@ compatibility review, not an automatic allowance for later code. Current
 1121 and stationary-turn changes must be separately reclosed, and the final
 runtime loader must refuse drift. No wire, certificate bits, paid World
 permission, WIP/handling or source-phase stair pace is published here.
+
+## Reviewed protocol4 native witness
+
+Independent root review accepted capturebe7adfd1…, wrapper50c21054… and
+testb9090b2b… in `review-cardinal-native-v2`. Exactv5 replay reports7,792
+poses,46,852 assertions and0 failures; import/native unexpected diagnostics
+and leaks are zero,8 Python tests pass, and analyzer reports0 warnings in
+0 of1 files. All3 source /325 output /384 history pins were independently
+verified. Every event, contact, image hash and final total equalsv4 after
+the reviewed short-function extraction. Rejected asynchronous screenshot
+waits and the original successfulv4 executable remain immutable history.
+
+Actual Resident/Job/Work/Gear,14-clip source and native WorldBasis bindings
+cover the18-row protocol and144 original-tool-vertex contact samples.
+The fixture certificate flags are explicitly synthetic; this packet does
+not publish the final immutable catalog. Continuous source proofs remain
+separate from this finite native witness. World support, paid targets, WIP,
+material handling, stair motion/pace and gameplay-camera/HUD qualification
+are not granted by these isolated actor captures.

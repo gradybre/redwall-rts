@@ -1,0 +1,21 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+content-memory: before=159385616; after=160035964; prior_peak=256151360; peak=256151360; declared_peak=7141920; isolated=false
+cardinal-progress: query 0 side-yaw0-idle 0
+cardinal-progress: applied 1
+cardinal-progress: frame 1
+cardinal-progress: returning 1
+cardinal-progress: query 1 side-yaw0-idle 1
+cardinal-progress: applied 2
+cardinal-progress: frame 2
+cardinal-progress: returning 2
+cardinal-progress: query 2 side-yaw0-idle 2
+cardinal-progress: applied 3
+cardinal-progress: frame 3
+cardinal-progress: returning 3

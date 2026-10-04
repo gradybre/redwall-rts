@@ -1,0 +1,3 @@
+[application]
+config/use_custom_user_dir=true
+config/custom_user_dir_name="Redwall-Codex-Cardinal-890099a30e40b61b"

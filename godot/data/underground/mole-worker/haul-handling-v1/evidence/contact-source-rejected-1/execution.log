@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/author_handling.py", line 188, in <module>
+    main()
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/author_handling.py", line 165, in main
+    pose, stock, recipe = contact_pose(hub, hub_log, inverse, grounding, args.lean, args.ahead, log)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/author_handling.py", line 113, in contact_pose
+    middle = RIG.knee_target(start, old_middle, old_end, target)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py", line 60, in knee_target
+    P.require(all(math.isfinite(x) for x in (first, last, distance)) and
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/tools/export_underground_envelopes.py", line 36, in require
+    raise Refused(code)
+export_underground_envelopes.Refused: STEP_LEG_REACH

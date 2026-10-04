@@ -1,0 +1,11 @@
+{
+  "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+  "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+  "godot/data/underground/mole-worker/haul-handling-v1/probe_contact_reach.py": "5294e06056f645e1ee49265edaee2290ced5882a431b72da154855798afd5194",
+  "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+  "godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py": "33315d30c82d6b65739140bb7475b63db1f50124f0757d4ef8bac99aa4c63f18",
+  "godot/data/underground/mole-worker/haul-handling-v1/reproduce_static_contact.py": "99c544c54a7500298d6a9fee78c8dba2cdb0b53ecf4a7ad1586104f9013ae04b",
+  "godot/data/underground/mole-worker/haul-handling-v1/test_handling_source.py": "35d0d0cebfb2085470efed44c4b01d500b35d9608d7da775f7ffac216a0060ba",
+  "godot/data/underground/mole-worker/haul-handling-v1/native_capture/capture_stock.gd": "6a3d998431a81eb1880ced590bf33512ee259089e27e494bd62a6071363cfc52",
+  "godot/data/underground/mole-worker/haul-handling-v1/native_capture/project.godot": "38afe56c44049dad65ba3cb06372990512fc6e973aa89e0dd13556f1b77a8919"
+}

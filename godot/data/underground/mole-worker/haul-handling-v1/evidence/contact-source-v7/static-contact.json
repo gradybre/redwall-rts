@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "static_source": {
+    "non_grip_separation": true,
+    "completed": true,
+    "unresolved": [],
+    "pairs": 0,
+    "checks": 0,
+    "body_triangles": 10209,
+    "solid_triangles": 9283,
+    "hand_triangles": [
+      478,
+      448
+    ],
+    "wood_triangles": 768,
+    "body_source_bounds_u": [
+      -430,
+      0,
+      -589,
+      429,
+      459,
+      208
+    ],
+    "wood_source_bounds_u": [
+      -412,
+      -1,
+      -627,
+      412,
+      102,
+      -525
+    ],
+    "hand_contact_witnesses": [
+      {
+        "edge": [
+          0,
+          1
+        ],
+        "share": [
+          18499791546966961162449000970644854564454400,
+          409609995779438793925409198386830862230790979
+        ],
+        "point_u": [
+          [
+            -2483924732663142644805392696539920477757341066315733841774671,
+            7205935251404339810891022215123003434453929406532906123264
+          ],
+          [
+            10884694771971174309348571681432130115575749340495877,
+            107376802733605203194782468901917389548628470398976
+          ],
+          [
+            -1037906000657758768345786231772770203717939135221263511889043,
+            1801483812851084952722755553780750858613482351633226530816
+          ]
+        ],
+        "hand": 15,
+        "body_triangle": 10108,
+        "wood_triangle": 543,
+        "body_vertices": [
+          17142,
+          17143,
+          14015
+        ],
+        "wood_vertices": [
+          276,
+          341,
+          340
+        ]
+      },
+      {
+        "edge": [
+          1,
+          2
+        ],
+        "share": [
+          243866886540962539,
+          274378114721331068
+        ],
+        "point_u": [
+          [
+            61056056658011251943652330011229,
+            172389672881920452117760311296
+          ],
+          [
+            28027125753668732921364960259877,
+            301681927543360791206080544768
+          ],
+          [
+            -23615445422264078175544465189095,
+            43097418220480113029440077824
+          ]
+        ],
+        "hand": 19,
+        "body_triangle": 1,
+        "wood_triangle": 43,
+        "body_vertices": [
+          0,
+          3,
+          1
+        ],
+        "wood_vertices": [
+          22,
+          87,
+          86
+        ]
+      }
+    ],
+    "self_grip_rule": "Each complete triangle has positive exact hand influence and hand-local Y > 0.025m at all three vertices; all mixed boundary triangles remain solid and all original triangles remain world geometry.",
+    "partition_sha256": "bafe5ff5d21c4e7191ac322c81d93195eca0e990077363e6da276f58f82ee93a",
+    "source_contact_exists": true
+  },
+  "scope": "Exact F32 input coefficients evaluated as source rational skin geometry; no native error or temporal qualification.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "abf94b67d02b9fb35785e54bcb782af66a7bd3b7dac2e11cbf3ad4b141d875af",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "4a4d66b76ded415763e3afcebcfdd1057a27a03a75655224e78c53c9da0df72e",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "f36df901095d25fadef8e38b20c449a1014e36610089ebd043be3565aac13bd5",
+    "godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py": "d73947449dac546b7139cccee441c3e9b990c1a3f9a2f50e45118aa44e102aee",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/contact-source-v7/poses.npz": "a0aafddc9b1be8441fce3721d5687f92b19e96a89cde5414d04192c8541aa1e9",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/wood-topology-v1.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+  },
+  "pending": [
+    "full supported foot contacts",
+    "native error enclosure",
+    "every transition/loop/reversal/join",
+    "runtime source/quantity/role admission"
+  ]
+}

@@ -1,0 +1,18 @@
+test_both_endpoint_contacts_can_leave_triangle_in_between (__main__.ExactIntervalTests.test_both_endpoint_contacts_can_leave_triangle_in_between) ... ok
+test_quadratic_endpoints_do_not_prove_interior (__main__.ExactIntervalTests.test_quadratic_endpoints_do_not_prove_interior) ... ok
+test_rotated_or_degenerate_stock_is_not_a_translation_certificate (__main__.ExactIntervalTests.test_rotated_or_degenerate_stock_is_not_a_translation_certificate) ... ok
+test_translating_true_contact_is_continuous (__main__.ExactIntervalTests.test_translating_true_contact_is_continuous) ... ok
+test_all_four_complete_source_transitions_pass (__main__.ActualProgramTests.test_all_four_complete_source_transitions_pass) ... ok
+test_all_reviewed_static_source_files_remain_unchanged (__main__.ActualProgramTests.test_all_reviewed_static_source_files_remain_unchanged) ... ok
+test_every_authored_joint_key_retains_original_lengths (__main__.ActualProgramTests.test_every_authored_joint_key_retains_original_lengths) ... ok
+test_late_hand_departure_loses_continuous_contact (__main__.ActualProgramTests.test_late_hand_departure_loses_continuous_contact) ... ok
+test_loaded_hub_repost_and_empty_recovery_body_joins_are_exact (__main__.ActualProgramTests.test_loaded_hub_repost_and_empty_recovery_body_joins_are_exact) ... ok
+test_lowered_mid_key_cannot_hide_floor_penetration (__main__.ActualProgramTests.test_lowered_mid_key_cannot_hide_floor_penetration) ... ok
+test_reviewed_static_pickup_and_setdown_are_exact_joins (__main__.ActualProgramTests.test_reviewed_static_pickup_and_setdown_are_exact_joins) ... ok
+test_rotating_stock_image_refuses_before_proof (__main__.ActualProgramTests.test_rotating_stock_image_refuses_before_proof) ... ok
+test_stock_crossing_body_between_clear_endpoints_refuses (__main__.ActualProgramTests.test_stock_crossing_body_between_clear_endpoints_refuses) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 47.815s
+
+OK

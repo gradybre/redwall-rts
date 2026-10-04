@@ -1,0 +1,166 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "scope": "Loaded hub pose only; no temporal segment has been emitted or qualified yet.",
+  "recipe": {
+    "lean": 20,
+    "stock_rise_u": 448,
+    "stock_advance_u": 384
+  },
+  "source_static_pose_sha256": "996d0b4a0666e57d01c5f3592632e4c1f36c914854aae78a61ed91f8c3750894",
+  "source_program_sha256": "11129f3304573525977ff9810fb86a3fbd4b4fe007aba94ad6422fea2526c4f8",
+  "sole_corrections": [
+    {
+      "ankle_y_correction_u": [
+        0.0,
+        0.0
+      ],
+      "iterations": 1,
+      "contact_vertices": [
+        16125,
+        3622
+      ],
+      "source_gap_u": [
+        0.0019748655653752945,
+        0.0020049018961025844
+      ],
+      "complete_foot_vertices": [
+        1666,
+        1559
+      ],
+      "complete_foot_bounds_u": [
+        [
+          -273.0460837170829,
+          0.0019748655653752945,
+          -168.3016950881437,
+          -80.94507214919767,
+          101.88869586638613,
+          94.46180098922306
+        ],
+        [
+          70.10195331156534,
+          0.0020049018961025844,
+          -63.67122843346161,
+          297.67120785832344,
+          106.54794869666645,
+          169.6627491188031
+        ]
+      ],
+      "source_solve_lift_u": [
+        1,
+        512
+      ],
+      "source_solve_tolerance_u": [
+        1,
+        1024
+      ]
+    },
+    {
+      "ankle_y_correction_u": [
+        0.010893930563632415,
+        -3.4077425408175017
+      ],
+      "iterations": 4,
+      "contact_vertices": [
+        15936,
+        3622
+      ],
+      "source_gap_u": [
+        0.0018262678545420963,
+        0.001953150706287321
+      ],
+      "complete_foot_vertices": [
+        1666,
+        1559
+      ],
+      "complete_foot_bounds_u": [
+        [
+          -273.0460837170829,
+          0.0018262678545420963,
+          -168.3016950881437,
+          -79.67166472211663,
+          97.27080991082288,
+          88.9120421579949
+        ],
+        [
+          70.80730470447146,
+          0.001953150706287321,
+          -63.67122843346161,
+          297.67120785832344,
+          101.84747273388848,
+          172.71503413100888
+        ]
+      ],
+      "source_solve_lift_u": [
+        1,
+        512
+      ],
+      "source_solve_tolerance_u": [
+        1,
+        1024
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "sampled_body_u": [
+        -429.3020353631709,
+        0.0019748655653752945,
+        -588.1317864676862,
+        428.8743707838376,
+        458.84601966044016,
+        207.90545953068218
+      ],
+      "sampled_wood_u": [
+        -411.14788818359375,
+        0.001953125,
+        -626.6879997253418,
+        411.14788818359375,
+        101.3779525756836,
+        -525.3120002746582
+      ],
+      "nearest_vertex_diagnostics": [
+        {
+          "hand_bone": 15,
+          "body_vertex": 14075,
+          "wood_vertex": 356,
+          "body_point_u": [
+            -379.4498170397163,
+            55.12086988574663,
+            -526.6432633288259
+          ],
+          "wood_point_u": [
+            -411.14788818359375,
+            55.65824556350708,
+            -525.5560760498047
+          ],
+          "sampled_vertex_distance_u": 31.721262002654136
+        },
+        {
+          "hand_bone": 19,
+          "body_vertex": 14102,
+          "wood_vertex": 30,
+          "body_point_u": [
+            395.57105989720935,
+            63.66522627288941,
+            -518.2217661008037
+          ],
+          "wood_point_u": [
+            411.14788818359375,
+            60.578691482543945,
+            -526.2859573364258
+          ],
+          "sampled_vertex_distance_u": 17.80998194160234
+        }
+      ],
+      "scope": "Nearest vertices do not establish triangle contact, separation, support or native residual."
+    }
+  ],
+  "missing": [
+    "continuous lift/approach/return",
+    "loaded gait/turn/joins",
+    "native proof",
+    "quantity mapping",
+    "runtime admission"
+  ]
+}

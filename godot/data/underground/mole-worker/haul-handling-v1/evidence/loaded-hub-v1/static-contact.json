@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "static_source": {
+    "non_grip_separation": true,
+    "completed": true,
+    "unresolved": [],
+    "pairs": 0,
+    "checks": 0,
+    "non_grip_vertices_inside_stock": [],
+    "floor": {
+      "source_not_below_floor": true,
+      "penetrations": [],
+      "contacts": [
+        {
+          "role": "left_foot",
+          "vertex": 15936,
+          "source_gap_u": [
+            275977795361011289527,
+            151115727451828646838272
+          ]
+        },
+        {
+          "role": "right_foot",
+          "vertex": 3622,
+          "source_gap_u": [
+            18446986862729101171,
+            9444732965739290427392
+          ]
+        }
+      ],
+      "three_contacts_present": false,
+      "scope": "Exact rational source at this pose, within the one-unit source contact cell; native residual remains separate."
+    },
+    "body_triangles": 10209,
+    "solid_triangles": 9283,
+    "hand_triangles": [
+      478,
+      448
+    ],
+    "wood_triangles": 768,
+    "body_source_bounds_u": [
+      -422,
+      0,
+      -397,
+      432,
+      849,
+      233
+    ],
+    "wood_source_bounds_u": [
+      -412,
+      448,
+      -435,
+      412,
+      550,
+      -333
+    ],
+    "hand_contact_witnesses": [
+      {
+        "edge": [
+          0,
+          1
+        ],
+        "share": [
+          32376748485197171950183962299920970709729280,
+          757182293552560697482974299920975641312810911
+        ],
+        "point_u": [
+          [
+            -4591105889361772126158524144879277233566612615431222751783459,
+            13320491777714257316840751656833375288734307813691255422976
+          ],
+          [
+            27260858120905547411748145239425662254645005598604251,
+            49622698790260617870244203719621059629076375863296
+          ],
+          [
+            -2559605261683484282177991079238072690940211840653283417816433,
+            6660245888857128658420375828416687644367153906845627711488
+          ]
+        ],
+        "hand": 15,
+        "body_triangle": 10108,
+        "wood_triangle": 543,
+        "body_vertices": [
+          17142,
+          17143,
+          14015
+        ],
+        "wood_vertices": [
+          276,
+          341,
+          340
+        ]
+      },
+      {
+        "edge": [
+          1,
+          2
+        ],
+        "share": [
+          243867981145254635,
+          274378114721331068
+        ],
+        "point_u": [
+          [
+            61056049855965397209622278273629,
+            172389672881920452117760311296
+          ],
+          [
+            163181224760913299243360284847909,
+            301681927543360791206080544768
+          ],
+          [
+            -15340743435324342233470693042407,
+            43097418220480113029440077824
+          ]
+        ],
+        "hand": 19,
+        "body_triangle": 1,
+        "wood_triangle": 43,
+        "body_vertices": [
+          0,
+          3,
+          1
+        ],
+        "wood_vertices": [
+          22,
+          87,
+          86
+        ]
+      }
+    ],
+    "self_grip_rule": "Each complete triangle has positive exact hand influence and hand-local Y > 0.025m at all three vertices; all mixed boundary triangles remain solid and all original triangles remain world geometry.",
+    "partition_sha256": "bafe5ff5d21c4e7191ac322c81d93195eca0e990077363e6da276f58f82ee93a",
+    "source_contact_exists": true
+  },
+  "scope": "Exact F32 input coefficients evaluated as source rational skin geometry; no native error or temporal qualification.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "cde1ca83928aa18ddc22d5f6555a83c6e92634aaf7b836a5b0f4bb0966d519b4",
+    "godot/data/underground/mole-worker/haul-handling-v1/render_candidate.py": "33315d30c82d6b65739140bb7475b63db1f50124f0757d4ef8bac99aa4c63f18",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/loaded-hub-v1/poses.npz": "ed62792e3b69f0cdd03b3eba72870afaed64cc5024753088a48489438b832f35",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/wood-topology-v1.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+  },
+  "pending": [
+    "full supported foot contacts",
+    "native error enclosure",
+    "every transition/loop/reversal/join",
+    "runtime source/quantity/role admission"
+  ]
+}

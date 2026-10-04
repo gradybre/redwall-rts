@@ -1,0 +1,794 @@
+{
+  "schema": 1,
+  "production_qualified": false,
+  "clip": "approach",
+  "source_proof": {
+    "all_intervals_complete": true,
+    "non_grip_separation": true,
+    "unresolved": [],
+    "initial_contained_vertices": [],
+    "pairs": 0,
+    "checks": 0,
+    "floor_penetrations": [],
+    "supported_feet": true,
+    "support_failures": [],
+    "continuous_two_hand_contact": false,
+    "grip_failures": [],
+    "foot_union_u": [
+      [
+        -274,
+        0,
+        -169,
+        -79,
+        103,
+        95
+      ],
+      [
+        70,
+        0,
+        -64,
+        298,
+        107,
+        174
+      ]
+    ],
+    "body_union_u": [
+      -430,
+      0,
+      -589,
+      432,
+      849,
+      233
+    ],
+    "stock_union_u": [
+      -412,
+      0,
+      -627,
+      412,
+      102,
+      -525
+    ],
+    "body_triangles": 10209,
+    "non_grip_triangles": 9283,
+    "intentional_grip_triangles": [
+      478,
+      448
+    ],
+    "stock_triangles": 768,
+    "intervals": [
+      {
+        "interval": [
+          0,
+          1
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          1,
+          2
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          2,
+          3
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          3,
+          4
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          4,
+          5
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          5,
+          6
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          6,
+          7
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          7,
+          8
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          8,
+          9
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          9,
+          10
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          10,
+          11
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          11,
+          12
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          12,
+          13
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          13,
+          14
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          14,
+          15
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          15,
+          16
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          16,
+          17
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          17,
+          18
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          18,
+          19
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          19,
+          20
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          20,
+          21
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7778,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          21,
+          22
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          22,
+          23
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          23,
+          24
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          24,
+          25
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          25,
+          26
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          26,
+          27
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          27,
+          28
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          28,
+          29
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          29,
+          30
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          30,
+          31
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          31,
+          32
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          32,
+          33
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          33,
+          34
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          2862
+        ]
+      },
+      {
+        "interval": [
+          34,
+          35
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          35,
+          36
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          36,
+          37
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          37,
+          38
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          38,
+          39
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          39,
+          40
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          40,
+          41
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          41,
+          42
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          42,
+          43
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          43,
+          44
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          44,
+          45
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          45,
+          46
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          46,
+          47
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          47,
+          48
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          48,
+          49
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          49,
+          50
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          50,
+          51
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          51,
+          52
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          52,
+          53
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          53,
+          54
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          54,
+          55
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          55,
+          56
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          56,
+          57
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          57,
+          58
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          58,
+          59
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      },
+      {
+        "interval": [
+          59,
+          60
+        ],
+        "pairs": 0,
+        "checks": 0,
+        "foot_contact_vertices": [
+          7777,
+          3622
+        ]
+      }
+    ]
+  },
+  "scope": "All affine source interpolation intervals, full current triangles. No native error allowance, timing adoption or runtime permission.",
+  "contact_scope": "Exact translating stock plus quadratic rational hand-edge/triangle certificates; no planar runtime CONTACT_PATCH assertion.",
+  "containment_scope": "Initial non-grip vertices outside the closed convex stock plus continuous surface separation; no non-grip vertex may enter without a refused crossing.",
+  "source_sha256": {
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_program.py": "66eb45433580ff495ffdd32dd9f251f875443a8d500ed2cf7b80ac4ee8efe3bb",
+    "godot/data/underground/mole-worker/haul-handling-v1/prove_static_contact.py": "76b0fa90d3488155ef5297f72430eea929cb2b7bf45089c4021970ffddc7a929",
+    "godot/data/underground/mole-worker/haul-handling-v1/author_handling.py": "bf96731c5cba21f300f46b7db307c78e465f1c9f2dbfc8c7e41c97a2786eca26",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/program-review-v1/candidate/approach.npz": "213e4f9ca9e77b791795c0596424d05f2ebc2edd88431850588fecebe2f922f4",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/static-contact.json": "5f7839659edf811e6a71c72f0e4770d7cc4a4512be3572307b104868f4327f52",
+    "godot/data/underground/mole-worker/haul-handling-v1/evidence/wood-topology-v1.json": "66255515b72899999456ac927a669f46683132fe0f2333940485aeab6b98ba7e"
+  }
+}

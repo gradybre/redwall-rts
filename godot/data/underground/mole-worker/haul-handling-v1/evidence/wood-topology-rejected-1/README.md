@@ -1,0 +1,1 @@
+The first isolated native capture stopped on an authoring API error: CylinderMesh has no surface_get_format. The process was interrupted after the error; no successful topology or geometry proof was claimed. The actual palette convention for PrimitiveMesh is format 0.

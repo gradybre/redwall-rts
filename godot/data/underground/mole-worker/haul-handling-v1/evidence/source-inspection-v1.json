@@ -1,0 +1,195 @@
+{
+  "schema": 1,
+  "status": "AUTHORING_DIAGNOSTIC_ONLY",
+  "production_qualified": false,
+  "source_palette_sha256": "5b368eb3ad594b4a6f82b5981a891150e6f7053944daf888d4ab5aa293c822fe",
+  "current_mesh_palette_sha256": "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda",
+  "current_body_mesh_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+  "original_body_mesh_sha256": "a938d479014ebd3a431a118a7b1c9f7aa0b522d0a33a5c5d281e58e1e2f497c1",
+  "wood_mesh_sha256": "e897ab9a5683d9a79e64fcd0c41286a19114d233e2ec0ceeac0f639e15e22c80",
+  "body_vertices": 17172,
+  "body_triangles": 10209,
+  "wood_vertices": 522,
+  "current_weight_changed_vertices": 0,
+  "current_position_changed_vertices": 845,
+  "maximum_current_position_change_u": 40.534423828125,
+  "current_mesh_used_unchanged": true,
+  "whole_foot_vertices": 3760,
+  "clips": [
+    {
+      "id": "mole_digger.idle.plain",
+      "frames": 122,
+      "source_duration_s": 4.03333330154419,
+      "sampled_current_body_u": [
+        -412.1732688031093,
+        -6.876939591116127e-07,
+        -357.42516236234087,
+        366.26762671188936,
+        856.0596493947043,
+        258.04904973499777
+      ],
+      "sampled_complete_foot_triangles_u": [
+        -273.4379168645358,
+        -6.876939591116127e-07,
+        -169.09906394359282,
+        297.7968735164179,
+        225.98402873407207,
+        173.10609732497227
+      ],
+      "sampled_cargo_u": null,
+      "first_last_palette_equal": false
+    },
+    {
+      "id": "mole_digger.walk.plain",
+      "frames": 34,
+      "source_duration_s": 1.06666672229767,
+      "sampled_current_body_u": [
+        -443.58973861049424,
+        -5.983857049640662e-06,
+        -472.79801317817555,
+        410.8495874691052,
+        929.2802851188928,
+        344.5607189169632
+      ],
+      "sampled_complete_foot_triangles_u": [
+        -248.95327830323717,
+        -5.983857049640662e-06,
+        -272.65603482400365,
+        245.20792715178348,
+        319.6807927075874,
+        248.3716476522515
+      ],
+      "sampled_cargo_u": null,
+      "first_last_palette_equal": false
+    },
+    {
+      "id": "mole_digger.carry_heavy_object_walk.plain",
+      "frames": 197,
+      "source_duration_s": 6.53333330154419,
+      "sampled_current_body_u": [
+        -434.751424154235,
+        -3.635796772982758e-06,
+        -350.51984925650265,
+        476.8333650112467,
+        937.2994988308808,
+        266.19390155792274
+      ],
+      "sampled_complete_foot_triangles_u": [
+        -259.674460490426,
+        -3.635796772982758e-06,
+        -220.48222255708453,
+        299.514836738508,
+        289.224876840164,
+        220.584691943627
+      ],
+      "sampled_cargo_u": [
+        -430.0348729604152,
+        474.02567124222287,
+        -205.00489352662885,
+        456.8015439779542,
+        672.1038518221978,
+        15.21138531764177
+      ],
+      "first_last_palette_equal": true
+    }
+  ],
+  "compact_ready_joints": [
+    {
+      "bone": 9,
+      "name": "Spine02",
+      "ready_u": [
+        -3.333145401623439,
+        374.9760894036282,
+        20.13869211405039
+      ]
+    },
+    {
+      "bone": 12,
+      "name": "LeftShoulder",
+      "ready_u": [
+        -67.30592757162071,
+        598.9845074262827,
+        -54.26359300694553
+      ]
+    },
+    {
+      "bone": 13,
+      "name": "LeftArm",
+      "ready_u": [
+        -190.9277900048054,
+        570.1278715617375,
+        8.80317408037591
+      ]
+    },
+    {
+      "bone": 14,
+      "name": "LeftForeArm",
+      "ready_u": [
+        -251.49933065628494,
+        420.0221223728131,
+        96.66249588126736
+      ]
+    },
+    {
+      "bone": 15,
+      "name": "LeftHand",
+      "ready_u": [
+        -307.3992425323754,
+        311.25490467823124,
+        67.89427720612997
+      ]
+    },
+    {
+      "bone": 16,
+      "name": "RightShoulder",
+      "ready_u": [
+        -1.8496484797954125,
+        597.9277289610654,
+        -84.80619006944485
+      ]
+    },
+    {
+      "bone": 17,
+      "name": "RightArm",
+      "ready_u": [
+        128.94616752344174,
+        548.9234177433673,
+        -38.38991635097875
+      ]
+    },
+    {
+      "bone": 18,
+      "name": "RightForeArm",
+      "ready_u": [
+        199.52519555393303,
+        420.9959049877526,
+        -147.0687585521194
+      ]
+    },
+    {
+      "bone": 19,
+      "name": "RightHand",
+      "ready_u": [
+        275.9466138284974,
+        434.52623472031485,
+        -248.6659478664811
+      ]
+    }
+  ],
+  "compact_source_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+  "source_metadata_sha256": "b77448d7d177674670bd5ab700fda7ead492fa936275613d4bf63be224974d4a",
+  "current_metadata_sha256": "3bce060448d07613b0e7394a0b8346f2ed2a9967d95f682a5817623c54287fcc",
+  "limitations": [
+    "Sampled floats are authoring diagnostics, not outward continuous bounds.",
+    "Current body geometry differs from original native capture; complete new proof is required.",
+    "No hand/cargo contact, complete join, support, quantity variant, native or runtime permission is granted."
+  ],
+  "producer_sources": {
+    "godot/data/underground/mole-worker/haul-handling-v1/inspect_source.py": "f36df901095d25fadef8e38b20c449a1014e36610089ebd043be3565aac13bd5",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/topology-v5/topology.json": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42"
+  }
+}

@@ -1,0 +1,143 @@
+{
+  "schema": 1,
+  "status": "STATIC_SOURCE_CANDIDATE_ONLY",
+  "production_qualified": false,
+  "R_u": [
+    0,
+    0,
+    0
+  ],
+  "S_u": [
+    0,
+    0,
+    -576
+  ],
+  "R_minus_S_u": [
+    0,
+    0,
+    576
+  ],
+  "body_source_box_relative_R_u": [
+    -430,
+    0,
+    -589,
+    429,
+    459,
+    208
+  ],
+  "whole_stock_box_relative_R_u": [
+    -412,
+    0,
+    -627,
+    412,
+    102,
+    -525
+  ],
+  "hand_contacts": [
+    {
+      "hand": 15,
+      "C_minus_S_u": [
+        -344.7053909345642,
+        101.37109881437408,
+        -0.13951197062226584
+      ],
+      "enclosing_contact_cell_relative_S_u": [
+        -345,
+        101,
+        -1,
+        -344,
+        102,
+        0
+      ],
+      "body_triangle": 10108,
+      "wood_triangle": 543
+    },
+    {
+      "hand": 19,
+      "C_minus_S_u": [
+        354.1746766921011,
+        92.90485248624991,
+        28.0450087879766
+      ],
+      "enclosing_contact_cell_relative_S_u": [
+        354,
+        92,
+        28,
+        355,
+        93,
+        29
+      ],
+      "body_triangle": 1,
+      "wood_triangle": 43
+    }
+  ],
+  "worker_support_source": {
+    "ankle_y_correction_u": [
+      -1.426887687673939,
+      -3.4076906657691124
+    ],
+    "iterations": 2,
+    "contact_vertices": [
+      16125,
+      3622
+    ],
+    "source_gap_u": [
+      0.0019748655653752945,
+      0.0020049018961025844
+    ],
+    "complete_foot_vertices": [
+      1666,
+      1559
+    ],
+    "complete_foot_bounds_u": [
+      [
+        -273.0460837170829,
+        0.0019748655653752945,
+        -168.3016950881437,
+        -80.94507214919767,
+        101.88869586638613,
+        94.46180098922306
+      ],
+      [
+        70.10195331156534,
+        0.0020049018961025844,
+        -63.67122843346161,
+        297.67120785832344,
+        106.54794869666645,
+        169.6627491188031
+      ]
+    ],
+    "source_solve_lift_u": [
+      1,
+      512
+    ],
+    "source_solve_tolerance_u": [
+      1,
+      1024
+    ]
+  },
+  "all_body_triangles": 10209,
+  "all_stock_triangles": 768,
+  "non_grip_body_triangles": 9283,
+  "self_grip_triangle_counts": [
+    478,
+    448
+  ],
+  "next_runtime_fields_proposed": [
+    "exact source/program/profile revision and digest",
+    "actual Inventory STORAGE full ref S",
+    "separate actual worker Location full ref R",
+    "source-local R-S and C-S; exact yaw/world transform",
+    "actual item/quantity/shape variant",
+    "phase join and actual transfer receipt"
+  ],
+  "no_new_runtime_allocation": true,
+  "missing": [
+    "native residual/contact replay",
+    "whole approach/lift/recovery/reversal program",
+    "loaded CARRY/turn/retreat and partial/repost joins",
+    "distinct BUILD set-down source",
+    "joint source/table/presentation memory admission",
+    "concrete runtime station/contact integration"
+  ]
+}

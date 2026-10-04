@@ -85,3 +85,24 @@ The first absolute-path and missing-asset refusals are retained. Ten adapter
 tests exercise exact inputs, hash/size/metadata refusal, callback restoration,
 create-only output and preservation of current files sharing temporary links.
 This is a successful development candidate, not a live publication.
+
+## Native execution input preparation
+
+An independently reviewed preparation component derives a new candidate from
+the exact original runtime specification. It changes only three reviewed source
+digests (Actor WorldBasis, ModularProject Contract and Transforms) and relocates
+25 identical-byte files from the former agent checkout. All537 source/manifest
+records are verified before and after output creation, with archived imported
+scenes checked against the original palette archive. All other facts, including
+cases, source gaps and qualification state, remain unchanged.
+
+These records include original and staged assets totaling3,081,042,450 bytes of
+offline input. Hashing uses a1MiB chunk and finite256MiB/file,3GiB/operation bounds.
+The first rejected2GiB attempt is retained and created no output. These are
+offline input bounds, with no change to simulation memory allowances.
+
+Eight local and eight independent tests pass. The presentation reviewer also
+compared every derived row independently. Source commit355b998a is integrated
+as ca8e10da; acceptance and exact pins live in
+`published-native-runtime-sources-v2/`. No native capture, live Catalog update,
+current consumer qualification or certificate bit follows from this component.

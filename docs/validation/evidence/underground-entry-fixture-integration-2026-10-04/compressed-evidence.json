@@ -1,0 +1,14 @@
+{
+  "format": "gzip",
+  "lossless_roundtrip_verified": true,
+  "files": [
+    {
+      "original": "candidate-1/clean-import.log",
+      "compressed": "candidate-1/clean-import.log.gz",
+      "original_bytes": 249850,
+      "compressed_bytes": 9202,
+      "original_sha256": "ae8b589069d2c199459f518dce22f0d35f250e8fa8a48128a5c076743ead364b",
+      "compressed_sha256": "1d554fe09672a9f0ab25233297bf1658b652321272ea02549ee681a98688c9f5"
+    }
+  ]
+}

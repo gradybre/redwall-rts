@@ -1,0 +1,9 @@
+{
+  "changed_path": "/audited_source/module_sha256/modular_projects",
+  "before": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
+  "after": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
+  "all_numeric_capacity_records_identical": true,
+  "canonical_registry_unchanged": true,
+  "generator_unchanged": true,
+  "accepted_source_change": "1136 guarded workpiece START publication; integration2f639"
+}

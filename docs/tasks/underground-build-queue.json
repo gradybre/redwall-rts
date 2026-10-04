@@ -847,7 +847,8 @@
           "status": "Workpieces implementation plus approved narrow ConnectorWork/Contacts integration in progress",
           "contract": "Actual capacity-limited loose Inventory deliveries precede consumption; one shared Funding receipt; static source-bound WIP only. Prepare exact prospective spatial context before initial START INSTALL observations; complete all observations and direct leaves before Inventory commit. No whole-bill single-load requirement, reverse quantity ledger, movable consumed WIP or free support. Actual authored set-down BUILD source remains required and distinct from INSTALL fastening.",
           "shared_owner_gate": "Root Router/Funding, Geometry Space/Placement/companions; no shared edits until exact seam review and explicit leases.",
-          "inherited_policy": "Wood5000g/U; whole L0bill20000g/T0bill5000g. Existing HaulPlanner2000mWU load+2000mWU unload per payload; partial capacity-limited shipments remain allowed."
+          "inherited_policy": "Wood5000g/U; whole L0bill20000g/T0bill5000g. Existing HaulPlanner2000mWU load+2000mWU unload per payload; partial capacity-limited shipments remain allowed.",
+          "latest": "Actual first L0 START/productive COMMIT now passes in diagnostic lifecycle4; full packet remains unaccepted. Lifecycle4:15 tests216 assertions2 failures, zero strict diagnostics/leaks. Geometry correcting terminal occupancy; late Space-revision test cleanup must keep Inventory/Location receipts coherent."
         },
         "workpiece_start_publication_1136": {
           "source_commit": "007dd203085d9d3ca976c9aa82669431560c5ef4",
@@ -859,6 +860,14 @@
           "evidence": "docs/validation/evidence/underground-workpiece-publication-2026-10-04/",
           "integrated_tests": "Alongside1132 phase2:100tests3294assertions0failures; strict/raw/leaks0,expected/tolerated0; analyzer0/6",
           "integrated_evidence": "docs/validation/evidence/underground-1132-1136-integration-2026-10-04/"
+        },
+        "entry_fixture_inheritance_prerequisite": {
+          "source_commit": "932d8d0990f52bfcc533c6e9da4be788e3939266",
+          "integration_commit": "101bd0fb7fa9893344e4149ea2bdce4f4c2e65c3",
+          "reviewer": "/root",
+          "scope": "Seven inherited inline closures replaced by named Callable.bind helpers; same arguments/mutations/assertions. New Workpieces sources excluded.",
+          "tests": "Original33 tests10790 assertions0 failures; strict/raw diagnostics/leaks0; analyzer0/1. Exact clean-assets/cache/import/official singleton shard; source/HEAD unchanged/project/assets restored.",
+          "evidence": "docs/validation/evidence/underground-entry-fixture-integration-2026-10-04/"
         }
       },
       "lease": {
@@ -1532,7 +1541,15 @@
           "source_commit": "bdef27f0",
           "integration_commit": "102e5d7e",
           "reviewer": "/root/ug_furnishing",
-          "review": "Full adapter/11 historical mapping/unchanged reader reviewed; independent10 Python tests OK, all3 source pins match. No high/medium findings; no current consumer compatibility or live-publication qualification."
+          "review": "Full adapter/11 historical mapping/unchanged reader reviewed; independent10 Python tests OK, all3 source pins match. No high/medium findings; no current consumer compatibility or live-publication qualification.",
+          "runtime_inputs": {
+            "source_commit": "355b998a",
+            "integration_commit": "ca8e10da",
+            "reviewer": "/root/ug_furnishing",
+            "status": "accepted input preparation component; native replay/live publication pending",
+            "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/published-native-runtime-sources-v2/",
+            "tests": "8 Python tests pass; independent8 tests pass. Actual537 inputs verified before/after; exactly3 closed current source digests and25 identical-byte location moves; other facts unchanged; zero certificate bits."
+          }
         }
       },
       "lease": {
@@ -2393,7 +2410,9 @@
           "status": "1135 exact shared-context seam approved; implementation in progress",
           "scope": "Static START obstacle; exact Project obstacle replaced on completedinstallation or removed only after successfulrefund. Original tokens, full identities, occupancy/last exit and finite existingarenas; no observer afterpayment.",
           "contract": "Reuse InstallationContext and existing cold banks. Proposed action/obstacle and independent Placement pins add32 logical bytes, complete census pending. Exact Project source plus nonsupporting CLAIM_NONE obstacle at START; removal on completed group or successful refund only. Static kernel publishes Space/Locations/Routes/Placement/Workpieces once, then clears original context.",
-          "companion": "Construction owns Workpieces/ConnectorWork/Contacts; root1136 reviewed; pure concrete Router tuple only after payment."
+          "companion": "Construction owns Workpieces/ConnectorWork/Contacts; root1136 reviewed; pure concrete Router tuple only after payment.",
+          "review_findings": "Reproduced HIGH: final public Buildings room_identity callback moved worker into prepared obstacle after clearance, yet START paid and published. Separate direct packed CoreSources final reader under implementation, including FinalFacts. Dedicated terminal physical occupancy must retain body/profile/tool/cargo/ref guards after work Job release. Terrain reobserved before final leaves by Contacts; no postpayment cache mutation.",
+          "numeric_census": "Source-review1: retained1895/2048; helper576 within original control headroom; cross-owner peak568 (existing phase572). Two exact action/obstacle copies add32 bytes; no capacities raised. Final corrected source census pending."
         }
       },
       "lease": {
@@ -3558,6 +3577,17 @@
       "analyzer": "0 GDScript warning(s) in 0 of 1199 file(s)",
       "evidence": "docs/validation/evidence/underground-ci-registry-refresh-2026-10-04/",
       "followup": "Regenerated registry sidecar changes only accepted1125 transforms source hash;190 checks and19 later CI contract commands pass. Actual profile source closure/republication remains required."
+    },
+    {
+      "commit": "cddc4412e3d829ec3193b2aaa3a5c7e257bcdfe5",
+      "ci_run": 37196812223,
+      "outcome": "rejected:11 current Mole/demo-pack source-drift failures and one stale ModularProjects registry fingerprint",
+      "sharded_summary": "10833 tests996002 assertions11 failures;383 unique observed suite files across8shards",
+      "diagnostics": "unexpected errors/warnings0;expected272;tolerated353;object/resource leaks0",
+      "raw": "Six passing shards zero; failed3/5 stop before raw guard",
+      "analyzer": "0 GDScript warning(s) in 0 of 1201 file(s)",
+      "evidence": "docs/validation/evidence/underground-ci-cddc4412-2026-10-04/",
+      "followup": "Unchanged audit generator updates sole ModularProjects fingerprint;190checks0fail;current profile renewal and integrated full suite still required."
     }
   ],
   "crosscut_fixes": [
@@ -3673,6 +3703,13 @@
       "scope": "Reviewed capacity source-provenance correction plus accepted motion proof and exact WORK source selector. No source or gate weakened.",
       "evidence": "docs/validation/evidence/underground-spec-e9d52293/",
       "validation": "All35 commands passed:34 Specification workflow commands plus9-case stale-ledger regression; capacity190 checks/0 failures and memory38 tests/OK. Not a new full Godot checkpoint."
+    },
+    {
+      "id": "registry-fingerprint-1136-2026-10-04",
+      "reviewer": "/root/ug_furnishing",
+      "scope": "Unchanged capacity audit generator changes only ModularProjects source fingerprint for alreadyaccepted1136. Independent parsed full diff verifies one leaf; numeric capacity/census/canonical registry/parser unchanged.",
+      "tests": "190 check(s), 0 failure(s); regenerated --check passes",
+      "evidence": "docs/validation/evidence/underground-ci-cddc4412-2026-10-04/"
     }
   ]
 }

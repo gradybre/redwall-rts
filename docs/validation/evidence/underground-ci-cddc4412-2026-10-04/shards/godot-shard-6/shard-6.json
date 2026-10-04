@@ -1,0 +1,360 @@
+{
+  "counts": {
+    "assertions": 158886,
+    "expected": 1,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1412,
+    "tolerated": 43,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "409390b44d1644ed46349f911d0b22696ab36ad9856944fd09b8a8026012b2bf",
+  "shard_count": 8,
+  "shard_index": 6,
+  "suite_counts": {
+    "test_building_definitions.gd": {
+      "assertions": 420,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_construction_demolition_completion.gd": {
+      "assertions": 232,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_demo_actor_underground_heading.gd": {
+      "assertions": 2619,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_demo_camera_modes.gd": {
+      "assertions": 280,
+      "failures": 0,
+      "tests": 50
+    },
+    "test_demo_chronicle_live.gd": {
+      "assertions": 66,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_clock.gd": {
+      "assertions": 61,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_demo_dishes.gd": {
+      "assertions": 694,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_demo_guide_pages.gd": {
+      "assertions": 1607,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_demo_hall.gd": {
+      "assertions": 384,
+      "failures": 0,
+      "tests": 46
+    },
+    "test_demo_hall_art.gd": {
+      "assertions": 93,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_demo_infirmary_building.gd": {
+      "assertions": 145,
+      "failures": 0,
+      "tests": 24
+    },
+    "test_demo_input_gate.gd": {
+      "assertions": 159,
+      "failures": 0,
+      "tests": 28
+    },
+    "test_demo_kitchen.gd": {
+      "assertions": 453,
+      "failures": 0,
+      "tests": 64
+    },
+    "test_demo_object_list.gd": {
+      "assertions": 33,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_demo_people_live.gd": {
+      "assertions": 70,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_rooms.gd": {
+      "assertions": 695,
+      "failures": 0,
+      "tests": 55
+    },
+    "test_demo_ui.gd": {
+      "assertions": 212,
+      "failures": 0,
+      "tests": 43
+    },
+    "test_demo_underground_view.gd": {
+      "assertions": 3516,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_demo_water_play.gd": {
+      "assertions": 793,
+      "failures": 0,
+      "tests": 94
+    },
+    "test_demo_water_safety.gd": {
+      "assertions": 144,
+      "failures": 0,
+      "tests": 23
+    },
+    "test_demo_work_index.gd": {
+      "assertions": 4,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_world.gd": {
+      "assertions": 5217,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_entity_directory_batch.gd": {
+      "assertions": 7971,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_family_rules.gd": {
+      "assertions": 451,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_gear.gd": {
+      "assertions": 1169,
+      "failures": 0,
+      "tests": 82
+    },
+    "test_jobs.gd": {
+      "assertions": 3831,
+      "failures": 0,
+      "tests": 93
+    },
+    "test_legacy_battle_combat_system.gd": {
+      "assertions": 26,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_memory_ledger_probe.gd": {
+      "assertions": 109,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_modular_draft.gd": {
+      "assertions": 201,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_modular_shell.gd": {
+      "assertions": 298,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_mole_grip_source.gd": {
+      "assertions": 50,
+      "failures": 0,
+      "tests": 7
+    },
+    "test_movement_readmission.gd": {
+      "assertions": 100,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_resource_nodes.gd": {
+      "assertions": 637,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_room_projects.gd": {
+      "assertions": 301,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_save_owner_construction.gd": {
+      "assertions": 146,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_save_owner_needs.gd": {
+      "assertions": 6283,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_save_owner_priorities.gd": {
+      "assertions": 7309,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_save_owner_resource_nodes.gd": {
+      "assertions": 85132,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_save_section_component_columns.gd": {
+      "assertions": 9129,
+      "failures": 0,
+      "tests": 15
+    },
+    "test_save_section_inventories.gd": {
+      "assertions": 1366,
+      "failures": 0,
+      "tests": 70
+    },
+    "test_save_section_job_indexes.gd": {
+      "assertions": 541,
+      "failures": 0,
+      "tests": 47
+    },
+    "test_sim_clock.gd": {
+      "assertions": 848,
+      "failures": 0,
+      "tests": 62
+    },
+    "test_ui_focus_order.gd": {
+      "assertions": 207,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_ui_resident_card.gd": {
+      "assertions": 144,
+      "failures": 0,
+      "tests": 34
+    },
+    "test_underground_connector_work.gd": {
+      "assertions": 258,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_underground_entry_bindings.gd": {
+      "assertions": 3245,
+      "failures": 0,
+      "tests": 41
+    },
+    "test_underground_routes.gd": {
+      "assertions": 11132,
+      "failures": 0,
+      "tests": 69
+    },
+    "test_underground_world_structure_scope.gd": {
+      "assertions": 105,
+      "failures": 0,
+      "tests": 9
+    }
+  },
+  "suite_usec": {
+    "test_building_definitions.gd": 18390,
+    "test_construction_demolition_completion.gd": 2565313,
+    "test_demo_actor_underground_heading.gd": 400361,
+    "test_demo_camera_modes.gd": 1331063,
+    "test_demo_chronicle_live.gd": 25007910,
+    "test_demo_clock.gd": 302688,
+    "test_demo_dishes.gd": 1142571,
+    "test_demo_guide_pages.gd": 3010043,
+    "test_demo_hall.gd": 857334,
+    "test_demo_hall_art.gd": 779297,
+    "test_demo_infirmary_building.gd": 1140074,
+    "test_demo_input_gate.gd": 343703,
+    "test_demo_kitchen.gd": 4586210,
+    "test_demo_object_list.gd": 1299613,
+    "test_demo_people_live.gd": 24912226,
+    "test_demo_rooms.gd": 205403,
+    "test_demo_ui.gd": 341910,
+    "test_demo_underground_view.gd": 35157534,
+    "test_demo_water_play.gd": 12830873,
+    "test_demo_water_safety.gd": 8013810,
+    "test_demo_work_index.gd": 52315,
+    "test_demo_world.gd": 1418793,
+    "test_entity_directory_batch.gd": 1393804,
+    "test_family_rules.gd": 28441,
+    "test_gear.gd": 2103489,
+    "test_jobs.gd": 4500117,
+    "test_legacy_battle_combat_system.gd": 12119,
+    "test_memory_ledger_probe.gd": 4755916,
+    "test_modular_draft.gd": 30839,
+    "test_modular_shell.gd": 32390,
+    "test_mole_grip_source.gd": 150172,
+    "test_movement_readmission.gd": 636425,
+    "test_resource_nodes.gd": 1929480,
+    "test_room_projects.gd": 1737681,
+    "test_save_owner_construction.gd": 1554158,
+    "test_save_owner_needs.gd": 242482,
+    "test_save_owner_priorities.gd": 194296,
+    "test_save_owner_resource_nodes.gd": 19287085,
+    "test_save_section_component_columns.gd": 1375172,
+    "test_save_section_inventories.gd": 37153454,
+    "test_save_section_job_indexes.gd": 725891,
+    "test_sim_clock.gd": 67820,
+    "test_ui_focus_order.gd": 34589,
+    "test_ui_resident_card.gd": 1589896,
+    "test_underground_connector_work.gd": 12490308,
+    "test_underground_entry_bindings.gd": 32660859,
+    "test_underground_routes.gd": 22670193,
+    "test_underground_world_structure_scope.gd": 3956880
+  },
+  "suites": [
+    "test_building_definitions.gd",
+    "test_construction_demolition_completion.gd",
+    "test_demo_actor_underground_heading.gd",
+    "test_demo_camera_modes.gd",
+    "test_demo_chronicle_live.gd",
+    "test_demo_clock.gd",
+    "test_demo_dishes.gd",
+    "test_demo_guide_pages.gd",
+    "test_demo_hall.gd",
+    "test_demo_hall_art.gd",
+    "test_demo_infirmary_building.gd",
+    "test_demo_input_gate.gd",
+    "test_demo_kitchen.gd",
+    "test_demo_object_list.gd",
+    "test_demo_people_live.gd",
+    "test_demo_rooms.gd",
+    "test_demo_ui.gd",
+    "test_demo_underground_view.gd",
+    "test_demo_water_play.gd",
+    "test_demo_water_safety.gd",
+    "test_demo_work_index.gd",
+    "test_demo_world.gd",
+    "test_entity_directory_batch.gd",
+    "test_family_rules.gd",
+    "test_gear.gd",
+    "test_jobs.gd",
+    "test_legacy_battle_combat_system.gd",
+    "test_memory_ledger_probe.gd",
+    "test_modular_draft.gd",
+    "test_modular_shell.gd",
+    "test_mole_grip_source.gd",
+    "test_movement_readmission.gd",
+    "test_resource_nodes.gd",
+    "test_room_projects.gd",
+    "test_save_owner_construction.gd",
+    "test_save_owner_needs.gd",
+    "test_save_owner_priorities.gd",
+    "test_save_owner_resource_nodes.gd",
+    "test_save_section_component_columns.gd",
+    "test_save_section_inventories.gd",
+    "test_save_section_job_indexes.gd",
+    "test_sim_clock.gd",
+    "test_ui_focus_order.gd",
+    "test_ui_resident_card.gd",
+    "test_underground_connector_work.gd",
+    "test_underground_entry_bindings.gd",
+    "test_underground_routes.gd",
+    "test_underground_world_structure_scope.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 282
+}

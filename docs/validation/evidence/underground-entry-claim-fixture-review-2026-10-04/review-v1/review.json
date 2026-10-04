@@ -1,0 +1,76 @@
+{
+  "verdict": "ACCEPTED_TEST_ONLY_MIGRATION",
+  "reviewer_engine_runs": 0,
+  "test_source_sha256": "d08b51779faf59038d138898c4ec74309d83d1bc9dfa891dad569e8d2ea01e33",
+  "removed_permission_override": "_room_claims_final_refusal",
+  "assertion_change": "The full EntryPlan refuses an oversized request before claim preparation; attempted_private_bytes remains -1 rather than 0.",
+  "preserved_negatives": [
+    "wrong Corridor purpose",
+    "late request and Directory candidate mutation",
+    "external committed Site history",
+    "original/replaced/foreign arena and token",
+    "malformed source/domain before private copy",
+    "exact capacity and sorted full-ref merge",
+    "single descriptor observation on Entry and flat paths",
+    "first/second descriptor lease mutation"
+  ],
+  "new_negative": "The ordinary flat Room route refuses a nonflat Entry batch and leaves the full actual state image unchanged.",
+  "synthetic_boundary": "Inherited EntryBindings supplies prospective Terrain/Frontier/Placement proof only; actual Orders/EntryPlan/Directory/Sites/Space owns admission and publication.",
+  "focused_1": {
+    "suites": [
+      {
+        "suite": "test_excavation_claim_batch.gd.log",
+        "sha256": "0eab5a1d7e9004da64dfddcf38e585155f8582470bcbdfcda540800216608d2a",
+        "tests": 10,
+        "assertions": 331,
+        "footers": [
+          "10 test(s), 331 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_excavation_entry_claim_batch.gd.log",
+        "sha256": "ef9b3b70811865278f11381073a7d2b82d146ae5f6a346bff71be2d9890c7fea",
+        "tests": 16,
+        "assertions": 529,
+        "footers": [
+          "16 test(s), 529 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_underground_entry_orders.gd.log",
+        "sha256": "ec4e92cebb2316d4437024b253b26df775b1f3173d7ce284657f6e6c3cd4f9c6",
+        "tests": 19,
+        "assertions": 797,
+        "footers": [
+          "19 test(s), 797 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_underground_room_orders.gd.log",
+        "sha256": "ce39a8fb27efc9030e867fc55b83fd18360630d8f8d46e6e11190bb9f039832e",
+        "tests": 38,
+        "assertions": 1803,
+        "footers": [
+          "38 test(s), 1803 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      }
+    ],
+    "tests": 83,
+    "assertions": 3460
+  },
+  "restoration": {
+    "source_unchanged": true,
+    "project_restored": true,
+    "registry_restored": true,
+    "assets_restored": true
+  },
+  "analyzer": "0 GDScript warning(s) in 0 of 8 file(s)"
+}

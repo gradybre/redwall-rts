@@ -1,0 +1,178 @@
+{
+  "verdict": "ACCEPTED_SCOPED_SOURCE_REVIEW",
+  "reviewer_engine_runs": 0,
+  "root_head": "6a965eadfbd0fd31af1cb9a876e063ec95b4a771",
+  "source_sha256": {
+    "godot/scripts/core/underground_session.gd": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c",
+    "godot/scripts/systems/settlement_system.gd": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e",
+    "godot/scripts/main.gd": "9acdb093f492a2d56520c210c7b541c4be15f6ce5bb3f8a9f7c9fe1a50cbd688",
+    "godot/scripts/ui/ui_world_session.gd": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1",
+    "godot/scripts/systems/ui_manager.gd": "bdb01f609234acc2786d9b0768e075e2ea14b5f5c7c88fe5db70a15f56a734e2",
+    "godot/demo/demo_village.gd": "78f4930147aaf5201cdb5aaccaadf54ff74ffd8668709a5cab25a3ed150c75f9",
+    "godot/test/test_underground_host.gd": "13b34c16bb04d3997ec5e9540949a29d741b6e4e3aa0056fd964a344040137d8",
+    "godot/test/test_ui_manager.gd": "ec883136099166ddf29f801aeb5cc7324449f5c370360caa1cda4fde2d9b27c3"
+  },
+  "final_delta_is_only_ui_create_docstring": true,
+  "member_delta": {
+    "godot/scripts/core/underground_session.gd": {
+      "added": {},
+      "removed": {},
+      "changed": {}
+    },
+    "godot/scripts/systems/settlement_system.gd": {
+      "added": {
+        "_underground_session": "UndergroundSession"
+      },
+      "removed": {},
+      "changed": {}
+    },
+    "godot/scripts/main.gd": {
+      "added": {},
+      "removed": {},
+      "changed": {}
+    },
+    "godot/scripts/ui/ui_world_session.gd": {
+      "added": {},
+      "removed": {},
+      "changed": {}
+    },
+    "godot/scripts/systems/ui_manager.gd": {
+      "added": {},
+      "removed": {},
+      "changed": {}
+    },
+    "godot/demo/demo_village.gd": {
+      "added": {},
+      "removed": {},
+      "changed": {}
+    }
+  },
+  "session_own_longest_numeric_name_chain": {
+    "bytes": 55,
+    "chain": [
+      "retire_foundation",
+      "reset_refusal",
+      "_current_refusal",
+      "_observe_current",
+      "_original_refusal",
+      "_owners_refusal",
+      "_world_identity_refusal"
+    ],
+    "reserve": 512
+  },
+  "focused_2": {
+    "suites": [
+      {
+        "suite": "test_modular_runtime.gd.log",
+        "sha256": "00eef0eb81f31838323f18ad8276e95ca72276b35088dd2c404d1081729ae6cc",
+        "tests": 16,
+        "assertions": 227,
+        "footers": [
+          "16 test(s), 227 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_settlement_equipment.gd.log",
+        "sha256": "fa8076e587e0a89f76b86c799bc14e1df2b9499e98ceb1b5994c2a933364108a",
+        "tests": 4,
+        "assertions": 43,
+        "footers": [
+          "4 test(s), 43 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_settlement_system.gd.log",
+        "sha256": "272d00a4250939c52df863122420995411d9908bb9e554635329b06dcdf89312",
+        "tests": 179,
+        "assertions": 6044,
+        "footers": [
+          "179 test(s), 6044 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 5 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_ui_manager.gd.log",
+        "sha256": "331ed3e472bafd1ba05535914d588f4becdcf3109fea5be3b598ddcddff3ac2e",
+        "tests": 50,
+        "assertions": 353,
+        "footers": [
+          "50 test(s), 353 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 1 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_ui_world_session.gd.log",
+        "sha256": "116e89d6282e143a4c0d1bf9d93f801fe9364636c6edee97d2b4eadba4f4f38d",
+        "tests": 16,
+        "assertions": 78,
+        "footers": [
+          "16 test(s), 78 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_underground_host.gd.log",
+        "sha256": "01399d5184e3b7587d47df76701808086eaf07d1e90cc501e79d7a517a396af2",
+        "tests": 8,
+        "assertions": 82,
+        "footers": [
+          "8 test(s), 82 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      },
+      {
+        "suite": "test_underground_session.gd.log",
+        "sha256": "6db819d60ef608a6387b484b5e765bd703913493b16ce95b7401bca84ccaf9ac",
+        "tests": 14,
+        "assertions": 211,
+        "footers": [
+          "14 test(s), 211 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      }
+    ],
+    "tests": 287,
+    "assertions": 7038
+  },
+  "focused_3": {
+    "suites": [
+      {
+        "suite": "test_underground_host.gd.log",
+        "sha256": "6d7ed381091842b83acab9b3fbfa20006008807e2662ed1c40db13365e552c87",
+        "tests": 8,
+        "assertions": 82,
+        "footers": [
+          "8 test(s), 82 assertion(s), 0 failure(s)",
+          "diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)",
+          "log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s)."
+        ]
+      }
+    ],
+    "tests": 8,
+    "assertions": 82
+  },
+  "focused_2_restoration": {
+    "source_unchanged": true,
+    "project_restored": true,
+    "registry_restored": true,
+    "assets_restored": true
+  },
+  "focused_3_restoration": {
+    "source_unchanged": true,
+    "project_restored": true,
+    "registry_restored": true,
+    "assets_restored": true
+  },
+  "focused_3_analyzer": "0 GDScript warning(s) in 0 of 8 file(s)",
+  "scope": "Unbound foundation lifecycle only; no operational authority teardown or playable delivery claim",
+  "native_or_runtime_memory_qualification": false
+}

@@ -1,0 +1,15 @@
+{
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/README.md": "4f93a80700dc439f8926b6fa3ebcac918e60df4ca64c02fc98e2c6b455984012",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/README.md": "caefe407ea4b1fd5fe33b939b1beee66e85a5303162a7d15ad8d998a7fc0312a",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/analyzer.log": "d3f11592c62dea623c3a12739e3ab055c05642ad9c31fe0d985344444f0612fe",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/command.json": "7be6b6c966107f9060dfb040a312f2af329596bec17fe0b17b6298898ca1779e",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/history-sha256.before.json": "35c9eef2eaa4d3ca815ddcf9bc92e5922521fbac6db070f08ad992077f4d6e3a",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/integration-failed-analyzer.json": "712a391f0c9d7e2f99921d041c1663726a299b8e1936330a73e25f6cdd9b2b64",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/integration-failed-analyzer.log": "fc73e565b9e3005623e9146fa64424f147f6aef2a1df5e9b3ee9c50f4685061b",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/integration-failed-invocation.json": "6cd9923c51533bebb5f637c516739088750933f1c35661666dae0a50ff33c1b8",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/relocations.json": "163ce9d839b63cb0bebc9d6f5d0b45cfca418f4969de5ff3d96455fc5044364a",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/archive-packaging-v1/source-census.json": "695850e9b4faae700891870256bef24d0b2874372f9de815acd1feac1848ae4d",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/history-sha256.json": "31e31937f5025bfba6e5e61551e163d85add089a14a8d9aea7a02d3d5e419138",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd.txt": "9e0d59fc65350fa2b5df844d54e777b78b832be24f97463fbf4eb149cc668bf8",
+  "godot/data/underground/mole-worker/evidence/contact-qualification/stair-proof-v2-rejected/capture_stair_motion.gd.uid.txt": "d6788ea494a2ffe54df995bfedac47fdbf4627ccad23d35785d03edf3af32a49"
+}

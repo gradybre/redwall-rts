@@ -1209,3 +1209,20 @@ three repeated spans clear270 support rows each. Full source-owned L0/T0
 geometry plus8 natural bearing prisms clears90 rows for each source direction.
 The ascent comparison still needs the actual native half-turn and174u
 reposition; endpoint numerical equality is not a byte-identity or turn claim.
+
+### Rejected GDScript archive packaging correction
+
+The full957f03d test suite passed10594 tests/969310 assertions with zero
+unexpected diagnostics/leaks, but the full analyzer failed1of1178 files: a
+rejected capture snapshot under the source evidence tree was still executable
+GDScript and its archived relative superclass could not resolve. The original
+script and UID are preserved byte-for-byte as .gd.txt and .gd.uid.txt.
+No historical code or run result is repaired or relabelled.
+
+review-stair-ascent-v1/archive-packaging-v1 preserves the before146-row history
+manifest, exact old/new path map and full failed analyzer records. Only the
+current history locator keys change; all original content hashes and current
+production/helper source bytes remain unchanged. The corrected owned content
+directory analyzer reports0 warnings in0of9 files. That scoped result does not
+replace the next integrated full analyzer. No source motion or runtime behavior
+changes in this packaging correction.

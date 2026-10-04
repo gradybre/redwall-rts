@@ -1,0 +1,9 @@
+[
+  "python3",
+  "tools/gdscript_warnings.py",
+  "--max",
+  "0",
+  "--port",
+  "6149",
+  "godot/data/underground/mole-worker/evidence/contact-qualification"
+]

@@ -1,0 +1,8 @@
+{
+  "godot/scripts/core/underground_entry_bindings.gd": "80d2771064cba9eb5650ded707f73d35189fe51bab6a56fa05ec8509539d0477",
+  "godot/scripts/core/underground_connector_placements.gd": "48751cba207b887aed573a93e76fa4d20d975f64f83ccc392cb3b2010600098d",
+  "godot/scripts/core/underground_locations.gd": "4b6bc17d604c3490956ebf2dfefb31319ca0673de2f20a0a9fa60f08db3196b1",
+  "godot/test/test_underground_entry_bindings.gd": "f2e696ad69f65eb0b5910c1e60babaeada2b8fd73c5fa3fec83b9f3cbc3e6fac",
+  "godot/test/test_underground_connector_placements.gd": "4462db4c9c037653bed67849015eefc0feebda5f4a281cb22af2412f6bd84c79",
+  "godot/test/test_underground_entry_placements.gd": "c185ba720c1460ac131722f8a37c6eb497435bfbe1a1aee9828943e6ed4bfbfe"
+}

@@ -1,0 +1,3 @@
+FAIL C1 underground_connector_contacts.gd has no registry section -- a new store must be classified
+FAIL C1 underground_connector_work.gd has no registry section -- a new store must be classified
+state_registry_coverage: 2 failure(s)

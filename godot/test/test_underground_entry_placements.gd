@@ -52,6 +52,10 @@ class Frontier extends Placements.Authority:
 	var omit_route: bool = false
 	var allow_retirement: bool = false
 
+	func preflight_installation(_placement: Vector2i, _project: Vector2i, _assembly: int, _cold: int) -> StringName:
+		"""Explicit component-only permission inherited by the paid Contacts fixture, never by production."""
+		return &""
+
 	func exact_binding(candidate: RefCounted, space: Owner, locations: Locations, routes: Routes, budget: Budget) -> bool:
 		"""The fixture grants only prospective frontier permission; all actual owner identities stay mandatory."""
 		var f: Fixture = fixture.get_ref() as Fixture

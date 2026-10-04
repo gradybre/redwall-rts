@@ -548,7 +548,7 @@ func _location_candidate_refusal() -> StringName:
 	if _locations._stage.count != _locations._live.count + 1 or _locations._world_rows_refusal() != &"" \
 			or not _locations._live_ref(_locations._stage, _endpoint) or _locations._live.present[_endpoint.x] != 0:
 		return REFUSE_STALE
-	return &"" if _endpoint_payload_current() else REFUSE_STALE
+	return _locations._installed_witnesses_refusal() if _endpoint_payload_current() else REFUSE_STALE
 
 
 func _endpoint_payload_current() -> bool:

@@ -171,6 +171,10 @@ class TestAuthority extends Placements.Authority:
 		"""The real shared companion implementations require the whole original bounded arena."""
 		return Budget.COLD_BYTES
 
+	func preflight_installation(_placement: Vector2i, _project: Vector2i, _assembly: int, _cold: int) -> StringName:
+		"""Explicit synthetic physical preflight; actual composition has its own current Terrain proof."""
+		return &""
+
 	func stage_installation(_placement: Vector2i, _project: Vector2i, _assembly: int, token: int, _cold: int) -> StringName:
 		"""A real sealed new Room-owned support fact exercises source revisions; this is not an authored stair."""
 		var f: ActualFixture = fixture.get_ref() as ActualFixture

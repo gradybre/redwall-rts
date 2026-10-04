@@ -18,6 +18,8 @@ const Router := preload("res://scripts/core/modular_projects.gd")
 const Construction := preload("res://scripts/core/construction.gd")
 const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
+const ConnectorCatalog := preload("res://scripts/core/underground_connector_catalog.gd")
+const ConnectorFacts := preload("res://scripts/core/underground_connector_source_facts.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SCHEMA: int = 1
 const HEADER_FIELDS: int = 16
@@ -533,10 +535,10 @@ func _resolve_live_scope_refusal(revision: int, max_checks: int) -> StringName:
 	return &"" if revision > 0 and _owner._header[17] == revision else &"LOCATION_GEOMETRY_STALE"
 
 
-func _resolve_domain_matches() -> bool:
+func _resolve_domain_matches(candidate: Space.Domain = null) -> bool:
 	"""A copied Domain is an immutable namespace, not a substitute for the current actual World."""
-	var actual: Space.Domain = _owner._domain
-	return _domain._world == _world and actual._world == _world and _domain._datum == actual._datum \
+	var actual: Space.Domain = _owner._domain if candidate == null else candidate
+	return actual != null and _domain._world == _world and actual._world == _world and _domain._datum == actual._datum \
 		and _domain._min_quantum == actual._min_quantum and _domain._size_quanta == actual._size_quanta \
 		and _domain._bounds == actual._bounds \
 		and _domain._cells == actual._cells and _domain._regions == actual._regions and _domain._checks == actual._checks
@@ -1153,6 +1155,8 @@ func _prepared_retention_refusal() -> StringName:
 		code = _world_rows_refusal()
 	if code == &"" and _installation_active():
 		code = _installation_rows_refusal(self, _installation)
+	if code == &"":
+		code = _installed_witnesses_refusal()
 	return _final_inventory_refusal(_cold_token, cold_peak_bytes()) if code == &"" else code
 
 
@@ -1200,6 +1204,8 @@ func publish(token: int) -> bool:
 		if _world_publication_refusal() != &"":
 			return false
 	elif _current_retention_refusal() != &"" or _publication_geometry_refusal() != &"":
+		return false
+	if _owner_token == 0 and _installed_witnesses_refusal() != &"":
 		return false
 	if _final_inventory_refusal(_cold_token, cold_peak_bytes()) != &"":
 		return false
@@ -1430,9 +1436,8 @@ func _survey_for(record: Record) -> StringName:
 	var physical: Sites = _physical()
 	var site: Vector2i = NULL_REF
 	if record.room != NULL_REF:
-		site = physical.site_at(_cube_origin(record.point)) if physical != null else NULL_REF
-		if site == NULL_REF or physical.room_of(site) != record.room:
-			return &"LOCATION_PAID_SITE_MISSING"
+		site = _observed_record_site(record, physical)
+		if site == NULL_REF: return &"LOCATION_PAID_SITE_MISSING"
 		var scope: StringName = _owner.site_scope_refusal(physical, site)
 		if scope != &"":
 			return scope
@@ -1443,6 +1448,15 @@ func _survey_for(record: Record) -> StringName:
 	if code == &"":
 		_snapshot = image
 	return code
+
+
+func _observed_record_site(record: Record, physical: Sites) -> Vector2i:
+	"""Keep ordinary Site observations and domain refusals while recognizing installed datums before their lookup."""
+	var installed: int = _installed_record_kind(record)
+	if installed < 0: return NULL_REF
+	if installed > 0: return _installed_surface_site(record, physical)
+	var site: Vector2i = physical.site_at(_cube_origin(record.point)) if physical != null else NULL_REF
+	return site if site != NULL_REF and physical.room_of(site) == record.room else NULL_REF
 
 
 func _snapshot_for_into(record: Record, physical: Sites, site: Vector2i, image: Space.Snapshot) -> StringName:
@@ -1523,10 +1537,13 @@ func _append_fragment(out: Array[PackedInt32Array], box: PackedInt32Array) -> bo
 	return true
 
 
-func _spend() -> bool:
+func _spend(checks: int = 1) -> bool:
 	"""The complete edit shares one comparison budget; later records do not reset it."""
-	_remaining -= 1
-	return _remaining >= 0
+	if checks < 0 or checks > _remaining:
+		_remaining = -1
+		return false
+	_remaining -= checks
+	return true
 
 
 func _physical() -> Sites:
@@ -1540,6 +1557,317 @@ func _cube_origin(point: Vector3i) -> Vector3i:
 	for axis: int in 3:
 		out[axis] = _domain._datum[axis] + _floor_div(int(point[axis]) - _domain._datum[axis], Space.QUANTUM_U) * Space.QUANTUM_U
 	return out
+
+
+static func installed_prism_into(issuer: RefCounted, row: int, ordinal: int, out: PackedInt32Array) -> StringName:
+	"""Pure geometry observation for the guarded installation owner; only complete horizontal rectangles are represented."""
+	if issuer == null or out.size() != 6 or row < 0 or row >= issuer._capacity or issuer._live.present[row] != 1:
+		return &"LOCATION_INSTALLED_PART"
+	var catalog: ConnectorCatalog = issuer._catalog
+	var selected: int = issuer._live.i32[issuer.CATALOG_ROW * issuer._capacity + row]
+	if selected < 0 or ordinal < 0 or ordinal >= catalog._live.variants[ConnectorCatalog.V_PART_COUNT * ConnectorCatalog.MAX_VARIANTS + selected]:
+		return &"LOCATION_INSTALLED_PART"
+	var part: int = catalog._live.variants[ConnectorCatalog.V_PART_START * ConnectorCatalog.MAX_VARIANTS + selected] + ordinal
+	if catalog._live.parts[part] == ConnectorCatalog.Geometry.HATCH or catalog._live.parts[8 * ConnectorCatalog.MAX_PARTS + part] != 4:
+		return &"LOCATION_INSTALLED_PRISM_SUBSET"
+	var first: int = catalog._live.parts[7 * ConnectorCatalog.MAX_PARTS + part]
+	var low: Vector3i = Vector3i(catalog._live.vertices[first], catalog._live.vertices[ConnectorCatalog.MAX_VERTICES + first],
+		catalog._live.vertices[2 * ConnectorCatalog.MAX_VERTICES + first])
+	var high: Vector3i = low
+	for index: int in range(first + 1, first + 4):
+		if catalog._live.vertices[ConnectorCatalog.MAX_VERTICES + index] != low.y: return &"LOCATION_INSTALLED_PRISM_SUBSET"
+		low.x = mini(low.x, catalog._live.vertices[index])
+		low.z = mini(low.z, catalog._live.vertices[2 * ConnectorCatalog.MAX_VERTICES + index])
+		high.x = maxi(high.x, catalog._live.vertices[index])
+		high.z = maxi(high.z, catalog._live.vertices[2 * ConnectorCatalog.MAX_VERTICES + index])
+	if not _installed_rectangle(catalog, first, low, high): return &"LOCATION_INSTALLED_PRISM_SUBSET"
+	low.y -= catalog._live.parts[ConnectorCatalog.MAX_PARTS + part]
+	return _installed_world_box(issuer, row, low, high, out)
+
+
+func _installed_surface_site(record: Record, physical: Sites) -> Vector2i:
+	"""A real installed prism and exact Catalog datum may locate its paid lower cube; arbitrary y-minus-one cannot."""
+	if physical == null or _installation == null or _installation.issuer == null or not _spend(1024): return NULL_REF
+	var issuer: RefCounted = _installation.issuer.get_ref()
+	if not _installed_sources_current(issuer): return NULL_REF
+	if _installation_active() and installation_scope_refusal(self, _installation) != &"": return NULL_REF
+	var found: Vector2i = NULL_REF
+	var matches: int = 0
+	for row: int in issuer._capacity:
+		if not _spend(32): return NULL_REF
+		if issuer._live.present[row] != 1 or issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
+				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
+		var prefix: int = issuer._live.i32[issuer.INSTALLED * issuer._capacity + row]
+		if _installation_active() and _installation.placement == Vector2i(row, issuer._live.i32[row]):
+			if issuer._prepared_placement != _installation.placement or issuer._prepared_assembly != prefix \
+					or issuer._space_token != _owner_token or issuer._cold_token != _cold_token: return NULL_REF
+			prefix += 1
+		if prefix < 1 or prefix > issuer._assemblies._header[5]: continue
+		var site: Vector2i = _installed_row_site(issuer, row, prefix, record, physical)
+		if site != NULL_REF:
+			found = site
+			matches += 1
+	return found if matches == 1 and _installed_sources_current(issuer) else NULL_REF
+
+
+func _record_paid_site(record: Record, physical: Sites) -> Vector2i:
+	"""A Catalog landing needs its installed prism even when its fractional root lies inside a completed cube."""
+	var installed: int = _installed_record_kind(record)
+	if installed < 0: return NULL_REF
+	if installed > 0: return _installed_surface_site(record, physical)
+	var row: int = _installed_site_row(physical, _cube_origin(record.point))
+	return Vector2i(row, Sites.SITE_GENERATION) if row >= 0 and physical._room_slot[row] == record.room.x \
+		and physical._room_generation[row] == record.room.y else NULL_REF
+
+
+func _installed_record_kind(record: Record) -> int:
+	"""Derive the witness from current immutable LANDING geometry; no saved flag or cube-height inference applies."""
+	if _installation == null: return 0
+	var issuer: RefCounted = _installation.issuer.get_ref() if _installation.issuer != null else null
+	if issuer == null or not _spend(1024): return -1
+	var matches: int = 0
+	var current: bool = false
+	for row: int in issuer._capacity:
+		if not _spend(32): return -1
+		if issuer._live.present[row] != 1 or issuer._live.i32[issuer.ROOM_SLOT * issuer._capacity + row] != record.room.x \
+				or issuer._live.i32[(issuer.ROOM_SLOT + 1) * issuer._capacity + row] != record.room.y: continue
+		if not current:
+			if not _installed_sources_current(issuer): return -1
+			current = true
+		if not _installed_row_source(issuer, row, record.room): return -1
+		var count: int = _installed_landing_count(issuer, row, record)
+		if count < 0: return -1
+		matches += count
+	if matches > 1 or (matches == 1 and not _installed_future_context(issuer)): return -1
+	return matches
+
+
+func _installed_future_context(issuer: RefCounted) -> bool:
+	"""Only preflighted World or static paid/Room companions may refresh installed endpoints with future Space."""
+	if _owner_token == 0: return true
+	if _owner._stage_token != _owner_token or not _owner._sealed: return false
+	if _world_preparation: return true
+	if _installation_active(): return installation_scope_refusal(self, _installation) == &""
+	return _room_admission and issuer._admission_mode and issuer._admission_context.location_token == _token \
+		and room_scope_leaf_refusal(self, issuer._admission_context) == &""
+
+
+func _installed_sources_current(issuer: RefCounted) -> bool:
+	"""Read actual immutable source banks and original owner identity directly, never an overridable permission hook."""
+	if issuer == null or issuer._locations != self or issuer._space != _owner or issuer._sources != _sources \
+			or issuer._budget != _cold or issuer._world != _world or issuer._construction != _sources._construction \
+			or issuer._context != _installation or not issuer._configured or issuer._live.header.size() != 16 \
+			or issuer._live.digests.size() != 128 or issuer._catalog == null or issuer._assemblies == null or issuer._recipes == null \
+			or not _installed_actual_wiring(issuer):
+		return false
+	var groups: RefCounted = issuer._assemblies
+	var recipes: RefCounted = issuer._recipes
+	if not groups._loaded or groups._busy or not recipes._loaded or recipes._busy or groups._catalog != issuer._catalog \
+			or groups._recipes != recipes or recipes._catalog != issuer._catalog or groups._inventory != _inventory \
+			or recipes._inventory != _inventory or groups._header[0] != issuer._live.header[issuer.H_GROUP_REV] \
+			or recipes._header[0] != issuer._live.header[issuer.H_RECIPE_REV] or groups._header[5] != issuer._live.header[issuer.H_GROUP_COUNT]:
+		return false
+	for index: int in 32:
+		if groups._digests[index] != issuer._live.digests[32 + index] \
+				or recipes._digests[index] != issuer._live.digests[64 + index] \
+				or groups._digests[32 + index] != issuer._live.digests[index] \
+				or recipes._digests[32 + index] != issuer._live.digests[index] \
+				or recipes._digests[64 + index] != groups._digests[index]: return false
+	return ConnectorFacts.refusal(issuer._catalog, issuer._live.header[issuer.H_CATALOG_ROW],
+		issuer._live.header[issuer.H_VARIANT_REV], issuer._live.header[issuer.H_CATALOG_REV], issuer._live.digests) == &""
+
+
+func _installed_actual_wiring(p: RefCounted) -> bool:
+	"""The installed-source witness uses the original actual route/profile/terrain namespace, not matching numbers."""
+	var routes: RefCounted = _sources._locations
+	var provider: RefCounted = p._world_routes
+	if routes == null or provider == null or p._ids != _ids or p._buildings != _buildings \
+			or p._inventory != _inventory or p._transforms != _transforms or p._routes != routes: return false
+	return routes._locations == self and routes._owner == _owner and routes._sources == _sources \
+		and routes._cold == _cold and routes._world == _world and routes._bindings == provider \
+		and routes._profiles == p._profiles and p._catalog._profiles == p._profiles \
+		and p._profiles._inventory == _inventory and p._profiles._transforms == _transforms \
+		and p._profiles._residents == routes._residents and p._profiles._work == routes._work \
+		and p._profiles._gear == p._gear and p._profiles._carry == p._carry \
+		and p._profiles._reservations == p._reservations and p._profiles._piles == p._piles \
+		and provider._catalog == p._catalog and provider._profiles == p._profiles \
+		and provider._levels == p._catalog._levels and provider._movement == p._catalog._movement \
+		and provider._locations_ref != null and provider._locations_ref.get_ref() == self \
+		and provider._owner_ref != null and provider._owner_ref.get_ref() == _owner \
+		and provider._sources_ref != null and provider._sources_ref.get_ref() == _sources \
+		and provider._routes_ref != null and provider._routes_ref.get_ref() == routes \
+		and provider._budget == _cold and _resolve_domain_matches() \
+		and _resolve_domain_matches(provider._domain) and _resolve_domain_matches(routes._domain)
+
+
+func _installed_row_source(p: RefCounted, row: int, room: Vector2i) -> bool:
+	"""An unrelated stale Placement is never laundered into a supported endpoint by the current operation."""
+	var section: Vector2i = Vector2i(p._live.i32[p.SECTION_SLOT * p._capacity + row],
+		p._live.i32[(p.SECTION_SLOT + 1) * p._capacity + row])
+	return _owner._region_live(section, false) and _ids.is_valid_of_kind(room, Directory.KIND_ROOM) \
+		and _owner._r_owner_slot[section.x] == room.x and _owner._r_owner_generation[section.x] == room.y \
+		and _owner._r_role[section.x] == Space.FLOOR_DATUM \
+		and _owner._r_level[section.x] == p._live.i32[p.LEVEL * p._capacity + row] \
+		and _owner._r_owner_revision[section.x] == p._live.i64[p.ROOM_REVISION * p._capacity + row]
+
+
+func _installed_row_site(issuer: RefCounted, row: int, prefix: int, record: Record, physical: Sites) -> Vector2i:
+	"""The exact stored FLOOR_DATUM must equal one authored landing of this full live Placement."""
+	if not _installed_row_source(issuer, row, record.room) or _installed_landing_count(issuer, row, record) != 1: return NULL_REF
+	var found: Vector2i = NULL_REF
+	for group: int in prefix:
+		var part_first: int = issuer._assemblies._first_part[group]
+		for part: int in range(part_first, part_first + issuer._assemblies._part_count[group]):
+			if not _spend(96): return NULL_REF
+			if installed_prism_into(issuer, row, part, _region.box) != &"": return NULL_REF
+			if _region.box[4] != record.point.y or record.point.x < _region.box[0] or record.point.x >= _region.box[3] \
+					or record.point.z < _region.box[2] or record.point.z >= _region.box[5]: continue
+			var site: Vector2i = _installed_part_site(record, physical)
+			if site == NULL_REF or (found != NULL_REF and found != site): return NULL_REF
+			found = site
+	return found
+
+
+func _installed_landing_count(issuer: RefCounted, row: int, record: Record) -> int:
+	"""An exact authored landing is recognized before either prefix or ordinary Site fallback is considered."""
+	var catalog: ConnectorCatalog = issuer._catalog
+	var variant: int = issuer._live.i32[issuer.CATALOG_ROW * issuer._capacity + row]
+	var first: int = catalog._live.variants[ConnectorCatalog.V_REGION_START * ConnectorCatalog.MAX_VARIANTS + variant]
+	var count: int = catalog._live.variants[ConnectorCatalog.V_REGION_COUNT * ConnectorCatalog.MAX_VARIANTS + variant]
+	var matched: int = 0
+	for index: int in count:
+		if not _spend(32): return -1
+		var at: int = first + index
+		if catalog._live.regions[6 * ConnectorCatalog.MAX_REGIONS + at] != Space.LANDING: continue
+		if _installed_datum_matches(issuer, row, at, record): matched += 1
+	return matched
+
+
+func _installed_datum_matches(issuer: RefCounted, row: int, at: int, record: Record) -> bool:
+	"""Both live and exact prepared metadata compare full owner/generation, authored level and all six world bounds."""
+	var catalog: ConnectorCatalog = issuer._catalog
+	var level: int = issuer._live.i32[issuer.LEVEL * issuer._capacity + row] + catalog._live.regions[7 * ConnectorCatalog.MAX_REGIONS + at]
+	if record.level != level or not _owner._region_live(record.section, _owner_token > 0): return false
+	for axis: int in 3:
+		var a: int = installed_coordinate(issuer, row, catalog._live.regions[at], catalog._live.regions[ConnectorCatalog.MAX_REGIONS + at],
+			catalog._live.regions[2 * ConnectorCatalog.MAX_REGIONS + at], axis)
+		var b: int = installed_coordinate(issuer, row, catalog._live.regions[3 * ConnectorCatalog.MAX_REGIONS + at],
+			catalog._live.regions[4 * ConnectorCatalog.MAX_REGIONS + at], catalog._live.regions[5 * ConnectorCatalog.MAX_REGIONS + at], axis)
+		if mini(a, b) != _installed_section_bound(record.section.x, axis) \
+				or maxi(a, b) != _installed_section_bound(record.section.x, axis + 3): return false
+	return true
+
+
+func _installed_section_bound(row: int, axis: int) -> int:
+	"""Read the already-full-generation-validated metadata directly, unaffected by reused prism scratch."""
+	match axis:
+		0: return _owner._s_r_lo_x[row] if _owner_token > 0 else _owner._r_lo_x[row]
+		1: return _owner._s_r_lo_y[row] if _owner_token > 0 else _owner._r_lo_y[row]
+		2: return _owner._s_r_lo_z[row] if _owner_token > 0 else _owner._r_lo_z[row]
+		3: return _owner._s_r_hi_x[row] if _owner_token > 0 else _owner._r_hi_x[row]
+		4: return _owner._s_r_hi_y[row] if _owner_token > 0 else _owner._r_hi_y[row]
+		_: return _owner._s_r_hi_z[row] if _owner_token > 0 else _owner._r_hi_z[row]
+
+
+func _installed_part_site(record: Record, physical: Sites) -> Vector2i:
+	"""Only the source prism's genuine positive thickness selects this exact completed same-Room paid cube."""
+	if _region.box[1] >= record.point.y or _region.box[4] != record.point.y: return NULL_REF
+	var origin: Vector3i = _cube_origin(Vector3i(record.point.x, record.point.y - 1, record.point.z))
+	var row: int = _installed_site_row(physical, origin)
+	if row < 0 or physical._phase[row] != Sites.SUPPORTED_VOID \
+			or physical._room_slot[row] != record.room.x or physical._room_generation[row] != record.room.y: return NULL_REF
+	return Vector2i(row, Sites.SITE_GENERATION)
+
+
+func _installed_witnesses_refusal() -> StringName:
+	"""After all observers, rederive every candidate installed witness from current source and paid columns only."""
+	if _installation == null: return &""
+	if not _spend(64): return &"LOCATION_OPERATION_BUDGET"
+	var physical: Sites = _physical()
+	for row: int in _capacity:
+		if not _spend(): return &"LOCATION_OPERATION_BUDGET"
+		if _stage.present[row] != 1 or _ref_at(_stage, ROOM_SLOT, row) == NULL_REF: continue
+		if not _spend(_owner._source_capacity + 104): return &"LOCATION_OPERATION_BUDGET"
+		_record.point = Vector3i(_get32(_stage, X, row), _get32(_stage, Y, row), _get32(_stage, Z, row))
+		_record.room = _ref_at(_stage, ROOM_SLOT, row)
+		_record.section = _ref_at(_stage, SECTION_SLOT, row)
+		_record.level = _get32(_stage, LEVEL, row)
+		var source: int = _resolve_source_row(_record.room)
+		if source < 0 or _resolve_room_source_refusal(_record.room, source) != &"": return &"LOCATION_SOURCE_STALE"
+		if _record_paid_site(_record, physical) == NULL_REF:
+			return &"LOCATION_OPERATION_BUDGET" if _remaining < 0 else &"LOCATION_PAID_SITE_MISSING"
+	return &""
+
+
+func _installed_site_row(physical: Sites, origin: Vector3i) -> int:
+	"""Pure exact paid-key lookup validates the actual immutable Domain and reverse index, without a Site observer."""
+	if not _spend(64) or not _installed_sites_current(physical): return -1
+	var x: int = _floor_div(int(origin.x) - _domain._datum.x, 1024) - _domain._min_quantum.x
+	var y: int = _floor_div(int(origin.y) - _domain._datum.y, 1024) - _domain._min_quantum.y
+	var z: int = _floor_div(int(origin.z) - _domain._datum.z, 1024) - _domain._min_quantum.z
+	if x < 0 or x >= _domain._size_quanta.x or y < 0 or y >= _domain._size_quanta.y \
+			or z < 0 or z >= _domain._size_quanta.z: return -1
+	var key: int = (y * _domain._size_quanta.z + z) * _domain._size_quanta.x + x
+	var low: int = 0
+	var high: int = physical._count
+	while low < high:
+		@warning_ignore("integer_division") var middle: int = low + (high - low) / 2
+		if physical._ordered_key[middle] < key: low = middle + 1
+		else: high = middle
+	if low >= physical._count or physical._ordered_key[low] != key: return -1
+	var row: int = physical._ordered_row[low]
+	return row if row >= 0 and row < physical._count and physical._present[row] == 1 \
+		and physical._site_key[row] == key else -1
+
+
+func _installed_sites_current(physical: Sites) -> bool:
+	"""No same-number foreign World, Domain or reconfigured Site owner can replace the original physical witness."""
+	return physical != null and physical._ready_error == &"" and physical._construction == _sources._construction \
+		and physical._inventory == _inventory and physical._construction._excavation_authority != null \
+		and physical._construction._excavation_authority.get_ref() == physical and physical._domain.world_ref == _world \
+		and physical._domain.datum_u == _domain._datum and physical._domain.minimum_quantum == _domain._min_quantum \
+		and physical._domain.size_quanta == _domain._size_quanta and _ids.is_valid_of_kind(_world, Directory.KIND_WORLD)
+
+
+static func _installed_rectangle(catalog: ConnectorCatalog, first: int, low: Vector3i, high: Vector3i) -> bool:
+	"""Every corner appears exactly once and every edge is axis aligned; a convex envelope cannot replace the real solid."""
+	if low.x >= high.x or low.z >= high.z: return false
+	var mask: int = 0
+	for index: int in 4:
+		var x: int = catalog._live.vertices[first + index]
+		var z: int = catalog._live.vertices[2 * ConnectorCatalog.MAX_VERTICES + first + index]
+		if (x != low.x and x != high.x) or (z != low.z and z != high.z): return false
+		var bit: int = 1 << (int(x == high.x) + 2 * int(z == high.z))
+		if (mask & bit) != 0: return false
+		mask |= bit
+		var next: int = first + (index + 1) % 4
+		if x != catalog._live.vertices[next] and z != catalog._live.vertices[2 * ConnectorCatalog.MAX_VERTICES + next]: return false
+	return mask == 15
+
+
+static func installed_coordinate(issuer: RefCounted, row: int, x: int, y: int, z: int, axis: int) -> int:
+	"""Signed int64 rotation precedes narrowing; placement translation never changes authored rise or part size."""
+	var rotation: int = issuer._live.i32[issuer.ROTATION * issuer._capacity + row]
+	var origin: int = issuer._live.i32[(issuer.X + axis) * issuer._capacity + row]
+	if axis == 1: return origin + y
+	if axis == 0: return origin + (x if rotation == 0 else -z if rotation == 1 else -x if rotation == 2 else z)
+	return origin + (z if rotation == 0 else x if rotation == 1 else -z if rotation == 2 else -x)
+
+
+static func _installed_world_box(issuer: RefCounted, row: int, low: Vector3i, high: Vector3i, out: PackedInt32Array) -> StringName:
+	"""Validate the whole world extent before touching caller-owned scratch."""
+	for axis: int in 3:
+		var a: int = installed_coordinate(issuer, row, low.x, low.y, low.z, axis)
+		var b: int = installed_coordinate(issuer, row, high.x, high.y, high.z, axis)
+		if not Space.int32(a) or not Space.int32(b) or a == b \
+				or mini(a, b) < issuer._space._domain._bounds[axis] or maxi(a, b) > issuer._space._domain._bounds[axis + 3]:
+			return &"LOCATION_INSTALLED_PART_BOUNDS"
+	for axis: int in 3:
+		var a: int = installed_coordinate(issuer, row, low.x, low.y, low.z, axis)
+		var b: int = installed_coordinate(issuer, row, high.x, high.y, high.z, axis)
+		out[axis] = mini(a, b)
+		out[axis + 3] = maxi(a, b)
+	return &""
 
 
 static func _floor_div(value: int, denominator: int) -> int:
@@ -1717,12 +2045,7 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	_base_geometry_revision = _owner.revision()
 	var code: StringName = _loaded_rows_refusal()
 	_snapshot = null
-	if code == &"":
-		code = _current_retention_refusal()
-	if code == &"" and (_owner.has_prepared() or _owner.revision() != _base_geometry_revision or world_ref() == NULL_REF):
-		code = &"LOCATION_GEOMETRY_STALE"
-	if code == &"":
-		code = _final_inventory_refusal(cold_token, wire_bytes() + cold_peak_bytes())
+	if code == &"": code = _restore_current_refusal(cold_token)
 	if code != &"":
 		return code
 	_rebuild_allocation(_stage)
@@ -1731,6 +2054,15 @@ func restore_state_bytes(cold_token: int, bytes: PackedByteArray) -> StringName:
 	_stage = previous
 	_last_published_token = 0
 	return &""
+
+
+func _restore_current_refusal(cold_token: int) -> StringName:
+	"""Final retention observations precede fresh physical/source witnesses and the original lease/Inventory tail."""
+	var code: StringName = _current_retention_refusal()
+	if code == &"" and (_owner.has_prepared() or _owner.revision() != _base_geometry_revision or world_ref() == NULL_REF):
+		code = &"LOCATION_GEOMETRY_STALE"
+	if code == &"": code = _installed_witnesses_refusal()
+	return _final_inventory_refusal(cold_token, wire_bytes() + cold_peak_bytes()) if code == &"" else code
 
 
 func _decode_columns(bytes: PackedByteArray) -> void:

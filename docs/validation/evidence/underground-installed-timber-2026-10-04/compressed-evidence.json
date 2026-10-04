@@ -1,0 +1,34 @@
+[
+  {
+    "original": "paid-3/test_underground_entry_bindings.gd.log",
+    "compressed": "paid-3/test_underground_entry_bindings.gd.log.gz",
+    "bytes": 320630354,
+    "sha256": "ebdadf6ff43fbb35247e3d7dac587e97162e59a5472f575e0877f446527cfcfa",
+    "compressed_sha256": "ae8e2a1575bef450f3681dd74a9f4f504e0998d701fdebc558518bb6b7dbe1c4",
+    "reason": "Failed assertion printed full packed state; lossless archival of original evidence."
+  },
+  {
+    "original": "paid-3/shard-130.log",
+    "compressed": "paid-3/shard-130.log.gz",
+    "bytes": 320630244,
+    "sha256": "9fd1ad719ec2085320915faff54f44e746b74eace8ffae769ad579c621022653",
+    "compressed_sha256": "5e8b6b17f4ab8d38aeade5d6c0933e0b21a14ccfee4c97e382600638f50f146a",
+    "reason": "Failed assertion printed full packed state; lossless archival of original evidence."
+  },
+  {
+    "original": "review-rejected-production.patch",
+    "compressed": "review-rejected-production.patch.gz",
+    "bytes": 74809,
+    "sha256": "27cfbf580a6c99475f71b3b1be6ad08caf35fb75e4603d07fd93d6df2698b644",
+    "compressed_sha256": "4286e22b794efc7d6928055948bd92fe7e3d7422ab8e79e3936f163004385b72",
+    "reason": "Exact rejected production patch; lossless archive preserves diff context whitespace."
+  },
+  {
+    "original": "review-rejected-4-production.patch",
+    "compressed": "review-rejected-4-production.patch.gz",
+    "bytes": 79194,
+    "sha256": "432cf416b450eff08880045c502b09468fb7a7784bc658b7fad54f775761e665",
+    "compressed_sha256": "9c5400cc77fae9e18922b01de320d84ee392213365173a8954ffa57c8dc330be",
+    "reason": "Exact rejected production patch; lossless archive preserves diff context whitespace."
+  }
+]

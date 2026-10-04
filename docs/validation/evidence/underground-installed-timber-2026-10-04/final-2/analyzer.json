@@ -1,0 +1,20 @@
+{
+ "scripts/core/underground_entry_bindings.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"code\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 10,
+     "line": 1201
+    },
+    "start": {
+     "character": 6,
+     "line": 1201
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

@@ -158,6 +158,11 @@ class Authority extends RefCounted:
 		"""Return a source-counted simultaneous requirement; the base cannot allocate or authorize a frontier."""
 		return 0
 
+	func preflight_installation(_placement: Vector2i, _project: Vector2i, _assembly: int,
+			_cold_token: int) -> StringName:
+		"""Observe current physical dependencies under the original lease before Space opens its candidate."""
+		return REFUSE_AUTHORITY
+
 	func stage_installation(_placement: Vector2i, _project: Vector2i, _assembly: int,
 			_space_token: int, _cold_token: int) -> StringName:
 		"""Stage the exact installed assembly geometry into the actual caller-owned Space candidate."""
@@ -1097,6 +1102,8 @@ func prepared_admission_leaf_refusal(ref: Vector2i, candidate: Directory.CreateC
 		code = _admission_rows_refusal(orders._entry_plan)
 	if code == &"":
 		code = Locations.room_prepared_leaf_refusal(_locations, _admission_context)
+	if code == &"":
+		code = _locations._installed_witnesses_refusal()
 	return WorldRoutes.room_prepared_leaf_refusal(_world_routes, _admission_context) if code == &"" else code
 
 
@@ -1584,16 +1591,26 @@ func prepare_completion(ref: Vector2i, project: Vector2i, original_token: int) -
 	_busy = true
 	_poisoned = false
 	_pin_completion(ref, project, assembly, original_token)
-	code = _prepare_space(authority)
+	code = _prepare_completion_candidates(authority)
+	if code != &"":
+		_discard_owned_completion(authority)
+	_busy = false
+	return code
+
+
+func _prepare_completion_candidates(authority: Authority) -> StringName:
+	"""Original-scope live preflight precedes staging, with a pure current guard after every observer."""
+	var code: StringName = authority.preflight_installation(_prepared_placement, _prepared_project, _prepared_assembly, _cold_token)
+	if code == &"":
+		code = _completion_context_refusal()
+	if code == &"":
+		code = _prepare_space(authority)
 	if code == &"":
 		code = _prepare_locations(authority)
 	if code == &"":
 		code = _prepare_routes(authority)
 	if code == &"":
-		code = prepared_installation_leaf_refusal(ref, project, assembly, original_token)
-	if code != &"":
-		_discard_owned_completion(authority)
-	_busy = false
+		code = prepared_installation_leaf_refusal(_prepared_placement, _prepared_project, _prepared_assembly, _cold_token)
 	return code
 
 
@@ -1771,15 +1788,15 @@ func completion_refusal(ref: Vector2i, project: Vector2i, assembly: int, origina
 	if code == &"":
 		code = _completion_context_refusal()
 	if code == &"":
-		code = authority.completion_refusal(ref, project, assembly, original_token)
-	if code == &"":
-		code = _completion_context_refusal()
-	if code == &"":
 		code = _routes.prepared_refusal(_route_token)
 	if code == &"":
 		code = _locations.prepared_refusal(_location_token)
 	if code == &"":
 		code = _space.prepared_refusal(_space_token)
+	if code == &"":
+		code = authority.completion_refusal(ref, project, assembly, original_token)
+	if code == &"":
+		code = _completion_context_refusal()
 	if code == &"":
 		code = prepared_installation_leaf_refusal(ref, project, assembly, original_token)
 	_busy = false
@@ -1801,6 +1818,8 @@ func prepared_installation_leaf_refusal(ref: Vector2i, project: Vector2i, assemb
 		code = _prepared_sources_leaf()
 	if code == &"":
 		code = Locations.installation_prepared_leaf_refusal(_locations, _context)
+	if code == &"":
+		code = _locations._installed_witnesses_refusal()
 	return WorldRoutes.installation_prepared_leaf_refusal(_world_routes, _context) if code == &"" else code
 
 

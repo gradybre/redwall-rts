@@ -1656,3 +1656,14 @@ all observers finish before Funding. Native references, WeakRefs and headers
 remain part of the explicit unmeasured bindings/native reservation. The cold
 retained Placement/target source refresh costs64(P+M) checks and uses only the
 already-admitted inactive bank.
+
+### `godot/scripts/core/underground_connector_work.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Actual owner wiring and synchronous installation controls | -- | -- | -- | Unbound or no active transition | 3 | -- | Decision1106. No packed columns, per-placement WU, escrow, claim ledger or canonical fields. Reuses one Placement OrderRecord96B and AssemblyRecord32B; retains original actual Budget and exact action/project only through a synchronous operation. Shared Construction/Funding/Placement remain the durable owners. Actual numeric census179B includes the same128B caller pair already charged by Placement1105, so51B is additional retained control; adapter helper allowance512B makes additional joint563B within the existing bindings reserve. Actual native references/headers remain unmeasured. `is_quiescent()` requires no escaped transition. Save/restore must rebind the actual composition with no open transition. |
+
+The connector-only static Construction START kernel and final Router phase/crew
+checks add no members or copied Quote. Their longest new numeric helper chain
+is129B (169B including the existing Router entry frame), inside the512B allowance
+above; it is not an additional retained allocation or a second paid ledger.

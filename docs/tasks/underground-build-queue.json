@@ -1484,7 +1484,7 @@
         },
         "default_renderer_1132": {
           "owner": "/root/ug_furnishing",
-          "status": "phase1/phase2 integrated; phase3 independently accepted pending source commit; phase4 actual-mesh input census started",
+          "status": "phase1/phase2/phase3 independently reviewed and integrated; phase4 actual-mesh input census started",
           "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence.",
           "review": "Root rehashed4 source/51 outputs and reran14 Python tests. Native65536rows, strict5/36/all0,LSP0/2. Exact pinned Apple precision sections independently read. Source/expression-only; complete skin/model/native attachment remains open.",
           "phase2_lease": "Explicit root grant2026-10-04: underground_actor.gd WorldBasis v1/v2 dispatch only, test_underground_world_basis.gd plus new evidence/scripts. No pose/root changes, new retained fields, catalog flags or source reinterpretation.",
@@ -1507,10 +1507,13 @@
             "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/review-phase2-v2/"
           },
           "phase3": {
-            "status": "independently reviewed; awaiting author commit",
+            "status": "independently reviewed and integrated",
             "reviewer": "/root",
             "evidence": "docs/validation/evidence/underground-metal-phase3-review-2026-10-04/",
-            "review": "All3 source/160 output/16 inherited pins match. Independent18 Python tests OK/no skips; actual5-cache audit regenerated identical report and all58 MSL bytes,34variants66stages3281991 occurrence bytes. Zero qualifiedprofiles; no optimizer/actual-Mole/World permission."
+            "review": "All3 source/160 output/16 inherited pins match. Independent18 Python tests OK/no skips; actual5-cache audit regenerated identical report and all58 MSL bytes,34variants66stages3281991 occurrence bytes. Zero qualifiedprofiles; no optimizer/actual-Mole/World permission.",
+            "source_commit": "c80773e3",
+            "integration_commit": "583e40e5",
+            "integrated_tests": "18 Python tests OK/no skips; all frozen executable/input/output pins match with exact pre-acceptance ADR locator. No engine source change in this packet."
           },
           "phase4": {
             "status": "in_progress",
@@ -1520,12 +1523,16 @@
           }
         },
         "consumer_renewal_1137": {
-          "status": "adapter source awaiting independent review; live v2 Catalog not changed",
+          "status": "input adapter independently reviewed and integrated; live v2 Catalog remains unchanged",
           "owner": "/root",
           "branch": "codex/underground-profile-renewal",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/",
           "tests": "10 Python tests OK; real candidate3 reconstruction:2 groundrows14roleboxes9730636 reused handoff checks537 exact historical inputs8 immutablecurrentconsumer sources0bits. No current consumer compatibility/native/publication claim.",
-          "contract": "Exact six input locations plus11 explicitly pinned historical Git objects for immutable raw-source reconstruction; unlink temporary hardlinks before replacement. All current source/geometry checks retained. Actual final Contacts/Routes/WorldBasis compatibility and native replay required."
+          "contract": "Exact six input locations plus11 explicitly pinned historical Git objects for immutable raw-source reconstruction; unlink temporary hardlinks before replacement. All current source/geometry checks retained. Actual final Contacts/Routes/WorldBasis compatibility and native replay required.",
+          "source_commit": "bdef27f0",
+          "integration_commit": "102e5d7e",
+          "reviewer": "/root/ug_furnishing",
+          "review": "Full adapter/11 historical mapping/unchanged reader reviewed; independent10 Python tests OK, all3 source pins match. No high/medium findings; no current consumer compatibility or live-publication qualification."
         }
       },
       "lease": {

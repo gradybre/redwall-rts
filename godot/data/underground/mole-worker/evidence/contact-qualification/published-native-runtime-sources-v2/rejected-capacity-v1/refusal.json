@@ -1,0 +1,11 @@
+{
+  "producer_sha256": "b9263ba616a6270adedac048df0033a0abdd4f8082730af4797d03a665c3d1a4",
+  "exit_code": 1,
+  "error": "RUNTIME_TOTAL_CAPACITY",
+  "prior_limit_bytes": 2147483648,
+  "actual_input_rows_including_manifest": 537,
+  "actual_input_bytes": 3081042450,
+  "max_input_file_bytes": 80014692,
+  "output_created": false,
+  "scope": "Offline reads; sources and prior proofs unchanged. This is not a simulation memory allocation or native execution."
+}

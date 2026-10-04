@@ -757,21 +757,24 @@
           "scope": "six paid cuts and two timber assemblies,actual finite stores/Jobs/Work/XP/output,source-profile fixture explicitly synthetic until qualified content;no production owner changes or playable claim"
         },
         "excavation_start_guard_1117": {
-          "status": "accepted component; integration waits for concrete phase adapters",
+          "status": "Reviewed component integrated with concrete 1121 hooks; full integrated verification pending",
           "source_commit": "00c6e49db6609ac00f2fc32bf925708568213d68",
           "tests": "251 tests /29176 assertions /0 failures across5 strict singleton suites; every unexpected diagnostic and both leak counts0; analyzer0/9",
           "review": "Furnishing independently accepted all9 source pins after HIGH journal-close fix, nested audit barrier preservation and original scope/final physical phase guards",
           "memory": "99 tests; logical +2 bytes, total99959252/head40748/runtime_qualified=false; registry138modules693rows1032packedcolumnsPASS",
           "evidence": "docs/validation/evidence/underground-start-guard-2026-10-04/",
-          "dependency": "Concrete Authority/World phase START final observation and pure leaf; existing purpose8 journal-close aperture tracked in1118"
+          "dependency": "Actual 1119 entry sequence, native source activation and playable workflow remain open",
+          "integration": "0cb847ab"
         },
         "connector_payment_guard_1118": {
           "source_commit": "36f439f2a45c55eedb48fbeffa091b004dcd0c62",
-          "status": "independently accepted; integration after1117/concrete adapters",
+          "status": "Reviewed component integrated with concrete 1121 hooks; full integrated verification pending",
           "tests": "309tests38951assertions0failures across8strict suites; strict/raw unexpected diagnostics and leaks0; analyzer0/4",
           "review": "Furnishing accepted four exact source pins covering Inventory-owned input, paid refund and completion guards. Seven actual-accounting regressions retain goods/claims/WIP/physical Space on refusal and permit one retry.",
           "evidence": "docs/validation/evidence/underground-connector-payment-2026-10-04/",
-          "scope": "No retained memory delta; source/installation fixture remains synthetic, no playable acceptance."
+          "scope": "No retained memory delta; source/installation fixture remains synthetic, no playable acceptance.",
+          "integration": "aa42a566",
+          "dependency": "Actual 1119 entry sequence, native source activation and playable workflow remain open"
         },
         "phase_contacts_reuse_1106": {
           "source_commit": "3cdbbeef",
@@ -789,11 +792,12 @@
         "excavation_terminal_guard_1120": {
           "commit": "878f41c5",
           "branch": "codex/underground-entry-admission",
-          "state": "independently accepted component; awaiting concrete spatial adapters before integration",
+          "state": "Reviewed component integrated with concrete 1121 hooks; full integrated verification pending",
           "tests": "278 tests29639 assertions0 failures; all strict/raw0, analyzer0/10;103 memory tests",
           "review": "Furnishing accepted10 GDS and3 census pins, no high/medium; LOW wording corrected",
           "scope": "Inventory-owned final purpose5 output/refund rollback barrier, exact original Sites candidate and worker-free terminal retry",
-          "evidence": "docs/validation/evidence/underground-phase-settlement-2026-10-04/"
+          "evidence": "docs/validation/evidence/underground-phase-settlement-2026-10-04/",
+          "integration": "349ca534"
         },
         "first_prefix_owner_fixture": {
           "source_commit": "b3077d70809168594cbcad411f2290516e6fad5b",
@@ -1981,8 +1985,8 @@
         "entry_phase_composition_next": {
           "agent": "/root/ug_construction",
           "branch": "codex/underground-connector-work",
-          "state": "Contacts phase reuse accepted/integrated; Construction owns new concrete EntryWorldBindings1119; Geometry owns final Authority and prepared Space companions; root START/input guards1117/1118 reviewed but held pending adapters",
-          "gap": "Actual Site/EPISODE dispatch, prepared Space/Locations/Routes/Placement companions, and first-prefix paid phase sequence remain open",
+          "state": "Reviewed 1117/1118/1120/1121/1122 stack integrated. Construction is extending actual EntryWorldBindings1119 through complete L0 then T0; first BRACE composition passed.",
+          "gap": "Four-cube paid sequence, installed fractional endpoint preservation, production source activation, real stationary turning and material handling remain open.",
           "scope": "One actual Contacts packet; no synthetic phase permission or seeded paid Site history. New2048 controls/helper proposal must be counted outside fully assigned524288 binding reserve; native unqualified."
         },
         "shared_natural_surface_1115": {
@@ -2024,29 +2028,47 @@
         "entry_structure_1122": {
           "owner": "/root",
           "branch": "codex/underground-entry-admission",
-          "state": "independently accepted component; actual phase composition pending",
+          "state": "Reviewed component integrated; positive first-prefix composition remains in progress",
           "scope": "Actual non-flat EPISODE natural-bearing proof and paid Room-lifetime protection; no invented flat roof or free support",
           "dependency": "Geometry1121 phase companions, Construction1119 integration fixture; isolated owned new files",
-          "source_commit": "7bc87e3f"
+          "source_commit": "7bc87e3f",
+          "integration": [
+            "c3e6d4c9",
+            "f42b6a66"
+          ],
+          "prepared_followup": "80d60cc4"
         },
         "entry_structure_in_progress": {
           "branch": "codex/underground-entry-admission",
           "decision": "1122",
-          "source_sha256": "182a34738f1c82a98cdda0ef64f39e2b27921baac999bdabf6fdfd72ecf8df20",
-          "tests": "21 tests / 1728 assertions / 0 failures (Entry16/1314 + actual first-prefix5/414)",
+          "source_sha256": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
+          "tests": "48 tests / 2189 assertions / 0 failures: Entry 18/1471, first-prefix 5/414, ordinary PhaseStructure 19/240 and WorldStructure 6/64",
           "diagnostics": "Each strict and raw footer: zero unexpected errors/warnings and zero leaks; no expected/tolerated diagnostics",
           "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
-          "memory": "119 Python tests pass; separately reserved384 logical binding bytes, CHECK1048912/1048960; source-branch pack99959638/head40362, runtime_qualified false",
-          "review": "Construction independently accepted frozen GDScript source/test and complete memory-tool/pack pins after rotation and exact-formula corrections. Actual1121 composition remains pending.",
-          "path": "docs/validation/evidence/underground-entry-structure-2026-10-04/candidate-7/",
-          "limits": "Accepted component, not yet integrated. Quiescent Placement only; real prepared-phase exception and full ordinary regression rerun remain required. Rejected candidate3 ordinary phase failure without1121 hooks and candidate4 native import crash retained. No playable or paid sequence completion claimed.",
-          "source_commit": "7bc87e3f"
+          "memory": "126 Python tests pass; global logical pack 99959638 bytes, headroom 40362, runtime_qualified=false; original cold limits unchanged",
+          "review": "Geometry independently accepted exact PREPARED source/test/census follow-up. Construction had accepted original non-flat bearings after rotation correction.",
+          "path": "docs/validation/evidence/underground-entry-structure-2026-10-04/candidate-8/",
+          "limits": "Integrated component; actual four-cube L0 installation then T0 preserving fractional contacts remains required. No complete playable workflow claimed.",
+          "source_commit": "80d60cc4"
         },
         "phase_companions_1121_review": {
-          "state": "revision in progress",
+          "state": "Independently accepted component integrated",
           "reviewer": "/root/ug_construction",
-          "finding": "HIGH: discarding prepared companions cleared their context and could expose still-sealed Authority-owned Space to generic prepayment publication. Geometry is retaining ownership independently in the actual Authority and adding discarded-context publication regressions. Candidate2 is not accepted.",
-          "scope": "Ordinary room component suites passed, but final independent review and composed entry proof remain open."
+          "finding": "HIGH corrected and reproduced: generic publication remains guarded by actual Authority token even after companion context is discarded. Final ten source pins accepted.",
+          "scope": "Real Sites/payment and companion owners; physical/contact fixture remains synthetic. Actual installed L0 endpoint refresh before T0 remains a 1119 gate.",
+          "source_commit": "182a09c55a60ed3150723b1b0a708b07680b8f92",
+          "integration": [
+            "30cf6349",
+            "c68de6ea"
+          ],
+          "tests": "409 tests / 32011 assertions / 0 failures; strict/raw diagnostics and leaks zero; analyzer zero warnings in ten files",
+          "evidence": "docs/validation/evidence/underground-phase-companions-2026-10-04/final-1/"
+        },
+        "stationary_turn_next": {
+          "agent": "/root/ug_geometry",
+          "state": "Contract inspection; takes priority over optional route witness optimization",
+          "scope": "Same-position integer heading change through actual actor, all-yaw ground BODY/RECOVERY and STANCE proof, exact owner/source/occupancy checks; no work or teleport",
+          "dependency": "Construction fixture yaw remains explicitly synthetic until actual turn command is integrated"
         }
       },
       "lease": {

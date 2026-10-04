@@ -289,3 +289,104 @@ Root's expanded independent review accepted all four corrected source pins and
 the exact102/6988 strict evidence, with no remaining high/medium finding in this
 paid component. This acceptance supersedes the earlier two-file candidate and
 does not qualify actual Contacts/frontier/profile content or playable entry.
+
+### Actual Contacts component
+
+The concrete `underground_connector_contacts.gd` binds the actual Placement,
+Router, immutable EntryFrontier, Profiles, Sites, Terrain, Space, Locations,
+Routes and Inventory composition. Its fixed reusable packet observes authored
+INSTALL/station/cut/bearing/material/retreat rows. It creates no support,
+endpoint, paid Site, worker assignment or certificate. Only a current actual
+WORK actor with the exact Job, claimed equipped generic tool, pose, full
+profile and current load can earn work. A separate explicitly authored travel
+profile must fit that same worker for retreat. Material endpoints must be
+actual finite World-owned spatial Inventory storage with the selected full
+Location and a certified current directed route; no delivery radius is invented.
+
+Every exact cut dependency reads the existing permanent Sites key/Room/phase.
+Natural bearings require current original Terrain, no paid excavation history,
+and current unfiltered physical/claim facts. Prior installed bearings require
+the earlier billable prefix, exact included source part and actual complete
+solid coverage, plus fresh actual Terrain exclusions even when the sparse
+revision is unchanged. A pending part cannot bear itself. The initial exact part test
+accepts convex horizontal prisms; other shapes explicitly refuse. Complete
+approach/body/recovery and source stance must fit already-qualified endpoint
+air/support. Only the actual productive stroke may touch the selected bearing;
+both the exact anchor and the positive planar contact patch must be contained
+on the authored face. Below-root source residual is never clipped away.
+
+All endpoint/path queries precede COMMIT companion preparation. Final checks
+retain full live payloads plus successful Space/Location/Route receipts, then
+repeat actual source, physical, phase, worker and Inventory leaves before the
+irreversible payment. Prepared proof is accepted only for that exact Placement,
+Project, assembly and original Budget/token context. Cancellation retains the
+paid prefix and uses current real refund storage without requiring a worker.
+
+Runtime reflection counts2910 reusable bytes plus a1024 helper-frame allowance,
+within the existing4096 Contacts subreserve. There is no snapshot, cold lease,
+per-Placement map, new paid/work ledger or saved permission in this component.
+The corrected longest own numeric argument/local chain is305 bytes, through the
+actual worker/material proof and direct current Job/Directory identity leaves.
+Adding the existing512-byte nested reader/query allowance gives817, below1024.
+All candidate loops retain finite source/region/resident/fragment work charges.
+Native headers/growth and worker-tick performance remain unqualified. In
+particular the reviewed current static route query exceeds the measured worker
+budget; it is not implicitly made fast by this composition. The actual-store
+fixture uses explicitly synthetic motion/source and installation geometry.
+Actual fastening motion, complete gait/traversal, real entry frontier and
+production activation remain separate closure requirements.
+
+The actual dynamic occupancy proof refuses any living resident missing its
+committed Routes actor/profile. The same actual World composition must register
+every mobile resident before productive work; an unknown body is not treated
+as absent. Registered actors are rechecked against current actual pose,
+equipment, load and complete body/recovery envelopes even when graph receipts
+have not changed. This adds no resident map or packed field.
+
+The actual-store focused tests cover one complete paid installation, real
+reserved-wood payment, productive labor/XP/wear, paused cancellation and exact
+refund, late worker/phase/endpoint mutation, immutable-source mutation/reentry,
+directed route certificates and retained excavation history. Independent
+exhaustive3x3 cell membership checks validate the six-slab union/subtraction,
+including negative residual and operation exhaustion. The history-only
+regression uses a controlled retained Site row, not a synthetic paid receipt.
+All runtime-profile and prospective-installation geometry in the fixture remain
+explicitly synthetic; this evidence does not qualify active entry content.
+
+The earlier20-tread/26-group entrance was an engineering candidate, not a fixed
+runtime count. The currently passing ascent source has128u rise with512u run;
+the previous256u rise failed continuous motion. The approved per-tread and
+landing wood-only prices remain unchanged, but the final authored source must
+derive the complete group count and total rather than inherit the obsolete
+44-wood candidate total. Contacts uses the actual generic source/prefix census.
+
+Independent review found two medium gaps in the earlier `contacts-final-1`
+candidate. Its supposed final worker selection still used public Profiles
+identity/tool/pose readers. An actual Transform reader could copy the former
+station pose, move its actual row and return success; START or a productive
+tick then accepted the stale copy. The rejected actual witness retains20 tests /
+7251 assertions /2 failures, with diagnostics/leaks zero. The corrected final
+selection fills only the already allocated Profiles scratch from exact actual
+Directory/reverse-row/Resident/PID, assigned Job/agent, equipped claimed Gear,
+Inventory and carried satchel/lot facts. Public observations finish beforehand.
+The shared FinalFacts correction likewise reads its actual Transform bank.
+Tests prove late successful observations refuse without payment, work, resident
+XP or wear changes, while an observer armed only during the final proof is never
+called. Current returned workers can retry with the same actual paid resources.
+
+The other gap omitted fresh World exclusions from prior installed bearing
+dependencies. The new test actually pays and installs group0, then places a
+real unregistered well over that remote included part, outside the station
+motion. The old installed-bearing branch reproduces one failure in22 tests /
+7294 assertions. The corrected Terrain.EXCLUSIONS proof refuses group1 while
+keeping payment, prefix, identity allocation and Space revision unchanged;
+removing the actual blocker permits retry. These rejected logs remain evidence,
+not passing validation.
+
+Final focused validation in `contacts-final-2` passed103 tests /12424 assertions
+across Contacts, paid owner, Placement, entry companion and Frontier. All
+strict/raw unexpected diagnostics and both leak counts are zero; analyzer0/2.
+Original project/assets and exact source hashes were preserved. Geometry's
+independent re-review accepted source68011446…/testb12323bd… with no remaining
+high/medium finding in this component. Native memory, whole-worker timing and
+active physical content remain unqualified.

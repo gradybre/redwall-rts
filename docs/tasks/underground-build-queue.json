@@ -2153,9 +2153,16 @@
         "locations_budget_followup": {
           "owner": "/root",
           "decision_reserved": 1129,
-          "state": "diagnosing",
+          "state": "component accepted; complete consumer running",
           "blocker": "1119phase-world28 passed seven L0 Entry checks with283401 left but then refused LOCATION_OPERATION_BUDGET; Construction is collecting exact first-exhaustion stack without changing limits or source.",
-          "required": "Preserve every real geometry/source/paid witness and original work ceiling; independently review and strict focused tests before integration."
+          "required": "Preserve every real geometry/source/paid witness and original work ceiling; independently review and strict focused tests before integration.",
+          "commit": "e2433af1",
+          "integration": "071ae159520bb15f912a9d0984d7fdc09a82e8b5",
+          "reviewer": "/root/ug_construction",
+          "tests": "144 tests/9382 assertions/0 failures; all strict/raw diagnostics/leaks0; analyzer0/2",
+          "source": "8d8214c4f93415d694bcb06e7889e8ea9e6fe4af1262fb5ad3452ce676720ffc",
+          "change": "Every first presence/role read charged; existing32 metadata checks retained for each live/LANDING. Full fresh witness passes unchanged, no retained delta or limit increase.",
+          "evidence": "docs/validation/evidence/underground-location-work-2026-10-04/"
         }
       },
       "lease": {
@@ -2249,12 +2256,13 @@
           {
             "agent": "/root",
             "branch": "codex/underground-entry-admission",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_locations.gd",
               "godot/test/test_underground_locations.gd"
             ],
-            "handoff": "ug_geometry explicitly granted and stopped writes2026-10-04. Root diagnoses bounded Locations work in1119 phase-world28; preserve source/installed identity checks and current capacities/limits. Geometry continues1124 Routes/WorldRoutes only."
+            "handoff": "ug_geometry explicitly granted and stopped writes2026-10-04. Root diagnoses bounded Locations work in1119 phase-world28; preserve source/installed identity checks and current capacities/limits. Geometry continues1124 Routes/WorldRoutes only.",
+            "stop_evidence": "Root stopped all Locations source/test writes after e2433af1; explicitly returned lease to ug_geometry2026-10-04. Shared EntryBindings tests remain root-owned."
           }
         ]
       }

@@ -1,0 +1,19 @@
+{
+  "source_files": 4,
+  "output_files": 191,
+  "native_source_closure": 557,
+  "pre_post_equal": true,
+  "poses": 2868,
+  "assertions": 11843,
+  "failures": 0,
+  "images": 168,
+  "python_tests": 10,
+  "python_failures": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 1,
+  "raw_unexpected_diagnostics": 0,
+  "raw_leaks": 0,
+  "production_qualified": false,
+  "independent_review": "accepted_for_presentation_witness_only",
+  "reviewer": "root"
+}

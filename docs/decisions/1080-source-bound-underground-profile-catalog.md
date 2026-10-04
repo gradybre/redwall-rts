@@ -1342,3 +1342,24 @@ includes palette/decode coexistence and reserved native controls; shared
 WorldBasis544768 and driver432 remain separately counted. Actual native peak,
 runtime source/profile binding, paid WIP, carrying/lay-down handling and
 terrain support are not qualified. Native replay is a separate next witness.
+
+
+### Native INSTALL program witness accepted
+
+The version3 image now replays its fourteen clips and six source roles through
+actual Actor/WorldBasis/Driver and Resident/Job/Work/Gear identities. Profile
+admission remains explicitly synthetic. The additive native harness does not
+create a bearer, give BUILD credit or publish WIP, terrain, routes or support.
+It records2,868 poses,11,843 assertions,0 failures and168 checked images; ten
+outer-validator tests pass and analyzer reports0 warnings in1 file. Raw native
+and import diagnostics/leaks are zero. All557 before/after source pins match.
+
+Independent root review accepted the four executable sources and191 output
+pins in `contact-qualification/review-install-program-native-v1`, independently
+reran the ten tests, checked all557 current source pins, and inspected the
+side-work, opposite-recovery and RTS-work views. This is an isolated source
+presentation witness, not paid first-prefix construction, material handling,
+whole HUD/gameplay-camera or whole-client performance qualification. The
+retained memory observation is explicitly non-isolated. Existing source
+compiler/image bounds and presentation allowances are unchanged; production
+profile qualification remains absent.

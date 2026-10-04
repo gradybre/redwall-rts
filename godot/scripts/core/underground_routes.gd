@@ -3020,3 +3020,204 @@ func _occupant_box_refusal(index: int, bounds: PackedInt32Array) -> StringName:
 		_occupant_bounds[axis] = low
 		_occupant_bounds[axis + 3] = high
 	return &"ROUTE_OCCUPIED" if Space.overlaps(bounds, _occupant_bounds) else &""
+
+
+static func turn_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
+	"""Read one committed profile from direct current actor/Job/tool/load facts after all observers."""
+	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+		return &"ROUTE_ACTOR_NOT_REGISTERED"
+	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
+	var profiles: Profiles = actual._profiles
+	if profiles == null or profiles._loading or profile < 0 or profile >= profiles._live.header[1] \
+			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED \
+			or profiles._live.header[0] != actual._motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] \
+			or profiles._live.quantities[profile] != actual._motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]:
+		return &"ROUTE_TURN_PROFILE_STALE"
+	var mode: int = actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row]
+	var posture: int = actual._motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
+	var family: int = actual._motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
+	var code: StringName = _turn_dynamic_leaf(actual, actual._resident_ref(row),
+		actual._resident_pair(R_JOB_SLOT, row), mode, posture, family, actual._resident_pair(R_TOOL_SLOT, row))
+	if code != &"": return code
+	if not profiles._matches(profile, mode, posture, family):
+		return &"ROUTE_TURN_PROFILE_STALE"
+	_turn_write_selection(actual, row, profile, out)
+	return &"" if actual._committed_selection(row, out) else &"ROUTE_TURN_PROFILE_STALE"
+
+
+static func _turn_write_selection(actual: RefCounted, row: int, profile: int, out: Profiles.Selection) -> void:
+	"""Copy reusable selection scratch directly; no public profile or Transform hook remains."""
+	var profiles: Profiles = actual._profiles
+	out.profile_id = profile
+	out.profile_revision = profiles._live.quantities[profile]
+	out.content_revision = profiles._live.header[0]
+	out.source_id = profiles._field(profiles._live, profile, Profiles.F_SOURCE)
+	out.species = profiles._identity[0]
+	out.life_stage = profiles._identity[1]
+	out.rig = profiles._identity[2]
+	out.mode = profiles._field(profiles._live, profile, Profiles.F_MODE)
+	out.posture = profiles._field(profiles._live, profile, Profiles.F_POSTURE)
+	out.x = profiles._pose.x
+	out.y = profiles._pose.y
+	out.z = profiles._pose.z
+	out.yaw = profiles._pose.yaw
+	out.orientation = profiles._field(profiles._live, profile, Profiles.F_YAW_KIND)
+	out.box_count = profiles._field(profiles._live, profile, Profiles.F_BOX_COUNT)
+	out.worker = actual._resident_ref(row)
+	out.job = actual._resident_pair(R_JOB_SLOT, row)
+	out.tool = profiles._candidate.tool
+	out.satchel = profiles._candidate.satchel
+	out.cargo = profiles._candidate.cargo
+	out.cargo_quantity_milli = profiles._candidate.cargo_quantity_milli
+
+
+static func commit_stationary_turn(actual: RefCounted, expected: Profiles.Selection,
+		pose_revision: int, target_yaw: int) -> bool:
+	"""The concrete World proof calls this once, after all fallible observations and leaf checks."""
+	var cache_current: bool = actual._occupancy_expected_revision == pose_revision
+	if not Transforms.turn_stationary_preflighted(actual._transforms, expected.worker,
+		Vector3i(expected.x, expected.y, expected.z), expected.yaw, pose_revision, target_yaw):
+		return false
+	actual._occupancy_expected_revision = actual._transforms._mutation_revision \
+		if cache_current and actual._transforms._mutation_revision < I64_MAX else 0
+	return true
+
+
+static func _turn_dynamic_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i, mode: int, posture: int,
+		family: int, hint: Vector2i) -> StringName:
+	"""Reuse Profiles scratch while deriving current facts directly after all observation callbacks."""
+	if mode < Profiles.MODE_STAND or mode > Profiles.MODE_CLIMB or posture < 0 \
+			or posture > Profiles.POSTURE_STOOPED or family < -1 or family >= 5:
+		return &"ROUTE_TURN_PROFILE_STALE"
+	var code: StringName = _turn_identity_leaf(actual, worker)
+	if code != &"": return code
+	var profiles: Profiles = actual._profiles
+	profiles._query_values.fill(-1)
+	profiles._candidate.tool = NULL_REF
+	profiles._candidate.satchel = NULL_REF
+	profiles._candidate.cargo = NULL_REF
+	profiles._candidate.cargo_quantity_milli = 0
+	code = _turn_job_leaf(actual, worker, job, mode)
+	if code == &"": code = _turn_tool_leaf(actual, worker, job, mode, hint)
+	return _turn_cargo_leaf(actual, worker) if code == &"" else code
+
+
+static func _turn_identity_leaf(actual: RefCounted, worker: Vector2i) -> StringName:
+	"""Full Directory and mirrored Resident identity precede actual species/rig and persistent Transform reads."""
+	var residents: Residents = actual._residents
+	var row: int = _turn_directory_row(actual, worker, Directory.KIND_RESIDENT)
+	if row < 0 or row >= RESIDENT_CAPACITY or residents._present[row] != 1 \
+			or residents._ref_slot[row] != worker.x or residents._ref_generation[row] != worker.y \
+			or residents._needs._present[row] != 1 or residents._needs._health[row] <= 0 \
+			or residents._catalog_error != "" or residents._rig_catalog_error != "" \
+			or residents._life_stage[row] != Residents.LIFE_STAGE_ADULT:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var species: int = residents._species[row]
+	if species < 0 or species >= residents._species_key.size(): return &"ROUTE_TURN_PROFILE_STALE"
+	var key: StringName = StringName(residents._species_key[species])
+	if not Residents.SPECIES_RIG_KEY.has(key): return &"ROUTE_TURN_PROFILE_STALE"
+	var rig: StringName = Residents.SPECIES_RIG_KEY[key] as StringName
+	if not residents._rig_ids.has(rig): return &"ROUTE_TURN_PROFILE_STALE"
+	var profiles: Profiles = actual._profiles
+	profiles._worker_row = row
+	profiles._identity[0] = species
+	profiles._identity[1] = residents._life_stage[row]
+	profiles._identity[2] = int(residents._rig_ids[rig])
+	return _turn_pose_leaf(actual, worker, row)
+
+
+static func _turn_directory_row(actual: RefCounted, ref: Vector2i, kind: int) -> int:
+	"""The final leaf checks full identity and the reverse typed owner directly, without Directory observers."""
+	var ids: Directory = actual._ids
+	if ref.x < 0 or ref.x >= Directory.DIRECTORY_CAPACITY or ids._active[ref.x] != 1 \
+			or ids._generation[ref.x] != ref.y or ids._kind[ref.x] != kind:
+		return -1
+	var row: int = ids._typed_row[ref.x]
+	return row if row >= 0 and row < Directory.KIND_CAPACITY[kind] \
+		and ids._typed_owner_slot[ids._kind_base[kind] + row] == ref.x else -1
+
+
+static func _turn_pose_leaf(actual: RefCounted, worker: Vector2i, resident_row: int) -> StringName:
+	"""A reused typed row cannot inherit another full resident's pose; no read_into observer is dispatched."""
+	var transforms: Transforms = actual._transforms
+	var row: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + resident_row
+	var pid: int = actual._ids._persistent_id[worker.x]
+	if pid <= 0 or row < 0 or row >= Transforms.TRANSFORM_CAPACITY \
+			or transforms._bound_persistent_id[row] != pid or transforms._yaw[row] < 0 or transforms._yaw[row] >= 65536:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var profiles: Profiles = actual._profiles
+	profiles._pose.x = transforms._x[row]
+	profiles._pose.y = transforms._y[row]
+	profiles._pose.z = transforms._z[row]
+	profiles._pose.yaw = transforms._yaw[row]
+	return &""
+
+
+static func _turn_job_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i, mode: int) -> StringName:
+	"""Read both actual Job and generation-safe resident-agent links without requester or worker observers."""
+	if job == NULL_REF: return &"ROUTE_TURN_ACTOR_STALE" if mode == Profiles.MODE_WORK else &""
+	var ids: Directory = actual._ids
+	var jobs: Jobs = actual._jobs
+	var row: int = _turn_directory_row(actual, job, Directory.KIND_JOB)
+	var worker_row: int = actual._profiles._worker_row
+	if row < 0 or row >= Jobs.JOB_CAPACITY or jobs._job_present[row] != 1 \
+			or jobs._job_ref_slot[row] != job.x or jobs._job_ref_generation[row] != job.y \
+			or jobs._worker_slot[row] != worker.x or jobs._worker_generation[row] != worker.y \
+			or jobs._agent_present[worker_row] != 1 or jobs._agent_persistent_id[worker_row] != ids._persistent_id[worker.x] \
+			or jobs._agent_job_slot[worker_row] != job.x or jobs._agent_job_generation[worker_row] != job.y:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	if mode == Profiles.MODE_WORK: actual._profiles._query_values[4] = jobs._kind[row]
+	return &""
+
+
+static func _turn_tool_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i, mode: int, hint: Vector2i) -> StringName:
+	"""An actual Work-bound or hinted lot must be equipped by this resident, and WORK needs its exact live claim."""
+	var profiles: Profiles = actual._profiles
+	var row: int = profiles._worker_row
+	var work: RefCounted = actual._work
+	var tool: Vector2i = Vector2i(work._tool_lot_slot[row], work._tool_lot_generation[row])
+	if tool != NULL_REF and hint != NULL_REF and tool != hint: return &"ROUTE_TURN_ACTOR_STALE"
+	if tool == NULL_REF: tool = hint
+	if tool == NULL_REF:
+		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
+	var gear: Gear = actual._profiles._gear as Gear
+	var at: int = gear._resolve_row(tool)
+	var inventory: Inventory = actual._profiles._inventory
+	if at < 0 or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
+			or inventory._l_generation[tool.x] != tool.y or inventory._l_container_slot[tool.x] != -1 \
+			or gear._equipped[at] != 1 or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
+			or actual._residents._equip_tool_item_id[row] != gear._item_id[at]: return &"ROUTE_TURN_ACTOR_STALE"
+	if mode == Profiles.MODE_WORK and (work._tool_job_slot[row] != job.x or work._tool_job_generation[row] != job.y \
+			or gear._claim_job_slot[at] != job.x or gear._claim_job_generation[at] != job.y or gear._durability[at] <= 0):
+		return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._query_values[0] = gear._item_id[at]
+	profiles._query_values[1] = gear._manufacture_recipe[at]
+	profiles._candidate.tool = tool
+	return &""
+
+
+static func _turn_cargo_leaf(actual: RefCounted, worker: Vector2i) -> StringName:
+	"""The actual resident mirror and full live satchel/lot list must agree; no carried-load observer is called."""
+	var profiles: Profiles = actual._profiles
+	var row: int = profiles._worker_row
+	var residents: Residents = actual._residents
+	var inventory: Inventory = actual._profiles._inventory
+	var satchel: Vector2i = Vector2i(residents._equip_satchel_slot[row], residents._equip_satchel_generation[row])
+	if satchel == NULL_REF: return &""
+	if satchel.x < 0 or satchel.x >= inventory._c_capacity or inventory._c_live[satchel.x] != 1 \
+			or inventory._c_generation[satchel.x] != satchel.y or inventory._c_policy[satchel.x] != Inventory.POLICY_SATCHEL \
+			or inventory._c_owner_slot[satchel.x] != worker.x or inventory._c_owner_generation[satchel.x] != worker.y:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._candidate.satchel = satchel
+	var count: int = inventory._c_lot_count[satchel.x]
+	if count == 0: return &"" if inventory._c_first_lot[satchel.x] == -1 else &"ROUTE_TURN_ACTOR_STALE"
+	var lot: int = inventory._c_first_lot[satchel.x]
+	if count != 1 or lot < 0 or lot >= inventory._l_capacity or inventory._l_live[lot] != 1 \
+			or inventory._l_container_slot[lot] != satchel.x or inventory._l_container_generation[lot] != satchel.y \
+			or inventory._l_next[lot] != -1 or inventory._l_prev[lot] != -1 or inventory._l_quantity_milli[lot] < 1:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	profiles._candidate.cargo = Vector2i(lot, inventory._l_generation[lot])
+	profiles._candidate.cargo_quantity_milli = inventory._l_quantity_milli[lot]
+	profiles._query_values[2] = inventory._l_item_id[lot]
+	profiles._query_values[3] = inventory._l_recipe_id[lot]
+	return &""

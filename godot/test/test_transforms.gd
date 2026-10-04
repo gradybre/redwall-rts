@@ -466,3 +466,40 @@ func test_revision_exhaustion_poison_never_prevents_pose_write_or_whole_reset() 
 	assert_true(_transforms.place(resident, 9, 8, 7, 6), "owner coordinates remain usable")
 	assert_true(_transforms.read_into(resident, _pose), "actual placed state")
 	assert_equal(_pose.x, 9, "successful write not hidden behind an assertion")
+
+
+func test_stationary_turn_commits_one_tick_without_replaying_prior_translation() -> void:
+	"""The pure commit rolls history once, preserves current XYZ and invalidates exactly once."""
+	var ref: Vector2i = _resident()
+	assert_true(_transforms.place(ref, 1, 2, 3, 65000), "original pose")
+	assert_true(_transforms.advance(ref, 10, 20, 30), "prior moving tick")
+	var revision: int = _transforms.mutation_revision()
+	assert_true(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(10, 20, 30), 65000, revision, 1000), "same-position next tick")
+	assert_true(_transforms.read_into(ref, _pose), "actual committed pose")
+	assert_equal(Vector3i(_pose.x, _pose.y, _pose.z), Vector3i(10, 20, 30), "no current translation")
+	assert_equal(Vector3i(_pose.prev_x, _pose.prev_y, _pose.prev_z), Vector3i(10, 20, 30), "prior travel not repeated")
+	assert_equal(_pose.prev_yaw, 65000, "exact old yaw retained")
+	assert_equal(_pose.yaw, 1000, "exact new yaw")
+	assert_equal(TransformsScript.shortest_yaw_delta(_pose.prev_yaw, _pose.yaw), 1536, "existing shortest arc")
+	assert_equal(_transforms.mutation_revision(), revision + 1, "one invalidation")
+
+
+func test_stationary_turn_refuses_stale_identity_pose_token_and_yaw_atomically() -> void:
+	"""A saved proof cannot turn a replacement Resident, moved pose or changed actual owner."""
+	var ref: Vector2i = _resident()
+	assert_true(_transforms.place(ref, 1, 2, 3, 4), "actual pose")
+	var revision: int = _transforms.mutation_revision()
+	var before: PackedByteArray = _transforms.state_bytes()
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, Vector2i(ref.x, ref.y + 1),
+		Vector3i(1, 2, 3), 4, revision, 5), "full generation")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 4), 4, revision, 5), "exact XYZ")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 3), 5, revision, 5), "exact current yaw")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 3), 4, revision + 1, 5), "original mutation token")
+	assert_false(TransformsScript.turn_stationary_preflighted(_transforms, ref,
+		Vector3i(1, 2, 3), 4, revision, 65536), "canonical yaw range")
+	assert_equal(_transforms.state_bytes(), before, "complete refused image unchanged")
+	assert_equal(_transforms.mutation_revision(), revision, "refusal did not invalidate")

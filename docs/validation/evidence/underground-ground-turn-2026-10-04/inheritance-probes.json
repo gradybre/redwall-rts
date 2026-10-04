@@ -1,0 +1,92 @@
+[
+  {
+    "stubbed": "_turn",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "_turn_fixture",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "_turn_route_image",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "_turn_profile_wire",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_requires_all_yaw_source_even_at_an_exact_valid_heading",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_keeps_position_route_and_economy_then_repeats_shortest_arc",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_refuses_queued_actor_bad_yaw_job_and_insufficient_work",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_refuses_prepared_geometry_and_profile_source_replacement",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_final_geometry_includes_new_actual_resource",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_closes_late_pose_copy_and_reentry_before_write",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_rejects_late_endpoint_packet_change",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "_turn_job",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_final_actor_proof_rejects_late_actual_job_and_tool_changes",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_preserves_real_equipped_tool_and_work_claim_without_doing_work",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_uses_complete_recovery_union_against_another_actual_actor",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "_turn_recovery_overlap_leaf",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_budget_exhaustion_at_final_scan_is_atomic",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  },
+  {
+    "stubbed": "test_stationary_turn_closes_last_catalog_and_profile_observers",
+    "ok": false,
+    "output": "Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org\n\nSCRIPT ERROR: Parse Error: Could not resolve class \"res://test/test_underground_world_routes.gd\".\n          at: GDScript::reload (res://test/test_underground_routes.gd:1223)\nERROR: Failed to load script \"res://test/test_underground_routes.gd\" with error \"Parse error\".\n   at: load (modules/gdscript/gdscript_resource_format.cpp:46)\n"
+  }
+]

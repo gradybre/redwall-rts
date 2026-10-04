@@ -43,10 +43,16 @@ const PROFILE_TEMP: String = "user://world-routes-profiles.bin"
 class RefusingLocations extends Locations:
 	## A negative-only fault injector retains actual endpoint ownership and validation.
 	var refuse_live_read: bool = false
+	var turn_probe: Callable = Callable()
 
 	func read_location_into(location: Vector2i, out: Locations.Record) -> StringName:
 		"""Exercise an actual graph refusal after its provider has agreed to the same-stack publication."""
-		return &"TEST_FINAL_ENDPOINT_REFUSAL" if refuse_live_read else super.read_location_into(location, out)
+		var code: StringName = &"TEST_FINAL_ENDPOINT_REFUSAL" if refuse_live_read else super.read_location_into(location, out)
+		if turn_probe.is_valid():
+			var probe: Callable = turn_probe
+			turn_probe = Callable()
+			probe.call()
+		return code
 
 
 class ReenteringTerrain extends Terrain:
@@ -112,6 +118,7 @@ var _void: Vector2i = NULL_REF
 var _first: Vector2i = NULL_REF
 var _last: Vector2i = NULL_REF
 var _lease: int = 0
+var _turn_source_case: int = 0
 
 
 func _image(boxes: Array[PackedInt32Array], roles: PackedInt32Array) -> Space.Snapshot:
@@ -304,6 +311,7 @@ func _actual_profiles() -> void:
 	var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
 	assert_true(_residents.spatial_profile_identity_into(_worker, identity), "actual actor identity")
 	var bytes: PackedByteArray = ContentFixture.synthetic_profile_image(identity)
+	_turn_profile_wire(bytes, _turn_source_case)
 	assert_equal(_profiles.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 1), &"", "synthetic certificate wire")
 
 
@@ -484,6 +492,7 @@ func _admit_actor() -> void:
 
 func after_each() -> void:
 	"""The actual composition is acyclic; source fixtures never survive in production or another test."""
+	_turn_source_case = 0
 	if _budget != null:
 		assert_true(_budget.is_quiescent(), "exact shared lease returned")
 	_binding = null
@@ -828,3 +837,271 @@ func test_static_profile_edge_rechecks_actual_sources_after_final_binding_callba
 		assert_equal(_jobs.directory().state_bytes(), directory, "no actor or Job was created")
 		assert_true(_routes.read_actor_into(_worker, Routes.Actor.new()) != &"", "no resident admission")
 		after_each()
+
+
+func _turn(yaw: int = 0, checks: int = Space.MAX_CHECKS, job: Vector2i = NULL_REF) -> StringName:
+	"""Exercise actual geometry/dynamic owners; only the source certificates in this fixture are synthetic."""
+	return Binding.turn_actor(_binding, _worker, job, yaw, checks)
+
+
+func _turn_fixture(profile_case: int = 0) -> void:
+	"""A real completed ground graph and registered actual actor, without a productive work grant."""
+	_turn_source_case = profile_case
+	_actual_fixture()
+	_publish_route()
+	_admit_actor()
+
+
+func _turn_route_image() -> PackedByteArray:
+	"""Test-only exact authority capture; scratch/cache controls are not save or movement state."""
+	var image: PackedByteArray = _routes._motion.resident.to_byte_array()
+	image.append_array(_routes._motion.resident_long.to_byte_array())
+	image.append_array(_routes._motion.links.to_byte_array())
+	image.append_array(_routes._motion.free_links.to_byte_array())
+	image.append_array(_routes._live.fields.to_byte_array())
+	image.append_array(_routes._live.longs.to_byte_array())
+	image.append_array(_routes._live.present)
+	image.append_array(_routes._live.retired)
+	image.append_array(_routes._live.free_rows.to_byte_array())
+	image.append_array(_routes._live.ordered.to_byte_array())
+	image.append_array(_routes._live.vertices.to_byte_array())
+	image.append_array(PackedInt64Array([_routes._motion.free_count, _routes._live.free_count,
+		_routes._live.edge_count, _routes._live.vertex_count, _routes._live.revision]).to_byte_array())
+	return image
+
+
+func _turn_profile_wire(bytes: PackedByteArray, profile_case: int) -> void:
+	"""Change only labelled synthetic source input before actual immutable parsing, never a live profile bank."""
+	if profile_case == 1:
+		bytes.encode_s32(64 + 4 * Profiles.F_YAW_KIND, Profiles.YAW_EXACT)
+		bytes.encode_s32(64 + 4 * Profiles.F_YAW, 49152)
+	if profile_case == 2:
+		bytes.encode_s32(64 + 4 * Profiles.F_TOOL, _items.compiled_id(&"tool"))
+		bytes.encode_s32(64 + 4 * Profiles.F_TOOL_VARIANT, Gear.MANUFACTURE_BASIC)
+
+
+func test_stationary_turn_requires_all_yaw_source_even_at_an_exact_valid_heading() -> void:
+	"""An actually eligible exact-yaw walk can travel but cannot certify any intervening facing."""
+	_turn_fixture(1)
+	var image: PackedByteArray = _transforms.state_bytes()
+	assert_equal(_turn(0), &"ROUTE_TURN_UNCERTIFIED", "exact source does not grant a turn sweep")
+	assert_equal(_turn(49152), &"ROUTE_TURN_UNCERTIFIED", "same heading does not bypass the source contract")
+	assert_equal(_transforms.state_bytes(), image, "all current/previous pose fields and mutation stamp unchanged")
+
+
+func test_stationary_turn_keeps_position_route_and_economy_then_repeats_shortest_arc() -> void:
+	"""An idle actual actor can face another direction using the complete source-labelled ground union."""
+	_turn_fixture()
+	var before: PackedByteArray = _turn_route_image()
+	var inventory: PackedByteArray = _inventory.state_bytes()
+	var revision: int = _transforms.mutation_revision()
+	assert_equal(_turn(16384), &"", "actual source-qualified stationary turn")
+	var actor: Routes.Actor = Routes.Actor.new()
+	assert_equal(_routes.read_actor_into(_worker, actor), &"", "still actual registered actor")
+	assert_equal(actor.point, Vector3i(X + 512, 512, Z + 512), "no teleport or translation")
+	assert_equal(actor.yaw, 16384, "requested exact facing")
+	assert_equal(actor.location, _first, "same full completed endpoint")
+	assert_equal(_turn_route_image(), before, "no path/profile/phase or saved route change")
+	assert_equal(_inventory.state_bytes(), inventory, "no productive payment")
+	assert_equal(_transforms.mutation_revision(), revision + 1, "single cache invalidation")
+	assert_equal(_turn(65000), &"", "next independent tick")
+	assert_equal(_turn(1000), &"", "cross yaw wrap")
+	assert_equal(_routes._occupancy_expected_revision, _transforms.mutation_revision(), "unchanged root index stays current")
+
+
+func test_stationary_turn_refuses_queued_actor_bad_yaw_job_and_insufficient_work() -> void:
+	"""No rejected command cancels a route, substitutes a Job or consumes partial turn state."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	assert_equal(_turn(65536), &"ROUTE_TURN_YAW", "no silent yaw normalization")
+	assert_equal(_turn(0, 8192), &"ROUTE_OPERATION_BUDGET", "whole observation precharged")
+	assert_equal(_turn(0, Space.MAX_CHECKS, Vector2i(1, 1)), &"ROUTE_TURN_JOB", "exact original Job")
+	assert_equal(_routes.request_route(_worker, _last, 1), &"", "actual queued path")
+	var routes: PackedByteArray = _turn_route_image()
+	assert_equal(_turn(), &"ROUTE_ACTOR_BUSY", "turn cannot cancel queue")
+	assert_equal(_turn_route_image(), routes, "queue preserved")
+	assert_equal(_transforms.state_bytes(), pose, "all refused calls preserve Transform image")
+
+
+func test_stationary_turn_refuses_prepared_geometry_and_profile_source_replacement() -> void:
+	"""A future bank and a same-pose new source cannot borrow current geometry or old profile pins."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_turn(), Binding.REFUSE_BUSY, "no turn through prepared geometry")
+	assert_true(_owner.abort(token), "own candidate discarded")
+	assert_equal(_load_catalog(2), &"", "real immutable source replaced")
+	assert_true(_turn() != &"", "old committed source no longer qualifies")
+	assert_equal(_transforms.state_bytes(), pose, "no refused pose write")
+
+
+func test_stationary_turn_final_geometry_includes_new_actual_resource() -> void:
+	"""A newly occupied real World tile blocks turning despite unchanged endpoint and Space receipts."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var revision: int = _owner.revision()
+	var tree: Nodes.OpResult = _nodes.create_at_tile(50 * 128 + 60, _items.compiled_id(&"wood"), 1000, 4, 1)
+	assert_true(tree.ok, "actual World exclusion")
+	assert_equal(_owner.revision(), revision, "no sparse publication")
+	assert_true(_turn() != &"", "full turn body/stance checks current exclusion")
+	assert_equal(_transforms.state_bytes(), pose, "blocked turn unchanged")
+	assert_true(_nodes.destroy(tree.ref).ok, "actual blocker removed")
+	assert_equal(_turn(), &"", "valid retry proves current facts")
+
+
+func test_stationary_turn_closes_late_pose_copy_and_reentry_before_write() -> void:
+	"""A successful ordinary observation may not conceal a different current worker or nested command."""
+	_turn_fixture()
+	var before: int = _transforms.mutation_revision()
+	_arm_turn_location_probe(func() -> void: _transforms.set_yaw(_worker, 32768))
+	assert_equal(_turn(0), &"ROUTE_TURN_CONTEXT_DRIFT", "copied endpoint then actual pose changed")
+	assert_equal(_transforms.mutation_revision(), before + 1, "only the injected actual write occurred")
+	assert_equal(_transforms._yaw[Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT]], 32768, "turn did not overwrite changed yaw")
+	assert_equal(_turn(0), &"", "valid current retry")
+	assert_equal(_routes._occupancy_expected_revision, 0, "turn cannot bless stale roots of other actors")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_terrain.binding_countdown = 1
+	_terrain.binding_probe = func() -> void: assert_equal(_turn(16384), &"ROUTE_CALLBACK_REENTRY", "nested scratch command refuses")
+	assert_equal(_turn(49152), &"ROUTE_CALLBACK_REENTRY", "outer observation remains poisoned")
+	assert_equal(_transforms.state_bytes(), pose, "outer rejected turn writes nothing")
+	assert_equal(_turn(49152), &"", "clean retry")
+
+
+func test_stationary_turn_rejects_late_endpoint_packet_change() -> void:
+	"""The complete actual full endpoint must match the observation used for body and support fit."""
+	_turn_fixture()
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_arm_turn_location_probe(func() -> void: _binding._endpoint.envelope[3] += 1)
+	assert_equal(_turn(), &"ROUTE_LOCATION_STALE", "caller scratch is not geometry authority")
+	assert_equal(_transforms.state_bytes(), pose, "packet refusal preserves complete pose")
+	assert_equal(_turn(), &"", "original actual endpoint remains usable")
+
+
+func _turn_job() -> Vector2i:
+	"""Create a real BUILD assignment without starting or advancing productive work."""
+	var row: int = _residents.directory().get_typed_row(_worker)
+	assert_true(_jobs.priorities().spawn(row).ok, "actual priorities")
+	assert_true(_jobs.schedule().spawn(row, _jobs.schedule().default_template_id().value).ok, "actual schedule")
+	assert_true(_jobs.schedule().resolve(row, 8, false).ok, "work hour")
+	assert_true(_jobs.spawn_agent(row).ok, "actual JobAgent")
+	var job: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 0, 0, 1000, 0)
+	assert_true(job.ok, "actual BUILD")
+	assert_true(_jobs.assign_worker(row, job.value).ok, "actual assignment")
+	return job.ref
+
+
+func test_stationary_turn_final_actor_proof_rejects_late_actual_job_and_tool_changes() -> void:
+	"""Successful old profile selection cannot conceal a released Job or newly equipped physical tool."""
+	_turn_fixture()
+	var job: Vector2i = _turn_job()
+	assert_equal(_routes.refresh_actor(_worker, job, Profiles.MODE_WALK, 0, -1), &"", "actual Job paired with ground actor")
+	assert_equal(_turn(16384, Space.MAX_CHECKS, job), &"", "turn retains real Job without productive progress")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	_arm_turn_location_probe(func() -> void: assert_true(_jobs.release_worker(0).ok, "late actual release"))
+	assert_true(_turn(0, Space.MAX_CHECKS, job) != &"", "copied old assignment does not authorize a turn")
+	assert_equal(_transforms.state_bytes(), pose, "assignment refusal preserves complete pose")
+	assert_equal(_routes.refresh_actor(_worker, NULL_REF, Profiles.MODE_WALK, 0, -1), &"", "explicit idle requalification")
+	var store: Vector2i = _inventory.create_container(_world_ref, 1000000, -1, 0, true).ref
+	var tool: Vector2i = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual indivisible tool")
+	_arm_turn_location_probe(func() -> void: assert_true(_gear.equip(tool, _worker).ok, "late actual equipped geometry"))
+	assert_true(_turn(0) != &"", "new held tool cannot borrow the unladen source")
+	assert_equal(_transforms.state_bytes(), pose, "tool refusal preserves complete pose")
+
+
+func test_stationary_turn_preserves_real_equipped_tool_and_work_claim_without_doing_work() -> void:
+	"""A loaded all-yaw source keeps the exact actual tool and original Job, with no WU or durability write."""
+	_turn_source_case = 2
+	_actual_fixture()
+	_publish_route()
+	var job: Vector2i = _turn_job()
+	var store: Vector2i = _inventory.create_container(_world_ref, 1000000, -1, 0, true).ref
+	var tool: Vector2i = _inventory.create_lot(store, _items.compiled_id(&"tool"), 1000, 0, 0, -1, 0, 0).ref
+	assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual tool")
+	assert_true(_gear.equip(tool, _worker).ok, "actual equipped source")
+	assert_true(_work.claim_tool_for_work(0, tool).ok, "actual exact BUILD tool claim")
+	assert_equal(_routes.admit_actor(_worker, job, _first, Profiles.MODE_WALK, 0, -1, tool), &"", "actual loaded ground admission")
+	var gear: PackedByteArray = _gear.state_bytes()
+	var work: PackedByteArray = _work.state_bytes()
+	var jobs: PackedByteArray = _jobs.state_bytes()
+	assert_equal(_turn(0, Space.MAX_CHECKS, job), &"", "loaded source proves complete stationary union")
+	assert_equal(_gear.state_bytes(), gear, "no tool wear or claim change")
+	assert_equal(_work.state_bytes(), work, "no WU, XP or Work transition")
+	assert_equal(_jobs.state_bytes(), jobs, "no Job progress or reassignment")
+
+
+func test_stationary_turn_refuses_actual_unregistered_living_occupant_then_retries() -> void:
+	"""An actual resident without a current route body proof cannot become empty space during a turn."""
+	_turn_fixture()
+	var other: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	assert_true(_transforms.place(other, X + 512, 512, Z + 512, 0), "actual unregistered occupant at the turning root")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var route: PackedByteArray = _turn_route_image()
+	assert_equal(_turn(16384), &"ROUTE_TURN_ACTOR_UNBOUND", "missing actor registration cannot grant free turn space")
+	assert_equal(_transforms.state_bytes(), pose, "refusal keeps the entire actual Transform image")
+	assert_equal(_turn_route_image(), route, "refusal creates no actor or route authority")
+	assert_true(_residents.despawn(other).ok, "remove actual unregistered resident")
+	assert_equal(_turn(16384), &"", "current actual removal permits a fresh turn proof")
+
+
+func test_stationary_turn_uses_complete_recovery_union_against_another_actual_actor() -> void:
+	"""Current admission forbids recovery overlap; a late actual relocation must also refuse a turn."""
+	_turn_fixture()
+	var other: Vector2i = _residents.ref_of(_residents.spawn(&"mouse").value)
+	var point: Vector3i = Vector3i(X + 1024, 512, Z + 512)
+	var contact: Vector2i = _location(point)
+	assert_true(_transforms.place(other, point.x, point.y, point.z, 0), "actual clear actor pose")
+	assert_equal(_routes.admit_actor(other, NULL_REF, contact, Profiles.MODE_WALK, 0, -1), &"", "actual other actor registered")
+	assert_equal(_turn(16384), &"", "disjoint current occupants qualify")
+	var route: PackedByteArray = _turn_route_image()
+	_arm_turn_location_probe(func() -> void: assert_true(_transforms.place(other, X + 812, 512, Z + 512, 0), "late actual pose change"))
+	assert_equal(_turn(0), &"ROUTE_TURN_CONTEXT_DRIFT", "last observation changed actual occupancy")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	assert_true(_turn(0) != &"", "changed other root cannot inherit its old full endpoint")
+	assert_true(_transforms.state_bytes() == pose, "no additional pose write after the injected move")
+	assert_true(_turn_route_image() == route, "neither actor is retired to clear the turn")
+	_turn_recovery_overlap_leaf()
+
+
+func _turn_recovery_overlap_leaf() -> void:
+	"""Bounded collision unit check uses the actual loaded sources and current actor poses, without granting movement."""
+	assert_equal(Routes.turn_selection_into(_routes, 0, _routes._checked_selection), &"", "current exact primary selection")
+	assert_equal(Routes.turn_selection_into(_routes, 1, _routes._occupant_selection), &"", "current exact secondary selection")
+	_routes._remaining = Space.MAX_CHECKS
+	_routes._operation_error = &""
+	assert_equal(Binding._turn_occupant_boxes(_binding, _routes), &"ROUTE_OCCUPIED",
+		"body width256 is clear but source recovery width362 overlaps at300")
+
+
+func test_stationary_turn_budget_exhaustion_at_final_scan_is_atomic() -> void:
+	"""Initialization, source and all selected box scans have deterministic finite debt, including the final scan."""
+	_turn_fixture()
+	assert_equal(_turn(0), &"", "measure exact admitted finite work")
+	var required: int = Space.MAX_CHECKS - _routes._remaining
+	assert_true(required > 8192 and required < Space.MAX_CHECKS, "bounded complete debt")
+	var pose: PackedByteArray = _transforms.state_bytes()
+	var routes: PackedByteArray = _turn_route_image()
+	assert_equal(_turn(16384, required - 1), &"ROUTE_OPERATION_BUDGET", "one missing final check refuses")
+	assert_equal(_transforms.state_bytes(), pose, "no partial tick or interpolation change")
+	assert_equal(_turn_route_image(), routes, "no partial authoritative scratch publication")
+	assert_equal(_turn(16384, required), &"", "exact budget succeeds without borrowing next tick")
+	assert_equal(_routes._remaining, 0, "every bounded check was charged")
+
+
+func test_stationary_turn_closes_last_catalog_and_profile_observers() -> void:
+	"""Real source replacement after the last normal observation cannot reuse the copied actor selection."""
+	for replace: Callable in [_replace_catalog_during_final_binding, _replace_profiles_during_final_binding]:
+		_turn_fixture()
+		var pose: PackedByteArray = _transforms.state_bytes()
+		_terrain.binding_probe = replace
+		_terrain.binding_countdown = 1
+		assert_true(_turn() != &"", "late actual immutable source is stale")
+		assert_equal(_terrain.binding_probe_count, 1, "last normal Terrain observer was reached")
+		assert_equal(_transforms.state_bytes(), pose, "old source cannot write yaw")
+		after_each()
+
+
+func _arm_turn_location_probe(probe: Callable) -> void:
+	"""Keep the negative-only subclass type explicit for suites that inherit this actual fixture."""
+	var observed: RefusingLocations = _locations as RefusingLocations
+	observed.turn_probe = probe

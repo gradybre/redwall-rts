@@ -346,6 +346,42 @@ func set_yaw(ref: Vector2i, yaw: int) -> bool:
 	return true
 
 
+static func turn_stationary_preflighted(actual: RefCounted, ref: Vector2i,
+		point: Vector3i, previous_yaw: int, revision: int, yaw: int) -> bool:
+	"""Commit one proved stationary tick without dispatching a mutable Transform observer."""
+	if actual == null or revision <= 0 or revision >= IntMath.INT64_MAX \
+			or actual._mutation_revision != revision or yaw < 0 or yaw >= YAW_UNITS_PER_TURN:
+		return false
+	var row: int = _stationary_row(actual, ref)
+	if row < 0 or actual._x[row] != point.x or actual._y[row] != point.y \
+			or actual._z[row] != point.z or actual._yaw[row] != previous_yaw:
+		return false
+	actual._prev_x[row] = point.x
+	actual._prev_y[row] = point.y
+	actual._prev_z[row] = point.z
+	actual._prev_yaw[row] = previous_yaw
+	actual._yaw[row] = yaw
+	actual._mutation_revision += 1
+	actual._last_refusal = REFUSE_NONE
+	return true
+
+
+static func _stationary_row(actual: RefCounted, ref: Vector2i) -> int:
+	"""Only a full live Resident and its current positive PID may receive the proved turn."""
+	var ids: EntityDirectory = actual._directory
+	if ids == null or ref.x < 0 or ref.x >= EntityDirectory.DIRECTORY_CAPACITY \
+			or ids._active[ref.x] != 1 or ids._generation[ref.x] != ref.y \
+			or ids._kind[ref.x] != EntityDirectory.KIND_RESIDENT:
+		return -1
+	var row: int = ids._typed_row[ref.x]
+	if row < 0 or row >= EntityDirectory.KIND_CAPACITY[EntityDirectory.KIND_RESIDENT] \
+			or ids._typed_owner_slot[ids._kind_base[EntityDirectory.KIND_RESIDENT] + row] != ref.x:
+		return -1
+	var position: int = POSITIONED_BASE[EntityDirectory.KIND_RESIDENT] + row
+	return position if ids._persistent_id[ref.x] > 0 \
+		and actual._bound_persistent_id[position] == ids._persistent_id[ref.x] else -1
+
+
 func unbind(ref: Vector2i) -> bool:
 	"""Release a placed row when its owner is retired, zeroing the pose and the binding stamp."""
 	var row: int = _bound_row_of(ref)

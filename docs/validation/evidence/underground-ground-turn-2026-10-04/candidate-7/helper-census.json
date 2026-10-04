@@ -1,0 +1,857 @@
+{
+  "retained_delta_bytes": 0,
+  "new_banks": 0,
+  "helper_reservation": 512,
+  "largest_reviewed_numeric_path": 512,
+  "runtime_native_qualified": false,
+  "convention": "int8/bool1/Vector2i8/Vector3i12; sum all declared locals and parameters conservatively; 48 extra bytes for expression/result values; borrowed references, interned StringNames, Variant headers, engine frames and existing OpResult native allocations are not a measured-byte claim",
+  "paths": {
+    "observed_tool": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_observe",
+        "underground_routes:_current_profile_into",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_tool",
+        "gear:owner_of",
+        "gear:_resolve_row",
+        "gear:_resolve_row_by_lot_slot"
+      ],
+      "declared_numeric_bytes": 440,
+      "expression_result_allowance": 48
+    },
+    "observed_cargo": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_observe",
+        "underground_routes:_current_profile_into",
+        "underground_routes:_actor_profile_into",
+        "underground_profiles:query_into",
+        "underground_profiles:_prepare_query",
+        "underground_profiles:_read_dynamic",
+        "underground_profiles:_read_cargo",
+        "haul_carry:carried_lot",
+        "haul_carry:satchel_of",
+        "haul_carry:_owns_live_satchel",
+        "inventory:is_satchel",
+        "inventory:is_container_valid"
+      ],
+      "declared_numeric_bytes": 464,
+      "expression_result_allowance": 48
+    },
+    "actual_foundation": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_body_leaf",
+        "underground_terrain:_local_tiles_refusal",
+        "underground_terrain:_local_tile",
+        "underground_terrain:_local_building",
+        "underground_terrain:_building_extent",
+        "buildings:spatial_identity_into",
+        "buildings:_building_row_of",
+        "entity_directory:get_typed_row",
+        "entity_directory:is_valid",
+        "entity_directory:is_valid_of_kind"
+      ],
+      "declared_numeric_bytes": 420,
+      "expression_result_allowance": 48
+    },
+    "retained_resident_transit": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_final_facts:snapshot_refusal",
+        "underground_final_facts:_sources_refusal",
+        "underground_final_facts:_resident_into",
+        "underground_final_facts:_resident_location_refusal",
+        "underground_final_facts:_transit_refusal",
+        "underground_routes:_interpolate"
+      ],
+      "declared_numeric_bytes": 332,
+      "expression_result_allowance": 48
+    },
+    "current_occupant_identity": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_occupants",
+        "underground_routes:turn_selection_into",
+        "underground_routes:_turn_dynamic_leaf",
+        "underground_routes:_turn_identity_leaf",
+        "underground_routes:_turn_pose_leaf"
+      ],
+      "declared_numeric_bytes": 280,
+      "expression_result_allowance": 48
+    },
+    "current_occupant_tool": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_occupants",
+        "underground_routes:turn_selection_into",
+        "underground_routes:_turn_dynamic_leaf",
+        "underground_routes:_turn_tool_leaf",
+        "gear:_resolve_row",
+        "gear:_resolve_row_by_lot_slot"
+      ],
+      "declared_numeric_bytes": 312,
+      "expression_result_allowance": 48
+    },
+    "current_occupant_cargo": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_occupants",
+        "underground_routes:turn_selection_into",
+        "underground_routes:_turn_dynamic_leaf",
+        "underground_routes:_turn_cargo_leaf"
+      ],
+      "declared_numeric_bytes": 264,
+      "expression_result_allowance": 48
+    },
+    "missing_occupant_registration": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_occupants",
+        "underground_world_routes:_turn_unregistered_refusal",
+        "underground_routes:_turn_directory_row"
+      ],
+      "declared_numeric_bytes": 176,
+      "expression_result_allowance": 48
+    },
+    "occupant_volume_pair": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_occupants",
+        "underground_world_routes:_turn_occupant_boxes",
+        "underground_world_routes:_sweep_into"
+      ],
+      "declared_numeric_bytes": 200,
+      "expression_result_allowance": 48
+    },
+    "support_stance": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_world_routes:_turn_final",
+        "underground_world_routes:_turn_body_leaf",
+        "underground_world_routes:_turn_body_contained",
+        "underground_world_routes:_sweep_into"
+      ],
+      "declared_numeric_bytes": 240,
+      "expression_result_allowance": 48
+    },
+    "stationary_commit": {
+      "chain": [
+        "underground_world_routes:turn_actor",
+        "underground_world_routes:_turn_run",
+        "underground_routes:commit_stationary_turn",
+        "transforms:turn_stationary_preflighted",
+        "transforms:_stationary_row"
+      ],
+      "declared_numeric_bytes": 189,
+      "expression_result_allowance": 48
+    }
+  },
+  "frames": {
+    "underground_world_routes:turn_actor": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 32,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "sources",
+        "code"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "target_yaw": "int",
+        "max_checks": "int"
+      }
+    },
+    "underground_world_routes:_turn_run": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 64,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "code"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "yaw": "int",
+        "revision": "int",
+        "space_receipt": "int",
+        "location_receipt": "int",
+        "pose_revision": "int",
+        "row": "int"
+      }
+    },
+    "underground_world_routes:_turn_observe": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 8,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "code"
+      ],
+      "numeric_values": {
+        "row": "int"
+      }
+    },
+    "underground_routes:_current_profile_into": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 8,
+      "borrowed_or_interned_values": [
+        "out",
+        "code"
+      ],
+      "numeric_values": {
+        "row": "int"
+      }
+    },
+    "underground_routes:_actor_profile_into": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 72,
+      "borrowed_or_interned_values": [
+        "out"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "posture": "int",
+        "family": "int",
+        "hint": "Vector2i",
+        "profile_id": "int",
+        "profile_revision": "int",
+        "content_revision": "int"
+      }
+    },
+    "underground_profiles:query_into": {
+      "source_sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "numeric_bytes": 80,
+      "borrowed_or_interned_values": [
+        "out",
+        "code"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "posture": "int",
+        "connector_family": "int",
+        "equipped_tool_hint": "Vector2i",
+        "first": "int",
+        "row": "int",
+        "end": "int",
+        "selected": "int"
+      }
+    },
+    "underground_profiles:_prepare_query": {
+      "source_sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "numeric_bytes": 48,
+      "borrowed_or_interned_values": [
+        "out"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "posture": "int",
+        "connector_family": "int",
+        "equipped_tool_hint": "Vector2i"
+      }
+    },
+    "underground_profiles:_read_dynamic": {
+      "source_sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "numeric_bytes": 40,
+      "borrowed_or_interned_values": [
+        "ids",
+        "code"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "hint": "Vector2i",
+        "row": "int"
+      }
+    },
+    "underground_profiles:_read_tool": {
+      "source_sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "numeric_bytes": 40,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "hint": "Vector2i",
+        "tool": "Vector2i"
+      }
+    },
+    "gear:owner_of": {
+      "source_sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "lot_ref": "Vector2i",
+        "row": "int"
+      }
+    },
+    "gear:_resolve_row": {
+      "source_sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "lot_ref": "Vector2i",
+        "row": "int"
+      }
+    },
+    "gear:_resolve_row_by_lot_slot": {
+      "source_sha256": "aeed59191a5e06fbd6e8b4bccf93d9b991ff9a73e2a1229afa1f2ed0cc6972ea",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "lot_slot": "int",
+        "row": "int"
+      }
+    },
+    "underground_profiles:_read_cargo": {
+      "source_sha256": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
+      "numeric_bytes": 40,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "_worker": "Vector2i",
+        "stored": "Vector2i",
+        "satchel": "Vector2i",
+        "count": "int",
+        "lot": "Vector2i"
+      }
+    },
+    "haul_carry:carried_lot": {
+      "source_sha256": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "hauler_slot": "int",
+        "satchel": "Vector2i"
+      }
+    },
+    "haul_carry:satchel_of": {
+      "source_sha256": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "hauler_slot": "int",
+        "satchel": "Vector2i"
+      }
+    },
+    "haul_carry:_owns_live_satchel": {
+      "source_sha256": "0f878cae0faa419da7d4ff563a2ea7f88cba95a5fe2c8eeeb613843ff903872b",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "hauler_slot": "int",
+        "satchel": "Vector2i"
+      }
+    },
+    "inventory:is_satchel": {
+      "source_sha256": "9f0c90374608154dd2ab65b57b6ea93b883fd627a01130a60deb1d50b2c67f34",
+      "numeric_bytes": 8,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "container_ref": "Vector2i"
+      }
+    },
+    "inventory:is_container_valid": {
+      "source_sha256": "9f0c90374608154dd2ab65b57b6ea93b883fd627a01130a60deb1d50b2c67f34",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "container_ref": "Vector2i",
+        "slot": "int"
+      }
+    },
+    "underground_world_routes:_turn_final": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "code"
+      ],
+      "numeric_values": {
+        "row": "int",
+        "revision": "int",
+        "checks": "int"
+      }
+    },
+    "underground_world_routes:_turn_body_leaf": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 36,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "selection",
+        "code"
+      ],
+      "numeric_values": {
+        "revision": "int",
+        "roles": "int",
+        "point": "Vector3i",
+        "ordinal": "int"
+      }
+    },
+    "underground_terrain:_local_tiles_refusal": {
+      "source_sha256": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+      "numeric_bytes": 56,
+      "borrowed_or_interned_values": [
+        "bounds",
+        "code"
+      ],
+      "numeric_values": {
+        "purpose": "int",
+        "first_x": "int",
+        "last_x": "int",
+        "first_z": "int",
+        "last_z": "int",
+        "z": "int",
+        "x": "int"
+      }
+    },
+    "underground_terrain:_local_tile": {
+      "source_sha256": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "bounds",
+        "code"
+      ],
+      "numeric_values": {
+        "tile": "int",
+        "purpose": "int",
+        "floor_y": "int"
+      }
+    },
+    "underground_terrain:_local_building": {
+      "source_sha256": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "bounds",
+        "code"
+      ],
+      "numeric_values": {
+        "tile": "int",
+        "purpose": "int",
+        "ref": "Vector2i"
+      }
+    },
+    "underground_terrain:_building_extent": {
+      "source_sha256": "5d6eeb8539dc85f683c2f8b654c957947cb2b88e237e48bb7716019bb16a8e7d",
+      "numeric_bytes": 72,
+      "borrowed_or_interned_values": [
+        "code",
+        "definitions"
+      ],
+      "numeric_values": {
+        "ref": "Vector2i",
+        "tile": "int",
+        "type_id": "int",
+        "width": "int",
+        "depth": "int",
+        "original": "int",
+        "origin": "int",
+        "dz": "int",
+        "dx": "int"
+      }
+    },
+    "buildings:spatial_identity_into": {
+      "source_sha256": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "out"
+      ],
+      "numeric_values": {
+        "building_ref": "Vector2i",
+        "row": "int"
+      }
+    },
+    "buildings:_building_row_of": {
+      "source_sha256": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "building_ref": "Vector2i",
+        "row": "int"
+      }
+    },
+    "entity_directory:get_typed_row": {
+      "source_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+      "numeric_bytes": 8,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "ref": "Vector2i"
+      }
+    },
+    "entity_directory:is_valid": {
+      "source_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+      "numeric_bytes": 8,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "ref": "Vector2i"
+      }
+    },
+    "entity_directory:is_valid_of_kind": {
+      "source_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+      "numeric_bytes": 40,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "ref": "Vector2i",
+        "expected_kind": "int",
+        "slot": "int",
+        "kind": "int",
+        "row": "int"
+      }
+    },
+    "underground_final_facts:snapshot_refusal": {
+      "source_sha256": "ef369e48d40988cd8727b7ff5c3d290794ed51deb7e87e3cf12df19b8ca3c8da",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "owner",
+        "routes",
+        "locations",
+        "code"
+      ],
+      "numeric_values": {
+        "expected_revision": "int",
+        "max_checks": "int"
+      }
+    },
+    "underground_final_facts:_sources_refusal": {
+      "source_sha256": "ef369e48d40988cd8727b7ff5c3d290794ed51deb7e87e3cf12df19b8ca3c8da",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "owner",
+        "routes",
+        "locations",
+        "sources",
+        "code"
+      ],
+      "numeric_values": {
+        "row": "int",
+        "ref": "Vector2i"
+      }
+    },
+    "underground_final_facts:_resident_into": {
+      "source_sha256": "ef369e48d40988cd8727b7ff5c3d290794ed51deb7e87e3cf12df19b8ca3c8da",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "actual",
+        "locations",
+        "out",
+        "code"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "row": "int"
+      }
+    },
+    "underground_final_facts:_resident_location_refusal": {
+      "source_sha256": "ef369e48d40988cd8727b7ff5c3d290794ed51deb7e87e3cf12df19b8ca3c8da",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "actual",
+        "locations"
+      ],
+      "numeric_values": {
+        "row": "int",
+        "location": "Vector2i",
+        "room": "Vector2i"
+      }
+    },
+    "underground_final_facts:_transit_refusal": {
+      "source_sha256": "ef369e48d40988cd8727b7ff5c3d290794ed51deb7e87e3cf12df19b8ca3c8da",
+      "numeric_bytes": 64,
+      "borrowed_or_interned_values": [
+        "actual"
+      ],
+      "numeric_values": {
+        "row": "int",
+        "edge": "Vector2i",
+        "segment": "int",
+        "progress": "int",
+        "first": "Vector3i",
+        "second": "Vector3i",
+        "length": "int"
+      }
+    },
+    "underground_routes:_interpolate": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 76,
+      "borrowed_or_interned_values": [],
+      "numeric_values": {
+        "first": "Vector3i",
+        "second": "Vector3i",
+        "progress": "int",
+        "length": "int",
+        "out": "Vector3i",
+        "axis": "int",
+        "delta": "int",
+        "offset": "int"
+      }
+    },
+    "underground_world_routes:_turn_occupants": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "owner",
+        "locations",
+        "missing",
+        "code"
+      ],
+      "numeric_values": {
+        "except_row": "int",
+        "row": "int"
+      }
+    },
+    "underground_routes:turn_selection_into": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 40,
+      "borrowed_or_interned_values": [
+        "actual",
+        "out",
+        "profiles",
+        "code"
+      ],
+      "numeric_values": {
+        "row": "int",
+        "profile": "int",
+        "mode": "int",
+        "posture": "int",
+        "family": "int"
+      }
+    },
+    "underground_routes:_turn_dynamic_leaf": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 48,
+      "borrowed_or_interned_values": [
+        "actual",
+        "code",
+        "profiles"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "posture": "int",
+        "family": "int",
+        "hint": "Vector2i"
+      }
+    },
+    "underground_routes:_turn_identity_leaf": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "actual",
+        "residents",
+        "key",
+        "rig",
+        "profiles"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "row": "int",
+        "species": "int"
+      }
+    },
+    "underground_routes:_turn_pose_leaf": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 32,
+      "borrowed_or_interned_values": [
+        "actual",
+        "transforms",
+        "profiles"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "resident_row": "int",
+        "row": "int",
+        "pid": "int"
+      }
+    },
+    "underground_routes:_turn_tool_leaf": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 56,
+      "borrowed_or_interned_values": [
+        "actual",
+        "profiles",
+        "work",
+        "gear",
+        "inventory"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "job": "Vector2i",
+        "mode": "int",
+        "hint": "Vector2i",
+        "row": "int",
+        "tool": "Vector2i",
+        "at": "int"
+      }
+    },
+    "underground_routes:_turn_cargo_leaf": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 40,
+      "borrowed_or_interned_values": [
+        "actual",
+        "profiles",
+        "residents",
+        "inventory"
+      ],
+      "numeric_values": {
+        "worker": "Vector2i",
+        "row": "int",
+        "satchel": "Vector2i",
+        "count": "int",
+        "lot": "int"
+      }
+    },
+    "underground_world_routes:_turn_unregistered_refusal": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "graph",
+        "residents"
+      ],
+      "numeric_values": {
+        "row": "int",
+        "worker": "Vector2i"
+      }
+    },
+    "underground_routes:_turn_directory_row": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "actual",
+        "ids"
+      ],
+      "numeric_values": {
+        "ref": "Vector2i",
+        "kind": "int",
+        "row": "int"
+      }
+    },
+    "underground_world_routes:_turn_occupant_boxes": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 16,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph",
+        "mine",
+        "other",
+        "code"
+      ],
+      "numeric_values": {
+        "first": "int",
+        "second": "int"
+      }
+    },
+    "underground_world_routes:_sweep_into": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 48,
+      "borrowed_or_interned_values": [
+        "box",
+        "out"
+      ],
+      "numeric_values": {
+        "first": "Vector3i",
+        "last": "Vector3i",
+        "axis": "int",
+        "low": "int",
+        "high": "int"
+      }
+    },
+    "underground_world_routes:_turn_body_contained": {
+      "source_sha256": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42",
+      "numeric_bytes": 36,
+      "borrowed_or_interned_values": [
+        "actual",
+        "graph"
+      ],
+      "numeric_values": {
+        "point": "Vector3i",
+        "floor_y": "int",
+        "axis": "int",
+        "ordinal": "int"
+      }
+    },
+    "underground_routes:commit_stationary_turn": {
+      "source_sha256": "42be7e9cf8cbbc5909bd10716e8bf2b5e631aa17be5f9f9394c25a66f4729e47",
+      "numeric_bytes": 17,
+      "borrowed_or_interned_values": [
+        "actual",
+        "expected"
+      ],
+      "numeric_values": {
+        "pose_revision": "int",
+        "target_yaw": "int",
+        "cache_current": "bool"
+      }
+    },
+    "transforms:turn_stationary_preflighted": {
+      "source_sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
+      "numeric_bytes": 52,
+      "borrowed_or_interned_values": [
+        "actual"
+      ],
+      "numeric_values": {
+        "ref": "Vector2i",
+        "point": "Vector3i",
+        "previous_yaw": "int",
+        "revision": "int",
+        "yaw": "int",
+        "row": "int"
+      }
+    },
+    "transforms:_stationary_row": {
+      "source_sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
+      "numeric_bytes": 24,
+      "borrowed_or_interned_values": [
+        "actual",
+        "ids"
+      ],
+      "numeric_values": {
+        "ref": "Vector2i",
+        "row": "int",
+        "position": "int"
+      }
+    }
+  }
+}

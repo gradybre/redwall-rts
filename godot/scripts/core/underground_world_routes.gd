@@ -1484,3 +1484,239 @@ func _transit_region_into(section: Vector2i, segment: int, point: Vector3i, out:
 	out.claim_ref = _section.claim_ref
 	out.claim_kind = _section.claim_kind
 	return &""
+
+
+static func turn_actor(actual: RefCounted, worker: Vector2i, job: Vector2i,
+		target_yaw: int, max_checks: int) -> StringName:
+	"""Prove one stationary ground tick at an existing endpoint, then change only current facing."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	var owner: Owner = actual._owner_ref.get_ref() as Owner if actual != null and actual._owner_ref != null else null
+	var locations: Locations = actual._locations_ref.get_ref() as Locations if actual != null and actual._locations_ref != null else null
+	var sources: Owner.CoreSources = actual._sources_ref.get_ref() as Owner.CoreSources if actual != null and actual._sources_ref != null else null
+	var code: StringName = _turn_entry(actual, graph, owner, locations, sources, target_yaw, max_checks)
+	if code != &"": return code
+	actual._reading = true
+	graph._advancing = true
+	graph._in_callback = true
+	graph._callback_reentered = false
+	graph._operation_error = &""
+	graph._remaining = max_checks
+	code = _turn_run(actual, graph, owner, locations, worker, job, target_yaw)
+	graph._in_callback = false
+	graph._advancing = false
+	actual._reading = false
+	return code
+
+
+static func _turn_entry(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
+		sources: Owner.CoreSources, yaw: int, checks: int) -> StringName:
+	"""Reject nested commands and unaffordable observations before touching any shared packet."""
+	if graph != null and graph._reject_callback(): return &"ROUTE_CALLBACK_REENTRY"
+	if actual == null or graph == null or owner == null or locations == null or sources == null:
+		return REFUSE_BINDING
+	if yaw < 0 or yaw >= 65536: return &"ROUTE_TURN_YAW"
+	if checks < 8192 or checks > Space.MAX_CHECKS or owner._domain == null or checks > owner._domain._checks:
+		return &"ROUTE_OPERATION_BUDGET"
+	if actual._reading or actual._opening or actual._compiling or actual._publishing or actual._route_token != 0 \
+			or graph._searching or graph._advancing or graph._occupancy_reading or graph._token != 0 \
+			or locations._token != 0 or locations._in_retention or owner._stage_token != 0 \
+			or owner._room_callback or owner._validation_sources >= 0 or owner._validation_regions >= 0:
+		return REFUSE_BUSY
+	return _reach_stores_refusal(actual, graph, owner, locations) if owner._sources == sources else REFUSE_BINDING
+
+
+static func _turn_run(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
+		worker: Vector2i, job: Vector2i, yaw: int) -> StringName:
+	"""Retain original successful-bank and pose identities across every observing call."""
+	var revision: int = owner._header[17]
+	var space_receipt: int = owner._last_published_token
+	var location_receipt: int = locations._last_published_token
+	var pose_revision: int = graph._transforms._mutation_revision
+	var row: int = Routes._turn_directory_row(graph, worker, Routes.Directory.KIND_RESIDENT)
+	var code: StringName = _turn_actor_scope(graph, row, worker, job)
+	if code == &"": code = _turn_observe(actual, graph, owner, locations, row)
+	graph._in_callback = false
+	graph._advancing = false
+	if graph._callback_reentered: return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"": return code
+	if owner._header[17] != revision or owner._last_published_token != space_receipt \
+			or locations._last_published_token != location_receipt or graph._transforms._mutation_revision != pose_revision:
+		return &"ROUTE_TURN_CONTEXT_DRIFT"
+	code = _turn_final(actual, graph, owner, locations, row, revision)
+	if code == &"": code = _reach_stores_refusal(actual, graph, owner, locations)
+	if code != &"": return code
+	if owner._header[17] != revision or owner._last_published_token != space_receipt \
+			or locations._last_published_token != location_receipt or graph._transforms._mutation_revision != pose_revision:
+		return &"ROUTE_TURN_CONTEXT_DRIFT"
+	return &"" if Routes.commit_stationary_turn(graph, graph._checked_selection, pose_revision, yaw) else &"ROUTE_TURN_CONTEXT_DRIFT"
+
+
+static func _turn_actor_scope(graph: Routes, row: int, worker: Vector2i, job: Vector2i) -> StringName:
+	"""A turn is neither a route cancellation nor a new Job/profile admission."""
+	if row < 0 or row >= Routes.RESIDENT_CAPACITY or graph._resident_ref(row) != worker:
+		return &"ROUTE_ACTOR_NOT_REGISTERED"
+	if graph._motion.resident[Routes.R_PHASE * Routes.RESIDENT_CAPACITY + row] != Routes.PHASE_IDLE \
+			or graph._resident_pair(Routes.R_EDGE_SLOT, row) != NULL_REF \
+			or graph._motion.resident[Routes.R_HEAD * Routes.RESIDENT_CAPACITY + row] >= 0 \
+			or graph._motion.resident[Routes.R_TAIL * Routes.RESIDENT_CAPACITY + row] >= 0:
+		return &"ROUTE_ACTOR_BUSY"
+	if graph._resident_pair(Routes.R_JOB_SLOT, row) != job:
+		return &"ROUTE_TURN_JOB"
+	var mode: int = graph._motion.resident[Routes.R_MODE * Routes.RESIDENT_CAPACITY + row]
+	if (mode != Profiles.MODE_STAND and mode != Profiles.MODE_WALK) \
+			or graph._motion.resident[Routes.R_FAMILY * Routes.RESIDENT_CAPACITY + row] != -1:
+		return &"ROUTE_TURN_PROFILE"
+	return &""
+
+
+static func _turn_observe(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations, row: int) -> StringName:
+	"""Only this phase dispatches profile, Location and Terrain observers; its full finite cost is reserved first."""
+	if not graph._spend(8192 + 8 * owner._source_capacity + 2 * owner._region_capacity):
+		return graph._operation_error
+	var code: StringName = graph._current_profile_into(row, graph._selection)
+	if code != &"": return code
+	if graph._selection.orientation != Profiles.YAW_ALL: return &"ROUTE_TURN_UNCERTIFIED"
+	Routes._copy_selection(graph._selection, graph._checked_selection)
+	code = actual._selection_refusal(graph._selection)
+	if code == &"": code = locations.read_location_into(graph._resident_pair(Routes.R_LOCATION_SLOT, row), actual._endpoint)
+	if code == &"": code = actual._terrain.binding_refusal()
+	return code
+
+
+static func _turn_final(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations,
+		row: int, revision: int) -> StringName:
+	"""No public observation remains: attest full sources, exact endpoint, selected actor and all actual occupants."""
+	if not graph._spend(2 * REACH_SCOPE_CHECKS + owner._region_capacity + owner._source_capacity):
+		return graph._operation_error
+	var code: StringName = _reach_stores_refusal(actual, graph, owner, locations)
+	if code != &"": return code
+	code = _turn_body_leaf(actual, graph, revision)
+	if code != &"": return code
+	var checks: int = FinalFacts._required_checks(owner)
+	if not graph._spend(checks): return graph._operation_error
+	code = FinalFacts.snapshot_refusal(owner, graph, locations, revision, checks)
+	if code != &"": return code
+	code = _turn_actor_leaf(actual, graph, owner, locations, row)
+	return _turn_occupants(actual, graph, owner, locations, row) if code == &"" else code
+
+
+static func _turn_actor_leaf(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations, row: int) -> StringName:
+	"""Exact current full endpoint payload and direct dynamic selection close copied-old callback witnesses."""
+	var code: StringName = Routes.turn_selection_into(graph, row, graph._selection)
+	if code != &"": return code
+	if not Routes._same_selection(graph._selection, graph._checked_selection): return &"ROUTE_TURN_PROFILE_DRIFT"
+	code = _turn_actor_scope(graph, row, graph._selection.worker, graph._selection.job)
+	if code != &"": return code
+	var location: Vector2i = graph._resident_pair(Routes.R_LOCATION_SLOT, row)
+	if not FinalFacts.record_matches(locations, location, actual._endpoint, owner) \
+			or actual._endpoint.point != Vector3i(graph._selection.x, graph._selection.y, graph._selection.z) \
+			or actual._endpoint.geometry_revision != owner._header[17]: return &"ROUTE_LOCATION_STALE"
+	code = FinalFacts._resident_into(graph, locations, graph._selection.worker, owner._facts)
+	if code != &"": return code
+	return &"" if graph._selection.orientation == Profiles.YAW_ALL else &"ROUTE_TURN_UNCERTIFIED"
+
+
+static func _turn_body_leaf(actual: RefCounted, graph: Routes, revision: int) -> StringName:
+	"""Complete all-yaw volumes must fit the actual endpoint; fresh exclusions apply even to retained air."""
+	var roles: int = 0
+	var selection: Profiles.Selection = graph._checked_selection
+	var point: Vector3i = Vector3i(selection.x, selection.y, selection.z)
+	for ordinal: int in selection.box_count:
+		if not graph._spend(4096): return graph._operation_error
+		var code: StringName = _turn_box_into(actual._profiles, selection, ordinal, actual._body)
+		if code != &"": return code
+		if actual._body.role > Profiles.TURN_RECOVERY: continue
+		roles |= 1 << actual._body.role
+		code = actual._sweep_into(actual._body, point, point, actual._bounds)
+		if code == &"": code = actual._terrain._leaf_binding_refusal(revision)
+		if code == &"": code = actual._terrain._local_tiles_refusal(actual._bounds, Terrain.EXCLUSIONS)
+		if code != &"": return code
+		if actual._body.role == Profiles.STANCE_SUPPORT:
+			if not Space.contains_box(actual._endpoint.support, actual._bounds): return &"WORLD_ROUTE_ENDPOINT_SUPPORT"
+		elif not _turn_body_contained(actual, graph, point): return &"WORLD_ROUTE_ENDPOINT_BODY"
+	return &"" if roles == 7 else &"ROUTE_TURN_ROLE_MISSING"
+
+
+static func _turn_body_contained(actual: RefCounted, graph: Routes, point: Vector3i) -> bool:
+	"""Keep below-plane primitives only inside both actual support and an exact authored stance."""
+	var floor_y: int = actual._endpoint.envelope[1]
+	for axis: int in 6: actual._scratch[axis] = actual._bounds[axis]
+	if actual._bounds[4] > floor_y:
+		actual._scratch[1] = maxi(actual._bounds[1], floor_y)
+		if not Space.contains_box(actual._endpoint.envelope, actual._scratch): return false
+	if actual._bounds[1] >= floor_y: return true
+	actual._scratch[1] = actual._bounds[1]
+	actual._scratch[4] = mini(actual._bounds[4], floor_y)
+	if not Space.contains_box(actual._endpoint.support, actual._scratch): return false
+	for ordinal: int in graph._checked_selection.box_count:
+		if _turn_box_into(actual._profiles, graph._checked_selection, ordinal, actual._stance) != &"": return false
+		if actual._stance.role == Profiles.STANCE_SUPPORT \
+				and actual._sweep_into(actual._stance, point, point, actual._support) == &"" \
+				and Space.contains_box(actual._support, actual._scratch): return true
+	return false
+
+
+static func _turn_box_into(profiles: Profiles, selection: Profiles.Selection, ordinal: int, out: Profiles.Box) -> StringName:
+	"""Read immutable already-oriented boxes directly, without another profile observation callback."""
+	if selection.box_count < 1 or selection.box_count > Profiles.MAX_SELECTION_BOXES \
+			or ordinal < 0 or ordinal >= selection.box_count: return &"ROUTE_TURN_PROFILE_STALE"
+	var row: int = profiles._field(profiles._live, selection.profile_id, Profiles.F_FIRST_BOX) + ordinal
+	if row < 0 or row >= profiles._live.header[2] or row >= profiles._box_capacity: return &"ROUTE_TURN_PROFILE_STALE"
+	out.low = Vector3i(profiles._live.boxes[row], profiles._live.boxes[profiles._box_capacity + row],
+		profiles._live.boxes[2 * profiles._box_capacity + row])
+	out.high = Vector3i(profiles._live.boxes[3 * profiles._box_capacity + row],
+		profiles._live.boxes[4 * profiles._box_capacity + row], profiles._live.boxes[5 * profiles._box_capacity + row])
+	out.role = profiles._live.boxes[6 * profiles._box_capacity + row]
+	return &""
+
+
+static func _turn_occupants(actual: RefCounted, graph: Routes, owner: Owner, locations: Locations, except_row: int) -> StringName:
+	"""Direct final actor facts prevent a late observer from hiding a changed occupant profile or pose."""
+	if not graph._spend(16 * Routes.RESIDENT_CAPACITY): return graph._operation_error
+	for row: int in Routes.RESIDENT_CAPACITY:
+		if row == except_row: continue
+		if graph._resident_ref(row) == NULL_REF:
+			var missing: StringName = _turn_unregistered_refusal(graph, row)
+			if missing != &"": return missing
+			continue
+		if not graph._spend(512):
+			return graph._operation_error
+		var code: StringName = Routes.turn_selection_into(graph, row, graph._occupant_selection)
+		if code == &"": code = FinalFacts._resident_into(graph, locations, graph._resident_ref(row), owner._facts)
+		if code == &"": code = _turn_occupant_boxes(actual, graph)
+		if code != &"": return code
+	return &""
+
+
+static func _turn_unregistered_refusal(graph: Routes, row: int) -> StringName:
+	"""An actual living row needs a current body proof; direct full identity never turns missing registration into air."""
+	var residents: Residents = graph._residents
+	if residents._present[row] != 1: return &""
+	if residents._needs._present[row] != 1: return &"ROUTE_TURN_ACTOR_STALE"
+	if residents._needs._health[row] <= 0: return &""
+	var worker: Vector2i = Vector2i(residents._ref_slot[row], residents._ref_generation[row])
+	if Routes._turn_directory_row(graph, worker, Routes.Directory.KIND_RESIDENT) != row \
+			or graph._ids._persistent_id[worker.x] <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	return &"ROUTE_TURN_ACTOR_UNBOUND"
+
+
+static func _turn_occupant_boxes(actual: RefCounted, graph: Routes) -> StringName:
+	"""Compare every body/recovery pair; no broadphase cache can turn an unproved occupant into empty air."""
+	var mine: Profiles.Selection = graph._checked_selection
+	var other: Profiles.Selection = graph._occupant_selection
+	if not graph._spend(64 * mine.box_count * other.box_count): return graph._operation_error
+	for first: int in mine.box_count:
+		var code: StringName = _turn_box_into(actual._profiles, mine, first, actual._body)
+		if code != &"": return code
+		if actual._body.role != Profiles.BODY_HELD_LOAD and actual._body.role != Profiles.TURN_RECOVERY: continue
+		code = actual._sweep_into(actual._body, Vector3i(mine.x, mine.y, mine.z), Vector3i(mine.x, mine.y, mine.z), actual._bounds)
+		if code != &"": return code
+		for second: int in other.box_count:
+			code = _turn_box_into(actual._profiles, other, second, actual._stance)
+			if code != &"": return code
+			if actual._stance.role != Profiles.BODY_HELD_LOAD and actual._stance.role != Profiles.TURN_RECOVERY: continue
+			code = actual._sweep_into(actual._stance, Vector3i(other.x, other.y, other.z), Vector3i(other.x, other.y, other.z), actual._support)
+			if code != &"": return code
+			if Space.overlaps(actual._bounds, actual._support): return &"ROUTE_OCCUPIED"
+	return &""

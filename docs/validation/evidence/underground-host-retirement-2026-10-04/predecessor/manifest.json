@@ -1,0 +1,32 @@
+{
+  "godot/scripts/core/underground_session.gd": {
+    "commit": "81950fe54706f98bd81667e98e077f593970deb9",
+    "sha256": "c7d145c56bcdf73dd1a1088baaf00d49141356d20678ab84993ad497507d0c5c",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/underground_session.gd.txt"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "commit": "81950fe54706f98bd81667e98e077f593970deb9",
+    "sha256": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/settlement_system.gd.txt"
+  },
+  "godot/scripts/main.gd": {
+    "commit": "81950fe54706f98bd81667e98e077f593970deb9",
+    "sha256": "9acdb093f492a2d56520c210c7b541c4be15f6ce5bb3f8a9f7c9fe1a50cbd688",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/main.gd.txt"
+  },
+  "godot/scripts/ui/ui_world_session.gd": {
+    "commit": "81950fe54706f98bd81667e98e077f593970deb9",
+    "sha256": "94a3bf3cdc5be0d6198a2c40139f846db2d4c5b328b3c202a81f26fd092776a1",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/ui_world_session.gd.txt"
+  },
+  "godot/scripts/systems/ui_manager.gd": {
+    "commit": "81950fe54706f98bd81667e98e077f593970deb9",
+    "sha256": "bdb01f609234acc2786d9b0768e075e2ea14b5f5c7c88fe5db70a15f56a734e2",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/ui_manager.gd.txt"
+  },
+  "docs/validation/evidence/underground-world-retirement-2026-10-04/census.py": {
+    "commit": "81950fe54706f98bd81667e98e077f593970deb9",
+    "sha256": "440777a6d5762b3a4945d3b8563b1579f6db10c24e1bdfd371b59e489d7f035c",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/predecessor/census.py.txt"
+  }
+}

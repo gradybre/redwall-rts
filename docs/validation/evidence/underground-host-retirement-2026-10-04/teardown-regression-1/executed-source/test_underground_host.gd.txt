@@ -449,3 +449,19 @@ func test_pending_scope_rejects_replaced_profile_bank_before_clear() -> void:
 	session._profiles._live = original
 	assert_true(_host.abandon_world_reset(), "restored exact source can resume")
 	assert_true(_host.reset(), "restored actual source retires")
+
+
+func _free_host_after_observation() -> void:
+	"""Adverse lifecycle fixture destroys only this test's host during its cold World observation."""
+	_host.free()
+	_host = null
+
+
+func test_host_destroyed_during_cold_observation_never_publishes_scope() -> void:
+	"""The original Session is held strongly, but a destroyed Node host cannot authorize later publication."""
+	var actual: ObservedWorld = _use_observed_world()
+	var session: Session = _generate_and_mount()
+	actual.observer = _free_host_after_observation
+	var original: Settlement = _host
+	assert_false(original.prepare_world_reset(), "destroyed host cleanly refuses")
+	assert_equal(session._retirement_scope, null, "no orphaned scope cycle")

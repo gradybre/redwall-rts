@@ -1,0 +1,17 @@
+{
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/ui-failure-audit.md": {
+    "sha256": "86165d5c2db1e7243b975580517d96ed9a66ab2c72dedaad8dd60cdeca449f0e",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/annotations/ui-failure-audit-reviewed-v1.md.txt",
+    "reason": "Root requested explicit distinction between existing failed-prepare early return and uninterrupted path after successful prepare; executable sources unchanged."
+  },
+  "docs/decisions/1158-underground-host-retirement.md": {
+    "sha256": "df42383e834d72b281e9dfede3c31c077cd11cbf73c5351490446ed1cf47d5ec",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/annotations/adr1158-reviewed-v1.md.txt",
+    "reason": "Accepted component status annotation; frozen review bytes preserved."
+  },
+  "docs/validation/evidence/underground-host-retirement-2026-10-04/README.md": {
+    "sha256": "c7ded51bb5d332c0642f83876cc8d6494a4da2294034fdeacd1d0193558d08d6",
+    "locator": "docs/validation/evidence/underground-host-retirement-2026-10-04/annotations/README-reviewed-v1.md.txt",
+    "reason": "Accepted component status annotation; frozen review bytes preserved."
+  }
+}

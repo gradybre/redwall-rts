@@ -2,7 +2,6 @@ extends RefCounted
 ## One host-lifetime foundation over the actual settlement. No identity, stock, paid entry or route is created.
 ## ADR1146: private initialization, no external authority binding, 1536B within existing PROFILE_BYTES.
 
-const Retirement := preload("res://scripts/core/underground_world_retirement.gd")
 const World := preload("res://scripts/core/world_init.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
@@ -73,8 +72,6 @@ var _seed: int = 0
 var _ready: bool = false
 var _busy: bool = false
 var _poisoned: bool = false
-var _retirement_owners: Retirement.Owners = null
-var _retirement_scope: Retirement.Scope = null
 
 
 func configure(world: World, full_world: Vector2i, buildings: Buildings, construction: Construction,
@@ -322,16 +319,12 @@ func _finish(code: StringName) -> StringName:
 		_drop_foundations()
 		_drop_borrowed()
 	_ready = code == &""
-	if _ready:
-		_build_retirement_owners()
 	_busy = false
 	return code
 
 
 func _drop_foundations() -> void:
 	"""Unexposed candidates have no host authority links and can safely die on refused initialization."""
-	_retirement_scope = null
-	_retirement_owners = null
 	_profile_bank = null
 	_profiles = null
 	_levels = null
@@ -372,8 +365,6 @@ func current_refusal() -> StringName:
 
 func _current_refusal(allow_prepared_world: bool) -> StringName:
 	"""Only explicit whole-world retirement may observe an unchanged live World with a staged replacement."""
-	if _retirement_scope != null:
-		return &"UNDERGROUND_SESSION_RETIRING"
 	if _busy:
 		_poisoned = true
 		return &"UNDERGROUND_SESSION_UNAVAILABLE"
@@ -384,112 +375,6 @@ func _current_refusal(allow_prepared_world: bool) -> StringName:
 	var code: StringName = _observe_current(allow_prepared_world)
 	_busy = false
 	return &"UNDERGROUND_SESSION_REENTRANT" if _poisoned else code
-
-
-func _build_retirement_owners() -> void:
-	"""One permanent private packet; future operational constructors must fill only their own exact slots."""
-	_retirement_owners = Retirement.Owners.new()
-	_retirement_owners.world_ref = _world_ref
-	_retirement_owners.world = _world
-	_retirement_owners.directory = _directory
-	_retirement_owners.buildings = _buildings
-	_retirement_owners.construction = _construction
-	_retirement_owners.inventory = _inventory
-	_retirement_owners.items = _items
-	_retirement_owners.residents = _residents
-	_retirement_owners.jobs = _jobs
-	_retirement_owners.work = _work
-	_retirement_owners.reservations = _reservations
-	_retirement_owners.transforms = _transforms
-	_retirement_owners.gear = _gear
-	_retirement_owners.carry = _carry
-	_retirement_owners.piles = _piles
-	_retirement_owners.content = _content
-	_retirement_owners.budget = _budget
-	_retirement_owners.space = _space
-	_retirement_owners.sources = _sources
-	_retirement_owners.routes = _routes
-	_retirement_owners.terrain = _terrain
-	_retirement_owners.profiles = _profiles
-	_retirement_owners.levels = _levels
-
-
-func _retirement_packet_refusal() -> StringName:
-	"""The packet is our original mount, never a caller-selected registration of matching authorities."""
-	var o: Retirement.Owners = _retirement_owners
-	if o == null or o.world_ref != _world_ref or o.world != _world or o.directory != _directory \
-			or o.buildings != _buildings or o.construction != _construction or o.inventory != _inventory \
-			or o.items != _items or o.residents != _residents or o.jobs != _jobs or o.work != _work \
-			or o.reservations != _reservations or o.transforms != _transforms or o.gear != _gear \
-			or o.carry != _carry or o.piles != _piles or o.content != _content or o.budget != _budget \
-			or o.space != _space or o.sources != _sources or o.routes != _routes or o.terrain != _terrain \
-			or o.profiles != _profiles or o.levels != _levels:
-		return &"UNDERGROUND_SESSION_RETIREMENT_OWNER"
-	return _operational_retirement_refusal(o)
-
-
-func _operational_retirement_refusal(o: Retirement.Owners) -> StringName:
-	"""Operational constructors are not part of this foundation; no arbitrary external authority is adopted."""
-	if o.rooms != null or o.room_bindings != null or o.world_bindings != null or o.sites != null \
-			or o.router != null or o.authority != null or o.locations != null or o.inventory_locations != null \
-			or o.world_routes != null or o.connector != null or o.contacts != null or o.placements != null \
-			or o.workpieces != null or o.delivery != null or o.furniture != null or o.tips != null:
-		return &"UNDERGROUND_SESSION_AUTHORITY_LIFETIME"
-	return _initial_authority_refusal()
-
-
-func retirement_observation_refusal(allow_prepared_world: bool = false) -> StringName:
-	"""First host preflight only; host repeats its exact mount leaf after these cold observations."""
-	return _current_refusal(allow_prepared_world)
-
-
-func prepare_retirement(original_host: Object, allow_prepared_world: bool = false) -> StringName:
-	"""After host observations and mount proof, retain exactly one original synchronous scope without callbacks."""
-	if _busy or not _ready:
-		return &"UNDERGROUND_SESSION_UNAVAILABLE"
-	var code: StringName = _original_refusal(allow_prepared_world)
-	if code == &"": code = _foundation_refusal()
-	if code == &"": code = _retirement_packet_refusal()
-	if code != &"": return code
-	if _retirement_scope == null:
-		_retirement_scope = Retirement.Scope.new()
-	code = Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope, allow_prepared_world)
-	if code != &"" and _retirement_scope._stage == 0:
-		_retirement_scope = null
-	return &"UNDERGROUND_SESSION_NOT_QUIESCENT" if code == &"WORLD_RETIREMENT_BUSY" else code
-
-
-func release_retirement(original_host: Object) -> StringName:
-	"""Only after actual host clear: release original owner links, then break Scope's strong self-retention."""
-	if _busy or not _ready or _retirement_scope == null:
-		return &"UNDERGROUND_SESSION_UNAVAILABLE"
-	var code: StringName = _retirement_packet_refusal()
-	if code == &"": code = Retirement.release_preflighted(_retirement_scope, original_host, self)
-	if code != &"": return code
-	_retirement_scope = null
-	_ready = false
-	_drop_foundations()
-	_drop_borrowed()
-	return &""
-
-
-func _discard_retirement_on_host_free(original_host: Object) -> void:
-	"""Host PREDELETE cleanup only: break a private strong cycle without releasing any live owner binding."""
-	if _retirement_scope != null and _retirement_scope._host == original_host:
-		_retirement_scope = null
-		_ready = false
-
-
-func abandon_retirement(original_host: Object) -> StringName:
-	"""Drop a private scope only while its complete original live World and source tuple still validate."""
-	if _busy or not _ready or _retirement_scope == null:
-		return &"UNDERGROUND_SESSION_UNAVAILABLE"
-	var code: StringName = _retirement_packet_refusal()
-	if code == &"":
-		code = Retirement.prepare_into(original_host, self, _retirement_owners, _retirement_scope,
-			_retirement_scope._allow_prepared_world)
-	if code == &"": _retirement_scope = null
-	return code
 
 
 func reset_refusal(allow_prepared_world: bool = false) -> StringName:

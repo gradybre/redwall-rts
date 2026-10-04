@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/underground_room_world_bindings.gd": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+  "godot/scripts/core/underground_work_face.gd": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+  "godot/test/test_underground_room_world_phases.gd": "b19763f3a6a9bd73dea7d766f9ac90639999b486a465c8a176df8184a749a655",
+  "godot/test/test_underground_work_face.gd": "11773e347ccca62c37b9bf006a0dc98174e30c537e8c7538eb33c44c76b14633",
+  "godot/data/underground/mole-worker/mole_profile_driver.gd": "e9b46638976d1cc373de5363e0d72648098b0f9e50fe497cad8caa58899d31a4",
+  "godot/data/underground/mole-worker/work-approach-v1/source_program.gd": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4",
+  "godot/data/underground/mole-worker/work-approach-v1/source_program.gd.uid": "f5957ee9b0286e3e96ef9e2e037da44a0a87dd2fcbc6437ae80c0d3f7a36bcd0",
+  "godot/scripts/core/underground_profiles.gd": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+  "godot/scripts/core/underground_routes.gd": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
+  "godot/scripts/core/underground_world_routes.gd": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f"
+}

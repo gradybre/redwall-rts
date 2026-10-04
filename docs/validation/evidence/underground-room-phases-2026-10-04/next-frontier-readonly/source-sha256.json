@@ -1,0 +1,112 @@
+{
+  "read_only_source_root": "/Users/brendan/Developer/redwall-rts-codex-ug-integration",
+  "head": "5d5cfb05a2c2d2c2ad3dd5167ef624e9140cc036",
+  "scope": "Read-only current integration working-tree bytes; no future host work inferred.",
+  "files": {
+    "godot/demo/burrow/modular_access.gd": {
+      "sha256": "0a76a21eb229d7c0b93a930fc46df1a9bca09dd68799ae772556d8f800524bf9",
+      "functions": {
+        "_next_candidate": [
+          201
+        ],
+        "_derive": [
+          230
+        ],
+        "_attempt": [
+          254
+        ]
+      }
+    },
+    "godot/demo/burrow/modular_runtime.gd": {
+      "sha256": "7ce660f7d4ac63793480166a280af6ec6de76e7ac63712b1df218d1aef8796cf",
+      "functions": {
+        "_confirm": [
+          343
+        ],
+        "_make_plan": [
+          364
+        ]
+      }
+    },
+    "godot/scripts/core/underground_room_orders.gd": {
+      "sha256": "b9eedf8978c45fcfe362ea49a5d80645f34a537618fbb1dac0ee519582b6320a",
+      "functions": {
+        "confirm_room": [
+          846
+        ]
+      }
+    },
+    "godot/scripts/core/underground_room_cut_map.gd": {
+      "sha256": "c215bdefc2069a2badbf6c0399d8e322ec055b95ffabfaf32987ef745cadebb5",
+      "functions": {
+        "configure": [
+          43
+        ],
+        "advance": [
+          131
+        ]
+      }
+    },
+    "godot/scripts/core/excavation_sites.gd": {
+      "sha256": "69797b79377bf5b5b3a055126d065304668c3415460863ef958fbef72385eb74",
+      "functions": {
+        "site_at": [
+          1016
+        ],
+        "room_of": [
+          1028
+        ],
+        "open_phase": [
+          1060
+        ],
+        "_operation_allowed": [
+          1078
+        ],
+        "settle_phase": [
+          1595
+        ],
+        "_settle_phase": [
+          1602
+        ],
+        "_publish_physical_completion": [
+          1750
+        ],
+        "_retire_phase": [
+          1915
+        ]
+      }
+    },
+    "godot/scripts/core/construction.gd": {
+      "sha256": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
+      "functions": {
+        "open_excavation_phase": [
+          1030
+        ]
+      }
+    },
+    "godot/scripts/core/underground_locations.gd": {
+      "sha256": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+      "functions": {
+        "stage_refresh": [
+          1497
+        ]
+      }
+    },
+    "godot/scripts/core/underground_connector_placements.gd": {
+      "sha256": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
+      "functions": {
+        "prepare_room_phase_refresh": [
+          1666
+        ]
+      }
+    },
+    "godot/scripts/systems/settlement_system.gd": {
+      "sha256": "1d4f551e1e0f348c189a401d452403a69ad0f25da5b4b05660acde4ea0b9376e",
+      "functions": {}
+    },
+    "docs/decisions/1154-room-access-selection.md": {
+      "sha256": "f7490bca17b260fe049132784c45c6089ca896bf377421b6c90113f40412225c",
+      "functions": {}
+    }
+  }
+}

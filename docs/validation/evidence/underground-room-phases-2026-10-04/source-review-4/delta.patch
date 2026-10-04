@@ -1,0 +1,1028 @@
+--- source-review-3/godot/scripts/core/underground_room_world_bindings.gd
++++ source-review-4/godot/scripts/core/underground_room_world_bindings.gd
+@@ -368,7 +368,7 @@
+ 	var row: int = RoomFace.FinishCheck._typed_row(graph._ids, _ordinary_worker, Directory.KIND_RESIDENT)
+ 	if row < 0 or graph._resident_ref(row) != _ordinary_worker or graph._resident_pair(RoomRoutes.R_JOB_SLOT, row) != _ordinary_job \
+ 			or graph._resident_pair(RoomRoutes.R_EDGE_SLOT, row) != NULL_REF \
+-			or graph._motion.resident[RoomRoutes.R_PHASE * RoomRoutes.RESIDENT_CAPACITY + row] != RoomRoutes.PHASE_IDLE:
++			or RoomRoutes.actor_phase_in(graph, _ordinary_worker) != RoomRoutes.PHASE_IDLE:
+ 		return ROOM_REFUSE_WORKER
+ 	var location: Vector2i = graph._resident_pair(RoomRoutes.R_LOCATION_SLOT, row)
+ 	var profile: int = graph._motion.resident[RoomRoutes.R_PROFILE * RoomRoutes.RESIDENT_CAPACITY + row]
+@@ -550,7 +550,7 @@
+ 		code = _ordinary_plan_row(plan, write, rows, contacts, role, revision)
+ 		if code != &"": return code
+ 		rows += 1
+-		if _entry_is_approach(role): contacts += 1
++		if _ordinary_has_air_contact(role): contacts += 1
+ 	return &"" if rows == plan.volumes.role.size() and contacts == plan.contacts.profile_id.size() else ENTRY_REFUSE_PLAN
+ 
+ 
+@@ -572,7 +572,7 @@
+ 	var volume_role: int = Space.SUPPORT_REQUIRED if role == EntryProfiles.STANCE_SUPPORT else Space.ENVELOPE
+ 	if write: _entry_append_row(plan.volumes, _entry_box, volume_role, level, _entry_room, revision)
+ 	elif not _entry_row_matches(plan.volumes, row, _entry_box, volume_role, level, _entry_room, revision): return ENTRY_REFUSE_PLAN
+-	if not _entry_is_approach(role): return &""
++	if not _ordinary_has_air_contact(role): return &""
+ 	for axis: int in 3:
+ 		_entry_air[axis] = maxi(_entry_box[axis], _ordinary_location(_ordinary_query.location, RoomLocations.ENVELOPE + axis))
+ 		_entry_air[axis + 3] = mini(_entry_box[axis + 3], _ordinary_location(_ordinary_query.location, RoomLocations.ENVELOPE + axis + 3))
+@@ -591,6 +591,11 @@
+ 		and plan.contacts.profile_id[contact] == _ordinary_query.profile_id \
+ 		and plan.contacts.profile_revision[contact] == _ordinary_query.profile_revision \
+ 		and Vector3i(plan.contacts.work_xyz[3 * contact], plan.contacts.work_xyz[3 * contact + 1], plan.contacts.work_xyz[3 * contact + 2]) == _entry_point else ENTRY_REFUSE_PLAN
++
++
++func _ordinary_has_air_contact(role: int) -> bool:
++	"""Whole below-floor residuals remain full survey rows and WorkFace obligations; only positive air is approach."""
++	return _entry_is_approach(role) and _entry_box[4] > _ordinary_location(_ordinary_query.location, RoomLocations.Y)
+ 
+ 
+ func phase_qualification_refusal(domain: Space.Domain, snapshot: Space.Snapshot, plan: Space.Plan,
+@@ -684,7 +689,7 @@
+ 	var row: int = RoomFace.FinishCheck._typed_row(graph._ids, worker, Directory.KIND_RESIDENT)
+ 	if row < 0 or graph._resident_ref(row) != worker or graph._resident_pair(RoomRoutes.R_LOCATION_SLOT, row) != _ordinary_query.location \
+ 			or graph._resident_pair(RoomRoutes.R_EDGE_SLOT, row) != NULL_REF \
+-			or graph._motion.resident[RoomRoutes.R_PHASE * RoomRoutes.RESIDENT_CAPACITY + row] != RoomRoutes.PHASE_IDLE:
++			or RoomRoutes.actor_phase_in(graph, worker) != RoomRoutes.PHASE_IDLE:
+ 		return ROOM_REFUSE_WORKER
+ 	if not _entry_spend(512): return ROOM_REFUSE_CAPACITY
+ 	code = RoomRoutes.physical_selection_into(graph, row, graph._checked_selection)
+@@ -697,6 +702,8 @@
+ 			or selected.z != _ordinary_location(_ordinary_query.location, RoomLocations.Z): return ROOM_REFUSE_WORKER
+ 	code = _ordinary_job_leaf(worker, selected.job, row)
+ 	if code == &"": code = _ordinary_tool_leaf(worker, selected.job, selected.tool, row)
++	if code == &"": code = RoomRoutes.source_work_leaf_refusal(graph, worker, _ordinary_job,
++		_ordinary_query.profile_id, _ordinary_query.profile_revision, _ordinary_query.content_revision)
+ 	if code == &"": code = _ordinary_worker_payload(selected, capture)
+ 	if code == &"": code = _ordinary_travel_payload()
+ 	return code
+@@ -856,6 +863,8 @@
+ 			_ordinary_query.profile_revision, _ordinary_query.content_revision,
+ 			_ordinary_field(_ordinary_query.profile_id, EntryProfiles.F_POSTURE), -1, _ordinary_tool,
+ 			_ordinary_config.routes._checked_selection)
++		if code == &"": code = _ordinary_config.routes.source_work_observation_refusal(_ordinary_worker,
++			_ordinary_job, _ordinary_query.profile_id, _ordinary_query.profile_revision, _ordinary_query.content_revision)
+ 	return _ordinary_scope_leaf() if code == &"" else code
+ 
+ 
+--- source-review-3/godot/test/test_underground_room_world_phases.gd
++++ source-review-4/godot/test/test_underground_room_world_phases.gd
+@@ -26,6 +26,9 @@
+ const Profiles := preload("res://scripts/core/underground_profiles.gd")
+ const Budget := preload("res://scripts/core/underground_budget.gd")
+ const Buildings := preload("res://scripts/core/buildings.gd")
++const IntMath := preload("res://scripts/core/int_math.gd")
++const DIAGNOSTIC_WIRE: String = "res://../docs/validation/evidence/underground-room-phases-2026-10-04/approach-profile-diagnostic-1/mole-worker.ugprof"
++const DIAGNOSTIC_SHA: String = "a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204"
+ const FLOOR: int = -4608
+ const X: int = WorldFixture.X
+ const Z: int = WorldFixture.Z
+@@ -42,6 +45,23 @@
+ 	func _make_phase_provider() -> WorldBindings:
+ 		"""Both provider branches share the actual original owner graph from initialization."""
+ 		return Provider.new()
++
++class ObservedProvider extends Provider:
++	## A negative-only successful observation boundary; every permission still runs the actual implementation.
++	var observe_stage: int = -1
++	var final_probe: Callable = Callable()
++	var calls: int = 0
++
++	func phase_final_observation_refusal(site: Vector2i, operation: int, stage: int,
++			cold_token: int, space_token: int, companion_token: int) -> StringName:
++		"""An actual late source/worker mutation occurs after all normal observers, before the original direct leaf."""
++		var code: StringName = super.phase_final_observation_refusal(site, operation, stage,
++			cold_token, space_token, companion_token)
++		if code == &"" and stage == observe_stage and final_probe.is_valid():
++			var callback: Callable = final_probe
++			final_probe = Callable(); calls += 1
++			callback.call(companion_token)
++		return code
+ 
+ class Fixture extends WorldFixture:
+ 	## Ordinary Room permission is production; only the already-existing corridor's initial geometry is a bootstrap.
+@@ -57,6 +77,7 @@
+ 	var structure: Structure = null
+ 	var scope: Scope = null
+ 	var face: WorkFace = null
++	var phase_terrain: Terrain = null
+ 	var corridor: Vector2i = NULL_REF
+ 	var defer_contacts: bool = false
+ 
+@@ -105,10 +126,10 @@
+ 			Vector3i(256, 48, 256), 16384, 8192, Space.MAX_CHECKS), &"", "actual finite Domain")
+ 		_owner = Owner.new(_sources)
+ 		assert_equal(_owner.configure(domain, Budget.REGION_CAPACITY, Budget.SOURCE_CAPACITY), &"", "actual sparse owner")
+-		_terrain = ReenteringTerrain.new()
+-		assert_equal(_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual Terrain")
+-		provider = Provider.new()
+-		assert_equal(provider.configure(_world, _terrain, _owner, _sources, _budget), &"", "actual phase provider")
++		phase_terrain = _make_phase_terrain()
++		assert_equal(phase_terrain.configure(_world, _nodes, _owner, _sources, _items, _budget), &"", "actual Terrain")
++		provider = _new_provider()
++		assert_equal(provider.configure(_world, phase_terrain, _owner, _sources, _budget), &"", "actual phase provider")
+ 		authority = Authority.new(); assert_equal(authority.configure(_owner, provider, 32), &"", "actual spatial authority")
+ 		sites = Sites.new(_construction, _inventory, _pool, _items, _jobs, _work, authority, 64, 128)
+ 		assert_equal(sites.initialization_refusal(), &"", "actual paid Site owner")
+@@ -120,6 +141,15 @@
+ 			_owner, _sources, _budget, 16, 228 * 16 + 256), &"", "exact Locations")
+ 		assert_equal(endpoints.bind_sites(sites), &"", "actual Sites")
+ 		assert_equal(endpoints.bind_room_orders(orders), &"", "actual Room companion")
++
++	func _make_phase_terrain() -> Terrain:
++		"""Existing negative fixtures retain their explicit earlier-observer seam."""
++		_terrain = ReenteringTerrain.new()
++		return _terrain
++
++	func _new_provider() -> Provider:
++		"""All normal fixtures retain the exact original concrete provider."""
++		return Provider.new()
+ 
+ 	func _load_catalog(revision: int) -> StringName:
+ 		"""Unused connector geometry is bounded authored test content, never ordinary phase permission."""
+@@ -176,7 +206,7 @@
+ 		config.routes = _routes; config.owner = _owner; config.sources = _sources; config.locations = endpoints
+ 		config.profiles = _profiles; config.catalog = _catalog; config.levels = _levels; config.movement = _movement
+ 		config.residents = _residents; config.transforms = _transforms; config.world = _world
+-		config.terrain = _terrain; config.budget = _budget
++		config.terrain = phase_terrain; config.budget = _budget
+ 		return config
+ 
+ 	func _actual_binding() -> void:
+@@ -222,7 +252,7 @@
+ 		placements = Placements.new(); assert_equal(placements.configure(4, 8, Placements.required_bytes(4, 8)), &"", "finite Placement owner")
+ 		assert_equal(placements.bind_actual(_owner, endpoints, _routes, _budget, _catalog, groups._reader, groups._recipes, _construction), &"", "same actual owner tuple")
+ 		scope = Scope.new(); assert_equal(scope.configure(provider, _levels, _budget), &"", "actual structural scope")
+-		structure = Structure.new(); assert_equal(structure.configure(scope, _owner, _terrain, _levels, sites, _budget), &"", "actual retained natural structure")
++		structure = Structure.new(); assert_equal(structure.configure(scope, _owner, phase_terrain, _levels, sites, _budget), &"", "actual retained natural structure")
+ 		assert_equal(provider.bind_phase_structure(structure, _levels), &"", "actual phase structure")
+ 		face = WorkFace.new()
+ 		if not defer_contacts:
+@@ -250,8 +280,264 @@
+ 		orders = null; rooms = null; placements = null; authority = null; router = null; sites = null
+ 		if groups != null:
+ 			groups._reader = null; groups._recipes = null; groups._catalog = null; groups._items = null; groups._inventory = null
+-		groups = null; endpoints = null
++		groups = null; endpoints = null; phase_terrain = null
+ 		super.after_each()
++
++class SourceFixture extends Fixture:
++	## Actual unchanged v3 source geometry; diagnostic certificate15 is not native/publication acceptance.
++	var tool: Vector2i = NULL_REF
++	var material: Vector2i = NULL_REF
++	var stock_wood: Vector2i = NULL_REF
++	var stock_stone: Vector2i = NULL_REF
++	var storage: Vector2i = NULL_REF
++	var tick: int = 0
++	var accepted_mwu: int = 0
++	var storage_binding: Locations.InventoryLocations = null
++	var observe_final: bool = false
++
++	func _new_provider() -> Provider:
++		"""Only explicit adversarial cases add the post-observation mutation hook."""
++		return ObservedProvider.new() if observe_final else Provider.new()
++
++	func _actual_fixture(obstruction: int = 0) -> void:
++		"""Only the initial unregistered worker is placed at completed access; all subsequent motion uses Routes."""
++		super._actual_fixture(obstruction)
++		assert_true(_transforms.place(_worker, X - 1024, FLOOR, Z + 512, 49152), "initial actual access pose")
++
++	func after_each() -> void:
++		"""The actual Inventory endpoint authority outlives each phase and is released with the fixture."""
++		if provider is ObservedProvider: (provider as ObservedProvider).final_probe = Callable()
++		storage_binding = null
++		super.after_each()
++
++	func _make_phase_terrain() -> Terrain:
++		"""The real Room approach requires its exact final-reader implementation, with no subclass exemption."""
++		return Terrain.new()
++
++	func _endpoint(point: Vector3i, role: int) -> Vector2i:
++		"""The actual access is also the explicit finite material/refund/spoil STORAGE endpoint."""
++		return super._endpoint(point, Locations.ROLE_STORAGE if role == Locations.ROLE_TRANSIT else role)
++
++	func _actual_profiles() -> void:
++		"""The create-only wire is independently pinned; no role, flag or source byte changes in this fixture."""
++		_pool = Pool.new(64, Pool.JOB_CAPACITY, 64); _piles = Piles.new()
++		assert_true(_piles.bind_stores(_inventory, _buildings, StockAge.new(_inventory)), "actual piles")
++		assert_true(_piles.bind_world(_world_ref), "exact World")
++		_carry = Carry.new(); assert_true(_carry.bind(_inventory, _pool, _residents, _piles), "actual cargo")
++		_gear = Gear.new(16)
++		assert_true(_gear.bind_equipment(_inventory, _residents.directory(), _residents).ok, "actual Gear")
++		_work = Work.new(_jobs); assert_true(_work.bind_gear(_gear).ok, "actual Work")
++		_profiles = Profiles.new()
++		assert_equal(_profiles.configure(26, 250, 1, 19224 + Profiles.CONTROL_RESERVE), &"", "exact diagnostic two-bank size")
++		assert_equal(_profiles.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles), &"", "actual source owners")
++		assert_equal(FileAccess.get_sha256(DIAGNOSTIC_WIRE), DIAGNOSTIC_SHA, "immutable create-only diagnostic wire")
++		assert_equal(_profiles.load_file(DIAGNOSTIC_WIRE, DIAGNOSTIC_SHA, 2), &"", "actual source geometry; publication gate remains open")
++
++	func _load_catalog(revision: int) -> StringName:
++		"""Two exact ground selectors inherit actual Movement's existing Mole speed; no new pace is authored."""
++		var bytes: PackedByteArray = GroupFixture._catalog_wire(4, revision)
++		bytes.encode_u32(44, 2); bytes.encode_s64(48, 2)
++		bytes.resize(bytes.size() - 80)
++		for profile: int in [5, 9]:
++			GroupFixture.Fixture._append_row(bytes, PackedInt32Array([profile, -1, 0, 1, 1, 0, Catalog.RATE_GROUND_CAP]), 1)
++		var digest: PackedByteArray = PackedByteArray(); digest.resize(32)
++		assert_true(_profiles.source_hash_into(0, 2, digest), "actual original actor source")
++		for index: int in 32: bytes[72 + index] = digest[index]
++		bytes.append_array("UGCEND01".to_ascii_buffer())
++		return _catalog.load_file(TEMP, _write(TEMP, bytes), revision)
++
++	func _bind_phase_provider() -> void:
++		"""Use the actual backward source for directed retreat; reuse the same inherited issuer/context."""
++		defer_contacts = true
++		super._bind_phase_provider()
++		assert_equal(provider.bind_room_phase_contacts(_binding, face, placements, _first, 9, 1,
++			Provider.ROOM_CONTROL_BYTES), &"", "actual backward source retreat")
++
++	func _edge() -> Routes.Edge:
++		"""Only the current content identity changes; original corridor geometry and complete path remain exact."""
++		var edge: Routes.Edge = super._edge()
++		edge.content_revision = 2
++		return edge
++
++	func connect_source_paths() -> void:
++		"""Publish both complete directed certificates; no mirrored heading or free return edge is inferred."""
++		var token: int = _begin()
++		var forward: Routes.Edge = _edge()
++		assert_equal(_routes.stage_add(token, forward).error, &"", "full forward5 clearance")
++		var reverse: Routes.Edge = _edge()
++		reverse.from_location = _last; reverse.to_location = _first
++		reverse.points = PackedInt32Array([X + 1280, FLOOR, Z + 512, X - 1024, FLOOR, Z + 512])
++		assert_equal(_routes.stage_add(token, reverse).error, &"", "full backward9 clearance")
++		assert_equal(_binding.seal(token), &"", "actual directed certificates sealed")
++		assert_equal(_binding.publish(token), &"", "actual graph plus certificate publication")
++		_end(token)
++
++	func room_request() -> Approach.Request:
++		"""A real2x2 Kitchen request uses its exact first target and supported old corridor access."""
++		var request: Approach.Request = Approach.Request.new()
++		request.world = _world_ref; request.space_revision = _owner.revision()
++		request.room_type = Buildings.ROOM_TYPE_KITCHEN; request.level = 1
++		request.origin_u = Vector3i(X + 2048, FLOOR, Z)
++		request.height_u = 4096; request.cell_size_u = 1024
++		request.cells = PackedInt32Array([0, 0, 1, 0, 0, 1, 1, 1])
++		request.access = _first; request.work_location = _last
++		request.travel_profile = 5; request.travel_revision = 1
++		request.work_profile = 24; request.work_revision = 1; request.content_revision = 2
++		request.target_origin = request.origin_u; request.face = 0; request.yaw = 49152
++		return request
++
++	func finite_stock_and_worker() -> void:
++		"""Explicit initial stock grants no haul credit; each paid phase still consumes the adopted actual bill."""
++		storage_binding = Locations.InventoryLocations.new(endpoints)
++		assert_true(_inventory.bind_spatial_locations(storage_binding, 4).ok, "actual storage authority")
++		var made: Inventory.OpResult = _inventory.create_spatial_ground_staging(_first)
++		assert_true(made.ok, "finite material/refund/spoil store: %s" % made.error)
++		material = made.ref; storage = _first
++		stock_wood = stock(&"wood", 1000); stock_stone = stock(&"stone", 1000); tool = stock(&"tool", 1000)
++		assert_true(_gear.create_gear(_inventory, _items, tool, Gear.MANUFACTURE_BASIC).ok, "actual basic pick")
++		assert_true(_gear.equip(tool, _worker).ok, "actual carried pick")
++		var worker: int = _residents.directory().get_typed_row(_worker)
++		assert_true(_jobs.priorities().spawn(worker).ok, "actual priorities")
++		assert_true(_jobs.schedule().spawn(worker, _jobs.schedule().default_template_id().value).ok, "actual schedule")
++		assert_true(_jobs.schedule().resolve(worker, 8, false).ok and _jobs.spawn_agent(worker).ok, "actual worker availability")
++
++	func check_full_plan_residuals(site: Vector2i, room: Vector2i) -> void:
++		"""Every separate native floor-residual primitive remains surveyed and compared, never clipped into permission."""
++		var cold: int = provider.begin_cold_operation(_owner, site, Contract.OP_BRACE, Contract.STAGE_ADMIT)
++		var plan: Space.Plan = Space.Plan.new()
++		var code: StringName = provider.phase_plan_into(site, Contract.OP_BRACE, Contract.STAGE_ADMIT, room,
++			provider.phase_plan_row_limit(_owner, cold), plan)
++		assert_equal(code, &"", "complete real source plan with below-plane residuals")
++		if code == &"":
++			assert_equal(plan.volumes.role.size(), 9, "all eleven source boxes except point/patch remain")
++			assert_equal(plan.contacts.profile_id.size(), 3, "only actual above-floor body/turn/approach are air contacts")
++			for row: int in [1, 4, 6]:
++				assert_equal(plan.volumes.lo_y[row], FLOOR - 1, "original exact lower residual")
++				assert_equal(plan.volumes.hi_y[row], FLOOR, "full support-contact residual remains")
++			plan.volumes.lo_y[1] += 1
++			assert_equal(provider._ordinary_plan(plan, false), Provider.ENTRY_REFUSE_PLAN, "erased residual cannot qualify")
++		plan = null
++		provider.end_cold_operation(cold)
++
++	func stock(key: StringName, quantity: int) -> Vector2i:
++		"""Only explicit fixture initial goods use the source API; CUT is the sole earth producer."""
++		var made: Inventory.OpResult = _inventory.create_lot(material, _items.compiled_id(key), quantity, 1, 0, -1, 0, 0)
++		assert_true(made.ok, "finite initial %s: %s" % [key, made.error])
++		return made.ref
++
++	func open_phase_job(site: Vector2i, operation: int) -> Vector2i:
++		"""Actual Site/Project/Job identities and existing work quotes precede any assignment or payment."""
++		var opened: Construction.OpResult = sites.open_phase(site, operation)
++		assert_true(opened.ok, "actual ordinary phase admission: %s" % opened.error)
++		if not opened.ok: return NULL_REF
++		var remaining: IntMath.IntResult = IntMath.IntResult.new()
++		assert_true(_construction.remaining_mwu_into(opened.ref, remaining), "exact adopted remaining work")
++		var created: Jobs.OpResult = _jobs.create_job(Jobs.JOB_KIND_BUILD, 1, 0, remaining.value, 0)
++		assert_true(created.ok and _jobs.set_requester(created.value, opened.ref).ok, "actual phase requester")
++		assert_true(_jobs.set_tool_gate(created.value, Jobs.GATE_SATISFIED).ok, "real tool remains mandatory")
++		assert_true(sites.bind_job(site, created.ref).ok, "one original full phase Job")
++		var bound: Construction.OpResult = sites.bind_material_container(site, material)
++		assert_true(bound.ok, "exact real reachable material contact: %s" % bound.error)
++		if operation == Contract.OP_CUT:
++			bound = sites.bind_output(site, material)
++			assert_true(bound.ok, "finite spoil store: %s" % bound.error)
++		var worker: int = _residents.directory().get_typed_row(_worker)
++		assert_true(_jobs.assign_worker(worker, created.value).ok, "actual worker assignment")
++		assert_true(_work.claim_tool_for_work(worker, tool).ok, "actual exact equipped claim")
++		return created.ref
++
++	func walk_to_work(job: Vector2i) -> void:
++		"""A complete headless source-ready approach arrives before any WORK source entry or earned credit."""
++		assert_equal(_routes.admit_travel_actor(_worker, job, _first, 5, 1, 2, 0, -1, tool), &"", "actual ready-at-access actor")
++		assert_equal(_routes.request_route(_worker, _last, tick), &"", "explicit +X route")
++		wait_ready(job, 5)
++		var actor: Routes.Actor = Routes.Actor.new()
++		assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual arrived actor")
++		assert_equal(actor.location, _last, "actual full work endpoint")
++		assert_equal(actor.point, Vector3i(X + 1280, FLOOR, Z + 512), "actual root advanced exactly once")
++
++	func wait_ready(job: Vector2i, profile: int) -> void:
++		"""Canonical30Hz ticks, with no renderer, finish the real movement and source recovery."""
++		var end: int = tick + 300
++		while Routes.source_ready_leaf_refusal(_routes, _worker, job, profile, 1, 2) != &"" and tick < end:
++			tick += 1
++			assert_equal(_routes.advance_tick(tick), 1, "actual headless ready transition")
++			if not failures.is_empty(): return
++		assert_equal(Routes.source_ready_leaf_refusal(_routes, _worker, job, profile, 1, 2), &"", "bounded actual ready terminal")
++
++	func enter_work(job: Vector2i) -> void:
++		"""The exact source entry is productive only after canonical readiness, independently of physical idle."""
++		assert_equal(_routes.refresh_work_actor(_worker, job, 24, 1, 2, 0, -1, tool), &"", "ready-to-FRONT handoff")
++		assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, job, 24, 1, 2), &"ROUTE_SOURCE_WORK_NOT_READY", "entry grants no work")
++		var end: int = tick + 100
++		while Routes.source_work_leaf_refusal(_routes, _worker, job, 24, 1, 2) != &"" and tick < end:
++			tick += 1
++			assert_equal(_routes.advance_tick(tick), 1, "actual headless source entry")
++			if not failures.is_empty(): return
++		assert_equal(Routes.source_work_leaf_refusal(_routes, _worker, job, 24, 1, 2), &"", "exact current source WORK")
++
++	func start_phase(site: Vector2i, operation: int, job: Vector2i) -> void:
++		"""Current exact input claims and actual worker contact enter the real guarded START transaction."""
++		prepare_phase_inputs(site, operation, job)
++		if not failures.is_empty(): return
++		var started: Construction.OpResult = sites.begin_phase_work(site, tick)
++		assert_true(started.ok, "real prepared ordinary START: %s" % started.error)
++
++	func prepare_phase_inputs(site: Vector2i, operation: int, job: Vector2i) -> void:
++		"""These real claims and worker registration precede payment and can be reused after an unchanged refusal."""
++		for line: int in Contract.input_count(operation):
++			var lot: Vector2i = stock_wood if Contract.input_key(operation, line) == &"wood" else stock_stone
++			var batch: PackedInt64Array = PackedInt64Array([lot.x, lot.y, Pool.PURPOSE_EXCAVATION_INPUT,
++				Contract.input_milli(operation, line), tick + 100000])
++			assert_true(_pool.claim_batch(job, batch, 1, _inventory).ok, "actual exact input claim")
++		if Contract.input_count(operation) > 0:
++			var delivered: Construction.OpResult = sites.record_deliveries(site)
++			assert_true(delivered.ok, "current local actual claims: %s" % delivered.error)
++		var bound: Construction.OpResult = sites.bind_worker(site)
++		assert_true(bound.ok, "actual current worker at the exact source contact: %s" % bound.error)
++
++	func earn_and_recover(job: Vector2i) -> void:
++		"""Work owns WU/XP/wear; source motion owns only its canonical phase, and recovery precedes Job release."""
++		var remaining: IntMath.IntResult = IntMath.IntResult.new()
++		var row: int = _residents.directory().get_typed_row(job)
++		var end: int = tick + 1000
++		while _jobs.remaining_mwu_into(row, remaining) and remaining.value > 0 and tick < end:
++			tick += 1
++			assert_equal(_routes.advance_tick(tick), 1, "actual current WORK source tick")
++			var worked: Work.TickResult = _work.tick_solo(row)
++			assert_true(worked.ok, "actual paid productive Work: %s" % worked.error)
++			if not worked.ok or not failures.is_empty(): return
++			accepted_mwu += worked.accepted_mwu
++		assert_true(_jobs.remaining_mwu_into(row, remaining) and remaining.value == 0, "real quoted work complete")
++		assert_equal(_routes.request_source_ready(_worker, job), &"", "stop at actual loop boundary and recover")
++		wait_ready(job, 24)
++
++	func retreat_after_settlement() -> void:
++		"""Worker-free settlement is followed by actual backward locomotion with no surviving old Job permission."""
++		assert_equal(_routes.refresh_travel_actor(_worker, NULL_REF, 9, 1, 2, 0, -1, tool), &"", "completed recovery hands off after Job release")
++		assert_equal(_routes.request_route(_worker, _first, tick), &"", "explicit actual -X retreat")
++		wait_ready(NULL_REF, 9)
++		var actor: Routes.Actor = Routes.Actor.new()
++		assert_equal(_routes.read_actor_into(_worker, actor), &"", "actual returned actor")
++		assert_equal(actor.location, _first, "original full retreat/storage contact")
++		assert_equal(actor.point, Vector3i(X - 1024, FLOOR, Z + 512), "real reverse root displacement")
++
++	func complete_source_phase(site: Vector2i, operation: int, first: bool) -> bool:
++		"""One paid operation advances only through actual canonical motion, Work, Funding and original companions."""
++		var job: Vector2i = open_phase_job(site, operation)
++		if job == NULL_REF or not failures.is_empty(): return false
++		if first: walk_to_work(job)
++		if not failures.is_empty(): return false
++		enter_work(job)
++		if not failures.is_empty(): return false
++		start_phase(site, operation, job)
++		if not failures.is_empty(): return false
++		earn_and_recover(job)
++		if not failures.is_empty(): return false
++		var settled: Construction.OpResult = sites.settle_phase(site)
++		assert_true(settled.ok, "real ordinary operation%d settles once: %s" % [operation, settled.error])
++		assert_true(_budget.is_quiescent(), "original phase cold lease returned")
++		return settled.ok
+ 
+ var _h: Fixture = null
+ var _entry_fixture: FirstPrefix = null
+@@ -594,3 +880,158 @@
+ 	assert_true(actual.failures.is_empty(), "actual inherited Entry initialization: %s" % actual.failures)
+ 	actual.test_first_real_brace_requires_actual_start_work_settlement_and_conservation()
+ 	assert_true(actual.failures.is_empty(), "original Entry paid lifecycle: %s" % actual.failures)
++
++
++func test_actual_v3_source_confirms_ordinary_kitchen_through_both_directed_paths() -> void:
++	"""The diagnostic source is real geometry, while native/publication acceptance remains explicitly separate."""
++	_h = SourceFixture.new(); _h._actual_fixture()
++	var actual: SourceFixture = _h as SourceFixture
++	if not actual.failures.is_empty(): return
++	actual.connect_source_paths()
++	if not actual.failures.is_empty(): return
++	var inventory: PackedByteArray = actual._inventory.state_bytes()
++	var made: Buildings.OpResult = actual.orders.confirm_room(actual.room_request())
++	assert_true(made.ok, "real Room admission with source5/24 and backward9: %s" % made.error)
++	if not made.ok: return
++	assert_equal(actual._inventory.state_bytes(), inventory, "confirmation buys no phase material")
++	assert_equal(actual.sites.room_of(actual.sites.site_at(Vector3i(X + 2048, FLOOR, Z))), made.ref, "actual full Kitchen claim")
++	assert_equal(actual._routes._live.edge_count, 2, "only explicitly proved directed paths")
++	assert_equal(actual.sites._ever_cut.count(1), 0, "no paid history seeded by confirmation")
++	actual.check_full_plan_residuals(actual.sites.site_at(Vector3i(X + 2048, FLOOR, Z)), made.ref)
++
++
++func test_actual_v3_walk_brace_work_recovery_settlement_and_retreat() -> void:
++	"""Real geometry/economy/owner publication is exercised; diagnostic source qualification and whole Room remain open."""
++	_h = SourceFixture.new(); _h._actual_fixture()
++	var actual: SourceFixture = _h as SourceFixture
++	actual.connect_source_paths(); actual.finite_stock_and_worker()
++	if not actual.failures.is_empty(): return
++	var made: Buildings.OpResult = actual.orders.confirm_room(actual.room_request())
++	assert_true(made.ok, "actual Kitchen confirmation: %s" % made.error)
++	if not made.ok: return
++	var site: Vector2i = actual.sites.site_at(Vector3i(X + 2048, FLOOR, Z))
++	var job: Vector2i = actual.open_phase_job(site, Contract.OP_BRACE)
++	if job == NULL_REF or not actual.failures.is_empty(): return
++	actual.walk_to_work(job)
++	if not actual.failures.is_empty(): return
++	assert_equal(actual.accepted_mwu, 0, "real walking and ready transitions earn no work")
++	actual.enter_work(job); actual.start_phase(site, Contract.OP_BRACE, job)
++	if not actual.failures.is_empty(): return
++	actual.earn_and_recover(job)
++	if not actual.failures.is_empty(): return
++	var settled: WorldFixture.Construction.OpResult = actual.sites.settle_phase(site)
++	assert_true(settled.ok, "real worker-free paid BRACE settlement: %s" % settled.error)
++	if not settled.ok: return
++	assert_true(actual.sites.installed_support(site), "only paid completed BRACE installs support")
++	assert_equal(actual.accepted_mwu, Contract.BRACE_WORK_MWU, "unchanged adopted work")
++	assert_equal(actual._inventory.lot_quantity_milli(actual.stock_wood), 750, "actual adopted wood debit")
++	assert_equal(actual._inventory.lot_quantity_milli(actual.stock_stone), 750, "actual adopted stone debit")
++	assert_equal(actual.sites.support_conservation_refusal(), &"", "actual support conservation")
++	actual.retreat_after_settlement()
++
++
++func test_actual_v3_first_cube_brace_cut_finish_and_directed_retreat_conserve_every_owner() -> void:
++	"""One paid cube is not a complete multi-cube Kitchen; only the tested source/geometry/economy sequence is asserted."""
++	_h = SourceFixture.new(); _h._actual_fixture()
++	var actual: SourceFixture = _h as SourceFixture
++	actual.connect_source_paths(); actual.finite_stock_and_worker()
++	if not actual.failures.is_empty(): return
++	var made: Buildings.OpResult = actual.orders.confirm_room(actual.room_request())
++	assert_true(made.ok, "actual2×2 Kitchen confirmation: %s" % made.error)
++	if not made.ok: return
++	var site: Vector2i = actual.sites.site_at(Vector3i(X + 2048, FLOOR, Z))
++	for operation: int in [Contract.OP_BRACE, Contract.OP_CUT, Contract.OP_FINISH]:
++		if not actual.complete_source_phase(site, operation, operation == Contract.OP_BRACE): return
++	assert_equal(actual.accepted_mwu, Contract.BRACE_WORK_MWU + Contract.CUT_WORK_MWU + Contract.FINISH_WORK_MWU, "all actual adopted work exactly once")
++	assert_equal(actual._inventory.lot_quantity_milli(actual.stock_wood), 750, "one actual wood debit")
++	assert_equal(actual._inventory.lot_quantity_milli(actual.stock_stone), 750, "one actual stone debit")
++	assert_equal(actual.sites.virgin_sourced_milli(), Contract.EARTH_MILLI, "only actual CUT creates the adopted earth")
++	assert_equal(actual.sites.support_conservation_refusal(), &"", "actual support conserved")
++	assert_equal(actual.sites.earth_conservation_refusal(), &"", "actual earth conserved")
++	assert_equal(actual.sites._phase[site.x], Sites.SUPPORTED_VOID, "actual finished paid cube")
++	assert_equal(actual.sites._ever_cut.count(1), 1, "all other claimed Kitchen cubes remain unpaid")
++	assert_equal(actual._construction.live_project_count(), 0, "no orphan phase Project")
++	actual.retreat_after_settlement()
++
++
++func _observed_source_site() -> Vector2i:
++	"""Create the exact same real source/owner Kitchen and finite stock, adding only a negative callback hook."""
++	var actual: SourceFixture = SourceFixture.new()
++	actual.observe_final = true; _h = actual; actual._actual_fixture()
++	actual.connect_source_paths(); actual.finite_stock_and_worker()
++	if not actual.failures.is_empty(): return NULL_REF
++	var made: Buildings.OpResult = actual.orders.confirm_room(actual.room_request())
++	assert_true(made.ok, "actual observed Kitchen confirmation: %s" % made.error)
++	return actual.sites.site_at(Vector3i(X + 2048, FLOOR, Z)) if made.ok else NULL_REF
++
++
++func _late_actual_departure(_companion_token: int) -> void:
++	"""Use the actual Transform owner after successful final observations; copied old pose is insufficient."""
++	assert_true(_h._transforms.place(_h._worker, X + 1281, FLOOR, Z + 512, 49152), "real one-unit late departure")
++
++
++func _late_original_site_change(companion_token: int) -> void:
++	"""The public borrowed context cannot redirect a completed phase's original output transaction."""
++	var context: Locations.PhaseContext = _h.authority.room_phase_context(companion_token)
++	assert_true(context != null, "actual sealed original ordinary context")
++	if context != null: context.site.y += 1
++
++
++func test_actual_v3_late_worker_departure_refuses_payment_then_original_start_retries() -> void:
++	"""The final direct worker leaf preserves finite stock/WIP/work/skill/wear after a successful old observation."""
++	var site: Vector2i = _observed_source_site()
++	if site == NULL_REF: return
++	var actual: SourceFixture = _h as SourceFixture
++	var job: Vector2i = actual.open_phase_job(site, Contract.OP_BRACE)
++	actual.walk_to_work(job); actual.enter_work(job); actual.prepare_phase_inputs(site, Contract.OP_BRACE, job)
++	if not actual.failures.is_empty(): return
++	var inventory: PackedByteArray = actual._inventory.state_bytes()
++	var funding: PackedByteArray = actual.router._funding.state_bytes()
++	var work: PackedByteArray = actual._work.state_bytes()
++	var gear: PackedByteArray = actual._gear.state_bytes()
++	var geometry: PackedByteArray = actual._owner.state_bytes()
++	var observer: ObservedProvider = actual.provider as ObservedProvider
++	observer.observe_stage = Contract.STAGE_START; observer.final_probe = _late_actual_departure
++	var refused: WorldFixture.Construction.OpResult = actual.sites.begin_phase_work(site, actual.tick)
++	assert_false(refused.ok, "late departed worker cannot pay")
++	assert_equal(observer.calls, 1, "the genuine late observation ran")
++	assert_equal(actual._inventory.state_bytes(), inventory, "all finite stock and claims preserved")
++	assert_equal(actual.router._funding.state_bytes(), funding, "no funded WIP escaped")
++	assert_true(actual._work.state_bytes() == work and actual._gear.state_bytes() == gear, "no work/XP/wear on refusal")
++	assert_equal(actual._owner.state_bytes(), geometry, "no partial Space publication")
++	assert_true(actual._budget.is_quiescent(), "original candidate was discarded")
++	assert_true(actual._transforms.place(actual._worker, X + 1280, FLOOR, Z + 512, 49152), "restore the negative-only physical mutation")
++	var retry: WorldFixture.Construction.OpResult = actual.sites.begin_phase_work(site, actual.tick)
++	assert_true(retry.ok, "same original unpaid phase retries: %s" % retry.error)
++	assert_equal(actual._inventory.lot_quantity_milli(actual.stock_wood), 750, "exactly one actual debit")
++	assert_equal(actual.accepted_mwu, 0, "START earns no productive credit")
++
++
++func test_actual_v3_worker_free_cut_output_retry_reproves_original_context_without_more_work() -> void:
++	"""A released worker is not reacquired to retry terminal output; original full Site and sealed context still matter."""
++	var site: Vector2i = _observed_source_site()
++	if site == NULL_REF: return
++	var actual: SourceFixture = _h as SourceFixture
++	if not actual.complete_source_phase(site, Contract.OP_BRACE, true): return
++	var job: Vector2i = actual.open_phase_job(site, Contract.OP_CUT)
++	actual.enter_work(job); actual.start_phase(site, Contract.OP_CUT, job); actual.earn_and_recover(job)
++	if not actual.failures.is_empty(): return
++	var inventory: PackedByteArray = actual._inventory.state_bytes()
++	var funding: PackedByteArray = actual.router._funding.state_bytes()
++	var geometry: PackedByteArray = actual._owner.state_bytes()
++	var observer: ObservedProvider = actual.provider as ObservedProvider
++	observer.observe_stage = Contract.STAGE_COMMIT; observer.final_probe = _late_original_site_change
++	var refused: WorldFixture.Construction.OpResult = actual.sites.settle_phase(site)
++	assert_false(refused.ok, "changed full Site in original sealed context refuses output")
++	assert_equal(observer.calls, 1, "real terminal final observer executed")
++	assert_true(actual._inventory.state_bytes() == inventory and actual.router._funding.state_bytes() == funding, "output journal and paid receipt preserved")
++	assert_equal(actual._owner.state_bytes(), geometry, "no partial terminal topology")
++	assert_equal(actual._jobs.worker_of(actual._residents.directory().get_typed_row(job)), NULL_REF, "actual terminal path already released worker")
++	assert_equal(actual._work.tool_job_of(actual._residents.directory().get_typed_row(actual._worker)), NULL_REF, "actual tool claim released after recovery")
++	assert_equal(actual.sites.virgin_sourced_milli(), 0, "no earth emitted by refused output")
++	var retry: WorldFixture.Construction.OpResult = actual.sites.settle_phase(site)
++	assert_true(retry.ok, "original worker-free completed CUT retries: %s" % retry.error)
++	assert_equal(actual.accepted_mwu, Contract.BRACE_WORK_MWU + Contract.CUT_WORK_MWU, "no extra WU to retry output")
++	assert_equal(actual.sites.virgin_sourced_milli(), Contract.EARTH_MILLI, "exactly one adopted CUT output")
++	assert_equal(actual.sites.earth_conservation_refusal(), &"", "actual output conserves")
++	assert_true(actual._budget.is_quiescent(), "original lease and companion context released")
+--- source-review-3/docs/validation/evidence/underground-room-phases-2026-10-04/census.py
++++ source-review-4/docs/validation/evidence/underground-room-phases-2026-10-04/census.py
+@@ -5,6 +5,7 @@
+ allowance. Existing Entry, WorkFace cold, PhaseStructure cold and Placement
+ reserves are named separately, with the simultaneous caller frames shown.
+ """
++import argparse
+ import hashlib
+ import importlib.util
+ import json
+@@ -28,10 +29,25 @@
+ R = 'underground_routes'
+ W = 'underground_world_routes'
+ S = 'room_space'
++SP = 'source_program'
++DIAGNOSTIC = None
++
++
++def source_path(module):
++    if module == SP:
++        return 'godot/data/underground/mole-worker/work-approach-v1/source_program.gd'
++    return 'godot/scripts/core/' + module + '.gd'
+ 
+ 
+ def source(module):
+-    return (ROOT / 'godot/scripts/core' / (module + '.gd')).read_text()
++    relative = source_path(module)
++    if DIAGNOSTIC is not None:
++        manifest = json.loads((DIAGNOSTIC / 'source-sha256.json').read_text())
++        if relative in manifest:
++            data = (DIAGNOSTIC / (relative + '.txt')).read_bytes()
++            assert hashlib.sha256(data).hexdigest() == manifest[relative], relative
++            return data.decode()
++    return (ROOT / relative).read_text()
+ 
+ 
+ def class_source(module, name):
+@@ -155,12 +171,21 @@
+         'worker_box_and_overlap': joined([(P, 'worker_refusal'), (P, '_ordinary_live_leaf'),
+             (P, '_ordinary_occupants_leaf'), (P, '_ordinary_occupant_boxes'), (P, '_ordinary_box'),
+             (P, '_ordinary_location'), (L, '_get32')]),
++        'observed_canonical_work_source': joined([(P, 'worker_refusal'), (P, '_ordinary_observers')],
++            own_chain(R, 'source_work_observation_refusal'), own_chain(SP, 'profile_refusal'),
++            own_chain('underground_profiles', 'selection_policy_leaf')),
++        'final_canonical_work_source': joined([(P, 'worker_refusal'), (P, '_ordinary_live_leaf'),
++            (P, '_ordinary_worker_leaf')], own_chain(R, 'source_work_leaf_refusal'),
++            own_chain(SP, 'profile_refusal'), own_chain('underground_profiles', 'selection_policy_leaf')),
++        'selected_decoded_actor_phase': joined([(P, 'worker_refusal'), (P, '_ordinary_live_contact'),
++            (P, '_ordinary_select'), (P, '_ordinary_committed_contact')], own_chain(R, 'actor_phase_in'),
++            own_chain(SP, 'profile_refusal'), own_chain('underground_profiles', 'selection_policy_leaf')),
+     }
+     # 64 covers simultaneous numeric return/expression temporaries. The additional
+     # 40 covers the largest fixed inherited/direct helper (Site key or final pose)
+     # conservatively even on paths whose declared deepest frame does not call it.
+     actual_helper = max(row['bytes'] for row in direct.values()) + 64 + 40
+-    assert actual_helper == 429 and actual_helper <= 512
++    assert actual_helper == 485 and actual_helper <= 512
+     controls = sum(fixed.values()) + 512 + 256
+     assert controls == 986 and controls <= 1024
+ 
+@@ -218,9 +243,12 @@
+     pack = json.loads((ROOT / 'docs/planning/underground_memory_pack.json').read_text())
+     assert pack['live_with_reserve_bytes'] == 99998782 and pack['headroom_bytes'] == 1218
+     tracked = (P, F, E, A, C, L, R, W, T, 'underground_final_facts', 'underground_phase_structure',
+-               'underground_profiles', 'underground_space_owner', 'underground_entry_structure', S)
++               'underground_profiles', 'underground_space_owner', 'underground_entry_structure', S, SP)
+     return {
+         'scope': __doc__.strip(), 'source_sha256': {name: hashlib.sha256(source(name).encode()).hexdigest() for name in tracked},
++        'diagnostic_checkpoint': str(DIAGNOSTIC) if DIAGNOSTIC is not None else None,
++        'source_readiness_scope': 'The1156 source clock and exact row/source/policy guards are included transitively. '
++            'The optional immutable diagnostic snapshot supplies code only; it is not source/native/publication acceptance.',
+         'new_fixed': fixed, 'new_reference_fields': refs, 'configuration_borrowed_references': config,
+         'own_declared_frames': {n: row[0] for n, row in functions(P).items()},
+         'maximum_own_chain': maximum, 'transitive_direct_chains': direct,
+@@ -255,4 +283,9 @@
+ 
+ 
+ if __name__ == '__main__':
++    parser = argparse.ArgumentParser()
++    parser.add_argument('--dependency-checkpoint', type=Path,
++                        help='Read hash-verified immutable1156 snapshots without altering runtime files')
++    args = parser.parse_args()
++    DIAGNOSTIC = args.dependency_checkpoint.resolve() if args.dependency_checkpoint else None
+     print(json.dumps(build(), indent=2))
+--- source-review-3/docs/validation/evidence/underground-room-phases-2026-10-04/census.json
++++ source-review-4/docs/validation/evidence/underground-room-phases-2026-10-04/census.json
+@@ -1,22 +1,25 @@
+ {
+   "scope": "1152 logical source census; no native allocation or whole-tick qualification.\n\nThe new 1024-byte contribution INCLUDES its 256-byte provisional reference/native\nallowance. Existing Entry, WorkFace cold, PhaseStructure cold and Placement\nreserves are named separately, with the simultaneous caller frames shown.",
+   "source_sha256": {
+-    "underground_room_world_bindings": "994c04a6ea67ac7884ddb372d19398cc26a7d9d56a07daf2a010850479119985",
++    "underground_room_world_bindings": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+     "underground_work_face": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+     "underground_entry_world_bindings": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+     "underground_space_authority": "3377e00f509e833e618330237c65fa7a18aaf20a4876b5b16322bbdab7d4ec5b",
+     "underground_connector_placements": "9f34160f99949eca875bcc6d9f663324e7250193a5217dc83288f05015340aae",
+     "underground_locations": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+-    "underground_routes": "4792c1d37160cb737c5e1220e1a63bd633c84c8aefbe33cb0b72524c34b4b2f0",
+-    "underground_world_routes": "7de9ae26375baff235c90f7d2b5703f9ca638fa1c7276ddf4c86e46c6a85434c",
++    "underground_routes": "c5b414aaf5c1679fc232ddccdbafa1491625c12b2dc41613063605f6a44934f4",
++    "underground_world_routes": "7e2bc9f7d7f00f034f408be374f939664d98a3bd64e430283e3b300420991d1f",
+     "underground_terrain": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+     "underground_final_facts": "c4aed2a5b75571822cba6f40cffd8efe9bd3863b12a5bead6db22daed8e9e93a",
+     "underground_phase_structure": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
+-    "underground_profiles": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
++    "underground_profiles": "fd17b330165fff47177414ec15549fa53fcb60535aab7a9b9af3674485f3a78e",
+     "underground_space_owner": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+     "underground_entry_structure": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
+-    "room_space": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624"
+-  },
++    "room_space": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
++    "source_program": "bc79fbe61bfd23641d6602070d132df724f9975ac36c1555cef701b14d6ab2c4"
++  },
++  "diagnostic_checkpoint": "/Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/diagnostic-api-1",
++  "source_readiness_scope": "The1156 source clock and exact row/source/policy guards are included transitively. The optional immutable diagnostic snapshot supplies code only; it is not source/native/publication acceptance.",
+   "new_fixed": {
+     "own_numeric": 146,
+     "one_original_request": 68,
+@@ -80,6 +83,7 @@
+     "_ordinary_plan": 41,
+     "_ordinary_read_anchor": 24,
+     "_ordinary_plan_row": 57,
++    "_ordinary_has_air_contact": 8,
+     "phase_qualification_refusal": 24,
+     "_ordinary_context": 24,
+     "_ordinary_needs_worker": 0,
+@@ -193,11 +197,50 @@
+         "underground_room_world_bindings._ordinary_location": 16,
+         "underground_locations._get32": 16
+       }
++    },
++    "observed_canonical_work_source": {
++      "bytes": 381,
++      "frames": {
++        "underground_room_world_bindings.worker_refusal": 60,
++        "underground_room_world_bindings._ordinary_observers": 1,
++        "underground_routes.source_work_observation_refusal": 48,
++        "underground_routes.source_work_leaf_refusal": 56,
++        "underground_routes._source_tuple_row": 48,
++        "underground_routes._source_clock_leaf": 48,
++        "source_program.profile_refusal": 88,
++        "underground_profiles.selection_policy_leaf": 32
++      }
++    },
++    "final_canonical_work_source": {
++      "bytes": 350,
++      "frames": {
++        "underground_room_world_bindings.worker_refusal": 60,
++        "underground_room_world_bindings._ordinary_live_leaf": 1,
++        "underground_room_world_bindings._ordinary_worker_leaf": 17,
++        "underground_routes.source_work_leaf_refusal": 56,
++        "underground_routes._source_tuple_row": 48,
++        "underground_routes._source_clock_leaf": 48,
++        "source_program.profile_refusal": 88,
++        "underground_profiles.selection_policy_leaf": 32
++      }
++    },
++    "selected_decoded_actor_phase": {
++      "bytes": 320,
++      "frames": {
++        "underground_room_world_bindings.worker_refusal": 60,
++        "underground_room_world_bindings._ordinary_live_contact": 44,
++        "underground_room_world_bindings._ordinary_select": 0,
++        "underground_room_world_bindings._ordinary_committed_contact": 32,
++        "underground_routes.actor_phase_in": 16,
++        "underground_routes._source_clock_leaf": 48,
++        "source_program.profile_refusal": 88,
++        "underground_profiles.selection_policy_leaf": 32
++      }
+     }
+   },
+   "expression_return_allowance": 64,
+   "additional_inherited_numeric_allowance": 40,
+-  "source_counted_helper_maximum": 429,
++  "source_counted_helper_maximum": 485,
+   "helper_reservation": 512,
+   "included_provisional_native_reference_allowance": 256,
+   "control_accounted": 986,
+--- source-review-3/docs/validation/evidence/underground-room-phases-2026-10-04/README.md
++++ source-review-4/docs/validation/evidence/underground-room-phases-2026-10-04/README.md
+@@ -1,9 +1,10 @@
+ # 1152 ordinary Room phase source checkpoint
+ 
+-This is a partial source/actual-owner checkpoint, not completed ordinary Room
+-phase or playable Kitchen acceptance. The current source is frozen at
+-`source-review-3/source-sha256.json` for independent review. No runtime production
+-consumer fingerprint has been renewed for the changed WorkFace.
++The current `source-review-4/source-sha256.json` freezes the first actual paid
++ordinary-cube diagnostic and its final refusal/retry tests. This is not a
++completed Kitchen, native source qualification, or production publication.
++The actual v3 geometry is consumed with an explicitly diagnostic certificate;
++no production consumer fingerprint or old v2 artifact is changed here.
+ 
+ The accepted 1153 prerequisite is `e9c8f092accd6cf7d57acc963255ed354d40c35b`
+ (own cherry-pick `7ecf1515`). Its exact Authority/Placement/Locations APIs are
+@@ -13,35 +14,37 @@
+ 
+ ## Current result
+ 
+-`expired-entry-corrected` invokes the official strict singleton suites:
+-
+-- Room provider: 19 tests, 235 assertions, 0 failures.
++`paid-source-6` invokes the official strict singleton suites:
++
++- Room provider: 24 tests, 290 assertions, 0 failures.
+ - WorkFace: 19 tests, 206 assertions, 0 failures.
+-- Combined: **38 tests, 441 assertions, 0 failures**.
++- Combined: **43 tests, 496 assertions, 0 failures**.
+ - Every strict/raw unexpected, expected, tolerated and leak counter is zero.
+ - Clean import is zero diagnostics; analyzer is 0 warnings in 0 of 4 files.
+-- `invocation.json` confirms source unchanged and original project, registry,
+-  assets and import sidecars restored. The diagnostic registry appendix and
+-  both original/temporary digests are retained, not committed as shared policy.
++- The invocation and dependency-restoration manifests confirm unchanged source
++  pins and restoration of project, registry, assets and all six diagnostic
++  1156 files. The temporary registry appendix and both digests are retained.
+ 
+ Reproduce in this isolated worktree with no other engine/wrapper active:
+ 
+ ```sh
+-python3 -B docs/validation/evidence/underground-room-phases-2026-10-04/reproduce.py --out docs/validation/evidence/underground-room-phases-2026-10-04/replay-new --port 6353 --suite test_underground_room_world_phases.gd --suite test_underground_work_face.gd
+-python3 -B docs/validation/evidence/underground-room-phases-2026-10-04/census.py
++python3 -B docs/validation/evidence/underground-room-phases-2026-10-04/with_1156_diagnostic.py --checkpoint /Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/diagnostic-api-1 --out docs/validation/evidence/underground-room-phases-2026-10-04/replay-new --port 6353
++python3 -B docs/validation/evidence/underground-room-phases-2026-10-04/census.py --dependency-checkpoint /Users/brendan/Developer/redwall-rts-codex-ug-work-approach/docs/validation/evidence/underground-work-approach-2026-10-04/diagnostic-api-1
+ ```
+ 
+-The wrapper uses only `Redwall-ug-room-phases`, parks/restores original assets,
+-cleans its own import cache, resolves exact singleton shards, and restores its
+-temporary project/registry in `finally`. A zero exit status does not substitute
+-for its raw diagnostics or explicit restoration fields.
++The outer wrapper validates each immutable dependency hash, records its exact
++before/diagnostic bytes, and restores them in `finally`. The inner wrapper uses
++only `Redwall-ug-room-phases`, parks/restores original assets, cleans its own
++cache, resolves exact singleton shards, and restores its temporary registry
++and project. A zero process exit does not substitute for raw diagnostics or
++the explicit restoration fields. No concurrent engine remained after this run.
+ 
+ ## What the actual tests establish
+ 
+ The new ordinary fixture has a real generated World, Nodes, Directory,
+ Resident/Transform, Inventory, Pool, Work/Gear, Construction, Sites, Router,
+ SpaceOwner, Locations, WorldRoutes/Routes and original structural reader. It
+-loads the published Mole wire unchanged. Its pre-existing Corridor identity
++loads immutable source wires unchanged. Its pre-existing Corridor identity
+ and physical bootstrap are named fixture boundaries; no paid Site bytes or
+ cut history are seeded.
+ 
+@@ -70,34 +73,59 @@
+ historical explicitly synthetic fixture. The FINISH adaptation tests use real
+ BRACE/CUT/FINISH paid state from the accepted phase-refresh fixture, including
+ released-worker terminal scope, but retain that fixture's synthetic physical
+-companion. These are scoped component regressions, not the missing ordinary
+-positive composition.
+-
+-## Physical positive gate
+-
+-The actual coordinates are:
+-
+-| Role | World XYZ u | Heading / source |
++companion. These remain separately scoped component regressions, distinct from
++the actual geometry/payment sequence below.
++
++## Actual first-cube diagnostic
++
++The copied `approach-profile-diagnostic-1/` input is the root-authored v3 wire
++`a581f90aa0db07187a1dfc1f0836bd7f3de39d401ff944db07a3958649b1c204`:
++wire2/content2, row revision1, 26 profiles and 250 boxes. The immutable source
++report, serializer manifest and copied-input hashes are retained. Its fixture
++certificate15 does not establish native/production/world qualification.
++
++| Role | World XYZ u | Explicit source |
+ |---|---|---|
+-| Work station | (124160, -4608, 102912) | +X, yaw49152, FRONT16/rev1 |
++| Work station | (124160, -4608, 102912) | FRONT24/rev1, body yaw49152 |
+ | Target cube origin | (124928, -4608, 102400) | exact -X face |
+-| Access/retreat | (121856, -4608, 102912) | existing full TRANSIT |
+-| Approach | access → work | +X / yaw49152 |
+-| Retreat | work → access | -X / yaw16384 |
+-
+-Current WALK1/rev1 includes the 1,256u all-yaw held-pick extent and refuses
+-`WORLD_ROUTE_NO_FITTING_PROFILE` at the 768u wall. Geometry's 1156 unchanged-key
+-WALK/ready subset is a separate pending source/runtime packet. Its approach
+-does not imply a backward walk or a turn-away retreat. No source geometry,
+-support, material rule, route budget or flag is relaxed here. The full ordinary
+-confirmation → BRACE/CUT/FINISH positive remains pending this dependency.
+-
+-The agreed 1156 successor contains no duplicate legacy WORK rows. For these
+-coordinates its explicit approach is row5 (body/path yaw49152), FRONT work is
+-row24, and retreat is row9 (body yaw49152, path yaw16384). This is the agreed
+-pending source contract, not an activated selector or a changed v2 profile.
+-The provider's private phase checks must migrate to the reviewed public
+-source-work observation/final APIs before consuming that successor.
++| Access, storage and retreat | (121856, -4608, 102912) | one full STORAGE endpoint |
++| Approach | access → work | row5, path/body yaw49152 |
++| Retreat | work → access | row9, body49152 / path16384 |
++
++Actual WorldRoutes proves both authored directed paths. Actual RoomOrders
++confirms a 2×2 Kitchen, then the real assigned worker walks in, enters the
++canonical WORK source phase, pays and completes BRACE, CUT and FINISH through
++Sites/Funding/Inventory/Work and original sealed companions. Canonical recovery
++finishes before each Job/tool release. The actual backwards source returns
++the worker to the original endpoint after terminal settlement. No productive
++credit is earned by walking, entry, recovery or settlement retry.
++
++The complete first cube consumes **250 milli wood and 250 milli stone**, earns
++exactly **9,000 mWU**, and emits **2,000 milli earth**. Support/earth conservation,
++one retained cut-history row, no remaining phase Project and original Budget
++quiescence are asserted. The other claimed Kitchen cubes remain unpaid.
++Materials are finite real Inventory stock; delivery-source activation is not
++claimed by this fixture.
++
++All nine non-contact source boxes remain exact Plan volumes. The three complete
++BODY/TURN/APPROACH floor residuals remain at Y[-1,0), with their full source and
++WorkFace proof; only source primitives with actual above-plane air produce
++approach rows. No negative geometry is clipped or granted a support exception.
++A direct mutation regression rejects a changed residual. Readiness uses observed
++`source_work_observation_refusal`, then the concrete static final leaf and
++decoded `actor_phase_in`; no raw source phase bits or render-ready authority.
++
++The final START adversary moves the real worker after successful observations:
++payment, WIP, Work/XP/wear and Space remain unchanged; restoring that deliberate
++negative mutation permits the original unpaid phase to retry once. The terminal
++CUT adversary changes the borrowed context's full Site after observations;
++output and topology refuse, then the completed phase retries after its worker
++and tool claim are already released, without extra WU or duplicated earth.
++
++The old published v2 WALK refusal remains tested and unchanged. The v3 API and
++certificate are diagnostic prerequisites until1156 native/source integration
++is independently accepted. No source guard, budget or production artifact is
++relaxed here.
+ 
+ ## Memory and simultaneous lifetimes
+ 
+@@ -109,7 +137,7 @@
+ | Provider numeric fields | 146 |
+ | One original WorkFace Request | 68 |
+ | One I32 remaining-query result | 4 |
+-| New helper reservation (counted maximum429) | 512 |
++| New helper reservation (counted maximum485) | 512 |
+ | Included provisional reference/native allowance | 256 |
+ | Accounted / proposed global reserve | **986 / 1024** |
+ | Combined actual ordinary companion chain / existing reserve | **572 / 576** |
+@@ -166,6 +194,21 @@
+   all strict/raw diagnostics/leaks0 and analyzer0/4. The source-derived census
+   remains986/1024 and572/576; no numeric or native-reference member changed.
+ 
++- `paid-source-1`: actual path preparation passed, while Room admission refused
++  the fixture's Terrain subclass outside the exact WorkFace boundary. The real
++  source fixture now owns one concrete Terrain; production guards are unchanged.
++- `paid-source-2`:39/447/0, all zero diagnostics/leaks; actual confirmation only.
++- `paid-source-3`:21/243/1, all zero diagnostics/leaks. The full source floor
++  residuals exposed a Plan approach-row assumption; their full volumes were
++  retained while only genuine above-plane air now creates an approach row.
++- `paid-source-4`:21/250/1 plus two raw script errors from test-only Actor.x/y/z
++  access. The wrapper rejected this run; Actor.point is the actual API. No
++  success is claimed from its earlier underlying physical work.
++- `paid-source-5`:41/467/0, strict/raw/leaks0, analyzer0/4; first actual paid
++  BRACE/CUT/FINISH cube and directed recovery/retreat.
++- `paid-source-6`:43/496/0, strict/raw/leaks0, analyzer0/4; unchanged physical
++  positive plus late START worker and worker-free terminal refusal/retry cases.
++
+ ## Whole-room frontier responsibility
+ 
+ `next-frontier-readonly/README.md` pins the current integration source trace.
+@@ -175,7 +218,7 @@
+ next reachable Site or publishes the next supported station/route. The host
+ must sequence current BRACE/CUT/FINISH operations, genuine worker movement,
+ materials, output and settlement across the actual Room's full claimed cube
+-set. A one-cube positive will not establish whole Kitchen completion.
+-
+-No broader full-suite, real WALK-to-WORK handoff, production Profile renewal,
+-whole-World retirement, native memory or playable-delivery claim is made.
++set. The present one-cube positive does not establish whole Kitchen completion.
++
++No broader full-suite, production Profile renewal, whole-World retirement,
++native memory, whole-room progression or playable-delivery claim is made.
+--- source-review-3/docs/decisions/1152-ordinary-room-phase-composition.md
++++ source-review-4/docs/decisions/1152-ordinary-room-phase-composition.md
+@@ -72,7 +72,7 @@
+ It includes the configuration's thirteen borrowed references, three WeakRefs,
+ the one original 68-byte WorkFace request and one I32 remaining-work result.
+ The maximum direct numeric chain plus expression/inherited allowance is
+-429/512. The actual 48-byte provider preparation frame replaces the earlier
++485/512. The actual 48-byte provider preparation frame replaces the earlier
+ 40-byte callback allowance in the shared 1153 chain: 572/576, with no extra
+ context or helper reservation. The FINISH check's full private packets,
+ Clearance scratch, Snapshot header and conservative helper accounting use
+@@ -122,31 +122,29 @@
+ be reported as production source qualification. First playable Kitchen,
+ runtime timing and whole-process memory remain separate delivery gates.
+ 
+-The current `expired-entry-corrected` checkpoint passes 38 tests / 441 assertions with zero
+-strict/raw diagnostics or leaks and analyzer 0/4. Its ordinary fixture loads
+-the published Profile wire unchanged and proves the complete local FRONT16
+-work contact. It retains the actual WALK approach refusal: all-yaw held-tool
+-geometry reaches 1,256u from the root where the target wall is only 768u away.
+-The supplied narrow WALK/ready successor and a genuine directed retreat are
+-decision 1156's open dependency. Full ordinary START/work/settlement acceptance
+-is therefore still open. Two additional inherited Entry regressions use the
+-existing explicitly synthetic motion fixture only to verify source-dispatch
+-refusal and preservation of its real paid BRACE lifecycle. FINISH scope tests
+-use real paid phase state with an explicitly synthetic physical companion;
+-neither is relabeled as ordinary Room physical acceptance.
+-
+-Decision 1156 will change Routes' private phase encoding. This provider must
+-consume its reviewed public source-work observation and concrete final leaf;
+-it may not interpret encoded bits or use presentation readiness. The current
+-checkpoint remains tied to the preceding accepted encoding until that API is
+-integrated and the source packet is re-reviewed.
+-
+-The agreed 1156 source successor removes the duplicate-legacy-row concern:
+-its directional approach row5 reaches this +X station, SOURCE_WORK row24
+-replaces the current FRONT16, and backward row9 retreats along -X while the
+-body retains yaw49152. Those explicit selectors remain pending the reviewed
+-source policy/readiness integration. Worker-free selection continues to refuse
+-distinct qualifying alternatives; no arbitrary first-row rule is introduced.
++The current `paid-source-6` checkpoint passes43 tests /496 assertions with
++zero strict/raw diagnostics or leaks and analyzer0/4. It uses the root-authored
++create-only v3 diagnostic wire (content2, row revision1,26 profiles/250 boxes)
++and the exact hashed1156 API snapshot. Actual Room confirmation, forward row5,
++canonical FRONT WORK24 entry, BRACE/CUT/FINISH payment and work, recovery before
++Job/tool release, and backward row9 retreat all run through real owners. One
++cube consumes250 milli wood plus250 milli stone, earns9,000 mWU, and emits2,000
++milli earth. All remaining Kitchen claims remain unpaid. The old v2 WALK refusal
++and explicitly synthetic inherited component fixtures remain separately labeled.
++
++The complete source Plan retains all floor residual primitives; only an actual
++above-plane portion creates an approach row. Its full envelope, support and
++WorkFace proof remain mandatory. The provider uses decoded actor_phase_in and
++the observed/static source_work refusal pair; it never reads encoded private
++phase bits or presentation readiness. Two final actual adversaries preserve
++payment on late worker departure and preserve terminal output on original
++context drift, including worker-free retry without additional work.
++
++This is real geometry/economy composition under an explicit diagnostic source
++certificate, not1156 native/current-consumer publication acceptance. The
++immutable v3 wire never replaces oldv2 here, and no Catalog drift guard is
++bypassed. WorkFace fingerprint renewal and final production source admission
++remain the integration owner's separately reviewed step.
+ 
+ The late initialization review exercised ten null/foreign WorldRoutes field
+ changes in the real final Terrain callback. The accepted Placement guard

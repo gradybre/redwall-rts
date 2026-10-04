@@ -1,0 +1,959 @@
+state_registry_coverage: PASS -- 148 modules, 725 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_initial_actual_binding_uses_one_context_without_phase_permission (res://test/test_underground_room_world_phases.gd:273)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_initial_actual_binding_uses_one_context_without_phase_permission (res://test/test_underground_room_world_phases.gd:273)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_initial_actual_binding_uses_one_context_without_phase_permission
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_published_ground_profile_still_refuses_the_front_work_station_wall (res://test/test_underground_room_world_phases.gd:286)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_published_ground_profile_still_refuses_the_front_work_station_wall (res://test/test_underground_room_world_phases.gd:286)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_published_ground_profile_still_refuses_the_front_work_station_wall
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_actual_published_front_motion_fits_the_current_solid_face (res://test/test_underground_room_world_phases.gd:308)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_actual_published_front_motion_fits_the_current_solid_face (res://test/test_underground_room_world_phases.gd:308)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_published_front_motion_fits_the_current_solid_face
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_location_restore_invalidates_qualification_until_a_fresh_publication (res://test/test_underground_room_world_phases.gd:317)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_location_restore_invalidates_qualification_until_a_fresh_publication (res://test/test_underground_room_world_phases.gd:317)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_location_restore_invalidates_qualification_until_a_fresh_publication
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_actual_profile_publication_or_replacement_invalidates_the_qualification (res://test/test_underground_room_world_phases.gd:336)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_actual_profile_publication_or_replacement_invalidates_the_qualification (res://test/test_underground_room_world_phases.gd:336)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_profile_publication_or_replacement_invalidates_the_qualification
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_overflow_refuses_before_any_qualification_cache_mutation
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping (res://test/test_underground_room_world_phases.gd:357)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping (res://test/test_underground_room_world_phases.gd:357)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_actual_max_revision_source_makes_qualification_unavailable_without_wrapping
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_independent_catalog_change_and_coincident_foreign_revision_refuse_old_cache (res://test/test_underground_room_world_phases.gd:373)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_independent_catalog_change_and_coincident_foreign_revision_refuse_old_cache (res://test/test_underground_room_world_phases.gd:373)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_independent_catalog_change_and_coincident_foreign_revision_refuse_old_cache
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_work_endpoint_publication_without_space_change_invalidates_the_old_epoch (res://test/test_underground_room_world_phases.gd:388)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_work_endpoint_publication_without_space_change_invalidates_the_old_epoch (res://test/test_underground_room_world_phases.gd:388)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_work_endpoint_publication_without_space_change_invalidates_the_old_epoch
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context (res://test/test_underground_room_world_phases.gd:418)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context (res://test/test_underground_room_world_phases.gd:418)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context (res://test/test_underground_room_world_phases.gd:422)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context (res://test/test_underground_room_world_phases.gd:422)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_reentrant_initial_binding_refuses_without_allocating_or_publishing_context
+        ABORTED: 4 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry (res://test/test_underground_room_world_phases.gd:435)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry (res://test/test_underground_room_world_phases.gd:439)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry (res://test/test_underground_room_world_phases.gd:439)
+              [5] _run_test (res://test/run_tests.gd:194)
+              [6] _run_suite (res://test/run_tests.gd:168)
+              [7] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [8] _run_worker (res://test/run_tests.gd:121)
+              [9] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_late_initial_binding_loss_preserves_unbound_state_and_allows_corrected_retry
+        ABORTED: 3 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:471)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_late_initial_world_route_null_fields_preserve_unbound_state_and_retry
+        ABORTED: 24 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:476)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:476)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:476)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:477)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:477)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:477)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:477)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:478)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:453)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:478)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:478)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_contacts (res://test/test_underground_room_world_phases.gd:404)
+              [4] _late_initial_route_field (res://test/test_underground_room_world_phases.gd:462)
+              [5] test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry (res://test/test_underground_room_world_phases.gd:478)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_late_initial_world_route_foreign_sources_preserve_unbound_state_and_retry
+        ABORTED: 11 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_missing_original_weak_bindings_refuse_cleanly_at_current_and_final_boundaries (res://test/test_underground_room_world_phases.gd:493)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_missing_original_weak_bindings_refuse_cleanly_at_current_and_final_boundaries (res://test/test_underground_room_world_phases.gd:493)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_missing_original_weak_bindings_refuse_cleanly_at_current_and_final_boundaries
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits (res://test/test_underground_room_world_phases.gd:509)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits (res://test/test_underground_room_world_phases.gd:509)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_assigned_worker_keeps_its_actual_contact_when_a_second_full_motion_fits
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:58)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_even_a_remote_living_resident_requires_actual_physical_registration (res://test/test_underground_room_world_phases.gd:532)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+SCRIPT ERROR: Invalid access to property or key '_source_owner' on a base object of type 'RefCounted (ReenteringTerrain)'.
+          at: _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+          GDScript backtrace (most recent call first):
+              [0] _ordinary_initial_graph_refusal (res://scripts/core/underground_room_world_bindings.gd:99)
+              [1] _ordinary_bind_refusal (res://scripts/core/underground_room_world_bindings.gd:86)
+              [2] bind_room_phase_contacts (res://scripts/core/underground_room_world_bindings.gd:60)
+              [3] _bind_phase_provider (res://test/test_underground_room_world_phases.gd:229)
+              [4] _actual_fixture (res://test/test_underground_room_world_phases.gd:82)
+              [5] test_even_a_remote_living_resident_requires_actual_physical_registration (res://test/test_underground_room_world_phases.gd:532)
+              [6] _run_test (res://test/run_tests.gd:194)
+              [7] _run_suite (res://test/run_tests.gd:168)
+              [8] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [9] _run_worker (res://test/run_tests.gd:121)
+              [10] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_even_a_remote_living_resident_requires_actual_physical_registration
+        ABORTED: 2 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_actual_entry_corridor_without_contacts_cannot_use_the_ordinary_branch
+  PASS  test_shared_composite_preserves_real_entry_start_work_and_settlement
+CI_SUITE_TIME {"assertions":223,"failures":0,"suite":"test_underground_room_world_phases.gd","tests":18,"usec":7720275}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+18 test(s), 223 assertion(s), 15 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+error: 15 failing test(s).

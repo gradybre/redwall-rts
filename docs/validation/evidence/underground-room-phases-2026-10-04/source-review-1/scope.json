@@ -1,0 +1,10 @@
+{
+  "base": "7ecf15153031507dd59194b060708b5d8c1393fc",
+  "branch": "codex/underground-room-phases",
+  "source_frozen": true,
+  "full_paid_ordinary_positive": false,
+  "physical_blocker": "Published WALK1 cannot fit front wall; exact approach and directed retreat source/readiness in1156 remain pending. No synthetic success accepted for ordinary composition.",
+  "last_result": "fixture-14:35tests339assertions0; strict/raw/expected/tolerated/leaks0;analyzer0/4;allrestored",
+  "census_source": "../census.py",
+  "context": "Accepted1153 already committed; no active diagnostic source overlay."
+}

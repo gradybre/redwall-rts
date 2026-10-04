@@ -1,0 +1,37 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+  PASS  test_initial_actual_binding_uses_one_context_without_phase_permission
+  PASS  test_published_ground_profile_still_refuses_the_front_work_station_wall
+  PASS  test_actual_published_front_motion_fits_the_current_solid_face
+SCRIPT ERROR: Invalid call. Nonexistent function 'state_bytes' in base 'RefCounted (underground_locations.gd)'.
+          at: test_location_restore_invalidates_qualification_until_a_fresh_publication (res://test/test_underground_room_world_phases.gd:282)
+          GDScript backtrace (most recent call first):
+              [0] test_location_restore_invalidates_qualification_until_a_fresh_publication (res://test/test_underground_room_world_phases.gd:282)
+              [1] _run_test (res://test/run_tests.gd:194)
+              [2] _run_suite (res://test/run_tests.gd:168)
+              [3] _run_suite (/Users/brendan/Developer/redwall-rts-codex-ug-room-phases/tools/ci_test_shard_runner.gd:30)
+              [4] _run_worker (res://test/run_tests.gd:121)
+              [5] _initialize (res://test/run_tests.gd:108)
+  FAIL  test_location_restore_invalidates_qualification_until_a_fresh_publication
+        ABORTED: 1 script error(s) above ended this method early, so the
+        assertions after that point never ran
+  PASS  test_actual_profile_publication_or_replacement_invalidates_the_qualification
+  PASS  test_overflow_refuses_before_any_qualification_cache_mutation
+CI_SUITE_TIME {"assertions":25,"failures":0,"suite":"test_underground_room_world_phases.gd","tests":6,"usec":1491261}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+6 test(s), 25 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

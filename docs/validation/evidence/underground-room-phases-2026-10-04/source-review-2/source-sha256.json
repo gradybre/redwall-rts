@@ -1,0 +1,13 @@
+{
+  "godot/scripts/core/underground_room_world_bindings.gd": "1e35a1042893f4a8a5ef8806fd1090dc03d4d9d752e343047f0b847df166eb34",
+  "godot/scripts/core/underground_work_face.gd": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+  "godot/test/test_underground_room_world_phases.gd": "52f246b3068cf073a1df50f4c8e2506d319debfc2add0697a9ef2bcdd6d71d25",
+  "godot/test/test_underground_work_face.gd": "11773e347ccca62c37b9bf006a0dc98174e30c537e8c7538eb33c44c76b14633",
+  "docs/validation/evidence/underground-room-phases-2026-10-04/census.py": "3d52e02dd1d16ddeae8d8aaa73ac6ddebd314b64475662fe293b9a6064a00d03",
+  "docs/validation/evidence/underground-room-phases-2026-10-04/census.json": "5ae1d6eb63a4d0d4d70fb5b74fd96af10fee3b4d378615415e3e1c08227d533b",
+  "docs/validation/evidence/underground-room-phases-2026-10-04/reproduce.py": "ae8cc4cb30f1bc85d3b3c4491421360709bb6895cfd7a3c9db5bf8be7db19a81",
+  "docs/validation/evidence/underground-room-phases-2026-10-04/README.md": "8847f022034b98ee23b6abbecc86364ad9b1209608229e1b9cee4d33f30ecd6e",
+  "docs/decisions/1152-ordinary-room-phase-composition.md": "7501d9d8053b5d7031d949e9b451a57478ffa264a25f00fd29308eb7868a2f8f",
+  "godot/scripts/core/underground_room_world_bindings.gd.uid": "8dd9ded99f3cd2af91d165956b4dd93deedd0c75c0e0b294a31d2f0c1916d80e",
+  "godot/test/test_underground_room_world_phases.gd.uid": "9fbdc23d264ccaabc510eefbdfce340cb875a2bfdf3ef31b5f36ed30768732f0"
+}

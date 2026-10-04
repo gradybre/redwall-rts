@@ -1,0 +1,5 @@
+{
+  "godot/scripts/core/underground_space_authority.gd": true,
+  "godot/scripts/core/underground_connector_placements.gd": true,
+  "godot/scripts/core/underground_locations.gd": true
+}

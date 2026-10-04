@@ -1,0 +1,11 @@
+{
+  "base": "7ecf15153031507dd59194b060708b5d8c1393fc",
+  "branch": "codex/underground-room-phases",
+  "source_frozen": true,
+  "full_paid_ordinary_positive": false,
+  "physical_blocker": "Published v2 WALK1 cannot fit front wall; new1156 Approach5/WORK24/retreat9 source readiness remains pending. No synthetic successful ordinary composition accepted.",
+  "last_result": "fixture-17:37 tests/429 assertions/0; strict/raw/expected/tolerated/leaks0; analyzer0/4; all restored",
+  "review_delta": "Direct initialization reciprocal/source identity hardening plus named-refusal/unchanged-state/retry tests. The original Placement guard already refused all ten mutations; no crash or partial publication reproduced.",
+  "census_source": "../census.py",
+  "context": "Accepted1153 committed; no diagnostic source overlay or active engine. No source commit authorized until independent review."
+}

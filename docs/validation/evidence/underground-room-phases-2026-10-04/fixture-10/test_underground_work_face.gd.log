@@ -1,0 +1,42 @@
+state_registry_coverage: PASS -- 148 modules, 725 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_work_face.gd
+  PASS  test_exact_complete_corridor_and_authored_stroke_reach_one_solid_face
+  PASS  test_max_face_is_a_legal_exact_plane_without_reversing_already_oriented_boxes
+  PASS  test_interior_one_unit_void_hole_blocks_approach_even_when_endpoints_fit
+  PASS  test_actual_support_and_negative_body_residual_are_never_clipped
+  PASS  test_stroke_cannot_enter_a_second_solid_cube_or_floor
+  PASS  test_full_profile_endpoint_and_face_identity_are_mandatory
+  PASS  test_final_callback_drift_refuses_actual_replacement_and_mutated_input
+  PASS  test_foreign_arena_or_unbound_sources_never_allocate_geometry_permission
+  PASS  test_finite_scan_exhaustion_never_becomes_clearance
+  PASS  test_original_lease_must_cover_the_whole_packet_before_private_copies
+  PASS  test_reentry_poison_survives_final_otherwise_valid_source_read
+  PASS  test_complete_contact_patch_must_fit_one_face_with_the_matching_normal
+  PASS  test_first_endpoint_callback_replaced_lease_stops_before_later_reads
+  PASS  test_final_endpoint_callback_cannot_hide_new_actual_terrain_exclusions
+  PASS  test_final_endpoint_callback_cannot_hide_retained_actual_building_drift
+  PASS  test_region_callback_expired_lease_stops_before_target_terrain_observation
+  PASS  test_snapshot_source_callback_expired_lease_refuses_before_actual_image_allocation
+  PASS  test_finish_scope_requires_real_paid_history_before_nullable_admission_project
+  PASS  test_finish_scope_tracks_real_start_work_terminal_and_released_worker
+CI_SUITE_TIME {"assertions":206,"failures":0,"suite":"test_underground_work_face.gd","tests":19,"usec":5893225}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+19 test(s), 206 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 19 tests, 206 assertions, 0 failures.

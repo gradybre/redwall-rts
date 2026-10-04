@@ -1,0 +1,7 @@
+godot/scripts/core/excavation_sites.gd:1060:func open_phase(site: Vector2i, operation: int) -> Construction.OpResult:
+godot/scripts/core/excavation_sites.gd:1313:func begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
+godot/scripts/core/excavation_sites.gd:1323:	var result: Construction.OpResult = _begin_phase_work(site, now_tick)
+godot/scripts/core/excavation_sites.gd:1329:func _begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
+godot/scripts/core/excavation_sites.gd:1595:func settle_phase(site: Vector2i) -> Construction.OpResult:
+godot/scripts/core/excavation_sites.gd:1599:	return _leave_settlement(_settle_phase(site))
+godot/scripts/core/excavation_sites.gd:1602:func _settle_phase(site: Vector2i) -> Construction.OpResult:

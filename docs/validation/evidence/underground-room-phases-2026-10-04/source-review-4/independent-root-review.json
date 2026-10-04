@@ -1,0 +1,62 @@
+{
+  "candidate": "1152 source-review-4",
+  "reviewer": "integration owner /root, independent of author",
+  "source_pins": {
+    "godot/scripts/core/underground_room_world_bindings.gd": "699d17a27796f55cbaa4b08b22568de2ed838a5ceef1e10c90f6329d855e8ed9",
+    "godot/scripts/core/underground_work_face.gd": "fefccffb1a1f6ea79204f129a96a1bac687eb555a32b298f1d61267c31f0a295",
+    "godot/test/test_underground_room_world_phases.gd": "b19763f3a6a9bd73dea7d766f9ac90639999b486a465c8a176df8184a749a655",
+    "godot/test/test_underground_work_face.gd": "11773e347ccca62c37b9bf006a0dc98174e30c537e8c7538eb33c44c76b14633",
+    "docs/validation/evidence/underground-room-phases-2026-10-04/census.py": "467de8a43116297698623204b181b3de4b8876c817c0541496cbf9b7143d0a7e",
+    "docs/validation/evidence/underground-room-phases-2026-10-04/census.json": "74ece6f13efd76842751f8153faf912eba0b26c78c40497a5abaaa3a5478bea9",
+    "docs/validation/evidence/underground-room-phases-2026-10-04/reproduce.py": "ae8cc4cb30f1bc85d3b3c4491421360709bb6895cfd7a3c9db5bf8be7db19a81",
+    "docs/validation/evidence/underground-room-phases-2026-10-04/README.md": "b21d39d98118f72c5dd53db3ef45b3a2cebe9d6c752cd7b844a1fb8c848828a2",
+    "docs/decisions/1152-ordinary-room-phase-composition.md": "4506d910ef4e017e7adf67ce656c8c4d4bfefd5685180fdace41095f569952a2",
+    "godot/scripts/core/underground_room_world_bindings.gd.uid": "8dd9ded99f3cd2af91d165956b4dd93deedd0c75c0e0b294a31d2f0c1916d80e",
+    "godot/test/test_underground_room_world_phases.gd.uid": "9fbdc23d264ccaabc510eefbdfce340cb875a2bfdf3ef31b5f36ed30768732f0",
+    "docs/validation/evidence/underground-room-phases-2026-10-04/with_1156_diagnostic.py": "ace9d495608b6364425f471c0d40e3150e5c8c68ed40b00612e65b8e0dd698c1",
+    "docs/validation/evidence/underground-room-phases-2026-10-04/approach-profile-diagnostic-1/copied-inputs.json": "f6eac7e48b56f30abe4d169dd1fa3b587e7908b9feaad644d6ecd4845af3b69f"
+  },
+  "pins_verified": 13,
+  "reviewed_delta": "Complete final provider/readiness/contact delta, actual paid-source test fixture and adversarial mutations, source-census changes; prior source-review-2/3 review remains applicable.",
+  "findings": [],
+  "source_delta_accepted": true,
+  "scope": "Actual first-cube geometry/economy under immutable diagnostic v3 certificate; full native/source publication and playable whole-room progression remain open.",
+  "specific_checks": [
+    "All negative-Y floor residuals remain complete ENVELOPE plan rows; only above-floor BODY/TURN/APPROACH portions generate air contacts. WorkFace and final plan comparison remain mandatory.",
+    "Both observed and final source WORK readiness are required. Private tagged route phase is decoded, never mistaken for physical idle.",
+    "Actual Kitchen confirmation, directed forward/backward paths, BRACE/CUT/FINISH Work and Funding, recovery before claim release, and exact worker-free settlement are exercised.",
+    "Late actual worker departure preserves input and WIP; late full Site context mutation preserves terminal output and retries without extra work.",
+    "Independently re-executed census against exact six-file1156 diagnostic snapshot; semantic output exactly matched retained census.json."
+  ],
+  "evidence": {
+    "tests": 43,
+    "assertions": 496,
+    "failures": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0,
+    "expected": 0,
+    "tolerated": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "analyzer_warnings": 0,
+    "analyzed_files": 4,
+    "clean_import_diagnostics": 0,
+    "all_restoration_flags": true,
+    "first_cube_mwu": 9000,
+    "wood_milli": 250,
+    "stone_milli": 250,
+    "earth_milli": 2000
+  },
+  "memory": {
+    "provider_logical_helper_native_within_1024": 986,
+    "shared_companion_within_576": 572,
+    "cold_within_1048960": 1048912,
+    "native_measured": false
+  },
+  "accepted_for_author_commit": true,
+  "remaining": [
+    "Integrate unchanged1156 source API, qualified v3 source publication, and shared memory/registration",
+    "Whole-room frontier selection and actual atomic new contact publication",
+    "Real demo mounting, full lifecycle, persistence and256-resident qualification"
+  ]
+}

@@ -1,0 +1,25 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_world_phases.gd
+  FAIL  test_initial_actual_binding_uses_one_context_without_phase_permission
+        actual initial binding: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual bootstrap Site identity only (expected true, got false)", "actual bootstrap Site identity only (expected true, got false)", "actual bootstrap Site identity only (expected true, got false)", "actual bootstrap Site identity only (expected true, got false)", "actual supported endpoint (expected , got LOCATION_PAID_SITE_MISSING)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+        all original source owners current (expected true, got false)
+        painted Corridor is ordinary without a Placement (expected false, got true)
+        actual fixture: ["test-only geometry and actual source-bound pace (expected , got CONNECTOR_CATALOG_CONTENT_STALE)", "actual bootstrap Site identity only (expected true, got false)", "actual bootstrap Site identity only (expected true, got false)", "actual bootstrap Site identity only (expected true, got false)", "actual bootstrap Site identity only (expected true, got false)", "actual supported endpoint (expected , got LOCATION_PAID_SITE_MISSING)", "actual unused grouping (expected , got CONNECTOR_ASSEMBLY_SOURCE)", "same actual owner tuple (expected , got PLACEMENT_SOURCE)", "actual ordinary contacts (expected , got ROOM_PHASE_ACTUAL_BINDING)"] (expected true, got false)
+CI_SUITE_TIME {"assertions":8,"failures":1,"suite":"test_underground_room_world_phases.gd","tests":1,"usec":509190}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+1 test(s), 8 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

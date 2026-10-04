@@ -1,0 +1,21 @@
+{
+  "_bind_actor": 9,
+  "_bind_current_content": 21,
+  "_activate_program": 16,
+  "_build_stage": 7,
+  "_add_fixture_part": 16,
+  "_observe_clips": 14,
+  "_set_view": 13,
+  "_save_frame": 9,
+  "_observe_program": 23,
+  "_phase_state": 15,
+  "_quarter_turn": 8,
+  "_ceil_ratio": 4,
+  "_observe_native": 14,
+  "_local_matrix": 6,
+  "_expected_world": 13,
+  "_matrix_bytes": 9,
+  "_record_event": 19,
+  "_observe_transitions": 8,
+  "_finish": 16
+}

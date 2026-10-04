@@ -1,0 +1,12 @@
+{
+  "accepted": false,
+  "outer_refusal": "HANDOFF_NATIVE_IMAGES",
+  "native_exit": 0,
+  "native_poses": 3795,
+  "native_assertions": 125465,
+  "native_failures": 0,
+  "expected_images": 93,
+  "actual_images": 0,
+  "reason": "JSON Array elements are float; Array.has(integer_tick) does not select them. Fixed successor uses one explicit PackedInt32Array per program.",
+  "source_and_palette_qualification": false
+}

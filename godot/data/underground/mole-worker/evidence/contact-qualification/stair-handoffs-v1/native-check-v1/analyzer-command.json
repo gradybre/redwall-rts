@@ -1,0 +1,14 @@
+[
+  "python3",
+  "-B",
+  "tools/gdscript_warnings.py",
+  "--project",
+  "godot",
+  "--port",
+  "6149",
+  "--max",
+  "0",
+  "--json",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-check-v1/analyzer.json",
+  "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd"
+]

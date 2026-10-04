@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "scope": "exact current native execution source closure only; no regenerated palette or World/profile qualification",
+  "original_bake": "godot/data/underground/mole-worker/evidence/contact-qualification/high-wall-runtime-sources-v1/bake-spec.json",
+  "original_sha256": "f912989add1284bd8653ca7e071d1e5c577738e44f2e559e372fafbdaf420b86",
+  "current_bake_sha256": "063417e6f215fc80d820237c2af43ec162c0f0d6a18420c5cd7c20a28ea465c9",
+  "changes": [
+    {
+      "path": "res://demo/cast/underground_actor.gd",
+      "historical_sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "current_sha256": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91"
+    },
+    {
+      "path": "res://scripts/core/buildings.gd",
+      "historical_sha256": "ee2049178e1abee2d38fd26933f6620d445ec2ef48ca52ad8e0badde29452977",
+      "current_sha256": "c2d7920db451c829700e75b584ecb941901ab8a0465ba032d4d18b44383b5e04"
+    },
+    {
+      "path": "res://scripts/core/construction.gd",
+      "historical_sha256": "1ce4a49cebff074ac673d574af2b0e4d9b674ff7056d2524b63eabb5138f73c1",
+      "current_sha256": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a"
+    },
+    {
+      "path": "res://scripts/core/entity_directory.gd",
+      "historical_sha256": "0a143ce501ee8d634536d45f1e105f19ff0de16ddba9c614b864fe0e9d3468a2",
+      "current_sha256": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e"
+    },
+    {
+      "path": "res://scripts/core/excavation_contract.gd",
+      "historical_sha256": "fc97c2bc63099e5fdd3f5ccf081b94544f92ce38d85f1e2297766b7bb8471e4f",
+      "current_sha256": "9957fa1531bacc67bcd67dfd79620bc4164f2d648571eb2c7ea9f61ea52add4e"
+    },
+    {
+      "path": "res://scripts/core/inventory.gd",
+      "historical_sha256": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+      "current_sha256": "9f0c90374608154dd2ab65b57b6ea93b883fd627a01130a60deb1d50b2c67f34"
+    },
+    {
+      "path": "res://scripts/core/modular_project_contract.gd",
+      "historical_sha256": "3dbdac6d134bba1d22bb907382544b16b2d6666acabc7df62e6937b22b0dcb58",
+      "current_sha256": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135"
+    },
+    {
+      "path": "res://scripts/core/reservations.gd",
+      "historical_sha256": "0b29425425c07743cebc343a56958e8f2db054c255f44a25a9cc2813d693a2d2",
+      "current_sha256": "dd30bb3ce6df57c0df9418d1def4787309fa973f6aced30f73573c66706eff54"
+    },
+    {
+      "path": "res://scripts/core/resource_nodes.gd",
+      "historical_sha256": "064779f8a601f36e1909f5a00052dae3d6ca0d8f367b594807c000ac16b54465",
+      "current_sha256": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de"
+    },
+    {
+      "path": "res://scripts/core/transforms.gd",
+      "historical_sha256": "e0ddf877bcfee5f7372b88bf4c98fdbb2210f8c3397dae5d046fd8eed58c45c7",
+      "current_sha256": "75a07d3fb01806e96d0ac6aa12c7a85e4fd7073489cf1a86897c41ee501e8319"
+    },
+    {
+      "path": "res://scripts/core/world_init.gd",
+      "historical_sha256": "ce9545914469352b139786afef71def170cc94e61f5e7a0fe7aaa351106335c4",
+      "current_sha256": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
+    }
+  ],
+  "unchanged_raw_asset_and_import_rows": true
+}

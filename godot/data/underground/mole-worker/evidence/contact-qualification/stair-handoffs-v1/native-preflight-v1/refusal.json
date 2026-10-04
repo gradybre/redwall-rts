@@ -1,0 +1,7 @@
+{
+  "operation": "run_high_wall.pre_import_pins(capture_stair_handoffs.gd, high-wall-runtime-sources-v1/bake-spec.json)",
+  "refusal": "HIGH_WALL_PREIMPORT_SOURCE",
+  "godot_started": false,
+  "historical_bake_sha256": "f912989add1284bd8653ca7e071d1e5c577738e44f2e559e372fafbdaf420b86",
+  "capture_sha256": "21c20cc9b2a77551cc88aa7d9664e5104056ff75e5690b8427e03ceea957d822"
+}

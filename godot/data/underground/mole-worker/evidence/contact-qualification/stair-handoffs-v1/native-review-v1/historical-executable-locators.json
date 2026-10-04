@@ -1,0 +1,48 @@
+{
+  "schema": 1,
+  "scope": "Read-only exact historical source evidence locations; no live execution allowance.",
+  "changed_rows": [
+    {
+      "run": "native-v1",
+      "recorded_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd",
+      "sha256": "21c20cc9b2a77551cc88aa7d9664e5104056ff75e5690b8427e03ceea957d822",
+      "exact_bytes": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v1/capture_stair_handoffs.gd.txt"
+    },
+    {
+      "run": "native-v1",
+      "recorded_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/run_native_handoffs.py",
+      "sha256": "8a749b2eac003bff8e2990f8422baefb754636f17caa5ca2bb971bb291792946",
+      "exact_bytes": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v1/run_native_handoffs.py.txt"
+    },
+    {
+      "run": "native-v2",
+      "recorded_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd",
+      "sha256": "fb03087c274fc5418ef9b8a6d227c983b20a401a8fc6d5364b1b0c0bb83c40be",
+      "exact_bytes": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/capture_stair_handoffs.gd.txt"
+    },
+    {
+      "run": "native-v2",
+      "recorded_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/run_native_handoffs.py",
+      "sha256": "8a749b2eac003bff8e2990f8422baefb754636f17caa5ca2bb971bb291792946",
+      "exact_bytes": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v2/run_native_handoffs.py.txt"
+    },
+    {
+      "run": "native-v3",
+      "recorded_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd",
+      "sha256": "635ba054d32913b751ee24da7dd4ed7d11777eaed64a3f14639c9c8fd5dc58bc",
+      "exact_bytes": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v3/capture_stair_handoffs.gd.txt"
+    },
+    {
+      "run": "native-v4",
+      "recorded_path": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/capture_stair_handoffs.gd",
+      "sha256": "bcd8b718163d9a248978207865b96e78f84b87b18c6b23ae23439a6df15b052a",
+      "exact_bytes": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/native-v4/capture_stair_handoffs.gd.txt"
+    }
+  ],
+  "all_original_native_source_rows_verified": {
+    "native-v1": 911,
+    "native-v2": 911,
+    "native-v3": 911,
+    "native-v4": 911
+  }
+}

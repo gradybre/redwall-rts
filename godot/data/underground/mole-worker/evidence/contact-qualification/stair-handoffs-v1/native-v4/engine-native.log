@@ -1,0 +1,15 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+OpenGL API 4.1 Metal - 90.5 - Compatibility - Using Device: Apple - Apple M5 Pro
+
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+content-memory: before=159462978; after=160010458; prior_peak=257067466; peak=257067466; declared_peak=7039052; isolated=false
+handoff-shot: waiting side-approach-000
+handoff-shot: rendered side-approach-000
+handoff-shot: saved side-approach-000
+handoff-shot: hashed side-approach-000
+handoff-shot: recorded side-approach-000
+handoff-shot: waiting side-approach-060

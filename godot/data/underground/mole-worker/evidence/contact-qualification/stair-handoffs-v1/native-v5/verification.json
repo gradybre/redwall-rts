@@ -1,0 +1,10 @@
+{
+  "poses": 3795,
+  "joins": 12,
+  "screenshots": 93,
+  "bone_checks": 91080,
+  "world_checks": 7590,
+  "assertions": 125652,
+  "production_qualified": false,
+  "scope": "source_only_stair_handoffs_gl"
+}

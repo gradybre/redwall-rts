@@ -187,3 +187,41 @@ A separate scoped export follow-up must prove raw binary inclusion and exact
 cached source under debug/release settings. No shared export file is changed
 by this content component. Actual renderer attachment and whole-demo activation
 remain separate from successful headless source-geometry loading.
+
+## Published artifact attached to the actual native actor (implementation)
+
+The next additive witness subclasses the accepted protocol4 cardinal capture.
+It replaces synthetic profile construction with the reviewed Catalog's actual
+wire loader, complete row/pin verification, and `presentation_refusal` against
+the same WorldBasis and finite Domain subsequently bound to the actual Actor.
+The original event/contact/image oracle and inherited source poses stay fixed.
+Actual Resident/Job/Work/Gear identity remains real, while the World identity,
+terrain, paid target, material handling and productive credit remain explicitly
+fixture-only. The helper reports exact wire/source digest,18 selected pin tuples,
+all certificate flags and actual backend; positive image counts cannot stand in
+for these checks. Existing accepted helpers are not edited.
+
+The additive files are `capture_published_mole.gd`, `run_published_mole_capture.py`
+and `test_published_mole_capture.py` under the existing contact-qualification
+subtree. This validates attachment on the presently certified OpenGL backend.
+The actual demo's Forward Plus backend still needs its own source/basis/shader
+and native arithmetic closure; the demo renderer is not changed as a shortcut.
+The helper retains one shared WorldBasis and the existing source content; a
+fresh minimal18/194/1 Profile store replaces the fixture store before playback.
+Source/hash and native allocator observations remain distinct from any
+whole-client performance or memory qualification.
+
+The final actual-catalog native candidate passes7,792 poses/46,873 assertions,
+zero failures or raw diagnostics/leaks,14 Python checks and analyzer0/1. All
+7,648 driver events,144 contact records and304 renderedPNG bytes equal the
+accepted synthetic-profile witness. Actual source closures compare equal at
+584 pre-import and660 native entries. The exact current core script hashes
+are a separate runtime-input version; the two earlier old-source refusals,
+original offline proofs and executed historical helper bytes are preserved.
+The point reader borrows only two immutable vertex facts from the accepted
+cardinal-v5 spec and its output manifest; it never waives current sources.
+Root accepted the V3 source delta before native execution and final evidence
+on2026-10-04: all3 source/331 output/25 history pins matched, independent
+event/contact/image equality held, and no high/medium finding remained in
+this component scope. No World/paid-state/default-renderer permission is
+introduced, and current integration consumer drift requires new publication.

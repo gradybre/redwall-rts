@@ -1,0 +1,16 @@
+{
+  "command": [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--check-only",
+    "--script",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_published_mole.gd"
+  ],
+  "code": 0,
+  "source_sha256": "bbbeb53376eae13eae626c9a853da94b60c64bbab87c7fd12c924382e382e7a2",
+  "source_unchanged": true,
+  "own_override_restored": true,
+  "scope": "script parse only; no native source qualification"
+}

@@ -1,0 +1,379 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+[   0% ] first_scan_filesystem | Started Project initialization (5 steps)
+[   0% ] first_scan_filesystem | Scanning file structure...
+[  16% ] first_scan_filesystem | Loading global class names...
+[  33% ] first_scan_filesystem | Verifying GDExtensions...
+[  50% ] first_scan_filesystem | Creating autoload scripts...
+[  66% ] first_scan_filesystem | Initializing plugins...
+[  83% ] first_scan_filesystem | Starting file scan...
+[ DONE ] first_scan_filesystem
+
+[   0% ] update_scripts_classes | Started Registering global classes... (3 steps)
+[   0% ] update_scripts_classes | 
+[  25% ] update_scripts_classes | 
+[  50% ] update_scripts_classes | 
+[ DONE ] update_scripts_classes
+
+[   0% ] _update_scan_actions | Started Scanning actions... (196 steps)
+[   0% ] _update_scan_actions | body.glb
+[   0% ] _update_scan_actions | body_l0_metallic_roughness.png
+[   1% ] _update_scan_actions | body_l0_normal.png
+[   1% ] _update_scan_actions | body_texture_0.png
+[   2% ] _update_scan_actions | carry_heavy_object_walk.glb
+[   2% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[   3% ] _update_scan_actions | collect_object.glb
+[   3% ] _update_scan_actions | heavy_hammer_swing.glb
+[   4% ] _update_scan_actions | idle.glb
+[   4% ] _update_scan_actions | pull_radish.glb
+[   5% ] _update_scan_actions | sleep_normally.glb
+[   5% ] _update_scan_actions | stand_and_drink.glb
+[   6% ] _update_scan_actions | swim.glb
+[   6% ] _update_scan_actions | tread_water.glb
+[   7% ] _update_scan_actions | walk.glb
+[   7% ] _update_scan_actions | wave_one_hand.glb
+[   8% ] _update_scan_actions | body.glb
+[   8% ] _update_scan_actions | body_l0_metallic_roughness.png
+[   9% ] _update_scan_actions | body_l0_normal.png
+[   9% ] _update_scan_actions | body_texture_0.png
+[  10% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  10% ] _update_scan_actions | collect_object.glb
+[  11% ] _update_scan_actions | idle.glb
+[  11% ] _update_scan_actions | pull_radish.glb
+[  12% ] _update_scan_actions | stand_and_drink.glb
+[  12% ] _update_scan_actions | swim.glb
+[  13% ] _update_scan_actions | tread_water.glb
+[  13% ] _update_scan_actions | walk.glb
+[  14% ] _update_scan_actions | wave_one_hand.glb
+[  14% ] _update_scan_actions | body.glb
+[  15% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  15% ] _update_scan_actions | body_l0_normal.png
+[  16% ] _update_scan_actions | body_texture_0.png
+[  16% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  17% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  17% ] _update_scan_actions | collect_object.glb
+[  18% ] _update_scan_actions | heavy_hammer_swing.glb
+[  18% ] _update_scan_actions | idle.glb
+[  19% ] _update_scan_actions | pull_radish.glb
+[  19% ] _update_scan_actions | sleep_normally.glb
+[  20% ] _update_scan_actions | stand_and_drink.glb
+[  20% ] _update_scan_actions | swim.glb
+[  21% ] _update_scan_actions | tread_water.glb
+[  21% ] _update_scan_actions | walk.glb
+[  22% ] _update_scan_actions | wave_one_hand.glb
+[  22% ] _update_scan_actions | body.glb
+[  23% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  23% ] _update_scan_actions | body_l0_normal.png
+[  24% ] _update_scan_actions | body_texture_0.png
+[  24% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  25% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  25% ] _update_scan_actions | collect_object.glb
+[  26% ] _update_scan_actions | idle.glb
+[  26% ] _update_scan_actions | pull_radish.glb
+[  27% ] _update_scan_actions | sleep_normally.glb
+[  27% ] _update_scan_actions | stand_and_drink.glb
+[  28% ] _update_scan_actions | swim.glb
+[  28% ] _update_scan_actions | tread_water.glb
+[  29% ] _update_scan_actions | walk.glb
+[  29% ] _update_scan_actions | wave_one_hand.glb
+[  30% ] _update_scan_actions | body.glb
+[  30% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  31% ] _update_scan_actions | body_l0_normal.png
+[  31% ] _update_scan_actions | body_texture_0.png
+[  32% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  32% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  33% ] _update_scan_actions | collect_object.glb
+[  34% ] _update_scan_actions | idle.glb
+[  34% ] _update_scan_actions | pull_radish.glb
+[  35% ] _update_scan_actions | sleep_normally.glb
+[  35% ] _update_scan_actions | stand_and_drink.glb
+[  36% ] _update_scan_actions | swim.glb
+[  36% ] _update_scan_actions | tread_water.glb
+[  37% ] _update_scan_actions | walk.glb
+[  37% ] _update_scan_actions | wave_one_hand.glb
+[  38% ] _update_scan_actions | body.glb
+[  38% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  39% ] _update_scan_actions | body_l0_normal.png
+[  39% ] _update_scan_actions | body_texture_0.png
+[  40% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  40% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  41% ] _update_scan_actions | collect_object.glb
+[  41% ] _update_scan_actions | dive.glb
+[  42% ] _update_scan_actions | idle.glb
+[  42% ] _update_scan_actions | pull_radish.glb
+[  43% ] _update_scan_actions | sleep_normally.glb
+[  43% ] _update_scan_actions | stand_and_drink.glb
+[  44% ] _update_scan_actions | swim.glb
+[  44% ] _update_scan_actions | tread_water.glb
+[  45% ] _update_scan_actions | walk.glb
+[  45% ] _update_scan_actions | wave_one_hand.glb
+[  46% ] _update_scan_actions | body.glb
+[  46% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  47% ] _update_scan_actions | body_l0_normal.png
+[  47% ] _update_scan_actions | body_texture_0.png
+[  48% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  48% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  49% ] _update_scan_actions | collect_object.glb
+[  49% ] _update_scan_actions | dive.glb
+[  50% ] _update_scan_actions | idle.glb
+[  50% ] _update_scan_actions | pull_radish.glb
+[  51% ] _update_scan_actions | sleep_normally.glb
+[  51% ] _update_scan_actions | stand_and_drink.glb
+[  52% ] _update_scan_actions | swim.glb
+[  52% ] _update_scan_actions | tread_water.glb
+[  53% ] _update_scan_actions | walk.glb
+[  53% ] _update_scan_actions | wave_one_hand.glb
+[  54% ] _update_scan_actions | body.glb
+[  54% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  55% ] _update_scan_actions | body_l0_normal.png
+[  55% ] _update_scan_actions | body_texture_0.png
+[  56% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  56% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  57% ] _update_scan_actions | collect_object.glb
+[  57% ] _update_scan_actions | idle.glb
+[  58% ] _update_scan_actions | pull_radish.glb
+[  58% ] _update_scan_actions | sleep_normally.glb
+[  59% ] _update_scan_actions | stand_and_drink.glb
+[  59% ] _update_scan_actions | swim.glb
+[  60% ] _update_scan_actions | tread_water.glb
+[  60% ] _update_scan_actions | walk.glb
+[  61% ] _update_scan_actions | wave_one_hand.glb
+[  61% ] _update_scan_actions | body.glb
+[  62% ] _update_scan_actions | body_l0_metallic_roughness.png
+[  62% ] _update_scan_actions | body_l0_normal.png
+[  63% ] _update_scan_actions | body_texture_0.png
+[  63% ] _update_scan_actions | carry_heavy_object_walk.glb
+[  64% ] _update_scan_actions | cautious_crouch_walk_forward.glb
+[  64% ] _update_scan_actions | collect_object.glb
+[  65% ] _update_scan_actions | idle.glb
+[  65% ] _update_scan_actions | pull_radish.glb
+[  66% ] _update_scan_actions | sleep_normally.glb
+[  67% ] _update_scan_actions | stand_and_drink.glb
+[  67% ] _update_scan_actions | swim.glb
+[  68% ] _update_scan_actions | tread_water.glb
+[  68% ] _update_scan_actions | walk.glb
+[  69% ] _update_scan_actions | wave_one_hand.glb
+[  69% ] _update_scan_actions | item_barley.png
+[  70% ] _update_scan_actions | item_beetroot.png
+[  70% ] _update_scan_actions | item_carrot.png
+[  71% ] _update_scan_actions | item_celery.png
+[  71% ] _update_scan_actions | item_leek.png
+[  72% ] _update_scan_actions | item_lettuce.png
+[  72% ] _update_scan_actions | item_oats.png
+[  73% ] _update_scan_actions | item_onion.png
+[  73% ] _update_scan_actions | item_peas.png
+[  74% ] _update_scan_actions | item_radish.png
+[  74% ] _update_scan_actions | item_turnip.png
+[  75% ] _update_scan_actions | item_barley.glb
+[  75% ] _update_scan_actions | item_barley_base.png
+[  76% ] _update_scan_actions | item_barley_normal.png
+[  76% ] _update_scan_actions | item_barley_rough.png
+[  77% ] _update_scan_actions | item_beetroot.glb
+[  77% ] _update_scan_actions | item_beetroot_base.png
+[  78% ] _update_scan_actions | item_beetroot_normal.png
+[  78% ] _update_scan_actions | item_beetroot_rough.png
+[  79% ] _update_scan_actions | item_carrot.glb
+[  79% ] _update_scan_actions | item_carrot_base.png
+[  80% ] _update_scan_actions | item_carrot_normal.png
+[  80% ] _update_scan_actions | item_carrot_rough.png
+[  81% ] _update_scan_actions | item_celery.glb
+[  81% ] _update_scan_actions | item_celery_base.png
+[  82% ] _update_scan_actions | item_celery_normal.png
+[  82% ] _update_scan_actions | item_celery_rough.png
+[  83% ] _update_scan_actions | item_leek.glb
+[  83% ] _update_scan_actions | item_leek_base.png
+[  84% ] _update_scan_actions | item_leek_normal.png
+[  84% ] _update_scan_actions | item_leek_rough.png
+[  85% ] _update_scan_actions | item_lettuce.glb
+[  85% ] _update_scan_actions | item_lettuce_base.png
+[  86% ] _update_scan_actions | item_lettuce_normal.png
+[  86% ] _update_scan_actions | item_lettuce_rough.png
+[  87% ] _update_scan_actions | item_oats.glb
+[  87% ] _update_scan_actions | item_oats_base.png
+[  88% ] _update_scan_actions | item_oats_normal.png
+[  88% ] _update_scan_actions | item_oats_rough.png
+[  89% ] _update_scan_actions | item_onion.glb
+[  89% ] _update_scan_actions | item_onion_base.png
+[  90% ] _update_scan_actions | item_onion_normal.png
+[  90% ] _update_scan_actions | item_onion_rough.png
+[  91% ] _update_scan_actions | item_peas.glb
+[  91% ] _update_scan_actions | item_peas_base.png
+[  92% ] _update_scan_actions | item_peas_normal.png
+[  92% ] _update_scan_actions | item_peas_rough.png
+[  93% ] _update_scan_actions | item_radish.glb
+[  93% ] _update_scan_actions | item_radish_base.png
+[  94% ] _update_scan_actions | item_radish_normal.png
+[  94% ] _update_scan_actions | item_radish_rough.png
+[  95% ] _update_scan_actions | item_turnip.glb
+[  95% ] _update_scan_actions | item_turnip_base.png
+[  96% ] _update_scan_actions | item_turnip_normal.png
+[  96% ] _update_scan_actions | item_turnip_rough.png
+[  97% ] _update_scan_actions | mole_pick.glb
+[  97% ] _update_scan_actions | mole_pick_base.png
+[  98% ] _update_scan_actions | mole_pick_normal.png
+[  98% ] _update_scan_actions | mole_pick_rough.png
+[ DONE ] _update_scan_actions
+
+[   0% ] reimport | Started (Re)Importing Assets (74 steps)
+[   0% ] reimport | Preparing files to reimport...
+[   1% ] reimport | Preparing files to reimport...
+[   2% ] reimport | Preparing files to reimport...
+[   4% ] reimport | Preparing files to reimport...
+[   5% ] reimport | Preparing files to reimport...
+[   6% ] reimport | Preparing files to reimport...
+[   8% ] reimport | Preparing files to reimport...
+[   9% ] reimport | Preparing files to reimport...
+[  10% ] reimport | Preparing files to reimport...
+[  12% ] reimport | Preparing files to reimport...
+[  13% ] reimport | Preparing files to reimport...
+[  14% ] reimport | Preparing files to reimport...
+[  16% ] reimport | Preparing files to reimport...
+[  17% ] reimport | Preparing files to reimport...
+[  18% ] reimport | Preparing files to reimport...
+[  20% ] reimport | Preparing files to reimport...
+[  21% ] reimport | Preparing files to reimport...
+[  22% ] reimport | Preparing files to reimport...
+[  24% ] reimport | Preparing files to reimport...
+[  25% ] reimport | Preparing files to reimport...
+[  26% ] reimport | Preparing files to reimport...
+[  28% ] reimport | Preparing files to reimport...
+[  29% ] reimport | Preparing files to reimport...
+[  30% ] reimport | Preparing files to reimport...
+[  32% ] reimport | Preparing files to reimport...
+[  33% ] reimport | Preparing files to reimport...
+[  34% ] reimport | Preparing files to reimport...
+[  36% ] reimport | Preparing files to reimport...
+[  37% ] reimport | Preparing files to reimport...
+[  38% ] reimport | Preparing files to reimport...
+[  40% ] reimport | Preparing files to reimport...
+[  41% ] reimport | Preparing files to reimport...
+[  42% ] reimport | Preparing files to reimport...
+[  44% ] reimport | Preparing files to reimport...
+[  45% ] reimport | Preparing files to reimport...
+[  46% ] reimport | Preparing files to reimport...
+[  48% ] reimport | Preparing files to reimport...
+[  49% ] reimport | Preparing files to reimport...
+[  50% ] reimport | Preparing files to reimport...
+[  52% ] reimport | Preparing files to reimport...
+[  53% ] reimport | Preparing files to reimport...
+[  54% ] reimport | Preparing files to reimport...
+[  56% ] reimport | Preparing files to reimport...
+[  57% ] reimport | Preparing files to reimport...
+[  58% ] reimport | Preparing files to reimport...
+[  60% ] reimport | Preparing files to reimport...
+[  61% ] reimport | Preparing files to reimport...
+[  62% ] reimport | Preparing files to reimport...
+[  64% ] reimport | Preparing files to reimport...
+[  65% ] reimport | Preparing files to reimport...
+[  66% ] reimport | Preparing files to reimport...
+[  68% ] reimport | Preparing files to reimport...
+[  69% ] reimport | Preparing files to reimport...
+[  70% ] reimport | Preparing files to reimport...
+[  72% ] reimport | Preparing files to reimport...
+[  73% ] reimport | Preparing files to reimport...
+[  74% ] reimport | Preparing files to reimport...
+[  76% ] reimport | Preparing files to reimport...
+[  77% ] reimport | Preparing files to reimport...
+[  78% ] reimport | Preparing files to reimport...
+[  80% ] reimport | Preparing files to reimport...
+[  81% ] reimport | Preparing files to reimport...
+[  82% ] reimport | Preparing files to reimport...
+[  84% ] reimport | Preparing files to reimport...
+[  85% ] reimport | Preparing files to reimport...
+[  86% ] reimport | Preparing files to reimport...
+[  88% ] reimport | Preparing files to reimport...
+[  89% ] reimport | Preparing files to reimport...
+[  90% ] reimport | Preparing files to reimport...
+[  92% ] reimport | Preparing files to reimport...
+[  93% ] reimport | Preparing files to reimport...
+[  94% ] reimport | Preparing files to reimport...
+[  96% ] reimport | Preparing files to reimport...
+[  97% ] reimport | Preparing files to reimport...
+[   0% ] reimport | Executing pre-reimport operations...
+[   0% ] reimport | item_lettuce_normal.png
+[   1% ] reimport | item_lettuce_base.png
+[   2% ] reimport | item_leek_rough.png
+[   4% ] reimport | item_leek_normal.png
+[   5% ] reimport | item_leek_base.png
+[   6% ] reimport | item_celery_rough.png
+[   8% ] reimport | item_celery_normal.png
+[   9% ] reimport | item_celery_base.png
+[  10% ] reimport | item_carrot_rough.png
+[  12% ] reimport | item_carrot_normal.png
+[  13% ] reimport | item_carrot_base.png
+[  14% ] reimport | item_beetroot_rough.png
+[  16% ] reimport | item_beetroot_normal.png
+[  17% ] reimport | item_beetroot_base.png
+[  18% ] reimport | item_barley_rough.png
+[  20% ] reimport | item_barley_normal.png
+[  21% ] reimport | item_barley_base.png
+[  22% ] reimport | item_turnip.png
+[  24% ] reimport | mole_pick_rough.png
+[  25% ] reimport | mole_pick_normal.png
+[  26% ] reimport | mole_pick_base.png
+[  28% ] reimport | item_turnip_rough.png
+[  29% ] reimport | item_turnip_normal.png
+[  30% ] reimport | item_turnip_base.png
+[  32% ] reimport | item_radish_rough.png
+[  33% ] reimport | item_radish_normal.png
+[  34% ] reimport | item_radish_base.png
+[  36% ] reimport | item_peas_rough.png
+[  37% ] reimport | item_peas_normal.png
+[  38% ] reimport | item_peas_base.png
+[  40% ] reimport | item_onion_rough.png
+[  41% ] reimport | item_onion_normal.png
+[  42% ] reimport | item_onion_base.png
+[  44% ] reimport | item_oats_rough.png
+[  45% ] reimport | item_oats_normal.png
+[  46% ] reimport | item_oats_base.png
+[  48% ] reimport | item_lettuce_rough.png
+[  49% ] reimport | body_texture_0.png
+[  49% ] reimport | body_texture_0.png
+[  50% ] reimport | body_l0_normal.png
+[  52% ] reimport | body_l0_metallic_roughness.png
+[  53% ] reimport | body_texture_0.png
+[  54% ] reimport | body_l0_normal.png
+[  56% ] reimport | body_l0_metallic_roughness.png
+[  57% ] reimport | body_texture_0.png
+[  58% ] reimport | body_l0_normal.png
+[  60% ] reimport | body_l0_metallic_roughness.png
+[  61% ] reimport | body_texture_0.png
+[  62% ] reimport | body_l0_normal.png
+[  64% ] reimport | body_l0_metallic_roughness.png
+[  65% ] reimport | body_texture_0.png
+[  66% ] reimport | body_l0_normal.png
+[  68% ] reimport | body_l0_metallic_roughness.png
+[  69% ] reimport | body_texture_0.png
+[  70% ] reimport | body_l0_normal.png
+[  72% ] reimport | body_l0_metallic_roughness.png
+[  73% ] reimport | item_radish.png
+[  74% ] reimport | item_peas.png
+[  76% ] reimport | item_onion.png
+[  77% ] reimport | item_oats.png
+[  78% ] reimport | item_lettuce.png
+[  80% ] reimport | item_leek.png
+[  81% ] reimport | item_celery.png
+[  82% ] reimport | item_carrot.png
+[  84% ] reimport | item_beetroot.png
+[  85% ] reimport | item_barley.png
+[  86% ] reimport | body_texture_0.png
+[  88% ] reimport | body_l0_normal.png
+[  89% ] reimport | body_l0_metallic_roughness.png
+[  90% ] reimport | body_texture_0.png
+[  92% ] reimport | body_l0_normal.png
+[  93% ] reimport | body_l0_metallic_roughness.png
+[  94% ] reimport | body_texture_0.png
+[  96% ] reimport | body_l0_normal.png
+[  97% ] reimport | body_l0_metallic_roughness.png
+[  98% ] reimport | Finalizing Asset Import...
+[ DONE ] reimport
+
+[   0% ] reimport | Started (Re)Importing Assets (74 steps)
+[   0% ] reimport | Executing post-reimport operations...
+[ DONE ] reimport
+
+[   0% ] loading_editor_layout | Started Loading editor (5 steps)
+[   0% ] loading_editor_layout | Loading editor layout...
+[  16% ] loading_editor_layout | Loading docks...
+[ DONE ] loading_editor_layout
+

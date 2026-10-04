@@ -1,0 +1,13 @@
+{
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/run_published_mole_capture.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-published-mole-v1"
+  ],
+  "exit_code": 1,
+  "native_output_created": false,
+  "engine_started": false,
+  "override_exists": false,
+  "sources_unchanged": true,
+  "scope": "Preserved pre-engine native source-manifest refusal; current owners require explicitly versioned input closure."
+}

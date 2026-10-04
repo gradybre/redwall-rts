@@ -557,6 +557,21 @@ class PhaseSpatialFixture extends EntryTests.PhysicalBinding:
 		"""Real created Room full identity replaces the old standalone economy fixture's invented70000 namespace."""
 		return &"" if ids != null and ids.is_valid_of_kind(room, Directory.KIND_ROOM) else &"TEST_PHASE_ROOM_STALE"
 
+	func final_start_leaf_refusal(_origin: Vector3i, _operation: int, room: Vector2i) -> StringName:
+		"""Synthetic geometry retains its real created Room generation through the actual guarded Sites START."""
+		if start_leaf_block != &"": return start_leaf_block
+		if pending_stage != PhaseContract.STAGE_START or ids == null \
+				or not ids.is_valid_of_kind(room, Directory.KIND_ROOM): return &"SYNTHETIC_START_STALE"
+		if block_operation != &"": return block_operation
+		return block_worker if block_worker != &"" else block_output
+
+	func final_settlement_leaf_refusal(_origin: Vector3i, _operation: int,
+			stage: int, room: Vector2i) -> StringName:
+		"""The same actual full Room survives worker-free settlement; no generation1 fixture assumption is retained."""
+		if pending_stage != stage or ids == null \
+				or not ids.is_valid_of_kind(room, Directory.KIND_ROOM): return &"SYNTHETIC_SETTLEMENT_STALE"
+		return block_operation
+
 class PhaseFixture extends ContactFixture:
 	## Actual Sites/accounting and actual Contacts; inherited geometry authority is explicitly synthetic in this unit fixture.
 

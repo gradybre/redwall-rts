@@ -20,7 +20,35 @@ const Router := preload("res://scripts/core/modular_projects.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
+const ActualTransforms := preload("res://scripts/core/transforms.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
+
+
+class ObservedTransforms extends ActualTransforms:
+
+	var reads: int = 0
+	var move_after_copy: bool = false
+	var moved: bool = false
+
+	func read_into(ref: Vector2i, out: ActualTransforms.Pose) -> bool:
+		"""A real public observation can copy a valid old pose and then move its authoritative owner."""
+		var result: bool = super.read_into(ref, out)
+		reads += 1
+		if result and move_after_copy:
+			move_after_copy = false
+			moved = advance(ref, out.x + 1, out.y, out.z)
+		return result
+
+
+class ObservedRouteFixture extends RouteFixture:
+
+	func _make_profiles() -> void:
+		"""Bind every actual collaborator to the observed Transform before any profile or actor exists."""
+		_transforms = ObservedTransforms.new(_residents.directory())
+		assert_true(_transforms.place(_worker, -512, 0, 512, 0), "actual observed pose")
+		super._make_profiles()
+
+
 var _fixture: RouteFixture = null
 var _orders: Orders = null
 var _entry_bindings: EntryTests.EntryBindings = null
@@ -31,7 +59,7 @@ var _physical: PhysicalTests.SpatialFixture = null
 
 func before_each() -> void:
 	"""Reuse the actual route stores; fixture assertions propagate without duplicating its test suite."""
-	_fixture = RouteFixture.new()
+	_fixture = ObservedRouteFixture.new()
 	_fixture.before_each()
 	assert_true(_fixture.failures.is_empty(), "real fixture setup: %s" % _fixture.failures)
 
@@ -468,6 +496,85 @@ func test_idle_resident_matches_actual_transform_and_location() -> void:
 	assert_equal(source.reads, 0, "no recursive resident observer")
 	assert_true(_fixture._transforms.advance(_fixture._worker, -511, 0, 512), "real Transform mutation")
 	assert_equal(_final(), &"ROUTE_ACTOR_POSITION_DRIFT", "endpoint root no longer matches")
+
+
+func test_idle_final_leaf_skips_late_public_transform_reader() -> void:
+	"""The final source census must not accept copied-old/current-new pose from a late observation."""
+	var location: Vector2i = _fixture._location(Vector3i(-512, 0, 512))
+	assert_equal(_fixture._routes.admit_actor(_fixture._worker, NULL_REF, location, Profiles.MODE_WALK, 0, -1), &"", "actual actor")
+	_source(_fixture._worker)
+	_assert_final_transform_observer_is_bypassed()
+
+
+func test_transit_final_leaf_skips_late_public_transform_reader() -> void:
+	"""The same pure pose proof keeps full moving-span and exact integer progress semantics."""
+	_fixture._moving_actor()
+	assert_equal(_fixture._routes.advance_tick(1), 1, "actual actor enters span")
+	_source(_fixture._worker)
+	_assert_final_transform_observer_is_bypassed()
+
+
+func _assert_final_transform_observer_is_bypassed() -> void:
+	"""Keep the override mechanism active and prove actual later mutation is still detected."""
+	var observed: ObservedTransforms = _fixture._transforms as ObservedTransforms
+	var before: PackedByteArray = observed.state_bytes()
+	observed.reads = 0
+	observed.move_after_copy = true
+	assert_equal(_final(), &"", "current packed source facts")
+	assert_equal(observed.reads, 0, "no final public Transform observer")
+	assert_false(observed.moved, "final source proof cannot trigger a late movement")
+	assert_true(observed.state_bytes() == before, "all actual Transform fields unchanged")
+	var copied: ActualTransforms.Pose = ActualTransforms.Pose.new()
+	assert_true(observed.read_into(_fixture._worker, copied), "ordinary public observation still runs")
+	assert_true(observed.moved, "real mutation after old pose copy")
+	assert_equal(observed.reads, 1, "exactly the explicit observation")
+	assert_equal(_final(), &"ROUTE_ACTOR_POSITION_DRIFT", "final proof reads current packed pose")
+	assert_equal(observed.reads, 1, "refused final proof also skips observers")
+
+
+func test_final_pose_requires_actual_persistent_transform_binding() -> void:
+	"""A same-slot Transform bound to another persistent identity cannot supply source facts."""
+	var ids: Directory = _fixture._residents.directory()
+	var worker: Vector2i = _fixture._worker
+	var position: int = ActualTransforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + ids.get_typed_row(worker)
+	var original: int = _fixture._transforms._bound_persistent_id[position]
+	_fixture._transforms._bound_persistent_id[position] = original + 1
+	_assert_stale_pose_preserves_scratch(worker)
+	_fixture._transforms._bound_persistent_id[position] = original
+	assert_equal(FinalFacts._resident_pose_into(_fixture._routes, worker), ids.get_typed_row(worker), "actual PID can retry")
+	assert_equal((_fixture._transforms as ObservedTransforms).reads, 0, "no public reads during identity proof")
+
+
+func test_final_pose_requires_full_directory_generation_and_reverse_row() -> void:
+	"""Directory kind, generation, typed bounds and reverse owner remain mandatory before any pose copy."""
+	var ids: Directory = _fixture._residents.directory()
+	var worker: Vector2i = _fixture._worker
+	var row: int = ids.get_typed_row(worker)
+	var mirror: int = ids._kind_base[Directory.KIND_RESIDENT] + row
+	_assert_stale_pose_preserves_scratch(Vector2i(worker.x, worker.y + 1))
+	ids._typed_owner_slot[mirror] = -1
+	_assert_stale_pose_preserves_scratch(worker)
+	ids._typed_owner_slot[mirror] = worker.x
+	ids._typed_row[worker.x] = Directory.KIND_CAPACITY[Directory.KIND_RESIDENT]
+	_assert_stale_pose_preserves_scratch(worker)
+	ids._typed_row[worker.x] = row
+	ids._kind[worker.x] = Directory.KIND_BUILDING
+	_assert_stale_pose_preserves_scratch(worker)
+	ids._kind[worker.x] = Directory.KIND_RESIDENT
+	assert_equal(FinalFacts._resident_pose_into(_fixture._routes, worker), row, "exact mirrored identity can retry")
+
+
+func _assert_stale_pose_preserves_scratch(worker: Vector2i) -> void:
+	"""Refusal must not overwrite caller Facts or the preallocated Pose, or dispatch an observer."""
+	var facts: Owner.Facts = Owner.Facts.new()
+	facts.a = 987654
+	_fixture._routes._pose.x = 765432
+	var observed: ObservedTransforms = _fixture._transforms as ObservedTransforms
+	observed.reads = 0
+	assert_equal(FinalFacts._resident_into(_fixture._routes, _fixture._locations, worker, facts), &"ROUTE_ACTOR_STALE", "full actual binding required")
+	assert_equal(facts.a, 987654, "refused source output untouched")
+	assert_equal(_fixture._routes._pose.x, 765432, "refused pose output untouched")
+	assert_equal(observed.reads, 0, "refusal never observes Transform")
 
 
 func test_transit_resident_uses_exact_current_segment_and_generation() -> void:

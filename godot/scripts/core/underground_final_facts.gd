@@ -7,6 +7,7 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const Transforms := preload("res://scripts/core/transforms.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const RoomOrders := preload("res://scripts/core/underground_room_orders.gd")
 const EntryPlan := preload("res://scripts/core/underground_entry_plan.gd")
@@ -363,9 +364,9 @@ static func _resident_into(actual: Routes, locations: Locations, worker: Vector2
 	"""Use actual packed movement and leaf Transform facts, never ResidentLocations/read_actor hooks."""
 	if actual._edge_capacity <= 0 or actual._profiles == null or actual._work == null or actual._work.jobs() != actual._jobs:
 		return &"ROUTE_ACTOR_UNBOUND"
-	if not actual._ids.is_valid_of_kind(worker, Directory.KIND_RESIDENT) or not actual._transforms.read_into(worker, actual._pose):
+	var row: int = _resident_pose_into(actual, worker)
+	if row < 0:
 		return &"ROUTE_ACTOR_STALE"
-	var row: int = actual._ids.get_typed_row(worker)
 	if actual._resident_ref(row) != worker or not actual._residents.is_alive(row):
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
 	var code: StringName = _resident_location_refusal(actual, locations, row)
@@ -378,6 +379,38 @@ static func _resident_into(actual: Routes, locations: Locations, worker: Vector2
 	out.c = actual._pose.z
 	out.d = actual._motion.resident[Routes.R_MODE * Routes.RESIDENT_CAPACITY + row]
 	return &""
+
+
+static func _resident_pose_into(actual: Routes, worker: Vector2i) -> int:
+	"""Read a full mirrored Resident and its bound PID before copying any current Transform scratch."""
+	var ids: Directory = actual._ids
+	var transforms: Transforms = actual._transforms
+	var slot: int = worker.x
+	if ids == null or transforms == null or transforms._directory != ids or slot < 0 or slot >= Directory.DIRECTORY_CAPACITY:
+		return -1
+	if ids._active[slot] != 1 or ids._generation[slot] != worker.y or ids._kind[slot] != Directory.KIND_RESIDENT:
+		return -1
+	var row: int = ids._typed_row[slot]
+	if row < 0 or row >= Directory.KIND_CAPACITY[Directory.KIND_RESIDENT] \
+			or ids._typed_owner_slot[ids._kind_base[Directory.KIND_RESIDENT] + row] != slot:
+		return -1
+	var position: int = Transforms.POSITIONED_BASE[Directory.KIND_RESIDENT] + row
+	if ids._persistent_id[slot] <= 0 or transforms._bound_persistent_id[position] != ids._persistent_id[slot]:
+		return -1
+	_copy_pose(transforms, position, actual._pose)
+	return row
+
+
+static func _copy_pose(transforms: Transforms, row: int, out: Transforms.Pose) -> void:
+	"""The final proof bypasses overridable Transform readers and does not change Transform refusal state."""
+	out.x = transforms._x[row]
+	out.y = transforms._y[row]
+	out.z = transforms._z[row]
+	out.yaw = transforms._yaw[row]
+	out.prev_x = transforms._prev_x[row]
+	out.prev_y = transforms._prev_y[row]
+	out.prev_z = transforms._prev_z[row]
+	out.prev_yaw = transforms._prev_yaw[row]
 
 
 static func _resident_location_refusal(actual: Routes, locations: Locations, row: int) -> StringName:

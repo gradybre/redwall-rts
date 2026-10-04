@@ -211,3 +211,50 @@ strict/raw diagnostic and leak counts zero. Analyzer was 0/4 on the pinned
 Owner/Routes source and test pair. Exact evidence and the explicitly rejected
 intermediate test batches are under
 `docs/validation/evidence/underground-connector-placements-2026-10-03/scoped-copy-4/`.
+
+## Correct final Resident Transform observations (Contacts review)
+
+The original final Resident path still called public `Transforms.read_into`.
+An actual Transform subclass could copy the old pose into Routes' scratch,
+move the Resident, and return success. The final source census then accepted
+the copied pose. This was reproduced for both idle and moving actors; the
+rejected run has two failing tests and zero diagnostics or leaks. A caller's
+earlier dynamic-worker proof did not make this later observation safe.
+
+The static final path now reads the actual bound Transform columns. Before
+writing the existing Pose scratch, it checks the exact Directory instance,
+full active Resident generation and kind, typed-row bounds and reverse owner,
+and the positive persistent ID bound to that Transform row. It copies the same
+eight current/previous pose scalars without calling the public reader or
+changing Transform refusal state. Existing committed actor, living Resident,
+Room, section, endpoint, span-generation and exact integer progress checks
+remain unchanged. Invalid identity leaves Facts and Pose scratch untouched.
+
+No authoritative or retained field, packed column, epoch, snapshot or new
+permission is added. The ordinary source observers remain available; consumers
+must still finish their own observers before this final proof. Contacts' other
+dynamic selection and installed-bearing corrections are separate work.
+
+The new direct-copy branch uses 88 simultaneous logical numeric frame bytes
+for the ordinary final query: 16 for query parameters, 16 for source row/ref,
+16 for Resident ref/row, 32 for the new full-identity/position-row helper, and
+8 for its scalar-copy row. The prepared-Room caller's larger existing parameter
+frames raise this copy branch to 112 bytes. Both fit the existing helper
+allowance; the original transit interpolation/length branches do not coexist
+with the new copy helper and are unchanged. The per-Resident 256-check charge
+still covers this smaller direct read. Existing native/reference obligations
+and performance limits remain open.
+
+The corrected clean isolated-user run passed 121 tests / 11728 assertions /
+0 failures: FinalFacts 29/1132, Transforms 30/203 and Routes 62/10393. Every
+strict/raw diagnostic and leak footer is zero; analyzer reports 0 warnings in
+2 files. Source, project settings and assets were verified unchanged/restored.
+Raw evidence, the original rejected witness and the reproducer are under
+`docs/validation/evidence/underground-final-facts-2026-10-03/transform-leaf-*`.
+The two large rejected logs are losslessly gzip-compressed with original byte
+counts and hashes retained. The incidental Routes timing remains above the
+runtime target and is not a new performance qualification.
+Construction independently accepted the exact final source/test hashes after
+reading the bounded delta and four new regressions, with no high/medium finding
+and no duplicate engine execution. No state-registry ordinal or reserved-byte
+change is required for this stateless correction.

@@ -119,9 +119,11 @@ def numeric_fields(source: str, indent: str) -> int:
     return sum(widths[kind] for kind in kinds)
 
 
-def class_body(source: str, name: str) -> str:
+def class_body(source: str, name: str, parent: str = "RefCounted") -> str:
     """Limit packet fields to the named indented class, excluding later top-level function locals."""
-    tail = source.split("class " + name + " extends RefCounted:\n", 1)[1]
+    pieces = source.split("class " + name + " extends " + parent + ":\n")
+    assert len(pieces) == 2, (name, "missing/changed/duplicate class declaration")
+    tail = pieces[1]
     lines = []
     for line in tail.splitlines():
         if line.strip() and not line.startswith(("\t", " ")):
@@ -184,13 +186,131 @@ def surface_anchor_reservation(index: dict) -> dict:
             "scope": "Fixed composition references and native overhead remain unmeasured; no independent authoritative bank."}
 
 
+def explicit_members(source: str, indent: str = "") -> dict:
+    """Every member, including late-assigned objects, participates in the source census."""
+    pattern = r"^" + re.escape(indent) + r"var (\w+): ([\w.]+)\b"
+    fields = dict(re.findall(pattern, source, re.M))
+    names = re.findall(r"^" + re.escape(indent) + r"var (\w+)\b", source, re.M)
+    assert len(names) == len(fields), "untyped or duplicate member in memory census"
+    return fields
+
+
+def scalar_packet(index: dict, module: str, name: str, references: dict | None = None,
+                  parent: str = "RefCounted") -> int:
+    """Exact reference fields prevent a new collection/object from hiding in a numeric-only packet."""
+    source = class_body(index[module].text, name, parent)
+    fields = explicit_members(source, "\t")
+    allowed = {"int", "bool", "Vector2i", "Vector3i", "StringName"}
+    nonnumeric = {key: value for key, value in fields.items() if value not in allowed}
+    assert nonnumeric == (references or {}), (module, name, "unreconciled packet member", nonnumeric)
+    return numeric_fields(source, "\t")
+
+
+def placement_reservation(index: dict) -> dict:
+    """Charge both concrete Placement banks and the maximum simultaneous fixed packets before allocation."""
+    module = "underground_connector_placements"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ["RefCounted"], "unreconciled Placement base"
+    p, o = (resolve(index, module, key) for key in ("MAX_PLACEMENTS", "MAX_OPENINGS"))
+    bank = class_body(source, "Bank")
+    bank_fields = explicit_members(bank, "\t")
+    packed = {key: kind for key, kind in bank_fields.items() if kind in WIDTHS}
+    assert len(packed) == 10 and {key: value for key, value in bank_fields.items() if key not in packed} == {
+        "free_count": "int", "opening_free_count": "int"}, "unreconciled Placement bank"
+    rows = {}
+    for name, kind in packed.items():
+        expressions = re.findall(r"^\t\t" + re.escape(name) + r"\.resize\(([^)]+)\)$", bank, re.M)
+        assert len(expressions) == 1, ("Placement bank resize", name, expressions)
+        capacity = resolve(index, module, expressions[0], {"placements": p, "targets": o})
+        rows[name] = {"width": WIDTHS[kind], "capacity": capacity, "bytes": WIDTHS[kind] * capacity,
+                      "resize_expression": expressions[0]}
+    assert payload(rows) == 94 * p + 44 * o + 256, "Placement bank declaration/width drift"
+    controls = placement_controls(index)
+    assert controls["total_bytes"] <= resolve(index, module, "CONTROL_BYTES"), "Placement fixed control ceiling exceeded"
+    assert "_marks.resize(placements + openings)" in source and "_stream.resize(width)" in source
+    stream = resolve(index, module, "STREAM_BYTES")
+    native = resolve(index, module, "NATIVE_BYTES")
+    reserved = 2 * payload(rows) + p + o + stream + resolve(index, module, "CONTROL_BYTES") + native
+    formula = re.search(r"(?m)^\treturn (189 \* placements \+ 89 \* openings \+ 14848)$", source)
+    assert formula is not None and reserved == resolve(index, module, formula[1], {"placements": p, "openings": o}), \
+        "Placement constructor does not charge complete lifetime"
+    return {"placement_capacity": p, "opening_capacity": o, "bank_columns": rows,
+            "two_bank_bytes": 2 * payload(rows), "audit_marks_bytes": p + o, "stream_reserved_bytes": stream,
+            "fixed_controls": controls, "control_reserve_bytes": resolve(index, module, "CONTROL_BYTES"),
+            "native_reserve_bytes": native, "reserved_bytes": reserved}
+
+
+def placement_controls(index: dict) -> dict:
+    """Count actual retained packets and the deliberately conservative shared caller/frame overlap."""
+    module = "underground_connector_placements"
+    source = index[module].text
+    fields = explicit_members(source)
+    numeric = {"int", "bool", "Vector2i", "Vector3i"}
+    expected = {"_live": "Bank", "_stage": "Bank", "_marks": "PackedByteArray", "_stream": "PackedByteArray",
+        "_request": "Request", "_ids": "Directory", "_buildings": "Buildings", "_construction": "Construction",
+        "_space": "Owner", "_locations": "Locations", "_routes": "Routes", "_world_routes": "WorldRoutes",
+        "_sources": "Owner.CoreSources", "_inventory": "Inventory", "_transforms": "Transforms",
+        "_residents": "Residents", "_jobs": "Jobs", "_work": "Work", "_profiles": "Profiles",
+        "_gear": "RefCounted", "_carry": "RefCounted", "_reservations": "RefCounted", "_piles": "RefCounted",
+        "_budget": "Budget", "_catalog": "Catalog", "_assemblies": "Assemblies", "_recipes": "Recipes",
+        "_authority": "WeakRef", "_publisher": "WeakRef", "_router": "WeakRef", "_paid_owner": "WeakRef",
+        "_last_state_hash": "String", "_context": "Locations.InstallationContext",
+        "_admission_candidate": "Directory.CreateCandidate", "_admission_context": "Locations.RoomContext",
+        "_admission_input": "WeakRef"}
+    assert {key: value for key, value in fields.items() if value not in numeric} == expected, \
+        "unreconciled Placement owned/borrowed members"
+    request = scalar_packet(index, module, "Request", {"targets": "PackedInt32Array"})
+    target_expr = "4 * Catalog.MAX_OPENINGS_PER_VARIANT"
+    assert f"_request.targets.resize({target_expr})" in source
+    request += 4 * resolve(index, module, target_expr)
+    install_refs = {key: "WeakRef" for key in ("issuer", "router", "paid_owner", "space", "locations")}
+    install_refs.update({"construction": "Construction", "budget": "Budget"})
+    room_refs = {key: "WeakRef" for key in ("orders", "space", "locations")}
+    room_refs["budget"] = "Budget"
+    rows = {"owner": numeric_fields(source, ""), "bank_free_counts": 2 * numeric_fields(class_body(source, "Bank"), "\t"),
+        "installation_context": scalar_packet(index, "underground_locations", "InstallationContext", install_refs),
+        "room_context": scalar_packet(index, "underground_locations", "RoomContext", room_refs),
+        "directory_candidate": scalar_packet(index, "entity_directory", "CreateCandidate", {"_directory": "WeakRef"}),
+        "private_and_caller_requests": 2 * request,
+        "shared_order_and_assembly_records": scalar_packet(index, module, "OrderRecord") +
+            scalar_packet(index, "underground_connector_assemblies", "AssemblyRecord"),
+        "returned_result": scalar_packet(index, module, "Result"), "final_digest": 32, "helper_frames": 512}
+    return {"components": rows, "total_bytes": sum(rows.values())}
+
+
+def connector_work_reservation(index: dict, placement: dict) -> dict:
+    """The existing shared caller pair is counted once; this adapter adds controls and bounded stack frames."""
+    source = index["underground_connector_work"].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ['"res://scripts/core/modular_project_contract.gd".Owner'], \
+        "unreconciled ConnectorWork base"
+    expected = {"_placements": "Placements", "_construction": "Construction", "_assemblies": "Assemblies",
+        "_recipes": "Recipes", "_router": "WeakRef", "_contacts": "WeakRef", "_publication": "Publication",
+        "_order": "Placements.OrderRecord", "_assembly": "Assemblies.AssemblyRecord",
+        "_stage_contacts": "Contacts", "_cold_budget": "Budget"}
+    fields = explicit_members(source)
+    assert {key: value for key, value in fields.items() if value not in {"int", "bool", "Vector2i", "Vector3i"}} == expected, \
+        "unreconciled ConnectorWork owned/borrowed members"
+    assert explicit_members(class_body(index["modular_project_contract"].text, "Owner"), "\t") == {}, \
+        "unaccounted inherited ConnectorWork member"
+    assert explicit_members(class_body(index["underground_connector_placements"].text, "Publisher"), "\t") == {}, \
+        "unaccounted inherited Publication member"
+    publication = scalar_packet(index, "underground_connector_work", "Publication", {"owner": "WeakRef"}, "Placements.Publisher")
+    own = numeric_fields(source, "") + publication
+    assert own == 51, "ConnectorWork numeric lifetime drift"
+    shared = placement["fixed_controls"]["components"]["shared_order_and_assembly_records"]
+    assert shared == 128, "ConnectorWork shared record pair drift"
+    return {"additional_numeric_bytes": own, "aliased_record_bytes_already_charged": shared,
+            "helper_allowance_bytes": 512, "isolated_numeric_and_helper_bytes": own + shared + 512,
+            "reserved_bytes": own + 512}
+
+
 def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     """Count the exact immutable recipe bank inside, not in addition to, the shared binding reserve."""
     # The shared audit parser intentionally keeps inline comments. Strip comments
     # only from integer arithmetic declarations in these two local read views;
     # original source hashes remain in the returned whole-pack provenance.
     index = dict(index)
-    for name in ("underground_connector_catalog", "underground_world_routes"):
+    for name in ("underground_connector_catalog", "underground_world_routes", "underground_connector_placements"):
         source = index[name]
         clean = re.sub(r"(?m)^(const [A-Z][A-Z0-9_]*: int = [A-Z0-9_ .+*()-]+?)[ \t]+#.*$",
                        r"\1", source.text)
@@ -213,6 +333,8 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     assemblies = connector_assembly_reservation(index)
     anchor = surface_anchor_reservation(index)
     settlement = funding_settlement_reservation(index)
+    placement = placement_reservation(index)
+    work = connector_work_reservation(index, placement)
     consumers = {
         "connector_catalog": resolve(index, "underground_connector_catalog", "RESERVED_BYTES"),
         "world_routes": resolve(index, "underground_world_routes", "RESERVED_BYTES"),
@@ -220,16 +342,19 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
         "connector_assemblies": assemblies["reserved_bytes"],
         "surface_anchor": anchor["reserved_bytes"],
         "connector_settlement": settlement["reserved_bytes"],
+        "connector_placements": placement["reserved_bytes"],
+        "connector_work": work["reserved_bytes"],
     }
     used = sum(consumers.values())
     assert used <= binding_reserve, "known binding consumers exceed their shared reserve"
     return {"columns": rows, "part_capacity": capacity, "bank_bytes": bank,
             "fixed_bytes": fixed, "assembly_reservation": assemblies, "surface_anchor_reservation": anchor,
-            "funding_settlement_reservation": settlement,
+            "funding_settlement_reservation": settlement, "placement_reservation": placement,
+            "connector_work_reservation": work,
             "known_binding_consumers": consumers,
             "known_binding_used_bytes": used,
             "remaining_binding_reserve_bytes": binding_reserve - used,
-            "scope": "Known logical consumers only; actual placement, other controls and native growth still require joint admission."}
+            "scope": "Known logical consumers including actual Placement and ConnectorWork; EntryFrontier/Contacts/EntryBindings and remaining native growth still require joint admission."}
 
 
 def funding_settlement_reservation(index: dict) -> dict:
@@ -314,7 +439,8 @@ def build(index: dict | None = None) -> dict:
     sources = set(groups) - {"inventory_spatial"}
     sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget",
                     "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
-                    "underground_connector_assemblies", "underground_surface_anchor", "underground_locations"))
+                    "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
+                    "underground_connector_placements", "underground_connector_work", "entity_directory"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,

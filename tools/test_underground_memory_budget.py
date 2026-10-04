@@ -171,6 +171,57 @@ class JointPackTests(unittest.TestCase):
         self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
                      "BINDINGS_AND_GROWTH_BYTES: int = 378119")
 
+    def test_negative_placement_bank_width_growth(self) -> None:
+        self.refuses("underground_connector_placements", "var i32: PackedInt32Array", "var i32: PackedInt64Array")
+
+    def test_negative_placement_omitted_bank_column(self) -> None:
+        self.refuses("underground_connector_placements", "class Bank extends RefCounted:",
+                     "class Bank extends RefCounted:\n\tvar extra: PackedInt32Array = PackedInt32Array()")
+
+    def test_negative_placement_nested_control_collection(self) -> None:
+        self.refuses("underground_locations", "class RoomContext extends RefCounted:",
+                     "class RoomContext extends RefCounted:\n\tvar extra: Array = []")
+
+    def test_negative_placement_late_allocated_packet(self) -> None:
+        self.refuses("underground_connector_placements", "var _configured: bool = false",
+                     "var _configured: bool = false\nvar _extra: Request = null")
+
+    def test_negative_connector_adapter_unaccounted_numeric_field(self) -> None:
+        self.refuses("underground_connector_work", "var _ready: bool = false",
+                     "var _ready: bool = false\nvar _more: int = 0")
+
+    def test_negative_connector_adapter_unaccounted_collection(self) -> None:
+        self.refuses("underground_connector_work", "var _ready: bool = false",
+                     "var _ready: bool = false\nvar _more: Array = []")
+
+    def test_negative_placement_changed_top_level_parent(self) -> None:
+        self.refuses("underground_connector_placements", "extends RefCounted",
+                     'extends "res://scripts/core/other_owner.gd"')
+
+    def test_negative_connector_work_changed_top_level_parent(self) -> None:
+        self.refuses("underground_connector_work", 'extends "res://scripts/core/modular_project_contract.gd".Owner',
+                     'extends "res://scripts/core/other_owner.gd".Owner')
+
+    def test_negative_connector_adapter_inherited_collection(self) -> None:
+        self.refuses("modular_project_contract", "class Owner extends RefCounted:",
+                     "class Owner extends RefCounted:\n\tvar extra: Array = []")
+
+    def test_negative_publication_inherited_control(self) -> None:
+        self.refuses("underground_connector_placements", "class Publisher extends RefCounted:",
+                     "class Publisher extends RefCounted:\n\tvar extra: int = 0")
+
+    def test_negative_placement_changed_parent_is_not_omitted(self) -> None:
+        self.refuses("underground_connector_placements", "class Request extends RefCounted:",
+                     "class Request extends OtherOwner:")
+
+    def test_negative_placement_constructor_undercharges_banks(self) -> None:
+        self.refuses("underground_connector_placements", "189 * placements + 89 * openings + 14848",
+                     "189 * placements + 89 * openings + 4096")
+
+    def test_negative_corrected_binding_consumers_cannot_be_omitted(self) -> None:
+        self.refuses("underground_budget", "BINDINGS_AND_GROWTH_BYTES: int = 524288",
+                     "BINDINGS_AND_GROWTH_BYTES: int = 487498")
+
     def test_negative_route_leading_multiplier_preserves_precedence(self) -> None:
         self.refuses("underground_world_routes", "2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)",
                      "2 * 2 * EDGE_CAPACITY * (MASK_BYTES + 4 + 16)")
@@ -205,9 +256,13 @@ class JointPackTests(unittest.TestCase):
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
-        self.assertEqual(recipes["known_binding_used_bytes"], 378136)
-        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 146152)
+        self.assertEqual(recipes["known_binding_used_bytes"], 487499)
+        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 36789)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
+        self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
+        self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1670)
+        self.assertEqual(recipes["connector_work_reservation"]["reserved_bytes"], 563)
+        self.assertEqual(recipes["connector_work_reservation"]["aliased_record_bytes_already_charged"], 128)
         assemblies = recipes["assembly_reservation"]
         self.assertEqual(budget.payload(assemblies["columns"]), 4316)
         self.assertEqual(assemblies["reserved_bytes"], 4760)

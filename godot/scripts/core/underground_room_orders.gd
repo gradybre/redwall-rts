@@ -1292,15 +1292,13 @@ func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 		_discard_room(bindings)
 		return Buildings.OpResult.new(false, refusal, 0, NULL_REF)
 	_publishing = true
-	var made: Buildings.OpResult = _buildings.designate_spatial_room_candidate(_admission_room_type(), _room_candidate)
+	var made: Buildings.OpResult = _publish_entry_identity() if _entry_mode \
+		else _buildings.designate_spatial_room_candidate(_admission_room_type(), _room_candidate)
 	if not made.ok:
 		_publishing = false
 		_discard_room(bindings)
 		return made
-	var reserved: StringName = _room_sites.publish_room_claim_batch(_room_claim_batch)
-	assert(reserved == &"", "preflighted exact Room cuts publish before the first spatial/source callback")
-	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _admission_room_type(), self)
-	assert(code == &"", "preflighted exact future Room geometry must publish after identity")
+	_publish_room_geometry()
 	if _entry_mode:
 		bindings.publish_entry_plan(_stage_room, _stage_token)
 	else:
@@ -1308,6 +1306,33 @@ func _publish_room(bindings: Bindings) -> Buildings.OpResult:
 	_publishing = false
 	_finish_room_cold(bindings)
 	return made
+
+
+func _publish_entry_identity() -> Buildings.OpResult:
+	"""After every observer and exact local guard, write the actual allocator and concrete Buildings row only."""
+	var code: StringName = _entry_claims_final_refusal() if _entry_mode and _publishing else REFUSE_TRANSITION
+	if code != &"":
+		return Buildings.OpResult.new(false, code, 0, NULL_REF)
+	var ids: Directory = _construction.directory()
+	var made: Vector2i = ids.create_candidate(_room_candidate)
+	if made == NULL_REF:
+		return Buildings.OpResult.new(false, ids.last_refusal(), 0, NULL_REF)
+	return _buildings._publish_spatial_room(made, Buildings.ROOM_TYPE_CORRIDOR)
+
+
+func _publish_room_geometry() -> void:
+	"""Entry publication is callback-free after identity; the ordinary flat protocol keeps its existing API."""
+	if _entry_mode:
+		var entry_reserved: StringName = Sites.publish_entry_claim_preflighted(_room_sites, _room_claim_batch, self)
+		assert(entry_reserved == &"", "preflighted exact non-flat Room cuts publish from the actual identity receipt")
+		var committed: bool = SpaceOwner.room_commit_preflighted(_space, _stage_token, _room_candidate,
+			Buildings.ROOM_TYPE_CORRIDOR, self, _room_budget, _room_cold_token)
+		assert(committed, "preflighted non-flat Room geometry publishes without source or authority observers")
+		return
+	var reserved: StringName = _room_sites.publish_room_claim_batch(_room_claim_batch)
+	assert(reserved == &"", "preflighted exact Room cuts publish before the first spatial/source callback")
+	var code: StringName = _space.publish_room_admission(_stage_token, _room_candidate, _admission_room_type(), self)
+	assert(code == &"", "preflighted exact future Room geometry must publish after identity")
 
 
 func _prepare_room_claims() -> StringName:
@@ -1361,8 +1386,10 @@ func _entry_claims_final_refusal() -> StringName:
 	if _room_sites == null or _construction.excavation_authority() != _room_sites \
 			or _room_claim_batch == null or not _room_claim_batch.matches_entry_input(_entry_claim_input, _room_candidate):
 		return REFUSE_BINDING
-	var code: StringName = room_candidate_refusal(_room_candidate, Buildings.ROOM_TYPE_CORRIDOR)
-	return code if code != &"" else _room_sites.room_claim_batch_refusal(_room_claim_batch)
+	if _identity_binding_refusal() != &"" or not _entry_mode or _stage_action != ROOM_ADMISSION_STAGE \
+			or _room_candidate == null or _room_candidate.ref != _stage_room or _entry_plan.world != _world:
+		return REFUSE_TRANSITION
+	return _room_sites.room_claim_batch_refusal(_room_claim_batch)
 
 
 func _room_claims_final_refusal() -> StringName:

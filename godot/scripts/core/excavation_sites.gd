@@ -659,6 +659,60 @@ func publish_room_claim_batch(batch: RoomClaimBatch) -> StringName:
 	return &""
 
 
+static func publish_entry_claim_preflighted(actual: RefCounted, batch: RoomClaimBatch,
+		authority: Buildings.SpatialAuthority) -> StringName:
+	"""Read the exact concrete entry bracket and receipts without invoking an authority or Buildings observer."""
+	if actual == null or batch == null or batch._entry_input == null or authority == null \
+			or batch._owner == null or batch._owner.get_ref() != actual \
+			or batch._authority == null or batch._authority.get_ref() != authority:
+		return REFUSE_CLAIM_BATCH
+	var code: StringName = actual._claim_batch_current_refusal(batch)
+	if code == &"":
+		code = _entry_claim_bracket_refusal(actual, batch, authority)
+	if code == &"":
+		code = _entry_claim_receipt_refusal(actual, batch)
+	if code != &"":
+		return code
+	actual._publish_claim_rows(batch)
+	batch._phase = 2
+	actual._claim_batch = null
+	batch._drop_scratch()
+	return &""
+
+
+static func _entry_claim_bracket_refusal(actual: RefCounted, batch: RoomClaimBatch,
+		issuer: RefCounted) -> StringName:
+	"""The original sole Buildings authority must retain this exact entry, candidate, batch and arena lease."""
+	if not ("_entry_mode" in issuer and "_publishing" in issuer and "_stage_action" in issuer \
+			and "ROOM_ADMISSION_STAGE" in issuer and "_room_sites" in issuer and "_room_claim_batch" in issuer \
+			and "_room_candidate" in issuer and "_stage_room" in issuer and "_room_budget" in issuer \
+			and "_room_cold_token" in issuer and "_construction" in issuer and "_buildings" in issuer \
+			and "_entry_plan" in issuer and "_world" in issuer and "_cold_held" in issuer):
+		return REFUSE_CLAIM_BATCH
+	return &"" if issuer._entry_mode and issuer._publishing and issuer._stage_action == issuer.ROOM_ADMISSION_STAGE \
+		and issuer._room_sites == actual and issuer._room_claim_batch == batch \
+		and issuer._room_candidate == batch._candidate and issuer._stage_room == batch._room \
+		and issuer._cold_held and issuer._room_budget == batch._budget and issuer._room_cold_token == batch._cold_token \
+		and issuer._construction == actual._construction and issuer._buildings == actual._construction.buildings() \
+		and issuer._entry_plan != null and issuer._entry_plan.world == batch._world \
+		and issuer._world == batch._world else REFUSE_CLAIM_BATCH
+
+
+static func _entry_claim_receipt_refusal(actual: RefCounted, batch: RoomClaimBatch) -> StringName:
+	"""Use actual mirrored Room columns; room_identity_into is an external observation interface."""
+	var ids: Directory = actual._construction.directory()
+	var buildings: Buildings = actual._construction.buildings()
+	var row: int = batch._typed_row
+	if not ids.is_valid_of_kind(batch._room, Directory.KIND_ROOM) or ids.get_typed_row(batch._room) != row \
+			or ids.get_persistent_id(batch._room) != batch._persistent_id or row < 0 or row >= buildings._r_present.size():
+		return REFUSE_CLAIM_BATCH
+	return &"" if buildings._directory == ids and buildings._r_present[row] == 1 \
+		and buildings._r_ref_slot[row] == batch._room.x and buildings._r_ref_generation[row] == batch._room.y \
+		and buildings._r_spatial_kind[row] == Buildings.ROOM_SPACE_UNDERGROUND and buildings._r_type[row] == batch._room_type \
+		and buildings._r_building_slot[row] == -1 and buildings._r_building_generation[row] == 0 \
+		and buildings._r_tile_count[row] == 0 and buildings._r_occupants[row] == 0 else REFUSE_CLAIM_BATCH
+
+
 func _claim_created_room_refusal(batch: RoomClaimBatch) -> StringName:
 	"""Read full real Directory/Buildings after-facts into preallocated scratch; no future-facts shortcut."""
 	var ids: Directory = _construction.directory()

@@ -239,7 +239,7 @@ class Fixture extends RefCounted:
 		check(gear.bind_equipment(inventory, residents.directory(), residents).ok, "actual Gear")
 		check(work.bind_gear(gear).ok, "actual Work equipment")
 		stock = inventory.create_container(world, 1000000, -1, 0, true).ref
-		buildings = Buildings.new(residents.directory())
+		buildings = _create_buildings()
 		construction = Construction.new(buildings)
 		physical.world = world
 		sites = Sites.new(construction, inventory, pool, items, jobs, work, physical, 64, 64)
@@ -252,6 +252,10 @@ class Fixture extends RefCounted:
 		if bind_furniture:
 			check(owner.configure(router, orders) == &"", "actual Furniture purpose")
 		worker = _spawn_worker()
+
+	func _create_buildings() -> Buildings:
+		"""Use actual columns; specialized integration fixtures can observe explicit Buildings interfaces."""
+		return Buildings.new(residents.directory())
 
 	func check(condition: bool, label: String) -> void:
 		"""Report through the actual test framework rather than treating engine exit zero as evidence."""

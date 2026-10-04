@@ -137,6 +137,33 @@ class ObservedOrders extends FurnitureTests.SyntheticRegistration:
 	var late_fault: int = 0
 	var saved_batch: Sites.RoomClaimBatch = null
 	var premature_publish: StringName = &""
+	var premature_kernel: StringName = &""
+	var refuse_after_identity: bool = false
+	var post_identity_observers: int = 0
+	var mutate_last_candidate: bool = false
+	var final_candidate_observers: int = 0
+
+	func is_publishing_room_admission(room: Vector2i, room_type: int) -> bool:
+		"""A dispatch after identity but before the bank swap would make atomic admission fallible."""
+		if _post_identity_observer():
+			return false
+		return super.is_publishing_room_admission(room, room_type)
+
+	func room_candidate_refusal(candidate: Directory.CreateCandidate, room_type: int) -> StringName:
+		"""The entry tail must use retained typed facts, not re-enter this abstract authority interface."""
+		if _publishing and _space.has_prepared() and not _buildings.is_live_room(_stage_room):
+			final_candidate_observers += 1
+			if mutate_last_candidate:
+				_entry_request.claims[0] += 1
+		return &"SYNTHETIC_POST_IDENTITY_OBSERVER" if _post_identity_observer() \
+			else super.room_candidate_refusal(candidate, room_type)
+
+	func _post_identity_observer() -> bool:
+		"""The later companion callback observes a complete publication, outside this prohibited window."""
+		if not _buildings.is_live_room(_stage_room) or not _space.has_prepared():
+			return false
+		post_identity_observers += 1
+		return refuse_after_identity
 
 	func _prepare_room_claims() -> StringName:
 		"""Production admission remains unchanged; faults happen after its actual Sites preparation."""
@@ -145,6 +172,7 @@ class ObservedOrders extends FurnitureTests.SyntheticRegistration:
 			return code
 		saved_batch = _room_claim_batch
 		premature_publish = _room_sites.publish_room_claim_batch(saved_batch)
+		premature_kernel = Sites.publish_entry_claim_preflighted(_room_sites, saved_batch, self)
 		if late_fault == 1:
 			_entry_claim_input.base_level += 1
 		elif late_fault == 2:
@@ -155,7 +183,26 @@ class ObservedOrders extends FurnitureTests.SyntheticRegistration:
 			_room_candidate.persistent_id += 1
 		return code
 
+class ObservedBuildings extends Buildings:
+
+	var late_receipt_observers: int = 0
+	var revoke_on_receipt: bool = false
+
+	func room_identity_into(room: Vector2i, out: PackedInt32Array) -> StringName:
+		"""Reproduce a legitimate observation interface invalidating the original arena after allocation."""
+		var actual: Orders = spatial_authority() as Orders
+		if actual != null and actual._entry_mode and actual._publishing and actual._space.has_prepared():
+			late_receipt_observers += 1
+			if revoke_on_receipt:
+				assert(actual._room_budget.release(actual._room_cold_token) == &"", "adversarial lease release")
+		return super.room_identity_into(room, out)
+
 class Fixture extends FurnitureTests.Fixture:
+
+	func _create_buildings() -> Buildings:
+		"""Keep the actual shared Directory and all Buildings storage, with one observed receipt interface."""
+		return ObservedBuildings.new(residents.directory())
+
 	func _configure_space() -> void:
 		"""Swap the observed subclass before once-only binding; all storage and admission code stays real."""
 		super._configure_space()
@@ -411,10 +458,40 @@ func test_future_and_consumed_claim_batches_cannot_publish_twice() -> void:
 	"""Retaining a batch object does not retain authority or its cold packed buffers."""
 	assert_true(_orders.confirm_entry(_plan()).ok, "actual entry confirmation")
 	assert_true(_orders.premature_publish != &"", "cannot publish before identity receipt")
+	assert_true(_orders.premature_kernel != &"", "entry kernel also requires actual identity receipt")
 	assert_true(_orders.saved_batch._boxes.is_empty() and _orders.saved_batch._entry_cursor == null, "scratch dropped")
 	var before: PackedByteArray = _image()
 	assert_true(_f.sites.publish_room_claim_batch(_orders.saved_batch) != &"", "cannot reuse consumed batch")
+	assert_true(Sites.publish_entry_claim_preflighted(_f.sites, _orders.saved_batch, _orders) != &"", "kernel cannot reuse consumed batch")
 	assert_true(_image() == before, "no second claim set or duplicate identity")
+
+
+func test_entry_publication_never_reenters_authority_after_identity() -> void:
+	"""A late refusing authority interface must be unreachable, not tolerated after spending a Room PID."""
+	_orders.refuse_after_identity = true
+	assert_true(_orders.confirm_entry(_plan()).ok, "receipt-only entry tail completes")
+	assert_equal(_orders.post_identity_observers, 0, "no abstract authority observers after allocation")
+	assert_equal(_f.buildings.live_room_count(), 1, "one complete identity")
+	assert_equal(_f.sites.remaining_history_capacity(), 61, "all exact claims published")
+	assert_equal(_bindings.room_publications, 1, "prepared companion publishes after Space")
+	assert_false(_f.space.has_prepared(), "complete sparse bank swap")
+	assert_equal(_f.space.revision(), 2, "single geometry publication")
+
+
+func test_entry_final_guard_and_receipt_use_concrete_facts_without_observer_dispatch() -> void:
+	"""Late input mutation or lease revocation cannot run between the last proof and its permanent writes."""
+	_orders.mutate_last_candidate = true
+	var buildings: ObservedBuildings = _f.buildings as ObservedBuildings
+	buildings.revoke_on_receipt = true
+	var plan: EntryPlan.Request = _plan()
+	var first_x: int = plan.claims[0]
+	assert_true(_orders.confirm_entry(plan).ok, "concrete final leaf and publication complete")
+	assert_equal(plan.claims[0], first_x, "no final authority dispatch can mutate the caller")
+	assert_equal(_orders.final_candidate_observers, 0, "no candidate observer after last input proof")
+	assert_equal(buildings.late_receipt_observers, 0, "no Buildings receipt observer after allocation")
+	assert_equal(_f.buildings.live_room_count(), 1, "one complete identity")
+	assert_equal(_f.sites.remaining_history_capacity(), 61, "complete actual claim set")
+	assert_false(_f.space.has_prepared(), "no half-published geometry")
 
 
 func test_final_companion_refusal_and_mutation_leave_prepared_sites_unpublished() -> void:

@@ -2,8 +2,8 @@
 
 Date: 2026-10-03
 
-Status: typed request/claim coordinator independently reviewed; complete atomic
-publication and actual admission bindings remain in progress. No complete
+Status: typed request/claim coordinator and pure core publication independently
+reviewed; actual Placement admission bindings remain in progress. No complete
 entrance or worker sequence is qualified.
 
 Root owns the distinct EntryPlan and the narrow RoomOrders/RoomBindings seam,
@@ -119,3 +119,39 @@ strict/raw unexpected diagnostic and leak count0 and analyzer0/4. The earlier
 green `room-leaves-1` is retained as rejected by source review because its
 kernel lacked the direct original issuer/arena check. No production frontier,
 profile, route or first-entry permission is established by this component.
+
+## Reviewed entry identity and claim publication tail
+
+RoomOrders now finishes the entry binding's final observations and compares the
+complete pinned request, original arena, allocator candidate and prepared claims
+before entering publication. The entry-only path uses the actual Directory
+candidate and Buildings spatial row writer, the static Sites claim kernel and
+the reviewed static Space kernel. The ordinary flat Room path is unchanged.
+
+The new Sites kernel checks the actual RoomOrders entry publication bracket,
+its original strong Budget/token and batch, and the exact Directory/Buildings
+mirrored receipt. It does not call an overridable Room identity or authority
+reader after identity publication. The final entry claim check likewise avoids
+re-entering the observing candidate validator after comparing caller inputs.
+No retained fields, physical columns or new per-Room ledger are introduced.
+
+Two regressions exercise actual inherited callback windows: a Buildings reader
+that would revoke the original cold lease after Room creation, and an Orders
+observer that would mutate the caller request or refuse its publication bracket.
+Neither observer runs in the pure tail. The tests verify complete identity,
+claim and geometry publication, released scratch, and refusal of a consumed
+kernel invocation. The shared furniture fixture gains only an overridable
+Buildings factory; its default behavior remains identical.
+
+Construction independently accepted the four changed source/test hashes in
+`publication-1/source-sha256.json`. After composing the accepted Room leaf and
+Space kernel, nine focused strict suites passed266 tests /15727 assertions
+/0 failures. Every strict/raw unexpected error, warning and leak count was0;
+the analyzer reported0 warnings in9 files. The clean import contains no error,
+warning or leak diagnostics. Sources were unchanged and assets restored.
+Exact commands and complete logs are retained beside those pins.
+
+This closes only the core publication tail. Actual prepared Placement companions
+and immutable physical-frontier bindings still must replace the synthetic test
+permission. No complete entrance, traversal, material flow or playable demo
+requirement is accepted by this result.

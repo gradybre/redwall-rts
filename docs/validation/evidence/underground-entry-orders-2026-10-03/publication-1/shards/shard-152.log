@@ -1,0 +1,47 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_final_facts.gd
+  PASS  test_room_final_is_pure_and_ordinary_snapshot_remains_live_only
+  PASS  test_room_final_precharges_whole_census_and_mutable_input_comparison
+  PASS  test_room_final_rejects_replaced_original_lease_and_foreign_same_number_budget
+  PASS  test_room_final_rederives_actual_free_identity_and_whole_candidate
+  PASS  test_room_final_catches_late_actual_source_drift_without_observation
+  PASS  test_room_final_future_exception_is_only_own_metadata_and_claims
+  PASS  test_room_final_rejects_foreign_companion_and_active_observer_states
+  PASS  test_room_commit_requires_actual_publishing_bracket_and_original_budget
+  PASS  test_room_commit_does_not_borrow_replacement_lease_or_changed_after_facts
+  PASS  test_final_sources_skip_observer_and_preserve_authority
+  PASS  test_late_building_change_refuses_without_geometry_revision_change
+  PASS  test_all_nonresident_leaf_facts_equal_normal_observation
+  PASS  test_project_claim_generation_remains_mandatory
+  PASS  test_budget_refuses_before_any_leaf_read
+  PASS  test_admitted_real_capacity_uses_actual_source_census
+  PASS  test_foreign_binding_stale_revision_and_busy_owners_refuse
+  PASS  test_endpoint_match_compares_every_packed_payload_and_proof_field
+  PASS  test_retired_reused_endpoint_does_not_match_old_generation
+  PASS  test_idle_resident_matches_actual_transform_and_location
+  PASS  test_transit_resident_uses_exact_current_segment_and_generation
+  PASS  test_retired_world_invalidates_facts_and_endpoint_observation
+  PASS  test_full_256_resident_leaf_census_fits_unchanged_domain_budget
+  PASS  test_actor_and_world_generation_reuse_cannot_match_stored_sources
+  PASS  test_domain_and_source_kind_changes_refuse_without_public_observers
+  PASS  test_static_leaf_never_substitutes_unbound_resident_or_half_null_reference
+CI_SUITE_TIME {"assertions":1077,"failures":0,"suite":"test_underground_final_facts.gd","tests":25,"usec":1834380}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+25 test(s), 1077 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 25 tests, 1077 assertions, 0 failures.

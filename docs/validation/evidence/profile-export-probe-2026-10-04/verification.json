@@ -1,0 +1,11 @@
+{
+  "result": "capability observations verified",
+  "executions": 9,
+  "scope": "isolated editor-pack and native macOS templates; not full demo/Windows-native/gameplay acceptance",
+  "original_mode2": "actual cached script lacks text and raw ugprof omitted",
+  "candidate_mode0": "cached source text retained and raw ugprof retained; actual debug and release templates both execute",
+  "raw_unexpected_errors": 0,
+  "raw_unexpected_warnings": 0,
+  "raw_leak_reports": 0,
+  "source_unchanged": true
+}

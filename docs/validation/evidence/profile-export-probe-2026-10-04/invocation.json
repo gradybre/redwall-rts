@@ -1,0 +1,120 @@
+{
+  "scope": "isolated engine capability probe; not gameplay qualification",
+  "commands": [
+    {
+      "label": "import",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 1.028
+    },
+    {
+      "label": "editor-source",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--script",
+        "res://probe.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 0.139
+    },
+    {
+      "label": "export-pack-mode2",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-pack",
+        "Windows compiled source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/compiled-debug.pck"
+      ],
+      "exit_code": 0,
+      "seconds": 1.218
+    },
+    {
+      "label": "compiled-pack-mode2",
+      "command": [
+        "godot",
+        "--headless",
+        "--main-pack",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/compiled-debug.pck",
+        "--script",
+        "res://probe.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 0.141
+    },
+    {
+      "label": "export-pack-mode0",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-pack",
+        "Windows plain source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/plain.pck"
+      ],
+      "exit_code": 0,
+      "seconds": 1.218
+    },
+    {
+      "label": "plain-pack-mode0",
+      "command": [
+        "godot",
+        "--headless",
+        "--main-pack",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/plain.pck",
+        "--script",
+        "res://probe.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 0.137
+    },
+    {
+      "label": "export-macos-debug-mode0",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-debug",
+        "macOS plain source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/probe-debug.zip"
+      ],
+      "exit_code": 1,
+      "seconds": 1.22
+    },
+    {
+      "label": "export-macos-debug-mode0-v2",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-debug",
+        "macOS plain source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/probe-debug.zip"
+      ],
+      "exit_code": 0,
+      "seconds": 5.5
+    }
+  ],
+  "current_source_sha256": {
+    "probe.gd": "3186b0facc502a7753df0274f1ca27bc61bf1381e9ae96879b9acbca9f6f2b41",
+    "probe_owner.gd": "b40a9f9fe7299c035c4e23abcacb3848c6437c26395f1d8ecffdc1a4c056867a",
+    "probe.ugprof": "e1a41a4eb593d7201caf7c86faa5e01b275094207f15c39fe02f1ba1b0e3775a",
+    "project.godot": "46ac30070406cd205f0ffb0c077f0df8dc36c56ba8046cc916aff3ca97c016e5",
+    "export_presets.cfg": "c0e476a4726bb5099391adb63c6fc8a84e6ed1dd2a1881b48d40c604c3f9a7cd"
+  }
+}

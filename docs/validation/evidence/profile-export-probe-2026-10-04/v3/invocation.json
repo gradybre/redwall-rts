@@ -1,0 +1,165 @@
+{
+  "scope": "isolated source/include capability; not full demo export validation",
+  "commands": [
+    {
+      "label": "clean-import",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 1.026
+    },
+    {
+      "label": "pack-mode2",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-pack",
+        "Windows compiled source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/mode2.pck"
+      ],
+      "exit_code": 0,
+      "seconds": 1.223
+    },
+    {
+      "label": "run-pack-mode2",
+      "command": [
+        "godot",
+        "--headless",
+        "--main-pack",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/mode2.pck",
+        "--script",
+        "res://probe.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 0.14,
+      "observation": {
+        "cached": true,
+        "debug_build": true,
+        "raw_profile_exists": false,
+        "source_length": 0,
+        "source_matches_cached": true,
+        "template": false,
+        "value": 17
+      }
+    },
+    {
+      "label": "pack-mode0",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-pack",
+        "Windows plain source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/mode0.pck"
+      ],
+      "exit_code": 0,
+      "seconds": 1.216
+    },
+    {
+      "label": "run-pack-mode0",
+      "command": [
+        "godot",
+        "--headless",
+        "--main-pack",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/mode0.pck",
+        "--script",
+        "res://probe.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 0.142,
+      "observation": {
+        "cached": true,
+        "debug_build": true,
+        "raw_profile_exists": true,
+        "source_length": 180,
+        "source_matches_cached": true,
+        "template": false,
+        "value": 17
+      }
+    },
+    {
+      "label": "export-debug",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-debug",
+        "macOS plain source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/probe-debug.zip"
+      ],
+      "exit_code": 0,
+      "seconds": 5.494
+    },
+    {
+      "label": "native-debug",
+      "command": [
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/unpacked-debug/Codex isolated profile export probe.app/Contents/MacOS/Codex isolated profile export probe",
+        "--headless"
+      ],
+      "exit_code": 0,
+      "seconds": 1.503,
+      "observation": {
+        "cached": true,
+        "debug_build": true,
+        "raw_profile_exists": true,
+        "source_length": 180,
+        "source_matches_cached": true,
+        "template": true,
+        "value": 17
+      }
+    },
+    {
+      "label": "export-release",
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/project",
+        "--export-release",
+        "macOS plain source capability",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/probe-release.zip"
+      ],
+      "exit_code": 0,
+      "seconds": 5.315
+    },
+    {
+      "label": "native-release",
+      "command": [
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/profile-export-probe-2026-10-04/v3/unpacked-release/Codex isolated profile export probe.app/Contents/MacOS/Codex isolated profile export probe",
+        "--headless"
+      ],
+      "exit_code": 0,
+      "seconds": 1.349,
+      "observation": {
+        "cached": true,
+        "debug_build": false,
+        "raw_profile_exists": true,
+        "source_length": 180,
+        "source_matches_cached": true,
+        "template": true,
+        "value": 17
+      }
+    }
+  ],
+  "source_sha256": {
+    "probe.gd": "200818917f5bb77a4cd7b8562f7d46a68e44d4a11e21e827e496ebfc9fb74cec",
+    "probe_owner.gd": "b40a9f9fe7299c035c4e23abcacb3848c6437c26395f1d8ecffdc1a4c056867a",
+    "probe.ugprof": "e1a41a4eb593d7201caf7c86faa5e01b275094207f15c39fe02f1ba1b0e3775a",
+    "project.godot": "ffc933f6e9dda68a6a2e02de0bc2715bf1ae335efc02f74a428686f5172de7a3",
+    "export_presets.cfg": "c0e476a4726bb5099391adb63c6fc8a84e6ed1dd2a1881b48d40c604c3f9a7cd",
+    "probe.tscn": "22f7b1bfc62289b314efea97e5083844bef17b5d7586093638c25dc9c12aaea4"
+  },
+  "debug_zip_sha256": "0bf86fe664a7dced7c3e312f47aac60a540126b313441d6d76ff3ec1c6f3ccf0",
+  "release_zip_sha256": "5e02b6411367332537e33a7e25027604ef103b18d9d84d0c542db0d135f7a551",
+  "source_unchanged": true
+}

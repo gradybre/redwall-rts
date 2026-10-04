@@ -1,0 +1,11 @@
+{
+  "reviewer": "/root/ug_furnishing",
+  "verdict": "accepted capability evidence with LOW wording correction applied",
+  "verified_before_wording_change": {
+    "source_and_output_pins": 17,
+    "executions": 9,
+    "source_project_files": 6
+  },
+  "correction": "Changed cached exact source to cached source text retained; length/cache-identity observations are not a hash equality claim. No executed source or output changed.",
+  "scope": "Isolated editor-pack and native macOS debug/release templates only; full demo packaging, Windows native, source-hash activation, startup/memory qualification remain separate."
+}

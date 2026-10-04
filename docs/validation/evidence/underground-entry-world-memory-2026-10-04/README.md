@@ -33,3 +33,9 @@ Current joint mutable/reserved bytes are 4968921; one World plus the existing
 reserve is 99961686, leaving 38314 below the decimal 100 MB gate. The rejected
 two-World peak remains over the limit. Neither the memory limit nor a runtime
 reserve was increased.
+
+The exact accepted memory tooling was also executed without injection on the
+integration branch at a1a16255. `integration-source-v1` retains all commands
+and source hashes:146 tests passed; the exact pack check and READY07 passed
+with49 allocation rows and135 checked links. Source and HEAD stayed unchanged.
+This does not measure native runtime allocation.

@@ -440,7 +440,13 @@
         "godot/test/test_excavation_phase_start_guard.gd",
         "godot/test/test_excavation_phase_start_guard.gd.uid",
         "docs/decisions/1117-final-excavation-start-payment-guard.md",
-        "godot/test/test_excavation_sites.gd"
+        "godot/test/test_excavation_sites.gd",
+        "godot/scripts/core/underground_connector_workpieces.gd",
+        "godot/scripts/core/underground_connector_workpieces.gd.uid",
+        "godot/test/test_underground_connector_workpieces.gd",
+        "godot/test/test_underground_connector_workpieces.gd.uid",
+        "docs/decisions/1134-paid-connector-workpieces.md",
+        "docs/validation/evidence/underground-connector-workpieces-2026-10-04/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -818,6 +824,25 @@
           "inventory_integration": "921287c2",
           "inventory_tests": "12tests/292assertions/0;allstrict/raw/leaks0",
           "inventory_review": "ug_geometry accepted exact synthetic subject/Funding/Job/Inventory/Pool guard scope. Production payment guards unchanged."
+        },
+        "actual_paid_entry_1119": {
+          "source_commit": "d5ec6a39",
+          "registry_commit": "2974934e",
+          "integration_commits": [
+            "bde5ee46",
+            "0ce800f0"
+          ],
+          "status": "independently reviewed and focused integration verified",
+          "reviewer": "/root",
+          "tests": "68 tests /18627 assertions /0 failures; strict/raw unexpected, expected, tolerated and leaks all0; analyzer0/5",
+          "evidence": "docs/validation/evidence/underground-1119-integration-2026-10-04/",
+          "scope": "Actual six paid cuts plus L0/T0 complete assemblies and original paid ledger; synthetic362u worker profile. No T0 stair link or production handling claim."
+        },
+        "paid_workpieces_1134": {
+          "owner": "/root/ug_construction",
+          "status": "new owner/test design and implementation released; shared seams read-only",
+          "contract": "One physical handling row per full Placement/Project; actual material delivery and worker pose required. Existing Funding/Work remain sole quantity/progress owners. Proposed32768-byte design ceiling unqualified pending source census. Actual immutable handling source required before production publication.",
+          "shared_owner_gate": "Root Router/Funding, Geometry Space/Placement/companions; no shared edits until exact seam review and explicit leases."
         }
       },
       "lease": {
@@ -1420,8 +1445,10 @@
         },
         "default_renderer_1132": {
           "owner": "/root/ug_furnishing",
-          "status": "additive phase1 implementing",
-          "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence."
+          "status": "phase1 independently reviewed; phase2 explicitly released",
+          "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence.",
+          "review": "Root rehashed4 source/51 outputs and reran14 Python tests. Native65536rows, strict5/36/all0,LSP0/2. Exact pinned Apple precision sections independently read. Source/expression-only; complete skin/model/native attachment remains open.",
+          "phase2_lease": "Explicit root grant2026-10-04: underground_actor.gd WorldBasis v1/v2 dispatch only, test_underground_world_basis.gd plus new evidence/scripts. No pose/root changes, new retained fields, catalog flags or source reinterpretation."
         }
       },
       "lease": {
@@ -1559,7 +1586,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-connector-placements",
+      "branch": "codex/underground-support-clearance",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -2075,9 +2102,10 @@
         "entry_phase_composition_next": {
           "agent": "/root/ug_construction",
           "branch": "codex/underground-connector-work",
-          "state": "Reviewed 1117/1118/1120/1121/1122 stack integrated. Construction is extending actual EntryWorldBindings1119 through complete L0 then T0; first BRACE composition passed.",
+          "state": "1119 reviewed and integrated; focused combined68/18627/0. Real-profile1133 and workpieces1134 remain open.",
           "gap": "Four-cube paid sequence, installed fractional endpoint preservation, production source activation, real stationary turning and material handling remain open.",
-          "scope": "One actual Contacts packet; no synthetic phase permission or seeded paid Site history. New2048 controls/helper proposal must be counted outside fully assigned524288 binding reserve; native unqualified."
+          "scope": "One actual Contacts packet; no synthetic phase permission or seeded paid Site history. New2048 controls/helper proposal must be counted outside fully assigned524288 binding reserve; native unqualified.",
+          "evidence": "docs/validation/evidence/underground-1119-integration-2026-10-04/"
         },
         "shared_natural_surface_1115": {
           "source_commit": "b096363ae726c5a755468db24ba9ced61ca9d6fd",
@@ -2234,8 +2262,12 @@
         },
         "entry_world_memory_1131": {
           "owner": "/root",
-          "status": "final source and ledger review; normal tests pending accepted1119 integration",
-          "contract": "Additional2048-byte Entry World reservation outside already assigned bindings; inherited World base and borrowed Contacts counted once. Prospective joint4968921/live99961686/headroom38314; native peak unqualified.146 injected-source developmental checks passed, not normal integration proof."
+          "status": "independently reviewed and integrated; normal146 source tests passed",
+          "contract": "Separate2048-byte EntryWorld control reserve; no duplicate inherited World or Contacts. Joint4968921/live99961686/headroom38314. Normal-source146 tests and exact pack/READY07 passed. Native peak remains unqualified.",
+          "source_commit": "e37637a0",
+          "integration_commit": "a1a16255",
+          "review": "Construction helper review and Geometry final wiring/ledger review accepted; injected history retained separately.",
+          "evidence": "docs/validation/evidence/underground-entry-world-memory-2026-10-04/"
         }
       },
       "lease": {
@@ -2298,7 +2330,7 @@
           },
           {
             "agent": "/root/ug_geometry",
-            "branch": "codex/underground-connector-placements",
+            "branch": "codex/underground-support-clearance",
             "state": "held",
             "files": [
               "godot/scripts/core/underground_entry_bindings.gd",

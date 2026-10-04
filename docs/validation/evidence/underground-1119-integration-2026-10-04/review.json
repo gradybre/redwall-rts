@@ -1,0 +1,27 @@
+{
+  "reviewer": "/root",
+  "source_commits": [
+    "d5ec6a39",
+    "2974934e"
+  ],
+  "integration_commits": [
+    "bde5ee46",
+    "0ce800f0"
+  ],
+  "candidate_1_head": "0ce800f0",
+  "candidate_2_head": "a1a16255",
+  "same_eight_gdscript_sources": true,
+  "tests": 68,
+  "assertions": 18627,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "expected": 0,
+  "tolerated": 0,
+  "object_leaks": 0,
+  "resource_leaks": 0,
+  "analyzer_warnings": 0,
+  "analyzer_files": 5,
+  "production_profile_qualified": false,
+  "full_suite": false
+}

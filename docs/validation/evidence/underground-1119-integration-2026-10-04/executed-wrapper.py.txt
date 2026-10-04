@@ -1,0 +1,21 @@
+import importlib.util,sys
+from pathlib import Path
+path=Path('docs/validation/evidence/underground-prepared-location-observation-2026-10-04/reproduce.py').resolve()
+spec=importlib.util.spec_from_file_location('reviewed_checkpoint',path)
+m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
+m.FILES=[
+ 'godot/scripts/core/underground_entry_world_bindings.gd',
+ 'godot/scripts/core/underground_connector_contacts.gd',
+ 'godot/test/test_underground_entry_world_bindings.gd',
+ 'godot/test/test_underground_connector_contacts.gd',
+ 'godot/test/test_underground_first_prefix.gd']
+sys.argv=[str(path),'--out',
+ 'docs/validation/evidence/underground-1119-integration-2026-10-04/candidate-2',
+ '--port','6197',
+ '--suite','test_underground_entry_world_bindings.gd',
+ '--suite','test_underground_connector_contacts.gd',
+ '--suite','test_underground_first_prefix.gd',
+ '--dependency','godot/scripts/core/underground_locations.gd',
+ '--dependency','godot/scripts/core/underground_routes.gd',
+ '--dependency','godot/scripts/core/underground_world_routes.gd']
+raise SystemExit(m.main())

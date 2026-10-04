@@ -1776,3 +1776,36 @@ does not admit an unbudgeted per-worker search or a whole simulation tick.
 | Shared route work result | `_remaining` | 4 | `1` = 1 | Empty before configure | 3 | -- | The static current-route query spends the same operation budget and preserves this output on failure. |
 | Reused exact world boxes | `_bounds`, `_support`, `_target`, `_scratch` | 4 | `6` = 6 | Empty before configure | 3 | -- | Integer exact positive-volume bounds. Negative source foot residual is retained. |
 | Whole contact packet and source controls | -- | -- | -- | No open observation or permission across a frame/save boundary | 3 | -- | Source census and runtime reflection confirm3051 logical bytes:452 top-level packed,213 numeric scalar controls, Order96, two Location records232 including their96 packed bytes, Descriptor184, Selection168, two Box records64, IntResult9, and one Fragments packet1633 (two32-row six-I32 banks1536, three six-I32 buffers72, threeI64 plusbool25). Additional1024 numeric helper-frame allowance gives4075 within the admitted4096 binding subreserve, including the nested512 route-query ceiling. The65 additional numeric bytes retain explicit phase mode, full Site, operation/episode, original cold/Space tokens, and separate output full container/Location/payload. Prepared phase context remains unbound; tokens alone grant nothing. Actual strong/weak references, packed/object headers and native frames remain unmeasured; no native or worker-timing qualification. No new gameplay, receipt, claim, installed-prefix or canonical columns. |
+
+### Installed timber and supported contacts (decision1114)
+
+EntryBindings adds only `_timber_placement` and `_timber_project` (two full
+8-byte refs), plus `_timber_assembly` and `_timber_token` (two8-byte controls).
+These32 logical bytes are synchronous category3 state, cleared when the exact
+operation is discarded or published. They update the prior Entry numeric
+census from42 to74 and its complete fixed numeric/packed packet from454 to486,
+inside the unchanged4096 reservation. No Location, Placement, SourceOwner or
+SurfaceAnchor member, packed column, installed flag, endpoint map or canonical
+ordinal is added. The existing Placement installed prefix remains the sole
+lasting paid assembly progress.
+
+The reused cold geometry has two6R-I32 fragment banks and four6-I32 boxes.
+Actual no-snapshot geometry is48R+4096 =299008 logical bytes atR6144; the
+conservative allowed image coexistence remains96R+16O+4096 =626688 atO2048.
+Geometry scratch drops before Locations coverage and then WorldRoutes
+certificate compilation. Placement's108800 reservation is already charged
+once and the EntryPlan/cursor are absent during installation. Own Entry numeric
+frames256 plus the existing conservative nested-owner ceiling512 give the
+same928/2048 helper charge; the exact installed-Location chain is248 bytes
+within that512. Original tokens and work bounds precede each allocation/scan.
+Native reference, packed/object header and interpreter-frame costs remain
+unmeasured. See the committed1114 census/evidence; this is not runtime or
+whole-prefix gameplay qualification.
+
+Installed Location refresh/load rederives current Catalog LANDING, paid prefix,
+complete prism and lower-Site witnesses, including fractional floors whose
+roots lie inside completed cubes. Every such source pass is before irreversible
+publication. No additional image or proof flag survives a save/frame boundary.
+Generic Sites refresh with installed contacts remains closed pending the actual
+refresh-only phase context in1121; immutable source bytes alone grant no
+temporary floor, free air, stair motion or payment.

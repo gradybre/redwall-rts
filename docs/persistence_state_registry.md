@@ -1846,3 +1846,24 @@ Sites payment/settlement publishes the sealed base+1 Space receipt and all
 companion/source revisions. Rejected payment changes no live bank. Generic
 publication remains guarded by Authority's original token after companion
 cleanup. Ordinary unbound behavior and saved schemas remain unchanged.
+
+### Source-qualified stationary ground turn (decision1125)
+
+The concrete WorldRoutes turn command adds no retained member, packed column,
+bank, pending command or canonical ordinal to WorldRoutes, Routes or Transforms.
+It reuses existing guarded Profile/Location/Box/source packets. No separate
+save/hash payload is introduced. A successful fixed-tick action writes only
+the existing current yaw, previous yaw/XYZ history and one Transform mutation
+revision; current XYZ and route/economic authority remain unchanged. Refusals
+preserve their complete images. Existing occupancy freshness stays invalid if
+it was already stale before the turn.
+
+The source-counted numeric helper paths fit the existing512 ceiling: the
+longest observing cargo chain declares464 bytes, plus48 expression/result
+bytes. There is no new reservation or double charge for reused packets. Native
+references, interned StringNames, Variant headers, interpreter frames and
+existing OpResult allocations are not measured by this logical census.
+`underground-ground-turn-2026-10-04/census.py` and its pinned output preserve
+the calculation. Production profile/source-phase and whole-client timing
+qualification remain open; no stair or productive WORK turn permission is
+created by the component.

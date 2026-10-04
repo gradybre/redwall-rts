@@ -1277,6 +1277,16 @@
           "native": "1131 poses, 2581 assertions, 0 failures; unexpected diagnostics and object/resource leaks0; analyzer0/1",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-install-source-v1/",
           "scope": "Source-local yaw-zero adze-fitting motion at existing paid-bearer target; actual WIP, physical delivery/placement, profile, pace and whole-game visual qualification still open"
+        },
+        "installation_driver_v3": {
+          "source_commit": "41804c3afc0e72d93b75e6c2655ca828553185e5",
+          "integration_commit": "fd5d2a19",
+          "review": "Root independently accepted exact b88fd717 source and3312bd29 test; explicit six-role/fourteen-clip protocol; existing protocols unchanged",
+          "tests": "11 tests;242 assertions;0 failures; strict/raw unexpected diagnostics and leaks0; analyzer0/2",
+          "packed_presentation_bytes": 432,
+          "packed_presentation_growth_bytes": 36,
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/driver-install-check-v1/",
+          "scope": "Source-clock component; no Work credit, WIP delivery/handling or qualified production geometry. Actual source program and native replay under development."
         }
       },
       "lease": {

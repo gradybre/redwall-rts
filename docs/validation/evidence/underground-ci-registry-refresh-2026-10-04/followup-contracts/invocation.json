@@ -1,0 +1,175 @@
+[
+  {
+    "command": [
+      "python3",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 1.588,
+    "log": "00-generate_component_columns_schema.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_component_columns_schema.py"
+    ],
+    "exit_code": 0,
+    "seconds": 18.12,
+    "log": "01-test_component_columns_schema.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "exit_code": 0,
+    "seconds": 0.037,
+    "log": "02-lane_notes.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_envelopes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.422,
+    "log": "03-test_movement_envelopes.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.07,
+    "log": "04-test_movement_profile_policy.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.315,
+    "log": "05-state_registry_coverage.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_headless_runner.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.035,
+    "log": "06-test_headless_runner.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_qualify.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.411,
+    "log": "07-test_qualify.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_winter.py"
+    ],
+    "exit_code": 0,
+    "seconds": 8.231,
+    "log": "08-test_winter.log"
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.345,
+    "log": "09-test_merge_gate.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_repair_meshy_rig.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.039,
+    "log": "10-test_repair_meshy_rig.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_rig_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.07,
+    "log": "11-test_rig_meshy_tail.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_bake_meshy_tail.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.158,
+    "log": "12-test_bake_meshy_tail.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_ground_meshy_clips.py"
+    ],
+    "exit_code": 0,
+    "seconds": 1.339,
+    "log": "13-test_ground_meshy_clips.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_demo_texture_imports.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.341,
+    "log": "14-test_demo_texture_imports.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_build_demo_windows.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.045,
+    "log": "15-test_build_demo_windows.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_balance_report.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.037,
+    "log": "16-test_balance_report.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_soak_report.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.042,
+    "log": "17-test_soak_report.log"
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_stage_art_passes.py"
+    ],
+    "exit_code": 0,
+    "seconds": 0.036,
+    "log": "18-test_stage_art_passes.log"
+  }
+]

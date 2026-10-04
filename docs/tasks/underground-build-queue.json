@@ -446,7 +446,11 @@
         "godot/test/test_underground_connector_workpieces.gd",
         "godot/test/test_underground_connector_workpieces.gd.uid",
         "docs/decisions/1134-paid-connector-workpieces.md",
-        "docs/validation/evidence/underground-connector-workpieces-2026-10-04/"
+        "docs/validation/evidence/underground-connector-workpieces-2026-10-04/",
+        "godot/test/test_underground_workpiece_publication.gd",
+        "godot/test/test_underground_workpiece_publication.gd.uid",
+        "docs/decisions/1136-connector-workpiece-start-publication.md",
+        "docs/validation/evidence/underground-workpiece-publication-2026-10-04/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -840,10 +844,19 @@
         },
         "paid_workpieces_1134": {
           "owner": "/root/ug_construction",
-          "status": "new owner/test design and implementation released; shared seams read-only",
-          "contract": "Actual partial loose Inventory payloads arrive before START; existing Funding owns consumedbill and Work owns WU. START publishes static physical Project-owned workpiece. No movable consumed-WIP v1; no new large-worker or whole-bill shipment restriction. Proposed32768-byte design ceiling pending exact census.",
+          "status": "Workpieces implementation plus approved narrow ConnectorWork/Contacts integration in progress",
+          "contract": "Actual capacity-limited loose Inventory deliveries precede consumption; one shared Funding receipt; static source-bound WIP only. Prepare exact prospective spatial context before initial START INSTALL observations; complete all observations and direct leaves before Inventory commit. No whole-bill single-load requirement, reverse quantity ledger, movable consumed WIP or free support. Actual authored set-down BUILD source remains required and distinct from INSTALL fastening.",
           "shared_owner_gate": "Root Router/Funding, Geometry Space/Placement/companions; no shared edits until exact seam review and explicit leases.",
           "inherited_policy": "Wood5000g/U; whole L0bill20000g/T0bill5000g. Existing HaulPlanner2000mWU load+2000mWU unload per payload; partial capacity-limited shipments remain allowed."
+        },
+        "workpiece_start_publication_1136": {
+          "source_commit": "007dd203085d9d3ca976c9aa82669431560c5ef4",
+          "integration": "pending",
+          "reviewer": "/root/ug_furnishing",
+          "status": "independently reviewed prepared-publication seam",
+          "tests": "62 tests,2787 assertions,0 failures; strict/raw unexpected,expected,tolerated and leaks0; analyzer0/3",
+          "scope": "Actual payment/Construction/Jobs ordering with explicit synthetic physical observer. Original owner and exact Router tuple; no late virtual purpose/bill observer. Physical1134/1135 composition still required.",
+          "evidence": "docs/validation/evidence/underground-workpiece-publication-2026-10-04/"
         }
       },
       "lease": {
@@ -1018,7 +1031,9 @@
         "godot/test/test_underground_forward_basis.gd",
         "godot/test/test_underground_forward_basis.gd.uid",
         "tools/prove_underground_forward_backend.py",
-        "tools/test_prove_underground_forward_backend.py"
+        "tools/test_prove_underground_forward_backend.py",
+        "tools/audit_underground_metal_cache.py",
+        "tools/test_audit_underground_metal_cache.py"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1470,7 +1485,8 @@
             "a5a647b9"
           ],
           "integration_tests": "Combined189tests/16682assertions/0;strict/raw/leaks0,LSP0/6; exact4phase1 sourcepins unchanged",
-          "integration_evidence": "docs/validation/evidence/underground-1132-1133-integration-2026-10-04/"
+          "integration_evidence": "docs/validation/evidence/underground-1132-1133-integration-2026-10-04/",
+          "phase3_scope": "Approved additive tools/audit_underground_metal_cache.py, tools/test_audit_underground_metal_cache.py and forward-plus-v1/rd-source-v1/ only; immutable real cache/MSL/AST provenance, finite decode, no Actor/Profiles changes or new runtime reserve. Actual numerical enclosure remains open."
         }
       },
       "lease": {
@@ -2302,8 +2318,10 @@
         },
         "paid_workpiece_space_next": {
           "owner": "/root/ug_geometry",
-          "status": "1134/1135 typed spatial context design, shared edits await exact seam agreement",
-          "scope": "Static START obstacle; exact Project obstacle replaced on completedinstallation or removed only after successfulrefund. Original tokens, full identities, occupancy/last exit and finite existingarenas; no observer afterpayment."
+          "status": "1135 exact shared-context seam approved; implementation in progress",
+          "scope": "Static START obstacle; exact Project obstacle replaced on completedinstallation or removed only after successfulrefund. Original tokens, full identities, occupancy/last exit and finite existingarenas; no observer afterpayment.",
+          "contract": "Reuse InstallationContext and existing cold banks. Proposed action/obstacle and independent Placement pins add32 logical bytes, complete census pending. Exact Project source plus nonsupporting CLAIM_NONE obstacle at START; removal on completed group or successful refund only. Static kernel publishes Space/Locations/Routes/Placement/Workpieces once, then clears original context.",
+          "companion": "Construction owns Workpieces/ConnectorWork/Contacts; root1136 reviewed; pure concrete Router tuple only after payment."
         }
       },
       "lease": {
@@ -3457,6 +3475,17 @@
       "spec": "34 CI contract commands passed at exactca622 source",
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-ca622e1c/",
       "limits": "Contacts2 and modular Inventory2 failures fixed in independently reviewed55104f9e/921287c2; new integrated qualification required."
+    },
+    {
+      "commit": "3e36e7c4fe9c43f487952511a58d3d8d91dd4cd2",
+      "ci_run": 37193630078,
+      "outcome": "rejected: stale registry source fingerprint and11 current Mole source-drift test failures",
+      "sharded_summary": "10823 tests,995744 assertions,11 failures across8 shards;382 unique observed suite files",
+      "diagnostics": "0 unexpected errors/warnings,272 expected,353 tolerated,0 leaked objects/resources",
+      "raw": "Six passing shards emitted zero raw diagnostics/leaks; failed shards5/7 stopped before raw guard/report JSON. No aggregate acceptance.",
+      "analyzer": "0 GDScript warning(s) in 0 of 1199 file(s)",
+      "evidence": "docs/validation/evidence/underground-ci-registry-refresh-2026-10-04/",
+      "followup": "Regenerated registry sidecar changes only accepted1125 transforms source hash;190 checks and19 later CI contract commands pass. Actual profile source closure/republication remains required."
     }
   ],
   "crosscut_fixes": [

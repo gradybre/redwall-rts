@@ -1,0 +1,72 @@
+{
+  "content_sha256": "cae2e9b210ce1019153b298c8f98504683f080a150c66d030d113d18b4b678e9",
+  "diagnostics": [
+    {
+      "frames": 33,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -348.6046895226757,
+        319.7274187730457,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -29.299221996610413,
+        126.00000718456783,
+        -672.7969488105023,
+        257.5617340211645,
+        668.7351070360788,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -393.29677403887547,
+        384.8123453114688,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -128.04572539670335,
+        208.00000718456783,
+        -731.4007356499042,
+        546.8456958434563,
+        841.1963531465485,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -393.29677403887547,
+        384.8123453114688,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -128.04572539670335,
+        208.00000718456783,
+        -731.4007356499042,
+        546.8456958434563,
+        841.1963531465485,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    }
+  ],
+  "production_qualified": false
+}

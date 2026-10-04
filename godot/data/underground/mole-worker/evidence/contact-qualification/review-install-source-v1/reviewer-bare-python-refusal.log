@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/test_install_source.py", line 8, in <module>
+    import numpy as np
+ModuleNotFoundError: No module named 'numpy'

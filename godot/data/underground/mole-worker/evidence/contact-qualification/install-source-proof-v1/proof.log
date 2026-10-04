@@ -1,0 +1,152 @@
+install-proof-clip {"clip": 0, "clear": false}
+self-clearance-progress {"interval": 0, "checks": 615, "pairs": 615, "unresolved": 0}
+self-clearance-progress {"interval": 1, "checks": 1190, "pairs": 1190, "unresolved": 0}
+self-clearance-progress {"interval": 2, "checks": 1694, "pairs": 1694, "unresolved": 0}
+self-clearance-progress {"interval": 3, "checks": 2218, "pairs": 2218, "unresolved": 0}
+self-clearance-progress {"interval": 4, "checks": 2769, "pairs": 2769, "unresolved": 0}
+self-clearance-progress {"interval": 5, "checks": 3353, "pairs": 3353, "unresolved": 0}
+self-clearance-progress {"interval": 6, "checks": 3946, "pairs": 3946, "unresolved": 0}
+self-clearance-progress {"interval": 7, "checks": 4545, "pairs": 4545, "unresolved": 0}
+self-clearance-progress {"interval": 8, "checks": 5209, "pairs": 5209, "unresolved": 0}
+self-clearance-progress {"interval": 9, "checks": 5921, "pairs": 5921, "unresolved": 0}
+self-clearance-progress {"interval": 10, "checks": 6675, "pairs": 6675, "unresolved": 0}
+self-clearance-progress {"interval": 11, "checks": 7475, "pairs": 7475, "unresolved": 0}
+self-clearance-progress {"interval": 12, "checks": 8310, "pairs": 8310, "unresolved": 0}
+self-clearance-progress {"interval": 13, "checks": 9363, "pairs": 9363, "unresolved": 0}
+self-clearance-progress {"interval": 14, "checks": 10585, "pairs": 10585, "unresolved": 0}
+self-clearance-progress {"interval": 15, "checks": 11986, "pairs": 11986, "unresolved": 0}
+self-clearance-progress {"interval": 16, "checks": 13701, "pairs": 13667, "unresolved": 0}
+install-proof-clip {"clip": 1, "clear": false}
+{
+  "source_local_yaw0_clear": false,
+  "contacts": [
+    {
+      "source_vertex": 478,
+      "rendered_edge": [
+        14,
+        15
+      ],
+      "anchor_u": [
+        128,
+        0,
+        -448
+      ],
+      "patch_u": [
+        127,
+        0,
+        -449,
+        129,
+        0,
+        -447
+      ],
+      "share_range": [
+        {
+          "numerator": 13296944165753171253,
+          "denominator": 24004186013884743680
+        },
+        {
+          "numerator": 14805650040922287413,
+          "denominator": 24004186013884743680
+        }
+      ],
+      "residual_m": [
+        {
+          "numerator": 370698855198968435769721973602044105779536675520265690353578001755760630893550077021640349324028311411216350054293708105842679,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 55335230593629258909584363149666353590249657394611594421003709301315629317433274943404985196085345551746511350424529342562295,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        },
+        {
+          "numerator": 370698855198968435769721973602044105779536675520265690353578001755760630893550077021640349324028311411216350054293708105842679,
+          "denominator": 693163044041854377174874480835480019432178956407993491014930281136784911840107328135053797357886761489661290145480636578274476032
+        }
+      ]
+    }
+  ],
+  "support": {
+    "0": {
+      "support_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        0,
+        174
+      ],
+      "source_foot_bounds_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        223,
+        174
+      ],
+      "triangles": 1985,
+      "binds": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "left_palm_brace": false,
+      "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"
+    },
+    "1": {
+      "support_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        0,
+        174
+      ],
+      "source_foot_bounds_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        223,
+        174
+      ],
+      "triangles": 1985,
+      "binds": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "left_palm_brace": false,
+      "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"
+    },
+    "2": {
+      "support_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        0,
+        174
+      ],
+      "source_foot_bounds_u": [
+        -274,
+        -1,
+        -169,
+        299,
+        223,
+        174
+      ],
+      "triangles": 1985,
+      "binds": [
+        3,
+        4,
+        7,
+        8
+      ],
+      "left_palm_brace": false,
+      "rule": "full foot/toe triangle projection plus exact actual left-palm plane-contact enclosure only when explicitly authored"
+    }
+  },
+  "production_qualified": false
+}

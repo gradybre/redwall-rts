@@ -1,0 +1,362 @@
+{
+  "schema": 1,
+  "contact_u": [
+    128,
+    128,
+    -448
+  ],
+  "lean_degrees": 35,
+  "azimuth_degrees": 30,
+  "source_pins": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-oriented-study-v1/study.py": "07f346b2b39753c60021c46fa4ec1e70848c93fe28333bb8bbfb8b7002904094",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-pose-study-v1/study_pose.py": "4b369eba149f5feddfe6758a10193a6dd2d45958bfb20d8c0f9836aac63c385e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "10dd2c3946848be80a3acce02374d2b19dfa9cf93a5045d14a6bc4fbce6a0e49",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "self": {
+    "work": {
+      "clear": true,
+      "unresolved": [],
+      "checks": 7304,
+      "pairs": 7304,
+      "body_triangles": 9761,
+      "intentional_grip_triangles": 448,
+      "tool_triangles": 1150,
+      "intervals": 32,
+      "rendered_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          10
+        ],
+        [
+          10,
+          11
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          12,
+          13
+        ],
+        [
+          13,
+          14
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          15,
+          16
+        ],
+        [
+          16,
+          17
+        ],
+        [
+          17,
+          18
+        ],
+        [
+          18,
+          19
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          22,
+          23
+        ],
+        [
+          23,
+          24
+        ],
+        [
+          24,
+          25
+        ],
+        [
+          25,
+          26
+        ],
+        [
+          26,
+          27
+        ],
+        [
+          27,
+          28
+        ],
+        [
+          28,
+          29
+        ],
+        [
+          29,
+          30
+        ],
+        [
+          30,
+          31
+        ],
+        [
+          31,
+          32
+        ]
+      ],
+      "loop_mode": 0,
+      "duration_q16": 2097152,
+      "exact_yaw": 0
+    },
+    "entry": {
+      "clear": true,
+      "unresolved": [],
+      "checks": 11842,
+      "pairs": 11842,
+      "body_triangles": 9761,
+      "intentional_grip_triangles": 448,
+      "tool_triangles": 1150,
+      "intervals": 30,
+      "rendered_edges": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          5
+        ],
+        [
+          5,
+          6
+        ],
+        [
+          6,
+          7
+        ],
+        [
+          7,
+          8
+        ],
+        [
+          8,
+          9
+        ],
+        [
+          9,
+          10
+        ],
+        [
+          10,
+          11
+        ],
+        [
+          11,
+          12
+        ],
+        [
+          12,
+          13
+        ],
+        [
+          13,
+          14
+        ],
+        [
+          14,
+          15
+        ],
+        [
+          15,
+          16
+        ],
+        [
+          16,
+          17
+        ],
+        [
+          17,
+          18
+        ],
+        [
+          18,
+          19
+        ],
+        [
+          19,
+          20
+        ],
+        [
+          20,
+          21
+        ],
+        [
+          21,
+          22
+        ],
+        [
+          22,
+          23
+        ],
+        [
+          23,
+          24
+        ],
+        [
+          24,
+          25
+        ],
+        [
+          25,
+          26
+        ],
+        [
+          26,
+          27
+        ],
+        [
+          27,
+          28
+        ],
+        [
+          28,
+          29
+        ],
+        [
+          29,
+          30
+        ]
+      ],
+      "loop_mode": 0,
+      "duration_q16": 1966080,
+      "exact_yaw": 0
+    }
+  },
+  "diagnostics": {
+    "work": {
+      "frames": 33,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -348.6046895226757,
+        319.7274187730457,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -29.299221996610413,
+        126.00000718456783,
+        -672.7969488105023,
+        257.5617340211645,
+        668.7351070360788,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    "entry": {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -393.29677403887547,
+        384.8123453114688,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -128.04572539670335,
+        208.00000718456783,
+        -731.4007356499042,
+        546.8456958434563,
+        841.1963531465485,
+        -213.52495898377492
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    }
+  },
+  "scope": "complete source-local/yaw0 body/tool self only; no workpiece/floor/native/INSTALL permission",
+  "production_qualified": false
+}

@@ -1226,3 +1226,48 @@ production/helper source bytes remain unchanged. The corrected owned content
 directory analyzer reports0 warnings in0of9 files. That scoped result does not
 replace the next integrated full analyzer. No source motion or runtime behavior
 changes in this packaging correction.
+
+### Distinct INSTALL adze-fitting source (engineering candidate)
+
+The original1113 Y0 face candidates are preserved. The original raw-X extremum
+looked like a poll in a wire inspection, but native install-v1 revealed a
+hanging loop. It is rejected as a hammer face. Candidate v2 uses the actual
+broad stone adze end (vertex478), without replacing the model, material,
+original grip or actual BASIC-tool identity. Its ground-level wrist clearance
+refuses; the first raised motion also refuses. Those source and native results
+remain historical failures, never production permissions.
+
+The next root-authored fitting target uses an existing billed bearer as an
+assembly workpiece. L0's128x128x2048 bearer is quarter-turned across X with
+box[-1024,0,0 ..1024,128,128], resting on retained near-side earth. T0's
+128x128x512 bearer lies across X at[-256,0,-2048 ..256,128,-1920] on the
+completed L0 deck. The original stations remain fixed; both contact planes
+are Y128. These are the same1113 included parts, not a new material, cost or
+completed support. Actual paid Construction WIP and source-part/pose identity
+must later publish the visible workpiece as a non-supporting work target.
+
+Owned author_install_source.py and test_install_source.py, plus additive
+capture_install_source.gd/run_install_capture.py and install-native evidence,
+retain every body/tool primitive and unchanged limb lengths. Connected-arm
+authoring changes the actual deformed source; no wrist collision or widened
+palm exclusion is excused. Full finite self/world/support/contact proof and
+native grasp/assembly readability are separate gates. No BUILD credit, paid
+assembly completion, new profile permission or price is introduced.
+
+The accepted v4 candidate has 95 frames in three finite clips, with unchanged
+body geometry and a connected, length-preserving arm source. The actual adze
+vertex crosses the Y128 target with anchor [128,128,-448] and closed patch
+[127,128,-449 ..129,128,-447]. Every body/clothing and tool triangle remains
+under the world-prism check. Only the productive active adze may enter the
+exact billed workpiece; body and recovery receive no such exception. Loose
+timber still grants no support or route. The complete self proof covers 7,304
+work pairs and 11,842 entry pairs, with recovery the exact reverse.
+
+Independent root review accepted the six frozen sources and all 531 evidence
+pins in `contact-qualification/review-install-source-v1`. Eleven adversarial
+Python tests pass. Native evidence records 1,131 poses, 2,581 assertions and
+zero failures, with zero unexpected diagnostics or leaks; the scoped analyzer
+reports zero warnings in one file. The reviewer inspected side, opposite and
+RTS-distance views and found no high or medium source-scope issue. This remains
+a source-local yaw-zero engineering candidate, not actual WIP publication,
+whole-game art, production profile, BUILD credit or pace qualification.

@@ -1,0 +1,478 @@
+{
+  "schema": 1,
+  "candidate_top_y_u": 128,
+  "source_pins": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-height-study-v1/study_height.py": "d5cad896db2e15e30c5f6d081d65e6bb3d92f98332e7e13d29e95378779807d3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "10dd2c3946848be80a3acce02374d2b19dfa9cf93a5045d14a6bc4fbce6a0e49",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972"
+  },
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "self": {
+    "work": {
+      "clear": false,
+      "unresolved": [
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1150,
+          "tool_triangle": 889
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1152,
+          "tool_triangle": 889
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1150,
+          "tool_triangle": 891
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1152,
+          "tool_triangle": 891
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1150,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1151,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1274,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1276,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1309,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1419,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1158,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1384,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1419,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1150,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1152,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1157,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1158,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1384,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1419,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1419,
+          "tool_triangle": 896
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1473,
+          "tool_triangle": 896
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1310,
+          "tool_triangle": 897
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1314,
+          "tool_triangle": 897
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 938,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 947,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 949,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1152,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1153,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1154,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1155,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1156,
+          "tool_triangle": 898
+        },
+        {
+          "interval": 0,
+          "next_frame": 1,
+          "body_triangle": 1157,
+          "tool_triangle": 898
+        }
+      ],
+      "checks": 571,
+      "pairs": 311,
+      "stopped_at_limit": true
+    },
+    "entry": {
+      "clear": false,
+      "unresolved": [
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1150,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1151,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1309,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1351,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1399,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1400,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1419,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1473,
+          "tool_triangle": 893
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1150,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1151,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1351,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1399,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1400,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1419,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1473,
+          "tool_triangle": 894
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1150,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1151,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1152,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1153,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1154,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1156,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1351,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1384,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1399,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1419,
+          "tool_triangle": 895
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1399,
+          "tool_triangle": 896
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1400,
+          "tool_triangle": 896
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1419,
+          "tool_triangle": 896
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1473,
+          "tool_triangle": 896
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1399,
+          "tool_triangle": 994
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1400,
+          "tool_triangle": 994
+        },
+        {
+          "interval": 27,
+          "next_frame": 28,
+          "body_triangle": 1419,
+          "tool_triangle": 994
+        }
+      ],
+      "checks": 16257,
+      "pairs": 15845,
+      "stopped_at_limit": true
+    }
+  },
+  "diagnostics": {
+    "work": {
+      "frames": 33,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -340.1577213925748,
+        297.67120785832344,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        50.20887113794197,
+        126.00000718456783,
+        -716.0587898812851,
+        165.60399704965667,
+        668.7351070360788,
+        -195.65165181742867
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    "entry": {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -403.3036972830505,
+        365.9013526249283,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -184.4409592527145,
+        207.0268331202675,
+        -750.7910910342864,
+        546.8456958434563,
+        816.7674135773113,
+        -195.65165181742867
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    }
+  },
+  "source_equation": "same exact original fixed-link arm/fit; poll_pose target height offset128 only, original planted lower body",
+  "scope": "unadopted source-only workpiece-height study; no source patch, target owner, material delivery or assembly permission",
+  "production_qualified": false
+}

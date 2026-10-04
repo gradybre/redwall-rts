@@ -1,0 +1,18 @@
+{"x": 128, "lean": 25, "azimuth": 15, "samples": [{"height": 208, "clear": false, "body_triangle": 1342, "tool_triangle": 995}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 25, "azimuth": 30, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 25, "azimuth": 45, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": false, "body_triangle": 615, "tool_triangle": 664}]}
+{"x": 128, "lean": 35, "azimuth": 15, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 35, "azimuth": 30, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 35, "azimuth": 45, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 45, "azimuth": 15, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 45, "azimuth": 30, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 128, "lean": 45, "azimuth": 45, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 192, "lean": 25, "azimuth": 15, "samples": [{"height": 208, "clear": false, "body_triangle": 1404, "tool_triangle": 999}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 192, "lean": 25, "azimuth": 30, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": false, "body_triangle": 835, "tool_triangle": 664}]}
+{"x": 192, "lean": 25, "azimuth": 45, "samples": [{"height": 208, "clear": false, "refusal": "STEP_LEG_REACH"}, {"height": 167, "clear": false, "refusal": "STEP_LEG_REACH"}, {"height": 126, "clear": false, "refusal": "STEP_LEG_REACH"}]}
+{"x": 192, "lean": 35, "azimuth": 15, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 192, "lean": 35, "azimuth": 30, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 192, "lean": 35, "azimuth": 45, "samples": [{"height": 208, "clear": false, "refusal": "STEP_LEG_REACH"}, {"height": 167, "clear": false, "refusal": "STEP_LEG_REACH"}, {"height": 126, "clear": false, "refusal": "STEP_LEG_REACH"}]}
+{"x": 192, "lean": 45, "azimuth": 15, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 192, "lean": 45, "azimuth": 30, "samples": [{"height": 208, "clear": true}, {"height": 167, "clear": true}, {"height": 126, "clear": true}]}
+{"x": 192, "lean": 45, "azimuth": 45, "samples": [{"height": 208, "clear": false, "refusal": "STEP_LEG_REACH"}, {"height": 167, "clear": false, "refusal": "STEP_LEG_REACH"}, {"height": 126, "clear": false, "refusal": "STEP_LEG_REACH"}]}

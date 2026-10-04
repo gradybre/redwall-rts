@@ -1,0 +1,18 @@
+{
+  "command": [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "--max",
+    "0",
+    "--port",
+    "6149",
+    "--json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/review-install-source-v1/analyzer.json",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_install_source.gd"
+  ],
+  "exit_code": 0,
+  "source_sha256": "3d5772685acd8a1da889e94386b07a0c52e424258613aee0dfd7eea53ca6660f",
+  "source_unchanged": true,
+  "isolated_override_sha256": "74ca5ba148f1d55b5809c16d1021f47788852a9cfe4b46da9d0ab5ee98106f59",
+  "user_directory_name": "Redwall-Codex-Install-Analyzer-v1"
+}

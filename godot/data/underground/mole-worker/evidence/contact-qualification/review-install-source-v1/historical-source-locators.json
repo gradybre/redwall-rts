@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "scope": "Locator only; historical records, executed bytes and their digests are unchanged. Restore only into a separate exact-source checkout for reproduction. No current runtime source allowance.",
+  "records": [
+    {
+      "historical_record": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-pose-study-v1/study.json",
+      "historical_record_sha256": "3fbf3d9b0e04137a2894a1975ec57680a06f0aedabed2273eb2bfc47a192a1a0",
+      "original_source_path": "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py",
+      "sha256": "10dd2c3946848be80a3acce02374d2b19dfa9cf93a5045d14a6bc4fbce6a0e49",
+      "retained_path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v3/source-snapshots/author_install_source.py"
+    },
+    {
+      "historical_record": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-oriented-study-v1/study.json",
+      "historical_record_sha256": "03c45c82af87a16db8bceb33befa7bbff429382ccc4c239255d42a9b09810e08",
+      "original_source_path": "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py",
+      "sha256": "10dd2c3946848be80a3acce02374d2b19dfa9cf93a5045d14a6bc4fbce6a0e49",
+      "retained_path": "godot/data/underground/mole-worker/evidence/contact-qualification/install-source-v3/source-snapshots/author_install_source.py"
+    }
+  ]
+}

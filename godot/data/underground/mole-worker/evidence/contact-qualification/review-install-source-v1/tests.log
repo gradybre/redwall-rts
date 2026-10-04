@@ -1,0 +1,13 @@
+.........install-prism-progress {"assembly": 0, "part": 0, "interval": 0, "checks": 0, "pairs": 1}
+install-prism-progress {"assembly": 0, "part": 1, "interval": 0, "checks": 0, "pairs": 2}
+install-prism-progress {"assembly": 0, "part": 0, "interval": 0, "checks": 0, "pairs": 1}
+install-prism-progress {"assembly": 0, "part": 1, "interval": 0, "checks": 11, "pairs": 2}
+install-prism-progress {"assembly": 0, "part": 0, "interval": 0, "checks": 11, "pairs": 2}
+install-prism-progress {"assembly": 0, "part": 1, "interval": 0, "checks": 11, "pairs": 3}
+install-prism-progress {"assembly": 0, "part": 0, "interval": 0, "checks": 22, "pairs": 2}
+install-prism-progress {"assembly": 0, "part": 1, "interval": 0, "checks": 22, "pairs": 3}
+..
+----------------------------------------------------------------------
+Ran 11 tests in 0.070s
+
+OK

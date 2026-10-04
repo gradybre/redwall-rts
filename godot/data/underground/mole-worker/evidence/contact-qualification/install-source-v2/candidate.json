@@ -1,0 +1,442 @@
+{
+  "schema": 1,
+  "compact_source_sha256": "f575382e1fdc4b5e20b70254a8c7a5b3ebf6f0256266627dc79d43f3e12dae37",
+  "prefix_source_sha256": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81",
+  "targets": [
+    {
+      "assembly": 0,
+      "existing_target_kind": "retained_natural",
+      "target_bounds_u": [
+        -1024,
+        -128,
+        0,
+        -512,
+        0,
+        128
+      ],
+      "station_root_u": [
+        -832,
+        0,
+        512
+      ],
+      "local_target_box_u": [
+        -192,
+        -128,
+        -512,
+        320,
+        0,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -192,
+        0,
+        -512,
+        320,
+        0,
+        -384
+      ],
+      "scope": "candidate existing face only; no authored stroke, stance or work permission"
+    },
+    {
+      "assembly": 1,
+      "existing_target_kind": "installed_part",
+      "target_bounds_u": [
+        -256,
+        -64,
+        -2048,
+        256,
+        0,
+        -1920
+      ],
+      "station_root_u": [
+        0,
+        0,
+        -1536
+      ],
+      "local_target_box_u": [
+        -256,
+        -64,
+        -512,
+        256,
+        0,
+        -384
+      ],
+      "local_patch_limits_u": [
+        -256,
+        0,
+        -512,
+        256,
+        0,
+        -384
+      ],
+      "scope": "candidate existing face only; no authored stroke, stance or work permission"
+    }
+  ],
+  "poll_source_vertex": 478,
+  "contact_source_kind": "actual broad adze end; INSTALL meaning remains under native/source review",
+  "contact_source_point_m": [
+    -0.5544813275337219,
+    0.126980260014534,
+    0.7396608591079712
+  ],
+  "source_recipe": {
+    "lean_degrees": 35,
+    "poll_xz_u": [
+      128,
+      -448
+    ],
+    "poll_y_u": [
+      80,
+      -2,
+      80
+    ],
+    "productive_frames": 33,
+    "entry_frames": 31,
+    "unchanged_lower_binds": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "unmodified_arm_lengths": true,
+    "hand_fit": "exact actual compact-ready fit; no socket regrip or tool substitution"
+  },
+  "pose_solver_diagnostics": [
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        483.0253881343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        80.00000718456783,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        482.1044896968489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        79.07910874706783,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 0.0,
+      "hand_origin_u": [
+        102.90663176589757,
+        479.5019506343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        76.47656968456783,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        475.4580053218489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        72.43262437206783,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        470.2128881343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        67.18750718456783,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        464.0068334468489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        60.981452497067835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        457.0800756343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        54.054694684567835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        449.6728490718489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        46.647468122067835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 0.0,
+      "hand_origin_u": [
+        102.90663176589757,
+        442.0253881343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        39.000007184567835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        434.3779271968489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        31.352546247067835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        426.9707006343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        23.945319684567835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 4.163336342344337e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        420.0439428218489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        17.018561872067835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        413.8378881343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        10.812507184567835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 8.326672684688674e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        408.5927709468489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        5.567389997067835,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 5.551115123125783e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        404.5488256343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        1.5234446845678349,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 2.7755575615628914e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        401.9462865718489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        -1.0790943779321651,
+        -447.99999420631195
+      ]
+    },
+    {
+      "maximum_link_length_error_m": 1.3877787807814457e-17,
+      "hand_origin_u": [
+        102.90663176589757,
+        401.0253881343489,
+        -184.5730185276881
+      ],
+      "poll_u": [
+        127.99999487693145,
+        -1.9999928154321651,
+        -447.99999420631195
+      ]
+    }
+  ],
+  "diagnostics": [
+    {
+      "frames": 33,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -340.1577213925748,
+        297.67120785832344,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        50.20887113794197,
+        -1.9999928154321651,
+        -716.0587898812851,
+        165.60399704965667,
+        540.7351070360788,
+        -195.65165181742867
+      ],
+      "tool_below_zero_source_vertices": 6,
+      "tool_below_zero_bounds_u": [
+        127.99999487693145,
+        -1.9999928154321651,
+        -447.99999420631195,
+        127.99999487693145,
+        -1.0790943779321651,
+        -447.99999420631195
+      ],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -422.75267542902384,
+        362.759507353494,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -220.94161312844062,
+        54.790103195662596,
+        -799.6539772870888,
+        546.8456958434563,
+        809.310309508197,
+        -195.65165181742867
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    },
+    {
+      "frames": 31,
+      "body_bounds_u": [
+        -408.1303742270004,
+        0.0001731457980502782,
+        -422.75267542902384,
+        362.759507353494,
+        839.1427218256963,
+        233.07665991055308
+      ],
+      "tool_bounds_u": [
+        -220.94161312844062,
+        54.790103195662596,
+        -799.6539772870888,
+        546.8456958434563,
+        809.310309508197,
+        -195.65165181742867
+      ],
+      "tool_below_zero_source_vertices": 0,
+      "tool_below_zero_bounds_u": [],
+      "scope": "sampled source vertices only; triangle interiors/interpolation/native residual remain unproved"
+    }
+  ],
+  "source_triangle_census": [
+    10209,
+    1150
+  ],
+  "verified_source_files": 537,
+  "historical_source_snapshot": {
+    "res://scripts/core/underground_profiles.gd": {
+      "commit": "ecbfcb123ddf682252421584cccb9b473b234a8d",
+      "sha256": "c0064e3ce55fdaa8df33ce4d0b7f54a37fc49ff938f70461ea40f58ef90ef8c2"
+    }
+  },
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_install_source.py": "fccfb9b906445e0e22f49754f6aa0a4f669eb797203ff71ea5b11c28afe56226",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_compact_program.py": "a8767bd00946cf3883c09336102ab6aeff7bffff981fa568ba4c0d743c6dcec4",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_planted_front.py": "6bf5bb4cdc71548675c9984db2290f7e6e111149bda48b21c5f4238c0e54b603",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/compile_state_program.py": "3e223cdecfd3db819a67f9236ffdf70f257ba2663178bd644bec571be05900b7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_state_handoffs.py": "9e5dd13b00c93743599b674551d86eb439273e419b6700858549f293453beb32",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_high_wall.py": "4b33e7cdc9f168800f01e12e2260c33f8d039b4c9a86fd8e3070a52e0e169186",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_high_wall.py": "81b06e106ac76cbf1462b48c2a0438a404c34cb25394b21c86d4379a0a4e9728",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_self_clearance.py": "5a5a73c281d3a602036b84046f01d757fa5bc3c38549fe15f71e56da518763b6",
+    "godot/data/underground/mole-worker/compile_profiles.py": "6cdc28bb58aac17876587d01ca367ed264c91edb0e33c4e1a218f7c2c7160000",
+    "tools/compile_underground_actor_content.py": "c175f2fe8464e69c98bab261c7848624b0bb2ae066dd5258c78998d0e6ef75be",
+    "tools/export_underground_envelopes.py": "c8f037ed814ed7ad40b7a1222106d8d4bb12687139b749391688c3591aa54972",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-sequence-prefix-v1/first-entry-prefix-v1.source.json": "edd562056b12f732fbf60f0536207ba2afd1dce650d19df552ecf1e75ff9cf81"
+  },
+  "remaining": [
+    "CONTINUOUS_BODY_TOOL_SELF_CLEARANCE",
+    "SOURCE_POLL_PATCH_AND_FULL_TARGET_CLEARANCE",
+    "FULL_ENTRY_RECOVERY_SUPPORT",
+    "NATIVE_MATERIAL_GRIP_AND_FASTENING_REVIEW",
+    "ACTUAL_BUILD_JOB_GEAR_PROFILE_AND_PAID_TARGET_BINDING"
+  ],
+  "production_qualified": false
+}

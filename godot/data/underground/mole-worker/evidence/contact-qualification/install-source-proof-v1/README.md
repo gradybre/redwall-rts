@@ -1,0 +1,3 @@
+# Refused initial adze candidate
+
+Full source-local/yaw0 contact and support bounds were computed without clipping primitives. The witness patch [127,0,-449,129,0,-447] and complete below-plane tool geometry fit the two candidate faces. The non-palm body/tool check nevertheless refuses: productive interval0 and entry interval17 retain unresolved body/tool pairs. The 448 intentionally gripped palm triangles are the existing exact source patch; it is not enlarged. Native stills and a valid point crossing do not resolve these collisions. Production qualification remains false. Current authoring continues by correcting the actual connected wrist/forearm roll, preserving all fixed source arm lengths and meshes.

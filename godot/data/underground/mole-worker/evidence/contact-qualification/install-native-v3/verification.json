@@ -1,0 +1,8 @@
+{
+  "poses": 1131,
+  "assertions": 2581,
+  "screenshots": 132,
+  "native_poll_samples": 9,
+  "production_qualified": false,
+  "scope": "actual source/native fixture only; no paid target/support/BUILD permission"
+}

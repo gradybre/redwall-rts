@@ -1,0 +1,39 @@
+{
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit",
+      "--log-file",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v3/engine-import.log"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "gl_compatibility",
+      "--audio-driver",
+      "Dummy",
+      "--fixed-fps",
+      "60",
+      "--log-file",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v3/engine-native.log",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_install_source.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v3/spec.json",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/install-native-v3"
+    ]
+  ],
+  "native_exit": 0,
+  "source_unchanged": true,
+  "unexpected_diagnostics": false,
+  "production_qualified": false,
+  "pre_import_source_unchanged": true,
+  "isolated_override_unchanged": true,
+  "override_sha256": "6d1365cab377691e173171349c9e5e576410e4c3f1bfa086dfb42911800164c5"
+}

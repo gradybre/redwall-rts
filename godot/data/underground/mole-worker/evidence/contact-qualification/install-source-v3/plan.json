@@ -1,0 +1,16 @@
+{
+  "revision": 104,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "clips": [
+    "mole_worker.install_adze.tap_v3",
+    "mole_worker.install_adze.entry_v3",
+    "mole_worker.install_adze.recovery_v3"
+  ]
+}

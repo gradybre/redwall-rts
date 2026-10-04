@@ -1,0 +1,800 @@
+{
+  "scope": "Read-only development census, no refreshed runtime qualification",
+  "source_commit": "1e71c67879240fc293b0e41a6e04c34f64ecf42b",
+  "changes": [
+    {
+      "path": "res://demo/cast/underground_actor.gd",
+      "prior_sha256": "64ce149244114c7404e6e7374b6c268fa2ebbe2e70dfa940d3d3e791c763c4b6",
+      "current_sha256": "b0ef7640d2b5626eb95c162d19318d9b3985a51479d19dfdf9a38e0176a06e91"
+    },
+    {
+      "path": "res://scripts/core/modular_project_contract.gd",
+      "prior_sha256": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
+      "current_sha256": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849"
+    },
+    {
+      "path": "res://scripts/core/transforms.gd",
+      "prior_sha256": "75a07d3fb01806e96d0ac6aa12c7a85e4fd7073489cf1a86897c41ee501e8319",
+      "current_sha256": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa"
+    }
+  ],
+  "missing": [
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_barley.made.json",
+      "sha256": "344fa799714dccbbf34e62b85addaeed6430d56be96f5ea15b13efdbf6909955"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_beetroot.made.json",
+      "sha256": "663d9ed9a4d7c2575b428a9ddef79d5de26878a12b0ef1dd96e24b54e3b2a175"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_carrot.made.json",
+      "sha256": "239bdf5d5cf273d230654edd575a71f608a24f186deedaf1e54b05bb6ed1b9cb"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_celery.made.json",
+      "sha256": "0705bf99b15b1a7c1c1b796c749e1ca8850c0b1bbad061de806989476af8caeb"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_leek.made.json",
+      "sha256": "dda90eb4e90b7f90786b96bba9c5f9f107beec0eab2102ed6f839d08da2c94bc"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_lettuce.made.json",
+      "sha256": "7057fc245a3c777dfbe6fc276e6deeae18cd21c82223e7cba4944ca55e015e6b"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_oats.made.json",
+      "sha256": "f830daa8a8fbda01a075b711df7d61c58b45694d685e39bf040a1929a762e5de"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_onion.made.json",
+      "sha256": "5796d64ee2df1fcc2c892acd317625b3d4952f3c358410edb5ed2c6825a132c7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_peas.made.json",
+      "sha256": "b93f4645fa237c0fe5b40e36dcc0c02343a97ea124c5c08d4c144ef03d97bc7c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_radish.made.json",
+      "sha256": "e229cddab08a0d274043fceabb2e69f56ca703476fa755629ee0018c7a366c2c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_turnip.made.json",
+      "sha256": "a8ce6c81af8b4b85c1e2d40fe20d2e102f8233cf12be968522dc72dfb34639e6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/mole_pick.made.json",
+      "sha256": "963b11f1221e58e3fdfabe3868926ddb4f65d77ea7ec886ff99129445d9b222a"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/body.glb.import",
+      "sha256": "ce0dfafdddca1ec24a2fde06e5174a66761b5f30872c3ef02ff7603287a1d695"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/carry_heavy_object_walk.glb.import",
+      "sha256": "0ceeb732eed016fc7e7e34c9f6d4cbbb764dffdbb4316e5efeb5636e0172a1f1"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/cautious_crouch_walk_forward.glb.import",
+      "sha256": "c57916de38f682a56d7db8f27ffdfeb6c49b6e299996ff3b6909fd0937d7a739"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/collect_object.glb.import",
+      "sha256": "32a4655ca22d423b6e97a8bc9b65a3b2b9a58bc3bde59c1245a80b3ff99aa6fc"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/heavy_hammer_swing.glb.import",
+      "sha256": "dc3b54db49ebea5bd497293e3c67aa0511c48af9b138539f7273894e03bd57e0"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/idle.glb.import",
+      "sha256": "0d65d6b6651b3d32123a0c7da306d281c7725fde4ceeb6ff291778494d77005e"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/pull_radish.glb.import",
+      "sha256": "70175d7ccfbbf9c4d65ad2ea62f46090f6ca8c4f4a819bfccedddbadeb0a4704"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/sleep_normally.glb.import",
+      "sha256": "da18a565efba5c2a9ccd736298b8ddb6ec870b3f267f16ee62b9b26406eaedf1"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/stand_and_drink.glb.import",
+      "sha256": "30a79b76a975667542db5a9e682dd391f4dc0d02b46920d1770b4a0d2b37e630"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/swim.glb.import",
+      "sha256": "ba5e1b73e3b08d73581717ceaf6d3b92bf6f53fff650520927100ef4e5a1bf77"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/tread_water.glb.import",
+      "sha256": "7987cc8fa1bfb079633c454eb2ffff7649de8287aa2b0ffea0e87edca8b37a25"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/walk.glb.import",
+      "sha256": "4f25330c4edfc97cc08eda3da45fb3ccd4408798fdde7bd5eec4c4fc294f9712"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/wave_one_hand.glb.import",
+      "sha256": "99e66e1a43d46c02c54439aa8b85fbce576d8b6e409d10836394e0e3cd7d4a58"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/body.glb.import",
+      "sha256": "a485ee3d4bb39d0a232539aeb1f5e85d8d141f197fad12d0ae44824c3b7f1e7e"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/carry_heavy_object_walk.glb.import",
+      "sha256": "cec3a4120d18abe8fcb0605a6634070c5851e731d40fc4b9f0cdecd3e6d0fefb"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/cautious_crouch_walk_forward.glb.import",
+      "sha256": "6635e92e64f6bc67284ffbeb312258bc39c29b2b99bd4b3554e2cedf061aa5eb"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/collect_object.glb.import",
+      "sha256": "45bcf7bdb012589fe1e8808e64a9b8986313d032ac1c4b07dc9a0bff306aac62"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/heavy_hammer_swing.glb.import",
+      "sha256": "8375ec6560638d0ec38dbf3492d0db4f71ba618ffd7585a67ae69d72186bf830"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/idle.glb.import",
+      "sha256": "95364dc868b991e1012bc1d18b33547d1058ff286da695dbdb6bd54f088ff10d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/pull_radish.glb.import",
+      "sha256": "1e9eb3f5daa0488d6b9fd34a795c19f004678a5a78012e0666a8ef94324f4d71"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/sleep_normally.glb.import",
+      "sha256": "9461e6632e0cb6cbf3376d692a64978cb55b2b48342510e505d466ace7407595"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/stand_and_drink.glb.import",
+      "sha256": "181920f3d48288960a6c4d047dada0f9bf2e64e898fe987c9e71948c30cd42da"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/swim.glb.import",
+      "sha256": "ab057920c05e1b64ab3779bed023c375546ca974036d73f9b7826dbc1986299a"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/tread_water.glb.import",
+      "sha256": "5e2001a5d925ab6b3ef14ecac816a9cb37266280f5715c6ca194b30db48c37b8"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/walk.glb.import",
+      "sha256": "6053241e46479e9464932a600e12ff503c494324d890cef9e2220362fc523b7a"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/wave_one_hand.glb.import",
+      "sha256": "6b2a101d923749fde13f2a36089a351342cf3bc9a60989cd57945f33fc56568a"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/body.glb.import",
+      "sha256": "6ea4c6f4e364f0345498f6bdef17a77f30258b4652580a6234430a541fb7b503"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/carry_heavy_object_walk.glb.import",
+      "sha256": "e2ceee137a6ff0b7a9952f1ed2ed7a39282db922faab4590ef7ad36e7bf3668b"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/cautious_crouch_walk_forward.glb.import",
+      "sha256": "47c7aeb1a9e37f1c946bc05cd558186fefbefae3377332cbdf43e0d40638ceda"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/collect_object.glb.import",
+      "sha256": "c24117f2dd72d4a11580698dd85c96021abcca2907855d9c547b00395b4ca6f7"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/idle.glb.import",
+      "sha256": "22f0eb9087c4c53a2e0d8894c65da6e82ebe1ca9fcf94e94771db2b909097e23"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/pull_radish.glb.import",
+      "sha256": "3f143d168b95cbd48599057e6b36955f36035077fc49d7a52c0f3ce7c795f611"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/sleep_normally.glb.import",
+      "sha256": "a56e7ba0c9589af21a9ac67e8ee67e72780f578bfcdffc6b588b2d1b3cc1876c"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/stand_and_drink.glb.import",
+      "sha256": "43c6060f4e072c62cd5f014f47bdce889320f7621f1beee7612c0583b05bbe83"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/swim.glb.import",
+      "sha256": "86cb1f3ea41de9f02287495d177f2f0eb1905b9f47d382a1fb0fe49e5c84a98f"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/tread_water.glb.import",
+      "sha256": "3da4ea07d578a1b0a12872270ef6d580d59ceb9ec09d5833156d95991a705c37"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/walk.glb.import",
+      "sha256": "8a2d66b3c517a2baa444a8a13e939f9979f717aa546ac007bfb93c4895c80280"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/wave_one_hand.glb.import",
+      "sha256": "7fa205578e74c4635af231d9a1e9330fff406ac41f11f9381c8d0cfe00d29b43"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/body.glb.import",
+      "sha256": "5fa4198a4029f36ad61a538f0e3b56b12d95254b3e976cebaa2e3048bd2821f0"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/carry_heavy_object_walk.glb.import",
+      "sha256": "ddb6301fee3f012d3590f68b28deda283e4089c78be07aad6dc4c81de1f3e0d8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/cautious_crouch_walk_forward.glb.import",
+      "sha256": "83f2ec8044649adf87a09966ac54ca7d131804ec78ed2132676ae25c460361f5"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/collect_object.glb.import",
+      "sha256": "74e243f0e18aba51be6171d8f9624f05b9c7d705237d3c96d183252755b38e7a"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/dive.glb.import",
+      "sha256": "aebcf8745025ec59a45c81629838cb84d019d5d723842faf695743105116fe55"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/idle.glb.import",
+      "sha256": "d5e7a9073b1e917819c10e89e0a1cdf9bef25366bca3321d4afef5ff92cdab8f"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/pull_radish.glb.import",
+      "sha256": "25fe45aa0e06afc1517fc14b99ca718cfeda50818b73f530833fca0cae88e51e"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/sleep_normally.glb.import",
+      "sha256": "2a36eb0093a1bf0ef35c7c65ef1ecbf143199039202b5d3070a3b08eecfd10e8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/stand_and_drink.glb.import",
+      "sha256": "79d30cfb9c0b187eb621da6d1e1034e87beb814940bdc2d52ab08a36ce60d8f8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/swim.glb.import",
+      "sha256": "b1cbc5a4a1e33557bba35546d5083b46ff95655c2d1b241a5d5f8b6740a3c0d5"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/tread_water.glb.import",
+      "sha256": "e2d03df3473c098fc5b1253bce5342259677bd4106857891caa5aaaf9ffdb7bd"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/walk.glb.import",
+      "sha256": "1258454975e665b9063fa88bec83ad2c8f9b6515afbac4b0b9b06a7b4e042121"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/wave_one_hand.glb.import",
+      "sha256": "cd8ee200c031352fdadf9d6d64b2d722e48ad2af72929f8a1209294f3cb9a0b5"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/body.glb.import",
+      "sha256": "5f3faf3865ed55844afd292f1d6c8279ecdc42e4b766669fc635baf417231279"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/carry_heavy_object_walk.glb.import",
+      "sha256": "040db6b0510b0c5fd7f4ab304838bbab82fdeb006ece0b6a37b66f1aba7df42a"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/cautious_crouch_walk_forward.glb.import",
+      "sha256": "2fe61c4326c85b03738bfcae0a9261acbc525074712da00f4d1184aadda913b2"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/collect_object.glb.import",
+      "sha256": "6b8c4650203866d8fa69f39cd8b6d241cd4c826bb8e748ec543500907761d5aa"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/idle.glb.import",
+      "sha256": "adffe730f21f88c1efb24f86e7c3886f2baa5a6423fa930851f2ddeea236e986"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/pull_radish.glb.import",
+      "sha256": "de630d8c3c53c64f5a05ce25c5a61be44bbd958671aea1dfae063f986688f9fc"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/sleep_normally.glb.import",
+      "sha256": "21b9094515bee11865ab8c92e2ddebe4aadf21ba123a94dec0d8f625abb066d8"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/stand_and_drink.glb.import",
+      "sha256": "fdfc52c8dd841ecfb930498bb0645013afe9834207073a747b1586113033b300"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/swim.glb.import",
+      "sha256": "cd187fb7af9361cc181463918bde8d92427a1e5a6cc3022390c27400ed23b929"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/tread_water.glb.import",
+      "sha256": "f68d6ed3d544f9fd6911ebaf7e39f1056bbd5040ea58f6ec6484028ee9d2cb38"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/walk.glb.import",
+      "sha256": "871d0ec6a468dc443abf9f962dec7a6b582d820fefc1c2c9409f2e2221e30584"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/wave_one_hand.glb.import",
+      "sha256": "b764f20a1f3390388ae6db896eba12b9cfba338f3003db28334130cd70333f43"
+    },
+    {
+      "path": "res://demo/assets/props/item_barley.glb.import",
+      "sha256": "9df84f1a8dce879715e835cd5a84fc0ff4a5fd5c20a343166586cabb6affe952"
+    },
+    {
+      "path": "res://demo/assets/props/item_beetroot.glb.import",
+      "sha256": "1aff3d64d8e45e05308646e77c4dc025f1dafcea4d6f3bf149084ee064870624"
+    },
+    {
+      "path": "res://demo/assets/props/item_carrot.glb.import",
+      "sha256": "034db4e4c75287e7925bf9143ec4ff3078fe0b289848155754a1674747509b86"
+    },
+    {
+      "path": "res://demo/assets/props/item_celery.glb.import",
+      "sha256": "24ca24a42ea8f0e562cf3d90782f3059502457816701794960a2ab2e025e627c"
+    },
+    {
+      "path": "res://demo/assets/props/item_leek.glb.import",
+      "sha256": "74b1f1b81d33a17c8ea3c0781c0ec549d93ac6aacee85899e1a7fa283c351a7a"
+    },
+    {
+      "path": "res://demo/assets/props/item_lettuce.glb.import",
+      "sha256": "cdf8d7a38fc477cc1abd99dcd1d5b8844ddd3a6050d1733b95a148fd1cd146bd"
+    },
+    {
+      "path": "res://demo/assets/props/item_oats.glb.import",
+      "sha256": "3e3c9ad8678f6143f28f0c45db11fa3cb074c0390e9c1136838eea4697f7b6cc"
+    },
+    {
+      "path": "res://demo/assets/props/item_onion.glb.import",
+      "sha256": "99e2a78a1f312452259e7b5fe1d8be46f1ab8f8f0f6865527c6adfbe9695cfdc"
+    },
+    {
+      "path": "res://demo/assets/props/item_peas.glb.import",
+      "sha256": "001d6d7074b6ce01e9bd78c68687d9b7ff27f1549d8f2b430cb8fd482303193e"
+    },
+    {
+      "path": "res://demo/assets/props/item_radish.glb.import",
+      "sha256": "3e7ea14764526261e55692486985f33bd6b68761b9baf54a8e887d4acf66df05"
+    },
+    {
+      "path": "res://demo/assets/props/item_turnip.glb.import",
+      "sha256": "61d59a40cd3202f5e516bc7d1566621dbf55ca671116403a0c08476ed805793c"
+    },
+    {
+      "path": "res://demo/assets/props/mole_pick.glb.import",
+      "sha256": "99cfba9faede0e23e4281d93b49c962a8823b2251a9d2dc91c7d33d47015a66d"
+    }
+  ],
+  "exact_absolute_inputs_to_localize": [
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/docs/design/underground-planning/evidence/modular-build/profiles/runtime/reproduce.py",
+      "local_path": "docs/design/underground-planning/evidence/modular-build/profiles/runtime/reproduce.py",
+      "sha256": "9a11af7b1e52f95848fb24e490155188cc8adf2d64cb61a94e335351ab9b252f"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/evidence/matrix-presentation/reproduce.py",
+      "local_path": "godot/data/underground/evidence/matrix-presentation/reproduce.py",
+      "sha256": "460af20d367438aa0b238037cd27349988e4cdd7f7ef35487e92de678da7bc39"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/grip-authoring/rebake.py",
+      "local_path": "godot/data/underground/mole-worker/evidence/grip-authoring/rebake.py",
+      "sha256": "23fbd424aec0871b439a81a2e298fcb3d7b06886ec4132aaacd42fba7e1ae94f"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/source-plan.json",
+      "local_path": "godot/data/underground/mole-worker/source-plan.json",
+      "sha256": "922f4855fdf4f8202ccf8b8761ec2974438f8df4134b74d9c99b6c51d4c14b1c"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_barley.made.json",
+      "local_path": "godot/demo/assets/props/item_barley.made.json",
+      "sha256": "344fa799714dccbbf34e62b85addaeed6430d56be96f5ea15b13efdbf6909955"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_beetroot.made.json",
+      "local_path": "godot/demo/assets/props/item_beetroot.made.json",
+      "sha256": "663d9ed9a4d7c2575b428a9ddef79d5de26878a12b0ef1dd96e24b54e3b2a175"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_carrot.made.json",
+      "local_path": "godot/demo/assets/props/item_carrot.made.json",
+      "sha256": "239bdf5d5cf273d230654edd575a71f608a24f186deedaf1e54b05bb6ed1b9cb"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_celery.made.json",
+      "local_path": "godot/demo/assets/props/item_celery.made.json",
+      "sha256": "0705bf99b15b1a7c1c1b796c749e1ca8850c0b1bbad061de806989476af8caeb"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_leek.made.json",
+      "local_path": "godot/demo/assets/props/item_leek.made.json",
+      "sha256": "dda90eb4e90b7f90786b96bba9c5f9f107beec0eab2102ed6f839d08da2c94bc"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_lettuce.made.json",
+      "local_path": "godot/demo/assets/props/item_lettuce.made.json",
+      "sha256": "7057fc245a3c777dfbe6fc276e6deeae18cd21c82223e7cba4944ca55e015e6b"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_oats.made.json",
+      "local_path": "godot/demo/assets/props/item_oats.made.json",
+      "sha256": "f830daa8a8fbda01a075b711df7d61c58b45694d685e39bf040a1929a762e5de"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_onion.made.json",
+      "local_path": "godot/demo/assets/props/item_onion.made.json",
+      "sha256": "5796d64ee2df1fcc2c892acd317625b3d4952f3c358410edb5ed2c6825a132c7"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_peas.made.json",
+      "local_path": "godot/demo/assets/props/item_peas.made.json",
+      "sha256": "b93f4645fa237c0fe5b40e36dcc0c02343a97ea124c5c08d4c144ef03d97bc7c"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_radish.made.json",
+      "local_path": "godot/demo/assets/props/item_radish.made.json",
+      "sha256": "e229cddab08a0d274043fceabb2e69f56ca703476fa755629ee0018c7a366c2c"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/item_turnip.made.json",
+      "local_path": "godot/demo/assets/props/item_turnip.made.json",
+      "sha256": "a8ce6c81af8b4b85c1e2d40fe20d2e102f8233cf12be968522dc72dfb34639e6"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/props/mole_pick.made.json",
+      "local_path": "godot/demo/assets/props/mole_pick.made.json",
+      "sha256": "963b11f1221e58e3fdfabe3868926ddb4f65d77ea7ec886ff99129445d9b222a"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_mole_grip_content.gd",
+      "local_path": "tools/bake_mole_grip_content.gd",
+      "sha256": "8f0a4846bc66bce1f4df2cdd603481f0445790758c215a2dd1d6e10382373e89"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/bake_underground_matrices.gd",
+      "local_path": "tools/bake_underground_matrices.gd",
+      "sha256": "d38ff6fd787294b48636840a4df18342d14519213884380d44e9240b999e8066"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_profiles.gd",
+      "local_path": "tools/capture_underground_profiles.gd",
+      "sha256": "da1bb7c395260f66d61f8fdc7fa1a1bc191515df09299aee9e7c4b3959625d0c"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/demo_props_blender.py",
+      "local_path": "tools/demo_props_blender.py",
+      "sha256": "1669e2e973339d75b6f4249ff944ce658c94b3cdbb83718353f1cfd822b55d6d"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/demo_texture_imports.py",
+      "local_path": "tools/demo_texture_imports.py",
+      "sha256": "0a0662b2b0fabc6d6c97099eb93188008b52f0e6ce0bcf41fb160e136f5c074e"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/ground_meshy_clips.py",
+      "local_path": "tools/ground_meshy_clips.py",
+      "sha256": "bd19bee47712cc5019552ab511affca2f77d249ebbaf0a0caedff20407769e0b"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/make_demo_props.py",
+      "local_path": "tools/make_demo_props.py",
+      "sha256": "8a1e6187b9a0834364ca5e17125ec308e891788122f0c2c599d391f14574d832"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/repair_meshy_rig.py",
+      "local_path": "tools/repair_meshy_rig.py",
+      "sha256": "a8ed3b9aa755cb462109be6b56e23881d066284725ad507388acd2eb69359205"
+    },
+    {
+      "old_path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/stage_demo_assets.py",
+      "local_path": "tools/stage_demo_assets.py",
+      "sha256": "10c489d39fd650183affaf003236897828478c831032ace1bb7d2a0735d5db2e"
+    }
+  ],
+  "unchanged_external_source_assets": [
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "1d7a5cfaaa686d2d12dfd1c16c53a04af280c310711f0189f7e04964160f4af2"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "d7bd1e8f923a1626865148052401700932d14c1b90d19fe1dc6be95cc68cc639"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_collect_object.glb",
+      "sha256": "2e63602e4974915741ae88871590375074b15eb7c42b5573940f06b81d9b0360"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_heavy_hammer_swing.glb",
+      "sha256": "f6a88ae1f74b551207403f719ffe55c0c8ceff2dff716653a5635fc6ac6be22f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_idle.glb",
+      "sha256": "15764b187abf81a5ef77607b351b1ef97868e4d91cc981432831ab5f63fef4a2"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_pull_radish.glb",
+      "sha256": "b63bd1d151d1daef32e69d747c98fb6a97313dfde657a637ba343c33551df399"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_sleep_normally.glb",
+      "sha256": "6d132518caf92c8bae9a68bd8cd51c9be7ddfeee202ec6ab38ac88136a2974c3"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_stand_and_drink.glb",
+      "sha256": "e6669292bcbacda1346ee887cb84d221bb61272464db32d1c7939f3a8429a0dc"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_swim.glb",
+      "sha256": "43f2eda44eccb1020318208299b6f17429c940bc30b71d3c2769f380baa816c6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_tread_water.glb",
+      "sha256": "88d652f3962cd6e2b6633b490b872c4354c607d12981c9ff1b4add356672db98"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_walk.glb",
+      "sha256": "0c053d902f4a83429c347e9e620d85cf868f8733e80012ced3e4ae43e1e613b7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/anim_wave_one_hand.glb",
+      "sha256": "f29d3a84b7db62c2738de230e21756123dbb4358424d8de9e880d3602522ccfe"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/badger_quarryman/grounded/rigged.glb",
+      "sha256": "1e99fc1bb8b11a04ad6845403bce2864da9af2be3b3d089d8e733fd721f2d01e"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "931bbec29d7f1ea707a403cda2526f82e15bb91ea398395cf814dd358c2908be"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "87dc469f9cb084433875de2d63f36a9508cb79e13a6196aec8d7fa78693649c3"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_collect_object.glb",
+      "sha256": "a19ac784050f178cf0c289ca0a72443d3d254ed9f3200b8f44fa687b3d8228ee"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_heavy_hammer_swing.glb",
+      "sha256": "72286f1631c65b5f06cb10829386bcdc3806dc8bff412c7abafc331472495276"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_idle.glb",
+      "sha256": "24e5e5de06f3afe0cf03d17389e6f0271f21c9f807aece1526b18071da18ea92"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_pull_radish.glb",
+      "sha256": "4ec9ebd086204fdd4e78f4c6e4c9e41df65e03109557b2031c480b3545eded60"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_sleep_normally.glb",
+      "sha256": "8f80d9b5dc3b42a35a1641d429fbe9d42e0bf12074b3a27cd05a6f3fc1dfa220"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_stand_and_drink.glb",
+      "sha256": "8c1faaf7755e8f13c6092f5f224cc186b2bb60c27be223ccfea26c02d5e983ae"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_swim.glb",
+      "sha256": "284855daf044c13dc8338de819f26c77bf159d0ac0f23b94d79d2f49c420391d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_tread_water.glb",
+      "sha256": "5f9255824903a38d541e34e5eafd65e05c237e5d622565a3925943e34e5a9795"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_walk.glb",
+      "sha256": "aae20e79e3dc4e52a84a3f976fb6ce0ce81f126788713549ee3a40c3545f4787"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/anim_wave_one_hand.glb",
+      "sha256": "468a63e77c5cf0c3a2e6bcbb50ab8678f22b0affbb6b87f0bf3d0b1b760dd7b4"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mole_digger/grounded/rigged.glb",
+      "sha256": "a559a5f8590d3f483307f61c99552bbbf84dde3e91e010de9d4a1abdcb405941"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "cfb8710b7367973694fec1eb1cdbb7c8694e089667a7151b04050d958cf5c6c5"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "14df834ad4aea61e32e7db65ec7bc07b23284f3bd52b931d1121b06dde4f7ed5"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_collect_object.glb",
+      "sha256": "58222aa50a0e464b92dc34114f37bf590e2782372dc09d291a08539679033d4a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_idle.glb",
+      "sha256": "3a5b3b0168aee1baef6b615b2756fc60e908934200674e47d2d98c7ceb81164d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_pull_radish.glb",
+      "sha256": "3b5e579c95fc0e426edf203d39e5e0b7dc25612cfa86451eca84898cf8bd6083"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_sleep_normally.glb",
+      "sha256": "f834e14068754e64578a5a30c3995fdc35087ed8fc3e2ab72ea6fb345c78af60"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_stand_and_drink.glb",
+      "sha256": "7ca52f4d75bdd4be8d6ea62b79582ad6a369a7fbd49cb461b3346687b0ea9c0a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_swim.glb",
+      "sha256": "071474ca661dbd20b2c06da02b613ae542d457781808b92b4e87a501729ea78d"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_tread_water.glb",
+      "sha256": "cb57f9606dc338ffe4449184376fcf5f86951356abca17efe8e28a91f72e8fc3"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_walk.glb",
+      "sha256": "1e6ee83639f6a8883cadb56833478ef9596d23ff1ad90b64f768a0ec36e91e40"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/anim_wave_one_hand.glb",
+      "sha256": "3ce7fbac11985af6e3ad4bb1afd7b57285618bf8e5451da5adad30934c95cc03"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/mouse_keeper/grounded/rigged.glb",
+      "sha256": "a1b49959adda2ddafae8769c24a6498fa5ed58c1057cb122a277b3b535ada7c9"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "24bbb69af48f681756c658bafc9fb8937b8cc0aefe9a239a256602aa04ae1083"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "13bcc178d01debaa9a1cee09584a781f5bfd18a2f92ff552ccfb5b547e9e205a"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_collect_object.glb",
+      "sha256": "e35620c18a233832a30abb8a90c2dc7629936d286be5c8cd5f97698173ce82d2"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_dive.glb",
+      "sha256": "9b1dbd51485b244173772539f3886ee54773374bac511e489c52d394cb4bf17f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_idle.glb",
+      "sha256": "9ba89e5a74f6b46f8926720ab9829b84a35cc4870781b86bb35f2295e9f636a6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_pull_radish.glb",
+      "sha256": "0c0df6a78e3a0eb69efdc84134b19d287d9a220a3d3c3a32f4350e2ff9e44fc9"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_sleep_normally.glb",
+      "sha256": "662c7764777943860683e19d300ed56682bcf090d701d591a239e3bc4272e214"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_stand_and_drink.glb",
+      "sha256": "c4d1bffa543c1e5a8f932bf9558c2fb66cdbf11294c38a976bf90ad7e6d46102"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_swim.glb",
+      "sha256": "94bdad4afecad43c36f6fa0b8cf0d8aa0241156057cb5962c34d0492191ab8e9"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_tread_water.glb",
+      "sha256": "5bd99e714a9b84acaef4d41b7268b2601573e0a02129b6f36afe72bb2fc66820"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_walk.glb",
+      "sha256": "cbe7c625c28679518c04f786756f2a8b404183ec1b98c25f06c75b27cee3e1bb"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/anim_wave_one_hand.glb",
+      "sha256": "abcab55019eaaa9a4a934f7679c89e50b5ff47cdd1292967f9ec3a1b72b09408"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/otter_boatwright/grounded/rigged.glb",
+      "sha256": "27eb814700077388adf7177a5b167feaa03856b1d3ba9d3d36cc885c82011691"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_carry_heavy_object_walk.glb",
+      "sha256": "51f54d4ecfb534fb09e1e4ceeef276628f809a457e4cbfa2ae1c2c63b87a5fea"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_cautious_crouch_walk_forward.glb",
+      "sha256": "09026db55adddcf5aa2dcec7a09bb2399a9a73c54ab20ef9b8d193d524b28a08"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_collect_object.glb",
+      "sha256": "7b8c7dffa441c1e3a5c2e5b8d1c9daca6b13c9e9dd63f07b5db41a9d2e405fb7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_idle.glb",
+      "sha256": "f83643d36100541b38cecbbc6ef4b6fe2aeb410b4a7f658fa27d1bc7c715cf85"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_pull_radish.glb",
+      "sha256": "6bbb98b2a3e1834b8941892b8d43ef031442fad8fe9a25aff4bc59d65063cad6"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_sleep_normally.glb",
+      "sha256": "757a3adbfc582d9aeb18938f37a2612e8265f66fa265b2bf8c866802c7f04c83"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_stand_and_drink.glb",
+      "sha256": "7bf638877ff45a11eb3b7dd6793ae24a5d7a9df3e204a899a63ddd2202fab75e"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_swim.glb",
+      "sha256": "dfd3f47c7c6be213b88a2b3be40c1e5fb52e2c98c69a31c8d3517186b5f9da34"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_tread_water.glb",
+      "sha256": "bdd645f84d8a2481a92fd2aa860c6bd0137b12c588558580435508f594ce16e4"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_walk.glb",
+      "sha256": "0c56e1ead40281f3e226df85c466a3bad1c6236914b539a9bdf9d9b0f5928ffe"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/anim_wave_one_hand.glb",
+      "sha256": "cfd6703ac80642a05df3bbcb5423e87354de9944580cfc79aae01f35c0e00ad4"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/creature/squirrel_gatherer/grounded/rigged.glb",
+      "sha256": "1769c046ba03988c5de4b027816e9a1ec34c3d2e666966f696b9a6edee56b6b7"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_barley/highpoly.glb",
+      "sha256": "d2581846613da1b30a1044f7f255b74eb8b1b5372b5afb0ac56441d60e77639c"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_beetroot/highpoly.glb",
+      "sha256": "418f0541ddfecf03d18b7ebc2c8a633f26c20c5798d0995e1d72f64c70fd2145"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_carrot/highpoly.glb",
+      "sha256": "a0898fe05e08b4d356ccf1d67ee4c4d1a728a39dbd8ebad975c8f200059573a1"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_celery/highpoly.glb",
+      "sha256": "853b5b631ea67ef684b4dee7280b0c075feecb08b9e28f194d0354db4b1ddb52"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_leek/highpoly.glb",
+      "sha256": "98145c2107859accd624698bb8d4404fdc977b0b76a2cf35daaecf19a4c962cf"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_lettuce/highpoly.glb",
+      "sha256": "c92a3974fcc0f433c79b47bf159151d36ad601320112dbe25cdb8c7fa5f39c5f"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_oats/highpoly.glb",
+      "sha256": "2f7af7617cf658d3f88897585129a04494f904150d77e942c85e5114e1085e08"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_onion/highpoly.glb",
+      "sha256": "47128abbac6caae7e0c9458cc23fb4de97903fb54bba7d500499d2551953b291"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_peas/highpoly.glb",
+      "sha256": "17f7637dddc5f46ba7ca2469440d74287280598fbe5aec93029a9187820d7049"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_radish/highpoly.glb",
+      "sha256": "fc67c2a99c6364a97b067d5f4116737f9acc2efc2ef89da23b5b079dd24b1165"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/item_turnip/highpoly.glb",
+      "sha256": "e02c0d51c36e03ce3f76bb85e20a75238cb713adacdf3d43f9c20bc33f3f676b"
+    },
+    {
+      "path": "/Users/brendan/Developer/redwall-rts/assets/library/prop/mole_pick/highpoly.glb",
+      "sha256": "246c595145e678e84dbb069f5b19b58132786652bd12993ffbeb0b4310edf97b"
+    }
+  ]
+}

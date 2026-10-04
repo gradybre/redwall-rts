@@ -1,0 +1,134 @@
+#!/usr/bin/env python3
+"""Run unchanged source proof with six exact historical inputs located in this checkout."""
+from __future__ import annotations
+
+import argparse
+import copy
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import sys
+
+HERE = Path(__file__).resolve().parent
+CONTACT = HERE.parent
+SPEC = importlib.util.spec_from_file_location("unchanged_ground_source_gate", CONTACT / "close_profile_source_gates.py")
+G = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(G)
+ROOT = G.P.ROOT
+OLD_ROOT = Path("/Users/brendan/Developer/redwall-rts-codex-ug-space")
+INVOCATION = CONTACT / "analysis-carry-arm-v7/invocation.json"
+INVOCATION_SHA = "5e599305d6fa7e6c15ea6b5029fd82ac4749e3cc6b0b581f6b6c30875c1934c0"
+PREFIX = "godot/data/underground/mole-worker/evidence/contact-qualification/"
+INPUTS = {
+    "source": ("godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+               "08de54533d28b1a45a2e171180a0ca68812912f67c9b7294bf26c25eec424cda"),
+    "proof": (PREFIX + "grip-proof-v2/envelopes.json",
+              "69397b67ac29c8b52ab08821efeaf9984e94d6affa5f8af84888d276df308099"),
+    "plan": (PREFIX + "grip-source-v3/source-plan.json",
+             "0ea14eb045f32da39472c7d039463d13f7e50a372d4f35cef77e21cd1a2489b5"),
+    "topology": (PREFIX + "topology-v5/topology.json",
+                 "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42"),
+    "world-basis": ("godot/demo/assets/underground-matrices/world-yaw-v1.ugyaw", G.M.BASIS_SHA),
+}
+ARCHIVE = "godot/demo/assets/underground-matrices/mole-grip-v3.inputs"
+MAX_FILE_BYTES = 16 * 1024 * 1024
+
+
+def require(value, code):
+    if not value:
+        raise ValueError(code)
+
+
+def exact_file(path, expected):
+    require(path.is_file() and not path.is_symlink() and 0 < path.stat().st_size <= MAX_FILE_BYTES,
+            "RENEWAL_INPUT_FILE")
+    require(hashlib.sha256(path.read_bytes()).hexdigest() == expected, "RENEWAL_INPUT_HASH")
+
+
+def argument(command, key):
+    flag = "--" + key
+    require(command.count(flag) == 1, "RENEWAL_INPUT_ARGUMENT")
+    at = command.index(flag) + 1
+    require(at < len(command) and type(command[at]) is str, "RENEWAL_INPUT_ARGUMENT")
+    return at
+
+
+def localize_record(record, root):
+    """Change only known input locations after exact old names, authored digests and local bytes agree."""
+    require(type(record) is dict and type(record.get("command")) is list, "RENEWAL_INVOCATION_SHAPE")
+    result = copy.deepcopy(record)
+    command = result["command"]
+    root = root.resolve()
+    for key, (relative, expected) in INPUTS.items():
+        at = argument(command, key)
+        require(command[at] == str(OLD_ROOT / relative), "RENEWAL_HISTORICAL_INPUT")
+        if key != "world-basis":
+            require(command[argument(command, key + "-sha256")] == expected, "RENEWAL_AUTHORED_HASH")
+        path = root / relative
+        require(path.resolve().is_relative_to(root), "RENEWAL_INPUT_ROOT")
+        exact_file(path, expected)
+        command[at] = str(path)
+    at = argument(command, "import-archive")
+    require(command[at] == str(OLD_ROOT / ARCHIVE), "RENEWAL_HISTORICAL_ARCHIVE")
+    archive = root / ARCHIVE
+    require(archive.is_dir() and not archive.is_symlink() and archive.resolve().is_relative_to(root),
+            "RENEWAL_INPUT_ARCHIVE")
+    # The unchanged source verifier checks every referenced archive file/hash.
+    # Locating a directory here is not source or geometry permission.
+    command[at] = str(archive)
+    return result
+
+
+def execute(out, revision):
+    """Adapt one record reader only; all mathematical, primitive, source and role checks remain unchanged."""
+    require(not out.exists() and not out.is_symlink(), "RENEWAL_OUTPUT_EXISTS")
+    out = out.resolve()
+    exact_file(INVOCATION, INVOCATION_SHA)
+    wrapper_sha = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
+    reader = G.M.I.M.W
+    original = reader.read_record
+    original_argv = sys.argv
+    invocation = original(INVOCATION)
+    localized = localize_record(invocation, ROOT)
+
+    def read_record(path):
+        if Path(path).resolve() != INVOCATION.resolve():
+            return original(path)
+        exact_file(INVOCATION, INVOCATION_SHA)
+        return localize_record(original(path), ROOT)
+
+    try:
+        reader.read_record = read_record
+        sys.argv = [str(CONTACT / "close_profile_source_gates.py"), str(out), "--consumer-revision", revision]
+        G.main()
+    finally:
+        reader.read_record = original
+        sys.argv = original_argv
+    exact_file(INVOCATION, INVOCATION_SHA)
+    require(localize_record(original(INVOCATION), ROOT) == localized, "RENEWAL_INPUT_DRIFT")
+    require(hashlib.sha256(Path(__file__).read_bytes()).hexdigest() == wrapper_sha, "RENEWAL_ADAPTER_DRIFT")
+    report_path = out / "ground-closure.json"
+    report = json.loads(report_path.read_text())
+    report["producer_sources"][str(Path(__file__).relative_to(ROOT))] = wrapper_sha
+    report["input_location_adapter"] = {
+        "original_invocation_sha256": INVOCATION_SHA,
+        "original_root": str(OLD_ROOT), "local_root": str(ROOT),
+        "same_file_inputs": {key: {"path": path, "sha256": sha} for key, (path, sha) in INPUTS.items()},
+        "archive": ARCHIVE, "archive_verified_by_unchanged_source_reader": True,
+        "only_locations_changed": True, "certificate_bits_written": 0,
+    }
+    (out / "localized-invocation.json").write_text(json.dumps(localized, indent=2) + "\n")
+    report_path.write_text(json.dumps(report, indent=2) + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("out", type=Path)
+    parser.add_argument("--consumer-revision", required=True)
+    args = parser.parse_args()
+    execute(args.out, args.consumer_revision)
+
+
+if __name__ == "__main__":
+    main()

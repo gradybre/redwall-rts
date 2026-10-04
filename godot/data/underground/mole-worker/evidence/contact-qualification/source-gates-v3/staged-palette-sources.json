@@ -1,0 +1,385 @@
+{
+  "source_root": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot",
+  "rows": [
+    {
+      "path": "res://demo/assets/manifest.json",
+      "bytes": 20171,
+      "sha256": "ce3206671b74b1602f23e992b648d4093ea8c51fc259b0e13c1769b8facbbf37"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/body.glb",
+      "bytes": 20471888,
+      "sha256": "1e99fc1bb8b11a04ad6845403bce2864da9af2be3b3d089d8e733fd721f2d01e"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/carry_heavy_object_walk.glb",
+      "bytes": 20673436,
+      "sha256": "3e81577c318bde17114f79b16b20b247f5305310be1d87f2876711af71c94e79"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/cautious_crouch_walk_forward.glb",
+      "bytes": 20504668,
+      "sha256": "8bf2de0f2b899ec49645c9f612a833fa724a1a3beb7af628b23528e8b14cf886"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/collect_object.glb",
+      "bytes": 20568300,
+      "sha256": "7c9e09c4e5022f3e0e752ec6661726c11738dd8eac1adcb4c22da2b7b7852d4d"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/heavy_hammer_swing.glb",
+      "bytes": 20503164,
+      "sha256": "4289c598692abe26ebecc4e91f1416500f697ccaa774a55da5c9ed651a137aae"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/idle.glb",
+      "bytes": 20553716,
+      "sha256": "681d00fa0fc839bcdf51c3548fd120f8b291590a341001c179909158701f25e1"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/pull_radish.glb",
+      "bytes": 20540324,
+      "sha256": "c10ba4d14d20a10b76ea53d0265e83168d68d981d8304724879a8a9ed55a3ada"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/sleep_normally.glb",
+      "bytes": 20493044,
+      "sha256": "fd919bf110e20829efc8c3114370e533b7ac46da727ae39abdb00304c44830a3"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/stand_and_drink.glb",
+      "bytes": 20624236,
+      "sha256": "74b45c3b480c078b5a23737978b5cf8b6ca61d283b28bda576950a1b0b30712b"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/swim.glb",
+      "bytes": 20482396,
+      "sha256": "305b6053babd624c38c7be343d8d562b0a60fafea5c6f6914ae4c2f840edee5b"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/tread_water.glb",
+      "bytes": 20490632,
+      "sha256": "97b16a128d3033e9bb72ada3fbbfe747e2b81c167f17cbda9da48b31d2aefaff"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/walk.glb",
+      "bytes": 20498936,
+      "sha256": "8089142b5eb0513db7816f6d71ecd5eb34abbc991e571f81fcff68ad07c8f61d"
+    },
+    {
+      "path": "res://demo/assets/cast/badger_quarryman/wave_one_hand.glb",
+      "bytes": 20531684,
+      "sha256": "247a3d02f361e37eced41fa4e90b2a8c19752cfdc19db2cdfcf29e48d0850925"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/body.glb",
+      "bytes": 20776868,
+      "sha256": "a559a5f8590d3f483307f61c99552bbbf84dde3e91e010de9d4a1abdcb405941"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/carry_heavy_object_walk.glb",
+      "bytes": 20864068,
+      "sha256": "d42d39af1eb495b9154b44ff56888c84048d9f9a984561e27b8f252264409381"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/cautious_crouch_walk_forward.glb",
+      "bytes": 20807036,
+      "sha256": "b0bf71c480b58e1f1e6916b4b87328ea38feb08189a3c71f53f9e3ef9c2375f6"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/collect_object.glb",
+      "bytes": 20872420,
+      "sha256": "777375e5209731cdc355c5064b57631a6580a786e6506b4ffba36b8b946e2764"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/heavy_hammer_swing.glb",
+      "bytes": 20808560,
+      "sha256": "e7c0a188d741437e673d789a8d9306cee663c881919b27bc81399044e4ef251d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/idle.glb",
+      "bytes": 20847232,
+      "sha256": "6fdf7525a5da4200783b9ad7d19b8776b5cc2d8441368b5ae9b2ce93c0014d06"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/pull_radish.glb",
+      "bytes": 20852660,
+      "sha256": "2acc4cf87f8b0cd69a23f0afddb413d4c184c335b0aa336a4f245f9573aa6401"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/sleep_normally.glb",
+      "bytes": 20798020,
+      "sha256": "0f38e9b70785cd0c8c08936393898970ec86140b3e4127405316e3199d43397d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/stand_and_drink.glb",
+      "bytes": 20890868,
+      "sha256": "951b08e582c408290d3e603eae2e2c1ff0dae0a8ad6f0e9ffe87794cd8494d64"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/swim.glb",
+      "bytes": 20781496,
+      "sha256": "4d6c7364fd64297929e5ab47e3f7090cf89ca0e4e4a9aa18722f34b8a2739a7d"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/tread_water.glb",
+      "bytes": 20789732,
+      "sha256": "76831b06ea5162b1c520c6d235d440cafe4af647b2470c38e39f69ec86efa953"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/walk.glb",
+      "bytes": 20790364,
+      "sha256": "b5f6e983579d5656ee8f1268546bf2b9429fb998f14c14c86860abeb2987ac8c"
+    },
+    {
+      "path": "res://demo/assets/cast/mole_digger/wave_one_hand.glb",
+      "bytes": 20829800,
+      "sha256": "277ef216cd790bdf9bf56f249b99a54632f02ff145cfb3238f6bedeff10cd3ac"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/body.glb",
+      "bytes": 17990972,
+      "sha256": "a1b49959adda2ddafae8769c24a6498fa5ed58c1057cb122a277b3b535ada7c9"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/carry_heavy_object_walk.glb",
+      "bytes": 18107984,
+      "sha256": "89d5929fa99e54fd51cfdc47ac8e43e452f1ebeae3655db7087f7b02dda46884"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/cautious_crouch_walk_forward.glb",
+      "bytes": 18014608,
+      "sha256": "62731e45579dc6a2b421d12b9bc5d8b05c15a6a86436f76d2b0464eb4a70a545"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/collect_object.glb",
+      "bytes": 18068072,
+      "sha256": "551a12df4a59669fe23d8fa89a6ffb1c0e57c884364b93694e38574296c0d37c"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/idle.glb",
+      "bytes": 18061332,
+      "sha256": "cbd1e701c9597abaa7673ff9b6d196330febb91c09de15c75f66ee75cff024b1"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/pull_radish.glb",
+      "bytes": 18051972,
+      "sha256": "10275a9525bf4445f9799452f325be76a6b639e9a46845a5f08c2ba203d01736"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/sleep_normally.glb",
+      "bytes": 18012124,
+      "sha256": "28964d45bb831a79e644af5335fc102a9f832d952cd33e304e06ae26b41ccc02"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/stand_and_drink.glb",
+      "bytes": 18104972,
+      "sha256": "24e96b6b51951c9b3528547098b65deac753579b04dc2c862b0823891b34c7b2"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/swim.glb",
+      "bytes": 17996768,
+      "sha256": "5166c59f9dc12ddc34f75e5be8415e694a6e14f7d71bee617c9d4525dff1152c"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/tread_water.glb",
+      "bytes": 18005004,
+      "sha256": "187c3c9e8df78266dec4230b7a47855b945c274e378af4341302c72612ad7666"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/walk.glb",
+      "bytes": 18008596,
+      "sha256": "4a6a449656994cf276acf0b7dae6db1d0c56ac7f842f164fce2a7bd88ad54d2d"
+    },
+    {
+      "path": "res://demo/assets/cast/mouse_keeper/wave_one_hand.glb",
+      "bytes": 18043912,
+      "sha256": "e715a279a1ec504563351c0d955f03ada64dc98c138c05925a9e02b4273d5271"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/body.glb",
+      "bytes": 20206696,
+      "sha256": "27eb814700077388adf7177a5b167feaa03856b1d3ba9d3d36cc885c82011691"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/carry_heavy_object_walk.glb",
+      "bytes": 20323696,
+      "sha256": "e056785fb939dcadbc1572ae77f8db0098cd544fa08671296823628013882c72"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/cautious_crouch_walk_forward.glb",
+      "bytes": 20232508,
+      "sha256": "aaed2119dc5c36cfe57fe9eff432e5add299b14441772f99619f46e5970a121e"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/collect_object.glb",
+      "bytes": 20293056,
+      "sha256": "4246684bf7b40949b30a914fdfe2e01db33c08c0b08954f049bd6779caf1fbec"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/dive.glb",
+      "bytes": 20218368,
+      "sha256": "ef5bab0c5f9c25a4b94d3588ac61276b4d1a42931ea7a3abe0d54d4641be4cb8"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/idle.glb",
+      "bytes": 20277064,
+      "sha256": "188f8193c8fa1d7e2218796073432c26e77961fce62b8c469d0fbcb899323432"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/pull_radish.glb",
+      "bytes": 20282496,
+      "sha256": "bb828ad942520a69a6096e0bcd8495fef7256e4dd2f8feb535943e805184f881"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/sleep_normally.glb",
+      "bytes": 20227852,
+      "sha256": "54166075729db23bcef9ed26aad81cbdcd6f8cd78ffd6178e29de388120931bf"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/stand_and_drink.glb",
+      "bytes": 20320696,
+      "sha256": "628191d69f28ab92acebdf22cc70c51e4cd6a49df4bfc204ecf52ab506560396"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/swim.glb",
+      "bytes": 20216012,
+      "sha256": "b72580a9659cbdc1d17cc627399080b6cead5e9e2c9f97c1463b036e999f1589"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/tread_water.glb",
+      "bytes": 20220728,
+      "sha256": "5143bcd547dfdb679e7652c23c0cd7a59b7067b66a508c9908c0a7ac903cb7bc"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/walk.glb",
+      "bytes": 20228940,
+      "sha256": "f0dea1e84aefa65f3ecffbef31471526df888e9a2b15958a477ef573fee3b77f"
+    },
+    {
+      "path": "res://demo/assets/cast/otter_boatwright/wave_one_hand.glb",
+      "bytes": 20259640,
+      "sha256": "a95d31ff697c451246f7f4b12fe05bcd0cbb13a636d5c8b726bfe7de70203fbf"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/body.glb",
+      "bytes": 21160220,
+      "sha256": "1769c046ba03988c5de4b027816e9a1ec34c3d2e666966f696b9a6edee56b6b7"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/carry_heavy_object_walk.glb",
+      "bytes": 21267316,
+      "sha256": "ee988aa8eb63a5cfbf786b8d35519cd2579cd8cb5e47ef4ab5a9b520e5d7a3e1"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/cautious_crouch_walk_forward.glb",
+      "bytes": 21179492,
+      "sha256": "a5e55d173849e88c05609fd97df03f482be07531003d7d22d5b5eef9def5deb5"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/collect_object.glb",
+      "bytes": 21258128,
+      "sha256": "95a00343ec964d3a6183a16d440d8f30e0069c4a8a4fe976504e80ec3a6717c3"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/idle.glb",
+      "bytes": 21230576,
+      "sha256": "6cdb03ddcfb396f180da8a35c37d722ef14640c50ed63d8d0973d193a70a7fa9"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/pull_radish.glb",
+      "bytes": 21236020,
+      "sha256": "bc625452e1a41604c1c3cb9a4727ede4df195068e299f4e2f51e540d48dee7b1"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/sleep_normally.glb",
+      "bytes": 21181364,
+      "sha256": "7090d74f90a5f0b0236ebe0bdfa64b97a81d0ff261ad57a02370d4bfbec13416"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/stand_and_drink.glb",
+      "bytes": 21274208,
+      "sha256": "c670ab8a295e29f6688d760c863aff2de67c53f8145e1846359a179f593d8c34"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/swim.glb",
+      "bytes": 21166016,
+      "sha256": "3e586a0dc67173c62bd5eadf2837580041287735c62567ccfd825d0ee7b448cd"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/tread_water.glb",
+      "bytes": 21174252,
+      "sha256": "edd792843834ec4fdf39395cf568d4e2cd4703f220813162e993901eaa7f2a3c"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/walk.glb",
+      "bytes": 21178388,
+      "sha256": "7bd46d2a8a7e404fc865c22e8e2d865207fa1045fbe73262c19b15f738ac1711"
+    },
+    {
+      "path": "res://demo/assets/cast/squirrel_gatherer/wave_one_hand.glb",
+      "bytes": 21213168,
+      "sha256": "582f373fafba7d4cb27c2a819469f99108dd17b76a0d405cb89fdff8b7ad1b83"
+    },
+    {
+      "path": "res://demo/assets/props/item_barley.glb",
+      "bytes": 1143184,
+      "sha256": "2358fec0f0a5d10406733618b04c3b15fbe27da9bed11cf425769971a62be06f"
+    },
+    {
+      "path": "res://demo/assets/props/item_beetroot.glb",
+      "bytes": 1228092,
+      "sha256": "db885b6b06f422737eefc821ec4ff63fc6b84e576fc54bc8a38d3156b5435f26"
+    },
+    {
+      "path": "res://demo/assets/props/item_carrot.glb",
+      "bytes": 1251896,
+      "sha256": "4bf186e3fba94e4d9b43002f0b6462cb0daeb9340bdd415eabbfb352784455dc"
+    },
+    {
+      "path": "res://demo/assets/props/item_celery.glb",
+      "bytes": 1150608,
+      "sha256": "9ef3ae91ec27064159dcde8dc6981e08b72b77a80bb2d920ffd1ce5a73d03394"
+    },
+    {
+      "path": "res://demo/assets/props/item_leek.glb",
+      "bytes": 1123048,
+      "sha256": "adefb3176b184b0a693c8de9767877a68e4e87d211bc52e58c642b479d87f604"
+    },
+    {
+      "path": "res://demo/assets/props/item_lettuce.glb",
+      "bytes": 1130044,
+      "sha256": "2cb2363120bf863421fb29c6e99163c4b3411d85a30f4bdd359138178fc809d5"
+    },
+    {
+      "path": "res://demo/assets/props/item_oats.glb",
+      "bytes": 1260100,
+      "sha256": "64a407761b43c10e12383fd1425b7c81d903ab1d2cc8378463c2f42fec94b724"
+    },
+    {
+      "path": "res://demo/assets/props/item_onion.glb",
+      "bytes": 1220988,
+      "sha256": "ed8a591bd4ba7c33a144de96ef436867db3da86bef7df66878d05469dac2728b"
+    },
+    {
+      "path": "res://demo/assets/props/item_peas.glb",
+      "bytes": 1157204,
+      "sha256": "cfa40320d6375e789a13abb01b87db511f1d32a85892574d0b77f0ab145d072a"
+    },
+    {
+      "path": "res://demo/assets/props/item_radish.glb",
+      "bytes": 1247548,
+      "sha256": "f2bbf9605cea621b52436d7a2bca7687472c52a6a4c84efa2842f5836ddef2aa"
+    },
+    {
+      "path": "res://demo/assets/props/item_turnip.glb",
+      "bytes": 1207792,
+      "sha256": "1bbb0612f1e9bcb0c74577404324fba5be96e474a2af8a3215c293e71e0e1438"
+    },
+    {
+      "path": "res://demo/assets/props/mole_pick.glb",
+      "bytes": 1000044,
+      "sha256": "dc7fd045043cb1ca987f8393d1035ef2af219208fa8ae5dddd9698f14d40eeda"
+    }
+  ]
+}

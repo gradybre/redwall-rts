@@ -726,6 +726,11 @@
           "independent_review": "Root accepted corrected late-START guard and all4 source pins; final packet includes pause/phase/payment guards.",
           "evidence": "docs/validation/evidence/underground-ug1106-connector-work-2026-10-03/adapter-tail-final-1",
           "scope": "Actual shared paid owner; concrete Contacts/EntryBindings and source-qualified install motion still required."
+        },
+        "connector_contacts_review_correction": {
+          "status": "final verification and independent review pending",
+          "findings": "copy-then-move actual Transform observer allowed stale worker START/PRODUCTIVE facts;installed-part bearing missed fresh actual Terrain exclusions",
+          "progress": "both reproduced and corrected;22tests7285assertions strict/raw0/LSP0/2;final XP-conservation check under preparation;do not integrate old99-test acceptance"
         }
       },
       "lease": {
@@ -1164,6 +1169,22 @@
           "decision": "1112-source-phase-route-motion.md",
           "status": "proposal only; no runtime, pace or save-schema activation",
           "pace_preference": "Async user choice pending: first unloaded worker1s recommended,1.5s careful or0.75s brisk per tread at1x. Silence grants no rate."
+        },
+        "stair_descent_source": {
+          "source_commit": "e3aab99c",
+          "integration_commit": "c2e6996a",
+          "review": "Root independently read new source and inherited proofs,all94 source/output/history pins,reviewed native side/opposite/RTS captures;accepted source-local scope.",
+          "tests": "6Python checks;90continuous support intervals;674 triangle/prism pairs27SATchecks0unresolved;13590 tool/bodychecks0;native543poses1714assertions0;raw diagnostics/leaks0",
+          "scope": "forward128u descent source only;no installed-world/turn/retreat/load/pace permission",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-descent-v1/"
+        },
+        "stair_sequence_surroundings": {
+          "source_commit": "d15bba81",
+          "integration_commit": "b8ba4c17",
+          "review": "Root independently read both source files,all6tests,negativebodyobstacle;rehashed2source25inherited25output4history pins.",
+          "tests": "6Python checks;full14timber+8bearing L0/T0clear;descent674pairs27checks,source-frameascent781/56;3repeat270supportrows asc2343/168 desc2022/81;obstacle32SOLIDwitnessesexit2",
+          "scope": "offline source-frame only;native half-turn and174u reposition still missing;no playable retreat claim",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-sequence-v1/"
         }
       },
       "lease": {
@@ -1255,7 +1276,8 @@
         "tools/underground_memory_budget.py",
         "tools/test_underground_memory_budget.py",
         "docs/decisions/1110-complete-connector-binding-memory-census.md",
-        "docs/decisions/1111-concrete-surface-entry-admission.md"
+        "docs/decisions/1111-concrete-surface-entry-admission.md",
+        "docs/decisions/1114-installed-timber-contact-publication.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1762,6 +1784,14 @@
           "review": "Geometry accepted corrected exact parent and initial fixed-charge guards plus negative probes.",
           "whole_pack_logical_bytes": 99959250,
           "runtime_qualified": false
+        },
+        "final_pose_reader_correction": {
+          "source_commit": "3f835eea2c4fbdf2f489f958202a9670d14bbf38",
+          "integration_commit": "bab72023",
+          "review": "Construction independently accepted exact Directory/reverse-row/PID direct packed Transform source; no final public pose observer.",
+          "tests": "121 tests/11728 assertions/0fail;strict/raw diagnostics/leaks0;analyzer0/2",
+          "evidence": "docs/validation/evidence/underground-final-facts-2026-10-03/transform-leaf-README.md",
+          "scope": "actual stale-pose idle/transit witnesses fixed;no retained fields;88B helper112B maximum caller;not included in957f03d"
         }
       },
       "lease": {
@@ -1812,17 +1842,26 @@
               "godot/scripts/core/underground_entry_frontier.gd.uid",
               "godot/test/test_underground_entry_frontier.gd",
               "godot/test/test_underground_entry_frontier.gd.uid",
-              "godot/scripts/core/underground_entry_bindings.gd",
-              "godot/scripts/core/underground_entry_bindings.gd.uid",
-              "godot/test/test_underground_entry_bindings.gd",
-              "godot/test/test_underground_entry_bindings.gd.uid",
               "docs/decisions/1109-immutable-entry-work-frontier.md",
               "tools/underground_memory_budget.py",
               "tools/test_underground_memory_budget.py",
               "docs/decisions/1110-complete-connector-binding-memory-census.md",
               "docs/decisions/1111-concrete-surface-entry-admission.md"
             ],
-            "handoff": "New source-only immutable frontier and actual EntryBindings owned by root; Geometry retains Placement/Locations/Routes. Corrected bindings remainder36789 includes Placement108800 and ConnectorWork563; prospective frontier may not overbook it."
+            "handoff": "New source-only immutable frontier and actual EntryBindings owned by root; Geometry retains Placement/Locations/Routes. Corrected bindings remainder36789 includes Placement108800 and ConnectorWork563; prospective frontier may not overbook it. Root stopped EntryBindings/test at0bf345/9f684 after accepted1111; explicit installation-only handoff to ug_geometry follows. Root retains Frontier and memory tools."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-connector-placements",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_entry_bindings.gd",
+              "godot/scripts/core/underground_entry_bindings.gd.uid",
+              "godot/test/test_underground_entry_bindings.gd",
+              "godot/test/test_underground_entry_bindings.gd.uid",
+              "docs/decisions/1114-installed-timber-contact-publication.md"
+            ],
+            "handoff": "Root stop acknowledged before explicit handoff: implement complete paid rectangular/horizontal Catalog parts using existing cold banks, exact installed-surface proof and guarded observer-free publication. Existing Locations/Placement/SpaceOwner leases remain Geometry. No fabricated air Sites/World-owned timber, no ground-only Routes bypass. Root memory tools remain independently owned."
           }
         ]
       }
@@ -2760,6 +2799,19 @@
       "analyzer": "0 GDScript warning(s) in 0 of 1174 file(s)",
       "seconds": 736,
       "limits": "Same test and diagnostic totals as local full run; assertion delta 14 remains recorded and the exact comparator was not weakened."
+    },
+    {
+      "id": "local-957f03d",
+      "commit": "957f03d72261962cb825057cc8e48b6409bdf2fa",
+      "outcome": "suite-and-spec-pass; analyzer-refused-archived-script",
+      "full_suite": "10594 test(s), 969310 assertion(s), 0 failure(s)",
+      "diagnostics": "0 unexpected errors/warnings;272 expected;353 tolerated;0 leaked objects/resources;raw log all zero",
+      "analyzer": "1 GDScript warning(s) in 1 of 1178 file(s): rejected historical capture has unresolved superclass path",
+      "procedure": "assets aside if present;delete own cache;clean editor import;no-argument full suite;analyzer --max0;finally restore and verify sources/HEAD/assets",
+      "seconds": 1323.859,
+      "specification_commands": 35,
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-957f03d",
+      "limits": "Not accepted; preserve rejected script bytes as text evidence and rerun strict analyzer. New corrections are outside this frozen result."
     }
   ],
   "crosscut_fixes": [

@@ -43,7 +43,7 @@
       "transforms": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
       "underground_space_owner": "32eff2b94f5ccc6c8b11c9490b857ac89ce30ca88f37b04b65d78d19f9408d96",
       "weather": "f8f4ff5f3d1a68bd062a27ce28d75ee3b21663f4e829deab09586df784b5111e",
-      "work": "381837821f30bac26b498e44903ad5c9bdd12728d53b1555cfc6219703ddf73d",
+      "work": "6bd7a29c6398dd1a8f795b40021bcf8602b85f5d51bf99aa9d6a0fb4fe074a6b",
       "world_init": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f"
     },
     "root": "godot/scripts/core"
@@ -9184,7 +9184,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 548,
+      "source_resize_line": 552,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9210,7 +9210,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY * SKILL_COUNT",
-      "source_resize_line": 550,
+      "source_resize_line": 554,
       "source_value": 6144,
       "status": "proved_equality"
     },
@@ -9234,7 +9234,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 549,
+      "source_resize_line": 553,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9258,7 +9258,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 551,
+      "source_resize_line": 555,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9282,7 +9282,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 552,
+      "source_resize_line": 556,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9306,7 +9306,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 553,
+      "source_resize_line": 557,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9330,7 +9330,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 554,
+      "source_resize_line": 558,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9354,7 +9354,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 555,
+      "source_resize_line": 559,
       "source_value": 512,
       "status": "proved_equality"
     },
@@ -9378,7 +9378,7 @@
       "source_module": "work",
       "source_relation": "eq",
       "source_resize_expression": "RESIDENT_CAPACITY",
-      "source_resize_line": 556,
+      "source_resize_line": 560,
       "source_value": 512,
       "status": "proved_equality"
     },

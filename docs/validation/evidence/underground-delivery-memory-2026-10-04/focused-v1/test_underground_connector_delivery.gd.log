@@ -1,0 +1,36 @@
+state_registry_coverage: PASS -- 143 modules, 714 rows, 1050 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_connector_delivery.gd
+  PASS  test_actual_capacity_limited_spatial_shipment_uses_haul_output_unload
+  PASS  test_wrong_owner_binding_refuses_without_allocating_and_valid_retry_binds
+  PASS  test_final_terrain_observer_cannot_move_worker_then_commit_loading
+  PASS  test_cancel_carried_goods_repost_partial_payload_without_second_load
+  PASS  test_ordinary_terrain_observation_move_refuses_loading_then_exact_retry
+  PASS  test_expiry_equal_to_clock_tick_being_committed_refuses_work_before_sweep
+  PASS  test_real_inventory_observers_refuse_each_staged_transfer_without_payment_or_extra_work
+  PASS  test_inventory_observer_reentry_poisons_original_admission_and_preserves_retry
+  PASS  test_two_actual_shipments_supply_one_paid_static_workpiece_without_extra_wood
+  PASS  test_productive_observer_cannot_release_original_claim_then_credit_work
+  PASS  test_pool_outer_return_override_is_refused_before_any_delivery_packet_or_payment
+  PASS  test_planner_outer_return_override_is_refused_before_admission
+  PASS  test_late_public_factor_read_preserves_original_workers_prepared_remainder
+CI_SUITE_TIME {"assertions":4370,"failures":0,"suite":"test_underground_connector_delivery.gd","tests":13,"usec":104199988}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+13 test(s), 4370 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 13 tests, 4370 assertions, 0 failures.

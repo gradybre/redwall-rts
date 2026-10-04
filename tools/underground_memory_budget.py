@@ -121,7 +121,8 @@ def numeric_fields(source: str, indent: str) -> int:
 
 def class_body(source: str, name: str, parent: str = "RefCounted") -> str:
     """Limit packet fields to the named indented class, excluding later top-level function locals."""
-    pieces = source.split("class " + name + " extends " + parent + ":\n")
+    declaration = "class " + name + (" extends " + parent if parent else "") + ":\n"
+    pieces = source.split(declaration)
     assert len(pieces) == 2, (name, "missing/changed/duplicate class declaration")
     tail = pieces[1]
     lines = []
@@ -417,6 +418,128 @@ def haul_transfer_reservation(index: dict) -> dict:
             "control_reserve_bytes": 512, "logical_helper_allowance_bytes": 512,
             "native_reserve_bytes": 2048, "reserved_bytes": 3072,
             "scope": "Separate ADR1141 per-world contribution; borrowed Delivery view already counted here. Source census and native allowances do not qualify runtime memory."}
+
+
+def connector_delivery_allocation_statements(source: str, arrays: dict, packets: dict) -> None:
+    """Freeze the reviewed allocation entry, statements and growth vocabulary, including locals."""
+    lines = []
+    for raw in source.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith('"""'):
+            assert line.count('"""') == 2 and line.endswith('"""'), "Delivery ambiguous docstring"
+            continue
+        lines.append(line)
+    executable = "\n".join(lines)
+    assert re.findall(r"\b_allocate\b", executable) == ["_allocate", "_allocate"], \
+        "Delivery allocation entry gained another reference or call"
+    configure = source.split("func configure(", 1)[1].split("\n\nfunc _allocate()", 1)[0]
+    configure_lines = [line.strip() for line in configure.splitlines()
+                       if line.strip() and not line.strip().startswith('"""')]
+    assert configure_lines == [
+        "placements: Placements, frontier: Frontier, planner: Planner,",
+        "provider: WorldRoutes, work: RefCounted, clock: Clock, reserved_bytes: int) -> StringName:",
+        "if _configured or _placements != null or reserved_bytes != RESERVED_BYTES or placements == null \\",
+        "or frontier == null or planner == null or provider == null or work == null or clock == null:",
+        "return REFUSE_BINDING", "_placements = placements", "_frontier = frontier", "_planner = planner",
+        "_provider = provider", "_work = work", "_clock = clock", "var code: StringName = _binding_leaf(self)",
+        'if code == &"": code = work.bind_spatial_delivery(self)', 'if code != &"":',
+        "_placements = null; _frontier = null; _planner = null; _provider = null; _work = null; _clock = null",
+        "return code", "_allocate()", "_configured = true", 'return &""',
+    ], "Delivery allocation admission/order changed"
+    allocations = [f"{name} = {kind}.new()" for name, kind in packets.items()]
+    allocations += [f"{name}.resize({count})" for name, count in arrays.items()]
+    allocations += ["_location.envelope.resize(6)", "_location.support.resize(6)"]
+    body = executable.split("func _allocate() -> void:\n", 1)[1].split("\nstatic func ", 1)[0]
+    assert body.splitlines() == allocations, "Delivery allocator has unreviewed statements"
+    # Inventory result packets are the five existing helper/result sites. All other
+    # constructors, copies, collection literals and growth operations require review.
+    allocating = re.compile(r"\.\s*(?:new|resize|append|append_array|push_back|push_front|insert|assign|"
+                            r"duplicate|slice|map|filter|split|split_floats|to_byte_array)\s*\(|"
+                            r"\b(?:Packed\w+Array|Array|Dictionary|range)\s*\(")
+    actual = [line for line in lines if allocating.search(line)]
+    expected = [f"var {name}: PackedInt32Array = PackedInt32Array()" for name in arrays] + allocations
+    expected += ['return result if result != null else Inventory.OpResult.new(false, code, NULL_REF, 0)']
+    expected += ['if code != &"": return Inventory.OpResult.new(false, code, NULL_REF, 0)'] * 4
+    expected += ["for z: int in range(first_z, last_z + 1):", "for x: int in range(first_x, last_x + 1):"]
+    assert actual == expected, "Delivery allocation/copy/growth sites changed"
+    assert not re.search(r"(?:[=+,(]|\b(?:return|in)\b)\s*[\[{]", executable), \
+        "Delivery gained an unreviewed collection literal"
+
+
+def connector_delivery_reservation(index: dict) -> dict:
+    """Count the complete fixed Delivery packet; its borrowed Transfer belongs only to ADR1141."""
+    module = "underground_connector_delivery"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ['"res://scripts/core/haul_transfer_contract.gd"'], \
+        "unreconciled Delivery base"
+    arrays = {"_frame": 9, "_install": 9, "_endpoint": 7, "_bounds": 6, "_support": 6, "_remaining": 1}
+    references = {"_placements": "Placements", "_frontier": "Frontier", "_planner": "Planner",
+                  "_provider": "WorldRoutes", "_work": "RefCounted", "_clock": "Clock"}
+    packets = {"_order": "Placements.OrderRecord", "_selection": "Profiles.Selection",
+               "_location": "Locations.Record", "_box": "Profiles.Box", "_number": "IntMath.IntResult"}
+    numbers = dict.fromkeys(("_decision_tick", "_action", "_quantity", "_grams", "_expiry",
+                            "_geometry_revision", "_frontier_revision", "_location_receipt",
+                            "_route_receipt", "_job_remaining", "_job_state", "_claim_row", "_checks"), "int")
+    numbers.update(dict.fromkeys(("_configured", "_busy", "_poisoned", "_work_tick"), "bool"))
+    numbers.update(dict.fromkeys(("_job", "_worker", "_project", "_placement", "_source_lot",
+                                 "_source_container", "_destination", "_source_location",
+                                 "_destination_location"), "Vector2i"))
+    expected = {**references, **packets, **numbers, **dict.fromkeys(arrays, "PackedInt32Array")}
+    assert explicit_members(source) == expected, "unreconciled Delivery retained member"
+    resizes = re.findall(r"(?m)^\t([\w.]+)\.resize\(([^\n]+)\)$", source)
+    expected_resizes = {**{name: str(count) for name, count in arrays.items()},
+                        "_location.envelope": "6", "_location.support": "6"}
+    assert len(resizes) == len(expected_resizes) and dict(resizes) == expected_resizes, \
+        "Delivery packed allocation drift"
+    for name, kind in packets.items():
+        assert source.count(f"{name} = {kind}.new()") == 1, "Delivery packet allocation drift"
+    connector_delivery_allocation_statements(source, arrays, packets)
+    packet_bytes = {
+        "order": scalar_packet(index, "underground_connector_placements", "OrderRecord"),
+        "selection": scalar_packet(index, "underground_profiles", "Selection"),
+        "location": scalar_packet(index, "underground_locations", "Record",
+                                  {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}) + 48,
+        "box": scalar_packet(index, "underground_profiles", "Box"),
+        "number": scalar_packet(index, "int_math", "IntResult", {"error": "String"}, parent=""),
+    }
+    assert packet_bytes == {"order": 96, "selection": 168, "location": 116, "box": 32, "number": 9}
+    fixed = numeric_fields(source, "") + 4 * sum(arrays.values()) + sum(packet_bytes.values())
+    assert fixed == 753
+    work_source = index["work"].text
+    planner_source = index["haul_planner"].text
+    for owner in ("work", "haul_planner"):
+        assert re.findall(r"(?m)^extends (.+)$", index[owner].text) == ["RefCounted"], \
+            (owner, "unreconciled inherited Delivery state")
+    work_bindings = {"_delivery_script": "Script", "_spatial_delivery": "WeakRef", "_handling_tick": "bool"}
+    assert {name: kind for name, kind in explicit_members(work_source).items()
+            if name.startswith(("_delivery_", "_spatial_delivery", "_handling_"))} == work_bindings, \
+        "unreconciled Work Delivery binding"
+    planner_fields = {"_inventory": "InventoryScript", "_reservations": "ReservationsScript",
+                      "_residents": "ResidentsScript", "_buildings": "BuildingsScript",
+                      "_piles": "GroundPilesScript", "_store_policy": "StorePolicyScript",
+                      "_job_generation": "PackedInt32Array", "_dest_slot": "PackedInt32Array",
+                      "_dest_generation": "PackedInt32Array", "_dest_tile": "PackedInt32Array",
+                      "_reserved_g": "PackedInt64Array", "_footprint": "PackedByteArray",
+                      "_outside": "PackedByteArray", "_seeds": "PackedInt32Array",
+                      "_seed_count": "int", "_spec": "PackedInt64Array", "_claim": "PackedInt64Array",
+                      "_one_seed": "PackedInt32Array", "_math": "IntMath.IntResult",
+                      "_place": "GroundPilesScript.PlaceResult", "_chosen": "Destination"}
+    assert explicit_members(planner_source) == planner_fields, "unreconciled Planner retained member"
+    helper = resolve(index, module, "HELPER_BYTES")
+    native_values = re.findall(r"(?m)^const NATIVE_RESERVE: int = ([0-9]+)(?:[ \t]+#[^\n]*)?$", source)
+    assert len(native_values) == 1, "Delivery native reservation declaration drift"
+    native = int(native_values[0])
+    reserved = resolve(index, module, "RESERVED_BYTES")
+    assert (helper, native, reserved) == (1024, 2048, 4096)
+    assert fixed + 1 + helper + native == 3826 and fixed + 1 + helper + native <= reserved
+    return {"retained_members": expected, "packed_cells": arrays, "packet_bytes": packet_bytes,
+            "fixed_numeric_and_packed_bytes": fixed, "work_new_numeric_bytes": 1,
+            "work_bindings": work_bindings, "logical_helper_allowance_bytes": helper,
+            "native_reserve_bytes": native, "declared_bytes": fixed + 1 + helper + native,
+            "reserved_bytes": reserved,
+            "scope": "Separate ADR1140 per-world contribution. Reviewed coupled logical helper census817 fits1024; the borrowed216-byte Transfer is already charged in1141. No new gameplay bank; runtime memory remains unqualified."}
 
 
 def entry_frontier_reservation(index: dict) -> dict:
@@ -814,6 +937,7 @@ def build(index: dict | None = None) -> dict:
     entry_world = entry_world_reservation(index)
     workpieces = connector_workpieces_reservation(index)
     haul_transfer = haul_transfer_reservation(index)
+    delivery = connector_delivery_reservation(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
@@ -826,6 +950,7 @@ def build(index: dict | None = None) -> dict:
         "entry_world_bindings": entry_world["reserved_bytes"],
         "connector_workpieces": workpieces["reserved_bytes"],
         "guarded_haul_transfers": haul_transfer["reserved_bytes"],
+        "connector_delivery": delivery["reserved_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -853,6 +978,7 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_placements", "underground_connector_work", "underground_connector_workpieces", "entity_directory",
                     "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors",
                     "underground_connector_contacts", "underground_profiles", "int_math", "reservations", "haul_transfer_contract",
+                    "underground_connector_delivery", "work", "haul_planner",
                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
@@ -862,6 +988,7 @@ def build(index: dict | None = None) -> dict:
             "entry_world_reservation": entry_world,
             "connector_workpieces_reservation": workpieces,
             "haul_transfer_reservation": haul_transfer,
+            "connector_delivery_reservation": delivery,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

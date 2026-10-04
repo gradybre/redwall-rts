@@ -160,3 +160,31 @@ store holds 5,500; the original primary BUILD Job then pays exactly 4,000 and
 publishes the real raised, non-supporting workpiece, leaving 1,500. This closes
 the prior diagnostic second-WORK delivery bridge for that tested path. All
 handling/CARRY motion certificates in this fixture remain explicitly synthetic.
+
+## Integrated logical memory reconciliation
+
+Root independently replayed the final three suites: 124 tests / 13,838 assertions,
+zero failures, strict/raw diagnostics and leaks zero, analyzer zero in six files.
+The source-derived retained packet is 753 logical bytes; Work adds one boolean.
+The conservative coupled helper chain is 817 bytes within 1,024, with a separate
+2,048 provisional native allowance: 3,826 declared bytes within the explicit
+4,096 reservation. The borrowed Transfer is charged only to decision1141.
+
+The joint pack charges this allowance once outside the fully assigned binding
+reserve. New mutable/reserved bytes are 5,006,017, allocated payload 91,610,174,
+and live plus reserve 99,998,782, leaving 1,218 below the unchanged decimal100 MB
+limit. The proposed stair tables are not an additional uncharged allocation;
+their separate joint admission must fit the existing profile envelope. Actual
+native memory, runtime performance, playable construction and composed saving
+remain unqualified. No canonical field or additional economic ledger is added.
+
+Independent accounting review found that the initial checker compared only
+the first textual allocation call and known retained resizes. It missed an
+additional initializer call and a large local packed allocation. Neither exists
+in the accepted runtime source. The corrected guard freezes configure and
+allocation statement order, the sole admitted allocation reference, and every
+existing constructor, copy, growth and range site. New collection literals also
+refuse. Both reproduced mutants and seven additional regressions now fail
+closed; all 193 memory checks pass. The complete seven-file reconciliation was
+independently accepted after this correction, with unchanged accounting and
+runtime limits. Rejected checker evidence is retained rather than overwritten.

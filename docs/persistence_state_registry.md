@@ -1016,6 +1016,7 @@ full cross-owner attestation remains the audit/load coordinator's obligation.
 | Tool settlement binding (i32) | `_tool_lot_slot`, `_tool_lot_generation`, `_tool_job_slot`, `_tool_job_generation` | 4 | `RESIDENT_CAPACITY` = 512 | `-1` slot with generation 0 is the null ref, meaning no binding | 1 | §4 COMPONENT_COLUMNS | SET-MOVE-ECON-001 ECON-002, decision 0110. The InventoryLot reference of the tool a resident bound for wear settlement and the Job reference holding the matching `gear.gd` claim. Both are full generation-carrying refs, NOT row indices -- `gear.gd`'s own rows stay bare indices and never escape it. Must be saved with `gear.gd`'s claim columns or a load leaves a claim in one store with no binding in the other. |
 | Tool broken flag (u8) | `_tool_broken` | 1 | `RESIDENT_CAPACITY` = 512 | 0 is "not broken", a real value | 1 | §4 COMPONENT_COLUMNS | 1 once a bound tool has been worn to 0. §5.7's "Broken tools block tool-required work" as an O(1) per-tick gate; sound because `gear.gd` refuses every repair, re-owning, unequip and destroy while the claim stands. Derivable from the bound tool's durability at load if a future owner prefers. |
 | Modular paid-owner callback wiring | -- | -- | -- | Null Job refs outside each synchronous tick | 3 | -- | Decision 1073: weak `_modular_authority`, exact `_pending_modular_job` and `_publishing_modular_job` (two 8-byte full Job refs). The pending bracket ensures every post-gate refusal and zero accepted work drops only its own prepared PRODUCTIVE candidate. These controls are not saved or hashed and must be clear at save/load boundaries. |
+| Spatial handling callback wiring | -- | -- | -- | No active handling tick at save/load | 3 | -- | Decision1140 adds one `_handling_tick` boolean, one fixed `_delivery_script` and weak `_spatial_delivery` reference. The existing party scratch captures original rate/progress inputs including factor in cell14; no new WU, XP or per-Job column. Counted in Delivery's separate4096-byte allowance; original Work remainders remain authoritative. |
 
 ### `godot/scripts/core/world_init.gd`
 
@@ -1932,3 +1933,13 @@ The complete recorded phase/endpoint chain is572B. ConnectorWork adds one
 borrowed Workpieces reference and no numeric or packed field. Its existing563B
 logical allowance and Contacts'4096B allowance remain unchanged. Native
 reference/header costs and whole-client peak qualification remain open.
+
+### `godot/scripts/core/underground_connector_delivery.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Exact Placement and INSTALL caller rows | `_frame`, `_install` | 4 | `9` = 9 | Empty before binding | 3 | -- | Decision1140. No per-Job ledger. |
+| Immutable endpoint selector | `_endpoint` | 4 | `7` = 7 | Empty before binding | 3 | -- | Decision1140. Current full selected source. |
+| Complete motion and support scratch | `_bounds`, `_support` | 4 | `6` = 6 | Empty before binding | 3 | -- | Decision1140. Every primitive remains proved. |
+| Shared bounded search remaining work | `_remaining` | 4 | `1` = 1 | Empty before binding | 3 | -- | Decision1140. No limit reset. |
+| Synchronous borrowed caller context | -- | -- | -- | Quiescent outside the operation | 3 | -- | Decision1140. Source-derived fixed753 plus1024 helper and2048 provisional native stays within4096. Work adds one boolean, one fixed Script and one weak Delivery; existing progress/fraction/XP columns remain authoritative. No second pooled Transfer. |

@@ -458,7 +458,10 @@
         "godot/scripts/core/haul_planner.gd",
         "godot/test/test_haul_planner.gd",
         "docs/decisions/1140-spatial-connector-material-delivery.md",
-        "docs/validation/evidence/underground-connector-delivery-2026-10-04/"
+        "docs/validation/evidence/underground-connector-delivery-2026-10-04/",
+        "godot/data/underground/mole-worker/haul-handling-v1/",
+        "docs/decisions/1144-source-bound-haul-handling.md",
+        "docs/validation/evidence/underground-delivery-memory-review-2026-10-04/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -479,7 +482,7 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-connector-delivery",
+      "branch": "codex/underground-haul-handling",
       "evidence": {
         "in_progress": "Reviewed Funding/Reservations final boundary integrated e40a55a3/d4e7c9e4; real ConnectorWork waits for compile-ready actual Placement. Source-derived first-module work/contact assessment in progress; no playable entry claimed.",
         "identity_prerequisite": {
@@ -882,10 +885,22 @@
           "branch": "codex/underground-connector-delivery",
           "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-delivery",
           "base_commit": "b518ca1f824903b0a40658a04660064f50ab7509",
-          "status": "implementation; not accepted",
+          "status": "independently reviewed and integrated component; production handling sources still open",
           "scope": "Actual existing Planner/Reservations/Inventory/Travel/Work delivery path; local Location/Container refs never become EntityDirectory refs. HAUL_OUTPUT unload retains real remaining work and no additional WU on blocked transfer. Concrete static last proof after observations. Generic flat/party paths preserved.",
           "memory": "4096B provisional separate complete fixed/helper/native reservation; borrowed1141 Transfer is counted only by its owner. No new row bank or material ledger; source census required.",
-          "source_gate": "Published no-tool HAUL WORK source still required for production; explicit synthetic rows only in diagnostic tests. Eight current publication consumers frozen."
+          "source_gate": "Published no-tool HAUL WORK source still required for production; explicit synthetic rows only in diagnostic tests. Eight current publication consumers frozen.",
+          "source_commit": "eec1002b41d5639fc2d36651b039ba9270277e06",
+          "integration_commit": "fa017ba4aa8bd9620d397f5713dc6e577a4164d0",
+          "integrated_verification": "124 tests,13838 assertions,0 failures; each strict/raw diagnostic and leak counter zero; analyzer0/6",
+          "integrated_evidence": "docs/validation/evidence/underground-delivery-memory-2026-10-04/focused-v1/",
+          "source_writes_stopped": "Construction confirmed clean accepted source before creating separate1144 worktree; future station/contact runtime seam remains a proposal pending measured source and accounting.",
+          "accounting": {
+            "review_commit": "d2e12fb6cf2567a627b578a671b122c5b9b7d51d",
+            "status": "independently accepted after R1 correction",
+            "normal_checks": "193 memory tests,190 capacity tests; exact pack/READY07/registry/specification checks passed; current normal-v2 seven pins unchanged",
+            "bytes": "753 fixed+1 Work boolean+1024 helper+2048 provisional native=3826 within4096; live+reserve99998782/headroom1218; runtimefalse",
+            "evidence": "docs/validation/evidence/underground-delivery-memory-2026-10-04/"
+          }
         },
         "paid_workpieces_1134_accepted": {
           "source_commit": "d4f4fde3c7797dae80889571901f957286f29e39",
@@ -897,6 +912,13 @@
           "memory": "Separate29928B contribution under1134; whole pack99991614B/headroom8386, runtime unqualified.",
           "evidence": "docs/validation/evidence/underground-connector-workpieces-2026-10-04/",
           "memory_reconciliation_commit": "54b7932b9aa51982cfe8773d775c658b27415fa4"
+        },
+        "source_bound_haul_handling_1144": {
+          "status": "source authoring in progress; no production permission",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling",
+          "branch": "codex/underground-haul-handling",
+          "ownership": "New haul-handling-v1 subtree and ADR1144 only; existing Actor/Content/driver, Work/Planner/Delivery/Pool/Inventory and shared ledgers frozen. Root controls runtime station/contact seam after source review.",
+          "scope": "Measured no-tool empty/carry LOAD and UNLOAD with actual wood geometry, separate BUILD setdown and source-bound handoffs. Wood-only costs and existing handling rates retained. Runtime contact/station split remains a proposal until reviewed retained/helper census and exact source facts exist."
         }
       },
       "lease": {
@@ -1002,11 +1024,12 @@
           {
             "agent": "/root/ug_geometry",
             "branch": "codex/underground-haul-transfer",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/reservations.gd"
             ],
-            "handoff": "Root source writes explicitly stopped.1141 owns narrow Inventory-owned guarded ADMIT/LOAD/REPOST/UNLOAD/CANCEL journal with216-byte full-ref Transfer, same-journal mass/claim changes; preserve all existing flat flows. No Work/HaulPlanner/HaulCarry edits.3072-byte new reservation subject to exact complete census."
+            "handoff": "Root source writes explicitly stopped.1141 owns narrow Inventory-owned guarded ADMIT/LOAD/REPOST/UNLOAD/CANCEL journal with216-byte full-ref Transfer, same-journal mass/claim changes; preserve all existing flat flows. No Work/HaulPlanner/HaulCarry edits.3072-byte new reservation subject to exact complete census.",
+            "stop_evidence": "ug_geometry explicitly stopped1141 writes after accepted064f0c0d, integratedee63d7b9 and32db348a; subsequent work is additive1143 only."
           }
         ]
       }
@@ -1050,7 +1073,6 @@
         "tools/export_underground_envelopes.py",
         "tools/test_export_underground_envelopes.py",
         "tools/export_underground_native_source.gd",
-        "godot/data/underground/",
         "godot/scripts/core/residents.gd",
         "godot/test/test_residents.gd",
         "docs/decisions/1080-source-bound-underground-profile-catalog.md",
@@ -1108,7 +1130,8 @@
         "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
         "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py",
         "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/",
-        "docs/decisions/1142-supported-stair-handoff-source.md"
+        "docs/decisions/1142-supported-stair-handoff-source.md",
+        "docs/validation/evidence/underground-motion-independent-review-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1645,8 +1668,14 @@
             "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/",
             "docs/decisions/1142-supported-stair-handoff-source.md"
           ],
-          "scope": "Full L0 approach, accepted descent,174u T0 reposition and half-turn, accepted ascent and L0 retreat. Explicit finite heading shares the source phase with pose/root/support; no terminal rebase or double root/rotation. Original14timber+8natural fixture prisms and all body/tool/foot geometry retained.",
-          "boundaries": "Offline source/proof/census first; no8consumer or prior source mutations, gameplay pace/cost/reserve/flags unchanged. Native witnesses separate after candidate review; no stair/World activation or new capacity adoption."
+          "scope": "OpenGL unpaid diagnostic fixture only. No Metal, authoritative phase/rate, actual paid World, persistence or whole-game visual/performance qualification; terminal heading32768 remains explicit.",
+          "boundaries": "Offline source/proof/census first; no8consumer or prior source mutations, gameplay pace/cost/reserve/flags unchanged. Native witnesses separate after candidate review; no stair/World activation or new capacity adoption.",
+          "offline_source_commit": "414ecec741fe98fdc008600f169300eb0f9ab88e",
+          "offline_integration_commit": "958b224f",
+          "native_review": "Root independently accepted three frozen executables;15 Python tests, all3795 sampled poses/125652 assertions/12 joins and93 PNG hashes/dimensions;3 source+131 output+96 history+911 inherited pins unchanged. Commit requested.",
+          "native_evidence": "docs/validation/evidence/underground-stair-native-review-2026-10-04/",
+          "native_commit": "0cb7eecf88938fb5815c9974c16c5baf9a887124",
+          "native_integration_commit": "fa7e556f"
         },
         "renewed_publication_1137": {
           "status": "independently accepted existing OpenGL source/native scope; integrated full checkpoint pending",
@@ -1657,6 +1686,13 @@
           "tests": "11publisher and14wrapper Python tests;80export checks;4strict suites53tests1321assertions0failures, unexpected/expected/tolerated diagnostics and leaks0, analyzer0/3. Corrected1185-source runner; original weak import/snapshot harness retained as superseded.",
           "native": "7792poses46873assertions0failures;304PNG,677current/source pins,601pre-import pins,8/46review manifests independently verified; source/override restored, raw logs clean. No World/Metal/stair/HAUL permission.",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-publication-v2/"
+        },
+        "motion_catalog_independent_review_1143": {
+          "status": "read-only independent review in progress",
+          "owner": "/root/ug_furnishing",
+          "subject": "Geometry54cf571c design; runtime review follows exact candidate freeze",
+          "evidence": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/",
+          "no_source_writes": true
         }
       },
       "lease": {
@@ -1698,7 +1734,12 @@
             ],
             "handoff": "ug_furnishing explicitly stopped and released the exact publisher/Catalog/native runner/tests/export paths on2026-10-04. Root created isolated branch from freshly fetched origin/master82d60ba8 then fast-forwarded own integration1e71c678. Actor/Profiles and other owners remain unchanged. Final publication awaits reviewed1134/1135 consumer source and native replay."
           }
-        ]
+        ],
+        "scope_narrowing": {
+          "date": "2026-10-04",
+          "released_path": "godot/data/underground/",
+          "stop_evidence": "ug_furnishing explicitly acknowledged all writes stopped, tracked clean and no running native process after0cb7eecf88938fb5815c9974c16c5baf9a887124. Existing individually enumerated paths retained; new1143/1144 subtrees exclusively leased to their respective lanes. Previously granted root publisher sublease remains explicit."
+        }
       }
     },
     {
@@ -1803,7 +1844,14 @@
         "docs/decisions/1141-guarded-spatial-haul-transfers.md",
         "godot/test/test_haul_transfer_guard.gd",
         "godot/test/test_haul_transfer_guard.gd.uid",
-        "docs/validation/evidence/guarded-spatial-haul-2026-10-04/"
+        "docs/validation/evidence/guarded-spatial-haul-2026-10-04/",
+        "godot/scripts/core/underground_motion_catalog.gd",
+        "godot/scripts/core/underground_motion_catalog.gd.uid",
+        "godot/test/test_underground_motion_catalog.gd",
+        "godot/test/test_underground_motion_catalog.gd.uid",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/",
+        "docs/decisions/1143-joint-underground-motion-catalog.md",
+        "docs/validation/evidence/underground-motion-storage-design-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1826,7 +1874,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-haul-transfer",
+      "branch": "codex/underground-motion-catalog",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -2548,6 +2596,15 @@
           "stop_evidence": "ug_geometry stopped all Inventory/Reservations/protocol/test writes after064f0c0d and returned narrow source lease to root. Reviewer now read-only.",
           "evidence": "docs/validation/evidence/guarded-spatial-haul-2026-10-04/",
           "memory_evidence": "docs/validation/evidence/underground-haul-memory-2026-10-04/"
+        },
+        "motion_catalog_1143": {
+          "status": "additive implementation in progress",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer",
+          "branch": "codex/underground-motion-catalog",
+          "design_commit": "54cf571c",
+          "design_evidence": "docs/validation/evidence/underground-motion-storage-design-2026-10-04/",
+          "ownership": "New MotionCatalog, dedicated test, source packer/evidence subtree and ADR1143 only. Existing eight publication consumers and Profiles/Levels/Budget/World and shared ledgers unchanged.",
+          "conditional_accounting": "Complete paired banks141720 and current Profiles/Levels/helpers/native/decode/caller total232436 within unchanged262144 PROFILE_BYTES;29708 conditional headroom. Future HAUL bindings require joint readmission. Native allowance provisional; simulation activation unconditionally refuses until contracts qualify."
         }
       },
       "lease": {

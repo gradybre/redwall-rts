@@ -1,0 +1,100 @@
+{
+  "source_sha256": {
+    "tools/underground_memory_budget.py": "1acfd76b65261922faedb77488a821c99d0858fb37946e83ee31d6b993f84ef0",
+    "tools/test_underground_memory_budget.py": "0b8062ed25ad4897dec2e061c12dc31eb4cf19eb814b53c09d512a793efbab80",
+    "docs/validation/ready07_arithmetic.py": "f80783326c1059e029bc2f9c6aab92206014647cb2a36ad279efa3c714a94424",
+    "docs/systems_architecture.md": "68370f770b19f3216642556f93924545e07d3a4eaabd4bc5c2b6dcdf5524c894",
+    "docs/persistence_state_registry.md": "6d2e672352ed7ee5674df3444d79a2ae0940a9e248519544ef2e41390ceb8668",
+    "docs/planning/underground_memory_pack.json": "526e460e5b8144e00466c68784845a6ad8a43dde6bb85ad5e541e856dc63b1d5",
+    "docs/planning/registry_capacity_audit.json": "22693b7196e13738c9a8d6ae9872d916fb40532fbe60e5324cf9a4e726f43939"
+  },
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_underground_memory_budget.py",
+        "-v"
+      ],
+      "log": "memory-tests.log",
+      "exit_code": 0,
+      "seconds": 41.424
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_registry_capacity_audit.py"
+      ],
+      "log": "capacity-tests.log",
+      "exit_code": 0,
+      "seconds": 2.828
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "log": "memory-check.log",
+      "exit_code": 0,
+      "seconds": 0.483
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/audit_registry_capacities.py",
+        "--check"
+      ],
+      "log": "capacity-check.log",
+      "exit_code": 0,
+      "seconds": 1.443
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/ready07_arithmetic.py",
+        "--output",
+        "docs/validation/evidence/underground-delivery-memory-2026-10-04/normal-v1/ready07.json"
+      ],
+      "log": "ready07.log",
+      "exit_code": 0,
+      "seconds": 0.755
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/merge_gate.py"
+      ],
+      "log": "merge-gate.log",
+      "exit_code": 0,
+      "seconds": 0.022
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/state_registry_coverage.py"
+      ],
+      "log": "registry.log",
+      "exit_code": 0,
+      "seconds": 0.328
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/decision_numbers.py"
+      ],
+      "log": "decisions.log",
+      "exit_code": 0,
+      "seconds": 0.029
+    }
+  ],
+  "source_unchanged": true,
+  "exit_code": 0
+}

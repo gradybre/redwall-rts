@@ -314,10 +314,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5001921)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 5006017)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99994686)
-        self.assertEqual(result["headroom_bytes"], 5314)
+        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+        self.assertEqual(result["headroom_bytes"], 1218)
         self.assertFalse(result["runtime_qualified"])
         workpieces = result["connector_workpieces_reservation"]
         self.assertEqual(workpieces["two_bank_bytes"], 10752)
@@ -331,6 +331,12 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(haul["fixed_numeric_bytes"], 433)
         self.assertEqual(haul["reserved_bytes"], 3072)
         self.assertEqual(result["contributions"]["guarded_haul_transfers"], 3072)
+        delivery = result["connector_delivery_reservation"]
+        self.assertEqual(delivery["fixed_numeric_and_packed_bytes"], 753)
+        self.assertEqual(delivery["work_new_numeric_bytes"], 1)
+        self.assertEqual(delivery["declared_bytes"], 3826)
+        self.assertEqual(delivery["reserved_bytes"], 4096)
+        self.assertEqual(result["contributions"]["connector_delivery"], 4096)
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
@@ -367,6 +373,89 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(entry["fixed_numeric_and_packed_bytes"], 153)
         self.assertEqual(entry["reserved_bytes"], 384)
         self.assertEqual(entry["check_peak_bytes"], 1048912)
+
+    def test_negative_delivery_inherited_storage(self) -> None:
+        self.refuses("underground_connector_delivery", 'extends "res://scripts/core/haul_transfer_contract.gd"',
+                     'extends "res://scripts/core/underground_connector_placements.gd"')
+
+    def test_negative_delivery_extra_bank(self) -> None:
+        self.refuses("underground_connector_delivery", "var _clock: Clock = null",
+                     "var _clock: Clock = null\nvar _extra: PackedInt32Array = PackedInt32Array()")
+
+    def test_negative_delivery_duplicate_packet(self) -> None:
+        self.refuses("underground_connector_delivery", "_order = Placements.OrderRecord.new()",
+                     "_order = Placements.OrderRecord.new()\n\t_order = Placements.OrderRecord.new()")
+
+    def test_negative_delivery_larger_array(self) -> None:
+        self.refuses("underground_connector_delivery", "_frame.resize(9)", "_frame.resize(90)")
+
+    def test_negative_delivery_larger_nested_location_array(self) -> None:
+        self.refuses("underground_connector_delivery", "_location.envelope.resize(6)", "_location.envelope.resize(60)")
+
+    def test_negative_delivery_control_width(self) -> None:
+        self.refuses("underground_connector_delivery", "var _work_tick: bool", "var _work_tick: int")
+
+    def test_negative_delivery_early_allocation(self) -> None:
+        self.refuses("underground_connector_delivery", "\tif _configured or _placements != null",
+                     "\t_allocate()\n\tif _configured or _placements != null")
+
+    def test_negative_delivery_initializer_allocates_before_admission(self) -> None:
+        self.refuses("underground_connector_delivery", "\n\nstatic func _binding_leaf(a: RefCounted)",
+                     "\n\nfunc _init() -> void:\n\t_allocate()\n\n\nstatic func _binding_leaf(a: RefCounted)")
+
+    def test_negative_delivery_local_packed_image(self) -> None:
+        self.refuses("underground_connector_delivery", "\t_order = Placements.OrderRecord.new()",
+                     "\tvar scratch: PackedInt32Array = PackedInt32Array(range(1000000))\n\t_order = Placements.OrderRecord.new()")
+
+    def test_negative_delivery_extra_allocation_reference(self) -> None:
+        self.refuses("underground_connector_delivery", "\t_configured = true",
+                     "\tvar allocate_again: Callable = _allocate\n\t_configured = true")
+
+    def test_negative_delivery_local_copy_after_admission(self) -> None:
+        self.refuses("underground_connector_delivery", "\t_configured = true",
+                     "\tvar duplicate: PackedInt32Array = _frame.duplicate()\n\t_configured = true")
+
+    def test_negative_delivery_late_append(self) -> None:
+        self.refuses("underground_connector_delivery", "\ta._busy = false",
+                     "\ta._frame.append(0)\n\ta._busy = false")
+
+    def test_negative_delivery_extra_result_packet(self) -> None:
+        self.refuses("underground_connector_delivery", "\ta._busy = false",
+                     "\tvar extra: Inventory.OpResult = Inventory.OpResult.new(false, &\"\", NULL_REF, 0)\n\ta._busy = false")
+
+    def test_negative_delivery_late_local_packed_image(self) -> None:
+        self.refuses("underground_connector_delivery", "\ta._busy = false",
+                     "\tvar scratch: PackedInt32Array = PackedInt32Array(range(1000000))\n\ta._busy = false")
+
+    def test_negative_delivery_local_collection_literal(self) -> None:
+        self.refuses("underground_connector_delivery", "\ta._busy = false",
+                     "\tvar scratch: Array = [0, 1]\n\ta._busy = false")
+
+    def test_negative_delivery_reordered_admission(self) -> None:
+        self.refuses("underground_connector_delivery", "\t_allocate()\n\t_configured = true",
+                     "\t_configured = true\n\t_allocate()")
+
+    def test_negative_delivery_new_work_binding(self) -> None:
+        self.refuses("work", "var _handling_tick: bool = false", "var _handling_tick: bool = false\nvar _handling_extra: int = 0")
+
+    def test_negative_delivery_work_base(self) -> None:
+        self.refuses("work", "extends RefCounted", 'extends "res://scripts/core/spoil_tips.gd"')
+
+    def test_negative_delivery_planner_base(self) -> None:
+        self.refuses("haul_planner", "extends RefCounted", 'extends "res://scripts/core/spoil_tips.gd"')
+
+    def test_negative_delivery_planner_new_packet(self) -> None:
+        self.refuses("haul_planner", "var _seed_count: int = 0",
+                     "var _seed_count: int = 0\nvar _extra: HaulTransferContract.Transfer = null")
+
+    def test_negative_delivery_smaller_helper_allowance(self) -> None:
+        self.refuses("underground_connector_delivery", "HELPER_BYTES: int = 1024", "HELPER_BYTES: int = 512")
+
+    def test_negative_delivery_math_packet_inherited_storage(self) -> None:
+        self.refuses("int_math", "class IntResult:", "class IntResult extends RemainderAccumulator:")
+
+    def test_negative_delivery_math_packet_extra_collection(self) -> None:
+        self.refuses("int_math", "\tvar error: String", "\tvar error: String\n\tvar extra: PackedInt32Array")
 
     def test_negative_haul_packet_width(self) -> None:
         self.refuses("haul_transfer_contract", "var job: Vector2i", "var job: Vector3i")

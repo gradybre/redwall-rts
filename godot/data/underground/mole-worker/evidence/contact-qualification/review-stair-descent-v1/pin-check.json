@@ -1,0 +1,33 @@
+{
+  "assertions": 1714,
+  "failures": 0,
+  "native_current_matches": true,
+  "native_pre_post_equal": true,
+  "native_source_count": 555,
+  "poses": 543,
+  "pre_import_equal": true,
+  "producer_pin_counts": {
+    "candidate.json": 13,
+    "self-v1.json": 14,
+    "terrain-v1.json": 15
+  },
+  "production_qualified": false,
+  "raw_diagnostics_and_leaks": {
+    "import.log": 0,
+    "native.log": 0
+  },
+  "screenshots": 30,
+  "self": {
+    "checks": 13590,
+    "intervals": 90,
+    "unresolved": 0
+  },
+  "terrain": {
+    "candidate_pairs": 674,
+    "checks": 27,
+    "intervals": 90,
+    "numerical_contact_pairs": 663,
+    "support_rows": 90,
+    "unresolved": 0
+  }
+}

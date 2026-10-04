@@ -1,0 +1,1005 @@
+{
+  "schema": 1,
+  "producer_sources": {
+    "godot/data/underground/mole-worker/evidence/contact-qualification/study_stair_descent.py": "50cfa2ff12989abe342ec92dd653e8f75c42a4524b4ca0b824a450b9c6ad87bb",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py": "188d3d20c8dbf672c8c38f739ee26d4d76a95cd5d3b9f743d43e3cebddeec978",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_motion.py": "e843ebc713118ef165cc3e114d84b860d8a2513a1144adff94ebdf0256f24c6e",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/assess_stair_rig.py": "d29e76248a4b607b163dd8e0132ebf6a071cff63d277dd0ee837f54c047e7494"
+  },
+  "frame": 30,
+  "rise_u": -128,
+  "candidates": [
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 64,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 71,
+      "worst_vertex": 14743,
+      "worst_y": -63.60280769960773
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 43,
+      "worst_vertex": 14753,
+      "worst_y": -53.282692241314756
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 51,
+      "worst_vertex": 2757,
+      "worst_y": -52.54674976602143
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 96,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 69,
+      "worst_vertex": 14751,
+      "worst_y": -63.53433866268152
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 19,
+      "worst_vertex": 14753,
+      "worst_y": -53.89963389087184
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 38,
+      "worst_vertex": 2757,
+      "worst_y": -46.69665908435441
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 79,
+      "worst_vertex": 2259,
+      "worst_y": -62.54024496691051
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 28,
+      "worst_vertex": 14644,
+      "worst_y": -42.92859076165561
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 40,
+      "worst_vertex": 14645,
+      "worst_y": -31.79778680044234
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 99,
+      "worst_vertex": 14646,
+      "worst_y": -63.950699270170276
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 49,
+      "worst_vertex": 2259,
+      "worst_y": -53.36328127741132
+    },
+    {
+      "advance": 180,
+      "drop": 128,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 53,
+      "worst_vertex": 2259,
+      "worst_y": -42.87271335184306
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 64,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 46,
+      "worst_vertex": 14752,
+      "worst_y": -62.08266742415734
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 17,
+      "worst_vertex": 14753,
+      "worst_y": -46.802180937743984
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 34,
+      "worst_vertex": 2757,
+      "worst_y": -47.05171652508096
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 55,
+      "worst_vertex": 14644,
+      "worst_y": -56.228335918286255
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 28,
+      "worst_vertex": 14645,
+      "worst_y": -32.872311340218936
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 36,
+      "worst_vertex": 14645,
+      "worst_y": -28.512495964002824
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 96,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 58,
+      "worst_vertex": 2274,
+      "worst_y": -60.966949282731534
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 15,
+      "worst_vertex": 14753,
+      "worst_y": -46.73933488862963
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 26,
+      "worst_vertex": 2757,
+      "worst_y": -41.11873247340178
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 58,
+      "worst_vertex": 2255,
+      "worst_y": -56.34955213945433
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 14,
+      "worst_vertex": 14644,
+      "worst_y": -29.144520564666095
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 29,
+      "worst_vertex": 14645,
+      "worst_y": -21.28836932859444
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 70,
+      "worst_vertex": 14646,
+      "worst_y": -54.29158717563401
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 30,
+      "worst_vertex": 2259,
+      "worst_y": -33.762047508277234
+    },
+    {
+      "advance": 200,
+      "drop": 128,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 37,
+      "worst_vertex": 2259,
+      "worst_y": -23.392947629215882
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 64,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 36,
+      "worst_vertex": 14753,
+      "worst_y": -60.03851246580212
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 18,
+      "worst_vertex": 2757,
+      "worst_y": -44.444360144339164
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 23,
+      "worst_vertex": 2757,
+      "worst_y": -41.8346730418901
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 27,
+      "worst_vertex": 14644,
+      "worst_y": -45.20482303426299
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 15,
+      "worst_vertex": 14645,
+      "worst_y": -21.57768767825067
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 22,
+      "worst_vertex": 14645,
+      "worst_y": -18.05478919134984
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 50,
+      "worst_vertex": 14643,
+      "worst_y": -56.33188491609712
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 32,
+      "worst_vertex": 2259,
+      "worst_y": -21.232489791949874
+    },
+    {
+      "advance": 220,
+      "drop": 96,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 33,
+      "worst_vertex": 6130,
+      "worst_y": -17.684587082680324
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 53,
+      "worst_vertex": 14752,
+      "worst_y": -60.98589057132577
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 13,
+      "worst_vertex": 14753,
+      "worst_y": -39.694142567222826
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 6,
+      "worst_vertex": 2757,
+      "worst_y": -35.97981777615291
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 42,
+      "worst_vertex": 14644,
+      "worst_y": -58.288510189140396
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 8,
+      "worst_vertex": 14645,
+      "worst_y": -18.020651467398025
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 22,
+      "worst_vertex": 14645,
+      "worst_y": -11.86871871123536
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 54,
+      "worst_vertex": 2259,
+      "worst_y": -57.87213005007901
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 16,
+      "worst_vertex": 2259,
+      "worst_y": -17.715048903575152
+    },
+    {
+      "advance": 220,
+      "drop": 128,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 28,
+      "worst_vertex": 5859,
+      "worst_y": -13.81562823134486
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 64,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "REFUSED",
+      "error": "DESCENT_LEG_REACH"
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 28,
+      "worst_vertex": 14753,
+      "worst_y": -51.76915718170194
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 14,
+      "worst_vertex": 2757,
+      "worst_y": -39.54089344496242
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 12,
+      "worst_vertex": 2757,
+      "worst_y": -37.362394399917115
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 14,
+      "worst_vertex": 14644,
+      "worst_y": -32.03639078479472
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 15,
+      "worst_vertex": 14645,
+      "worst_y": -12.72085403064392
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 20,
+      "worst_vertex": 14645,
+      "worst_y": -8.96910394399957
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 31,
+      "worst_vertex": 14643,
+      "worst_y": -47.898545060477694
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 25,
+      "worst_vertex": 5859,
+      "worst_y": -10.651181666419973
+    },
+    {
+      "advance": 240,
+      "drop": 96,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 26,
+      "worst_vertex": 5859,
+      "worst_y": -15.04905832152113
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 41,
+      "worst_vertex": 14753,
+      "worst_y": -55.49619902177723
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 347,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 1,
+      "worst_vertex": 14752,
+      "worst_y": -25.528440012118807
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 347,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 3,
+      "worst_vertex": 2757,
+      "worst_y": -32.056643047929924
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 30,
+      "worst_vertex": 14644,
+      "worst_y": -40.79123857129531
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 368,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 4,
+      "worst_vertex": 14644,
+      "worst_y": -7.094810006920056
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 368,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 12,
+      "worst_vertex": 5859,
+      "worst_y": -2.9885355002546135
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 34,
+      "worst_vertex": 2256,
+      "worst_y": -62.52364229299593
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 400,
+      "guide": 0.5,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 11,
+      "worst_vertex": 2259,
+      "worst_y": -4.406526094983647
+    },
+    {
+      "advance": 240,
+      "drop": 128,
+      "lead": 400,
+      "guide": 1.0,
+      "status": "POSE_ONLY",
+      "lower_deck_vertex_intrusions": 24,
+      "worst_vertex": 5859,
+      "worst_y": -11.829249744319725
+    }
+  ],
+  "scope": "108 bounded floating pose-authoring trials against lower deck vertices only; zero hits never proves whole-triangle/continuous/stance/terrain success",
+  "production_qualified": false
+}

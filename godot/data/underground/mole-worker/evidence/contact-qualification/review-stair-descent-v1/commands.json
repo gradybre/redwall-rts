@@ -1,0 +1,77 @@
+{
+  "analyzer": "No new GDScript bytes; unchanged exact source result is in accepted native-stair-v2/analyzer.log.",
+  "author": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_descent.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7",
+    "--advance",
+    "256",
+    "--drop",
+    "128",
+    "--leading-foot",
+    "360",
+    "--guide",
+    "0",
+    "--toe-degrees",
+    "20"
+  ],
+  "native_actual": {
+    "commands": [
+      [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      [
+        "godot",
+        "--path",
+        "godot",
+        "--rendering-method",
+        "gl_compatibility",
+        "--audio-driver",
+        "Dummy",
+        "--fixed-fps",
+        "60",
+        "--script",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/capture_stair_motion.gd",
+        "--",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2/spec.json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2"
+      ]
+    ],
+    "native_exit": 0,
+    "pre_import_source_unchanged": true,
+    "production_qualified": false,
+    "source_unchanged": true,
+    "unexpected_diagnostics": false
+  },
+  "native_wrapper": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/run_stair_capture.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/native-stair-descent-v2"
+  ],
+  "python": "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+  "self": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_self.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/self-v1.json",
+    "--rise",
+    "-128"
+  ],
+  "terrain": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_terrain.py",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/stair-descent-v7/terrain-v1.json"
+  ],
+  "tests": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_descent.py"
+  ],
+  "workdir": "/Users/brendan/Developer/redwall-rts-codex-ug-space"
+}

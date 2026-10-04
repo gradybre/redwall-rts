@@ -1156,3 +1156,29 @@ phase metadata need their own future movement-owner admission. Independent
 forward-facing descent, internal body/joint quality, all landing/entry/retreat
 transitions, real paid bearing/installed geometry and distinct INSTALL source
 remain open. This packet emits0 production-qualified profiles.
+
+### Independent128u descent source component accepted
+
+An independent forward-facing descent now transports the actual knee bend
+plane, holds the root during trailing-foot lift and authors a20-degree
+toe-first lowering with unchanged ankle/toe link. It retains all body, clothing
+and held-pick primitives. The same signed-ceil root-after-skinning contract and
+whole positive deck/post proof applies; reverse ascent playback is not used.
+
+Selected stair-descent-v7 is109,948 bytes,91 source poses and90 intervals. Its
+128u lowering clears674 triangle/prism candidate pairs and27 separating checks
+with90 exact support rows,0 unresolved; the256u comparison refuses reach.
+The full held-pick/non-palm-body proof clears13,590 checks. Native evidence
+records543 poses,1,714 assertions,0 failures,30 PNGs and555 identical pre/post
+source pins, with no raw diagnostic/leak lines. Six new Python checks pass;
+unchanged inherited native source retains its accepted analyzer0/1 evidence.
+The first native pre-import drift refusal and all six earlier failing source
+iterations are retained. Independent root review accepted3 source,12 inherited,
+54 output and61 historical pins in review-stair-descent-v1, with no blocking
+source-scope finding. Its README clarifies the historical diagnostic deck label.
+
+The presentation allowance is6,603,108 bytes plus shared WorldBasis544,768;
+actual native/loading/whole-client peak is unqualified. This source-local yaw0
+component does not adopt pace, source-phase save/runtime storage, entry/exit,
+turning, repeated-step/retreat transitions, actual installed bearing or INSTALL
+contact. No production profile is emitted.

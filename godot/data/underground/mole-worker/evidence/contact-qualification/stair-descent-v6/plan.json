@@ -1,0 +1,14 @@
+{
+  "revision": 101,
+  "world_root_bounds_u": [
+    0,
+    -32256,
+    0,
+    262144,
+    16896,
+    262144
+  ],
+  "clips": [
+    "mole_worker.descent_diagnostic.-128"
+  ]
+}

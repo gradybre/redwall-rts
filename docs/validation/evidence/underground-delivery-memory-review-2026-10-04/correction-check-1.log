@@ -1,0 +1,14 @@
+test_negative_delivery_initializer_allocates_before_admission (__main__.JointPackTests) ... ok
+test_negative_delivery_local_packed_image (__main__.JointPackTests) ... ok
+test_negative_delivery_extra_allocation_reference (__main__.JointPackTests) ... ok
+test_negative_delivery_local_copy_after_admission (__main__.JointPackTests) ... ok
+test_negative_delivery_late_append (__main__.JointPackTests) ... ok
+test_negative_delivery_extra_result_packet (__main__.JointPackTests) ... ok
+test_negative_delivery_late_local_packed_image (__main__.JointPackTests) ... ok
+test_negative_delivery_local_collection_literal (__main__.JointPackTests) ... ok
+test_negative_delivery_reordered_admission (__main__.JointPackTests) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 2.854s
+
+OK

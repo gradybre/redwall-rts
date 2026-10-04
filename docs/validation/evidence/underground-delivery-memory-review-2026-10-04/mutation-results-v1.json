@@ -1,0 +1,28 @@
+{
+  "base": {
+    "declared_bytes": 3826,
+    "live": 99998782,
+    "headroom": 1218,
+    "runtime": false
+  },
+  "mutants": [
+    {
+      "name": "early_init_allocation",
+      "module": "underground_connector_delivery",
+      "before": "\n\nstatic func _binding_leaf(a: RefCounted)",
+      "after": "\n\nfunc _init() -> void:\n\t_allocate()\n\n\nstatic func _binding_leaf(a: RefCounted)",
+      "accepted": true,
+      "declared_bytes": 3826,
+      "live": 99998782
+    },
+    {
+      "name": "extra_local_packed_image",
+      "module": "underground_connector_delivery",
+      "before": "\t_order = Placements.OrderRecord.new()",
+      "after": "\tvar scratch: PackedInt32Array = PackedInt32Array(range(1000000))\n\t_order = Placements.OrderRecord.new()",
+      "accepted": true,
+      "declared_bytes": 3826,
+      "live": 99998782
+    }
+  ]
+}

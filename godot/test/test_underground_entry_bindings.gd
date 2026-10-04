@@ -949,6 +949,27 @@ func test_datum_and_profile_budget_exhaustion_stays_distinct_from_physical_refus
 	assert_equal(_bindings._timber_prior_landing(proof, 2), -1, "prior selector scan spends finite work")
 
 
+func test_datum_lookup_charges_every_presence_and_all_live_metadata_reads() -> void:
+	"""An empty slot costs its one actual presence read; any live candidate retains the full metadata charge."""
+	var owner: Owner = _f._owner
+	var before: PackedByteArray = owner._s_r_present.duplicate()
+	var last: int = owner._region_capacity - 1
+	var role: int = owner._s_r_role[last]
+	owner._s_r_present.fill(0) # Isolated negative candidate image; no live geometry or Site is changed.
+	_bindings._entry_checks = owner._region_capacity
+	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "all empty slots still scanned")
+	assert_equal(_bindings._entry_checks, 0, "one actual presence check per slot")
+	owner._s_r_present[last] = 1
+	owner._s_r_role[last] = Space.OBSTACLE
+	_bindings._entry_checks = owner._region_capacity + 11
+	assert_equal(_bindings._timber_datum_ref(), Vector2i(-3, 0), "live row cannot use incomplete metadata allowance")
+	_bindings._entry_checks = owner._region_capacity + 12
+	assert_equal(_bindings._timber_datum_ref(), NULL_REF, "complete live charge does not invent a matching datum")
+	assert_equal(_bindings._entry_checks, 0, "all presence and live metadata charges retained")
+	owner._s_r_present = before
+	owner._s_r_role[last] = role
+
+
 func test_nonrectangular_and_floating_source_groups_refuse_before_settlement() -> void:
 	"""A genuine decoded skew or missing bearing is not replaced with a convenient bounding prism."""
 	for mode: int in [1, 2]:

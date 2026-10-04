@@ -41,3 +41,20 @@ Commands, raw logs, source/restoration pins and review are under
 `docs/validation/evidence/underground-entry-datum-2026-10-04/`.
 The source-derived allocation pack remains99,959,638 bytes including reserves,
 with40,362 bytes headroom; this is not a native-memory measurement.
+
+## Full datum scans: distinguish absent and live work
+
+The unchanged1119 consumer still reached `ROOM_MASK_OPERATION_BUDGET`
+(`phase-world-27`) while resolving a later Location. `_timber_datum_ref`
+previously charged all12 metadata checks before reading even an absent slot.
+It now charges one presence read for every slot and retains all12 original
+metadata checks for every live slot. All scans remain complete and fresh;
+full bounds, Room ownership, generation and ambiguity checks remain intact.
+No result is reused across observers and the work ceiling is unchanged.
+
+Construction independently accepted source`c48c610e53878b7d14c21cf19180c1c7344b86e4d431213e172cb8fdb7d85658`
+and test`16502012239f1305ef8b43b6e4fc2c345baeac232c6c59de52bed3eb46369fa9`.
+Candidate2 passed68 tests with3,751 assertions across the same three suites;
+every strict/raw unexpected diagnostic and leak was zero, analyzer0/3.
+Its exact allowance regression verifies presence and live metadata charges.
+The full1119 positive consumer remains a separate next verification gate.

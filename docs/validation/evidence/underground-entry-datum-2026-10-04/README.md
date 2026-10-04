@@ -29,3 +29,21 @@ two legacy shared-receipt tests in the rejected integratedca622e1c checkpoint.
 
 Decision1128 records the separate same-LANDING metadata optimization.
 The complete1119 consumer, full suite and gameplay remain further gates.
+
+## Candidate2: charge actual presence and live metadata checks
+
+The complete1119 consumer still exhausted its finite budget after Candidate1
+while resolving each independently qualified Location. Candidate2 preserves
+all full scans and fresh datum resolution. Each slot pays its actual presence
+read; absent slots stop there. Every live slot additionally pays the original
+12 metadata checks before any role, level, owner, bounds or identity decisions.
+The work limit remains unchanged. There is no retained section cache.
+
+The strict clean sequence passed12 inventory tests /292 assertions,
+39 entry tests /3,057 assertions, and17 frontier tests /402 assertions:
+**68 tests /3,751 assertions /0 failures**. Each suite's strict and raw
+unexpected diagnostics and exit leaks were zero, and the analyzer reported
+`0 GDScript warning(s) in 0 of 3 file(s)`. Project, source and asset restoration
+checks passed. `candidate-2/review-acceptance.json` records independent
+Construction review at the exact tested source pins. The new boundary test
+checks all-empty cost, insufficient live allowance and exact live allowance.

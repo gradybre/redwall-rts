@@ -1273,7 +1273,7 @@
     "godot/scripts/core/underground_connector_placements.gd": "b09b4848a9435446dbbf67decfcac4122f54113f71be8815eebd082dd7a6a098",
     "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
     "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
-    "godot/scripts/core/underground_entry_bindings.gd": "0fe7c426fd329d420a0d6eb5991ade107e2e37491bf75b0a10849847059cc7b6",
+    "godot/scripts/core/underground_entry_bindings.gd": "c48c610e53878b7d14c21cf19180c1c7344b86e4d431213e172cb8fdb7d85658",
     "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",

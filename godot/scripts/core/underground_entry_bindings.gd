@@ -1305,8 +1305,10 @@ func _timber_datum_ref() -> Vector2i:
 	var owner: Owner = _entry_placements._space
 	var found: Vector2i = NULL_REF
 	for row: int in owner._region_capacity:
+		if not _entry_spend(): return Vector2i(-3, 0)
+		if owner._s_r_present[row] != 1: continue
 		if not _entry_spend(12): return Vector2i(-3, 0)
-		if owner._s_r_present[row] != 1 or owner._s_r_role[row] != Space.FLOOR_DATUM \
+		if owner._s_r_role[row] != Space.FLOOR_DATUM \
 				or owner._s_r_level[row] != _entry_contact.level or not _timber_owned(row, true): continue
 		_timber_region_box(row, true, _clip)
 		if _clip != _cube: continue

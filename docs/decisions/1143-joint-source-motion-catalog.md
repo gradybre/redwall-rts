@@ -136,3 +136,17 @@ ADR1145 subsequently records Brendan's Natural initial timber timing approval
 existing pick). This separate timing authority leaves the frozen1143 wire's
 rate fields zero and activation refused; actual traversal binding is a later
 component, not an unreviewed mutation of this source image.
+
+## Shared ledger integration
+
+The integration branch now registers the complete Motion source/control groups
+and enforces the accepted decoder/member/helper census from the shared memory
+checker. It additionally reads the actual Profile bank widths/allocators, Level
+reservation, current18/194/1 content configuration and runtime joint formula.
+All205 memory mutations and190 capacity checks pass. The joint232,436B is inside
+the existing PROFILE_BYTES reservation, not added again to the global total.
+Global live plus reserve remains99,998,782B; native qualification stays false.
+The actual shared-registry focused run passes58 tests/14,678 assertions with
+zero unexpected diagnostics/leaks and analyzer0/2. Independent review accepted
+the shared changes. See underground-motion-memory-2026-10-04 evidence.
+Actual World singleton composition, persistence and route activation remain open.

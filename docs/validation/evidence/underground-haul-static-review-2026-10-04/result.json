@@ -1,0 +1,22 @@
+{
+  "source_pin_count": 9,
+  "source_unchanged": true,
+  "native_rerun": false,
+  "scope": "Static source seam only; no continuous/native/runtime permission",
+  "saved_output_pins": 22,
+  "command": [
+    "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+    "-B",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/test_handling_source.py",
+    "--palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/all-cast-v9.ugpal",
+    "--grip-palette",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.ugpal",
+    "--candidate",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/candidate",
+    "--wood-topology",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-haul-handling/godot/data/underground/mole-worker/haul-handling-v1/evidence/static-contact-review-v1/wood-topology.json"
+  ],
+  "exit_code": 0,
+  "seconds": 1.181
+}

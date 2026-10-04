@@ -1455,6 +1455,324 @@
     "reserved_bytes": 4096,
     "scope": "Separate ADR1140 per-world contribution. Reviewed coupled logical helper census817 fits1024; the borrowed216-byte Transfer is already charged in1141. No new gameplay bank; runtime memory remains unqualified."
   },
+  "profile_motion_reservation": {
+    "source_sha256": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
+    "status": "SOURCE_COUNTED_COMPONENT_ONLY; no native allocation or travel/timing qualification",
+    "bank_members": {
+      "ints": [
+        17421,
+        4
+      ],
+      "longs": [
+        67,
+        8
+      ],
+      "bytes": [
+        640,
+        1
+      ]
+    },
+    "one_bank_bytes": 70860,
+    "paired_bank_bytes": 141720,
+    "control_arrays": {
+      "_level_identity": 84,
+      "_level_config": 52,
+      "_level_digest": 32,
+      "_digest": 32
+    },
+    "numeric_members": {
+      "_world": 8,
+      "_world_pid": 8,
+      "_profile_revision": 8,
+      "_level_revision": 8,
+      "_admitted_bytes": 8,
+      "_revision": 8,
+      "_busy": 1,
+      "_poisoned": 1
+    },
+    "fixed_owner_payload": 250,
+    "shared_constant_elements": {
+      "GAIT_BASE": 7,
+      "GAIT_ROWS": 7,
+      "HANDOFF_BASE": 7,
+      "HANDOFF_ROWS": 7,
+      "HEADER": 20,
+      "BOUNDS": 6
+    },
+    "shared_constant_payload_conservatively_charged_per_owner": 432,
+    "own_chains": {
+      "configure": {
+        "bytes": 40,
+        "path": [
+          "configure",
+          "_pin_owners"
+        ],
+        "frames": {
+          "configure": 16,
+          "_pin_owners": 24
+        }
+      },
+      "load_file": {
+        "bytes": 136,
+        "path": [
+          "load_file",
+          "_validate_stage",
+          "_stage_supports",
+          "_support_span",
+          "_h"
+        ],
+        "frames": {
+          "load_file": 8,
+          "_validate_stage": 16,
+          "_stage_supports": 16,
+          "_support_span": 72,
+          "_h": 24
+        }
+      },
+      "packed_memory_bytes": {
+        "bytes": 0,
+        "path": [
+          "packed_memory_bytes"
+        ],
+        "frames": {
+          "packed_memory_bytes": 0
+        }
+      },
+      "admitted_bytes": {
+        "bytes": 0,
+        "path": [
+          "admitted_bytes"
+        ],
+        "frames": {
+          "admitted_bytes": 0
+        }
+      },
+      "content_revision": {
+        "bytes": 0,
+        "path": [
+          "content_revision"
+        ],
+        "frames": {
+          "content_revision": 0
+        }
+      },
+      "activation_refusal": {
+        "bytes": 0,
+        "path": [
+          "activation_refusal"
+        ],
+        "frames": {
+          "activation_refusal": 0
+        }
+      },
+      "program_into": {
+        "bytes": 48,
+        "path": [
+          "program_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "program_into": 32,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "identity_into": {
+        "bytes": 32,
+        "path": [
+          "identity_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "identity_into": 16,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "digest_into": {
+        "bytes": 40,
+        "path": [
+          "digest_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "digest_into": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "join_into": {
+        "bytes": 40,
+        "path": [
+          "join_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "join_into": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "clip_metadata_into": {
+        "bytes": 40,
+        "path": [
+          "clip_metadata_into",
+          "_h"
+        ],
+        "frames": {
+          "clip_metadata_into": 16,
+          "_h": 24
+        }
+      },
+      "source_into": {
+        "bytes": 48,
+        "path": [
+          "source_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "source_into": 32,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "phase_into": {
+        "bytes": 120,
+        "path": [
+          "phase_into",
+          "_key",
+          "_h"
+        ],
+        "frames": {
+          "phase_into": 72,
+          "_key": 24,
+          "_h": 24
+        }
+      },
+      "interval_box_into": {
+        "bytes": 128,
+        "path": [
+          "interval_box_into",
+          "_box_into",
+          "_h"
+        ],
+        "frames": {
+          "interval_box_into": 48,
+          "_box_into": 56,
+          "_h": 24
+        }
+      },
+      "interval_support_count": {
+        "bytes": 72,
+        "path": [
+          "interval_support_count",
+          "_interval_leaf",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "interval_support_count": 32,
+          "_interval_leaf": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "interval_support_into": {
+        "bytes": 144,
+        "path": [
+          "interval_support_into",
+          "interval_support_count",
+          "_interval_leaf",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "interval_support_into": 72,
+          "interval_support_count": 32,
+          "_interval_leaf": 24,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      },
+      "primitive_into": {
+        "bytes": 104,
+        "path": [
+          "primitive_into",
+          "_box_into",
+          "_h"
+        ],
+        "frames": {
+          "primitive_into": 24,
+          "_box_into": 56,
+          "_h": 24
+        }
+      },
+      "primitive_mapping_into": {
+        "bytes": 56,
+        "path": [
+          "primitive_mapping_into",
+          "_read_leaf",
+          "_owner_leaf"
+        ],
+        "frames": {
+          "primitive_mapping_into": 40,
+          "_read_leaf": 16,
+          "_owner_leaf": 0
+        }
+      }
+    },
+    "maximum_own_declared_numeric_chain": 144,
+    "simultaneous_small_payload_allowance": 136,
+    "expression_result_allowance": 128,
+    "logical_and_helper_counted": 1090,
+    "logical_helper_reservation": 4096,
+    "decode": {
+      "maximum_requested_bytes": 4096,
+      "maximum_simultaneous_payload_windows": 1,
+      "other_headers_charged_above": true,
+      "lifetime": "Each _decode_payload frame owns every packed alias and returns only StringName; its frame ends before the next chunk call. No loop-local packed payload, full wire, JSON or to_byte_array copy. Hashing borrows the same payload."
+    },
+    "caller": {
+      "maximum_bytes": 176,
+      "lifetime": "One caller packet: largest single header160 or descriptor136. A descriptor136 plus phase36 plus one4-byte counter is176. No per-actor copy."
+    },
+    "native_provisional_reservation": 32768,
+    "native_inventory": [
+      "Motion RefCounted + two Bank wrappers",
+      "ten retained packed-array handles",
+      "six retained borrowed owner/Bank references",
+      "seven shared constant Array handles with54integer+3String elements",
+      "five shared64-character digest strings plus interned code constants",
+      "one FileAccess and one HashingContext during load",
+      "bounded header/slice/string/digest temporaries and interpreter frames"
+    ],
+    "native_measured": false,
+    "foreign_call_lifetime": "MoleCatalog runtime source hashing and exact Profile wire check run sequentially before decoding. Their existing32KiB Profiles control reserve is included once in47288, not additionally allocated. Actual Content palettes in tests have separate declared presentation reservation; none is retained by Motion.",
+    "profile_configuration": {
+      "profiles": 18,
+      "boxes": 194,
+      "sources": 1
+    },
+    "joint": {
+      "profiles": 47288,
+      "levels": 2292,
+      "paired_motion": 141720,
+      "decode": 4096,
+      "caller": 176,
+      "logical_helper": 4096,
+      "native": 32768,
+      "total": 232436,
+      "reservation": 262144,
+      "headroom": 29708,
+      "independent_maxima_total_refuses": 444284
+    },
+    "admission_limit": "This component assumes a single caller-owned composed source catalog. Root owns shared reservation enforcement; constructing arbitrary extra owners is not an admitted World configuration."
+  },
   "contributions": {
     "excavation_start_controls": 4,
     "entry_structure_bindings": 384,
@@ -1492,6 +1810,7 @@
     "godot/scripts/core/inventory.gd": "eaab18ad91f0933400583c9ed5282fbd3d76f915f3f8acc1ec3b9919541e2e55",
     "godot/scripts/core/modular_project_contract.gd": "9e8b9ed5f3778b959ed54385999a9c1b1713dc3b46e6829d2bd553760b140849",
     "godot/scripts/core/modular_projects.gd": "c6bd313698bee47685f7404c347a94852cee18efd2557109c8c673dc3467ada8",
+    "godot/data/underground/mole-worker/mole_profile_catalog.gd": "e9be7e504514355e61e9b2f325e0c245e3990ee95449056daa0a2eba954c8ea4",
     "godot/scripts/core/reservations.gd": "2a2ce0b41cde10974f480184d0da53a7d27e1930030f80fee8c16dd1a9b74534",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",
     "godot/scripts/core/room_layout.gd": "ef3d922da5eb324bbca8523b31a51b3d2b9cd90a310b3e6422f7f0700171b6b2",
@@ -1510,7 +1829,9 @@
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
     "godot/scripts/core/underground_entry_world_bindings.gd": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "godot/scripts/core/underground_level_catalog.gd": "c067c3e052db011f5b3cc1329dd676d5f01e9db7b1a2f968f5e0ad51d96b519f",
     "godot/scripts/core/underground_locations.gd": "35eb766bbb9db19b3c3669f42a6bb31eaba8aa40e4d19f735359943c6a68c167",
+    "godot/scripts/core/underground_motion_catalog.gd": "a4661ba5e0d0591a1af041541015624208cda5239636a7066dce5049cadbd86f",
     "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
@@ -1523,7 +1844,8 @@
   "limitations": [
     "Constructor limits alone are not joint runtime admission.",
     "Actual consumers must share the exact cold arena and charge nested coexistence before allocating.",
-    "Location/topology, profile, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
+    "Location/topology, terrain, layout cold work and binding/native growth envelopes are reserved, not measured or implemented by this checker.",
+    "One source-only Motion/Profile/Level composition is source-counted inside PROFILE_BYTES; native ceilings and actual host admission remain unqualified.",
     "All native headers, Variant/Array capacity growth, restored copies and omitted future fields must fit measured reserves before activation.",
     "Physical phase, generic three-survey validation and wire capture are mutually exclusive cold operations unless their combined actual charge fits."
   ]

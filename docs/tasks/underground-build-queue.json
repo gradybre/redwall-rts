@@ -919,6 +919,26 @@
           "branch": "codex/underground-haul-handling",
           "ownership": "New haul-handling-v1 subtree and ADR1144 only; existing Actor/Content/driver, Work/Planner/Delivery/Pool/Inventory and shared ledgers frozen. Root controls runtime station/contact seam after source review.",
           "scope": "Measured no-tool empty/carry LOAD and UNLOAD with actual wood geometry, separate BUILD setdown and source-bound handoffs. Wood-only costs and existing handling rates retained. Runtime contact/station split remains a proposal until reviewed retained/helper census and exact source facts exist."
+        },
+        "haul_static_contact_1144_root_review": {
+          "status": "accepted static source seam",
+          "evidence": "docs/validation/evidence/underground-haul-static-review-2026-10-04/",
+          "tests": 14,
+          "source_pins": 9,
+          "output_pins": 22,
+          "runtime_qualified": false
+        },
+        "haul_program_1144_root_review": {
+          "status": "accepted four-phase source-only checkpoint integrated",
+          "evidence": "docs/validation/evidence/underground-haul-program-review-2026-10-04/",
+          "tests": 13,
+          "source_pins": 24,
+          "output_pins": 35,
+          "intervals": 240,
+          "runtime_qualified": false,
+          "next": "Exact1U physical parcel variant and loaded locomotion/turns; preserve unsupported generic partial unload",
+          "source_commit": "d710c6094b5e3ea49fed14339133bc5afb08b26e",
+          "integrated_commit": "e87e63be69bd652685de5d3395ba3d5d9adee51a"
         }
       },
       "lease": {
@@ -1131,7 +1151,13 @@
         "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py",
         "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/",
         "docs/decisions/1142-supported-stair-handoff-source.md",
-        "docs/validation/evidence/underground-motion-independent-review-2026-10-04/"
+        "docs/validation/evidence/underground-motion-independent-review-2026-10-04/",
+        "godot/scripts/core/underground_motion_clock.gd",
+        "godot/scripts/core/underground_motion_clock.gd.uid",
+        "godot/test/test_underground_motion_clock.gd",
+        "godot/test/test_underground_motion_clock.gd.uid",
+        "docs/decisions/1147-underground-motion-clock.md",
+        "docs/validation/evidence/underground-motion-clock-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1688,11 +1714,13 @@
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-publication-v2/"
         },
         "motion_catalog_independent_review_1143": {
-          "status": "read-only independent review in progress",
+          "status": "independently accepted source-only candidate5 and root shared ledger",
           "owner": "/root/ug_furnishing",
-          "subject": "Geometry54cf571c design; runtime review follows exact candidate freeze",
+          "subject": "Motion 0aeb7f82; corrected decoder lifetime; source-only scope retained",
           "evidence": "docs/validation/evidence/underground-motion-independent-review-2026-10-04/",
-          "no_source_writes": true
+          "no_source_writes": true,
+          "review_integrated_commit": "4ecdf0db",
+          "shared_ledger_review_integrated_commit": "b76da200"
         },
         "timing_proposal_1145": {
           "status": "Natural approved by Brendan2026-10-04:30fixed ticks per tread,45per supported half-turn at1x; playback qualification remains open",
@@ -1702,6 +1730,20 @@
           "answer": "Natural (recommended): 1 second per step; 1.5 seconds for a half-turn.",
           "user_record": "docs/setting_decisions.md#dec-050--initial-timber-stair-movement-pace",
           "activation": false
+        },
+        "motion_clock_1147": {
+          "status": "released independent mapping and implementation slice",
+          "owner": "/root/ug_furnishing",
+          "branch": "codex/underground-motion-clock",
+          "scope": "DEC05030 ticks/tread45 ticks/supported half-turn exact source mapping; prefer stateless sampler, no other rates or travel qualification",
+          "files": [
+            "godot/scripts/core/underground_motion_clock.gd",
+            "godot/scripts/core/underground_motion_clock.gd.uid",
+            "godot/test/test_underground_motion_clock.gd",
+            "godot/test/test_underground_motion_clock.gd.uid",
+            "docs/decisions/1147-underground-motion-clock.md",
+            "docs/validation/evidence/underground-motion-clock-2026-10-04/"
+          ]
         }
       },
       "lease": {
@@ -1859,8 +1901,9 @@
         "godot/test/test_underground_motion_catalog.gd",
         "godot/test/test_underground_motion_catalog.gd.uid",
         "godot/data/underground/mole-worker/evidence/contact-qualification/motion-catalog-v1/",
-        "docs/decisions/1143-joint-underground-motion-catalog.md",
-        "docs/validation/evidence/underground-motion-storage-design-2026-10-04/"
+        "docs/decisions/1143-joint-source-motion-catalog.md",
+        "docs/validation/evidence/underground-motion-storage-design-2026-10-04/",
+        "tools/underground_motion_memory.py"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -2607,13 +2650,23 @@
           "memory_evidence": "docs/validation/evidence/underground-haul-memory-2026-10-04/"
         },
         "motion_catalog_1143": {
-          "status": "additive implementation in progress",
+          "status": "source-only component and shared ledger independently accepted",
           "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer",
           "branch": "codex/underground-motion-catalog",
           "design_commit": "54cf571c",
           "design_evidence": "docs/validation/evidence/underground-motion-storage-design-2026-10-04/",
           "ownership": "New MotionCatalog, dedicated test, source packer/evidence subtree and ADR1143 only. Existing eight publication consumers and Profiles/Levels/Budget/World and shared ledgers unchanged.",
-          "conditional_accounting": "Complete paired banks141720 and current Profiles/Levels/helpers/native/decode/caller total232436 within unchanged262144 PROFILE_BYTES;29708 conditional headroom. Future HAUL bindings require joint readmission. Native allowance provisional; simulation activation unconditionally refuses until contracts qualify."
+          "conditional_accounting": "Complete paired banks141720 and current Profiles/Levels/helpers/native/decode/caller total232436 within unchanged262144 PROFILE_BYTES;29708 conditional headroom. Future HAUL bindings require joint readmission. Native allowance provisional; simulation activation unconditionally refuses until contracts qualify.",
+          "source_commit": "0aeb7f82fa827a24e0aadd18da28c69f369e017f",
+          "integrated_source_commit": "874e2f12",
+          "review_integrated_commit": "4ecdf0db",
+          "decision": "docs/decisions/1143-joint-source-motion-catalog.md",
+          "shared_memory_evidence": "docs/validation/evidence/underground-motion-memory-2026-10-04/",
+          "integrated_focused": "58 tests /14678 assertions /0 failures; strict+raw diagnostics/leaks0; analyzer0/2",
+          "memory_tests": 205,
+          "capacity_tests": 190,
+          "global_live_with_reserve_bytes": 99998782,
+          "runtime_qualified": false
         }
       },
       "lease": {
@@ -2813,6 +2866,107 @@
       }
     },
     {
+      "id": "UG24",
+      "title": "Actual demo owner, confirmation and fixed-tick composition",
+      "status": "running",
+      "depends_on": [
+        "UG04",
+        "UG05",
+        "UG06",
+        "UG18",
+        "UG19",
+        "UG23"
+      ],
+      "owns": [
+        "godot/demo/burrow/modular_runtime.gd",
+        "godot/demo/burrow/modular_runtime.gd.uid",
+        "godot/demo/burrow/modular_world_tool.gd",
+        "godot/demo/burrow/modular_editor.gd",
+        "godot/demo/demo_village.gd",
+        "godot/demo/burrow/room_tool.gd",
+        "godot/demo/tunnel/tunnel_control.gd",
+        "godot/demo/tunnel/tunnel_ext.gd",
+        "godot/demo/tunnel/tunnel_panel.gd",
+        "godot/scripts/systems/settlement_system.gd",
+        "godot/scripts/core/underground_session.gd",
+        "godot/scripts/core/underground_session.gd.uid",
+        "godot/test/test_modular_runtime.gd",
+        "godot/test/test_modular_runtime.gd.uid",
+        "godot/test/test_underground_session.gd",
+        "godot/test/test_underground_session.gd.uid",
+        "godot/test/test_underground_tick_dispatch.gd",
+        "godot/test/test_underground_tick_dispatch.gd.uid",
+        "godot/test/live/modular_kitchen_live.gd",
+        "docs/decisions/1146-underground-demo-composition-slice.md",
+        "docs/validation/evidence/underground-demo-composition-2026-10-04/",
+        "docs/validation/evidence/underground-session-2026-10-04/"
+      ],
+      "requirements": [
+        "UG-BUILD-001",
+        "UG-BUILD-002",
+        "UG-BUILD-003",
+        "UG-VIEW-001",
+        "UG-VIEW-002",
+        "UG-VIEW-003",
+        "UG-VIEW-004"
+      ],
+      "acceptance": [
+        "Borrow the actual running SettlementSystem owners with no second World/economy/clock and validate reset/teardown plus full identities",
+        "Exact direct-on-dirt typed draft reaches actual RoomOrders; receipt identity and refusal preserve purpose/level/cells and no duplicate order",
+        "Linked underground Routes/BUILD/Delivery dispatch uses real fixed ticks and final physical guards; preserve demolition",
+        "Committed shell view consumes actual Site/Space revisions and never depicts unpaid completion",
+        "Independent source review, strict focused tests, zero-warning analyzer and exact unchanged memory census; whole playable UG09 remains gated separately"
+      ],
+      "agent": "/root",
+      "branch": "codex/underground-modular-integration",
+      "evidence": {
+        "release_basis": "Independent read-only42bff090 audit; reviewed component APIs already integrated. Extracted composition only; UG09 retains whole UG07/UG08/UG21/source/playable dependencies.",
+        "decision": "docs/decisions/1146-underground-demo-composition-slice.md",
+        "runtime_qualified": false,
+        "adapter": {
+          "status": "independently accepted command adapter; scene host and playable Room remain open",
+          "source_evidence": "docs/validation/evidence/underground-demo-composition-2026-10-04/",
+          "final_source_pins": "focused-v6/source-sha256.json",
+          "tests": 35,
+          "assertions": 480,
+          "failures": 0,
+          "unexpected_errors": 0,
+          "unexpected_warnings": 0,
+          "leaked_objects": 0,
+          "leaked_resources": 0,
+          "analyzer": "0 GDScript warning(s) in 0 of 4 file(s)",
+          "review": "/root/ug_furnishing accepted v6; three initial findings and two continuation windows corrected",
+          "scope": "Actual in-world draft to RoomOrders physical refusal; no successful entry, excavation, native host or D20 claim",
+          "review_integrated_commit": "b76da200"
+        },
+        "session": {
+          "status": "new-file implementation/testing in progress",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-session",
+          "branch": "codex/underground-session",
+          "scope": "15 exact borrowed owners plus Directory, actual private foundations/Routes identity; no duplicate settlement/authority binding",
+          "memory": "1536B wrapper/helper/native slice proposed and source-counted within existing PROFILE_BYTES; one Motion/Profile/Level/Session expected233972; native unmeasured"
+        }
+      },
+      "lease": {
+        "state": "held",
+        "subleases": [
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-session",
+            "files": [
+              "godot/scripts/core/underground_session.gd",
+              "godot/scripts/core/underground_session.gd.uid",
+              "godot/test/test_underground_session.gd",
+              "godot/test/test_underground_session.gd.uid",
+              "docs/validation/evidence/underground-session-2026-10-04/"
+            ],
+            "handoff": "Root has no Session source writes. Geometry explicitly stopped1143Motion at accepted0aeb7f82; now compose actual borrowed SettlementSystem owners with source-pinned catalogs. No secondWorld, synthetic permissions or private weak-field resets; shared host/Gear/reset/memory changes remain root-owned and require agreed APIs. Root independently writes modular_runtime and existing demo/SettlementSystem entry points."
+          }
+        ]
+      }
+    },
+    {
       "id": "UG09",
       "title": "First playable blueprint to empty Kitchen",
       "status": "queued",
@@ -2824,7 +2978,8 @@
         "UG08",
         "UG19",
         "UG21",
-        "UG23"
+        "UG23",
+        "UG24"
       ],
       "owns": [
         "godot/demo/burrow/modular_runtime.gd",
@@ -3832,6 +3987,28 @@
       },
       "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-32db348a/",
       "limits": "Component checkpoint; later1140Delivery/1142handoffs excluded. Playable107 requirements remain in progress."
+    },
+    {
+      "commit": "42bff0909dd98e1577375160cc932705cf8cd229",
+      "outcome": "all14 remote CI jobs passed; same-head no-argument local suite not yet run",
+      "ci": {
+        "run": 37211546342,
+        "jobs": 14,
+        "wall_seconds": 777,
+        "suite_files": 389,
+        "shards": 8,
+        "tests": 10910,
+        "assertions": 1002786,
+        "failures": 0,
+        "expected": 272,
+        "tolerated": 353,
+        "unexpected_errors": 0,
+        "unexpected_warnings": 0,
+        "leaked_objects": 0,
+        "leaked_resources": 0,
+        "analyzer": "0 GDScript warning(s) in 0 of 1213 file(s)",
+        "evidence": "docs/validation/evidence/underground-ci-42bff090-2026-10-04/"
+      }
     }
   ],
   "crosscut_fixes": [

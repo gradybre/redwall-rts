@@ -1943,3 +1943,14 @@ reference/header costs and whole-client peak qualification remain open.
 | Complete motion and support scratch | `_bounds`, `_support` | 4 | `6` = 6 | Empty before binding | 3 | -- | Decision1140. Every primitive remains proved. |
 | Shared bounded search remaining work | `_remaining` | 4 | `1` = 1 | Empty before binding | 3 | -- | Decision1140. No limit reset. |
 | Synchronous borrowed caller context | -- | -- | -- | Quiescent outside the operation | 3 | -- | Decision1140. Source-derived fixed753 plus1024 helper and2048 provisional native stays within4096. Work adds one boolean, one fixed Script and one weak Delivery; existing progress/fraction/XP columns remain authoritative. No second pooled Transfer. |
+
+
+### `godot/scripts/core/underground_motion_catalog.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Original Level identity | `_level_identity` | 4 | `21` = 21 | Empty before configure | 3 | -- | Decision1143. Original full World and catalog identity. |
+| Original Level configuration | `_level_config` | 4 | `13` = 13 | Empty before configure | 3 | -- | Exact authored source configuration. |
+| Original Level digest and published wire | `_level_digest`, `_digest` | 1 | `32` = 32 | Empty before configure | 3 | -- | Original source digests; no wire image retained. |
+| Source-only paired banks | -- | -- | -- | Empty before admission | 2 | §1 WORLD | Two banks, each17421I32+67I64+640B =70860B. Source catalog only; no actor progress or travel permission. |
+| Source admission and read controls | -- | -- | -- | Quiescent outside load/read | 3 | -- | Fixed250B includes numeric controls and the packed rows above. Shared constants432B, maximum own numeric chain144B and temporary/expression264B fit4096B logical/helper reserve. One4096B decoder window,176B caller and32768B provisional native reserve. Joint Profiles18/194/1+Levels+Motion232436B fits existing262144B PROFILE_BYTES; single composed owner only. Native qualification and composed persistence remain open. |

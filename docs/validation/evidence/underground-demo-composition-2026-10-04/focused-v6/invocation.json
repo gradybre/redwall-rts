@@ -1,0 +1,58 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.028,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "219/391",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-demo-composition-2026-10-04/focused-v6"
+      ],
+      "exit_code": 0,
+      "seconds": 7.804,
+      "log": "test_modular_runtime.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6197",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-demo-composition-2026-10-04/focused-v6/analyzer.json",
+        "godot/demo/burrow/modular_runtime.gd",
+        "godot/demo/burrow/modular_editor.gd",
+        "godot/demo/burrow/modular_world_tool.gd",
+        "godot/test/test_modular_runtime.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.102,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "registry_sha256_before": "b5981912c5c35baa42b85813482f7abcae01d58693fdfd915d5db9eed16c705e",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-demo-composition-20261004",
+  "project_test_sha256": "e0d564e1827ecd5f018f042098e1da84aa54f371be39ba64d8750113ad7f601b",
+  "assets_present_before": false,
+  "registry_restored": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

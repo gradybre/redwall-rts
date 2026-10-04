@@ -3,7 +3,7 @@
 ## Current delivery status — 2026-10-04
 
 The complete modular building workflow is still in development. The queue has
-10 verified component lanes, 4 running lanes and 9 queued lanes, covering107
+10 verified component lanes, 5 running lanes and 9 queued lanes, covering107
 requirements. These counts are not a completion percentage: substantial demo
 integration, persistence and qualification remain. The next playable checkpoint
 is drawing on the dirt, confirming the plan, watching actual workers deliver
@@ -31,6 +31,20 @@ refuses exact equality, and that difference remains explicitly unattributed.
 The earlier rejected source-closure/stale-test runs remain recorded in the
 queue and their evidence. No source guard or diagnostic allowance was weakened.
 
+The next [remote CI checkpoint42bff090](../../validation/evidence/underground-ci-42bff090-2026-10-04/README.md)
+passed all14 jobs in12 minutes57 seconds:389 files exactly once across8 shards,
+10,910 tests /1,002,786 assertions /0 failures, zero unexpected diagnostics/leaks,
+and analyzer0/1,213. No same-head local full run was made, so this is not an exact
+local/CI equivalence claim.
+
+UG24 extracts the actual demo composition work so it runs independently of the
+remaining movement sources. Its reviewed confirmation adapter has35 focused
+tests/480 assertions, strict/raw diagnostics/leaks0 and analyzer0/4. It preserves
+actual purpose, floor and draft identity across callbacks and owner teardown.
+The real SettlementSystem foundation composer is being implemented separately;
+scene mounting, fixed-tick dispatch and successful Room entry/phase remain open.
+The added lane decomposes existing work and does not add or waive requirements.
+
 Decision1140's actual Delivery component is integrated at`fa017ba4`, using
 Decision1141's guarded Inventory/Reservations journal. The clean-import focused
 integrated run passes124 tests/13,838 assertions, zero strict/raw diagnostics
@@ -49,8 +63,13 @@ and93 PNGs at1280×720. This is an OpenGL witness on an unpaid test fixture;
 paid traversal, Metal, gameplay timing, saves and whole-client qualification
 remain open. The
 [review](../../validation/evidence/underground-stair-native-review-2026-10-04/README.md)
-retains those boundaries. Decision1143's joint motion reader and1144's actual
-hauling/contact sources are being developed in separate owned worktrees.
+retains those boundaries. Decision1143's source-only motion reader is independently accepted and integrated
+at874e2f12. Its shared Profile/Level/Motion accounting stays232,436 inside the
+unchanged262,144-byte reservation. The actual integrated focused run passed58
+tests/14,678 assertions with zero strict/raw diagnostics/leaks and analyzer0/2.
+Decision1144's static grip and four-phase lift/place source packets passed
+independent review and14+13 source tests; loaded locomotion, native qualification,
+quantity mapping and runtime station integration remain open.
 Decision1145 and DEC-050 record Brendan's approved Natural initial stair pace:
 30 fixed ticks per tread and45 per supported half-turn at1× for the first
 unloaded adult mole with its existing pick. Source and paid-route qualification

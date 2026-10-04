@@ -24,6 +24,50 @@ class JointPackTests(unittest.TestCase):
         with self.assertRaises(AssertionError):
             budget.build(self.changed(module, before, after))
 
+    def test_motion_profiles_levels_share_the_existing_reservation(self) -> None:
+        result = budget.build(self.index)
+        joint = result["profile_motion_reservation"]["joint"]
+        self.assertEqual((joint["total"], joint["reservation"], joint["headroom"]), (232436, 262144, 29708))
+        self.assertEqual(joint["independent_maxima_total_refuses"], 444284)
+        self.assertEqual(result["live_with_reserve_bytes"], 99998782)
+        self.assertFalse(result["runtime_qualified"])
+
+    def test_motion_unaccounted_member_is_rejected(self) -> None:
+        self.refuses("underground_motion_catalog", "var _busy: bool = false",
+                     "var _busy: bool = false\nvar _extra: PackedInt32Array = PackedInt32Array()")
+
+    def test_motion_larger_bank_is_rejected(self) -> None:
+        self.refuses("underground_motion_catalog", "I32_COUNT: int = 17421", "I32_COUNT: int = 17422")
+
+    def test_motion_extra_allocation_is_rejected(self) -> None:
+        self.refuses("underground_motion_catalog", "\t_live.allocate()", "\t_live.allocate()\n\t_live.allocate()")
+
+    def test_motion_decode_loop_cannot_retain_previous_window(self) -> None:
+        self.refuses("underground_motion_catalog", "\t\tvar code: StringName = _decode_payload(",
+                     "\t\tvar previous: PackedByteArray = _read(file, hashing, 4096)\n\t\tvar code: StringName = _decode_payload(")
+
+    def test_motion_decode_payload_cannot_escape(self) -> None:
+        self.refuses("underground_motion_catalog", "var bytes: PackedByteArray = _read(file, hashing, span * width)",
+                     "var bytes: PackedByteArray = _read(file, hashing, span * width)\n\t_digest = bytes")
+
+    def test_motion_copied_decode_window_is_rejected(self) -> None:
+        self.refuses("underground_motion_catalog", "file.get_buffer(count)", "file.get_buffer(count).duplicate()")
+
+    def test_motion_larger_native_reserve_is_rejected(self) -> None:
+        self.refuses("underground_motion_catalog", "NATIVE_RESERVE: int = 32768", "NATIVE_RESERVE: int = 65536")
+
+    def test_motion_joint_runtime_formula_drift_is_rejected(self) -> None:
+        self.refuses("underground_motion_catalog", "+ 2 * BANK_BYTES + DECODE_BYTES", "+ BANK_BYTES + DECODE_BYTES")
+
+    def test_motion_profile_bank_growth_is_rejected(self) -> None:
+        self.refuses("underground_profiles", "boxes.resize(volumes * 7)", "boxes.resize(volumes * 8)")
+
+    def test_motion_level_envelope_growth_is_rejected(self) -> None:
+        self.refuses("underground_level_catalog", "MAX_RETAINED_BYTES: int = 244", "MAX_RETAINED_BYTES: int = 248")
+
+    def test_motion_shared_profile_reservation_cannot_expand(self) -> None:
+        self.refuses("underground_budget", "PROFILE_BYTES: int = 262144", "PROFILE_BYTES: int = 524288")
+
     def test_negative_larger_quote_dimension(self) -> None:
         self.refuses("modular_project_contract", "OUTPUT_CAPACITY: int = 2", "OUTPUT_CAPACITY: int = 3")
 

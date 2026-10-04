@@ -1102,7 +1102,13 @@
         "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
         "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py",
         "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/",
-        "docs/decisions/1139-source-indexed-stair-program-tables.md"
+        "docs/decisions/1139-source-indexed-stair-program-tables.md",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/",
+        "docs/decisions/1142-supported-stair-handoff-source.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1134,7 +1140,7 @@
         "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
       ],
       "agent": "/root/ug_furnishing",
-      "branch": "codex/underground-profile-publication",
+      "branch": "codex/underground-stair-handoff",
       "evidence": {
         "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 integratedd10ecd61. Compact actual mole Actor content compiler/loader in progress; actual work contacts and moving tool grip acceptance remain open; zero production-qualified profiles.",
         "increments": [
@@ -1624,6 +1630,33 @@
           "reviewer": "/root",
           "tests": "16 Python tests repeated independently; actual537-source reconstruction and all3/9/23/209 original manifest rows checked. Final wire19332B byte-identical; exact programs and memory report equal. No engine/native execution.",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/review.md"
+        },
+        "supported_stair_handoff_1142": {
+          "owner": "/root/ug_furnishing",
+          "branch": "codex/underground-stair-handoff",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-space",
+          "status": "additive source/proof implementation; not accepted",
+          "base_commit": "606f2b86",
+          "files": [
+            "godot/data/underground/mole-worker/evidence/contact-qualification/author_stair_handoffs.py",
+            "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoffs.py",
+            "godot/data/underground/mole-worker/evidence/contact-qualification/prove_stair_handoffs.py",
+            "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_handoff_proof.py",
+            "godot/data/underground/mole-worker/evidence/contact-qualification/stair-handoffs-v1/",
+            "docs/decisions/1142-supported-stair-handoff-source.md"
+          ],
+          "scope": "Full L0 approach, accepted descent,174u T0 reposition and half-turn, accepted ascent and L0 retreat. Explicit finite heading shares the source phase with pose/root/support; no terminal rebase or double root/rotation. Original14timber+8natural fixture prisms and all body/tool/foot geometry retained.",
+          "boundaries": "Offline source/proof/census first; no8consumer or prior source mutations, gameplay pace/cost/reserve/flags unchanged. Native witnesses separate after candidate review; no stair/World activation or new capacity adoption."
+        },
+        "renewed_publication_1137": {
+          "status": "independently accepted existing OpenGL source/native scope; integrated full checkpoint pending",
+          "source_commit": "753ac22f3c40c742fc7b1a9dc4bef704b48f9229",
+          "integration_commit": "4b0bc3c24ddfa542663ce31eb4765a60e7af168b",
+          "reviewer": "/root/ug_furnishing",
+          "source": "Final8consumer b518ca1f source meaning independently reviewed;395 prerequisites checked; exact18rows194boxes7268B wire unchanged. Historical537-source reconstruction remains separate from current qualification.",
+          "tests": "11publisher and14wrapper Python tests;80export checks;4strict suites53tests1321assertions0failures, unexpected/expected/tolerated diagnostics and leaks0, analyzer0/3. Corrected1185-source runner; original weak import/snapshot harness retained as superseded.",
+          "native": "7792poses46873assertions0failures;304PNG,677current/source pins,601pre-import pins,8/46review manifests independently verified; source/override restored, raw logs clean. No World/Metal/stair/HAUL permission.",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-publication-v2/"
         }
       },
       "lease": {

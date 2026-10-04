@@ -24,8 +24,10 @@ new full checkpoint. The latest
 [CI run at`cddc4412`](../../validation/evidence/underground-ci-cddc4412-2026-10-04/README.md)
 has11 failures because the immutable worker-profile publication correctly
 rejects changed consumers. Its zero diagnostic/leak and analyzer totals do not
-make that run a pass. Renewed source review and actual native replay are in
-progress; no source guard has been removed.
+make that run a pass. Renewed source review and actual native replay are now integrated at
+`4b0bc3c2`:53 selected tests/1,321 assertions and7,792 native poses/46,873
+assertions passed with zero failures and unexpected diagnostics. The next
+full checkpoint is pending; no source guard has been removed.
 
 Decision1135's independently reviewed spatial component is integrated at
 `84948b40`:404 selected tests /29,732 assertions /0 failures, zero unexpected

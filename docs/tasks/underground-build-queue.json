@@ -1227,7 +1227,8 @@
         "godot/test/test_underground_motion_clock.gd",
         "godot/test/test_underground_motion_clock.gd.uid",
         "docs/decisions/1147-source-motion-fixed-tick-sampling.md",
-        "docs/validation/evidence/underground-motion-clock-2026-10-04/"
+        "docs/validation/evidence/underground-motion-clock-2026-10-04/",
+        "docs/validation/evidence/underground-haul-runtime-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1872,6 +1873,15 @@
               "tools/test_build_demo_windows.py"
             ],
             "handoff": "ug_furnishing explicitly stopped and released the exact publisher/Catalog/native runner/tests/export paths on2026-10-04. Root created isolated branch from freshly fetched origin/master82d60ba8 then fast-forwarded own integration1e71c678. Actor/Profiles and other owners remain unchanged. Final publication awaits reviewed1134/1135 consumer source and native replay."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "state": "held",
+            "branch": "codex/underground-room-phase-refresh",
+            "files": [
+              "docs/validation/evidence/underground-haul-runtime-2026-10-04/"
+            ],
+            "handoff": "Read-only actual API/source review plus bounded implementation/allocation proposal for accepted exact-one-unit wood shipment. No shared consumers or accepted source images may be edited; explicit R/S station/source/cargo/turn/stair scope and joint reservations required."
           }
         ],
         "scope_narrowing": {
@@ -2789,6 +2799,21 @@
           },
           "evidence": "docs/validation/evidence/underground-room-publication-2026-10-04/",
           "reviewer": "/root"
+        },
+        "ordinary_room_phase_refresh_1153": {
+          "status": "independently accepted and integrated component",
+          "source_commit": "e9c8f092accd6cf7d57acc963255ed354d40c35b",
+          "integration_commit": "386cd4aa",
+          "source_evidence": "docs/validation/evidence/underground-room-phase-refresh-2026-10-04/",
+          "review_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-phase-review-2.json",
+          "author_tests": "173/17943/0, all diagnostics/leaks0, analyzer0/5",
+          "integrated_tests": "122/3688/0, all diagnostics/leaks0, analyzer0/8",
+          "integrated_evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/room-phase-integrated-1",
+          "retained_delta_bytes": 0,
+          "helper_bytes": "564/576",
+          "iterator_bytes": "308/512",
+          "cold_bytes": "691024/1048960",
+          "limits": "Concrete1152 provider and playable qualification remain open; synthetic physical/contact qualification in component fixture."
         }
       },
       "lease": {
@@ -2960,7 +2985,7 @@
           {
             "agent": "/root/ug_geometry",
             "branch": "codex/underground-room-phase-refresh",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_space_authority.gd",
               "godot/scripts/core/underground_locations.gd",
@@ -2972,7 +2997,8 @@
               "godot/scripts/core/underground_connector_placements.gd",
               "godot/test/test_underground_locations.gd"
             ],
-            "handoff": "Geometry existing source writes stopped and ordinary1151 accepted. New narrow ordinary Room refresh path reuses one context and existing banks; no Placement row/prefix. Full Site/Project/Room/op/stage/original tokens, worker-free COMMIT/CANCEL and concrete publication remain mandatory. Routes read-only unless further exact lease. Prioritize1150 independent review when frozen. Additional narrow Owner phase_commit_refusal/_phase_owns_token branch explicitly granted by root after source-stop acknowledgement; preserve existing Placement path and original Authority ownership before/after discard. Narrow ConnectorPlacements method lease explicitly granted after root stop: reuse existing single128B PhaseContext/issuer and inactive bank refresh for ordinary Rooms, with explicit null Placement under complete actual Room/Site/Project proof. Existing Entry method still requires real Placement; no new context/schema/retained bank. Root additionally authorizes read-only caller-owned current Location enumeration/capacity API for1154. Geometry implements under existing exclusive lease; no new retained state, stale/refused output preservation required."
+            "handoff": "Geometry existing source writes stopped and ordinary1151 accepted. New narrow ordinary Room refresh path reuses one context and existing banks; no Placement row/prefix. Full Site/Project/Room/op/stage/original tokens, worker-free COMMIT/CANCEL and concrete publication remain mandatory. Routes read-only unless further exact lease. Prioritize1150 independent review when frozen. Additional narrow Owner phase_commit_refusal/_phase_owns_token branch explicitly granted by root after source-stop acknowledgement; preserve existing Placement path and original Authority ownership before/after discard. Narrow ConnectorPlacements method lease explicitly granted after root stop: reuse existing single128B PhaseContext/issuer and inactive bank refresh for ordinary Rooms, with explicit null Placement under complete actual Room/Site/Project proof. Existing Entry method still requires real Placement; no new context/schema/retained bank. Root additionally authorizes read-only caller-owned current Location enumeration/capacity API for1154. Geometry implements under existing exclusive lease; no new retained state, stale/refused output preservation required.",
+            "worker_stopped": "Geometry explicitly confirmed clean own commit e9c8f092 and all source/test writes stopped on2026-10-04; root386cd4aa integrates unchanged."
           }
         ]
       }
@@ -4341,7 +4367,7 @@
     },
     {
       "commit": "b03fbc2b0322381248998bfc57ce0a89ee3e76c0",
-      "outcome": "CI FAILED analyzer; all eight strict shards and metadata/contracts passed. Local full-suite checkpoint still running.",
+      "outcome": "Full local and CI suites passed with matching test/diagnostic totals; both complete checkpoints FAILED the same12 historical-source analyzer warnings. Corrective archive commitdc881589 preserves exact bytes.",
       "url": "https://github.com/gradybre/redwall-rts/actions/runs/37223870212",
       "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-host-20261004",
       "local_branch": "codex/underground-checkpoint-host-20261004",
@@ -4363,8 +4389,30 @@
       "suite_count": 396,
       "strict_shards": "8/8 passed; exact once coverage independently verified with original b03 tool/corpus",
       "analyzer_correction_commit": "dc881589",
-      "local_suite": "11000 test(s), 1019580 assertion(s), 0 failure(s); zero unexpected diagnostics/leaks;272 expected353 tolerated. Analyzer and final restoration record pending.",
-      "local_ci_comparison": "Same396 suites/test cases and all diagnostic/leak totals. Local assertion total is8 higher; no full per-suite counters retained by no-arg runner, cause not attributed; exact unchanged all-counter comparator refuses equality."
+      "local_suite": "11000 test(s), 1019580 assertion(s), 0 failure(s); zero unexpected diagnostics/leaks;272 expected353 tolerated.",
+      "local_ci_comparison": "Same396 suites/test cases and all diagnostic/leak totals. Local assertion total is8 higher; no full per-suite counters retained by no-arg runner, cause not attributed; exact unchanged all-counter comparator refuses equality.",
+      "local_analyzer": "12 GDScript warning(s) in 6 of 1235 file(s); same six historical rejected capture snapshots as CI",
+      "restoration": "source/HEAD unchanged; assets and project restored; retained invocation and raw log archives",
+      "local_full_suite_seconds": 1799.688
+    },
+    {
+      "commit": "256c19082a173f1dde8118c6ebf7ad36abd31598",
+      "outcome": "PASSED: all14 jobs, exact-once397 suites, analyzer0/1231",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37226172376",
+      "scope": "1150 ordinary approach plus exact historical archive and inherited EntryBindings corrections; all gates unchanged",
+      "wall_seconds": 984,
+      "tests": 11027,
+      "assertions": 1020358,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/ci-256c1908",
+      "analyzer": "0 GDScript warning(s) in 0 of 1231 file(s)",
+      "limits": "No same-head full local run; later1153 is separately focused-tested and needs next CI."
     }
   ],
   "crosscut_fixes": [
@@ -4506,6 +4554,20 @@
       "tests": "101 tests /14819 assertions /0 failures; all diagnostics/leaks0; affected analyzer0/3, host analyzer0/8",
       "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/entry-inheritance-1/",
       "scope": "No behavior, bank, source guard or warning rule changes; current full CI still required."
+    },
+    {
+      "scope": "CI timing estimates only",
+      "source_run": 37226172376,
+      "source_commit": "256c1908",
+      "weights_sha256": "25717b79e9f510fb8cf69ac1ef16dbeddd1af8837a14d9d2d13fb9965493a72e",
+      "review_commit": "1f23dba74e7195f8dc42bfdc1dac8ca18cc27f08",
+      "review_integration": "22b5e49e",
+      "old_measured_suites": 240,
+      "new_measured_suites": 397,
+      "observed_old_assignment_suite_seconds": "259.609\u2013817.081",
+      "estimated_new_assignment_suite_seconds": "439.877\u2013439.879",
+      "tests": "13 Python guard tests pass;5 optional engine fixtures not rerun for data-only change",
+      "limits": "Scheduling estimates only; all test/diagnostic/leak/analyzer/gate logic and local no-arg behavior unchanged."
     }
   ]
 }

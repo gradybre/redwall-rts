@@ -29,6 +29,6 @@
   "assertion_difference_attributed": false,
   "exact_all_counter_verifier": "refused as designed; unchanged",
   "full_per_suite_counters_present": false,
-  "restoration_and_full_analyzer": "pending until local wrapper finishes; no complete local pass claimed",
+  "restoration_and_full_analyzer": "Wrapper complete: source/HEAD unchanged, assets/project restored. Full analyzer correctly fails the same12 historical-source warnings as CI; no complete milestone pass.",
   "verifier_refusal": "shard totals differ from full suite: shards={'tests': 11000, 'assertions': 1019572, 'failures': 0, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}, baseline={'tests': 11000, 'assertions': 1019580, 'failures': 0, 'unexpected_errors': 0, 'unexpected_warnings': 0, 'expected': 272, 'tolerated': 353, 'leaked_objects': 0, 'leaked_resources': 0}"
 }

@@ -1,0 +1,353 @@
+{
+  "counts": {
+    "assertions": 73986,
+    "expected": 3,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 1303,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "manifest_sha256": "f14d039dafa8f0573fb9f9ee16e204836157328aca4201036fb6cda51ef48d25",
+  "shard_count": 8,
+  "shard_index": 0,
+  "suite_counts": {
+    "test_canonical_state_hash.gd": {
+      "assertions": 4724,
+      "failures": 0,
+      "tests": 60
+    },
+    "test_construction_furniture_batches.gd": {
+      "assertions": 523,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_demo_art_wiring.gd": {
+      "assertions": 247,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_demo_bore.gd": {
+      "assertions": 478,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_demo_camera_live.gd": {
+      "assertions": 96,
+      "failures": 0,
+      "tests": 2
+    },
+    "test_demo_daylight.gd": {
+      "assertions": 586,
+      "failures": 0,
+      "tests": 32
+    },
+    "test_demo_farm.gd": {
+      "assertions": 607,
+      "failures": 0,
+      "tests": 56
+    },
+    "test_demo_integration.gd": {
+      "assertions": 274,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_pace.gd": {
+      "assertions": 16,
+      "failures": 0,
+      "tests": 4
+    },
+    "test_demo_playtest_log.gd": {
+      "assertions": 186,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_demo_route_planning.gd": {
+      "assertions": 1990,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_demo_run_until.gd": {
+      "assertions": 90,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_demo_sowing.gd": {
+      "assertions": 1145,
+      "failures": 0,
+      "tests": 11
+    },
+    "test_demo_tunnel.gd": {
+      "assertions": 929,
+      "failures": 0,
+      "tests": 119
+    },
+    "test_demo_ui.gd": {
+      "assertions": 212,
+      "failures": 0,
+      "tests": 43
+    },
+    "test_demo_work_screen.gd": {
+      "assertions": 152,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_entity_directory_batch.gd": {
+      "assertions": 7971,
+      "failures": 0,
+      "tests": 21
+    },
+    "test_event_schedule.gd": {
+      "assertions": 309,
+      "failures": 0,
+      "tests": 31
+    },
+    "test_excavation_phase_settlement_guard.gd": {
+      "assertions": 171,
+      "failures": 0,
+      "tests": 8
+    },
+    "test_ground_piles.gd": {
+      "assertions": 547,
+      "failures": 0,
+      "tests": 42
+    },
+    "test_haul_transfer_guard.gd": {
+      "assertions": 603,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_int_math.gd": {
+      "assertions": 1499,
+      "failures": 0,
+      "tests": 42
+    },
+    "test_modular_world_tool.gd": {
+      "assertions": 149,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_progression_interval.gd": {
+      "assertions": 170,
+      "failures": 0,
+      "tests": 16
+    },
+    "test_rng.gd": {
+      "assertions": 473,
+      "failures": 0,
+      "tests": 29
+    },
+    "test_room_space.gd": {
+      "assertions": 249,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_save_owner_movement.gd": {
+      "assertions": 24406,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_save_replay_checkpoint.gd": {
+      "assertions": 279,
+      "failures": 0,
+      "tests": 10
+    },
+    "test_settlement_starter_colony.gd": {
+      "assertions": 288,
+      "failures": 0,
+      "tests": 27
+    },
+    "test_ui_availability.gd": {
+      "assertions": 1159,
+      "failures": 0,
+      "tests": 33
+    },
+    "test_ui_resident_snapshot.gd": {
+      "assertions": 918,
+      "failures": 0,
+      "tests": 20
+    },
+    "test_ui_theme.gd": {
+      "assertions": 142,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_underground_budget.gd": {
+      "assertions": 58,
+      "failures": 0,
+      "tests": 6
+    },
+    "test_underground_connector_work.gd": {
+      "assertions": 259,
+      "failures": 0,
+      "tests": 22
+    },
+    "test_underground_entry_orders.gd": {
+      "assertions": 797,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_underground_entry_structure.gd": {
+      "assertions": 1471,
+      "failures": 0,
+      "tests": 18
+    },
+    "test_underground_first_prefix.gd": {
+      "assertions": 414,
+      "failures": 0,
+      "tests": 5
+    },
+    "test_underground_phase_structure.gd": {
+      "assertions": 240,
+      "failures": 0,
+      "tests": 19
+    },
+    "test_underground_profiles.gd": {
+      "assertions": 601,
+      "failures": 0,
+      "tests": 25
+    },
+    "test_underground_room_bindings.gd": {
+      "assertions": 604,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_underground_session.gd": {
+      "assertions": 211,
+      "failures": 0,
+      "tests": 14
+    },
+    "test_underground_space_owner.gd": {
+      "assertions": 5461,
+      "failures": 0,
+      "tests": 113
+    },
+    "test_underground_work_face.gd": {
+      "assertions": 185,
+      "failures": 0,
+      "tests": 17
+    },
+    "test_underground_world_basis.gd": {
+      "assertions": 246,
+      "failures": 0,
+      "tests": 12
+    },
+    "test_underground_world_identities.gd": {
+      "assertions": 131,
+      "failures": 0,
+      "tests": 9
+    },
+    "test_underground_world_routes.gd": {
+      "assertions": 2437,
+      "failures": 0,
+      "tests": 39
+    },
+    "test_work.gd": {
+      "assertions": 9283,
+      "failures": 0,
+      "tests": 77
+    }
+  },
+  "suite_usec": {
+    "test_canonical_state_hash.gd": 271342,
+    "test_construction_furniture_batches.gd": 2199931,
+    "test_demo_art_wiring.gd": 2307207,
+    "test_demo_bore.gd": 1077225,
+    "test_demo_camera_live.gd": 44831809,
+    "test_demo_daylight.gd": 600056,
+    "test_demo_farm.gd": 622710,
+    "test_demo_integration.gd": 11308081,
+    "test_demo_pace.gd": 33116,
+    "test_demo_playtest_log.gd": 2324339,
+    "test_demo_route_planning.gd": 3581692,
+    "test_demo_run_until.gd": 171239,
+    "test_demo_sowing.gd": 509096,
+    "test_demo_tunnel.gd": 8159659,
+    "test_demo_ui.gd": 277392,
+    "test_demo_work_screen.gd": 4751455,
+    "test_entity_directory_batch.gd": 1028560,
+    "test_event_schedule.gd": 25844,
+    "test_excavation_phase_settlement_guard.gd": 518869,
+    "test_ground_piles.gd": 2989790,
+    "test_haul_transfer_guard.gd": 87760,
+    "test_int_math.gd": 16494,
+    "test_modular_world_tool.gd": 11020334,
+    "test_progression_interval.gd": 93162,
+    "test_rng.gd": 138682,
+    "test_room_space.gd": 18518,
+    "test_save_owner_movement.gd": 5027059,
+    "test_save_replay_checkpoint.gd": 60901,
+    "test_settlement_starter_colony.gd": 72029086,
+    "test_ui_availability.gd": 52576,
+    "test_ui_resident_snapshot.gd": 309873,
+    "test_ui_theme.gd": 7941,
+    "test_underground_budget.gd": 3185,
+    "test_underground_connector_work.gd": 8683238,
+    "test_underground_entry_orders.gd": 7207730,
+    "test_underground_entry_structure.gd": 12970060,
+    "test_underground_first_prefix.gd": 2872530,
+    "test_underground_phase_structure.gd": 7842206,
+    "test_underground_profiles.gd": 886624,
+    "test_underground_room_bindings.gd": 5959753,
+    "test_underground_session.gd": 5657992,
+    "test_underground_space_owner.gd": 7179067,
+    "test_underground_work_face.gd": 6245562,
+    "test_underground_world_basis.gd": 614509,
+    "test_underground_world_identities.gd": 2892837,
+    "test_underground_world_routes.gd": 11651838,
+    "test_work.gd": 2490366
+  },
+  "suites": [
+    "test_canonical_state_hash.gd",
+    "test_construction_furniture_batches.gd",
+    "test_demo_art_wiring.gd",
+    "test_demo_bore.gd",
+    "test_demo_camera_live.gd",
+    "test_demo_daylight.gd",
+    "test_demo_farm.gd",
+    "test_demo_integration.gd",
+    "test_demo_pace.gd",
+    "test_demo_playtest_log.gd",
+    "test_demo_route_planning.gd",
+    "test_demo_run_until.gd",
+    "test_demo_sowing.gd",
+    "test_demo_tunnel.gd",
+    "test_demo_ui.gd",
+    "test_demo_work_screen.gd",
+    "test_entity_directory_batch.gd",
+    "test_event_schedule.gd",
+    "test_excavation_phase_settlement_guard.gd",
+    "test_ground_piles.gd",
+    "test_haul_transfer_guard.gd",
+    "test_int_math.gd",
+    "test_modular_world_tool.gd",
+    "test_progression_interval.gd",
+    "test_rng.gd",
+    "test_room_space.gd",
+    "test_save_owner_movement.gd",
+    "test_save_replay_checkpoint.gd",
+    "test_settlement_starter_colony.gd",
+    "test_ui_availability.gd",
+    "test_ui_resident_snapshot.gd",
+    "test_ui_theme.gd",
+    "test_underground_budget.gd",
+    "test_underground_connector_work.gd",
+    "test_underground_entry_orders.gd",
+    "test_underground_entry_structure.gd",
+    "test_underground_first_prefix.gd",
+    "test_underground_phase_structure.gd",
+    "test_underground_profiles.gd",
+    "test_underground_room_bindings.gd",
+    "test_underground_session.gd",
+    "test_underground_space_owner.gd",
+    "test_underground_work_face.gd",
+    "test_underground_world_basis.gd",
+    "test_underground_world_identities.gd",
+    "test_underground_world_routes.gd",
+    "test_work.gd"
+  ],
+  "version": 1,
+  "wall_seconds": 265
+}

@@ -1,0 +1,18 @@
+{
+  "source_commit": "386cd4aa",
+  "suites": 5,
+  "counts": {
+    "assertions": 3688,
+    "expected": 0,
+    "failures": 0,
+    "leaked_objects": 0,
+    "leaked_resources": 0,
+    "tests": 122,
+    "tolerated": 0,
+    "unexpected_errors": 0,
+    "unexpected_warnings": 0
+  },
+  "analyzer": "0 GDScript warning(s) in 0 of 8 file(s)",
+  "source_registry_project_assets_restored": true,
+  "scope": "Integrated1153 phase refresh, Locations iterator,1150 Approach and actual host/Session regression. No real1152 provider, native or playable acceptance."
+}

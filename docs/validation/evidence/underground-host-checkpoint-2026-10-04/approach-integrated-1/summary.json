@@ -10,7 +10,7 @@
   "leaked_resources": 0,
   "strict_suites": 7,
   "focused_analyzer": "0 GDScript warning(s) in 0 of 8 file(s)",
-  "all_analyzer": "running",
+  "all_analyzer": "FAILED: 1 duplicate inherited WorldRoutes member in EntryBindings across1231 files; corrected afterward with one-line deletion and separate focused evidence.",
   "joint_memory_tests": 225,
   "scope": "Actual integrated1150 source and shared registry with host/Session/adapter regression; synthetic initial corridor/profile fixtures, no playable Kitchen claim"
 }

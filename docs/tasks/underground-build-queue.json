@@ -969,7 +969,7 @@
             "unexpected_diagnostics": 0,
             "leaks": 0,
             "joint_memory_tests": 225,
-            "all_analyzer": "running; no pass claimed"
+            "all_analyzer": "Rejected full1231 scan: one inherited WorldRoutes duplicate in EntryBindings. Narrow correction accepted by Geometry; three affected suites101/14819/all0, targeted analyzer0/3 and host analyzer0/8. Complete CI pending."
           }
         },
         "ordinary_room_publication_tail": {
@@ -4362,7 +4362,9 @@
       "leaked_resources": 0,
       "suite_count": 396,
       "strict_shards": "8/8 passed; exact once coverage independently verified with original b03 tool/corpus",
-      "analyzer_correction_commit": "dc881589"
+      "analyzer_correction_commit": "dc881589",
+      "local_suite": "11000 test(s), 1019580 assertion(s), 0 failure(s); zero unexpected diagnostics/leaks;272 expected353 tolerated. Analyzer and final restoration record pending.",
+      "local_ci_comparison": "Same396 suites/test cases and all diagnostic/leak totals. Local assertion total is8 higher; no full per-suite counters retained by no-arg runner, cause not attributed; exact unchanged all-counter comparator refuses equality."
     }
   ],
   "crosscut_fixes": [
@@ -4494,6 +4496,16 @@
       "tests": "160 memory tests plus8 independent mutations;190 capacity checks; READY07 145fieldrows50allocationrows; registry141modules706rows1044packed declarations; source/capacity/merge/decision checks pass. Original stale READY failure retained.",
       "scope": "29928B separate contribution, old ledger unchanged, live99991614/headroom8386, runtimefalse",
       "evidence": "docs/validation/evidence/underground-workpiece-memory-2026-10-04/"
+    },
+    {
+      "date": "2026-10-04",
+      "title": "1150 inherited EntryBindings preload correction",
+      "reviewer": "/root/ug_geometry",
+      "source": "godot/scripts/core/underground_entry_bindings.gd",
+      "lease": "Geometry explicitly stopped EntryBindings source/test writes; root removed only identical child WorldRoutes preload. Root source writes stopped after accepted one-line diff; existing Geometry ownership resumes.",
+      "tests": "101 tests /14819 assertions /0 failures; all diagnostics/leaks0; affected analyzer0/3, host analyzer0/8",
+      "evidence": "docs/validation/evidence/underground-host-checkpoint-2026-10-04/entry-inheritance-1/",
+      "scope": "No behavior, bank, source guard or warning rule changes; current full CI still required."
     }
   ]
 }

@@ -1,0 +1,3 @@
+error: more than the allowed 0 warning(s)
+scripts/core/underground_entry_bindings.gd:13: The member "WorldRoutes" already exists in parent class res://scripts/core/underground_room_bindings.gd.
+1 GDScript warning(s) in 1 of 1231 file(s)

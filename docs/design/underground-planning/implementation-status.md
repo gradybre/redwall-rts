@@ -49,7 +49,11 @@ assertions, zero failures and zero unexpected diagnostics/leaks. Its overall
 result is failed because the unchanged analyzer found12 warnings in six archived
 rejected capture sources. Those exact historical bytes are now compressed as
 data; active/v7 sources and all diagnostic gates remain unchanged. The full
-local same-head run and corrected whole-project analyzer are still running.
+local same-head no-argument suite passed11,000 tests/1,019,580 assertions with
+the same272 expected/353 tolerated diagnostics and zero unexpected diagnostics
+or leaks. Its final analyzer/restoration record is pending. Test and diagnostic
+totals match CI; the local assertion total is8 higher and that difference remains
+unattributed. The unchanged all-counter comparator correctly refuses equality.
 The earlier green CI is not evidence for these later changes.
 
 The concrete ordinary Room publication tail is accepted at `9a8e353f`, with
@@ -62,6 +66,14 @@ suites passed134 tests/3,771 assertions with zero diagnostics/leaks. The source
 census stays within existing limits and225 shared memory checks passed. This
 component uses synthetic initial corridor/profile fixtures; actual source
 composition and playable construction remain open.
+
+The subsequent whole-project analyzer found one integration issue across1,231
+files: EntryBindings repeated the identical WorldRoutes preload now inherited
+from RoomBindings. An independently reviewed one-line deletion fixes it without
+changing behavior or guards. Three affected suites passed101 tests/14,819
+assertions with every diagnostic/leak count zero; affected analyzer0/3 and host
+analyzer0/8 passed. The rejected whole scan and correction evidence are both
+retained. The complete remote gate must still finish on the corrected source.
 
 The previous full local checkpoint is
 [`32db348a`](evidence/modular-build/checkpoint-32db348a/README.md):

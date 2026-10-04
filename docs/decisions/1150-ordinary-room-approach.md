@@ -203,3 +203,19 @@ replayed the ten Python tests and exact census, and inspected the raw runtime
 evidence without another engine run. It found no remaining high/medium issue
 in the reviewed scope. The exact acceptance is retained in
 `source-review-2/acceptance.md`; no limit or playable acceptance scope expands.
+
+## Whole-project inheritance correction
+
+The integration's full analyzer across 1,231 files reported one duplicate member:
+`underground_entry_bindings.gd` already declared the same `WorldRoutes` preload
+now provided by its `RoomBindings` parent. The focused five-file analyzer did
+not include this derived script. Preserve that full rejected result under the
+host checkpoint's `approach-integrated-1/all-analyzer.*` evidence.
+
+Remove only the identical child preload and inherit the parent's exact script.
+There is no field, geometry, guard, type-identity or allocation change. Geometry
+independently reviewed the one-line diff after explicitly returning the narrow
+EntryBindings lease. The memory artifact records the changed source hash;
+strict entry and ordinary-room regressions plus targeted analyzer verification
+are recorded separately in `entry-inheritance-1`. No earlier failed analyzer
+result is relabeled as a pass.

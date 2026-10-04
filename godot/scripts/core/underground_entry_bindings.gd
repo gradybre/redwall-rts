@@ -10,7 +10,6 @@ const ConnectorCatalog := preload("res://scripts/core/underground_connector_cata
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Routes := preload("res://scripts/core/underground_routes.gd")
 const Connectors := preload("res://scripts/core/room_connectors.gd")
-const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const ENTRY_FIXED_BYTES: int = 4096
 const ENTRY_EPISODE_FIELDS: int = 19

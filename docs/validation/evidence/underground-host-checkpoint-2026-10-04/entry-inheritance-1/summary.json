@@ -1,0 +1,15 @@
+{
+  "tests": 101,
+  "assertions": 14819,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "expected": 0,
+  "tolerated": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "host_analyzer": "0 GDScript warning(s) in 0 of 8 file(s)",
+  "entry_analyzer": "0 GDScript warning(s) in 0 of 3 file(s)",
+  "review": "../entry-inheritance-review.json",
+  "scope": "One-line inherited preload correction; actual EntryBindings, EntryWorld paid fixture and ordinary Approach regression. No full playable claim."
+}

@@ -27,6 +27,7 @@ const ROW_BYTES: int = 106
 const MAX_LOCATIONS: int = 4096 # An engineering allocation ceiling, not a player room limit.
 const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a real floor namespace.
 const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
+const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
 const ROLE_TRANSIT: int = 0
 const ROLE_STORAGE: int = 1
 const ROLE_WORK: int = 2
@@ -458,6 +459,133 @@ func read_location_into(location: Vector2i, out: Record) -> StringName:
 		return &"LOCATION_STALE"
 	_read_row(_live, location.x, out)
 	return &""
+
+
+func resolve_existing_into(room: Vector2i, section: Vector2i, level: int, role: int, point: Vector3i,
+		expected_revision: int, cold_token: int, max_checks: int, out: PackedInt32Array) -> StringName:
+	"""Resolve one exact completed identity, never a prefix/contact/clearance permission; refusal preserves out[2]."""
+	if out.size() != 2:
+		return &"LOCATION_OUTPUT_SHAPE"
+	var code: StringName = _resolve_scope_refusal(expected_revision, cold_token, max_checks)
+	if code != &"":
+		return code
+	if level < 0 or role < ROLE_TRANSIT or role > ROLE_WORK:
+		return &"LOCATION_SELECTOR_FORMAT"
+	code = _resolve_section_refusal(room, section, level, point)
+	if code != &"":
+		return code
+	var row: int = _resolve_unique_row(room, section, level, role, point)
+	if row < 0:
+		return &"LOCATION_SELECTOR_AMBIGUOUS" if row == -2 else &"LOCATION_SELECTOR_MISSING"
+	if _get32(_live, GENERATION, row) <= 0 or _get64(_live, PAYLOAD_REVISION, row) <= 0 \
+			or _get64(_live, GEOMETRY_REVISION, row) != expected_revision:
+		return &"LOCATION_GEOMETRY_STALE"
+	if not _cold.covers(cold_token, RESOLVE_CONTROL_BYTES):
+		return &"LOCATION_COLD_CAPACITY"
+	out[0] = row
+	out[1] = _get32(_live, GENERATION, row)
+	return &""
+
+
+func _resolve_scope_refusal(revision: int, cold_token: int, max_checks: int) -> StringName:
+	"""Precharge the one endpoint/source scan before any read; all identity checks below avoid observation hooks."""
+	if _cold == null or not _cold.covers(cold_token, RESOLVE_CONTROL_BYTES):
+		return &"LOCATION_COLD_CAPACITY"
+	if _capacity <= 0 or _owner == null or _owner._ready_error != &"" or _domain == null \
+			or _owner._domain == null or _sources == null or _owner._sources != _sources:
+		return &"LOCATION_OWNER_MISMATCH"
+	if max_checks < 256 + 16 * _capacity + 4 * _owner._source_capacity \
+			or max_checks > Space.MAX_CHECKS or max_checks > _domain._checks:
+		return &"LOCATION_OPERATION_BUDGET"
+	if _token != 0 or _in_retention or _owner._stage_token != 0 or _owner._room_callback \
+			or _owner._validation_sources >= 0 or _owner._validation_regions >= 0:
+		return &"LOCATION_SELECTOR_BUSY"
+	if _ids == null or _buildings == null or _transforms == null or _inventory == null \
+			or _sources._directory != _ids or _sources._buildings != _buildings \
+			or _buildings._directory != _ids or _transforms._directory != _ids \
+			or _sources._construction == null or _sources._construction._directory != _ids \
+			or _sources._construction._buildings != _buildings or not _resolve_domain_matches():
+		return &"LOCATION_OWNER_MISMATCH"
+	if not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD):
+		return &"LOCATION_WORLD_STALE"
+	return &"" if revision > 0 and _owner._header[17] == revision else &"LOCATION_GEOMETRY_STALE"
+
+
+func _resolve_domain_matches() -> bool:
+	"""A copied Domain is an immutable namespace, not a substitute for the current actual World."""
+	var actual: Space.Domain = _owner._domain
+	return _domain._world == _world and actual._world == _world and _domain._datum == actual._datum \
+		and _domain._min_quantum == actual._min_quantum and _domain._size_quanta == actual._size_quanta \
+		and _domain._bounds == actual._bounds \
+		and _domain._cells == actual._cells and _domain._regions == actual._regions and _domain._checks == actual._checks
+
+
+func _resolve_section_refusal(room: Vector2i, section: Vector2i, level: int, point: Vector3i) -> StringName:
+	"""Null Room means only this World's surface floor; all other matches require that exact underground Room."""
+	if not _owner._region_live(section, false) or _owner._r_role[section.x] != Space.FLOOR_DATUM \
+			or _owner._r_claim_kind[section.x] != Owner.CLAIM_NONE or _owner._r_level[section.x] != level \
+			or _owner._r_lo_y[section.x] != point.y or point.x < _owner._r_lo_x[section.x] \
+			or point.x >= _owner._r_hi_x[section.x] or point.z < _owner._r_lo_z[section.x] \
+			or point.z >= _owner._r_hi_z[section.x]:
+		return &"LOCATION_SECTION_STALE"
+	var source_ref: Vector2i = _world if room == NULL_REF else room
+	if (room == NULL_REF and level != 0) or _owner._r_owner_slot[section.x] != source_ref.x \
+			or _owner._r_owner_generation[section.x] != source_ref.y:
+		return &"LOCATION_SECTION_STALE"
+	var source: int = _resolve_source_row(source_ref)
+	if source < 0 or _owner._o_revision[source] <= 0 \
+			or _owner._r_owner_revision[section.x] != _owner._o_revision[source]:
+		return &"LOCATION_SOURCE_STALE"
+	if room == NULL_REF:
+		return &"" if _owner._o_kind[source] == Directory.KIND_WORLD \
+			and _owner._o_parent_slot[source] == -1 and _owner._o_parent_generation[source] == 0 \
+			and _owner._o_a[source] == 0 and _owner._o_b[source] == 0 \
+			and _owner._o_c[source] == 0 and _owner._o_d[source] == 0 else &"LOCATION_SOURCE_STALE"
+	return _resolve_room_source_refusal(room, source)
+
+
+func _resolve_source_row(ref: Vector2i) -> int:
+	"""Scan the actual finite source slots once, preserving full generation and rejecting duplicate identities."""
+	var found: int = -1
+	for row: int in _owner._source_capacity:
+		if _owner._o_present[row] == 0 or _owner._o_slot[row] != ref.x:
+			continue
+		if _owner._o_present[row] != 1 or _owner._o_generation[row] != ref.y or found >= 0:
+			return -1
+		found = row
+	return found
+
+
+func _resolve_room_source_refusal(room: Vector2i, source: int) -> StringName:
+	"""Compare actual mirrored Room facts directly; no Buildings/Source observation runs during selection."""
+	if not _ids.is_valid_of_kind(room, Directory.KIND_ROOM):
+		return &"LOCATION_ROOM_STALE"
+	var row: int = _ids.get_typed_row(room)
+	if row < 0 or row >= _buildings._r_present.size() or _buildings._r_present[row] != 1 \
+			or _buildings._r_ref_slot[row] != room.x or _buildings._r_ref_generation[row] != room.y \
+			or _buildings._r_spatial_kind[row] != Buildings.ROOM_SPACE_UNDERGROUND:
+		return &"LOCATION_ROOM_STALE"
+	return &"" if _owner._o_kind[source] == Directory.KIND_ROOM \
+		and _owner._o_parent_slot[source] == _buildings._r_building_slot[row] \
+		and _owner._o_parent_generation[source] == _buildings._r_building_generation[row] \
+		and _owner._o_a[source] == _buildings._r_type[row] and _owner._o_b[source] == 0 \
+		and _owner._o_c[source] == 0 and _owner._o_d[source] == Buildings.ROOM_SPACE_UNDERGROUND \
+		else &"LOCATION_SOURCE_STALE"
+
+
+func _resolve_unique_row(room: Vector2i, section: Vector2i, level: int, role: int, point: Vector3i) -> int:
+	"""A second live payload at the same selector is ambiguous even if its stored geometry proof is stale."""
+	var found: int = -1
+	for row: int in _capacity:
+		if _live.present[row] != 1 or _ref_at(_live, ROOM_SLOT, row) != room \
+				or _ref_at(_live, SECTION_SLOT, row) != section or _get32(_live, LEVEL, row) != level \
+				or _get32(_live, ROLE, row) != role or _get32(_live, X, row) != point.x \
+				or _get32(_live, Y, row) != point.y or _get32(_live, Z, row) != point.z:
+			continue
+		if found >= 0:
+			return -2
+		found = row
+	return found
 
 
 func prepared_location_into(token: int, location: Vector2i, out: Record) -> StringName:

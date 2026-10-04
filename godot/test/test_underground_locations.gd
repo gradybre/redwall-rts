@@ -135,6 +135,153 @@ func _image() -> PackedByteArray:
 	return bytes
 
 
+func _resolve(record: Locations.Record, cold: int, out: PackedInt32Array, checks: int = 100000) -> StringName:
+	"""Selectors are exact existing metadata; no fixture flag is accepted by the actual lookup."""
+	return _locations.resolve_existing_into(record.room, record.section, record.level, record.role,
+		record.point, _owner.revision(), cold, checks, out)
+
+
+func test_unique_surface_lookup_requires_original_lease_and_finite_work_before_reads() -> void:
+	"""Insufficient bytes/checks and replaced tokens leave the caller output and real source state untouched."""
+	var ref: Vector2i = _add()
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var record: Locations.Record = _record()
+	var source: OwnerFixture.LeaseSources = _sources as OwnerFixture.LeaseSources
+	var reads: int = source.reads
+	var cold: int = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES - 1)
+	assert_equal(_resolve(record, cold, out), &"LOCATION_COLD_CAPACITY", "no undercharged query")
+	assert_equal(_cold.release(cold), &"", "caller retains underfunded lease")
+	cold = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES)
+	var required: int = 256 + 16 * CAPACITY + 4 * _owner._source_capacity
+	assert_equal(_resolve(record, cold, out, required - 1), &"LOCATION_OPERATION_BUDGET", "precharged finite loops")
+	assert_equal(out, PackedInt32Array([77, 88]), "all refused output retained")
+	assert_equal(_cold.release(cold), &"", "expire exact original")
+	var replacement: int = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES)
+	assert_equal(_resolve(record, cold, out), &"LOCATION_COLD_CAPACITY", "same-size replacement cannot inherit token")
+	assert_equal(_resolve(record, replacement, out, required), &"", "exact current lease and work bound")
+	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "full actual endpoint")
+	assert_equal(source.reads, reads, "no ordinary Source observer")
+	assert_equal(_cold.release(replacement), &"", "query retains caller's arena ownership")
+
+
+func test_unique_surface_lookup_is_exact_role_point_and_world_floor_scope() -> void:
+	"""The surface spelling never means any Room or any coincident surface endpoint."""
+	var ref: Vector2i = _add()
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var record: Locations.Record = _record()
+	var cold: int = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES)
+	record.role = Locations.ROLE_WORK
+	assert_equal(_resolve(record, cold, out), &"LOCATION_SELECTOR_MISSING", "storage cannot satisfy work role")
+	record.role = Locations.ROLE_STORAGE
+	record.point.x += 1
+	assert_equal(_resolve(record, cold, out), &"LOCATION_SELECTOR_MISSING", "no nearest-point fallback")
+	record.point.x -= 1
+	record.room = _world
+	assert_equal(_resolve(record, cold, out), &"LOCATION_ROOM_STALE", "World full ref is never a Room")
+	record.room = NULL_REF
+	record.section.y += 1
+	assert_equal(_resolve(record, cold, out), &"LOCATION_SECTION_STALE", "full section generation")
+	record.section.y -= 1
+	assert_equal(out, PackedInt32Array([77, 88]), "refusals are atomic")
+	assert_equal(_resolve(record, cold, out), &"", "null Room means exact World-owned surface")
+	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "actual storage endpoint")
+	assert_equal(_cold.release(cold), &"", "caller releases")
+
+
+func test_unique_lookup_refuses_duplicate_live_selectors_and_preserves_retirement_generations() -> void:
+	"""Duplicate endpoints are ambiguous; retired slots never leak their previous generation."""
+	var first: Vector2i = _add()
+	var second: Vector2i = _add()
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var cold: int = _cold.acquire(COLD_BYTES)
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_SELECTOR_AMBIGUOUS", "two actual matches")
+	assert_equal(out, PackedInt32Array([77, 88]), "ambiguity preserves output")
+	var token: int = _locations.begin_prepare(cold).token
+	assert_equal(_locations.stage_remove(token, first), &"", "retire only first actual full ref")
+	assert_equal(_locations.seal(token), &"", "actual retirement candidate")
+	assert_true(_locations.publish(token), "publish retirement")
+	assert_equal(_resolve(_record(), cold, out), &"", "remaining identity is unique")
+	assert_equal(out, PackedInt32Array([second.x, second.y]), "retired matching slot is excluded")
+	assert_equal(_cold.release(cold), &"", "drop test lease")
+	var reused: Vector2i = _add(_record(1024))
+	assert_equal(reused.x, first.x, "actual deterministic local slot reuse")
+	assert_true(reused.y > first.y, "new full generation")
+	cold = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES)
+	assert_equal(_resolve(_record(1024), cold, out), &"", "new position identifies reused endpoint")
+	assert_equal(out, PackedInt32Array([reused.x, reused.y]), "returned generation is current")
+	assert_equal(_cold.release(cold), &"", "drop lookup lease")
+
+
+func test_unique_surface_lookup_rechecks_world_source_namespace_and_output_shape() -> void:
+	"""A live point cannot hide changed World source facts, a shifted namespace or retired actual World."""
+	_add()
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var wrong: PackedInt32Array = PackedInt32Array([77, 88, 99])
+	var cold: int = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES)
+	assert_equal(_resolve(_record(), cold, wrong), &"LOCATION_OUTPUT_SHAPE", "exact caller buffer")
+	assert_equal(wrong, PackedInt32Array([77, 88, 99]), "no resize on shape refusal")
+	var source: int = _owner._find_source(_world, false)
+	_owner._o_a[source] = 1
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_SOURCE_STALE", "actual World facts are exact")
+	_owner._o_a[source] = 0
+	_owner._o_revision[source] += 1
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_SOURCE_STALE", "section pins the current source revision")
+	_owner._o_revision[source] -= 1
+	_locations._domain._datum.x += 1
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_OWNER_MISMATCH", "same World with a changed Domain is foreign")
+	_locations._domain._datum.x -= 1
+	_locations._domain._bounds[0] += 1
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_OWNER_MISMATCH", "complete stored Domain bounds stay exact")
+	_locations._domain._bounds[0] -= 1
+	assert_true(_buildings.directory().destroy(_world), "actual full World retired")
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_WORLD_STALE", "retired World cannot resolve its old floor")
+	assert_equal(out, PackedInt32Array([77, 88]), "every refusal leaves full output unchanged")
+	assert_equal(_cold.release(cold), &"", "no reader consumed caller's original lease")
+
+
+func test_unique_lookup_refuses_preparation_and_stale_geometry_without_refreshing_it() -> void:
+	"""The reader cannot make a completed endpoint current by returning a matching point."""
+	var ref: Vector2i = _add()
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var cold: int = _cold.acquire(COLD_BYTES)
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_SELECTOR_BUSY", "prepared geometry is not live lookup truth")
+	assert_equal(_owner.seal(token), &"", "actual unchanged geometry transaction")
+	_owner.publish(token)
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_GEOMETRY_STALE", "explicit endpoint refresh is mandatory")
+	token = _locations.begin_prepare(cold).token
+	assert_equal(_resolve(_record(), cold, out), &"LOCATION_SELECTOR_BUSY", "no borrowing a Location candidate")
+	assert_equal(_locations.stage_refresh(token, ref), &"", "real complete support is requalified")
+	assert_equal(_locations.seal(token), &"", "sealed current endpoint")
+	assert_true(_locations.publish(token), "actual current geometry")
+	assert_equal(_resolve(_record(), cold, out), &"", "read succeeds only after real refresh")
+	assert_equal(_cold.release(cold), &"", "caller releases")
+
+
+func test_unique_room_lookup_requires_full_actual_room_source_and_surface_is_not_wildcard() -> void:
+	"""Validating metadata does not tolerate changed underlying Room facts at an unchanged Space revision."""
+	var fixture: DoorwayFixture = _doorway()
+	var record: Locations.Record = _doorway_record(fixture, 0)
+	var ref: Vector2i = _add(record)
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	var cold: int = _cold.acquire(Locations.RESOLVE_CONTROL_BYTES)
+	var room: Vector2i = record.room
+	record.room = NULL_REF
+	assert_equal(_resolve(record, cold, out), &"LOCATION_SECTION_STALE", "surface cannot wildcard the underground owner")
+	record.room = fixture.rooms[1]
+	assert_equal(_resolve(record, cold, out), &"LOCATION_SECTION_STALE", "adjacent Room is a distinct full source")
+	record.room = room
+	var row: int = _buildings.directory().get_typed_row(room)
+	var previous: int = _buildings._r_type[row]
+	_buildings._r_type[row] = Buildings.ROOM_TYPE_CORRIDOR
+	assert_equal(_resolve(record, cold, out), &"LOCATION_SOURCE_STALE", "late actual Room drift")
+	assert_equal(out, PackedInt32Array([77, 88]), "source refusal preserves full output")
+	_buildings._r_type[row] = previous
+	assert_equal(_resolve(record, cold, out), &"", "exact real source retries")
+	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "actual Room endpoint")
+	assert_equal(_cold.release(cold), &"", "caller releases")
+
+
 func test_exact_real_binding_and_full_local_refs() -> void:
 	"""Foreign stores with coincident numeric World refs cannot supply an endpoint authority."""
 	var location: Vector2i = _add()

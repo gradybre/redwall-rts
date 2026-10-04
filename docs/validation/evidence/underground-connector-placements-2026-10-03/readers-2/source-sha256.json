@@ -1,0 +1,6 @@
+{
+  "godot/scripts/core/underground_connector_placements.gd": "ca35c77244b0644da291551c1c741a704d7a332eb9b146b72a132ca8af9a7762",
+  "godot/scripts/core/underground_locations.gd": "39a0e286bd2a5f4795ba5aa3f9ad8a62bcb10fd8b31a1fbce4ff7ff692d22f18",
+  "godot/test/test_underground_connector_placements.gd": "f5ba1ca97e36aa7f75311de2995a35632bf1bdbfe9d27d85ef34a04ee618007c",
+  "godot/test/test_underground_locations.gd": "1aefd2005ff8bce793f709779957669d031f46175a7cb1b4962521b78c3b9c31"
+}

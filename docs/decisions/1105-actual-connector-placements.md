@@ -294,3 +294,59 @@ and intermediate attempts remain alongside the final evidence. Construction
 reviewed registration/storage/source binding; root reviewed the paid kernels
 and final all-row source preservation. The evidence README records their exact
 accepted hashes and component scope.
+
+## Read-only frame and existing endpoint selection
+
+`placement_frame_into(placement, out9)` copies the actual origin XYZ,
+quarter-turn, base level, full section and full anchor into nine caller-owned
+I32 values. The existing actual immutable-source and Placement guards precede
+all writes. It allocates no image, retains no fields and does not assert that
+an assembly, datum or contact has been installed. Shape, generation or source
+refusal preserves the entire caller buffer.
+
+`Locations.resolve_existing_into(room, section, level, role, world_point,
+expected_geometry_revision, cold_token, max_checks, out2)` identifies exactly
+one already-live endpoint. It uses only direct packed identity/source facts;
+ordinary Source, Buildings identity, Location observation and retention hooks
+are not invoked. It refuses while either endpoint or Space preparation is
+active, during incompatible validation, on stale stored geometry, or if more
+than one live endpoint matches. A stale duplicate does not make the selector
+unique. No nearest-point choice, source refresh or endpoint creation occurs.
+
+The surface spelling remains `room=NULL_REF`, level0 and an exact World-owned
+FLOOR_DATUM. The actual full World, source facts/revision, complete section
+generation and immutable Domain must match. NULL is not a wildcard over Rooms.
+An underground selector instead requires its exact full Room and the current
+mirrored Directory/Buildings facts against the retained source row. The caller
+must derive these selectors from immutable Frontier content and the actual
+Placement frame. `SURFACE_ANCHOR` keeps the full stored anchor;
+`SURFACE_CONTACT` may resolve a different existing endpoint on that anchor's
+exact section and authored point/role. Material staging requires ROLE_STORAGE.
+Installed-prefix, datum ownership, body clearance, material and work-contact
+qualification remain separate mandatory caller proofs.
+
+Lookup requires the original configured Budget token to cover512 logical bytes
+before reading and immediately before output. It precharges
+`256 + 16 * LocationCapacity + 4 * SpaceSourceCapacity` within the immutable
+Domain/MAX_CHECKS limit. This bounds one unique endpoint scan, one source scan
+and fixed identity checks; it is a cold query, never a per-worker productive
+tick scan. The source chain needs no more than256 logical numeric argument,
+local and return bytes at once, including the nested Directory mirror lookup.
+The caller's existing OrderRecord96 + AssemblyRecord32 + frame36 + endpoint8
+total172; together the428-byte numeric coexistence fits that512 allowance.
+Extra Frontier/contact records and native headers still require their own
+joint accounting. No new packed or saved state, owner field, mapping ledger,
+snapshot or reserve is introduced.
+
+The focused evidence is recorded under
+`docs/validation/evidence/underground-connector-placements-2026-10-03/readers-4/`.
+It covers actual source replacement, full generations, ambiguous live selectors,
+retirement/reuse, original-token replacement, finite-work refusal, Room drift,
+exact World/section/domain facts and explicit refresh after geometry changes.
+The clean two-suite run passed 82 tests / 5,592 assertions / 0 failures; every
+strict/raw diagnostic and leak count was zero, and the analyzer reported
+0 warnings in 4 files. All four hashes stayed unchanged and asset state was
+restored. The final consistency regression also checks all immutable Domain
+bounds. The earlier missing test-call argument remains in rejected evidence.
+This reader result does not qualify construction of a first entrance or a new
+installed endpoint.

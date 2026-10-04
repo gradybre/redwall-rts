@@ -109,3 +109,60 @@ There were no remaining high/medium findings in the reviewed component.
 Both reviews were read-only and used the retained execution evidence rather
 than duplicating the engine runs. They do not qualify the explicitly synthetic
 physical frontier or source content.
+
+## Existing frame and endpoint readers
+
+The separate reader increment adds `placement_frame_into` and
+`Locations.resolve_existing_into`. It copies only a current Placement frame
+and resolves one exact already-live endpoint by full Room/World section,
+level, role and integer point. Refusal preserves the caller's output. It does
+not create an endpoint or establish installed-prefix, physical contact, profile
+fit, material delivery or route permission.
+
+The resolver admits its original actual Budget token before finite packed
+scans, then rechecks it before writing. It refuses duplicate live matches even
+when one duplicate has an old geometry revision. Direct full World/Room/source
+facts and complete immutable Domain equality are checked without source,
+identity or retention observations. No state, mapping bank or snapshot was
+added. The caller record pair and two outputs total 172 logical bytes; the
+source-counted helper frame ceiling 256 brings coexistence to 428 of the existing
+512-byte borrowed allowance. Other contact/frontier records and native headers
+are not included in that claim.
+
+Final `readers-4/` evidence:
+
+| Check | Tests | Assertions | Failures |
+|---|---:|---:|---:|
+| Placement | 29 | 4,004 | 0 |
+| Locations | 53 | 1,588 | 0 |
+| Total | 82 | 5,592 | 0 |
+
+Both strict and raw diagnostic/leak footers are entirely zero. The analyzer
+reported 0 warnings in 4 files. `invocation.json` records unchanged source hashes
+and restored asset state. Run from the repository root with a fresh output
+directory:
+
+```sh
+python3 docs/validation/evidence/underground-connector-placements-2026-10-03/reproduce-readers.py \
+  --out docs/validation/evidence/underground-connector-placements-2026-10-03/readers-reproduced \
+  --port 6253
+```
+
+Exact final source pins:
+
+| File | SHA-256 |
+|---|---|
+| `underground_connector_placements.gd` | `ca35c77244b0644da291551c1c741a704d7a332eb9b146b72a132ca8af9a7762` |
+| `underground_locations.gd` | `e8f44be7ecb3aa1fa8eb25eb6d770e12af86a139d09b2aefdfa56c7b1f863757` |
+| `test_underground_connector_placements.gd` | `f5ba1ca97e36aa7f75311de2995a35632bf1bdbfe9d27d85ef34a04ee618007c` |
+| `test_underground_locations.gd` | `1eb6ab9daa9814998c0f6a80d8d7eb6f1e5fd09980c12d42af6ecbc92e012680` |
+
+`readers-1` passed 81 tests / 5,567 assertions. `readers-2` retains a rejected
+test-only missing argument to `_find_source`; it is not final evidence.
+`readers-3` passed 82 tests / 5,591 assertions and analyzer 0/4. Independent
+Construction review accepted those four pins without a high/medium finding;
+its low Domain-bounds consistency note led to one additional direct comparison
+and regression in `readers-4`. Construction rechecked all four final manifest
+pins and independently accepted that bounds-only correction without a new
+finding or census change. No engine run was duplicated during either review.
+These earlier attempts remain unchanged.

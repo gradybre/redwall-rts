@@ -605,6 +605,22 @@ func placement_into(ref: Vector2i, out: OrderRecord) -> StringName:
 	return &""
 
 
+func placement_frame_into(ref: Vector2i, out: PackedInt32Array) -> StringName:
+	"""Copy the current nine-int transform/section/anchor tuple; this grants no installed-datum permission."""
+	if out.size() != 9:
+		return &"PLACEMENT_OUTPUT_SHAPE"
+	if _busy or _source_refusal() != &"" or not _is_live(_live, ref) or _placement_leaf(_live, ref.x) != &"":
+		return REFUSE_STALE
+	for axis: int in 3:
+		out[axis] = _get32(_live, X + axis, ref.x)
+	out[3] = _get32(_live, ROTATION, ref.x)
+	out[4] = _get32(_live, LEVEL, ref.x)
+	for axis: int in 2:
+		out[5 + axis] = _get32(_live, SECTION_SLOT + axis, ref.x)
+		out[7 + axis] = _get32(_live, ANCHOR_SLOT + axis, ref.x)
+	return &""
+
+
 func _fill_order(ref: Vector2i, out: OrderRecord) -> void:
 	"""The fixed caller packet contains no borrowed packed storage."""
 	out.placement = ref

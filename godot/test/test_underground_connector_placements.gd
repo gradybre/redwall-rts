@@ -528,6 +528,50 @@ func test_actual_source_registration_copies_full_identity_without_building_geome
 	assert_equal(_placements.audit(), &"", "complete row/opening/source audit")
 
 
+func test_frame_reader_copies_exact_existing_tuple_without_observers_or_aliases() -> void:
+	"""A caller gets transform identity only; the uninstalled source still grants no assembly contact."""
+	var ref: Vector2i = _register()
+	var out: PackedInt32Array = PackedInt32Array([0, 0, 0, 0, 0, 0, 0, 0, 0])
+	var expected: PackedInt32Array = PackedInt32Array([_request.origin.x, _request.origin.y, _request.origin.z,
+		_request.rotation, _request.level, _request.section.x, _request.section.y, _request.anchor.x, _request.anchor.y])
+	var source: ObservedSources = _f._sources as ObservedSources
+	var observed: int = source.observed
+	source.when = func() -> bool: return true
+	source.probe = func() -> void: _f._binding._catalog = null
+	assert_equal(_placements.placement_frame_into(ref, out), &"", "exact current frame")
+	assert_equal(out, expected, "all nine scalar fields")
+	assert_equal(source.observed, observed, "no Source observation")
+	out[0] += 1
+	assert_equal(_placements.placement_frame_into(ref, out), &"", "caller edit cannot change source")
+	assert_equal(out, expected, "no bank alias escaped")
+	assert_equal(_placements._get32(_placements._live, Placements.INSTALLED, ref.x), 0, "no free prefix")
+	source.probe = Callable()
+	source.when = Callable()
+
+
+func test_frame_reader_preserves_output_for_shape_generation_and_actual_source_drift() -> void:
+	"""Same numerical catalog revision or local slot cannot substitute for the bound actual source identity."""
+	var ref: Vector2i = _register()
+	var out: PackedInt32Array = PackedInt32Array([81, 82, 83, 84, 85, 86, 87, 88, 89])
+	var before: PackedInt32Array = out.duplicate()
+	var short: PackedInt32Array = PackedInt32Array([7, 8])
+	assert_equal(_placements.placement_frame_into(ref, short), &"PLACEMENT_OUTPUT_SHAPE", "fixed output only")
+	assert_equal(short, PackedInt32Array([7, 8]), "shape refusal preserves caller scratch")
+	assert_equal(_placements.placement_frame_into(Vector2i(ref.x, ref.y + 1), out), Placements.REFUSE_STALE, "full generation")
+	assert_equal(out, before, "stale generation preserves all fields")
+	var other: ConnectorCatalog = _second_catalog()
+	_f._binding._catalog = other
+	assert_equal(_placements.placement_frame_into(ref, out), Placements.REFUSE_STALE, "actual source tuple")
+	assert_equal(out, before, "no partially copied transform")
+	_f._binding._catalog = _f._catalog
+	var row: int = _f._residents.directory().get_typed_row(_f.corridor)
+	_f._buildings._r_type[row] = Buildings.ROOM_TYPE_KITCHEN
+	assert_equal(_placements.placement_frame_into(ref, out), Placements.REFUSE_STALE, "actual Room purpose drift")
+	assert_equal(out, before, "source drift preserves output")
+	_f._buildings._r_type[row] = Buildings.ROOM_TYPE_CORRIDOR
+	assert_equal(_placements.placement_frame_into(ref, out), &"", "exact binding can retry")
+
+
 func test_stream_capture_restore_is_bounded_and_authority_is_mandatory() -> void:
 	"""The wire roundtrip uses one window and existing inactive bank; refusal preserves live hash."""
 	_register()

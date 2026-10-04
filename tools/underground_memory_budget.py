@@ -134,9 +134,9 @@ def class_body(source: str, name: str, parent: str = "RefCounted") -> str:
 
 def anchor_packet_bytes(source: str, expected: dict, member: str, allocator: str) -> int:
     """Reject extra/wider nested storage before counting each concretely reused six-coordinate box."""
-    actual = dict(re.findall(r"^\tvar (\w+): (Packed\w+Array)\b", source, re.M))
+    fields = explicit_members(source, "\t")
+    actual = {key: kind for key, kind in fields.items() if kind.startswith("Packed")}
     assert actual == expected, (member, "unreconciled anchor packet storage", actual)
-    fields = dict(re.findall(r"^\tvar (\w+): ([\w.]+)\b", source, re.M))
     assert all(kind in {"int", "bool", "Vector2i", "Vector3i", "StringName"} or name in expected
                for name, kind in fields.items()), (member, "unreconciled packet field", fields)
     total = numeric_fields(source, "\t")
@@ -381,6 +381,64 @@ def entry_bindings_reservation(index: dict) -> dict:
             "scope": "Admission-only extension; borrowed references, native headers/frames and actual peaks still require measurement."}
 
 
+def connector_contacts_reservation(index: dict) -> dict:
+    """Census every concrete contact packet and both finite fragment banks inside the earmarked4096 bytes."""
+    module = "underground_connector_contacts"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ['"res://scripts/core/underground_connector_work.gd".Contacts'], \
+        "unreconciled ConnectorContacts base"
+    assert explicit_members(class_body(index["underground_connector_work"].text, "Contacts"), "\t") == {}, \
+        "unaccounted inherited Contacts member"
+    packets = {"_order": "Placements.OrderRecord", "_location": "Locations.Record", "_other": "Locations.Record",
+        "_descriptor": "Profiles.Descriptor", "_selection": "Profiles.Selection", "_box": "Profiles.Box",
+        "_stance": "Profiles.Box", "_number": "IntMath.IntResult", "_fragments": "Fragments"}
+    borrowed = {"_placements": "Placements", "_router": "WeakRef", "_frontier": "Frontier", "_sites": "Sites", "_terrain": "Terrain"}
+    fields = explicit_members(source)
+    numeric = {"int", "bool", "Vector2i", "Vector3i"}
+    arrays = {"_frame": 9, "_install": 9, "_station": 9, "_endpoint": 7, "_cut": 7, "_bearing": 9,
+              "_part": 9, "_region": 8, "_pair": 2, "_remaining": 1,
+              "_bounds": 6, "_support": 6, "_target": 6, "_scratch": 6}
+    expected = {**packets, **borrowed, **{key: "PackedInt32Array" for key in arrays}}
+    assert {key: kind for key, kind in fields.items() if kind not in numeric} == expected, \
+        "unreconciled ConnectorContacts retained member"
+    packed = 0
+    for name, count in arrays.items():
+        assert re.findall(re.escape(name) + r"\.resize\(([^)]+)\)", source) == [str(count)], \
+            (name, "Contacts resize drift")
+        packed += count * 4
+    fragment = class_body(source, "Fragments")
+    fragment_arrays = {"first": "6 * FRAGMENT_CAPACITY", "second": "6 * FRAGMENT_CAPACITY",
+                       "core": "6", "cut": "6", "slab": "6"}
+    fragment_fields = explicit_members(fragment, "\t")
+    assert {key: kind for key, kind in fragment_fields.items() if kind not in numeric} == \
+        {key: "PackedInt32Array" for key in fragment_arrays}, "unreconciled Contacts fragment bank"
+    fragment_bytes = numeric_fields(fragment, "\t")
+    for name, expression in fragment_arrays.items():
+        assert re.findall(r"(?m)^\t\t" + re.escape(name) + r"\.resize\(([^)]+)\)$", fragment) == [expression], \
+            (name, "fragment resize drift")
+        fragment_bytes += 4 * resolve(index, module, expression)
+    assert fragment_bytes == 1633, "Contacts fragment capacity or numeric lifetime drift"
+    record = class_body(index["underground_locations"].text, "Record")
+    boxes = {"envelope": "PackedInt32Array", "support": "PackedInt32Array"}
+    owned = sum(anchor_packet_bytes(record, boxes, name, source) for name in ("_location", "_other"))
+    owned += scalar_packet(index, "underground_connector_placements", "OrderRecord")
+    owned += sum(scalar_packet(index, "underground_profiles", name) for name in ("Descriptor", "Selection", "Box", "Box"))
+    number_source = index["int_math"].text.split("class IntResult:\n")
+    assert len(number_source) == 2, "unreconciled Contacts integer-result base"
+    number = number_source[1].split("\nclass ", 1)[0]
+    assert explicit_members(number, "\t") == {"ok": "bool", "value": "int", "error": "String"}, \
+        "unreconciled Contacts integer-result packet"
+    owned += numeric_fields(number, "\t")
+    fixed = numeric_fields(source, "") + packed + fragment_bytes + owned
+    reserved = resolve(index, module, "CONTROL_BYTES")
+    assert reserved == 4096 and fixed + 1024 <= reserved, "Contacts fixed/helper allowance exceeded"
+    return {"numeric_controls": numeric_fields(source, ""), "packed_rows": packed,
+            "fragment_banks_and_controls": fragment_bytes, "owned_packet_bytes": owned,
+            "fixed_numeric_and_packed_bytes": fixed, "logical_helper_allowance_bytes": 1024,
+            "reserved_bytes": reserved,
+            "scope": "Exact finite source census; borrowed references, native headers and composed helper/native peaks remain unmeasured."}
+
+
 def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     """Count the exact immutable recipe bank inside, not in addition to, the shared binding reserve."""
     # The shared audit parser intentionally keeps inline comments. Strip comments
@@ -414,6 +472,7 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
     work = connector_work_reservation(index, placement)
     frontier = entry_frontier_reservation(index)
     entry = entry_bindings_reservation(index)
+    contacts = connector_contacts_reservation(index)
     consumers = {
         "connector_catalog": resolve(index, "underground_connector_catalog", "RESERVED_BYTES"),
         "world_routes": resolve(index, "underground_world_routes", "RESERVED_BYTES"),
@@ -425,19 +484,20 @@ def connector_recipe_reservation(index: dict, binding_reserve: int) -> dict:
         "connector_work": work["reserved_bytes"],
         "entry_frontier": frontier["reserved_bytes"],
         "entry_bindings": entry["reserved_bytes"],
+        "connector_contacts": contacts["reserved_bytes"],
     }
     used = sum(consumers.values())
     assert used <= binding_reserve, "known binding consumers exceed their shared reserve"
-    assert binding_reserve - used >= 4096, "concrete Contacts allowance was consumed by another binding"
     return {"columns": rows, "part_capacity": capacity, "bank_bytes": bank,
             "fixed_bytes": fixed, "assembly_reservation": assemblies, "surface_anchor_reservation": anchor,
             "funding_settlement_reservation": settlement, "placement_reservation": placement,
             "connector_work_reservation": work,
             "entry_frontier_reservation": frontier, "entry_bindings_reservation": entry,
+            "connector_contacts_reservation": contacts,
             "known_binding_consumers": consumers,
             "known_binding_used_bytes": used,
             "remaining_binding_reserve_bytes": binding_reserve - used,
-            "scope": "Known logical consumers including Frontier and EntryBindings; 4096 remains for Contacts. Whole native memory qualification remains open."}
+            "scope": "Known logical consumers include concrete Frontier, EntryBindings and Contacts. The shared bindings reserve is fully assigned; whole native memory qualification remains open."}
 
 
 def funding_settlement_reservation(index: dict) -> dict:
@@ -524,7 +584,8 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
                     "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
                     "underground_connector_placements", "underground_connector_work", "entity_directory",
-                    "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors"))
+                    "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors",
+                    "underground_connector_contacts", "underground_profiles", "int_math"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,

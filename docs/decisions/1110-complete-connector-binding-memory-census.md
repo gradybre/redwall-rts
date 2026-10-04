@@ -44,3 +44,30 @@ checker explicitly requires RefCounted for Placement and the actual
 ModularProjectContract.Owner for ConnectorWork; two additional adversarial
 source edits exercise that refusal. This closes the omission without changing
 production source or admission constants.
+## Concrete Contacts consumer
+
+The accepted concrete `underground_connector_contacts.gd` now consumes the
+existing4096-byte Contacts earmark. The checker derives148 logical numeric
+control bytes,376 packed scratch bytes,1633 bytes for both finite fragment
+banks and their controls, and753 for owned Order/Location/Profile/checked-int
+packets:2910 total. Its existing1024-byte helper allowance brings the logical
+packet to3934, within4096. Borrowed owner references, native object/array
+headers and the actual combined call stack still require measured qualification.
+
+The census checks the exact base class and absence of inherited Contacts state,
+all14 packed scratch members and their resize expressions, all five fragment
+buffers and their width/capacity, every nested packet and the exact checked-int
+result shape. Untyped or duplicate retained fields and undeclared owned objects
+refuse accounting. The full shared binding reserve is now assigned:524288 of
+524288 bytes. This consumes an existing reservation; it does not add another
+4096 to the whole-world memory total or promise that future composition fits.
+
+The90-test source-census suite passed against exact Contacts source
+`680114461ecaf8d96bea6ed45b1edba60f057d89f76fc59aa3e0e2fd03233c39`.
+Geometry independently read both tool files and the actual source, verified
+their hashes and reran all90 tests with no failures. The externally read source
+was unchanged. Exact invocation, raw results and the explicit source-index
+projection are retained under
+`docs/validation/evidence/underground-connector-memory-2026-10-03/candidate-1/`.
+This verifies a logical source census, not an engine/native performance result;
+the normal integrated CLI/artifact check follows the accepted Contacts commit.

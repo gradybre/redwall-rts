@@ -256,8 +256,13 @@ class JointPackTests(unittest.TestCase):
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
-        self.assertEqual(recipes["known_binding_used_bytes"], 520192)
-        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 4096)
+        self.assertEqual(recipes["known_binding_used_bytes"], 524288)
+        self.assertEqual(recipes["remaining_binding_reserve_bytes"], 0)
+        contacts = recipes["connector_contacts_reservation"]
+        self.assertEqual(contacts["reserved_bytes"], 4096)
+        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 2910)
+        self.assertEqual(contacts["fragment_banks_and_controls"], 1633)
+        self.assertEqual(contacts["logical_helper_allowance_bytes"], 1024)
         self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
         self.assertEqual(recipes["entry_bindings_reservation"]["reserved_bytes"], 4096)
         self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 454)
@@ -333,6 +338,66 @@ class JointPackTests(unittest.TestCase):
 
     def test_negative_entry_binding_changed_parent(self) -> None:
         self.refuses("underground_entry_bindings", 'extends "res://scripts/core/underground_room_bindings.gd"', 'extends RefCounted')
+
+    def test_negative_contacts_changed_parent(self) -> None:
+        self.refuses("underground_connector_contacts", 'extends "res://scripts/core/underground_connector_work.gd".Contacts',
+                     'extends RefCounted')
+
+    def test_negative_contacts_inherited_state(self) -> None:
+        self.refuses("underground_connector_work", "class Contacts extends RefCounted:",
+                     "class Contacts extends RefCounted:\n\tvar hidden: PackedByteArray = PackedByteArray()")
+
+    def test_negative_contacts_unbudgeted_retained_packet(self) -> None:
+        line = "var _other: Locations.Record = Locations.Record.new()"
+        self.refuses("underground_connector_contacts", line, line + "\nvar _extra: Locations.Record = null")
+
+    def test_negative_contacts_wider_scratch(self) -> None:
+        self.refuses("underground_connector_contacts", "_frame: PackedInt32Array", "_frame: PackedInt64Array")
+
+    def test_negative_contacts_missing_scratch_allocation(self) -> None:
+        self.refuses("underground_connector_contacts", "\t_frame.resize(9)", "")
+
+    def test_negative_contacts_duplicate_scratch_allocation(self) -> None:
+        line = "\t_frame.resize(9)"
+        self.refuses("underground_connector_contacts", line, line + "\n" + line)
+
+    def test_negative_contacts_fragment_bank_growth(self) -> None:
+        self.refuses("underground_connector_contacts", "FRAGMENT_CAPACITY: int = 32", "FRAGMENT_CAPACITY: int = 33")
+
+    def test_negative_contacts_fragment_width_growth(self) -> None:
+        self.refuses("underground_connector_contacts", "first: PackedInt32Array", "first: PackedInt64Array")
+
+    def test_negative_contacts_unbudgeted_nested_bank(self) -> None:
+        line = "class Fragments extends RefCounted:"
+        self.refuses("underground_connector_contacts", line, line + "\n\tvar extra: PackedByteArray = PackedByteArray()")
+
+    def test_negative_contacts_nested_location_growth(self) -> None:
+        self.refuses("underground_connector_contacts", "_other.envelope.resize(6)", "_other.envelope.resize(12)")
+
+    def test_negative_contacts_untyped_nested_location(self) -> None:
+        line = "class Record extends RefCounted:"
+        self.refuses("underground_locations", line, line + "\n\tvar hidden = []")
+
+    def test_negative_contacts_inherited_numeric_result(self) -> None:
+        self.refuses("int_math", "class IntResult:", "class IntResult extends RefCounted:")
+
+    def test_negative_contacts_unbudgeted_descriptor_packet(self) -> None:
+        line = "class Descriptor extends RefCounted:"
+        self.refuses("underground_profiles", line, line + "\n\tvar extra: PackedByteArray = PackedByteArray()")
+
+    def test_negative_contacts_numeric_result_width_drift(self) -> None:
+        self.refuses("int_math", "\tvar value: int\n", "\tvar value: Vector2i\n")
+
+    def test_negative_contacts_helper_allowance_shortfall(self) -> None:
+        self.refuses("underground_connector_contacts", "CONTROL_BYTES: int = 4096", "CONTROL_BYTES: int = 3000")
+
+    def test_negative_contacts_untyped_retained_field(self) -> None:
+        line = "var _other: Locations.Record = Locations.Record.new()"
+        self.refuses("underground_connector_contacts", line, line + "\nvar _untyped = []")
+
+    def test_negative_contacts_duplicate_field(self) -> None:
+        line = "var _other: Locations.Record = Locations.Record.new()"
+        self.refuses("underground_connector_contacts", line, line + "\n" + line)
 
 
 if __name__ == "__main__":

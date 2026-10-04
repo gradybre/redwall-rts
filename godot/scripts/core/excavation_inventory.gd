@@ -197,12 +197,12 @@ func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 	"""Capture actual owned delivered inputs, consume once, and reserve the operation's output."""
 	if _settling_project != NULL_REF:
 		return _refuse(REFUSE_WIP)
-	var connector: bool = _ready_error == &"" and _construction.purpose_into(project, _math) \
-		and _math.value == Construction.PURPOSE_CONNECTOR_INSTALL
-	if connector:
+	var guarded: bool = _ready_error == &"" and _construction.purpose_into(project, _math) \
+		and (_math.value == Construction.PURPOSE_CONNECTOR_INSTALL or _math.value == Construction.PURPOSE_EXCAVATION)
+	if guarded:
 		_settling_project = project
 	var result: Inventory.OpResult = _consume_to_wip(project, job, now_tick, output)
-	if connector:
+	if guarded:
 		_settling_project = NULL_REF
 		_settling_job = NULL_REF
 	return result
@@ -210,7 +210,7 @@ func consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 
 func _consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 		output: Vector2i) -> Inventory.OpResult:
-	"""The connector's exclusive preparation scope starts before any bill or Inventory observer."""
+	"""Guarded owners enter exclusive preparation before any bill or Inventory observer."""
 	var refusal: StringName = _start_refusal(project, job)
 	if refusal != &"":
 		return _refuse(refusal)
@@ -234,16 +234,22 @@ func _consume_to_wip(project: Vector2i, job: Vector2i, now_tick: int,
 
 func _consume_inputs(project: Vector2i, job: Vector2i, purpose: int,
 		now_tick: int, output: Vector2i, mass: int) -> Inventory.OpResult:
-	"""Connector input settlement brackets the exact owner call, not earlier Recipe observations."""
+	"""Guarded settlement brackets the exact owner call, not earlier bill observations."""
 	if not _construction.purpose_into(project, _math):
 		return _refuse(REFUSE_WIP)
-	if _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
+	var excavation: bool = _math.value == Construction.PURPOSE_EXCAVATION
+	if not excavation and _math.value != Construction.PURPOSE_CONNECTOR_INSTALL:
 		return _pool.consume_job_inputs(job, purpose, now_tick, output, mass, _inventory)
 	if _settling_project != project or _settling_job != NULL_REF:
 		return _refuse(REFUSE_WIP)
 	_settling_job = job
-	var result: Inventory.OpResult = _pool.consume_connector_inputs(job, now_tick, output, mass,
-		_inventory, _construction.modular_authority(), project)
+	var result: Inventory.OpResult
+	if excavation:
+		result = _pool.consume_excavation_inputs(job, now_tick, output, mass,
+			_inventory, _construction.excavation_authority(), project)
+	else:
+		result = _pool.consume_connector_inputs(job, now_tick, output, mass,
+			_inventory, _construction.modular_authority(), project)
 	_settling_job = NULL_REF
 	return result
 

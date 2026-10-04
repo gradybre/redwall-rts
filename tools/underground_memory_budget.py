@@ -516,6 +516,18 @@ def funding_settlement_reservation(index: dict) -> dict:
             "scope": "Same-stack input settlement only; existing refund scratch is reused. Native references and helper frames remain unmeasured."}
 
 
+def excavation_start_controls(index: dict) -> dict:
+    """Charge the exact two new START guards, not a second Funding or receipt bank."""
+    source = index["excavation_sites"].text
+    names = re.findall(r"^var[ \t]+(_start(?:ing|_\w+))\b", source, re.M)
+    declarations = re.findall(r"^var[ \t]+(_start(?:ing|_\w+))[ \t]*:[ \t]*([\w.]+)\b", source, re.M)
+    fields = dict(declarations)
+    assert len(names) == len(declarations) == len(fields) and fields == {
+        "_starting": "bool", "_start_poisoned": "bool"}, "unreconciled excavation START control"
+    return {"fields": fields, "numeric_bytes": len(fields),
+            "scope": "Same-stack START guards only; no packed or saved state. Existing native/frame qualification remains open."}
+
+
 def build(index: dict | None = None) -> dict:
     index = audit.load_source_index() if index is None else index
     budget = index["underground_budget"]
@@ -555,6 +567,7 @@ def build(index: dict | None = None) -> dict:
     loss = columns(index, "excavation_inventory", 1, {}, {"_lost_milli"})
     assert payload(loss) == 1024 * 8 # Decision1102: four historical purpose domains.
     quote = quote_payload(index)
+    start = excavation_start_controls(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
@@ -562,6 +575,7 @@ def build(index: dict | None = None) -> dict:
     assert 56 * endpoints <= reserves["INVENTORY_EXTENSION_BYTES"], "endpoint live/raw/conversion exceeds reserve"
     assert 228 * locations + 256 + 106 * locations + 128 <= reserves["LOCATION_AND_TOPOLOGY_BYTES"]
     contributions = {
+        "excavation_start_controls": start["numeric_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -583,7 +597,7 @@ def build(index: dict | None = None) -> dict:
     total = 86601769 + added + declaration - 21185 + 8388608
     assert total < 100000000, ("joint pack exceeds unchanged memory limit", total)
     sources = set(groups) - {"inventory_spatial"}
-    sources.update(("inventory", "excavation_inventory", "construction", "modular_project_contract", "underground_budget",
+    sources.update(("inventory", "excavation_inventory", "excavation_sites", "construction", "modular_project_contract", "underground_budget",
                     "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
                     "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
                     "underground_connector_placements", "underground_connector_work", "entity_directory",
@@ -592,6 +606,7 @@ def build(index: dict | None = None) -> dict:
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
+            "excavation_start_controls": start,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

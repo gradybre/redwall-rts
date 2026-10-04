@@ -74,6 +74,14 @@ class SpatialAuthority extends RefCounted:
 		"""Prove the live worker's legal route/work contact from the actual movement owner."""
 		return &"EXCAVATION_SPATIAL_UNBOUND"
 
+	func final_start_observation_refusal(_origin_u: Vector3i, _operation: int, _room: Vector2i) -> StringName:
+		"""Reobserve the exact prepared START after staged Inventory observers, before payment."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
+	func final_start_leaf_refusal(_origin_u: Vector3i, _operation: int, _room: Vector2i) -> StringName:
+		"""Reattest that same candidate without callbacks, allocation or live publication."""
+		return &"EXCAVATION_SPATIAL_UNBOUND"
+
 	func discard_transition(_origin_u: Vector3i, _operation: int, _stage: int,
 			_room: Vector2i) -> void:
 		"""Drop only operation scratch after refusal; never release lasting phase/contact ownership."""
@@ -167,6 +175,18 @@ func attach_project(_site: Vector2i, _operation: int, _project: Vector2i) -> voi
 
 func mutation_refusal(_project: Vector2i, _action: int) -> StringName:
 	"""Only an active physical-owner transaction may mutate generic phase accounting."""
+	return REFUSE_AUTHORITY
+
+
+func excavation_inputs_refusal(_project: Vector2i, _job: Vector2i,
+		_inventory: RefCounted, _pool: RefCounted) -> StringName:
+	"""Only the actual original Sites/Funding START scope can settle purpose5 inputs."""
+	return REFUSE_AUTHORITY
+
+
+func final_input_refusal(_project: Vector2i, _job: Vector2i,
+		_inventory: RefCounted, _pool: RefCounted, _output: Vector2i, _mass: int) -> StringName:
+	"""The abstract owner cannot approve staged payment after Inventory observers."""
 	return REFUSE_AUTHORITY
 
 

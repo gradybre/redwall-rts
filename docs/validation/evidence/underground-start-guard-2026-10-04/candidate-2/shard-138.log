@@ -1,0 +1,47 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_excavation_sites.gd
+  PASS  test_input_consumption_and_output_reservation_commit_together
+  PASS  test_input_transaction_capacity_refusal_keeps_all_claims_and_stock
+  PASS  test_expired_or_stale_input_owner_never_consumes_other_claims
+  PASS  test_material_free_phase_still_needs_real_output_capacity
+  PASS  test_journal_exhaustion_rolls_back_every_consumed_input_and_output_claim
+  PASS  test_consumption_preserves_another_jobs_claim_on_the_same_lot
+  PASS  test_commit_time_empty_ground_pile_refusal_rolls_back_both_owners
+  PASS  test_first_cut_promotes_same_finite_nonempty_staging_row_atomically
+  PASS  test_promotion_geometry_refusal_rolls_back_cut_lot_and_capacity_release
+  PASS  test_empty_staging_cancellation_releases_capacity_and_retires_only_own_row
+  PASS  test_promotion_never_admits_an_empty_container_or_implicit_transaction
+  PASS  test_wip_refund_preserves_every_input_attribute_and_per_item_loss
+  PASS  test_blocked_refund_retains_wip_and_retry_returns_only_once
+  PASS  test_claimed_delivery_cannot_be_replaced_by_a_construction_counter
+  PASS  test_receipt_capacity_refusal_does_not_truncate_input_metadata
+  PASS  test_promotion_refuses_wrong_sized_nonempty_staging_without_changing_maps
+  PASS  test_refund_captures_age_after_delivery_and_before_actual_consumption
+  PASS  test_fragmented_single_milli_inputs_preserve_whole_phase_refund_rounding
+  PASS  test_material_free_cancellation_needs_no_refund_destination
+  PASS  test_material_free_cancel_retires_its_empty_pending_pile_atomically
+  PASS  test_output_owner_posts_exact_fresh_or_reclaimed_earth_and_refuses_duplicate
+  PASS  test_actual_output_promotion_refusal_retains_wip_then_retries_once
+  PASS  test_two_phase_output_claims_in_same_container_remain_independently_owned
+  PASS  test_backfill_second_salvage_output_failure_rolls_back_first_and_all_wip
+  PASS  test_receipt_configuration_refuses_huge_or_pool_exceeding_budget_before_allocation
+CI_SUITE_TIME {"assertions":3804,"failures":0,"suite":"test_excavation_sites.gd","tests":25,"usec":1196862}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+25 test(s), 3804 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 25 tests, 3804 assertions, 0 failures.

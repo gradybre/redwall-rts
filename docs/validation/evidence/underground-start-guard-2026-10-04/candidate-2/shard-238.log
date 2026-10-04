@@ -1,0 +1,32 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_excavation_phase_start_guard.gd
+  PASS  test_late_inventory_contact_change_aborts_then_clean_retry_pays_once
+  PASS  test_late_project_pause_refuses_before_payment
+  PASS  test_last_spatial_observer_cannot_release_worker_then_charge_materials
+  PASS  test_last_observer_cannot_commit_the_staged_inventory_journal
+  PASS  test_last_observer_cannot_abort_the_callers_inventory_journal
+  PASS  test_nested_inventory_audit_cannot_lower_the_outer_mutation_barrier
+  PASS  test_last_observer_cannot_change_required_physical_support_then_charge
+  PASS  test_start_cannot_steal_a_preexisting_commit_candidate_or_action_scope
+  PASS  test_nested_start_poison_preserves_outer_goods_and_candidate
+  PASS  test_base_guards_and_public_preflighted_start_cannot_bypass_owner
+CI_SUITE_TIME {"assertions":175,"failures":0,"suite":"test_excavation_phase_start_guard.gd","tests":10,"usec":484303}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 175 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 10 tests, 175 assertions, 0 failures.

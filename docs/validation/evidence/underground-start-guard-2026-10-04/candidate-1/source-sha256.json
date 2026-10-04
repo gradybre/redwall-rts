@@ -1,0 +1,10 @@
+{
+  "godot/scripts/core/excavation_contract.gd": "b95fbaa2b9b33a4f92a5631f8a8c77d39a4af4ee774b6f5e0fdae12c3e17d599",
+  "godot/scripts/core/excavation_inventory.gd": "bd46c3760f3e6cd130d314a4eb6431e44d3888112e649c0ad31a228a2d028c52",
+  "godot/scripts/core/excavation_sites.gd": "2b57f5dc1669220cb755b0622e830669e233721b1429603ab131cb17d0c41691",
+  "godot/scripts/core/reservations.gd": "480b1ae0181f3c4535707b9f25519c822d2c7f50876de3b1730894154a414990",
+  "godot/scripts/core/construction.gd": "270e472f7967efd8a4a0805c3ef30e8434f276edba4c1beeabefa8a074b085ce",
+  "godot/test/test_excavation_sites.gd": "29120aae3f7464153bc20705d91580fa078a35f093cd659c5bcb9a1165a09aac",
+  "godot/test/test_excavation_physical.gd": "38fd46e535d40a635d5de213181a504b2a109dbbd0bedcbe32313b1df66d994c",
+  "godot/test/test_excavation_phase_start_guard.gd": "7fce42feeffe6e76de10e180b40e1b2158c2e899ab2d90f4f198e255c1a6ce01"
+}

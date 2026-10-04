@@ -1464,6 +1464,237 @@ func begin_work(project_ref: Vector2i) -> OpResult:
 	return OpResult.new(true, REFUSE_NONE, _remaining_mwu[row], project_ref)
 
 
+static func excavation_start_refusal(actual: RefCounted, sites: ExcavationContract,
+		project: Vector2i, job: Vector2i, paid: bool, output: Vector2i, mass: int) -> StringName:
+	"""Exact purpose5 START facts are read without bill, spatial, worker or source observers."""
+	var code: StringName = _excavation_start_context(actual, sites, project, job, paid)
+	if code != REFUSE_NONE:
+		return code
+	var row: int = actual._directory.get_typed_row(project)
+	var site: int = sites._candidate_row
+	if row < 0 or row >= CONSTRUCTION_CAPACITY or actual._present[row] != 1 \
+			or actual._ref_slot[row] != project.x or actual._ref_generation[row] != project.y \
+			or actual._purpose[row] != PURPOSE_EXCAVATION or actual._subject_slot[row] != site \
+			or actual._subject_generation[row] != sites.SITE_GENERATION \
+			or actual._type_id[row] != sites._operation[site]:
+		return REFUSE_STALE_PROJECT_REF
+	if actual._paused[row] != 0:
+		return REFUSE_PAUSED
+	if actual._phase[row] != PHASE_READY or actual._work_begun[row] != 0 \
+			or actual._remaining_mwu[row] < 0 or actual._max_workers[row] < 1:
+		return REFUSE_WRONG_PHASE
+	code = _excavation_start_job(actual, sites, row, site, project, job)
+	if code == REFUSE_NONE:
+		code = _excavation_start_bill(actual, sites, row, paid)
+	if code == REFUSE_NONE:
+		code = _excavation_start_output(sites, site, output, mass)
+	return _excavation_start_receipt(sites, row, project, job, paid, output, mass) if code == REFUSE_NONE else code
+
+
+static func _excavation_start_context(actual: RefCounted, sites: ExcavationContract,
+		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
+	"""A coincident handle or permissive base cannot enter the actual synchronous Sites window."""
+	if actual == null or sites == null or not "_starting" in sites or not sites._starting \
+			or sites._start_poisoned or sites._ready_error != REFUSE_NONE or sites._construction != actual \
+			or actual._excavation_authority == null or actual._excavation_authority.get_ref() != sites \
+			or sites._permit_project != project \
+			or sites._permit_action != (ExcavationContract.ACTION_BEGIN_WORK if paid else ExcavationContract.ACTION_WIP) \
+			or sites._candidate_stage != ExcavationContract.STAGE_START \
+			or sites._candidate_row < 0 or sites._candidate_row >= sites._count:
+		return ExcavationContract.REFUSE_AUTHORITY
+	var at: int = sites._candidate_row
+	var funding: RefCounted = sites._funding
+	if sites._present[at] != 1 or sites._project_slot[at] != project.x or sites._project_generation[at] != project.y \
+			or sites._job_slot[at] != job.x or sites._job_generation[at] != job.y \
+			or sites._jobs._directory != actual._directory or funding == null or funding._ready_error != REFUSE_NONE \
+			or funding._construction != actual or funding._inventory != sites._inventory or funding._pool != sites._pool \
+			or funding._items != sites._items or not sites._items._loaded \
+			or sites._items._registered_inventory == null or sites._items._registered_inventory.get_ref() != sites._inventory:
+		return ExcavationContract.REFUSE_AUTHORITY
+	return REFUSE_NONE if actual._directory.is_valid_of_kind(project, EntityDirectory.KIND_CONSTRUCTION) \
+		and actual._directory.is_valid_of_kind(job, EntityDirectory.KIND_JOB) \
+		and actual._directory.is_valid_of_kind(sites._domain.world_ref, EntityDirectory.KIND_WORLD) else REFUSE_STALE_PROJECT_REF
+
+
+static func _excavation_start_job(actual: RefCounted, sites: ExcavationContract,
+		row: int, site: int, project: Vector2i, job: Vector2i) -> StringName:
+	"""The sole accepted BUILD Job must still mirror exact retained physical work and worker ownership."""
+	var jobs: RefCounted = sites._jobs
+	var at: int = actual._directory.get_typed_row(job)
+	var operation: int = actual._type_id[row]
+	if at < 0 or at >= sites._job_site.size() or jobs._job_present[at] != 1 \
+			or jobs._job_ref_slot[at] != job.x or jobs._job_ref_generation[at] != job.y \
+			or sites._job_site[at] != site or jobs._requester_slot[at] != project.x \
+			or jobs._requester_generation[at] != project.y or jobs._is_coordinator[at] != 0 \
+			or jobs._coordinator_slot[at] != -1 or jobs._kind[at] != jobs.JOB_KIND_BUILD \
+			or jobs._remaining_mwu[at] != actual._remaining_mwu[row] \
+			or not ExcavationContract.valid_operation(operation):
+		return sites.REFUSE_JOB
+	var earned: int = sites._earned_mwu[site * ExcavationContract.OP_COUNT + operation]
+	if earned < 0 or actual._remaining_mwu[row] != ExcavationContract.work_mwu(operation) - earned:
+		return REFUSE_WRONG_PHASE
+	var code: StringName = _excavation_start_physical(sites, site, operation)
+	return _excavation_start_worker(sites, site, at, job) if code == REFUSE_NONE else code
+
+
+static func _excavation_start_physical(sites: ExcavationContract, row: int, operation: int) -> StringName:
+	"""The final same-operation phase must still have its real required retained support state."""
+	var phase: int = sites._phase[row]
+	var installed: int = sites._installed[row]
+	var allowed: bool = false
+	match operation:
+		ExcavationContract.OP_BRACE:
+			allowed = installed == 0 and (phase == sites.SOLID or phase == sites.BACKFILLED or phase == sites.BRACING)
+		ExcavationContract.OP_CUT:
+			allowed = installed == 1 and (phase == sites.BRACED or phase == sites.CUTTING)
+		ExcavationContract.OP_FINISH:
+			allowed = installed == 1 and (phase == sites.OPEN_UNFINISHED or phase == sites.FINISHING)
+		ExcavationContract.OP_BACKFILL_CLOSE:
+			allowed = installed == 1 and (phase == sites.OPEN_UNFINISHED or phase == sites.FINISHING \
+				or phase == sites.SUPPORTED_VOID or phase == sites.CLOSING and sites._closure_before[row] != sites.BRACED \
+				and sites._closure_before[row] != sites.CUTTING)
+		ExcavationContract.OP_UNOPENED_SUPPORT_CLOSE:
+			allowed = installed == 1 and (phase == sites.BRACED or phase == sites.CUTTING \
+				or phase == sites.CLOSING and (sites._closure_before[row] == sites.BRACED or sites._closure_before[row] == sites.CUTTING))
+	return REFUSE_NONE if allowed else sites.REFUSE_PHASE
+
+
+static func _excavation_start_worker(sites: ExcavationContract, site: int, job_row: int, job: Vector2i) -> StringName:
+	"""Read actual assignment, life stage and eligibility columns after the final spatial observer."""
+	var jobs: RefCounted = sites._jobs
+	var worker: Vector2i = Vector2i(jobs._worker_slot[job_row], jobs._worker_generation[job_row])
+	if not jobs._directory.is_valid_of_kind(worker, EntityDirectory.KIND_RESIDENT):
+		return sites.REFUSE_WORKER
+	var row: int = jobs._directory.get_typed_row(worker)
+	var residents: RefCounted = sites._work._residents
+	if residents != jobs._residents or row < 0 or row >= sites._worker_site.size() \
+			or residents._present[row] != 1 or residents._ref_slot[row] != worker.x \
+			or residents._ref_generation[row] != worker.y or residents._life_stage[row] == residents.LIFE_STAGE_CHILD \
+			or jobs._agent_present[row] != 1 or jobs._agent_job_slot[row] != job.x \
+			or jobs._agent_job_generation[row] != job.y or sites._worker_site[row] != site \
+			or sites._worker_generation[row] != worker.y or jobs._tool_gate[job_row] != jobs.GATE_SATISFIED:
+		return sites.REFUSE_WORKER
+	var needs: RefCounted = jobs._needs
+	if needs == null or needs != residents._needs or needs._present[row] != 1 \
+			or needs._status[row] == needs.STATUS_DEAD or needs._status[row] == needs.STATUS_INCAPACITATED \
+			or needs._need_value[row * needs.NEED_COUNT + needs.NEED_REST] <= jobs.REST_COLLAPSE_THRESHOLD:
+		return sites.REFUSE_WORKER
+	return _excavation_start_tool(sites, row, worker, job)
+
+
+static func _excavation_start_tool(sites: ExcavationContract, row: int, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Resolve Gear's full lot/owner/claim and positive durability directly, without observers."""
+	var work: RefCounted = sites._work
+	var gear: RefCounted = work._gear
+	var inventory: RefCounted = sites._inventory
+	var lot: Vector2i = Vector2i(work._tool_lot_slot[row], work._tool_lot_generation[row])
+	if gear == null or gear._inventory != inventory or lot.x < 0 or lot.x >= inventory._l_capacity \
+			or inventory._l_live[lot.x] != 1 or inventory._l_generation[lot.x] != lot.y \
+			or inventory._l_container_slot[lot.x] != -1 or work._tool_job_slot[row] != job.x \
+			or work._tool_job_generation[row] != job.y or work._tool_broken[row] != 0:
+		return sites.REFUSE_WORKER
+	var at: int = gear._lot_row[lot.x]
+	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != lot.x \
+			or gear._lot_generation[at] != lot.y or gear._equipped[at] != 1 \
+			or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
+			or gear._claim_job_slot[at] != job.x or gear._claim_job_generation[at] != job.y or gear._durability[at] <= 0 \
+			or sites._work._residents._equip_tool_item_id[row] != gear._item_id[at]:
+		return sites.REFUSE_WORKER
+	return REFUSE_NONE
+
+
+static func _excavation_start_bill(actual: RefCounted, sites: ExcavationContract, row: int, paid: bool) -> StringName:
+	"""Every delivered and staged item quantity still equals the adopted immutable operation bill."""
+	var operation: int = actual._type_id[row]
+	var funding: RefCounted = sites._funding
+	var count: int = ExcavationContract.input_count(operation)
+	if count < 0 or funding._s_count < 0 or (not paid and funding._s_count > funding._free_count):
+		return REFUSE_MATERIALS_INCOMPLETE
+	for line: int in MATERIAL_SLOTS_PER_PROJECT:
+		var amount: int = ExcavationContract.input_milli(operation, line) if line < count else 0
+		if actual._delivered_milli[row * MATERIAL_SLOTS_PER_PROJECT + line] != amount:
+			return REFUSE_MATERIALS_INCOMPLETE
+	for item: int in funding._s_totals.size():
+		var amount: int = 0
+		for line: int in count:
+			var key: StringName = ExcavationContract.input_key(operation, line)
+			if sites._items._item_ids.get(key, -1) == item:
+				amount = ExcavationContract.input_milli(operation, line)
+		if funding._s_totals[item] != amount or funding._s_returned[item] != amount:
+			return REFUSE_MATERIALS_INCOMPLETE
+	return REFUSE_NONE
+
+
+static func _excavation_start_output(sites: ExcavationContract, site: int, output: Vector2i, mass: int) -> StringName:
+	"""The original staged output must still be the Site's exact finite full-generation container."""
+	if output != Vector2i(sites._output_slot[site], sites._output_generation[site]):
+		return sites.REFUSE_OUTPUT
+	var operation: int = sites._operation[site]
+	var expected: int = 0
+	if operation == ExcavationContract.OP_CUT:
+		expected = _excavation_output_mass(sites, &"excavated_earth", ExcavationContract.EARTH_MILLI)
+	elif operation == ExcavationContract.OP_BACKFILL_CLOSE or operation == ExcavationContract.OP_UNOPENED_SUPPORT_CLOSE:
+		var wood: int = _excavation_output_mass(sites, &"wood", ExcavationContract.SALVAGE_WOOD_MILLI)
+		var stone: int = _excavation_output_mass(sites, &"stone", ExcavationContract.SALVAGE_STONE_MILLI)
+		expected = wood + stone if wood >= 0 and stone >= 0 else -1
+	if mass != expected or expected < 0:
+		return sites.REFUSE_OUTPUT
+	if mass == 0:
+		return REFUSE_NONE if output == NULL_REF else sites.REFUSE_OUTPUT
+	var inventory: RefCounted = sites._inventory
+	if output.x < 0 or output.x >= inventory._c_capacity or inventory._c_live[output.x] != 1 \
+			or inventory._c_generation[output.x] != output.y or inventory._c_reachable[output.x] != 1 \
+			or inventory._c_reserved_mass_g[output.x] < mass \
+			or inventory._c_used_mass_g[output.x] + inventory._c_reserved_mass_g[output.x] > inventory._c_max_mass_g[output.x]:
+		return sites.REFUSE_OUTPUT
+	return REFUSE_NONE
+
+
+static func _excavation_output_mass(sites: ExcavationContract, key: StringName, quantity: int) -> int:
+	"""Exact per-lot rounded output mass reads the actual registered item column without callbacks."""
+	var item: int = sites._items._item_ids.get(key, -1)
+	var inventory: RefCounted = sites._inventory
+	if item < 0 or item >= inventory._item_mass_g.size() or inventory._item_mass_g[item] <= 0:
+		return -1
+	@warning_ignore("integer_division")
+	return (quantity * inventory._item_mass_g[item] + 999) / 1000
+
+
+static func _excavation_start_receipt(sites: ExcavationContract, row: int, project: Vector2i,
+		job: Vector2i, paid: bool, output: Vector2i, mass: int) -> StringName:
+	"""Free-input phases need no receipt nodes; they still need exact funded identity and output ownership."""
+	var funding: RefCounted = sites._funding
+	var funded: bool = funding._project_slot[row] == project.x and funding._project_generation[row] == project.y
+	if paid:
+		return REFUSE_NONE if funded and funding._output_slot[row] == output.x \
+			and funding._output_generation[row] == output.y and funding._output_mass_g[row] == mass \
+			and (funding._s_count == 0 or funding._head[row] >= 0) and not sites._inventory._tx_open \
+			and funding._settling_project == NULL_REF and funding._settling_job == NULL_REF else REFUSE_WRONG_PHASE
+	return REFUSE_NONE if not funded and sites._inventory._tx_open \
+		and funding._settling_project == project and funding._settling_job == job else REFUSE_WRONG_PHASE
+
+
+static func begin_excavation_work_preflighted(actual: RefCounted, sites: ExcavationContract,
+		project: Vector2i, job: Vector2i) -> OpResult:
+	"""Publish only the exact already-paid START without calling the ordinary owner/bill observers."""
+	var scope: StringName = _excavation_start_context(actual, sites, project, job, true)
+	if scope != REFUSE_NONE:
+		return OpResult.new(false, scope, 0, NULL_REF)
+	var row: int = actual._directory.get_typed_row(project)
+	var funding: RefCounted = sites._funding
+	var output: Vector2i = Vector2i(funding._output_slot[row], funding._output_generation[row])
+	var code: StringName = excavation_start_refusal(actual, sites, project, job, true, output, funding._output_mass_g[row])
+	if code != REFUSE_NONE:
+		return OpResult.new(false, code, 0, NULL_REF)
+	actual._work_begun[row] = 1
+	actual._phase[row] = PHASE_WORK_DONE if actual._remaining_mwu[row] == 0 else PHASE_WORKING
+	actual._refund_policy[row] = REFUND_PARTIAL
+	actual._assigned_count[row] = 1
+	var job_row: int = actual._directory.get_typed_row(job)
+	sites._jobs._state[job_row] = sites._jobs.JOB_STATE_COMPLETE if actual._remaining_mwu[row] == 0 else sites._jobs.JOB_STATE_WORK
+	return OpResult.new(true, REFUSE_NONE, actual._remaining_mwu[row], project)
+
+
 static func connector_start_refusal(actual: RefCounted, router: ModularContract,
 		project: Vector2i, job: Vector2i, paid: bool) -> StringName:
 	"""The same concrete prepayment/postpayment leaf proves exact start facts without an owner or Recipe callback."""

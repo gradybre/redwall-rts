@@ -202,6 +202,7 @@ extends RefCounted
 ## a separate integration step and is not part of task 2.5.
 
 const IntMath := preload("res://scripts/core/int_math.gd")
+const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
 const SpatialLocations := preload("res://scripts/core/inventory_spatial_contract.gd")
 ## PROV-R01's protected InventoryProvenance domain. Read, never mirrored: this module
 ## publishes no provenance number of its own, so there is exactly one copy of each.
@@ -935,6 +936,37 @@ func commit() -> OpResult:
 	_j_count = 0
 	_close_transaction()
 	return _ok(NULL_REF, 0)
+
+
+func commit_excavation_inputs(guard: ExcavationContract, project: Vector2i, job: Vector2i,
+		pool: RefCounted, output: Vector2i, mass: int) -> OpResult:
+	"""Own the last purpose5 observer scope so reentry cannot commit or abort its caller's journal."""
+	if _refuse_attestation_reentry():
+		return _refuse(REFUSE_ATTESTATION_REENTRY)
+	if not _tx_open:
+		return _refuse(REFUSE_NO_TRANSACTION)
+	var code: StringName = _tx_error if _tx_poisoned else _pile_commit_refusal()
+	if code == REFUSE_NONE:
+		code = ExcavationContract.REFUSE_AUTHORITY if guard == null else _excavation_input_attestation(guard, project, job, pool, output, mass)
+	if code == REFUSE_NONE and _tx_poisoned:
+		code = _tx_error
+	if code != REFUSE_NONE:
+		_rollback()
+		_close_transaction()
+		return _refuse(code)
+	_reclaim_empty_piles()
+	_j_count = 0
+	_close_transaction()
+	return _ok(NULL_REF, 0)
+
+
+func _excavation_input_attestation(guard: ExcavationContract, project: Vector2i,
+		job: Vector2i, pool: RefCounted, output: Vector2i, mass: int) -> StringName:
+	"""Keep Inventory's original mutation barrier raised across all final external phase observations."""
+	_attesting = true
+	var code: StringName = guard.final_input_refusal(project, job, self, pool, output, mass)
+	_attesting = false
+	return code
 
 
 func abort() -> void:
@@ -3161,9 +3193,12 @@ func _attests(lot_ref: Vector2i) -> bool:
 	var authority: Object = _equipment_authority.get_ref()
 	if authority == null:
 		return false
+	# audit() is a public read and may run inside another owner's final observation.
+	# Its nested equipment proof must never lower the outer transaction's mutation barrier.
+	var prior_attesting: bool = _attesting
 	_attesting = true
 	var attested: bool = bool(authority.call(EQUIPMENT_ATTESTATION_METHOD, lot_ref))
-	_attesting = false
+	_attesting = prior_attesting
 	return attested
 
 

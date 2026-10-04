@@ -72,6 +72,24 @@ class JointPackTests(unittest.TestCase):
     def test_negative_settlement_control_width(self) -> None:
         self.refuses("excavation_inventory", "_settling_project: Vector2i", "_settling_project: Vector3i")
 
+    def test_negative_start_control_width(self) -> None:
+        self.refuses("excavation_sites", "_starting: bool", "_starting: int")
+
+    def test_negative_missing_start_control(self) -> None:
+        self.refuses("excavation_sites", "var _start_poisoned: bool = false", "")
+
+    def test_negative_extra_start_control(self) -> None:
+        source = self.index["excavation_sites"].text
+        self.refuses("excavation_sites", source, source + "\nvar _start_extra:bool = false\n")
+
+    def test_negative_untyped_start_control(self) -> None:
+        source = self.index["excavation_sites"].text
+        self.refuses("excavation_sites", source, source + "\nvar _start_extra = false\n")
+
+    def test_negative_duplicate_start_control(self) -> None:
+        source = self.index["excavation_sites"].text
+        self.refuses("excavation_sites", source, source + "\nvar _starting: bool = false\n")
+
     def test_negative_missing_settlement_control(self) -> None:
         self.refuses("excavation_inventory", "var _settling_job: Vector2i = NULL_REF", "")
 
@@ -262,10 +280,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966485)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966487)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99959250)
-        self.assertEqual(result["headroom_bytes"], 40750)
+        self.assertEqual(result["live_with_reserve_bytes"], 99959252)
+        self.assertEqual(result["headroom_bytes"], 40748)
         self.assertFalse(result["runtime_qualified"])
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)

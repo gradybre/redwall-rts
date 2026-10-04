@@ -53,6 +53,8 @@ class SpatialFixture extends Contract.SpatialAuthority:
 	var block_output: StringName = &""
 	var publications: int = 0
 	var pending_stage: int = -1
+	var start_probe: Callable = Callable()
+	var start_leaf_block: StringName = &""
 	var discard_count: int = 0
 	var work_checks: int = 0
 	var size: Vector3i = Vector3i(16, 1, 1)
@@ -105,6 +107,24 @@ class SpatialFixture extends Contract.SpatialAuthority:
 			_job: Vector2i, _worker: Vector2i) -> StringName:
 		"""Real Jobs/Work/Gear prove the worker; this isolated contact remains synthetic."""
 		return block_worker if block_worker != &"" else room_refusal(room)
+
+	func final_start_observation_refusal(_origin: Vector3i, _operation: int, room: Vector2i) -> StringName:
+		"""Explicit test-only prepared contact proof; all actual accounting still runs."""
+		if start_probe.is_valid():
+			var current: Callable = start_probe
+			start_probe = Callable()
+			current.call()
+		return room_refusal(room)
+
+	func final_start_leaf_refusal(_origin: Vector3i, _operation: int, room: Vector2i) -> StringName:
+		"""The synthetic phase fixture attests its exact retained START without a callback."""
+		if start_leaf_block != &"":
+			return start_leaf_block
+		if pending_stage != Contract.STAGE_START or room.y != room_generation:
+			return &"SYNTHETIC_START_STALE"
+		if block_operation != &"":
+			return block_operation
+		return block_worker if block_worker != &"" else block_output
 
 	func publish_transition(origin: Vector3i, operation: int, stage: int, room: Vector2i) -> void:
 		"""Count publication, without making any actual map cell navigable."""

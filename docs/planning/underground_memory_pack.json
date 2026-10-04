@@ -793,35 +793,35 @@
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4886
+        "line": 4921
       },
       "_spatial_container_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4885
+        "line": 4920
       },
       "_spatial_location_generation": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4888
+        "line": 4923
       },
       "_spatial_location_revision": {
         "width": 8,
         "capacity": 1024,
         "bytes": 8192,
         "resize_expression": "capacity",
-        "line": 4889
+        "line": 4924
       },
       "_spatial_location_slot": {
         "width": 4,
         "capacity": 1024,
         "bytes": 4096,
         "resize_expression": "capacity",
-        "line": 4887
+        "line": 4922
       }
     }
   },
@@ -1197,7 +1197,16 @@
     "remaining_binding_reserve_bytes": 0,
     "scope": "Known logical consumers include concrete Frontier, EntryBindings and Contacts. The shared bindings reserve is fully assigned; whole native memory qualification remains open."
   },
+  "excavation_start_controls": {
+    "fields": {
+      "_starting": "bool",
+      "_start_poisoned": "bool"
+    },
+    "numeric_bytes": 2,
+    "scope": "Same-stack START guards only; no packed or saved state. Existing native/frame qualification remains open."
+  },
   "contributions": {
+    "excavation_start_controls": 2,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -1212,17 +1221,18 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524288
   },
-  "new_mutable_and_reserved_bytes": 4966485,
+  "new_mutable_and_reserved_bytes": 4966487,
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 99959250,
-  "headroom_bytes": 40750,
+  "live_with_reserve_bytes": 99959252,
+  "headroom_bytes": 40748,
   "source_sha256": {
-    "godot/scripts/core/construction.gd": "5b7cdde0e087dc09c05ca9520b73e23edb9174932ed9d92c90bfe1860f7d3d2c",
+    "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
-    "godot/scripts/core/excavation_inventory.gd": "3acd18c7d414510dcb56d140f83304cbb52c6edb3501085de64efe12998b6f53",
+    "godot/scripts/core/excavation_inventory.gd": "bd46c3760f3e6cd130d314a4eb6431e44d3888112e649c0ad31a228a2d028c52",
+    "godot/scripts/core/excavation_sites.gd": "5afc94f03828ba608de12dbda3da59580edea5a0f0d098fb0ae4764ab2fc6fb3",
     "godot/scripts/core/int_math.gd": "fbc9c291059dc65cef91bf0ed1496b95532c5d8bc8f9a2876871c64f0545adc1",
-    "godot/scripts/core/inventory.gd": "1b881a07782a14813c450c8736cfc5eb33d915397a7fd2b6c51327f85472b0bf",
+    "godot/scripts/core/inventory.gd": "1734c9053e5779082baf8965a83691645a236f124d5bc7f2bb5646a90f8ad2f1",
     "godot/scripts/core/modular_project_contract.gd": "52928df5232a8522623b3b743eb306f1bf5ce6d24acfa74a12fcd197c3ab5135",
     "godot/scripts/core/modular_projects.gd": "7c12890953d121d3da3cebb7214684a4cd8ea9d5a29618c9e628226a23e01005",
     "godot/scripts/core/room_connectors.gd": "010a73355679d8b9f04a941b84520a0c0a904e622e7335562dbe35bcd0e7d067",

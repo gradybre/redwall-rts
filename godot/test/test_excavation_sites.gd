@@ -46,6 +46,16 @@ class SyntheticPaidSite extends Contract:
 		"""This labeled accounting fixture has no production physical transaction to attest."""
 		return &""
 
+	func excavation_inputs_refusal(_project: Vector2i, _job: Vector2i,
+			_inventory: RefCounted, _pool: RefCounted) -> StringName:
+		"""Accounting-only fixture supplies synthetic scope, never actual world/worker admission."""
+		return &""
+
+	func final_input_refusal(_project: Vector2i, _job: Vector2i, _inventory: RefCounted,
+			_pool: RefCounted, _output: Vector2i, _mass: int) -> StringName:
+		"""Explicit synthetic site proof isolates the real Inventory/WIP transaction in this suite."""
+		return &""
+
 var _inventory: Inventory = null
 var _pool: Reservations = null
 var _items: Items = null

@@ -68,6 +68,7 @@ extends RefCounted
 const Inventory := preload("res://scripts/core/inventory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const ModularContract := preload("res://scripts/core/modular_project_contract.gd")
+const ExcavationContract := preload("res://scripts/core/excavation_contract.gd")
 
 ## Reservation rows, GDD §4.2 / ARCH-MEM-002.
 const ROW_CAPACITY: int = 32768
@@ -593,9 +594,22 @@ func consume_connector_inputs(job_ref: Vector2i, now_tick: int, output_container
 		output_mass_g, inventory, guard, project)
 
 
+func consume_excavation_inputs(job_ref: Vector2i, now_tick: int, output_container: Vector2i,
+		output_mass_g: int, inventory: Inventory, guard: ExcavationContract,
+		project: Vector2i) -> Inventory.OpResult:
+	"""Actual Sites reattests the prepared phase after every reserved-input removal observer."""
+	if guard == null:
+		return _refuse(ExcavationContract.REFUSE_AUTHORITY)
+	var code: StringName = guard.excavation_inputs_refusal(project, job_ref, inventory, self)
+	if code != REFUSE_NONE:
+		return _refuse(code)
+	return _consume_inputs_transaction(job_ref, PURPOSE_EXCAVATION_INPUT, now_tick, output_container,
+		output_mass_g, inventory, null, project, guard)
+
+
 func _consume_inputs_transaction(job_ref: Vector2i, purpose: int, now_tick: int,
 		output_container: Vector2i, output_mass_g: int, inventory: Inventory,
-		guard: ModularContract, project: Vector2i) -> Inventory.OpResult:
+		guard: ModularContract, project: Vector2i, excavation: ExcavationContract = null) -> Inventory.OpResult:
 	"""Publish neither claim retirement nor a partial input debit before the complete journal commits."""
 	var code: StringName = _consume_inputs_refusal(job_ref, purpose, now_tick,
 		output_container, output_mass_g, inventory)
@@ -610,7 +624,8 @@ func _consume_inputs_transaction(job_ref: Vector2i, purpose: int, now_tick: int,
 	if code != REFUSE_NONE:
 		inventory.abort()
 		return _refuse(code)
-	var committed: Inventory.OpResult = inventory.commit()
+	var committed: Inventory.OpResult = inventory.commit_excavation_inputs(excavation, project, job_ref, self, output_container, output_mass_g) \
+		if excavation != null else inventory.commit()
 	if not committed.ok:
 		return committed
 	_remember_inventory(inventory)

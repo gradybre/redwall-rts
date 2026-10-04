@@ -266,6 +266,9 @@ var _candidate_row: int = -1
 var _candidate_stage: int = -1
 ## Same-call-stack attestation only; never saved or sufficient before physical commit.
 var _publishing_spatial: bool = false
+## Exclusive synchronous START scope; a nested attempt poisons the outer attempt.
+var _starting: bool = false
+var _start_poisoned: bool = false
 var _math: IntMath.IntResult = IntMath.IntResult.new()
 var _other_math: IntMath.IntResult = IntMath.IntResult.new()
 var _delivery_totals: PackedInt64Array = PackedInt64Array()
@@ -1194,11 +1197,26 @@ func _worker_refusal(row: int, require_registered: bool) -> StringName:
 
 
 func begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
-	"""Consume all real input claims once and reserve local output before productive work starts."""
+	"""One exclusive START owns preparation and payment; nested calls cannot replace its candidate."""
+	if _starting:
+		_start_poisoned = true
+		return _refuse(REFUSE_AUTHORITY)
+	if _candidate_row != NO_ROW or _permit_project != NULL_REF:
+		return _refuse(REFUSE_AUTHORITY)
+	_starting = true
+	_start_poisoned = false
+	var result: Construction.OpResult = _begin_phase_work(site, now_tick)
+	_starting = false
+	_start_poisoned = false
+	return result
+
+
+func _begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
+	"""All contact observers complete inside the abortable Inventory journal, before payment."""
 	var code: StringName = _start_refusal(site)
-	if code != &"":
+	if code != &"" or _start_poisoned:
 		_discard_candidate()
-		return _refuse(code)
+		return _refuse(code if code != &"" else REFUSE_AUTHORITY)
 	var project: Vector2i = _project(site.x)
 	_allow(project, ACTION_WIP)
 	var consumed: Inventory.OpResult = _funding.consume_to_wip(project, _job(site.x), now_tick, _output(site.x))
@@ -1209,11 +1227,45 @@ func begin_phase_work(site: Vector2i, now_tick: int) -> Construction.OpResult:
 	if _operation[site.x] == OP_BRACE:
 		_funded_braces += 1
 	_allow(project, ACTION_BEGIN_WORK)
-	var started: Construction.OpResult = _construction.begin_work(project)
+	var started: Construction.OpResult = Construction.begin_excavation_work_preflighted(_construction, self, project, _job(site.x))
 	_disallow()
 	assert(started.ok, "preflighted physical work start must not fail after WIP commits")
 	_publish_start(site.x)
 	return _ok(site)
+
+
+func excavation_inputs_refusal(project: Vector2i, job: Vector2i,
+		inventory: RefCounted, pool: RefCounted) -> StringName:
+	"""Original Funding settlement, exact prepared START, and actual owner identities are mandatory."""
+	if not _starting or _start_poisoned or inventory != _inventory or pool != _pool \
+			or _funding._settling_project != project or _funding._settling_job != job \
+			or _permit_project != project or _permit_action != ACTION_WIP \
+			or _candidate_stage != STAGE_START or _candidate_row < 0 or _candidate_row >= _count:
+		return REFUSE_AUTHORITY
+	return &"" if _project(_candidate_row) == project and _job(_candidate_row) == job else REFUSE_JOB
+
+
+func final_input_refusal(project: Vector2i, job: Vector2i, inventory: RefCounted,
+		pool: RefCounted, output: Vector2i, mass: int) -> StringName:
+	"""Finish every observer before pure spatial/economic leaves and the Inventory commit."""
+	var code: StringName = excavation_inputs_refusal(project, job, inventory, pool)
+	if code != &"":
+		return code
+	var row: int = _candidate_row
+	var origin: Vector3i = origin_of(Vector2i(row, SITE_GENERATION))
+	var operation: int = _operation[row]
+	var room: Vector2i = _room(row)
+	var spatial: SpatialAuthority = _spatial()
+	code = spatial.final_start_observation_refusal(origin, operation, room) if spatial != null else REFUSE_AUTHORITY
+	if code == &"":
+		code = excavation_inputs_refusal(project, job, inventory, pool)
+	if code == &"" and (_spatial() != spatial or _candidate_row != row \
+			or _operation[row] != operation or _room(row) != room):
+		code = REFUSE_AUTHORITY
+	if code == &"":
+		code = spatial.final_start_leaf_refusal(origin, operation, room)
+	return Construction.excavation_start_refusal(_construction, self, project, job, false, output, mass) \
+		if code == &"" else code
 
 
 func resume_phase_work(site: Vector2i) -> Construction.OpResult:
@@ -1267,9 +1319,6 @@ func _publish_start(row: int) -> void:
 		_phase[row] = CUTTING
 	else:
 		_phase[row] = FINISHING
-	_construction.remaining_mwu_into(_project(row), _math)
-	_jobs.set_state(_job_row(_job(row)), Jobs.JOB_STATE_COMPLETE if _math.value == 0 else Jobs.JOB_STATE_WORK)
-	_construction.set_assigned_count(_project(row), 1)
 	_publish_candidate(row, STAGE_START)
 
 

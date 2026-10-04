@@ -1,0 +1,17 @@
+{
+  "head": "f82ec3b8",
+  "tests": 251,
+  "assertions": 19182,
+  "failures": 0,
+  "unexpected_errors": 0,
+  "unexpected_warnings": 0,
+  "leaked_objects": 0,
+  "leaked_resources": 0,
+  "analyzer": "0 GDScript warning(s) in 0 of 3 file(s)",
+  "source_unchanged": true,
+  "project_restored": true,
+  "assets_restored": true,
+  "merge_review": "1130 Locations/test source exact; merged Routes is byte-identical1130 prefix plus separately accepted1125 stationary-turn helpers. Six strict suites cover both components. No full-suite, production-profile or timing qualification.",
+  "route_sha256": "6e551edf8eeca22e9ff602573b961eeb4f0fd004c33c63fe477dffdce2c34cde",
+  "runner_sha256": "051b1fdaaed6f760a61d3a81efa25a8a133ac53fa77b5b0596dd8bb33049a821"
+}

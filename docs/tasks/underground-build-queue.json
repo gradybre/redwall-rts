@@ -1532,7 +1532,11 @@
         "docs/decisions/1121-actual-excavation-phase-companions.md",
         "godot/test/test_underground_prepared_location_observation.gd",
         "godot/test/test_underground_prepared_location_observation.gd.uid",
-        "docs/decisions/1131-entry-world-memory-accounting.md"
+        "docs/decisions/1131-entry-world-memory-accounting.md",
+        "godot/scripts/core/underground_surface_anchor.gd",
+        "godot/scripts/core/underground_surface_anchor.gd.uid",
+        "godot/test/test_underground_surface_anchor.gd",
+        "godot/test/test_underground_surface_anchor.gd.uid"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -2211,16 +2215,22 @@
         },
         "prepared_location_observation_1130": {
           "owner": "/root/ug_construction",
-          "status": "implementing",
+          "status": "independently reviewed and integrated component",
           "reason": "phase-world29 still exhausted Locations during repeated all-candidate installed-witness passes for Routes endpoints. Metadata correction retained; no further counter shaving proposed.",
-          "contract": "Static actual Locations observation into fixed caller packet; exact original token/lease/seal/full ref/World/base-target context, unchanged output on refusal. Existing full API remains. Actual Routes use only inside complete pre/post validation and final publication checks. No retained cache/permission flag or limit change."
+          "contract": "Static actual Locations observation into fixed caller packet; exact original token/lease/seal/full ref/World/base-target context, unchanged output on refusal. Existing full API remains. Actual Routes use only inside complete pre/post validation and final publication checks. No retained cache/permission flag or limit change.",
+          "source_commit": "b7f09915",
+          "integration_commit": "f82ec3b8",
+          "reviewer": "/root",
+          "tests": "Final author180 tests/16524 assertions/0; strict/raw diagnostics and leaks0; analyzer0/3. Integrated251 tests/19182 assertions/0; same zero diagnostics/leaks; analyzer0/3.",
+          "evidence": "docs/validation/evidence/underground-1130-integration-2026-10-04/",
+          "memory": "No retained delta; numeric helper312/512, existing116-byte Records reused. Native allocations remain unqualified."
         },
         "actual_profile_integration_gaps": {
           "reviewer": "/root/ug_geometry",
           "reviewed_head": "77cd67e3",
           "report": "docs/reviews/2026-10-04-underground-profile-integration-gaps.md",
           "next_decision": 1133,
-          "status": "Read-only review complete; source work waits for Construction Locations lease release. Foot support/air separation, real natural approaches, paid raised workpiece, source-phase stairs and current renderer/consumer closure remain required. No source envelope shrink or paid tread enlargement."
+          "status": "1133 implementing after explicit Construction Locations and root SurfaceAnchor stop/release. Required foot-support/air distinction; paid raised workpieces and source-phase stairs remain separate."
         },
         "entry_world_memory_1131": {
           "owner": "/root",
@@ -2251,10 +2261,6 @@
               "godot/scripts/core/underground_work_face.gd",
               "godot/test/test_underground_work_face.gd",
               "docs/decisions/1099-source-bound-solid-work-face.md",
-              "godot/scripts/core/underground_surface_anchor.gd",
-              "godot/scripts/core/underground_surface_anchor.gd.uid",
-              "godot/test/test_underground_surface_anchor.gd",
-              "godot/test/test_underground_surface_anchor.gd.uid",
               "docs/decisions/1103-actual-surface-work-anchor.md",
               "godot/scripts/core/underground_entry_cut_map.gd",
               "godot/scripts/core/underground_entry_cut_map.gd.uid",
@@ -2330,7 +2336,7 @@
           {
             "agent": "/root/ug_construction",
             "branch": "codex/underground-connector-work",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/scripts/core/underground_routes.gd",
               "godot/scripts/core/underground_locations.gd",
@@ -2338,7 +2344,34 @@
               "godot/test/test_underground_prepared_location_observation.gd",
               "godot/test/test_underground_prepared_location_observation.gd.uid"
             ],
-            "handoff": "ug_geometry stopped accepted1124 writes and explicitly granted2026-10-04; root Locations writes already stopped after1129. Construction owns narrow1130 static prepared-row observation and actual Routes prepared-candidate caller. Geometry Routes tests remain frozen; root reviews before commit."
+            "handoff": "ug_geometry stopped accepted1124 writes and explicitly granted2026-10-04; root Locations writes already stopped after1129. Construction owns narrow1130 static prepared-row observation and actual Routes prepared-candidate caller. Geometry Routes tests remain frozen; root reviews before commit.",
+            "stop_evidence": "Construction explicitly stopped all Routes/Locations and related test writes after b7f09915; returned Locations/test to Geometry on2026-10-04. Routes and new observation test frozen."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-entry-admission",
+            "state": "released",
+            "files": [
+              "godot/scripts/core/underground_surface_anchor.gd",
+              "godot/scripts/core/underground_surface_anchor.gd.uid",
+              "godot/test/test_underground_surface_anchor.gd",
+              "godot/test/test_underground_surface_anchor.gd.uid"
+            ],
+            "stop_evidence": "Root explicitly stopped and handed the narrow SurfaceAnchor source/test contract to Geometry for1133 on2026-10-04; no root writes remain."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-support-clearance",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_locations.gd",
+              "godot/test/test_underground_locations.gd",
+              "godot/scripts/core/underground_surface_anchor.gd",
+              "godot/scripts/core/underground_surface_anchor.gd.uid",
+              "godot/test/test_underground_surface_anchor.gd",
+              "godot/test/test_underground_surface_anchor.gd.uid"
+            ],
+            "handoff": "Construction and root explicit stops recorded above.1133 separates authored foot support from independently proved body/tool air; preserve full actual source/paid datum, obstacle and section proofs,1130 brackets and existing limits. Existing EntryBindings lease remains held. No retained schema/bank or raised-WIP/stair bypass."
           }
         ]
       }

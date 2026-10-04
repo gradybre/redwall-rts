@@ -1,0 +1,66 @@
+{
+  "manifest_sha256": "4f27d3794b61797efd1c371e76a7b46d171ccacea81c88896230b1b768333032",
+  "invocation_sha256": "0a2533005534d6deceaaa1a38b0711059da4f525f57f4c588391a5c60ccb2547",
+  "source_pins": 32,
+  "source_match": true,
+  "output_pins": 40,
+  "outputs_match": true,
+  "clips": {
+    "hold": {
+      "complete": true,
+      "intervals": 1,
+      "checks": 0,
+      "pairs": 0,
+      "body_triangles": 10209,
+      "stock_triangles": 768,
+      "non_grip_triangles": 9283,
+      "foot_missing_intervals": 0,
+      "grip_failures": 0,
+      "floor_penetrations": 0,
+      "separation": true,
+      "maximum_proved_polynomial_degree": 0
+    },
+    "enter": {
+      "complete": true,
+      "intervals": 64,
+      "checks": 0,
+      "pairs": 0,
+      "body_triangles": 10209,
+      "stock_triangles": 768,
+      "non_grip_triangles": 9283,
+      "foot_missing_intervals": 0,
+      "grip_failures": 0,
+      "floor_penetrations": 0,
+      "separation": true,
+      "maximum_proved_polynomial_degree": 7
+    },
+    "carry": {
+      "complete": true,
+      "intervals": 218,
+      "checks": 0,
+      "pairs": 0,
+      "body_triangles": 10209,
+      "stock_triangles": 768,
+      "non_grip_triangles": 9283,
+      "foot_missing_intervals": 0,
+      "grip_failures": 0,
+      "floor_penetrations": 0,
+      "separation": true,
+      "maximum_proved_polynomial_degree": 7
+    },
+    "exit": {
+      "complete": true,
+      "intervals": 64,
+      "checks": 0,
+      "pairs": 0,
+      "body_triangles": 10209,
+      "stock_triangles": 768,
+      "non_grip_triangles": 9283,
+      "foot_missing_intervals": 0,
+      "grip_failures": 0,
+      "floor_penetrations": 0,
+      "separation": true,
+      "maximum_proved_polynomial_degree": 7
+    }
+  }
+}

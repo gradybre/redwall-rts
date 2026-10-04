@@ -1,0 +1,25 @@
+{
+  "source_sha256": "292afdc251cf9354ce7738a4dba56f5b9b25779b7b5505d2818d57bc9e985148",
+  "disk_bytes": 5259,
+  "disk_gate": 312320,
+  "max_keys": 256,
+  "arrays_materialized_before_refusal": [
+    {
+      "key": "matrices",
+      "shape": [
+        4096,
+        25,
+        12
+      ],
+      "nbytes": 4915200
+    },
+    {
+      "key": "grounding",
+      "shape": [
+        4096
+      ],
+      "nbytes": 16384
+    }
+  ],
+  "refusal": "ValueError: HAUL_GAIT_KEYS"
+}

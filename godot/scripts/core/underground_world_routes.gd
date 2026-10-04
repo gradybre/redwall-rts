@@ -246,7 +246,6 @@ var _owner_ref: WeakRef = null
 var _sources_ref: WeakRef = null
 var _locations_ref: WeakRef = null
 var _profiles: Profiles = null
-var _catalog: Catalog = null
 var _levels: Levels = null
 var _movement: Movement = null
 var _residents: Residents = null
@@ -273,6 +272,10 @@ var _target_revision: int = 0
 var _content_revision: int = 0
 var _catalog_revision: int = 0
 var _live_catalog_revision: int = 0
+var _catalog_identity: int = 0
+var _profile_identity: int = 0
+var _levels_identity: int = 0
+var _attested_catalog_revision: int = 0
 var _descriptor: Profiles.Descriptor = Profiles.Descriptor.new()
 var _body: Profiles.Box = Profiles.Box.new()
 var _stance: Profiles.Box = Profiles.Box.new()
@@ -338,6 +341,10 @@ func _store_configuration(config: Configuration) -> void:
 	_world = config.world
 	_terrain = config.terrain
 	_budget = config.budget
+	_catalog_identity = _catalog.get_instance_id()
+	_profile_identity = _profiles.get_instance_id()
+	_levels_identity = _levels.get_instance_id()
+	_attested_catalog_revision = 0
 
 
 func _allocate_scratch() -> void:
@@ -950,6 +957,8 @@ func _committed_profile_edge_refusal(ref: Vector2i) -> StringName:
 
 func _current_certificate_refusal(ref: Vector2i) -> StringName:
 	"""After the last callback, pure actual-owner reads pin the complete current certificate again."""
+	if not _immutable_owners_match(self):
+		return REFUSE_BINDING
 	if ref.x < 0 or ref.x >= EDGE_CAPACITY or ref.y <= 0 or _live.generations[ref.x] != ref.y \
 			or _live.geometry[ref.x] != _owner().revision() or _live.content[ref.x] != _descriptor.content_revision \
 			or _descriptor.content_revision != _profiles.content_revision() \
@@ -1047,8 +1056,33 @@ static func _reach_stores_refusal(actual: RefCounted, graph: Routes, owner: Owne
 		return &"WORLD_ROUTE_CERTIFICATE_STALE"
 	if not _reach_level_domain(actual, owner) or not _reach_world(actual, owner, locations):
 		return REFUSE_BINDING
-	return SourceFacts.refusal(actual._catalog, 0, actual._catalog._live.variant_revisions[0],
-		actual._live_catalog_revision, actual._catalog._live.digests)
+	return _reach_content_refusal(actual)
+
+
+static func _reach_content_refusal(actual: RefCounted) -> StringName:
+	"""Only immutable bytes are memoized; original owners and every live source header remain exact on each read."""
+	var catalog: Catalog = actual._catalog
+	if not _immutable_owners_match(actual):
+		return REFUSE_BINDING
+	if not catalog._configured or catalog._loading or catalog._live.digests.size() != 96 \
+			or catalog._live.variant_revisions[0] < 1 or not SourceFacts._same_actual_owners(catalog) \
+			or not SourceFacts._source_storage_matches(catalog):
+		return SourceFacts.REFUSE
+	if actual._attested_catalog_revision == actual._live_catalog_revision:
+		return &""
+	var code: StringName = SourceFacts.refusal(catalog, 0, catalog._live.variant_revisions[0],
+		actual._live_catalog_revision, catalog._live.digests)
+	if code == &"":
+		actual._attested_catalog_revision = actual._live_catalog_revision
+	return code
+
+
+static func _immutable_owners_match(actual: RefCounted) -> bool:
+	"""Native object IDs are unsaved composition pins; equal content revisions cannot name a foreign owner."""
+	return actual._catalog != null and actual._profiles != null and actual._levels != null \
+		and actual._catalog.get_instance_id() == actual._catalog_identity \
+		and actual._profiles.get_instance_id() == actual._profile_identity \
+		and actual._levels.get_instance_id() == actual._levels_identity
 
 
 static func _reach_profile_owners(actual: RefCounted, graph: Routes, locations: Locations) -> bool:

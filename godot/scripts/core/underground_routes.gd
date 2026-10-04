@@ -194,6 +194,8 @@ class ProfilePath extends RefCounted:
 
 class Bindings extends RefCounted:
 	## Actual WorldBindings implements these read-only proofs; base callbacks fail closed.
+	var _catalog: Catalog = null
+
 	func exact_binding(_routes: RefCounted, _locations: Locations, _owner: Owner, _cold: Budget) -> bool:
 		"""Equality must include the actual World and physical/profile/contact owners."""
 		return false
@@ -1614,6 +1616,8 @@ func _current_profile_path_refusal(query: ProfilePath) -> StringName:
 	"""Pure full-identity and revision reads follow every external callback and precede output writes."""
 	if not _cold.covers(query.cold_token, PROFILE_PATH_COLD_BYTES):
 		return &"ROUTE_COLD_LEASE"
+	if query.bindings._catalog != query.catalog:
+		return &"ROUTE_OWNER_MISMATCH"
 	if query.bindings != _bindings or query.owner != _owner or query.profiles != _profiles 			or query.locations != _locations or query.sources != _sources 			or not _ids.is_valid_of_kind(_world, Directory.KIND_WORLD):
 		return &"ROUTE_OWNER_MISMATCH"
 	if query.owner.has_prepared() or query.owner.revision() != query.geometry_revision 			or _live.revision != query.graph_revision or query.profiles.content_revision() != query.descriptor.content_revision 			or query.catalog.content_revision() != query.catalog_revision:

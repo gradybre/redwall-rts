@@ -262,6 +262,8 @@ var _admission_type: int = -1
 var _world_scope: WeakRef = null
 var _world_preparation: bool = false
 var _installation: InstallationContext = null
+var _resolve_source_ref: Vector2i = NULL_REF
+var _resolve_source_hint: int = -1
 
 
 func configure(ids: Directory, buildings: Buildings, transforms: Transforms,
@@ -565,7 +567,11 @@ func _resolve_section_refusal(room: Vector2i, section: Vector2i, level: int, poi
 
 
 func _resolve_source_row(ref: Vector2i) -> int:
-	"""Scan the actual finite source slots once, preserving full generation and rejecting duplicate identities."""
+	"""Reuse only an exact full-ref row; seal/load owns uniqueness, while every caller still rechecks source facts."""
+	if _resolve_source_ref == ref and _resolve_source_hint >= 0 and _resolve_source_hint < _owner._source_capacity \
+			and _owner._o_present[_resolve_source_hint] == 1 and _owner._o_slot[_resolve_source_hint] == ref.x \
+			and _owner._o_generation[_resolve_source_hint] == ref.y:
+		return _resolve_source_hint
 	var found: int = -1
 	for row: int in _owner._source_capacity:
 		if _owner._o_present[row] == 0 or _owner._o_slot[row] != ref.x:
@@ -573,6 +579,8 @@ func _resolve_source_row(ref: Vector2i) -> int:
 		if _owner._o_present[row] != 1 or _owner._o_generation[row] != ref.y or found >= 0:
 			return -1
 		found = row
+	_resolve_source_ref = ref
+	_resolve_source_hint = found
 	return found
 
 

@@ -165,8 +165,8 @@ performed 20 batches of 256 live callers through a three-span committed path
 45.749 ms minimum,46.649 ms median,47.555 ms p95 and47.770 ms maximum. The parent
 full suite ran concurrently, so these are diagnostic Mac timings rather than
 qualification-floor results; even so, they expose a material per-worker-search
-cost. No retained/transient Object-count increase occurred in the measured
-loop, but that fact does not establish native allocator peak or CPU fitness.
+cost. The Object counter was unchanged across the completed measured loop,
+but that fact does not establish transient allocation, native peak or CPU fitness.
 This increment is not qualified for an unbudgeted full search for every
 productive worker. Bounded scheduling or valid shared reuse with current
 source validation remains required before that runtime claim.
@@ -178,3 +178,58 @@ it again passed137 tests /13,326 assertions with all strict/raw diagnostics and
 leaks zero, analyzer0/5 and exact source/restoration checks. Final batch p95 was
 46.419ms; the earlier47.555ms remains retained, and both fail the runtime gate.
 See hot-3/source-sha256.json for the committed source/test closure.
+
+## Bounded immutable attestation reuse
+
+The next source candidate adds four unsaved I64 controls to WorldRoutes:
+the original native instance identities of Catalog, Profiles and Levels, plus
+the last fully attested Catalog revision. These 32 logical bytes fit its
+existing4096-byte fixed allowance. They retain no object, bank or permission.
+Native instance IDs are composition checks, never saved EntityRefs.
+
+Every hot call still checks the complete actual owner wiring, immutable Domain,
+full live World, current Catalog/Profile/Level revisions, bounded source rows,
+and selected full endpoint/section/source identities. The reusable attestation
+skips only the three already-proved immutable digest comparisons for the exact
+original object tuple and unchanged Catalog revision. Catalog and Profile
+loaders require strictly increasing content revisions and do not offer reset;
+Levels loads once. A public source replacement therefore either invalidates
+the committed route certificates or requires a new complete digest comparison
+after actual cold recompilation. Equal bytes and revision on another owner
+cannot reuse the original composition. The existing pure certificate tail
+also checks these original owner identities after its observing callbacks.
+
+Locations additionally holds the source-row hint documented in1105,16 logical
+bytes. Combined new retained controls are48 bytes, with no new arrays or path
+map. Every existing finite-work precharge remains unchanged, including the
+conservative source-capacity charge on a hint hit. The deepest declared helper
+frame remains336/512 logical bytes. Native headers/frame allocation, full-size
+distinct-path workloads and qualification-floor timings remain open; neither
+memo is an actor, contact, physical-retreat or dynamic-occupancy permission.
+
+The rejected hot-4 run exposed a cold generic-provider boundary: an outer
+`static_profile_edge_refusal` override replaced the actual Catalog after the
+production provider returned. The retained private query still held the old
+Catalog and could copy its answer. This is a source-identity defect, not a
+permitted cache shortcut. The existing Catalog reference now lives in the typed
+`Routes.Bindings` base instead of the derived WorldRoutes declaration. The cold
+caller directly compares that current field with its originally pinned Catalog
+after each callback and immediately before output. There is no new provider
+reference slot, callback, preload cycle or caller success flag. Base bindings
+remain null and their permission callbacks continue to refuse; actual
+WorldRoutes explicitly initializes the inherited field during configuration.
+The original outer-override regression remains active, separately from the
+nested actual Terrain callback case. Evidence retains both rejected iterations.
+
+Final frozen hot-6 validation passed144 tests/13,550 assertions with every
+strict/raw diagnostic and leak count zero, analyzer0/5, and exact source/project
+restoration. Actual256-query diagnostic p95 was26.018ms (minimum25.307,
+median25.609,maximum26.232). This is an improvement, but remains failed runtime
+qualification. The source-qualified evidence and rejected iterations are under
+`docs/validation/evidence/underground-connector-placements-2026-10-03/hot-6/`.
+
+Independent Construction read-only review accepted all five hot-6 source/test
+pins, rehashed unchanged at the end, with no high/medium finding. It reviewed
+source-row/full-generation freshness, immutable owner/revision reuse, the outer
+callback cold-boundary correction and the48-byte census. It did not rerun engine
+tests. The timing/native qualification limits above remain open.

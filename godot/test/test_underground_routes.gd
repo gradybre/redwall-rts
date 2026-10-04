@@ -12,6 +12,7 @@ const Profiles := preload("res://scripts/core/underground_profiles.gd")
 const WorldRouteTests := preload("res://test/test_underground_world_routes.gd")
 const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
+const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Residents := preload("res://scripts/core/residents.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
@@ -1303,6 +1304,45 @@ class ProfileRouteFixture extends WorldRouteTests:
 		"""Replacing the actual immutable content invalidates earlier edge checks in this search."""
 		assert_equal(_load_catalog(2), &"", "actual catalog revision replaced")
 
+	func recertify() -> void:
+		"""Actual cold compilation republishes every unchanged edge against the current immutable source."""
+		var token: int = _begin()
+		for edge: Vector2i in edges:
+			assert_equal(_routes.stage_refresh(token, edge), &"", "actual current edge qualification")
+		assert_equal(_binding.seal(token), &"", "all current certificates sealed")
+		assert_equal(_binding.publish(token), &"", "actual graph and certificates published")
+		_end(token)
+
+	func foreign_catalog() -> Catalog:
+		"""A second genuine loaded Catalog has identical revision/content and actual collaborators, but a different identity."""
+		var other: Catalog = Catalog.new()
+		assert_equal(other.configure(Catalog.RESERVED_BYTES), &"", "actual second Catalog")
+		assert_equal(other.bind_actual(_profiles, _levels, _movement, _residents, _transforms, _owner._domain),
+			&"", "same actual collaborators")
+		var bytes: PackedByteArray = ContentFixture.synthetic_image(1)
+		assert_equal(other.load_file(TEMP, _write(TEMP, bytes), 1), &"", "actual equal content")
+		return other
+
+	func foreign_profiles() -> Profiles:
+		"""Load an equal immutable Profile image through the actual loader, never a fake source success flag."""
+		var other: Profiles = Profiles.new()
+		assert_equal(other.configure(8, 64, 2, Profiles.ARENA_BYTES), &"", "actual second Profiles")
+		assert_equal(other.bind_actual(_residents, _transforms, _inventory, _gear, _carry, _work, _pool, _piles),
+			&"", "same current actors/tools/cargo")
+		var identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+		assert_true(_residents.spatial_profile_identity_into(_worker, identity), "real worker source")
+		var bytes: PackedByteArray = ContentFixture.synthetic_profile_image(identity)
+		assert_equal(other.load_file(PROFILE_TEMP, _write(PROFILE_TEMP, bytes), 1), &"", "actual equal Profile image")
+		return other
+
+	func foreign_levels() -> Levels:
+		"""The same immutable level bytes and Domain do not make a new object the original configured owner."""
+		var other: Levels = Levels.new()
+		assert_equal(other.load_file(ContentFixture.LEVEL_PATH, ContentFixture.LEVEL_HASH, 1), &"", "actual second Levels")
+		assert_equal(other.bind_domain(_owner._domain, _residents.directory(), _owner._domain.descriptor(), Space.VERSION),
+			&"", "same full Domain")
+		return other
+
 	func reenter() -> void:
 		"""A nested graph query cannot reuse the active operation's Dijkstra scratch."""
 		nested_code = _routes.profile_path_into(_first, _last, 0, 1, 1, PackedInt32Array(), cold).error
@@ -1704,4 +1744,120 @@ func test_live_profile_reachability_measures_256_queries_with_full_source_capaci
 	samples.sort()
 	print("HOT-REACH 256-callers 3-spans O2048 batches20 us min=", samples[0], " median=", samples[10], " p95=", samples[18], " max=", samples[19])
 	assert_true(fixture._budget.is_quiescent(), "no cold lease during workload")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_requires_actual_recompilation_after_monotonic_replacement() -> void:
+	"""The immutable digest memo cannot turn a newer real Catalog into permission from an old edge mask."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture._binding._attested_catalog_revision, 0, "memo starts unproved")
+	assert_equal(fixture.live_path(out), &"", "first complete current proof")
+	assert_equal(fixture._binding._attested_catalog_revision, 1, "original immutable bytes attested")
+	fixture.replace_catalog()
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"WORLD_ROUTE_CERTIFICATE_STALE", "old certificates cannot follow new content")
+	assert_equal(out[0], 777, "stale output untouched")
+	assert_equal(fixture._binding._attested_catalog_revision, 1, "refused source did not refresh memo")
+	fixture.recertify()
+	assert_equal(fixture.live_path(out), &"", "actual cold compiler republished current certificates")
+	assert_equal(fixture._binding._attested_catalog_revision, 2, "new bytes independently attested")
+	assert_equal(fixture._load_catalog(1), &"CONNECTOR_CATALOG_SOURCE", "owner cannot recycle earlier immutable revision")
+	assert_equal(fixture.live_path(out), &"", "refused backwards load preserves current proof")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_rejects_same_revision_foreign_catalog_after_terrain_observer() -> void:
+	"""A late ordinary observer cannot replace the originally configured Catalog even with identical bytes/revision."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm exact owner")
+	var other: Catalog = fixture.foreign_catalog()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	fixture._terrain.binding_probe = func() -> void: binding._catalog = other
+	fixture._terrain.binding_countdown = 2
+	var path: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+	assert_true(fixture.path(path).error != &"", "cold final observer rejects foreign source")
+	assert_equal(fixture._terrain.binding_probe_count, 1, "actual underlying observer replaced source")
+	assert_equal(path, PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78]), "outer cold output preserved")
+	out[0] = 777
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "memo cannot warm a foreign equal revision")
+	assert_equal(out[0], 777, "hot foreign output preserved")
+	assert_equal(binding._attested_catalog_revision, 1, "original immutable memo remains pinned")
+	binding._catalog = fixture._catalog
+	assert_equal(fixture.live_path(out), &"", "restoring exact original owner retries")
+	_finish_profile_fixture(fixture)
+
+
+func test_cold_profile_path_rejects_outer_provider_source_replacement_before_output() -> void:
+	"""An override returning prior success cannot replace the provider's current source after its production tail."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm original immutable memo")
+	var other: Catalog = fixture.foreign_catalog()
+	var binding: ObservedStaticBinding = fixture._binding as ObservedStaticBinding
+	binding.probe = func() -> void: binding._catalog = other
+	var path: PackedInt32Array = PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78])
+	var reads: int = binding.edge_reads
+	assert_equal(fixture.path(path).error, &"ROUTE_OWNER_MISMATCH", "actual caller closes outer callback source identity")
+	assert_equal(binding.edge_reads, reads + 1, "first source fault stops all further permission callbacks")
+	assert_equal(path, PackedInt32Array([71, 72, 73, 74, 75, 76, 77, 78]), "complete cold output unchanged")
+	out[0] = 777
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "warm memo also rejects equal foreign source")
+	assert_equal(out[0], 777, "hot output unchanged")
+	binding._catalog = fixture._catalog
+	assert_equal(fixture.path(path).error, &"", "original source permits valid cold retry")
+	assert_equal(fixture.live_path(out), &"", "original source permits valid hot retry")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_rejects_foreign_profile_and_level_owners_with_equal_bytes() -> void:
+	"""Replacing all visible same-kind links still cannot substitute another originally unbound immutable owner."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm original immutable tuple")
+	var profiles: Profiles = fixture.foreign_profiles()
+	fixture._binding._profiles = profiles
+	fixture._catalog._profiles = profiles
+	fixture._routes._profiles = profiles
+	out[0] = 777
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "same-byte foreign Profile owner")
+	fixture._binding._profiles = fixture._profiles
+	fixture._catalog._profiles = fixture._profiles
+	fixture._routes._profiles = fixture._profiles
+	var levels: Levels = fixture.foreign_levels()
+	fixture._binding._levels = levels
+	fixture._catalog._levels = levels
+	assert_equal(fixture.live_path(out), WorldRoutes.REFUSE_BINDING, "same-byte foreign Level owner")
+	assert_equal(out[0], 777, "both replacements preserve caller output")
+	fixture._binding._levels = fixture._levels
+	fixture._catalog._levels = fixture._levels
+	assert_equal(fixture.live_path(out), &"", "original exact tuple retries")
+	_finish_profile_fixture(fixture)
+
+
+func test_live_content_memo_never_hides_current_profile_revision_or_source_generation() -> void:
+	"""The digest shortcut retains live profile-source and full-generation obligations on every invocation."""
+	var fixture: ProfileRouteFixture = ProfileRouteFixture.new()
+	fixture.network()
+	fixture.finish_query_lease()
+	var out: PackedInt32Array = PackedInt32Array([777])
+	assert_equal(fixture.live_path(out), &"", "warm both source hints")
+	var source: int = fixture._owner._find_source(fixture._world_ref, false)
+	fixture._owner._o_generation[source] += 1
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"LOCATION_SOURCE_STALE", "selected source generation remains current")
+	fixture._owner._o_generation[source] -= 1
+	assert_equal(fixture.live_path(out), &"", "exact live source restored")
+	fixture._replace_profiles_during_final_binding()
+	out[0] = 777
+	assert_equal(fixture.live_path(out), &"CONNECTOR_RECIPE_SOURCE", "new actual Profile revision breaks Catalog's pinned source")
+	assert_equal(out[0], 777, "stale source output preserved")
+	assert_equal(fixture._binding._attested_catalog_revision, 1, "no invented current-source attestation")
 	_finish_profile_fixture(fixture)

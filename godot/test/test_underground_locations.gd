@@ -1638,3 +1638,64 @@ func test_live_selector_rejects_prepared_context_and_current_room_source_drift()
 	assert_equal(out, PackedInt32Array([77, 88]), "all refused output unchanged")
 	assert_equal(_resolve_live(record, out), &"", "current actual Room endpoint")
 	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "full published identity")
+
+
+func test_live_source_hint_rechecks_revision_full_identity_and_room_facts() -> void:
+	"""A warm row is only a lookup hint; changing any current source fact still refuses the endpoint."""
+	var fixture: DoorwayFixture = _doorway()
+	var record: Locations.Record = _doorway_record(fixture, 0)
+	var ref: Vector2i = _add(record)
+	var out: PackedInt32Array = PackedInt32Array([77, 88])
+	assert_equal(_resolve_live(record, out), &"", "warm exact Room source")
+	var source: int = _locations._resolve_source_hint
+	assert_equal(_locations._resolve_source_ref, record.room, "complete hinted identity")
+	out[0] = 77
+	out[1] = 88
+	_owner._o_revision[source] += 1
+	assert_equal(_resolve_live(record, out), &"LOCATION_SOURCE_STALE", "current source revision remains mandatory")
+	_owner._o_revision[source] -= 1
+	var row: int = _buildings.directory().get_typed_row(record.room)
+	var room_type: int = _buildings._r_type[row]
+	_buildings._r_type[row] = Buildings.ROOM_TYPE_CORRIDOR
+	assert_equal(_resolve_live(record, out), &"LOCATION_SOURCE_STALE", "current Room type remains mandatory")
+	_buildings._r_type[row] = room_type
+	_owner._o_generation[source] += 1
+	assert_equal(_resolve_live(record, out), &"LOCATION_SOURCE_STALE", "same slot with another generation cannot hit")
+	_owner._o_generation[source] -= 1
+	assert_equal(out, PackedInt32Array([77, 88]), "warm-cache refusal preserves output")
+	assert_equal(_resolve_live(record, out), &"", "restored actual full source retries")
+	assert_equal(out, PackedInt32Array([ref.x, ref.y]), "same exact endpoint")
+
+
+func _unplaced_room_source(commands: OwnerFixture.SyntheticRoomCommands) -> Vector2i:
+	"""Register a real empty Room source so actual source/Directory retirement can exercise hint reuse."""
+	commands.permit(Buildings.SPATIAL_ROOM_CREATE, NULL_REF, NULL_REF, Buildings.ROOM_TYPE_CORRIDOR)
+	var room: Vector2i = _buildings.designate_spatial_room(Buildings.ROOM_TYPE_CORRIDOR).ref
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_source(token, room), &"", "real empty Room source")
+	assert_equal(_owner.seal(token), &"", "unique source slot validated")
+	_owner.publish(token)
+	return room
+
+
+func test_source_hint_rejects_actual_retirement_and_reused_full_generation() -> void:
+	"""The packed row may be reused after an actual sealed retirement without carrying the old source identity."""
+	var fixture: DoorwayFixture = _doorway()
+	var old: Vector2i = _unplaced_room_source(fixture.commands)
+	var row: int = _locations._resolve_source_row(old)
+	assert_true(row >= 0, "warm actual row")
+	var token: int = _owner.begin_stage(_owner.revision()).token
+	assert_equal(_owner.stage_forget_source(token, old), &"", "actual source retirement")
+	assert_equal(_owner.seal(token), &"", "retired source candidate")
+	_owner.publish(token)
+	assert_equal(_locations._resolve_source_row(old), -1, "empty slot cannot satisfy hint")
+	fixture.commands.permit(Buildings.SPATIAL_ROOM_REMOVE, old, NULL_REF)
+	assert_true(_buildings.remove_room(old).ok, "actual full Room retirement")
+	var current: Vector2i = _unplaced_room_source(fixture.commands)
+	assert_equal(current.x, old.x, "actual Directory slot reused")
+	assert_true(current.y > old.y, "actual generation advanced")
+	_locations._resolve_source_ref = old
+	_locations._resolve_source_hint = row
+	assert_equal(_locations._resolve_source_row(old), -1, "old cached generation refuses reused source slot")
+	assert_equal(_locations._resolve_source_row(current), row, "new source gets exact reusable row")
+	assert_equal(_locations._resolve_source_ref, current, "hint now names only current generation")

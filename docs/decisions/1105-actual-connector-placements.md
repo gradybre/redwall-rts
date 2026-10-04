@@ -378,3 +378,24 @@ strict/raw diagnostics and leaks all zero, analyzer 0/5. The reproduction isolat
 exact prior bytes, so concurrent worktrees cannot overwrite these fixtures.
 The separate256-caller route timing is explicitly a failed runtime-performance
 qualification, not a completed productive-contact integration.
+
+## Exact source-row lookup hint
+
+The following bounded candidate adds one full source EntityRef8 and one native
+row integer8 to Locations. They are unsaved, noncanonical lookup controls,
+initially NULL/-1, with no per-Placement endpoint map or new packed bank. A hit
+requires current actual presence1, exact slot and generation at that row.
+Every caller still checks the current section source revision and actual
+World/Room facts. A miss scans the full bounded source table and refuses stale
+or duplicate identities exactly as before. The source owner already validates
+unique source slots at every seal and load; the hint relies on that admitted
+bank invariant rather than scanning all slots again on a hit. It does not
+cache validity, clearance or the Room's current contents.
+
+Actual source/Room retirement and slot reuse are regression-tested, along with
+warm source revision and current Room-fact drift. The whole-topology fixed
+logical census changes2086→2102 within its existing2112 ceiling; the combined
+Locations/Routes reservation stays1041728. WorldRoutes' separate32-byte
+immutable attestation is in its existing4096 fixed allowance (decision1098).
+Placement remains1670/2048 and the caller's deepest reachability helper frame
+remains336/512. No new cold arena or runtime/native admission is implied.

@@ -1,0 +1,17 @@
+{
+  "kind": "Read-only injected source index; not a normal complete integrated invocation",
+  "injected_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work",
+  "injected_source_sha256": {
+    "godot/scripts/core/underground_entry_world_bindings.gd": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
+    "godot/scripts/core/underground_connector_contacts.gd": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d"
+  },
+  "tests": 146,
+  "failures": 0,
+  "errors": 0,
+  "runtime_qualified": false,
+  "current_normal_source_tests_pending": true,
+  "tool_sha256": {
+    "tools/underground_memory_budget.py": "d05799d3dc3041dcbc1fdfc3c66c425047cfed064cee506c2cc48941910850dc",
+    "tools/test_underground_memory_budget.py": "a8f95f9ff1f43d39ffd9df7e31c01e4077abda44b4f3a706fd469edbddd0e0c6"
+  }
+}

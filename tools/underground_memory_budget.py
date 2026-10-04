@@ -569,6 +569,76 @@ def entry_structure_reservation(index: dict) -> dict:
             "scope": "Additional binding reserve; inherited structure counted once. No native-memory qualification."}
 
 
+def entry_world_storage_statements(source: str) -> None:
+    """Freeze actual array growth/alias sites and the single borrowed getter, not just resulting dimensions."""
+    assert not re.search(r"\.new\s*\(", source), "entry World must not construct another owned packet"
+    assert re.findall(r"\b(Packed[A-Za-z0-9]+Array)\s*\(", source) == ["PackedInt32Array"] * 3, \
+        "entry World has unaccounted local or retained packed allocation"
+    statements = [line.strip() for line in source.splitlines()
+                  if not line.lstrip().startswith(("#", '"""'))
+                  and re.search(r"\b_entry_(?:box|air|reach)\b", line)]
+    expected = [
+        'var _entry_box: PackedInt32Array = PackedInt32Array()',
+        'var _entry_air: PackedInt32Array = PackedInt32Array()',
+        'var _entry_reach: PackedInt32Array = PackedInt32Array()',
+        '_entry_box.resize(6)',
+        '_entry_air.resize(6)',
+        '_entry_reach.resize(6)',
+        'code = actual._profile_bounds(actual._box, _entry_box)',
+        'var code: StringName = actual._profile_bounds(actual._box, _entry_box)',
+        '_entry_append_row(out.volumes, _entry_box, role, actual._location.level, _entry_room, out.owner_revision)',
+        '_entry_air[axis] = maxi(_entry_box[axis], actual._location.envelope[axis])',
+        '_entry_air[axis + 3] = mini(_entry_box[axis + 3], actual._location.envelope[axis + 3])',
+        'if _entry_air[axis] >= _entry_air[axis + 3]: return false',
+        '_entry_reach[axis] = mini(_entry_air[axis], _entry_point[axis])',
+        '_entry_reach[axis + 3] = maxi(_entry_air[axis + 3], int(_entry_point[axis]) + 1)',
+        '_entry_append_row(out.contacts.approach, _entry_air, Space.ENVELOPE, actual._location.level, _entry_contact_ref, _entry_contact_revision)',
+        '_entry_append_row(out.contacts.reach, _entry_reach, Space.ENVELOPE, actual._location.level, _entry_contact_ref, _entry_contact_revision)',
+        'code = actual._profile_bounds(actual._box, _entry_box)',
+        'if not _entry_row_matches(plan.volumes, row, _entry_box, role, actual._location.level, _entry_room, plan.owner_revision):',
+        'return _entry_row_matches(plan.contacts.approach, row, _entry_air, Space.ENVELOPE, actual._location.level, _entry_contact_ref, _entry_contact_revision) \\',
+        'and _entry_row_matches(plan.contacts.reach, row, _entry_reach, Space.ENVELOPE, actual._location.level, _entry_contact_ref, _entry_contact_revision) \\',
+    ]
+    assert statements == expected, "entry World allocation/writer/borrowed-array alias drift"
+    signature = "func _entry_actual() -> PhaseContacts:"
+    assert source.count(signature) == 1, "entry World borrowed getter missing or duplicated"
+    body = source.split(signature + "\n", 1)[1].split("\n\nfunc ", 1)[0]
+    actual = [line.strip() for line in body.splitlines()
+              if line.strip() and not line.lstrip().startswith(("#", '"""'))]
+    assert actual == ["return _entry_contacts.get_ref() as PhaseContacts if _entry_contacts != null else null"], \
+        "entry World must borrow exactly the original weak Contacts packet"
+
+
+def entry_world_reservation(index: dict) -> dict:
+    """Charge the additional actual phase composer once, outside the fully assigned binding reserve."""
+    module = "underground_entry_world_bindings"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ['"res://scripts/core/underground_world_bindings.gd"']
+    integers = ("_entry_contact_revision", "_entry_operation", "_entry_stage", "_entry_episode",
+                "_entry_revision", "_entry_payload", "_entry_cold_token", "_entry_remaining")
+    refs = ("_entry_placement", "_entry_site", "_entry_room", "_entry_project", "_entry_contact_ref")
+    arrays = ("_entry_box", "_entry_air", "_entry_reach")
+    expected = {"_entry_contacts": "WeakRef", "_entry_reading": "bool", "_entry_poisoned": "bool",
+                "_entry_origin": "Vector3i", "_entry_point": "Vector3i",
+                **{name: "int" for name in integers}, **{name: "Vector2i" for name in refs},
+                **{name: "PackedInt32Array" for name in arrays}}
+    assert explicit_members(source) == expected, "unreconciled entry World member"
+    entry_world_storage_statements(source)
+    rows = columns(index, module, 3, {})
+    for name in arrays:
+        assert re.findall(re.escape(name) + r"\.resize\(([^)]+)\)", source) == ["6"], \
+            (name, "entry World resize drift")
+    assert payload(rows) == 72 and all(row["capacity"] == 6 for row in rows.values()), "entry World packet drift"
+    numeric = numeric_fields(source, "")
+    reserve = resolve(index, module, "ENTRY_CONTROL_BYTES")
+    assert numeric == 130 and reserve == 2048, "entry World reserve or control drift"
+    assert numeric + payload(rows) + 1024 <= reserve, "entry World helper allowance exceeded"
+    return {"columns": rows, "numeric_control_bytes": numeric,
+            "fixed_numeric_and_packed_bytes": numeric + payload(rows),
+            "logical_helper_allowance_bytes": 1024, "reserved_bytes": reserve,
+            "scope": "Additional phase composer only; one borrowed Contacts and existing World base counted once. Native headers and composed peak remain unqualified."}
+
+
 def structure_peak_statements(source: str) -> None:
     """Check complete unique statements, so prefix matches and comment-only formula witnesses cannot pass."""
     signature = "static func cold_peak_bytes(mode: int, region_rows: int) -> int:"
@@ -635,6 +705,7 @@ def build(index: dict | None = None) -> dict:
     quote = quote_payload(index)
     start = excavation_start_controls(index)
     entry_structure = entry_structure_reservation(index)
+    entry_world = entry_world_reservation(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
@@ -644,6 +715,7 @@ def build(index: dict | None = None) -> dict:
     contributions = {
         "excavation_start_controls": start["numeric_bytes"],
         "entry_structure_bindings": entry_structure["reserved_bytes"],
+        "entry_world_bindings": entry_world["reserved_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -671,12 +743,13 @@ def build(index: dict | None = None) -> dict:
                     "underground_connector_placements", "underground_connector_work", "entity_directory",
                     "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors",
                     "underground_connector_contacts", "underground_profiles", "int_math",
-                    "underground_entry_structure", "underground_phase_structure"))
+                    "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
     return {"schema": 1, "scope": "source-derived logical allocation pack; runtime qualification remains open",
             "runtime_qualified": False, "pack": pack, "columns": groups, "quote": quote,
             "furniture_bridge_cold": bridge, "connector_recipe_reservation": recipes,
             "excavation_start_controls": start,
             "entry_structure_reservation": entry_structure,
+            "entry_world_reservation": entry_world,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

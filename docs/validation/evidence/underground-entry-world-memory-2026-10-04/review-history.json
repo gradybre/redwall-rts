@@ -1,0 +1,52 @@
+{
+  "reviewer": "/root/ug_construction",
+  "scope": "Source-derived logical controls, packed allocation sites and borrowed packet identity; not native RAM",
+  "current_production_defect_found": false,
+  "findings": [
+    {
+      "severity": "medium",
+      "issue": "A changed packed initializer, additional growth or constructed Contacts getter escaped the initial dimension-only check.",
+      "resolution": "Exact20 array-use statements, sole complete borrowed getter and no new object constructors."
+    },
+    {
+      "severity": "medium",
+      "issue": "Additional local PackedInt32Array scratch escaped the member-only allocation census.",
+      "resolution": "Complete packed constructor census fixed to the three empty original member initializers."
+    }
+  ],
+  "accepted_helper_tool_sha256": "8ba6698ab9615e8607b318378388d080dcf51eb0cbd243b6678ee675588bf473",
+  "accepted_helper_test_sha256": "155a7e930ea173b916c26a9c669cab2d02ed2bbe2768ab925ce480af8f50100b",
+  "targeted_mutation_tests": 20,
+  "integration_wiring_status": "Accepted source wiring and normal current-source checks complete; native qualification remains open",
+  "final_wiring_review": {
+    "reviewer": "/root/ug_geometry",
+    "verdict": "Accepted; normal integrated source run pending",
+    "findings": [
+      {
+        "severity": "low",
+        "issue": "Architecture row264 called the pre-1131 joint subtotal current.",
+        "resolution": "Historical4966873 plus separately counted2048 now explicitly yields current4968921."
+      }
+    ],
+    "verified": "Independent exact injected pack equals candidate-pack.json; READY07 PASS with49 allocation rows, payload91573078, live99961686 and38314 headroom. All57 numeric historical trail rows and reserve/delta equalities hold;1072 remains4962389. No engine, copies or edits by reviewer.",
+    "reviewed_sha256": {
+      "tools/underground_memory_budget.py": "d05799d3dc3041dcbc1fdfc3c66c425047cfed064cee506c2cc48941910850dc",
+      "tools/test_underground_memory_budget.py": "a8f95f9ff1f43d39ffd9df7e31c01e4077abda44b4f3a706fd469edbddd0e0c6",
+      "docs/systems_architecture.md": "539f6ad9a7bc972481926cd083f431219ec26cf1b5cfe2d04c5a4b50dc5fcbf5",
+      "docs/validation/ready07_arithmetic.py": "d7635c033907f4ef7392bc806a454954e9e7a702d575a24202ffc96c39ea5635",
+      "docs/decisions/1131-entry-world-memory-accounting.md": "e27dcbaad840752c59209f5a08d669e0eb7492110508ac8c3a10930bd180dd45",
+      "candidate-pack.json": "48fcd15393b3f48037e22093249a72fca9f73e85380d33ea47c822d46138296e"
+    }
+  },
+  "normal_source_followup": {
+    "head": "886a5600",
+    "invocation": "normal-source-v1/invocation.json",
+    "tests": 146,
+    "failures": 0,
+    "artifact_check": "PASS",
+    "ready07": "PASS:49 allocation rows,payload91573078",
+    "source_injection": false,
+    "candidate_non_hash_data_unchanged": true,
+    "pack_sha256": "f8d05ebc818a5cde1c566bb93ae81cf4b00e5b68b56072d90d18e7853ba82878"
+  }
+}

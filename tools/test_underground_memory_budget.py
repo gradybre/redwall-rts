@@ -314,10 +314,10 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4966873)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4968921)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99959638)
-        self.assertEqual(result["headroom_bytes"], 40362)
+        self.assertEqual(result["live_with_reserve_bytes"], 99961686)
+        self.assertEqual(result["headroom_bytes"], 38314)
         self.assertFalse(result["runtime_qualified"])
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
@@ -326,7 +326,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(recipes["remaining_binding_reserve_bytes"], 0)
         contacts = recipes["connector_contacts_reservation"]
         self.assertEqual(contacts["reserved_bytes"], 4096)
-        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 3051)
+        self.assertEqual(contacts["fixed_numeric_and_packed_bytes"], 3059)
         self.assertEqual(contacts["fragment_banks_and_controls"], 1633)
         self.assertEqual(contacts["logical_helper_allowance_bytes"], 1024)
         self.assertEqual(recipes["entry_frontier_reservation"]["reserved_bytes"], 28597)
@@ -530,6 +530,87 @@ class JointPackTests(unittest.TestCase):
     def test_negative_contacts_untyped_retained_field(self) -> None:
         line = "var _other: Locations.Record = Locations.Record.new()"
         self.refuses("underground_connector_contacts", line, line + "\nvar _untyped = []")
+
+    def entry_world_refuses(self, before: str, after: str) -> None:
+        with self.assertRaises(AssertionError):
+            budget.entry_world_reservation(self.changed("underground_entry_world_bindings", before, after))
+
+    def test_entry_world_counts_one_borrowed_contact_packet(self) -> None:
+        result = budget.entry_world_reservation(self.index)
+        self.assertEqual(result["numeric_control_bytes"], 130)
+        self.assertEqual(result["fixed_numeric_and_packed_bytes"], 202)
+        self.assertEqual(result["logical_helper_allowance_bytes"], 1024)
+        self.assertEqual(result["reserved_bytes"], 2048)
+
+    def test_negative_entry_world_wider_box(self) -> None:
+        self.entry_world_refuses("_entry_box: PackedInt32Array", "_entry_box: PackedInt64Array")
+
+    def test_negative_entry_world_larger_box(self) -> None:
+        self.entry_world_refuses("_entry_box.resize(6)", "_entry_box.resize(7)")
+
+    def test_negative_entry_world_missing_resize(self) -> None:
+        self.entry_world_refuses("\t_entry_air.resize(6)", "")
+
+    def test_negative_entry_world_duplicate_resize(self) -> None:
+        line = "\t_entry_reach.resize(6)"
+        self.entry_world_refuses(line, line + "\n" + line)
+
+    def test_negative_entry_world_wider_origin(self) -> None:
+        self.entry_world_refuses("_entry_origin: Vector3i", "_entry_origin: Vector4i")
+
+    def test_negative_entry_world_extra_owned_packet(self) -> None:
+        line = "var _entry_contacts: WeakRef = null"
+        self.entry_world_refuses(line, line + "\nvar _extra: PhaseContacts = PhaseContacts.new()")
+
+    def test_negative_entry_world_duplicate_control(self) -> None:
+        line = "var _entry_reading: bool = false"
+        self.entry_world_refuses(line, line + "\n" + line)
+
+    def test_negative_entry_world_untyped_collection(self) -> None:
+        line = "var _entry_reading: bool = false"
+        self.entry_world_refuses(line, line + "\nvar _extra = []")
+
+    def test_negative_entry_world_strong_contact_owner(self) -> None:
+        self.entry_world_refuses("_entry_contacts: WeakRef", "_entry_contacts: PhaseContacts")
+
+    def test_negative_entry_world_changed_base(self) -> None:
+        self.entry_world_refuses('extends "res://scripts/core/underground_world_bindings.gd"', 'extends RefCounted')
+
+    def test_negative_entry_world_reserve_growth(self) -> None:
+        self.entry_world_refuses("ENTRY_CONTROL_BYTES: int = 2048", "ENTRY_CONTROL_BYTES: int = 4096")
+
+    def test_negative_entry_world_preallocated_initializer(self) -> None:
+        self.entry_world_refuses("_entry_box: PackedInt32Array = PackedInt32Array()",
+                                 "_entry_box: PackedInt32Array = PackedInt32Array(range(4096))")
+
+    def test_negative_entry_world_unaccounted_array_growth(self) -> None:
+        line = "\t_entry_box.resize(6)"
+        self.entry_world_refuses(line, line + "\n\t_entry_box.append_array(PackedInt32Array(range(4096)))")
+
+    def test_negative_entry_world_array_alias_growth(self) -> None:
+        line = "\t_entry_box.resize(6)"
+        self.entry_world_refuses(line, line + "\n\tvar alias: PackedInt32Array = _entry_box\n\talias.resize(4096)")
+
+    def test_negative_entry_world_reassigned_array(self) -> None:
+        line = "\t_entry_box.resize(6)"
+        self.entry_world_refuses(line, line + "\n\t_entry_box = PackedInt32Array(range(4096))")
+
+    def test_negative_entry_world_unaccounted_local_packed_scratch(self) -> None:
+        line = "\t_entry_contacts = weakref(actual)"
+        self.entry_world_refuses(line,
+            "\tvar scratch: PackedInt32Array = PackedInt32Array(range(4096))\n\tscratch.fill(0)\n" + line)
+
+    def test_negative_entry_world_getter_constructs_contacts(self) -> None:
+        self.entry_world_refuses("return _entry_contacts.get_ref() as PhaseContacts if _entry_contacts != null else null",
+                                 "return PhaseContacts.new()")
+
+    def test_negative_entry_world_getter_returns_foreign_packet(self) -> None:
+        self.entry_world_refuses("return _entry_contacts.get_ref() as PhaseContacts if _entry_contacts != null else null",
+                                 "return _entry_contacts.get_ref().foreign_contacts")
+
+    def test_negative_entry_world_duplicate_getter(self) -> None:
+        line = "func _entry_actual() -> PhaseContacts:"
+        self.entry_world_refuses(line, "func _entry_actual() -> PhaseContacts:\n\treturn null\n\n" + line)
 
     def test_negative_contacts_duplicate_field(self) -> None:
         line = "var _other: Locations.Record = Locations.Record.new()"

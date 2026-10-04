@@ -79,3 +79,21 @@ diagnostics and leaks were all zero. The changed-file analyzer reported
 `mole-worker/evidence/contact-qualification/review-cardinal-driver-v1/` and
 `driver-cardinal-check-v1/`. This accepts only the driver contract; the actual
 cardinal source artifact and first-prefix activation remain in progress.
+
+## Reviewed finite cardinal math increment
+
+Independent root review accepted the frozen offline compiler/helper/tests at
+`e57be669…`, `f5570194…` and `67f3fd81…`. The complete actual-source pass
+performed1,324,737 bounded separation checks across250 non-reused intervals,
+with exact reverse recovery reuse. All sixteen WORK rows retain180 role boxes;
+all self-contact results are clear, and each actual finite heading has its own
+source-tip crossing witness. The ten adversarial tests also pass independently.
+Proof, source/output pins and scope are retained in
+`mole-worker/evidence/contact-qualification/review-cardinal-math-v1/`.
+
+This explicitly proves the source-dependent native cardinal deviation as well
+as local/World arithmetic residuals; it never substitutes ideal quarter turns.
+No UGPROF01 wire or certificate bits were emitted by this increment. Actual
+protocol4 native replay, all-yaw ground closure, current consumer/source binding
+and final publication remain in progress; World/WIP/handling and stairs remain
+separate physical requirements.

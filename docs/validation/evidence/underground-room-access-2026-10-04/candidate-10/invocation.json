@@ -1,0 +1,148 @@
+{
+  "head_before": "b5c63281264bd4d4273dc84fc0a3e94ec5ca24f9",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.499,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "168/399",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/candidate-10"
+      ],
+      "exit_code": 0,
+      "seconds": 9.596,
+      "log": "test_modular_access.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "223/399",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/candidate-10"
+      ],
+      "exit_code": 0,
+      "seconds": 8.273,
+      "log": "test_modular_runtime.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "294/399",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/candidate-10"
+      ],
+      "exit_code": 0,
+      "seconds": 5.966,
+      "log": "test_modular_editor.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "276/399",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/candidate-10"
+      ],
+      "exit_code": 0,
+      "seconds": 10.937,
+      "log": "test_modular_world_tool.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6337",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/candidate-10/analyzer.json",
+        "godot/demo/burrow/modular_access.gd",
+        "godot/demo/burrow/modular_runtime.gd",
+        "godot/demo/burrow/modular_editor.gd",
+        "godot/demo/burrow/modular_world_tool.gd",
+        "godot/test/test_modular_access.gd",
+        "godot/test/test_modular_runtime.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 12.918,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir_name": "Redwall-ug1154-11b4a53888b2eeee",
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "assets_present_before": false,
+  "runtime_qualified": false,
+  "diagnostic_composition": false,
+  "import_raw_findings": [],
+  "strict_suites": {
+    "test_modular_access.gd": {
+      "tests": 20,
+      "assertions": 561,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_modular_runtime.gd": {
+      "tests": 16,
+      "assertions": 227,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_modular_editor.gd": {
+      "tests": 10,
+      "assertions": 116,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    },
+    "test_modular_world_tool.gd": {
+      "tests": 9,
+      "assertions": 149,
+      "failures": 0,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 0,
+      "tolerated": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0
+    }
+  },
+  "executed_source_unchanged": true,
+  "project_restored": true,
+  "registry_restored": true,
+  "prerequisites_restored": true,
+  "assets_restored": true,
+  "import_sidecars_restored": true,
+  "original_sources_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

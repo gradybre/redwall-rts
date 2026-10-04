@@ -1,0 +1,96 @@
+#!/usr/bin/env python3
+"""Meaningful refusal checks for the presentation census and native artifact oracle."""
+import importlib.util
+import json
+from pathlib import Path
+import struct
+import tempfile
+import unittest
+
+HERE = Path(__file__).resolve().parent
+
+
+def module(name):
+    spec = importlib.util.spec_from_file_location(name, HERE / (name + ".py"))
+    loaded = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(loaded)
+    return loaded
+
+
+C, R = module("census"), module("run_capture")
+
+
+class CensusTests(unittest.TestCase):
+    def mutate(self, old, new):
+        sources = C.inputs()
+        self.assertIn(old, sources[C.FILES[0]])
+        sources[C.FILES[0]] = sources[C.FILES[0]].replace(old, new, 1)
+        with self.assertRaises(ValueError):
+            C.build(sources)
+
+    def test_actual_census(self):
+        report = C.build()
+        self.assertEqual(report["maximum_access_line_vertices"], 8816)
+        self.assertEqual(report["cold_reservation_unchanged"], 1048960)
+        self.assertFalse(report["qualification"]["whole_client_qualified"])
+
+    def test_work_and_route_caps(self):
+        self.mutate("PAIRS_PER_STEP: int = 32", "PAIRS_PER_STEP: int = 64")
+        self.mutate("6 * Routes.MAX_VERTICES - 6", "12 * Routes.MAX_VERTICES - 6")
+
+    def test_escaped_witness_and_lease(self):
+        self.mutate("var revision: int = 0", "var _witness: Approach.Witness = null\nvar revision: int = 0")
+        self.mutate("config.budget.release(token)", "config.budget.release(token + 1)")
+
+    def test_hidden_footprint_copy_and_late_callback(self):
+        self.mutate("out.cells = plan.cells\n", "out.cells = plan.cells.duplicate()\n")
+        self.mutate("if not _epochs_match(config, _pins, _plan.space_revision): return REFUSE_CHANGED", "pass")
+
+    def test_original_configuration_tuple_and_no_synchronous_refresh_tail(self):
+        for old, new in (("var tuple_code: StringName = _access_setup_refusal(original)",
+                          'var tuple_code: StringName = &""'),
+                         ("_observe_access_setup(original, anchor)",
+                          "_observe_access_setup(original, anchor)\n\t_editor.refresh_site()")):
+            sources = C.inputs()
+            sources[C.FILES[1]] = sources[C.FILES[1]].replace(old, new, 1)
+            with self.assertRaises(ValueError):
+                C.build(sources)
+
+
+class NativeOracleTests(unittest.TestCase):
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.out = Path(self.temporary.name)
+        self.report = {"scope": "actual room-access view with synthetic source/physical fixture", "qualified": False,
+                       "assertions": 15, "failures": [], "images": list(R.NAMES), "renderer": "forward_plus", "driver": "metal"}
+        for name in R.NAMES:
+            (self.out / name).write_bytes(b"\x89PNG\r\n\x1a\n" + b"\x00\x00\x00\rIHDR" + struct.pack(">II", 1280, 720) + b"\x00" * 16)
+
+    def tearDown(self):
+        self.temporary.cleanup()
+
+    def check(self):
+        (self.out / "report.json").write_text(json.dumps(self.report))
+        return R.validate_report(self.out)
+
+    def test_census_and_missing_image(self):
+        self.assertEqual(len(self.check()), 3)
+        (self.out / R.NAMES[0]).unlink()
+        with self.assertRaises(ValueError):
+            self.check()
+
+    def test_failed_or_short_native_run(self):
+        for field, value in (("assertions", 14), ("failures", ["missing actual source"]), ("qualified", True), ("driver", "opengl3")):
+            original = self.report[field]
+            self.report[field] = value
+            with self.assertRaises(ValueError):
+                self.check()
+            self.report[field] = original
+
+    def test_raw_diagnostics_fail_independent_of_exit_code(self):
+        for line in ("SCRIPT ERROR: bad", "WARNING: warning", "ERROR: bad", "ObjectDB instances leaked at exit"):
+            self.assertTrue(R.CHECK.raw_findings(line))
+
+
+if __name__ == "__main__":
+    unittest.main()

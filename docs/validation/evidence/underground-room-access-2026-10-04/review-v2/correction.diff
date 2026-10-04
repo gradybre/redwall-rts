@@ -1,0 +1,414 @@
+diff --git a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_runtime.gd.txt b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot/demo/burrow/modular_runtime.gd
+index 57b63bb0..b6676e59 100644
+--- a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_runtime.gd.txt
++++ b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot/demo/burrow/modular_runtime.gd
+@@ -22,6 +22,22 @@ const REFUSE_DRAFT: StringName = &"MODULAR_VIEW_DRAFT_CHANGED"
+ const REFUSE_LEVEL: StringName = &"MODULAR_VIEW_LEVEL_CHANGED"
+ const REFUSE_BUSY: StringName = &"MODULAR_VIEW_BUSY"
+ 
++class AccessSetup extends RefCounted:
++	## Temporary original configuration; all strong owners and the copied drawing die before this call returns.
++	var editor: Editor = null
++	var tool: WorldTool = null
++	var draft: Draft = null
++	var orders: Orders = null
++	var bindings: RoomBindings = null
++	var levels: Levels = null
++	var provider: WorldRoutes = null
++	var phase: WorldBindings = null
++	var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
++	var request: Dictionary = {}
++	var camera: Camera3D = null
++	var blocked: Callable = Callable()
++	var read_view: Callable = Callable()
++
+ var _editor: Editor = null
+ var _tool: WorldTool = null
+ var _draft: WeakRef = null
+@@ -85,25 +101,116 @@ func _pin(editor: Editor, tool: WorldTool, orders: Orders, bindings: RoomBinding
+ 
+ func configure_access(provider: WorldRoutes, anchor: Vector2i) -> StringName:
+ 	"""The actual host supplies its completed anchor; this view never guesses a surface or passage endpoint."""
+-	if _busy or _access != null or not is_instance_valid(_editor): return REFUSE_BINDING
+-	var orders: Orders = _actual_orders()
+-	var bindings: RoomBindings = _actual_bindings()
+-	var levels: Levels = _actual_levels()
++	if _busy or _access != null or not is_instance_valid(_editor) or not is_instance_valid(_tool) \
++			or provider == null or provider.get_script() != WorldRoutes: return REFUSE_BINDING
+ 	_busy = true
+-	var code: StringName = _owners_refusal(orders, bindings, levels)
+-	if code == &"": code = _access_binding_refusal(provider, bindings, levels)
+-	var access: Access = Access.new()
+-	if code == &"": code = access.configure(provider, anchor)
+-	if code == &"" and is_instance_valid(_editor):
+-		_access = access
+-		if not _editor.bind_access(access, search_access):
+-			_access = null
+-			code = REFUSE_BINDING
++	var original: AccessSetup = _access_setup(provider)
++	var code: StringName = _observe_access_setup(original, anchor)
+ 	_busy = false
+-	if code == &"": _editor.refresh_site()
+ 	return code
+ 
+ 
++func _access_setup(provider: WorldRoutes) -> AccessSetup:
++	"""Capture the original view, callbacks, drawing and concrete source owners before observing any of them."""
++	var out: AccessSetup = AccessSetup.new()
++	out.editor = _editor
++	out.tool = _tool
++	out.draft = _draft.get_ref() as Draft if _draft != null else null
++	out.orders = _actual_orders()
++	out.bindings = _actual_bindings()
++	out.levels = _actual_levels()
++	out.provider = provider
++	out.camera = _tool._camera
++	out.blocked = _tool._blocked
++	out.read_view = _tool._read_view
++	if out.bindings != null and out.bindings._provider != null:
++		out.phase = out.bindings._provider.get_ref() as WorldBindings
++	Approach.Witness.capture_configuration(provider, out.config)
++	if out.draft != null: out.request = out.draft.snapshot()
++	return out
++
++
++func _observe_access_setup(original: AccessSetup, anchor: Vector2i) -> StringName:
++	"""Every external observation is followed by original-identity checks; publication has no refresh callback tail."""
++	var code: StringName = _access_setup_refusal(original)
++	if code == &"": code = _owners_refusal(original.orders, original.bindings, original.levels)
++	if code == &"": code = _access_setup_refusal(original)
++	if code == &"": code = _access_binding_refusal(original.provider, original.bindings, original.levels)
++	if code == &"": code = _access_setup_refusal(original)
++	var access: Access = Access.new()
++	if code == &"": code = access.configure(original.provider, anchor)
++	var tuple_code: StringName = _access_setup_refusal(original)
++	if tuple_code != &"": return tuple_code
++	if code == &"": code = _access_view_refusal(original)
++	if code != &"": return code
++	if not original.editor.bind_access(access, search_access): return REFUSE_BINDING
++	code = _access_setup_refusal(original, access)
++	if code == &"": _access = access
++	elif is_instance_valid(original.editor): original.editor.unbind_access(access, search_access)
++	return code
++
++
++func _access_view_refusal(original: AccessSetup) -> StringName:
++	"""Call the original view functions without dereferencing a Node that either callback may free."""
++	if not original.read_view.is_valid() or not original.blocked.is_valid(): return REFUSE_BINDING
++	var view: Variant = original.read_view.call()
++	var code: StringName = _access_setup_refusal(original)
++	if code != &"": return code
++	if not view is Vector3i or view != Vector3i(_level_id, _datum.y, 1): return REFUSE_LEVEL
++	var blocked: Variant = original.blocked.call()
++	code = _access_setup_refusal(original)
++	if code != &"": return code
++	return &"" if typeof(blocked) == TYPE_BOOL and not blocked else REFUSE_LEVEL
++
++
++func _access_setup_refusal(original: AccessSetup, published: Access = null) -> StringName:
++	"""This final comparison uses stored identities and values only, including each original weak composition link."""
++	if not is_instance_valid(original.editor) or not is_instance_valid(original.tool) \
++			or not is_instance_valid(original.camera) or original.draft == null \
++			or _editor != original.editor or _tool != original.tool or _draft == null \
++			or _draft.get_ref() != original.draft or _access != null: return REFUSE_BINDING
++	if original.orders == null or original.bindings == null or original.levels == null \
++			or original.orders != _actual_orders() or original.bindings != _actual_bindings() \
++			or original.levels != _actual_levels() or original.phase == null: return REFUSE_BINDING
++	if original.editor.draft != original.draft or original.editor._access != published \
++			or original.editor._checker != check_request or original.editor._submitter != submit_request \
++			or (published != null and original.editor._access_search != search_access): return REFUSE_BINDING
++	if original.tool._editor != original.editor or original.tool._draft != original.draft \
++			or original.tool._camera != original.camera or original.tool._blocked != original.blocked \
++			or original.tool._read_view != original.read_view or not original.tool._active: return REFUSE_BINDING
++	if not _access_owners_match(original): return REFUSE_BINDING
++	return _access_drawing_refusal(original)
++
++
++func _access_owners_match(original: AccessSetup) -> bool:
++	"""Original authority links and the full WorldRoutes configuration remain exact after all external callbacks."""
++	if original.bindings._provider == null or original.bindings._provider.get_ref() != original.phase \
++			or original.phase._owner == null or original.phase._owner.get_ref() != original.config.owner \
++			or original.phase._world != original.config.world or original.phase._terrain != original.config.terrain \
++			or original.phase._budget != original.config.budget or original.bindings._budget != original.config.budget \
++			or original.config.levels != original.levels or original.config.profiles == null \
++			or original.config.terrain == null: return false
++	if original.orders._world != _world or original.orders._space != original.config.owner \
++			or original.orders._sources != original.config.sources or original.orders._bindings == null \
++			or original.orders._bindings.get_ref() != original.bindings or original.orders._buildings == null \
++			or original.orders._buildings._spatial_authority == null \
++			or original.orders._buildings._spatial_authority.get_ref() != original.orders: return false
++	return Approach.Witness.exact_configuration(original.provider, original.config)
++
++
++func _access_drawing_refusal(original: AccessSetup) -> StringName:
++	"""The same cells, purpose, floor, draft identity and world tool domain must survive every configuration callback."""
++	if original.tool._datum != _datum or original.tool._level != _level_id \
++			or original.tool._pitch != _pitch or original.tool._bounds != _bounds: return REFUSE_LEVEL
++	var draft: Draft = original.draft
++	var request: Dictionary = original.request
++	if not draft._configured or draft._drawing or draft._level != _level_id or draft._pitch_u != _pitch \
++			or draft._bounds != _bounds or draft.revision != request.revision \
++			or draft._room_type != request.room_type or draft._allow_holes != request.allow_holes \
++			or draft._cells != request.cells: return REFUSE_DRAFT
++	return &""
++
++
+ static func _access_binding_refusal(provider: WorldRoutes, bindings: RoomBindings, levels: Levels) -> StringName:
+ 	"""Preview and confirmation must use the same actual World, Terrain, Space, cold arena and level catalog."""
+ 	if provider == null or bindings == null: return REFUSE_BINDING
+diff --git a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_editor.gd.txt b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot/demo/burrow/modular_editor.gd
+index a5aa4da8..a464f091 100644
+--- a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/modular_editor.gd.txt
++++ b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot/demo/burrow/modular_editor.gd
+@@ -89,6 +89,7 @@ func bind_access(access: Access, search: Callable) -> bool:
+ 	_access_search = search
+ 	_access_draft_revision = -1
+ 	_access_shown_revision = -1
++	_confirm.disabled = true
+ 	return true
+ 
+ 
+@@ -294,7 +295,9 @@ func _sync() -> void:
+ 
+ func _process(_delta: float) -> void:
+ 	"""Only a bounded pending view search runs here; no cold lease survives this frame."""
+-	if _submitting or _access == null or not _access.searching() or draft.drawing() or _access_error != &"": return
++	if _submitting or _access == null or draft.drawing(): return
++	_refresh_access_drawing()
++	if not _access.searching() or _access_error != &"": return
+ 	_access.step()
+ 	_sync_access()
+ 
+@@ -330,7 +333,7 @@ func _sync_access() -> void:
+ 	"""Text and colour both distinguish a searched contact, an invalid retained marker and missing access."""
+ 	if _access_status == null or _access == null: return
+ 	var code: StringName = _access_error if _access_error != &"" else _access.refusal()
+-	var text: String = "First cut / work face · finished lining is not yet specified."
++	var text: String = "First cut selected · worker clearance and access shown."
+ 	if _access_pick: text = "Click the room boundary to reposition its first cut."
+ 	elif code == Access.REFUSE_SEARCHING: text = "Searching completed access… No work ordered."
+ 	elif code != &"": text = "No valid selected access. Review the marked face or choose another boundary."
+diff --git a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_modular_access.gd.txt b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot/test/test_modular_access.gd
+index 3393c902..cde97b09 100644
+--- a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_modular_access.gd.txt
++++ b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot/test/test_modular_access.gd
+@@ -142,6 +142,8 @@ var _editor: Editor = null
+ var _tool: Tool = null
+ var _camera: Camera3D = null
+ var _callback_code: StringName = &""
++var _setup_action: int = -1
++var _view_probe: Callable = Callable()
+ 
+ 
+ func _setup(connected: bool = true, admission: bool = false) -> void:
+@@ -159,9 +161,9 @@ func after_each() -> void:
+ 	"""Release command callbacks and all view/source handles without retaining a world or a lease."""
+ 	if _runtime != null: assert_equal(_runtime.disconnect_view(), &"", "disconnect")
+ 	_runtime = null
+-	if _tool != null: _tool.free()
+-	if _editor != null: _editor.free()
+-	if _camera != null: _camera.free()
++	if is_instance_valid(_tool): _tool.free()
++	if is_instance_valid(_editor): _editor.free()
++	if is_instance_valid(_camera): _camera.free()
+ 	_tool = null
+ 	_editor = null
+ 	_camera = null
+@@ -170,6 +172,8 @@ func after_each() -> void:
+ 		_fixture.after_each()
+ 		assert_equal(_fixture.failures, PackedStringArray(), "actual source teardown")
+ 	_fixture = null
++	_setup_action = -1
++	_view_probe = Callable()
+ 
+ 
+ func _finish(access: Access) -> void:
+@@ -319,7 +323,7 @@ func test_exact_concave_boundary_and_picked_cell_filter() -> void:
+ 	assert_false(Access.boundary_contains(plan, patch, 2), "horizontal concave hole is not filled")
+ 
+ 
+-func _ui() -> void:
++func _ui(bind_access: bool = true) -> void:
+ 	"""Compose the real released adapter around actual RoomOrders, with the explicit genuine source anchor."""
+ 	_setup(true, true)
+ 	var actual: Fixture.AdmissionFixture = _fixture._actual as Fixture.AdmissionFixture
+@@ -333,12 +337,13 @@ func _ui() -> void:
+ 	_tool.set_active(true)
+ 	_runtime = Runtime.new()
+ 	assert_equal(_runtime.configure(_editor, _tool, actual.orders, actual.rooms, actual._levels, 0), &"", "actual Runtime")
+-	assert_equal(_runtime.configure_access(actual._binding, actual._first), &"", "explicit actual access")
++	if bind_access: assert_equal(_runtime.configure_access(actual._binding, actual._first), &"", "explicit actual access")
+ 	assert_true(_editor.world_press(Vector2i.ZERO), "draw on dirt")
+ 	_editor.world_motion(Vector2i.ONE)
+ 	_editor.world_release()
+-	_finish(_runtime._access)
+-	_editor._sync_access()
++	if bind_access:
++		_finish(_runtime._access)
++		_editor._sync_access()
+ 
+ 
+ func _not_modal() -> bool:
+@@ -348,9 +353,94 @@ func _not_modal() -> bool:
+ 
+ func _view() -> Vector3i:
+ 	"""The visible slice is the same actual authored floor used by the drawing and source endpoint."""
++	if _view_probe.is_valid():
++		var action: Callable = _view_probe
++		_view_probe = Callable()
++		action.call()
+ 	return Vector3i(1, Fixture.FLOOR, 1)
+ 
+ 
++func _change_access_setup() -> void:
++	"""Mutate only after a genuine successful Location/view read; no fixture permission is overridden."""
++	match _setup_action:
++		0: _editor.free()
++		1: _tool.free()
++		2: _editor.draft.discard()
++		3: _fixture._actual._binding._levels = null
++		4: _editor.bind_access(_access, _runtime.search_access)
++		5: _tool._read_view = Callable()
++		6: _editor.draft = Draft.new()
++		7: _tool.set_active(false)
++		8: _camera.free()
++
++
++func _arm_access_setup() -> void:
++	"""The actual endpoint observer runs during Access.configure, after both Runtime owner checks."""
++	var locations: AccessFaceFixture.ObservedLocations = _fixture._actual._locations as AccessFaceFixture.ObservedLocations
++	locations.countdown = 1
++	locations.probe = _change_access_setup
++
++
++func test_access_configuration_refuses_view_teardown_without_a_refresh_crash() -> void:
++	"""A freed original inspector, world tool or camera cannot return successful access binding."""
++	for action: int in [0, 1, 8]:
++		_ui(false)
++		_setup_action = action
++		_arm_access_setup()
++		assert_equal(_runtime.configure_access(_fixture._actual._binding, _fixture._actual._first), Runtime.REFUSE_BINDING,
++			"actual endpoint callback teardown refuses")
++		assert_true(_runtime._access == null, "no partially published selector")
++		assert_false(_runtime._busy, "configuration guard restored")
++		assert_true(_fixture._actual._budget.is_quiescent(), "configuration never retains a cold lease")
++		after_each()
++
++
++func test_access_configuration_preserves_original_drawing_owner_and_existing_binding() -> void:
++	"""Late configuration changes refuse without undoing an externally selected binding or edited drawing."""
++	for action: int in [2, 3, 4, 5, 6, 7]:
++		_ui(false)
++		_setup_action = action
++		_arm_access_setup()
++		var code: StringName = _runtime.configure_access(_fixture._actual._binding, _fixture._actual._first)
++		assert_equal(code, Runtime.REFUSE_DRAFT if action == 2 else Runtime.REFUSE_BINDING, "exact changed tuple refused")
++		assert_true(_runtime._access == null, "candidate binding remains unpublished")
++		assert_equal(_editor._checker, _runtime.check_request, "prior checker retained")
++		assert_equal(_editor._submitter, _runtime.submit_request, "prior submitter retained")
++		if action == 4: assert_true(_editor._access == _access, "newer external Access preserved")
++		elif action == 2: assert_true(_editor.draft._cells.is_empty(), "observer's edited drawing not rolled back")
++		else: assert_true(_editor._access == null, "no candidate editor binding")
++		after_each()
++
++
++func test_final_configuration_view_callback_cannot_replace_the_original_tuple() -> void:
++	"""Original owner observations do not excuse teardown or drawing mutation in the final view callback."""
++	for action: int in [0, 1, 2, 3]:
++		_ui(false)
++		_setup_action = action
++		_view_probe = _change_access_setup
++		var code: StringName = _runtime.configure_access(_fixture._actual._binding, _fixture._actual._first)
++		assert_equal(code, Runtime.REFUSE_DRAFT if action == 2 else Runtime.REFUSE_BINDING, "final view mutation refused")
++		assert_true(_runtime._access == null, "no trailing refresh after refused configuration")
++		after_each()
++
++
++func test_existing_drawing_starts_access_search_on_next_frame_without_more_input() -> void:
++	"""First binding keeps Confirm disabled until the regular editor frame has observed the existing drawing."""
++	_ui(false)
++	var before: Dictionary = _editor.command_snapshot()
++	assert_equal(_runtime.configure_access(_fixture._actual._binding, _fixture._actual._first), &"", "real late access bind")
++	assert_true(_editor._confirm.disabled, "unobserved selection cannot submit")
++	assert_false(_runtime._access.searching(), "no synchronous search in configuration")
++	_editor._process(0.0)
++	assert_true(_runtime._access.searching() or _runtime._access.preview().selected, "next normal frame starts actual search")
++	_finish(_runtime._access)
++	_editor._sync_access()
++	assert_equal(_runtime._access.refusal(), &"", "actual source observation succeeds")
++	assert_equal(_editor.draft.snapshot(), before, "same already drawn cells and revision")
++	assert_false(_editor._confirm.disabled, "complete proof enables Confirm")
++	assert_equal(_editor._access_status.text, "First cut selected · worker clearance and access shown.", "player-facing scope")
++
++
+ func test_real_ui_suggestion_then_atomic_room_confirmation() -> void:
+ 	"""The complete UI command reaches genuine Kitchen admission; preview never orders or pays the room."""
+ 	_ui()
+diff --git a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/census.py.txt b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/census.py
+index 83ae7144..516c3993 100644
+--- a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/census.py.txt
++++ b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/census.py
+@@ -90,6 +90,16 @@ def build(sources=None):
+                        "patch": "PackedInt32Array", "root": "Vector3i", "access_root": "Vector3i", "graph_revision": "int",
+                        "graph_receipt": "int", "location_receipt": "int", "catalog_revision": "int"}, "complete Choice census")
+     require(nested(access, "Attempt") == {"error": "StringName", "choice": "Choice"}, "no escaped witness or source owner")
++    setup = nested(runtime, "AccessSetup")
++    require(setup == {"editor": "Editor", "tool": "WorldTool", "draft": "Draft", "orders": "Orders",
++                      "bindings": "RoomBindings", "levels": "Levels", "provider": "WorldRoutes",
++                      "phase": "WorldBindings", "config": "WorldRoutes.Configuration", "request": "Dictionary",
++                      "camera": "Camera3D", "blocked": "Callable", "read_view": "Callable"}, "complete temporary setup tuple")
++    rf = functions(runtime)
++    require("original: AccessSetup = _access_setup(provider)" in rf["configure_access"]["body"] and
++            "refresh_site" not in rf["configure_access"]["body"], "original setup before observations and no refresh tail")
++    require(rf["_observe_access_setup"]["body"].count("_access_setup_refusal(original") == 5 and
++            "code = _access_view_refusal(original)" in rf["_observe_access_setup"]["body"], "every setup observation revalidated")
+     deltas, frames, baselines = {}, {}, {}
+     for name in FILES:
+         old = "" if name == FILES[0] else subprocess.check_output(["git", "show", BASE + ":" + name], cwd=ROOT, text=True)
+@@ -124,7 +134,7 @@ def build(sources=None):
+                  "level_record": scalar_bytes(nested(levels, "Record")), "edge_metadata": scalar_bytes(nested(routes, "Edge")),
+                  "copied_plan_scalars": plan_fixed, "route_point_arrays": 24, "translated_patch": 24,
+                  "target_cube_face": 16, "patch_cell_bounds": 32, "replacement_epochs": 48,
+-                 "three_sequential_drawing_bounds": 3 * 32}
++                 "three_sequential_drawing_bounds": 3 * 32, "original_access_setup_snapshot_scalars": 33}
+     scratch = numeric_frames + sum(temporary.values())
+     # Deliberately overcount sequential view copies and two image rebuilds. This is
+     # a raw logical payload proposal, not a measured native allocator/GPU bound.
+@@ -139,6 +149,7 @@ def build(sources=None):
+             "all_own_numeric_frames": frames, "conservative_own_frame_sum": numeric_frames,
+             "temporary_packets_summed_across_alternative_paths": temporary, "conservative_view_scratch": scratch,
+             "view_payload_peaks": {"begin_with_old_marker_and_input_copy": retained + 2 * paint + scratch,
++                                   "configuration_with_original_drawing_copy": retained + paint + scratch,
+                                    "observe_and_copy_new_choice": retained + paint + preview + 200 + scratch,
+                                    "confirmation_command_copies": retained + 4 * paint + scratch,
+                                    "preview_copy_and_two_raw_position_images": retained + preview + 2 * mesh_positions + scratch},
+@@ -147,6 +158,8 @@ def build(sources=None):
+             "preview_approach_required_cold": 395264, "cold_lease_held_between_frames": False,
+             "maximum_access_line_vertices": line_vertices, "one_raw_position_image": mesh_positions,
+             "native_handles": {"selector_weak_refs": 14, "selector_object_refs": 4, "choice_object_refs": 1,
++                               "temporary_access_setup": {"object_refs": 10, "configuration_object_refs": 13,
++                                                          "callables": 2, "dictionary": 1, "drawing_images": 1},
+                                "command_adapter_access_ref": 1, "editor_access_ref": 1, "editor_new_callable": 1,
+                                "new_controls": ["Label", "HBoxContainer", "2 Button"],
+                                "world_marks": ["MeshInstance3D", "StandardMaterial3D", "ImmediateMesh"]},
+diff --git a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_evidence.py.txt b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/test_evidence.py
+index a9f8f1b5..201847e9 100644
+--- a/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/source-review-1/test_evidence.py.txt
++++ b/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/test_evidence.py
+@@ -46,6 +46,16 @@ class CensusTests(unittest.TestCase):
+         self.mutate("out.cells = plan.cells\n", "out.cells = plan.cells.duplicate()\n")
+         self.mutate("if not _epochs_match(config, _pins, _plan.space_revision): return REFUSE_CHANGED", "pass")
+ 
++    def test_original_configuration_tuple_and_no_synchronous_refresh_tail(self):
++        for old, new in (("var tuple_code: StringName = _access_setup_refusal(original)",
++                          'var tuple_code: StringName = &""'),
++                         ("_observe_access_setup(original, anchor)",
++                          "_observe_access_setup(original, anchor)\n\t_editor.refresh_site()")):
++            sources = C.inputs()
++            sources[C.FILES[1]] = sources[C.FILES[1]].replace(old, new, 1)
++            with self.assertRaises(ValueError):
++                C.build(sources)
++
+ 
+ class NativeOracleTests(unittest.TestCase):
+     def setUp(self):

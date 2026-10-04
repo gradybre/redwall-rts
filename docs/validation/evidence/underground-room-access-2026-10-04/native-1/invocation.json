@@ -1,0 +1,55 @@
+{
+  "head": "b5c63281264bd4d4273dc84fc0a3e94ec5ca24f9",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--path",
+        "godot",
+        "--script",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/capture_access.gd",
+        "--",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/native-1"
+      ],
+      "exit_code": 0,
+      "raw_findings": [],
+      "seconds": 3.061,
+      "log": "native.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--project",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04",
+        "--editor-project",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/godot",
+        "--max",
+        "0",
+        "--port",
+        "6339",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/native-1/analyzer.json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-room-access-ui/docs/validation/evidence/underground-room-access-2026-10-04/capture_access.gd"
+      ],
+      "exit_code": 0,
+      "raw_findings": [],
+      "seconds": 15.801,
+      "log": "analyzer.log"
+    }
+  ],
+  "custom_user_dir": "Redwall-ug1154-native-6cd895a4c5326e4c",
+  "qualified": false,
+  "project_sha256": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "source_count": 1206,
+  "images": {
+    "ready.png": "1bf104080fa6d69de3654508e88b943ae106ec03b7840892cc5342f17afc4c07",
+    "choose-boundary.png": "67903d03a2adef39b8d850eecf78898d9fe061ee914c8fdd15f30c7bb42f1074",
+    "invalid-boundary.png": "4168e720bef26ff10ac4045199dafe3a3869e624de5547ffc71e5ffa3785118e"
+  },
+  "source_unchanged": true,
+  "project_restored": true,
+  "sidecars_restored": true,
+  "head_unchanged": true,
+  "exit_code": 0
+}

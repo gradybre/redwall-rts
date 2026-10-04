@@ -1,0 +1,12 @@
+{
+  "godot/scripts/core/underground_locations.gd": {
+    "file": "prerequisites/underground_locations.gd.txt",
+    "sha256": "55dc0bdb2f50ba53629c81c6c93ebbb8dfc6079508c02d9cf1096dc5cb33f929",
+    "provenance": "Accepted Geometry commit e9c8f092accd6cf7d57acc963255ed354d40c35b, same exact prior diagnostic bytes"
+  },
+  "godot/scripts/core/underground_entry_bindings.gd": {
+    "file": "prerequisites/underground_entry_bindings.gd.txt",
+    "sha256": "7d53f82aeb5ba4e3b97feaa242cf839dbcd38dc953b619d8cd2cb7b4fd1a5c55",
+    "provenance": "Reviewed root commit 256c19082a173f1dde8118c6ebf7ad36abd31598"
+  }
+}

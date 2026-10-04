@@ -1,0 +1,38 @@
+{
+ "demo/burrow/modular_access.gd": [
+  {
+   "code": 0,
+   "message": "(CONFUSABLE_LOCAL_DECLARATION): The variable \"code\" is declared below in the parent block.",
+   "range": {
+    "end": {
+     "character": 11,
+     "line": 186
+    },
+    "start": {
+     "character": 7,
+     "line": 186
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ],
+ "test/test_modular_access.gd": [
+  {
+   "code": 0,
+   "message": "(UNUSED_PRIVATE_CLASS_VARIABLE): The class variable \"_callback_code\" is declared but never used in the class.",
+   "range": {
+    "end": {
+     "character": 18,
+     "line": 22
+    },
+    "start": {
+     "character": 4,
+     "line": 22
+    }
+   },
+   "severity": 2,
+   "source": "gdscript"
+  }
+ ]
+}

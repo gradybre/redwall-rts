@@ -1,0 +1,10 @@
+{
+  "docs/validation/evidence/underground-room-access-2026-10-04/README.md": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/acceptance-v2/README.md.frozen.txt",
+    "sha256": "6d46d07797f9194b5b68976b1e0b92fe21d8f5cd52183d81409f2b0089833d46"
+  },
+  "docs/decisions/1154-room-access-selection.md": {
+    "file": "docs/validation/evidence/underground-room-access-2026-10-04/acceptance-v2/1154-room-access-selection.md.frozen.txt",
+    "sha256": "8ff64337c556e315cf624f104ce5e1dccfd1af1b2d884c30cb27b5aa7d8a9557"
+  }
+}

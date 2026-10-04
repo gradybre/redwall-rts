@@ -1,0 +1,15 @@
+{
+  "docs/validation/evidence/underground-room-access-2026-10-04/capture_access.gd": "5e627a20336c62fc6277b6789881e683a7f444ae249569c31dccde4958cb16b5",
+  "docs/validation/evidence/underground-room-access-2026-10-04/census.py": "d0ba6f61f623b7a9d03e5885b3c0e19bf2bb2714875b2f5fc7c7ecb347b3c404",
+  "docs/validation/evidence/underground-room-access-2026-10-04/reproduce.py": "a5491348ec0a6f42cc70f2b569107467144472d8c48b6824460a3f019d39d112",
+  "docs/validation/evidence/underground-room-access-2026-10-04/run_capture.py": "723bbb35460243823e216decb53a142dbe38ca8de3b6b504d43766b88201eddd",
+  "docs/validation/evidence/underground-room-access-2026-10-04/test_evidence.py": "9db2269b653f649360f3195831f4fbc005067cf248f7daacff1d6fa3f28826db",
+  "godot/demo/burrow/modular_access.gd": "0a76a21eb229d7c0b93a930fc46df1a9bca09dd68799ae772556d8f800524bf9",
+  "godot/demo/burrow/modular_access.gd.uid": "ccca107a314f172aae666174f2747bf7426154b2fa7bbd00779c8ea5507fadf3",
+  "godot/demo/burrow/modular_editor.gd": "3d467b2f286229b893416d65aa075849000da7b59964a9a89fbafb52184fab2c",
+  "godot/demo/burrow/modular_runtime.gd": "7ce660f7d4ac63793480166a280af6ec6de76e7ac63712b1df218d1aef8796cf",
+  "godot/demo/burrow/modular_world_tool.gd": "8ea0ce8b84cffcb37ae574762e0edd6c9b6d3f191b0ea6351b00752ac8b041df",
+  "godot/test/test_modular_access.gd": "c9d7fd3c673089867ddf46b081950f4c7cabcba5027bae4daafd77a5866eba96",
+  "godot/test/test_modular_access.gd.uid": "cb27c2ef47113fbff3b6dbb1b1ee3274dafa10e87c53171afe6e10811257e5e5",
+  "godot/test/test_modular_runtime.gd": "0928ec79a37c5644ada83a72e50c803561a9e20507b012e363b478112b4b1f84"
+}

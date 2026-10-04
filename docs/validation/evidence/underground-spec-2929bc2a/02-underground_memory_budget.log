@@ -1,0 +1,1 @@
+{"scope": "source-derived logical allocation pack; runtime qualification remains open", "new_mutable_and_reserved_bytes": 4966873, "declaration_bytes": 23573, "live_with_reserve_bytes": 99959638, "headroom_bytes": 40362, "runtime_qualified": false}

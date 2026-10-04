@@ -1,0 +1,4 @@
+PASS 31 independent name, cursor, UTF-8 framing and name-section-bound fixtures
+state_registry_coverage: PASS -- 139 modules, 697 rows, 1035 packed columns checked
+PASS source membership/types: 671 persisted packed fields (not semantic adapter validation)
+PASS registry structure: 61 owners, 756 canonical records

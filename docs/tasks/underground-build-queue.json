@@ -808,6 +808,16 @@
           "analyzer": "0 GDScript warning(s) in 0 of 1 file(s)",
           "path": "docs/validation/evidence/underground-first-prefix-2026-10-03/README.md",
           "limits": "Actual owner/source/finite inventory fixture only. Synthetic profile certificates explicitly do not qualify worker motion or paid sequence."
+        },
+        "guarded_fixture_reconciliation": {
+          "contact_commit": "9fa2b0d2",
+          "contact_integration": "55104f9e",
+          "contact_tests": "30tests/7422assertions/0;strict/raw/leaks0;LSP0/1",
+          "contact_review": "Root accepted15line test-only final leaves using actual full Room Directory identity instead of generation1.",
+          "inventory_commit": "59be0e31",
+          "inventory_integration": "921287c2",
+          "inventory_tests": "12tests/292assertions/0;allstrict/raw/leaks0",
+          "inventory_review": "ug_geometry accepted exact synthetic subject/Funding/Job/Inventory/Pool guard scope. Production payment guards unchanged."
         }
       },
       "lease": {
@@ -957,7 +967,13 @@
         "godot/test/test_mole_profile_driver.gd",
         "godot/test/test_mole_profile_driver.gd.uid",
         "godot/test/test_mole_qualified_profiles.gd",
-        "godot/test/test_mole_qualified_profiles.gd.uid"
+        "godot/test/test_mole_qualified_profiles.gd.uid",
+        "tools/demo_build/windows_export_preset.cfg",
+        "tools/godot/verify_demo_pack.gd",
+        "tools/test_build_demo_windows.py",
+        "godot/test/test_demo_profile_pack.gd",
+        "godot/test/test_demo_profile_pack.gd.uid",
+        "docs/decisions/1127-source-preserving-profile-export.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -989,7 +1005,7 @@
         "Publish actual immutable-datum 1m3 changed-solid quanta; no silent rounding of fine paint cells into unpriced void or duplicate yield"
       ],
       "agent": "/root/ug_furnishing",
-      "branch": "codex/underground-profiles",
+      "branch": "codex/underground-profile-publication",
       "evidence": {
         "in_progress": "Reviewed world-model envelope and held-pick travel packet a16b4621 integratedd10ecd61. Compact actual mole Actor content compiler/loader in progress; actual work contacts and moving tool grip acceptance remain open; zero production-qualified profiles.",
         "increments": [
@@ -1339,6 +1355,41 @@
           "review": "Root independent complete source review, actual world residual formula review, source3/output9 manifest verification and fresh test run accepted",
           "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-math-v1/",
           "scope": "Offline source/math only. No UGPROF01 wire or certificate bits; all-yaw ground closure, exact native protocol4 replay, current consumer binding, actual paid handling and runtime qualification remain open."
+        },
+        "cardinal_native_1123": {
+          "commit": "fc39e1d0",
+          "integration": "214fed84",
+          "review": "Root independently read3executables, verified325output and384history pins; replay identical to prior accepted events/contacts/images.",
+          "tests": "7792poses /46852assertions /0failures;144contact witnesses,7648driver updates,304PNGs;strict/raw0;Python8;LSP0/1",
+          "scope": "Isolated actual native worker source, not whole World/HUD/room or finished gameplay."
+        },
+        "profile_publication_1123": {
+          "commit": "18b981fe5f6f4dd169062785f897830a71f8c3e2",
+          "integration": "e411d581",
+          "review": "Root read all5executables, reran9NumPy tests, verified5source+33output pins. No high/medium findings.",
+          "tests": "48tests /1300assertions /0failures; strict/raw diagnostics/leaks0;analyzer0/3",
+          "artifact": "18profiles /194boxes /7268wire bytes,14520paired-bank bytes;SHA b8033048f55d38ff477388bc6be528a096fd847d040c24faaf374a5e8cfea0ac",
+          "scope": "Source geometry only. Actual World support, paid targets, source recovery/turn, native artifact attachment, default demo backend and whole client remain open.",
+          "next": "Reclose exact consumer hashes after reviewed1119Contacts and1125Routes; retain immutable v1 evidence."
+        },
+        "export_sublease_1127": {
+          "owner": "/root/ug_furnishing",
+          "scope": "Exact raw profile/actor inclusion and mode0 actual cached source validation; retain every existing pack gate. Tests and actual full export required.",
+          "root_probe": "Godot4.7.2 mode2 has cached source length0 and omits ugprof; mode0 + inclusion preserves both in actual macOS debug/release isolated templates. Capability probe is not a full demo pass.",
+          "isolation": "Only own APFS clone of existing main library; no shared library writes, paid generation or main asset restoration.",
+          "native_followup": [
+            "capture_published_mole.gd",
+            "run_published_mole_capture.py",
+            "test_published_mole_capture.py"
+          ],
+          "renderer_limit": "Current source WorldBasis is OpenGL Compatibility; actual demo Forward+ is a separate required closure."
+        },
+        "isolated_export_capability": {
+          "commit": "4260fbed",
+          "reviewer": "/root/ug_furnishing",
+          "result": "9 isolated editor/export/native macOS commands passed; mode0 retains cached source text and exact included raw file, mode2 strips text. LOW source-equality wording corrected.",
+          "evidence": "docs/validation/evidence/profile-export-probe-2026-10-04/",
+          "limits": "No full demo/Windows native/renderer or gameplay qualification.1127 real-pack validation remains pending."
         }
       },
       "lease": {
@@ -2069,6 +2120,35 @@
           "state": "Contract inspection; takes priority over optional route witness optimization",
           "scope": "Same-position integer heading change through actual actor, all-yaw ground BODY/RECOVERY and STANCE proof, exact owner/source/occupancy checks; no work or teleport",
           "dependency": "Construction fixture yaw remains explicitly synthetic until actual turn command is integrated"
+        },
+        "entry_datum_reuse_1128": {
+          "owner": "/root",
+          "commit": "10e82d62",
+          "integration": "25768338",
+          "review": "ug_geometry accepted exact same assembly/LANDING prior-selector reuse; no retained cache, source/profile/air/Location waiver or ceiling increase.",
+          "tests": "Entry38/3032 +Frontier17/402; selected checkpoint including sharedInventory totals67/3726/all0;LSP0/3",
+          "next": "Unchanged33-case1119 first-prefix consumer phase-world28 is running; phase-world27 rejected with explicit finite-work exhaustion.",
+          "followup": {
+            "commit": "474f1e13",
+            "integration": "b2097b16",
+            "reviewer": "/root/ug_construction",
+            "tests": "68 tests /3751 assertions /0 failures; each strict/raw diagnostics and leaks zero; analyzer0/3",
+            "change": "One charged presence read per slot and original12 metadata checks per live row. Complete fresh scans retained; unchanged work ceiling, no cache or new fields.",
+            "evidence": "docs/validation/evidence/underground-entry-datum-2026-10-04/candidate-2/"
+          }
+        },
+        "stationary_turn_1125": {
+          "commit": "48a362db",
+          "metadata_commit": "f6d3bdb3",
+          "integration": [
+            "3bac01b7",
+            "53b23e2f"
+          ],
+          "review": "ug_construction accepted corrected candidate7; unregistered actual living occupants refuse through current full Directory/Needs identity facts.",
+          "tests": "133 tests /13051 assertions /0 failures; all strict/raw diagnostics and leaks zero; analyzer0/5",
+          "memory": "No retained state or reserve increase; numeric peak464+48temporary allowance=512/512. Native allocations and timing remain unqualified.",
+          "evidence": "docs/validation/evidence/underground-ground-turn-2026-10-04/",
+          "limits": "Ground idle STAND/WALK YAW_ALL only. No new turn timing, source WORK recovery or production profile activation."
         }
       },
       "lease": {
@@ -3155,6 +3235,26 @@
       },
       "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-454eae23/README.md",
       "limits": "Component checkpoint. Later1114/1120/concrete phase composition and native v3 not covered. Playable107 requirements remain in progress."
+    },
+    {
+      "commit": "2929bc2a38e4398a342a45cc01ab126a33a9417b",
+      "outcome": "rejected before tests: exact clean editor import engine crashed at font import; no gameplay qualification",
+      "procedure": "assets aside if present, own .godot removed, exact --headless --path godot --editor --quit; source/HEAD unchanged and assets restored",
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-2929bc2a/",
+      "spec": "33/34 CI contract commands passed; ready07 ledger reconciliation failed, fixed with reviewed1126 in6f570b79."
+    },
+    {
+      "commit": "ca622e1c2ec3d3b4b277dedc522967fb119d01ff",
+      "outcome": "rejected:4 legacy fixture failures; never full-suite qualification",
+      "full_suite": "10722 test(s), 982115 assertion(s), 4 failure(s)",
+      "diagnostics": "0 unexpected errors,0 unexpected warnings,272 expected,353 tolerated;0 leaked objects/resources",
+      "raw": "Strict wrapper stops on test failures before raw-summary guard; no raw pass claimed",
+      "analyzer": "not run: strict wrapper stopped on failures",
+      "procedure": "assets aside if present, own .godot removed, exact editor import, no-argument official full suite; source/HEAD unchanged/assets restored",
+      "suite_seconds": 1383.114,
+      "spec": "34 CI contract commands passed at exactca622 source",
+      "evidence_path": "docs/design/underground-planning/evidence/modular-build/checkpoint-ca622e1c/",
+      "limits": "Contacts2 and modular Inventory2 failures fixed in independently reviewed55104f9e/921287c2; new integrated qualification required."
     }
   ],
   "crosscut_fixes": [

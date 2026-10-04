@@ -1,0 +1,24 @@
+{
+  "head": "2929bc2a38e4398a342a45cc01ab126a33a9417b",
+  "assets_present_before": false,
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": -6,
+      "seconds": 4.313,
+      "log": "clean-import.log"
+    }
+  ],
+  "error": "clean-import.log",
+  "assets_restored": true,
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

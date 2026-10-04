@@ -1,0 +1,322 @@
+[
+  {
+    "command": [
+      "python3",
+      "docs/validation/decision_numbers.py"
+    ],
+    "log": "00-decision_numbers.log",
+    "exit_code": 0,
+    "seconds": 0.07
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/ready07_arithmetic.py"
+    ],
+    "log": "01-ready07_arithmetic.log",
+    "exit_code": 1,
+    "seconds": 0.336
+  },
+  {
+    "command": [
+      "python3",
+      "tools/underground_memory_budget.py",
+      "--check"
+    ],
+    "log": "02-underground_memory_budget.log",
+    "exit_code": 0,
+    "seconds": 0.492
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_underground_memory_budget.py"
+    ],
+    "log": "03-test_underground_memory_budget.log",
+    "exit_code": 0,
+    "seconds": 35.978
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/merge_gate.py"
+    ],
+    "log": "04-merge_gate.log",
+    "exit_code": 0,
+    "seconds": 0.029
+  },
+  {
+    "command": [
+      "python3",
+      "-B",
+      "docs/validation/setting_contract.py",
+      "--output",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-spec-2929bc2a/setting-contract.json"
+    ],
+    "log": "05-setting_contract.log",
+    "exit_code": 0,
+    "seconds": 0.03
+  },
+  {
+    "command": [
+      "python3",
+      "tools/dispatch_plan.py",
+      "--validate"
+    ],
+    "log": "06-dispatch_plan.log",
+    "exit_code": 0,
+    "seconds": 0.028
+  },
+  {
+    "command": [
+      "python3",
+      "tools/astra_inbox.py",
+      "--check"
+    ],
+    "log": "07-astra_inbox.log",
+    "exit_code": 0,
+    "seconds": 0.027
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_save_registry_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "log": "08-validate_save_registry_handoff.log",
+    "exit_code": 0,
+    "seconds": 0.34
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_canonical_state_table.py",
+      "--check"
+    ],
+    "log": "09-generate_canonical_state_table.log",
+    "exit_code": 0,
+    "seconds": 0.027
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle01_handoff.py"
+    ],
+    "log": "10-validate_cycle01_handoff.log",
+    "exit_code": 0,
+    "seconds": 0.031
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle02_handoff.py"
+    ],
+    "log": "11-validate_cycle02_handoff.log",
+    "exit_code": 0,
+    "seconds": 0.035
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/validate_cycle03_handoff.py",
+      "--source-root",
+      "."
+    ],
+    "log": "12-validate_cycle03_handoff.log",
+    "exit_code": 0,
+    "seconds": 0.033
+  },
+  {
+    "command": [
+      "python3",
+      "tools/audit_registry_capacities.py",
+      "--check"
+    ],
+    "log": "13-audit_registry_capacities.log",
+    "exit_code": 0,
+    "seconds": 1.706
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_registry_capacity_audit.py"
+    ],
+    "log": "14-test_registry_capacity_audit.log",
+    "exit_code": 0,
+    "seconds": 3.377
+  },
+  {
+    "command": [
+      "python3",
+      "tools/generate_component_columns_schema.py",
+      "--check"
+    ],
+    "log": "15-generate_component_columns_schema.log",
+    "exit_code": 0,
+    "seconds": 1.655
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_component_columns_schema.py"
+    ],
+    "log": "16-test_component_columns_schema.log",
+    "exit_code": 0,
+    "seconds": 18.611
+  },
+  {
+    "command": [
+      "python3",
+      "tools/lane_notes.py",
+      "--check"
+    ],
+    "log": "17-lane_notes.log",
+    "exit_code": 0,
+    "seconds": 0.037
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_envelopes.py"
+    ],
+    "log": "18-test_movement_envelopes.log",
+    "exit_code": 0,
+    "seconds": 0.418
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_movement_profile_policy.py"
+    ],
+    "log": "19-test_movement_profile_policy.log",
+    "exit_code": 0,
+    "seconds": 0.069
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/state_registry_coverage.py"
+    ],
+    "log": "20-state_registry_coverage.log",
+    "exit_code": 0,
+    "seconds": 0.328
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_headless_runner.py"
+    ],
+    "log": "21-test_headless_runner.log",
+    "exit_code": 0,
+    "seconds": 0.033
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_qualify.py"
+    ],
+    "log": "22-test_qualify.log",
+    "exit_code": 0,
+    "seconds": 0.423
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_winter.py"
+    ],
+    "log": "23-test_winter.log",
+    "exit_code": 0,
+    "seconds": 8.465
+  },
+  {
+    "command": [
+      "python3",
+      "docs/validation/test_merge_gate.py"
+    ],
+    "log": "24-test_merge_gate.log",
+    "exit_code": 0,
+    "seconds": 0.362
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_repair_meshy_rig.py"
+    ],
+    "log": "25-test_repair_meshy_rig.log",
+    "exit_code": 0,
+    "seconds": 0.041
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_rig_meshy_tail.py"
+    ],
+    "log": "26-test_rig_meshy_tail.log",
+    "exit_code": 0,
+    "seconds": 0.072
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_bake_meshy_tail.py"
+    ],
+    "log": "27-test_bake_meshy_tail.log",
+    "exit_code": 0,
+    "seconds": 0.16
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_ground_meshy_clips.py"
+    ],
+    "log": "28-test_ground_meshy_clips.log",
+    "exit_code": 0,
+    "seconds": 1.365
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_demo_texture_imports.py"
+    ],
+    "log": "29-test_demo_texture_imports.log",
+    "exit_code": 0,
+    "seconds": 0.365
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_build_demo_windows.py"
+    ],
+    "log": "30-test_build_demo_windows.log",
+    "exit_code": 0,
+    "seconds": 0.046
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_balance_report.py"
+    ],
+    "log": "31-test_balance_report.log",
+    "exit_code": 0,
+    "seconds": 0.038
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_soak_report.py"
+    ],
+    "log": "32-test_soak_report.log",
+    "exit_code": 0,
+    "seconds": 0.044
+  },
+  {
+    "command": [
+      "python3",
+      "tools/test_stage_art_passes.py"
+    ],
+    "log": "33-test_stage_art_passes.log",
+    "exit_code": 0,
+    "seconds": 0.036
+  }
+]

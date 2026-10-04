@@ -2865,6 +2865,29 @@
       "specification_commands": 35,
       "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-957f03d",
       "limits": "Not accepted; preserve rejected script bytes as text evidence and rerun strict analyzer. New corrections are outside this frozen result."
+    },
+    {
+      "commit": "b65456478ff8fb6e9cc297384a747e58de7ff465",
+      "status": "passed integrated component checkpoint",
+      "tests": "10620 tests/976657 assertions/0 failures",
+      "diagnostics": "0 unexpected errors/warnings;272 expected,353 tolerated;0 object/resource leaks;raw0",
+      "analyzer": "0 warnings in0of1179 files",
+      "specification_checks": 35,
+      "source_head_assets_unchanged_restored": true,
+      "ci": {
+        "run": 37175318873,
+        "jobs": 14,
+        "status": "all passed",
+        "wall_seconds": 722,
+        "suite_files": 370,
+        "exactly_once_shards": 8,
+        "tests": 10620,
+        "assertions": 976649,
+        "diagnostics_match_full": true,
+        "exact_comparator": "REFUSED8-assertion difference; unchanged"
+      },
+      "evidence": "docs/design/underground-planning/evidence/modular-build/checkpoint-b6545647",
+      "scope": "Component gate only; first playable prefix and107-requirement delivery remain incomplete"
     }
   ],
   "crosscut_fixes": [

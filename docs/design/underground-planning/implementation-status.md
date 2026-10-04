@@ -29,6 +29,17 @@ passed all14 jobs in13m10s:391 files exactly once across8 shards,10,941 tests,
 commits; exact assertion equivalence is not claimed. The import warning found
 locally at1eb7a64d and the failed child-marker correction are retained.
 
+The newer [CI checkpoint a52ea73f](../../validation/evidence/underground-ci-a52ea73f-2026-10-04/README.md)
+passed all 14 jobs in **13m49s**: 394 test files exactly once, **10,973 tests /
+1,019,025 assertions / zero failures**, zero unexpected diagnostics/leaks, and
+zero analyzer warnings across 1,225 files. It covers the Session, host equipment
+and Clock increments, before the later ordinary Room publication work.
+
+The concrete ordinary Room publication tail is accepted at `9a8e353f`, with
+independent review `8dd07e6f`; broad tests passed 389 / 17,880 and the final
+type-parity delta 69 / 2,568, with zero unexpected diagnostics/leaks and analyzer
+0/11. Real approach admission and playable construction remain open.
+
 The previous full local checkpoint is
 [`32db348a`](evidence/modular-build/checkpoint-32db348a/README.md):
 10,895 tests /998,370 assertions /0 failures, zero unexpected diagnostics and

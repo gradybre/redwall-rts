@@ -970,7 +970,8 @@
           "leaks": 0,
           "analyzer": "0 warnings in 11 files",
           "storage": "no retained fields/banks/capacity changes; logical root numeric frame upper bound 1582/2048 bytes",
-          "metadata_checks": "225 memory tests, 190 capacity checks, zero failures; generated SHA/line provenance only"
+          "metadata_checks": "225 memory tests, 190 capacity checks, zero failures; generated SHA/line provenance only",
+          "commit": "9a8e353f"
         }
       },
       "lease": {
@@ -4158,6 +4159,24 @@
       "leaked_resources": 0,
       "analyzer": "0 GDScript warning(s) in 0 of 1220 file(s)",
       "full_suite_seconds": 1780.946
+    },
+    {
+      "commit": "a52ea73f9669637b5e32ba0747e302040466f787",
+      "outcome": "all 14 remote CI jobs passed; 394 suite files verified exactly once across 8 shards",
+      "url": "https://github.com/gradybre/redwall-rts/actions/runs/37219153939",
+      "evidence": "docs/validation/evidence/underground-ci-a52ea73f-2026-10-04/",
+      "wall_seconds": 829,
+      "tests": 10973,
+      "assertions": 1019025,
+      "failures": 0,
+      "expected_diagnostics": 272,
+      "tolerated_diagnostics": 353,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 GDScript warning(s) in 0 of 1225 file(s)",
+      "scope": "Session/Gear/Clock included; later ordinary Room sources excluded; no exact same-head local baseline claimed"
     }
   ],
   "crosscut_fixes": [

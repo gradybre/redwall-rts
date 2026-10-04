@@ -1688,3 +1688,22 @@ not another arena. Extra Frontier/contact state and unmeasured native headers
 remain the composing caller's separate obligation. Lookup reads current full
 Room/World/section/source identity and grants no installed-prefix or physical
 permission.
+
+### `godot/scripts/core/underground_entry_frontier.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Admitted table census | `_capacities` | 4 | `TABLE_COUNT` = 6 | Empty before configure | 3 | -- | Decision1109. Explicit six-int resize/copy at configuration,24 packed bytes, no runtime growth. Count bounds and whole subreserve precede allocation. |
+| Immutable source identity and counts | `_header` | 8 | `HEADER_FIELDS` = 14 | Zero before a successful load | 2 | §1 WORLD | Six revisions, Catalog/source selection and six row counts. Content-derived; no runtime Project, worker or phase state. |
+| Exact immutable hashes | `_digests` | 1 | `DIGEST_BYTES` = 160 | Zero before a successful load | 2 | §1 WORLD | Self, Catalog, Assembly, Recipe and actual profile-program SHA256. Profiles monotonic content revision is separately exact; program hash is not labelled binary-image hash. |
+| Installation selectors | `_install` | 4 | `9 * _capacities[INSTALL]` runtime | Zero before load | 2 | §1 WORLD | One immutable row per billable Grouping ordinal, with prior-only support/retreat. |
+| Authored working stations | `_station` | 4 | `9 * _capacities[STATION]` runtime | Zero before load | 2 | §1 WORLD | Endpoint/root/yaw/profile/posture/face/work kind, never an allocated runtime Location. |
+| Exact working profile revisions | `_profile_revision` | 8 | `4 * _capacities[STATION]` runtime | Zero before load | 2 | §1 WORLD | Qualified source revision; actual worker/contact observation remains required. |
+| Additional quarter-turn work selections | `_rotation_profile` | 4 | `3 * _capacities[STATION]` runtime | -1 before load | 2 | §1 WORLD | Three explicit work-profile IDs beside the primary station row. Every allowed Catalog rotation has its exact source-qualified yaw/profile/revision; no inferred work pose. |
+| Canonical physical prerequisites | `_cut` | 4 | `7 * _capacities[CUT]` runtime | Zero before load | 2 | §1 WORLD | Whole-cube union bounds and exact stable phase tags. Actual Sites remains the sole physical progress ledger. |
+| Retained bearing selectors | `_bearing` | 4 | `9 * _capacities[BEARING]` runtime | Zero before load | 2 | §1 WORLD | Natural or prior installed-part bounds; a pending part cannot bear itself. |
+| Endpoint selectors | `_endpoint` | 4 | `7 * _capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | Kind, assembly/datum/role and point only; no live owner handle. |
+| Explicit transit selection | `_travel_profile` | 4 | `_capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | No implicit WALK selection from a WORK station. |
+| Exact transit revision | `_travel_revision` | 8 | `_capacities[ENDPOINT]` runtime | Zero before load | 2 | §1 WORLD | Full paired revision; aliased caller outputs refuse unchanged. |
+| Authored excavation episodes | `_episode` | 4 | `19 * _capacities[EPISODE]` runtime | Zero before load | 2 | §1 WORLD | Whole-cube ranges, BRACE/CUT/FINISH masks and explicit station/dependency/material/output/retreat selectors. No second paid-progress bank. |
+| Borrowed actual owners and synchronous reader controls | -- | -- | -- | No load at frame/save boundary | 3 | -- | Four actual source-owner refs and configured/loaded/busy flags. Streamed header/row/hash/helper lifetimes fit the explicit2048 logical control reservation; entire configured reader <=28597. Native growth remains unmeasured and must fit actual remaining bindings headroom. Save pins immutable sources; no runtime geometry/contact permission is serialized here. |

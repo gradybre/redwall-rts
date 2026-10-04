@@ -1283,7 +1283,7 @@
     "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
     "godot/scripts/core/underground_space_owner.gd": "cec0e5f6c6d31bc590ae0a946b4cdfd62b5333bf8d233e68d126cb5d3fc4c077",
     "godot/scripts/core/underground_surface_anchor.gd": "ccf119bd999a8d05b65e7e35806b37aade88588e0a7c922185bcf86c72aa4fa3",
-    "godot/scripts/core/underground_world_routes.gd": "2f4e2a08aaeca4a5a8fc31955db9a45fc5be46686080a65960a1cc7df9468d42"
+    "godot/scripts/core/underground_world_routes.gd": "438267e61eb7042cb9ccc56ae4859bf80ce77c9aca9bd10b033646469c98fe5b"
   },
   "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
   "limitations": [

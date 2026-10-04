@@ -1,0 +1,80 @@
+{
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 11.026,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "164/376",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-datum-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.498,
+      "log": "test_modular_inventory.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "82/376",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-datum-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 20.647,
+      "log": "test_underground_entry_bindings.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "187/376",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-datum-2026-10-04/candidate-1"
+      ],
+      "exit_code": 0,
+      "seconds": 3.804,
+      "log": "test_underground_entry_frontier.gd.log"
+    },
+    {
+      "command": [
+        "python3",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6284",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-world-composition/docs/validation/evidence/underground-entry-datum-2026-10-04/candidate-1/analyzer.json",
+        "godot/scripts/core/underground_entry_bindings.gd",
+        "godot/test/test_underground_entry_bindings.gd",
+        "godot/test/test_modular_inventory.gd"
+      ],
+      "exit_code": 0,
+      "seconds": 11.928,
+      "log": "analyzer.log"
+    }
+  ],
+  "source_unchanged": true,
+  "entry_only": false,
+  "project_sha256_before": "de7d262eb491a411497640f43f0d852189efc6943a6e1a52cd8e0fcad057c0bc",
+  "custom_user_dir_name": "Redwall-ug-entry-datum-tests",
+  "project_test_sha256": "267d39bfdea95055efff5ce31305b2ee53c94f342b944ecf3241a5f15bd4a241",
+  "assets_present_before": false,
+  "project_restored": true,
+  "assets_restored": true,
+  "exit_code": 0
+}

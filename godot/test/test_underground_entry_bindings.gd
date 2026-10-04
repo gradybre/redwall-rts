@@ -60,6 +60,18 @@ class ObservedBinding extends Binding:
 	var preflight_count: int = 0
 	var final_physical_read: bool = false
 	var timber_final_probe: Callable = Callable()
+	var datum_support_checks: int = 0
+	var staged_contact_checks: int = 0
+
+	func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
+		"""Count real complete LANDING support proofs without replacing any physical decision."""
+		datum_support_checks += 1
+		return super._timber_staged_support(proof, bounds)
+
+	func _timber_air_box(proof: TimberClearance, token: int, staging: bool) -> StringName:
+		"""Every distinct endpoint still passes its own exact physical air proof."""
+		if staging: staged_contact_checks += 1
+		return super._timber_air_box(proof, token, staging)
 
 	func _preflight_entry() -> StringName:
 		"""Count actual entrance preflights; failed original-lease proof must stop before any private cursor."""
@@ -296,6 +308,7 @@ var _provider: WorldBindings = null
 var _bindings: ObservedBinding = null
 var _replacement_token: int = 0
 var _catalog_mode: int = 0
+var _extra_transit_points: Array[Vector3i] = []
 
 
 func before_each() -> void:
@@ -323,7 +336,7 @@ func before_each() -> void:
 
 func _bind_frontier() -> void:
 	"""Load the genuine streamed reader with an independently serialized finite source and exact digest."""
-	var caps: PackedInt32Array = PackedInt32Array([2, 1, 1, 5 if _catalog_mode == 3 else 1, 3, 1])
+	var caps: PackedInt32Array = PackedInt32Array([2, 1, 1, 5 if _catalog_mode == 3 else 1, 3 + _extra_transit_points.size(), 1])
 	_source = ObservedFrontier.new()
 	assert_equal(_source.configure(caps, Frontier.required_bytes(caps)), &"", "source storage admitted")
 	assert_equal(_source.bind_actual(_f._catalog, _group._reader, _group._recipes, _f._profiles), &"", "same source objects")
@@ -338,7 +351,7 @@ func _source_image() -> PackedByteArray:
 	bytes.encode_u32(8, 1)
 	var revisions: PackedInt64Array = PackedInt64Array([23, 1, 1, GroupTests.GROUP_REVISION, GroupTests.RECIPE_REVISION, 2])
 	for index: int in 6: bytes.encode_s64(12 + 8 * index, revisions[index])
-	var counts: PackedInt32Array = PackedInt32Array([2, 1, 1, 5 if _catalog_mode == 3 else 1, 3, 1])
+	var counts: PackedInt32Array = PackedInt32Array([2, 1, 1, 5 if _catalog_mode == 3 else 1, 3 + _extra_transit_points.size(), 1])
 	for table: int in 6: bytes.encode_u32(68 + 4 * table, counts[table])
 	_source_hashes(bytes)
 	for ordinal: int in 2:
@@ -350,15 +363,23 @@ func _source_image() -> PackedByteArray:
 	cut.append(Sites.SUPPORTED_VOID)
 	CatalogTests._append_row(bytes, cut)
 	_append_timber_bearings(bytes)
-	CatalogTests._append_row(bytes, PackedInt32Array([Frontier.SURFACE_ANCHOR, -1, 0, Locations.ROLE_WORK, 512, 0, 512, 0]), 1)
-	CatalogTests._append_row(bytes, PackedInt32Array([Frontier.SURFACE_CONTACT, -1, 0, Locations.ROLE_STORAGE, 1536, 0, 512, 0]), 1)
-	CatalogTests._append_row(bytes, PackedInt32Array([Frontier.INSTALLED_CONTACT, 0, 1, Locations.ROLE_TRANSIT,
-		512, -1024 if _catalog_mode == 4 else (-128 if _catalog_mode == 5 else 0), -512, 0]), 1)
+	_append_timber_endpoints(bytes)
 	var episode: PackedInt32Array = _local_cut()
 	episode.append_array(PackedInt32Array([7, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 4]))
 	CatalogTests._append_row(bytes, episode)
 	bytes.append_array("UGFEND01".to_ascii_buffer())
 	return bytes
+
+
+func _append_timber_endpoints(bytes: PackedByteArray) -> void:
+	"""Additional test-authored transit selectors keep their exact points and share only immutable LANDING metadata."""
+	CatalogTests._append_row(bytes, PackedInt32Array([Frontier.SURFACE_ANCHOR, -1, 0, Locations.ROLE_WORK, 512, 0, 512, 0]), 1)
+	CatalogTests._append_row(bytes, PackedInt32Array([Frontier.SURFACE_CONTACT, -1, 0, Locations.ROLE_STORAGE, 1536, 0, 512, 0]), 1)
+	CatalogTests._append_row(bytes, PackedInt32Array([Frontier.INSTALLED_CONTACT, 0, 1, Locations.ROLE_TRANSIT,
+		512, -1024 if _catalog_mode == 4 else (-128 if _catalog_mode == 5 else 0), -512, 0]), 1)
+	for point: Vector3i in _extra_transit_points:
+		CatalogTests._append_row(bytes, PackedInt32Array([Frontier.INSTALLED_CONTACT, 0, 1,
+			Locations.ROLE_TRANSIT, point.x, point.y, point.z, 0]), 1)
 
 
 func _local_cut() -> PackedInt32Array:
@@ -426,6 +447,7 @@ func after_each() -> void:
 		_bindings.timber_final_probe = Callable()
 	_replacement_token = 0
 	_catalog_mode = 0
+	_extra_transit_points.clear()
 	if _f != null:
 		_f._sources.probe = Callable()
 		_f._sources.when = Callable()
@@ -877,6 +899,54 @@ func _timber_conservation() -> void:
 		if role == Space.SUPPORT: timber += units
 	assert_equal(timber, 1024 * 1024 * 128 + 256 * 512 * 896, "complete deck and bearer once")
 	assert_equal(volume, 1024 * 1024 * 1024, "solid plus retained cavity exactly conserved")
+
+
+func test_shared_landing_stages_support_once_but_proves_every_contact() -> void:
+	"""Several real endpoints share one physical deck while retaining independent profile/air/Location admission."""
+	after_each()
+	_extra_transit_points = [Vector3i(256, 0, -512), Vector3i(768, 0, -512), Vector3i(512, 0, -256)]
+	before_each()
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	assert_true(paid.failures.is_empty(), "real paid phase and work setup")
+	if project == NULL_REF or not failures.is_empty(): return
+	var result: Construction.OpResult = _router.complete_order(project)
+	assert_true(result.ok, "all distinct actual contacts publish: %s" % result.error)
+	assert_equal(_bindings.datum_support_checks, 1, "one exact assembly/LANDING support union")
+	assert_equal(_bindings.staged_contact_checks, 4, "every complete endpoint envelope checked separately")
+	assert_equal(_f._locations._live.count, 6, "two original and four installed full endpoints")
+	_timber_conservation()
+
+
+func test_shared_landing_does_not_authorize_an_unsupported_later_contact() -> void:
+	"""A later point near the deck boundary cannot inherit the first endpoint's valid physical envelope."""
+	after_each()
+	_extra_transit_points = [Vector3i(1, 0, -512)]
+	before_each()
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	assert_true(paid.failures.is_empty(), "real paid phase and work setup")
+	if project == NULL_REF or not failures.is_empty(): return
+	var before: Array = _image()
+	var funding: PackedByteArray = _router._funding.state_bytes()
+	assert_false(_router.complete_order(project).ok, "full later endpoint cannot fit actual support")
+	assert_equal(_image(), before, "no partial physical or endpoint publication")
+	assert_equal(_router._funding.state_bytes(), funding, "all paid receipts retained for retry")
+
+
+func test_datum_and_profile_budget_exhaustion_stays_distinct_from_physical_refusal() -> void:
+	"""An exhausted finite proof is reported as capacity, without pretending a physical contact was disproved."""
+	var paid: PaidFixture.Fixture = _timber_paid_fixture()
+	var project: Vector2i = _ready_timber(paid)
+	if project == NULL_REF or not failures.is_empty(): return
+	_bindings._entry_checks = 0
+	_bindings._entry_contact.role = Locations.ROLE_WORK
+	assert_equal(_bindings._timber_profile_envelope(2), Binding.REFUSE_MASK_BUDGET, "profile scan exhausted")
+	var proof: Binding.TimberClearance = Binding.TimberClearance.new()
+	proof.remaining = 0
+	assert_equal(_bindings._timber_profile_foot(proof, 2), Binding.REFUSE_MASK_BUDGET, "same foot scan exhaustion")
+	assert_equal(_bindings._timber_create_datum(proof, 0), Binding.REFUSE_MASK_BUDGET, "datum lookup exhausted")
+	assert_equal(_bindings._timber_prior_landing(proof, 2), -1, "prior selector scan spends finite work")
 
 
 func test_nonrectangular_and_floating_source_groups_refuse_before_settlement() -> void:

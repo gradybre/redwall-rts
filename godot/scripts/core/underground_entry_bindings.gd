@@ -1305,7 +1305,7 @@ func _timber_datum_ref() -> Vector2i:
 	var owner: Owner = _entry_placements._space
 	var found: Vector2i = NULL_REF
 	for row: int in owner._region_capacity:
-		if not _entry_spend(12): return Vector2i(-2, 0)
+		if not _entry_spend(12): return Vector2i(-3, 0)
 		if owner._s_r_present[row] != 1 or owner._s_r_role[row] != Space.FLOOR_DATUM \
 				or owner._s_r_level[row] != _entry_contact.level or not _timber_owned(row, true): continue
 		_timber_region_box(row, true, _clip)
@@ -1321,6 +1321,9 @@ func _stage_timber_datums(proof: TimberClearance, token: int) -> StringName:
 		if not proof.spend(32): return REFUSE_MASK_BUDGET
 		if _entry_frontier._field(Frontier.ENDPOINT, endpoint, 0) != Frontier.INSTALLED_CONTACT \
 				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
+		var prior: int = _timber_prior_landing(proof, endpoint)
+		if prior < 0: return REFUSE_MASK_BUDGET
+		if prior > 0: continue
 		var code: StringName = _timber_landing_into(endpoint)
 		if code != &"": return code
 		for axis: int in 6: proof.box[axis] = _cube[axis]
@@ -1330,6 +1333,18 @@ func _stage_timber_datums(proof: TimberClearance, token: int) -> StringName:
 		if code == &"": code = _timber_create_datum(proof, token)
 		if code != &"": return code
 	return _timber_contact_air(proof, token, true)
+
+
+func _timber_prior_landing(proof: TimberClearance, endpoint: int) -> int:
+	"""Only earlier selectors in this same invocation can reuse identical assembly/LANDING metadata proof."""
+	var ordinal: int = _entry_frontier._field(Frontier.ENDPOINT, endpoint, 2)
+	for prior: int in endpoint:
+		if not proof.spend(4): return -1
+		if _entry_frontier._field(Frontier.ENDPOINT, prior, 0) == Frontier.INSTALLED_CONTACT \
+				and _entry_frontier._field(Frontier.ENDPOINT, prior, 1) == _timber_assembly \
+				and _entry_frontier._field(Frontier.ENDPOINT, prior, 2) == ordinal:
+			return 1
+	return 0
 
 
 func _timber_staged_support(proof: TimberClearance, bounds: PackedInt32Array) -> StringName:
@@ -1351,6 +1366,7 @@ func _timber_create_datum(proof: TimberClearance, token: int) -> StringName:
 	_entry_checks = proof.remaining
 	var section: Vector2i = _timber_datum_ref()
 	proof.remaining = _entry_checks
+	if section == Vector2i(-3, 0): return REFUSE_MASK_BUDGET
 	if section == Vector2i(-2, 0): return REFUSE_TIMBER_CONTACT
 	if section != NULL_REF: return &""
 	if not proof.spend(_entry_placements._space._source_capacity + 32): return REFUSE_MASK_BUDGET
@@ -1371,7 +1387,7 @@ func _timber_profile(endpoint: int) -> int:
 	var found: int = -1
 	var rotation: int = _entry_placements._get32(_entry_placements._live, Placements.ROTATION, _timber_placement.x)
 	for row: int in _entry_frontier._header[8 + Frontier.STATION]:
-		if not _entry_spend(12): return -1
+		if not _entry_spend(12): return -2
 		if _entry_frontier._field(Frontier.STATION, row, 0) != endpoint: continue
 		var profile: int = _entry_frontier._field(Frontier.STATION, row, 5) if rotation == 0 else \
 			_entry_frontier._rotation_profile[(rotation - 1) * _entry_frontier._capacities[Frontier.STATION] + row]
@@ -1384,6 +1400,7 @@ func _timber_profile_envelope(endpoint: int) -> StringName:
 	"""Actual immutable occupied, approach and recovery boxes determine the full endpoint; stroke grants no air."""
 	var profile: int = _timber_profile(endpoint)
 	var profiles: Profiles = _entry_placements._profiles
+	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0 or profile >= profiles._live.header[1] \
 			or profiles._live.flags[profile] != Profiles.CERT_REQUIRED: return REFUSE_TIMBER_CONTACT
 	var point: Vector3i = _entry_contact.point
@@ -1512,6 +1529,7 @@ func _timber_new_locations(token: int) -> StringName:
 				or _entry_frontier._field(Frontier.ENDPOINT, endpoint, 1) != _timber_assembly: continue
 		var code: StringName = _timber_landing_into(endpoint)
 		if code == &"": _entry_contact.section = _timber_datum_ref()
+		if code == &"" and _entry_contact.section == Vector2i(-3, 0): return REFUSE_MASK_BUDGET
 		if code != &"" or _entry_contact.section.x < 0: return REFUSE_TIMBER_CONTACT
 		code = _timber_profile_envelope(endpoint)
 		if code == &"": code = _entry_placements._locations.stage_add(token, _entry_contact).error
@@ -1545,6 +1563,7 @@ func _timber_profile_foot(proof: TimberClearance, endpoint: int) -> StringName:
 	_entry_checks = proof.remaining
 	var profile: int = _timber_profile(endpoint)
 	proof.remaining = _entry_checks
+	if profile == -2: return REFUSE_MASK_BUDGET
 	if profile < 0: return REFUSE_TIMBER_CONTACT
 	var profiles: Profiles = _entry_placements._profiles
 	var first: int = profiles._live.fields[Profiles.F_FIRST_BOX * profiles._profile_capacity + profile]

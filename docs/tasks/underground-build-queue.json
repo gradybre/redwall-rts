@@ -794,6 +794,16 @@
           "review": "Furnishing accepted10 GDS and3 census pins, no high/medium; LOW wording corrected",
           "scope": "Inventory-owned final purpose5 output/refund rollback barrier, exact original Sites candidate and worker-free terminal retry",
           "evidence": "docs/validation/evidence/underground-phase-settlement-2026-10-04/"
+        },
+        "first_prefix_owner_fixture": {
+          "source_commit": "b3077d70809168594cbcad411f2290516e6fad5b",
+          "integration_commit": "75f69833",
+          "independent_review": "Root accepted exact599-line fixture and source SHA d37a1ba80f6a45d10aa031cf0512544c20c535ca9902dee644e0d0cf2f75dfae",
+          "tests": "5 test(s), 414 assertion(s), 0 failure(s)",
+          "diagnostics": "strict and raw: zero unexpected errors/warnings, zero expected/tolerated, zero leaked objects/resources",
+          "analyzer": "0 GDScript warning(s) in 0 of 1 file(s)",
+          "path": "docs/validation/evidence/underground-first-prefix-2026-10-03/README.md",
+          "limits": "Actual owner/source/finite inventory fixture only. Synthetic profile certificates explicitly do not qualify worker motion or paid sequence."
         }
       },
       "lease": {
@@ -1307,6 +1317,16 @@
           "integration_checks": "195 tests,16668 assertions,0 failures across6 strict suites; all strict/raw diagnostics/leaks0; analyzer0/7",
           "metadata": "All34 spec commands pass,96 memory tests; one454->486 expectation independently accepted by Furnishing; unchanged global reserve",
           "integration_evidence": "docs/validation/evidence/underground-integrated-timber-2026-10-04/"
+        },
+        "cardinal_driver_v4": {
+          "source_commit": "bac734c4",
+          "integration_commit": "55cff65e",
+          "review": "Root independently accepted exact source523aaad9 and testcd07f7f9 after full source/test diff and raw evidence review",
+          "tests": "15 test(s), 472 assertion(s), 0 failure(s)",
+          "diagnostics": "strict and raw: zero unexpected errors/warnings, zero expected/tolerated, zero leaked objects/resources",
+          "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
+          "path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-cardinal-driver-v1/README.md",
+          "limits": "720 logical packed driver bytes; cardinal content/native qualifications still in progress. No economic Work credit or traversal permission."
         }
       },
       "lease": {
@@ -1411,7 +1431,10 @@
         "godot/scripts/core/underground_entry_structure.gd.uid",
         "godot/test/test_underground_entry_structure.gd",
         "godot/test/test_underground_entry_structure.gd.uid",
-        "docs/decisions/1122-source-bound-entry-structure.md"
+        "docs/decisions/1122-source-bound-entry-structure.md",
+        "godot/test/test_underground_phase_companions.gd",
+        "godot/test/test_underground_phase_companions.gd.uid",
+        "docs/decisions/1121-actual-excavation-phase-companions.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1996,6 +2019,18 @@
           "state": "implementation in progress",
           "scope": "Actual non-flat EPISODE natural-bearing proof and paid Room-lifetime protection; no invented flat roof or free support",
           "dependency": "Geometry1121 phase companions, Construction1119 integration fixture; isolated owned new files"
+        },
+        "entry_structure_in_progress": {
+          "branch": "codex/underground-entry-admission",
+          "decision": "1122",
+          "source_sha256": "182a34738f1c82a98cdda0ef64f39e2b27921baac999bdabf6fdfd72ecf8df20",
+          "tests": "21 tests / 1728 assertions / 0 failures (Entry16/1314 + actual first-prefix5/414)",
+          "diagnostics": "Each strict and raw footer: zero unexpected errors/warnings and zero leaks; no expected/tolerated diagnostics",
+          "analyzer": "0 GDScript warning(s) in 0 of 2 file(s)",
+          "memory": "113 Python tests pass; separate384 logical binding bytes, CHECK1048912/1048960; source-branch pack99959638/head40362, runtime_qualified false",
+          "review": "Construction found opposite quarter1/3 transform; corrected and independently-oracled asymmetric episode regression now passes. Remaining independent review and actual1121 composition pending.",
+          "path": "docs/validation/evidence/underground-entry-structure-2026-10-04/candidate-7/",
+          "limits": "Not integrated or accepted yet. Source branch contains1117/1120 guards but pending concrete1121 hooks: retained candidate3 ordinary PhaseStructure19/191 has9failures and2 downstream script aborts from EXCAVATION_SPATIAL_UNBOUND. Candidate4 native import crash retained; candidate5 test tree-depth assumption corrected to actual penetrating stone vein. Ordinary tests and composed paid entry remain required."
         }
       },
       "lease": {
@@ -2033,7 +2068,12 @@
               "godot/test/test_excavation_entry_claim_batch.gd",
               "godot/test/test_excavation_entry_claim_batch.gd.uid",
               "docs/decisions/1107-entry-plan-paid-cut-unions.md",
-              "godot/scripts/core/inventory.gd"
+              "godot/scripts/core/inventory.gd",
+              "godot/scripts/core/underground_entry_structure.gd",
+              "godot/scripts/core/underground_entry_structure.gd.uid",
+              "godot/test/test_underground_entry_structure.gd",
+              "godot/test/test_underground_entry_structure.gd.uid",
+              "docs/decisions/1122-source-bound-entry-structure.md"
             ],
             "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up.",
             "branch": "codex/underground-paid-cut-contact"

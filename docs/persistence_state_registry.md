@@ -1809,3 +1809,32 @@ publication. No additional image or proof flag survives a save/frame boundary.
 Generic Sites refresh with installed contacts remains closed pending the actual
 refresh-only phase context in1121; immutable source bytes alone grant no
 temporary floor, free air, stair motion or payment.
+
+### Actual excavation phase companion context (decision1121)
+
+Placements adds one synchronous `Locations.PhaseContext` and one mode byte;
+the packet contains five full refs40B plus eleven I64 controls88B. Owner holds
+one weak link and Locations borrows that same packet, so128B is counted once.
+Five weak owner references and one strong original Budget reference remain
+once-bound; operation-specific Site/Project/Room/tokens clear after their exact
+candidates are published or discarded. These are category3 controls, absent
+from canonical hashes/wire images and never valid at a save/frame boundary.
+No packed column, per-Site proof, worker state or second payment ledger is added.
+
+The complete Placement fixed logical census advances1670→1799 inside its
+existing2048 allowance. It retains the shared Order96+Assembly32 caller pair
+once. The existing512 helper allowance includes the longest new cross-owner
+numeric chain484: Authority108, provider callback40, Placement64, installed
+Location272. The final installed-source leaf chain is360. Source-derived
+member/chain details are reproduced by the1121 `census.py/json`; native object,
+reference and packed headers and interpreter frames remain unmeasured.
+
+The actual original Authority Budget owns all sequential cold copies. At the
+1093 two-Plan maximum145872, conservative Location691024 and graph526800
+peaks include4096 controls and remain below1048960. The old survey drops before
+companion preparation and Location coverage drops before graph compilation.
+Existing preallocated banks are not charged twice. Only a real successful
+Sites payment/settlement publishes the sealed base+1 Space receipt and all
+companion/source revisions. Rejected payment changes no live bank. Generic
+publication remains guarded by Authority's original token after companion
+cleanup. Ordinary unbound behavior and saved schemas remain unchanged.

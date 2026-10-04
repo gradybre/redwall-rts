@@ -1,0 +1,37 @@
+{
+  "reviewer": "/root",
+  "scope": "1130 prepared Location observation and actual Routes boundary; read-only independent source/test/census review",
+  "verdict": "accepted",
+  "source_sha256": {
+    "godot/scripts/core/underground_locations.gd": "024e9cca9ffbf72c87f9bf31581f3cee09e5fd9b8344dbc66ea293c26d8f38a1",
+    "godot/scripts/core/underground_routes.gd": "959c6b10b653913fe0c589dda7d2a15c99e49619b286664b02ad88042c2fb713",
+    "godot/test/test_underground_prepared_location_observation.gd": "6c7cfa3543f2860428e71d0944b500f6cf03bd3f57c5926d62e5f5ac7d66b316"
+  },
+  "findings_closed": [
+    "Use actual Locations sticky failed-operation sentinel _remaining < 0, without new error state."
+  ],
+  "checks": {
+    "independent_census_identical": true,
+    "retained_delta_bytes": 0,
+    "helper_bytes": 312,
+    "helper_ceiling": 512,
+    "final_focused_tests": 180,
+    "final_focused_assertions": 16524,
+    "failures": 0,
+    "unexpected_strict_diagnostics": 0,
+    "unexpected_raw_diagnostics": 0,
+    "object_leaks": 0,
+    "resource_leaks": 0,
+    "analyzer_warnings": 0,
+    "analyzed_files": 3
+  },
+  "consumer": {
+    "tests": 33,
+    "assertions": 10733,
+    "failures": 1,
+    "remaining_refusal": "ENTRY_INSTALLED_CONTACT_REQUIRED at terminal T0 endpoint without an authored WORK station",
+    "complete_prefix_accepted": false
+  },
+  "native_memory_qualified": false,
+  "production_motion_qualified": false
+}

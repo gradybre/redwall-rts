@@ -1,0 +1,394 @@
+{
+  "source_sha256": {
+    "godot/scripts/core/underground_locations.gd": "024e9cca9ffbf72c87f9bf31581f3cee09e5fd9b8344dbc66ea293c26d8f38a1",
+    "godot/scripts/core/underground_routes.gd": "959c6b10b653913fe0c589dda7d2a15c99e49619b286664b02ad88042c2fb713"
+  },
+  "base_commit": "75096e56",
+  "retained_deltas": {
+    "underground_locations": {
+      "added_fields": {},
+      "retained_numeric_delta": 0
+    },
+    "underground_routes": {
+      "added_fields": {},
+      "retained_numeric_delta": 0
+    }
+  },
+  "paths": {
+    "observation_copy": {
+      "path": [
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_copy_route_observation"
+      ],
+      "numeric_bytes": 48
+    },
+    "observation_binding": {
+      "path": [
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_route_observation_binding_refusal",
+        "underground_locations:_route_observation_world_refusal"
+      ],
+      "numeric_bytes": 40
+    },
+    "observation_context": {
+      "path": [
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_route_observation_context_refusal",
+        "underground_locations:_route_observation_shape_matches"
+      ],
+      "numeric_bytes": 24
+    },
+    "actual_installation_copy": {
+      "path": [
+        "modular_projects:complete_order",
+        "modular_projects:_completion_refusal",
+        "underground_connector_work:transition_refusal",
+        "underground_connector_work:_prepare_completion",
+        "underground_connector_placements:prepare_completion",
+        "underground_connector_placements:_prepare_completion_candidates",
+        "underground_connector_placements:_prepare_routes",
+        "underground_entry_bindings:AdmissionAuthority.stage_routes",
+        "underground_entry_bindings:_stage_timber_routes",
+        "underground_routes:stage_refresh",
+        "underground_routes:_edge_format_refusal",
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_copy_route_observation"
+      ],
+      "numeric_bytes": 264
+    },
+    "actual_installation_binding": {
+      "path": [
+        "modular_projects:complete_order",
+        "modular_projects:_completion_refusal",
+        "underground_connector_work:transition_refusal",
+        "underground_connector_work:_prepare_completion",
+        "underground_connector_placements:prepare_completion",
+        "underground_connector_placements:_prepare_completion_candidates",
+        "underground_connector_placements:_prepare_routes",
+        "underground_entry_bindings:AdmissionAuthority.stage_routes",
+        "underground_entry_bindings:_stage_timber_routes",
+        "underground_routes:stage_refresh",
+        "underground_routes:_edge_format_refusal",
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_route_observation_binding_refusal",
+        "underground_locations:_route_observation_world_refusal"
+      ],
+      "numeric_bytes": 256
+    },
+    "actual_installation_context": {
+      "path": [
+        "modular_projects:complete_order",
+        "modular_projects:_completion_refusal",
+        "underground_connector_work:transition_refusal",
+        "underground_connector_work:_prepare_completion",
+        "underground_connector_placements:prepare_completion",
+        "underground_connector_placements:_prepare_completion_candidates",
+        "underground_connector_placements:_prepare_routes",
+        "underground_entry_bindings:AdmissionAuthority.stage_routes",
+        "underground_entry_bindings:_stage_timber_routes",
+        "underground_routes:stage_refresh",
+        "underground_routes:_edge_format_refusal",
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_route_observation_context_refusal",
+        "underground_locations:_route_observation_shape_matches"
+      ],
+      "numeric_bytes": 240
+    },
+    "actual_installation_seal_copy": {
+      "path": [
+        "modular_projects:complete_order",
+        "modular_projects:_completion_refusal",
+        "underground_connector_work:transition_refusal",
+        "underground_connector_work:_prepare_completion",
+        "underground_connector_placements:prepare_completion",
+        "underground_connector_placements:_prepare_completion_candidates",
+        "underground_connector_placements:_prepare_routes",
+        "underground_world_routes:seal",
+        "underground_routes:seal",
+        "underground_routes:_validate_graph",
+        "underground_routes:_edge_format_refusal",
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_copy_route_observation"
+      ],
+      "numeric_bytes": 184
+    },
+    "actual_installation_seal_binding": {
+      "path": [
+        "modular_projects:complete_order",
+        "modular_projects:_completion_refusal",
+        "underground_connector_work:transition_refusal",
+        "underground_connector_work:_prepare_completion",
+        "underground_connector_placements:prepare_completion",
+        "underground_connector_placements:_prepare_completion_candidates",
+        "underground_connector_placements:_prepare_routes",
+        "underground_world_routes:seal",
+        "underground_routes:seal",
+        "underground_routes:_validate_graph",
+        "underground_routes:_edge_format_refusal",
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_route_observation_binding_refusal",
+        "underground_locations:_route_observation_world_refusal"
+      ],
+      "numeric_bytes": 176
+    },
+    "actual_installation_seal_context": {
+      "path": [
+        "modular_projects:complete_order",
+        "modular_projects:_completion_refusal",
+        "underground_connector_work:transition_refusal",
+        "underground_connector_work:_prepare_completion",
+        "underground_connector_placements:prepare_completion",
+        "underground_connector_placements:_prepare_completion_candidates",
+        "underground_connector_placements:_prepare_routes",
+        "underground_world_routes:seal",
+        "underground_routes:seal",
+        "underground_routes:_validate_graph",
+        "underground_routes:_edge_format_refusal",
+        "underground_routes:_location_into",
+        "underground_locations:prepared_route_location_into",
+        "underground_locations:_route_observation_context_refusal",
+        "underground_locations:_route_observation_shape_matches"
+      ],
+      "numeric_bytes": 160
+    }
+  },
+  "frames": {
+    "modular_projects:_completion_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "project": "Vector2i",
+        "primary": "int",
+        "tile": "int"
+      },
+      "borrowed_or_interned": [
+        "owner",
+        "code"
+      ]
+    },
+    "modular_projects:complete_order": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "project": "Vector2i",
+        "promotion_tile": "int",
+        "primary": "int"
+      },
+      "borrowed_or_interned": [
+        "code",
+        "owner",
+        "result"
+      ]
+    },
+    "underground_connector_placements:_prepare_completion_candidates": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "authority",
+        "code"
+      ]
+    },
+    "underground_connector_placements:_prepare_routes": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "authority",
+        "result",
+        "code"
+      ]
+    },
+    "underground_connector_placements:prepare_completion": {
+      "numeric_bytes": 32,
+      "numeric_fields": {
+        "ref": "Vector2i",
+        "project": "Vector2i",
+        "original_token": "int",
+        "assembly": "int"
+      },
+      "borrowed_or_interned": [
+        "code",
+        "authority"
+      ]
+    },
+    "underground_connector_work:_prepare_completion": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "bytes": "int"
+      },
+      "borrowed_or_interned": []
+    },
+    "underground_connector_work:transition_refusal": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "project": "Vector2i",
+        "action": "int",
+        "row": "int"
+      },
+      "borrowed_or_interned": [
+        "code",
+        "contacts"
+      ]
+    },
+    "underground_entry_bindings:AdmissionAuthority.stage_routes": {
+      "numeric_bytes": 40,
+      "numeric_fields": {
+        "placement": "Vector2i",
+        "project": "Vector2i",
+        "assembly": "int",
+        "token": "int",
+        "cold": "int"
+      },
+      "borrowed_or_interned": [
+        "actual"
+      ]
+    },
+    "underground_entry_bindings:_stage_timber_routes": {
+      "numeric_bytes": 48,
+      "numeric_fields": {
+        "placement": "Vector2i",
+        "project": "Vector2i",
+        "assembly": "int",
+        "token": "int",
+        "cold": "int",
+        "row": "int"
+      },
+      "borrowed_or_interned": [
+        "code",
+        "routes"
+      ]
+    },
+    "underground_locations:_copy_route_observation": {
+      "numeric_bytes": 24,
+      "numeric_fields": {
+        "row": "int",
+        "capacity": "int",
+        "axis": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "bank",
+        "out"
+      ]
+    },
+    "underground_locations:_route_observation_binding_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "actual",
+        "graph"
+      ]
+    },
+    "underground_locations:_route_observation_context_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "owner"
+      ]
+    },
+    "underground_locations:_route_observation_shape_matches": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "actual",
+        "bank"
+      ]
+    },
+    "underground_locations:_route_observation_world_refusal": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "ref": "Vector2i",
+        "row": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "ids"
+      ]
+    },
+    "underground_locations:prepared_route_location_into": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "location": "Vector2i",
+        "capacity": "int"
+      },
+      "borrowed_or_interned": [
+        "actual",
+        "graph",
+        "out",
+        "code",
+        "bank"
+      ]
+    },
+    "underground_routes:_edge_format_refusal": {
+      "numeric_bytes": 0,
+      "numeric_fields": {},
+      "borrowed_or_interned": [
+        "edge",
+        "code"
+      ]
+    },
+    "underground_routes:_location_into": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "ref": "Vector2i"
+      },
+      "borrowed_or_interned": [
+        "out"
+      ]
+    },
+    "underground_routes:_validate_graph": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "row": "int"
+      },
+      "borrowed_or_interned": [
+        "code"
+      ]
+    },
+    "underground_routes:seal": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "token": "int"
+      },
+      "borrowed_or_interned": [
+        "code"
+      ]
+    },
+    "underground_routes:stage_refresh": {
+      "numeric_bytes": 16,
+      "numeric_fields": {
+        "token": "int",
+        "ref": "Vector2i"
+      },
+      "borrowed_or_interned": [
+        "code"
+      ]
+    },
+    "underground_world_routes:seal": {
+      "numeric_bytes": 8,
+      "numeric_fields": {
+        "token": "int"
+      },
+      "borrowed_or_interned": [
+        "code"
+      ]
+    }
+  },
+  "largest_declared_numeric_chain_bytes": 264,
+  "expression_result_allowance_bytes": 48,
+  "numeric_chain_plus_allowance": 312,
+  "existing_nested_helper_ceiling": 512,
+  "route_fixed_work_per_observation": 256,
+  "new_cold_images_or_arrays": 0,
+  "reused_record_payload_bytes": 116,
+  "record_census": "point12 + Room/section/World24 + fourI64 controls32 + envelope/support48 =116; already reserved twice by Routes",
+  "native_ram_qualification": false,
+  "native_note": "Borrowed object references, StringNames, Variant/VM frames and packed-array allocator headers are unmeasured."
+}

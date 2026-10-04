@@ -30,6 +30,7 @@ const MAX_LOCATIONS: int = 4096 # An engineering allocation ceiling, not a playe
 const STORAGE_CELL_U: int = 2048 # Existing 2m placement-pile identity, with a real floor namespace.
 const WORLD_COPY_CONTROL_BYTES: int = 256 # Private116B record plus guards coexist with the admitted observation.
 const RESOLVE_CONTROL_BYTES: int = 512 # Caller frame36B/ref8B plus bounded scalar lookup frames; no image or array allocation.
+const PREPARED_OBSERVATION_CHECKS: int = 256 # Fixed context/row reads; Routes charges each observation before copying.
 const ROLE_TRANSIT: int = 0
 const ROLE_STORAGE: int = 1
 const ROLE_WORK: int = 2
@@ -656,6 +657,124 @@ func prepared_location_into(token: int, location: Vector2i, out: Record) -> Stri
 		return &"LOCATION_STALE"
 	_read_row(_stage, location.x, out)
 	return &""
+
+
+static func prepared_route_location_into(actual: RefCounted, graph: RefCounted,
+		location: Vector2i, out: Record) -> StringName:
+	"""Observe one sealed row between the graph's full pre/post proofs; this is never physical permission."""
+	if out == null or out.envelope.size() != 6 or out.support.size() != 6:
+		return &"LOCATION_OUTPUT_SHAPE"
+	var code: StringName = _route_observation_binding_refusal(actual, graph)
+	if code == &"":
+		code = _route_observation_context_refusal(actual, graph)
+	if code != &"":
+		return code
+	var capacity: int = actual._capacity
+	var bank: Bank = actual._stage
+	if location.x < 0 or location.x >= capacity or location.y <= 0 or bank.present[location.x] != 1 \
+			or bank.i32[GENERATION * capacity + location.x] != location.y:
+		return &"LOCATION_STALE"
+	if bank.i64[PAYLOAD_REVISION * capacity + location.x] <= 0 \
+			or bank.i64[GEOMETRY_REVISION * capacity + location.x] != actual._target_geometry_revision:
+		return &"LOCATION_GEOMETRY_STALE"
+	_copy_route_observation(actual, bank, location.x, out)
+	return &""
+
+
+static func _route_observation_binding_refusal(actual: RefCounted, graph: RefCounted) -> StringName:
+	"""Match concrete reciprocal stores directly, without a virtual binding or source observation."""
+	if actual == null or graph == null or actual._capacity <= 0 or actual._capacity > MAX_LOCATIONS or actual._owner == null \
+			or actual._sources == null or actual._ids == null or actual._cold == null \
+			or actual._sources._locations != graph:
+		return &"LOCATION_OWNER_MISMATCH"
+	if graph._edge_capacity <= 0 or graph._locations_ref == null or graph._locations_ref.get_ref() != actual \
+			or graph._owner_ref == null or graph._owner_ref.get_ref() != actual._owner \
+			or graph._sources_ref == null or graph._sources_ref.get_ref() != actual._sources \
+			or graph._cold != actual._cold or graph._ids != actual._ids or graph._world != actual._world \
+			or graph._buildings != actual._buildings or actual._owner._sources != actual._sources \
+			or actual._sources._directory != actual._ids or actual._sources._buildings != actual._buildings \
+			or actual._buildings == null or actual._buildings._directory != actual._ids \
+			or actual._sources._construction == null or actual._sources._construction._directory != actual._ids \
+			or actual._sources._construction._buildings != actual._buildings:
+		return &"LOCATION_OWNER_MISMATCH"
+	if not _observation_domain_matches(actual._domain, actual._owner._domain) \
+			or not _observation_domain_matches(actual._domain, graph._domain) \
+			or actual._domain._world != actual._world:
+		return &"LOCATION_OWNER_MISMATCH"
+	return _route_observation_world_refusal(actual)
+
+
+static func _observation_domain_matches(first: Space.Domain, second: Space.Domain) -> bool:
+	"""These fixed immutable namespace fields never stand in for a physical/source census."""
+	return first != null and second != null and first._world == second._world \
+		and first._bounds.size() == 6 and second._bounds.size() == 6 \
+		and first._datum == second._datum and first._min_quantum == second._min_quantum \
+		and first._size_quanta == second._size_quanta and first._bounds == second._bounds \
+		and first._cells == second._cells and first._regions == second._regions and first._checks == second._checks
+
+
+static func _route_observation_world_refusal(actual: RefCounted) -> StringName:
+	"""Check the complete actual World Directory tuple without an overridable identity reader."""
+	var ids: Directory = actual._ids
+	var ref: Vector2i = actual._world
+	if ref.x < 0 or ref.x >= Directory.DIRECTORY_CAPACITY or ref.y <= 0 \
+			or ids._active[ref.x] != 1 or ids._generation[ref.x] != ref.y \
+			or ids._kind[ref.x] != Directory.KIND_WORLD:
+		return &"LOCATION_WORLD_STALE"
+	var row: int = ids._typed_row[ref.x]
+	if row < 0 or row >= Directory.KIND_CAPACITY[Directory.KIND_WORLD] \
+			or ids._typed_owner_slot[ids._kind_base[Directory.KIND_WORLD] + row] != ref.x:
+		return &"LOCATION_WORLD_STALE"
+	return &""
+
+
+static func _route_observation_context_refusal(actual: RefCounted, graph: RefCounted) -> StringName:
+	"""Require original leases and sealed bank identities; successful observation changes no work counter."""
+	if actual._remaining < 0:
+		return &"LOCATION_OPERATION_BUDGET"
+	if not _route_observation_shape_matches(actual):
+		return &"LOCATION_OBSERVATION_SHAPE"
+	if graph._token <= 0 or graph._in_callback or graph._searching or graph._operation_error != &"" \
+			or actual._in_retention or actual._token <= 0 or actual._token != graph._location_token or not actual._sealed \
+			or actual._cold_token <= 0 or actual._cold_token != graph._cold_token \
+			or actual._cold._token != actual._cold_token or actual._cold._used < 88 * actual._domain._regions + 384:
+		return &"LOCATION_TOKEN_STALE"
+	var owner: Owner = actual._owner
+	if owner._ready_error != &"" or actual._owner_token != graph._space_token \
+			or owner._stage_token != actual._owner_token or (actual._owner_token != 0 and not owner._sealed):
+		return &"LOCATION_GEOMETRY_STALE"
+	if actual._base_geometry_revision <= 0 or actual._base_geometry_revision != graph._base_geometry_revision \
+			or actual._target_geometry_revision != graph._target_geometry_revision \
+			or owner._header[17] != actual._base_geometry_revision \
+			or actual._target_geometry_revision != (owner._s_header[17] if actual._owner_token != 0 else owner._header[17]):
+		return &"LOCATION_GEOMETRY_STALE"
+	return &""
+
+
+static func _route_observation_shape_matches(actual: RefCounted) -> bool:
+	"""Only the preallocated exact typed bank can be indexed, even if an invalid caller replaced its arrays."""
+	var bank: Bank = actual._stage
+	return bank != null and bank != actual._live and bank.header.size() == HEADER_FIELDS \
+		and bank.i32.size() == I32_FIELDS * actual._capacity and bank.i64.size() == I64_FIELDS * actual._capacity \
+		and bank.present.size() == actual._capacity and bank.header[0] == SCHEMA and bank.header[1] == actual._capacity \
+		and bank.header[2] == actual._world.x and bank.header[3] == actual._world.y \
+		and actual._owner._header.size() == Owner.HEADER_FIELDS and actual._owner._s_header.size() == Owner.HEADER_FIELDS
+
+
+static func _copy_route_observation(actual: RefCounted, bank: Bank, row: int, out: Record) -> void:
+	"""Copy all fixed scalars without dynamic dispatch, array aliasing, resizing or partial refused output."""
+	var capacity: int = actual._capacity
+	out.point = Vector3i(bank.i32[X * capacity + row], bank.i32[Y * capacity + row], bank.i32[Z * capacity + row])
+	out.room = Vector2i(bank.i32[ROOM_SLOT * capacity + row], bank.i32[ROOM_GENERATION * capacity + row])
+	out.section = Vector2i(bank.i32[SECTION_SLOT * capacity + row], bank.i32[SECTION_GENERATION * capacity + row])
+	out.level = bank.i32[LEVEL * capacity + row]
+	out.role = bank.i32[ROLE * capacity + row]
+	out.world = actual._world
+	out.payload_revision = bank.i64[PAYLOAD_REVISION * capacity + row]
+	out.geometry_revision = bank.i64[GEOMETRY_REVISION * capacity + row]
+	for axis: int in 6:
+		out.envelope[axis] = bank.i32[(ENVELOPE + axis) * capacity + row]
+		out.support[axis] = bank.i32[(SUPPORT + axis) * capacity + row]
 
 
 func storage_endpoint_refusal(location: Vector2i) -> StringName:

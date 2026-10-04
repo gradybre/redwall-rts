@@ -827,9 +827,12 @@ func _editable(token: int) -> StringName:
 
 
 func _location_into(ref: Vector2i, out: Locations.Record) -> StringName:
-	"""Only the actual sealed Location candidate can supply an unborn endpoint."""
-	return _locations.prepared_location_into(_location_token, ref, out) if _location_token != 0 \
-		else _locations.read_location_into(ref, out)
+	"""Read sealed fixed metadata inside full candidate proofs; public live reads retain their original contract."""
+	if _location_token == 0:
+		return _locations.read_location_into(ref, out)
+	if not _spend(Locations.PREPARED_OBSERVATION_CHECKS):
+		return _operation_error
+	return Locations.prepared_route_location_into(_locations, self, ref, out)
 
 
 func _edge_format_refusal(edge: Edge) -> StringName:
@@ -1250,6 +1253,8 @@ func seal(token: int) -> StringName:
 	code = _validate_graph()
 	if code == &"":
 		code = _build_edge_order()
+	if code == &"":
+		code = _context_refusal()
 	if code != &"":
 		_operation_error = code
 		return code

@@ -1,0 +1,43 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_prepared_location_observation.gd
+  PASS  test_fixed_observations_copy_unpublished_row_without_repeating_full_proofs
+  PASS  test_foreign_actual_graph_with_coincident_tokens_never_supplies_the_namespace
+  PASS  test_full_handle_and_candidate_seals_preserve_refused_output
+  PASS  test_original_real_lease_is_required_before_any_output_write
+  PASS  test_world_retirement_and_reuse_cannot_alias_a_prepared_endpoint
+  FAIL  test_strict_public_reader_keeps_full_work_exhaustion_refusal
+        strict public proof retained (expected LOCATION_OPERATION_BUDGET, got )
+        point preserved (expected (901, 902, 903), got (-512, 0, 512))
+        full Room preserved (expected (904, 905), got (-1, 0))
+        full section preserved (expected (906, 907), got (0, 1))
+        level preserved (expected 908, got 0)
+        role preserved (expected 909, got 0)
+        full World preserved (expected (910, 911), got (0, 1))
+        payload revision preserved (expected 912, got 1)
+        geometry revision preserved (expected 913, got 2)
+        envelope preserved (expected [1, 2, 3, 4, 5, 6], got [-640, 0, 384, -384, 1024, 640])
+        support preserved (expected [7, 8, 9, 10, 11, 12], got [-640, -128, 384, -384, 0, 640])
+        complete graph proof still refuses (expected LOCATION_OPERATION_BUDGET, got )
+        no graph publication candidate (expected false, got true)
+  PASS  test_graph_post_validation_rechecks_drift_after_last_metadata_observation
+  PASS  test_final_guard_rechecks_drift_after_successful_seal
+  PASS  test_route_edge_reads_use_fixed_observations_with_the_existing_full_boundaries
+  PASS  test_prepared_route_read_refuses_before_copy_when_fixed_work_is_unpaid
+CI_SUITE_TIME {"assertions":337,"failures":1,"suite":"test_underground_prepared_location_observation.gd","tests":10,"usec":776961}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+10 test(s), 337 assertion(s), 1 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready

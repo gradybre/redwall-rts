@@ -1035,7 +1035,15 @@
         "tools/prove_underground_forward_backend.py",
         "tools/test_prove_underground_forward_backend.py",
         "tools/audit_underground_metal_cache.py",
-        "tools/test_audit_underground_metal_cache.py"
+        "tools/test_audit_underground_metal_cache.py",
+        "docs/decisions/1137-renewed-profile-consumer-closure.md",
+        "docs/decisions/1138-actual-metal-mesh-input-census.md",
+        "tools/capture_underground_metal_inputs.gd",
+        "tools/capture_underground_metal_inputs.gd.uid",
+        "godot/test/test_underground_metal_inputs.gd",
+        "godot/test/test_underground_metal_inputs.gd.uid",
+        "tools/audit_underground_metal_inputs.py",
+        "tools/test_audit_underground_metal_inputs.py"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1476,7 +1484,7 @@
         },
         "default_renderer_1132": {
           "owner": "/root/ug_furnishing",
-          "status": "phase1 integrated; phase2 WorldBasis-only implementation active",
+          "status": "phase1/phase2 integrated; phase3 independently accepted pending source commit; phase4 actual-mesh input census started",
           "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence.",
           "review": "Root rehashed4 source/51 outputs and reran14 Python tests. Native65536rows, strict5/36/all0,LSP0/2. Exact pinned Apple precision sections independently read. Source/expression-only; complete skin/model/native attachment remains open.",
           "phase2_lease": "Explicit root grant2026-10-04: underground_actor.gd WorldBasis v1/v2 dispatch only, test_underground_world_basis.gd plus new evidence/scripts. No pose/root changes, new retained fields, catalog flags or source reinterpretation.",
@@ -1497,7 +1505,27 @@
             "tests": "WorldBasis12/246/0 plus unchangedActor21/225/0; strict/raw/leaks0; LSP0/3. Native actualMetal45assert/0 and unchangedGL21/0 with two attachment cycles. Root combined100/3294/0 all0 LSP0/6.",
             "scope": "UGYAW001 OpenGL and UGYAW002 actual Metal backend-specific reader; no new retained field/table/reserve. Actual Metal numerical enclosure, production profile and World activation remain open.",
             "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/review-phase2-v2/"
+          },
+          "phase3": {
+            "status": "independently reviewed; awaiting author commit",
+            "reviewer": "/root",
+            "evidence": "docs/validation/evidence/underground-metal-phase3-review-2026-10-04/",
+            "review": "All3 source/160 output/16 inherited pins match. Independent18 Python tests OK/no skips; actual5-cache audit regenerated identical report and all58 MSL bytes,34variants66stages3281991 occurrence bytes. Zero qualifiedprofiles; no optimizer/actual-Mole/World permission."
+          },
+          "phase4": {
+            "status": "in_progress",
+            "owner": "/root/ug_furnishing",
+            "decision": "docs/decisions/1138-actual-metal-mesh-input-census.md",
+            "scope": "Additive actual source-bound RenderingServer raw mesh input census/CPU decode vs accepted palette. Explicit new tools/test paths and forward-plus-v1/rd-input-v1 only; no Actor/Profile state, reserve or certificate change."
           }
+        },
+        "consumer_renewal_1137": {
+          "status": "adapter source awaiting independent review; live v2 Catalog not changed",
+          "owner": "/root",
+          "branch": "codex/underground-profile-renewal",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/",
+          "tests": "10 Python tests OK; real candidate3 reconstruction:2 groundrows14roleboxes9730636 reused handoff checks537 exact historical inputs8 immutablecurrentconsumer sources0bits. No current consumer compatibility/native/publication claim.",
+          "contract": "Exact six input locations plus11 explicitly pinned historical Git objects for immutable raw-source reconstruction; unlink temporary hardlinks before replacement. All current source/geometry checks retained. Actual final Contacts/Routes/WorldBasis compatibility and native replay required."
         }
       },
       "lease": {
@@ -1513,6 +1541,31 @@
             ],
             "handoff": "ug_furnishing acknowledged no edits and released both exact files on2026-10-03 for the1102 final callback-free Catalog/Profile/Level/World source attestation correction. No catalog content or motion ownership transferred.",
             "worker_stopped": "Construction explicitly acknowledged no further Catalog source/test writes and returned both files after20447ad1 on2026-10-03."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-profile-renewal",
+            "state": "held",
+            "files": [
+              "godot/data/underground/mole-worker/publish_mole_profiles.py",
+              "godot/data/underground/mole-worker/test_publish_mole_profiles.py",
+              "godot/data/underground/mole-worker/mole_profile_catalog.gd",
+              "godot/data/underground/mole-worker/profile-publication-v2/",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/source-gates-v3/",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/review-profile-publication-v2/",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/publication-check-v2/",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/published-native-runtime-sources-v2/",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/native-published-mole-v2/",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/run_published_mole_capture.py",
+              "godot/data/underground/mole-worker/evidence/contact-qualification/test_published_mole_capture.py",
+              "docs/decisions/1137-renewed-profile-consumer-closure.md",
+              "godot/test/test_mole_qualified_profiles.gd",
+              "godot/test/test_demo_profile_pack.gd",
+              "tools/demo_build/windows_export_preset.cfg",
+              "tools/godot/verify_demo_pack.gd",
+              "tools/test_build_demo_windows.py"
+            ],
+            "handoff": "ug_furnishing explicitly stopped and released the exact publisher/Catalog/native runner/tests/export paths on2026-10-04. Root created isolated branch from freshly fetched origin/master82d60ba8 then fast-forwarded own integration1e71c678. Actor/Profiles and other owners remain unchanged. Final publication awaits reviewed1134/1135 consumer source and native replay."
           }
         ]
       }
@@ -1612,7 +1665,8 @@
         "godot/scripts/core/underground_surface_anchor.gd",
         "godot/scripts/core/underground_surface_anchor.gd.uid",
         "godot/test/test_underground_surface_anchor.gd",
-        "godot/test/test_underground_surface_anchor.gd.uid"
+        "godot/test/test_underground_surface_anchor.gd.uid",
+        "docs/decisions/1135-paid-workpiece-spatial-companions.md"
       ],
       "requirements": [
         "UG-LEVEL-001",

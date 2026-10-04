@@ -1901,3 +1901,27 @@ distinct endpoint pairs, remain failed timing qualification.
 |---|---|---:|---|---|:-:|---|---|
 | Reused complete motion and contact boxes | `_entry_box`, `_entry_air`, `_entry_reach` | 4 | `6` = 6 | Empty before exact binding | 3 | -- | Decision1119. Three fixed caller buffers,72 logical packed bytes. No per-Site row or retained survey. |
 | Synchronous exact entry phase context | -- | -- | -- | No operation at a save/frame boundary | 3 | -- | Weak borrow of the existing Contacts; five full refs40, eight I64 controls64, two Vector3i24 and two booleans2, plus the72 packed bytes above, total202. Source census and runtime reflection agree. The longest own numeric call chain is224 within the explicit1024 helper allowance, giving1226 within a NEW2048 global reservation; the existing4083-byte Contacts packet remains separately charged and singly instantiated. No second Contacts, paid progress, recipe, receipt, endpoint or canonical state. Original source/prefix/lease and reentry controls are synchronous. Native frames and whole-tick qualification remain open. |
+
+### `godot/scripts/core/underground_connector_workpieces.gd`
+
+| Column group | Members | Width B | Count | Null / unused | Cat | ARCH-SAVE-002 | Notes |
+|---|---|---:|---|---|:-:|---|---|
+| Canonical static paid workpiece rows | -- | -- | -- | Absent row has zero fields | 1 | §1 WORLD | Decision1134. Two banks each retain five I32 columns and one B8 presence column per actual Placement: Placement generation, full Project and full Region. No new entity namespace, work counter, quantity or paid receipt. Whole-store capture/restore is streamed; composed save and actual-owner restore remain a separate acceptance gate. |
+| Immutable source header | `_header` | 8 | `9` = 9 | Zero before source load | 2 | §1 WORLD | Exact source/Catalog/variant/group/recipe/profile revisions and source row/program identity. Immutable source remains separate from actual World permission. |
+| Source digests | `_digests` | 1 | `160` = 160 | Zero before source load | 2 | §1 WORLD | Workpiece template, Catalog, Grouping, Recipe and distinct set-down program hashes. An INSTALL source cannot substitute for the set-down program. |
+| Included-part and set-down profile selectors | `_parts` | 4 | `6 * assemblies` runtime | Zero before source load | 2 | §1 WORLD | Six field-major columns: complete included part, quarter-turn, XYZ translation and profile. A is admitted at configure and cannot exceed256. |
+| Exact set-down profile revisions | `_profile_revisions` | 8 | `assemblies` runtime | Zero before source load | 2 | §1 WORLD | One revision per immutable group; no inferred role or geometry permission. |
+| Reused exact bounds and coordinate scratch | `_bounds`, `_scratch` | 4 | `6` = 6 | No prepared operation at save boundary | 3 | -- | Two24-byte packed boxes inside2048 logical control/helper bytes. Numeric controls75B give123B retained numeric/packed controls; borrowed owner references and native overhead remain unmeasured. |
+| Whole-owner admission | -- | -- | -- | Complete arena admitted before either bank or source allocation | 3 | -- | Separate contribution42P+32A+232+2048+512+8192 =29928B atP=A=256. The512 stream and8192 provisional native reservations coexist with both banks and the immutable source. This is outside the fully assigned binding reserve; it does not increase the100MB joint ceiling. Native measurement and composed persistence remain open. |
+
+### Paid workpiece spatial and owner controls (decisions1134–1135)
+
+The shared InstallationContext adds an8-byte action and8-byte full obstacle;
+Placement independently retains the same16-byte tuple. Its once-bound Workpieces
+reference is weak. The source-derived Placement controls total1895/2048B,
+including a576B nested helper allowance; this reallocates64B of existing
+headroom and adds32B of retained numeric state without expanding a reserve.
+The complete recorded phase/endpoint chain is572B. ConnectorWork adds one
+borrowed Workpieces reference and no numeric or packed field. Its existing563B
+logical allowance and Contacts'4096B allowance remain unchanged. Native
+reference/header costs and whole-client peak qualification remain open.

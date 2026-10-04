@@ -1,0 +1,93 @@
+{
+  "head": "b518ca1f824903b0a40658a04660064f50ab7509",
+  "commands": [
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_underground_memory_budget.py"
+      ],
+      "log": "tests.log",
+      "exit_code": 0,
+      "seconds": 35.127
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/underground_memory_budget.py"
+      ],
+      "log": "build.log",
+      "exit_code": 0,
+      "seconds": 0.448
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/underground_memory_budget.py",
+        "--check"
+      ],
+      "log": "check.log",
+      "exit_code": 0,
+      "seconds": 0.443
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/state_registry_coverage.py"
+      ],
+      "log": "registry.log",
+      "exit_code": 0,
+      "seconds": 0.305
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/audit_registry_capacities.py"
+      ],
+      "log": "capacity-build.log",
+      "exit_code": 0,
+      "seconds": 1.388
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/audit_registry_capacities.py",
+        "--check"
+      ],
+      "log": "capacity-check.log",
+      "exit_code": 0,
+      "seconds": 1.364
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "tools/test_registry_capacity_audit.py"
+      ],
+      "log": "capacity-tests.log",
+      "exit_code": 0,
+      "seconds": 2.763
+    },
+    {
+      "command": [
+        "/Users/brendan/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3",
+        "-B",
+        "docs/validation/ready07_arithmetic.py",
+        "--output",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-workpiece-memory-2026-10-04/normal-integrated-v1/ready07.json"
+      ],
+      "log": "ready07.log",
+      "exit_code": 1,
+      "seconds": 0.704
+    }
+  ],
+  "scope": "Normal unmodified source index; logical allocation checks, not runtime qualification",
+  "source_unchanged": true,
+  "head_unchanged": true,
+  "exit_code": 1
+}

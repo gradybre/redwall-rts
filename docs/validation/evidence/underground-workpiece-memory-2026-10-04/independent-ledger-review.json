@@ -1,0 +1,27 @@
+{
+  "reviewer": "/root/ug_geometry",
+  "status": "accepted for source-derived ledger only",
+  "source_pins": {
+    "docs/systems_architecture.md": "19b4bafe8caaee658d527d3035c2f9466a2696b3083654bc4f6ff0e9c59376f7",
+    "docs/validation/ready07_arithmetic.py": "6a4a7015a0f24685a6061991c977191dc727dfcbd3110f14d7e937f3808b9e48",
+    "tools/underground_memory_budget.py": "12d3eebdfa6356f02ae8af2f74fe1b0d196e1516cc323a8e29dfb3b0f960527f",
+    "tools/test_underground_memory_budget.py": "3bc53d9a207eb853671c85795e727f09592059c2ccfd4ec8b21112e6fd8b21f0",
+    "docs/persistence_state_registry.md": "3f7d42e8f6916f405061f32ee33fffba399f0f27bf0ed145f72ec30a0ff4b9d6",
+    "docs/planning/underground_memory_pack.json": "d3485890aa1ad60a236b5e88b674988ec282e21f1b208f5a00b94b4f057c56c1",
+    "docs/planning/registry_capacity_audit.json": "97f0021742377d71112ad7061f08841bc326c64595adb02f14e1b34e39020e1a"
+  },
+  "checks": [
+    "normal memory --check",
+    "capacity --check",
+    "READY07 PASS145fieldrows50allocationrows",
+    "merge_gate functions"
+  ],
+  "adversaries": [
+    "omitted29928 allocation row refused",
+    "double29928 allocation row refused",
+    "changed historical1072 trail refused by merge_gate"
+  ],
+  "findings": [],
+  "engine_run": false,
+  "runtime_qualified": false
+}

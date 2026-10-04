@@ -259,7 +259,7 @@ def placement_controls(index: dict) -> dict:
         "_authority": "WeakRef", "_publisher": "WeakRef", "_router": "WeakRef", "_paid_owner": "WeakRef",
         "_last_state_hash": "String", "_context": "Locations.InstallationContext",
         "_admission_candidate": "Directory.CreateCandidate", "_admission_context": "Locations.RoomContext",
-        "_admission_input": "WeakRef", "_phase_context": "Locations.PhaseContext"}
+        "_admission_input": "WeakRef", "_phase_context": "Locations.PhaseContext", "_workpieces": "WeakRef"}
     assert {key: value for key, value in fields.items() if value not in numeric} == expected, \
         "unreconciled Placement owned/borrowed members"
     assert fields.get("_phase_mode") == "bool", "phase companion mode control drift"
@@ -283,7 +283,7 @@ def placement_controls(index: dict) -> dict:
         "private_and_caller_requests": 2 * request,
         "shared_order_and_assembly_records": scalar_packet(index, module, "OrderRecord") +
             scalar_packet(index, "underground_connector_assemblies", "AssemblyRecord"),
-        "returned_result": scalar_packet(index, module, "Result"), "final_digest": 32, "helper_frames": 512}
+        "returned_result": scalar_packet(index, module, "Result"), "final_digest": 32, "helper_frames": 576}
     return {"components": rows, "total_bytes": sum(rows.values())}
 
 
@@ -295,7 +295,7 @@ def connector_work_reservation(index: dict, placement: dict) -> dict:
     expected = {"_placements": "Placements", "_construction": "Construction", "_assemblies": "Assemblies",
         "_recipes": "Recipes", "_router": "WeakRef", "_contacts": "WeakRef", "_publication": "Publication",
         "_order": "Placements.OrderRecord", "_assembly": "Assemblies.AssemblyRecord",
-        "_stage_contacts": "Contacts", "_cold_budget": "Budget"}
+        "_stage_contacts": "Contacts", "_cold_budget": "Budget", "_workpieces": "Workpieces"}
     fields = explicit_members(source)
     assert {key: value for key, value in fields.items() if value not in {"int", "bool", "Vector2i", "Vector3i"}} == expected, \
         "unreconciled ConnectorWork owned/borrowed members"
@@ -311,6 +311,73 @@ def connector_work_reservation(index: dict, placement: dict) -> dict:
     return {"additional_numeric_bytes": own, "aliased_record_bytes_already_charged": shared,
             "helper_allowance_bytes": 512, "isolated_numeric_and_helper_bytes": own + shared + 512,
             "reserved_bytes": own + 512}
+
+
+def connector_workpieces_reservation(index: dict) -> dict:
+    """Count both actual rows and the one immutable source bank outside the fully assigned bindings reserve."""
+    module = "underground_connector_workpieces"
+    source = index[module].text
+    assert re.findall(r"(?m)^extends (.+)$", source) == ["RefCounted"], "unreconciled Workpieces base"
+    p = resolve(index, module, "MAX_PLACEMENTS")
+    a = resolve(index, module, "MAX_ASSEMBLIES")
+    assert p == resolve(index, "underground_connector_placements", "MAX_PLACEMENTS") == 256
+    assert a == resolve(index, "underground_connector_catalog", "MAX_PARTS") == 256
+    bank = class_body(source, "Bank")
+    assert explicit_members(bank, "\t") == {"fields": "PackedInt32Array", "present": "PackedByteArray"}, \
+        "unreconciled Workpieces bank member"
+    rows = {}
+    for name, kind in explicit_members(bank, "\t").items():
+        expressions = re.findall(r"^\t\t" + name + r"\.resize\(([^)]+)\)$", bank, re.M)
+        assert len(expressions) == 1, ("Workpieces bank allocation", name, expressions)
+        count = resolve(index, module, expressions[0], {"capacity": p})
+        rows[name] = {"width": WIDTHS[kind], "capacity": count, "bytes": WIDTHS[kind] * count,
+                      "resize_expression": expressions[0]}
+    assert payload(rows) == p * resolve(index, module, "ROW_BYTES") == 21 * p
+    fields = explicit_members(source)
+    references = {"_live": "Bank", "_stage": "Bank", "_placements": "RefCounted", "_router": "Router",
+                  "_paid_owner": "WeakRef", "_contacts": "WeakRef", "_budget": "Budget", "_catalog": "Catalog",
+                  "_assemblies": "Assemblies", "_recipes": "Recipes", "_profiles": "Profiles", "_context": "RefCounted"}
+    numeric = {"int", "bool", "Vector2i", "Vector3i"}
+    assert {key: kind for key, kind in fields.items() if kind not in numeric and kind not in WIDTHS} == references, \
+        "unreconciled Workpieces owned/borrowed member"
+    arrays = columns(index, module, 6, {"assemblies": a})
+    expected = {"_header": (8, 9), "_digests": (1, 160), "_parts": (4, 6 * a),
+                "_profile_revisions": (8, a), "_bounds": (4, 6), "_scratch": (4, 6)}
+    assert {key: (row["width"], row["capacity"]) for key, row in arrays.items()} == expected, \
+        "Workpieces source or scratch allocation drift"
+    for name in arrays:
+        assert len(re.findall(re.escape(name) + r"\.resize\(([^)]+)\)", source)) == 1, \
+            (name, "ambiguous Workpieces allocation")
+    header = arrays["_header"]["bytes"] + arrays["_digests"]["bytes"]
+    immutable_rows = arrays["_parts"]["bytes"] + arrays["_profile_revisions"]["bytes"]
+    assert header == resolve(index, module, "SOURCE_HEADER_BYTES") == 232
+    assert immutable_rows == a * resolve(index, module, "SOURCE_ROW_BYTES") == 32 * a
+    fixed = numeric_fields(source, "") + arrays["_bounds"]["bytes"] + arrays["_scratch"]["bytes"]
+    controls = resolve(index, module, "CONTROL_BYTES")
+    assert fixed == 123 and fixed + 1024 <= controls == 2048, "Workpieces fixed/helper lifetime drift"
+    # Only this exact declared integer permits an inline explanation of unmeasured native overhead.
+    native_match = re.findall(r"(?m)^const NATIVE_RESERVE: int = ([0-9]+)(?:[ \t]+#.*)?$", source)
+    assert native_match == ["8192"], "Workpieces provisional native reservation drift"
+    stream = resolve(index, module, "STREAM_BYTES")
+    assert stream == 512
+    required = ("\treturn 2 * ROW_BYTES * placements + SOURCE_ROW_BYTES * assemblies + SOURCE_HEADER_BYTES \\\n"
+                "\t\t+ CONTROL_BYTES + STREAM_BYTES + NATIVE_RESERVE")
+    assert required in source, "Workpieces constructor lifetime charge drift"
+    admission = "\tif _configured or required == 0 or required > DESIGN_CEILING or arena_bytes != required:"
+    assert admission in source, "Workpieces requires exact complete admission"
+    assert source.count("\t_live.allocate(placements)") == source.count("\t_stage.allocate(placements)") == 1
+    for allocation in ["\t_live.allocate(placements)", "\t_stage.allocate(placements)"] + [
+            "\t" + name + ".resize(" for name in arrays]:
+        assert source.index(admission) < source.index(allocation), "Workpieces allocates before complete admission"
+    reserved = 2 * payload(rows) + header + immutable_rows + controls + stream + int(native_match[0])
+    assert reserved == 29928 and reserved <= resolve(index, module, "DESIGN_CEILING") == 32768
+    return {"placement_capacity": p, "assembly_capacity": a, "bank_columns": rows,
+            "source_and_scratch_columns": arrays, "two_bank_bytes": 2 * payload(rows),
+            "immutable_header_bytes": header, "immutable_rows_bytes": immutable_rows,
+            "fixed_numeric_and_packed_bytes": fixed, "logical_helper_allowance_bytes": 1024,
+            "control_reserve_bytes": controls, "stream_reserved_bytes": stream,
+            "native_reserve_bytes": int(native_match[0]), "reserved_bytes": reserved,
+            "scope": "Separate explicit joint contribution; source-counted logical admission only. Native memory and composed persistence remain unqualified."}
 
 
 def entry_frontier_reservation(index: dict) -> dict:
@@ -706,6 +773,7 @@ def build(index: dict | None = None) -> dict:
     start = excavation_start_controls(index)
     entry_structure = entry_structure_reservation(index)
     entry_world = entry_world_reservation(index)
+    workpieces = connector_workpieces_reservation(index)
     reserve_names = ("LOCATION_AND_TOPOLOGY_BYTES", "INVENTORY_EXTENSION_BYTES", "PROFILE_BYTES",
                      "TERRAIN_BYTES", "LAYOUT_COLD_BYTES", "BINDINGS_AND_GROWTH_BYTES")
     reserves = {key: resolve(index, budget.name, key) for key in reserve_names}
@@ -716,6 +784,7 @@ def build(index: dict | None = None) -> dict:
         "excavation_start_controls": start["numeric_bytes"],
         "entry_structure_bindings": entry_structure["reserved_bytes"],
         "entry_world_bindings": entry_world["reserved_bytes"],
+        "connector_workpieces": workpieces["reserved_bytes"],
         "space_banks_and_indexes": payload(groups["underground_space_owner"]),
         "phase_proof_cache_and_candidate": payload(groups["underground_space_authority"]),
         "shared_geometry_cold_peak": resolve(index, budget.name, "COLD_BYTES"),
@@ -740,7 +809,7 @@ def build(index: dict | None = None) -> dict:
     sources.update(("inventory", "excavation_inventory", "excavation_sites", "construction", "modular_project_contract", "underground_budget",
                     "underground_connector_recipes", "underground_connector_catalog", "underground_world_routes",
                     "underground_connector_assemblies", "underground_surface_anchor", "underground_locations",
-                    "underground_connector_placements", "underground_connector_work", "entity_directory",
+                    "underground_connector_placements", "underground_connector_work", "underground_connector_workpieces", "entity_directory",
                     "underground_entry_frontier", "underground_entry_bindings", "underground_entry_plan", "room_connectors",
                     "underground_connector_contacts", "underground_profiles", "int_math",
                     "underground_entry_structure", "underground_phase_structure", "underground_entry_world_bindings"))
@@ -750,6 +819,7 @@ def build(index: dict | None = None) -> dict:
             "excavation_start_controls": start,
             "entry_structure_reservation": entry_structure,
             "entry_world_reservation": entry_world,
+            "connector_workpieces_reservation": workpieces,
             "contributions": contributions, "new_mutable_and_reserved_bytes": added,
             "declaration_bytes": declaration, "declaration_delta_bytes": declaration - 21185,
             "live_with_reserve_bytes": total, "headroom_bytes": 100000000 - total,

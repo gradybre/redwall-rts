@@ -20,476 +20,476 @@
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2621
+        "line": 2709
       },
       "_changed_rows": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2620
+        "line": 2708
       },
       "_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2618
+        "line": 2706
       },
       "_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2686
+        "line": 2774
       },
       "_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2687
+        "line": 2775
       },
       "_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2688
+        "line": 2776
       },
       "_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2689
+        "line": 2777
       },
       "_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2682
+        "line": 2770
       },
       "_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2680
+        "line": 2768
       },
       "_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2685
+        "line": 2773
       },
       "_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2684
+        "line": 2772
       },
       "_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2679
+        "line": 2767
       },
       "_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2683
+        "line": 2771
       },
       "_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2681
+        "line": 2769
       },
       "_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2650
+        "line": 2738
       },
       "_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2635
+        "line": 2723
       },
       "_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2649
+        "line": 2737
       },
       "_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2636
+        "line": 2724
       },
       "_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2640
+        "line": 2728
       },
       "_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2641
+        "line": 2729
       },
       "_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2642
+        "line": 2730
       },
       "_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2643
+        "line": 2731
       },
       "_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2637
+        "line": 2725
       },
       "_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2638
+        "line": 2726
       },
       "_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2639
+        "line": 2727
       },
       "_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2647
+        "line": 2735
       },
       "_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2648
+        "line": 2736
       },
       "_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2646
+        "line": 2734
       },
       "_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2632
+        "line": 2720
       },
       "_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2633
+        "line": 2721
       },
       "_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2634
+        "line": 2722
       },
       "_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2645
+        "line": 2733
       },
       "_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2644
+        "line": 2732
       },
       "_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2622
+        "line": 2710
       },
       "_s_header": {
         "width": 8,
         "capacity": 18,
         "bytes": 144,
         "resize_expression": "HEADER_FIELDS",
-        "line": 2619
+        "line": 2707
       },
       "_s_o_a": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2702
+        "line": 2790
       },
       "_s_o_b": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2703
+        "line": 2791
       },
       "_s_o_c": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2704
+        "line": 2792
       },
       "_s_o_d": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2705
+        "line": 2793
       },
       "_s_o_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2698
+        "line": 2786
       },
       "_s_o_kind": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2696
+        "line": 2784
       },
       "_s_o_parent_generation": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2701
+        "line": 2789
       },
       "_s_o_parent_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2700
+        "line": 2788
       },
       "_s_o_present": {
         "width": 1,
         "capacity": 2048,
         "bytes": 2048,
         "resize_expression": "_source_capacity",
-        "line": 2695
+        "line": 2783
       },
       "_s_o_revision": {
         "width": 8,
         "capacity": 2048,
         "bytes": 16384,
         "resize_expression": "_source_capacity",
-        "line": 2699
+        "line": 2787
       },
       "_s_o_slot": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2697
+        "line": 2785
       },
       "_s_r_claim_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2674
+        "line": 2762
       },
       "_s_r_claim_kind": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2659
+        "line": 2747
       },
       "_s_r_claim_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2673
+        "line": 2761
       },
       "_s_r_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2660
+        "line": 2748
       },
       "_s_r_hi_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2664
+        "line": 2752
       },
       "_s_r_hi_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2665
+        "line": 2753
       },
       "_s_r_hi_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2666
+        "line": 2754
       },
       "_s_r_level": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2667
+        "line": 2755
       },
       "_s_r_lo_x": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2661
+        "line": 2749
       },
       "_s_r_lo_y": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2662
+        "line": 2750
       },
       "_s_r_lo_z": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2663
+        "line": 2751
       },
       "_s_r_owner_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2671
+        "line": 2759
       },
       "_s_r_owner_revision": {
         "width": 8,
         "capacity": 6144,
         "bytes": 49152,
         "resize_expression": "_region_capacity",
-        "line": 2672
+        "line": 2760
       },
       "_s_r_owner_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2670
+        "line": 2758
       },
       "_s_r_present": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2656
+        "line": 2744
       },
       "_s_r_retired": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2657
+        "line": 2745
       },
       "_s_r_role": {
         "width": 1,
         "capacity": 6144,
         "bytes": 6144,
         "resize_expression": "_region_capacity",
-        "line": 2658
+        "line": 2746
       },
       "_s_r_section_generation": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2669
+        "line": 2757
       },
       "_s_r_section_slot": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2668
+        "line": 2756
       },
       "_s_region_free_heap": {
         "width": 4,
         "capacity": 6144,
         "bytes": 24576,
         "resize_expression": "_region_capacity",
-        "line": 2623
+        "line": 2711
       },
       "_s_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2625
+        "line": 2713
       },
       "_source_free_heap": {
         "width": 4,
         "capacity": 2048,
         "bytes": 8192,
         "resize_expression": "_source_capacity",
-        "line": 2624
+        "line": 2712
       }
     },
     "underground_space_authority": {
@@ -1124,9 +1124,9 @@
       "stream_reserved_bytes": 4096,
       "fixed_controls": {
         "components": {
-          "owner": 119,
+          "owner": 135,
           "bank_free_counts": 32,
-          "installation_context": 112,
+          "installation_context": 128,
           "room_context": 80,
           "phase_context": 128,
           "directory_candidate": 32,
@@ -1134,9 +1134,9 @@
           "shared_order_and_assembly_records": 128,
           "returned_result": 8,
           "final_digest": 32,
-          "helper_frames": 512
+          "helper_frames": 576
         },
-        "total_bytes": 1799
+        "total_bytes": 1895
       },
       "control_reserve_bytes": 2048,
       "native_reserve_bytes": 8192,
@@ -1262,10 +1262,83 @@
     "reserved_bytes": 2048,
     "scope": "Additional phase composer only; one borrowed Contacts and existing World base counted once. Native headers and composed peak remain unqualified."
   },
+  "connector_workpieces_reservation": {
+    "placement_capacity": 256,
+    "assembly_capacity": 256,
+    "bank_columns": {
+      "fields": {
+        "width": 4,
+        "capacity": 1280,
+        "bytes": 5120,
+        "resize_expression": "5 * capacity"
+      },
+      "present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "capacity"
+      }
+    },
+    "source_and_scratch_columns": {
+      "_bounds": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 123
+      },
+      "_digests": {
+        "width": 1,
+        "capacity": 160,
+        "bytes": 160,
+        "resize_expression": "160",
+        "line": 120
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 9,
+        "bytes": 72,
+        "resize_expression": "9",
+        "line": 119
+      },
+      "_parts": {
+        "width": 4,
+        "capacity": 1536,
+        "bytes": 6144,
+        "resize_expression": "6 * assemblies",
+        "line": 121
+      },
+      "_profile_revisions": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "assemblies",
+        "line": 122
+      },
+      "_scratch": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 124
+      }
+    },
+    "two_bank_bytes": 10752,
+    "immutable_header_bytes": 232,
+    "immutable_rows_bytes": 8192,
+    "fixed_numeric_and_packed_bytes": 123,
+    "logical_helper_allowance_bytes": 1024,
+    "control_reserve_bytes": 2048,
+    "stream_reserved_bytes": 512,
+    "native_reserve_bytes": 8192,
+    "reserved_bytes": 29928,
+    "scope": "Separate explicit joint contribution; source-counted logical admission only. Native memory and composed persistence remain unqualified."
+  },
   "contributions": {
     "excavation_start_controls": 4,
     "entry_structure_bindings": 384,
     "entry_world_bindings": 2048,
+    "connector_workpieces": 29928,
     "space_banks_and_indexes": 1104160,
     "phase_proof_cache_and_candidate": 17724,
     "shared_geometry_cold_peak": 1048960,
@@ -1280,11 +1353,11 @@
     "LAYOUT_COLD_BYTES": 262144,
     "BINDINGS_AND_GROWTH_BYTES": 524288
   },
-  "new_mutable_and_reserved_bytes": 4968921,
+  "new_mutable_and_reserved_bytes": 4998849,
   "declaration_bytes": 23573,
   "declaration_delta_bytes": 2388,
-  "live_with_reserve_bytes": 99961686,
-  "headroom_bytes": 38314,
+  "live_with_reserve_bytes": 99991614,
+  "headroom_bytes": 8386,
   "source_sha256": {
     "godot/scripts/core/construction.gd": "7bf3ccbb07016e65d2b592fabc8cd307e6e56f8201e50a82acd1832357c3373a",
     "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
@@ -1300,22 +1373,23 @@
     "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
     "godot/scripts/core/underground_connector_assemblies.gd": "62144588bea85df8eae608a821b5f62e62dde8427574805d815673ab146354a4",
     "godot/scripts/core/underground_connector_catalog.gd": "c707625f3c9c5f4d44a2d7bdb8a241b65252669f66f5a196ea867a0d01f4b180",
-    "godot/scripts/core/underground_connector_contacts.gd": "809e16c9c2d4eb6b49955904209b964fc68dbb87d73c0281633c080b25fd5d9d",
-    "godot/scripts/core/underground_connector_placements.gd": "b09b4848a9435446dbbf67decfcac4122f54113f71be8815eebd082dd7a6a098",
+    "godot/scripts/core/underground_connector_contacts.gd": "80bff631643de2720342ff99c3f04c6fe90f997f7aa8b7ddfd4ff94af6a3e781",
+    "godot/scripts/core/underground_connector_placements.gd": "ace6b6eb9eefa70690eacfdbc46606a18cae1f008fb5d270e3632e04559907b4",
     "godot/scripts/core/underground_connector_recipes.gd": "64df84440250d7b64524a76e9c3ab2b31adb018edc18f056c08f93b4604fd2a2",
-    "godot/scripts/core/underground_connector_work.gd": "0b2a4592bea6cde44ca783ee676927aa6cc631bc185fb1a7eb27ec29b3c96358",
-    "godot/scripts/core/underground_entry_bindings.gd": "418b27ed105d3cd7de2e4e83480338e3163802ab4505ec3ea51559d6f64ac029",
+    "godot/scripts/core/underground_connector_work.gd": "53e813a3b97c601e2b8648df2bae4df8cf315e8720dbebe61d76c2320214b0de",
+    "godot/scripts/core/underground_connector_workpieces.gd": "7a462a41d5e5632c8f9708244a449de4e19228b8e7c0856593c09fe3dfaf7e7d",
+    "godot/scripts/core/underground_entry_bindings.gd": "b71f39c5e00dc3036bb823a975eebc11377437c73b237b60e5e63654714cf6e7",
     "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
     "godot/scripts/core/underground_entry_plan.gd": "2103c7a93431b3bc6acfe4dc7934aaaabe557c1d978e5d2db5152ea2816aac7e",
     "godot/scripts/core/underground_entry_structure.gd": "4965b8e314171f5c1445d816b3b2c18d87f35dee0f5129371d15a1b1d2a7cefa",
     "godot/scripts/core/underground_entry_world_bindings.gd": "d6516eadfa67b28e3b46b01d1509d3977c4635e54c6b9e0b3e5c28241fb15ad2",
-    "godot/scripts/core/underground_locations.gd": "3de7e8c7792175f5c78eeb3d68dfa6dfbcd4d2153b50c3bac6ea640a7a2845e8",
+    "godot/scripts/core/underground_locations.gd": "35eb766bbb9db19b3c3669f42a6bb31eaba8aa40e4d19f735359943c6a68c167",
     "godot/scripts/core/underground_phase_structure.gd": "4c53a400e420306be6c8bee9082858e5a86cdd54279058223cc314e0582fe0f8",
     "godot/scripts/core/underground_profiles.gd": "a8472ad32e121d3b3e62efcebc2ad08403d97d7925251d63ac73c5ace23d88ca",
     "godot/scripts/core/underground_space_authority.gd": "207e3172aaaf2461921c2a45d12c1ff906815b38f8aa21c796fa6b89653c2753",
-    "godot/scripts/core/underground_space_owner.gd": "cec0e5f6c6d31bc590ae0a946b4cdfd62b5333bf8d233e68d126cb5d3fc4c077",
+    "godot/scripts/core/underground_space_owner.gd": "32eff2b94f5ccc6c8b11c9490b857ac89ce30ca88f37b04b65d78d19f9408d96",
     "godot/scripts/core/underground_surface_anchor.gd": "3632681aa3d56d680d58e220f4aae58e5894baa23422ecd34c128404da8d40d0",
-    "godot/scripts/core/underground_world_routes.gd": "438267e61eb7042cb9ccc56ae4859bf80ce77c9aca9bd10b033646469c98fe5b"
+    "godot/scripts/core/underground_world_routes.gd": "7de9ae26375baff235c90f7d2b5703f9ca638fa1c7276ddf4c86e46c6a85434c"
   },
   "registry_sha256": "ba12eff2b55cad43d90b42e6e262665d16d60b9720566483328031053f614f03",
   "limitations": [

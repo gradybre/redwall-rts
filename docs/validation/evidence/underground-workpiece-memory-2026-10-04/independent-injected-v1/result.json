@@ -1,0 +1,171 @@
+{
+  "scope": "Independent injected exact pending three-source census; not normal integration or runtime evidence",
+  "tests": 160,
+  "failures": 0,
+  "errors": 0,
+  "extra_mutants": [
+    {
+      "case": "original Contacts weak binding type",
+      "refused": true,
+      "error": "unreconciled Workpieces owned/borrowed member"
+    },
+    {
+      "case": "duplicate bank allocation",
+      "refused": true,
+      "error": "('Workpieces bank allocation', 'fields', ['5 * capacity', '5 * capacity'])"
+    },
+    {
+      "case": "untyped extra retained field",
+      "refused": true,
+      "error": "untyped or duplicate member in memory census"
+    },
+    {
+      "case": "source profile width",
+      "refused": true,
+      "error": "Workpieces source or scratch allocation drift"
+    },
+    {
+      "case": "stream expansion",
+      "refused": true,
+      "error": ""
+    },
+    {
+      "case": "extra source resize",
+      "refused": true,
+      "error": "('_parts', 'ambiguous Workpieces allocation')"
+    },
+    {
+      "case": "missing original Contacts pin",
+      "refused": true,
+      "error": "unreconciled Workpieces owned/borrowed member"
+    },
+    {
+      "case": "third retained bank",
+      "refused": true,
+      "error": "unreconciled Workpieces owned/borrowed member"
+    }
+  ],
+  "source_unchanged": true,
+  "source_sha256": {
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/underground_memory_budget.py": "12d3eebdfa6356f02ae8af2f74fe1b0d196e1516cc323a8e29dfb3b0f960527f",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/tools/test_underground_memory_budget.py": "3bc53d9a207eb853671c85795e727f09592059c2ccfd4ec8b21112e6fd8b21f0",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/persistence_state_registry.md": "3f7d42e8f6916f405061f32ee33fffba399f0f27bf0ed145f72ec30a0ff4b9d6",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/godot/scripts/core/underground_connector_workpieces.gd": "e6452fdecaf71905ddfb7a03e2dc1a67c8e770511486af9d6fc521fb0013b939",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/godot/scripts/core/underground_connector_work.gd": "53e813a3b97c601e2b8648df2bae4df8cf315e8720dbebe61d76c2320214b0de",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-connector-work/godot/scripts/core/underground_connector_contacts.gd": "80bff631643de2720342ff99c3f04c6fe90f997f7aa8b7ddfd4ff94af6a3e781"
+  },
+  "workpieces": {
+    "placement_capacity": 256,
+    "assembly_capacity": 256,
+    "bank_columns": {
+      "fields": {
+        "width": 4,
+        "capacity": 1280,
+        "bytes": 5120,
+        "resize_expression": "5 * capacity"
+      },
+      "present": {
+        "width": 1,
+        "capacity": 256,
+        "bytes": 256,
+        "resize_expression": "capacity"
+      }
+    },
+    "source_and_scratch_columns": {
+      "_bounds": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 123
+      },
+      "_digests": {
+        "width": 1,
+        "capacity": 160,
+        "bytes": 160,
+        "resize_expression": "160",
+        "line": 120
+      },
+      "_header": {
+        "width": 8,
+        "capacity": 9,
+        "bytes": 72,
+        "resize_expression": "9",
+        "line": 119
+      },
+      "_parts": {
+        "width": 4,
+        "capacity": 1536,
+        "bytes": 6144,
+        "resize_expression": "6 * assemblies",
+        "line": 121
+      },
+      "_profile_revisions": {
+        "width": 8,
+        "capacity": 256,
+        "bytes": 2048,
+        "resize_expression": "assemblies",
+        "line": 122
+      },
+      "_scratch": {
+        "width": 4,
+        "capacity": 6,
+        "bytes": 24,
+        "resize_expression": "6",
+        "line": 124
+      }
+    },
+    "two_bank_bytes": 10752,
+    "immutable_header_bytes": 232,
+    "immutable_rows_bytes": 8192,
+    "fixed_numeric_and_packed_bytes": 123,
+    "logical_helper_allowance_bytes": 1024,
+    "control_reserve_bytes": 2048,
+    "stream_reserved_bytes": 512,
+    "native_reserve_bytes": 8192,
+    "reserved_bytes": 29928,
+    "scope": "Separate explicit joint contribution; source-counted logical admission only. Native memory and composed persistence remain unqualified."
+  },
+  "placement_controls": {
+    "components": {
+      "owner": 135,
+      "bank_free_counts": 32,
+      "installation_context": 128,
+      "room_context": 80,
+      "phase_context": 128,
+      "directory_candidate": 32,
+      "private_and_caller_requests": 616,
+      "shared_order_and_assembly_records": 128,
+      "returned_result": 8,
+      "final_digest": 32,
+      "helper_frames": 576
+    },
+    "total_bytes": 1895
+  },
+  "contributions": {
+    "excavation_start_controls": 4,
+    "entry_structure_bindings": 384,
+    "entry_world_bindings": 2048,
+    "connector_workpieces": 29928,
+    "space_banks_and_indexes": 1104160,
+    "phase_proof_cache_and_candidate": 17724,
+    "shared_geometry_cold_peak": 1048960,
+    "space_known_numeric_controls": 686,
+    "tips_live_and_cold_image_peak": 123440,
+    "layout_retained_columns": 37120,
+    "shared_router_and_funding_increment": 275099,
+    "LOCATION_AND_TOPOLOGY_BYTES": 1048576,
+    "INVENTORY_EXTENSION_BYTES": 131072,
+    "PROFILE_BYTES": 262144,
+    "TERRAIN_BYTES": 131072,
+    "LAYOUT_COLD_BYTES": 262144,
+    "BINDINGS_AND_GROWTH_BYTES": 524288
+  },
+  "joint": {
+    "new_mutable_and_reserved_bytes": 4998849,
+    "declaration_bytes": 23573,
+    "live_with_reserve_bytes": 99991614,
+    "headroom_bytes": 8386,
+    "runtime_qualified": false
+  }
+}

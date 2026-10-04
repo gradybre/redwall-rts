@@ -314,11 +314,18 @@ class JointPackTests(unittest.TestCase):
 
     def test_positive_current_joint_pack_is_not_runtime_qualification(self) -> None:
         result = budget.build(self.index)
-        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4968921)
+        self.assertEqual(result["new_mutable_and_reserved_bytes"], 4998849)
         self.assertEqual(result["declaration_bytes"], 23573)
-        self.assertEqual(result["live_with_reserve_bytes"], 99961686)
-        self.assertEqual(result["headroom_bytes"], 38314)
+        self.assertEqual(result["live_with_reserve_bytes"], 99991614)
+        self.assertEqual(result["headroom_bytes"], 8386)
         self.assertFalse(result["runtime_qualified"])
+        workpieces = result["connector_workpieces_reservation"]
+        self.assertEqual(workpieces["two_bank_bytes"], 10752)
+        self.assertEqual(workpieces["immutable_header_bytes"], 232)
+        self.assertEqual(workpieces["immutable_rows_bytes"], 8192)
+        self.assertEqual(workpieces["fixed_numeric_and_packed_bytes"], 123)
+        self.assertEqual(workpieces["reserved_bytes"], 29928)
+        self.assertEqual(result["contributions"]["connector_workpieces"], 29928)
         recipes = result["connector_recipe_reservation"]
         self.assertEqual(budget.payload(recipes["columns"]), 16580)
         self.assertEqual(recipes["bank_bytes"], 16512)
@@ -334,7 +341,7 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(recipes["entry_bindings_reservation"]["fixed_numeric_and_packed_bytes"], 486)
         self.assertEqual(recipes["funding_settlement_reservation"]["reserved_bytes"], 16)
         self.assertEqual(recipes["placement_reservation"]["reserved_bytes"], 108800)
-        self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1799)
+        self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["total_bytes"], 1895)
         self.assertEqual(recipes["placement_reservation"]["fixed_controls"]["components"]["phase_context"], 128)
         self.assertEqual(recipes["connector_work_reservation"]["reserved_bytes"], 563)
         self.assertEqual(recipes["connector_work_reservation"]["aliased_record_bytes_already_charged"], 128)
@@ -355,6 +362,55 @@ class JointPackTests(unittest.TestCase):
         self.assertEqual(entry["fixed_numeric_and_packed_bytes"], 153)
         self.assertEqual(entry["reserved_bytes"], 384)
         self.assertEqual(entry["check_peak_bytes"], 1048912)
+
+    def test_negative_workpiece_bank_width(self) -> None:
+        self.refuses("underground_connector_workpieces", "var fields: PackedInt32Array", "var fields: PackedInt64Array")
+
+    def test_negative_workpiece_extra_bank_member(self) -> None:
+        self.refuses("underground_connector_workpieces", "class Bank extends RefCounted:",
+                     "class Bank extends RefCounted:\n\tvar extra: PackedByteArray = PackedByteArray()")
+
+    def test_negative_workpiece_extra_retained_bank(self) -> None:
+        self.refuses("underground_connector_workpieces", "var _stage: Bank = Bank.new()",
+                     "var _stage: Bank = Bank.new()\nvar _third: Bank = Bank.new()")
+
+    def test_negative_workpiece_extra_numeric_control(self) -> None:
+        self.refuses("underground_connector_workpieces", "var _configured: bool = false",
+                     "var _configured: bool = false\nvar _additional: int = 0")
+
+    def test_negative_workpiece_omitted_restore_bank(self) -> None:
+        self.refuses("underground_connector_workpieces", "\t_stage.allocate(placements)", "")
+
+    def test_negative_workpiece_restore_allocation_before_admission(self) -> None:
+        source = self.index["underground_connector_workpieces"].text
+        line = "\t_stage.allocate(placements)"
+        changed = source.replace(line, "", 1).replace("\tvar required: int = required_bytes(placements, assemblies)",
+                    line + "\n\tvar required: int = required_bytes(placements, assemblies)", 1)
+        self.refuses("underground_connector_workpieces", source, changed)
+
+    def test_negative_workpiece_immutable_row_growth(self) -> None:
+        self.refuses("underground_connector_workpieces", "_parts.resize(6 * assemblies)", "_parts.resize(7 * assemblies)")
+
+    def test_negative_workpiece_source_header_growth(self) -> None:
+        self.refuses("underground_connector_workpieces", "_header.resize(9)", "_header.resize(10)")
+
+    def test_negative_workpiece_ambiguous_scratch_allocation(self) -> None:
+        self.refuses("underground_connector_workpieces", "\t_scratch.resize(6)", "\t_scratch.resize(6)\n\t_scratch.resize(6)")
+
+    def test_negative_workpiece_omitted_bank_charge(self) -> None:
+        self.refuses("underground_connector_workpieces", "2 * ROW_BYTES * placements", "ROW_BYTES * placements")
+
+    def test_negative_workpiece_nonexact_admission(self) -> None:
+        self.refuses("underground_connector_workpieces", "arena_bytes != required", "arena_bytes < required")
+
+    def test_negative_workpiece_native_reserve_removed(self) -> None:
+        self.refuses("underground_connector_workpieces", "NATIVE_RESERVE: int = 8192", "NATIVE_RESERVE: int = 0")
+
+    def test_negative_workpiece_control_reserve_reduced(self) -> None:
+        self.refuses("underground_connector_workpieces", "CONTROL_BYTES: int = 2048", "CONTROL_BYTES: int = 1024")
+
+    def test_negative_workpiece_changed_base(self) -> None:
+        self.refuses("underground_connector_workpieces", "extends RefCounted", 'extends "res://scripts/core/underground_connector_placements.gd"')
 
     def test_negative_entry_structure_extra_packet(self) -> None:
         line = "var _entry_frontier: WeakRef = null"

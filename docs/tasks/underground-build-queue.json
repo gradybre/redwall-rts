@@ -1142,13 +1142,28 @@
           "scope": "Isolated presentation/native source replay; no terrain/paid staircase/full HUD720p acceptance."
         },
         "stair_source_trial": {
-          "status": "in_progress",
+          "status": "Ascent reviewed and integrated; descent separately in review; no gameplay pace or production profile activation.",
           "candidate": "64u timber decks, four128u-square side posts per tread, 128u and256u rises compared; explicit provisional geometry, not final cost/spacing.",
-          "observations": "128u ascent source/native has no sampled vertex enclosure intrusion; full continuous triangle/stance and descent closure still open.256u and naive descent candidates refuse; retained as evidence.",
+          "observations": "128u ascent complete continuous deck/post and same-vertex full-foot support proof passes90 intervals with0 unresolved.256u comparison fails32witnesses. Separate forward descent candidate now passes geometry/native; independent review pending.",
           "native_candidate_poses": 543,
           "native_candidate_assertions": 1168,
           "native_candidate_failures": 0,
           "native_review": "Root inspected split-height side/opposite/RTS stills; no gait permission or authoritative Transform movement is inferred from baked presentation progression."
+        },
+        "stair_ascent_source": {
+          "source": "c0da1d5c",
+          "integration": "04e9b0d5",
+          "review": "Root independently reviewed author/rig/terrain/self/native sources, all12 source/94 output/146 historical hashes and side/opposite/RTS native views.",
+          "tests": "27 Python testsOK; native1086poses/3409assertions/0failures; raw diagnostics/leaks0; analyzer0/1.",
+          "evidence_path": "godot/data/underground/mole-worker/evidence/contact-qualification/review-stair-ascent-v1/",
+          "limits": "Only128u-rise/512u-run yaw0 source fixture. Actual installed support, entry/exit/repeated steps/turns/phase owner/pace and production profile remain separate."
+        },
+        "source_phase_contract": {
+          "source": "634964e9",
+          "integration": "511e951b",
+          "decision": "1112-source-phase-route-motion.md",
+          "status": "proposal only; no runtime, pace or save-schema activation",
+          "pace_preference": "Async user choice pending: first unloaded worker1s recommended,1.5s careful or0.75s brisk per tread at1x. Silence grants no rate."
         }
       },
       "lease": {
@@ -1698,7 +1713,7 @@
         "entry_bindings_in_progress": {
           "owner": "/root",
           "scope": "Concrete non-flat surface entrance admission uses real World/Terrain/Room/Sites/Placement owners; installation and retirement remain closed pending Contacts and qualified production motion.",
-          "status": "Corrected four independent review findings; checks6 clean-import 28 tests /843 assertions /0 failures; strict/raw unexpected diagnostics/leaks0; analyzer0/2. Corrected frozen delta undergoing independent re-review; not integrated."
+          "status": "Admission component integrated; installation and playable construction remain open."
         },
         "hot_route_reachability": {
           "source": "ccb98d03",
@@ -1726,6 +1741,27 @@
           "tests": "145 tests / 13835 assertions / 0 failures; strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/5.",
           "evidence_path": "docs/validation/evidence/underground-connector-placements-2026-10-03/hot-profile-2/",
           "limits": "256-query p95 improved from25.710ms to21.465ms; still fails runtime qualification. One additional stride scalar makes declared helper chain344/512B; native overhead unmeasured."
+        },
+        "entry_bindings_1111": {
+          "source": "1c7f41ea",
+          "registry": "abdee345",
+          "integration": "8e6f6d7f/2637fd5c",
+          "review": "Construction independently accepted corrected exact source/test after four medium fixes: original-lease observer boundary, final Terrain freshness, full surface-contact section and ever-cut natural footing.",
+          "tests": "28 tests /843 assertions /0 failures; strict/raw unexpected diagnostics/leaks0; analyzer0/2.",
+          "evidence_path": "docs/validation/evidence/underground-entry-bindings-2026-10-03/checks6/",
+          "limits": "Actual confirmation reserves exact virgin cubes and retains old circulation; installs no part, creates no usable air and charges no material/work. Synthetic motion/content remains explicit."
+        },
+        "entry_memory_census": {
+          "known_binding_bytes": 520192,
+          "remaining_contacts_bytes": 4096,
+          "entry_numeric_packed_bytes": 454,
+          "entry_helper_allowance_bytes": 2048,
+          "entry_reserve_bytes": 4096,
+          "frontier_reserve_bytes": 28597,
+          "python_tests": 73,
+          "review": "Geometry accepted corrected exact parent and initial fixed-charge guards plus negative probes.",
+          "whole_pack_logical_bytes": 99959250,
+          "runtime_qualified": false
         }
       },
       "lease": {

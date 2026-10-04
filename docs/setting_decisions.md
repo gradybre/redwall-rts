@@ -1305,3 +1305,21 @@ Engineering record, the full table, the wording rules and the phase-2 plan: deci
 ### DEC-040 engineering follow-through
 
 Brendan subsequently requested: “let's plan those as well, then give me what to send back to claude”. [SET-MOVE-ECON-001](underground_economy_hazard_amendment.md) records the resulting Astra-authored numeric economy/hazard choices. This is delegated engineering authoring, not a claim the user supplied every value. DEC-040's four-level candidate status remains unchanged. [Decision0092](decisions/0092-underground-economy-and-hazard-parameters.md) records adoption and its limits.
+
+### DEC-050 — Initial timber stair movement pace
+
+On 2026-10-04, Brendan selected **“Natural (recommended): 1 second per step;
+1.5 seconds for a half-turn.”** This answers the initial timber stair timing
+question left open by underground planning D04.
+
+At normal game speed, the first unloaded adult mole carrying its existing pick
+takes 30 fixed ticks per tread, ascending or descending, and 45 fixed ticks per
+supported half-turn. Pause and the existing 1×/2×/4× clock control progression.
+This is an initial tuning choice for that measured source and timber sequence;
+it assigns no timing to laden workers, other residents or other connector types.
+
+The choice does not approve unverified body/tool contact, clearance, support,
+paid construction or presentation. Those engineering obligations still precede
+runtime activation. Stair material and work costs are unchanged. The original
+alternatives and implementation constraints are retained in
+[decision1145](decisions/1145-proposed-initial-timber-stair-timing.md).

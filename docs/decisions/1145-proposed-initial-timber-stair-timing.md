@@ -1,6 +1,23 @@
-# 1145 — Proposed initial timber stair timing
+# 1145 — Initial timber stair timing
 
-Date: 2026-10-04 · Status: Proposal awaiting Brendan; no production values adopted
+Date: 2026-10-04 · Status: Accepted tuning; runtime qualification remains open
+
+## Accepted choice
+
+Brendan selected “Natural (recommended): 1 second per step; 1.5 seconds for a
+half-turn” in this thread on 2026-10-04. [DEC-050](../setting_decisions.md#dec-050--initial-timber-stair-movement-pace)
+records that user ruling. The initial unloaded adult mole carrying the existing
+pick uses **30 fixed ticks per tread, ascending or descending, and 45 fixed
+ticks per supported half-turn** at normal game speed. The existing 30 Hz clock
+owns progression; 2×/4× and pause retain their established meanings.
+
+This adopts the first option below. It does not qualify the source for actual
+World traversal, relax the profile speed/sweep checks, or adopt laden/other-cast
+timings. Decision1143's frozen source-only reader continues to refuse activation
+until the paid route, contact, source and playback bindings are complete. No
+production playback was enabled by recording the answer.
+
+## Original proposal and engineering obligations
 
 The approved connection catalog explicitly leaves traversal speeds unresolved
 (underground planning D04 and SET-MOVE-001). The 1139/1142 source captures prove
@@ -17,7 +34,8 @@ grants no compatibility to other residents, loads or connector types. At 1×:
 | Deliberate | 1.5 seconds / 45 ticks | 2 seconds / 60 ticks | More weight and visible foot placement, with slower hauling routes |
 | Careful | 2 seconds / 60 ticks | 3 seconds / 90 ticks | Strongest emphasis on cautious movement, with the largest travel cost |
 
-These are proposed tuning values, not measurements or a claim of user approval.
+The table retains the original alternatives; only Natural is now approved.
+These values are tuning choices, not measured traversal durations.
 At 1 second per tread, twenty tread traversals account for twenty real seconds
 at 1×, before landings, approach, turns and any waiting. The 2×/4× game speeds
 scale actual time through the existing fixed-tick clock; pause advances nothing.
@@ -34,4 +52,4 @@ catalog retain their own explicit engineering/admission obligations.
 No additional wood bill, labour bill, need drain, speed bonus or global movement
 coefficient follows from this choice. The first landing/tread fixture and native
 source witness are not promoted to a complete paid staircase. Ongoing hauling,
-memory, motion-reader and review work can continue while this proposal is open.
+memory, motion-reader and review work continues under its existing gates.

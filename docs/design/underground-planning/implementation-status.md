@@ -14,7 +14,7 @@ workflow; deeper levels and the full connection catalog; live amendments,
 removal/backfill/replacement, relocation and renovation; composed save/resume;
 and native1280×720 and256-resident acceptance. The wood-only stair decision is
 unchanged. The first supported stair source sequence and its native witness are
-reviewed, while actual paid route bindings, timing and wider connector coverage
+reviewed, while actual paid route bindings and wider connector coverage
 remain open. Ground walking profiles do not fit the first tread.
 
 The latest accepted full local checkpoint is
@@ -51,8 +51,10 @@ remain open. The
 [review](../../validation/evidence/underground-stair-native-review-2026-10-04/README.md)
 retains those boundaries. Decision1143's joint motion reader and1144's actual
 hauling/contact sources are being developed in separate owned worktrees.
-Decision1145 records a proposed initial stair pace awaiting Brendan's choice;
-the proposal does not activate production values.
+Decision1145 and DEC-050 record Brendan's approved Natural initial stair pace:
+30 fixed ticks per tread and45 per supported half-turn at1× for the first
+unloaded adult mole with its existing pick. Source and paid-route qualification
+still precede playback; this ruling does not adopt loaded or other-cast timing.
 
 Decision1135's independently reviewed spatial component is integrated at
 `84948b40`:404 selected tests /29,732 assertions /0 failures, zero unexpected

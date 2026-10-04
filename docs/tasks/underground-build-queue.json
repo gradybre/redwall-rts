@@ -1695,10 +1695,12 @@
           "no_source_writes": true
         },
         "timing_proposal_1145": {
-          "status": "awaiting user choice; no rate adopted",
+          "status": "Natural approved by Brendan2026-10-04:30fixed ticks per tread,45per supported half-turn at1x; playback qualification remains open",
           "owner": "/root",
           "record": "docs/decisions/1145-proposed-initial-timber-stair-timing.md",
           "question": "Natural1s/tread+1.5s half-turn; Deliberate1.5s+2s; Careful2s+3s. Scope first unloaded adult mole/pick on authored timber sequence at1x; other work continues.",
+          "answer": "Natural (recommended): 1 second per step; 1.5 seconds for a half-turn.",
+          "user_record": "docs/setting_decisions.md#dec-050--initial-timber-stair-movement-pace",
           "activation": false
         }
       },

@@ -1,0 +1,200 @@
+{
+	"assertions": 8,
+	"content_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+	"display": "macOS",
+	"driver": "metal",
+	"engine": {
+		"build": "official",
+		"hash": "ed1daf0bf001b61586d9930840f2f1394092c079",
+		"hex": 263938,
+		"major": 4,
+		"minor": 7,
+		"patch": 2,
+		"status": "stable",
+		"string": "4.7.2-stable (official)",
+		"timestamp": 0
+	},
+	"error": "METAL_INPUT_MESH_FINGERPRINT",
+	"failures": [],
+	"gpu_arithmetic_qualified": false,
+	"inputs_sha256": "30c82dd927439a00789ccf609ec2e6b5001602a3be21cdfb50768e30f62701ae",
+	"isolated_memory_qualified": false,
+	"memory_after": 194295318,
+	"memory_before": 171908972,
+	"memory_peak": 329749602,
+	"meshes": [
+		{
+			"aabb": [
+				-0.428611934185028,
+				0.0000000017900376736435,
+				-0.191645801067352,
+				0.878611922264099,
+				0.733882129192352,
+				0.383291572332382
+			],
+			"aabb_bits": "0673dbbe5a05f630cc3e44beb6ec603fb3df3b3fcb3ec43e",
+			"binds": 24,
+			"has_shadow": false,
+			"mesh_sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+			"part": 0,
+			"shadow_of": -1,
+			"surfaces": 1,
+			"vertices": 17172
+		},
+		{
+			"aabb": [
+				-0.95088142156601,
+				0.0,
+				-0.739660859107971,
+				1.90176284313202,
+				0.389663398265839,
+				1.47932171821594
+			],
+			"aabb_bits": "f76c73bf000000006a5a3dbff76cf33ff681c73e6a5abd3f",
+			"binds": 0,
+			"has_shadow": true,
+			"mesh_sha256": "c4029dd3ea3266e6fac9f9d5734c37925d7300020d494ca0f83529567a9a9b3a",
+			"part": 1,
+			"shadow_of": -1,
+			"surfaces": 1,
+			"vertices": 1176
+		}
+	],
+	"method": "forward_plus",
+	"numeric_bytes": 1754862,
+	"peak_surface_numeric_bytes": 3191166,
+	"qualified_profiles": 0,
+	"refused_mesh": {
+		"mesh": {
+			"aabb": [
+				-0.95088142156601,
+				0.0,
+				-0.739660859107971,
+				1.90176284313202,
+				0.389663398265839,
+				1.47932171821594
+			],
+			"aabb_bits": "f76c73bf000000006a5a3dbff76cf33ff681c73e6a5abd3f",
+			"binds": 0,
+			"has_shadow": false,
+			"mesh_sha256": "",
+			"part": 2,
+			"shadow_of": 1,
+			"surfaces": 1,
+			"vertices": 575
+		},
+		"surfaces": [
+			{
+				"counts_refusal": "",
+				"decoded_refusal": "UNDERGROUND_ACTOR_MESH",
+				"format": 34896613377,
+				"indices": 3450,
+				"native_format": 34896613377,
+				"native_indices": 3450,
+				"native_vertices": 575,
+				"vertices": 575
+			}
+		]
+	},
+	"rows": [
+		{
+			"aabb": [
+				-0.428611934185028,
+				0.0000000017900376736435,
+				-0.191645801067352,
+				0.878611922264099,
+				0.733882129192352,
+				0.383291572332382
+			],
+			"aabb_bits": "0673dbbe5a05f630cc3e44beb6ec603fb3df3b3fcb3ec43e",
+			"attribute_stride": 8,
+			"binds": 24,
+			"format": 34359745559,
+			"index_stride": 2,
+			"indices": 30627,
+			"lods": [],
+			"normal_stride": 8,
+			"offsets": [
+				0,
+				206064,
+				206068,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				8,
+				0
+			],
+			"part": 0,
+			"primitive": 3,
+			"skin_stride": 16,
+			"surface": 0,
+			"vertex_stride": 12,
+			"vertices": 17172
+		},
+		{
+			"aabb": [
+				-0.95088142156601,
+				0.0,
+				-0.739660859107971,
+				1.90176284313202,
+				0.389663398265839,
+				1.47932171821594
+			],
+			"aabb_bits": "f76c73bf000000006a5a3dbff76cf33ff681c73e6a5abd3f",
+			"attribute_stride": 4,
+			"binds": 0,
+			"format": 34896613399,
+			"index_stride": 2,
+			"indices": 3450,
+			"lods": [
+				{
+					"edge_bits": "1d37633d",
+					"edge_length": 0.055472481995821,
+					"index_bytes": 3432
+				},
+				{
+					"edge_bits": "5e65313e",
+					"edge_length": 0.17323824763298,
+					"index_bytes": 1716
+				},
+				{
+					"edge_bits": "65d9273f",
+					"edge_length": 0.655660927295685,
+					"index_bytes": 1188
+				}
+			],
+			"normal_stride": 4,
+			"offsets": [
+				0,
+				9408,
+				9412,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0,
+				0
+			],
+			"part": 1,
+			"primitive": 3,
+			"skin_stride": 0,
+			"surface": 0,
+			"vertex_stride": 8,
+			"vertices": 1176
+		}
+	],
+	"schema": 1,
+	"spec_sha256": "e5f1c325d3ace7a49bd40add40f9059b67f586bcd31a12003e398e3ce3bbe713",
+	"surfaces": 2,
+	"vertices": 18348,
+	"world_qualified": false
+}

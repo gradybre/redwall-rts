@@ -1,0 +1,12 @@
+{
+  "source_tag": "4.7.2-stable",
+  "records": [
+    {
+      "path": "servers/rendering/rendering_server_enums.h",
+      "url": "https://raw.githubusercontent.com/godotengine/godot/4.7.2-stable/servers/rendering/rendering_server_enums.h",
+      "file": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/engine-source/servers__rendering__rendering_server_enums.h",
+      "bytes": 24778,
+      "sha256": "194c1e12997cc2fe4178c972dca250428627655a79b26e4ee93528f6a8b254a8"
+    }
+  ]
+}

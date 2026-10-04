@@ -1,0 +1,381 @@
+{
+  "schema": 1,
+  "input_sha256": "6cae5de988d7dbe55035d692592cfb050ba7dcbc80680512bd794f937704741d",
+  "spec_sha256": "a164ff374fcec655c58dfe635ac64b8b03b6db602727a03808d88f3161c8c5eb",
+  "content_sha256": "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9",
+  "parts": [
+    {
+      "part": 0,
+      "shadow_of": -1,
+      "has_shadow": false,
+      "vertices": 17172,
+      "surfaces": 1,
+      "sha256": "29f8d3218fddfaa6f2369c1c1c7dfd9b0a429b3df5cbefa38c6bf6ab9364fe14",
+      "matches_palette_source": true,
+      "fingerprint_kind": "UGMESH01"
+    },
+    {
+      "part": 1,
+      "shadow_of": -1,
+      "has_shadow": true,
+      "vertices": 1176,
+      "surfaces": 1,
+      "sha256": "c4029dd3ea3266e6fac9f9d5734c37925d7300020d494ca0f83529567a9a9b3a",
+      "matches_palette_source": true,
+      "fingerprint_kind": "UGMESH01"
+    },
+    {
+      "part": 2,
+      "shadow_of": 1,
+      "has_shadow": false,
+      "vertices": 575,
+      "surfaces": 1,
+      "sha256": "41bc598d52d67f9eb975e7c8a67bc2ed6252430cf5302755daa961b683030985",
+      "matches_palette_source": false,
+      "fingerprint_kind": "UGAUX001"
+    }
+  ],
+  "surfaces": 3,
+  "vertices": 18923,
+  "numeric_bytes": 1786498,
+  "rows": [
+    {
+      "part": 0,
+      "surface": 0,
+      "format": 34359745559,
+      "vertices": 17172,
+      "indices": 30627,
+      "binds": 24,
+      "layout": {
+        "offsets": [
+          0,
+          206064,
+          206068,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          8,
+          0
+        ],
+        "vertex_stride": 12,
+        "normal_stride": 8,
+        "attribute_stride": 8,
+        "skin_stride": 16,
+        "index_stride": 2,
+        "influences": 4
+      },
+      "buffer_bytes": [
+        343440,
+        137376,
+        274752,
+        61254,
+        206064,
+        274752,
+        274752,
+        122508
+      ],
+      "buffer_sha256": [
+        "625727ddcfaec32951fa7d14235c4935ccdb742909b6b78f2044da4dd0e767d0",
+        "0e37dd322e85a8455f11ec47ab2c8b0d4cfb9358dbae50b0242c92a5cdaea22c",
+        "080c79ca183cdc8bcc67a59168e39eebf44c271a718beed5d1558c0a0a500b42",
+        "21e89ea92683c322f476dbbdd757c137f0a2438b12c7a265b667e14c78b07ccb",
+        "28ebf8c26768c313aab5da21e3ee72d5229d25e5eda65645e2a606ae41fd12c0",
+        "e82005fca2a4b8566cad44b2a3c25f74ce3e0db5416a9c6ac37136a50a0f7572",
+        "4965a89c85f453a7fe934421217b0faf493331018b3a76967d22415562fde67d",
+        "d74210af20e35f7b5be759d9c1fd4ddfd5f156c60f8ed082a754ad31a65c49f9"
+      ],
+      "lods": [],
+      "native_position_reference": true,
+      "decoded_bounds_m": [
+        -0.4286119341850281,
+        1.7900376736434964e-09,
+        -0.1916458010673523,
+        0.44999998807907104,
+        0.7338821291923523,
+        0.1916457712650299
+      ],
+      "cpu_compressed_residual_m": [
+        {
+          "numerator": 0,
+          "denominator": 1
+        },
+        {
+          "numerator": 0,
+          "denominator": 1
+        },
+        {
+          "numerator": 0,
+          "denominator": 1
+        }
+      ],
+      "influence_lanes": 68688,
+      "positive_influences": 57796,
+      "zero_influences": 10892,
+      "used_bones": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21
+      ],
+      "weight_denominator": 65535,
+      "integer_weight_sum_range": [
+        65532,
+        65535
+      ],
+      "cpu_weight_residual": {
+        "numerator": 10921,
+        "denominator": 366498283520
+      }
+    },
+    {
+      "part": 1,
+      "surface": 0,
+      "format": 34896613399,
+      "vertices": 1176,
+      "indices": 3450,
+      "binds": 0,
+      "layout": {
+        "offsets": [
+          0,
+          9408,
+          9412,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "vertex_stride": 8,
+        "normal_stride": 4,
+        "attribute_stride": 4,
+        "skin_stride": 0,
+        "index_stride": 2,
+        "influences": 0
+      },
+      "buffer_bytes": [
+        14112,
+        4704,
+        0,
+        6900,
+        14112,
+        0,
+        0,
+        13800
+      ],
+      "buffer_sha256": [
+        "5c5b0a09e314f92e8c6ab91393163bfcf938ec782a23594a4a922150b1e358e4",
+        "0ff6190fa5ae655692013ab5750ba0eafcca033f05641faa8b15b3f699610b7c",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "139067105a83d1cb164e70e9077a5e5062627f7de76e558ed76cbfa1ae74e3c8",
+        "695cb348f957157a727e1f366d61d3166035506b55da396cc961141a7b2b553e",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "5febfe1ab0177ef2977be3d14257d6d3af7f1fb4d55fa4ae9547565461998487"
+      ],
+      "lods": [
+        {
+          "edge_bits": "1d37633d",
+          "edge_length": 0.055472481995821,
+          "index_bytes": 3432,
+          "triangles": 572,
+          "sha256": "e48b5c7a6d33f9738fb52addfd066e4f812fafb4e6b18b3a910b1ebdd9cac4f6"
+        },
+        {
+          "edge_bits": "5e65313e",
+          "edge_length": 0.17323824763298,
+          "index_bytes": 1716,
+          "triangles": 286,
+          "sha256": "cad73bd2058aa681bbaf84af7a77c0378f035eafd7e1d45e96a1e59aa45d2d1c"
+        },
+        {
+          "edge_bits": "65d9273f",
+          "edge_length": 0.655660927295685,
+          "index_bytes": 1188,
+          "triangles": 198,
+          "sha256": "b37d1674c739613a2fd646fcafad97ce8f0c3c52850cbdf4cce733413f48cef0"
+        }
+      ],
+      "native_position_reference": true,
+      "decoded_bounds_m": [
+        -0.9508814215660095,
+        0.0,
+        -0.7396608591079712,
+        0.9508814215660095,
+        0.3896633982658386,
+        0.7396608591079712
+      ],
+      "cpu_compressed_residual_m": [
+        {
+          "numerator": 56329,
+          "denominator": 549747425280
+        },
+        {
+          "numerator": 17897,
+          "denominator": 732996567040
+        },
+        {
+          "numerator": 3569,
+          "denominator": 36649828352
+        }
+      ],
+      "influence_lanes": 0,
+      "positive_influences": 0,
+      "zero_influences": 0,
+      "used_bones": [],
+      "weight_denominator": 65535,
+      "integer_weight_sum_range": [],
+      "cpu_weight_residual": {
+        "numerator": 0,
+        "denominator": 1
+      }
+    },
+    {
+      "part": 2,
+      "surface": 0,
+      "format": 34896613377,
+      "vertices": 575,
+      "indices": 3450,
+      "binds": 0,
+      "layout": {
+        "offsets": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "vertex_stride": 8,
+        "normal_stride": 0,
+        "attribute_stride": 0,
+        "skin_stride": 0,
+        "index_stride": 2,
+        "influences": 0
+      },
+      "buffer_bytes": [
+        4600,
+        0,
+        0,
+        6900,
+        0,
+        0,
+        0,
+        13800
+      ],
+      "buffer_sha256": [
+        "ee800bf188885e79635a62827aa26d5e39f4687f69e91c39e97f4a53df10dd10",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "d6447bc9bfcd444c656eabfeb3505eca977438a3562305300b3734d8a19fcc40",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "e5e81824f8f28ca699bcedc326631fdd1c07887f3232b759410bc60646c09ac9"
+      ],
+      "lods": [
+        {
+          "edge_bits": "1d37633d",
+          "edge_length": 0.055472481995821,
+          "index_bytes": 3432,
+          "triangles": 572,
+          "sha256": "d7dbc8a8115abcda670452d035e133d9ccfc9ce8db5c627ceaf9cded0ce86b70"
+        },
+        {
+          "edge_bits": "5e65313e",
+          "edge_length": 0.17323824763298,
+          "index_bytes": 1716,
+          "triangles": 286,
+          "sha256": "dc8f7f44997f68f6a7c5d623bda62f83b9208cdf8bda3201d3028920ae2bfa87"
+        },
+        {
+          "edge_bits": "65d9273f",
+          "edge_length": 0.655660927295685,
+          "index_bytes": 1188,
+          "triangles": 198,
+          "sha256": "b32737d351bcb0554d41aed3562da1183b4fa52fdf3cd3285138aadff6737507"
+        }
+      ],
+      "native_position_reference": false,
+      "decoded_bounds_m": null,
+      "cpu_compressed_residual_m": null,
+      "rational_source_bounds_m": [
+        {
+          "numerator": -15953143,
+          "denominator": 16777216
+        },
+        {
+          "numerator": 0,
+          "denominator": 1
+        },
+        {
+          "numerator": -6204725,
+          "denominator": 8388608
+        },
+        {
+          "numerator": 15953143,
+          "denominator": 16777216
+        },
+        {
+          "numerator": 6537467,
+          "denominator": 16777216
+        },
+        {
+          "numerator": 6204725,
+          "denominator": 8388608
+        }
+      ],
+      "influence_lanes": 0,
+      "positive_influences": 0,
+      "zero_influences": 0,
+      "used_bones": [],
+      "weight_denominator": 65535,
+      "integer_weight_sum_range": [],
+      "cpu_weight_residual": {
+        "numerator": 0,
+        "denominator": 1
+      }
+    }
+  ],
+  "gpu_arithmetic_qualified": false,
+  "qualified_profiles": 0,
+  "world_qualified": false,
+  "auxiliary_geometry_enclosure_qualified": false,
+  "scope": "Exact native main/shadow/LOD RD input bytes/CPU reference; main immutable mesh/topology binding only",
+  "topology_sha256": "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42",
+  "auditor_sha256": "4ab640ade6e267d9ce8951fc03726d3674efd896488981791c54b361879a94b6"
+}

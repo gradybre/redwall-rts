@@ -1,0 +1,380 @@
+#!/usr/bin/env python3
+"""Audit the exact finite RD inputs of the source-bound Mole. No GPU arithmetic certificate."""
+from __future__ import annotations
+
+import argparse
+from fractions import Fraction
+import hashlib
+import json
+import math
+from pathlib import Path
+import struct
+
+MAX_VERTICES, MAX_INDICES = 32768, 196608
+MAX_SURFACE, MAX_CAPTURE = 16 * 1024 * 1024, 64 * 1024 * 1024
+VERSION = 1 << 35
+EIGHT, COMPRESSED = 1 << 27, 1 << 29
+ALLOWED = 7231 | VERSION | EIGHT | COMPRESSED
+CONTENT_SHA = "adc617642313ac004c050d4877ef0b9f4024bb9c88e3ea92ce9a924471bd5ab9"
+TOPOLOGY_SHA = "da623e5c7c3c5a6aff5c466b143425422f3aa2253497527c84f713738f997b42"
+ENGINE = "ed1daf0bf001b61586d9930840f2f1394092c079"
+
+
+class Refused(ValueError):
+    """Unsupported, incomplete or changed inputs are never an omitted proof obligation."""
+
+
+def require(value, code):
+    if not value:
+        raise Refused(code)
+
+
+def digest(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def file_hash(path):
+    with path.open("rb") as stream:
+        return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def integer(value, low, high, code):
+    require(type(value) is int and low <= value <= high, code)
+    return value
+
+
+def f32(value):
+    return struct.unpack("<f", struct.pack("<f", value))[0]
+
+
+def nearest_f32(exact):
+    """Select the nearest adjacent binary32 by exact rational distance, retaining ties-to-even."""
+    approximate = f32(float(exact))
+    bits = struct.unpack("<I", struct.pack("<f", approximate))[0]
+    candidates = [bits] + [b for b in (bits-1, bits+1) if 0 <= b < 2**32]
+    values = [(b, struct.unpack("<f", struct.pack("<I", b))[0]) for b in candidates]
+    values = [(b, v) for b, v in values if math.isfinite(v)]
+    return min(values, key=lambda pair: (abs(Fraction(pair[1]) - exact), pair[0] & 1))[1]
+
+
+def unique_pairs(pairs):
+    result = {}
+    for key, value in pairs:
+        require(key not in result, "INPUT_DUPLICATE_METADATA")
+        result[key] = value
+    return result
+
+
+def exact_f32_metadata(values, bits, count, code):
+    """Use native binary bits; JSON decimal numbers are diagnostics required to round back to the same float."""
+    require(type(bits) is str and len(bits) == count*8 and all(c in "0123456789abcdef" for c in bits), code)
+    require(type(values) is list and len(values) == count and all(type(v) in (int, float) and
+            math.isfinite(v) and abs(v) <= 2**24 for v in values), code)
+    exact = list(struct.unpack("<" + "f"*count, bytes.fromhex(bits)))
+    require(all(math.isfinite(v) and abs(v) <= 2**24 and f32(shown) == v for shown, v in zip(values, exact)), code)
+    return exact
+
+
+def bounds(value, bits):
+    exact = exact_f32_metadata(value, bits, 6, "INPUT_AABB")
+    require(all(v >= 0 for v in exact[3:]), "INPUT_AABB")
+    return exact
+
+
+def layout(fmt, vertices, indices, binds):
+    """Independently mirror only the reviewed v2 noncustom 3D triangle layout; index offset reader is zero."""
+    integer(vertices, 1, MAX_VERTICES, "INPUT_COUNTS")
+    integer(indices, 0, MAX_INDICES, "INPUT_COUNTS")
+    integer(binds, 0, 64, "INPUT_COUNTS")
+    integer(fmt, 0, (1 << 63) - 1, "INPUT_FORMAT")
+    require(fmt & VERSION and not fmt & ~ALLOWED and fmt & 1, "INPUT_FORMAT")
+    require(bool(fmt & 4096) == bool(indices), "INPUT_INDEX_FORMAT")
+    require((indices or vertices) % 3 == 0, "INPUT_TRIANGLES")
+    require((binds > 0 and fmt & 3072 == 3072 and not fmt & COMPRESSED) or
+            (binds == 0 and not fmt & (3072 | EIGHT)), "INPUT_SKIN_FORMAT")
+    offsets, strides = [0] * 13, [0] * 4
+    group, count = 0, 8 if fmt & EIGHT else 4
+    sizes = [8 if fmt & COMPRESSED else 12, 4, 0 if fmt & COMPRESSED else 4, 4,
+             4 if fmt & COMPRESSED else 8, 4 if fmt & COMPRESSED else 8, 0, 0, 0, 0, count * 2, count * 2]
+    for index in range(12):
+        if index in (1, 3, 10):
+            group = {1: 1, 3: 2, 10: 3}[index]
+        if fmt & (1 << index):
+            offsets[index] = strides[group] + (strides[0] * vertices if index in (1, 2) else 0)
+            strides[group] += sizes[index]
+    return {"offsets": offsets, **dict(zip(("vertex_stride", "normal_stride", "attribute_stride", "skin_stride"), strides)),
+            "index_stride": 2 if indices else 0, "influences": count if binds else 0}
+
+
+class Reader:
+    """One surface at a time, same opened stream hash, bounded total read and no unchecked length allocation."""
+    def __init__(self, stream):
+        self.stream, self.hash, self.count = stream, hashlib.sha256(), 0
+
+    def take(self, size):
+        require(type(size) is int and 0 <= size <= MAX_SURFACE and self.count + size <= MAX_CAPTURE + 262144,
+                "INPUT_BYTE_CAPACITY")
+        raw = self.stream.read(size)
+        require(len(raw) == size, "INPUT_TRUNCATED")
+        self.hash.update(raw)
+        self.count += size
+        return raw
+
+    def u32(self):
+        return struct.unpack("<I", self.take(4))[0]
+
+    def blob(self, maximum):
+        size = self.u32()
+        require(size <= maximum, "INPUT_BLOB_CAPACITY")
+        return self.take(size)
+
+    def record(self):
+        raw = self.blob(16384)
+        try:
+            record = json.loads(raw, object_pairs_hook=unique_pairs)
+        except (UnicodeError, ValueError) as error:
+            raise Refused("INPUT_METADATA") from error
+        require(type(record) is dict, "INPUT_METADATA")
+        return record
+
+
+def _positions(meta, raw, points, derived):
+    """Preserve every uncompressed bit; static compressed references must follow explicit CPU decode orders."""
+    compressed = bool(meta["format"] & COMPRESSED)
+    box = bounds(meta["aabb"], meta.get("aabb_bits"))
+    residual = [Fraction(0)] * 3
+    low, high = [math.inf] * 3, [-math.inf] * 3
+    for vertex in range(meta["vertices"]):
+        actual = struct.unpack_from("<3f", points, vertex * 12)
+        require(all(math.isfinite(v) and abs(v) <= 2**24 for v in actual), "INPUT_POSITION_FINITE")
+        at = vertex * derived["vertex_stride"]
+        if not compressed:
+            require(raw[at:at+12] == points[vertex*12:vertex*12+12], "INPUT_POSITION_BITS")
+        else:
+            words = struct.unpack_from("<3H", raw, at)
+            for axis, word in enumerate(words):
+                decoded = f32(word / 65535.0)
+                rounded = f32(f32(decoded * box[axis+3]) + box[axis])
+                fused = nearest_f32(Fraction(decoded) * Fraction(box[axis+3]) + Fraction(box[axis]))
+                require(actual[axis] in (rounded, fused), "INPUT_POSITION_DECODE")
+                exact = Fraction(word, 65535) * Fraction(box[axis+3]) + Fraction(box[axis])
+                residual[axis] = max(residual[axis], abs(Fraction(actual[axis]) - exact))
+        for axis in range(3):
+            low[axis], high[axis] = min(low[axis], actual[axis]), max(high[axis], actual[axis])
+    return {"decoded_bounds_m": low + high, "cpu_compressed_residual_m":
+            [{"numerator": x.numerator, "denominator": x.denominator} for x in residual]}
+
+
+def _skin(meta, raw, bones, weights, derived):
+    """Integer words define exact weight/65535 rationals; no normalization or dropped zero-weight lane."""
+    count = derived["influences"]
+    used, positive, zeros = set(), 0, 0
+    sums, residual = [65535 * 8, 0], Fraction(0)
+    for vertex in range(meta["vertices"] if count else 0):
+        words = struct.unpack_from("<" + "H" * count * 2, raw, vertex * derived["skin_stride"])
+        total = sum(words[count:])
+        require(total > 0, "INPUT_WEIGHT_SUM")
+        sums = [min(sums[0], total), max(sums[1], total)]
+        for lane in range(count):
+            index = vertex * count + lane
+            bone = struct.unpack_from("<i", bones, index * 4)[0]
+            weight = struct.unpack_from("<f", weights, index * 4)[0]
+            word = words[count + lane]
+            require(0 <= bone < meta["binds"] and bone == words[lane], "INPUT_BONE_WORD")
+            require(math.isfinite(weight) and weights[index*4:index*4+4] == struct.pack("<f", word / 65535.0),
+                    "INPUT_WEIGHT_WORD")
+            residual = max(residual, abs(Fraction(weight) - Fraction(word, 65535)))
+            if word:
+                used.add(bone)
+                positive += 1
+            else:
+                zeros += 1
+    return {"influence_lanes": count * meta["vertices"], "positive_influences": positive,
+            "zero_influences": zeros, "used_bones": sorted(used), "weight_denominator": 65535,
+            "integer_weight_sum_range": sums if count else [], "cpu_weight_residual":
+            {"numerator": residual.numerator, "denominator": residual.denominator}}
+
+
+def audit_surface(meta, buffers, part, surface, binds, expected_indices, lod_buffers=()):
+    """Every length, layout field, reference value and original triangle index is checked before acceptance."""
+    require(all(type(meta.get(k)) is int for k in ("part", "surface", "binds", "primitive")) and
+            meta.get("part") == part and meta.get("surface") == surface and meta.get("binds") == binds and
+            meta.get("primitive") == 3, "INPUT_SURFACE_IDENTITY")
+    derived = layout(meta.get("format"), meta.get("vertices"), meta.get("indices"), binds)
+    require(type(meta.get("offsets")) is list and all(type(v) is int for v in meta["offsets"]) and
+            all(type(meta.get(k)) is int for k in derived if k not in ("offsets", "influences")) and
+            all(meta.get(k) == v for k, v in derived.items() if k != "influences"), "INPUT_LAYOUT")
+    require(len(buffers) == 8 and sum(map(len, (*buffers, *lod_buffers))) <= MAX_SURFACE, "INPUT_SURFACE_CAPACITY")
+    raw, attributes, skin, indices, points, bones, weights, index_reference = buffers
+    n, ni, lanes = meta["vertices"], meta["indices"], derived["influences"]
+    sizes = [(derived["vertex_stride"] + derived["normal_stride"]) * n, derived["attribute_stride"] * n,
+             derived["skin_stride"] * n, derived["index_stride"] * ni, n * 12, n * lanes * 4, n * lanes * 4, ni * 4]
+    require(list(map(len, buffers)) == sizes, "INPUT_BUFFER_LENGTH")
+    if expected_indices is not None:
+        require(type(expected_indices) is list and len(expected_indices) == ni, "INPUT_TOPOLOGY_CENSUS")
+    for i in range(ni):
+        value = struct.unpack_from("<H", indices, 2*i)[0]
+        require(value < n and value == struct.unpack_from("<i", index_reference, 4*i)[0] and
+                (expected_indices is None or value == expected_indices[i]),
+                "INPUT_INDEX_WORD")
+    row = {"part": part, "surface": surface, "format": meta["format"], "vertices": n, "indices": ni,
+           "binds": binds, "layout": derived, "buffer_bytes": sizes, "buffer_sha256": list(map(digest, buffers))}
+    row["lods"] = audit_lods(meta.get("lods"), lod_buffers, n)
+    row.update(_positions(meta, raw, points, derived))
+    row.update(_skin(meta, skin, bones, weights, derived))
+    return row
+
+
+def lod_metadata(value):
+    """Every native auxiliary index stream has a finite threshold and bounded complete triangles."""
+    require(type(value) is list and len(value) <= 8, "INPUT_LOD_CENSUS")
+    for row in value:
+        require(type(row) is dict, "INPUT_LOD_CENSUS")
+        edge = row.get("edge_length")
+        edge = exact_f32_metadata([edge], row.get("edge_bits"), 1, "INPUT_LOD_THRESHOLD")[0]
+        require(edge > 0, "INPUT_LOD_THRESHOLD")
+        size = integer(row.get("index_bytes"), 6, MAX_INDICES * 2, "INPUT_LOD_CAPACITY")
+        require(size % 6 == 0, "INPUT_LOD_TRIANGLES")
+    return value
+
+
+def audit_lods(value, buffers, vertices):
+    rows = lod_metadata(value)
+    require(len(rows) == len(buffers), "INPUT_LOD_CENSUS")
+    result = []
+    for row, raw in zip(rows, buffers):
+        require(len(raw) == row["index_bytes"], "INPUT_LOD_LENGTH")
+        require(all(index[0] < vertices for index in struct.iter_unpack("<H", raw)), "INPUT_LOD_INDEX")
+        result.append({**row, "triangles": len(raw) // 6, "sha256": digest(raw)})
+    return result
+
+
+def fingerprint_surface(hashing, meta, buffers):
+    """The unchanged Content mesh binding's complete position/ID/weight transcript; topology is separate."""
+    count = (8 if meta["format"] & EIGHT else 4) if meta["binds"] else 0
+    hashing.update(struct.pack("<Q2I", meta["format"], meta["vertices"], count))
+    points, bones, weights = buffers[4:7]
+    for vertex in range(meta["vertices"]):
+        hashing.update(points[12*vertex:12*vertex+12])
+        for lane in range(count):
+            at = (vertex * count + lane) * 4
+            hashing.update(bones[at:at+4] + weights[at:at+4])
+
+
+def content_parts(path, expected=CONTENT_SHA):
+    """Read only this exact known immutable palette's compact part table; do not requalify its source mathematics."""
+    require(path.is_file() and not path.is_symlink() and path.stat().st_size == 648760, "INPUT_CONTENT_CAPACITY")
+    require(file_hash(path) == expected == CONTENT_SHA, "INPUT_CONTENT_HASH")
+    with path.open("rb") as stream:
+        header = stream.read(184)
+        require(header[:8] == b"UGACNT01" and struct.unpack_from("<6I", header, 8) == (1, 106, 2, 14, 538, 300),
+                "INPUT_CONTENT_HEADER")
+        result = []
+        for index in range(2):
+            raw = stream.read(72)
+            binds, vertices, surfaces, attachment = struct.unpack_from("<4I", raw)
+            require(binds == (24 if index == 0 else 0) and attachment == index, "INPUT_CONTENT_PART")
+            result.append({"binds": binds, "vertices": vertices, "surfaces": surfaces, "sha256": raw[16:48].hex()})
+    return result
+
+
+def mesh_identity(meta, part, parts, topology, shadow_parents):
+    """Main parts bind the accepted palette; auxiliary shadow inputs retain their own explicit source transcript."""
+    require(type(meta.get("part")) is int and meta["part"] == part and
+            type(meta.get("shadow_of")) is int and type(meta.get("has_shadow")) is bool, "INPUT_PART_IDENTITY")
+    surfaces = integer(meta.get("surfaces"), 1, 8, "INPUT_PART_CAPACITY")
+    integer(meta.get("vertices"), 1, MAX_VERTICES, "INPUT_PART_CAPACITY")
+    integer(meta.get("binds"), 0, 64, "INPUT_PART_CAPACITY")
+    require(type(meta.get("mesh_sha256")) is str and len(meta["mesh_sha256"]) == 64 and
+            all(c in "0123456789abcdef" for c in meta["mesh_sha256"]), "INPUT_PART_HASH")
+    if part < 2:
+        wanted = parts[part]
+        require(meta["shadow_of"] == -1 and meta["binds"] == wanted["binds"] and
+                surfaces == wanted["surfaces"] == len(topology[part]["surfaces"]) and
+                meta["vertices"] == wanted["vertices"], "INPUT_PART_IDENTITY")
+        if meta["has_shadow"]:
+            shadow_parents.append(part)
+    else:
+        require(part - 2 < len(shadow_parents) and meta["shadow_of"] == shadow_parents[part-2] and
+                not meta["has_shadow"] and meta["binds"] == parts[meta["shadow_of"]]["binds"], "INPUT_SHADOW_IDENTITY")
+
+
+def read_surface(reader, record, numeric):
+    lods = lod_metadata(record.get("lods"))
+    buffers, remaining = [], min(MAX_SURFACE, MAX_CAPTURE-numeric)
+    for _ in range(8 + len(lods)):
+        buffers.append(reader.blob(remaining))
+        remaining -= len(buffers[-1])
+    return buffers[:8], buffers[8:]
+
+
+def audit(stream, expected_sha, spec_sha, parts, topology):
+    """Consume every main/shadow/LOD input, keeping auxiliary geometry outside the palette's source certificate."""
+    reader = Reader(stream)
+    require(reader.take(8) == b"UGMIN001" and reader.u32() == 1, "INPUT_HEADER")
+    require(reader.take(32).hex() == spec_sha and reader.take(32).hex() == CONTENT_SHA, "INPUT_SOURCE")
+    mesh_count = integer(reader.u32(), 2, 4, "INPUT_PART_CENSUS")
+    require(len(parts) == len(topology) == 2, "INPUT_PART_CENSUS")
+    rows, total, numeric, meshes, shadow_parents = [], 0, 0, [], []
+    for part in range(mesh_count):
+        meta = reader.record()
+        mesh_identity(meta, part, parts, topology, shadow_parents)
+        hashing = hashlib.sha256(b"UGMESH01" + struct.pack("<2I6f", meta["binds"], meta["surfaces"], *bounds(meta.get("aabb"), meta.get("aabb_bits"))))
+        count = 0
+        for surface in range(meta["surfaces"]):
+            record = reader.record()
+            buffers, lod_buffers = read_surface(reader, record, numeric)
+            numeric += sum(map(len, (*buffers, *lod_buffers)))
+            require(numeric <= MAX_CAPTURE, "INPUT_CAPTURE_CAPACITY")
+            expected = topology[part]["surfaces"][surface]["indices"] if part < 2 else None
+            row = audit_surface(record, buffers, part, surface, meta["binds"], expected, lod_buffers)
+            fingerprint_surface(hashing, record, buffers)
+            count += row["vertices"]
+            rows.append(row)
+        actual = hashing.hexdigest()
+        require(count == meta["vertices"] and actual == meta["mesh_sha256"], "INPUT_MESH_SOURCE")
+        if part < 2:
+            require(actual == parts[part]["sha256"] == topology[part]["mesh_sha256"], "INPUT_MESH_SOURCE")
+        meshes.append({"part": part, "shadow_of": meta["shadow_of"], "has_shadow": meta["has_shadow"],
+                       "vertices": count, "surfaces": meta["surfaces"], "sha256": actual,
+                       "matches_palette_source": part < 2})
+        total += count
+    require(mesh_count == 2 + len(shadow_parents), "INPUT_SHADOW_CENSUS")
+    require(reader.take(8) == b"UMINEND1" and reader.u32() == len(rows) and reader.u32() == total,
+            "INPUT_FOOTER_CENSUS")
+    require(stream.read(1) == b"", "INPUT_TRAILING")
+    require(reader.hash.hexdigest() == expected_sha, "INPUT_HASH")
+    return {"schema": 1, "input_sha256": expected_sha, "spec_sha256": spec_sha, "content_sha256": CONTENT_SHA,
+            "parts": meshes, "surfaces": len(rows), "vertices": total, "numeric_bytes": numeric, "rows": rows,
+            "gpu_arithmetic_qualified": False, "qualified_profiles": 0, "world_qualified": False,
+            "auxiliary_geometry_enclosure_qualified": False,
+            "scope": "Exact native main/shadow/LOD RD input bytes/CPU reference; main immutable mesh/topology binding only"}
+
+
+def main():
+    parser = argparse.ArgumentParser(__doc__)
+    parser.add_argument("capture", type=Path)
+    parser.add_argument("--sha256", required=True)
+    parser.add_argument("--spec-sha256", required=True)
+    parser.add_argument("--content", required=True, type=Path)
+    parser.add_argument("--topology", required=True, type=Path)
+    parser.add_argument("--out", required=True, type=Path)
+    args = parser.parse_args()
+    require(not args.out.exists() and not args.out.is_symlink(), "INPUT_OUTPUT_EXISTS")
+    require(args.topology.stat().st_size <= 4 * 1024 * 1024 and file_hash(args.topology) == TOPOLOGY_SHA, "INPUT_TOPOLOGY_HASH")
+    topology = json.loads(args.topology.read_text())["parts"]
+    parts = content_parts(args.content)
+    require(args.capture.stat().st_size <= MAX_CAPTURE + 262144 and not args.capture.is_symlink(), "INPUT_CAPTURE_CAPACITY")
+    with args.capture.open("rb") as stream:
+        result = audit(stream, args.sha256, args.spec_sha256, parts, topology)
+    require(file_hash(args.content) == CONTENT_SHA and file_hash(args.topology) == TOPOLOGY_SHA, "INPUT_FINAL_SOURCE_DRIFT")
+    result["topology_sha256"] = TOPOLOGY_SHA
+    result["auditor_sha256"] = file_hash(Path(__file__))
+    with args.out.open("x") as output:
+        json.dump(result, output, indent=2)
+        output.write("\n")
+    print(json.dumps({key: result[key] for key in ("surfaces", "vertices", "numeric_bytes", "qualified_profiles")}))
+
+
+if __name__ == "__main__":
+    main()

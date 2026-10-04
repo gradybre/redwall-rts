@@ -1,0 +1,15 @@
+{
+  "reviewer": "ug_geometry",
+  "date": "2026-10-04",
+  "accepted": true,
+  "scope": "frozen source and actual Metal input census only; no GPU arithmetic, auxiliary enclosure, profile/world permission or whole-client memory qualification",
+  "source_manifest_sha256": "eca18ae9f49c72c43202ca9ad543b43ef197b98cdf356047f94bf060fd8b6561",
+  "reviewed_output_manifest_sha256": "cae4a0e006bf71c8c9cdfc01d8790abbb6431680ed2964c14c61859f2b99d8fe",
+  "reviewed_history_manifest_sha256": "bb53d97dadb825278057b6e0953d97bc4d1b1ede0467268232ee7b03ee9afe87",
+  "reviewed_inherited_manifest_sha256": "58836b7f4270015e26e9a126b5bbf7648c41f18abe6ff45b96c6944bf11a7153",
+  "source_unchanged": true,
+  "independent_python_tests": 24,
+  "actual_mutations_rejected": 5,
+  "native_rerun": false,
+  "production_qualified": false
+}

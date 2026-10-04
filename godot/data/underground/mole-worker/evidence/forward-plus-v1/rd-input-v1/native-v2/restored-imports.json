@@ -1,0 +1,452 @@
+[
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/body.glb-1521a68f1a229a0e05241eeb2fc220c7.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/73c0bdb5fb0429fda2c2c15e496c528d6a911d01fd6cedacb1be52c610c144f6.input",
+    "sha256": "73c0bdb5fb0429fda2c2c15e496c528d6a911d01fd6cedacb1be52c610c144f6",
+    "before": "3079f0a30bf5aed2acddf8b20c088b62dffca23354c4c908ad582bf0487327b3"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/body.glb-1e480da000f5e9eb0b9cd26255af07c9.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/67e749c4c7c07d5353bf317878f04190a62a076403f2c4f2e79b213561711ee3.input",
+    "sha256": "67e749c4c7c07d5353bf317878f04190a62a076403f2c4f2e79b213561711ee3",
+    "before": "2c9a73494f46b274469ca43f1a80fbe9a5810e54a5270a0cea5f1ae72e5948cf"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/body.glb-a31352cfa404da20f479541e307f9dab.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/002d392bdc8f2d13e19ebb25a254f7a560c62692561a955700875c34b71f526c.input",
+    "sha256": "002d392bdc8f2d13e19ebb25a254f7a560c62692561a955700875c34b71f526c",
+    "before": "6ba0d13a1ca112dce6dbde651a5bb82118c09dedb8bfdfc7f4350c0c7cb590d7"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/body.glb-c6f3412ee31b33284e26b128ebaa6a39.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/3dcac8a68c8575e7cffbe079d687e2b419c46c994172fdec225ff23562f76acd.input",
+    "sha256": "3dcac8a68c8575e7cffbe079d687e2b419c46c994172fdec225ff23562f76acd",
+    "before": "71181d6a1017ce3ff10a4a8577dd022645be946bcb4e90b69549305d03307e4a"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/body.glb-cb5b4feabed0550d6b4f06f84cfae102.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/0fc859a8e5e0cd1b146e290ca662ce477f661be62bec410125c23cec2b64f0b4.input",
+    "sha256": "0fc859a8e5e0cd1b146e290ca662ce477f661be62bec410125c23cec2b64f0b4",
+    "before": "0a16084a2b3066ad21afb8b81a7ecefb5656eca6cebf96c1e68a48f19e796fc8"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/carry_heavy_object_walk.glb-20e324744509356d8c5935de6768f9d5.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/3f3bcab31986a399ac522d127dbd1f7fa02843c562587a7de1c99d4b552b607c.input",
+    "sha256": "3f3bcab31986a399ac522d127dbd1f7fa02843c562587a7de1c99d4b552b607c",
+    "before": "afed93b04af9886eff62ae50927d304444cbaf9bcd8fff11e744b13d057e9c8b"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/carry_heavy_object_walk.glb-76171fda19efb3dfc1018b4e89f0b924.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/3f7dd21b13bcc70496970cf8e8bc91f33c5a0e812f1186a241cc52a18e7b28b3.input",
+    "sha256": "3f7dd21b13bcc70496970cf8e8bc91f33c5a0e812f1186a241cc52a18e7b28b3",
+    "before": "89c89f6a48d831834a8179520b4a5e63a4270a4fc19e1267f76c052e4ecd510e"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/carry_heavy_object_walk.glb-8ee135d0ad0afb309c1913857df7c322.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/465da3ce7dce873aa963d86e79df76cb8a6f28dcf86f3fd150049419f07b2fe8.input",
+    "sha256": "465da3ce7dce873aa963d86e79df76cb8a6f28dcf86f3fd150049419f07b2fe8",
+    "before": "9efaa0527540f9a25b46671ed6d8b7f39a21d06e343b141e028ac4df22e6e383"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/carry_heavy_object_walk.glb-a773319fc09942df46008e446c21c0d7.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/aec5583a2b1e1cb89da7322f8bb7bc8e1e400710fe1debb29c76ef96c7c0f4e4.input",
+    "sha256": "aec5583a2b1e1cb89da7322f8bb7bc8e1e400710fe1debb29c76ef96c7c0f4e4",
+    "before": "8fff437ced438cac2e147f3993efab67fb8d1278447eba9f5c1b99a7b20b5661"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/carry_heavy_object_walk.glb-ba361481b1e69a6f3c159dd2c58a304d.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/f166e368d05f7a70c00ad6b45d84c31763617d22a2973b49944a8c576a53fb74.input",
+    "sha256": "f166e368d05f7a70c00ad6b45d84c31763617d22a2973b49944a8c576a53fb74",
+    "before": "9c079c59f7c66cc6059156554704b872c50e2374772944ed60ac427a4c036304"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/cautious_crouch_walk_forward.glb-03ad7a6d25b37ddb9dfb8e4b1bd91ca8.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/e85a6cc997cbac23fe0ceac7995d8561b22de3d36ce5dd643382c8d4d7b52a89.input",
+    "sha256": "e85a6cc997cbac23fe0ceac7995d8561b22de3d36ce5dd643382c8d4d7b52a89",
+    "before": "d14700e9d2ada7f824d54605d19e7dd3da4d5ef4a4e3f74fdfb4c4fe2dc13acd"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/cautious_crouch_walk_forward.glb-1eaa0ec983acbcdd908d6ef7cbff6996.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/dcb7b58c48f975533e3ad59aec3ebefe23842be57660a51aafd031cfd28ef9f0.input",
+    "sha256": "dcb7b58c48f975533e3ad59aec3ebefe23842be57660a51aafd031cfd28ef9f0",
+    "before": "ab6f3d2766d9cf6045114d21aaa2e2a60923bb7815a6016637e482da24ee7a69"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/cautious_crouch_walk_forward.glb-a97875baf89e1b87666218591b8eea51.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/39201d3a32478bd352ae9057d0feeddc1a21738d9f3405ded0f26d89c6efea43.input",
+    "sha256": "39201d3a32478bd352ae9057d0feeddc1a21738d9f3405ded0f26d89c6efea43",
+    "before": "add5e4ab58e357aa9fadc8d53f2788185a65e2df0809250966cfb28e7a8b7478"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/cautious_crouch_walk_forward.glb-d6750d8f93f742c19895886606474b2b.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/a6ec85a691a58f80ef99cd5505c3276e9656892e1a9891c11495ff90b77e9ee9.input",
+    "sha256": "a6ec85a691a58f80ef99cd5505c3276e9656892e1a9891c11495ff90b77e9ee9",
+    "before": "b3add47deaeebc0ed00baec232070f5661fcb9b8422ba829e34998ef7ca44752"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/cautious_crouch_walk_forward.glb-dc3aa3d14dd789471e92ff7f19a91a8a.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/377fb8e6cd918db811d0721b2c44d4b6aa6235d1b523743fc5e1339f907e86d4.input",
+    "sha256": "377fb8e6cd918db811d0721b2c44d4b6aa6235d1b523743fc5e1339f907e86d4",
+    "before": "9e3a419d15ed20c9a2cd8ff03130eea384c500da5ed71948ef9f7e3dcd9d03dd"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/collect_object.glb-3f2c04806b7523dbdf8f21fcaa2f03cc.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/4b0d99d11f7e65e6196d133bccd3a910c76f62d55e3002f067f1e66522bfd9cb.input",
+    "sha256": "4b0d99d11f7e65e6196d133bccd3a910c76f62d55e3002f067f1e66522bfd9cb",
+    "before": "83fdc993e88c8c2393322256627039510297e4db084ca576b05fe74591f5e2e4"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/collect_object.glb-835de3ecf334d0392ab44654bfe8367d.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/bd1c4fd0e3037a5ffd73e45e1613b59e733fb4ad4304e113e10df45d6d098245.input",
+    "sha256": "bd1c4fd0e3037a5ffd73e45e1613b59e733fb4ad4304e113e10df45d6d098245",
+    "before": "a7d44c968c740b19d6ab302bf635b599b9bf7df4a4bd09f7171d71e1c39e741d"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/collect_object.glb-c25ad983357fcfa5f4c405aa1fd66cf6.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/bf54f64d6ebc1ca271382d5eed97e2d5a1c7f80c5840ce293ee2960640aacb1b.input",
+    "sha256": "bf54f64d6ebc1ca271382d5eed97e2d5a1c7f80c5840ce293ee2960640aacb1b",
+    "before": "ee83ad63db55586e0720b5cbd1b352933b5307766ba7ffb9b365873c5dfade42"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/collect_object.glb-cc37198b6a81237bc9557f242940eeb7.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/b9303309d5e0fae013c3cc56bb85a38c2972ffa955db7fde07570baf45f898f5.input",
+    "sha256": "b9303309d5e0fae013c3cc56bb85a38c2972ffa955db7fde07570baf45f898f5",
+    "before": "bab12f8dad5e267b837c7b0b1eebdc81ac61da6a568e188c4db3612adc06eb49"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/collect_object.glb-f807208744a5d12add1d50e5d9f920f7.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/461494a6da152271f5209f5b85d0a66c283be1b5c794fc578d574c1b256ea5ff.input",
+    "sha256": "461494a6da152271f5209f5b85d0a66c283be1b5c794fc578d574c1b256ea5ff",
+    "before": "1612c8de9c8a467e1745526080430dde0b9006565e0e2cf4ce19cdd0765f8ca3"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/dive.glb-657b41a2de48a3e5642d4c8e58a5d4c5.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/7b32fc0494601c5c24382d2f56e498bd7950814c3b24d3e33a82dd22266b4dab.input",
+    "sha256": "7b32fc0494601c5c24382d2f56e498bd7950814c3b24d3e33a82dd22266b4dab",
+    "before": "75ad4006195e6c50337a36ab7cba20485df74581518353823b587b117d406115"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/heavy_hammer_swing.glb-9dd5e9268e122a107aff279e327f17cd.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/cd6fe580af8d2f98c784b79d27620f9c1307666db64c6200777c9ff1d54d16ac.input",
+    "sha256": "cd6fe580af8d2f98c784b79d27620f9c1307666db64c6200777c9ff1d54d16ac",
+    "before": "ad9ac29f9989c4d8a28beb1e57782ddf7aef7a4fe7ff0f32bada650893ec2768"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/heavy_hammer_swing.glb-ece9346f6bb9077732f84601afd66ce5.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/3cf57c5c8c01e6207eee82d3787c9fa05437313020d81528d4bb5055588903ae.input",
+    "sha256": "3cf57c5c8c01e6207eee82d3787c9fa05437313020d81528d4bb5055588903ae",
+    "before": "3b4ccff88df9d20e86ac8efd47cb561f6c65a87648506640c90f83360e3e5394"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/idle.glb-45558975ccdb84cc217f12d546967716.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/9ac021a5fbf707a1e302ef469e5a677fe11e97f3edea9219ab76cf53e4d4551a.input",
+    "sha256": "9ac021a5fbf707a1e302ef469e5a677fe11e97f3edea9219ab76cf53e4d4551a",
+    "before": "f6f86f0d2bcaea39c3b0a609621902b5a4c84457ec04edf5070d32b4e599ce3b"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/idle.glb-8a9077a9386362b6b1fef3de75eed21b.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/09a4bf4839dadf068d487791392930d80e4fd25f4177a2a31606bfa27d38df39.input",
+    "sha256": "09a4bf4839dadf068d487791392930d80e4fd25f4177a2a31606bfa27d38df39",
+    "before": "f34080990d91ad3ea5767ff95f85394fe7367644f8be1b2e648ece03624f008b"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/idle.glb-c6af2f11f545c1cab5fa3fe9bc26bd30.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/4489f5d19c3e5500bd2c1a882d6734d4d3a212745fe53361f70b81888ce68734.input",
+    "sha256": "4489f5d19c3e5500bd2c1a882d6734d4d3a212745fe53361f70b81888ce68734",
+    "before": "c785299df003d61ab7c1e3bdeb257f35ddc85d8cae29ff6e982ed0c8343ae4a2"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/idle.glb-ce3e81f625569b2f107aea423e53d80b.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/e026261e707bdcf81529c1fff7700d49733de2e35ccb6cdbe8d5610dc0f5b9ae.input",
+    "sha256": "e026261e707bdcf81529c1fff7700d49733de2e35ccb6cdbe8d5610dc0f5b9ae",
+    "before": "1adce0528f3988e0a4a3039f635926e6aaa905849ca15b6b687a2f415ea7fc90"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/idle.glb-f7a13b973910a99ba6a5b715f4b8247c.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/fa027b4e9c4deb9793dbe4ce49245b4f7f6fba4cf3bcd70fc05ae719dc0b5034.input",
+    "sha256": "fa027b4e9c4deb9793dbe4ce49245b4f7f6fba4cf3bcd70fc05ae719dc0b5034",
+    "before": "ec4f425e1cb75c794f0bf00e018cee6253c96aa1ad8f2dcc58dd8fc37d4c46a4"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_barley.glb-86a643d6e950c1d02e47acc23cad08f3.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/8887e6a6a53216814597ad564a8c5a6c51b4f52cdd86142703f508b172d0285f.input",
+    "sha256": "8887e6a6a53216814597ad564a8c5a6c51b4f52cdd86142703f508b172d0285f",
+    "before": "517a33b233f9aec406746d4848438a39541122a2de5e3f1239decd3e69d3ddad"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_beetroot.glb-db8936b8885440ad999158b70c96a902.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/f5de4ad0ba1482178e92c0b494359e00c7586908601dd364f7faf8ab0a1bf308.input",
+    "sha256": "f5de4ad0ba1482178e92c0b494359e00c7586908601dd364f7faf8ab0a1bf308",
+    "before": "bac7e992b3b2c131c32634687ec8d9aceef5b49f8a67f54665a08911aecd8cdc"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_carrot.glb-7ecad4139d4df8e67ca335ebc0400937.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/1cdea7e0a643865e930d9a8c163580b13254bc2a35df4e3eaf4fb1e7bd3664ed.input",
+    "sha256": "1cdea7e0a643865e930d9a8c163580b13254bc2a35df4e3eaf4fb1e7bd3664ed",
+    "before": "9309a794a3e57be4b6dc0c22c77bb8e29875b93caedef87e1e13514696f9e3ac"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_celery.glb-a98d4b7c85929fdc162340e24b375d93.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/a736240f3532b883e3b2498fe6e4f3f3f4cdfe686214f6c4304d2dc8da145131.input",
+    "sha256": "a736240f3532b883e3b2498fe6e4f3f3f4cdfe686214f6c4304d2dc8da145131",
+    "before": "60088aecea4ca2b560813ddcfdf7dbe5686a863e39e39131dfb326f27148cf59"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_leek.glb-f2e18a0619158d20f3c9ea401d123dd2.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/4f4232709f7fcbe5013751b23377c18c9ccfab60716133e7627aee9e77f80018.input",
+    "sha256": "4f4232709f7fcbe5013751b23377c18c9ccfab60716133e7627aee9e77f80018",
+    "before": "77cba3bfb6703c1d9ee3cdbdd0b8aa068060cb98122c09b4814dd3a8c1759b9b"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_lettuce.glb-fdb1111398255ede50811c6af2916f9c.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/5cf6cfe9d3a705cf61216034376949d6cb9da2e64f386bd4b8486fd92149e393.input",
+    "sha256": "5cf6cfe9d3a705cf61216034376949d6cb9da2e64f386bd4b8486fd92149e393",
+    "before": "dc63d0cf9bca47bcddc5adfd161e368a2dcf9a86ad87a1826dd5ff4ea77f65eb"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_oats.glb-e8fdb676df307191cb45681d79c906ef.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/392f39e2b145840a1844074344ad91ee40efdae19123d063a8d2c837ee003bc0.input",
+    "sha256": "392f39e2b145840a1844074344ad91ee40efdae19123d063a8d2c837ee003bc0",
+    "before": "8ac2472713f11a817b1aea0249f883204bf13dd84a1fa8e17f6a9a63e5196c03"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_onion.glb-eac867901150b9198bc69ecdc6caf618.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/5bb509c5b0c016f01760002e5bab1741607a88c721730c2734e32054c6213283.input",
+    "sha256": "5bb509c5b0c016f01760002e5bab1741607a88c721730c2734e32054c6213283",
+    "before": "731da0320cc031e438696cf4320bfd3a042990b1c7b45c9feef0edb6a432424c"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_peas.glb-f524585dcca8e59a1ff939dc631141d1.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/ffa683f2e95110e1ddb94cb491b8a6389fb84213fe3461d78bf114ca5dc51ddd.input",
+    "sha256": "ffa683f2e95110e1ddb94cb491b8a6389fb84213fe3461d78bf114ca5dc51ddd",
+    "before": "1acbbf78c77faffe8e236c09d7bd9ac968ba15182eeaf1635dacc398f5cb8c60"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_radish.glb-17a31889079f3098314a465caf479f73.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/820350e71f566054ccd1e6be7aee712d5a4c7c27ae8a44c25641bee430f54aba.input",
+    "sha256": "820350e71f566054ccd1e6be7aee712d5a4c7c27ae8a44c25641bee430f54aba",
+    "before": "8719e8a6350d20a41bbb02a079bb7b5ceeecd6f7639d3ac387e6536c1484ab4d"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/item_turnip.glb-cd687b1c5172302c148bec4d4d610a97.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/80cf95462cad1fbb0dae79234c7a828c57a73d22e1cabc1eaabd98045baab1b0.input",
+    "sha256": "80cf95462cad1fbb0dae79234c7a828c57a73d22e1cabc1eaabd98045baab1b0",
+    "before": "6f326780a95716662781d6b44843b84648422a370d4b0431ebe79489a88814da"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/mole_pick.glb-6db599ef1826c7349070503b949c90c5.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/f13d0a5e77fd0de90c67b00fc232f41682dd2629641b27785a50eb467bf8ff90.input",
+    "sha256": "f13d0a5e77fd0de90c67b00fc232f41682dd2629641b27785a50eb467bf8ff90",
+    "before": "66c8121b24ada79e7563e6d69f84244eec4f840b4ecb6d8f88766ffab8675bfb"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/pull_radish.glb-23f7088fd37f0aae78f39ca294e61d58.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/552528c3900180f045b246f593f767c2710626de6ef094068da1de55b730d10e.input",
+    "sha256": "552528c3900180f045b246f593f767c2710626de6ef094068da1de55b730d10e",
+    "before": "8e85ffda35085e0212d523bb74ad780498ae6d01e26c13f51143d7a2a25a6ed6"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/pull_radish.glb-256c98db3d51f81e980fb311b2547211.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/0f776cd413678783b273badac3565982e83ecc5e5ebed626d38ef72f330c1a78.input",
+    "sha256": "0f776cd413678783b273badac3565982e83ecc5e5ebed626d38ef72f330c1a78",
+    "before": "db91cdf930f4112632b58b9bb259fea682d86b147bba3c9542faa0806a772d3f"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/pull_radish.glb-45e7d7cdad984bb443058a337494c9d8.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/b709f2bdbc1a538693e268604408a95dbc002d6c762a7420709eda717b5fb56f.input",
+    "sha256": "b709f2bdbc1a538693e268604408a95dbc002d6c762a7420709eda717b5fb56f",
+    "before": "45cf6896da17d7621c41ea011b8189eb153aed06b56f8cfe62659474e899b04a"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/pull_radish.glb-d7489f461dbff439f26ded5886b3133e.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/fefbeb5d7f5504382bf80517a04e35033313828efdb714bfa2a3115bbbaa49c9.input",
+    "sha256": "fefbeb5d7f5504382bf80517a04e35033313828efdb714bfa2a3115bbbaa49c9",
+    "before": "8bd574372ebfccf5243927e26708aceb26102b6582b85f657996b9a390365536"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/pull_radish.glb-e521efd4cc6c28d0d19469b0ac6c7da0.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/0d3855d965186ee39ed9992a7852f7115e15bb23fab0579bde268b9559785a1f.input",
+    "sha256": "0d3855d965186ee39ed9992a7852f7115e15bb23fab0579bde268b9559785a1f",
+    "before": "5f23d591217ec4e7167d60890f500940b75cfced9991876f3dc7d28de90331a3"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/sleep_normally.glb-020765f05a085d429389196c92773723.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/8ce41068c9295fce2152bc980ccf2ef6c1d030c3ddba6e86dcd714a1bc601453.input",
+    "sha256": "8ce41068c9295fce2152bc980ccf2ef6c1d030c3ddba6e86dcd714a1bc601453",
+    "before": "b716f05dec145e8b146c6efb1c61e48ba67b8eaf3d72cff5a6010cc6273f7c39"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/sleep_normally.glb-286d2e79d25822c31be7196d6bb53cc0.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/fcf81480048d0645c013b8ff251dd2d08f6b5da937977a3feca1551b35ed8f16.input",
+    "sha256": "fcf81480048d0645c013b8ff251dd2d08f6b5da937977a3feca1551b35ed8f16",
+    "before": "05cc56eddde0156a983b821abb4279d2fd24f24143418209772f2914e734ae95"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/sleep_normally.glb-76d16967e2e5b0c8ac78bae66f5f8a1d.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/a9358ee972050890e56b7a5eaa71c9c09d632cbdd6ac05d3df5b4027b77c2c97.input",
+    "sha256": "a9358ee972050890e56b7a5eaa71c9c09d632cbdd6ac05d3df5b4027b77c2c97",
+    "before": "1644caacd190826920c67bb961ddd671fc5133c5ed7f56568842754c3b4b96f6"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/sleep_normally.glb-d73bfc4f456944f8b590e4009df82b1f.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/db48c1a8e11e233f6c47cd15be5062b73a08c8f02505dc3b0fccf80487b908b1.input",
+    "sha256": "db48c1a8e11e233f6c47cd15be5062b73a08c8f02505dc3b0fccf80487b908b1",
+    "before": "334c325c116ed5e054a2176e5186b0aefa3f61fdcafb19b938c21cb773c2aa58"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/sleep_normally.glb-dc1647b4dfb1b2f3ee548c27e7730e6e.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/b07c82e6cc0e1bb50f651e872955c55013b2d835a336a196be012e03d23bc615.input",
+    "sha256": "b07c82e6cc0e1bb50f651e872955c55013b2d835a336a196be012e03d23bc615",
+    "before": "02d725190bbda2a032a7955f3d8b4013e21fb90ab570bd99d0cda648d68caffe"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/stand_and_drink.glb-4d7967986069edbd5a36d94a657102b3.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/149853b71eb0259beb80a10d682a1f459417182e97227b8568589edb38ed23ad.input",
+    "sha256": "149853b71eb0259beb80a10d682a1f459417182e97227b8568589edb38ed23ad",
+    "before": "17e9a9ef5531a8e8a452f2ca7b79e295cd9aa04bb9349d6263a8a575c23649df"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/stand_and_drink.glb-826bdcf3c40eae0ea6691e695cd44f8c.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/ae51f1fc8b47580dd4d3251dda33b7049c6d4b00f803e047de23736dcd7c59d1.input",
+    "sha256": "ae51f1fc8b47580dd4d3251dda33b7049c6d4b00f803e047de23736dcd7c59d1",
+    "before": "39154df1f751b4703b33503577e75cd0cbb3508d85f08ef5fef75c33160a16d6"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/stand_and_drink.glb-989106d4a78c96e51dd3f1fc88e9a767.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/baf7eb6fdaba3f333b966104885a76322e04054312724a149536f7888fd5beec.input",
+    "sha256": "baf7eb6fdaba3f333b966104885a76322e04054312724a149536f7888fd5beec",
+    "before": "a0ea7ba31ec36539a50adf791263eef88d403213734bbabb09c0334a4e9ad50e"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/stand_and_drink.glb-c5cadc21cd8f7c4a0cf5e9bf40fbec6a.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/19ac30d76323088d3e8c1e9221252a6cd137ea533cbae42163e12a1138ba1cee.input",
+    "sha256": "19ac30d76323088d3e8c1e9221252a6cd137ea533cbae42163e12a1138ba1cee",
+    "before": "b40b136727f5d3ba4ed4b207b60aa700e51f31d7f4ddc3916d6f0f7d67020593"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/stand_and_drink.glb-ea2693e304746e75bc124f3aed428023.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/13b9fc76b747a3f35eb8b14639905b08b4d3702b099cc1b36752e0e433e71b6f.input",
+    "sha256": "13b9fc76b747a3f35eb8b14639905b08b4d3702b099cc1b36752e0e433e71b6f",
+    "before": "4f0918a0f607c50d3a7eff0c9a4d40a90082a7390e43b3822a24c4a7333b78cc"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/swim.glb-05ccf00c5f94e5ab2811b000a9d85f4c.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/b429d28f226f0a8346ebe5494f212de85133f83b7e5b75c9ed71cc982c33d445.input",
+    "sha256": "b429d28f226f0a8346ebe5494f212de85133f83b7e5b75c9ed71cc982c33d445",
+    "before": "eb489e55737701c92b916c80ae86b9a4b77dd2c9ca0d2c88b9af3b24a6f1e44a"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/swim.glb-0b8175e8b1ffb5138955f84aedc32e51.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/7707296e2425ce8b569694804ede7712a75a839490710de5fb587964d8212bf9.input",
+    "sha256": "7707296e2425ce8b569694804ede7712a75a839490710de5fb587964d8212bf9",
+    "before": "ce464d455735c59bcb7b4fb55e13d646cf479b97ff2ee40cbbfea7a5bef0ee89"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/swim.glb-539b4dacc3c26743def424237920d35a.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/c6e1366292a4179eeae592bbee6062df03bbe27fe2c728f1e4d94facafdb429f.input",
+    "sha256": "c6e1366292a4179eeae592bbee6062df03bbe27fe2c728f1e4d94facafdb429f",
+    "before": "402a14ab3212f7f3c174139fe7fc21da8d6a71be7fcbd3d91e7b71c9e90ae78d"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/swim.glb-dd8eb434c3d22859ba0d2836bdefd8ce.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/fc9a483858f12d2d9e47d521241f6d604da3d2d8ba03a336d3490897b926b46a.input",
+    "sha256": "fc9a483858f12d2d9e47d521241f6d604da3d2d8ba03a336d3490897b926b46a",
+    "before": "df62d9b58f69d4d913adb0dbfcc13164045e5a642e4d05ccf0c4ec78e3591a05"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/swim.glb-de327c79b537e20ce79d028d16a11e80.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/3b9eb19662ac577f9c82b4261aa5aaa14cf1f516d8c1f4e4b15dde46b926887d.input",
+    "sha256": "3b9eb19662ac577f9c82b4261aa5aaa14cf1f516d8c1f4e4b15dde46b926887d",
+    "before": "55a87b81ff329c8ca6ea4fdcbb602254569b5b4e80bfd806c76412e0dc6d176d"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/tread_water.glb-4327f84e8159e6d59df1a5cffe679108.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/9d41e19ddb1c0802c319143f6c6a71328dae13110ffb2092105bad53c134533b.input",
+    "sha256": "9d41e19ddb1c0802c319143f6c6a71328dae13110ffb2092105bad53c134533b",
+    "before": "e2cd579bc1ab90084c2122635602bd0d907b5a83e7578f2a77eb7f704e258a2c"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/tread_water.glb-434cd1c97d310372202975e1ada7f609.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/f87a06db948741147af15c8be70a766fb1b1e0183e052bf41d760e6d15f33328.input",
+    "sha256": "f87a06db948741147af15c8be70a766fb1b1e0183e052bf41d760e6d15f33328",
+    "before": "08857ed45742dfb3c11a9ef33288032462e0d4259e9723f855732e812542cb36"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/tread_water.glb-4706bd45f92b9e55dde553399e7144c3.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/55d1aa66f83c13006b25f3e9998d707ab99d425b55a9bbb547f4eab2742eb6f2.input",
+    "sha256": "55d1aa66f83c13006b25f3e9998d707ab99d425b55a9bbb547f4eab2742eb6f2",
+    "before": "8ac995241211339fc0ebb95d70914b14cafa454a889f7e827a87a8fe92fc4c4d"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/tread_water.glb-9c36d24da8f6a981caf4da47d50d8af5.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/865c36fd1ea5cfbaa1f0dc61b0175ff18aaf8e6c301128f2be13ef85b95764cf.input",
+    "sha256": "865c36fd1ea5cfbaa1f0dc61b0175ff18aaf8e6c301128f2be13ef85b95764cf",
+    "before": "ab719f7b3bdb6c712b2e99f8bcc58f5098bd16bc5214c80569722a12239dd709"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/tread_water.glb-9e506da2cde50f9c8bf6e4776d17e1be.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/de0fce8b029e618c079aa47067bdd2692d8176f4cfdcb3bf0f890ba7dd993132.input",
+    "sha256": "de0fce8b029e618c079aa47067bdd2692d8176f4cfdcb3bf0f890ba7dd993132",
+    "before": "86c0f908597256f09b14ca8898f6bbb439865d2418d879e9f8e6de53e2063d49"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/walk.glb-179d750bf7ebf25f0dd399531fdfe292.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/36ee85acfcb9231a2baed56c2c59579c9227d05698d2d0cca4c6ddebc119dcc1.input",
+    "sha256": "36ee85acfcb9231a2baed56c2c59579c9227d05698d2d0cca4c6ddebc119dcc1",
+    "before": "fdcc8aa6ead234c40aab05f7162e922193565257f462385cdc5627f3f7594582"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/walk.glb-67a71b089a336d9eec8f90583263ef12.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/f56bdfa2bdfcda69ab36690b4cc3bd07d317da5df3c15c7d3982284c511866ac.input",
+    "sha256": "f56bdfa2bdfcda69ab36690b4cc3bd07d317da5df3c15c7d3982284c511866ac",
+    "before": "d7188ab92a9dfcfc100fc659a77ce2fe435365e0e3b794fd8fbfdb99dfa92152"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/walk.glb-87f70b59b343de0d248904b716f9d397.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/6f13bd36d1e6777c5f45e9ee367354a48776414f23839e78288b4b89f17c39aa.input",
+    "sha256": "6f13bd36d1e6777c5f45e9ee367354a48776414f23839e78288b4b89f17c39aa",
+    "before": "2ddebc376f0d1a2aee81224852ca021015a80f44fb67d55f9ac862dd044287ad"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/walk.glb-e01e2e96c680bbdb4269478ecc0d6a88.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/7047c76bfcabea0c420e0bc149653d3233141154b28ce71ea80934146be8a393.input",
+    "sha256": "7047c76bfcabea0c420e0bc149653d3233141154b28ce71ea80934146be8a393",
+    "before": "af40f96027e3ecc4ae8277552060fef267337a8004fe34a71e20e2b5e167b106"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/walk.glb-f1b377d99eed5d3ff02958326d4b71f4.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/bdd3dc56841ba7ddca7cdab1a13fb3d0d40cda6bee892df088dab9c13f5a4fbe.input",
+    "sha256": "bdd3dc56841ba7ddca7cdab1a13fb3d0d40cda6bee892df088dab9c13f5a4fbe",
+    "before": "c93c94f10cd72aa2706101ededfab29815f311ec6e23641d30760e345e6ed60c"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/wave_one_hand.glb-227492025817a7dd71a7d26532a11933.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/2f8f5bb5e94554cdb404897ca1d4e5c809783b2ba2cf7f2ff20bc11a6d30bbb9.input",
+    "sha256": "2f8f5bb5e94554cdb404897ca1d4e5c809783b2ba2cf7f2ff20bc11a6d30bbb9",
+    "before": "e81b0b88c6f24e21c7b1ce44986f18fcd28d9567921d112601750601e7655180"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/wave_one_hand.glb-486ed17128dbd3b53719d4ffe9a7ae35.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/4a996115aa02cb2060d7cc2fd1e589056dffe776e82bcf2eaf2e5e6b5beddfff.input",
+    "sha256": "4a996115aa02cb2060d7cc2fd1e589056dffe776e82bcf2eaf2e5e6b5beddfff",
+    "before": "c7beaac8df89ff0f484f7eaafafb5347e4ab194275a880acd4d9095897231dea"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/wave_one_hand.glb-7de459d4049cd608c6ecd29da78530bc.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/eab261179c208c592f7a418f8328ca109cb0184626bb19300ced5bc039d6a81e.input",
+    "sha256": "eab261179c208c592f7a418f8328ca109cb0184626bb19300ced5bc039d6a81e",
+    "before": "c23538856ffcd804d4d17f2b2730397e575d63deedeb39962f2a0b8b1b21eb8a"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/wave_one_hand.glb-807dfa7759756f847c7fd6e5e9d19d60.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/f374e3bfbe3e3b5dc730bca7fe14c72a4a61e8fa5191eab2bd80339fabd93f64.input",
+    "sha256": "f374e3bfbe3e3b5dc730bca7fe14c72a4a61e8fa5191eab2bd80339fabd93f64",
+    "before": "506b2c7e4ad923a6d6bc298a6f1c8ab54c07b298a9b1dabf3d49f1e3d8e6ee3c"
+  },
+  {
+    "path": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.godot/imported/wave_one_hand.glb-971f5d3ad95f83b4d365c0f76c5c7295.scn",
+    "archive": "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/demo/assets/underground-matrices/mole-grip-v3.inputs/2c95471e56bf8f7abcf4a8363ab36edd75bc6ca9b3f2c2acc850b5250b61ccb3.input",
+    "sha256": "2c95471e56bf8f7abcf4a8363ab36edd75bc6ca9b3f2c2acc850b5250b61ccb3",
+    "before": "58547da0a79953c54e0af9d60dd1541029198f7037a007399b2ef7fde8e395b2"
+  }
+]

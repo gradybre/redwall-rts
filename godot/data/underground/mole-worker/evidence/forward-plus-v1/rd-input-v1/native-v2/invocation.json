@@ -1,0 +1,36 @@
+{
+  "user_directory": "/Users/brendan/Library/Application Support/Redwall-Codex-Metal-Inputs-c426f1cf5cfc1654",
+  "commands": [
+    [
+      "godot",
+      "--headless",
+      "--path",
+      "godot",
+      "--editor",
+      "--quit"
+    ],
+    [
+      "godot",
+      "--path",
+      "godot",
+      "--rendering-method",
+      "forward_plus",
+      "--rendering-driver",
+      "metal",
+      "--audio-driver",
+      "Dummy",
+      "--script",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/tools/capture_underground_metal_inputs.gd",
+      "--",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2/spec.json",
+      "5269e2408ec3cd11182bca42945530c1cda2030c9684877718fb733cd95e6927",
+      "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/native-v2"
+    ]
+  ],
+  "qualified_profiles": 0,
+  "import_exit": 0,
+  "native_exit": 2,
+  "project_unchanged": true,
+  "override_restored": true,
+  "source_after_import_unchanged": true
+}

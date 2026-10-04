@@ -1,0 +1,27 @@
+[
+  [
+    "godot",
+    "--headless",
+    "--path",
+    "godot",
+    "--editor",
+    "--quit"
+  ],
+  [
+    "./tools/run_tests.sh",
+    "--shard",
+    "278/380",
+    "--output-dir",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/check-v4/shard"
+  ],
+  [
+    "python3",
+    "tools/gdscript_warnings.py",
+    "/Users/brendan/Developer/redwall-rts-codex-ug-space/godot/.metal-input-analyzer.gd",
+    "godot/test/test_underground_metal_inputs.gd",
+    "--port",
+    "6149",
+    "--max",
+    "0"
+  ]
+]

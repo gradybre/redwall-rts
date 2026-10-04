@@ -1,5 +1,42 @@
 # Underground implementation status
 
+## Current delivery status — 2026-10-04
+
+The complete modular building workflow is still in development. The queue has
+10 verified component lanes, 4 running lanes and 9 queued lanes, covering107
+requirements. These counts are not a completion percentage: substantial demo
+integration, persistence and qualification remain. The next playable checkpoint
+is drawing on the dirt, confirming the plan, watching actual workers deliver
+materials and excavate, and obtaining an empty Kitchen ready to furnish.
+
+After that checkpoint, the remaining work includes the room-specific furniture
+workflow; deeper levels and the full connection catalog; live amendments,
+removal/backfill/replacement, relocation and renovation; composed save/resume;
+and native1280×720 and256-resident acceptance. The wood-only stair decision is
+unchanged. A complete stair motion and safe return route still need source
+qualification; ground walking profiles do not fit the first tread.
+
+The latest accepted full local checkpoint remains
+[`454eae23`](evidence/modular-build/checkpoint-454eae23/README.md):
+10,637 tests /976,936 assertions /0 failures, zero unexpected diagnostics and
+leaks, and zero analyzer warnings across1,180 scripts. Later changes require a
+new full checkpoint. The latest
+[CI run at`cddc4412`](../../validation/evidence/underground-ci-cddc4412-2026-10-04/README.md)
+has11 failures because the immutable worker-profile publication correctly
+rejects changed consumers. Its zero diagnostic/leak and analyzer totals do not
+make that run a pass. Renewed source review and actual native replay are in
+progress; no source guard has been removed.
+
+Decision1135's independently reviewed spatial component is integrated at
+`84948b40`:404 selected tests /29,732 assertions /0 failures, zero unexpected
+diagnostics/leaks and zero warnings across10 files. It preserves worker
+occupancy, paid publication and refund safety. Decision1134’s paid workpiece component is now integrated at`b518ca1f`;
+its final affected suite passed23 tests/1,522 assertions with zero strict/raw
+diagnostics, leaks and analyzer warnings. Actual material hauling, the
+composed playable lifecycle and the next full checkpoint remain open. Component evidence and
+rejected attempts are retained in the
+[workpiece spatial packet](../../validation/evidence/underground-workpiece-spatial-2026-10-04/README.md).
+
 ## Concurrent full-build continuation
 
 Brendan subsequently authorized concurrent subagents and automatic release of
@@ -15,7 +52,7 @@ in its actual selected level, never on a separate drawing canvas. The
 [native 1280×720 component capture](evidence/modular-build/world/direct_dirt_room_plan_1280x720.png)
 shows that interaction; ordinary village activation remains in progress.
 
-The latest full frozen source `a33ff093` passed **10,405 tests / 958,819
+The earlier full frozen source `a33ff093` passed **10,405 tests / 958,819
 assertions / zero failures**, with zero unexpected diagnostics or leaks and
 zero analyzer warnings across1,157 scripts. The
 [checkpoint logs](evidence/modular-build/checkpoint-a33ff093/README.md)

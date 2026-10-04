@@ -450,7 +450,15 @@
         "godot/test/test_underground_workpiece_publication.gd",
         "godot/test/test_underground_workpiece_publication.gd.uid",
         "docs/decisions/1136-connector-workpiece-start-publication.md",
-        "docs/validation/evidence/underground-workpiece-publication-2026-10-04/"
+        "docs/validation/evidence/underground-workpiece-publication-2026-10-04/",
+        "godot/scripts/core/underground_connector_delivery.gd",
+        "godot/scripts/core/underground_connector_delivery.gd.uid",
+        "godot/test/test_underground_connector_delivery.gd",
+        "godot/test/test_underground_connector_delivery.gd.uid",
+        "godot/scripts/core/haul_planner.gd",
+        "godot/test/test_haul_planner.gd",
+        "docs/decisions/1140-spatial-connector-material-delivery.md",
+        "docs/validation/evidence/underground-connector-delivery-2026-10-04/"
       ],
       "requirements": [
         "UG-FURN-002",
@@ -471,7 +479,7 @@
         "Recipe/work values reuse catalog and adopted owners; Bedroom mapping explicit"
       ],
       "agent": "/root/ug_construction",
-      "branch": "codex/underground-connector-work",
+      "branch": "codex/underground-connector-delivery",
       "evidence": {
         "in_progress": "Reviewed Funding/Reservations final boundary integrated e40a55a3/d4e7c9e4; real ConnectorWork waits for compile-ready actual Placement. Source-derived first-module work/contact assessment in progress; no playable entry claimed.",
         "identity_prerequisite": {
@@ -848,7 +856,7 @@
           "contract": "Actual capacity-limited loose Inventory deliveries precede consumption; one shared Funding receipt; static source-bound WIP only. Prepare exact prospective spatial context before initial START INSTALL observations; complete all observations and direct leaves before Inventory commit. No whole-bill single-load requirement, reverse quantity ledger, movable consumed WIP or free support. Actual authored set-down BUILD source remains required and distinct from INSTALL fastening.",
           "shared_owner_gate": "Root Router/Funding, Geometry Space/Placement/companions; no shared edits until exact seam review and explicit leases.",
           "inherited_policy": "Wood5000g/U; whole L0bill20000g/T0bill5000g. Existing HaulPlanner2000mWU load+2000mWU unload per payload; partial capacity-limited shipments remain allowed.",
-          "latest": "Actual first L0 START/productive COMMIT now passes in diagnostic lifecycle4; full packet remains unaccepted. Lifecycle4:15 tests216 assertions2 failures, zero strict diagnostics/leaks. Geometry correcting terminal occupancy; late Space-revision test cleanup must keep Inventory/Location receipts coherent."
+          "latest": "Lifecycle8: 16 tests, 1377 assertions, 0 failures; strict/raw diagnostics/leaks all zero and analyzer0/4. Actual two12kg/8kg deliveries use existing handling work, leave one complete landing bill and conserve stock. Final binding-shape review and prepared-piece adversaries remain in progress; no full lifecycle acceptance yet."
         },
         "workpiece_start_publication_1136": {
           "source_commit": "007dd203085d9d3ca976c9aa82669431560c5ef4",
@@ -868,6 +876,27 @@
           "scope": "Seven inherited inline closures replaced by named Callable.bind helpers; same arguments/mutations/assertions. New Workpieces sources excluded.",
           "tests": "Original33 tests10790 assertions0 failures; strict/raw diagnostics/leaks0; analyzer0/1. Exact clean-assets/cache/import/official singleton shard; source/HEAD unchanged/project/assets restored.",
           "evidence": "docs/validation/evidence/underground-entry-fixture-integration-2026-10-04/"
+        },
+        "spatial_delivery_1140": {
+          "owner": "/root/ug_construction",
+          "branch": "codex/underground-connector-delivery",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-connector-delivery",
+          "base_commit": "b518ca1f824903b0a40658a04660064f50ab7509",
+          "status": "implementation; not accepted",
+          "scope": "Actual existing Planner/Reservations/Inventory/Travel/Work delivery path; local Location/Container refs never become EntityDirectory refs. HAUL_OUTPUT unload retains real remaining work and no additional WU on blocked transfer. Concrete static last proof after observations. Generic flat/party paths preserved.",
+          "memory": "4096B provisional separate complete fixed/helper/native reservation; borrowed1141 Transfer is counted only by its owner. No new row bank or material ledger; source census required.",
+          "source_gate": "Published no-tool HAUL WORK source still required for production; explicit synthetic rows only in diagnostic tests. Eight current publication consumers frozen."
+        },
+        "paid_workpieces_1134_accepted": {
+          "source_commit": "d4f4fde3c7797dae80889571901f957286f29e39",
+          "integration": "b518ca1f824903b0a40658a04660064f50ab7509",
+          "reviewer": "/root",
+          "status": "component accepted; actual HAUL and composed playable lifecycle still open",
+          "tests": "Final affected suite23tests1522assertions0failures; strict unexpected errors/warnings0 expected0 tolerated0 leaks0; raw unexpected errors/warnings0 leaks0; analyzer0/4. Prior final3 unchanged other suites with final4 affected suite compose108unique tests19994assertions, not a single full run.",
+          "scope": "Actual paid Workpiece receipt/publication and final observer protection; distinct INSTALL/SETDOWN source; exact typed Contacts; final-refusal clears9initial bindings.1135 paired census572/576. Synthetic physical profiles remain explicit.",
+          "memory": "Separate29928B contribution under1134; whole pack99991614B/headroom8386, runtime unqualified.",
+          "evidence": "docs/validation/evidence/underground-connector-workpieces-2026-10-04/",
+          "memory_reconciliation_commit": "54b7932b9aa51982cfe8773d775c658b27415fa4"
         }
       },
       "lease": {
@@ -934,20 +963,18 @@
               "godot/scripts/core/excavation_contract.gd",
               "godot/scripts/core/excavation_inventory.gd",
               "godot/scripts/core/excavation_sites.gd",
-              "godot/scripts/core/reservations.gd",
               "godot/scripts/core/construction.gd",
               "godot/test/test_excavation_phase_start_guard.gd",
               "godot/test/test_excavation_phase_start_guard.gd.uid",
               "docs/decisions/1117-final-excavation-start-payment-guard.md",
               "godot/test/test_excavation_physical.gd",
               "godot/test/test_excavation_sites.gd",
-              "godot/scripts/core/inventory.gd",
               "docs/decisions/1118-final-connector-input-payment-guard.md",
               "godot/test/test_underground_connector_payment_guard.gd",
               "godot/test/test_underground_connector_payment_guard.gd.uid",
               "docs/validation/evidence/underground-connector-payment-2026-10-04/"
             ],
-            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes. Inventory-owned final observation barrier and nested audit preservation added after independent HIGH journal-escape finding; no other agent owns Inventory edits. Inventory remains in UG21 root ownership; this cross-lane note records the same root writer without a duplicate lane lease. Root continues the confirmed purpose8 journal-close follow-up1118 using unchanged Contacts fixture; no concurrent Contacts writes."
+            "handoff": "Root exclusively owns narrow purpose5 staged Inventory guard and observer-free START publication under UG07 shared coordinator ownership. Construction keeps Contacts and first-prefix fixture; Geometry keeps EntryBindings/Space/Locations/Routes. Inventory-owned final observation barrier and nested audit preservation added after independent HIGH journal-escape finding; no other agent owns Inventory edits. Inventory remains in UG21 root ownership; this cross-lane note records the same root writer without a duplicate lane lease. Root continues the confirmed purpose8 journal-close follow-up1118 using unchanged Contacts fixture; no concurrent Contacts writes. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease."
           },
           {
             "agent": "/root",
@@ -961,6 +988,25 @@
               "docs/decisions/1136-connector-workpiece-start-publication.md"
             ],
             "handoff": "Construction explicitly retains shared Router read-only; root createdbranch from freshly fetched origin/master82d60ba8 then fast-forwarded ownaccepted integrationa5a647b9. Narrow connector-only paid START publication seam; no retained ledger/price/refund changes. Exact Workpiece/Geometry interface agreement precedes mutation."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-entry-admission",
+            "state": "released",
+            "files": [
+              "godot/scripts/core/inventory.gd",
+              "godot/scripts/core/reservations.gd"
+            ],
+            "stop_evidence": "Root stopped all Inventory/Reservations source writes after accepted1117/1118; no root edits since. Explicit2026-10-04 handoff to ug_geometry for narrow1141 guarded haul journal only; other root leases remain held."
+          },
+          {
+            "agent": "/root/ug_geometry",
+            "branch": "codex/underground-haul-transfer",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/reservations.gd"
+            ],
+            "handoff": "Root source writes explicitly stopped.1141 owns narrow Inventory-owned guarded ADMIT/LOAD/REPOST/UNLOAD/CANCEL journal with216-byte full-ref Transfer, same-journal mass/claim changes; preserve all existing flat flows. No Work/HaulPlanner/HaulCarry edits.3072-byte new reservation subject to exact complete census."
           }
         ]
       }
@@ -1052,7 +1098,11 @@
         "godot/test/test_underground_metal_inputs.gd",
         "godot/test/test_underground_metal_inputs.gd.uid",
         "tools/audit_underground_metal_inputs.py",
-        "tools/test_audit_underground_metal_inputs.py"
+        "tools/test_audit_underground_metal_inputs.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py",
+        "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/",
+        "docs/decisions/1139-source-indexed-stair-program-tables.md"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1493,7 +1543,7 @@
         },
         "default_renderer_1132": {
           "owner": "/root/ug_furnishing",
-          "status": "phase1/phase2/phase3 independently reviewed and integrated; phase4 actual-mesh input census started",
+          "status": "phase1/phase2/phase3 and1138 input census independently reviewed and integrated; actual Metal numerical qualification remains open",
           "contract": "Exact engine RD skin/compressed-mesh/Metal fast-math source proof and65536 native basis rows plus actual render witness. Preserve GL-v1; no tolerance, reserve or renderer switch. Shared Actor/Profile changes await explicit phase2 lease and reviewed evidence.",
           "review": "Root rehashed4 source/51 outputs and reran14 Python tests. Native65536rows, strict5/36/all0,LSP0/2. Exact pinned Apple precision sections independently read. Source/expression-only; complete skin/model/native attachment remains open.",
           "phase2_lease": "Explicit root grant2026-10-04: underground_actor.gd WorldBasis v1/v2 dispatch only, test_underground_world_basis.gd plus new evidence/scripts. No pose/root changes, new retained fields, catalog flags or source reinterpretation.",
@@ -1525,10 +1575,15 @@
             "integrated_tests": "18 Python tests OK/no skips; all frozen executable/input/output pins match with exact pre-acceptance ADR locator. No engine source change in this packet."
           },
           "phase4": {
-            "status": "in_progress",
+            "status": "independently reviewed input census component integrated",
             "owner": "/root/ug_furnishing",
             "decision": "docs/decisions/1138-actual-metal-mesh-input-census.md",
-            "scope": "Additive actual source-bound RenderingServer raw mesh input census/CPU decode vs accepted palette. Explicit new tools/test paths and forward-plus-v1/rd-input-v1 only; no Actor/Profile state, reserve or certificate change."
+            "scope": "Actual Metal input transcript only:3 surfaces,18923 vertices,12509 base triangles,6 LOD streams;1789659 input bytes. Exact actual integer weights retained. Auxiliary compressed position-only mesh uses pinned raw-input representation. No GPU arithmetic/deformation/clearance, Profile, World or native memory qualification.",
+            "source_commit": "61196f35",
+            "integration_commit": "9fced5c1",
+            "reviewer": "/root/ug_geometry",
+            "tests": "9 Godot tests /54 assertions /0 failures; all strict/raw unexpected diagnostics and object/resource leaks0; analyzer0/2.24 Python tests. Independent24 Python tests plus byte-identical actual input audit and five buffer corruption refusals.",
+            "evidence": "godot/data/underground/mole-worker/evidence/forward-plus-v1/rd-input-v1/"
           }
         },
         "consumer_renewal_1137": {
@@ -1550,6 +1605,25 @@
             "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/published-native-runtime-sources-v2/",
             "tests": "8 Python tests pass; independent8 tests pass. Actual537 inputs verified before/after; exactly3 closed current source digests and25 identical-byte location moves; other facts unchanged; zero certificate bits."
           }
+        },
+        "source_program_1139": {
+          "owner": "/root/ug_furnishing",
+          "branch": "codex/underground-profile-publication",
+          "status": "independently accepted offline compiler; no runtime activation",
+          "files": [
+            "godot/data/underground/mole-worker/evidence/contact-qualification/compile_stair_program.py",
+            "godot/data/underground/mole-worker/evidence/contact-qualification/test_stair_program.py",
+            "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/",
+            "docs/decisions/1139-source-indexed-stair-program-tables.md"
+          ],
+          "scope": "Two actual91-key90-interval stair programs; exact source roots, complete body/tool interval enclosure and separate anatomical foot/support/installed-part witnesses. Stationary root intervals retained. No runtime phase rate, reservation, Profile or World permission.",
+          "memory": "Actual19224B per image; paired images38448 plus4096decode+160caller =42704B before native controls. Current headroom8386 cannot admit it. No runtime allocation or reserve/capacity change.2304box alternative remains unadopted.",
+          "boundaries": "Keep eight live consumer sources and root-owned1137 publisher/Catalog/native wrapper frozen. Descent/ascent endpoints differ by174u and half-turn; a separate authored/proved transition is required. Whole-body enclosure is not generic VOID permission over stair solids.",
+          "source_commit": "606f2b8636677ef15ac5a863ae2b39d81dc87286",
+          "integration_commit": "e5969af5e6a0f7d6c457891c8bce1f707b621566",
+          "reviewer": "/root",
+          "tests": "16 Python tests repeated independently; actual537-source reconstruction and all3/9/23/209 original manifest rows checked. Final wire19332B byte-identical; exact programs and memory report equal. No engine/native execution.",
+          "evidence": "godot/data/underground/mole-worker/evidence/contact-qualification/stair-program-v1/review.md"
         }
       },
       "lease": {
@@ -1690,7 +1764,13 @@
         "godot/scripts/core/underground_surface_anchor.gd.uid",
         "godot/test/test_underground_surface_anchor.gd",
         "godot/test/test_underground_surface_anchor.gd.uid",
-        "docs/decisions/1135-paid-workpiece-spatial-companions.md"
+        "docs/decisions/1135-paid-workpiece-spatial-companions.md",
+        "godot/scripts/core/haul_transfer_contract.gd",
+        "godot/scripts/core/haul_transfer_contract.gd.uid",
+        "docs/decisions/1141-guarded-spatial-haul-transfers.md",
+        "godot/test/test_haul_transfer_guard.gd",
+        "godot/test/test_haul_transfer_guard.gd.uid",
+        "docs/validation/evidence/guarded-spatial-haul-2026-10-04/"
       ],
       "requirements": [
         "UG-LEVEL-001",
@@ -1713,7 +1793,7 @@
         "Save/hash and production worker traversal requirements remain open until real composed tests; helper-only increments never verify the whole lane"
       ],
       "agent": "/root/ug_geometry",
-      "branch": "codex/underground-support-clearance",
+      "branch": "codex/underground-haul-transfer",
       "evidence": {
         "prerequisite_increment": "UG08A helper source89aa974c and registry44e3717f reviewed/integrated; production profiles and fixed content remain separate concurrentUG08",
         "in_progress": "Actual natural support and concrete World structural dispatch are reviewed/integrated. Geometry prepares the first-entry bootstrap packet; root will own actual prospective contact composition. Body/contact/material/output/service/topology qualification remains open.",
@@ -2407,12 +2487,27 @@
         },
         "paid_workpiece_space_next": {
           "owner": "/root/ug_geometry",
-          "status": "1135 exact shared-context seam approved; implementation in progress",
+          "status": "1135 independently reviewed component integrated; paired lifecycle and production qualification remain open",
           "scope": "Static START obstacle; exact Project obstacle replaced on completedinstallation or removed only after successfulrefund. Original tokens, full identities, occupancy/last exit and finite existingarenas; no observer afterpayment.",
           "contract": "Reuse InstallationContext and existing cold banks. Proposed action/obstacle and independent Placement pins add32 logical bytes, complete census pending. Exact Project source plus nonsupporting CLAIM_NONE obstacle at START; removal on completed group or successful refund only. Static kernel publishes Space/Locations/Routes/Placement/Workpieces once, then clears original context.",
           "companion": "Construction owns Workpieces/ConnectorWork/Contacts; root1136 reviewed; pure concrete Router tuple only after payment.",
           "review_findings": "Reproduced HIGH: final public Buildings room_identity callback moved worker into prepared obstacle after clearance, yet START paid and published. Separate direct packed CoreSources final reader under implementation, including FinalFacts. Dedicated terminal physical occupancy must retain body/profile/tool/cargo/ref guards after work Job release. Terrain reobserved before final leaves by Contacts; no postpayment cache mutation.",
-          "numeric_census": "Source-review1: retained1895/2048; helper576 within original control headroom; cross-owner peak568 (existing phase572). Two exact action/obstacle copies add32 bytes; no capacities raised. Final corrected source census pending."
+          "numeric_census": "Final source-review-2: 1895/2048 logical controls; largest complete recorded chain 572/576; 32 retained numeric bytes and weak Workpieces binding inside existing reservations. No capacity increase. New final1134 dependency still requires paired recensus.",
+          "source_commit": "07f766f0a10af190bb6e3f654fdbb959f79a6aab",
+          "integration": "84948b402aa5099387d02b196b267fcdb9b1345a",
+          "tests": "404 selected tests, 29732 assertions, 0 failures; every selected strict/raw unexpected diagnostic and leak count zero; analyzer 0 warnings in 10 files",
+          "review": "Root independently reviewed final source and six actual paid adversaries; verified all ten frozen pins and reproduced the complete helper census with exact structured equality. Final public Room callback removed from the payment tail; ordinary callback movement refuses payment and valid retry succeeds. Released-job physical occupancy, premature publication and equal-size replacement-token cases pass. Source/correctness acceptance only.",
+          "evidence": "docs/validation/evidence/underground-workpiece-spatial-2026-10-04/"
+        },
+        "guarded_haul_transfer_1141": {
+          "owner": "/root/ug_geometry",
+          "branch": "codex/underground-haul-transfer",
+          "status": "implementation; not accepted",
+          "base_commit": "b518ca1f824903b0a40658a04660064f50ab7509",
+          "scope": "Inventory owns whole guarded journal across ADMIT/LOAD/REPOST/UNLOAD/CANCEL; immutable original216-byte transfer and callback view, exact Pool/claim/staged state final rechecks. Reservations clear/restore join existing attestation guards.",
+          "memory": "3072B provisional separate fixed/helper/native allowance; no per-row bank. Source census and complete callback chain must precede admission.",
+          "handoff": "Root Inventory/Reservations writes stopped and explicitly released; Construction owns Work/Planner and new Delivery. Eight consumer scripts remain frozen for root publication renewal.",
+          "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-haul-transfer"
         }
       },
       "lease": {
@@ -2446,14 +2541,13 @@
               "godot/test/test_excavation_entry_claim_batch.gd",
               "godot/test/test_excavation_entry_claim_batch.gd.uid",
               "docs/decisions/1107-entry-plan-paid-cut-unions.md",
-              "godot/scripts/core/inventory.gd",
               "godot/scripts/core/underground_entry_structure.gd",
               "godot/scripts/core/underground_entry_structure.gd.uid",
               "godot/test/test_underground_entry_structure.gd",
               "godot/test/test_underground_entry_structure.gd.uid",
               "docs/decisions/1122-source-bound-entry-structure.md"
             ],
-            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up.",
+            "handoff": "ug_geometry owns SpaceOwner/Authority/Locations/Routes/CoreSources. Temporary1088 Authority/test snapshot-hook lease was returned after independent review and verified final pins; root retains WorldBindings,1085/1088 and the agreed Terrain seam. Root stopped WorldRoutes source writes after22714381; temporary getter-only source lease returned to ug_geometry for1098 static_catalog_owner. Root retains its test file and other listed sources. WorldRoutes source getter lease returned after reviewed306c2f15/4ed742d8; root now retains source and test again. Root explicitly stopped WorldRoutes source/test writes and returned both to Geometry on2026-10-03 for1105 Placement companion/pure publication. Anchor/Terrain finished; no overlapping root edits. Root created this follow-on branch from freshly fetched origin/master82d60ba8 and fast-forwarded accepted own integratione9d52293; no new root source yet. Geometry additionally owns narrow prepared traversal/exact-Sites leased readers in SpaceOwner/test and exact WORK actor APIs/consumers in Routes/test; other root leases stay held. Geometry confirmed exclusive root Inventory writes for1117 final payment/audit guard on2026-10-04; same writer coordinates purpose8 follow-up. Inventory/Reservations narrow1141 source ownership returned to Geometry on2026-10-04; see explicit released sublease.",
             "branch": "codex/underground-paid-cut-contact"
           },
           {
@@ -2549,6 +2643,15 @@
               "godot/test/test_underground_surface_anchor.gd.uid"
             ],
             "handoff": "Construction and root explicit stops recorded above.1133 separates authored foot support from independently proved body/tool air; preserve full actual source/paid datum, obstacle and section proofs,1130 brackets and existing limits. Existing EntryBindings lease remains held. No retained schema/bank or raised-WIP/stair bypass."
+          },
+          {
+            "agent": "/root",
+            "branch": "codex/underground-paid-cut-contact",
+            "state": "released",
+            "files": [
+              "godot/scripts/core/inventory.gd"
+            ],
+            "stop_evidence": "Root stopped all Inventory/Reservations source writes after accepted1117/1118; no root edits since. Explicit2026-10-04 handoff to ug_geometry for narrow1141 guarded haul journal only; other root leases remain held."
           }
         ]
       }
@@ -3710,6 +3813,15 @@
       "scope": "Unchanged capacity audit generator changes only ModularProjects source fingerprint for alreadyaccepted1136. Independent parsed full diff verifies one leaf; numeric capacity/census/canonical registry/parser unchanged.",
       "tests": "190 check(s), 0 failure(s); regenerated --check passes",
       "evidence": "docs/validation/evidence/underground-ci-cddc4412-2026-10-04/"
+    },
+    {
+      "date": "2026-10-04",
+      "title": "Paid1134 Workpieces memory/registry reconciliation",
+      "commit": "54b7932b9aa51982cfe8773d775c658b27415fa4",
+      "reviewer": "/root/ug_geometry",
+      "tests": "160 memory tests plus8 independent mutations;190 capacity checks; READY07 145fieldrows50allocationrows; registry141modules706rows1044packed declarations; source/capacity/merge/decision checks pass. Original stale READY failure retained.",
+      "scope": "29928B separate contribution, old ledger unchanged, live99991614/headroom8386, runtimefalse",
+      "evidence": "docs/validation/evidence/underground-workpiece-memory-2026-10-04/"
     }
   ]
 }

@@ -1,0 +1,19 @@
+{
+  "godot/scripts/core/underground_space_owner.gd": "6e7390a07d80d9ad24a754d82db5db6b4ee045ca4bc1b739858203bcb6d20158",
+  "godot/scripts/core/underground_locations.gd": "78c10afd1fb0d737ae7ccd63727c5c18b1cc599097e40b44e9992fd32a7a1d58",
+  "godot/scripts/core/underground_routes.gd": "e9da2df5b115f50af3f65a4ba40c2956db09226799c18e43fb2852e57be92921",
+  "godot/scripts/core/underground_final_facts.gd": "5aeedd84cffb46f363733bbe2b85f87a6e67b771170a0c3e0525e66e1f2a6a46",
+  "godot/scripts/core/underground_terrain.gd": "41ef346c2aa3835d24da18b2f3ffaa15a7e523178ecdc2815369c49a65ec93b8",
+  "godot/scripts/core/world_init.gd": "5ca0b68618c0c9cf6735a72b3b86649ef05d7534c10117fea9b3bd48b9c0519f",
+  "godot/scripts/core/entity_directory.gd": "34303821a59f4a3f59ae56bbbfd7cec806c78d2f8e1292bdac726698ab31220e",
+  "godot/scripts/core/room_space.gd": "8887db4e534e591217aa96fda0c6f7ad7c0c72ed104e6b211abfd8861e04e624",
+  "godot/scripts/core/underground_budget.gd": "8faa76b0d86cfc83304c813174d9c9b42b1ec91f6d2bac068d45c9b873dc7779",
+  "godot/scripts/core/work.gd": "a79363ab3e6a116e89b32fc89ded50aa32a0849a81e34b6737043a3362255338",
+  "godot/scripts/core/residents.gd": "bced7363caad65620656c75eeb675365b065c7ab9475be566be5a180059e67da",
+  "godot/scripts/core/transforms.gd": "7534a10b6043aecb5183a8f791b7a6bf443a1462e44be174bb8c83e9ff2d4aaa",
+  "godot/scripts/core/construction.gd": "da07d55eb1a223a1019d28820182716da71b4c11e99d8bb3adc80d3b92c99d5a",
+  "godot/scripts/core/buildings.gd": "e893b278f8b1f35e6e8f6e3971e8ade136662a0d3f1f5b619042d18e17506fcd",
+  "godot/scripts/core/resource_nodes.gd": "d225ad67828e0acb4d6f2877fda6da0ccc0c1c6d728ce362d7573348692ae3de",
+  "godot/scripts/core/building_definitions.gd": "32fd452ec16012a4a0662a622999e6ee20216bb55ee1035ee8cc996e7de45ac9",
+  "godot/scripts/core/needs.gd": "9ceeb2fc155e33eb23ec2d0136b3feca3ef77c5c82a6e44eaf35b17746a1c190"
+}

@@ -1,0 +1,10 @@
+{
+  "docs/decisions/1171-session-surface-anchor-lifecycle.md": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/accepted-review-3/1171-session-surface-anchor-lifecycle.md.reviewed.txt",
+    "sha256": "039f73bf166a10196a8c23dffc8781c6b14a86b8654790bf1302831aae731d35"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/README.md": {
+    "locator": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/accepted-review-3/README.md.reviewed.txt",
+    "sha256": "e2c3519572e5c2e14c0e2a4a8bb24a579b42fac7b2e6423e59cdd05a9a29bf0e"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "docs/decisions/1171-session-surface-anchor-lifecycle.md": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/1171-session-surface-anchor-lifecycle.md.txt",
+    "sha256": "d7abb95f4e949d7af439f40ec137a1e42fa7a625861553a05690802e59ea5696"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/README.md": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/README.md.txt",
+    "sha256": "ed5f2e98c6b3a47a7f6ef979b46400c8134e6ad5cb92863ca9ec79f669a3c048"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/census.py.txt",
+    "sha256": "5d23c71b71dcf1271846b450e86a64a6168f57ad1a715751c9bf87433bfda2a6"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/reproduce.py": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/reproduce.py.txt",
+    "sha256": "a510005a80e7f9bd04b191eb4b7e41d8dc73666c93275c284768e1a262512672"
+  },
+  "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/test_census.py.txt",
+    "sha256": "c89a5696a60ef69e2b1906b161f52cb137fd6976b388f07cde6adaf8c66f2bf8"
+  },
+  "godot/scripts/core/underground_session.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/underground_session.gd.txt",
+    "sha256": "f3026b276973c9992f92d910a64fd1a225cedcae8ca4c9ef748de8e9ddfce712"
+  },
+  "godot/scripts/core/underground_surface_anchor.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/underground_surface_anchor.gd.txt",
+    "sha256": "c53bc83249e7b808616b972a96ad92722838e5b7451994cd21e40249a6eb6d1e"
+  },
+  "godot/scripts/core/underground_world_retirement.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/underground_world_retirement.gd.txt",
+    "sha256": "81ecd6795d7394e6d98f6fadcc1301053af0a5252bf7894a41b52d455098aa33"
+  },
+  "godot/scripts/systems/settlement_system.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/settlement_system.gd.txt",
+    "sha256": "66e8eda0c6de0fef72d7139229c31b76d8df73803e098e1b7312e0167f43dd50"
+  },
+  "godot/test/test_underground_host.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/test_underground_host.gd.txt",
+    "sha256": "3df7d0673d917bc4892772821060e5a449e94ff10ba7e59755d625995969ceca"
+  },
+  "godot/test/test_underground_session.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/test_underground_session.gd.txt",
+    "sha256": "a737e9ae1e414c96fbc62fff9663015640b7cd34be76bbac5b11e2b9634313f5"
+  },
+  "godot/test/test_underground_surface_anchor.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/test_underground_surface_anchor.gd.txt",
+    "sha256": "ec51b3036955d34bbb4725bed9f64c5b47e3375bd48c08ba5c09a79317aa1ac7"
+  },
+  "godot/test/test_underground_world_retirement.gd": {
+    "path": "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-2/retained-before-release-fix/test_underground_world_retirement.gd.txt",
+    "sha256": "98d3343f679b980ceb1778c1fe99e6fa71f4358173b27365fed68cfe05e35dcc"
+  }
+}

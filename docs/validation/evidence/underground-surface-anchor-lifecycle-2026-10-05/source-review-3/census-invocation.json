@@ -1,0 +1,11 @@
+{
+  "command": [
+    "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+    "-B",
+    "docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py"
+  ],
+  "exit_code": 0,
+  "producer_sha256": "d1aeaf209dd9c400fc3cb6a8dc6adc46ad52a6a44f2d136a044ab3705a4d7a17",
+  "test_sha256": "d9fb12fe4b24fcc8fa90e95d6a04bfb218871be89967124a5ea7bdf8e2a4b6cb",
+  "report_sha256": "694bc1af3e5f31e859deb6498305b6766456de355d5bae699eccf12e071f37f6"
+}

@@ -1,0 +1,25 @@
+from pathlib import Path
+import hashlib,json,subprocess,sys
+r=Path.cwd();e=r/'docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05';d=e/'retained-handle-repro-v1'
+paths=['godot/scripts/core/underground_surface_anchor.gd','godot/scripts/core/underground_world_retirement.gd','godot/test/test_underground_host.gd']
+original={n:(r/n).read_bytes() for n in paths}
+record={'before':{n:hashlib.sha256(b).hexdigest() for n,b in original.items()},'scope':'Historical retained-handle negative; real host, original candidate2 production, new lifetime regression only.'}
+for n,b in original.items(): (d/(Path(n).name+'.current.txt')).write_bytes(b)
+try:
+ for n in paths[:2]:
+  old=(e/'candidate-2/executed-source'/(Path(n).name+'.txt')).read_bytes()
+  expected=json.loads((e/'candidate-2/source-sha256.json').read_text())[n]
+  if hashlib.sha256(old).hexdigest()!=expected: raise ValueError('Historical byte drift')
+  (r/n).write_bytes(old)
+ t=original[paths[2]].decode();start=t.index('func test_surface_release_leaf_refuses_live_world_without_dropping_any_own_pin()');end=t.index('func test_surface_partial_clear_keeps_original_arenas_and_stays_stopped()',start)
+ # Only the direct new-API case is omitted: that method did not exist in the rejected producer.
+ (r/paths[2]).write_text(t[:start]+t[end:])
+ command=[sys.executable,'-B',str(e/'reproduce.py'),'--out',str(d/'old-run'),'--suites','test_underground_host.gd']
+ record['command']=command
+ record['returncode']=subprocess.run(command,cwd=r).returncode
+finally:
+ for n,b in original.items(): (r/n).write_bytes(b)
+ record['after']={n:hashlib.sha256((r/n).read_bytes()).hexdigest() for n in paths}
+ record['restored']=record['before']==record['after']
+ (d/'restoration.json').write_text(json.dumps(record,indent=2)+'\n')
+ if not record['restored']: raise RuntimeError('Owned source restoration failed')

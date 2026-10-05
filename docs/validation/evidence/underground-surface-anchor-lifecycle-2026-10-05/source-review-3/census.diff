@@ -1,0 +1,83 @@
+--- review2/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py
++++ review3/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/census.py
+@@ -120,6 +120,35 @@
+         dotted = set(re.findall(r'\b([\w.]+)\(', body))
+         require(dotted <= {'original.locations._world_scope.get_ref', '_retirement_stores_in'},
+                 'final Anchor leaf must not observe public owners')
++    retirement_release_guards(base, source, anchor, configure)
++
++
++def retirement_release_guards(base, source, anchor, configure):
++    """The stale handle must release every original arena and remain unusable after full original-World clear."""
++    require('_world_ref != NULL_REF' in configure, 'retired Anchor tombstone must refuse configuration')
++    release = anchor['SurfaceAnchor.world_retirement_release_preflighted_in']['body']
++    drop = anchor['SurfaceAnchor._release_retired_stores_in']['body']
++    pins = {name for name, kind in base.members(source['SurfaceAnchor']).items()
++            if kind not in base.WIDTH and name not in ('_record', '_region', '_surface_box')}
++    require(set(re.findall(r'actual\.(_\w+) = null', drop)) == pins and
++            len(re.findall(r'actual\.(_\w+) = null', drop)) == 21,
++            'release all twenty-one original own owner pins exactly once')
++    code = re.sub(r'""".*?"""|#[^\n]*', '', release + drop, flags=re.S)
++    allowed = {'retirement_refusal_in', 'Routes.Buildings.whole_world_retirement_refusal_in',
++               '_release_retired_stores_in', 'actual._record.envelope.clear', 'actual._record.support.clear',
++               'actual._region.box.clear', 'actual._surface_box.clear'}
++    require(set(re.findall(r'\b([\w.]+)\(', code)) == allowed,
++            'owner release must use exact static full-World proof and no observer')
++    require('actual._world_ref =' not in code and 'original.' not in drop and
++            code.count('.clear()') == 4, 'only own borrows/buffers release; preserve World tombstone')
++    proof = 'Routes.Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)'
++    require(proof in release and 'if original.world._published: return REFUSE_BINDING' in release and
++            release.index(proof) < release.index('actual._ready = false'), 'complete empty World before own release')
++    tail = base.parse(source['Retirement'], 'Retirement')['Retirement.release_preflighted']['body']
++    require('SurfaceAnchor.world_retirement_release_preflighted_in(o.surface_anchor, o,' in tail and
++            'scope._persistent_id, scope._constructor_prefix == 9)' in tail and
++            tail.index('Inventory.world_retirement_release_preflighted_in') < tail.index('SurfaceAnchor.world_retirement_release_preflighted_in') <
++            tail.index('scope._stage = 2'), 'preflighted Anchor release after original owner leaves')
+ 
+ 
+ def declaration_blocks(text):
+--- review2/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py
++++ review3/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py
+@@ -38,6 +38,11 @@
+         self.assertIn('SurfaceAnchor._retirement_stores_in', frames)
+         frames = result['phases']['route_own_prefix_and_result_tail']['frames']
+         self.assertIn('Host._finish_route_owner_composition', frames)
++        frames = result['phases']['reset_with_ui']['frames']
++        self.assertIn('SurfaceAnchor.world_retirement_release_preflighted_in', frames)
++        self.assertIn('SurfaceAnchor._release_retired_stores_in', frames)
++        self.assertIn('Buildings.whole_world_retirement_refusal_in',
++                      frames['SurfaceAnchor.world_retirement_release_preflighted_in']['calls'])
+ 
+     def test_each_unbudgeted_member_is_rejected(self):
+         for name in ('Session', 'Host', 'SurfaceAnchor'):
+@@ -146,6 +151,30 @@
+     def test_bound_failed_configuration_must_remain_retained(self):
+         self.mutant('SurfaceAnchor', '_refuse_configuration()\n\t\treturn code',
+                     '_clear_binding()\n\t\treturn code', 'cannot reconfigure')
++
++    def test_retired_anchor_cannot_lose_its_tombstone_guard(self):
++        self.mutant('SurfaceAnchor', '_ready or _world_ref != NULL_REF or _locations != null',
++                    '_ready or _locations != null', 'tombstone must refuse')
++
++    def test_every_heavy_owner_pin_must_be_released(self):
++        for field in ('_space', '_profiles', '_bindings', '_sources', '_routes', '_locations'):
++            with self.subTest(field=field):
++                self.mutant('SurfaceAnchor', 'actual.' + field + ' = null',
++                            'pass # retained ' + field, 'release all twenty-one')
++
++    def test_release_cannot_reset_the_world_tombstone(self):
++        self.mutant('SurfaceAnchor', 'actual._ready = false',
++                    'actual._ready = false\n\tactual._world_ref = NULL_REF', 'preserve World tombstone')
++
++    def test_release_cannot_observe_or_omit_original_empty_world_proof(self):
++        self.mutant('SurfaceAnchor', 'if original.world._published: return REFUSE_BINDING',
++                    'if original.world.is_published(): return REFUSE_BINDING', 'no observer')
++        self.mutant('SurfaceAnchor', 'original.world_ref, persistent_id, true)',
++                    'original.world_ref, persistent_id, false)', 'complete empty World')
++
++    def test_release_must_follow_original_owner_leaves(self):
++        self.mutant('Retirement', 'SurfaceAnchor.world_retirement_release_preflighted_in(o.surface_anchor, o,',
++                    'SurfaceAnchor.retirement_refusal_in(o.surface_anchor, o,', 'preflighted Anchor release')
+ 
+     def test_reserve_cannot_be_increased(self):
+         self.mutant('Retirement', 'const RETIREMENT_RESERVED_BYTES: int = 8192',

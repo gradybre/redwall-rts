@@ -1,0 +1,64 @@
+--- /Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/source-review-1/test_census.py.txt	2026-10-05 00:30:20
++++ /Users/brendan/Developer/redwall-rts-codex-ug-surface-anchor-lifecycle/docs/validation/evidence/underground-surface-anchor-lifecycle-2026-10-05/test_census.py	2026-10-05 00:31:45
+@@ -94,8 +94,51 @@
+     def test_constructor_variable_container_is_rejected(self):
+         self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
+                     'func _initial_binding_refusal() -> StringName:\n\tvar hidden: Array = [1, 2, 3]',
+-                    'unbounded constructor local')
++                    'uncharged owned collection allocation')
+ 
++    def test_constructor_packed_literal_payload_is_not_a_reference_slot(self):
++        for kind in ('PackedInt32Array', 'PackedByteArray', 'PackedInt64Array'):
++            with self.subTest(kind=kind):
++                self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
++                            'func _initial_binding_refusal() -> StringName:\n\tvar hidden: ' + kind +
++                            ' = [' + ','.join(['0'] * 4096) + ']', 'uncharged owned collection allocation')
++
++    def test_inline_packed_constructor_is_not_omitted(self):
++        self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
++                    'func _initial_binding_refusal() -> StringName:\n\tPackedInt32Array([0, 1, 2])',
++                    'uncharged owned collection allocation')
++
++    def test_inline_array_and_dictionary_literals_are_not_omitted(self):
++        for literal in ('[0, 1, 2]', '{0: 1}'):
++            with self.subTest(literal=literal):
++                self.mutant('SurfaceAnchor', 'func _initial_binding_refusal() -> StringName:',
++                            'func _initial_binding_refusal() -> StringName:\n\tif len(' + literal +
++                            ') > 0: return REFUSE_BINDING', 'uncharged owned collection allocation')
++
++    def test_constructor_and_host_outer_frames_also_reject_packed_payloads(self):
++        for module, method in (('Session', '_configure_surface_anchor'), ('Session', 'compose_surface_anchor'),
++                               ('Host', 'compose_underground_surface_anchor')):
++            with self.subTest(method=method):
++                returns = 'bool' if module == 'Host' else 'StringName'
++                head = 'func ' + method + '() -> ' + returns + ':'
++                self.mutant(module, head, head + '\n\tvar hidden: PackedInt32Array = [0, 1, 2]',
++                            'uncharged owned collection allocation')
++
++    def test_original_packed_member_initializer_payload_cannot_grow(self):
++        self.mutant('SurfaceAnchor', 'var _surface_box: PackedInt32Array = PackedInt32Array()',
++                    'var _surface_box: PackedInt32Array = PackedInt32Array([' + ','.join(['0'] * 4096) + '])',
++                    'member/constant initializers')
++
++    def test_multiline_member_initializer_growth_is_rejected(self):
++        self.mutant('SurfaceAnchor', 'var _surface_box: PackedInt32Array = PackedInt32Array()',
++                    'var _surface_box: PackedInt32Array = PackedInt32Array(\n\t[0, 1, 2])',
++                    'member/constant initializers')
++
++    def test_hidden_static_collection_is_rejected(self):
++        self.mutant('SurfaceAnchor', 'var _world: World = null',
++                    'static var hidden: PackedInt32Array = [0, 1, 2]\nvar _world: World = null',
++                    'member/constant initializers')
++
+     def test_final_leaf_cannot_gain_an_observer(self):
+         self.mutant('SurfaceAnchor', 'return _retirement_stores_in(actual, original)',
+                     'actual._world.is_published()\n\treturn _retirement_stores_in(actual, original)', 'must not observe')
+@@ -106,7 +149,7 @@
+ 
+     def test_reserve_cannot_be_increased(self):
+         self.mutant('Retirement', 'const RETIREMENT_RESERVED_BYTES: int = 8192',
+-                    'const RETIREMENT_RESERVED_BYTES: int = 8193', 'unchanged reservations')
++                    'const RETIREMENT_RESERVED_BYTES: int = 8193', 'member/constant initializers')
+ 
+     def test_foreign_constructor_source_drift_precedes_import(self):
+         target = C.ROOT / 'godot/scripts/core/needs.gd'

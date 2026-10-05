@@ -1142,6 +1142,25 @@
               "godot/test/test_underground_connector_delivery.gd"
             ],
             "handoff": "Construction explicitly confirmed allfoursource/test writes stopped2026-10-04. Narrow migration of raw R_PHASE consumers to1156 public decoded stationary/source-work leaf after Geometry API freeze; no other Delivery/Contacts changes. Root explicitly STOPPED Contacts source/test and transferred only those two paths to Geometry1178 on2026-10-05; Delivery remains root-owned."
+          },
+          {
+            "agent": "/root/ug_construction",
+            "branch": "codex/underground-paid-assembly-handling",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-paid-assembly-handling",
+            "state": "held",
+            "files": [
+              "godot/scripts/core/underground_routes.gd",
+              "godot/scripts/core/underground_connector_workpieces.gd",
+              "godot/scripts/core/underground_connector_work.gd",
+              "godot/test/test_underground_routes.gd",
+              "godot/test/test_underground_connector_workpieces.gd",
+              "godot/test/test_underground_connector_work.gd",
+              "godot/test/test_underground_paid_assembly_handling.gd",
+              "godot/test/test_underground_paid_assembly_handling.gd.uid",
+              "docs/decisions/1183-paid-timber-handling-before-fastening.md",
+              "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/"
+            ],
+            "handoff": "Explicit1179reviewSTOP7e54c4a1; root stopped all listed runtime/test files. New own branch from freshly fetched origin/master82d60ba8 thenFF8f6bad86. Minimal original Routes phase/request-tick union and Workpieces presence byte versioned for pending/handled; existing30+30 handling ticks and original work/price conserved. Geometry owns source certificate/Profiles/WorldRoutes/Contacts; root owns publisher/Session/registry. Real paid first L0/T0 handling before fastening plus cancel/recovery, no synthetic permission or extra bank."
           }
         ]
       }
@@ -1924,6 +1943,31 @@
           "report_sha256": "fff35c8c2ead2f43a68a242ca3ac156f9348af1880a00dd7ebbb16aaa1f476a0",
           "evidence": "docs/validation/evidence/underground-short-work-step-2026-10-05/",
           "native_or_runtime_qualified": false
+        },
+        "actor_program_images_1181": {
+          "source_commit": "f14ba6b69d984338daefc091abd0a993f825d1c1",
+          "status": "component independently accepted; pending integration and current-consumer source renewal",
+          "review": "docs/validation/evidence/underground-actor-program-images-review-2026-10-05/acceptance.json",
+          "tests": 36,
+          "assertions": 386,
+          "native_poses": 3795,
+          "native_assertions": 129214,
+          "diagnostics_and_leaks": 0,
+          "analyzer": "0/5",
+          "logical_peak_bytes": 7141920,
+          "scope": "One original Actor and compatible image registry; no physical World/Metal numerical or multi-Actor/reload qualification"
+        },
+        "timber_handling_1178_review": {
+          "source_manifest_sha256": "c423bf6a",
+          "review_commit": "a296df116a43e98c6fe26ca42c4d92769d1363a7",
+          "integration_commit": "06ffa913",
+          "review": "docs/validation/evidence/underground-paid-assembly-handling-2026-10-05/source-review-3/acceptance.json",
+          "status": "source-only accepted; Profiles/WorldRoutes/Contacts runtime still in progress",
+          "source_pins": 16,
+          "output_pins": 148,
+          "native_poses": 5634,
+          "scalar_comparisons": 1825416,
+          "images": 108
         }
       },
       "lease": {
@@ -2111,15 +2155,16 @@
               "godot/scripts/core/underground_world_routes.gd",
               "godot/test/test_underground_world_routes.gd",
               "godot/scripts/core/underground_connector_contacts.gd",
-              "godot/test/test_underground_connector_contacts.gd"
+              "godot/test/test_underground_connector_contacts.gd",
+              "godot/data/underground/mole-worker/work-step-v1/source_program.gd"
             ],
-            "handoff": "Fresh ownbranch\u2192db03b1f7. Only additive real BUILD supported positioning source and binder. Full original actor/actual timber contacts; no paid credits, synthetic paid state, fake CONTACT_PATCH or implied new timing. Existing consumers frozen pending proposed exact seam. Shared1178 extension2026-10-05: root stops and grants exact Profiles/WorldRoutes/Contacts and their tests. Stationary exact paid prism, full immutable actual-triangle/source/identity certificate only; foreign solids/actors stay conservative and supported station remains original. No Locations schema, new quantity/work bank, tuning or reserve change. Root publisher/registry/Session remain separate; Construction receives Routes/Workpieces/ConnectorWork after1179 review stop.",
+            "handoff": "Fresh ownbranch\u2192db03b1f7. Only additive real BUILD supported positioning source and binder. Full original actor/actual timber contacts; no paid credits, synthetic paid state, fake CONTACT_PATCH or implied new timing. Existing consumers frozen pending proposed exact seam. Shared1178 extension2026-10-05: root stops and grants exact Profiles/WorldRoutes/Contacts and their tests. Stationary exact paid prism, full immutable actual-triangle/source/identity certificate only; foreign solids/actors stay conservative and supported station remains original. No Locations schema, new quantity/work bank, tuning or reserve change. Root publisher/registry/Session remain separate; Construction receives Routes/Workpieces/ConnectorWork after1179 review stop. Root2026-10-05 grants narrow work-step-v1/source_program.gd parser compatibility: accept30 only with exact appended handling/source certificate and unchanged old0\u201328 descriptor contract; no >=29 relaxation. Publisher/current-consumer pins require renewed evidence before activation.",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-timber-program-binding"
           },
           {
             "agent": "/root/ug_furnishing",
             "branch": "codex/underground-actor-program-images",
-            "state": "held",
+            "state": "released",
             "files": [
               "godot/demo/cast/underground_actor_content.gd",
               "godot/demo/cast/underground_actor.gd",
@@ -2130,7 +2175,8 @@
               "godot/demo/cast/underground_actor_program_images_live.gd",
               "godot/demo/cast/underground_actor_program_images_live.gd.uid"
             ],
-            "handoff": "1175authorSTOP+1174reviewSTOP; freshlyfetchedorigin/master\u21929f9a8829. Root1174integration confirmed. One shared mesh basis and actual immutable palette images, no canonical Motion/Clock/profile grant, no reserve increase. Native source pose and complete presentation peak recount required."
+            "handoff": "1175authorSTOP+1174reviewSTOP; freshlyfetchedorigin/master\u21929f9a8829. Root1174integration confirmed. One shared mesh basis and actual immutable palette images, no canonical Motion/Clock/profile grant, no reserve increase. Native source pose and complete presentation peak recount required.",
+            "worker_stop_ack": "Author f14ba6b69d984338daefc091abd0a993f825d1c1 committed reviewed1181, clean and explicitly STOPPED all source/evidence/processes2026-10-05. Root integration waits for current-consumer publication renewal with1178/1183; original planning mount remains working."
           }
         ],
         "scope_narrowing": {
@@ -3971,6 +4017,21 @@
           "integration_commit": "c713aa5f",
           "review_author_commit": "7e54c4a144eb8101fb75b5584de5d23766dd2ff4",
           "review": "docs/validation/evidence/underground-planning-scene-review-2026-10-05/review-3/acceptance.json"
+        },
+        "ci_8f6bad86": {
+          "run_id": 37275141498,
+          "status": "failed:3 export-verifier tests plus cancelled specification timeout",
+          "files_once": 410,
+          "tests": 11282,
+          "assertions": 1082433,
+          "failures": 3,
+          "unexpected_diagnostics_and_leaks": 0,
+          "analyzer": "0/1264",
+          "evidence": "docs/validation/evidence/underground-integration-checkpoint-2026-10-05/ci-8f6bad86/",
+          "corrections": [
+            "318a61d0",
+            "53541c91"
+          ]
         }
       },
       "lease": {
@@ -5723,6 +5784,17 @@
       "tests": "251memorytests and15extensiontests pass; independent17tests115mutations pass; fullpack byte-identical with no subprocess. Registry154modules731rows1055columns and all canonical/capacitychecks pass.",
       "accounting": "Actual1167constructor8161/8192; controls6067/6144 helpers1919/2048. Session1536andretirement8192eachonce. Global99999806 unchanged; native/runtime false.",
       "limitation": "Cold actual owner composition only. Surface access1171 and short-step1168 remain owned active; playable worker/resource/room integration remains open."
+    },
+    {
+      "id": "1185-1186",
+      "status": "independently reviewed and committed; new full/remote execution pending",
+      "commits": [
+        "318a61d0",
+        "53541c91"
+      ],
+      "scope": "Complete current CI contract commands within15m hang guard; exported pack retains exact tenth short-step consumer",
+      "focused": "12tests249assertions0failures; strict/raw diagnostics/leaks0; analyzer0/1",
+      "evidence": "docs/validation/evidence/underground-export-consumers-2026-10-05/"
     }
   ]
 }

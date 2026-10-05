@@ -2,6 +2,69 @@
 
 ## Current delivery status — 2026-10-05
 
+The owned integration checkpoint is **`53541c91`**, queued for publication in
+[draft PR #230](https://github.com/gradybre/redwall-rts/pull/230).
+Players can open **Plan an underground room** from the demo Tunnels panel,
+choose a room purpose and floor, and draw directly on the actual World's dirt.
+The view retains its draft on close, restores the village camera, and preserves
+modal input ownership and original World identity. It deliberately refuses
+confirmation when completed access is missing, without spending resources.
+**The first worker-built empty Kitchen is not complete.**
+
+The [scene acceptance](../../validation/evidence/underground-planning-scene-2026-10-05/README.md)
+passes **30 focused tests / 1,132 assertions / zero failures**, with zero
+unexpected diagnostics or leaks and analyzer **0/6**. Its native Metal/Forward+
+run passes **74 checks / zero failures**, with five inspected 1280×720 captures.
+Independent review verified the corrected modal, keyboard-focus and actual
+World-reset paths. The frozen8f checkpoint's clean-assets/cache/import,
+**no-argument full suite**, all-file zero-warning analyzer and registry/memory
+checks are running in an isolated frozen checkout. Their result is pending.
+
+The latest8f remote run completed410 suites exactly once:11,282 tests /
+1,082,433 assertions /3 failures, all in the stale exported-profile verifier.
+Unexpected diagnostics and leaks remain zero; analyzer passes0/1264. The separate
+contract job timed out before all checks ran. Reviewed corrections318a61d0 and
+53541c91 preserve every check, give contracts sufficient time, and retain the
+actual tenth published Script in the export verifier. The correction passes
+12 focused tests/249 assertions/all-zero with analyzer0/1. A corrected remote run
+is pending. This failed run remains recorded.
+
+The [previously completed successful remote CI](../../validation/evidence/underground-short-step-itinerary-2026-10-05/ci-ca1edc3f/README.md)
+was at `ca1edc3f`: all 14 jobs passed on attempt 2, with 406 files exactly once,
+11,226 tests / 1,028,131 assertions / zero failures and zero unexpected
+diagnostics/leaks. Its local suite had ten more assertions; exact parity is
+not claimed. The local analyzer's raw editor errors were retained and led to
+the reviewed preload and analyzer-lifetime fixes now integrated. That older CI
+result does not certify the current source.
+
+The queue still has **10 verified component lanes, 5 running and 9 queued**, with
+all **107 requirements** mapped. These are dependency counts, not a percentage
+of the finished player experience. The remaining major work is:
+
+- Complete real timber handling, fastening, paid entrance construction, worker
+  dispatch and the first empty Kitchen using actual settlement goods and workers.
+- Finish room-specific furniture placement, both confirmation modes and services.
+- Complete deeper access, the connector catalog and raised/sunken room sections.
+- Finish live amendments, removal/backfill/replacement, relocation and renovation.
+- Integrate deterministic save/resume, full visual/input acceptance and measured
+  256-resident qualification.
+
+Current parallel owners are developing the stationary timber source/contact
+integration, its paid handling lifecycle, and original Session entry-owner composition. Actor image loading is reviewed at
+`f14ba6b6`, awaiting the shared source-publication renewal before integration. The integration owner handles the
+shared demo workflow, source publication and full checkpoints. Wood-only stairs
+and the approved 30 ticks per tread / 45 ticks per half-turn remain unchanged.
+Logical memory accounting is 99,999,806 bytes; measured native memory and target
+hardware performance remain open. The durable [queue](../../tasks/underground-build-queue.json)
+records ownership, exact evidence and blockers. No standalone module closes a
+playable requirement.
+
+## Earlier implementation checkpoints
+
+The following retained snapshots describe their cited revisions. Statements
+such as “current” or “running” below are historical; the delivery status above
+and the queue are the current record.
+
 [CI checkpoint6da6deb9](../../validation/evidence/underground-host-checkpoint-2026-10-04/ci-6da6deb9/README.md)
 passed all14 jobs in14m44s:402 suite files exactly once across8 shards,
 11156 tests/1026355 assertions/zero failures,272 expected/353 tolerated

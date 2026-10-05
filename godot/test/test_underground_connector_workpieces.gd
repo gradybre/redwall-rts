@@ -20,6 +20,19 @@ const SAVE_PATH: String = "user://workpiece-capture.bin"
 const PROGRAM_SHA: String = "5353535353535353535353535353535353535353535353535353535353535353"
 const SET_DOWN_PROFILE: int = 5
 
+class RetirementPins extends RefCounted:
+	## Existing captured-owner shape only; component tests still require actual canonical clear before release.
+	var workpieces: RefCounted = null
+	var connector: RefCounted = null
+	var placements: RefCounted = null
+	var router: RefCounted = null
+	var contacts: RefCounted = null
+	var profiles: RefCounted = null
+	var budget: RefCounted = null
+	var world_ref: Vector2i = NULL_REF
+	var directory: RefCounted = null
+	var world: RefCounted = null
+
 class ObservedWorkpieceContacts extends EntryFixture.ObservedContacts:
 	var prepass_probe: Callable = Callable()
 	var final_probe: Callable = Callable()
@@ -467,6 +480,65 @@ func test_streamed_empty_restore_preserves_live_bank_on_malformed_full_refs() ->
 	assert_true(_pieces._live == old_bank, "refused restore never swaps live bank")
 	assert_equal(_pieces._live.present.count(1), 0, "no paid obstacle fabricated")
 	file.close()
+
+
+func test_capture_versions_pending_and_handled_without_reinterpreting_legacy_presence() -> void:
+	"""The same21-byte row has an explicit new schema; old presence1 never silently means handling completed."""
+	assert_equal(_load(_source_image()), &"", "source loaded")
+	var file: FileAccess = FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	assert_equal(_pieces.capture_into(file), &"", "current empty capture")
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	file.seek(8)
+	assert_equal(file.get_32(), Workpieces.CAPTURE_VERSION, "versioned state byte")
+	assert_equal(file.get_length(), 60 + 4 * Workpieces.ROW_BYTES, "no extra column or bank")
+	file.close()
+	var original: Workpieces.Bank = _pieces._live
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ_WRITE)
+	file.seek(8); file.store_32(1)
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	assert_equal(_pieces.restore_from(file), Workpieces.REFUSE_FORMAT, "legacy state meaning explicitly refuses")
+	assert_true(_pieces._live == original, "no refused swap")
+	assert_equal(_pieces._live.present.count(Workpieces.HANDLED), 0, "no handling proof inferred")
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ_WRITE)
+	file.seek(8); file.store_32(Workpieces.CAPTURE_VERSION)
+	file.close()
+	file = FileAccess.open(SAVE_PATH, FileAccess.READ)
+	assert_equal(_pieces.restore_from(file), &"", "exact current schema retry")
+	file.close()
+
+
+func test_retirement_loaded_prefix_and_live_world_refusal_preserve_original_banks() -> void:
+	"""Only exact configured/loaded constructor prefixes qualify; canonical live ownership never permits release."""
+	assert_equal(_load(_source_image()), &"", "explicit synthetic source for store lifetime only")
+	var original: RetirementPins = RetirementPins.new()
+	original.workpieces = _pieces
+	original.connector = _fixture._paid
+	original.placements = _fixture._placements
+	original.router = _fixture._router
+	original.contacts = _fixture._contacts
+	original.profiles = _fixture._world._profiles
+	original.budget = _fixture._world._budget
+	original.world_ref = _fixture._world._world_ref
+	original.directory = _fixture._world._residents.directory()
+	original.world = _fixture._world._world
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original), Workpieces.REFUSE_BINDING, "normal group needs both links")
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original, true), &"", "both links absent is exact loaded prefix")
+	assert_equal(_fixture._paid.bind_workpieces(_pieces), &"", "actual two-link activation")
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original), &"", "complete original binding")
+	var live: Workpieces.Bank = _pieces._live
+	var identity: int = original.directory._persistent_id[original.world_ref.x]
+	assert_equal(Workpieces.world_retirement_release_preflighted_in(_pieces, original, identity),
+		&"WORLD_RETIREMENT_NOT_EMPTY", "no caller success can replace canonical clear")
+	assert_true(_pieces._live == live and _pieces._loaded and _pieces._capacity == 4, "original banks and source retained")
+	var link: WeakRef = _fixture._placements._workpieces
+	_fixture._placements._workpieces = null
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original, true), Workpieces.REFUSE_BINDING,
+		"one missing activation link is not a stopped prefix")
+	_fixture._placements._workpieces = link
+	assert_equal(Workpieces.retirement_refusal_in(_pieces, original), &"", "exact original retry")
 
 
 func test_absent_reciprocal_publication_context_cannot_create_paid_workpiece() -> void:

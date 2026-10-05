@@ -23,6 +23,10 @@ const Piles := preload("res://scripts/core/ground_piles.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const SourceProgram := preload("res://data/underground/mole-worker/work-approach-v1/source_program.gd")
 const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
+const Assembly := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
+const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+const Router := preload("res://scripts/core/modular_projects.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const I32_MAX: int = 2147483647
 const I64_MAX: int = 9223372036854775807
@@ -208,6 +212,11 @@ class Bindings extends RefCounted:
 
 	func actor_admission_refusal(_location: Vector2i, _selection: Profiles.Selection) -> StringName:
 		"""Prove the actual current pose and complete body/stance in a real supported endpoint."""
+		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
+
+	func assembly_handling_refusal(_pieces: Workpieces, _placement: Vector2i, _project: Vector2i,
+			_worker: Vector2i, _job: Vector2i) -> StringName:
+		"""Observe the actual stationary paid piece and close its complete source/physical proof before clock leaves."""
 		return &"ROUTE_WORLD_BINDING_UNAVAILABLE"
 
 	func travel_refusal(_edge: Vector2i, _selection: Profiles.Selection) -> StringName:
@@ -2091,6 +2100,14 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		mode: int, posture: int, family: int, hint: Vector2i, profile_id: int = -1,
 		profile_revision: int = 0, content_revision: int = 0) -> StringName:
 	"""Pin source values around the actual callback and re-read current identity/gear/load before publication."""
+	var pieces: Workpieces = _assembly_workpieces() if profile_id == Assembly.PROFILE else null
+	var bindings: Bindings = _bindings
+	if profile_id == Assembly.PROFILE:
+		if pieces == null or bindings == null or _domain == null: return &"ROUTE_ASSEMBLY_UNBOUND"
+		_remaining = _domain._checks
+		_operation_error = &""
+		_in_callback = true
+		_callback_reentered = false
 	var code: StringName = _actor_profile_into(worker, job, mode, posture, family, hint, _selection,
 		profile_id, profile_revision, content_revision)
 	if code == &"" and Profiles.selection_policy_leaf(_profiles, _selection.profile_id,
@@ -2098,10 +2115,13 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		code = _source_profile_refusal(_profiles, _selection.profile_id, _selection.profile_revision, _selection.content_revision)
 	if code == &"":
 		code = _profile_endpoint_refusal(location)
-	if code != &"":
+	if code != &"" or profile_id == Assembly.PROFILE and _callback_reentered:
+		if profile_id == Assembly.PROFILE: _in_callback = false
+		if code == &"": return &"ROUTE_CALLBACK_REENTRY"
 		return code
 	_copy_selection(_selection, _checked_selection)
-	code = _attest_actor(location, _selection)
+	code = bindings.actor_admission_refusal(location, _selection) if profile_id == Assembly.PROFILE \
+		else _attest_actor(location, _selection)
 	if code == &"" and not _same_selection(_selection, _checked_selection):
 		code = &"ROUTE_CALLBACK_CHANGED_PACKET"
 	if code == &"":
@@ -2115,7 +2135,77 @@ func _qualify_actor_at(worker: Vector2i, job: Vector2i, location: Vector2i,
 		code = _occupancy_context_refusal()
 	if code == &"":
 		code = _selected_bounds_into(_selection, _profile_box, _candidate_bounds)
+	if profile_id == Assembly.PROFILE:
+		_in_callback = false
+		if _callback_reentered: return &"ROUTE_CALLBACK_REENTRY"
+		if _bindings != bindings or _selection.worker != worker or _selection.job != job \
+				or _selection.profile_id != profile_id or _selection.profile_revision != profile_revision \
+				or _selection.content_revision != content_revision or not _same_selection(_selection, _checked_selection):
+			return &"ROUTE_ACTOR_PROFILE_DRIFT"
+		if code == &"": code = _assembly_admission_leaf(self, pieces, location, _checked_selection, family)
 	return code
+
+
+static func _assembly_admission_leaf(actual: RefCounted, pieces: Workpieces, location: Vector2i,
+		expected: Profiles.Selection, family: int) -> StringName:
+	"""An unregistered worker may reach source READY, but no paid target exception or handling progress is inferred."""
+	if pieces == null or Workpieces._binding_leaf(pieces) != &"" or actual._bindings == null \
+			or pieces._placements._routes != actual or pieces._placements._world_routes != actual._bindings \
+			or actual._profiles != pieces._profiles or actual._ids != pieces._placements._ids \
+			or actual._jobs != pieces._router._jobs or actual._work != pieces._router._work \
+			or actual._residents != pieces._placements._residents or actual._transforms != pieces._placements._transforms \
+			or actual._locations != pieces._placements._locations or actual._owner != pieces._placements._space:
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	var row: int = _turn_directory_row(actual, expected.job, Directory.KIND_JOB)
+	if row < 0 or actual._jobs._kind[row] != Jobs.JOB_KIND_BUILD \
+			or pieces._router._job_slot[row] != expected.job.x or pieces._router._job_generation[row] != expected.job.y:
+		return &"ROUTE_ASSEMBLY_JOB"
+	var project: Vector2i = Vector2i(actual._jobs._requester_slot[row], actual._jobs._requester_generation[row])
+	if pieces._router._project_slot[row] != project.x or pieces._router._project_generation[row] != project.y:
+		return &"ROUTE_ASSEMBLY_PROJECT"
+	row = _turn_directory_row(actual, project, Directory.KIND_CONSTRUCTION)
+	if row < 0: return &"ROUTE_ASSEMBLY_PROJECT"
+	var placement: Vector2i = Vector2i(pieces._router._construction._subject_slot[row],
+		pieces._router._construction._subject_generation[row])
+	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
+	if code == &"": code = _assembly_selected_leaf(actual, expected, family)
+	if code == &"": code = AssemblyPhysical.admission_refusal(actual._bindings, actual, pieces,
+		placement, project, location, expected)
+	if code == &"": code = _assembly_occupants_leaf(actual, _turn_directory_row(actual, expected.worker, Directory.KIND_RESIDENT))
+	return code
+
+
+static func _assembly_selected_leaf(actual: RefCounted, expected: Profiles.Selection, family: int) -> StringName:
+	"""Re-read every dynamic key directly after the last ordinary observer, before any actor row is registered."""
+	var code: StringName = Assembly.profile_refusal(actual._profiles, expected.profile_id,
+		expected.profile_revision, expected.content_revision)
+	if code == &"": code = _turn_dynamic_leaf(actual, expected.worker, expected.job, expected.mode,
+		expected.posture, family, expected.tool)
+	if code != &"": return code
+	var profiles: Profiles = actual._profiles
+	var stride: int = profiles._profile_capacity
+	for index: int in 3:
+		if profiles._live.fields[(Profiles.F_SPECIES + index) * stride + expected.profile_id] != profiles._identity[index]:
+			return &"ROUTE_ACTOR_PROFILE_DRIFT"
+	for index: int in 4:
+		if profiles._live.fields[(Profiles.F_TOOL + index) * stride + expected.profile_id] != profiles._query_values[index]:
+			return &"ROUTE_ACTOR_PROFILE_DRIFT"
+	if expected.species != profiles._identity[0] or expected.life_stage != profiles._identity[1] \
+			or expected.rig != profiles._identity[2] or expected.x != profiles._pose.x or expected.y != profiles._pose.y \
+			or expected.z != profiles._pose.z or expected.yaw != profiles._pose.yaw \
+			or expected.tool != profiles._candidate.tool or expected.satchel != profiles._candidate.satchel \
+			or expected.cargo != profiles._candidate.cargo or expected.cargo_quantity_milli != profiles._candidate.cargo_quantity_milli \
+			or expected.mode != Profiles.MODE_WORK or expected.posture != Profiles.POSTURE_UPRIGHT \
+			or profiles._live.fields[Profiles.F_WORK_KIND * stride + expected.profile_id] != profiles._query_values[4] \
+			or expected.cargo_quantity_milli < profiles._live.quantities[Profiles.L_QUANTITY_MIN * stride + expected.profile_id] \
+			or expected.cargo_quantity_milli > profiles._live.quantities[Profiles.L_QUANTITY_MAX * stride + expected.profile_id] \
+			or expected.yaw != profiles._live.fields[Profiles.F_YAW * stride + expected.profile_id] \
+			or expected.source_id != Assembly.SOURCE or expected.box_count != Assembly.ROLE_COUNT \
+			or expected.orientation != Profiles.YAW_EXACT \
+			or family != -1 and (family < 0 or family >= 5 \
+				or (profiles._live.fields[Profiles.F_FAMILIES * stride + expected.profile_id] & (1 << family)) == 0):
+		return &"ROUTE_ACTOR_PROFILE_DRIFT"
+	return &""
 
 
 func _actor_profile_into(worker: Vector2i, job: Vector2i, mode: int, posture: int, family: int,
@@ -2169,8 +2259,8 @@ func _source_clock_refusal(row: int) -> StringName:
 
 
 static func _source_word_known(value: int) -> bool:
-	"""Only the two admitted source versions may share the existing geometric phase column."""
-	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG
+	"""Only the explicitly admitted source versions may share the existing geometric phase column."""
+	return (value & ~63) == SourceProgram.TAG or (value & ~63) == ShortStep.TAG or (value & ~63) == Assembly.TAG
 
 
 static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) -> int:
@@ -2180,6 +2270,7 @@ static func _source_word_for(profiles: Profiles, phase: int, source_phase: int) 
 
 static func _source_profile_refusal(profiles: Profiles, profile: int, profile_revision: int, content: int) -> StringName:
 	"""Version selection never substitutes for the complete source/descriptor/current-revision proof."""
+	if profile == Assembly.PROFILE: return Assembly.profile_refusal(profiles, profile, profile_revision, content)
 	return ShortStep.profile_refusal(profiles, profile, profile_revision, content) if ShortStep.uses(profiles) \
 		else SourceProgram.profile_refusal(profiles, profile, profile_revision, content)
 
@@ -2200,6 +2291,8 @@ static func _source_clock_leaf(actual: RefCounted, row: int) -> StringName:
 		return &"ROUTE_SOURCE_CLOCK"
 	var code: StringName = _source_profile_refusal(actual._profiles, profile, profile_revision, content)
 	if code != &"": return code
+	if profile == Assembly.PROFILE:
+		return Assembly.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
 	if not ShortStep.uses(actual._profiles):
 		return SourceProgram.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
 	code = ShortStep.clock_refusal(phase, actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row], profile)
@@ -2223,7 +2316,8 @@ func _reset_source_clock(row: int) -> void:
 		_selection.profile_revision, _selection.content_revision)
 	if policy == Profiles.POLICY_AUTOMATIC and not _source_word_known(_motion.resident[R_PHASE * RESIDENT_CAPACITY + row]):
 		return # Ordinary refresh preserves the prior request tick exactly.
-	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = PHASE_IDLE if policy == Profiles.POLICY_AUTOMATIC \
+	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Assembly.word(PHASE_IDLE, Assembly.Clock.READY) \
+		if policy == Profiles.POLICY_ASSEMBLY_HANDLING else PHASE_IDLE if policy == Profiles.POLICY_AUTOMATIC \
 		else _source_word_for(_profiles, PHASE_IDLE, SourceProgram.ENTRY if policy == Profiles.POLICY_SOURCE_WORK else SourceProgram.READY)
 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = 0
 
@@ -2289,7 +2383,8 @@ static func source_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job:
 	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
 	if row < 0: return &"ROUTE_SOURCE_TUPLE_STALE"
 	var word: int = actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
-	return &"" if word == _source_word_for(actual._profiles, PHASE_IDLE, SourceProgram.READY) \
+	return &"" if word == (Assembly.word(PHASE_IDLE, Assembly.Clock.READY) if profile_id == Assembly.PROFILE \
+		else _source_word_for(actual._profiles, PHASE_IDLE, SourceProgram.READY)) \
 		and actual._motion.resident[R_EDGE_SLOT * RESIDENT_CAPACITY + row] == -1 \
 		and actual._motion.resident[R_EDGE_GENERATION * RESIDENT_CAPACITY + row] == 0 \
 		and actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] == -1 \
@@ -2334,6 +2429,8 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
 	if _resident_ref(row) != worker or _resident_pair(R_JOB_SLOT, row) != job \
 			or _resident_pair(R_EDGE_SLOT, row) != NULL_REF or _motion.resident[R_HEAD * RESIDENT_CAPACITY + row] >= 0:
 		return &"ROUTE_ACTOR_BUSY"
+	if _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row] == Assembly.PROFILE:
+		return _assembly_ready(row, worker, job)
 	_in_callback = true
 	_callback_reentered = false
 	code = _current_profile_into(row, _selection)
@@ -2355,6 +2452,189 @@ func request_source_ready(worker: Vector2i, job: Vector2i) -> StringName:
 		clock = SourceProgram.clock(0, time)
 	_motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = _source_word_for(_profiles, word & 3, phase)
 	_motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = clock
+	return &""
+
+
+func begin_assembly_handling(worker: Vector2i, job: Vector2i) -> StringName:
+	"""Enter only the original paid pending workpiece; selecting a descriptor alone never starts manipulation."""
+	var code: StringName = _actor_edit_refusal(worker)
+	if code != &"": return code
+	var row: int = _turn_directory_row(self, worker, Directory.KIND_RESIDENT)
+	if row < 0: return &"ROUTE_ACTOR_STALE"
+	return _assembly_transition(row, worker, job, 0)
+
+
+func _assembly_ready(row: int, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Interrupted entry retraces; completed handling must first publish its actual durable state before normalizing."""
+	return _assembly_transition(row, worker, job, 2)
+
+
+func _assembly_workpieces() -> Workpieces:
+	"""Ordinary owner resolution precedes all final checks; the final chain pins the exact original reciprocal tuple."""
+	var work: Work = _work
+	var router: Router = work._modular_authority.get_ref() as Router if work != null and work._modular_authority != null else null
+	var paid: RefCounted = router._connector_owner.get_ref() if router != null and router._connector_owner != null else null
+	return paid.get("_workpieces") as Workpieces if paid != null else null
+
+
+func _assembly_transition(row: int, worker: Vector2i, job: Vector2i, action: int) -> StringName:
+	"""One bounded observed operation writes only the existing source word/clock after concrete original-owner proof."""
+	var pieces: Workpieces = _assembly_workpieces()
+	var bindings: Bindings = _bindings
+	if pieces == null or bindings == null or _domain == null or row < 0 or row >= RESIDENT_CAPACITY \
+			or Workpieces._binding_leaf(pieces) != &"":
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	var job_row: int = _turn_directory_row(self, job, Directory.KIND_JOB)
+	if job_row < 0: return &"ROUTE_ASSEMBLY_JOB"
+	var project: Vector2i = Vector2i(_jobs._requester_slot[job_row], _jobs._requester_generation[job_row])
+	var project_row: int = _turn_directory_row(self, project, Directory.KIND_CONSTRUCTION)
+	if project_row < 0: return &"ROUTE_ASSEMBLY_PROJECT"
+	var placement: Vector2i = Vector2i(pieces._router._construction._subject_slot[project_row],
+		pieces._router._construction._subject_generation[project_row])
+	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
+	var clock: int = _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	_remaining = _domain._checks
+	_operation_error = &""
+	_callback_reentered = false
+	var code: StringName = assembly_handling_leaf_refusal(self, pieces, placement, project, worker, job)
+	if code != &"": return code
+	code = _assembly_action_leaf(self, pieces, placement, project_row, row, action)
+	if code != &"": return code
+	_in_callback = true
+	_callback_reentered = false
+	code = _current_profile_into(row, _selection)
+	if code == &"": code = _profile_endpoint_refusal(_resident_pair_leaf(self, R_LOCATION_SLOT, row))
+	if code == &"": code = _occupancy_context_refusal()
+	if code == &"": code = bindings.assembly_handling_refusal(pieces, placement, project, worker, job)
+	_in_callback = false
+	if _callback_reentered: return &"ROUTE_CALLBACK_REENTRY"
+	if code != &"": return code
+	if _bindings != bindings or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] != word \
+			or _motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] != clock:
+		return &"ROUTE_SOURCE_TUPLE_STALE"
+	code = assembly_handling_leaf_refusal(self, pieces, placement, project, worker, job)
+	if code == &"": code = _assembly_action_leaf(self, pieces, placement, project_row, row, action)
+	if code != &"": return code
+	_publish_assembly_clock(self, row, action)
+	return &""
+
+
+static func _assembly_action_leaf(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project_row: int, row: int, action: int) -> StringName:
+	"""Recovery can finish a paused job, but entry and the completed-to-ready handoff retain their exact prerequisites."""
+	var phase: int = (actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15
+	if action < 0 or action > 2: return &"ROUTE_ASSEMBLY_ACTION"
+	if action == 0:
+		if phase != Assembly.Clock.READY or pieces._live.present[placement.x] != Workpieces.PENDING_HANDLING \
+				or pieces._router._construction._phase[project_row] != pieces._router._construction.PHASE_WORKING \
+				or pieces._router._construction._paused[project_row] != 0:
+			return &"ROUTE_ASSEMBLY_NOT_PENDING"
+	elif action == 1:
+		if phase == Assembly.Clock.READY or phase == Assembly.Clock.HANDLED_READY:
+			return &"ROUTE_ASSEMBLY_NOT_ACTIVE"
+		if phase == Assembly.Clock.ENTRY and pieces._router._construction._paused[project_row] != 0:
+			return &"ROUTE_ASSEMBLY_PAUSED"
+	elif phase == Assembly.Clock.HANDLED_READY and pieces._live.present[placement.x] != Workpieces.HANDLED:
+		return Workpieces.REFUSE_HANDLING
+	return &""
+
+
+static func _publish_assembly_clock(actual: RefCounted, row: int, action: int) -> void:
+	"""Concrete source equations and direct column writes are the entire non-observing publication tail."""
+	var phase: int = (actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] >> 2) & 15
+	var time: int = actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row]
+	var next: Vector2i = Vector2i(Assembly.Clock.ENTRY, 0) if action == 0 \
+		else Assembly.Clock.advance(phase, time) if action == 1 else Assembly.Clock.interrupt(phase, time)
+	if action == 2 and phase == Assembly.Clock.HANDLED_READY: next = Vector2i(Assembly.Clock.READY, 0)
+	actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] = Assembly.word(PHASE_IDLE, next.x)
+	actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] = next.y
+
+
+static func assembly_handled_ready_leaf_refusal(actual: RefCounted, worker: Vector2i, job: Vector2i,
+		profile_id: int, profile_revision: int, content_revision: int) -> StringName:
+	"""A distinct complete recovery witness is required; ordinary READY or a caller-provided elapsed time is insufficient."""
+	var row: int = _source_tuple_row(actual, worker, job, profile_id, profile_revision, content_revision)
+	if row < 0 or profile_id != Assembly.PROFILE: return &"ROUTE_SOURCE_TUPLE_STALE"
+	return &"" if actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY) \
+		and actual._motion.resident_long[R_REQUEST_TICK * RESIDENT_CAPACITY + row] == 0 \
+		and _resident_pair_leaf(actual, R_EDGE_SLOT, row) == NULL_REF \
+		and actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] == -1 \
+		and actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] == -1 else &"ROUTE_ASSEMBLY_NOT_HANDLED"
+
+
+static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces, project: Vector2i) -> StringName:
+	"""A terminal retry needs no assigned worker, but no original actor may lose its Job in an unfinished source cycle."""
+	if pieces == null or Workpieces._binding_leaf(pieces) != &"" or actual == null \
+			or pieces._placements._routes != actual or actual._ids != pieces._placements._ids \
+			or actual._jobs != pieces._router._jobs or actual._profiles != pieces._profiles:
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	for row: int in RESIDENT_CAPACITY:
+		if _resident_ref_leaf(actual, row) == NULL_REF \
+				or not _source_word_known(actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row]): continue
+		var job: Vector2i = _resident_pair_leaf(actual, R_JOB_SLOT, row)
+		if job == NULL_REF: continue
+		var at: int = _turn_directory_row(actual, job, Directory.KIND_JOB)
+		if at < 0: return &"ROUTE_ASSEMBLY_JOB"
+		if pieces._router._project_slot[at] != project.x or pieces._router._project_generation[at] != project.y: continue
+		if pieces._router._job_slot[at] != job.x or pieces._router._job_generation[at] != job.y \
+				or actual._jobs._job_present[at] != 1 or actual._jobs._job_ref_slot[at] != job.x \
+				or actual._jobs._job_ref_generation[at] != job.y or actual._jobs._requester_slot[at] != project.x \
+				or actual._jobs._requester_generation[at] != project.y:
+			return &"ROUTE_ASSEMBLY_JOB"
+		var code: StringName = _source_clock_leaf(actual, row)
+		if code != &"": return code
+		if (actual._motion.resident[R_PHASE * RESIDENT_CAPACITY + row] & 63) != ((SourceProgram.READY << 2) | PHASE_IDLE) \
+				or _resident_pair_leaf(actual, R_EDGE_SLOT, row) != NULL_REF \
+				or actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] != -1 \
+				or actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] != -1:
+			return &"ROUTE_ASSEMBLY_RECOVERY_REQUIRED"
+	return &""
+
+
+static func assembly_handling_leaf_refusal(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Final paid/source/body/support/occupant proof uses only concrete direct readers and existing fixed scratch."""
+	var code: StringName = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+	if code != &"": return code
+	if actual == null or pieces._placements._routes != actual or actual._bindings == null \
+			or pieces._placements._world_routes != actual._bindings or actual._profiles != pieces._profiles \
+			or actual._ids != pieces._placements._ids or actual._jobs != pieces._router._jobs \
+			or actual._residents != pieces._placements._residents or actual._transforms != pieces._placements._transforms \
+			or actual._locations != pieces._placements._locations or actual._owner != pieces._placements._space \
+			or actual._work == null or actual._work != pieces._router._work or actual._work._modular_authority == null \
+			or actual._work._modular_authority.get_ref() != pieces._router or actual._token != 0 \
+			or actual._callback_reentered or actual._searching or actual._occupancy_reading:
+		return &"ROUTE_ASSEMBLY_UNBOUND"
+	var row: int = _source_tuple_row(actual, worker, job, Assembly.PROFILE,
+		pieces._profile_revisions[pieces._router._construction._type_id[Workpieces._project_row(pieces, placement, project)]],
+		pieces._header[Workpieces.H_PROFILES])
+	if row < 0 or _resident_pair_leaf(actual, R_EDGE_SLOT, row) != NULL_REF \
+			or actual._motion.resident[R_HEAD * RESIDENT_CAPACITY + row] != -1 \
+			or actual._motion.resident[R_TAIL * RESIDENT_CAPACITY + row] != -1:
+		return &"ROUTE_SOURCE_TUPLE_STALE"
+	code = turn_selection_into(actual, row, actual._selection)
+	if code == &"": code = AssemblyPhysical.refusal(actual._bindings, actual, pieces, placement, project, worker, job, actual._selection)
+	return _assembly_occupants_leaf(actual, row) if code == &"" else code
+
+
+static func _assembly_occupants_leaf(actual: RefCounted, mine: int) -> StringName:
+	"""Every living actual resident retains a complete current body; an unregistered occupant cannot disappear from proof."""
+	actual._remaining -= 16 * RESIDENT_CAPACITY
+	if actual._remaining < 0: return &"ROUTE_OPERATION_BUDGET"
+	for row: int in RESIDENT_CAPACITY:
+		if row == mine or actual._residents._present[row] != 1 or actual._residents._needs._present[row] != 1 \
+				or actual._residents._needs._health[row] <= 0: continue
+		var worker: Vector2i = Vector2i(actual._residents._ref_slot[row], actual._residents._ref_generation[row])
+		if _turn_directory_row(actual, worker, Directory.KIND_RESIDENT) != row \
+				or _resident_ref_leaf(actual, row) != worker: return &"ROUTE_ASSEMBLY_ACTOR_UNBOUND"
+		actual._remaining -= 512
+		if actual._remaining < 0: return &"ROUTE_OPERATION_BUDGET"
+		var code: StringName = physical_selection_into(actual, row, actual._occupant_selection)
+		if code == &"":
+			actual._remaining -= 3 * actual._occupant_selection.box_count
+			code = &"ROUTE_OPERATION_BUDGET" if actual._remaining < 0 else \
+				AssemblyPhysical.occupant_refusal(actual._bindings, actual._selection, actual._occupant_selection)
+		if code != &"": return code
 	return &""
 
 
@@ -2725,7 +3005,9 @@ func advance_tick(tick: int) -> int:
 	var moved: int = 0
 	for row: int in RESIDENT_CAPACITY:
 		if _resident_ref(row) == NULL_REF or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == PHASE_IDLE \
-				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY):
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == _source_word_for(_profiles, PHASE_IDLE, SourceProgram.READY) \
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.READY) \
+				or _motion.resident[R_PHASE * RESIDENT_CAPACITY + row] == Assembly.word(PHASE_IDLE, Assembly.Clock.HANDLED_READY):
 			continue
 		var code: StringName = _advance_actor(row)
 		if code == &"":
@@ -2757,6 +3039,8 @@ func _advance_actor(row: int) -> StringName:
 
 func _advance_stationary_source(row: int) -> StringName:
 	"""Headless entry/fade/recovery uses the same real endpoint proof before the sole canonical clock write."""
+	if _motion.resident[R_PROFILE * RESIDENT_CAPACITY + row] == Assembly.PROFILE:
+		return _assembly_transition(row, _resident_ref_leaf(self, row), _resident_pair_leaf(self, R_JOB_SLOT, row), 1)
 	if _resident_pair(R_EDGE_SLOT, row) != NULL_REF:
 		return &"ROUTE_SOURCE_CLOCK"
 	var word: int = _motion.resident[R_PHASE * RESIDENT_CAPACITY + row]
@@ -3399,7 +3683,7 @@ func _occupant_box_refusal(index: int, bounds: PackedInt32Array) -> StringName:
 
 static func turn_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
 	"""Read one committed profile from direct current actor/Job/tool/load facts after all observers."""
-	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+	if actual == null or out == null or row < 0 or row >= RESIDENT_CAPACITY or _resident_ref_leaf(actual, row) == NULL_REF:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
 	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
 	var profiles: Profiles = actual._profiles
@@ -3411,18 +3695,20 @@ static func turn_selection_into(actual: RefCounted, row: int, out: Profiles.Sele
 	var mode: int = actual._motion.resident[R_MODE * RESIDENT_CAPACITY + row]
 	var posture: int = actual._motion.resident[R_POSTURE * RESIDENT_CAPACITY + row]
 	var family: int = actual._motion.resident[R_FAMILY * RESIDENT_CAPACITY + row]
-	var code: StringName = _turn_dynamic_leaf(actual, actual._resident_ref(row),
-		actual._resident_pair(R_JOB_SLOT, row), mode, posture, family, actual._resident_pair(R_TOOL_SLOT, row))
+	var code: StringName = _turn_dynamic_leaf(actual, _resident_ref_leaf(actual, row),
+		_resident_pair_leaf(actual, R_JOB_SLOT, row), mode, posture, family, _resident_pair_leaf(actual, R_TOOL_SLOT, row))
 	if code != &"": return code
-	if not profiles._matches(profile, mode, posture, family):
+	if not _physical_profile_matches(actual, row, profile) \
+			or profiles._live.fields[Profiles.F_WORK_KIND * profiles._profile_capacity + profile] != profiles._query_values[4] \
+			or not _physical_payload_matches(actual, row):
 		return &"ROUTE_TURN_PROFILE_STALE"
 	_turn_write_selection(actual, row, profile, out)
-	return &"" if actual._committed_selection(row, out) else &"ROUTE_TURN_PROFILE_STALE"
+	return &""
 
 
 static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.Selection) -> StringName:
 	"""Read the retained complete body source after assignment release; this grants neither work nor turning."""
-	if row < 0 or row >= RESIDENT_CAPACITY or actual._resident_ref(row) == NULL_REF:
+	if actual == null or out == null or row < 0 or row >= RESIDENT_CAPACITY or _resident_ref_leaf(actual, row) == NULL_REF:
 		return &"ROUTE_ACTOR_NOT_REGISTERED"
 	var profile: int = actual._motion.resident[R_PROFILE * RESIDENT_CAPACITY + row]
 	var profiles: Profiles = actual._profiles
@@ -3431,15 +3717,15 @@ static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.
 			or profiles._live.header[0] != actual._motion.resident_long[R_CONTENT_REVISION * RESIDENT_CAPACITY + row] \
 			or profiles._live.quantities[profile] != actual._motion.resident_long[R_PROFILE_REVISION * RESIDENT_CAPACITY + row]:
 		return &"ROUTE_TURN_PROFILE_STALE"
-	var code: StringName = _turn_identity_leaf(actual, actual._resident_ref(row))
+	var code: StringName = _turn_identity_leaf(actual, _resident_ref_leaf(actual, row))
 	if code != &"": return code
 	profiles._query_values.fill(-1)
 	profiles._candidate.tool = NULL_REF
 	profiles._candidate.satchel = NULL_REF
 	profiles._candidate.cargo = NULL_REF
 	profiles._candidate.cargo_quantity_milli = 0
-	code = _physical_tool_leaf(actual, actual._resident_ref(row), actual._resident_pair(R_TOOL_SLOT, row))
-	if code == &"": code = _turn_cargo_leaf(actual, actual._resident_ref(row))
+	code = _physical_tool_leaf(actual, _resident_ref_leaf(actual, row), _resident_pair_leaf(actual, R_TOOL_SLOT, row))
+	if code == &"": code = _turn_cargo_leaf(actual, _resident_ref_leaf(actual, row))
 	if code != &"": return code
 	if not _physical_profile_matches(actual, row, profile): return &"ROUTE_TURN_PROFILE_STALE"
 	if not _physical_payload_matches(actual, row): return &"ROUTE_TURN_PROFILE_STALE"
@@ -3450,10 +3736,22 @@ static func physical_selection_into(actual: RefCounted, row: int, out: Profiles.
 static func _physical_payload_matches(actual: RefCounted, row: int) -> bool:
 	"""A changed full carried/equipped payload refuses before writing any caller-owned Selection field."""
 	var candidate: Profiles.Selection = actual._profiles._candidate
-	return candidate.tool == actual._resident_pair(R_TOOL_SLOT, row) \
-		and candidate.cargo == actual._resident_pair(R_CARGO_SLOT, row) \
-		and candidate.satchel == actual._resident_pair(R_SATCHEL_SLOT, row) \
+	return candidate.tool == _resident_pair_leaf(actual, R_TOOL_SLOT, row) \
+		and candidate.cargo == _resident_pair_leaf(actual, R_CARGO_SLOT, row) \
+		and candidate.satchel == _resident_pair_leaf(actual, R_SATCHEL_SLOT, row) \
 		and candidate.cargo_quantity_milli == actual._motion.resident_long[R_QUANTITY * RESIDENT_CAPACITY + row]
+
+
+static func _resident_ref_leaf(actual: RefCounted, row: int) -> Vector2i:
+	"""Final ownership reads cannot dispatch a Routes subclass after another owner's last observation."""
+	return Vector2i(actual._motion.resident[R_SLOT * RESIDENT_CAPACITY + row],
+		actual._motion.resident[R_GENERATION * RESIDENT_CAPACITY + row])
+
+
+static func _resident_pair_leaf(actual: RefCounted, field: int, row: int) -> Vector2i:
+	"""Borrow one original packed full reference without an overridable private reader."""
+	return Vector2i(actual._motion.resident[field * RESIDENT_CAPACITY + row],
+		actual._motion.resident[(field + 1) * RESIDENT_CAPACITY + row])
 
 
 static func _physical_tool_leaf(actual: RefCounted, worker: Vector2i, tool: Vector2i) -> StringName:
@@ -3464,7 +3762,8 @@ static func _physical_tool_leaf(actual: RefCounted, worker: Vector2i, tool: Vect
 		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
 	var gear: Gear = profiles._gear as Gear
 	var inventory: Inventory = profiles._inventory
-	if tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0: return &"ROUTE_TURN_ACTOR_STALE"
+	if gear == null or inventory == null or tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
 	var at: int = gear._lot_row[tool.x]
 	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != tool.x \
 			or gear._lot_generation[at] != tool.y or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
@@ -3504,20 +3803,20 @@ static func _turn_write_selection(actual: RefCounted, row: int, profile: int, ou
 	out.profile_id = profile
 	out.profile_revision = profiles._live.quantities[profile]
 	out.content_revision = profiles._live.header[0]
-	out.source_id = profiles._field(profiles._live, profile, Profiles.F_SOURCE)
+	out.source_id = profiles._live.fields[Profiles.F_SOURCE * profiles._profile_capacity + profile]
 	out.species = profiles._identity[0]
 	out.life_stage = profiles._identity[1]
 	out.rig = profiles._identity[2]
-	out.mode = profiles._field(profiles._live, profile, Profiles.F_MODE)
-	out.posture = profiles._field(profiles._live, profile, Profiles.F_POSTURE)
+	out.mode = profiles._live.fields[Profiles.F_MODE * profiles._profile_capacity + profile]
+	out.posture = profiles._live.fields[Profiles.F_POSTURE * profiles._profile_capacity + profile]
 	out.x = profiles._pose.x
 	out.y = profiles._pose.y
 	out.z = profiles._pose.z
 	out.yaw = profiles._pose.yaw
-	out.orientation = profiles._field(profiles._live, profile, Profiles.F_YAW_KIND)
-	out.box_count = profiles._field(profiles._live, profile, Profiles.F_BOX_COUNT)
-	out.worker = actual._resident_ref(row)
-	out.job = actual._resident_pair(R_JOB_SLOT, row)
+	out.orientation = profiles._live.fields[Profiles.F_YAW_KIND * profiles._profile_capacity + profile]
+	out.box_count = profiles._live.fields[Profiles.F_BOX_COUNT * profiles._profile_capacity + profile]
+	out.worker = _resident_ref_leaf(actual, row)
+	out.job = _resident_pair_leaf(actual, R_JOB_SLOT, row)
 	out.tool = profiles._candidate.tool
 	out.satchel = profiles._candidate.satchel
 	out.cargo = profiles._candidate.cargo
@@ -3634,9 +3933,12 @@ static func _turn_tool_leaf(actual: RefCounted, worker: Vector2i, job: Vector2i,
 	if tool == NULL_REF:
 		return &"" if actual._residents._equip_tool_item_id[row] == Residents.NO_TOOL_ITEM else &"ROUTE_TURN_ACTOR_STALE"
 	var gear: Gear = actual._profiles._gear as Gear
-	var at: int = gear._resolve_row(tool)
 	var inventory: Inventory = actual._profiles._inventory
-	if at < 0 or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
+	if gear == null or inventory == null or tool.x < 0 or tool.x >= Gear.LOT_CAPACITY or tool.y <= 0:
+		return &"ROUTE_TURN_ACTOR_STALE"
+	var at: int = gear._lot_row[tool.x]
+	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != tool.x \
+			or gear._lot_generation[at] != tool.y or tool.x >= inventory._l_capacity or inventory._l_live[tool.x] != 1 \
 			or inventory._l_generation[tool.x] != tool.y or inventory._l_container_slot[tool.x] != -1 \
 			or gear._equipped[at] != 1 or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
 			or actual._residents._equip_tool_item_id[row] != gear._item_id[at]: return &"ROUTE_TURN_ACTOR_STALE"

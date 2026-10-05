@@ -34,6 +34,7 @@ const CONTACT_PATCH: int = 6
 const CONTACT_NONE: int = 0
 const CONTACT_ANCHOR_ONLY: int = 1
 const CONTACT_ANCHOR_AND_PATCH: int = 2
+const CONTACT_ASSEMBLY_PALM: int = 3
 const MODE_STAND: int = 0
 const MODE_WALK: int = 1
 const MODE_CARRY: int = 2
@@ -64,6 +65,7 @@ const POLICY_SOURCE_WORK: int = 3
 const POLICY_SHORT_FORWARD: int = 4
 const POLICY_SHORT_BACKWARD: int = 5
 const POLICY_CANONICAL_GROUND: int = 6
+const POLICY_ASSEMBLY_HANDLING: int = 7
 # Field-major columns, not one record/object per profile.
 const F_SOURCE: int = 0
 const F_SPECIES: int = 1
@@ -369,7 +371,10 @@ func _validate_stage() -> StringName:
 		if order > 0:
 			return &"PROFILE_KEY_ORDER"
 		same_key_count = same_key_count + 1 if order == 0 else 1
-		if same_key_count > MAX_KEY_VARIANTS:
+		# Automatic lookup still sees every eligible row in its original16-row
+		# window. Only one explicit nonproductive handling tail may follow it.
+		if same_key_count > MAX_KEY_VARIANTS and (same_key_count != MAX_KEY_VARIANTS + 1 \
+				or _stage.flags[_profile_capacity + row] != POLICY_ASSEMBLY_HANDLING):
 			return &"PROFILE_KEY_CAPACITY"
 		for previous: int in row:
 			if _field(_stage, row, F_MODE) != MODE_WORK and _overlap_keys(previous, row):
@@ -379,7 +384,7 @@ func _validate_stage() -> StringName:
 
 func _profile_refusal(row: int, next_box: int) -> StringName:
 	"""Qualification is an explicit source certificate requirement, not inferred from positive bounds."""
-	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_CANONICAL_GROUND \
+	if _stage.flags[row] != CERT_REQUIRED or _stage.flags[_profile_capacity + row] > POLICY_ASSEMBLY_HANDLING \
 			or _long(_stage, row, L_REVISION) <= 0:
 		return &"PROFILE_CERTIFICATE_REQUIRED"
 	if _field(_stage, row, F_SOURCE) < 0 or _field(_stage, row, F_SOURCE) >= _stage.header[3] \
@@ -390,7 +395,7 @@ func _profile_refusal(row: int, next_box: int) -> StringName:
 	var policy: int = _stage.flags[_profile_capacity + row]
 	if policy != POLICY_AUTOMATIC and (_field(_stage, row, F_YAW_KIND) != (YAW_ALL if policy == POLICY_CANONICAL_GROUND else YAW_EXACT) \
 			or _field(_stage, row, F_YAW) % 16384 != 0 \
-			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK else MODE_WALK)):
+			or mode != (MODE_WORK if policy == POLICY_SOURCE_WORK or policy == POLICY_ASSEMBLY_HANDLING else MODE_WALK)):
 		return &"PROFILE_POLICY_FORMAT"
 	var states: int = _field(_stage, row, F_STATES)
 	if mode < MODE_STAND or mode > MODE_CLIMB or states < 1 or states > 511 \
@@ -435,7 +440,10 @@ func _key_refusal(row: int) -> StringName:
 		return &"PROFILE_QUANTITY"
 	if _field(_stage, row, F_WORK_KIND) < -1 or _field(_stage, row, F_WORK_KIND) >= 12 \
 			or _field(_stage, row, F_CONTACT_KIND) < CONTACT_NONE \
-			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_ANCHOR_AND_PATCH:
+			or _field(_stage, row, F_CONTACT_KIND) > CONTACT_ASSEMBLY_PALM:
+		return &"PROFILE_WORK_IDENTITY"
+	if (_stage.flags[_profile_capacity + row] == POLICY_ASSEMBLY_HANDLING) \
+			!= (_field(_stage, row, F_CONTACT_KIND) == CONTACT_ASSEMBLY_PALM):
 		return &"PROFILE_WORK_IDENTITY"
 	return &""
 
@@ -460,6 +468,11 @@ func _roles_refusal(profile: int, first: int, count: int) -> StringName:
 		elif role == CONTACT_PATCH:
 			patch_row = row
 	var working: bool = _field(_stage, profile, F_MODE) == MODE_WORK
+	if _stage.flags[_profile_capacity + profile] == POLICY_ASSEMBLY_HANDLING:
+		# Curved source contact is a separate certificate, never a made-up point,
+		# planar patch or productive stroke. Exact source matching remains required.
+		return &"" if working and mask == 15 and _field(_stage, profile, F_WORK_KIND) == Work.JobsScript.JOB_KIND_BUILD \
+			and (_field(_stage, profile, F_STATES) & STATE_REVERSAL) != 0 else &"PROFILE_ROLE_MISSING"
 	if (mask & 7) != 7 or (working and ((mask & 56) != 56 or points != 1 \
 			or _field(_stage, profile, F_WORK_KIND) < 0 or _field(_stage, profile, F_CONTACT_KIND) == CONTACT_NONE)):
 		return &"PROFILE_ROLE_MISSING"
@@ -547,7 +560,7 @@ static func selection_policy_leaf(actual: RefCounted, profile_id: int, profile_r
 			or profile_revision <= 0 or profile_revision != actual._live.quantities[L_REVISION * actual._profile_capacity + profile_id]:
 		return -1
 	var policy: int = actual._live.flags[actual._profile_capacity + profile_id]
-	return policy if policy <= POLICY_CANONICAL_GROUND else -1
+	return policy if policy <= POLICY_ASSEMBLY_HANDLING else -1
 
 
 func query_travel_profile_into(worker: Vector2i, job: Vector2i, profile_id: int, profile_revision: int,

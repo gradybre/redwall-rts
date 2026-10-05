@@ -17,10 +17,15 @@ const Locations := preload("res://scripts/core/underground_locations.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Space := preload("res://scripts/core/room_space.gd")
 const Jobs := preload("res://scripts/core/jobs.gd")
+const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const MAX_PLACEMENTS: int = 256
 const MAX_ASSEMBLIES: int = Catalog.MAX_PARTS
 const ROW_BYTES: int = 21
+const CAPTURE_VERSION: int = 2
+const EMPTY: int = 0
+const PENDING_HANDLING: int = 1
+const HANDLED: int = 2
 const SOURCE_ROW_BYTES: int = 32
 const SOURCE_HEADER_BYTES: int = 232
 const CONTROL_BYTES: int = 2048
@@ -38,6 +43,8 @@ const REFUSE_STAGE: StringName = &"WORKPIECE_STAGE"
 const REFUSE_BUDGET: StringName = &"WORKPIECE_ORIGINAL_LEASE"
 const REFUSE_OUTPUT: StringName = &"WORKPIECE_OUTPUT_SHAPE"
 const REFUSE_REGION: StringName = &"WORKPIECE_OBSTACLE"
+const REFUSE_HANDLING: StringName = &"WORKPIECE_HANDLING_REQUIRED"
+const REFUSE_WORKER: StringName = &"WORKPIECE_HANDLING_WORKER"
 const GENERATION: int = 0
 const PROJECT_SLOT: int = 1
 const REGION_SLOT: int = 3
@@ -129,7 +136,7 @@ func configure(placements: int, assemblies: int, arena_bytes: int) -> StringName
 
 func bind_actual(placements: RefCounted, router: Router, paid_owner: RefCounted) -> StringName:
 	"""Bind real initialized stores once; reciprocal activation is separately mandatory before preparation."""
-	if not _configured or _placements != null or placements == null or router == null or paid_owner == null \
+	if not _configured or _capacity < 1 or _placements != null or placements == null or router == null or paid_owner == null \
 			or not ("_capacity" in placements) or not ("_workpieces" in placements) \
 			or not ("_workpieces" in paid_owner) or placements._capacity != _capacity \
 			or placements._paid_owner == null or placements._paid_owner.get_ref() != paid_owner \
@@ -149,6 +156,69 @@ func bind_actual(placements: RefCounted, router: Router, paid_owner: RefCounted)
 	var code: StringName = _binding_leaf(self)
 	if code != &"": _clear_initial_bindings(self)
 	return code
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted, stopped_constructor: bool = false) -> StringName:
+	"""A retained Workpieces constructor is already loaded; only its two activation links may still both be absent."""
+	if actual == null or original == null or original.workpieces != actual or original.placements == null \
+			or original.connector == null or original.contacts == null or not actual._configured or not actual._loaded \
+			or actual._capacity < 1 or actual._capacity != original.placements._capacity \
+			or actual._assembly_capacity < 1 or actual._placements != original.placements or actual._router != original.router \
+			or actual._budget != original.budget or actual._profiles != original.profiles \
+			or actual._catalog != original.placements._catalog or actual._assemblies != original.placements._assemblies \
+			or actual._recipes != original.placements._recipes or actual._paid_owner == null \
+			or actual._paid_owner.get_ref() != original.connector or actual._contacts == null \
+			or actual._contacts.get_ref() != original.contacts:
+		return REFUSE_BINDING
+	if actual._busy or actual._stage_action != -1 or actual._stage_project != NULL_REF \
+			or actual._stage_placement != NULL_REF or actual._cold_token != 0 or actual._cold_bytes != 0 \
+			or actual._context != null:
+		return REFUSE_STAGE
+	if actual._live == null or actual._stage == null or actual._live.fields.size() != 5 * actual._capacity \
+			or actual._stage.fields.size() != 5 * actual._capacity or actual._live.present.size() != actual._capacity \
+			or actual._stage.present.size() != actual._capacity or actual._header.size() != 9 \
+			or actual._digests.size() != 160 or actual._parts.size() != 6 * actual._assembly_capacity \
+			or actual._profile_revisions.size() != actual._assembly_capacity or actual._bounds.size() != 6 \
+			or actual._scratch.size() != 6:
+		return REFUSE_CAPACITY
+	if original.connector._workpieces == null or original.placements._workpieces == null:
+		return &"" if stopped_constructor and original.connector._workpieces == null \
+			and original.placements._workpieces == null else REFUSE_BINDING
+	return &"" if original.connector._workpieces == actual \
+		and original.placements._workpieces.get_ref() == actual else REFUSE_BINDING
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, stopped_constructor: bool = false) -> StringName:
+	"""Drop only own banks and borrows after canonical clear; configured plus zero capacity is an irreversible tombstone."""
+	var code: StringName = retirement_refusal_in(actual, original, stopped_constructor)
+	if code != &"": return code
+	code = Construction.Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._loaded = false
+	actual._capacity = 0
+	actual._assembly_capacity = 0
+	actual._placements = null
+	actual._router = null
+	actual._paid_owner = null
+	actual._contacts = null
+	actual._budget = null
+	actual._catalog = null
+	actual._assemblies = null
+	actual._recipes = null
+	actual._profiles = null
+	actual._live.fields.clear()
+	actual._live.present.clear()
+	actual._stage.fields.clear()
+	actual._stage.present.clear()
+	actual._header.clear()
+	actual._digests.clear()
+	actual._parts.clear()
+	actual._profile_revisions.clear()
+	actual._bounds.clear()
+	actual._scratch.clear()
+	return &""
 
 
 static func _clear_initial_bindings(a: RefCounted) -> void:
@@ -385,8 +455,15 @@ static func _profile_leaf(a: RefCounted, assembly: int) -> StringName:
 	var capacity: int = p._profile_capacity
 	if p._live.fields[Profiles.F_SOURCE * capacity + row] != a._header[H_PROGRAM] \
 			or p._live.fields[Profiles.F_MODE * capacity + row] != Profiles.MODE_WORK \
-			or p._live.fields[Profiles.F_WORK_KIND * capacity + row] != Jobs.JOB_KIND_BUILD \
-			or p._live.fields[Profiles.F_CONTACT_KIND * capacity + row] != Profiles.CONTACT_ANCHOR_AND_PATCH:
+			or p._live.fields[Profiles.F_WORK_KIND * capacity + row] != Jobs.JOB_KIND_BUILD:
+		return REFUSE_PROFILE
+	if p._live.fields[Profiles.F_CONTACT_KIND * capacity + row] == Profiles.CONTACT_ASSEMBLY_PALM:
+		var code: StringName = AssemblySource.profile_refusal(p, row, a._profile_revisions[assembly], a._header[H_PROFILES])
+		return code if code != &"" else AssemblySource.part_refusal(assembly,
+			a._parts[PART * a._assembly_capacity + assembly], a._parts[ROTATION * a._assembly_capacity + assembly],
+			Vector3i(a._parts[X * a._assembly_capacity + assembly],
+				a._parts[(X + 1) * a._assembly_capacity + assembly], a._parts[(X + 2) * a._assembly_capacity + assembly]))
+	if p._live.fields[Profiles.F_CONTACT_KIND * capacity + row] != Profiles.CONTACT_ANCHOR_AND_PATCH:
 		return REFUSE_PROFILE
 	var states: int = Profiles.STATE_WORK | Profiles.STATE_ENTRY | Profiles.STATE_RECOVERY | Profiles.STATE_REVERSAL
 	return &"" if (p._live.fields[Profiles.F_STATES * capacity + row] & states) == states else REFUSE_PROFILE
@@ -516,10 +593,83 @@ static func _row_region(bank: Bank, row: int, capacity: int) -> Vector2i:
 
 static func _row_matches(a: RefCounted, placement: Vector2i, project: Vector2i) -> bool:
 	"""The whole Placement generation and whole Project pair are required; slot equality grants nothing."""
-	return placement.x >= 0 and placement.x < a._capacity and a._live.present[placement.x] == 1 \
+	return placement.x >= 0 and placement.x < a._capacity \
+		and (a._live.present[placement.x] == PENDING_HANDLING or a._live.present[placement.x] == HANDLED) \
 		and a._live.fields[GENERATION * a._capacity + placement.x] == placement.y \
 		and a._live.fields[PROJECT_SLOT * a._capacity + placement.x] == project.x \
 		and a._live.fields[(PROJECT_SLOT + 1) * a._capacity + placement.x] == project.y
+
+
+static func live_leaf_refusal(a: RefCounted, placement: Vector2i, project: Vector2i) -> StringName:
+	"""Both live states retain the same original source, funded Project and complete non-supporting obstacle."""
+	var code: StringName = source_leaf_refusal(a, placement, project)
+	if code != &"": return code
+	if _activation_leaf(a) != &"" or not _row_matches(a, placement, project): return REFUSE_STAGE
+	var row: int = _project_row(a, placement, project)
+	if row < 0 or not _funded(a, project, row) or a._router._construction._work_begun[row] != 1:
+		return REFUSE_PROJECT
+	return _region_leaf(a, placement, project, _row_region(a._live, placement.x, a._capacity))
+
+
+static func handled_leaf_refusal(a: RefCounted, placement: Vector2i, project: Vector2i) -> StringName:
+	"""Durable completed handling needs no departed worker and never grants productive INSTALL work by itself."""
+	var code: StringName = live_leaf_refusal(a, placement, project)
+	return code if code != &"" else &"" if a._live.present[placement.x] == HANDLED else REFUSE_HANDLING
+
+
+static func handling_leaf_refusal(a: RefCounted, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> StringName:
+	"""The original assigned BUILD worker names real funded WIP; Routes separately proves its canonical clock."""
+	var code: StringName = live_leaf_refusal(a, placement, project)
+	if code != &"": return code
+	if a._busy or a._stage_action != -1 or a._context != null or a._cold_token != 0:
+		return REFUSE_STAGE
+	return _handling_worker_leaf(a, project, worker, job)
+
+
+static func _handling_worker_leaf(a: RefCounted, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Active handling requires actual WORK in addition to the unchanged full assignment."""
+	var code: StringName = _assigned_worker_leaf(a, project, worker, job)
+	if code != &"": return code
+	return &"" if a._router._jobs._state[a._placements._ids._typed_row[job.x]] == Jobs.JOB_STATE_WORK else REFUSE_WORKER
+
+
+static func _assigned_worker_leaf(a: RefCounted, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Read full assignment mirrors without granting work; READY release also permits RESERVED or completed Jobs."""
+	var ids: Directory = a._placements._ids
+	var row: int = _directory_row(ids, job, Directory.KIND_JOB)
+	var resident: int = _directory_row(ids, worker, Directory.KIND_RESIDENT)
+	var jobs: Jobs = a._router._jobs
+	var router: Router = a._router
+	if row < 0 or resident < 0 or jobs._directory != ids or jobs._job_present[row] != 1 \
+			or jobs._job_ref_slot[row] != job.x or jobs._job_ref_generation[row] != job.y \
+			or jobs._kind[row] != Jobs.JOB_KIND_BUILD \
+			or jobs._requester_slot[row] != project.x or jobs._requester_generation[row] != project.y \
+			or jobs._worker_slot[row] != worker.x or jobs._worker_generation[row] != worker.y \
+			or router._job_slot[row] != job.x or router._job_generation[row] != job.y \
+			or router._project_slot[row] != project.x or router._project_generation[row] != project.y \
+			or jobs._agent_present[resident] != 1 or ids._persistent_id[worker.x] <= 0 \
+			or jobs._agent_persistent_id[resident] != ids._persistent_id[worker.x] \
+			or jobs._agent_job_slot[resident] != job.x or jobs._agent_job_generation[resident] != job.y:
+		return REFUSE_WORKER
+	return &""
+
+
+static func publish_handled_preflighted(a: RefCounted, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> bool:
+	"""Only ConnectorWork's original promotion window may perform the observer-free pending-to-handled write."""
+	if handling_leaf_refusal(a, placement, project, worker, job) != &"" \
+			or a._live.present[placement.x] != PENDING_HANDLING: return false
+	var paid: RefCounted = a._paid_owner.get_ref()
+	if not paid._busy or paid._poisoned or paid._stage_action != paid.HANDLING_PUBLISH \
+			or paid._stage_placement != placement or paid._stage_project != project \
+			or paid._stage_assembly != a._router._construction._type_id[_project_row(a, placement, project)] \
+			or paid._stage_contacts != a._contacts.get_ref() \
+			or a._router._busy and (a._router._publishing_action != Contract.PAUSE_PREPARE \
+				or a._router._publishing_project != project or a._router._publishing_owner != paid):
+		return false
+	a._live.present[placement.x] = HANDLED
+	return true
 
 
 static func _region_leaf(a: RefCounted, placement: Vector2i, project: Vector2i, region: Vector2i) -> StringName:
@@ -593,7 +743,8 @@ func prepare_cancel(placement: Vector2i, project: Vector2i, original_cold: int) 
 
 func prepare_completion(placement: Vector2i, project: Vector2i, original_cold: int) -> StringName:
 	"""Capture the exact live piece before Placement stages its removal and the completed billable assembly."""
-	var code: StringName = _begin_request(placement, project, Contract.COMMIT, original_cold)
+	var code: StringName = handled_leaf_refusal(self, placement, project)
+	if code == &"": code = _begin_request(placement, project, Contract.COMMIT, original_cold)
 	if code == &"" and not _row_matches(self, placement, project): code = REFUSE_STAGE
 	if code == &"": code = _region_leaf(self, placement, project, _row_region(_live, placement.x, _capacity))
 	return code if code == &"" else _failed_request(code)
@@ -670,6 +821,8 @@ static func prepared_bounds_leaf_refusal(a: RefCounted, placement: Vector2i, pro
 	if p._live.i64[p.PAYLOAD_REVISION * p._capacity + placement.x] != a._stage_payload \
 			or p._live.i32[p.INSTALLED * p._capacity + placement.x] != a._stage_assembly \
 			or bounds.size() != 6 or a._bounds.size() != 6: return REFUSE_STAGE
+	if action == Contract.COMMIT and (not _row_matches(a, placement, project) \
+			or a._live.present[placement.x] != HANDLED): return REFUSE_HANDLING
 	code = _bounds_into(a, placement, a._stage_assembly, a._scratch)
 	if code != &"": return code
 	for axis: int in 6:
@@ -748,7 +901,7 @@ static func _write_row(bank: Bank, capacity: int, placement: Vector2i, project: 
 	bank.fields[(PROJECT_SLOT + 1) * capacity + placement.x] = project.y
 	bank.fields[REGION_SLOT * capacity + placement.x] = region.x
 	bank.fields[(REGION_SLOT + 1) * capacity + placement.x] = region.y
-	bank.present[placement.x] = 1
+	bank.present[placement.x] = PENDING_HANDLING
 
 
 static func clear_preflighted(a: RefCounted, project: Vector2i, action: int) -> bool:
@@ -766,6 +919,7 @@ static func clear_preflighted(a: RefCounted, project: Vector2i, action: int) -> 
 			or _funded(a, project, row) or not _row_matches(a, placement, project): return false
 	if p._live.i32[p.INSTALLED * p._capacity + placement.x] != a._stage_assembly + int(action == Contract.COMMIT) \
 			or _removed_leaf(a, project, _row_region(a._live, placement.x, a._capacity)) != &"": return false
+	if action == Contract.COMMIT and a._live.present[placement.x] != HANDLED: return false
 	for field: int in 5: a._live.fields[field * a._capacity + placement.x] = 0
 	a._live.present[placement.x] = 0
 	_clear_request_preflighted(a)
@@ -791,7 +945,7 @@ func capture_into(file: FileAccess) -> StringName:
 	var bytes: PackedByteArray = PackedByteArray()
 	bytes.resize(60)
 	for index: int in 8: bytes[index] = "UGWIPS01".unicode_at(index)
-	bytes.encode_u32(8, 1)
+	bytes.encode_u32(8, CAPTURE_VERSION)
 	bytes.encode_s32(12, _placements._world.x)
 	bytes.encode_s32(16, _placements._world.y)
 	bytes.encode_u32(20, _capacity)
@@ -834,7 +988,7 @@ func _read_capture_header(file: FileAccess) -> StringName:
 	"""Exact World, capacity, row width, source digest and total length prevent namespace or truncation adoption."""
 	var bytes: PackedByteArray = file.get_buffer(60)
 	if bytes.size() != 60 or bytes.slice(0, 8).get_string_from_ascii() != "UGWIPS01" \
-			or bytes.decode_u32(8) != 1 or bytes.decode_s32(12) != _placements._world.x \
+			or bytes.decode_u32(8) != CAPTURE_VERSION or bytes.decode_s32(12) != _placements._world.x \
 			or bytes.decode_s32(16) != _placements._world.y or bytes.decode_u32(20) != _capacity \
 			or bytes.decode_u32(24) != ROW_BYTES or file.get_length() != 60 + ROW_BYTES * _capacity:
 		return REFUSE_FORMAT
@@ -847,7 +1001,7 @@ func _read_capture_rows(file: FileAccess) -> StringName:
 	"""Decode at most21 bytes at once; absent rows have a unique all-zero encoding."""
 	for row: int in _capacity:
 		var bytes: PackedByteArray = file.get_buffer(ROW_BYTES)
-		if bytes.size() != ROW_BYTES or bytes[0] > 1: return REFUSE_FORMAT
+		if bytes.size() != ROW_BYTES or bytes[0] > HANDLED: return REFUSE_FORMAT
 		_stage.present[row] = bytes[0]
 		for field: int in 5:
 			var value: int = bytes.decode_s32(1 + 4 * field)
@@ -860,6 +1014,7 @@ func _bank_leaf(bank: Bank) -> StringName:
 	"""Every restored identity names actual live paid WIP and its exact current non-supporting obstacle."""
 	if bank.fields.size() != 5 * _capacity or bank.present.size() != _capacity: return REFUSE_FORMAT
 	for row: int in _capacity:
+		if bank.present[row] > HANDLED: return REFUSE_FORMAT
 		var parity: StringName = _bank_payment_leaf(bank, row)
 		if parity != &"": return parity
 		if bank.present[row] == 0: continue
@@ -885,4 +1040,4 @@ func _bank_payment_leaf(bank: Bank, row: int) -> StringName:
 	if project == NULL_REF: return &"" if bank.present[row] == 0 else REFUSE_PROJECT
 	var typed: int = _project_row(self, placement, project)
 	if typed < 0: return REFUSE_PROJECT
-	return &"" if (bank.present[row] == 1) == _funded(self, project, typed) else REFUSE_PROJECT
+	return &"" if (bank.present[row] != EMPTY) == _funded(self, project, typed) else REFUSE_PROJECT

@@ -951,8 +951,12 @@ func resume_work(project: Vector2i) -> Construction.OpResult:
 
 func set_paused(project: Vector2i, paused: bool) -> Construction.OpResult:
 	"""Hold actual work immediately and release actual workers/unfinished claims without erasing WIP."""
-	if _busy or _composition_refusal() != &"" or _project_owner(project) == null:
+	if _busy:
+		if _publishing_action == PAUSE_PREPARE: _publishing_action = -1
+		return _refuse(REFUSE_BUSY)
+	if _composition_refusal() != &"" or _project_owner(project) == null:
 		return _refuse(REFUSE_AUTHORITY)
+	var owner: Owner = _project_owner(project)
 	_busy = true
 	var changed: Construction.OpResult = _construction.set_paused(project, paused)
 	if not changed.ok or not paused:
@@ -963,8 +967,160 @@ func set_paused(project: Vector2i, paused: bool) -> Construction.OpResult:
 		code = _release_claims(project)
 	if code != &"":
 		return _finish(_refuse(code))
+	var row: int = _pause_directory_row(_construction._directory, project, Directory.KIND_CONSTRUCTION)
+	if row >= 0 and _construction._purpose[row] == Construction.PURPOSE_CONNECTOR_INSTALL:
+		_publishing_project = project
+		_publishing_owner = owner
+		_publishing_action = PAUSE_PREPARE
+		code = owner.pause_release(project)
+		if code == &"" and _publishing_action != PAUSE_DONE: code = REFUSE_AUTHORITY
+		_publishing_project = NULL_REF
+		_publishing_owner = null
+		_publishing_action = -1
+		return _finish(_ok(project) if code == &"" else _refuse(code))
 	_release_workers(project)
 	return _finish(_ok(project))
+
+
+static func pause_release_preflighted(actual: RefCounted, project: Vector2i, owner: Owner) -> StringName:
+	"""Only a concrete owner's final release window may run this closed, prevalidated existing worker-release chain."""
+	if actual == null or actual._publishing_action != PAUSE_RELEASE:
+		return REFUSE_AUTHORITY
+	var code: StringName = pause_release_leaf_refusal(actual, project, owner)
+	if code != &"": return code
+	for row: int in JOB_CAPACITY:
+		if actual._project_slot[row] != project.x or actual._project_generation[row] != project.y \
+				or actual._jobs._worker_slot[row] == -1: continue
+		var resident: int = actual._jobs._directory._typed_row[actual._jobs._worker_slot[row]]
+		if actual._work._tool_lot_slot[resident] != -1:
+			var released: Work.OpResult = actual._work.release_tool_claim(resident)
+			assert(released.ok, "closed actual Work/Gear release was fully prevalidated")
+		var detached: Jobs.OpResult = actual._jobs.release_worker(resident)
+		assert(detached.ok, "closed actual Jobs/Directory release was fully prevalidated")
+	actual._publishing_action = PAUSE_DONE
+	return &""
+
+
+static func pause_release_leaf_refusal(actual: RefCounted, project: Vector2i, owner: Owner) -> StringName:
+	"""Direct original identities and zero claims close every observer before the concrete release call chain."""
+	if actual == null or owner == null or not actual._busy or actual._ready_error != &"" \
+			or actual._publishing_project != project or actual._publishing_owner != owner \
+			or (actual._publishing_action != PAUSE_PREPARE and actual._publishing_action != PAUSE_RELEASE) \
+			or actual._connector_owner == null or actual._connector_owner.get_ref() != owner \
+			or actual._construction == null or actual._jobs == null or actual._work == null \
+			or actual._pool == null or actual._inventory == null or actual._inventory._tx_open \
+			or actual._construction._modular_authority == null or actual._construction._modular_authority.get_ref() != actual \
+			or actual._work._modular_authority == null or actual._work._modular_authority.get_ref() != actual:
+		return REFUSE_AUTHORITY
+	if actual._jobs.get_script() != Jobs or actual._work.get_script() != Work \
+			or actual._work._gear == null or actual._work._gear.get_script() != Gear \
+			or actual._jobs._directory == null or actual._jobs._directory.get_script() != Directory \
+			or actual._construction._directory != actual._jobs._directory \
+			or actual._work._directory != actual._jobs._directory or actual._work._jobs != actual._jobs \
+			or actual._work._residents != actual._jobs._residents \
+			or actual._work._gear._directory_binding != actual._jobs._directory \
+			or actual._work._gear._residents != actual._jobs._residents or actual._work._gear._inventory != actual._inventory \
+			or actual._pool._bound_inventory == null or actual._pool._bound_inventory.get_ref() != actual._inventory \
+			or actual._pool._haul_active:
+		return REFUSE_AUTHORITY
+	var at: int = _pause_directory_row(actual._jobs._directory, project, Directory.KIND_CONSTRUCTION)
+	if at < 0 or actual._construction._present[at] != 1 or actual._construction._ref_slot[at] != project.x \
+			or actual._construction._ref_generation[at] != project.y or actual._construction._paused[at] != 1 \
+			or actual._construction._purpose[at] != Construction.PURPOSE_CONNECTOR_INSTALL:
+		return REFUSE_AUTHORITY
+	var primary: int = _pause_primary_row(actual, project)
+	if primary == -2: return REFUSE_JOB
+	for row: int in JOB_CAPACITY:
+		if actual._project_slot[row] == project.x and actual._project_generation[row] == project.y:
+			var code: StringName = _pause_job_leaf(actual, project, primary, row)
+			if code != &"": return code
+		elif actual._jobs._job_present[row] == 1 and actual._jobs._requester_slot[row] == project.x \
+				and actual._jobs._requester_generation[row] == project.y \
+				or primary >= 0 and actual._jobs._job_present[row] == 1 \
+				and actual._jobs._coordinator_slot[row] == actual._job_slot[primary] \
+				and actual._jobs._coordinator_generation[row] == actual._job_generation[primary]:
+			return REFUSE_JOB
+	return _pause_orphan_tools_leaf(actual, project)
+
+
+static func _pause_primary_row(actual: RefCounted, project: Vector2i) -> int:
+	"""Derive the sole original coordinator or single Job; no row or membership index is retained."""
+	var primary: int = -1
+	for row: int in JOB_CAPACITY:
+		if actual._project_slot[row] != project.x or actual._project_generation[row] != project.y \
+				or actual._jobs._coordinator_slot[row] != -1: continue
+		if primary != -1: return -2
+		primary = row
+	return primary
+
+
+static func _pause_directory_row(ids: Directory, ref: Vector2i, kind: int) -> int:
+	"""Full Directory generation and reverse typed mapping are checked without invoking a store observer."""
+	if ids == null or ref.x < 0 or ref.x >= Directory.DIRECTORY_CAPACITY or ref.y <= 0 \
+			or ids._active[ref.x] != 1 or ids._generation[ref.x] != ref.y or ids._kind[ref.x] != kind: return -1
+	var row: int = ids._typed_row[ref.x]
+	return row if row >= 0 and row < Directory.KIND_CAPACITY[kind] \
+		and ids._typed_owner_slot[ids._kind_base[kind] + row] == ref.x else -1
+
+
+static func _pause_job_leaf(actual: RefCounted, project: Vector2i, primary: int, row: int) -> StringName:
+	"""Keep every original accepted Job, worker mirror and tool claim exact until the final pure release."""
+	var job: Vector2i = Vector2i(actual._job_slot[row], actual._job_generation[row])
+	var jobs: Jobs = actual._jobs
+	if primary < 0 or _pause_directory_row(jobs._directory, job, Directory.KIND_JOB) != row or jobs._job_present[row] != 1 \
+			or jobs._job_ref_slot[row] != job.x or jobs._job_ref_generation[row] != job.y \
+			or jobs._requester_slot[row] != project.x or jobs._requester_generation[row] != project.y:
+		return REFUSE_JOB
+	if row == primary:
+		if jobs._coordinator_slot[row] != -1 or jobs._coordinator_generation[row] != 0: return REFUSE_JOB
+	elif jobs._coordinator_slot[row] != actual._job_slot[primary] \
+			or jobs._coordinator_generation[row] != actual._job_generation[primary]:
+		return REFUSE_JOB
+	if job.x >= actual._pool._job_capacity or actual._pool._job_head[job.x] != -1: return REFUSE_DELIVERY
+	var worker: Vector2i = Vector2i(jobs._worker_slot[row], jobs._worker_generation[row])
+	if worker == NULL_REF: return &""
+	var resident: int = _pause_directory_row(jobs._directory, worker, Directory.KIND_RESIDENT)
+	if resident < 0 or jobs._agent_present[resident] != 1 \
+			or jobs._agent_persistent_id[resident] != jobs._directory._persistent_id[worker.x] \
+			or jobs._agent_job_slot[resident] != job.x or jobs._agent_job_generation[resident] != job.y \
+			or jobs._residents._present[resident] != 1 or jobs._residents._ref_slot[resident] != worker.x \
+			or jobs._residents._ref_generation[resident] != worker.y:
+		return REFUSE_WORKER
+	var lot: Vector2i = Vector2i(actual._work._tool_lot_slot[resident], actual._work._tool_lot_generation[resident])
+	if lot == NULL_REF: return &""
+	var gear: Gear = actual._work._gear
+	if lot.x < 0 or lot.x >= Gear.LOT_CAPACITY or lot.y <= 0: return Work.REFUSE_TOOL_CLAIM_STALE
+	var at: int = gear._lot_row[lot.x]
+	if at < 0 or at >= gear._row_capacity or gear._occupied[at] != 1 or gear._lot_slot[at] != lot.x \
+			or gear._lot_generation[at] != lot.y or gear._owner_slot[at] != worker.x or gear._owner_generation[at] != worker.y \
+			or gear._claim_job_slot[at] != job.x or gear._claim_job_generation[at] != job.y \
+			or actual._work._tool_job_slot[resident] != job.x or actual._work._tool_job_generation[resident] != job.y:
+		return Work.REFUSE_TOOL_CLAIM_STALE
+	return &""
+
+
+static func _pause_orphan_tools_leaf(actual: RefCounted, project: Vector2i) -> StringName:
+	"""Neither a detached resident carry nor an orphan Gear claim may disappear when the remaining crew leaves."""
+	for resident: int in Work.RESIDENT_CAPACITY:
+		var job: Vector2i = Vector2i(actual._work._tool_job_slot[resident], actual._work._tool_job_generation[resident])
+		var row: int = _pause_directory_row(actual._jobs._directory, job, Directory.KIND_JOB)
+		if row >= 0 and actual._project_slot[row] == project.x and actual._project_generation[row] == project.y \
+				and (actual._jobs._agent_job_slot[resident] != job.x or actual._jobs._agent_job_generation[resident] != job.y):
+			return Work.REFUSE_TOOL_CLAIM_STALE
+	var gear: Gear = actual._work._gear
+	for at: int in gear._row_capacity:
+		if gear._occupied[at] != 1 or gear._claim_job_slot[at] < 0: continue
+		var job: Vector2i = Vector2i(gear._claim_job_slot[at], gear._claim_job_generation[at])
+		var row: int = _pause_directory_row(actual._jobs._directory, job, Directory.KIND_JOB)
+		if row < 0 or actual._project_slot[row] != project.x or actual._project_generation[row] != project.y: continue
+		var worker: Vector2i = Vector2i(gear._owner_slot[at], gear._owner_generation[at])
+		var resident: int = _pause_directory_row(actual._jobs._directory, worker, Directory.KIND_RESIDENT)
+		if resident < 0 or actual._jobs._worker_slot[row] != worker.x or actual._jobs._worker_generation[row] != worker.y \
+				or actual._work._tool_lot_slot[resident] != gear._lot_slot[at] \
+				or actual._work._tool_lot_generation[resident] != gear._lot_generation[at] \
+				or actual._work._tool_job_slot[resident] != job.x or actual._work._tool_job_generation[resident] != job.y:
+			return Work.REFUSE_TOOL_CLAIM_STALE
+	return &""
 
 
 func complete_order(project: Vector2i, promotion_tile: int = -1) -> Construction.OpResult:

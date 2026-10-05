@@ -7,6 +7,9 @@ const Routes := preload("res://scripts/core/underground_routes.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
 const Profiles := preload("res://scripts/core/underground_profiles.gd")
+const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
+const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
 const Catalog := preload("res://scripts/core/underground_connector_catalog.gd")
 const Levels := preload("res://scripts/core/underground_level_catalog.gd")
 const Terrain := preload("res://scripts/core/underground_terrain.gd")
@@ -491,11 +494,13 @@ static func workpiece_occupancy_checks(actual: RefCounted) -> int:
 	for row: int in Routes.RESIDENT_CAPACITY:
 		if graph._resident_ref(row) != Routes.NULL_REF:
 			checks += 512 + 64 * Profiles.MAX_SELECTION_BOXES
+			if graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + row] == AssemblySource.PROFILE:
+				checks += 2048
 	return checks
 
 
 static func workpiece_occupancy_refusal(actual: RefCounted, bounds: PackedInt32Array, checks: int) -> StringName:
-	"""A concrete final body proof works against unchanged live actors while this exact geometry candidate is sealed."""
+	"""A concrete body proof closes the original pre-copy operation or its exact sealed geometry candidate."""
 	if actual == null or checks < REACH_SCOPE_CHECKS + 16 * Routes.RESIDENT_CAPACITY \
 			or checks > Space.MAX_CHECKS or not Space.valid_box(bounds): return REFUSE_BUDGET
 	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual._routes_ref != null else null
@@ -531,8 +536,69 @@ static func _workpiece_occupant_boxes(actual: RefCounted, graph: Routes, bounds:
 			if not Space.int32(low) or not Space.int32(high): return &"ROUTE_ACTOR_BOUNDS"
 			actual._support[axis] = low
 			actual._support[axis + 3] = high
-		if Space.overlaps(bounds, actual._support): return &"ROUTE_OCCUPIED"
+		if Space.overlaps(bounds, actual._support):
+			return _assembly_candidate_certificate(actual, graph, bounds, selection) \
+				if selection.profile_id == AssemblySource.PROFILE else &"ROUTE_OCCUPIED"
 	return &""
+
+
+static func _assembly_candidate_certificate(actual: RefCounted, graph: Routes, bounds: PackedInt32Array,
+		selection: Profiles.Selection) -> StringName:
+	"""Only this unchanged source at its exact original Project/part may overlap its own staged full bearer AABB."""
+	var context: Locations.InstallationContext = actual._installation
+	var pieces: Workpieces = _assembly_pieces(graph)
+	if context == null or pieces == null or context.issuer == null or context.issuer.get_ref() != pieces._placements \
+			or context != pieces._placements._context or context.router == null or context.router.get_ref() != pieces._router \
+			or context.paid_owner == null or context.paid_owner.get_ref() != pieces._paid_owner.get_ref() \
+			or context.space == null or context.space.get_ref() != graph._owner \
+			or context.locations == null or context.locations.get_ref() != graph._locations \
+			or context.budget != actual._budget or context.world != graph._world \
+			or context.construction != pieces._router._construction \
+			or (context.action != Locations.Modular.START and context.action != Locations.Modular.CANCEL) \
+			or _assembly_candidate_stage_refusal(actual, graph, pieces._placements, context) != &"" \
+			or selection.yaw != 0 or (context.action == Locations.Modular.START \
+				and _assembly_project(pieces, selection.job) != context.project):
+		return &"ROUTE_OCCUPIED"
+	var code: StringName = Workpieces.prepared_bounds_leaf_refusal(pieces, context.placement, context.project,
+		context.action, context.cold_token, bounds)
+	if code == &"": code = AssemblySource.profile_refusal(actual._profiles, selection.profile_id,
+		selection.profile_revision, selection.content_revision)
+	if code == &"": code = AssemblyPhysical._source_station(pieces, context.placement, selection)
+	if code == &"": code = AssemblySource.bearer_refusal(context.assembly,
+		Vector3i(selection.x, selection.y, selection.z), bounds)
+	return code
+
+
+static func _assembly_candidate_stage_refusal(actual: RefCounted, graph: Routes, issuer: RefCounted,
+		context: Locations.InstallationContext) -> StringName:
+	"""Before copies all three banks are idle; afterward every original token must be sealed together."""
+	if issuer == null or issuer._poisoned or issuer._admission_mode or issuer._phase_mode \
+			or issuer._world_routes != actual or issuer._routes != graph or issuer._space != graph._owner \
+			or issuer._locations != graph._locations or issuer._context != context \
+			or issuer._prepared_placement != context.placement or issuer._prepared_project != context.project \
+			or issuer._prepared_assembly != context.assembly or issuer._prepared_action != context.action \
+			or issuer._prepared_obstacle != context.obstacle or issuer._cold_token != context.cold_token \
+			or issuer._space_token != context.space_token or issuer._location_token != context.location_token \
+			or issuer._route_token != context.route_token or issuer._base_geometry_revision != context.base_revision \
+			or issuer._target_geometry_revision != context.target_revision \
+			or issuer._payload_revision != context.payload_revision \
+			or context.placement_revision != issuer._live.header[issuer.H_REVISION] \
+			or context.profile_revision != actual._profiles._live.header[0] \
+			or context.catalog_revision != actual._catalog._live.header[0] \
+			or context.base_revision != graph._owner._header[17] \
+			or context.target_revision != context.base_revision + 1:
+		return &"ROUTE_OCCUPIED"
+	if context.space_token == 0:
+		return &"" if issuer._busy and context.location_token == 0 and context.route_token == 0 \
+			and graph._owner._stage_token == 0 and not graph._owner._sealed \
+			and graph._locations._token == 0 and not graph._locations._sealed \
+			and graph._token == 0 and not graph._sealed and actual._route_token == 0 and not actual._sealed \
+			else &"ROUTE_OCCUPIED"
+	return &"" if context.space_token > 0 and context.space_token == graph._owner._stage_token \
+		and graph._owner._sealed and context.location_token > 0 \
+		and context.location_token == graph._locations._token and graph._locations._sealed \
+		and context.route_token > 0 and context.route_token == graph._token and graph._sealed \
+		and context.target_revision == graph._owner._s_header[17] else &"ROUTE_OCCUPIED"
 
 
 static func _prepared_masks_refusal(actual: RefCounted, graph: Routes, target_revision: int, profile_revision: int) -> StringName:
@@ -1515,6 +1581,9 @@ func actor_admission_refusal(location: Vector2i, selection: Profiles.Selection) 
 
 func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection) -> StringName:
 	"""Fit an actual grounded profile into a current complete endpoint; metadata or equal floor height is insufficient."""
+	if selection != null and Profiles.selection_policy_leaf(_profiles, selection.profile_id,
+			selection.profile_revision, selection.content_revision) == Profiles.POLICY_ASSEMBLY_HANDLING:
+		return _assembly_admission(location, selection)
 	var code: StringName = _hot_refusal()
 	if code == &"":
 		code = _selection_refusal(selection)
@@ -1533,6 +1602,143 @@ func _actor_admission_refusal(location: Vector2i, selection: Profiles.Selection)
 		if code != &"":
 			return code
 	return &""
+
+
+func _assembly_admission(location: Vector2i, selection: Profiles.Selection) -> StringName:
+	"""An unfunded READY body needs complete actual air, never an exception for a prospective workpiece."""
+	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
+	var pieces: Workpieces = _assembly_pieces(graph)
+	if pieces == null: return REFUSE_BINDING
+	var project: Vector2i = _assembly_project(pieces, selection.job)
+	var row: int = Owner.CoreSources._final_row(graph._ids, project, Routes.Directory.KIND_CONSTRUCTION)
+	if row < 0: return REFUSE_BINDING
+	var placement: Vector2i = Vector2i(pieces._router._construction._subject_slot[row],
+		pieces._router._construction._subject_generation[row])
+	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
+	if code == &"": code = _terrain.binding_refusal()
+	if code == &"": code = _locations().read_location_into(location, _endpoint)
+	if code == &"": code = AssemblyPhysical.admission_refusal(self, graph, pieces, placement, project, location, selection)
+	return code
+
+
+static func _assembly_pieces(graph: Routes) -> Workpieces:
+	"""Resolve the already-bound original modular owner chain; no new pointer or provider is installed."""
+	if graph == null or graph._work == null or graph._work._modular_authority == null: return null
+	var router: RefCounted = graph._work._modular_authority.get_ref()
+	if router == null or router._connector_owner == null or router._connector_owner.get_ref() == null: return null
+	var paid: RefCounted = router._connector_owner.get_ref()
+	return paid._workpieces as Workpieces if paid._placements != null and paid._placements._routes == graph else null
+
+
+static func _assembly_project(pieces: Workpieces, job: Vector2i) -> Vector2i:
+	"""An actual Router full Job binding, not a requester slot or caller token, selects the original Project."""
+	var row: int = Owner.CoreSources._final_row(pieces._router._jobs._directory, job, Routes.Directory.KIND_JOB)
+	if row < 0 or row >= pieces._router.JOB_CAPACITY \
+			or pieces._router._job_slot[row] != job.x or pieces._router._job_generation[row] != job.y: return Routes.NULL_REF
+	return Vector2i(pieces._router._project_slot[row], pieces._router._project_generation[row])
+
+
+func assembly_handling_refusal(pieces: Workpieces, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> StringName:
+	"""Ordinary current-source observations precede the concrete shared physical tail; Routes repeats that tail."""
+	if _reading: return REFUSE_BUSY
+	_reading = true
+	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
+	var code: StringName = REFUSE_BINDING
+	if graph != null and _assembly_pieces(graph) == pieces:
+		var revision: int = graph._owner._header[17]
+		var receipt: int = graph._locations._last_published_token
+		var pose: int = graph._transforms._mutation_revision
+		code = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+		if code == &"": code = _terrain.binding_refusal()
+		if code == &"":
+			code = _profiles.query_work_profile_into(worker, job, AssemblySource.PROFILE, 1,
+				_profiles._live.header[0], Profiles.POSTURE_UPRIGHT, -1, Routes.NULL_REF, graph._selection)
+		if code == &"" and (graph._owner._header[17] != revision \
+				or graph._locations._last_published_token != receipt or graph._transforms._mutation_revision != pose):
+			code = REFUSE_CONTEXT
+		if code == &"": code = assembly_handling_leaf_refusal(self, pieces, placement, project, worker, job)
+	_reading = false
+	return code
+
+
+static func assembly_handling_leaf_refusal(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""ConnectorWork and Routes use one concrete final chain after all observer dispatch has ended."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	if graph == null or graph._bindings != actual: return REFUSE_BINDING
+	return Routes.assembly_handling_leaf_refusal(graph, pieces, placement, project, worker, job)
+
+
+func assembly_release_observation_refusal(pieces: Workpieces, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> StringName:
+	"""A paused worker retains real source, tool and pose checks; ordinary observation grants no productive work."""
+	if _reading: return REFUSE_BUSY
+	_reading = true
+	var graph: Routes = _routes_ref.get_ref() as Routes if _routes_ref != null else null
+	var code: StringName = REFUSE_BINDING
+	if graph != null and _assembly_pieces(graph) == pieces:
+		var revision: int = graph._owner._header[17]
+		var receipt: int = graph._locations._last_published_token
+		var pose: int = graph._transforms._mutation_revision
+		code = _assembly_release_selection(graph, pieces, placement, project, worker, job)
+		if code == &"": code = _terrain.binding_refusal()
+		if code == &"":
+			code = _profiles.query_work_profile_into(worker, job, graph._selection.profile_id,
+				graph._selection.profile_revision, graph._selection.content_revision,
+				Profiles.POSTURE_UPRIGHT, -1, Routes.NULL_REF, graph._selection)
+		if code == &"" and (graph._owner._header[17] != revision \
+				or graph._locations._last_published_token != receipt or graph._transforms._mutation_revision != pose):
+			code = REFUSE_CONTEXT
+		if code == &"": code = assembly_release_leaf_refusal(self, pieces, placement, project, worker, job)
+	_reading = false
+	return code
+
+
+static func _assembly_release_selection(graph: Routes, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""The actual current BUILD assignment and source-ready tuple survive pause; neither pause nor a caller selector grants it."""
+	var code: StringName = Workpieces.source_leaf_refusal(pieces, placement, project)
+	if code != &"": return code
+	if graph == null or pieces._placements._routes != graph or pieces._placements._world_routes != graph._bindings \
+			or graph._profiles != pieces._profiles or pieces._busy or pieces._stage_action != -1 \
+			or pieces._context != null or pieces._cold_token != 0: return REFUSE_BINDING
+	code = Workpieces._assigned_worker_leaf(pieces, project, worker, job)
+	var row: int = Owner.CoreSources._final_row(graph._ids, worker, Routes.Directory.KIND_RESIDENT)
+	if code != &"" or row < 0 or row >= Routes.RESIDENT_CAPACITY: return REFUSE_CONTEXT
+	code = Routes.turn_selection_into(graph, row, graph._selection)
+	if code != &"": return code
+	if graph._selection.profile_id != AssemblySource.PROFILE and graph._selection.profile_id != 16:
+		return REFUSE_CONTEXT
+	return Routes.source_ready_leaf_refusal(graph, worker, job, graph._selection.profile_id,
+		graph._selection.profile_revision, graph._selection.content_revision)
+
+
+static func assembly_release_leaf_refusal(actual: RefCounted, pieces: Workpieces, placement: Vector2i,
+		project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Concrete READY body/footing/foreign-actor proof closes the release after its last observation, without resetting budget."""
+	var graph: Routes = actual._routes_ref.get_ref() as Routes if actual != null and actual._routes_ref != null else null
+	if graph == null or graph._bindings != actual: return REFUSE_BINDING
+	var code: StringName = _assembly_release_selection(graph, pieces, placement, project, worker, job)
+	if code != &"": return code
+	var row: int = Owner.CoreSources._final_row(graph._ids, worker, Routes.Directory.KIND_RESIDENT)
+	if pieces._live.present[placement.x] == 0:
+		var project_row: int = Workpieces._project_row(pieces, placement, project)
+		if graph._selection.profile_id != AssemblySource.PROFILE or project_row < 0 \
+				or Workpieces._funded(pieces, project, project_row) \
+				or pieces._router._construction._work_begun[project_row] != 0:
+			return REFUSE_CONTEXT
+		for field: int in 5:
+			if pieces._live.fields[field * pieces._capacity + placement.x] != 0: return REFUSE_CONTEXT
+		code = AssemblyPhysical.admission_refusal(actual, graph, pieces, placement, project,
+			Vector2i(graph._motion.resident[Routes.R_LOCATION_SLOT * Routes.RESIDENT_CAPACITY + row],
+				graph._motion.resident[(Routes.R_LOCATION_SLOT + 1) * Routes.RESIDENT_CAPACITY + row]), graph._selection)
+	else:
+		code = Workpieces.live_leaf_refusal(pieces, placement, project)
+		if code == &"" and graph._selection.profile_id == 16:
+			code = Workpieces.handled_leaf_refusal(pieces, placement, project)
+		if code == &"": code = AssemblyPhysical.refusal(actual, graph, pieces, placement, project, worker, job, graph._selection)
+	return Routes._assembly_occupants_leaf(graph, row) if code == &"" else code
 
 
 func _endpoint_box_refusal(point: Vector3i, worker: Vector2i) -> StringName:

@@ -29,6 +29,8 @@ const Transforms := preload("res://scripts/core/transforms.gd")
 const Inventory := preload("res://scripts/core/inventory.gd")
 const Gear := preload("res://scripts/core/gear.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const AssemblyPhysical := preload("res://data/underground/mole-worker/qualified-assembly-v1/physical_certificate.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const CONTROL_BYTES: int = 4096
 const FRAGMENT_CAPACITY: int = 32
@@ -239,8 +241,92 @@ func _allocate() -> void:
 
 func exact_binding(placements: Placements, router: Router, world: Vector2i) -> bool:
 	"""Metadata borrowing cannot grant contact permission to a coincident foreign World or composer."""
-	return _configured and placements == _placements and router == _actual_router() \
+	return _configured and _placements != null and _router != null \
+		and placements == _placements and router == _actual_router() \
 		and world == _placements._world and _binding_leaf() == &""
+
+
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""The complete retirement kernel supplies its original packet; only this owner's retained pins are read here."""
+	if actual == null or original == null or original.contacts != actual or not actual._configured \
+			or actual._placements == null or actual._router == null or actual._frontier == null \
+			or actual._sites == null or actual._terrain == null or actual._fragments == null \
+			or original.room_bindings == null or original.world_bindings == null \
+			or original.world_routes == null or original.world == null or original.budget == null:
+		return REFUSE_BINDING
+	if actual._busy or actual._valid or actual._phase_space_token != 0 or actual._phase_companion_token != 0 \
+			or original.budget._token != 0 or original.budget._used != 0:
+		return REFUSE_SCOPE
+	if actual._placements != original.placements or actual._router.get_ref() != original.router \
+			or actual._sites != original.sites or actual._terrain != original.terrain \
+			or actual._frontier != original.room_bindings._entry_frontier:
+		return REFUSE_BINDING
+	return _retirement_original_stores_in(actual, original)
+
+
+static func _retirement_original_stores_in(actual: RefCounted, original: RefCounted) -> StringName:
+	"""Placement and Router remain bound until after Contacts; Workpieces and Delivery may already be released."""
+	if original.placements._ids != original.directory or original.placements._world != original.world_ref \
+			or original.placements._construction != original.construction \
+			or original.placements._world_routes != original.world_routes \
+			or original.placements._budget != original.budget or original.router == null \
+			or original.router._world != original.world_ref or original.router._construction != original.construction \
+			or original.router._sites != actual._sites or original.world._directory != original.directory \
+			or actual._terrain._world != original.world or actual._terrain._world_ref != original.world_ref \
+			or actual._terrain._budget != original.budget or original.world_routes._terrain != actual._terrain:
+		return REFUSE_BINDING
+	return &""
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int) -> StringName:
+	"""Only the exact cleared, unpublished World permits dropping these pins; normal configure remains one-way."""
+	var code: StringName = retirement_refusal_in(actual, original)
+	if code != &"": return code
+	code = Routes.Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world._published: return REFUSE_BINDING
+	_release_retired_controls_in(actual)
+	return &""
+
+
+static func _release_retired_controls_in(actual: RefCounted) -> void:
+	"""Release this packet only, with no foreign callback or recursive owner check after the first write."""
+	actual._poisoned = true
+	actual._placements = null
+	actual._router = null
+	actual._frontier = null
+	actual._sites = null
+	actual._terrain = null
+	actual._order = null
+	actual._location = null
+	actual._other = null
+	actual._descriptor = null
+	actual._selection = null
+	actual._box = null
+	actual._stance = null
+	actual._number = null
+	actual._fragments = null
+	_release_retired_arrays_in(actual)
+
+
+static func _release_retired_arrays_in(actual: RefCounted) -> void:
+	"""No array literal or replacement owner is allocated while releasing the fixed retained scratch."""
+	actual._frame.clear()
+	actual._install.clear()
+	actual._station.clear()
+	actual._endpoint.clear()
+	actual._cut.clear()
+	actual._bearing.clear()
+	actual._part.clear()
+	actual._region.clear()
+	actual._pair.clear()
+	actual._remaining.clear()
+	actual._bounds.clear()
+	actual._support.clear()
+	actual._target.clear()
+	actual._scratch.clear()
+	actual._episode.clear()
 
 
 func _actual_router() -> Router:
@@ -1253,6 +1339,9 @@ func _physical_leaf() -> StringName:
 		code = _bearing_dependencies()
 	if code == &"":
 		code = _descriptor_leaf()
+	if code == &"" and not _phase_mode and (_action == Contract.PRODUCTIVE or _action == Contract.COMMIT) \
+			and _assembly_source_selected():
+		code = Workpieces.handled_leaf_refusal(_workpiece_owner(), _placement, _project)
 	return _profile_geometry() if code == &"" else code
 
 
@@ -1309,6 +1398,32 @@ func final_observation_refusal(placement: Vector2i, project: Vector2i, assembly:
 	return _leave(code if code != &"" else _scope_leaf())
 
 
+func handling_observation_refusal(placement: Vector2i, project: Vector2i, worker: Vector2i,
+		job: Vector2i) -> StringName:
+	"""The paid handling owner borrows one original graph budget before observations; its concrete tail repeats proof."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _binding_leaf() if _configured else REFUSE_BINDING
+	var pieces: Workpieces = _workpiece_owner() if code == &"" else null
+	if code == &"" and pieces == null: code = REFUSE_BINDING
+	if code == &"":
+		code = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+	if code == &"":
+		code = _placements._world_routes.assembly_handling_refusal(pieces, placement, project, worker, job)
+	return _leave(code)
+
+
+func release_observation_refusal(placement: Vector2i, project: Vector2i, worker: Vector2i,
+		job: Vector2i) -> StringName:
+	"""Positioning-only release observes current owners under the caller's original whole-crew budget."""
+	if not _enter(): return REFUSE_REENTRY
+	var code: StringName = _binding_leaf() if _configured else REFUSE_BINDING
+	var pieces: Workpieces = _workpiece_owner() if code == &"" else null
+	if code == &"" and pieces == null: code = REFUSE_BINDING
+	if code == &"":
+		code = _placements._world_routes.assembly_release_observation_refusal(pieces, placement, project, worker, job)
+	return _leave(code)
+
+
 func _observe_workers() -> StringName:
 	"""Actual selection observers finish before the direct final worker and physical proof."""
 	var primary: int = _job_row(_primary_job)
@@ -1326,8 +1441,12 @@ func _observe_workers() -> StringName:
 			var code: StringName = _placements._profiles._prepare_query(worker, job, Profiles.MODE_WORK,
 				_station[6], -1, NULL_REF, _selection)
 			if code == &"":
-				code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
-					_profile_revision, _frontier._header[5])
+				if _assembly_start():
+					code = Routes.source_ready_leaf_refusal(_placements._routes, worker, job,
+						AssemblySource.PROFILE, 1, _frontier._header[5])
+				else:
+					code = _placements._routes.source_work_observation_refusal(worker, job, _station[5],
+						_profile_revision, _frontier._header[5])
 			if code != &"": return code
 		if jobs._is_coordinator[primary] == 0: break
 		row = jobs._member_next[row]
@@ -1578,6 +1697,7 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 	if _phase_mode and _phase_needs_worker() and (_sites._worker_site[row] != _phase_site.x \
 			or _sites._worker_generation[row] != worker.y):
 		return REFUSE_WORKER
+	if _assembly_start() or _assembly_unfunded_worker(): return _assembly_start_worker_leaf(job, worker, row)
 	var code: StringName = _dynamic_selection(row, worker, job, _selection)
 	if code != &"" or not graph._committed_selection(row, _selection) \
 			or _selection.profile_id != _station[5] or _selection.profile_revision != _profile_revision \
@@ -1593,6 +1713,94 @@ func _worker_leaf(job: Vector2i, worker: Vector2i) -> StringName:
 	if code == &"": code = _worker_retreat_leaf(worker, job)
 	if code == &"": code = _occupancy_leaf(worker)
 	return _handling_leaf(worker, job) if code == &"" else code
+
+
+func _assembly_source_selected() -> bool:
+	"""Only the explicit new handling selector enters this protocol; legacy fixture paths keep their old contract."""
+	var actual: Workpieces = _workpiece_owner()
+	return actual != null and _ordinal >= 0 and _ordinal < actual._assembly_capacity \
+		and actual._parts.size() == 6 * actual._assembly_capacity \
+		and actual._parts[Workpieces.PROFILE * actual._assembly_capacity + _ordinal] == AssemblySource.PROFILE
+
+
+func _assembly_start() -> bool:
+	"""Funding starts at canonical handling READY; the INSTALL work selector is chosen only after handled recovery."""
+	return not _phase_mode and _action == Contract.START and _assembly_source_selected()
+
+
+func _assembly_unfunded_worker() -> bool:
+	"""An early Router worker check observes READY before the paid owner stages START; it grants no transition."""
+	if _phase_mode or _action != -1 or not _assembly_source_selected(): return false
+	var row: int = _project_row()
+	if row < 0: return false
+	var construction: Construction = _placements._construction
+	var funding: RefCounted = _actual_router()._funding
+	return construction._phase[row] == Construction.PHASE_READY and construction._work_begun[row] == 0 \
+		and construction._paused[row] == 0 and funding._project_slot[row] == -1 \
+		and funding._project_generation[row] == 0
+
+
+func _assembly_start_worker_leaf(job: Vector2i, worker: Vector2i, row: int) -> StringName:
+	"""Actual BUILD assignment/tool/body and canonical READY precede payment, with no fastening work granted."""
+	var actual: Workpieces = _workpiece_owner()
+	var graph: Routes = _placements._routes
+	var code: StringName = Workpieces.source_leaf_refusal(actual, _placement, _project)
+	if code == &"": code = Routes.turn_selection_into(graph, row, _selection)
+	if code == &"": code = AssemblySource.profile_refusal(_placements._profiles, _selection.profile_id,
+		_selection.profile_revision, _selection.content_revision)
+	if code != &"" or _selection.worker != worker or _selection.job != job \
+			or _selection.content_revision != _frontier._header[5] or _selection.yaw != 0 \
+			or _selection.yaw != _world_yaw() or Vector3i(_selection.x, _selection.y, _selection.z) != _location.point \
+			or graph._resident_pair(Routes.R_ROOM_SLOT, row) != _location.room \
+			or graph._resident_pair(Routes.R_SECTION_SLOT, row) != _location.section \
+			or graph._motion.resident[Routes.R_LEVEL * Routes.RESIDENT_CAPACITY + row] != _location.level:
+		return code if code != &"" else REFUSE_WORKER
+	code = Routes.source_ready_leaf_refusal(graph, worker, job, AssemblySource.PROFILE, 1, _frontier._header[5])
+	if code == &"": code = AssemblyPhysical._source_station(actual, _placement, _selection)
+	if code == &"": code = AssemblySource.bearer_refusal(_ordinal, _location.point, _target)
+	if code == &"": code = _assembly_start_geometry()
+	if code == &"": code = _worker_retreat_leaf(worker, job)
+	return _occupancy_leaf(worker, AssemblySource.PROFILE) if code == &"" else code
+
+
+func _assembly_start_geometry() -> StringName:
+	"""The full source fits current real air and footing before its future obstacle is published; no target is subtracted."""
+	if _terrain._checked_geometry_revision != _geometry_revision \
+			or not Terrain._final_owners_match(_terrain, _placements._space._sources): return REFUSE_BINDING
+	for part: int in 3:
+		var code: StringName = AssemblyPhysical._box_into(_selection, part, _bounds)
+		if code == &"": code = _assembly_start_volume(part == 1)
+		if code != &"": return code
+	return &""
+
+
+func _assembly_start_volume(foot: bool) -> StringName:
+	"""Complete live physical/source proof is independent of the future full-part triangle certificate."""
+	if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
+	var code: StringName = Terrain._final_local_tiles(_terrain, _bounds, Terrain.EXCLUSIONS)
+	if code != &"": return code
+	if foot and (not Space.contains_box(_location.support, _bounds) or Space.overlaps(_bounds, _target)):
+		return REFUSE_GEOMETRY
+	_fragments.start(_bounds)
+	var owner: Owner = _placements._space
+	for region: int in owner._region_capacity:
+		if not _fragments.spend(): return REFUSE_CAPACITY
+		if owner._r_present[region] == 0: continue
+		_copy_region_box(region, _scratch)
+		if not Space.overlaps(_bounds, _scratch): continue
+		var role: int = owner._r_role[region]
+		if role == Space.SUPPORTED_VOID:
+			if not foot and not _fragments.subtract(_scratch): return REFUSE_CAPACITY
+		elif role == Space.DRY_SOLID or role == Space.SUPPORT:
+			if not foot: return REFUSE_GEOMETRY
+		elif role != Space.FLOOR_DATUM and role != Space.PROTECTED_ACCESS: return REFUSE_GEOMETRY
+	if foot: return &""
+	for fragment: int in _fragments.count:
+		if not _fragments.spend(Terrain.LOCAL_QUERY_CHECKS): return REFUSE_CAPACITY
+		for axis: int in 6: _scratch[axis] = _fragments.first[fragment * 6 + axis]
+		code = Terrain._final_local_tiles(_terrain, _scratch, Terrain.EXTERIOR)
+		if code != &"": return code
+	return &""
 
 
 func _handling_leaf(worker: Vector2i, job: Vector2i) -> StringName:

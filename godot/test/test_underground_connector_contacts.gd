@@ -37,11 +37,41 @@ const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
 const IntMath := preload("res://scripts/core/int_math.gd")
 const Transforms := preload("res://scripts/core/transforms.gd")
+const EntryBindings := preload("res://scripts/core/underground_entry_bindings.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const SOURCE_PATH: String = "user://test-actual-connector-contacts-frontier.bin"
 const SOURCE_REVISION: int = 29
 const ROOT_X: int = -3584
 const ROOT_Z: int = 512
+
+
+class RetirementPins extends RefCounted:
+	## Component-level copy of original owner identities. The complete Session retirement kernel is tested separately.
+	var contacts: Contacts = null
+	var placements: Placements = null
+	var router: Router = null
+	var sites: Sites = null
+	var terrain: Terrain = null
+	var room_bindings: EntryBindings = EntryBindings.new()
+	var world_bindings: RefCounted = null
+	var world_routes: RefCounted = null
+	var directory: Directory = null
+	var world_ref: Vector2i = NULL_REF
+	var world: RefCounted = null
+	var construction: Construction = null
+	var budget: Budget = null
+
+
+func test_unconfigured_handling_and_release_observers_refuse_without_allocating_authority() -> void:
+	"""A fresh observer cannot reset an operation budget or grant a paid handling/pause transition."""
+	var contacts: Contacts = Contacts.new()
+	assert_equal(contacts.handling_observation_refusal(NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Contacts.REFUSE_BINDING, "handling needs original owners")
+	assert_equal(contacts.release_observation_refusal(NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Contacts.REFUSE_BINDING, "release needs original owners")
+	assert_false(contacts._busy, "refused callback leaves no reentry latch")
+	assert_equal(contacts._fragments.first.size(), 0, "no fragment allocation before configure")
+
 
 class Content extends RefCounted:
 	## Source flags below qualify only this component fixture, never supplied rig/content or a playable entrance.
@@ -715,6 +745,18 @@ func _unpaid_order() -> void:
 	assert_true(_fixture.failures.is_empty(), "actual unpaid order setup")
 
 
+func test_initial_worker_observation_cannot_mint_start_transition() -> void:
+	"""Router's early worker context remains an unprivileged observation even when the worker fits exactly."""
+	_unpaid_order()
+	assert_equal(_fixture.paid._stage_action, -1, "the purpose owner has not prepared START")
+	assert_equal(_fixture.contacts.worker_refusal(_fixture.placement, _fixture.project, 0,
+		_fixture.job, _fixture._f._worker), &"", "actual worker observation")
+	assert_equal(_fixture.contacts._action, -1, "the observer cannot choose the owner's next transition")
+	assert_equal(_fixture.contacts.final_leaf_refusal(_fixture.placement, _fixture.project, 0,
+		Contract.START), Contacts.REFUSE_SCOPE, "a copied worker result is not START authority")
+	assert_false(_fixture._router._funding.is_funded(_fixture.project), "no receipt from observation")
+
+
 func _paid_order() -> void:
 	"""Funding and Construction remain the sole authorities for earned labor and material consumption."""
 	_unpaid_order()
@@ -1026,6 +1068,84 @@ func test_reflected_fixed_packets_fit_the_admitted_control_reserve() -> void:
 	assert_equal(bytes, 3059, "source-derived reusable payload includes the sole original companion token, with no hidden per-placement bank")
 	assert_true(bytes + 1024 <= Contacts.CONTROL_BYTES, "nested numeric helper ceiling fits the same reserve")
 	assert_equal(_packet_numeric_bytes(actual._fragments), 1633, "both fragment banks coexist and are counted")
+
+
+func _retirement_pins() -> RetirementPins:
+	"""Capture actual original stores and the same immutable source; this packet never supplies a World-clear result."""
+	var out: RetirementPins = RetirementPins.new()
+	out.contacts = _fixture.contacts
+	out.placements = _fixture._placements
+	out.router = _fixture._router
+	out.sites = _fixture._sites
+	out.terrain = _fixture._f._terrain
+	out.room_bindings._entry_frontier = _fixture.source
+	out.world_bindings = _fixture._physical
+	out.world_routes = _fixture._f._binding
+	out.directory = _fixture._f._residents.directory()
+	out.world_ref = _fixture._f._world_ref
+	out.world = _fixture._f._world
+	out.construction = _fixture._f._construction
+	out.budget = _fixture._f._budget
+	return out
+
+
+func test_contacts_retirement_requires_original_quiescent_owner_scope() -> void:
+	"""An unowned historical cold number is metadata; actual active Budget or contact/phase preparation still refuses."""
+	var pins: RetirementPins = _retirement_pins()
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), &"", "original quiescent packet")
+	_fixture.contacts._phase_cold_token = 99
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), &"", "discarded cold metadata owns no lease")
+	_fixture.contacts._busy = true
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "live observer")
+	_fixture.contacts._busy = false
+	_fixture.contacts._valid = true
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "live contact packet")
+	_fixture.contacts._valid = false
+	_fixture.contacts._phase_space_token = 1
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "live phase token")
+	_fixture.contacts._phase_space_token = 0
+	var token: int = pins.budget.acquire(1)
+	assert_true(token > 0, "real cold lease")
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_SCOPE, "actual original lease")
+	assert_equal(pins.budget.release(token), &"", "release own test lease")
+	pins.world_ref.y += 1
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_BINDING, "full World generation")
+	pins.world_ref.y -= 1
+	pins.room_bindings._entry_frontier = EntrySource.new()
+	assert_equal(Contacts.retirement_refusal_in(_fixture.contacts, pins), Contacts.REFUSE_BINDING, "foreign immutable source")
+	assert_equal(_fixture.contacts._placements, _fixture._placements, "every refusal preserves original pins")
+
+
+func test_contacts_retirement_release_requires_actual_clear_and_tombstones_only_itself() -> void:
+	"""Actual store clear permits this leaf; complete whole-composition retirement remains the Session kernel's job."""
+	var pins: RetirementPins = _retirement_pins()
+	var persistent_id: int = pins.directory._persistent_id[pins.world_ref.x]
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id),
+		&"WORLD_RETIREMENT_NOT_EMPTY", "live World cannot release Contacts")
+	_fixture._f._residents.clear()
+	_fixture._f._jobs.clear()
+	_fixture._f._work.clear()
+	_fixture._f._gear.clear()
+	_fixture._f._pool.clear()
+	_fixture._f._inventory.clear()
+	assert_true(_fixture._f._items.load_default(_fixture._f._inventory).ok, "same ordinary host definition reload")
+	_fixture._f._buildings.clear()
+	_fixture._f._construction.clear()
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id),
+		Contacts.REFUSE_BINDING, "published World must also be cleared")
+	pins.world.clear()
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id), &"", "actual empty original World")
+	assert_equal(_fixture.contacts._placements, null, "own strong Placement borrow released")
+	assert_equal(_fixture.contacts._router, null, "own weak Router borrow released")
+	assert_equal(_fixture.contacts._frame.size(), 0, "own fixed array released")
+	assert_equal(_fixture.contacts._fragments, null, "own fragment packet released")
+	assert_equal(_fixture._placements._world_routes, pins.world_routes, "foreign graph remains untouched")
+	assert_equal(_fixture._router._sites, pins.sites, "foreign Router remains untouched")
+	assert_equal(_fixture.contacts.configure(_fixture._placements, _fixture._router, _fixture.source,
+		Contacts.CONTROL_BYTES), Contacts.REFUSE_BINDING, "retired object cannot be configured again")
+	assert_false(_fixture.contacts.exact_binding(null, null, NULL_REF), "null values cannot make the tombstone match")
+	assert_equal(Contacts.world_retirement_release_preflighted_in(_fixture.contacts, pins, persistent_id),
+		Contacts.REFUSE_BINDING, "release is one-way")
 
 
 func _packet_numeric_bytes(source: RefCounted) -> int:

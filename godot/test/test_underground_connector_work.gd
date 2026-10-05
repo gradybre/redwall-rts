@@ -23,6 +23,18 @@ const Needs := preload("res://scripts/core/needs.gd")
 const BuildingCatalog := preload("res://scripts/core/catalog.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 
+class RetirementPins extends RefCounted:
+	## A test-only view of the existing captured owner protocol; no release authority or alternate World is supplied.
+	var connector: RefCounted = null
+	var placements: RefCounted = null
+	var router: RefCounted = null
+	var contacts: RefCounted = null
+	var construction: RefCounted = null
+	var workpieces: RefCounted = null
+	var world_ref: Vector2i = NULL_REF
+	var directory: RefCounted = null
+	var world: RefCounted = null
+
 class FourPartWorld extends PlacementTests.ActualFixture:
 
 	func _load_catalog(revision: int) -> StringName:
@@ -343,6 +355,34 @@ func after_each() -> void:
 	_fx.after_each()
 	assert_equal(_fx.failures.size(), 0, "actual fixture checks: %s" % _fx.failures)
 	_fx = null
+
+
+func test_retirement_original_pins_and_canonical_clear_guard_preserve_live_owner() -> void:
+	"""The real bound owner can attest its stored lifetime, but a live canonical World never grants release."""
+	var original: RetirementPins = RetirementPins.new()
+	original.connector = _fx.paid_owner
+	original.placements = _fx._placements
+	original.router = _fx._router
+	original.contacts = _fx.contacts
+	original.construction = _fx._f._construction
+	original.world_ref = _fx._f._world_ref
+	original.directory = _fx._f._residents.directory()
+	original.world = _fx._f._world
+	assert_equal(ConnectorWork.retirement_refusal_in(_fx.paid_owner, original), &"", "original completed binding")
+	var identity: int = original.directory._persistent_id[original.world_ref.x]
+	assert_equal(ConnectorWork.world_retirement_release_preflighted_in(_fx.paid_owner, original, identity),
+		&"WORLD_RETIREMENT_NOT_EMPTY", "clear proof cannot be a caller flag")
+	assert_true(_fx.paid_owner._placements == original.placements and _fx.paid_owner._ready, "live original stays usable")
+	original.world_ref.y += 1
+	assert_equal(ConnectorWork.retirement_refusal_in(_fx.paid_owner, original, true), ConnectorWork.REFUSE_BINDING,
+		"stopped flag does not bless a foreign generation")
+	original.world_ref.y -= 1
+	var publication: WeakRef = _fx._placements._publisher
+	_fx._placements._publisher = null
+	assert_equal(ConnectorWork.retirement_refusal_in(_fx.paid_owner, original, true), ConnectorWork.REFUSE_BINDING,
+		"mixed publisher/pointer prefix refuses")
+	_fx._placements._publisher = publication
+	assert_equal(ConnectorWork.retirement_refusal_in(_fx.paid_owner, original), &"", "restored original retry")
 
 
 func _record(p: Vector2i) -> Placements.OrderRecord:

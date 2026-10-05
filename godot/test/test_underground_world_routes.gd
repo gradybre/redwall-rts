@@ -270,6 +270,12 @@ func test_unbound_adapter_cannot_admit_or_publish_actual_routes() -> void:
 	assert_equal(binding.static_profile_edge_refusal(Vector2i(0, 1), 0, 1, 1), Binding.REFUSE_BINDING, "no unbound static permission")
 	assert_equal(binding.publish(1), Binding.REFUSE_CONTEXT, "no unbound graph publication")
 	assert_false(binding.abort(1), "no foreign token cancellation")
+	assert_equal(Binding.assembly_release_leaf_refusal(binding, null, NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Binding.REFUSE_BINDING, "an unbound pause release cannot stand in for physical proof")
+	assert_equal(binding.assembly_release_observation_refusal(null, NULL_REF, NULL_REF, NULL_REF, NULL_REF),
+		Binding.REFUSE_BINDING, "an observed pause has no default success")
+	assert_equal(Binding.AssemblyPhysical.install_ready_selection_refusal(null, Profiles.Selection.new()),
+		Binding.AssemblyPhysical.REFUSE, "a supplied ready-looking selection has no original canonical actor")
 
 
 func _actual_fixture(obstruction: int = 0) -> void:

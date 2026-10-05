@@ -11,11 +11,17 @@ const Assemblies := preload("res://scripts/core/underground_connector_assemblies
 const Recipes := preload("res://scripts/core/underground_connector_recipes.gd")
 const Budget := preload("res://scripts/core/underground_budget.gd")
 const Workpieces := preload("res://scripts/core/underground_connector_workpieces.gd")
+const Routes := preload("res://scripts/core/underground_routes.gd")
+const WorldRoutes := preload("res://scripts/core/underground_world_routes.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const REFUSE_BINDING: StringName = &"CONNECTOR_WORK_UNBOUND"
 const REFUSE_ORDER: StringName = &"CONNECTOR_WORK_ORDER"
 const REFUSE_STAGE: StringName = &"CONNECTOR_WORK_STAGE"
 const REFUSE_REENTRY: StringName = &"CONNECTOR_WORK_REENTRY"
+const HANDLING: int = 5 # Private synchronous promotion only; not a Router/Funding action.
+const HANDLING_PUBLISH: int = 6 # Entered only after the last concrete proof; no observer runs in this state.
+const PAUSING: int = 7
+const PAUSE_PUBLISH: int = 8
 
 class Contacts extends RefCounted:
 
@@ -51,6 +57,16 @@ class Contacts extends RefCounted:
 
 	func final_leaf_refusal(_placement: Vector2i, _project: Vector2i, _assembly: int, _action: int) -> StringName:
 		"""Actual implementation must read pinned leaf owners without callbacks, allocation or publication."""
+		return REFUSE_BINDING
+
+	func handling_observation_refusal(_placement: Vector2i, _project: Vector2i,
+			_worker: Vector2i, _job: Vector2i) -> StringName:
+		"""Observe the complete actual stationary source; no base or caller success grants handled state."""
+		return REFUSE_BINDING
+
+	func release_observation_refusal(_placement: Vector2i, _project: Vector2i,
+			_worker: Vector2i, _job: Vector2i) -> StringName:
+		"""Observe actual READY positioning for departure, without granting productive or unpaused work."""
 		return REFUSE_BINDING
 
 	func discard_transition(_placement: Vector2i, _project: Vector2i, _assembly: int, _action: int) -> void:
@@ -101,7 +117,7 @@ var _workpieces: Workpieces = null
 
 func configure(placements: Placements, router: Router, contacts: Contacts) -> StringName:
 	"""Initialize once; a failed reciprocal bind leaves an unactivated whole composition to discard."""
-	if _placements != null or placements == null or router == null or contacts == null or not _enter():
+	if _world != NULL_REF or _placements != null or placements == null or router == null or contacts == null or not _enter():
 		return REFUSE_BINDING
 	_placements = placements
 	_construction = placements.construction_owner()
@@ -127,6 +143,66 @@ func configure(placements: Placements, router: Router, contacts: Contacts) -> St
 	return _leave(code if _ready else REFUSE_BINDING)
 
 
+static func retirement_refusal_in(actual: RefCounted, original: RefCounted, stopped_constructor: bool = false) -> StringName:
+	"""Match the captured original fields and the finite configure prefixes; no foreign owner is reset or observed."""
+	if actual == null or original == null or original.connector != actual or original.placements == null \
+			or original.router == null or original.contacts == null or actual._publication == null \
+			or actual._publication.owner == null or actual._publication.owner.get_ref() != actual \
+			or actual._world != original.world_ref or actual._placements != original.placements \
+			or actual._construction != original.construction or actual._assemblies != original.placements._assemblies \
+			or actual._recipes != original.placements._recipes or actual._router == null \
+			or actual._router.get_ref() != original.router or actual._contacts == null \
+			or actual._contacts.get_ref() != original.contacts or (not actual._ready and not stopped_constructor):
+		return REFUSE_BINDING
+	if actual._busy or actual._stage_action != -1 or actual._stage_project != NULL_REF \
+			or actual._stage_placement != NULL_REF or actual._stage_contacts != null \
+			or actual._cold_token != 0 or actual._cold_budget != null:
+		return REFUSE_STAGE
+	if actual._workpieces != original.workpieces:
+		if not stopped_constructor or actual._workpieces != null or original.workpieces == null \
+				or original.placements._workpieces != null: return REFUSE_BINDING
+	return _retirement_reciprocals_in(actual, original, stopped_constructor)
+
+
+static func _retirement_reciprocals_in(actual: RefCounted, original: RefCounted, stopped: bool) -> StringName:
+	"""Only absent, Router-only and fully bound configure prefixes can survive an actual stopped constructor."""
+	var placements: RefCounted = original.placements
+	var router: RefCounted = original.router
+	if router._connector_owner == null:
+		return &"" if stopped and not actual._ready and placements._publisher == null \
+			and placements._router == null and placements._paid_owner == null else REFUSE_BINDING
+	if router._connector_owner.get_ref() != actual: return REFUSE_BINDING
+	if placements._publisher == null:
+		return &"" if stopped and not actual._ready and placements._router == null \
+			and placements._paid_owner == null else REFUSE_BINDING
+	return &"" if placements._publisher.get_ref() == actual._publication and placements._router != null \
+		and placements._router.get_ref() == router and placements._paid_owner != null \
+		and placements._paid_owner.get_ref() == actual else REFUSE_BINDING
+
+
+static func world_retirement_release_preflighted_in(actual: RefCounted, original: RefCounted,
+		persistent_id: int, stopped_constructor: bool = false) -> StringName:
+	"""Release only own borrows after canonical whole-World clear; the retained World handle permanently closes configure."""
+	var code: StringName = retirement_refusal_in(actual, original, stopped_constructor)
+	if code != &"": return code
+	code = Routes.Buildings.whole_world_retirement_refusal_in(original.directory, original.world_ref, persistent_id, true)
+	if code != &"": return code
+	if original.world == null or original.world._published: return REFUSE_BINDING
+	actual._ready = false
+	actual._placements = null
+	actual._construction = null
+	actual._assemblies = null
+	actual._recipes = null
+	actual._router = null
+	actual._contacts = null
+	actual._publication.owner = null
+	actual._publication = null
+	actual._workpieces = null
+	actual._order = null
+	actual._assembly = null
+	return &""
+
+
 func construction_owner() -> RefCounted:
 	"""The actual immutable store is exposed for initialization; readiness is checked by every operation."""
 	return _construction
@@ -141,6 +217,202 @@ func bind_workpieces(actual: Workpieces) -> StringName:
 	_workpieces = actual
 	var code: StringName = _placements.bind_workpieces(actual)
 	if code != &"": _workpieces = null
+	return code
+
+
+func complete_handling(placement: Vector2i, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Observe first, then promote one original paid row through concrete physical/source/clock leaves only."""
+	if not _enter(): return REFUSE_REENTRY
+	return _finish_handling_preflighted(self, _complete_handling_observed(placement, project, worker, job))
+
+
+func _complete_handling_observed(placement: Vector2i, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""The same real promotion may finish inside the exact Router pause window while its original worker is retained."""
+	var pieces: Workpieces = _workpieces
+	var placements: Placements = _placements
+	var router: Router = _actual_router()
+	var contacts: Contacts = _contacts.get_ref() as Contacts if _contacts != null else null
+	var code: StringName = _composition_leaf()
+	if code == &"" and (pieces == null or _stage_action != -1 or contacts == null \
+			or router._busy and not _pause_window(self, router, project)):
+		code = REFUSE_STAGE
+	if code == &"": code = Workpieces.handling_leaf_refusal(pieces, placement, project, worker, job)
+	if code != &"": return code
+	_set_stage(placement, project, pieces._router._construction._type_id[Workpieces._project_row(pieces,
+		placement, project)], HANDLING, contacts)
+	placements._routes._remaining = placements._routes._domain._checks
+	placements._routes._operation_error = &""
+	placements._routes._callback_reentered = false
+	code = contacts.handling_observation_refusal(placement, project, worker, job)
+	if code == &"": code = _handling_scope_leaf(self, pieces, placements, router, contacts)
+	if code == &"": code = _complete_handling_leaf(self, placement, project, worker, job)
+	if code == &"":
+		_stage_action = HANDLING_PUBLISH
+		if not Workpieces.publish_handled_preflighted(pieces, placement, project, worker, job): code = REFUSE_STAGE
+	return code
+
+
+static func _handling_scope_leaf(a: RefCounted, pieces: Workpieces, placements: Placements,
+		router: Router, contacts: Contacts) -> StringName:
+	"""Close original borrowed owner identities after observers, without adopting coincident foreign replacements."""
+	return &"" if a._workpieces == pieces and a._placements == placements and a._router != null \
+		and a._router.get_ref() == router and a._construction == router._construction \
+		and a._contacts != null and a._contacts.get_ref() == contacts and a._stage_contacts == contacts \
+		and pieces._placements == placements and pieces._router == router and pieces._contacts != null \
+		and pieces._contacts.get_ref() == contacts \
+		and (not router._busy or _pause_window(a, router, a._stage_project)) else REFUSE_BINDING
+
+
+static func _complete_handling_leaf(a: RefCounted, placement: Vector2i, project: Vector2i,
+		worker: Vector2i, job: Vector2i) -> StringName:
+	"""No virtual reader follows the last Contacts observer; original synchronous intent survives reentry or replacement."""
+	if not a._busy or a._poisoned or a._stage_action != HANDLING or a._stage_placement != placement \
+			or a._stage_project != project or a._contacts == null or a._contacts.get_ref() != a._stage_contacts \
+			or a._workpieces == null or a._placements == null:
+		return REFUSE_REENTRY
+	var code: StringName = WorldRoutes.assembly_handling_leaf_refusal(a._placements._world_routes,
+		a._workpieces, placement, project, worker, job)
+	if code == &"": code = Workpieces.handling_leaf_refusal(a._workpieces, placement, project, worker, job)
+	if code != &"": return code
+	var row: int = Workpieces._project_row(a._workpieces, placement, project)
+	if row < 0 or a._construction._type_id[row] != a._stage_assembly \
+			or a._construction._phase[row] != Construction.PHASE_WORKING \
+			or a._workpieces._live.present[placement.x] != Workpieces.PENDING_HANDLING:
+		return Workpieces.REFUSE_HANDLING
+	var profile: int = a._workpieces._parts[Workpieces.PROFILE * a._workpieces._assembly_capacity + a._stage_assembly]
+	return Routes.assembly_handled_ready_leaf_refusal(a._placements._routes, worker, job, profile,
+		a._workpieces._profile_revisions[a._stage_assembly], a._workpieces._header[Workpieces.H_PROFILES])
+
+
+static func _finish_handling_preflighted(a: RefCounted, code: StringName) -> StringName:
+	"""Direct cleanup cannot dispatch after the sole handled-state write; another staged operation is left untouched."""
+	_clear_handling_preflighted(a)
+	a._busy = false
+	return REFUSE_REENTRY if a._poisoned else code
+
+
+static func _clear_handling_preflighted(a: RefCounted) -> void:
+	"""An enclosing pause keeps its synchronous reentry latch while a completed promotion drops only local intent."""
+	if a._stage_action == HANDLING or a._stage_action == HANDLING_PUBLISH \
+			or a._stage_action == PAUSING or a._stage_action == PAUSE_PUBLISH:
+		a._stage_placement = NULL_REF
+		a._stage_project = NULL_REF
+		a._stage_assembly = -1
+		a._stage_action = -1
+		a._stage_contacts = null
+
+
+static func _pause_window(a: RefCounted, router: Router, project: Vector2i) -> bool:
+	"""Only the original synchronous paused purpose8 operation may retain Router busy during positioning recovery."""
+	return router != null and router._busy and router._publishing_action == Contract.PAUSE_PREPARE \
+		and router._publishing_project == project and router._publishing_owner == a \
+		and router._connector_owner != null and router._connector_owner.get_ref() == a
+
+
+func pause_release(project: Vector2i) -> StringName:
+	"""Request real recovery now; keep exact assignments while it runs, then release through one closed static tail."""
+	if not _enter(): return REFUSE_REENTRY
+	var router: Router = _actual_router()
+	var pieces: Workpieces = _workpieces
+	var contacts: Contacts = _contacts.get_ref() as Contacts if _contacts != null else null
+	var code: StringName = _composition_leaf()
+	if code == &"" and (not _pause_window(self, router, project) or _stage_action != -1 \
+			or router.get_script() != Router or contacts == null): code = REFUSE_STAGE
+	if code == &"": code = Router.pause_release_leaf_refusal(router, project, self)
+	if code == &"" and pieces != null: code = _pause_recover_workers(pieces, project)
+	if code != &"": return _finish_handling_preflighted(self, code)
+	_stage_project = project
+	_stage_action = PAUSING
+	_stage_contacts = contacts
+	if pieces != null:
+		var row: int = Workpieces._directory_row(_placements._ids, project, Directory.KIND_CONSTRUCTION)
+		if row < 0: return _finish_handling_preflighted(self, Workpieces.REFUSE_PROJECT)
+		_stage_placement = Vector2i(_construction._subject_slot[row], _construction._subject_generation[row])
+		_stage_assembly = _construction._type_id[row]
+		_placements._routes._remaining = _placements._routes._domain._checks
+		_placements._routes._operation_error = &""
+		_placements._routes._callback_reentered = false
+		code = _pause_observe_workers(router, contacts, project)
+	if code == &"": code = _pause_final_leaf(self, router, pieces, contacts, project)
+	if code == &"":
+		_stage_action = PAUSE_PUBLISH
+		router._publishing_action = Contract.PAUSE_RELEASE
+		code = Router.pause_release_preflighted(router, project, self)
+	return _finish_handling_preflighted(self, code)
+
+
+func _pause_recover_workers(pieces: Workpieces, project: Vector2i) -> StringName:
+	"""Recovery owns no elapsed-work credit and can remain pending across paused 30 Hz ticks."""
+	var code: StringName = Workpieces._binding_leaf(pieces)
+	if code != &"": return code
+	var router: Router = pieces._router
+	for row: int in Router.JOB_CAPACITY:
+		if router._project_slot[row] != project.x or router._project_generation[row] != project.y \
+				or router._jobs._worker_slot[row] == -1: continue
+		var job: Vector2i = Vector2i(router._job_slot[row], router._job_generation[row])
+		var worker: Vector2i = Vector2i(router._jobs._worker_slot[row], router._jobs._worker_generation[row])
+		code = _pause_recover_worker(pieces, project, worker, job)
+		if code != &"" or _poisoned: return code if code != &"" else REFUSE_REENTRY
+	return &""
+
+
+func _pause_recover_worker(pieces: Workpieces, project: Vector2i, worker: Vector2i, job: Vector2i) -> StringName:
+	"""Completed manipulation is promoted before normalization; interrupted entry only retraces its authored prefix."""
+	var graph: Routes = _placements._routes
+	var resident: int = Workpieces._directory_row(_placements._ids, worker, Directory.KIND_RESIDENT)
+	var row: int = Workpieces._directory_row(_placements._ids, project, Directory.KIND_CONSTRUCTION)
+	if graph == null or resident < 0 or row < 0: return REFUSE_BINDING
+	var profile: int = graph._motion.resident[Routes.R_PROFILE * Routes.RESIDENT_CAPACITY + resident]
+	var revision: int = graph._motion.resident_long[Routes.R_PROFILE_REVISION * Routes.RESIDENT_CAPACITY + resident]
+	var content: int = graph._motion.resident_long[Routes.R_CONTENT_REVISION * Routes.RESIDENT_CAPACITY + resident]
+	var code: StringName = Routes.source_ready_leaf_refusal(graph, worker, job, profile, revision, content)
+	if code == &"": return &""
+	if profile == Routes.Assembly.PROFILE \
+			and Routes.assembly_handled_ready_leaf_refusal(graph, worker, job, profile, revision, content) == &"":
+		var placement: Vector2i = Vector2i(_construction._subject_slot[row], _construction._subject_generation[row])
+		if pieces._live.present[placement.x] == Workpieces.PENDING_HANDLING:
+			code = _complete_handling_observed(placement, project, worker, job)
+			_clear_handling_preflighted(self)
+			if code != &"": return code
+	code = graph.request_source_ready(worker, job)
+	return code if code != &"" else Routes.source_ready_leaf_refusal(graph, worker, job, profile, revision, content)
+
+
+func _pause_observe_workers(router: Router, contacts: Contacts, project: Vector2i) -> StringName:
+	"""Every current departure source observes under one original graph budget, before any final physical or release leaf."""
+	for row: int in Router.JOB_CAPACITY:
+		if router._project_slot[row] != project.x or router._project_generation[row] != project.y \
+				or router._jobs._worker_slot[row] == -1: continue
+		var code: StringName = contacts.release_observation_refusal(_stage_placement, project,
+			Vector2i(router._jobs._worker_slot[row], router._jobs._worker_generation[row]),
+			Vector2i(router._job_slot[row], router._job_generation[row]))
+		if code != &"" or _poisoned: return code if code != &"" else REFUSE_REENTRY
+	return &""
+
+
+static func _pause_final_leaf(a: RefCounted, router: Router, pieces: Workpieces,
+		contacts: Contacts, project: Vector2i) -> StringName:
+	"""No observer follows complete physical, source, original owner and actual release-store validation."""
+	if not a._busy or a._poisoned or a._stage_action != PAUSING or a._stage_project != project \
+			or a._workpieces != pieces or a._router == null or a._router.get_ref() != router \
+			or a._contacts == null or a._contacts.get_ref() != contacts or a._stage_contacts != contacts \
+			or not _pause_window(a, router, project) or router.get_script() != Router:
+		return REFUSE_REENTRY
+	var code: StringName = &""
+	if pieces != null:
+		if pieces._placements != a._placements or pieces._router != router or pieces._contacts == null \
+				or pieces._contacts.get_ref() != contacts: return REFUSE_BINDING
+		code = Workpieces.source_leaf_refusal(pieces, a._stage_placement, project)
+		if code != &"": return code
+		for row: int in Router.JOB_CAPACITY:
+			if router._project_slot[row] != project.x or router._project_generation[row] != project.y \
+					or router._jobs._worker_slot[row] == -1: continue
+			code = WorldRoutes.assembly_release_leaf_refusal(a._placements._world_routes, pieces,
+				a._stage_placement, project, Vector2i(router._jobs._worker_slot[row], router._jobs._worker_generation[row]),
+				Vector2i(router._job_slot[row], router._job_generation[row]))
+			if code != &"": return code
+		code = Routes.assembly_release_leaf_refusal(a._placements._routes, pieces, project)
+	if code == &"": code = Router.pause_release_leaf_refusal(router, project, a)
 	return code
 
 
@@ -308,7 +580,9 @@ func _action_state_refusal(project: Vector2i, action: int) -> StringName:
 		return REFUSE_ORDER
 	var phase: int = _construction._phase[row]
 	if action == Contract.CANCEL:
-		return &"" if phase >= 0 and phase < Construction.PHASE_COUNT else Construction.REFUSE_WRONG_PHASE
+		if phase < 0 or phase >= Construction.PHASE_COUNT: return Construction.REFUSE_WRONG_PHASE
+		return Routes.assembly_release_leaf_refusal(_placements._routes, _workpieces, project) \
+			if _workpieces != null else &""
 	if _construction._paused[row] != 0:
 		return Construction.REFUSE_PAUSED
 	var funded: bool = _actual_router()._funding.is_funded(project)
@@ -317,6 +591,10 @@ func _action_state_refusal(project: Vector2i, action: int) -> StringName:
 		return &""
 	if not funded or _construction._work_begun[row] != 1:
 		return Construction.REFUSE_WRONG_PHASE
+	if _workpieces != null and (action == Contract.PRODUCTIVE or action == Contract.COMMIT):
+		var handling: StringName = Workpieces.handled_leaf_refusal(_workpieces,
+			Vector2i(_construction._subject_slot[row], _construction._subject_generation[row]), project)
+		if handling != &"": return handling
 	if action == Contract.COMMIT:
 		return &"" if phase == Construction.PHASE_WORK_DONE and _construction._remaining_mwu[row] == 0 \
 			else Construction.REFUSE_WRONG_PHASE
@@ -480,6 +758,8 @@ func final_funding_refusal(project: Vector2i, action: int) -> StringName:
 		code = _placements.cancellation_refusal(_stage_placement, project, _stage_assembly)
 	if code == &"":
 		code = _funding_state_refusal(project, action)
+	if code == &"" and stage == Contract.CANCEL and _workpieces != null:
+		code = Routes.assembly_release_leaf_refusal(_placements._routes, _workpieces, project)
 	return _leave(code)
 
 

@@ -18,6 +18,8 @@ const Piles := preload("res://scripts/core/ground_piles.gd")
 const Buildings := preload("res://scripts/core/buildings.gd")
 const StockAge := preload("res://scripts/core/stock_age.gd")
 const Directory := preload("res://scripts/core/entity_directory.gd")
+const AssemblySource := preload("res://data/underground/mole-worker/qualified-assembly-v1/source_program.gd")
+const ShortStep := preload("res://data/underground/mole-worker/work-step-v1/source_program.gd")
 const NULL_REF: Vector2i = Vector2i(-1, 0)
 const FILE_PATH: String = "user://test-underground-profiles-only.bin"
 var _profiles: Profiles = null
@@ -37,6 +39,60 @@ var _worker: Vector2i = NULL_REF
 var _slot: int = -1
 var _store: Vector2i = NULL_REF
 var _identity: PackedInt32Array = PackedInt32Array([0, 0, 0])
+
+
+func test_actual_stationary_source_appends_one_explicit_row_without_aliasing_old_profiles() -> void:
+	"""Real frozen source geometry is a format input; it grants no paid or physical permission in this test."""
+	_profiles = null
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "exact proposed joint bank")
+	assert_equal(_bind(_profiles), &"", "same actual owner tuple")
+	var path: String = "res://data/underground/mole-worker/qualified-assembly-v1/diagnostic-profile-1/mole-worker.ugprof"
+	assert_equal(_profiles.load_file(path, "17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9", 4), &"", "immutable actual source rows")
+	assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"", "complete exact handling row")
+	assert_true(ShortStep.uses(_profiles), "exact appended source preserves old source policy")
+	for profile: int in range(2, 29):
+		assert_equal(ShortStep.profile_refusal(_profiles, profile, 1, 4), &"", "old policy remains exact")
+	assert_false(ShortStep.profile_refusal(_profiles, 29, 1, 4) == &"", "handling cannot alias old WORK")
+	_profiles._live.sources[32] ^= 1
+	assert_false(ShortStep.uses(_profiles), "thirty alone cannot extend the old protocol")
+	assert_false(AssemblySource.profile_refusal(_profiles, 29, 1, 4) == &"", "source digest required")
+	_profiles._live.sources[32] ^= 1
+	_profiles._live.flags[_profiles._profile_capacity + 29] = Profiles.POLICY_SOURCE_WORK
+	assert_false(ShortStep.uses(_profiles), "legacy policy cannot claim new source geometry")
+	_profiles._live.flags[_profiles._profile_capacity + 29] = Profiles.POLICY_ASSEMBLY_HANDLING
+	_profiles._live.boxes[AssemblySource.FIRST_BOX] -= 1
+	assert_false(ShortStep.uses(_profiles), "complete source boxes are pinned")
+	assert_equal(AssemblySource.part_refusal(0, 1, 3, Vector3i(1024, 192, -768)), &"", "actual Workpieces turn convention")
+	assert_false(AssemblySource.part_refusal(0, 1, 1, Vector3i(1024, 192, -768)) == &"", "opposite turn has different geometry")
+	assert_equal(AssemblySource.part_refusal(1, 8, 3, Vector3i(2304, 320, -2816)), &"", "actual second complete bearer")
+
+
+func test_actual_handling_source_checks_every_descriptor_box_and_digest_word() -> void:
+	"""Sequential source leaves must reject each independent drift without retaining a success cache."""
+	_profiles = Profiles.new()
+	assert_equal(_profiles.configure(30, 281, 2, Profiles.ARENA_BYTES), &"", "exact source capacity")
+	assert_equal(_bind(_profiles), &"", "original real owners")
+	assert_equal(_profiles.load_file("res://data/underground/mole-worker/qualified-assembly-v1/diagnostic-profile-1/mole-worker.ugprof",
+		"17d9c229fdfe8ad1923f004db136653ab9834994ba946061be38ec7a2c862ff9", 4), &"", "exact source input")
+	for field: int in Profiles.I32_FIELDS:
+		var index: int = field * _profiles._profile_capacity + AssemblySource.PROFILE
+		_profiles._live.fields[index] ^= 1
+		assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"ASSEMBLY_SOURCE_PROFILE", "descriptor word %d" % field)
+		_profiles._live.fields[index] ^= 1
+		assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"", "descriptor restoration")
+	for ordinal: int in AssemblySource.ROLE_COUNT:
+		for field: int in 7:
+			var index: int = field * _profiles._box_capacity + AssemblySource.FIRST_BOX + ordinal
+			_profiles._live.boxes[index] ^= 1
+			assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"ASSEMBLY_SOURCE_PROFILE", "complete box word %d/%d" % [ordinal, field])
+			_profiles._live.boxes[index] ^= 1
+			assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"", "box restoration")
+	for byte: int in 64:
+		_profiles._live.sources[byte] ^= 1
+		assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"ASSEMBLY_SOURCE_PROFILE", "source digest byte %d" % byte)
+		_profiles._live.sources[byte] ^= 1
+		assert_equal(AssemblySource.profile_refusal(_profiles, 29, 1, 4), &"", "digest restoration")
 
 
 func before_each() -> void:
@@ -217,7 +273,7 @@ func test_policy_version_unknown_and_same_policy_ambiguity_refuse_atomically() -
 	var image: PackedByteArray = _policy_image([0, 1], 2)
 	image.encode_u32(8, 1)
 	assert_equal(_load(image, 2), &"PROFILE_CERTIFICATE_REQUIRED", "historical wire cannot acquire new meaning")
-	assert_equal(_load(_policy_image([0, 7], 2), 2), &"PROFILE_CERTIFICATE_REQUIRED", "unknown policy refuses")
+	assert_equal(_load(_policy_image([0, 8], 2), 2), &"PROFILE_CERTIFICATE_REQUIRED", "unknown policy refuses")
 	assert_equal(_load(_policy_image([0, 1, 1], 2), 2), &"PROFILE_AMBIGUOUS_KEY", "same-policy overlap remains ambiguous")
 	image = _policy_image([0, 1], 2)
 	image.encode_s32(64 + 98 + Profiles.F_YAW_KIND * 4, Profiles.YAW_ALL)
@@ -225,6 +281,105 @@ func test_policy_version_unknown_and_same_policy_ambiguity_refuse_atomically() -
 	var out: Profiles.Selection = Profiles.Selection.new()
 	assert_equal(_query(out), &"", "refused reload retains original live bank")
 	assert_equal(out.profile_id, 0, "automatic predecessor intact")
+
+
+func _handling_case() -> Dictionary:
+	"""Synthetic format fixture only: curved contact carries whole volumes, never a planar contact alias."""
+	var row: Dictionary = _row(Profiles.MODE_WORK)
+	row.fields[Profiles.F_TOOL] = _items.compiled_id(&"tool")
+	row.fields[Profiles.F_TOOL_VARIANT] = Gear.MANUFACTURE_BASIC
+	row.fields[Profiles.F_YAW_KIND] = Profiles.YAW_EXACT
+	row.fields[Profiles.F_BOX_COUNT] = 4
+	row.fields[Profiles.F_WORK_KIND] = Jobs.JOB_KIND_BUILD
+	row.fields[Profiles.F_CONTACT_KIND] = Profiles.CONTACT_ASSEMBLY_PALM
+	row.flags[1] = Profiles.POLICY_ASSEMBLY_HANDLING
+	var boxes: Array[PackedInt32Array] = _boxes()
+	boxes.append(PackedInt32Array([-128, -20, -128, 128, 1000, 256, Profiles.WORK_APPROACH]))
+	return {"row": row, "boxes": boxes}
+
+
+func _handling_image(fixture: Dictionary, revision: int = 1) -> PackedByteArray:
+	"""Version2 is mandatory for every explicit source policy, including the separate handling programme."""
+	var bytes: PackedByteArray = _image([fixture.row], fixture.boxes, revision)
+	bytes.encode_u32(8, 2)
+	return bytes
+
+
+func test_assembly_handling_is_explicit_actual_build_selection_without_stroke_or_patch() -> void:
+	"""Loading a geometry row never grants travel, paid handling or productive work."""
+	var tool: Vector2i = _equip()
+	var job: Jobs.OpResult = _actual_work_job()
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "original actual tool claim")
+	assert_equal(_load(_handling_image(_handling_case())), &"", "distinct curved source format")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_profiles.query_into(_worker, job.ref, Profiles.MODE_WORK, 0, -1, NULL_REF, out),
+		&"PROFILE_VARIANT_UNAUTHORED", "automatic work cannot select handling")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 0, 1, 1, 0, -1, NULL_REF, out),
+		&"", "explicit selection still proves actual BUILD/tool/cargo/pose")
+	assert_equal(out.tool, tool, "full original tool")
+	assert_equal(_profiles.selection_policy_of(0, 1, 1), Profiles.POLICY_ASSEMBLY_HANDLING, "separate stored policy")
+	assert_equal(_profiles.query_travel_profile_into(_worker, job.ref, 0, 1, 1, 0, -1, NULL_REF, out),
+		&"PROFILE_TRAVEL_SELECTION_REQUIRED", "handling is never a travel row")
+	assert_true(_work.release_tool_claim(_slot).ok, "release real claim")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 0, 1, 1, 0, -1, tool, out),
+		&"PROFILE_TOOL_CLAIM", "source metadata cannot recreate a released claim")
+
+
+func test_assembly_contact_cannot_alias_productive_contact_roles_or_legacy_policy() -> void:
+	"""A reserved policy, an added stroke/point/patch or missing reverse source fails atomic replacement."""
+	assert_equal(_load(_handling_image(_handling_case())), &"", "valid format baseline")
+	for role: int in [Profiles.WORK_STROKE, Profiles.CONTACT_POINT, Profiles.CONTACT_PATCH]:
+		var fixture: Dictionary = _handling_case()
+		fixture.boxes.append(PackedInt32Array([0, 0, 0, 1, 1, 1, role]) if role == Profiles.WORK_STROKE \
+			else PackedInt32Array([0, 0, 0, 0, 0, 0, role]) if role == Profiles.CONTACT_POINT \
+			else PackedInt32Array([0, 0, 0, 1, 0, 1, role]))
+		fixture.row.fields[Profiles.F_BOX_COUNT] += 1
+		assert_equal(_load(_handling_image(fixture, 2), 2), &"PROFILE_ROLE_MISSING", "no productive alias")
+	var changed: Dictionary = _handling_case()
+	changed.row.flags[1] = Profiles.POLICY_AUTOMATIC
+	assert_equal(_load(_handling_image(changed, 2), 2), &"PROFILE_WORK_IDENTITY", "curved kind requires its explicit policy")
+	changed = _handling_case()
+	changed.row.fields[Profiles.F_STATES] &= ~Profiles.STATE_REVERSAL
+	assert_equal(_load(_handling_image(changed, 2), 2), &"PROFILE_ROLE_MISSING", "interruption source is mandatory")
+	assert_equal(_profiles.content_revision(), 1, "all refused replacements preserve the live bank")
+
+
+func test_seventeenth_variant_is_only_the_single_explicit_handling_tail() -> void:
+	"""The old16 automatic window is complete; a seventeenth legacy row or any eighteenth row refuses."""
+	var rows: Array[Dictionary] = []
+	var boxes: Array[PackedInt32Array] = []
+	for index: int in Profiles.MAX_KEY_VARIANTS:
+		var prior: Dictionary = _patch_case()
+		prior.row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+		rows.append(prior.row)
+		boxes.append_array(prior.boxes)
+	assert_equal(_load(_image(rows, boxes)), &"", "original sixteen contacts")
+	var tool: Vector2i = _equip()
+	var job: Jobs.OpResult = _actual_work_job()
+	assert_true(_work.claim_tool_for_work(_slot, tool).ok, "actual original claim")
+	var out: Profiles.Selection = Profiles.Selection.new()
+	assert_equal(_profiles.query_into(_worker, job.ref, Profiles.MODE_WORK, 0, -1, NULL_REF, out),
+		&"PROFILE_SELECTION_AMBIGUOUS", "old actual result")
+	var tail: Dictionary = _handling_case()
+	tail.row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+	rows.append(tail.row)
+	boxes.append_array(tail.boxes)
+	var bytes: PackedByteArray = _image(rows, boxes, 2)
+	bytes.encode_u32(8, 2)
+	assert_equal(_load(bytes, 2), &"", "one explicit tail beyond the automatic window")
+	assert_equal(_profiles.query_into(_worker, job.ref, Profiles.MODE_WORK, 0, -1, NULL_REF, out),
+		&"PROFILE_SELECTION_AMBIGUOUS", "all old automatic matches/results are unchanged")
+	assert_equal(_profiles.query_work_profile_into(_worker, job.ref, 16, 1, 2, 0, -1, NULL_REF, out),
+		&"", "explicit full source row remains reachable")
+	var extra: Dictionary = _handling_case()
+	extra.row.fields[Profiles.F_FIRST_BOX] = boxes.size()
+	rows.append(extra.row)
+	boxes.append_array(extra.boxes)
+	bytes = _image(rows, boxes, 3)
+	bytes.encode_u32(8, 2)
+	assert_equal(_load(bytes, 3), &"PROFILE_KEY_CAPACITY", "eighteenth row never becomes hidden")
+	assert_equal(_profiles.content_revision(), 2, "failed tail growth retains exact old content")
+	assert_true(_work.release_tool_claim(_slot).ok, "release actual claim")
 
 
 func test_actual_identity_and_nonzero_directory_slot_select_without_state_mutation() -> void:
@@ -796,4 +951,8 @@ func test_work_choices_keep_certificate_state_capacity_and_replacement_guards() 
 		rows.append(variant.row)
 		boxes.append_array(variant.boxes)
 	assert_equal(_load(_image(rows, boxes, 3), 3), &"PROFILE_KEY_CAPACITY", "no hidden unbounded WORK scan")
+	rows[16].flags[1] = Profiles.POLICY_SOURCE_WORK
+	var legacy_source: PackedByteArray = _image(rows, boxes, 3)
+	legacy_source.encode_u32(8, 2)
+	assert_equal(_load(legacy_source, 3), &"PROFILE_KEY_CAPACITY", "seventeenth explicit legacy WORK is still forbidden")
 	assert_equal(_profiles.content_revision(), 2, "refused overcapacity preserves live source")

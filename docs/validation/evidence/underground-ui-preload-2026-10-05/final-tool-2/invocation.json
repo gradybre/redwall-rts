@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/test_gdscript_warnings.py"
+      ],
+      "exit_code": 0,
+      "seconds": 0.13
+    },
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.275
+    },
+    {
+      "command": [
+        "python3",
+        "-B",
+        "tools/gdscript_warnings.py",
+        "--max",
+        "0",
+        "--port",
+        "6470",
+        "--json",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-analyzer-lifetime/docs/validation/evidence/underground-ui-preload-2026-10-05/final-tool-2/analyzer.json"
+      ],
+      "exit_code": 0,
+      "seconds": 76.666
+    }
+  ],
+  "sources_unchanged": true,
+  "exit_code": 0,
+  "scope": "actual analyzer CLI, clean import and protocol regression; no full-suite claim"
+}

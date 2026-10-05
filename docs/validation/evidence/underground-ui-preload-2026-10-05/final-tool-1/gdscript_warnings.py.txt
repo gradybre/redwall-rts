@@ -34,7 +34,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 CONNECT_TIMEOUT_S = 180.0
 FILE_TIMEOUT_S = 20.0
-FINAL_DRAIN_S = 1.0
 ## The editor prints this when its startup is finished. A client that connects and opens files before
 ## then crashes 4.7.2 with signal 11 (reproduced twice), so nothing is sent until it appears.
 EDITOR_READY_MARK = "loading_editor_layout"
@@ -81,7 +80,6 @@ class Lsp:
             raise SystemExit(f"error: no language server on port {port}: {last_error}")
         self.buf = b""
         self.diagnostics: dict[str, list] = {}
-        self.findings: dict[str, list] = {}
 
     def send(self, message: dict) -> None:
         data = json.dumps(message).encode()
@@ -127,11 +125,6 @@ class Lsp:
             if message.get("method") == "textDocument/publishDiagnostics":
                 params = message["params"]
                 self.diagnostics[params["uri"]] = params["diagnostics"]
-                if params["diagnostics"]:
-                    retained = self.findings.setdefault(params["uri"], [])
-                    for diagnostic in params["diagnostics"]:
-                        if diagnostic not in retained:
-                            retained.append(diagnostic)
                 got = got or params["uri"] == want_uri
 
 
@@ -143,17 +136,6 @@ def collect(files: list[Path], text_root: Path, editor_root: Path, port: int, fo
     try:
         collect_documents(lsp, files, text_root, editor_root, found, done)
     finally:
-        # A dependency's warning may precede an empty republish or EOF while
-        # another file is being opened. Harvest the non-clearing record even
-        # when collection is interrupted, before the session is discarded.
-        for path in dict.fromkeys(done + files):
-            rel = path.relative_to(text_root).as_posix()
-            diagnostics = lsp.findings.get((editor_root / rel).as_uri(), [])
-            if diagnostics:
-                retained = found.setdefault(rel, [])
-                for diagnostic in diagnostics:
-                    if diagnostic not in retained:
-                        retained.append(diagnostic)
         lsp.sock.close()
 
 
@@ -164,7 +146,7 @@ def collect_documents(lsp: Lsp, files: list[Path], text_root: Path, editor_root:
               "params": {"processId": None, "rootUri": editor_root.as_uri(), "capabilities": {}}})
     lsp.pump(time.time() + 5.0)
     lsp.send({"jsonrpc": "2.0", "method": "initialized", "params": {}})
-    for index, path in enumerate(files):
+    for path in files:
         rel = path.relative_to(text_root).as_posix()
         uri = (editor_root / rel).as_uri()
         lsp.diagnostics.pop(uri, None)
@@ -173,22 +155,19 @@ def collect_documents(lsp: Lsp, files: list[Path], text_root: Path, editor_root:
         if not lsp.pump(time.time() + FILE_TIMEOUT_S, uri):
             raise EditorCrashed(f"no diagnostics came back for {rel} in {FILE_TIMEOUT_S:.0f} s")
         if lsp.diagnostics[uri]:
-            retained = found.setdefault(rel, [])
-            for diagnostic in lsp.diagnostics[uri]:
-                if diagnostic not in retained:
-                    retained.append(diagnostic)
+            found[rel] = lsp.diagnostics[uri]
         # Keep documents open until this editor session ends. In Godot 4.7.2,
         # didClose can invalidate a preloaded script still used by a later
         # document: the editor logs a load error but publishes no diagnostics.
         # Each file still needs its own completed publishDiagnostics response.
-        if index + 1 < len(files):
-            done.append(path)
-    # Read queued dependency notifications after the final requested reply.
-    # Keep the last file unfinished until this bounded drain completes, so
-    # EOF here follows the same retry limit as any other incomplete response.
-    lsp.pump(time.time() + FINAL_DRAIN_S)
-    if files:
-        done.append(files[-1])
+        done.append(path)
+    # A dependent can republish a diagnostic for a document opened earlier.
+    # Preserve any finding already observed, and include later findings too.
+    for path in done:
+        rel = path.relative_to(text_root).as_posix()
+        diagnostics = lsp.diagnostics.get((editor_root / rel).as_uri(), [])
+        if diagnostics:
+            found[rel] = diagnostics
 
 
 def editor_findings(text: str) -> list[str]:
@@ -246,16 +225,10 @@ def gd_files(project: Path, only: list[str]) -> list[Path]:
     roots = [Path(p).resolve() for p in only] or [project]
     files: set[Path] = set()
     for root in roots:
-        if not root.exists():
-            raise SystemExit(f"error: requested GDScript path does not exist: {root}")
-        selected = False
         candidates = [root] if root.is_file() else root.rglob("*.gd")
         for path in candidates:
             if path.suffix == ".gd" and ".godot" not in path.relative_to(project).parts:
                 files.add(path)
-                selected = True
-        if not selected:
-            raise SystemExit(f"error: no GDScript files selected under {root}")
     return sorted(files)
 
 

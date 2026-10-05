@@ -1,0 +1,40 @@
+{
+  "files": 16,
+  "source_sha256": {
+    "godot/scripts/ui/hud.gd": "f86edd3f1ca09c792e7e32a9b9a22b2b0dc4fefd5fa5a2ff03f82e2894574a11",
+    "godot/scripts/ui/ui_availability.gd": "cf134f117505fbda734ab2a0abb53bdf764b73b3dea57999f506c4900d4fd622",
+    "godot/scripts/ui/ui_command_bridge.gd": "78311be3b31fb253b94ab54bc238e64e696ff532b141f891577f1d11acea49f7",
+    "godot/scripts/ui/ui_focus_order.gd": "fe39cc2a33eb5d1b198344a63121c8999ab86eecf723d78368eed67fd0e801e9",
+    "godot/scripts/ui/ui_hit_test.gd": "9ba8e0e7b0ab46f6ae5a44494087ed0eb0542ca0636fbf08d244889eae5000b4",
+    "godot/scripts/ui/ui_layout.gd": "1b2c2adbd0e575a95c84e167776df500d6ee79a35be4f01210bf090b2e3e4130",
+    "godot/scripts/ui/ui_need_rate.gd": "1b65a670a551a1dce53c9de3abff3298aca9ab1da0deb2bf15e72dff2c58912e",
+    "godot/scripts/ui/ui_notices.gd": "e30d4b1524cd1fc5f785c7dc59311239ba021297f5b8a7e3b53ef22a38e39c1e",
+    "godot/scripts/ui/ui_registry.gd": "2efe818f963817911283b6cbc1b3d382803696aeb2f25711c5c6f971fd688977",
+    "godot/scripts/ui/ui_resident_card.gd": "c50430ffc2150961e41683428c405e15067434a8ef1f90f2543e6ca3785febbe",
+    "godot/scripts/ui/ui_resident_header.gd": "3f55181ee1f5d827321f851d3c06c25c2a347916970681bdb58df3227b46cd4d",
+    "godot/scripts/ui/ui_resident_snapshot.gd": "e029cc4eefc2d25c29398dd9dbeaadc9f0608456479948d1666d073cc6657245",
+    "godot/scripts/ui/ui_shell.gd": "85045497adb94c1c6f4b772b4184bc06a79e06f13c9c4f80f7d46ca46f21f6db",
+    "godot/scripts/ui/ui_specimen.gd": "6b1728f220b46981b595bcc4685545062b23851827d80b3d47b333bf27006ef7",
+    "godot/scripts/ui/ui_theme.gd": "fc24705bd1f04787ee6d4484b2f2857a914ad5820b15e82de1b829b2445c282d",
+    "godot/scripts/ui/ui_world_session.gd": "263dfba991975ffa0fabe79946610e992d164e95eba04e739423862d072f6fb6"
+  },
+  "retain_documents": false,
+  "scope": "ui",
+  "diagnostics": {},
+  "raw_errors": [
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Cannot infer the type of \"UiRegistry\" constant because the value doesn't have a set type.",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "SCRIPT ERROR: Parse Error: Could not find script \"res://scripts/ui/ui_registry.gd\".",
+    "ERROR: Failed to load script \"res://scripts/ui/ui_specimen.gd\" with error \"Parse error\"."
+  ],
+  "seconds": 11.994,
+  "source_unchanged": true
+}

@@ -146,7 +146,7 @@ def collect(files: list[Path], text_root: Path, editor_root: Path, port: int, fo
         # A dependency's warning may precede an empty republish or EOF while
         # another file is being opened. Harvest the non-clearing record even
         # when collection is interrupted, before the session is discarded.
-        for path in dict.fromkeys(done + files):
+        for path in files:
             rel = path.relative_to(text_root).as_posix()
             diagnostics = lsp.findings.get((editor_root / rel).as_uri(), [])
             if diagnostics:

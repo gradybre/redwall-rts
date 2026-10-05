@@ -1,0 +1,32 @@
+[
+  {
+    "id": "R1",
+    "severity": "medium",
+    "status": "sent to author; source-established path, engine reproduction pending",
+    "title": "Active planning camera is not gated by the stall/modal owner",
+    "locations": [
+      "godot/demo/burrow/modular_demo_mode.gd:98",
+      "godot/demo/burrow/modular_demo_mode.gd:248",
+      "godot/demo/burrow/modular_demo_mode.gd:253",
+      "godot/demo/camera/demo_camera.gd:244",
+      "godot/demo/camera/demo_camera.gd:338"
+    ],
+    "details": "The original input gate is disabled by _hold_legacy, but the new rig remains PROCESS_MODE_ALWAYS. It independently receives camera input and advances held-key motion without consulting the bound _blocked observer. A newly shown stall banner blocks world drawing and toolbar actions but not camera motion; an already held key needs no further event. The retained banner also remains layer 3 below planning layers 60 and 61.",
+    "requested_check": "Actual stall while a camera key or middle drag is held: prove no motion/new camera input behind the modal, banner is reachable, no automatic acknowledgement, and original pause reasons remain intact.",
+    "author_disposition": "Author confirmed this needs closure, not retained scope; corrected in candidate-8 and expanded actual input witness."
+  },
+  {
+    "id": "R2",
+    "severity": "integration limitation pending intended scope",
+    "status": "sent to author; no stale-state success found",
+    "title": "UI Create remounts foundation without Room/Route composition for planning reopen",
+    "locations": [
+      "godot/scripts/systems/ui_manager.gd:270",
+      "godot/demo/demo_village.gd:517",
+      "godot/demo/burrow/modular_demo_mode.gd:72"
+    ],
+    "details": "Successful UI Create uses mount_underground(content) only. DemoVillage composes Room and Route owners during _ready, and later SceneMode._prepare requires both already present. The old view closes on retirement, but the same scene cannot reopen planning after UI Create until those existing host compose methods are called. A scene Restart should run _ready and compose again.",
+    "requested_check": "Document intentional refusal or exercise a real successful UI Create and fresh owner composition, proving old draft is not adopted.",
+    "author_disposition": "Author confirmed this needs closure, not retained scope; corrected in candidate-8 and expanded actual input witness."
+  }
+]

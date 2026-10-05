@@ -1,0 +1,15 @@
+{
+  "id": "R3",
+  "severity": "medium",
+  "status": "Author confirmed correction required; candidate-9 keyboard gate and actual Tab/navigation regression pending",
+  "title": "Mouse shield does not trap keyboard focus",
+  "references": [
+    "modular_demo_mode.gd::_refresh_modal",
+    "modular_demo_mode.gd::_input",
+    "demo_input_gate.gd::_input",
+    "demo_stall_banner.gd::_input"
+  ],
+  "description": "The existing gate is disabled. The shield only stops mouse events, while the underlying visible planning controls remain focusable. Releasing focus once does not prevent Tab/navigation reaching those controls. The stall banner only consumes Enter/Space. The complete modal contract needs actual navigation/focus closure before acknowledgement.",
+  "runtime_reproduction_by_reviewer": false,
+  "requested_test": "While actual CRITICAL is held, send repeated Tab and edit/navigation keys; focus must stay out of the planning controls, whose state must remain unchanged."
+}

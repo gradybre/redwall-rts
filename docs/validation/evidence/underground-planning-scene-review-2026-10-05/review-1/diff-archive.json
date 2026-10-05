@@ -1,0 +1,7 @@
+{
+  "archive": "source.diff.gz",
+  "decoded_path": "source.diff",
+  "decoded_sha256": "222300fa31140baddc53f91cef066291d873f93ec194c57197acb5f28413fc9f",
+  "archive_sha256": "6b0cd6c26dcf7b92bf8513c7290ca68cbb3561ab969f3c28232f1407db25f402",
+  "reason": "Byte-exact historical patch context retained compressed; no source bytes changed."
+}

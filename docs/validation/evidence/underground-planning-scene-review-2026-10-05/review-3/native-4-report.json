@@ -1,0 +1,7 @@
+{
+  "backend": "forward_plus",
+  "checks": 74,
+  "driver": "metal",
+  "failures": [],
+  "playable_room_complete": false
+}

@@ -1,0 +1,7 @@
+{
+  "tools/underground_room_memory.py": "846d75ba2c8b5f899f354d44bcad432af2b2b8d441c13c672e721323b4e75667",
+  "tools/test_underground_room_memory.py": "6d2216c20d197fda39cba8ff220e2e1ec2fb896e96351ad1b660693358d94962",
+  "tools/underground_memory_budget.py": "54aa947dbc1dcb5fe99746e4511661c16eeabbf917eb9ff6820d3008387bd986",
+  "tools/test_underground_memory_budget.py": "046913e38c3e2469a51c5f7e21feb9e2fa0c0ed1f49aed31808dfffbb823ad4a",
+  "docs/validation/evidence/underground-room-memory-integration-2026-10-05/route-owner-manifest.json": "f396686d73684ce19c8d133d2c72aed782de43c99c4aaf3c63f7389c8bea3def"
+}

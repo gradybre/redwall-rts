@@ -1,0 +1,11 @@
+{
+  "checkpoint": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "origin_master": "82d60ba86dcecf6e7c6184eeaf77a389e8b2b5c2",
+  "source_sha256": {
+    "tools/underground_room_memory.py": "846d75ba2c8b5f899f354d44bcad432af2b2b8d441c13c672e721323b4e75667",
+    "tools/underground_motion_memory.py": "b12e238855d7faf09cf7bba1202f0694d185d8f4e70835440ceb4e36c186c381",
+    "tools/underground_motion_clock_memory.py": "6e50b6aa0c8518821c6a233639ff217e72a950f7a1e76c131f73c6479a619cb4",
+    "tools/underground_memory_budget.py": "54aa947dbc1dcb5fe99746e4511661c16eeabbf917eb9ff6820d3008387bd986"
+  },
+  "scope": "1174 checker/test/evidence only; no runtime, registry, historical evidence, or shared pack edits."
+}

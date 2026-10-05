@@ -1,0 +1,99 @@
+{
+  "checkpoint": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "source_manifest_sha256": "0378fee5c721423a2c224361f67784399cd6ea945e1187eb26d39994ba81950f",
+  "normal_memory_tests": 269,
+  "normal_memory_failures": 0,
+  "commands": [
+    {
+      "label": "memory-tests",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/test_underground_memory_budget.py"
+      ],
+      "started": "2026-10-05T05:48:06.278712+00:00",
+      "exit_code": 0,
+      "seconds": 121.36735300000001,
+      "finished": "2026-10-05T05:50:07.647160+00:00",
+      "log_sha256": "ec7bd2b1233633d7a06a1765d70438c266cb1d803cb4731b8cbf1ba4ac30d067"
+    },
+    {
+      "label": "pack-generate",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "-c",
+        "import underground_memory_budget as m; from pathlib import Path; import sys; m.OUTPUT=Path(sys.argv[1]); sys.argv=['memory']; raise SystemExit(m.main())",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-current-memory/docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/underground_memory_pack.json"
+      ],
+      "started": "2026-10-05T05:50:07.647420+00:00",
+      "exit_code": 0,
+      "seconds": 1.7269320420000014,
+      "finished": "2026-10-05T05:50:09.374381+00:00",
+      "log_sha256": "2d1515754690b7b5245af22cf059dd1f4d4c1c7b2b711b687e040b2f8c7258cb"
+    },
+    {
+      "label": "pack-check",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "-c",
+        "import underground_memory_budget as m; from pathlib import Path; import sys; m.OUTPUT=Path(sys.argv[1]); sys.argv=['memory','--check']; raise SystemExit(m.main())",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-current-memory/docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/underground_memory_pack.json"
+      ],
+      "started": "2026-10-05T05:50:09.374551+00:00",
+      "exit_code": 0,
+      "seconds": 1.7292222500000065,
+      "finished": "2026-10-05T05:50:11.103796+00:00",
+      "log_sha256": "2d1515754690b7b5245af22cf059dd1f4d4c1c7b2b711b687e040b2f8c7258cb"
+    },
+    {
+      "label": "registry-capacities",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/audit_registry_capacities.py",
+        "--check"
+      ],
+      "started": "2026-10-05T05:50:11.104056+00:00",
+      "exit_code": 0,
+      "seconds": 1.758333417000003,
+      "finished": "2026-10-05T05:50:12.862413+00:00",
+      "log_sha256": "7be600465d23e377044f6993a3ee0cfef32484c44afead5a2175b2366bfc4be6"
+    },
+    {
+      "label": "capacity-tests",
+      "argv": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "-B",
+        "tools/test_registry_capacity_audit.py"
+      ],
+      "started": "2026-10-05T05:50:12.862650+00:00",
+      "exit_code": 0,
+      "seconds": 3.396676124999985,
+      "finished": "2026-10-05T05:50:16.259365+00:00",
+      "log_sha256": "3d51369b9edf4cc746c61c76d2e08a4135149c944efb00e46eec2607f0cf89d0"
+    }
+  ],
+  "source_unchanged": true,
+  "protected_unchanged": true,
+  "protected_files": 181,
+  "proposed_pack_sha256": "86fb4fc9cb18b6b758fd440b80966ce3aa9c60bba7f0eb17c377736f9590d627",
+  "global_bytes": 99999806,
+  "remaining": 194,
+  "profile_joint_bytes": 248632,
+  "constructor_bytes": 8185,
+  "independent_review_pending": false,
+  "native_measured": false,
+  "runtime_qualified": false,
+  "independent_review": {
+    "reviewer": "/root/ug_furnishing",
+    "accepted": true,
+    "source_manifest_sha256": "0378fee5c721423a2c224361f67784399cd6ea945e1187eb26d39994ba81950f",
+    "focused_tests": 33,
+    "failures": 0,
+    "protected_inputs_unchanged": 192,
+    "pack_sha256": "86fb4fc9cb18b6b758fd440b80966ce3aa9c60bba7f0eb17c377736f9590d627",
+    "native_measured": false
+  }
+}

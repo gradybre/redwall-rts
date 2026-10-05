@@ -1,0 +1,7 @@
+{
+  "checkpoint": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "checker_sha256": "846d75ba2c8b5f899f354d44bcad432af2b2b8d441c13c672e721323b4e75667",
+  "refusal": "room memory: current reviewed source changed: mole_profile_driver",
+  "producer_calls": [],
+  "scope": "Exact unchanged initial room gate rejects changed current1168/1171/1173 source before any producer executes; not a full test run."
+}

@@ -14,14 +14,39 @@ ebdd5daa full local and CI runs both failed nine stale support-clearance fixture
 tests; those original failures are retained, and their independently reviewed
 fixture correction is in6da6deb9. No diagnostic gate was weakened.
 
-The reviewed26-profile approach and unchanged stair geometry/timing remain the
-current runtime source. The additional finite232u source programme is accepted
-at`5b440aed`:17 integer/source tests,7 census tests and an independent537-input
-rebuild with identical output. This packet grants no runtime or paid permission.
-Current parallel work composes actual host Room owners, publishes newly supported
-work stations, and checks fresh mixed-profile routes. Its source clocks,
-publication closure and complete memory census remain required before activation.
-One dug cube alone does not give the complete worker enough width/headroom.
+Current integration `9dad696d` adds the actual Room-owner constructor, atomic
+frontier contacts, source-compatible mixed-profile itineraries and ground-only
+pace content. Its reviewed worker publication keeps all v3 geometry and timing
+unchanged while renewing three exact consumer hashes. The fresh native replay
+passes 1,504 poses / 469,248 exact matrix scalar comparisons / 9,336 assertions;
+it uses a synthetic physical provider and does not qualify a completed Room.
+
+The ten focused integrated suites pass **169 tests / 18,457 assertions / zero
+failures**, with every strict/raw diagnostic and leak counter zero and analyzer
+**0/29**. Sources, HEAD, assets, project, registry and import sidecars are restored.
+The old actual-composition refusal at8003bfe1 remains recorded. The exact9dad
+clean-assets/cache/import/no-argument full suite and full analyzer are running
+in the frozen own renewal checkout; the older6da results above do not certify
+these newer sources.
+
+CI at9dad completed with two stale frontier-test expectations after the source
+renewal:11,207 tests/1,027,796 assertions/2 failures;0 unexpected diagnostics
+or leaks,272 expected/353 tolerated. The analyzer passes0/1,250 and all other
+seven shards/gates pass. The independently reviewed test-only correction
+passes37 tests/1,149 assertions/all-zero and analyzer0/3. The failed run and
+correction are both retained; a later green full checkpoint is still required.
+
+The current joint memory adapter replays reviewed1161/1163/1165/1166 lifetimes,
+checks51 current modules and pins all executable witnesses before replay.
+Independent review caught a missing Movement callee pin; the fixed checker
+passes all246 tests and rejects that exact new-allocation mutation. Logical
+allocation remains99,999,806 bytes/headroom194; native measurement stays open.
+
+Parallel work now composes the actual ground route owners and implements the
+finite232u source programme on canonical runtime clocks. The latter's component
+tests pass122/15,535/all-zero, while its actual ground-only reach check, complete
+census, native replay and production publication remain in progress. Neither
+source packets nor standalone modules close playable requirements.
 
 The complete modular building workflow is still in development. The queue has
 10 verified component lanes, 5 running lanes and 9 queued lanes, covering107

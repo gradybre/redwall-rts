@@ -5097,6 +5097,25 @@
       "source_project_registry_assets_restored": true,
       "evidence": "docs/validation/evidence/underground-room-integration-check-2026-10-05/checkpoint-1/",
       "followup": "Independently reviewed three-consumer renewal with unchanged geometry and fresh native clock replay; next coherent focused run remains required."
+    },
+    {
+      "commit": "9dad696ddb6485e9a8c4b8efd8c8dcee52c9c4c0",
+      "outcome": "failed",
+      "scope": "Remote CI; same-head local full run remains in progress",
+      "remote_run": "https://github.com/gradybre/redwall-rts/actions/runs/37259107677",
+      "observed_tests": 11207,
+      "observed_assertions": 1027796,
+      "failures": 2,
+      "unexpected_errors": 0,
+      "unexpected_warnings": 0,
+      "expected": 272,
+      "tolerated": 353,
+      "leaked_objects": 0,
+      "leaked_resources": 0,
+      "analyzer": "0 warnings across1250 files",
+      "reason": "Two FrontierPublication tests retained pre1170 source-drift expectations. Production guards and source qualification passed; narrow test-only correction independently reviewed.",
+      "correction_tests": "37tests/1149assertions/0;all strict/raw diagnostic and leak counters0;analyzer0/3",
+      "evidence_path": "docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/ci-9dad696d/"
     }
   ],
   "crosscut_fixes": [

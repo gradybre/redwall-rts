@@ -56,3 +56,15 @@ Evidence is under
 This verifies worker source compatibility only. It does not grant World
 support, clearance, paid inputs, productive work, save/resume, complete Room
 visuals or 256-resident acceptance. `world_activation_qualified` remains false.
+
+## Subsequent CI fixture correction
+
+CI37259107677 at9dad correctly failed two original FrontierPublication tests
+which still asserted pre-renewal `MOLE_CATALOG_SOURCE_DRIFT`. The independently
+reviewed correction changes only those two expected values and one scope
+comment. Geometry refusal, real paid-state/actor conservation, exact published
+endpoint/edge counts and all source-drift negatives stay unchanged. The strict
+FrontierPublication/Itinerary/QualifiedProfiles regression passes37 tests/
+1,149 assertions/0 with every diagnostic/leak count0 and analyzer0/3. Raw failed
+CI and corrected focused evidence are retained under the renewal evidence path;
+no whole-build acceptance is inferred.

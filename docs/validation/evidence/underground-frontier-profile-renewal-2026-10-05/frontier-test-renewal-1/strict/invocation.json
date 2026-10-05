@@ -1,0 +1,65 @@
+{
+  "head": "26a82d9e8b8a2752b55902dab0ea6ae0c390da3c",
+  "scope": "Focused integration, not the required full no-argument milestone suite.",
+  "commands": [
+    {
+      "command": [
+        "godot",
+        "--headless",
+        "--path",
+        "godot",
+        "--editor",
+        "--quit"
+      ],
+      "exit_code": 0,
+      "seconds": 12.706,
+      "log": "clean-import.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "177/405",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict"
+      ],
+      "exit_code": 0,
+      "seconds": 12.028,
+      "log": "test_underground_room_frontier_publication.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "256/405",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict"
+      ],
+      "exit_code": 0,
+      "seconds": 8.259,
+      "log": "test_underground_room_itinerary.gd.log"
+    },
+    {
+      "command": [
+        "./tools/run_tests.sh",
+        "--shard",
+        "265/405",
+        "--output-dir",
+        "/Users/brendan/Developer/redwall-rts-codex-ug-integration/docs/validation/evidence/underground-frontier-profile-renewal-2026-10-05/frontier-test-renewal-1/strict"
+      ],
+      "exit_code": 0,
+      "seconds": 4.857,
+      "log": "test_mole_qualified_profiles.gd.log"
+    }
+  ],
+  "assets_present_before": true,
+  "completed_suites": [
+    "test_underground_room_frontier_publication.gd",
+    "test_underground_room_itinerary.gd",
+    "test_mole_qualified_profiles.gd"
+  ],
+  "project_restored": true,
+  "assets_restored": true,
+  "source_unchanged": true,
+  "exit_code": 0
+}

@@ -297,7 +297,7 @@ func _paid_live_image() -> Array[PackedByteArray]:
 
 func test_actual_paid_first_cube_preserves_full_geometry_refusal_and_every_live_owner() -> void:
 	"""One1024u cube cannot admit full1355u-wide/1036u-high travel and1131u work recovery, even after payment."""
-	assert_equal(Published.runtime_sources_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "unreviewed changed consumers cannot activate mounted publication")
+	assert_equal(Published.runtime_sources_refusal(), &"", "reviewed1170 renewal pins the current complete source consumers")
 	var room: Vector2i = _paid_first_cube()
 	if room == NULL_REF: return
 	_cold = _h._budget.acquire(Budget.COLD_BYTES)
@@ -342,8 +342,8 @@ func _lateral_candidate(room: Vector2i) -> Frontier.Candidate:
 
 
 func test_actual_paid_first_cube_adds_lateral_corridor_contact_without_movement_or_free_work() -> void:
-	"""Actual wire geometry may prove metadata here; source handoff and changed-consumer activation remain refused."""
-	assert_equal(Published.runtime_sources_refusal(), &"MOLE_CATALOG_SOURCE_DRIFT", "labelled geometry diagnostic only")
+	"""Current source-qualified geometry proves metadata; source handoff and whole-World activation remain separate."""
+	assert_equal(Published.runtime_sources_refusal(), &"", "reviewed1170 source renewal grants no physical or movement permission")
 	var room: Vector2i = _paid_first_cube(true)
 	if room == NULL_REF: return
 	(_h as LateralFixture).park_after_settlement()

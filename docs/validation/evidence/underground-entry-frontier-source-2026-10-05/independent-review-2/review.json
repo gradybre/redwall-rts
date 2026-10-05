@@ -1,0 +1,17 @@
+{
+  "accepted": true,
+  "scope": "Static immutable source reach and complete perimeter envelope compatibility only",
+  "python_tests": 8,
+  "byte_identical_rebuild": [
+    "frontier.ugfront",
+    "manifest.json"
+  ],
+  "volume_checks": 1260,
+  "input_manifest_pins": 16,
+  "source_unchanged": true,
+  "remaining": [
+    "actual full-source endpoint and graph publication",
+    "actual Contacts and paid phases",
+    "world, worker, terrain, obstacles and current consumer qualification"
+  ]
+}

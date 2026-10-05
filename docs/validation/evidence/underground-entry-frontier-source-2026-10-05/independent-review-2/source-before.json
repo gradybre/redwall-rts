@@ -1,0 +1,10 @@
+{
+  "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py": "80e8446a89616982c9a6c39d0a2db4c4a388aa2e43534192a99f4728e2b548a0",
+  "godot/data/underground/first-entry-prefix-v1/test_compile_entry_frontier.py": "0831000644a97939f3b073679669de0d515d67caf2e444d662c0ce06764b606b",
+  "godot/data/underground/first-entry-prefix-v1/frontier-v2/frontier.ugfront": "1f7b6861cf30c55322e7adf1f4b4fc1d5e63b9fab68feaaea8c4b30d7ed898ca",
+  "godot/data/underground/first-entry-prefix-v1/frontier-v2/manifest.json": "0e881c78cb620fdab69a4a10a994d05c2e7fa837640ecc8239ff775c783a6072",
+  "godot/test/test_underground_entry_frontier_source.gd": "e8c0a574ccd6ead87b9e78bbb2202180b0d76cac3e21db35a9162b8109a6620d",
+  "godot/scripts/core/underground_entry_frontier.gd": "a13de97fa8c528739db9e9ce73322f0d3ba580e7f6f6555aba44a68684b3886c",
+  "godot/scripts/core/underground_connector_contacts.gd": "8dcde4f27ec783319332748e6c71a3b996be842601338e2c667c1346c96a3dd3",
+  "godot/data/underground/mole-worker/qualified-step-v4/mole-worker.ugprof": "830ee531a432f9cef8a24a85f1c017be21253301bc46bf55e0a6b97807a4ec4e"
+}

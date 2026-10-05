@@ -4279,9 +4279,15 @@
               "godot/test/test_underground_entry_composition.gd",
               "godot/test/test_underground_entry_composition.gd.uid",
               "docs/decisions/1184-original-session-entry-owner-composition.md",
-              "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/"
+              "docs/validation/evidence/underground-entry-owner-composition-2026-10-05/",
+              "godot/scripts/core/underground_entry_bindings.gd",
+              "godot/test/test_underground_entry_bindings.gd",
+              "godot/scripts/core/underground_connector_placements.gd",
+              "godot/test/test_underground_connector_placements.gd",
+              "godot/scripts/core/underground_connector_delivery.gd",
+              "godot/test/test_underground_connector_delivery.gd"
             ],
-            "handoff": "Root explicitly STOPPED listed files after1181 author STOP. Fresh origin/master then FF eb95c0dd. Implement approved1184 original Host Planner/StorePolicy retention and initial exact EntryBindings first; closed immutable startup source choice before WorldRoutes bind and original Session entry composition follow actual reviewed source publication. Root owns that publication. No synthetic runtime source or second owner tuple; incomplete original prefixes remain stopped/retained for exact retirement. Actual original clock, one-way boundaries and all retained references counted within existing ceilings; no new reserves or implicit qualification. Independent review before commit."
+            "handoff": "Root explicitly STOPPED listed files after1181 author STOP. Fresh origin/master then FF eb95c0dd. Implement approved1184 original Host Planner/StorePolicy retention and initial exact EntryBindings first; closed immutable startup source choice before WorldRoutes bind and original Session entry composition follow actual reviewed source publication. Root owns that publication. No synthetic runtime source or second owner tuple; incomplete original prefixes remain stopped/retained for exact retirement. Actual original clock, one-way boundaries and all retained references counted within existing ceilings; no new reserves or implicit qualification. Independent review before commit. Next1184 slice granted after initial lifecycle source freeze: EntryBindings/Placements/Delivery own post-clear release/tombstone leaves and finite stopped constructor prefixes. Contacts remains Geometry; ConnectorWork/Workpieces remain Construction; no private cross-owner release or reserve growth. Initial e316ad07 source/census independently accepted; full entry closure separate."
           },
           {
             "agent": "/root",

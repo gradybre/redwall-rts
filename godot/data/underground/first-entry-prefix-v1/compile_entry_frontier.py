@@ -1,0 +1,207 @@
+#!/usr/bin/env python3
+"""Compile source-bound L0/T0 excavation selectors; current World permission remains separate.
+
+This packet selects the real downward BUILD program for BRACE, CUT and FINISH.
+Those are economic phases, not animation names. The source's unaltered physical
+tip and patch reach the top of each selected cube from retained outside ground.
+Full current air, support, worker, tool, payment, spoil and retreat checks remain
+mandatory at runtime. No paid or traversable state is emitted here.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import struct
+
+HERE = Path(__file__).resolve().parent
+LOADER = importlib.util.spec_from_file_location("entry_structure", HERE / "compile_entry_prefix.py")
+STRUCTURE = importlib.util.module_from_spec(LOADER)
+LOADER.loader.exec_module(STRUCTURE)
+ROOT = STRUCTURE.ROOT
+PRODUCER = "godot/data/underground/first-entry-prefix-v1/compile_entry_frontier.py"
+OUTPUT = "godot/data/underground/first-entry-prefix-v1/frontier-v2"
+OWNER = "godot/scripts/core/underground_entry_frontier.gd"
+COUNTS = [2, 8, 2, 10, 10, 6]
+
+
+def require(value, name):
+    if not value:
+        raise ValueError("ENTRY_FRONTIER_" + name)
+
+
+def sha(raw):
+    return hashlib.sha256(raw).hexdigest()
+
+
+def cube(ordinal):
+    """Each paid identity is a whole canonical metre cube, L0 before T0."""
+    require(type(ordinal) is int and 0 <= ordinal < 6, "CUBE")
+    x, z = (-1024 if ordinal % 2 == 0 else 0), -1024 * (1 + ordinal // 2)
+    return [x, -1024, z, x + 1024, 0, z + 1024]
+
+
+def side_root(ordinal):
+    return [-1536 if ordinal % 2 == 0 else 1536, 0, cube(ordinal)[2] + 512]
+
+
+def profile_rows(raw):
+    """Decode complete published columns; no narrowed replacement body or tool certificate."""
+    require(len(raw) == 10502 and struct.unpack_from("<8sIqIII", raw) ==
+            (b"UGPROF01", 2, 3, 29, 271, 1) and raw[-8:] == b"UGPEND01", "PROFILE_SOURCE")
+    rows = []
+    for row in range(29):
+        fields = struct.unpack_from("<18i3q2B", raw, 64 + row * 98)
+        boxes = [list(struct.unpack_from("<7i", raw, 64 + 29 * 98 + ordinal * 28))
+                 for ordinal in range(fields[14], fields[14] + fields[15])]
+        rows.append((fields, boxes))
+    return rows
+
+
+def tables(spec):
+    """Selectors name existing source programs and prior support, never runtime handles."""
+    install = [[0, 0, 0, 0, 1, 2, 4, 1, 0], [1, 1, 1, 1, 1, 6, 4, 1, 3]]
+    stations = [[0, -832, 0, 512, 0, 16, 0, 3, 1], [3, 0, 0, -1536, 0, 16, 0, 3, 1]]
+    endpoints = [[0, -1, 0, 2, -832, 0, 512], [2, -1, 0, 1, 512, 0, 512],
+                 [2, -1, 0, 1, -1408, 0, 512], [1, 0, 1, 2, 0, 0, -1536]]
+    travel = [12, 12, 12, 12]
+    for ordinal in range(6):
+        left = ordinal % 2 == 0
+        stations.append([4 + ordinal, *side_root(ordinal), 49152 if left else 16384,
+                         25 if left else 17, 0, 3, 1])
+        endpoints.append([2, -1, 0, 2, *side_root(ordinal)])
+        travel.append(12)
+    cuts = [group["bounds_u"] + [8] for group in spec["cut_groups"]]
+    bearings = [[0, -1, -1, *spec["fastening_candidates"][0]["target_bounds_u"]],
+                [1, 0, 0, *spec["fastening_candidates"][1]["target_bounds_u"]]]
+    bearings += [[0, -1, -1, *b["bounds_u"]] for b in spec["natural_bearings"]]
+    episodes = []
+    for ordinal in range(6):
+        station = ordinal + 2
+        episodes.append(cube(ordinal) + [7, 0 if ordinal < 4 else 1, station, station, station,
+                                        0, 0, 2 if ordinal < 4 else 6, 4, 1, 2, ordinal + 4, 3])
+    return [install, stations, cuts, bearings, endpoints, episodes], travel
+
+
+def translated(box, root):
+    return [box[a] + root[a % 3] for a in range(6)]
+
+
+def overlaps(a, b):
+    return all(a[i] < b[i + 3] and b[i] < a[i + 3] for i in range(3))
+
+
+def static_geometry(rows, table, travel):
+    """Prove source-coordinate reach and retained footing, not generated terrain or worker admission."""
+    witnesses = []
+    for ordinal, episode in enumerate(table[5]):
+        target, station = episode[:6], table[1][2 + ordinal]
+        root = station[1:4]
+        fields, boxes = rows[station[5]]
+        require(fields[0] == 0 and fields[4] == 3 and fields[11] == station[4] and
+                fields[16:18] == (1, 2) and fields[18] == 1 and fields[21] == 15, "WORK_PROFILE")
+        require(episode[8:11] == [2 + ordinal] * 3 and target == cube(ordinal), "PHASE_IDENTITY")
+        require(root == side_root(ordinal), "STATION_IDENTITY")
+        footprint = []
+        for box in boxes:
+            actual = translated(box, root)
+            if box[6] in (0, 1, 2, 3) and actual[1] < 0:
+                # Check all negative source pieces, not just the separate STANCE box.
+                require(actual[4] <= 0 and all(not overlaps(actual, cube(c)) for c in range(6)),
+                        "BODY_OR_FOOT_IN_FUTURE_CUT")
+                footprint.append(actual + [box[6]])
+            elif box[6] == 4 and actual[1] < 0:
+                require(all(target[i] <= actual[i] and actual[i + 3] <= target[i + 3]
+                            for i in range(3)), "STROKE_OUTSIDE_SELECTED_CUBE")
+            elif box[6] in (5, 6):
+                require(actual[1] == actual[4] == target[4] and
+                        all(target[i] <= actual[i] <= actual[i + 3] < target[i + 3] for i in (0, 2)),
+                        "CONTACT_OFF_SELECTED_TOP")
+        require(any(b[6] == 1 for b in footprint), "NO_COMPLETE_FOOTING")
+        # Contacts uses the material/output selector for each whole path. Keep
+        # the SAME full all-yaw profile at work too, with an outside gateway;
+        # a final directional-profile stub is not emitted by this wire format.
+        transit = travel[ordinal + 4]
+        require(transit == travel[1] == travel[2] == 12, "CONSISTENT_TRAVEL_PROFILE")
+        gateway = [root[0], 0, 512]
+        for endpoint in (table[4][1][4:7], table[4][2][4:7]):
+            for start, end in ((endpoint, gateway), (gateway, root)):
+                for box in rows[transit][1]:
+                    if box[6] not in (0, 1, 2, 3) or box[1] >= 0:
+                        continue
+                    a, b = translated(box, start), translated(box, end)
+                    swept = [min(a[i], b[i]) for i in range(3)] + [max(a[i], b[i]) for i in range(3, 6)]
+                    require(all(not overlaps(swept, cube(c)) for c in range(6)), "TRAVEL_FOOT_IN_CUT")
+        witnesses.append({"cube": target, "station": root, "profile": station[5],
+                          "yaw": station[4], "negative_body_and_footing": footprint,
+                          "travel_profile": transit, "required_perimeter_gateway": gateway,
+                          "all_phase_source_roles": "unchanged downward BUILD"})
+    return witnesses
+
+
+def serialize(table, travel, sources, profile):
+    require([len(t) for t in table] == COUNTS and len(travel) == 10, "CENSUS")
+    out = b"UGFRNT01" + struct.pack("<I6q2i6I", 1, 1, 1, 1, 1, 1, 3, 0, 0, *COUNTS)
+    out += b"".join(hashlib.sha256(sources[n]).digest() for n in
+                    ("structure.ugconn", "assemblies.ugasmb", "recipes.ugrecp")) + profile[32:64]
+    require(len(out) == 220, "HEADER")
+    for index, rows in enumerate(table):
+        for ordinal, row in enumerate(rows):
+            out += STRUCTURE.words(row)
+            if index == 1:
+                out += struct.pack("<qiqiqiq", 1, -1, 0, -1, 0, -1, 0)
+            elif index == 4:
+                out += struct.pack("<iq", travel[ordinal], 1)
+    out += b"UGFEND01"
+    require(len(out) == 2212, "WIRE_SIZE")
+    return out
+
+
+def build(root=ROOT):
+    sources = STRUCTURE.build(root)
+    for name, raw in sources.items():
+        path = root / STRUCTURE.OUTPUT / name
+        require(path.is_file() and not path.is_symlink() and path.read_bytes() == raw, "STRUCTURE_DRIFT:" + name)
+    profile = STRUCTURE.read(root, STRUCTURE.PROFILE, STRUCTURE.PROFILE_SHA, 131072)
+    spec = json.loads(STRUCTURE.read(root, STRUCTURE.SPEC, STRUCTURE.SPEC_SHA, 131072))
+    table, travel = tables(spec)
+    witnesses = static_geometry(profile_rows(profile), table, travel)
+    wire = serialize(table, travel, sources, profile)
+    inputs = json.loads(sources["manifest.json"])["inputs"]
+    inputs.update({str(Path(STRUCTURE.OUTPUT) / n): sha(b) for n, b in sources.items()})
+    for name in (PRODUCER, OWNER):
+        inputs[name] = sha((root / name).read_bytes())
+    manifest = {"schema": 1, "scope": "Actual source-bound first-prefix work selectors and static reach",
+                "current_world_qualified": False, "entry_workflow_qualified": False,
+                "paid_handling_qualified": False, "traversal_qualified": False,
+                "profile_content_revision": 3, "frontier_revision": 1, "table_counts": COUNTS,
+                "source_packet_bytes": len(wire), "reader_bank_bytes": 4032,
+                "inputs": inputs, "outputs": {"frontier.ugfront": {"sha256": sha(wire), "bytes": len(wire)}},
+                "static_reach": witnesses,
+                "remaining": ["current full physical phase admission and productive execution",
+                              "paid handling/fastening and native quality", "real entry worker dispatch",
+                              "current consumer/source publication renewal", "complete descent and empty Kitchen"]}
+    return {"frontier.ugfront": wire, "manifest.json": (json.dumps(manifest, indent=2) + "\n").encode()}
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--out", type=Path, default=ROOT / OUTPUT)
+    ap.add_argument("--check", action="store_true")
+    args = ap.parse_args()
+    packet = build()
+    if args.check:
+        require(args.out.is_dir() and {p.name for p in args.out.iterdir()} == set(packet), "OUTPUT_CENSUS")
+        for name, raw in packet.items():
+            require((args.out / name).read_bytes() == raw, "OUTPUT_DRIFT:" + name)
+    else:
+        args.out.mkdir(parents=True, exist_ok=False)
+        for name, raw in packet.items():
+            (args.out / name).write_bytes(raw)
+    print("First-prefix Frontier: six exact cubes, eighteen phase selectors; actual World permission remains required")
+
+
+if __name__ == "__main__":
+    main()

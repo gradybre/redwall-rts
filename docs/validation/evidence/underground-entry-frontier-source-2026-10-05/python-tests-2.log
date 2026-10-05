@@ -1,0 +1,13 @@
+test_high_and_front_motions_cannot_be_renamed_into_downward_top_contact (__main__.FrontierPublication) ... ok
+test_inward_shift_or_different_final_profile_cannot_borrow_qualified_perimeter_path (__main__.FrontierPublication) ... ok
+test_native_source_footing_is_retained_and_station_reaches_its_own_cube (__main__.FrontierPublication) ... ok
+test_negative_body_extent_and_off_face_tool_mutants_are_refused (__main__.FrontierPublication) ... ok
+test_no_tread_transit_endpoint_or_implied_completion (__main__.FrontierPublication) ... ok
+test_old_work_root_and_diagonal_storage_path_have_real_future_cut_overlap (__main__.FrontierPublication) ... ok
+test_one_cube_identity_per_episode_with_all_three_paid_phases (__main__.FrontierPublication) ... ok
+test_wire_binds_all_four_actual_sources_and_exact_tables (__main__.FrontierPublication) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 0.010s
+
+OK

@@ -1,0 +1,27 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_entry_frontier_source.gd
+  PASS  test_actual_source_selects_eighteen_cube_phases_without_publishing_world_state
+  PASS  test_wrong_source_hash_and_unqualified_work_yaw_refuse_cleanly
+  PASS  test_real_catalog_and_bills_load_without_creating_paid_or_traversable_state
+  PASS  test_structure_cannot_supply_a_stair_pace_or_accept_a_stale_hash
+CI_SUITE_TIME {"assertions":212,"failures":0,"suite":"test_underground_entry_frontier_source.gd","tests":4,"usec":1270976}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+4 test(s), 212 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 4 tests, 212 assertions, 0 failures.

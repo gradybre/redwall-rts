@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Independent wire and source-reach regressions for the real first-prefix work packet."""
+import copy
+import hashlib
+import importlib.util
+import json
+from pathlib import Path
+import struct
+import unittest
+
+HERE = Path(__file__).resolve().parent
+LOADER = importlib.util.spec_from_file_location("entry_frontier", HERE / "compile_entry_frontier.py")
+M = importlib.util.module_from_spec(LOADER)
+LOADER.loader.exec_module(M)
+
+
+class FrontierPublication(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.spec = json.loads((M.ROOT / M.STRUCTURE.SPEC).read_text())
+        cls.raw = (M.ROOT / M.STRUCTURE.PROFILE).read_bytes()
+        cls.profiles = M.profile_rows(cls.raw)
+        cls.packet = M.build()
+
+    def test_wire_binds_all_four_actual_sources_and_exact_tables(self):
+        raw = self.packet["frontier.ugfront"]
+        self.assertEqual(len(raw), 2212)
+        self.assertEqual(raw[:8], b"UGFRNT01")
+        self.assertEqual(raw[-8:], b"UGFEND01")
+        self.assertEqual(struct.unpack_from("<I6q2i6I", raw, 8),
+                         (1, 1, 1, 1, 1, 1, 3, 0, 0, 2, 8, 2, 10, 10, 6))
+        for index, name in enumerate(("structure.ugconn", "assemblies.ugasmb", "recipes.ugrecp")):
+            self.assertEqual(raw[92 + index * 32:124 + index * 32],
+                             hashlib.sha256((M.ROOT / M.STRUCTURE.OUTPUT / name).read_bytes()).digest())
+        self.assertEqual(raw[188:220], self.raw[32:64])
+
+    def test_one_cube_identity_per_episode_with_all_three_paid_phases(self):
+        raw = self.packet["frontier.ugfront"]
+        start = 220 + 2 * 36 + 8 * 80 + 2 * 28 + 10 * 36 + 10 * 40
+        rows = [struct.unpack_from("<19i", raw, start + i * 76) for i in range(6)]
+        self.assertEqual({tuple(r[:6]) for r in rows}, {tuple(M.cube(i)) for i in range(6)})
+        self.assertEqual(sum(bool(r[6] & (1 << p)) for r in rows for p in range(3)), 18)
+        for ordinal, row in enumerate(rows):
+            self.assertEqual(row[7], 0 if ordinal < 4 else 1)
+            self.assertEqual(row[8:11], (ordinal + 2,) * 3)
+            self.assertEqual(row[15:19], (1, 2, ordinal + 4, 3))
+
+    def test_native_source_footing_is_retained_and_station_reaches_its_own_cube(self):
+        table, travel = M.tables(self.spec)
+        witnesses = M.static_geometry(self.profiles, table, travel)
+        self.assertEqual(len(witnesses), 6)
+        for w in witnesses:
+            self.assertEqual(len(w["negative_body_and_footing"]), 4)
+            for b in w["negative_body_and_footing"]:
+                self.assertLess(b[1], 0, "negative geometry was not projected onto floor")
+                self.assertTrue(all(not M.overlaps(b, M.cube(i)) for i in range(6)))
+            self.assertIn(w["profile"], (17, 25))
+
+    def test_high_and_front_motions_cannot_be_renamed_into_downward_top_contact(self):
+        for replacement in (26, 27):
+            table, travel = M.tables(self.spec)
+            table[1][2][5] = replacement
+            with self.assertRaisesRegex(ValueError, "CONTACT_OFF_SELECTED_TOP|STROKE_OUTSIDE_SELECTED_CUBE"):
+                M.static_geometry(self.profiles, table, travel)
+
+    def test_inward_shift_or_different_final_profile_cannot_borrow_qualified_perimeter_path(self):
+        table, travel = M.tables(self.spec)
+        table[1][2][1] += 128
+        with self.assertRaisesRegex(ValueError, "STATION_IDENTITY"):
+            M.static_geometry(self.profiles, table, travel)
+        table, travel = M.tables(self.spec)
+        travel[4] = 5
+        with self.assertRaisesRegex(ValueError, "CONSISTENT_TRAVEL_PROFILE"):
+            M.static_geometry(self.profiles, table, travel)
+
+    def test_old_work_root_and_diagonal_storage_path_have_real_future_cut_overlap(self):
+        foot = next(b for b in self.profiles[12][1] if b[6] == 1)
+        old = M.translated(foot, [-1408, 0, -512])
+        new = M.translated(foot, [-1536, 0, -512])
+        self.assertTrue(M.overlaps(old, M.cube(0)))
+        self.assertFalse(any(M.overlaps(new, M.cube(i)) for i in range(6)))
+        # A point inside the diagonal from material(512,512) to left deep work
+        # crosses the still-solid pocket. Runtime must use the emitted gateway.
+        midpoint = M.translated(foot, [-512, 0, -1024])
+        self.assertTrue(any(M.overlaps(midpoint, M.cube(i)) for i in range(6)))
+
+    def test_negative_body_extent_and_off_face_tool_mutants_are_refused(self):
+        table, travel = M.tables(self.spec)
+        for role in (0, 1, 2, 3, 4, 5, 6):
+            profiles = copy.deepcopy(self.profiles)
+            boxes = profiles[25][1]
+            b = next(b for b in boxes if b[6] == role and (b[1] < 0 or role in (5, 6)))
+            if role in (0, 1, 2, 3): b[3] = 640
+            elif role == 4: b[3] = 1500
+            else: b[1] = b[4] = 1
+            with self.assertRaises(ValueError, msg=f"role {role}"):
+                M.static_geometry(profiles, table, travel)
+
+    def test_no_tread_transit_endpoint_or_implied_completion(self):
+        table, _ = M.tables(self.spec)
+        self.assertFalse(any(r[0] == 1 and r[1] == 1 for r in table[4]))
+        record = json.loads(self.packet["manifest.json"])
+        for key in ("current_world_qualified", "entry_workflow_qualified", "paid_handling_qualified", "traversal_qualified"):
+            self.assertIs(record[key], False)
+        self.assertEqual(record["reader_bank_bytes"], 2048 + len(self.packet["frontier.ugfront"]) - 228)
+        self.assertEqual(self.packet, M.build())
+        for name, expected in record["inputs"].items():
+            self.assertEqual(hashlib.sha256((M.ROOT / name).read_bytes()).hexdigest(), expected)
+
+
+if __name__ == "__main__":
+    unittest.main()

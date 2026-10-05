@@ -25,20 +25,7 @@ static func construct(session: RefCounted) -> StringName:
 	if not Retirement.constructor_session_matches(session) or not session._busy \
 			or session._operations_state != 1 or session._operations_prefix != 4:
 		return &"UNDERGROUND_ROUTE_COMPOSITION_SCOPE"
-	if session._retirement_owners.world_routes != null \
-			or session._retirement_owners.profiles._live.header[0] != PROFILE_CONTENT_REVISION:
-		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
-	var config: WorldRoutes.Configuration = _configuration(session._retirement_owners)
-	var code: StringName = _prepare_catalog(config)
-	if code == &"": code = _original_refusal(session)
-	if code != &"": return code
-	var candidate: WorldRoutes = WorldRoutes.new()
-	code = candidate.configure(config)
-	if code == &"": code = _original_refusal(session)
-	if code != &"": return code
-	session._retirement_owners.world_routes = candidate
-	session._operations_prefix = 5
-	config = null # The temporary configuration dies before any graph bank allocation.
+	var code: StringName = _prepare_candidate(session)
 	if code == &"": code = _bind_graph(session)
 	if code == &"": code = _bind_profiles(session)
 	if code == &"": code = _bind_approach(session)
@@ -65,6 +52,24 @@ static func unpublished_refusal(o: Retirement.Owners) -> StringName:
 	return &""
 
 
+static func _prepare_candidate(session: RefCounted) -> StringName:
+	"""The temporary configuration dies before graph allocation; only a fully configured provider is retained."""
+	if session._retirement_owners.world_routes != null \
+			or session._retirement_owners.profiles._live.header[0] != PROFILE_CONTENT_REVISION:
+		return &"UNDERGROUND_ROUTE_COMPOSITION_SOURCE"
+	var config: WorldRoutes.Configuration = _configuration(session._retirement_owners)
+	var code: StringName = _prepare_catalog(config, session._retirement_owners)
+	if code == &"": code = _original_refusal(session)
+	if code != &"": return code
+	var candidate: WorldRoutes = WorldRoutes.new()
+	code = candidate.configure(config)
+	if code == &"": code = _original_refusal(session)
+	if code != &"": return code
+	session._retirement_owners.world_routes = candidate
+	session._operations_prefix = 5
+	return &""
+
+
 static func _configuration(o: Retirement.Owners) -> WorldRoutes.Configuration:
 	"""Borrow exact actual owners; create the sole Movement source and Catalog in their existing arenas."""
 	var config: WorldRoutes.Configuration = WorldRoutes.Configuration.new()
@@ -84,12 +89,12 @@ static func _configuration(o: Retirement.Owners) -> WorldRoutes.Configuration:
 	return config
 
 
-static func _prepare_catalog(config: WorldRoutes.Configuration) -> StringName:
+static func _prepare_catalog(config: WorldRoutes.Configuration, o: Retirement.Owners) -> StringName:
 	"""Load one explicit immutable pace artifact; no latest-version lookup or replacement speed exists."""
 	var code: StringName = config.catalog.configure(Catalog.RESERVED_BYTES)
 	if code == &"":
-		code = config.catalog.bind_actual(config.profiles, config.levels, config.movement, config.residents,
-			config.transforms, config.owner._domain)
+		code = config.catalog.bind_actual(o.profiles, o.levels, config.movement, o.residents,
+			o.transforms, o.space._domain)
 	return config.catalog.load_file(CATALOG_PATH, CATALOG_SHA, CATALOG_REVISION) if code == &"" else code
 
 

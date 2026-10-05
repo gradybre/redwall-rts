@@ -8,7 +8,7 @@ const Authority := preload("res://scripts/core/underground_space_authority.gd")
 const Sites := preload("res://scripts/core/excavation_sites.gd")
 const Funding := preload("res://scripts/core/excavation_inventory.gd")
 const Router := preload("res://scripts/core/modular_projects.gd")
-const RoomBindings := preload("res://scripts/core/underground_entry_bindings.gd")
+const RoomBindings := preload("res://scripts/core/underground_room_bindings.gd")
 const Orders := preload("res://scripts/core/underground_room_orders.gd")
 const RoomCatalog := preload("res://scripts/core/room_catalog.gd")
 const Locations := preload("res://scripts/core/underground_locations.gd")
@@ -76,7 +76,7 @@ static func _bind_router(session: RefCounted) -> StringName:
 
 
 static func _bind_rooms(session: RefCounted) -> StringName:
-	"""Retain the initial actual EntryBindings; ordinary Rooms inherit it without later authority replacement."""
+	"""Retain the published Buildings authority even if its subsequent reciprocal admission setup refuses."""
 	var o: Retirement.Owners = session._retirement_owners
 	o.room_bindings = RoomBindings.new()
 	var code: StringName = o.room_bindings.configure(o.world_bindings, o.sites, o.budget)

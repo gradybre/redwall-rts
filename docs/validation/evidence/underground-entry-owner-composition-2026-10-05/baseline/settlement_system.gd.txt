@@ -586,8 +586,6 @@ const StockAgeScript := preload("res://scripts/core/stock_age.gd")
 const GroundPilesScript := preload("res://scripts/core/ground_piles.gd")
 const GearScript := preload("res://scripts/core/gear.gd")
 const HaulCarryScript := preload("res://scripts/core/haul_carry.gd")
-const HaulPlannerScript := preload("res://scripts/core/haul_planner.gd")
-const StorePolicyScript := preload("res://scripts/core/store_policy.gd")
 const UndergroundSession := preload("res://scripts/core/underground_session.gd")
 const UndergroundContent := preload("res://demo/cast/underground_actor_content.gd")
 const DemolitionAdmissionsScript := preload("res://scripts/core/demolition_admissions.gd")
@@ -912,9 +910,6 @@ var _ground_piles: GroundPilesScript = null
 ## ADR1148: one existing-budget Gear and Carry owner; wiring creates no stock or tool instances.
 var _gear: GearScript = null
 var _haul_carry: HaulCarryScript = null
-## ADR1184: original Host-lifetime haul planning and policy; existing finite banks, no seeded demand.
-var _haul_planner: HaulPlannerScript = null
-var _store_policy: StorePolicyScript = null
 ## ADR1149: one existing-reserve Session, retained before initialization so reentry cannot reset its stores.
 var _underground_session: UndergroundSession = null
 ## ADR1158: one synchronous host stop, including the pre-clear interval held by boot/UI.
@@ -1101,7 +1096,6 @@ func _init() -> void:
 	_compose_stock_layer()
 	_compose_ground_piles()
 	_compose_equipment()
-	_compose_haul_planning()
 	_bind_ecology_to_commands()
 	_size_index_and_scratch_columns()
 	_assert_shared_contracts()
@@ -1178,30 +1172,6 @@ func _compose_equipment() -> void:
 		return
 	_last_refusal = REFUSE_EQUIPMENT_BIND
 	push_error("SettlementSystem could not bind the equipment and hauling owners")
-
-
-func _compose_haul_planning() -> void:
-	"""Retain the actual planner and policy once; later World resets clear their existing finite columns."""
-	_store_policy = StorePolicyScript.new(_buildings, _inventory)
-	_haul_planner = HaulPlannerScript.new()
-	if _haul_planner.bind(_inventory, _reservations, _residents, _buildings, _ground_piles, _store_policy) \
-			and _haul_owners_refusal() == &"":
-		return
-	_last_refusal = &"UNDERGROUND_HOST_HAUL_OWNER"
-	push_error("SettlementSystem could not bind its original haul planning and policy owners")
-
-
-func _haul_owners_refusal() -> StringName:
-	"""Concrete original Host links, with no observing getter or equal-value substitute for a collaborator."""
-	if _haul_planner == null or _haul_planner.get_script() != HaulPlannerScript \
-			or _store_policy == null or _store_policy.get_script() != StorePolicyScript \
-			or _haul_planner._inventory != _inventory or _haul_planner._reservations != _reservations \
-			or _haul_planner._residents != _residents or _haul_planner._buildings != _buildings \
-			or _haul_planner._piles != _ground_piles or _haul_planner._store_policy != _store_policy \
-			or _store_policy._inventory != _inventory or _store_policy._buildings != _buildings \
-			or _store_policy._directory != _directory:
-		return &"UNDERGROUND_HOST_HAUL_OWNER"
-	return &""
 
 
 func _bind_seed_expiry_authority() -> void:
@@ -1964,7 +1934,6 @@ func prepare_world_reset(allow_prepared_world: bool = false) -> bool:
 		if _underground_session != null and _underground_session._busy:
 			_underground_session._poisoned = true
 		return _refuse(&"UNDERGROUND_HOST_RESETTING")
-	if _haul_owners_refusal() != &"": return _refuse(&"UNDERGROUND_HOST_HAUL_OWNER")
 	if _underground_session == null:
 		return _underground_reset_phase == 0
 	var original: UndergroundSession = _underground_session
@@ -1994,7 +1963,7 @@ func _mounted_underground_refusal(original: UndergroundSession) -> StringName:
 			or original._retirement_owners == null or original._content != original._retirement_owners.content \
 			or original._world_ref != original._retirement_owners.world_ref:
 		return &"UNDERGROUND_HOST_OWNER"
-	return _haul_owners_refusal()
+	return &""
 
 
 func abandon_world_reset() -> bool:
@@ -2054,8 +2023,6 @@ func _clear_stores() -> void:
 	_ecology.clear()
 	_crop_weather.clear()
 	_clear_stock_layer()
-	_haul_planner.clear()
-	_store_policy.clear()
 	_planner.clear()
 	_presentation.clear()
 	_world.clear()

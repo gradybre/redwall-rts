@@ -185,8 +185,6 @@ static func _constructor_shape_refusal(o: Owners, prefix: int) -> StringName:
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	if o.rooms != null and constructor_catalog_refusal(o) != &"":
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"
-	if prefix >= 3 and o.room_bindings.get_script() != EntryBindings:
-		return &"WORLD_RETIREMENT_CONSTRUCTOR"
 	if prefix >= 5 and (o.routes._live.edge_count != 0 or o.routes._stage.edge_count != 0 \
 			or o.routes._proposed_count != 0):
 		return &"WORLD_RETIREMENT_CONSTRUCTOR"

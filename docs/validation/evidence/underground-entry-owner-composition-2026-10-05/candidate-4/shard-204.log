@@ -1,0 +1,42 @@
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_store_policy.gd
+  PASS  test_the_arena_is_sections_3_budget_plus_the_binding_stamp
+  PASS  test_an_unconfigured_store_admits_by_its_category_mask_alone
+  PASS  test_the_category_mask_still_decides_without_any_policy
+  PASS  test_disallowing_an_item_refuses_exactly_that_item
+  PASS  test_the_allow_byte_only_restricts_the_category_mask
+  PASS  test_only_the_buildings_main_store_carries_its_policy
+  PASS  test_a_dead_container_or_an_unknown_item_admits_nothing
+  PASS  test_every_writer_refusal_is_named_and_writes_nothing
+  PASS  test_the_boundary_values_are_accepted
+  PASS  test_ordinary_production_may_not_draw_below_the_minimum
+  PASS  test_a_minimum_binds_only_the_main_store
+  PASS  test_a_reused_building_row_inherits_nothing
+  PASS  test_a_new_world_inherits_nothing_only_because_the_store_is_cleared_with_it
+  PASS  test_two_owned_stores_at_the_origin_both_carry_the_policy
+  PASS  test_clear_returns_every_row_to_the_defaults
+  PASS  test_the_per_building_reads_refuse_absence
+  PASS  test_a_bound_building_still_has_no_cell_for_an_unknown_item
+  PASS  test_the_origin_accessor_refuses_a_stale_building
+  PASS  test_the_creation_mark_sees_a_transient_object
+  PASS  test_the_published_queries_allocate_nothing
+CI_SUITE_TIME {"assertions":245,"failures":0,"suite":"test_store_policy.gd","tests":20,"usec":650072}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+20 test(s), 245 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 20 tests, 245 assertions, 0 failures.

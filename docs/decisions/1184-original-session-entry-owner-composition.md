@@ -1,0 +1,130 @@
+# 1184 — Original Session entry-owner composition
+
+Date: 2026-10-05. Status: implementation approved; source, lifetime and actual
+composition verification pending. This record grants no physical permission.
+
+## Original owners first
+
+The actual SettlementSystem constructs one existing HaulPlanner and one
+StorePolicy from its original Inventory, Reservations, Residents, Buildings,
+GroundPiles and Directory. They live with that Host, retain their existing
+finite arenas and clear through the normal whole-World reset. Construction
+does not seed stock, admit a Job or select a destination. They must not be
+confused with the existing agricultural JobPlanner.
+
+RoomComposition constructs the actual EntryBindings subtype at the first Room
+binding. Its ordinary Room approach methods remain inherited. This avoids
+replacing the one-way Buildings authority after ordinary planning has started.
+Complete and failed-prefix retirement prove that exact initially constructed
+subtype and preserve its active-bracket refusals. An unbound EntryBindings is
+not an entry, Placement or paid-work permission.
+
+This initial lifetime increment is independently reviewable while the real
+immutable L0/T0 startup source bundle is being published. Tests use actual
+generated Host owners and current source-qualified Content. They do not use
+the synthetic FirstPrefix wire as a production catalog.
+
+## Entry composition contract
+
+The planned public entry point is
+`SettlementSystem.compose_underground_entry_owners() -> bool`. It brackets the
+actual mounted Session and original Host Planner, Policy and command clock.
+The Session invokes a stateless EntryComposition; external callers cannot
+register an authority tuple or clock. The existing Retirement.Owners fields
+retain Placements, Contacts, ConnectorWork, Workpieces and Delivery. Source
+owners remain reachable through their existing exact owner bindings; there is
+no second permanent tuple, graph bank, Movement or Catalog.
+
+RouteComposition must select either its exact existing ground artifact or the
+exact published entry bundle before its first WorldRoutes binding. No caller
+path, guessed revision or higher-revision live Catalog replacement is allowed.
+The real source bundle is a separate publication dependency, and success stays
+closed until all Catalog, Grouping, Recipe, Frontier and Workpiece pins exist.
+
+The ordered chain is real Recipes/Grouping/Frontier, Placements, the original
+EntryBindings admission authority, Contacts, the original provider's phase
+contact binding, ConnectorWork, Workpieces and its paid-owner binding, then
+Delivery bound to the Host's actual Planner and current command clock. Retain
+each candidate before a one-way write and derive every failure prefix inside
+the same private Session. A late refusal must stop mutation and keep the exact
+original prefix until canonical clearing and observer-free owner release.
+Normal complete retirement guards are not weakened to admit an incomplete
+caller tuple. Any additional owner-owned release leaf requires an explicit
+lease before implementation.
+
+## Bounded lifetime and verification
+
+No ceiling or reserve grows. The existing HaulPlanner 231,524-byte and
+StorePolicy 2,363,392-byte packed reservations are instantiated once; charging
+those banks again would double-count. New references, nested packet headers,
+constructor frames, reset/UI Scope coexistence and actual clock identity still
+need a complete source census. The accepted predecessor has only seven bytes
+free in its 8,192-byte constructor phase, so earlier fit cannot be inherited.
+Numeric and provisional native/reference terms must remain separate, and no
+whole-native allocation claim follows from logical source accounting.
+
+Required tests cover original exact links, unchanged stock/Jobs/World/Site
+counts, ordinary Room behavior through EntryBindings, reset/remount without
+arena growth, stale or replaced owners, active entry brackets, reentrant
+composition/reset, each retained failure prefix and partial-clear refusal.
+Full source-positive entry tests await the real immutable bundle. Strict
+diagnostics, leak checks, changed-source zero-warning analysis, exact source
+pins and independent review precede any commit. Parent-owned UI/demo wiring,
+shared ledger and publication remain separate.
+
+## Initial lifecycle increment — verified candidate, awaiting independent review
+
+The initial increment changes only the existing Host, RoomComposition,
+RouteComposition, Retirement, and the two existing Host/RoomComposition tests.
+Session and its fixed Owners/Scope declarations remain byte-identical to the
+accepted base `eb95c0dd418d97719a1772790265ae7d834b0291`. It creates no entry
+composer, Placement, paid work, endpoint, route or new presentation source.
+
+The parent approved review of a repartition inside the same 8,192-byte logical
+retirement envelope: the previous controls/helpers split was 6,144/2,048; the
+proposed split is 6,208/1,984. The complete initial source census reports
+6,195 controls and a maximum 1,919 helper bytes, including UI reset, cleanup,
+failed-prefix reset, original-live abandonment, and owner release. The original
+1,536-byte Session reservation is charged once in the predecessor composition.
+No shared constant, global reserve or ledger is changed in this packet.
+
+Route construction now owns the temporary Configuration in `construct` and
+releases it explicitly before graph allocation. Removing the additional
+prepare-candidate frame and duplicate Owners parameter reduces the old Catalog
+case by 80 bytes. The provider case is now the maximum: 4,088 bytes, a net
+63-byte reduction from the old maximum of 4,151. This is the measured source
+result, superseding the preliminary 64-byte reduction estimate. The two new
+Host references add 64 controls; construction has no private Scope/copy yet,
+so 6,195 - 2,097 + 4,088 = 8,186, leaving six bytes within 8,192. The
+post-construction frame remains separately counted. This fit does not extend
+to future entry owner or Scope fields.
+
+The cold Host Planner/Policy initializer and exact EntryBindings defaults are
+counted separately. Their existing fixed packed arenas are already present in
+the global model and are not charged again. References at 32 bytes, object
+headers at 256 bytes, native packed-buffer/object costs and whole-client peaks
+remain provisional or unmeasured; no native memory qualification is claimed.
+
+Candidate 4 passed seven official singleton suites: 159 tests, 3,887 assertions,
+no failures or strict/raw diagnostics/leaks. The changed six GDScripts passed
+zero-warning analysis. Twenty-two census checks reject reference/local growth,
+new collection payloads, unknown allocating callees, missing configuration
+release, producer/manifest drift and limit growth. All earlier test failures
+are retained. The populated reset test calls the real Economy starter-store
+entry point after actual Host World generation; World generation alone does
+not deposit starter stock. Tests authorize no production route or work profile.
+
+Reproduction and exact source/input/output/history pins are under
+`docs/validation/evidence/underground-entry-owner-composition-2026-10-05/`.
+Root owns the later shared memory producer migration and the real immutable
+entry bundle. Full entry composition remains a separate step of this decision.
+
+### Independent initial-component acceptance
+
+Root accepted source manifest `e316ad073264584acf5c4daa177eda5c6a7a9388739e87f054254b42d61aea2d`,
+reverified 9 source / 161 input / 50 output / 54 history pins, independently
+passed all 22 census checks and reproduced the complete report byte-identically.
+No high/medium finding remains for the initial lifecycle increment. This
+supersedes its awaiting-review status above; the broader Entry composition,
+owner-specific post-clear release and full source bundle remain pending.
+Original reviewed decision bytes are retained with an explicit output locator.

@@ -11,7 +11,6 @@ const Residents := preload("res://scripts/core/residents.gd")
 const Owner := preload("res://scripts/core/underground_space_owner.gd")
 const World := preload("res://scripts/core/world_init.gd")
 const Catalog := preload("res://scripts/core/catalog.gd")
-const Economy := preload("res://scripts/systems/economy_system.gd")
 
 class ObservedGear extends Gear:
 	var observer: Callable = Callable()
@@ -203,42 +202,30 @@ func test_wrong_haul_collaborator_refuses_reset_before_any_original_store_is_cle
 
 
 func _ordinary_haul_source() -> Vector2i:
-	"""Find actual starter wood, which can transfer between the real material stores."""
+	"""Find a genuine unequipped starter lot owned by an actual Building; do not add fixture stock."""
 	for row: int in _host.inventory()._l_capacity:
 		var lot: Vector2i = _host.inventory()._lot_ref_of(row)
 		if not _host.inventory().is_lot_valid(lot) or _host.inventory().is_lot_equipped(lot): continue
-		if _host.inventory().lot_item_id(lot) != _host.item_definitions().compiled_id(&"wood"): continue
 		var container: Vector2i = _host.inventory().lot_container(lot)
-		if not _host.inventory().is_satchel(container) \
+		if _host.buildings().is_live_building(_host.inventory().container_owner(container)) \
 				and _host.inventory().lot_available_milli(lot) >= 1000:
 			return lot
 	return Inventory.NULL_REF
 
 
-func _seed_host_stock() -> void:
-	"""Use the real boot Economy entry point and original generated colony; release only the test-owned Node."""
-	var economy: Economy = Economy.new()
-	var binding: Settlement.StarterColonyScript.StoreBinding = Settlement.StarterColonyScript.StoreBinding.new()
-	assert_true(economy.bind_inventory(_host.inventory()), "original actual Inventory")
-	assert_true(_host.starter_store_binding_into(binding), "actual generated colony binding")
-	assert_true(economy.open_and_seed_starter_stores(binding), "actual GDD starter stock")
-	economy.free()
-
-
 func test_actual_settled_haul_and_policy_rows_clear_on_reset_without_reallocating() -> void:
 	"""Real planner admission and policy writes retire with the same canonical stocks and reservation pool."""
 	_generate_and_mount()
-	_seed_host_stock()
 	var planner: Settlement.HaulPlannerScript = _host._haul_planner
 	var policy: Settlement.StorePolicyScript = _host._store_policy
 	var lot: Vector2i = _ordinary_haul_source()
-	assert_true(lot != Inventory.NULL_REF, "actual starter stock exists")
+	assert_true(lot != Inventory.NULL_REF, "actual starter Building stock exists")
 	var job: Settlement.JobsScript.OpResult = _host.jobs().create_job(Catalog.JOB_KIND.HAUL, 1, 0, 2000, 0)
 	assert_true(job.ok, "actual Job allocated")
 	var admitted: Inventory.OpResult = planner.admit(job.ref, _host._live_slots[0], lot, 1000, 300)
 	assert_true(admitted.ok, "real ordinary haul admission: %s" % admitted.error)
 	assert_true(planner.is_admitted(job.ref), "actual retained planning record")
-	var building: Vector2i = _host.buildings().building_ref_of_row(0)
+	var building: Vector2i = _host.inventory().container_owner(_host.inventory().lot_container(lot))
 	var item: int = _host.inventory().lot_item_id(lot)
 	assert_equal(policy.set_allowed(building, item, policy.DISALLOWED), &"", "actual policy allow write")
 	assert_equal(policy.set_minimum(building, item, 1000), &"", "actual minimum write")

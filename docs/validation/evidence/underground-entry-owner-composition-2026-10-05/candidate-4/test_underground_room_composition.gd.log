@@ -1,0 +1,40 @@
+state_registry_coverage: PASS -- 154 modules, 731 rows, 1055 packed columns checked
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+Godot Engine v4.7.2.stable.official.ed1daf0bf - https://godotengine.org
+
+test_underground_room_composition.gd
+  PASS  test_actual_host_composes_exact_empty_owner_graph_without_gameplay_mutation
+  PASS  test_initial_entry_binding_is_unbound_and_active_brackets_refuse_retirement
+  PASS  test_actual_reset_releases_original_graph_then_reuses_inventory_arena
+  PASS  test_constructor_missing_authority_backlink_keeps_prefix_then_retires
+  PASS  test_constructor_missing_room_backlink_keeps_prefix_then_retires
+  PASS  test_reentrant_constructor_after_router_retains_both_original_bindings
+  PASS  test_refusal_before_first_binding_keeps_foundation_and_can_retry
+  PASS  test_late_source_drift_retains_bound_prefix_and_refuses_reset_until_restored
+  PASS  test_busy_foundation_refuses_before_allocating_any_operational_owner
+  PASS  test_captured_prefix_rejects_tuple_and_prefix_replacement
+  PASS  test_constructor_prefix_entry_refuses_arbitrary_supplied_session
+  PASS  test_final_inventory_boundary_retains_complete_failed_prefix_for_reset
+  PASS  test_final_host_tuple_mismatch_stops_newly_bound_composition
+  PASS  test_final_cached_consumer_drift_cannot_publish_ready_owner_state
+  PASS  test_complete_composition_refuses_equal_value_foreign_catalog_owner
+  PASS  test_failed_room_prefix_refuses_foreign_fact_owner_before_clear
+  PASS  test_null_original_facts_refuse_before_default_catalog_allocation
+CI_SUITE_TIME {"assertions":386,"failures":0,"suite":"test_underground_room_composition.gd","tests":17,"usec":13180467}
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+
+
+17 test(s), 386 assertion(s), 0 failure(s)
+diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 0 expected, 0 tolerated; leaked at exit: 0 object(s), 0 resource(s)
+[EntityManager] ready
+[GameManager] ready
+[SettlementSystem] ready
+[EconomySystem] ready
+[UIManager] ready
+log: 0 unexpected error(s), 0 unexpected warning(s); leaked at exit: 0 object(s), 0 resource(s).
+ok: 17 tests, 386 assertions, 0 failures.

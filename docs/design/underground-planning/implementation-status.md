@@ -6,7 +6,10 @@
 passed all14 jobs in14m44s:402 suite files exactly once across8 shards,
 11156 tests/1026355 assertions/zero failures,272 expected/353 tolerated
 diagnostics, zero unexpected diagnostics/leaks, and analyzer0/1243. The matching
-clean-import/no-argument full local run is still in progress. The preceding
+[clean-import/no-argument full local run](../../validation/evidence/underground-host-checkpoint-2026-10-04/full-6da6deb9/README.md)
+passed11,156 tests/1,026,365 assertions with identical402files, named test cases
+and all diagnostic/leak totals; analyzer0/1243. Local assertions are10 higher
+than CI, unattributed; strict all-counter equality is not claimed. The preceding
 ebdd5daa full local and CI runs both failed nine stale support-clearance fixture
 tests; those original failures are retained, and their independently reviewed
 fixture correction is in6da6deb9. No diagnostic gate was weakened.

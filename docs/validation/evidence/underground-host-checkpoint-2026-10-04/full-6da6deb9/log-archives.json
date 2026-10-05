@@ -1,0 +1,20 @@
+{
+  "analyzer.log": {
+    "archive": "analyzer.log.gz",
+    "sha256": "7ae7f6e83c80420799fd2ba1b26ecc80018db83196368e751447589a03f0881b",
+    "compressed_sha256": "157aa3e0095e388ff8b9d8ce5d5577d9a34b609cf5ea75d1cde419752a9c3f4a",
+    "bytes": 144
+  },
+  "clean-import.log": {
+    "archive": "clean-import.log.gz",
+    "sha256": "1ff627a06d0302277538e4e218e04a9a6f205458da1a2df0adfa5e7e293b7c9e",
+    "compressed_sha256": "8b37a413ef00f15b2415f986455cd7a6f310cdaac1082c2371050230d078031c",
+    "bytes": 251996
+  },
+  "full-suite.log": {
+    "archive": "full-suite.log.gz",
+    "sha256": "e4235ee65c4167d531920e6097e44eee6deacff7eda242c9f0e6cfa25d58d7f7",
+    "compressed_sha256": "0f50e12745a2197e25e64dbc9b97e3d0e34d1d3f65cb30118a4109ad1e8afb7e",
+    "bytes": 1697952
+  }
+}

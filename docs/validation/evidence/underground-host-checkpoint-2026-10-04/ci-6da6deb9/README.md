@@ -8,6 +8,6 @@ diagnostics: 0 unexpected error(s), 0 unexpected warning(s), 272 expected, 353 t
 0 GDScript warning(s) in 0 of 1243 file(s)
 ```
 
-Those totals are the eight-shard aggregate, not a claim that the single-run summary printed them. Shard execution times:537,493,419,428,337,470,610,528 seconds. Original reports/manifests and the analyzer job log are retained. Lossless gzip logs have compressed and decoded hashes in `log-archives.json`. The full no-argument same-commit local run remains in progress; no exact-counter equality or later-source qualification is claimed here.
+Those totals are the eight-shard aggregate, not a claim that the single-run summary printed them. Shard execution times:537,493,419,428,337,470,610,528 seconds. Original reports/manifests and the analyzer job log are retained. Lossless gzip logs have compressed and decoded hashes in `log-archives.json`. The [same-commit no-argument full run](../full-6da6deb9/README.md) passed11,156 tests/1,026,365 assertions with the same402 files, exact named test-case set and diagnostic/leak totals. Local assertions are10 higher; cause unattributed and strict all-counter equality is not claimed. Neither run qualifies later-source changes.
 
 Run: https://github.com/gradybre/redwall-rts/actions/runs/37251846477

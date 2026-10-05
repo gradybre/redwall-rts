@@ -2037,6 +2037,21 @@
               "docs/validation/evidence/underground-room-itinerary-census-2026-10-05/"
             ],
             "handoff": "Independent exact-source1165 helper/transitive call census and negative tests within original4096B WorldRoutes controls/1024B Provider contribution. Read-only source snapshot; no consumer changes. Geometry acknowledged clean fresh-origin worktree fast-forwarded own5b440aed. Root owns helper and Provider/tests."
+          },
+          {
+            "agent": "/root/ug_construction",
+            "state": "held",
+            "branch": "codex/underground-ground-pace",
+            "files": [
+              "godot/scripts/core/underground_connector_catalog.gd",
+              "godot/test/test_underground_connector_catalog.gd",
+              "godot/data/underground/ground-pace-v1/",
+              "docs/decisions/1166-ground-only-connector-pace-catalog.md",
+              "docs/validation/evidence/underground-ground-pace-2026-10-05/"
+            ],
+            "handoff": "Construction confirmed exclusive1166 scope after releasing1161. Fresh origin/master thenFF38515845. Version1 unchanged; explicit version2 has zero six geometry tables and actual exact source-bound ground pace rows. No dummy connector, new speed, retained bank or global reserve. Root owns registry/memory/catalog consumer renewal; Geometry owns runtime Profile/Routes seams after census.",
+            "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-ground-pace",
+            "base": "Fresh origin/master82d60ba8 thenFF38515845; worker acknowledged clean tree2026-10-05."
           }
         ],
         "scope_narrowing": {
@@ -2987,6 +3002,15 @@
           "iterator_bytes": "308/512",
           "cold_bytes": "691024/1048960",
           "limits": "Concrete1152 provider and playable qualification remain open; synthetic physical/contact qualification in component fixture."
+        },
+        "frontier_publication_1161": {
+          "source_commit": "45d3d2dcf1f7cfaba2f3f81f533b32522537b1b3",
+          "integration_commit": "3851584553399ee41fbdcb41c08e35543a416ffe",
+          "review": "Root independent source review accepted after HIGH late output-buffer finding was reproduced and fixed before all bank swaps.",
+          "strict": "14 tests,682 assertions,0 failures; all strict/raw diagnostics/leaks0;analyzer0/7. Six unchanged-suite regressions retained.",
+          "census": "8050/8192 controls;841/1024 helper;729472/1048960 largest cold lifetime; native provisional.",
+          "evidence_path": "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/",
+          "limits": "Published metadata on already-paid geometry only; current source-consumer renewal, next paid cube and whole Room remain open."
         }
       },
       "lease": {
@@ -3203,7 +3227,7 @@
           {
             "agent": "/root/ug_construction",
             "branch": "codex/underground-room-frontier-publication",
-            "state": "held",
+            "state": "released",
             "worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-room-frontier-publication",
             "files": [
               "godot/scripts/core/underground_locations.gd",
@@ -3215,10 +3239,11 @@
               "godot/scripts/core/underground_room_frontier_publication.gd.uid",
               "godot/test/test_underground_room_frontier_publication.gd",
               "godot/test/test_underground_room_frontier_publication.gd.uid",
-              "docs/decisions/1161-ordinary-room-frontier-publication.md",
+              "docs/decisions/1161-atomic-room-frontier-publication.md",
               "docs/validation/evidence/underground-room-frontier-publication-2026-10-04/"
             ],
-            "handoff": "Root explicitly stops all named sources. Fresh origin/master82d60ba8 then FF721038a4 plus author1157. Implement exact existing-live-geometry add-only publication; actual corridor/Kitchen boundary requires one real transit point plus one WORK point and four directed section-contained spans. No new support/air/section, global reservation, bank or hidden per-Site state. Original owner/lease/context and unchanged old actors/rows/masks; all observers before one static commit. Frozen source review before commit; Catalog/source repinning remains root-owned."
+            "handoff": "Root explicitly stops all named sources. Fresh origin/master82d60ba8 then FF721038a4 plus author1157. Implement exact existing-live-geometry add-only publication; actual corridor/Kitchen boundary requires one real transit point plus one WORK point and four directed section-contained spans. No new support/air/section, global reservation, bank or hidden per-Site state. Original owner/lease/context and unchanged old actors/rows/masks; all observers before one static commit. Frozen source review before commit; Catalog/source repinning remains root-owned.",
+            "worker_stop_ack": "Construction committed45d3d2dcf1f7cfaba2f3f81f533b32522537b1b3 and explicitly stopped all sources/tests2026-10-05, including Routes/WorldRoutes/Locations/WorkFace/FinalFacts. Root independently accepted corrected source-review-2 and integrated3851584553399ee41fbdcb41c08e35543a416ffe."
           },
           {
             "agent": "/root",
@@ -4968,7 +4993,7 @@
     },
     {
       "commit": "6da6deb952ebfce5d748563c1c1166f0f6b15dd3",
-      "outcome": "All14 CI jobs passed; eight original reports and raw logs independently reverified against frozen same-commit suite discovery. Full no-argument local run continues.",
+      "outcome": "All14 CI jobs and exact same-commit no-argument full local suite/analyzer passed; source/HEAD unchanged and project/assets restored.",
       "url": "https://github.com/gradybre/redwall-rts/actions/runs/37251846477",
       "local_worktree": "/Users/brendan/Developer/redwall-rts-codex-ug-checkpoint-1162",
       "local_branch": "codex/underground-checkpoint-1162",
@@ -4986,7 +5011,14 @@
       "leaked_objects": 0,
       "leaked_resources": 0,
       "analyzer": "0 GDScript warning(s) in 0 of 1243 file(s)",
-      "ci_wall_seconds": 884
+      "ci_wall_seconds": 884,
+      "local_run_status": "complete",
+      "local_tests": 11156,
+      "local_assertions": 1026365,
+      "local_failures": 0,
+      "local_analyzer": "0 GDScript warning(s) in 0 of1243 file(s)",
+      "local_suite_seconds": 1899.36,
+      "same_head_comparison": "Same402files,11156namedtests and all diagnostic/leak totals; local assertions10higher, unattributed. Strict all-counter equality not claimed."
     }
   ],
   "crosscut_fixes": [

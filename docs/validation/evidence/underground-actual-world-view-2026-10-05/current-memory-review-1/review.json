@@ -1,0 +1,69 @@
+{
+  "decision": "1174",
+  "reviewer": "/root/ug_furnishing",
+  "verdict": "ACCEPTED",
+  "scope": "Source-accounting tools and captured replay only; no native or runtime qualification.",
+  "candidate_checkpoint": "db03b1f7955afedb0aba87d1715498aaedca1623",
+  "source_manifest_sha256": "0378fee5c721423a2c224361f67784399cd6ea945e1187eb26d39994ba81950f",
+  "source_pins": {
+    "tools/underground_room_memory.py": "39645c9ddae5eba8e465ee0ece365efa57d9de4a24b4d91292f6675858b593e1",
+    "tools/underground_motion_memory.py": "4001155121eb67a983d46a0ee235823129e415fcb010ca6e3b44b544f87789e7",
+    "tools/underground_motion_clock_memory.py": "0a2a691cf226e3429d5ea880bb3dcac24b8b85582aeb01a1e77d59d0af9503d1",
+    "tools/underground_memory_budget.py": "9b1b6cda87131b9d7d6be2158836a2190d164b4acc7112a804d721379e122141",
+    "tools/test_underground_room_memory.py": "495af53d6015b5cd99898c37acf123377427266b16e400ac83f2d919cb8d61d1",
+    "tools/test_underground_motion_memory.py": "fbfc191bf425d6f547cba1dbc0d6672fb97a40f23663d26a49f89b7dc06885b6",
+    "tools/test_underground_motion_clock_memory.py": "5aebcc7fb56cb5bfca032a4359e2901763077b5120fda7418f477907aebba804",
+    "tools/test_underground_memory_budget.py": "48e052f00b4e67b46219dd96075b258b819a17dbe664a385effc05137c91ca9b",
+    "docs/validation/evidence/underground-current-memory-2026-10-05/manifest.json": "9eb1a296a595e4788f52bdbc28e6f6a852dab3c905b116e3075538588a64e3bc",
+    "docs/validation/evidence/underground-current-memory-2026-10-05/capture_manifest.py": "ec766e30add89a51f111e194bf865353abbd31674ed1ab488d3ff63f8b9b9276",
+    "docs/validation/evidence/underground-current-memory-2026-10-05/reproduce.py": "c5e9d11141e50672b59b851b4cdf20ace3b07116410d57b97ee2eb6873280530"
+  },
+  "source_unchanged": true,
+  "blocking_findings": [],
+  "independent_tests": {
+    "focused_python_tests": 33,
+    "failures": 0,
+    "log": "focused-python.log",
+    "engine_runs": 0,
+    "full_suite_runs": 0
+  },
+  "closure": {
+    "current_modules": 64,
+    "immutable_witnesses": 138,
+    "historical_versions": 16,
+    "protected_and_frozen_inputs": 192,
+    "unchanged": true
+  },
+  "actual_replay": {
+    "result": "independent_memory_pack.json",
+    "sha256": "86fb4fc9cb18b6b758fd440b80966ce3aa9c60bba7f0eb17c377736f9590d627",
+    "byte_equal_author_normal_2": true
+  },
+  "accounting": {
+    "constructor": 8185,
+    "constructor_ceiling": 8192,
+    "controls": 6131,
+    "control_ceiling": 6144,
+    "helpers": 1919,
+    "helper_ceiling": 2048,
+    "profile_joint": 248632,
+    "profile_joint_ceiling": 262144,
+    "global": 99999806,
+    "global_ceiling": 100000000,
+    "native_measured": false,
+    "runtime_qualified": false
+  },
+  "author_evidence_inspected": {
+    "memory_tests": 269,
+    "capacity_checks": 190,
+    "failures": 0,
+    "normal_2_all_five_commands_exit_zero": true,
+    "protected_files": 181,
+    "source_files": 8
+  },
+  "limitations": [
+    "This review does not admit native allocation or physical/gameplay permissions.",
+    "Historical source snapshots serve only explicitly named old accounting slices after current exact-source and current metadata checks.",
+    "The source-review-1 pending-status fields are historical; validation-summary.json records the completed normal-2 author run."
+  ]
+}

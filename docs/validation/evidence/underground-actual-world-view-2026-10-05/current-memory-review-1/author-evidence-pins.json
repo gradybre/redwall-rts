@@ -1,0 +1,42 @@
+{
+  "docs/validation/evidence/underground-current-memory-2026-10-05/source-review-1/source-sha256.json": {
+    "sha256": "0378fee5c721423a2c224361f67784399cd6ea945e1187eb26d39994ba81950f",
+    "review_locator": "author-evidence/source-review-1/source-sha256.json"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/source-review-1/source.diff": {
+    "sha256": "fedfa7a2e6ae8df93c89bfc147ba74edcdb5c19fabc3a192387e9f7126cb7072",
+    "review_locator": "author-evidence/source-review-1/source.diff"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/source-review-1/summary.json": {
+    "sha256": "12ea8edfe1442b7f2b2616623ebb94ec0cb802fc230295d1e711f7561bb80a70",
+    "review_locator": "author-evidence/source-review-1/summary.json"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/validation-summary.json": {
+    "sha256": "3a953906e6113e54d094000825edf071bc55d2b9b2a521c43bc876ddfc15ddfc",
+    "review_locator": "author-evidence/validation-summary.json"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/invocation.json": {
+    "sha256": "5aee98fda0d070ed4e5ea9a01c1753598986faf95bc44bd45a1540bc7da5be5d",
+    "review_locator": "author-evidence/normal-2/invocation.json"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/memory-tests.log": {
+    "sha256": "ec7bd2b1233633d7a06a1765d70438c266cb1d803cb4731b8cbf1ba4ac30d067",
+    "review_locator": "author-evidence/normal-2/memory-tests.log"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/capacity-tests.log": {
+    "sha256": "3d51369b9edf4cc746c61c76d2e08a4135149c944efb00e46eec2607f0cf89d0",
+    "review_locator": "author-evidence/normal-2/capacity-tests.log"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/registry-capacities.log": {
+    "sha256": "7be600465d23e377044f6993a3ee0cfef32484c44afead5a2175b2366bfc4be6",
+    "review_locator": "author-evidence/normal-2/registry-capacities.log"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/pack-generate.log": {
+    "sha256": "2d1515754690b7b5245af22cf059dd1f4d4c1c7b2b711b687e040b2f8c7258cb",
+    "review_locator": "author-evidence/normal-2/pack-generate.log"
+  },
+  "docs/validation/evidence/underground-current-memory-2026-10-05/normal-2/pack-check.log": {
+    "sha256": "2d1515754690b7b5245af22cf059dd1f4d4c1c7b2b711b687e040b2f8c7258cb",
+    "review_locator": "author-evidence/normal-2/pack-check.log"
+  }
+}
